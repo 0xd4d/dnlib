@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\Debug\bin\dot10.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,8 +32,26 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\Release\bin\dot10.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="PE\FileOffset.cs" />
+    <Compile Include="PE\FilePEImage.cs" />
+    <Compile Include="PE\FileSection.cs" />
+    <Compile Include="PE\IFileSection.cs" />
+    <Compile Include="PE\IImageOptionalHeader.cs" />
+    <Compile Include="PE\ImageDataDirectory.cs" />
+    <Compile Include="PE\ImageDosHeader.cs" />
+    <Compile Include="PE\ImageFileHeader.cs" />
+    <Compile Include="PE\ImageNTHeaders.cs" />
+    <Compile Include="PE\ImageOptionalHeader32.cs" />
+    <Compile Include="PE\ImageOptionalHeader64.cs" />
+    <Compile Include="PE\ImageSectionHeader.cs" />
+    <Compile Include="PE\IPEImage.cs" />
+    <Compile Include="PE\MemoryPEImage.cs" />
+    <Compile Include="PE\PEInfo.cs" />
+    <Compile Include="PE\RVA.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
