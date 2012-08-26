@@ -262,7 +262,7 @@ namespace dot10.PE {
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
 		public ImageOptionalHeader64(BinaryReader reader, uint totalSize, bool verify) {
-			if (totalSize < 0x60)
+			if (totalSize < 0x70)
 				throw new BadImageFormatException("Invalid optional header size");
 			if (verify && reader.BaseStream.Position + totalSize > reader.BaseStream.Length)
 				throw new BadImageFormatException("Invalid optional header size");

@@ -44,7 +44,7 @@ namespace dot10.PE {
 				throw new BadImageFormatException("Invalid NT headers signature");
 			this.imageFileHeader = new ImageFileHeader(reader, verify);
 			this.imageOptionalHeader = CreateImageOptionalHeader(reader, verify);
-			//TODO: set end offset
+			SetEndoffset(reader);
 		}
 
 		/// <summary>
@@ -59,7 +59,7 @@ namespace dot10.PE {
 			reader.BaseStream.Position -= 2;
 			switch (magic) {
 			case 0x010B: return new ImageOptionalHeader32(reader, imageFileHeader.SizeOfOptionalHeader, verify);
-			case 0x020B: return new ImageOptionalHeader32(reader, imageFileHeader.SizeOfOptionalHeader, verify);
+			case 0x020B: return new ImageOptionalHeader64(reader, imageFileHeader.SizeOfOptionalHeader, verify);
 			default: throw new BadImageFormatException("Invalid optional header magic");
 			}
 		}

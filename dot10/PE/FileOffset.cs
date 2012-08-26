@@ -4,7 +4,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Stores a file offset
 	/// </summary>
-	struct FileOffset : IEquatable<FileOffset>, IComparable<FileOffset> {
+	public struct FileOffset : IEquatable<FileOffset>, IComparable<FileOffset> {
 		readonly long val;
 
 		/// <summary>

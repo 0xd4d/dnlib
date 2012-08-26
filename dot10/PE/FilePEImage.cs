@@ -8,7 +8,7 @@ namespace dot10.PE {
 	/// memory by eg. the OS PE loader. Use <see cref="MemoryPEImage"/> instead.
 	/// </remarks>
 	/// <seealso cref="MemoryPEImage"/>
-	class FilePEImage : IPEImage, IPEInfoSeeker {
+	public class FilePEImage : IPEImage, IPEInfoSeeker {
 		readonly BinaryReader reader;
 		readonly PEInfo peInfo;
 

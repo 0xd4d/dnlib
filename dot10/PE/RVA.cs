@@ -4,7 +4,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Stores an RVA (relative virtual address)
 	/// </summary>
-	struct RVA : IEquatable<RVA>, IComparable<RVA> {
+	public struct RVA : IEquatable<RVA>, IComparable<RVA> {
 		readonly uint val;
 
 		/// <summary>
