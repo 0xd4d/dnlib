@@ -38,7 +38,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="IO\FileStreamCreator.cs" />
+    <Compile Include="IO\IStreamCreator.cs" />
     <Compile Include="IO\FileOffset.cs" />
+    <Compile Include="IO\MemoryStreamCreator.cs" />
+    <Compile Include="IO\RangeStream.cs" />
+    <Compile Include="IO\UnmanagedMemoryStreamCreator.cs" />
     <Compile Include="PE\FilePEImage.cs" />
     <Compile Include="PE\FileSection.cs" />
     <Compile Include="PE\IFileSection.cs" />
