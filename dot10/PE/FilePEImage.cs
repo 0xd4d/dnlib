@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using dot10.IO;
 
 namespace dot10.PE {
@@ -10,22 +11,29 @@ namespace dot10.PE {
 	/// </remarks>
 	/// <seealso cref="MemoryPEImage"/>
 	public class FilePEImage : PEImageBase {
-		/// <summary>
-		/// Constructor for a PE image in a Stream
-		/// </summary>
-		/// <param name="data">The PE file data</param>
-		/// <param name="verify">Verify PE file data</param>
-		public FilePEImage(Stream data, bool verify)
+		/// <inheritdoc/>
+		public FilePEImage(IStreamCreator streamCreator, bool verify)
+			: base(streamCreator, verify) {
+		}
+
+		/// <inheritdoc/>
+		public FilePEImage(string filename, bool verify)
+			: base(filename, verify) {
+		}
+
+		/// <inheritdoc/>
+		public FilePEImage(byte[] data, bool verify)
 			: base(data, verify) {
 		}
 
-		/// <summary>
-		/// Constructor for a PE image in a byte[]
-		/// </summary>
-		/// <param name="data">The PE file data</param>
-		/// <param name="verify">Verify PE file data</param>
-		public FilePEImage(byte[] data, bool verify)
-			: this(new MemoryStream(data), verify) {
+		/// <inheritdoc/>
+		public FilePEImage(IntPtr baseAddr, long length, bool verify)
+			: base(baseAddr, length, verify) {
+		}
+
+		/// <inheritdoc/>
+		public FilePEImage(IntPtr baseAddr, bool verify)
+			: base(baseAddr, verify) {
 		}
 
 		/// <inheritdoc/>

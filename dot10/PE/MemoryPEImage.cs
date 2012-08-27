@@ -9,39 +9,29 @@ namespace dot10.PE {
 	/// </summary>
 	/// <seealso cref="FilePEImage"/>
 	public class MemoryPEImage : PEImageBase {
-		/// <summary>
-		/// Constructor for a PE image in a Stream
-		/// </summary>
-		/// <param name="data">The PE file data</param>
-		/// <param name="verify">Verify PE file data</param>
-		public MemoryPEImage(Stream data, bool verify)
+		/// <inheritdoc/>
+		public MemoryPEImage(IStreamCreator streamCreator, bool verify)
+			: base(streamCreator, verify) {
+		}
+
+		/// <inheritdoc/>
+		public MemoryPEImage(string filename, bool verify)
+			: base(filename, verify) {
+		}
+
+		/// <inheritdoc/>
+		public MemoryPEImage(byte[] data, bool verify)
 			: base(data, verify) {
 		}
 
-		/// <summary>
-		/// Constructor for a PE image in memory
-		/// </summary>
-		/// <param name="baseAddr">Address of PE image</param>
-		/// <param name="verify">Verify PE file data</param>
-		public unsafe MemoryPEImage(IntPtr baseAddr, bool verify)
-			: this(new UnmanagedMemoryStream((byte*)baseAddr.ToPointer(), 0x10000), verify) {
-			resetStream(new UnmanagedMemoryStream((byte*)baseAddr.ToPointer(), getTotalMemorySize()));
+		/// <inheritdoc/>
+		public MemoryPEImage(IntPtr baseAddr, long length, bool verify)
+			: base(baseAddr, length, verify) {
 		}
 
-		static ulong alignUp(ulong val, uint alignment) {
-			return (val + alignment - 1) & ~(ulong)(alignment - 1);
-		}
-
-		long getTotalMemorySize() {
-			var optHdr = ImageNTHeaders.OptionalHeader;
-			uint alignment = optHdr.SectionAlignment;
-			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
-			foreach (var section in ImageSectionHeaders) {
-				ulong len2 = alignUp((ulong)section.VirtualAddress.Value + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
-				if (len2 > len)
-					len = len2;
-			}
-			return (long)len;
+		/// <inheritdoc/>
+		public MemoryPEImage(IntPtr baseAddr, bool verify)
+			: base(baseAddr, verify) {
 		}
 
 		/// <inheritdoc/>
