@@ -12,8 +12,8 @@ namespace dot10.PE {
 		uint sizeOfCode;
 		uint sizeOfInitializedData;
 		uint sizeOfUninitializedData;
-		uint addressOfEntryPoint;
-		uint baseOfCode;
+		RVA addressOfEntryPoint;
+		RVA baseOfCode;
 		ulong imageBase;
 		uint sectionAlignment;
 		uint fileAlignment;
@@ -82,22 +82,22 @@ namespace dot10.PE {
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER64.AddressOfEntryPoint field
 		/// </summary>
-		public uint AddressOfEntryPoint {
+		public RVA AddressOfEntryPoint {
 			get { return addressOfEntryPoint; }
 		}
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER64.BaseOfCode field
 		/// </summary>
-		public uint BaseOfCode {
+		public RVA BaseOfCode {
 			get { return baseOfCode; }
 		}
 
 		/// <summary>
 		/// Returns 0 since BaseOfData is not present in IMAGE_OPTIONAL_HEADER64
 		/// </summary>
-		public uint BaseOfData {
-			get { return 0; }
+		public RVA BaseOfData {
+			get { return RVA.Zero; }
 		}
 
 		/// <summary>
@@ -273,8 +273,8 @@ namespace dot10.PE {
 			this.sizeOfCode = reader.ReadUInt32();
 			this.sizeOfInitializedData = reader.ReadUInt32();
 			this.sizeOfUninitializedData = reader.ReadUInt32();
-			this.addressOfEntryPoint = reader.ReadUInt32();
-			this.baseOfCode = reader.ReadUInt32();
+			this.addressOfEntryPoint = new RVA(reader.ReadUInt32());
+			this.baseOfCode = new RVA(reader.ReadUInt32());
 			this.imageBase = reader.ReadUInt64();
 			this.sectionAlignment = reader.ReadUInt32();
 			this.fileAlignment = reader.ReadUInt32();

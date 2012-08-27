@@ -51,7 +51,7 @@ namespace dot10.PE {
 		/// <param name="verify">Verify sections</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
 		public PEInfo(IPEInfoSeeker peInfoSeeker, BinaryReader reader, bool verify) {
-			peInfoSeeker.seek(reader, new FileOffset(0));
+			peInfoSeeker.seek(reader, FileOffset.Zero);
 			this.imageDosHeader = new ImageDosHeader(reader, verify);
 
 			if (verify && this.imageDosHeader.NTHeadersOffset == 0)
@@ -87,7 +87,7 @@ namespace dot10.PE {
 		/// <returns></returns>
 		public ImageSectionHeader ToImageSectionHeader(RVA rva) {
 			foreach (var section in imageSectionHeaders) {
-				if (rva.Value >= section.VirtualAddress && rva.Value < section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData))
+				if (rva >= section.VirtualAddress && rva < section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData))
 					return section;
 			}
 			return null;
@@ -101,7 +101,7 @@ namespace dot10.PE {
 		public RVA ToRVA(FileOffset offset) {
 			var section = ToImageSectionHeader(offset);
 			if (section != null)
-				return new RVA((uint)(offset.Value - section.PointerToRawData) + section.VirtualAddress);
+				return (uint)(offset.Value - section.PointerToRawData) + section.VirtualAddress;
 			return new RVA((uint)offset.Value);
 		}
 
@@ -113,7 +113,7 @@ namespace dot10.PE {
 		public FileOffset ToFileOffset(RVA rva) {
 			var section = ToImageSectionHeader(rva);
 			if (section != null)
-				return new FileOffset((long)(rva.Value - section.VirtualAddress) + section.PointerToRawData);
+				return new FileOffset((long)(rva.Value - section.VirtualAddress.Value) + section.PointerToRawData);
 			return new FileOffset(rva.Value);
 		}
 	}

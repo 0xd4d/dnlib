@@ -36,17 +36,17 @@
 		/// <summary>
 		/// Returns the AddressOfEntryPoint field
 		/// </summary>
-		uint AddressOfEntryPoint { get; }
+		RVA AddressOfEntryPoint { get; }
 
 		/// <summary>
 		/// Returns the BaseOfCode field
 		/// </summary>
-		uint BaseOfCode { get; }
+		RVA BaseOfCode { get; }
 
 		/// <summary>
 		/// Returns the BaseOfData field
 		/// </summary>
-		uint BaseOfData { get; }
+		RVA BaseOfData { get; }
 
 		/// <summary>
 		/// Returns the ImageBase field

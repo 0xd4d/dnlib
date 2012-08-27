@@ -10,7 +10,7 @@ namespace dot10.PE {
 		string displayName;
 		byte[] name;
 		uint virtualSize;
-		uint virtualAddress;
+		RVA virtualAddress;
 		uint sizeOfRawData;
 		uint pointerToRawData;
 		uint pointerToRelocations;
@@ -44,7 +44,7 @@ namespace dot10.PE {
 		/// <summary>
 		/// Returns the IMAGE_SECTION_HEADER.VirtualAddress field
 		/// </summary>
-		public uint VirtualAddress {
+		public RVA VirtualAddress {
 			get { return virtualAddress; }
 		}
 
@@ -107,7 +107,7 @@ namespace dot10.PE {
 			SetStartOffset(reader);
 			this.name = reader.ReadBytes(8);
 			this.virtualSize = reader.ReadUInt32();
-			this.virtualAddress = reader.ReadUInt32();
+			this.virtualAddress = new RVA(reader.ReadUInt32());
 			this.sizeOfRawData = reader.ReadUInt32();
 			this.pointerToRawData = reader.ReadUInt32();
 			this.pointerToRelocations = reader.ReadUInt32();
