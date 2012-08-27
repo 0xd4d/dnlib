@@ -33,43 +33,63 @@ namespace dot10.PE {
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator +(FileOffset left, int val) {
-			return new FileOffset(left.val + val);
+		public static FileOffset operator +(FileOffset left, int right) {
+			return new FileOffset(left.val + right);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator +(FileOffset left, uint val) {
-			return new FileOffset(left.val + val);
+		public static FileOffset operator +(FileOffset left, uint right) {
+			return new FileOffset(left.val + right);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator +(FileOffset left, long val) {
-			return new FileOffset(left.val + val);
+		public static FileOffset operator +(FileOffset left, long right) {
+			return new FileOffset(left.val + right);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator +(FileOffset left, ulong val) {
-			return new FileOffset(left.val + (long)val);
+		public static FileOffset operator +(FileOffset left, ulong right) {
+			return new FileOffset(left.val + (long)right);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator -(FileOffset left, int val) {
-			return new FileOffset(left.val - val);
+		public static FileOffset operator +(int left, FileOffset right) {
+			return new FileOffset(left + right.val);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator -(FileOffset left, uint val) {
-			return new FileOffset(left.val - val);
+		public static FileOffset operator +(uint left, FileOffset right) {
+			return new FileOffset(left + right.val);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator -(FileOffset left, long val) {
-			return new FileOffset(left.val - val);
+		public static FileOffset operator +(long left, FileOffset right) {
+			return new FileOffset(left + right.val);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static FileOffset operator -(FileOffset left, ulong val) {
-			return new FileOffset(left.val - (long)val);
+		public static FileOffset operator +(ulong left, FileOffset right) {
+			return new FileOffset((long)left + right.val);
+		}
+
+		/// <summary>Overloaded operator</summary>
+		public static FileOffset operator -(FileOffset left, int right) {
+			return new FileOffset(left.val - right);
+		}
+
+		/// <summary>Overloaded operator</summary>
+		public static FileOffset operator -(FileOffset left, uint right) {
+			return new FileOffset(left.val - right);
+		}
+
+		/// <summary>Overloaded operator</summary>
+		public static FileOffset operator -(FileOffset left, long right) {
+			return new FileOffset(left.val - right);
+		}
+
+		/// <summary>Overloaded operator</summary>
+		public static FileOffset operator -(FileOffset left, ulong right) {
+			return new FileOffset(left.val - (long)right);
 		}
 
 		/// <summary>Overloaded operator</summary>

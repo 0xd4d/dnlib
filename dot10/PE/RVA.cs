@@ -33,23 +33,33 @@ namespace dot10.PE {
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static RVA operator +(RVA left, int val) {
-			return new RVA(left.val + (uint)val);
+		public static RVA operator +(RVA left, int right) {
+			return new RVA(left.val + (uint)right);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static RVA operator +(RVA left, uint val) {
-			return new RVA(left.val + val);
+		public static RVA operator +(RVA left, uint right) {
+			return new RVA(left.val + right);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static RVA operator -(RVA left, int val) {
-			return new RVA(left.val - (uint)val);
+		public static RVA operator +(int left, RVA right) {
+			return new RVA((uint)left + right.val);
 		}
 
 		/// <summary>Overloaded operator</summary>
-		public static RVA operator -(RVA left, uint val) {
-			return new RVA(left.val - val);
+		public static RVA operator +(uint left, RVA right) {
+			return new RVA(left + right.val);
+		}
+
+		/// <summary>Overloaded operator</summary>
+		public static RVA operator -(RVA left, int right) {
+			return new RVA(left.val - (uint)right);
+		}
+
+		/// <summary>Overloaded operator</summary>
+		public static RVA operator -(RVA left, uint right) {
+			return new RVA(left.val - right);
 		}
 
 		/// <summary>Overloaded operator</summary>
