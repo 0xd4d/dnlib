@@ -37,7 +37,7 @@ namespace dot10.PE {
 			uint alignment = optHdr.SectionAlignment;
 			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
 			foreach (var section in ImageSectionHeaders) {
-				ulong len2 = alignUp(section.VirtualAddress.Value + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
+				ulong len2 = alignUp((ulong)section.VirtualAddress.Value + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
 				if (len2 > len)
 					len = len2;
 			}
