@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace dot10.PE {
@@ -15,6 +16,32 @@ namespace dot10.PE {
 		/// <param name="verify">Verify PE file data</param>
 		public MemoryPEImage(Stream data, bool verify)
 			: base(data, verify) {
+		}
+
+		/// <summary>
+		/// Constructor for a PE image in memory
+		/// </summary>
+		/// <param name="baseAddr">Address of PE image</param>
+		/// <param name="verify">Verify PE file data</param>
+		public unsafe MemoryPEImage(IntPtr baseAddr, bool verify)
+			: this(new UnmanagedMemoryStream((byte*)baseAddr.ToPointer(), 0x10000), verify) {
+			resetStream(new UnmanagedMemoryStream((byte*)baseAddr.ToPointer(), getTotalMemorySize()));
+		}
+
+		static ulong alignUp(ulong val, uint alignment) {
+			return (val + alignment - 1) & ~(ulong)(alignment - 1);
+		}
+
+		long getTotalMemorySize() {
+			var optHdr = ImageNTHeaders.OptionalHeader;
+			uint alignment = optHdr.SectionAlignment;
+			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
+			foreach (var section in ImageSectionHeaders) {
+				ulong len2 = alignUp(section.VirtualAddress.Value + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
+				if (len2 > len)
+					len = len2;
+			}
+			return (long)len;
 		}
 
 		/// <inheritdoc/>

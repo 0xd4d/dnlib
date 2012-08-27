@@ -6,7 +6,7 @@ namespace dot10.PE {
 	/// Accesses a PE file
 	/// </summary>
 	public abstract class PEImageBase : IPEImage {
-		readonly BinaryReader reader;
+		BinaryReader reader;
 
 		/// <summary>
 		/// Access to the PE headers
@@ -34,8 +34,16 @@ namespace dot10.PE {
 		/// <param name="data">The PE file data</param>
 		/// <param name="verify">Verify PE file data</param>
 		protected PEImageBase(Stream data, bool verify) {
-			this.reader = new BinaryReader(data);
+			resetStream(data);
 			this.peInfo = new PEInfo(reader, verify);
+		}
+
+		/// <summary>
+		/// Set a new Stream
+		/// </summary>
+		/// <param name="data">The PE file data</param>
+		protected void resetStream(Stream data) {
+			reader = new BinaryReader(data);
 		}
 
 		/// <inheritdoc/>
