@@ -88,11 +88,29 @@ namespace dot10.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="filename">Name of the file</param>
+		/// <param name="verify">Verify PE file data</param>
+		public PEImage(string filename, bool verify)
+			: this(filename, FileLayout, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		/// <param name="data">The PE file data</param>
 		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(byte[] data, IPEType peType, bool verify)
 			: this(new MemoryStreamCreator(data), peType, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="data">The PE file data</param>
+		/// <param name="verify">Verify PE file data</param>
+		public PEImage(byte[] data, bool verify)
+			: this(data, FileLayout, verify) {
 		}
 
 		/// <summary>
@@ -110,12 +128,31 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="baseAddr">Address of PE image</param>
+		/// <param name="length">Length of PE image</param>
+		/// <param name="verify">Verify PE file data</param>
+		public PEImage(IntPtr baseAddr, long length, bool verify)
+			: this(baseAddr, length, MemoryLayout, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, IPEType peType, bool verify)
 			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), peType, verify) {
 			((UnmanagedMemoryStreamCreator)streamCreator).Length = getTotalMemorySize();
 			ResetReader();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="baseAddr">Address of PE image</param>
+		/// <param name="verify">Verify PE file data</param>
+		public PEImage(IntPtr baseAddr, bool verify)
+			: this(baseAddr, MemoryLayout, verify) {
 		}
 
 		void ResetReader() {
