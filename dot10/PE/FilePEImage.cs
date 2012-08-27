@@ -9,33 +9,14 @@ namespace dot10.PE {
 	/// memory by eg. the OS PE loader. Use <see cref="MemoryPEImage"/> instead.
 	/// </remarks>
 	/// <seealso cref="MemoryPEImage"/>
-	public class FilePEImage : IPEImage, IPEInfoSeeker {
-		readonly BinaryReader reader;
-		readonly PEInfo peInfo;
-
-		/// <inheritdoc/>
-		public ImageDosHeader ImageDosHeader {
-			get { return peInfo.ImageDosHeader; }
-		}
-
-		/// <inheritdoc/>
-		public ImageNTHeaders ImageNTHeaders {
-			get { return peInfo.ImageNTHeaders; }
-		}
-
-		/// <inheritdoc/>
-		public IList<ImageSectionHeader> ImageSectionHeaders {
-			get { return peInfo.ImageSectionHeaders; }
-		}
-
+	public class FilePEImage : PEImageBase {
 		/// <summary>
 		/// Constructor for a PE image in a Stream
 		/// </summary>
 		/// <param name="data">The PE file data</param>
 		/// <param name="verify">Verify PE file data</param>
-		public FilePEImage(Stream data, bool verify) {
-			this.reader = new BinaryReader(data);
-			this.peInfo = new PEInfo(this, reader, verify);
+		public FilePEImage(Stream data, bool verify)
+			: base(data, verify) {
 		}
 
 		/// <summary>
@@ -48,17 +29,13 @@ namespace dot10.PE {
 		}
 
 		/// <inheritdoc/>
-		public RVA ToRVA(FileOffset offset) {
+		public override RVA ToRVA(FileOffset offset) {
 			return peInfo.ToRVA(offset);
 		}
 
 		/// <inheritdoc/>
-		public FileOffset ToFileOffset(RVA rva) {
+		public override FileOffset ToFileOffset(RVA rva) {
 			return peInfo.ToFileOffset(rva);
-		}
-
-		void IPEInfoSeeker.seek(BinaryReader reader, FileOffset offset) {
-			reader.BaseStream.Position = offset.Value;
 		}
 	}
 }

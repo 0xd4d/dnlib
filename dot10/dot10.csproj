@@ -50,6 +50,7 @@
     <Compile Include="PE\ImageSectionHeader.cs" />
     <Compile Include="PE\IPEImage.cs" />
     <Compile Include="PE\MemoryPEImage.cs" />
+    <Compile Include="PE\PEImageBase.cs" />
     <Compile Include="PE\PEInfo.cs" />
     <Compile Include="PE\RVA.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

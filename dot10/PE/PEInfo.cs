@@ -3,21 +3,9 @@ using System.IO;
 
 namespace dot10.PE {
 	/// <summary>
-	/// Helps PEInfo seek to file offsets
-	/// </summary>
-	interface IPEInfoSeeker {
-		/// <summary>
-		/// Seek to a file offset
-		/// </summary>
-		/// <param name="reader">The reader with the stream</param>
-		/// <param name="offset">The file offset</param>
-		void seek(BinaryReader reader, FileOffset offset);
-	}
-
-	/// <summary>
 	/// Reads all PE sections from a PE stream
 	/// </summary>
-	class PEInfo {
+	public class PEInfo {
 		readonly ImageDosHeader imageDosHeader;
 		readonly ImageNTHeaders imageNTHeaders;
 		readonly ImageSectionHeader[] imageSectionHeaders;
@@ -46,20 +34,19 @@ namespace dot10.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="peInfoSeeker">Seek helper</param>
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify sections</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public PEInfo(IPEInfoSeeker peInfoSeeker, BinaryReader reader, bool verify) {
-			peInfoSeeker.seek(reader, FileOffset.Zero);
+		public PEInfo(BinaryReader reader, bool verify) {
+			reader.BaseStream.Position = 0;
 			this.imageDosHeader = new ImageDosHeader(reader, verify);
 
 			if (verify && this.imageDosHeader.NTHeadersOffset == 0)
 				throw new BadImageFormatException("Invalid NT headers offset");
-			peInfoSeeker.seek(reader, new FileOffset(this.imageDosHeader.NTHeadersOffset));
+			reader.BaseStream.Position = this.imageDosHeader.NTHeadersOffset;
 			this.imageNTHeaders = new ImageNTHeaders(reader, verify);
 
-			peInfoSeeker.seek(reader, this.imageNTHeaders.OptionalHeader.StartOffset + this.imageNTHeaders.FileHeader.SizeOfOptionalHeader);
+			reader.BaseStream.Position = (this.imageNTHeaders.OptionalHeader.StartOffset + this.imageNTHeaders.FileHeader.SizeOfOptionalHeader).Value;
 			this.imageSectionHeaders = new ImageSectionHeader[this.imageNTHeaders.FileHeader.NumberOfSections];
 			for (int i = 0; i < this.imageSectionHeaders.Length; i++)
 				this.imageSectionHeaders[i] = new ImageSectionHeader(reader, verify);
