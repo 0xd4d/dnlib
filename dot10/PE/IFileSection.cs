@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Represents a section in a file
 	/// </summary>
-	interface IFileSection {
+	public interface IFileSection {
 		/// <summary>
 		/// Start offset of the section in the file
 		/// </summary>

@@ -4,7 +4,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Base class for classes needing to implement IFileSection
 	/// </summary>
-	class FileSection : IFileSection {
+	public class FileSection : IFileSection {
 		/// <summary>
 		/// The start file offset of this section
 		/// </summary>

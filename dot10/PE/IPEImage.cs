@@ -1,8 +1,25 @@
-﻿namespace dot10.PE {
+﻿using System.Collections.Generic;
+
+namespace dot10.PE {
 	/// <summary>
 	/// Interface to access a PE image
 	/// </summary>
 	interface IPEImage {
+		/// <summary>
+		/// Returns the DOS header
+		/// </summary>
+		ImageDosHeader ImageDosHeader { get; }
+
+		/// <summary>
+		/// Returns the NT headers
+		/// </summary>
+		ImageNTHeaders ImageNTHeaders { get; }
+
+		/// <summary>
+		/// Returns the section headers
+		/// </summary>
+		IList<ImageSectionHeader> ImageSectionHeaders { get; }
+
 		/// <summary>
 		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>
 		/// </summary>

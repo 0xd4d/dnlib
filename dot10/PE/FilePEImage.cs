@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace dot10.PE {
 	/// <summary>
@@ -11,6 +12,21 @@ namespace dot10.PE {
 	public class FilePEImage : IPEImage, IPEInfoSeeker {
 		readonly BinaryReader reader;
 		readonly PEInfo peInfo;
+
+		/// <inheritdoc/>
+		public ImageDosHeader ImageDosHeader {
+			get { return peInfo.ImageDosHeader; }
+		}
+
+		/// <inheritdoc/>
+		public ImageNTHeaders ImageNTHeaders {
+			get { return peInfo.ImageNTHeaders; }
+		}
+
+		/// <inheritdoc/>
+		public IList<ImageSectionHeader> ImageSectionHeaders {
+			get { return peInfo.ImageSectionHeaders; }
+		}
 
 		/// <summary>
 		/// Constructor for a PE image in a Stream

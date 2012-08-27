@@ -6,7 +6,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Represents the IMAGE_SECTION_HEADER PE section
 	/// </summary>
-	class ImageSectionHeader : FileSection {
+	public class ImageSectionHeader : FileSection {
 		string displayName;
 		byte[] name;
 		uint virtualSize;

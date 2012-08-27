@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Interface for PE optional header classes
 	/// </summary>
-	interface IImageOptionalHeader : IFileSection {
+	public interface IImageOptionalHeader : IFileSection {
 		/// <summary>
 		/// Returns the Magic field
 		/// </summary>
