@@ -7,18 +7,45 @@ namespace dot10.PE {
 	/// <summary>
 	/// Accesses a PE file
 	/// </summary>
-	public abstract class PEImageBase : IPEImage {
+	public class PEImage : IPEImage {
+		/// <summary>
+		/// Use this if the PE file has been loaded into memory by the OS PE file loader
+		/// </summary>
+		public static readonly IPEType MemoryLayout = new MemoryPEType();
+
+		/// <summary>
+		/// Use this if the PE file has a normal structure (eg. it's been read from a file on disk)
+		/// </summary>
+		public static readonly IPEType FileLayout = new FilePEType();
+
 		BinaryReader reader;
+		IStreamCreator streamCreator;
+		IPEType peType;
+		PEInfo peInfo;
 
-		/// <summary>
-		/// The stream creator
-		/// </summary>
-		protected IStreamCreator streamCreator;
+		class FilePEType : IPEType {
+			/// <inheritdoc/>
+			public RVA ToRVA(PEInfo peInfo, FileOffset offset) {
+				return peInfo.ToRVA(offset);
+			}
 
-		/// <summary>
-		/// Access to the PE headers
-		/// </summary>
-		protected PEInfo peInfo;
+			/// <inheritdoc/>
+			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) {
+				return peInfo.ToFileOffset(rva);
+			}
+		}
+
+		class MemoryPEType : IPEType {
+			/// <inheritdoc/>
+			public RVA ToRVA(PEInfo peInfo, FileOffset offset) {
+				return new RVA((uint)offset.Value);
+			}
+
+			/// <inheritdoc/>
+			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) {
+				return new FileOffset(rva.Value);
+			}
+		}
 
 		/// <inheritdoc/>
 		public ImageDosHeader ImageDosHeader {
@@ -39,9 +66,11 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="streamCreator">The PE stream creator</param>
+		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
-		protected PEImageBase(IStreamCreator streamCreator, bool verify) {
+		protected PEImage(IStreamCreator streamCreator, IPEType peType, bool verify) {
 			this.streamCreator = streamCreator;
+			this.peType = peType;
 			ResetReader();
 			this.peInfo = new PEInfo(reader, verify);
 		}
@@ -50,18 +79,20 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="filename">Name of the file</param>
+		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImageBase(string filename, bool verify)
-			: this(new FileStreamCreator(filename), verify) {
+		public PEImage(string filename, IPEType peType, bool verify)
+			: this(new FileStreamCreator(filename), peType, verify) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="data">The PE file data</param>
+		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImageBase(byte[] data, bool verify)
-			: this(new MemoryStreamCreator(data), verify) {
+		public PEImage(byte[] data, IPEType peType, bool verify)
+			: this(new MemoryStreamCreator(data), peType, verify) {
 		}
 
 		/// <summary>
@@ -69,18 +100,20 @@ namespace dot10.PE {
 		/// </summary>
 		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="length">Length of PE image</param>
+		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImageBase(IntPtr baseAddr, long length, bool verify)
-			: this(new UnmanagedMemoryStreamCreator(baseAddr, length), verify) {
+		public PEImage(IntPtr baseAddr, long length, IPEType peType, bool verify)
+			: this(new UnmanagedMemoryStreamCreator(baseAddr, length), peType, verify) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="baseAddr">Address of PE image</param>
+		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImageBase(IntPtr baseAddr, bool verify)
-			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), verify) {
+		public PEImage(IntPtr baseAddr, IPEType peType, bool verify)
+			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), peType, verify) {
 			((UnmanagedMemoryStreamCreator)streamCreator).Length = getTotalMemorySize();
 			ResetReader();
 		}
@@ -106,9 +139,13 @@ namespace dot10.PE {
 		}
 
 		/// <inheritdoc/>
-		public abstract RVA ToRVA(FileOffset offset);
+		public RVA ToRVA(FileOffset offset) {
+			return peType.ToRVA(peInfo, offset);
+		}
 
 		/// <inheritdoc/>
-		public abstract FileOffset ToFileOffset(RVA rva);
+		public FileOffset ToFileOffset(RVA rva) {
+			return peType.ToFileOffset(peInfo, rva);
+		}
 	}
 }
