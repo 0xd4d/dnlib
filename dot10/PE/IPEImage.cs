@@ -4,7 +4,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Interface to access a PE image
 	/// </summary>
-	interface IPEImage {
+	public interface IPEImage {
 		/// <summary>
 		/// Returns the DOS header
 		/// </summary>
