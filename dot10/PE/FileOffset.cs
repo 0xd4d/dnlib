@@ -5,6 +5,11 @@ namespace dot10.PE {
 	/// Stores a file offset
 	/// </summary>
 	public struct FileOffset : IEquatable<FileOffset>, IComparable<FileOffset> {
+		/// <summary>
+		/// The zero file offset
+		/// </summary>
+		public static readonly FileOffset Zero = new FileOffset(0);
+
 		readonly long val;
 
 		/// <summary>

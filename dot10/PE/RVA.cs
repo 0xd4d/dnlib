@@ -5,6 +5,11 @@ namespace dot10.PE {
 	/// Stores an RVA (relative virtual address)
 	/// </summary>
 	public struct RVA : IEquatable<RVA>, IComparable<RVA> {
+		/// <summary>
+		/// The zero RVA
+		/// </summary>
+		public static readonly RVA Zero = new RVA(0);
+
 		readonly uint val;
 
 		/// <summary>
