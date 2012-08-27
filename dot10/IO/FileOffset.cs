@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace dot10.PE {
+namespace dot10.IO {
 	/// <summary>
 	/// Stores a file offset
 	/// </summary>
