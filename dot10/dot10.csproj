@@ -41,6 +41,7 @@
     <Compile Include="IO\FileStreamCreator.cs" />
     <Compile Include="IO\IStreamCreator.cs" />
     <Compile Include="IO\FileOffset.cs" />
+    <Compile Include="IO\MemoryMappedFileStreamCreator.cs" />
     <Compile Include="IO\MemoryStreamCreator.cs" />
     <Compile Include="IO\RangeStream.cs" />
     <Compile Include="IO\UnmanagedMemoryStreamCreator.cs" />
