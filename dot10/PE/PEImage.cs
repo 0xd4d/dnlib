@@ -79,10 +79,14 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="filename">Name of the file</param>
-		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
+		/// <param name="mapAsImage">true if we should map it as an executable</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(string filename, IPEType peType, bool verify)
-			: this(new FileStreamCreator(filename), peType, verify) {
+		public PEImage(string filename, bool mapAsImage, bool verify)
+			: this(new MemoryMappedFileStreamCreator(filename, mapAsImage), mapAsImage ? MemoryLayout : FileLayout, verify) {
+			if (mapAsImage) {
+				((MemoryMappedFileStreamCreator)streamCreator).Length = peInfo.GetImageSize();
+				ResetReader();
+			}
 		}
 
 		/// <summary>
@@ -91,7 +95,7 @@ namespace dot10.PE {
 		/// <param name="filename">Name of the file</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string filename, bool verify)
-			: this(filename, FileLayout, verify) {
+			: this(filename, true, verify) {
 		}
 
 		/// <summary>
