@@ -230,16 +230,6 @@ namespace dot10.PE {
 		}
 
 		/// <inheritdoc/>
-		public Stream CreateStream(RVA rva) {
-			return CreateStream(ToFileOffset(rva));
-		}
-
-		/// <inheritdoc/>
-		public Stream CreateStream(RVA rva, long length) {
-			return CreateStream(ToFileOffset(rva), length);
-		}
-
-		/// <inheritdoc/>
 		public Stream CreateFullStream() {
 			return streamCreator.CreateFull();
 		}

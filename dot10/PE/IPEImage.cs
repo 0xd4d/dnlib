@@ -57,25 +57,6 @@ namespace dot10.PE {
 		Stream CreateStream(FileOffset offset, long length);
 
 		/// <summary>
-		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
-		/// to the end of the image
-		/// </summary>
-		/// <param name="rva">RVA</param>
-		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
-		Stream CreateStream(RVA rva);
-
-		/// <summary>
-		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
-		/// with length <paramref name="length"/>
-		/// </summary>
-		/// <param name="rva">RVA</param>
-		/// <param name="length">Length of data</param>
-		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
-		Stream CreateStream(RVA rva, long length);
-
-		/// <summary>
 		/// Creates a stream to access the full PE image
 		/// </summary>
 		/// <returns>A new stream</returns>
@@ -83,6 +64,31 @@ namespace dot10.PE {
 	}
 
 	public static partial class PEExtensions {
+		/// <summary>
+		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
+		/// to the end of the image
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="rva">RVA</param>
+		/// <returns>A new stream</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
+		public static Stream CreateStream(this IPEImage self, RVA rva) {
+			return self.CreateStream(self.ToFileOffset(rva));
+		}
+
+		/// <summary>
+		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
+		/// with length <paramref name="length"/>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="rva">RVA</param>
+		/// <param name="length">Length of data</param>
+		/// <returns>A new stream</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
+		public static Stream CreateStream(this IPEImage self, RVA rva, long length) {
+			return self.CreateStream(self.ToFileOffset(rva), length);
+		}
+
 		/// <summary>
 		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(FileOffset)"/>
 		/// </summary>
@@ -98,14 +104,14 @@ namespace dot10.PE {
 		}
 
 		/// <summary>
-		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(RVA)"/>
+		/// Creates a binary reader that can access the PE image. <see cref="CreateStream(IPEImage,RVA)"/>
 		/// </summary>
 		public static BinaryReader CreateReader(this IPEImage self, RVA rva) {
 			return new BinaryReader(self.CreateStream(rva));
 		}
 
 		/// <summary>
-		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(RVA,long)"/>
+		/// Creates a binary reader that can access the PE image. <see cref="CreateStream(IPEImage,RVA,long)"/>
 		/// </summary>
 		public static BinaryReader CreateReader(this IPEImage self, RVA rva, long length) {
 			return new BinaryReader(self.CreateStream(rva, length));
