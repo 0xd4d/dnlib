@@ -218,7 +218,7 @@ namespace dot10.PE {
 
 		/// <inheritdoc/>
 		public Stream CreateStream(FileOffset offset) {
-			if (streamCreator.Length > offset.Value)
+			if (offset.Value > streamCreator.Length)
 				throw new ArgumentOutOfRangeException("offset");
 			long length = streamCreator.Length - offset.Value;
 			return CreateStream(offset, length);
