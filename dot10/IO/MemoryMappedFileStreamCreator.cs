@@ -51,6 +51,13 @@ namespace dot10.IO {
 		}
 
 		/// <summary>
+		/// Returns the base address of the mapped file
+		/// </summary>
+		public IntPtr Address {
+			get { return baseAddr; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <remarks>If <paramref name="mapAsImage"/> is true, then the created

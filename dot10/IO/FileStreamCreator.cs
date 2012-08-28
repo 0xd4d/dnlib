@@ -17,6 +17,13 @@ namespace dot10.IO {
 		}
 
 		/// <summary>
+		/// Returns the file name
+		/// </summary>
+		public string Filename {
+			get { return filename; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="filename">Name of the file</param>

@@ -21,6 +21,13 @@ namespace dot10.IO {
 		}
 
 		/// <summary>
+		/// Returns the base address of the data
+		/// </summary>
+		public IntPtr Address {
+			get { return data; }
+		}
+
+		/// <summary>
 		/// Constructor for 0 bytes of data
 		/// </summary>
 		/// <param name="data">Pointer to the data</param>
