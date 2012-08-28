@@ -210,6 +210,10 @@ namespace dot10.PE {
 		public void Dispose() {
 			if (streamCreator != null)
 				streamCreator.Dispose();
+			reader = null;
+			streamCreator = null;
+			peType = null;
+			peInfo = null;
 		}
 	}
 }
