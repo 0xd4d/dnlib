@@ -38,6 +38,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="IO\IStreamCreator.cs" />
     <Compile Include="IO\FileOffset.cs" />
     <Compile Include="IO\MemoryMappedFileStreamCreator.cs" />
