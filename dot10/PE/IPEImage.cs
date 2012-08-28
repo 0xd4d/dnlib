@@ -53,7 +53,7 @@ namespace dot10.PE {
 		/// <param name="offset">File offset</param>
 		/// <param name="length">Length of data</param>
 		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If any of the arg is invalid</exception>
+		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
 		Stream CreateStream(FileOffset offset, long length);
 
 		/// <summary>
@@ -72,7 +72,7 @@ namespace dot10.PE {
 		/// <param name="rva">RVA</param>
 		/// <param name="length">Length of data</param>
 		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If any of the arg is invalid</exception>
+		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
 		Stream CreateStream(RVA rva, long length);
 
 		/// <summary>
