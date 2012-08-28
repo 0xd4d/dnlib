@@ -6,7 +6,6 @@ namespace dot10.IO {
 	/// Creates <see cref="MemoryStream"/>s to partially access a byte[]
 	/// </summary>
 	/// <seealso cref="UnmanagedMemoryStreamCreator"/>
-	/// <seealso cref="FileStreamCreator"/>
 	public class MemoryStreamCreator : IStreamCreator {
 		byte[] data;
 		int dataOffset;

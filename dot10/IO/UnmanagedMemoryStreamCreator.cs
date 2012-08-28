@@ -7,7 +7,6 @@ namespace dot10.IO {
 	/// unmanaged memory range
 	/// </summary>
 	/// <seealso cref="MemoryStreamCreator"/>
-	/// <seealso cref="FileStreamCreator"/>
 	public class UnmanagedMemoryStreamCreator : IStreamCreator {
 		IntPtr data;
 		long dataLength;
