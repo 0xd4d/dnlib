@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using dot10.IO;
 
@@ -35,5 +36,49 @@ namespace dot10.PE {
 		/// <param name="rva">The RVA to convert</param>
 		/// <returns>The file offset</returns>
 		FileOffset ToFileOffset(RVA rva);
+
+		/// <summary>
+		/// Creates a stream to access part of the PE image from <paramref name="offset"/>
+		/// to the end of the image
+		/// </summary>
+		/// <param name="offset">File offset</param>
+		/// <returns>A new stream</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
+		Stream CreateStream(FileOffset offset);
+
+		/// <summary>
+		/// Creates a stream to access part of the PE image from <paramref name="offset"/>
+		/// with length <paramref name="length"/>
+		/// </summary>
+		/// <param name="offset">File offset</param>
+		/// <param name="length">Length of data</param>
+		/// <returns>A new stream</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If any of the arg is invalid</exception>
+		Stream CreateStream(FileOffset offset, long length);
+
+		/// <summary>
+		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
+		/// to the end of the image
+		/// </summary>
+		/// <param name="rva">RVA</param>
+		/// <returns>A new stream</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
+		Stream CreateStream(RVA rva);
+
+		/// <summary>
+		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
+		/// with length <paramref name="length"/>
+		/// </summary>
+		/// <param name="rva">RVA</param>
+		/// <param name="length">Length of data</param>
+		/// <returns>A new stream</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If any of the arg is invalid</exception>
+		Stream CreateStream(RVA rva, long length);
+
+		/// <summary>
+		/// Creates a stream to access the full PE image
+		/// </summary>
+		/// <returns>A new stream</returns>
+		Stream CreateFullStream();
 	}
 }

@@ -215,5 +215,33 @@ namespace dot10.PE {
 			peType = null;
 			peInfo = null;
 		}
+
+		/// <inheritdoc/>
+		public Stream CreateStream(FileOffset offset) {
+			if (streamCreator.Length > offset.Value)
+				throw new ArgumentOutOfRangeException("offset");
+			long length = streamCreator.Length - offset.Value;
+			return CreateStream(offset, length);
+		}
+
+		/// <inheritdoc/>
+		public Stream CreateStream(FileOffset offset, long length) {
+			return streamCreator.Create(offset, length);
+		}
+
+		/// <inheritdoc/>
+		public Stream CreateStream(RVA rva) {
+			return CreateStream(ToFileOffset(rva));
+		}
+
+		/// <inheritdoc/>
+		public Stream CreateStream(RVA rva, long length) {
+			return CreateStream(ToFileOffset(rva), length);
+		}
+
+		/// <inheritdoc/>
+		public Stream CreateFullStream() {
+			return streamCreator.CreateFull();
+		}
 	}
 }
