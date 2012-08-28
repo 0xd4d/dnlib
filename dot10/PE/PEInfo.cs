@@ -104,5 +104,26 @@ namespace dot10.PE {
 				return new FileOffset((long)(rva.Value - section.VirtualAddress.Value) + section.PointerToRawData);
 			return new FileOffset(rva.Value);
 		}
+
+		static ulong alignUp(ulong val, uint alignment) {
+			return (val + alignment - 1) & ~(ulong)(alignment - 1);
+		}
+
+		/// <summary>
+		/// Returns size of image rounded up to <see cref="IImageOptionalHeader.SectionAlignment"/>
+		/// </summary>
+		/// <remarks>It calculates the size itself, and does not return <see cref="IImageOptionalHeader.SizeOfImage"/></remarks>
+		/// <returns>Size of image in bytes</returns>
+		public long GetImageSize() {
+			var optHdr = ImageNTHeaders.OptionalHeader;
+			uint alignment = optHdr.SectionAlignment;
+			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
+			foreach (var section in ImageSectionHeaders) {
+				ulong len2 = alignUp((ulong)section.VirtualAddress.Value + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
+				if (len2 > len)
+					len = len2;
+			}
+			return (long)len;
+		}
 	}
 }

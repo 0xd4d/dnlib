@@ -167,7 +167,7 @@ namespace dot10.PE {
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, IPEType peType, bool verify)
 			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), peType, verify) {
-			((UnmanagedMemoryStreamCreator)streamCreator).Length = getTotalMemorySize();
+			((UnmanagedMemoryStreamCreator)streamCreator).Length = peInfo.GetImageSize();
 			ResetReader();
 		}
 
@@ -190,22 +190,6 @@ namespace dot10.PE {
 
 		void ResetReader() {
 			this.reader = new BinaryReader(streamCreator.CreateFull());
-		}
-
-		static ulong alignUp(ulong val, uint alignment) {
-			return (val + alignment - 1) & ~(ulong)(alignment - 1);
-		}
-
-		long getTotalMemorySize() {
-			var optHdr = ImageNTHeaders.OptionalHeader;
-			uint alignment = optHdr.SectionAlignment;
-			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
-			foreach (var section in ImageSectionHeaders) {
-				ulong len2 = alignUp((ulong)section.VirtualAddress.Value + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
-				if (len2 > len)
-					len = len2;
-			}
-			return (long)len;
 		}
 
 		/// <inheritdoc/>
