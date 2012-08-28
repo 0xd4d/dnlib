@@ -217,5 +217,11 @@ namespace dot10.PE {
 		public FileOffset ToFileOffset(RVA rva) {
 			return peType.ToFileOffset(peInfo, rva);
 		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
+			if (streamCreator != null)
+				streamCreator.Dispose();
+		}
 	}
 }

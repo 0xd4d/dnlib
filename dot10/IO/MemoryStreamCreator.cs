@@ -65,5 +65,9 @@ namespace dot10.IO {
 		public Stream CreateFull() {
 			return new MemoryStream(data, dataOffset, dataLength, false);
 		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
+		}
 	}
 }

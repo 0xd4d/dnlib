@@ -11,7 +11,7 @@ namespace dot10.IO {
 	/// <remarks>Since this class maps a file into memory, the user should call
 	/// <see cref="Dispose()"/> to free any resources used by the class when it's
 	/// no longer needed.</remarks>
-	public class MemoryMappedFileStreamCreator : IStreamCreator, IDisposable {
+	public class MemoryMappedFileStreamCreator : IStreamCreator {
 		UnmanagedMemoryStreamCreator otherCreator;
 		IntPtr baseAddr;
 

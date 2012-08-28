@@ -5,7 +5,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// Creates a new stream that accesses part of some data
 	/// </summary>
-	public interface IStreamCreator {
+	public interface IStreamCreator : IDisposable {
 		/// <summary>
 		/// Returns the total length of the original data
 		/// </summary>

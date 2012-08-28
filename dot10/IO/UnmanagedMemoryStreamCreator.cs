@@ -57,5 +57,9 @@ namespace dot10.IO {
 		public unsafe Stream CreateFull() {
 			return new UnmanagedMemoryStream((byte*)data.ToPointer(), dataLength);
 		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
+		}
 	}
 }

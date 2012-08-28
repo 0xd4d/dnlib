@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using dot10.IO;
 
 namespace dot10.PE {
 	/// <summary>
 	/// Interface to access a PE image
 	/// </summary>
-	public interface IPEImage {
+	public interface IPEImage : IDisposable {
 		/// <summary>
 		/// Returns the DOS header
 		/// </summary>

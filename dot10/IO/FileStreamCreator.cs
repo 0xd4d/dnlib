@@ -49,5 +49,9 @@ namespace dot10.IO {
 		public Stream CreateFull() {
 			return CreateFileStream(filename);
 		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
+		}
 	}
 }
