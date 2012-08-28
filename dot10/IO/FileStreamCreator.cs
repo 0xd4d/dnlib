@@ -58,5 +58,10 @@ namespace dot10.IO {
 		/// <inheritdoc/>
 		public void Dispose() {
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("file: {0}", filename);
+		}
 	}
 }

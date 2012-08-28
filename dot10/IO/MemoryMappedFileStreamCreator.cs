@@ -125,5 +125,10 @@ namespace dot10.IO {
 				baseAddr = IntPtr.Zero;
 			}
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", baseAddr, otherCreator == null ? 0L : otherCreator.Length, filename);
+		}
 	}
 }

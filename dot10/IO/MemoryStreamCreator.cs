@@ -78,5 +78,10 @@ namespace dot10.IO {
 		/// <inheritdoc/>
 		public void Dispose() {
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("byte[]: O:{0:X8} L:{1:X8} {2}", dataOffset, dataLength, filename);
+		}
 	}
 }
