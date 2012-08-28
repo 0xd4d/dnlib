@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using dot10.IO;
 
 namespace dot10.PE {
 	/// <summary>

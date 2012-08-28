@@ -1,6 +1,6 @@
 ﻿using dot10.IO;
 
-namespace dot10.PE {
+namespace dot10.IO {
 	/// <summary>
 	/// Represents a section in a file
 	/// </summary>

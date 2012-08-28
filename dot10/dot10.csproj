@@ -43,8 +43,8 @@
     <Compile Include="IO\MemoryMappedFileStreamCreator.cs" />
     <Compile Include="IO\MemoryStreamCreator.cs" />
     <Compile Include="IO\UnmanagedMemoryStreamCreator.cs" />
-    <Compile Include="PE\FileSection.cs" />
-    <Compile Include="PE\IFileSection.cs" />
+    <Compile Include="IO\FileSection.cs" />
+    <Compile Include="IO\IFileSection.cs" />
     <Compile Include="PE\IImageOptionalHeader.cs" />
     <Compile Include="PE\ImageDataDirectory.cs" />
     <Compile Include="PE\ImageDosHeader.cs" />

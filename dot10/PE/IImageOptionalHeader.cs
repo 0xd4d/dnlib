@@ -1,4 +1,6 @@
-﻿namespace dot10.PE {
+﻿using dot10.IO;
+
+namespace dot10.PE {
 	/// <summary>
 	/// Interface for PE optional header classes
 	/// </summary>

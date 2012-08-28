@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using dot10.IO;
 
 namespace dot10.PE {
 	/// <summary>

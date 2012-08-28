@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using dot10.IO;
 
-namespace dot10.PE {
+namespace dot10.IO {
 	/// <summary>
 	/// Base class for classes needing to implement IFileSection
 	/// </summary>
