@@ -11,6 +11,15 @@ namespace dot10.IO {
 		byte[] data;
 		int dataOffset;
 		int dataLength;
+		string filename;
+
+		/// <summary>
+		/// The file name
+		/// </summary>
+		public string Filename {
+			get { return filename; }
+			set { filename = value; }
+		}
 
 		/// <inheritdoc/>
 		public long Length {

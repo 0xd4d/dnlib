@@ -11,6 +11,15 @@ namespace dot10.IO {
 	public class UnmanagedMemoryStreamCreator : IStreamCreator {
 		IntPtr data;
 		long dataLength;
+		string filename;
+
+		/// <summary>
+		/// The file name
+		/// </summary>
+		public string Filename {
+			get { return filename; }
+			set { filename = value; }
+		}
 
 		/// <summary>
 		/// Size of the data

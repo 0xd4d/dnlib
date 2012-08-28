@@ -16,9 +16,7 @@ namespace dot10.IO {
 			get { return theFile.Length; }
 		}
 
-		/// <summary>
-		/// Returns the file name
-		/// </summary>
+		/// <inheritdoc/>
 		public string Filename {
 			get { return filename; }
 		}

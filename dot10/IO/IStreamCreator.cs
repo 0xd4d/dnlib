@@ -7,6 +7,11 @@ namespace dot10.IO {
 	/// </summary>
 	public interface IStreamCreator : IDisposable {
 		/// <summary>
+		/// The file name or null if data is not from a file
+		/// </summary>
+		string Filename { get; }
+
+		/// <summary>
 		/// Returns the total length of the original data
 		/// </summary>
 		long Length { get; }

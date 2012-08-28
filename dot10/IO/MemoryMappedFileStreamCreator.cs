@@ -14,6 +14,7 @@ namespace dot10.IO {
 	public class MemoryMappedFileStreamCreator : IStreamCreator {
 		UnmanagedMemoryStreamCreator otherCreator;
 		IntPtr baseAddr;
+		string filename;
 
 		const uint GENERIC_READ = 0x80000000;
 		const uint FILE_SHARE_READ = 0x00000001;
@@ -42,6 +43,11 @@ namespace dot10.IO {
 		const uint INVALID_FILE_SIZE = 0xFFFFFFFF;
 		const int NO_ERROR = 0;
 
+		/// <inheritdoc/>
+		public string Filename {
+			get { return filename; }
+		}
+
 		/// <summary>
 		/// Size of the data
 		/// </summary>
@@ -68,6 +74,7 @@ namespace dot10.IO {
 		/// <param name="mapAsImage">true if we should map it as an executable</param>
 		/// <exception cref="IOException">If we can't open/map the file</exception>
 		public MemoryMappedFileStreamCreator(string filename, bool mapAsImage) {
+			this.filename = filename;
 			using (var fileHandle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
 				if (fileHandle.IsInvalid)
 					throw new IOException(string.Format("Could not open file {0} for reading. Error: {1:X8}", filename, Marshal.GetLastWin32Error()));
@@ -85,6 +92,7 @@ namespace dot10.IO {
 					if (baseAddr == IntPtr.Zero)
 						throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", filename, Marshal.GetLastWin32Error()));
 					otherCreator = new UnmanagedMemoryStreamCreator(baseAddr, fileSize);
+					otherCreator.Filename = filename;
 				}
 			}
 		}
