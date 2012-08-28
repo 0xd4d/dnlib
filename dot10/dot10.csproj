@@ -56,6 +56,7 @@
     <Compile Include="PE\ImageSectionHeader.cs" />
     <Compile Include="PE\IPEImage.cs" />
     <Compile Include="PE\IPEType.cs" />
+    <Compile Include="PE\PEExtensions.cs" />
     <Compile Include="PE\PEImage.cs" />
     <Compile Include="PE\PEInfo.cs" />
     <Compile Include="PE\RVA.cs" />

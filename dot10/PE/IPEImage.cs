@@ -81,4 +81,41 @@ namespace dot10.PE {
 		/// <returns>A new stream</returns>
 		Stream CreateFullStream();
 	}
+
+	public static partial class PEExtensions {
+		/// <summary>
+		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(FileOffset)"/>
+		/// </summary>
+		public static BinaryReader CreateReader(this IPEImage self, FileOffset offset) {
+			return new BinaryReader(self.CreateStream(offset));
+		}
+
+		/// <summary>
+		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(FileOffset,long)"/>
+		/// </summary>
+		public static BinaryReader CreateReader(this IPEImage self, FileOffset offset, long length) {
+			return new BinaryReader(self.CreateStream(offset, length));
+		}
+
+		/// <summary>
+		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(RVA)"/>
+		/// </summary>
+		public static BinaryReader CreateReader(this IPEImage self, RVA rva) {
+			return new BinaryReader(self.CreateStream(rva));
+		}
+
+		/// <summary>
+		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(RVA,long)"/>
+		/// </summary>
+		public static BinaryReader CreateReader(this IPEImage self, RVA rva, long length) {
+			return new BinaryReader(self.CreateStream(rva, length));
+		}
+
+		/// <summary>
+		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateFullStream()"/>
+		/// </summary>
+		public static BinaryReader CreateFullReader(this IPEImage self) {
+			return new BinaryReader(self.CreateFullStream());
+		}
+	}
 }
