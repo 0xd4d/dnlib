@@ -97,6 +97,14 @@ namespace dot10.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="filename">Name of the file</param>
+		public PEImage(string filename)
+			: this(filename, true) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		/// <param name="data">The PE file data</param>
 		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
@@ -111,6 +119,14 @@ namespace dot10.PE {
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(byte[] data, bool verify)
 			: this(data, FileLayout, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="data">The PE file data</param>
+		public PEImage(byte[] data)
+			: this(data, true) {
 		}
 
 		/// <summary>
@@ -138,6 +154,15 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="baseAddr">Address of PE image</param>
+		/// <param name="length">Length of PE image</param>
+		public PEImage(IntPtr baseAddr, long length)
+			: this(baseAddr, length, true) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, IPEType peType, bool verify)
@@ -153,6 +178,14 @@ namespace dot10.PE {
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, bool verify)
 			: this(baseAddr, MemoryLayout, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="baseAddr">Address of PE image</param>
+		public PEImage(IntPtr baseAddr)
+			: this(baseAddr, true) {
 		}
 
 		void ResetReader() {
