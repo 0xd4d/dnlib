@@ -8,9 +8,20 @@ namespace dot10.IO {
 	/// </summary>
 	/// <seealso cref="MemoryStreamCreator"/>
 	public class UnmanagedMemoryStreamCreator : IStreamCreator {
-		IntPtr data;
-		long dataLength;
-		string filename;
+		/// <summary>
+		/// Address of data
+		/// </summary>
+		protected IntPtr data;
+
+		/// <summary>
+		/// Length of data
+		/// </summary>
+		protected long dataLength;
+
+		/// <summary>
+		/// Name of file
+		/// </summary>
+		protected string filename;
 
 		/// <summary>
 		/// The file name
@@ -33,6 +44,12 @@ namespace dot10.IO {
 		/// </summary>
 		public IntPtr Address {
 			get { return data; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		protected UnmanagedMemoryStreamCreator() {
 		}
 
 		/// <summary>
@@ -74,7 +91,7 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
-		public void Dispose() {
+		public virtual void Dispose() {
 		}
 
 		/// <inheritdoc/>

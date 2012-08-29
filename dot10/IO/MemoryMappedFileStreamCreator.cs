@@ -11,11 +11,7 @@ namespace dot10.IO {
 	/// <remarks>Since this class maps a file into memory, the user should call
 	/// <see cref="Dispose()"/> to free any resources used by the class when it's
 	/// no longer needed.</remarks>
-	public class MemoryMappedFileStreamCreator : IStreamCreator {
-		UnmanagedMemoryStreamCreator otherCreator;
-		IntPtr baseAddr;
-		string filename;
-
+	public class MemoryMappedFileStreamCreator : UnmanagedMemoryStreamCreator {
 		const uint GENERIC_READ = 0x80000000;
 		const uint FILE_SHARE_READ = 0x00000001;
 		const uint OPEN_EXISTING = 3;
@@ -43,33 +39,13 @@ namespace dot10.IO {
 		const uint INVALID_FILE_SIZE = 0xFFFFFFFF;
 		const int NO_ERROR = 0;
 
-		/// <inheritdoc/>
-		public string Filename {
-			get { return filename; }
-		}
-
-		/// <summary>
-		/// Size of the data
-		/// </summary>
-		public long Length {
-			get { return otherCreator.Length; }
-			set { otherCreator.Length = value; }
-		}
-
-		/// <summary>
-		/// Returns the base address of the mapped file
-		/// </summary>
-		public IntPtr Address {
-			get { return baseAddr; }
-		}
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <remarks>If <paramref name="mapAsImage"/> is true, then the created
 		/// <see cref="UnmanagedMemoryStreamCreator"/> that is used internally by the class,
 		/// can only access bytes up to the file size, not to the end of the mapped image. You must
-		/// set <see cref="Length"/> to the correct image length to access the full image.</remarks>
+		/// set <see cref="UnmanagedMemoryStreamCreator.Length"/> to the correct image length to access the full image.</remarks>
 		/// <param name="filename">Name of the file</param>
 		/// <param name="mapAsImage">true if we should map it as an executable</param>
 		/// <exception cref="IOException">If we can't open/map the file</exception>
@@ -88,11 +64,12 @@ namespace dot10.IO {
 				using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY | (mapAsImage ? SEC_IMAGE : 0), 0, 0, null)) {
 					if (fileMapping.IsInvalid)
 						throw new IOException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", filename, Marshal.GetLastWin32Error()));
-					baseAddr = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
+					var baseAddr = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
 					if (baseAddr == IntPtr.Zero)
 						throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", filename, Marshal.GetLastWin32Error()));
-					otherCreator = new UnmanagedMemoryStreamCreator(baseAddr, fileSize);
-					otherCreator.Filename = filename;
+					this.filename = filename;
+					this.data = baseAddr;
+					this.dataLength = fileSize;
 				}
 			}
 		}
@@ -103,32 +80,23 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
-		public Stream Create(FileOffset offset, long length) {
-			return otherCreator.Create(offset, length);
-		}
-
-		/// <inheritdoc/>
-		public Stream CreateFull() {
-			return otherCreator.CreateFull();
-		}
-
-		/// <inheritdoc/>
-		public void Dispose() {
+		public override void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
+			base.Dispose();
 		}
 
 		void Dispose(bool disposing) {
-			otherCreator = null;
-			if (baseAddr != IntPtr.Zero) {
-				UnmapViewOfFile(baseAddr);
-				baseAddr = IntPtr.Zero;
+			if (data != IntPtr.Zero) {
+				UnmapViewOfFile(data);
+				data = IntPtr.Zero;
+				dataLength = 0;
 			}
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", baseAddr, otherCreator == null ? 0L : otherCreator.Length, filename);
+			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", data, dataLength, filename);
 		}
 	}
 }
