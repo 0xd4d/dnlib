@@ -33,8 +33,8 @@ namespace dot10.dotNET {
 			if (cor20Header.MetaData.Size < 16)
 				throw new BadImageFormatException(".NET MetaData size is too small");
 			var mdSize = cor20Header.MetaData.Size;
-			var mdOffs = peImage.ToFileOffset(cor20Header.MetaData.VirtualAddress);
-			var mdHeader = new MetaDataHeader(peImage.CreateReader(mdOffs, mdSize), verify);
+			var mdRva = cor20Header.MetaData.VirtualAddress;
+			var mdHeader = new MetaDataHeader(peImage.CreateReader(mdRva, mdSize), verify);
 			if (verify) {
 				foreach (var sh in mdHeader.StreamHeaders) {
 					if (sh.Offset + sh.Size < sh.Offset || sh.Offset > mdSize || sh.Offset + sh.Size > mdSize)
@@ -48,7 +48,7 @@ namespace dot10.dotNET {
 			BlobStream blobStream = null;
 			GuidStream guidStream = null;
 			foreach (var sh in mdHeader.StreamHeaders) {
-				var data = peImage.CreateStream(mdOffs + sh.Offset, sh.Size);
+				var data = peImage.CreateStream(mdRva + sh.Offset, sh.Size);
 				switch (sh.Name) {
 				case "#Strings":
 					allStreams.Add(stringsStream = new StringsStream(data, sh));
