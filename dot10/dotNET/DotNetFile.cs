@@ -25,7 +25,6 @@ namespace dot10.dotNET {
 				throw new BadImageFormatException(".NET data directory RVA is 0");
 			if (dotNetDir.Size < 0x48)
 				throw new BadImageFormatException(".NET data directory size < 0x48");
-			var reader = peImage.CreateReader(dotNetDir.VirtualAddress, 0x48);
 			var cor20Header = new ImageCor20Header(peImage.CreateReader(dotNetDir.VirtualAddress, 0x48), verify);
 			if (cor20Header.HasNativeHeader)
 				throw new BadImageFormatException(".NET native header isn't supported");	//TODO: Fix this
@@ -35,8 +34,7 @@ namespace dot10.dotNET {
 				throw new BadImageFormatException(".NET MetaData size is too small");
 			var mdSize = cor20Header.MetaData.Size;
 			var mdOffs = peImage.ToFileOffset(cor20Header.MetaData.VirtualAddress);
-			reader = peImage.CreateReader(mdOffs, mdSize);
-			var mdHeader = new MetaDataHeader(reader, verify);
+			var mdHeader = new MetaDataHeader(peImage.CreateReader(mdOffs, mdSize), verify);
 			if (verify) {
 				foreach (var sh in mdHeader.StreamHeaders) {
 					if (sh.Offset + sh.Size < sh.Offset || sh.Offset > mdSize || sh.Offset + sh.Size > mdSize)
