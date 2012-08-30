@@ -36,7 +36,7 @@ namespace dot10.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageDataDirectory(BinaryReader reader, bool verify) {
+		public ImageDataDirectory(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			this.virtualAddress = new RVA(reader.ReadUInt32());
 			this.dataSize = reader.ReadUInt32();

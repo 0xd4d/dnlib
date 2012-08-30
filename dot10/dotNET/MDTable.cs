@@ -1,13 +1,15 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using dot10.IO;
 
 namespace dot10.dotNET {
 	/// <summary>
 	/// A MD table (eg. Method table)
 	/// </summary>
-	public class MDTable {
+	public class MDTable : IDisposable {
 		uint numRows;
 		TableInfo tableInfo;
-		BinaryReader reader;
+		IImageStream imageStream;
 
 		/// <summary>
 		/// Returns total number of rows
@@ -24,10 +26,10 @@ namespace dot10.dotNET {
 		}
 
 		/// <summary>
-		/// The reader that can access all the rows in this table
+		/// The stream that can access all the rows in this table
 		/// </summary>
-		internal BinaryReader Reader {
-			set { reader = value; }
+		internal IImageStream ImageStream {
+			set { imageStream = value; }
 		}
 
 		/// <summary>
@@ -42,7 +44,15 @@ namespace dot10.dotNET {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("DL:{0:X8} R:{1} RS:{2} C:{3} {4}", reader.BaseStream.Length, numRows, tableInfo.RowSize, tableInfo.Columns.Count, tableInfo.Name);
+			return string.Format("DL:{0:X8} R:{1} RS:{2} C:{3} {4}", imageStream.Length, numRows, tableInfo.RowSize, tableInfo.Columns.Count, tableInfo.Name);
+		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
+			if (imageStream != null) {
+				imageStream.Dispose();
+				imageStream = null;
+			}
 		}
 	}
 }

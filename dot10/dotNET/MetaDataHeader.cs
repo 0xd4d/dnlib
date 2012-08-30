@@ -114,7 +114,7 @@ namespace dot10.dotNET {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public MetaDataHeader(BinaryReader reader, bool verify) {
+		public MetaDataHeader(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			this.signature = reader.ReadUInt32();
 			if (verify && this.signature != 0x424A5342)
@@ -126,7 +126,7 @@ namespace dot10.dotNET {
 			this.reserved1 = reader.ReadUInt32();
 			this.stringLength = reader.ReadUInt32();
 			this.versionString = ReadString(reader, stringLength, verify);
-			this.offset2ndPart = (uint)(reader.BaseStream.Position - startOffset.Value);
+			this.offset2ndPart = (uint)(reader.Position - startOffset.Value);
 			this.flags = (StorageFlags)reader.ReadByte();
 			this.reserved2 = reader.ReadByte();
 			this.streams = reader.ReadUInt16();
@@ -146,9 +146,9 @@ namespace dot10.dotNET {
 			SetEndoffset(reader);
 		}
 
-		string ReadString(BinaryReader reader, uint maxLength, bool verify) {
-			long endPos = reader.BaseStream.Position + maxLength;
-			if (endPos < reader.BaseStream.Position || endPos > reader.BaseStream.Length)
+		string ReadString(IImageStream reader, uint maxLength, bool verify) {
+			long endPos = reader.Position + maxLength;
+			if (endPos < reader.Position || endPos > reader.Length)
 				throw new BadImageFormatException("Invalid MD version string");
 			var sb = new StringBuilder(50);
 			uint i;
@@ -160,7 +160,7 @@ namespace dot10.dotNET {
 			}
 			if (verify && i == maxLength)
 				throw new BadImageFormatException("Invalid MD version string");
-			reader.BaseStream.Position = endPos;
+			reader.Position = endPos;
 			return sb.ToString();
 		}
 	}

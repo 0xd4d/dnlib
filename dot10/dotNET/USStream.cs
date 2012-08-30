@@ -1,10 +1,11 @@
 ﻿using System.IO;
+using dot10.IO;
 
 namespace dot10.dotNET {
 	class USStream : DotNetStream {
 		/// <inheritdoc/>
-		public USStream(Stream data, StreamHeader streamHeader)
-			: base(data, streamHeader) {
+		public USStream(IImageStream imageStream, StreamHeader streamHeader)
+			: base(imageStream, streamHeader) {
 		}
 	}
 }

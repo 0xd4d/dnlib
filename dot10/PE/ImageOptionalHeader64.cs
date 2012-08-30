@@ -262,10 +262,10 @@ namespace dot10.PE {
 		/// <param name="totalSize">Total size of this optional header (from the file header)</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageOptionalHeader64(BinaryReader reader, uint totalSize, bool verify) {
+		public ImageOptionalHeader64(IImageStream reader, uint totalSize, bool verify) {
 			if (totalSize < 0x70)
 				throw new BadImageFormatException("Invalid optional header size");
-			if (verify && reader.BaseStream.Position + totalSize > reader.BaseStream.Length)
+			if (verify && reader.Position + totalSize > reader.Length)
 				throw new BadImageFormatException("Invalid optional header size");
 			SetStartOffset(reader);
 			this.magic = reader.ReadUInt16();
@@ -298,13 +298,13 @@ namespace dot10.PE {
 			this.loaderFlags = reader.ReadUInt32();
 			this.numberOfRvaAndSizes = reader.ReadUInt32();
 			for (int i = 0; i < dataDirectories.Length; i++) {
-				uint len = (uint)(reader.BaseStream.Position - startOffset.Value);
+				uint len = (uint)(reader.Position - startOffset.Value);
 				if (len + 8 <= totalSize)
 					dataDirectories[i] = new ImageDataDirectory(reader, verify);
 				else
 					dataDirectories[i] = new ImageDataDirectory();
 			}
-			reader.BaseStream.Position = startOffset.Value + totalSize;
+			reader.Position = startOffset.Value + totalSize;
 			SetEndoffset(reader);
 		}
 	}

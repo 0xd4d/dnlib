@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using dot10.IO;
 using dot10.PE;
 
 namespace dot10.dotNET {
@@ -41,8 +42,8 @@ namespace dot10.dotNET {
 		MDTable[] mdTables;
 
 		/// <inheritdoc/>
-		public MDStream(Stream data, StreamHeader streamHeader)
-			: base(data, streamHeader) {
+		public MDStream(IImageStream imageStream, StreamHeader streamHeader)
+			: base(imageStream, streamHeader) {
 		}
 
 		/// <summary>
@@ -51,27 +52,27 @@ namespace dot10.dotNET {
 		/// <param name="peImage">The PEImage</param>
 		/// <param name="mdStreamRva">RVA of this MD stream</param>
 		public void Initialize(IPEImage peImage, RVA mdStreamRva) {
-			long startPos = reader.BaseStream.Position;
-			reserved1 = reader.ReadUInt32();
-			majorVersion = reader.ReadByte();
-			minorVersion = reader.ReadByte();
-			flags = (MDStreamFlags)reader.ReadByte();
-			log2Rid = reader.ReadByte();
-			validMask = reader.ReadUInt64();
-			sortedMask = reader.ReadUInt64();
+			long startPos = imageStream.Position;
+			reserved1 = imageStream.ReadUInt32();
+			majorVersion = imageStream.ReadByte();
+			minorVersion = imageStream.ReadByte();
+			flags = (MDStreamFlags)imageStream.ReadByte();
+			log2Rid = imageStream.ReadByte();
+			validMask = imageStream.ReadUInt64();
+			sortedMask = imageStream.ReadUInt64();
 
 			CreateTables();
 			mdTables = new MDTable[tableInfos.Length];
 
 			ulong valid = validMask;
 			for (int i = 0; i < 64; valid >>= 1, i++) {
-				uint rows = (valid & 1) == 0 ? 0 : reader.ReadUInt32();
+				uint rows = (valid & 1) == 0 ? 0 : imageStream.ReadUInt32();
 				if (i < mdTables.Length)
 					mdTables[i] = new MDTable(rows, tableInfos[i]);
 			}
 
 			if ((flags & MDStreamFlags.ExtraData) != 0)
-				extraData = reader.ReadUInt32();
+				extraData = imageStream.ReadUInt32();
 
 			foreach (var mdTable in mdTables) {
 				var tableInfo = mdTable.TableInfo;
@@ -85,10 +86,10 @@ namespace dot10.dotNET {
 				tableInfo.RowSize = colOffset;
 			}
 
-			var currentRva = mdStreamRva + (uint)(reader.BaseStream.Position - startPos);
+			var currentRva = mdStreamRva + (uint)(imageStream.Position - startPos);
 			foreach (var mdTable in mdTables) {
 				var dataLen = (long)mdTable.TableInfo.RowSize * (long)mdTable.Rows;
-				mdTable.Reader = peImage.CreateReader(currentRva, dataLen);
+				mdTable.ImageStream = peImage.CreateStream(currentRva, dataLen);
 				var newRva = currentRva + (uint)dataLen;
 				if (newRva < currentRva)
 					throw new ApplicationException("Too big MD table");
@@ -383,6 +384,16 @@ namespace dot10.dotNET {
 					new ColumnInfo("Constraint", ColumnSize.TypeDefOrRef),
 				});
 			}
+		}
+
+		/// <inheritdoc/>
+		public override void Dispose() {
+			if (mdTables != null) {
+				foreach (var mdTable in mdTables)
+					mdTable.Dispose();
+				mdTables = null;
+			}
+			base.Dispose();
 		}
 	}
 }

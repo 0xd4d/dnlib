@@ -44,7 +44,7 @@ namespace dot10.PE {
 		/// <param name="offset">File offset</param>
 		/// <returns>A new stream</returns>
 		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
-		Stream CreateStream(FileOffset offset);
+		IImageStream CreateStream(FileOffset offset);
 
 		/// <summary>
 		/// Creates a stream to access part of the PE image from <paramref name="offset"/>
@@ -54,13 +54,13 @@ namespace dot10.PE {
 		/// <param name="length">Length of data</param>
 		/// <returns>A new stream</returns>
 		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
-		Stream CreateStream(FileOffset offset, long length);
+		IImageStream CreateStream(FileOffset offset, long length);
 
 		/// <summary>
 		/// Creates a stream to access the full PE image
 		/// </summary>
 		/// <returns>A new stream</returns>
-		Stream CreateFullStream();
+		IImageStream CreateFullStream();
 	}
 
 	public static partial class PEExtensions {
@@ -72,7 +72,7 @@ namespace dot10.PE {
 		/// <param name="rva">RVA</param>
 		/// <returns>A new stream</returns>
 		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
-		public static Stream CreateStream(this IPEImage self, RVA rva) {
+		public static IImageStream CreateStream(this IPEImage self, RVA rva) {
 			return self.CreateStream(self.ToFileOffset(rva));
 		}
 
@@ -85,43 +85,8 @@ namespace dot10.PE {
 		/// <param name="length">Length of data</param>
 		/// <returns>A new stream</returns>
 		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
-		public static Stream CreateStream(this IPEImage self, RVA rva, long length) {
+		public static IImageStream CreateStream(this IPEImage self, RVA rva, long length) {
 			return self.CreateStream(self.ToFileOffset(rva), length);
-		}
-
-		/// <summary>
-		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(FileOffset)"/>
-		/// </summary>
-		public static BinaryReader CreateReader(this IPEImage self, FileOffset offset) {
-			return new BinaryReader(self.CreateStream(offset));
-		}
-
-		/// <summary>
-		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateStream(FileOffset,long)"/>
-		/// </summary>
-		public static BinaryReader CreateReader(this IPEImage self, FileOffset offset, long length) {
-			return new BinaryReader(self.CreateStream(offset, length));
-		}
-
-		/// <summary>
-		/// Creates a binary reader that can access the PE image. <see cref="CreateStream(IPEImage,RVA)"/>
-		/// </summary>
-		public static BinaryReader CreateReader(this IPEImage self, RVA rva) {
-			return new BinaryReader(self.CreateStream(rva));
-		}
-
-		/// <summary>
-		/// Creates a binary reader that can access the PE image. <see cref="CreateStream(IPEImage,RVA,long)"/>
-		/// </summary>
-		public static BinaryReader CreateReader(this IPEImage self, RVA rva, long length) {
-			return new BinaryReader(self.CreateStream(rva, length));
-		}
-
-		/// <summary>
-		/// Creates a binary reader that can access the PE image. <see cref="IPEImage.CreateFullStream()"/>
-		/// </summary>
-		public static BinaryReader CreateFullReader(this IPEImage self) {
-			return new BinaryReader(self.CreateFullStream());
 		}
 	}
 }

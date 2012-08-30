@@ -1,10 +1,11 @@
 ﻿using System.IO;
+using dot10.IO;
 
 namespace dot10.dotNET {
 	class GuidStream : DotNetStream {
 		/// <inheritdoc/>
-		public GuidStream(Stream data, StreamHeader streamHeader)
-			: base(data, streamHeader) {
+		public GuidStream(IImageStream imageStream, StreamHeader streamHeader)
+			: base(imageStream, streamHeader) {
 		}
 	}
 }

@@ -6,7 +6,7 @@ namespace dot10.IO {
 	/// Creates <see cref="MemoryStream"/>s to partially access a byte[]
 	/// </summary>
 	/// <seealso cref="UnmanagedMemoryStreamCreator"/>
-	public class MemoryStreamCreator : IStreamCreator {
+	public class MemoryStreamCreator : IImageStreamCreator {
 		byte[] data;
 		int dataOffset;
 		int dataLength;
@@ -53,7 +53,7 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
-		public Stream Create(FileOffset offset, long length) {
+		public IImageStream Create(FileOffset offset, long length) {
 			if (offset.Value < 0 || offset.Value > int.MaxValue)
 				throw new ArgumentOutOfRangeException("offset");
 			if (length < 0 || length > int.MaxValue)
@@ -62,16 +62,14 @@ namespace dot10.IO {
 			int len = (int)length;
 			if (offs + len < offs)
 				throw new ArgumentOutOfRangeException("length");
-			if (offs > dataLength)
-				throw new ArgumentOutOfRangeException("offset");
 			if (offs + len > dataLength)
 				throw new ArgumentOutOfRangeException("length");
-			return new MemoryStream(data, dataOffset + offs, len, false);
+			return new MemoryImageStream(offset, data, dataOffset + offs, len);
 		}
 
 		/// <inheritdoc/>
-		public Stream CreateFull() {
-			return new MemoryStream(data, dataOffset, dataLength, false);
+		public IImageStream CreateFull() {
+			return new MemoryImageStream(FileOffset.Zero, data, dataOffset, dataLength);
 		}
 
 		/// <inheritdoc/>

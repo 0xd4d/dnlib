@@ -38,16 +38,16 @@ namespace dot10.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify sections</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public PEInfo(BinaryReader reader, bool verify) {
-			reader.BaseStream.Position = 0;
+		public PEInfo(IImageStream reader, bool verify) {
+			reader.Position = 0;
 			this.imageDosHeader = new ImageDosHeader(reader, verify);
 
 			if (verify && this.imageDosHeader.NTHeadersOffset == 0)
 				throw new BadImageFormatException("Invalid NT headers offset");
-			reader.BaseStream.Position = this.imageDosHeader.NTHeadersOffset;
+			reader.Position = this.imageDosHeader.NTHeadersOffset;
 			this.imageNTHeaders = new ImageNTHeaders(reader, verify);
 
-			reader.BaseStream.Position = (this.imageNTHeaders.OptionalHeader.StartOffset + this.imageNTHeaders.FileHeader.SizeOfOptionalHeader).Value;
+			reader.Position = (this.imageNTHeaders.OptionalHeader.StartOffset + this.imageNTHeaders.FileHeader.SizeOfOptionalHeader).Value;
 			this.imageSectionHeaders = new ImageSectionHeader[this.imageNTHeaders.FileHeader.NumberOfSections];
 			for (int i = 0; i < this.imageSectionHeaders.Length; i++)
 				this.imageSectionHeaders[i] = new ImageSectionHeader(reader, verify);

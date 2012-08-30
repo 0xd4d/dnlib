@@ -30,16 +30,17 @@ namespace dot10.IO {
 		/// Set <see cref="startOffset"/> to <paramref name="reader"/>'s current position
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		protected void SetStartOffset(BinaryReader reader) {
-			startOffset = new FileOffset(reader.BaseStream.Position);
+		protected void SetStartOffset(IImageStream reader) {
+			startOffset = new FileOffset(reader.Position);
 		}
 
 		/// <summary>
 		/// Set <see cref="size"/> according to <paramref name="reader"/>'s current position
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		protected void SetEndoffset(BinaryReader reader) {
-			size = (uint)(reader.BaseStream.Position - startOffset.Value);
+		protected void SetEndoffset(IImageStream reader) {
+			size = (uint)(reader.Position - startOffset.Value);
+			startOffset = reader.FileOffset + startOffset.Value;
 		}
 
 		/// <inheritdoc/>

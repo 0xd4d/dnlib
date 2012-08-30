@@ -22,12 +22,12 @@ namespace dot10.PE {
 		/// <param name="reader">PE file reader</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageDosHeader(BinaryReader reader, bool verify) {
+		public ImageDosHeader(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			ushort sig = reader.ReadUInt16();
 			if (verify && sig != 0x5A4D)
 				throw new BadImageFormatException("Invalid DOS signature");
-			reader.BaseStream.Position = startOffset.Value + 0x3C;
+			reader.Position = startOffset.Value + 0x3C;
 			this.ntHeadersOffset = reader.ReadUInt32();
 			SetEndoffset(reader);
 		}

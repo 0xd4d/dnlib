@@ -39,7 +39,7 @@ namespace dot10.dotNET {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public StreamHeader(BinaryReader reader, bool verify) {
+		public StreamHeader(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			this.offset = reader.ReadUInt32();
 			this.streamSize = reader.ReadUInt32();
@@ -49,8 +49,8 @@ namespace dot10.dotNET {
 				throw new BadImageFormatException("Invalid stream header");
 		}
 
-		static string ReadString(BinaryReader reader, int maxLen, bool verify) {
-			var origPos = reader.BaseStream.Position;
+		static string ReadString(IImageStream reader, int maxLen, bool verify) {
+			var origPos = reader.Position;
 			var sb = new StringBuilder(maxLen);
 			int i;
 			for (i = 0; i < maxLen; i++) {
@@ -62,7 +62,7 @@ namespace dot10.dotNET {
 			if (verify && i == maxLen)
 				throw new BadImageFormatException("Invalid stream name string");
 			if (i != maxLen)
-				reader.BaseStream.Position = origPos + ((i + 1 + 3) & ~3);
+				reader.Position = origPos + ((i + 1 + 3) & ~3);
 			return sb.ToString();
 		}
 

@@ -57,10 +57,14 @@
     <Compile Include="dotNET\TableInfo.cs" />
     <Compile Include="dotNET\USStream.cs" />
     <Compile Include="ExtensionAttribute.cs" />
-    <Compile Include="IO\IStreamCreator.cs" />
+    <Compile Include="IO\IImageStreamCreator.cs" />
+    <Compile Include="IO\IImageStream.cs" />
+    <Compile Include="IO\IOExtensions.cs" />
     <Compile Include="IO\FileOffset.cs" />
+    <Compile Include="IO\MemoryImageStream.cs" />
     <Compile Include="IO\MemoryMappedFileStreamCreator.cs" />
     <Compile Include="IO\MemoryStreamCreator.cs" />
+    <Compile Include="IO\UnmanagedMemoryImageStream.cs" />
     <Compile Include="IO\UnmanagedMemoryStreamCreator.cs" />
     <Compile Include="IO\FileSection.cs" />
     <Compile Include="IO\IFileSection.cs" />

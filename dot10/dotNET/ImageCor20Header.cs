@@ -159,7 +159,7 @@ namespace dot10.dotNET {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageCor20Header(BinaryReader reader, bool verify) {
+		public ImageCor20Header(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			this.cb = reader.ReadUInt32();
 			if (verify && this.cb < 0x48)

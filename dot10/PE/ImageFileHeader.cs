@@ -90,7 +90,7 @@ namespace dot10.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageFileHeader(BinaryReader reader, bool verify) {
+		public ImageFileHeader(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			this.machine = (Machine)reader.ReadUInt16();
 			this.numberOfSections = reader.ReadUInt16();

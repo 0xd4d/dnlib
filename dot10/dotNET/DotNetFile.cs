@@ -4,7 +4,7 @@ using System.IO;
 using dot10.PE;
 
 namespace dot10.dotNET {
-	public class DotNetFile {
+	public class DotNetFile : IDisposable {
 		public static DotNetFile Load(string filename) {
 			return Load(new PEImage(filename));
 		}
@@ -25,7 +25,7 @@ namespace dot10.dotNET {
 				throw new BadImageFormatException(".NET data directory RVA is 0");
 			if (dotNetDir.Size < 0x48)
 				throw new BadImageFormatException(".NET data directory size < 0x48");
-			var cor20Header = new ImageCor20Header(peImage.CreateReader(dotNetDir.VirtualAddress, 0x48), verify);
+			var cor20Header = new ImageCor20Header(peImage.CreateStream(dotNetDir.VirtualAddress, 0x48), verify);
 			if (cor20Header.HasNativeHeader)
 				throw new BadImageFormatException(".NET native header isn't supported");	//TODO: Fix this
 			if (cor20Header.MetaData.VirtualAddress == RVA.Zero)
@@ -34,7 +34,7 @@ namespace dot10.dotNET {
 				throw new BadImageFormatException(".NET MetaData size is too small");
 			var mdSize = cor20Header.MetaData.Size;
 			var mdRva = cor20Header.MetaData.VirtualAddress;
-			var mdHeader = new MetaDataHeader(peImage.CreateReader(mdRva, mdSize), verify);
+			var mdHeader = new MetaDataHeader(peImage.CreateStream(mdRva, mdSize), verify);
 			if (verify) {
 				foreach (var sh in mdHeader.StreamHeaders) {
 					if (sh.Offset + sh.Size < sh.Offset || sh.Offset + sh.Size > mdSize)
@@ -51,32 +51,32 @@ namespace dot10.dotNET {
 			RVA mdStreamRva = RVA.Zero;
 			foreach (var sh in mdHeader.StreamHeaders) {
 				var rva = mdRva + sh.Offset;
-				var data = peImage.CreateStream(rva, sh.Size);
+				var imageStream = peImage.CreateStream(rva, sh.Size);
 				switch (sh.Name) {
 				case "#Strings":
-					allStreams.Add(stringsStream = new StringsStream(data, sh));
+					allStreams.Add(stringsStream = new StringsStream(imageStream, sh));
 					break;
 
 				case "#US":
-					allStreams.Add(usStream = new USStream(data, sh));
+					allStreams.Add(usStream = new USStream(imageStream, sh));
 					break;
 
 				case "#Blob":
-					allStreams.Add(blobStream = new BlobStream(data, sh));
+					allStreams.Add(blobStream = new BlobStream(imageStream, sh));
 					break;
 
 				case "#GUID":
-					allStreams.Add(guidStream = new GuidStream(data, sh));
+					allStreams.Add(guidStream = new GuidStream(imageStream, sh));
 					break;
 
 				case "#~":
 				case "#-":
 				case "#Schema":
-					allStreams.Add(mdStream = new MDStream(data, sh));
+					allStreams.Add(mdStream = new MDStream(imageStream, sh));
 					break;
 
 				default:
-					allStreams.Add(new DotNetStream(data, sh));
+					allStreams.Add(new DotNetStream(imageStream, sh));
 					break;
 				}
 			}
@@ -86,6 +86,10 @@ namespace dot10.dotNET {
 			mdStream.Initialize(peImage, mdStreamRva);
 
 			return null;	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
 		}
 	}
 }

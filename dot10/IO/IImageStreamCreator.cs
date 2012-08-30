@@ -1,11 +1,10 @@
 ﻿using System;
-using System.IO;
 
 namespace dot10.IO {
 	/// <summary>
 	/// Creates a new stream that accesses part of some data
 	/// </summary>
-	public interface IStreamCreator : IDisposable {
+	public interface IImageStreamCreator : IDisposable {
 		/// <summary>
 		/// The file name or null if data is not from a file
 		/// </summary>
@@ -23,12 +22,12 @@ namespace dot10.IO {
 		/// <param name="length">Length of section within the original data</param>
 		/// <returns>A new stream</returns>
 		/// <exception cref="ArgumentOutOfRangeException">If one of the args is invalid</exception>
-		Stream Create(FileOffset offset, long length);
+		IImageStream Create(FileOffset offset, long length);
 
 		/// <summary>
 		/// Creates a stream that can access all data
 		/// </summary>
 		/// <returns>A new stream</returns>
-		Stream CreateFull();
+		IImageStream CreateFull();
 	}
 }

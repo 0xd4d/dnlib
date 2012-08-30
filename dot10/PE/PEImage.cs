@@ -18,8 +18,8 @@ namespace dot10.PE {
 		/// </summary>
 		public static readonly IPEType FileLayout = new FilePEType();
 
-		BinaryReader reader;
-		IStreamCreator streamCreator;
+		IImageStream imageStream;
+		IImageStreamCreator imageStreamCreator;
 		IPEType peType;
 		PEInfo peInfo;
 
@@ -65,14 +65,14 @@ namespace dot10.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="streamCreator">The PE stream creator</param>
+		/// <param name="imageStreamCreator">The PE stream creator</param>
 		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
-		protected PEImage(IStreamCreator streamCreator, IPEType peType, bool verify) {
-			this.streamCreator = streamCreator;
+		protected PEImage(IImageStreamCreator imageStreamCreator, IPEType peType, bool verify) {
+			this.imageStreamCreator = imageStreamCreator;
 			this.peType = peType;
 			ResetReader();
-			this.peInfo = new PEInfo(reader, verify);
+			this.peInfo = new PEInfo(imageStream, verify);
 		}
 
 		/// <summary>
@@ -84,7 +84,7 @@ namespace dot10.PE {
 		public PEImage(string filename, bool mapAsImage, bool verify)
 			: this(new MemoryMappedFileStreamCreator(filename, mapAsImage), mapAsImage ? MemoryLayout : FileLayout, verify) {
 			if (mapAsImage) {
-				((MemoryMappedFileStreamCreator)streamCreator).Length = peInfo.GetImageSize();
+				((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
 				ResetReader();
 			}
 		}
@@ -171,7 +171,7 @@ namespace dot10.PE {
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, IPEType peType, bool verify)
 			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), peType, verify) {
-			((UnmanagedMemoryStreamCreator)streamCreator).Length = peInfo.GetImageSize();
+			((UnmanagedMemoryStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
 			ResetReader();
 		}
 
@@ -193,7 +193,7 @@ namespace dot10.PE {
 		}
 
 		void ResetReader() {
-			this.reader = new BinaryReader(streamCreator.CreateFull());
+			this.imageStream = imageStreamCreator.CreateFull();
 		}
 
 		/// <inheritdoc/>
@@ -208,30 +208,32 @@ namespace dot10.PE {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (streamCreator != null)
-				streamCreator.Dispose();
-			reader = null;
-			streamCreator = null;
+			if (imageStream != null)
+				imageStream.Dispose();
+			if (imageStreamCreator != null)
+				imageStreamCreator.Dispose();
+			imageStream = null;
+			imageStreamCreator = null;
 			peType = null;
 			peInfo = null;
 		}
 
 		/// <inheritdoc/>
-		public Stream CreateStream(FileOffset offset) {
-			if (offset.Value > streamCreator.Length)
+		public IImageStream CreateStream(FileOffset offset) {
+			if (offset.Value > imageStreamCreator.Length)
 				throw new ArgumentOutOfRangeException("offset");
-			long length = streamCreator.Length - offset.Value;
+			long length = imageStreamCreator.Length - offset.Value;
 			return CreateStream(offset, length);
 		}
 
 		/// <inheritdoc/>
-		public Stream CreateStream(FileOffset offset, long length) {
-			return streamCreator.Create(offset, length);
+		public IImageStream CreateStream(FileOffset offset, long length) {
+			return imageStreamCreator.Create(offset, length);
 		}
 
 		/// <inheritdoc/>
-		public Stream CreateFullStream() {
-			return streamCreator.CreateFull();
+		public IImageStream CreateFullStream() {
+			return imageStreamCreator.CreateFull();
 		}
 	}
 }

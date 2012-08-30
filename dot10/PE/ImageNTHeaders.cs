@@ -38,7 +38,7 @@ namespace dot10.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageNTHeaders(BinaryReader reader, bool verify) {
+		public ImageNTHeaders(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			this.signature = reader.ReadUInt32();
 			if (verify && this.signature != 0x4550)
@@ -55,9 +55,9 @@ namespace dot10.PE {
 		/// <param name="verify">Verify section</param>
 		/// <returns>The created IImageOptionalHeader</returns>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		IImageOptionalHeader CreateImageOptionalHeader(BinaryReader reader, bool verify) {
+		IImageOptionalHeader CreateImageOptionalHeader(IImageStream reader, bool verify) {
 			ushort magic = reader.ReadUInt16();
-			reader.BaseStream.Position -= 2;
+			reader.Position -= 2;
 			switch (magic) {
 			case 0x010B: return new ImageOptionalHeader32(reader, imageFileHeader.SizeOfOptionalHeader, verify);
 			case 0x020B: return new ImageOptionalHeader64(reader, imageFileHeader.SizeOfOptionalHeader, verify);

@@ -7,7 +7,7 @@ namespace dot10.IO {
 	/// unmanaged memory range
 	/// </summary>
 	/// <seealso cref="MemoryStreamCreator"/>
-	public class UnmanagedMemoryStreamCreator : IStreamCreator {
+	public class UnmanagedMemoryStreamCreator : IImageStreamCreator {
 		/// <summary>
 		/// Address of data
 		/// </summary>
@@ -74,7 +74,7 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
-		public unsafe Stream Create(FileOffset offset, long length) {
+		public unsafe IImageStream Create(FileOffset offset, long length) {
 			if (offset.Value < 0)
 				throw new ArgumentOutOfRangeException("offset");
 			if (length < 0)
@@ -82,12 +82,12 @@ namespace dot10.IO {
 			ulong offs = (ulong)offset.Value;
 			if (offs + (ulong)length < offs || offs + (ulong)length > (ulong)dataLength)
 				throw new ArgumentOutOfRangeException("length");
-			return new UnmanagedMemoryStream((byte*)data.ToPointer() + offset.Value, length);
+			return new UnmanagedMemoryImageStream(offset, (byte*)data.ToPointer() + offset.Value, length);
 		}
 
 		/// <inheritdoc/>
-		public unsafe Stream CreateFull() {
-			return new UnmanagedMemoryStream((byte*)data.ToPointer(), dataLength);
+		public IImageStream CreateFull() {
+			return new UnmanagedMemoryImageStream(FileOffset.Zero, data, dataLength);
 		}
 
 		/// <inheritdoc/>
