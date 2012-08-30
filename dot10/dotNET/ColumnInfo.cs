@@ -1,4 +1,7 @@
-﻿namespace dot10.dotNET {
+﻿using System;
+using System.IO;
+
+namespace dot10.dotNET {
 	/// <summary>
 	/// Info about one column in a MD table
 	/// </summary>
@@ -46,6 +49,20 @@
 		public ColumnInfo(string name, ColumnSize columnSize) {
 			this.name = name;
 			this.columnSize = columnSize;
+		}
+
+		/// <summary>
+		/// Reads the column
+		/// </summary>
+		/// <param name="reader">A reader positioned on this column</param>
+		/// <returns>The column value</returns>
+		public uint Read(BinaryReader reader) {
+			switch (size) {
+			case 1: return reader.ReadByte();
+			case 2: return reader.ReadUInt16();
+			case 4: return reader.ReadUInt32();
+			default: throw new ApplicationException("Invalid column size");
+			}
 		}
 
 		/// <inheritdoc/>
