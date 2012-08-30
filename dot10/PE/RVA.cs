@@ -63,6 +63,11 @@ namespace dot10.PE {
 		}
 
 		/// <summary>Overloaded operator</summary>
+		public static int operator -(RVA left, RVA right) {
+			return (int)(left.val - right.val);
+		}
+
+		/// <summary>Overloaded operator</summary>
 		public static bool operator <(RVA left, RVA right) {
 			return left.CompareTo(right) < 0;
 		}

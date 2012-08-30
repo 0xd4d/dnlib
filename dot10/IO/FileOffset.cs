@@ -93,6 +93,11 @@ namespace dot10.IO {
 		}
 
 		/// <summary>Overloaded operator</summary>
+		public static long operator -(FileOffset left, FileOffset right) {
+			return left.val - right.val;
+		}
+
+		/// <summary>Overloaded operator</summary>
 		public static bool operator <(FileOffset left, FileOffset right) {
 			return left.CompareTo(right) < 0;
 		}
