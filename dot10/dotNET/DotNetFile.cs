@@ -37,7 +37,7 @@ namespace dot10.dotNET {
 			var mdHeader = new MetaDataHeader(peImage.CreateReader(mdRva, mdSize), verify);
 			if (verify) {
 				foreach (var sh in mdHeader.StreamHeaders) {
-					if (sh.Offset + sh.Size < sh.Offset || sh.Offset > mdSize || sh.Offset + sh.Size > mdSize)
+					if (sh.Offset + sh.Size < sh.Offset || sh.Offset + sh.Size > mdSize)
 						throw new BadImageFormatException("Invalid stream header");
 				}
 			}
@@ -47,8 +47,11 @@ namespace dot10.dotNET {
 			USStream usStream = null;
 			BlobStream blobStream = null;
 			GuidStream guidStream = null;
+			MDStream mdStream = null;
+			RVA mdStreamRva = RVA.Zero;
 			foreach (var sh in mdHeader.StreamHeaders) {
-				var data = peImage.CreateStream(mdRva + sh.Offset, sh.Size);
+				var rva = mdRva + sh.Offset;
+				var data = peImage.CreateStream(rva, sh.Size);
 				switch (sh.Name) {
 				case "#Strings":
 					allStreams.Add(stringsStream = new StringsStream(data, sh));
@@ -69,13 +72,20 @@ namespace dot10.dotNET {
 				case "#~":
 				case "#-":
 				case "#Schema":
+					allStreams.Add(mdStream = new MDStream(data, sh));
+					break;
+
 				default:
 					allStreams.Add(new DotNetStream(data, sh));
 					break;
 				}
 			}
 
-			throw new NotImplementedException();	//TODO:
+			if (mdStream == null)
+				throw new BadImageFormatException("Missing MD stream");
+			mdStream.Initialize(peImage, mdStreamRva);
+
+			return null;	//TODO:
 		}
 	}
 }

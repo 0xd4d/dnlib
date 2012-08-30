@@ -6,6 +6,22 @@ using dot10.IO;
 
 namespace dot10.dotNET {
 	/// <summary>
+	/// Storage flags found in the MD header
+	/// </summary>
+	[Flags]
+	public enum StorageFlags : byte {
+		/// <summary>
+		/// Normal flags
+		/// </summary>
+		Normal = 0,
+
+		/// <summary>
+		/// More data after the header
+		/// </summary>
+		ExtraData = 1,
+	}
+
+	/// <summary>
 	/// Represents the .NET metadata header
 	/// </summary>
 	/// <remarks><c>IMAGE_COR20_HEADER.MetaData</c> points to this header</remarks>
@@ -17,7 +33,8 @@ namespace dot10.dotNET {
 		uint stringLength;
 		string versionString;
 		uint offset2ndPart;
-		ushort flags;
+		StorageFlags flags;
+		byte reserved2;
 		ushort streams;
 		IList<StreamHeader> streamHeaders;
 
@@ -43,7 +60,7 @@ namespace dot10.dotNET {
 		}
 
 		/// <summary>
-		/// Returns the reserved dword
+		/// Returns the reserved dword (pointer to extra header data)
 		/// </summary>
 		public uint Reserved1 {
 			get { return reserved1; }
@@ -66,8 +83,15 @@ namespace dot10.dotNET {
 		/// <summary>
 		/// Returns the flags (reserved)
 		/// </summary>
-		public ushort Flags {
+		public StorageFlags Flags {
 			get { return flags; }
+		}
+
+		/// <summary>
+		/// Returns the reserved byte (padding)
+		/// </summary>
+		public byte Reserved2 {
+			get { return reserved2; }
 		}
 
 		/// <summary>
@@ -103,7 +127,8 @@ namespace dot10.dotNET {
 			this.stringLength = reader.ReadUInt32();
 			this.versionString = ReadString(reader, stringLength, verify);
 			this.offset2ndPart = (uint)(reader.BaseStream.Position - startOffset.Value);
-			this.flags = reader.ReadUInt16();
+			this.flags = (StorageFlags)reader.ReadByte();
+			this.reserved2 = reader.ReadByte();
 			this.streams = reader.ReadUInt16();
 			this.streamHeaders = new StreamHeader[streams];
 			bool foundTables = false;
@@ -117,7 +142,7 @@ namespace dot10.dotNET {
 				}
 			}
 			if (verify && !foundTables)
-				throw new BadImageFormatException("No tables metadata stream");
+				throw new BadImageFormatException("No metadata tables stream");
 			SetEndoffset(reader);
 		}
 

@@ -5,7 +5,10 @@ namespace dot10.dotNET {
 	/// .NET metadata stream
 	/// </summary>
 	public class DotNetStream {
-		BinaryReader reader;
+		/// <summary>
+		/// Reader that can access the whole stream
+		/// </summary>
+		protected BinaryReader reader;
 		StreamHeader streamHeader;
 
 		/// <summary>

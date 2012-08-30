@@ -39,13 +39,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="dotNET\BlobStream.cs" />
+    <Compile Include="dotNET\CodedToken.cs" />
+    <Compile Include="dotNET\CodedTokenInfo.cs" />
+    <Compile Include="dotNET\ColumnInfo.cs" />
+    <Compile Include="dotNET\ColumnSize.cs" />
     <Compile Include="dotNET\DotNetFile.cs" />
     <Compile Include="dotNET\DotNetStream.cs" />
     <Compile Include="dotNET\GuidStream.cs" />
     <Compile Include="dotNET\ImageCor20Header.cs" />
+    <Compile Include="dotNET\MDStream.cs" />
+    <Compile Include="dotNET\MDTable.cs" />
+    <Compile Include="dotNET\MDToken.cs" />
     <Compile Include="dotNET\MetaDataHeader.cs" />
     <Compile Include="dotNET\StreamHeader.cs" />
     <Compile Include="dotNET\StringsStream.cs" />
+    <Compile Include="dotNET\Table.cs" />
+    <Compile Include="dotNET\TableInfo.cs" />
     <Compile Include="dotNET\USStream.cs" />
     <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="IO\IStreamCreator.cs" />
