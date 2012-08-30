@@ -93,7 +93,5 @@
 		MethodSpec,
 		/// <summary>GenericParamConstraint table (2Ch)</summary>
 		GenericParamConstraint,
-		/// <summary>Invalid value</summary>
-		INVALID = 0xFF,
 	}
 }

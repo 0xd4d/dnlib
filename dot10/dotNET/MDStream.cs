@@ -357,7 +357,7 @@ namespace dot10.dotNET {
 				new ColumnInfo("NestedClass", ColumnSize.TypeDef),
 				new ColumnInfo("EnclosingClass", ColumnSize.TypeDef),
 			});
-			if (maxTables > (int)Table.GenericParam) {
+			if (maxTables >= (int)Table.GenericParam) {
 				if (majorVersion == 1 && minorVersion == 1) {
 					tableInfos[(int)Table.GenericParam] = new TableInfo(Table.GenericParam, "GenericParam", new ColumnInfo[] {
 						new ColumnInfo("Number", ColumnSize.UInt16),
