@@ -120,9 +120,8 @@ namespace dot10.dotNET {
 				default: throw new ApplicationException(string.Format("Invalid ColumnSize: {0}", columnSize));
 				}
 				uint maxRows = 0;
-				var tableTypes = info.TableTypes;
-				for (int i = 0; i < tableTypes.Length; i++) {
-					var tableRows = mdTables[(int)tableTypes[i]].Rows;
+				foreach (var tableType in info.TableTypes) {
+					var tableRows = mdTables[(int)tableType].Rows;
 					if (tableRows > maxRows)
 						maxRows = tableRows;
 				}
