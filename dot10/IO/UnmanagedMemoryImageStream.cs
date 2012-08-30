@@ -69,9 +69,16 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public unsafe sbyte ReadSByte() {
+			if (currentAddr >= endAddr)
+				throw new IOException("Can't read one SByte");
+			return (sbyte)*currentAddr++;
+		}
+
+		/// <inheritdoc/>
 		public unsafe byte ReadByte() {
 			if (currentAddr >= endAddr)
-				throw new IOException("Can't read one byte");
+				throw new IOException("Can't read one Byte");
 			return *currentAddr++;
 		}
 
@@ -80,6 +87,15 @@ namespace dot10.IO {
 			if (currentAddr + 1 >= endAddr)
 				throw new IOException("Can't read one Int16");
 			short val = *(short*)currentAddr;
+			currentAddr += 2;
+			return val;
+		}
+
+		/// <inheritdoc/>
+		public unsafe ushort ReadUInt16() {
+			if (currentAddr + 1 >= endAddr)
+				throw new IOException("Can't read one UInt16");
+			ushort val = *(ushort*)currentAddr;
 			currentAddr += 2;
 			return val;
 		}
@@ -94,10 +110,28 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public unsafe uint ReadUInt32() {
+			if (currentAddr + 3 >= endAddr)
+				throw new IOException("Can't read one UInt32");
+			uint val = *(uint*)currentAddr;
+			currentAddr += 4;
+			return val;
+		}
+
+		/// <inheritdoc/>
 		public unsafe long ReadInt64() {
 			if (currentAddr + 7 >= endAddr)
 				throw new IOException("Can't read one Int64");
 			long val = *(long*)currentAddr;
+			currentAddr += 8;
+			return val;
+		}
+
+		/// <inheritdoc/>
+		public unsafe ulong ReadUInt64() {
+			if (currentAddr + 7 >= endAddr)
+				throw new IOException("Can't read one UInt64");
+			ulong val = *(ulong*)currentAddr;
 			currentAddr += 8;
 			return val;
 		}
