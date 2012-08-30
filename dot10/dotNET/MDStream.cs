@@ -12,7 +12,7 @@ namespace dot10.dotNET {
 		/// <summary>#Strings stream is big and requires 4 byte offsets</summary>
 		BigStrings = 1,
 		/// <summary>#GUID stream is big and requires 4 byte offsets</summary>
-		BigGuid = 2,
+		BigGUID = 2,
 		/// <summary>#Blob stream is big and requires 4 byte offsets</summary>
 		BigBlob = 4,
 		/// <summary></summary>
@@ -136,7 +136,7 @@ namespace dot10.dotNET {
 				case ColumnSize.Int32: return 4;
 				case ColumnSize.UInt32: return 4;
 				case ColumnSize.Strings: return (flags & MDStreamFlags.BigStrings) != 0 ? 4 : 2;
-				case ColumnSize.GUID: return (flags & MDStreamFlags.BigGuid) != 0 ? 4 : 2;
+				case ColumnSize.GUID: return (flags & MDStreamFlags.BigGUID) != 0 ? 4 : 2;
 				case ColumnSize.Blob: return (flags & MDStreamFlags.BigBlob) != 0 ? 4 : 2;
 				}
 			}
