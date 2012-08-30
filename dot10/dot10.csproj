@@ -57,6 +57,7 @@
     <Compile Include="dotNET\TableInfo.cs" />
     <Compile Include="dotNET\USStream.cs" />
     <Compile Include="ExtensionAttribute.cs" />
+    <Compile Include="IO\IBinaryReader.cs" />
     <Compile Include="IO\IImageStreamCreator.cs" />
     <Compile Include="IO\IImageStream.cs" />
     <Compile Include="IO\IOExtensions.cs" />
