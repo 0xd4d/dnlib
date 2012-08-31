@@ -4,22 +4,61 @@ using System.IO;
 using dot10.PE;
 
 namespace dot10.dotNET {
+	/// <summary>
+	/// 
+	/// </summary>
 	public class DotNetFile : IDisposable {
+		IMetaData metaData;
+
+		enum MetaDataType {
+			Unknown,
+			Compressed,	// #~ (normal)
+			ENC,		// #- (edit and continue)
+		}
+
+		/// <summary>
+		/// Create a <see cref="DotNetFile"/> instance
+		/// </summary>
+		/// <param name="filename">The file to load</param>
+		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(string filename) {
 			return Load(new PEImage(filename));
 		}
 
+		/// <summary>
+		/// Create a <see cref="DotNetFile"/> instance
+		/// </summary>
+		/// <param name="data">The .NET file data</param>
+		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(byte[] data) {
 			return Load(new PEImage(data));
 		}
 
+		/// <summary>
+		/// Create a <see cref="DotNetFile"/> instance
+		/// </summary>
+		/// <param name="addr">Address of a .NET file in memory</param>
+		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(IntPtr addr) {
 			return Load(new PEImage(addr));
 		}
 
+		/// <summary>
+		/// Create a <see cref="DotNetFile"/> instance
+		/// </summary>
+		/// <param name="peImage">The PE image</param>
+		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(IPEImage peImage) {
-			bool verify = true;
+			return Load(peImage, true);
+		}
 
+		/// <summary>
+		/// Create a <see cref="DotNetFile"/> instance
+		/// </summary>
+		/// <param name="peImage">The PE image</param>
+		/// <param name="verify">true if we should verify that it's a .NET PE file</param>
+		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
+		public static DotNetFile Load(IPEImage peImage, bool verify) {
 			var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
 			if (dotNetDir.VirtualAddress == RVA.Zero)
 				throw new BadImageFormatException(".NET data directory RVA is 0");
@@ -42,53 +81,42 @@ namespace dot10.dotNET {
 				}
 			}
 
-			var allStreams = new List<DotNetStream>(mdHeader.StreamHeaders.Count);
-			StringsStream stringsStream = null;
-			USStream usStream = null;
-			BlobStream blobStream = null;
-			GuidStream guidStream = null;
-			MDStream mdStream = null;
-			foreach (var sh in mdHeader.StreamHeaders) {
-				var rva = mdRva + sh.Offset;
-				var imageStream = peImage.CreateStream(rva, sh.Size);
-				switch (sh.Name) {
-				case "#Strings":
-					allStreams.Add(stringsStream = new StringsStream(imageStream, sh));
-					break;
+			IMetaData md;
+			switch (GetMetaDataType(mdHeader.StreamHeaders)) {
+			case MetaDataType.Compressed:
+				md = new CompressedMetaData(peImage, cor20Header, mdHeader);
+				break;
 
-				case "#US":
-					allStreams.Add(usStream = new USStream(imageStream, sh));
-					break;
+			case MetaDataType.ENC:
+				md = new ENCMetaData(peImage, cor20Header, mdHeader);
+				break;
 
-				case "#Blob":
-					allStreams.Add(blobStream = new BlobStream(imageStream, sh));
-					break;
-
-				case "#GUID":
-					allStreams.Add(guidStream = new GuidStream(imageStream, sh));
-					break;
-
-				case "#~":
-				case "#-":
-				case "#Schema":
-					allStreams.Add(mdStream = new MDStream(imageStream, sh));
-					break;
-
-				default:
-					allStreams.Add(new DotNetStream(imageStream, sh));
-					break;
-				}
+			default:
+				throw new BadImageFormatException("No #~ or #- stream found");
 			}
 
-			if (mdStream == null)
-				throw new BadImageFormatException("Missing MD stream");
-			mdStream.Initialize(peImage);
+			return new DotNetFile(md);
+		}
 
-			return null;	//TODO:
+		DotNetFile(IMetaData metaData) {
+			this.metaData = metaData;
+		}
+
+		static MetaDataType GetMetaDataType(IList<StreamHeader> streamHeaders) {
+			foreach (var sh in streamHeaders) {
+				if (sh.Name == "#~")
+					return MetaDataType.Compressed;
+				if (sh.Name == "#-")
+					return MetaDataType.ENC;
+			}
+			return MetaDataType.Unknown;
 		}
 
 		/// <inheritdoc/>
 		public void Dispose() {
+			if (metaData != null)
+				metaData.Dispose();
+			metaData = null;
 		}
 	}
 }

@@ -29,7 +29,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// .NET metadata tables stream
 	/// </summary>
-	public class MDStream : DotNetStream {
+	public abstract class TablesStream : DotNetStream {
 		uint reserved1;
 		byte majorVersion;
 		byte minorVersion;
@@ -42,7 +42,7 @@ namespace dot10.dotNET {
 		MDTable[] mdTables;
 
 		/// <inheritdoc/>
-		public MDStream(IImageStream imageStream, StreamHeader streamHeader)
+		public TablesStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
 		}
 
