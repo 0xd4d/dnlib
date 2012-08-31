@@ -134,18 +134,8 @@ namespace dot10.dotNET {
 			this.reserved2 = reader.ReadByte();
 			this.streams = reader.ReadUInt16();
 			this.streamHeaders = new StreamHeader[streams];
-			bool foundTables = false;
-			for (int i = 0; i < streamHeaders.Count; i++) {
-				var sh = new StreamHeader(reader, verify);
-				streamHeaders[i] = sh;
-				if (sh.Name == "#~" || sh.Name == "#-" || sh.Name == "#Schema") {
-					if (verify && foundTables)
-						throw new BadImageFormatException("More than one tables stream found");
-					foundTables = true;
-				}
-			}
-			if (verify && !foundTables)
-				throw new BadImageFormatException("No metadata tables stream");
+			for (int i = 0; i < streamHeaders.Count; i++)
+				streamHeaders[i] = new StreamHeader(reader, verify);
 			SetEndoffset(reader);
 		}
 
