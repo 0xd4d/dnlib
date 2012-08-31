@@ -68,7 +68,7 @@ namespace dot10.PE {
 		/// <param name="imageStreamCreator">The PE stream creator</param>
 		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
 		/// <param name="verify">Verify PE file data</param>
-		protected PEImage(IImageStreamCreator imageStreamCreator, IPEType peType, bool verify) {
+		public PEImage(IImageStreamCreator imageStreamCreator, IPEType peType, bool verify) {
 			this.imageStreamCreator = imageStreamCreator;
 			this.peType = peType;
 			ResetReader();
