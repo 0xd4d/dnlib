@@ -16,8 +16,9 @@ namespace dot10.dotNET {
 		Normal = 0,
 
 		/// <summary>
-		/// More data after the header
+		/// More data after the header but before the streams.
 		/// </summary>
+		/// <remarks>The CLR will fail to load the file if this flag (or any other bits) is set.</remarks>
 		ExtraData = 1,
 	}
 
@@ -128,6 +129,8 @@ namespace dot10.dotNET {
 			this.versionString = ReadString(reader, stringLength, verify);
 			this.offset2ndPart = (uint)(reader.Position - startOffset.Value);
 			this.flags = (StorageFlags)reader.ReadByte();
+			if (verify && this.flags != 0)
+				throw new BadImageFormatException(string.Format("Storage flags != 0 ({0:X2})", this.flags));
 			this.reserved2 = reader.ReadByte();
 			this.streams = reader.ReadUInt16();
 			this.streamHeaders = new StreamHeader[streams];
