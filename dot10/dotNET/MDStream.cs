@@ -50,9 +50,7 @@ namespace dot10.dotNET {
 		/// Initialize MD tables
 		/// </summary>
 		/// <param name="peImage">The PEImage</param>
-		/// <param name="mdStreamRva">RVA of this MD stream</param>
-		public void Initialize(IPEImage peImage, RVA mdStreamRva) {
-			long startPos = imageStream.Position;
+		public void Initialize(IPEImage peImage) {
 			reserved1 = imageStream.ReadUInt32();
 			majorVersion = imageStream.ReadByte();
 			minorVersion = imageStream.ReadByte();
@@ -86,7 +84,7 @@ namespace dot10.dotNET {
 				tableInfo.RowSize = colOffset;
 			}
 
-			var currentRva = mdStreamRva + (uint)(imageStream.Position - startPos);
+			var currentRva = peImage.ToRVA(imageStream.FileOffset) + (uint)imageStream.Position;
 			foreach (var mdTable in mdTables) {
 				var dataLen = (long)mdTable.TableInfo.RowSize * (long)mdTable.Rows;
 				mdTable.ImageStream = peImage.CreateStream(currentRva, dataLen);

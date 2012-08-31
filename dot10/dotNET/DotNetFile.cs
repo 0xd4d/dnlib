@@ -48,7 +48,6 @@ namespace dot10.dotNET {
 			BlobStream blobStream = null;
 			GuidStream guidStream = null;
 			MDStream mdStream = null;
-			RVA mdStreamRva = RVA.Zero;
 			foreach (var sh in mdHeader.StreamHeaders) {
 				var rva = mdRva + sh.Offset;
 				var imageStream = peImage.CreateStream(rva, sh.Size);
@@ -83,7 +82,7 @@ namespace dot10.dotNET {
 
 			if (mdStream == null)
 				throw new BadImageFormatException("Missing MD stream");
-			mdStream.Initialize(peImage, mdStreamRva);
+			mdStream.Initialize(peImage);
 
 			return null;	//TODO:
 		}
