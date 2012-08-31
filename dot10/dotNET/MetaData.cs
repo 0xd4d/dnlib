@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using dot10.PE;
 
 namespace dot10.dotNET {
@@ -62,16 +63,26 @@ namespace dot10.dotNET {
 			this.peImage = peImage;
 			this.cor20Header = cor20Header;
 			this.mdHeader = mdHeader;
-			Initialize();
 		}
 
 		/// <summary>
 		/// Initialize the metadata, tables, streams
 		/// </summary>
-		protected abstract void Initialize();
+		public abstract void Initialize();
 
 		/// <inheritdoc/>
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		/// <summary>
+		/// Dispose method
+		/// </summary>
+		/// <param name="disposing">true if called by Dispose()</param>
+		protected virtual void Dispose(bool disposing) {
+			if (!disposing)
+				return;
 			if (peImage != null)
 				peImage.Dispose();
 			if (stringsStream != null)

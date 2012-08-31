@@ -42,7 +42,7 @@ namespace dot10.dotNET {
 		MDTable[] mdTables;
 
 		/// <inheritdoc/>
-		public TablesStream(IImageStream imageStream, StreamHeader streamHeader)
+		protected TablesStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
 		}
 
@@ -385,13 +385,15 @@ namespace dot10.dotNET {
 		}
 
 		/// <inheritdoc/>
-		public override void Dispose() {
-			if (mdTables != null) {
-				foreach (var mdTable in mdTables)
-					mdTable.Dispose();
-				mdTables = null;
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (mdTables != null) {
+					foreach (var mdTable in mdTables)
+						mdTable.Dispose();
+					mdTables = null;
+				}
 			}
-			base.Dispose();
+			base.Dispose(disposing);
 		}
 	}
 }

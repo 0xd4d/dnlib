@@ -22,7 +22,7 @@ namespace dot10.dotNET {
 		/// <summary>
 		/// The size of the stream
 		/// </summary>
-		public uint Size {
+		public uint StreamSize {
 			get { return streamSize; }
 		}
 

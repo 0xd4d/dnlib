@@ -43,6 +43,14 @@ namespace dot10.dotNET {
 			this.token = token;
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="token">Raw token</param>
+		public MDToken(int token)
+			: this((uint)token) {
+		}
+
 		/// <summary>Overloaded operator</summary>
 		public static bool operator ==(MDToken left, MDToken right) {
 			return left.CompareTo(right) == 0;

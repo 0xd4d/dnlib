@@ -8,7 +8,7 @@ namespace dot10.IO {
 		/// <summary>
 		/// The file name or null if data is not from a file
 		/// </summary>
-		string Filename { get; }
+		string FileName { get; }
 
 		/// <summary>
 		/// Returns the total length of the original data

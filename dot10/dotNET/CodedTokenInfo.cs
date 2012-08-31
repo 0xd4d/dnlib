@@ -5,9 +5,9 @@ namespace dot10.dotNET {
 	/// Encodes and decodes tokens/coded tokens
 	/// </summary>
 	public class CodedTokenInfo {
-		Table[] tableTypes;
-		int bits;
-		int mask;
+		readonly Table[] tableTypes;
+		readonly int bits;
+		readonly int mask;
 
 		/// <summary>
 		/// Returns all types of tables

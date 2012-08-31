@@ -139,7 +139,7 @@ namespace dot10.dotNET {
 			SetEndoffset(reader);
 		}
 
-		string ReadString(IImageStream reader, uint maxLength, bool verify) {
+		static string ReadString(IImageStream reader, uint maxLength, bool verify) {
 			long endPos = reader.Position + maxLength;
 			if (endPos < reader.Position || endPos > reader.Length)
 				throw new BadImageFormatException("Invalid MD version string");

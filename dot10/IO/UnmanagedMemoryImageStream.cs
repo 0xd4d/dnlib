@@ -6,7 +6,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// IImageStream for unmanaged memory
 	/// </summary>
-	public unsafe class UnmanagedMemoryImageStream : IImageStream {
+	public sealed unsafe class UnmanagedMemoryImageStream : IImageStream {
 		FileOffset fileOffset;
 		byte* startAddr;
 		byte* endAddr;

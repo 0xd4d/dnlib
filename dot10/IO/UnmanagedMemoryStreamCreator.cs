@@ -21,14 +21,14 @@ namespace dot10.IO {
 		/// <summary>
 		/// Name of file
 		/// </summary>
-		protected string filename;
+		protected string theFileName;
 
 		/// <summary>
 		/// The file name
 		/// </summary>
-		public string Filename {
-			get { return filename; }
-			set { filename = value; }
+		public string FileName {
+			get { return theFileName; }
+			set { theFileName = value; }
 		}
 
 		/// <summary>
@@ -91,12 +91,21 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
-		public virtual void Dispose() {
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		/// <summary>
+		/// Dispose method
+		/// </summary>
+		/// <param name="disposing">true if called by Dispose()</param>
+		protected virtual void Dispose(bool disposing) {
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("mem: D:{0:X8} L:{1:X8} {2}", data, dataLength, filename);
+			return string.Format("mem: D:{0:X8} L:{1:X8} {2}", data, dataLength, theFileName);
 		}
 	}
 }

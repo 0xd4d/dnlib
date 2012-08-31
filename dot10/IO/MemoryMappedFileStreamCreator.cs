@@ -9,8 +9,8 @@ namespace dot10.IO {
 	/// that can access part of it in memory.
 	/// </summary>
 	/// <remarks>Since this class maps a file into memory, the user should call
-	/// <see cref="Dispose()"/> to free any resources used by the class when it's
-	/// no longer needed.</remarks>
+	/// <see cref="UnmanagedMemoryStreamCreator.Dispose()"/> to free any resources
+	/// used by the class when it's no longer needed.</remarks>
 	public class MemoryMappedFileStreamCreator : UnmanagedMemoryStreamCreator {
 		const uint GENERIC_READ = 0x80000000;
 		const uint FILE_SHARE_READ = 0x00000001;
@@ -46,28 +46,29 @@ namespace dot10.IO {
 		/// <see cref="UnmanagedMemoryStreamCreator"/> that is used internally by the class,
 		/// can only access bytes up to the file size, not to the end of the mapped image. You must
 		/// set <see cref="UnmanagedMemoryStreamCreator.Length"/> to the correct image length to access the full image.</remarks>
-		/// <param name="filename">Name of the file</param>
+		/// <param name="fileName">Name of the file</param>
 		/// <param name="mapAsImage">true if we should map it as an executable</param>
 		/// <exception cref="IOException">If we can't open/map the file</exception>
-		public MemoryMappedFileStreamCreator(string filename, bool mapAsImage) {
-			this.filename = filename;
-			using (var fileHandle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
+		public MemoryMappedFileStreamCreator(string fileName, bool mapAsImage) {
+			this.theFileName = fileName;
+			using (var fileHandle = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
 				if (fileHandle.IsInvalid)
-					throw new IOException(string.Format("Could not open file {0} for reading. Error: {1:X8}", filename, Marshal.GetLastWin32Error()));
+					throw new IOException(string.Format("Could not open file {0} for reading. Error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
 
 				uint sizeHi;
 				uint sizeLo = GetFileSize(fileHandle, out sizeHi);
-				if (sizeLo == INVALID_FILE_SIZE && Marshal.GetLastWin32Error() != NO_ERROR)
-					throw new IOException(string.Format("Could not get file size. File: {0}, error: {1:X8}", filename, Marshal.GetLastWin32Error()));
+				int hr;
+				if (sizeLo == INVALID_FILE_SIZE && (hr = Marshal.GetLastWin32Error()) != NO_ERROR)
+					throw new IOException(string.Format("Could not get file size. File: {0}, error: {1:X8}", fileName, hr));
 				var fileSize = ((long)sizeHi << 32) | sizeLo;
 
 				using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY | (mapAsImage ? SEC_IMAGE : 0), 0, 0, null)) {
 					if (fileMapping.IsInvalid)
-						throw new IOException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", filename, Marshal.GetLastWin32Error()));
+						throw new IOException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
 					var baseAddr = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
 					if (baseAddr == IntPtr.Zero)
-						throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", filename, Marshal.GetLastWin32Error()));
-					this.filename = filename;
+						throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
+					this.theFileName = fileName;
 					this.data = baseAddr;
 					this.dataLength = fileSize;
 				}
@@ -80,23 +81,18 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
-		public override void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-			base.Dispose();
-		}
-
-		void Dispose(bool disposing) {
+		protected override void Dispose(bool disposing) {
 			if (data != IntPtr.Zero) {
 				UnmapViewOfFile(data);
 				data = IntPtr.Zero;
 				dataLength = 0;
 			}
+			base.Dispose(disposing);
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", data, dataLength, filename);
+			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", data, dataLength, theFileName);
 		}
 	}
 }

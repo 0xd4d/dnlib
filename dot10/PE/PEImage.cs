@@ -7,7 +7,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Accesses a PE file
 	/// </summary>
-	public class PEImage : IPEImage {
+	public sealed class PEImage : IPEImage {
 		/// <summary>
 		/// Use this if the PE file has been loaded into memory by the OS PE file loader
 		/// </summary>
@@ -78,11 +78,11 @@ namespace dot10.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="filename">Name of the file</param>
+		/// <param name="fileName">Name of the file</param>
 		/// <param name="mapAsImage">true if we should map it as an executable</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(string filename, bool mapAsImage, bool verify)
-			: this(new MemoryMappedFileStreamCreator(filename, mapAsImage), mapAsImage ? MemoryLayout : FileLayout, verify) {
+		public PEImage(string fileName, bool mapAsImage, bool verify)
+			: this(new MemoryMappedFileStreamCreator(fileName, mapAsImage), mapAsImage ? MemoryLayout : FileLayout, verify) {
 			if (mapAsImage) {
 				((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
 				ResetReader();
@@ -92,18 +92,18 @@ namespace dot10.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="filename">Name of the file</param>
+		/// <param name="fileName">Name of the file</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(string filename, bool verify)
-			: this(filename, true, verify) {
+		public PEImage(string fileName, bool verify)
+			: this(fileName, true, verify) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="filename">Name of the file</param>
-		public PEImage(string filename)
-			: this(filename, true) {
+		/// <param name="fileName">Name of the file</param>
+		public PEImage(string fileName)
+			: this(fileName, true) {
 		}
 
 		/// <summary>
@@ -193,7 +193,11 @@ namespace dot10.PE {
 		}
 
 		void ResetReader() {
-			this.imageStream = imageStreamCreator.CreateFull();
+			if (imageStream != null) {
+				imageStream.Dispose();
+				imageStream = null;
+			}
+			imageStream = imageStreamCreator.CreateFull();
 		}
 
 		/// <inheritdoc/>

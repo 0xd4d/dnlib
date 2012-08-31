@@ -29,10 +29,21 @@ namespace dot10.dotNET {
 		}
 
 		/// <inheritdoc/>
-		public virtual void Dispose() {
-			if (imageStream != null) {
-				imageStream.Dispose();
-				imageStream = null;
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		/// <summary>
+		/// Dispose method
+		/// </summary>
+		/// <param name="disposing">true if called by Dispose()</param>
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				if (imageStream != null) {
+					imageStream.Dispose();
+					imageStream = null;
+				}
 			}
 		}
 	}

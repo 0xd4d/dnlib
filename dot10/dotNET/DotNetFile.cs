@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using dot10.IO;
 using dot10.PE;
 
 namespace dot10.dotNET {
 	/// <summary>
 	/// 
 	/// </summary>
-	public class DotNetFile : IDisposable {
+	public sealed class DotNetFile : IDisposable {
 		IMetaData metaData;
 
 		enum MetaDataType {
@@ -19,10 +20,10 @@ namespace dot10.dotNET {
 		/// <summary>
 		/// Create a <see cref="DotNetFile"/> instance
 		/// </summary>
-		/// <param name="filename">The file to load</param>
+		/// <param name="fileName">The file to load</param>
 		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
-		public static DotNetFile Load(string filename) {
-			return Load(new PEImage(filename));
+		public static DotNetFile Load(string fileName) {
+			return Load(new PEImage(fileName));
 		}
 
 		/// <summary>
@@ -59,43 +60,58 @@ namespace dot10.dotNET {
 		/// <param name="verify">true if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(IPEImage peImage, bool verify) {
-			var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
-			if (dotNetDir.VirtualAddress == RVA.Zero)
-				throw new BadImageFormatException(".NET data directory RVA is 0");
-			if (dotNetDir.Size < 0x48)
-				throw new BadImageFormatException(".NET data directory size < 0x48");
-			var cor20Header = new ImageCor20Header(peImage.CreateStream(dotNetDir.VirtualAddress, 0x48), verify);
-			if (cor20Header.HasNativeHeader)
-				throw new BadImageFormatException(".NET native header isn't supported");	//TODO: Fix this
-			if (cor20Header.MetaData.VirtualAddress == RVA.Zero)
-				throw new BadImageFormatException(".NET MetaData RVA is 0");
-			if (cor20Header.MetaData.Size < 16)
-				throw new BadImageFormatException(".NET MetaData size is too small");
-			var mdSize = cor20Header.MetaData.Size;
-			var mdRva = cor20Header.MetaData.VirtualAddress;
-			var mdHeader = new MetaDataHeader(peImage.CreateStream(mdRva, mdSize), verify);
-			if (verify) {
-				foreach (var sh in mdHeader.StreamHeaders) {
-					if (sh.Offset + sh.Size < sh.Offset || sh.Offset + sh.Size > mdSize)
-						throw new BadImageFormatException("Invalid stream header");
+			IImageStream cor20HeaderStream = null, mdHeaderStream = null;
+			MetaData md = null;
+			try {
+				var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
+				if (dotNetDir.VirtualAddress == RVA.Zero)
+					throw new BadImageFormatException(".NET data directory RVA is 0");
+				if (dotNetDir.Size < 0x48)
+					throw new BadImageFormatException(".NET data directory size < 0x48");
+				var cor20Header = new ImageCor20Header(cor20HeaderStream = peImage.CreateStream(dotNetDir.VirtualAddress, 0x48), verify);
+				if (cor20Header.HasNativeHeader)
+					throw new BadImageFormatException(".NET native header isn't supported");	//TODO: Fix this
+				if (cor20Header.MetaData.VirtualAddress == RVA.Zero)
+					throw new BadImageFormatException(".NET MetaData RVA is 0");
+				if (cor20Header.MetaData.Size < 16)
+					throw new BadImageFormatException(".NET MetaData size is too small");
+				var mdSize = cor20Header.MetaData.Size;
+				var mdRva = cor20Header.MetaData.VirtualAddress;
+				var mdHeader = new MetaDataHeader(mdHeaderStream = peImage.CreateStream(mdRva, mdSize), verify);
+				if (verify) {
+					foreach (var sh in mdHeader.StreamHeaders) {
+						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > mdSize)
+							throw new BadImageFormatException("Invalid stream header");
+					}
 				}
+
+				switch (GetMetaDataType(mdHeader.StreamHeaders)) {
+				case MetaDataType.Compressed:
+					md = new CompressedMetaData(peImage, cor20Header, mdHeader);
+					break;
+
+				case MetaDataType.ENC:
+					md = new ENCMetaData(peImage, cor20Header, mdHeader);
+					break;
+
+				default:
+					throw new BadImageFormatException("No #~ or #- stream found");
+				}
+				md.Initialize();
+
+				return new DotNetFile(md);
 			}
-
-			IMetaData md;
-			switch (GetMetaDataType(mdHeader.StreamHeaders)) {
-			case MetaDataType.Compressed:
-				md = new CompressedMetaData(peImage, cor20Header, mdHeader);
-				break;
-
-			case MetaDataType.ENC:
-				md = new ENCMetaData(peImage, cor20Header, mdHeader);
-				break;
-
-			default:
-				throw new BadImageFormatException("No #~ or #- stream found");
+			catch {
+				if (md != null)
+					md.Dispose();
+				throw;
 			}
-
-			return new DotNetFile(md);
+			finally {
+				if (cor20HeaderStream != null)
+					cor20HeaderStream.Dispose();
+				if (mdHeaderStream != null)
+					mdHeaderStream.Dispose();
+			}
 		}
 
 		DotNetFile(IMetaData metaData) {

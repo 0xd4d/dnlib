@@ -6,7 +6,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// A MD table (eg. Method table)
 	/// </summary>
-	public class MDTable : IDisposable {
+	public sealed class MDTable : IDisposable {
 		uint numRows;
 		TableInfo tableInfo;
 		IImageStream imageStream;
@@ -29,7 +29,11 @@ namespace dot10.dotNET {
 		/// The stream that can access all the rows in this table
 		/// </summary>
 		internal IImageStream ImageStream {
-			set { imageStream = value; }
+			set {
+				if (imageStream != null)
+					imageStream.Dispose();
+				imageStream = value;
+			}
 		}
 
 		/// <summary>

@@ -6,18 +6,18 @@ namespace dot10.IO {
 	/// Creates <see cref="MemoryStream"/>s to partially access a byte[]
 	/// </summary>
 	/// <seealso cref="UnmanagedMemoryStreamCreator"/>
-	public class MemoryStreamCreator : IImageStreamCreator {
+	public sealed class MemoryStreamCreator : IImageStreamCreator {
 		byte[] data;
 		int dataOffset;
 		int dataLength;
-		string filename;
+		string theFileName;
 
 		/// <summary>
 		/// The file name
 		/// </summary>
-		public string Filename {
-			get { return filename; }
-			set { filename = value; }
+		public string FileName {
+			get { return theFileName; }
+			set { theFileName = value; }
 		}
 
 		/// <inheritdoc/>
@@ -78,7 +78,7 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("byte[]: O:{0:X8} L:{1:X8} {2}", dataOffset, dataLength, filename);
+			return string.Format("byte[]: O:{0:X8} L:{1:X8} {2}", dataOffset, dataLength, theFileName);
 		}
 	}
 }

@@ -5,7 +5,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// IImageStream for byte[]
 	/// </summary>
-	public class MemoryImageStream : IImageStream {
+	public sealed class MemoryImageStream : IImageStream {
 		FileOffset fileOffset;
 		byte[] data;
 		int dataOffset;
@@ -140,7 +140,7 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("FO:{0:X8} S:{1:X8} A:{2:X8}", fileOffset.Value, Length);
+			return string.Format("FO:{0:X8} S:{1:X8}", fileOffset.Value, Length);
 		}
 	}
 }
