@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using dot10.IO;
 
 namespace dot10.dotNET {
 	/// <summary>
@@ -56,7 +57,7 @@ namespace dot10.dotNET {
 		/// </summary>
 		/// <param name="reader">A reader positioned on this column</param>
 		/// <returns>The column value</returns>
-		public uint Read(BinaryReader reader) {
+		public uint Read(IBinaryReader reader) {
 			switch (size) {
 			case 1: return reader.ReadByte();
 			case 2: return reader.ReadUInt16();
