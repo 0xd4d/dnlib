@@ -15,6 +15,7 @@ namespace dot10.dotNET {
 		/// <inheritdoc/>
 		public override void Initialize() {
 			IImageStream imageStream = null;
+			DotNetStream dns = null;
 			try {
 				var mdRva = cor20Header.MetaData.VirtualAddress;
 				for (int i = mdHeader.StreamHeaders.Count - 1; i >= 0; i--) {
@@ -67,9 +68,10 @@ namespace dot10.dotNET {
 						}
 						break;
 					}
-					var dns = new DotNetStream(imageStream, sh);
+					dns = new DotNetStream(imageStream, sh);
 					imageStream = null;
 					allStreams.Add(dns);
+					dns = null;
 				}
 
 				if (tablesStream == null)
@@ -79,6 +81,8 @@ namespace dot10.dotNET {
 			finally {
 				if (imageStream != null)
 					imageStream.Dispose();
+				if (dns != null)
+					dns.Dispose();
 			}
 		}
 	}
