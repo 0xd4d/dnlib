@@ -9,7 +9,7 @@ namespace dot10.dotNET {
 	/// MDStream flags
 	/// </summary>
 	[Flags]
-	public enum MDStreamFlags : byte {
+	enum MDStreamFlags : byte {
 		/// <summary>#Strings stream is big and requires 4 byte offsets</summary>
 		BigStrings = 1,
 		/// <summary>#GUID stream is big and requires 4 byte offsets</summary>
@@ -29,7 +29,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// .NET metadata tables stream
 	/// </summary>
-	public abstract class TablesStream : DotNetStream {
+	abstract class TablesStream : DotNetStream {
 		uint reserved1;
 		byte majorVersion;
 		byte minorVersion;

@@ -4,7 +4,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// Info about one MD table
 	/// </summary>
-	public class TableInfo {
+	class TableInfo {
 		Table table;
 		int rowSize;
 		IList<ColumnInfo> columns;

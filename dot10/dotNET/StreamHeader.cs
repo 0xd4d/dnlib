@@ -7,7 +7,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// A metadata stream header
 	/// </summary>
-	public class StreamHeader : FileSection {
+	class StreamHeader : FileSection {
 		uint offset;
 		uint streamSize;
 		string name;

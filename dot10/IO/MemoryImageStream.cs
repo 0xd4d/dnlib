@@ -5,7 +5,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// IImageStream for byte[]
 	/// </summary>
-	public sealed class MemoryImageStream : IImageStream {
+	sealed class MemoryImageStream : IImageStream {
 		FileOffset fileOffset;
 		byte[] data;
 		int dataOffset;

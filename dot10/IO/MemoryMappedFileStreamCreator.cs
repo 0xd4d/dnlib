@@ -11,7 +11,7 @@ namespace dot10.IO {
 	/// <remarks>Since this class maps a file into memory, the user should call
 	/// <see cref="UnmanagedMemoryStreamCreator.Dispose()"/> to free any resources
 	/// used by the class when it's no longer needed.</remarks>
-	public class MemoryMappedFileStreamCreator : UnmanagedMemoryStreamCreator {
+	class MemoryMappedFileStreamCreator : UnmanagedMemoryStreamCreator {
 		const uint GENERIC_READ = 0x80000000;
 		const uint FILE_SHARE_READ = 0x00000001;
 		const uint OPEN_EXISTING = 3;

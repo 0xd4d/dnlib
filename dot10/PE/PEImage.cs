@@ -5,18 +5,26 @@ using dot10.IO;
 
 namespace dot10.PE {
 	/// <summary>
-	/// Accesses a PE file
+	/// Image layout
 	/// </summary>
-	public sealed class PEImage : IPEImage {
-		/// <summary>
-		/// Use this if the PE file has been loaded into memory by the OS PE file loader
-		/// </summary>
-		public static readonly IPEType MemoryLayout = new MemoryPEType();
-
+	public enum ImageLayout {
 		/// <summary>
 		/// Use this if the PE file has a normal structure (eg. it's been read from a file on disk)
 		/// </summary>
-		public static readonly IPEType FileLayout = new FilePEType();
+		FileLayout,
+
+		/// <summary>
+		/// Use this if the PE file has been loaded into memory by the OS PE file loader
+		/// </summary>
+		MemoryLayout,
+	}
+
+	/// <summary>
+	/// Accesses a PE file
+	/// </summary>
+	public sealed class PEImage : IPEImage {
+		static readonly IPEType MemoryLayout = new MemoryPEType();
+		static readonly IPEType FileLayout = new FilePEType();
 
 		IImageStream imageStream;
 		IImageStreamCreator imageStreamCreator;
@@ -66,13 +74,21 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="imageStreamCreator">The PE stream creator</param>
-		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
+		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(IImageStreamCreator imageStreamCreator, IPEType peType, bool verify) {
+		public PEImage(IImageStreamCreator imageStreamCreator, ImageLayout imageLayout, bool verify) {
 			this.imageStreamCreator = imageStreamCreator;
-			this.peType = peType;
+			this.peType = ConvertImageLayout(imageLayout);
 			ResetReader();
 			this.peInfo = new PEInfo(imageStream, verify);
+		}
+
+		static IPEType ConvertImageLayout(ImageLayout imageLayout) {
+			switch (imageLayout) {
+			case ImageLayout.FileLayout: return FileLayout;
+			case ImageLayout.MemoryLayout: return MemoryLayout;
+			default: throw new ArgumentException("imageLayout");
+			}
 		}
 
 		/// <summary>
@@ -82,7 +98,7 @@ namespace dot10.PE {
 		/// <param name="mapAsImage">true if we should map it as an executable</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string fileName, bool mapAsImage, bool verify)
-			: this(new MemoryMappedFileStreamCreator(fileName, mapAsImage), mapAsImage ? MemoryLayout : FileLayout, verify) {
+			: this(new MemoryMappedFileStreamCreator(fileName, mapAsImage), mapAsImage ? ImageLayout.MemoryLayout : ImageLayout.FileLayout, verify) {
 			if (mapAsImage) {
 				((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
 				ResetReader();
@@ -110,10 +126,10 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="data">The PE file data</param>
-		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
+		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(byte[] data, IPEType peType, bool verify)
-			: this(new MemoryStreamCreator(data), peType, verify) {
+		public PEImage(byte[] data, ImageLayout imageLayout, bool verify)
+			: this(new MemoryStreamCreator(data), imageLayout, verify) {
 		}
 
 		/// <summary>
@@ -122,7 +138,7 @@ namespace dot10.PE {
 		/// <param name="data">The PE file data</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(byte[] data, bool verify)
-			: this(data, FileLayout, verify) {
+			: this(data, ImageLayout.FileLayout, verify) {
 		}
 
 		/// <summary>
@@ -138,10 +154,10 @@ namespace dot10.PE {
 		/// </summary>
 		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="length">Length of PE image</param>
-		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
+		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(IntPtr baseAddr, long length, IPEType peType, bool verify)
-			: this(new UnmanagedMemoryStreamCreator(baseAddr, length), peType, verify) {
+		public PEImage(IntPtr baseAddr, long length, ImageLayout imageLayout, bool verify)
+			: this(new UnmanagedMemoryStreamCreator(baseAddr, length), imageLayout, verify) {
 		}
 
 		/// <summary>
@@ -151,7 +167,7 @@ namespace dot10.PE {
 		/// <param name="length">Length of PE image</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, long length, bool verify)
-			: this(baseAddr, length, MemoryLayout, verify) {
+			: this(baseAddr, length, ImageLayout.MemoryLayout, verify) {
 		}
 
 		/// <summary>
@@ -167,10 +183,10 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="baseAddr">Address of PE image</param>
-		/// <param name="peType">One of <see cref="MemoryLayout"/> and <see cref="FileLayout"/></param>
+		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(IntPtr baseAddr, IPEType peType, bool verify)
-			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), peType, verify) {
+		public PEImage(IntPtr baseAddr, ImageLayout imageLayout, bool verify)
+			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), imageLayout, verify) {
 			((UnmanagedMemoryStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
 			ResetReader();
 		}
@@ -181,7 +197,7 @@ namespace dot10.PE {
 		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, bool verify)
-			: this(baseAddr, MemoryLayout, verify) {
+			: this(baseAddr, ImageLayout.MemoryLayout, verify) {
 		}
 
 		/// <summary>

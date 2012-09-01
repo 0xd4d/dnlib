@@ -4,7 +4,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Converts a <see cref="FileOffset"/> to/from an <see cref="RVA"/>
 	/// </summary>
-	public interface IPEType {
+	interface IPEType {
 		/// <summary>
 		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>
 		/// </summary>

@@ -6,7 +6,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Reads all PE sections from a PE stream
 	/// </summary>
-	public class PEInfo {
+	class PEInfo {
 		readonly ImageDosHeader imageDosHeader;
 		readonly ImageNTHeaders imageNTHeaders;
 		readonly ImageSectionHeader[] imageSectionHeaders;

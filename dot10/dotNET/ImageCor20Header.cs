@@ -8,7 +8,7 @@ namespace dot10.dotNET {
 	/// See COMIMAGE_FLAGS_XXX in CorHdr.h in the Windows SDK
 	/// </summary>
 	[Flags]
-	public enum ComImageFlags : uint {
+	enum ComImageFlags : uint {
 		/// <summary>
 		/// See COMIMAGE_FLAGS_ILONLY in the Windows SDK
 		/// </summary>

@@ -6,7 +6,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// .NET metadata stream
 	/// </summary>
-	public class DotNetStream : IDisposable {
+	class DotNetStream : IDisposable {
 		/// <summary>
 		/// Reader that can access the whole stream
 		/// </summary>

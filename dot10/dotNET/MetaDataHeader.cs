@@ -9,7 +9,7 @@ namespace dot10.dotNET {
 	/// Storage flags found in the MD header
 	/// </summary>
 	[Flags]
-	public enum StorageFlags : byte {
+	enum StorageFlags : byte {
 		/// <summary>
 		/// Normal flags
 		/// </summary>
@@ -26,7 +26,7 @@ namespace dot10.dotNET {
 	/// Represents the .NET metadata header
 	/// </summary>
 	/// <remarks><c>IMAGE_COR20_HEADER.MetaData</c> points to this header</remarks>
-	public class MetaDataHeader : FileSection {
+	class MetaDataHeader : FileSection {
 		uint signature;
 		ushort majorVersion;
 		ushort minorVersion;

@@ -7,7 +7,7 @@ namespace dot10.IO {
 	/// unmanaged memory range
 	/// </summary>
 	/// <seealso cref="MemoryStreamCreator"/>
-	public class UnmanagedMemoryStreamCreator : IImageStreamCreator {
+	class UnmanagedMemoryStreamCreator : IImageStreamCreator {
 		/// <summary>
 		/// Address of data
 		/// </summary>

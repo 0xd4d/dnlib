@@ -6,7 +6,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// A MD table (eg. Method table)
 	/// </summary>
-	public sealed class MDTable : IDisposable {
+	sealed class MDTable : IDisposable {
 		uint numRows;
 		TableInfo tableInfo;
 		IImageStream imageStream;
