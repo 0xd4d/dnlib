@@ -77,10 +77,16 @@ namespace dot10.PE {
 		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IImageStreamCreator imageStreamCreator, ImageLayout imageLayout, bool verify) {
-			this.imageStreamCreator = imageStreamCreator;
-			this.peType = ConvertImageLayout(imageLayout);
-			ResetReader();
-			this.peInfo = new PEInfo(imageStream, verify);
+			try {
+				this.imageStreamCreator = imageStreamCreator;
+				this.peType = ConvertImageLayout(imageLayout);
+				ResetReader();
+				this.peInfo = new PEInfo(imageStream, verify);
+			}
+			catch {
+				Dispose();
+				throw;
+			}
 		}
 
 		static IPEType ConvertImageLayout(ImageLayout imageLayout) {
@@ -99,9 +105,15 @@ namespace dot10.PE {
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string fileName, bool mapAsImage, bool verify)
 			: this(new MemoryMappedFileStreamCreator(fileName, mapAsImage), mapAsImage ? ImageLayout.MemoryLayout : ImageLayout.FileLayout, verify) {
-			if (mapAsImage) {
-				((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
-				ResetReader();
+			try {
+				if (mapAsImage) {
+					((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
+					ResetReader();
+				}
+			}
+			catch {
+				Dispose();
+				throw;
 			}
 		}
 
@@ -187,8 +199,14 @@ namespace dot10.PE {
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, ImageLayout imageLayout, bool verify)
 			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), imageLayout, verify) {
-			((UnmanagedMemoryStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
-			ResetReader();
+			try {
+				((UnmanagedMemoryStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
+				ResetReader();
+			}
+			catch {
+				Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>

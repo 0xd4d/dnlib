@@ -59,10 +59,17 @@ namespace dot10.dotNET {
 		/// <param name="cor20Header">The .NET header</param>
 		/// <param name="mdHeader">The MD header</param>
 		protected MetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader) {
-			this.allStreams = new List<DotNetStream>();
-			this.peImage = peImage;
-			this.cor20Header = cor20Header;
-			this.mdHeader = mdHeader;
+			try {
+				this.allStreams = new List<DotNetStream>();
+				this.peImage = peImage;
+				this.cor20Header = cor20Header;
+				this.mdHeader = mdHeader;
+			}
+			catch {
+				if (peImage != null)
+					peImage.Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>

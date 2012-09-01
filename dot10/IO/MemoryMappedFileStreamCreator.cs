@@ -65,11 +65,10 @@ namespace dot10.IO {
 				using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY | (mapAsImage ? SEC_IMAGE : 0), 0, 0, null)) {
 					if (fileMapping.IsInvalid)
 						throw new IOException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
-					var baseAddr = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
-					if (baseAddr == IntPtr.Zero)
+					this.data = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
+					if (this.data == IntPtr.Zero)
 						throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
 					this.theFileName = fileName;
-					this.data = baseAddr;
 					this.dataLength = fileSize;
 				}
 			}
