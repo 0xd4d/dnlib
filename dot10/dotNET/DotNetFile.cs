@@ -23,7 +23,15 @@ namespace dot10.dotNET {
 		/// <param name="fileName">The file to load</param>
 		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(string fileName) {
-			return Load(new PEImage(fileName));
+			IPEImage peImage = null;
+			try {
+				return Load(peImage = new PEImage(fileName));
+			}
+			catch {
+				if (peImage != null)
+					peImage.Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>
@@ -32,7 +40,15 @@ namespace dot10.dotNET {
 		/// <param name="data">The .NET file data</param>
 		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(byte[] data) {
-			return Load(new PEImage(data));
+			IPEImage peImage = null;
+			try {
+				return Load(peImage = new PEImage(data));
+			}
+			catch {
+				if (peImage != null)
+					peImage.Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>
@@ -41,7 +57,15 @@ namespace dot10.dotNET {
 		/// <param name="addr">Address of a .NET file in memory</param>
 		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(IntPtr addr) {
-			return Load(new PEImage(addr));
+			IPEImage peImage = null;
+			try {
+				return Load(peImage = new PEImage(addr));
+			}
+			catch {
+				if (peImage != null)
+					peImage.Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>
