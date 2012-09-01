@@ -394,6 +394,7 @@ namespace dot10.dotNET {
 					}
 					mdTables = null;
 				}
+				tableInfos = null;
 			}
 			base.Dispose(disposing);
 		}

@@ -74,6 +74,10 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public void Dispose() {
+			data = null;
+			dataOffset = 0;
+			dataLength = 0;
+			theFileName = null;
 		}
 
 		/// <inheritdoc/>

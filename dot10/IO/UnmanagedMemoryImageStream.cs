@@ -138,6 +138,10 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public void Dispose() {
+			fileOffset = FileOffset.Zero;
+			startAddr = null;
+			endAddr = null;
+			currentAddr = null;
 		}
 
 		/// <inheritdoc/>

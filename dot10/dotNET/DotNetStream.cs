@@ -40,10 +40,10 @@ namespace dot10.dotNET {
 		/// <param name="disposing">true if called by Dispose()</param>
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (imageStream != null) {
+				if (imageStream != null)
 					imageStream.Dispose();
-					imageStream = null;
-				}
+				imageStream = null;
+				streamHeader = null;
 			}
 		}
 	}

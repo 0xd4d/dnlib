@@ -53,10 +53,11 @@ namespace dot10.dotNET {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (imageStream != null) {
+			if (imageStream != null)
 				imageStream.Dispose();
-				imageStream = null;
-			}
+			numRows = 0;
+			tableInfo = null;
+			imageStream = null;
 		}
 	}
 }

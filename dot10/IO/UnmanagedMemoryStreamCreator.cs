@@ -101,6 +101,11 @@ namespace dot10.IO {
 		/// </summary>
 		/// <param name="disposing">true if called by Dispose()</param>
 		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				data = IntPtr.Zero;
+				dataLength = 0;
+				theFileName = null;
+			}
 		}
 
 		/// <inheritdoc/>
