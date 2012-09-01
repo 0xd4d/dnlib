@@ -11,12 +11,12 @@ namespace dot10.PE {
 		/// <summary>
 		/// Use this if the PE file has a normal structure (eg. it's been read from a file on disk)
 		/// </summary>
-		FileLayout,
+		File,
 
 		/// <summary>
 		/// Use this if the PE file has been loaded into memory by the OS PE file loader
 		/// </summary>
-		MemoryLayout,
+		Memory,
 	}
 
 	/// <summary>
@@ -91,8 +91,8 @@ namespace dot10.PE {
 
 		static IPEType ConvertImageLayout(ImageLayout imageLayout) {
 			switch (imageLayout) {
-			case ImageLayout.FileLayout: return FileLayout;
-			case ImageLayout.MemoryLayout: return MemoryLayout;
+			case ImageLayout.File: return FileLayout;
+			case ImageLayout.Memory: return MemoryLayout;
 			default: throw new ArgumentException("imageLayout");
 			}
 		}
@@ -104,7 +104,7 @@ namespace dot10.PE {
 		/// <param name="mapAsImage">true if we should map it as an executable</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string fileName, bool mapAsImage, bool verify)
-			: this(new MemoryMappedFileStreamCreator(fileName, mapAsImage), mapAsImage ? ImageLayout.MemoryLayout : ImageLayout.FileLayout, verify) {
+			: this(new MemoryMappedFileStreamCreator(fileName, mapAsImage), mapAsImage ? ImageLayout.Memory : ImageLayout.File, verify) {
 			try {
 				if (mapAsImage) {
 					((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
@@ -150,7 +150,7 @@ namespace dot10.PE {
 		/// <param name="data">The PE file data</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(byte[] data, bool verify)
-			: this(data, ImageLayout.FileLayout, verify) {
+			: this(data, ImageLayout.File, verify) {
 		}
 
 		/// <summary>
@@ -179,7 +179,7 @@ namespace dot10.PE {
 		/// <param name="length">Length of PE image</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, long length, bool verify)
-			: this(baseAddr, length, ImageLayout.MemoryLayout, verify) {
+			: this(baseAddr, length, ImageLayout.Memory, verify) {
 		}
 
 		/// <summary>
@@ -215,7 +215,7 @@ namespace dot10.PE {
 		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(IntPtr baseAddr, bool verify)
-			: this(baseAddr, ImageLayout.MemoryLayout, verify) {
+			: this(baseAddr, ImageLayout.Memory, verify) {
 		}
 
 		/// <summary>
