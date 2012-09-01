@@ -388,8 +388,10 @@ namespace dot10.dotNET {
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
 				if (mdTables != null) {
-					foreach (var mdTable in mdTables)
-						mdTable.Dispose();
+					foreach (var mdTable in mdTables) {
+						if (mdTable != null)
+							mdTable.Dispose();
+					}
 					mdTables = null;
 				}
 			}
