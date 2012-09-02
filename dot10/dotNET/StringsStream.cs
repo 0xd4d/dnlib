@@ -1,5 +1,4 @@
-﻿using System.Text;
-using dot10.IO;
+﻿using dot10.IO;
 
 namespace dot10.dotNET {
 	/// <summary>
@@ -15,15 +14,15 @@ namespace dot10.dotNET {
 		/// Read a <see cref="string"/>
 		/// </summary>
 		/// <param name="offset">Offset of string</param>
-		/// <returns>The UTF-8 decoded string or null if invalid offset</returns>
-		public string Read(uint offset) {
+		/// <returns>A <see cref="UTF8String"/> instance or null if invalid offset</returns>
+		public UTF8String Read(uint offset) {
 			if (offset >= imageStream.Length)
 				return null;
 			imageStream.Position = offset;
 			var data = imageStream.ReadBytesUntilByte(0);
 			if (data == null)
 				return null;
-			return Encoding.UTF8.GetString(data);
+			return new UTF8String(data);
 		}
 	}
 }

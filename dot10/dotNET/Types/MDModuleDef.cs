@@ -8,7 +8,7 @@ namespace dot10.dotNET.Types {
 		DotNetFile dnFile;
 		RawModuleRow rawRow;
 		UserValue<ushort> generation;
-		UserValue<string> name;
+		UserValue<UTF8String> name;
 		UserValue<Guid?> mvid;
 		UserValue<Guid?> encId;
 		UserValue<Guid?> encBaseId;
@@ -20,7 +20,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <inheritdoc/>
-		public override string Name {
+		public override UTF8String Name {
 			get { return name.Value; }
 			set { name.Value = value; }
 		}
@@ -121,7 +121,7 @@ namespace dot10.dotNET.Types {
 					return rawRow.Generation;
 				}
 			};
-			this.name = new UserValue<string> {
+			this.name = new UserValue<UTF8String> {
 				ReadOriginalValue = () => {
 					InitializeRawRow();
 					return dnFile.MetaData.StringsStream.Read(rawRow.Name);

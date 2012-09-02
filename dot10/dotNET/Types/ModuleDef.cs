@@ -33,7 +33,7 @@ namespace dot10.dotNET.Types {
 		/// <summary>
 		/// Gets/sets Module.Name column
 		/// </summary>
-		public abstract string Name { get; set; }
+		public abstract UTF8String Name { get; set; }
 
 		/// <summary>
 		/// Gets/sets Module.Mvid column
@@ -106,7 +106,7 @@ namespace dot10.dotNET.Types {
 	/// </summary>
 	public class ModuleDefUser : ModuleDef {
 		ushort generation;
-		string name;
+		UTF8String name;
 		Guid? mvid;
 		Guid? encId;
 		Guid? encBaseId;
@@ -118,7 +118,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <inheritdoc/>
-		public override string Name {
+		public override UTF8String Name {
 			get { return name; }
 			set { name = value; }
 		}
@@ -161,7 +161,16 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="name">Module name</param>
 		/// <param name="mvid">Module version ID</param>
-		public ModuleDefUser(string name, Guid mvid) {
+		public ModuleDefUser(string name, Guid mvid)
+			: this(new UTF8String(name), mvid) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Module name</param>
+		/// <param name="mvid">Module version ID</param>
+		public ModuleDefUser(UTF8String name, Guid mvid) {
 			this.name = name;
 			this.mvid = mvid;
 		}
