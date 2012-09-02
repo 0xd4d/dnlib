@@ -17,6 +17,9 @@ namespace dot10.dotNET {
 		/// <param name="offset">Offset of string</param>
 		/// <returns>The UTF-8 decoded string or null if invalid offset</returns>
 		public string Read(uint offset) {
+			if (offset >= imageStream.Length)
+				return null;
+			imageStream.Position = offset;
 			var data = imageStream.ReadBytesUntilByte(0);
 			if (data == null)
 				return null;
