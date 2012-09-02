@@ -75,7 +75,7 @@
     <Compile Include="dotNET\Types\ICodedToken.cs" />
     <Compile Include="dotNET\Types\InterfaceImpl.cs" />
     <Compile Include="dotNET\Types\ManifestResource.cs" />
-    <Compile Include="dotNET\Types\MDModuleDef.cs" />
+    <Compile Include="dotNET\Types\ModuleDefMD.cs" />
     <Compile Include="dotNET\Types\MemberRef.cs" />
     <Compile Include="dotNET\Types\MethodDef.cs" />
     <Compile Include="dotNET\Types\MethodSpec.cs" />

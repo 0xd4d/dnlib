@@ -57,7 +57,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
 		public static ModuleDef Load(string fileName) {
-			return MDModuleDef.Load(fileName);
+			return ModuleDefMD.Load(fileName);
 		}
 
 		/// <summary>
@@ -66,7 +66,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
 		public static ModuleDef Load(byte[] data) {
-			return MDModuleDef.Load(data);
+			return ModuleDefMD.Load(data);
 		}
 
 		/// <summary>
@@ -75,7 +75,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
 		public static ModuleDef Load(IntPtr addr) {
-			return MDModuleDef.Load(addr);
+			return ModuleDefMD.Load(addr);
 		}
 
 		/// <summary>
@@ -104,7 +104,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="dnFile">The loaded .NET file</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance that now owns <paramref name="dnFile"/></returns>
 		public static ModuleDef Load(DotNetFile dnFile) {
-			return MDModuleDef.Load(dnFile);
+			return ModuleDefMD.Load(dnFile);
 		}
 
 
