@@ -405,9 +405,18 @@ namespace dot10.dotNET {
 		/// <returns>A <see cref="MDTable"/> or null if table doesn't exist</returns>
 		public MDTable GetTable(Table table) {
 			int index = (int)table;
-			if (index < 0 || index >= mdTables.Length)
+			if ((uint)index >= (uint)mdTables.Length)
 				return null;
 			return mdTables[index];
+		}
+
+		/// <summary>
+		/// Checks whether a table exists
+		/// </summary>
+		/// <param name="table">The table type</param>
+		/// <returns>true if the table exists</returns>
+		public bool HasTable(Table table) {
+			return (uint)table < (uint)mdTables.Length;
 		}
 	}
 }
