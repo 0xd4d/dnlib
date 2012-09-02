@@ -153,6 +153,15 @@ namespace dot10.dotNET.Types {
 		/// <remarks><see cref="Mvid"/> is initialized to a random <see cref="Guid"/></remarks>
 		/// <param name="name">Module nam</param>
 		public ModuleDefUser(string name)
+			: this(new UTF8String(name)) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <remarks><see cref="Mvid"/> is initialized to a random <see cref="Guid"/></remarks>
+		/// <param name="name">Module nam</param>
+		public ModuleDefUser(UTF8String name)
 			: this(name, Guid.NewGuid()) {
 		}
 
@@ -161,7 +170,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="name">Module name</param>
 		/// <param name="mvid">Module version ID</param>
-		public ModuleDefUser(string name, Guid mvid)
+		public ModuleDefUser(string name, Guid? mvid)
 			: this(new UTF8String(name), mvid) {
 		}
 
@@ -170,7 +179,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="name">Module name</param>
 		/// <param name="mvid">Module version ID</param>
-		public ModuleDefUser(UTF8String name, Guid mvid) {
+		public ModuleDefUser(UTF8String name, Guid? mvid) {
 			this.name = name;
 			this.mvid = mvid;
 		}
