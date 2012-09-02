@@ -1,5 +1,4 @@
-﻿using System.IO;
-using dot10.IO;
+﻿using dot10.IO;
 
 namespace dot10.dotNET {
 	class GuidStream : DotNetStream {
