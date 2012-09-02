@@ -114,32 +114,35 @@ namespace dot10.dotNET.Types {
 
 			this.dnFile = dnFile;
 			this.rid = 1;
+			Initialize();
+		}
 
-			this.generation = new UserValue<ushort> {
+		void Initialize() {
+			generation = new UserValue<ushort> {
 				ReadOriginalValue = () => {
 					InitializeRawRow();
 					return rawRow.Generation;
 				}
 			};
-			this.name = new UserValue<UTF8String> {
+			name = new UserValue<UTF8String> {
 				ReadOriginalValue = () => {
 					InitializeRawRow();
 					return dnFile.MetaData.StringsStream.Read(rawRow.Name);
 				}
 			};
-			this.mvid = new UserValue<Guid?> {
+			mvid = new UserValue<Guid?> {
 				ReadOriginalValue = () => {
 					InitializeRawRow();
 					return dnFile.MetaData.GuidStream.Read(rawRow.Mvid);
 				}
 			};
-			this.encId = new UserValue<Guid?> {
+			encId = new UserValue<Guid?> {
 				ReadOriginalValue = () => {
 					InitializeRawRow();
 					return dnFile.MetaData.GuidStream.Read(rawRow.EncId);
 				}
 			};
-			this.encBaseId = new UserValue<Guid?> {
+			encBaseId = new UserValue<Guid?> {
 				ReadOriginalValue = () => {
 					InitializeRawRow();
 					return dnFile.MetaData.GuidStream.Read(rawRow.EncBaseId);
