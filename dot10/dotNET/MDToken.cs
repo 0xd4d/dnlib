@@ -4,7 +4,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// MetaData token
 	/// </summary>
-	struct MDToken : IEquatable<MDToken>, IComparable<MDToken> {
+	public struct MDToken : IEquatable<MDToken>, IComparable<MDToken> {
 		uint token;
 
 		/// <summary>
