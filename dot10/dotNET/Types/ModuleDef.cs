@@ -120,6 +120,11 @@ namespace dot10.dotNET.Types {
 		/// <param name="disposing">true if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return Name.String;
+		}
 	}
 
 	/// <summary>
