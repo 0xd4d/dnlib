@@ -62,6 +62,7 @@
     <Compile Include="dotNET\StringsStream.cs" />
     <Compile Include="dotNET\Table.cs" />
     <Compile Include="dotNET\TableInfo.cs" />
+    <Compile Include="dotNET\TablesStream_Read.cs" />
     <Compile Include="dotNET\Types\AssemblyDef.cs" />
     <Compile Include="dotNET\Types\AssemblyRef.cs" />
     <Compile Include="dotNET\Types\DeclSecurity.cs" />
