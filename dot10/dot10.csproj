@@ -90,6 +90,7 @@
     <Compile Include="dotNET\Types\ISignature.cs" />
     <Compile Include="dotNET\UserValue.cs" />
     <Compile Include="dotNET\USStream.cs" />
+    <Compile Include="dotNET\UTF8String.cs" />
     <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="IO\IBinaryReader.cs" />
     <Compile Include="IO\IImageStreamCreator.cs" />
