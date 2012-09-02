@@ -2,6 +2,9 @@
 using dot10.IO;
 
 namespace dot10.dotNET {
+	/// <summary>
+	/// Represents the #GUID stream
+	/// </summary>
 	public class GuidStream : DotNetStream {
 		/// <inheritdoc/>
 		public GuidStream(IImageStream imageStream, StreamHeader streamHeader)

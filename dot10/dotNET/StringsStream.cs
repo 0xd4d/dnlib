@@ -2,6 +2,9 @@
 using dot10.IO;
 
 namespace dot10.dotNET {
+	/// <summary>
+	/// Represents the #Strings stream
+	/// </summary>
 	public class StringsStream : DotNetStream {
 		/// <inheritdoc/>
 		public StringsStream(IImageStream imageStream, StreamHeader streamHeader)
