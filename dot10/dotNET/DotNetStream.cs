@@ -46,5 +46,35 @@ namespace dot10.dotNET {
 				streamHeader = null;
 			}
 		}
+
+		/// <summary>
+		/// Checks whether an index is valid
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <returns>true if the index is valid</returns>
+		public virtual bool IsValidIndex(uint index) {
+			return IsValidOffset(index);
+		}
+
+		/// <summary>
+		/// Check whether an offset is within the stream
+		/// </summary>
+		/// <param name="offset">Stream offset</param>
+		/// <returns>true if the offset is valid</returns>
+		public bool IsValidOffset(uint offset) {
+			return offset == 0 || offset < imageStream.Length;
+		}
+
+		/// <summary>
+		/// Check whether an offset is within the stream
+		/// </summary>
+		/// <param name="offset">Stream offset</param>
+		/// <param name="size">Size of data</param>
+		/// <returns>true if the offset is valid</returns>
+		public bool IsValidOffset(uint offset, int size) {
+			if (size == 0)
+				return IsValidOffset(offset);
+			return offset + (uint)size >= offset && offset + (uint)size <= imageStream.Length;
+		}
 	}
 }
