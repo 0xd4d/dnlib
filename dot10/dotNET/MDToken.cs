@@ -51,6 +51,24 @@ namespace dot10.dotNET {
 			: this((uint)token) {
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="table">The table type</param>
+		/// <param name="rid">Row id</param>
+		public MDToken(Table table, uint rid)
+			: this(((uint)table << 24) | rid) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="table">The table type</param>
+		/// <param name="rid">Row id</param>
+		public MDToken(Table table, int rid)
+			: this(((uint)table << 24) | (uint)rid) {
+		}
+
 		/// <summary>Overloaded operator</summary>
 		public static bool operator ==(MDToken left, MDToken right) {
 			return left.CompareTo(right) == 0;
