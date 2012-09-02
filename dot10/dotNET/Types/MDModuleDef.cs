@@ -6,6 +6,42 @@ namespace dot10.dotNET.Types {
 	/// </summary>
 	sealed class MDModuleDef : ModuleDef {
 		DotNetFile dnFile;
+		RawModuleRow rawRow;
+		UserValue<ushort> generation;
+		UserValue<string> name;
+		UserValue<Guid?> mvid;
+		UserValue<Guid?> encId;
+		UserValue<Guid?> encBaseId;
+
+		/// <inheritdoc/>
+		public override ushort Generation {
+			get { return generation.Value; }
+			set { generation.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override string Name {
+			get { return name.Value; }
+			set { name.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? Mvid {
+			get { return mvid.Value; }
+			set { mvid.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? EncId {
+			get { return encId.Value; }
+			set { encId.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? EncBaseId {
+			get { return encBaseId.Value; }
+			set { encBaseId.Value = value; }
+		}
 
 		/// <summary>
 		/// Creates a <see cref="MDModuleDef"/> instance from a file
@@ -78,8 +114,43 @@ namespace dot10.dotNET.Types {
 
 			this.dnFile = dnFile;
 			this.rid = 1;
-			if (dnFile.MetaData.TablesStream.GetTable(Table.Module).Rows < this.rid)
-				this.rid = 0;
+
+			this.generation = new UserValue<ushort> {
+				ReadOriginalValue = () => {
+					InitializeRawRow();
+					return rawRow.Generation;
+				}
+			};
+			this.name = new UserValue<string> {
+				ReadOriginalValue = () => {
+					InitializeRawRow();
+					return dnFile.MetaData.StringsStream.Read(rawRow.Name);
+				}
+			};
+			this.mvid = new UserValue<Guid?> {
+				ReadOriginalValue = () => {
+					InitializeRawRow();
+					return dnFile.MetaData.GuidStream.Read(rawRow.Mvid);
+				}
+			};
+			this.encId = new UserValue<Guid?> {
+				ReadOriginalValue = () => {
+					InitializeRawRow();
+					return dnFile.MetaData.GuidStream.Read(rawRow.EncId);
+				}
+			};
+			this.encBaseId = new UserValue<Guid?> {
+				ReadOriginalValue = () => {
+					InitializeRawRow();
+					return dnFile.MetaData.GuidStream.Read(rawRow.EncBaseId);
+				}
+			};
+		}
+
+		void InitializeRawRow() {
+			if (rawRow != null)
+				return;
+			rawRow = dnFile.MetaData.TablesStream.ReadModuleRow(rid) ?? new RawModuleRow();
 		}
 
 		/// <inheritdoc/>

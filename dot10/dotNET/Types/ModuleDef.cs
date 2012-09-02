@@ -4,36 +4,11 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
-	public class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable {
+	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
-
-		/// <summary>
-		/// From column Module.Generation
-		/// </summary>
-		protected ushort generation;
-
-		/// <summary>
-		/// From column Module.Name
-		/// </summary>
-		protected string name;
-
-		/// <summary>
-		/// From column Module.Mvid
-		/// </summary>
-		protected Guid? mvid;
-
-		/// <summary>
-		/// From column Module.EncId
-		/// </summary>
-		protected Guid? encId;
-
-		/// <summary>
-		/// From column Module.EncBaseId
-		/// </summary>
-		protected Guid? encBaseId;
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -49,6 +24,31 @@ namespace dot10.dotNET.Types {
 		public int ResolutionScopeTag {
 			get { return 0; }
 		}
+
+		/// <summary>
+		/// Gets/sets Module.Generation column
+		/// </summary>
+		public abstract ushort Generation { get; set; }
+
+		/// <summary>
+		/// Gets/sets Module.Name column
+		/// </summary>
+		public abstract string Name { get; set; }
+
+		/// <summary>
+		/// Gets/sets Module.Mvid column
+		/// </summary>
+		public abstract Guid? Mvid { get; set; }
+
+		/// <summary>
+		/// Gets/sets Module.EncId column
+		/// </summary>
+		public abstract Guid? EncId { get; set; }
+
+		/// <summary>
+		/// Gets/sets Module.EncBaseId column
+		/// </summary>
+		public abstract Guid? EncBaseId { get; set; }
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDef"/> instance from a file
@@ -98,6 +98,72 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="disposing">true if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
+		}
+	}
+
+	/// <summary>
+	/// A Module row created by the user and not present in the original .NET file
+	/// </summary>
+	public class ModuleDefUser : ModuleDef {
+		ushort generation;
+		string name;
+		Guid? mvid;
+		Guid? encId;
+		Guid? encBaseId;
+
+		/// <inheritdoc/>
+		public override ushort Generation {
+			get { return generation; }
+			set { generation = value; }
+		}
+
+		/// <inheritdoc/>
+		public override string Name {
+			get { return name; }
+			set { name = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? Mvid {
+			get { return mvid; }
+			set { mvid = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? EncId {
+			get { return encId; }
+			set { encId = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? EncBaseId {
+			get { return encBaseId; }
+			set { encBaseId = value; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public ModuleDefUser() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <remarks><see cref="Mvid"/> is initialized to a random <see cref="Guid"/></remarks>
+		/// <param name="name">Module nam</param>
+		public ModuleDefUser(string name)
+			: this(name, Guid.NewGuid()) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Module name</param>
+		/// <param name="mvid">Module version ID</param>
+		public ModuleDefUser(string name, Guid mvid) {
+			this.name = name;
+			this.mvid = mvid;
 		}
 	}
 }
