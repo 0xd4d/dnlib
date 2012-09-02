@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace dot10.dotNET.Types {
 	/// <summary>
@@ -75,6 +76,26 @@ namespace dot10.dotNET.Types {
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
 		public static ModuleDef Load(IntPtr addr) {
 			return MDModuleDef.Load(addr);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDef"/> instance from a stream
+		/// </summary>
+		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[])"/>.
+		/// It's better to use one of the other Load() methods.</remarks>
+		/// <param name="stream">The stream</param>
+		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <seealso cref="Load(string)"/>
+		/// <seealso cref="Load(byte[])"/>
+		/// <seealso cref="Load(IntPtr)"/>
+		public static ModuleDef Load(Stream stream) {
+			if (stream.Length > int.MaxValue)
+				throw new ArgumentException("Stream is too big");
+			var data = new byte[(int)stream.Length];
+			stream.Position = 0;
+			if (stream.Read(data, 0, data.Length) != data.Length)
+				throw new IOException("Could not read all bytes from the stream");
+			return Load(data);
 		}
 
 		/// <summary>
