@@ -88,6 +88,7 @@
     <Compile Include="dotNET\Types\TypeRef.cs" />
     <Compile Include="dotNET\Types\TypeSpec.cs" />
     <Compile Include="dotNET\Types\ISignature.cs" />
+    <Compile Include="dotNET\UserValue.cs" />
     <Compile Include="dotNET\USStream.cs" />
     <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="IO\IBinaryReader.cs" />
