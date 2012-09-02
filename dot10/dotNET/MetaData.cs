@@ -52,6 +52,31 @@ namespace dot10.dotNET {
 		/// </summary>
 		protected List<DotNetStream> allStreams;
 
+		/// <inheritdoc/>
+		public StringsStream StringsStream {
+			get { return stringsStream; }
+		}
+
+		/// <inheritdoc/>
+		public USStream USStream {
+			get { return usStream; }
+		}
+
+		/// <inheritdoc/>
+		public BlobStream BlobStream {
+			get { return blobStream; }
+		}
+
+		/// <inheritdoc/>
+		public GuidStream GuidStream {
+			get { return guidStream; }
+		}
+
+		/// <inheritdoc/>
+		public TablesStream TablesStream {
+			get { return tablesStream; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
