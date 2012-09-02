@@ -2,7 +2,7 @@
 	/// <summary>
 	/// MD table column size
 	/// </summary>
-	enum ColumnSize : byte {
+	public enum ColumnSize : byte {
 		/// <summary>RID into Module table</summary>
 		Module,
 		/// <summary>RID into TypeRef table</summary>

@@ -6,7 +6,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// Info about one column in a MD table
 	/// </summary>
-	class ColumnInfo {
+	public class ColumnInfo {
 		byte offset;
 		ColumnSize columnSize;
 		byte size;
