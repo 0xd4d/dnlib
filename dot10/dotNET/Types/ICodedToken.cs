@@ -16,7 +16,7 @@
 	}
 
 	/// <summary>
-	/// TypeDefOrRef coded index interface
+	/// TypeDefOrRef coded token interface
 	/// </summary>
 	public interface ITypeDefOrRef : ICodedToken {
 		/// <summary>
@@ -26,7 +26,7 @@
 	}
 
 	/// <summary>
-	/// HasConstant coded index interface
+	/// HasConstant coded token interface
 	/// </summary>
 	public interface IHasConstant : ICodedToken {
 		/// <summary>
@@ -36,7 +36,7 @@
 	}
 
 	/// <summary>
-	/// HasCustomAttribute coded index interface
+	/// HasCustomAttribute coded token interface
 	/// </summary>
 	public interface IHasCustomAttribute : ICodedToken {
 		/// <summary>
@@ -46,7 +46,7 @@
 	}
 
 	/// <summary>
-	/// HasFieldMarshal coded index interface
+	/// HasFieldMarshal coded token interface
 	/// </summary>
 	public interface IHasFieldMarshal : ICodedToken {
 		/// <summary>
@@ -56,7 +56,7 @@
 	}
 
 	/// <summary>
-	/// HasDeclSecurity coded index interface
+	/// HasDeclSecurity coded token interface
 	/// </summary>
 	public interface IHasDeclSecurity : ICodedToken {
 		/// <summary>
@@ -66,7 +66,7 @@
 	}
 
 	/// <summary>
-	/// MemberRefParent coded index interface
+	/// MemberRefParent coded token interface
 	/// </summary>
 	public interface IMemberRefParent : ICodedToken {
 		/// <summary>
@@ -76,7 +76,7 @@
 	}
 
 	/// <summary>
-	/// HasSemantic coded index interface
+	/// HasSemantic coded token interface
 	/// </summary>
 	public interface IHasSemantic : ICodedToken {
 		/// <summary>
@@ -86,7 +86,7 @@
 	}
 
 	/// <summary>
-	/// MethodDefOrRef coded index interface
+	/// MethodDefOrRef coded token interface
 	/// </summary>
 	public interface IMethodDefOrRef : ICodedToken {
 		/// <summary>
@@ -96,7 +96,7 @@
 	}
 
 	/// <summary>
-	/// MemberForwarded coded index interface
+	/// MemberForwarded coded token interface
 	/// </summary>
 	public interface IMemberForwarded : ICodedToken {
 		/// <summary>
@@ -106,7 +106,7 @@
 	}
 
 	/// <summary>
-	/// Implementation coded index interface
+	/// Implementation coded token interface
 	/// </summary>
 	public interface IImplementation : ICodedToken {
 		/// <summary>
@@ -116,7 +116,7 @@
 	}
 
 	/// <summary>
-	/// CustomAttributeType coded index interface
+	/// CustomAttributeType coded token interface
 	/// </summary>
 	public interface ICustomAttributeType : ICodedToken {
 		/// <summary>
@@ -126,7 +126,7 @@
 	}
 
 	/// <summary>
-	/// ResolutionScope coded index interface
+	/// ResolutionScope coded token interface
 	/// </summary>
 	public interface IResolutionScope : ICodedToken {
 		/// <summary>
@@ -136,7 +136,7 @@
 	}
 
 	/// <summary>
-	/// TypeOrMethodDef coded index interface
+	/// TypeOrMethodDef coded token interface
 	/// </summary>
 	public interface ITypeOrMethodDef : ICodedToken {
 		/// <summary>
