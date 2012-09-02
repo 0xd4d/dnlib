@@ -107,7 +107,6 @@ namespace dot10.dotNET.Types {
 			return ModuleDefMD.Load(dnFile);
 		}
 
-
 		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);
