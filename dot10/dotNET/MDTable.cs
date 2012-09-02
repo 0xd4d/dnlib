@@ -29,6 +29,7 @@ namespace dot10.dotNET {
 		/// The stream that can access all the rows in this table
 		/// </summary>
 		internal IImageStream ImageStream {
+			get { return imageStream; }
 			set {
 				if (imageStream != null)
 					imageStream.Dispose();
