@@ -74,7 +74,7 @@ namespace dot10.dotNET {
 		public bool IsValidOffset(uint offset, int size) {
 			if (size == 0)
 				return IsValidOffset(offset);
-			return offset + (uint)size >= offset && offset + (uint)size <= imageStream.Length;
+			return size > 0 && (long)offset + (uint)size <= imageStream.Length;
 		}
 	}
 }

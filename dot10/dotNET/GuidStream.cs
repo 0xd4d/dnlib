@@ -13,7 +13,7 @@ namespace dot10.dotNET {
 
 		/// <inheritdoc/>
 		public override bool IsValidIndex(uint index) {
-			return index == 0 || IsValidOffset((index - 1) * 16, 16);
+			return index == 0 || (index <= 0x10000000 && IsValidOffset((index - 1) * 16, 16));
 		}
 
 		/// <summary>
