@@ -18,6 +18,13 @@ namespace dot10.dotNET {
 		}
 
 		/// <summary>
+		/// Returns a <see cref="IMetaData"/>
+		/// </summary>
+		public IMetaData MetaData {
+			get { return metaData; }
+		}
+
+		/// <summary>
 		/// Create a <see cref="DotNetFile"/> instance
 		/// </summary>
 		/// <param name="fileName">The file to load</param>
