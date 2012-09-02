@@ -26,6 +26,14 @@ namespace dot10.IO {
 		byte[] ReadBytes(int size);
 
 		/// <summary>
+		/// Reads bytes until byte <paramref name="b"/> is found
+		/// </summary>
+		/// <param name="b">The terminating byte</param>
+		/// <returns>All the bytes (not including <paramref name="b"/>) or null if
+		/// <paramref name="b"/> wasn't found.</returns>
+		byte[] ReadBytesUntilByte(byte b);
+
+		/// <summary>
 		/// Reads a <see cref="sbyte"/> from the current position and increments <see cref="Position"/> by 1
 		/// </summary>
 		/// <returns>The 8-bit signed byte</returns>

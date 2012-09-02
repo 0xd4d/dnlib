@@ -69,6 +69,24 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public byte[] ReadBytesUntilByte(byte b) {
+			byte* pos = GetPositionOf(b);
+			if (pos == null)
+				return null;
+			return ReadBytes((int)(pos - currentAddr));
+		}
+
+		unsafe byte* GetPositionOf(byte b) {
+			byte* pos = currentAddr;
+			while (pos < endAddr) {
+				if (*pos == b)
+					return pos;
+				pos++;
+			}
+			return null;
+		}
+
+		/// <inheritdoc/>
 		public unsafe sbyte ReadSByte() {
 			if (currentAddr >= endAddr)
 				throw new IOException("Can't read one SByte");

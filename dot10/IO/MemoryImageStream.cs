@@ -59,6 +59,24 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public byte[] ReadBytesUntilByte(byte b) {
+			int pos = GetPositionOf(b);
+			if (pos < 0)
+				return null;
+			return ReadBytes(pos - position);
+		}
+
+		int GetPositionOf(byte b) {
+			int pos = position;
+			while (pos < dataEnd) {
+				if (data[pos] == b)
+					return pos;
+				pos++;
+			}
+			return -1;
+		}
+
+		/// <inheritdoc/>
 		public sbyte ReadSByte() {
 			if (position >= dataEnd)
 				throw new IOException("Can't read one SByte");
