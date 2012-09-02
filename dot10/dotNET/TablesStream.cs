@@ -397,5 +397,17 @@ namespace dot10.dotNET {
 			}
 			base.Dispose(disposing);
 		}
+
+		/// <summary>
+		/// Returns a MD table
+		/// </summary>
+		/// <param name="table">The table type</param>
+		/// <returns>A <see cref="MDTable"/> or null if table doesn't exist</returns>
+		public MDTable GetTable(Table table) {
+			int index = (int)table;
+			if (index < 0 || index >= mdTables.Length)
+				return null;
+			return mdTables[index];
+		}
 	}
 }
