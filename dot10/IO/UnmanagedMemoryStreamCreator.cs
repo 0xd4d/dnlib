@@ -99,7 +99,7 @@ namespace dot10.IO {
 		/// <summary>
 		/// Dispose method
 		/// </summary>
-		/// <param name="disposing">true if called by Dispose()</param>
+		/// <param name="disposing">true if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				data = IntPtr.Zero;
