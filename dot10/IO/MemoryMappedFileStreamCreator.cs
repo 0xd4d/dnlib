@@ -91,7 +91,7 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", data, dataLength, theFileName);
+			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", data.ToInt64(), dataLength, theFileName);
 		}
 	}
 }
