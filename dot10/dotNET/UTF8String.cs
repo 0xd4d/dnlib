@@ -120,9 +120,7 @@ namespace dot10.dotNET {
 		/// Constructor
 		/// </summary>
 		/// <param name="data">UTF-8 data that this instance now owns</param>
-#if DEBUG
 		/// <exception cref="ArgumentException">If <paramref name="data"/> contains a nul byte</exception>
-#endif
 		public UTF8String(byte[] data) {
 			this.data = data;
 #if DEBUG
