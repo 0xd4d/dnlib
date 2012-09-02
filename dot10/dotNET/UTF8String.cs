@@ -33,6 +33,16 @@ namespace dot10.dotNET {
 			get { return data; }
 		}
 
+		/// <summary>
+		/// Checks whether <paramref name="utf8"/> is null or if its data is null or the
+		/// data is zero length.
+		/// </summary>
+		/// <param name="utf8">The instance to check</param>
+		/// <returns><c>true</c> if null or empty, <c>false</c> otherwise</returns>
+		public static bool IsNullOrEmpty(UTF8String utf8) {
+			return (object)utf8 == null || utf8.data == null || utf8.data.Length == 0;
+		}
+
 		/// <inheritdoc/>
 		public int CompareTo(UTF8String other) {
 			return CompareTo(this, other);
