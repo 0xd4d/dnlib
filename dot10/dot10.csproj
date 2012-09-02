@@ -53,6 +53,7 @@
     <Compile Include="dotNET\ImageCor20Header.cs" />
     <Compile Include="dotNET\IMetaData.cs" />
     <Compile Include="dotNET\MetaData.cs" />
+    <Compile Include="dotNET\RawTableRows.cs" />
     <Compile Include="dotNET\TablesStream.cs" />
     <Compile Include="dotNET\MDTable.cs" />
     <Compile Include="dotNET\MDToken.cs" />
