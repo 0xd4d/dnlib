@@ -89,7 +89,7 @@ namespace dot10.dotNET {
 				mdTable.ImageStream = peImage.CreateStream(currentRva, dataLen);
 				var newRva = currentRva + (uint)dataLen;
 				if (newRva < currentRva)
-					throw new ApplicationException("Too big MD table");
+					throw new BadImageFormatException("Too big MD table");
 				currentRva = newRva;
 			}
 		}
@@ -115,7 +115,7 @@ namespace dot10.dotNET {
 				case ColumnSize.CustomAttributeType: info = CodedToken.CustomAttributeType; break;
 				case ColumnSize.ResolutionScope: info = CodedToken.ResolutionScope; break;
 				case ColumnSize.TypeOrMethodDef: info = CodedToken.TypeOrMethodDef; break;
-				default: throw new ApplicationException(string.Format("Invalid ColumnSize: {0}", columnSize));
+				default: throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));
 				}
 				uint maxRows = 0;
 				foreach (var tableType in info.TableTypes) {
@@ -138,7 +138,7 @@ namespace dot10.dotNET {
 				case ColumnSize.Blob: return (flags & MDStreamFlags.BigBlob) != 0 ? 4 : 2;
 				}
 			}
-			throw new ApplicationException(string.Format("Invalid ColumnSize: {0}", columnSize));
+			throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));
 		}
 
 		TableInfo[] CreateTables() {

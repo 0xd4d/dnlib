@@ -62,7 +62,7 @@ namespace dot10.dotNET {
 			case 1: return reader.ReadByte();
 			case 2: return reader.ReadUInt16();
 			case 4: return reader.ReadUInt32();
-			default: throw new ApplicationException("Invalid column size");
+			default: throw new InvalidOperationException("Invalid column size");
 			}
 		}
 
