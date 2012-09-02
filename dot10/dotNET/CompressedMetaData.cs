@@ -73,6 +73,7 @@ namespace dot10.dotNET {
 					allStreams.Add(dns);
 					dns = null;
 				}
+				allStreams.Reverse();
 
 				if (tablesStream == null)
 					throw new BadImageFormatException("Missing MD stream");
