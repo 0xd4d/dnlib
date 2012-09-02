@@ -6,7 +6,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawModuleRow ReadModuleRow(uint rid) {
-			var table = GetTable(Table.Module);
+			var table = Get(Table.Module);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -26,7 +26,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeRefRow ReadTypeRefRow(uint rid) {
-			var table = GetTable(Table.TypeRef);
+			var table = Get(Table.TypeRef);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -44,7 +44,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeDefRow ReadTypeDefRow(uint rid) {
-			var table = GetTable(Table.TypeDef);
+			var table = Get(Table.TypeDef);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -65,7 +65,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldPtrRow ReadFieldPtrRow(uint rid) {
-			var table = GetTable(Table.FieldPtr);
+			var table = Get(Table.FieldPtr);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -81,7 +81,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldRow ReadFieldRow(uint rid) {
-			var table = GetTable(Table.Field);
+			var table = Get(Table.Field);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -99,7 +99,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodPtrRow ReadMethodPtrRow(uint rid) {
-			var table = GetTable(Table.MethodPtr);
+			var table = Get(Table.MethodPtr);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -115,7 +115,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodRow ReadMethodRow(uint rid) {
-			var table = GetTable(Table.Method);
+			var table = Get(Table.Method);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -136,7 +136,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawParamPtrRow ReadParamPtrRow(uint rid) {
-			var table = GetTable(Table.ParamPtr);
+			var table = Get(Table.ParamPtr);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -152,7 +152,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawParamRow ReadParamRow(uint rid) {
-			var table = GetTable(Table.Param);
+			var table = Get(Table.Param);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -170,7 +170,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawInterfaceImplRow ReadInterfaceImplRow(uint rid) {
-			var table = GetTable(Table.InterfaceImpl);
+			var table = Get(Table.InterfaceImpl);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -187,7 +187,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMemberRefRow ReadMemberRefRow(uint rid) {
-			var table = GetTable(Table.MemberRef);
+			var table = Get(Table.MemberRef);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -205,7 +205,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawConstantRow ReadConstantRow(uint rid) {
-			var table = GetTable(Table.Constant);
+			var table = Get(Table.Constant);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -224,7 +224,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawCustomAttributeRow ReadCustomAttributeRow(uint rid) {
-			var table = GetTable(Table.CustomAttribute);
+			var table = Get(Table.CustomAttribute);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -242,7 +242,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldMarshalRow ReadFieldMarshalRow(uint rid) {
-			var table = GetTable(Table.FieldMarshal);
+			var table = Get(Table.FieldMarshal);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -259,7 +259,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawDeclSecurityRow ReadDeclSecurityRow(uint rid) {
-			var table = GetTable(Table.DeclSecurity);
+			var table = Get(Table.DeclSecurity);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -277,7 +277,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawClassLayoutRow ReadClassLayoutRow(uint rid) {
-			var table = GetTable(Table.ClassLayout);
+			var table = Get(Table.ClassLayout);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -295,7 +295,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldLayoutRow ReadFieldLayoutRow(uint rid) {
-			var table = GetTable(Table.FieldLayout);
+			var table = Get(Table.FieldLayout);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -312,7 +312,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawStandAloneSigRow ReadStandAloneSigRow(uint rid) {
-			var table = GetTable(Table.StandAloneSig);
+			var table = Get(Table.StandAloneSig);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -328,7 +328,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventMapRow ReadEventMapRow(uint rid) {
-			var table = GetTable(Table.EventMap);
+			var table = Get(Table.EventMap);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -345,7 +345,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventPtrRow ReadEventPtrRow(uint rid) {
-			var table = GetTable(Table.EventPtr);
+			var table = Get(Table.EventPtr);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -361,7 +361,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventRow ReadEventRow(uint rid) {
-			var table = GetTable(Table.Event);
+			var table = Get(Table.Event);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -379,7 +379,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyMapRow ReadPropertyMapRow(uint rid) {
-			var table = GetTable(Table.PropertyMap);
+			var table = Get(Table.PropertyMap);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -396,7 +396,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyPtrRow ReadPropertyPtrRow(uint rid) {
-			var table = GetTable(Table.PropertyPtr);
+			var table = Get(Table.PropertyPtr);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -412,7 +412,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyRow ReadPropertyRow(uint rid) {
-			var table = GetTable(Table.Property);
+			var table = Get(Table.Property);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -430,7 +430,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodSemanticsRow ReadMethodSemanticsRow(uint rid) {
-			var table = GetTable(Table.MethodSemantics);
+			var table = Get(Table.MethodSemantics);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -448,7 +448,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodImplRow ReadMethodImplRow(uint rid) {
-			var table = GetTable(Table.MethodImpl);
+			var table = Get(Table.MethodImpl);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -466,7 +466,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawModuleRefRow ReadModuleRefRow(uint rid) {
-			var table = GetTable(Table.ModuleRef);
+			var table = Get(Table.ModuleRef);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -482,7 +482,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeSpecRow ReadTypeSpecRow(uint rid) {
-			var table = GetTable(Table.TypeSpec);
+			var table = Get(Table.TypeSpec);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -498,7 +498,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawImplMapRow ReadImplMapRow(uint rid) {
-			var table = GetTable(Table.ImplMap);
+			var table = Get(Table.ImplMap);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -517,7 +517,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldRVARow ReadFieldRVARow(uint rid) {
-			var table = GetTable(Table.FieldRVA);
+			var table = Get(Table.FieldRVA);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -534,7 +534,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawENCLogRow ReadENCLogRow(uint rid) {
-			var table = GetTable(Table.ENCLog);
+			var table = Get(Table.ENCLog);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -550,7 +550,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawENCMapRow ReadENCMapRow(uint rid) {
-			var table = GetTable(Table.ENCMap);
+			var table = Get(Table.ENCMap);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -565,7 +565,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRow ReadAssemblyRow(uint rid) {
-			var table = GetTable(Table.Assembly);
+			var table = Get(Table.Assembly);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -589,7 +589,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyProcessorRow ReadAssemblyProcessorRow(uint rid) {
-			var table = GetTable(Table.AssemblyProcessor);
+			var table = Get(Table.AssemblyProcessor);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -604,7 +604,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyOSRow ReadAssemblyOSRow(uint rid) {
-			var table = GetTable(Table.AssemblyOS);
+			var table = Get(Table.AssemblyOS);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -621,7 +621,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefRow ReadAssemblyRefRow(uint rid) {
-			var table = GetTable(Table.AssemblyRef);
+			var table = Get(Table.AssemblyRef);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -645,7 +645,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefProcessorRow ReadAssemblyRefProcessorRow(uint rid) {
-			var table = GetTable(Table.AssemblyRefProcessor);
+			var table = Get(Table.AssemblyRefProcessor);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -662,7 +662,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefOSRow ReadAssemblyRefOSRow(uint rid) {
-			var table = GetTable(Table.AssemblyRefOS);
+			var table = Get(Table.AssemblyRefOS);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -681,7 +681,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFileRow ReadFileRow(uint rid) {
-			var table = GetTable(Table.File);
+			var table = Get(Table.File);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -699,7 +699,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawExportedTypeRow ReadExportedTypeRow(uint rid) {
-			var table = GetTable(Table.ExportedType);
+			var table = Get(Table.ExportedType);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -719,7 +719,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawManifestResourceRow ReadManifestResourceRow(uint rid) {
-			var table = GetTable(Table.ManifestResource);
+			var table = Get(Table.ManifestResource);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -738,7 +738,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawNestedClassRow ReadNestedClassRow(uint rid) {
-			var table = GetTable(Table.NestedClass);
+			var table = Get(Table.NestedClass);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -755,7 +755,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawGenericParamRow ReadGenericParamRow(uint rid) {
-			var table = GetTable(Table.GenericParam);
+			var table = Get(Table.GenericParam);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -781,7 +781,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodSpecRow ReadMethodSpecRow(uint rid) {
-			var table = GetTable(Table.MethodSpec);
+			var table = Get(Table.MethodSpec);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;
@@ -798,7 +798,7 @@
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawGenericParamConstraintRow ReadGenericParamConstraintRow(uint rid) {
-			var table = GetTable(Table.GenericParamConstraint);
+			var table = Get(Table.GenericParamConstraint);
 			if (table == null || rid == 0 || rid > table.Rows)
 				return null;
 			var reader = table.ImageStream;

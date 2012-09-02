@@ -70,7 +70,7 @@ namespace dot10.dotNET.Types {
 				throw new ArgumentException("rid");
 			this.rid = rid;
 			this.metaData = metaData;
-			if (metaData.TablesStream.GetTable(Table.Assembly).Rows < rid)
+			if (metaData.TablesStream.Get(Table.Assembly).Rows < rid)
 				throw new BadImageFormatException(string.Format("Assembly rid {0} does not exist", rid));
 			Initialize();
 		}
