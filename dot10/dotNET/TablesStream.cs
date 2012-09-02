@@ -29,7 +29,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// .NET metadata tables stream
 	/// </summary>
-	abstract class TablesStream : DotNetStream {
+	public abstract class TablesStream : DotNetStream {
 		uint reserved1;
 		byte majorVersion;
 		byte minorVersion;

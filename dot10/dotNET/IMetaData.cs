@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace dot10.dotNET {
-	interface IMetaData : IDisposable {
+	public interface IMetaData : IDisposable {
 		/// <summary>
 		/// Returns the #Strings stream or a default empty one if it's not present
 		/// </summary>
