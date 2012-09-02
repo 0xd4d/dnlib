@@ -7,6 +7,8 @@ namespace dot10.dotNET {
 	/// A UTF-8 encoded string where the original data is kept in memory to avoid conversions
 	/// when the data is not really valid UTF-8 encoded data
 	/// </summary>
+	/// <remarks>When comparing strings, a byte compare is performed. The reason is that this
+	/// is what the CLR does when comparing strings in the #Strings stream.</remarks>
 	[DebuggerDisplay("{String}")]
 	public class UTF8String : IEquatable<UTF8String>, IComparable<UTF8String> {
 		byte[] data;
