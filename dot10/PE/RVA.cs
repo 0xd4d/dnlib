@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace dot10.PE {
 	/// <summary>
 	/// Stores an RVA (relative virtual address)
 	/// </summary>
+	[DebuggerDisplay("{val}")]
 	public struct RVA : IEquatable<RVA>, IComparable<RVA> {
 		/// <summary>
 		/// The zero RVA
@@ -112,11 +114,6 @@ namespace dot10.PE {
 		/// <inheritdoc/>
 		public override int GetHashCode() {
 			return (int)val;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0:X8}h", val);
 		}
 	}
 }

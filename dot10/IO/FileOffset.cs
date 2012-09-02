@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace dot10.IO {
 	/// <summary>
 	/// Stores a file offset
 	/// </summary>
+	[DebuggerDisplay("{val}")]
 	public struct FileOffset : IEquatable<FileOffset>, IComparable<FileOffset> {
 		/// <summary>
 		/// The zero file offset
@@ -142,11 +144,6 @@ namespace dot10.IO {
 		/// <inheritdoc/>
 		public override int GetHashCode() {
 			return (int)val ^ (int)(val >> 32);
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0:X8}h", (ulong)val);
 		}
 	}
 }
