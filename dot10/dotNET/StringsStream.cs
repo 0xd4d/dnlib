@@ -11,7 +11,7 @@ namespace dot10.dotNET {
 		}
 
 		/// <summary>
-		/// Read a <see cref="string"/>
+		/// Read a <see cref="UTF8String"/>
 		/// </summary>
 		/// <param name="offset">Offset of string</param>
 		/// <returns>A <see cref="UTF8String"/> instance or null if invalid offset</returns>
