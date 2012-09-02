@@ -38,7 +38,6 @@ namespace dot10.dotNET {
 		ulong validMask;
 		ulong sortedMask;
 		uint extraData;
-		TableInfo[] tableInfos;
 		MDTable[] mdTables;
 
 		/// <inheritdoc/>
@@ -59,7 +58,7 @@ namespace dot10.dotNET {
 			validMask = imageStream.ReadUInt64();
 			sortedMask = imageStream.ReadUInt64();
 
-			CreateTables();
+			var tableInfos = CreateTables();
 			mdTables = new MDTable[tableInfos.Length];
 
 			ulong valid = validMask;
@@ -142,12 +141,12 @@ namespace dot10.dotNET {
 			throw new ApplicationException(string.Format("Invalid ColumnSize: {0}", columnSize));
 		}
 
-		void CreateTables() {
+		TableInfo[] CreateTables() {
 			// v1.0 doesn't support generics. 1.1 supports generics but the GenericParam
 			// table is different from the 2.0 GenericParam table.
 			int maxTables = (majorVersion == 1 && minorVersion == 0) ? (int)Table.NestedClass + 1 : (int)Table.GenericParamConstraint + 1;
 
-			tableInfos = new TableInfo[maxTables];
+			var tableInfos = new TableInfo[maxTables];
 
 			tableInfos[(int)Table.Module] = new TableInfo(Table.Module, "Module", new ColumnInfo[] {
 				new ColumnInfo("Generation", ColumnSize.UInt16),
@@ -382,6 +381,7 @@ namespace dot10.dotNET {
 					new ColumnInfo("Constraint", ColumnSize.TypeDefOrRef),
 				});
 			}
+			return tableInfos;
 		}
 
 		/// <inheritdoc/>
@@ -394,7 +394,6 @@ namespace dot10.dotNET {
 					}
 					mdTables = null;
 				}
-				tableInfos = null;
 			}
 			base.Dispose(disposing);
 		}
