@@ -5,13 +5,22 @@ namespace dot10.dotNET.Types {
 	/// Created from a row in the Module table
 	/// </summary>
 	sealed class ModuleDefMD : ModuleDef {
+		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
+		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawModuleRow rawRow;
 		UserValue<ushort> generation;
 		UserValue<UTF8String> name;
 		UserValue<Guid?> mvid;
 		UserValue<Guid?> encId;
 		UserValue<Guid?> encBaseId;
+
+		/// <summary>
+		/// Returns the .NET file
+		/// </summary>
+		public DotNetFile DotNetFile {
+			get { return dnFile; }
+		}
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -108,12 +117,25 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="dnFile">The loaded .NET file</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is null</exception>
-		ModuleDefMD(DotNetFile dnFile) {
+		ModuleDefMD(DotNetFile dnFile)
+			: this(dnFile, 1) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="dnFile">The loaded .NET file</param>
+		/// <param name="rid">Row ID</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is null</exception>
+		/// <exception cref="ArgumentException">If <paramref name="rid"/> &gt; <c>0x00FFFFFF</c></exception>
+		ModuleDefMD(DotNetFile dnFile, uint rid) {
+			if (rid > 0x00FFFFFF)
+				throw new ArgumentException("rid");
 			if (dnFile == null)
 				throw new ArgumentNullException("dnFile");
 
 			this.dnFile = dnFile;
-			this.rid = 1;
+			this.rid = rid;
 			Initialize();
 		}
 
