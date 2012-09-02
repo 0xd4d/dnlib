@@ -1,4 +1,6 @@
-﻿namespace dot10.dotNET.Types {
+﻿#pragma warning disable 0169	//TODO:
+
+namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the MemberRef table
 	/// </summary>

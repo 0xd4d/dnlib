@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable 0169	//TODO:
+
+using System;
 
 namespace dot10.dotNET.Types {
 	/// <summary>

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable 0169	//TODO:
+
+using System.Collections.Generic;
 
 namespace dot10.dotNET.Types {
 	/// <summary>
