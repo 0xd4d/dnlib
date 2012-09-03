@@ -56,14 +56,14 @@
 		static byte[] Parse(string hexString) {
 			if (hexString == null || hexString == "null")
 				return null;
-			return Extensions.ParseBytes(hexString);
+			return Utils.ParseBytes(hexString);
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (IsNullOrEmpty)
 				return "null";
-			return Extensions.ToHex(data, false);
+			return Utils.ToHex(data, false);
 		}
 	}
 }

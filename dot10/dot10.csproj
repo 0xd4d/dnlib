@@ -97,6 +97,7 @@
     <Compile Include="dotNET\Types\TypeRef.cs" />
     <Compile Include="dotNET\Types\TypeSpec.cs" />
     <Compile Include="dotNET\Types\ISignature.cs" />
+    <Compile Include="dotNET\Types\Utils.cs" />
     <Compile Include="dotNET\UserValue.cs" />
     <Compile Include="dotNET\USStream.cs" />
     <Compile Include="dotNET\UTF8String.cs" />
