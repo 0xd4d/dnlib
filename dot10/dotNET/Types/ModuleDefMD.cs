@@ -14,6 +14,7 @@ namespace dot10.dotNET.Types {
 		UserValue<Guid?> mvid;
 		UserValue<Guid?> encId;
 		UserValue<Guid?> encBaseId;
+		UserValue<AssemblyDef> assembly;
 
 		/// <summary>
 		/// Returns the .NET file
@@ -50,6 +51,12 @@ namespace dot10.dotNET.Types {
 		public override Guid? EncBaseId {
 			get { return encBaseId.Value; }
 			set { encBaseId.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override AssemblyDef Assembly {
+			get { return assembly.Value; }
+			set { assembly.Value = value; }
 		}
 
 		/// <summary>
@@ -159,6 +166,14 @@ namespace dot10.dotNET.Types {
 			encBaseId.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return dnFile.MetaData.GuidStream.Read(rawRow.EncBaseId);
+			};
+			assembly.ReadOriginalValue = () => {
+				if (dnFile.MetaData.TablesStream.Get(Table.Assembly).Rows >= 1) {
+					var asm = new AssemblyDefMD(dnFile.MetaData, 1);
+					asm.ManifestModule = this;
+					return asm;
+				}
+				return null;
 			};
 		}
 

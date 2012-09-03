@@ -54,6 +54,11 @@ namespace dot10.dotNET.Types {
 		public abstract Guid? EncBaseId { get; set; }
 
 		/// <summary>
+		/// Gets/sets the module's assembly
+		/// </summary>
+		public abstract AssemblyDef Assembly { get; set; }
+
+		/// <summary>
 		/// Creates a <see cref="ModuleDef"/> instance from a file
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
@@ -137,6 +142,7 @@ namespace dot10.dotNET.Types {
 		Guid? mvid;
 		Guid? encId;
 		Guid? encBaseId;
+		AssemblyDef assembly;
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -166,6 +172,12 @@ namespace dot10.dotNET.Types {
 		public override Guid? EncBaseId {
 			get { return encBaseId; }
 			set { encBaseId = value; }
+		}
+
+		/// <inheritdoc/>
+		public override AssemblyDef Assembly {
+			get { return assembly; }
+			set { assembly = value; }
 		}
 
 		/// <summary>
