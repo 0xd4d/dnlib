@@ -257,5 +257,86 @@ namespace dot10.dotNET.Types {
 			get { return locale; }
 			set { locale = value; }
 		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public AssemblyDefUser() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
+		/// <param name="version">Version</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyDefUser(string name, Version version)
+			: this(name, version, new byte[0]) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
+		/// <param name="version">Version</param>
+		/// <param name="publicKey">Public key</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyDefUser(string name, Version version, byte[] publicKey)
+			: this(name, version, publicKey, "") {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
+		/// <param name="version">Version</param>
+		/// <param name="publicKey">Public key</param>
+		/// <param name="locale">Locale</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyDefUser(string name, Version version, byte[] publicKey, string locale)
+			: this(new UTF8String(name), version, publicKey, new UTF8String(locale)) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
+		/// <param name="version">Version</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyDefUser(UTF8String name, Version version)
+			: this(name, version, new byte[0]) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
+		/// <param name="version">Version</param>
+		/// <param name="publicKey">Public key</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyDefUser(UTF8String name, Version version, byte[] publicKey)
+			: this(name, version, publicKey, UTF8String.Empty) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
+		/// <param name="version">Version</param>
+		/// <param name="publicKey">Public key</param>
+		/// <param name="locale">Locale</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyDefUser(UTF8String name, Version version, byte[] publicKey, UTF8String locale) {
+			if ((object)name == null)
+				throw new ArgumentNullException("name");
+			if (version == null)
+				throw new ArgumentNullException("version");
+			if ((object)locale == null)
+				throw new ArgumentNullException("locale");
+			this.name = name;
+			this.version = version;
+			this.publicKey = publicKey;
+			this.locale = locale;
+		}
 	}
 }
