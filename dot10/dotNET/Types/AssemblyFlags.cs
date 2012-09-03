@@ -8,6 +8,11 @@ namespace dot10.dotNET.Types {
 	[Flags]
 	public enum AssemblyFlags : uint {
 		/// <summary>
+		/// No flags set
+		/// </summary>
+		None = 0,
+
+		/// <summary>
 		/// The assembly ref holds the full (unhashed) public key.
 		/// </summary>
 		PublicKey = 1,
