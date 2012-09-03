@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using dot10.IO;
@@ -7,6 +8,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Represents the IMAGE_SECTION_HEADER PE section
 	/// </summary>
+	[DebuggerDisplay("RVA:{virtualAddress.val} VS:{virtualSize} FO:{pointerToRawData} FS:{sizeOfRawData} {displayName}")]
 	public class ImageSectionHeader : FileSection {
 		string displayName;
 		byte[] name;
@@ -128,11 +130,6 @@ namespace dot10.PE {
 				sb.Append((char)b);
 			}
 			return sb.ToString();
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("RVA:{0:X8} VS:{1:X8} FO:{2:X8} FS:{3:X8} {4}", virtualAddress, virtualSize, pointerToRawData, sizeOfRawData, displayName);
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using dot10.IO;
 
@@ -6,6 +7,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// Info about one column in a MD table
 	/// </summary>
+	[DebuggerDisplay("{offset} {size} {name}")]
 	public class ColumnInfo {
 		byte offset;
 		ColumnSize columnSize;
@@ -64,11 +66,6 @@ namespace dot10.dotNET {
 			case 4: return reader.ReadUInt32();
 			default: throw new InvalidOperationException("Invalid column size");
 			}
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} {1} {2}", offset, size, name);
 		}
 	}
 }

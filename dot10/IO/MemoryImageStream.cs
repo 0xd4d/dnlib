@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace dot10.IO {
 	/// <summary>
 	/// IImageStream for byte[]
 	/// </summary>
+	[DebuggerDisplay("FO:{fileOffset.val} S:{Length}")]
 	sealed class MemoryImageStream : IImageStream {
 		FileOffset fileOffset;
 		byte[] data;
@@ -159,11 +161,6 @@ namespace dot10.IO {
 			dataOffset = 0;
 			dataEnd = 0;
 			position = 0;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("FO:{0:X8} S:{1:X8}", fileOffset.Value, Length);
 		}
 	}
 }

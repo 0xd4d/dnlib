@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using dot10.IO;
 
@@ -6,6 +7,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// .NET metadata stream
 	/// </summary>
+	[DebuggerDisplay("{imageStream.Length} {streamHeader.Name}")]
 	public class DotNetStream : IDisposable {
 		/// <summary>
 		/// Reader that can access the whole stream
@@ -21,11 +23,6 @@ namespace dot10.dotNET {
 		public DotNetStream(IImageStream imageStream, StreamHeader streamHeader) {
 			this.imageStream = imageStream;
 			this.streamHeader = streamHeader;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0:X8} {1}", imageStream.Length, streamHeader.Name);
 		}
 
 		/// <inheritdoc/>

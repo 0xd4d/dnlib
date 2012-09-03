@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using dot10.IO;
 
@@ -6,6 +7,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// A MD table (eg. Method table)
 	/// </summary>
+	[DebuggerDisplay("DL:{imageStream.Length} R:{numRows} RS:{tableInfo.RowSize} C:{tableInfo.Columns.Count} {tableInfo.Name}")]
 	public sealed class MDTable : IDisposable {
 		uint numRows;
 		TableInfo tableInfo;
@@ -45,11 +47,6 @@ namespace dot10.dotNET {
 		internal MDTable(uint numRows, TableInfo tableInfo) {
 			this.numRows = numRows;
 			this.tableInfo = tableInfo;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("DL:{0:X8} R:{1} RS:{2} C:{3} {4}", imageStream.Length, numRows, tableInfo.RowSize, tableInfo.Columns.Count, tableInfo.Name);
 		}
 
 		/// <inheritdoc/>

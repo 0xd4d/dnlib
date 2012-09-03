@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace dot10.IO {
@@ -7,6 +8,7 @@ namespace dot10.IO {
 	/// unmanaged memory range
 	/// </summary>
 	/// <seealso cref="MemoryStreamCreator"/>
+	[DebuggerDisplay("mem: D:{data} L:{dataLength} {theFileName}")]
 	class UnmanagedMemoryStreamCreator : IImageStreamCreator {
 		/// <summary>
 		/// Address of data
@@ -106,11 +108,6 @@ namespace dot10.IO {
 				dataLength = 0;
 				theFileName = null;
 			}
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("mem: D:{0:X8} L:{1:X8} {2}", data.ToInt64(), dataLength, theFileName);
 		}
 	}
 }

@@ -1,10 +1,12 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using dot10.IO;
 
 namespace dot10.IO {
 	/// <summary>
 	/// Base class for classes needing to implement IFileSection
 	/// </summary>
+	[DebuggerDisplay("O:{startOffset.val} L:{size} {GetType().Name}")]
 	public class FileSection : IFileSection {
 		/// <summary>
 		/// The start file offset of this section
@@ -41,11 +43,6 @@ namespace dot10.IO {
 		protected void SetEndoffset(IImageStream reader) {
 			size = (uint)(reader.Position - startOffset.Value);
 			startOffset = reader.FileOffset + startOffset.Value;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("O:{0:X8} L:{1:X4} - {2}", startOffset.Value, size, GetType().Name);
 		}
 	}
 }

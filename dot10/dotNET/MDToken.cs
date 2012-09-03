@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace dot10.dotNET {
 	/// <summary>
 	/// MetaData token
 	/// </summary>
+	[DebuggerDisplay("{Table} {Rid}")]
 	public struct MDToken : IEquatable<MDToken>, IComparable<MDToken> {
 		uint token;
 
@@ -119,11 +121,6 @@ namespace dot10.dotNET {
 		/// <inheritdoc/>
 		public override int GetHashCode() {
 			return (int)token;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} {1:X6}", Table.ToString(), Rid);
 		}
 	}
 }

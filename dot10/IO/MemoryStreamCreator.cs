@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace dot10.IO {
@@ -6,6 +7,7 @@ namespace dot10.IO {
 	/// Creates <see cref="MemoryStream"/>s to partially access a byte[]
 	/// </summary>
 	/// <seealso cref="UnmanagedMemoryStreamCreator"/>
+	[DebuggerDisplay("byte[]: O:{dataOffset} L:{dataLength} {theFileName}")]
 	sealed class MemoryStreamCreator : IImageStreamCreator {
 		byte[] data;
 		int dataOffset;
@@ -78,11 +80,6 @@ namespace dot10.IO {
 			dataOffset = 0;
 			dataLength = 0;
 			theFileName = null;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("byte[]: O:{0:X8} L:{1:X8} {2}", dataOffset, dataLength, theFileName);
 		}
 	}
 }

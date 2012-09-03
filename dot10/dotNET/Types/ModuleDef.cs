@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
+	[DebuggerDisplay("{Name.String}")]
 	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable {
 		/// <summary>
 		/// The row id in its table

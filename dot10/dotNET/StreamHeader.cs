@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using dot10.IO;
@@ -7,6 +8,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// A metadata stream header
 	/// </summary>
+	[DebuggerDisplay("O:{offset} L:{streamSize} {name}")]
 	public class StreamHeader : FileSection {
 		uint offset;
 		uint streamSize;
@@ -64,11 +66,6 @@ namespace dot10.dotNET {
 			if (i != maxLen)
 				reader.Position = origPos + ((i + 1 + 3) & ~3);
 			return sb.ToString();
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("O:{0:X8} L:{1:X8} {2}", offset, streamSize, name);
 		}
 	}
 }

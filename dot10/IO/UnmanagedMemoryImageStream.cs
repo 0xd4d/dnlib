@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -6,6 +7,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// IImageStream for unmanaged memory
 	/// </summary>
+	[DebuggerDisplay("FO:{fileOffset.Value} S:{Length} A:{startAddr}")]
 	sealed unsafe class UnmanagedMemoryImageStream : IImageStream {
 		FileOffset fileOffset;
 		byte* startAddr;
@@ -160,11 +162,6 @@ namespace dot10.IO {
 			startAddr = null;
 			endAddr = null;
 			currentAddr = null;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("FO:{0:X8} S:{1:X8} A:{2:X8}", fileOffset.Value, Length, new IntPtr(startAddr));
 		}
 	}
 }

@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace dot10.dotNET {
 	/// <summary>
 	/// Info about one MD table
 	/// </summary>
+	[DebuggerDisplay("{rowSize} {name}")]
 	public class TableInfo {
 		Table table;
 		int rowSize;
@@ -49,11 +51,6 @@ namespace dot10.dotNET {
 			this.table = table;
 			this.name = name;
 			this.columns = columns;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} {1}", rowSize, name);
 		}
 	}
 }

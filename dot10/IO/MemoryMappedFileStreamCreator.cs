@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
@@ -11,6 +12,7 @@ namespace dot10.IO {
 	/// <remarks>Since this class maps a file into memory, the user should call
 	/// <see cref="UnmanagedMemoryStreamCreator.Dispose()"/> to free any resources
 	/// used by the class when it's no longer needed.</remarks>
+	[DebuggerDisplay("mmap: A:{data} L:{dataLength} {theFileName}")]
 	class MemoryMappedFileStreamCreator : UnmanagedMemoryStreamCreator {
 		const uint GENERIC_READ = 0x80000000;
 		const uint FILE_SHARE_READ = 0x00000001;
@@ -87,11 +89,6 @@ namespace dot10.IO {
 				dataLength = 0;
 			}
 			base.Dispose(disposing);
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("mmap: A:{0:X8} L:{1:X8} {2}", data.ToInt64(), dataLength, theFileName);
 		}
 	}
 }
