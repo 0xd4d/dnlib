@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -6,6 +7,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>
+	[DebuggerDisplay("{GetFullNameWithPublicKeyToken()}")]
 	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity {
 		/// <summary>
 		/// The row id in its table
