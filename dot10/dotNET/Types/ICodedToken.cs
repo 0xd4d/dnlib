@@ -10,7 +10,7 @@
 	}
 
 	/// <summary>
-	/// The table row can can be referenced by a coded token
+	/// The table row can be referenced by a coded token
 	/// </summary>
 	public interface ICodedToken : IMDTokenProvider {
 	}
