@@ -76,41 +76,29 @@ namespace dot10.dotNET.Types {
 		}
 
 		void Initialize() {
-			hashAlgId = new UserValue<AssemblyHashAlgorithm> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return (AssemblyHashAlgorithm)rawRow.HashAlgId;
-				}
+			hashAlgId.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return (AssemblyHashAlgorithm)rawRow.HashAlgId;
 			};
-			version = new UserValue<Version> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return new Version(rawRow.MajorVersion, rawRow.MinorVersion, rawRow.BuildNumber, rawRow.RevisionNumber);
-				}
+			version.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return new Version(rawRow.MajorVersion, rawRow.MinorVersion, rawRow.BuildNumber, rawRow.RevisionNumber);
 			};
-			flags = new UserValue<AssemblyFlags> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return (AssemblyFlags)rawRow.Flags;
-				}
+			flags.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return (AssemblyFlags)rawRow.Flags;
 			};
-			publicKey = new UserValue<byte[]> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return metaData.BlobStream.Read(rawRow.PublicKey);
-				}
+			publicKey.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return metaData.BlobStream.Read(rawRow.PublicKey);
 			};
-			name = new UserValue<UTF8String> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return metaData.StringsStream.Read(rawRow.Name);
-				}
+			name.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return metaData.StringsStream.Read(rawRow.Name);
 			};
-			locale = new UserValue<UTF8String> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return metaData.StringsStream.Read(rawRow.Locale);
-				}
+			locale.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return metaData.StringsStream.Read(rawRow.Locale);
 			};
 		}
 

@@ -140,35 +140,25 @@ namespace dot10.dotNET.Types {
 		}
 
 		void Initialize() {
-			generation = new UserValue<ushort> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return rawRow.Generation;
-				}
+			generation.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return rawRow.Generation;
 			};
-			name = new UserValue<UTF8String> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return dnFile.MetaData.StringsStream.Read(rawRow.Name);
-				}
+			name.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return dnFile.MetaData.StringsStream.Read(rawRow.Name);
 			};
-			mvid = new UserValue<Guid?> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return dnFile.MetaData.GuidStream.Read(rawRow.Mvid);
-				}
+			mvid.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return dnFile.MetaData.GuidStream.Read(rawRow.Mvid);
 			};
-			encId = new UserValue<Guid?> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return dnFile.MetaData.GuidStream.Read(rawRow.EncId);
-				}
+			encId.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return dnFile.MetaData.GuidStream.Read(rawRow.EncId);
 			};
-			encBaseId = new UserValue<Guid?> {
-				ReadOriginalValue = () => {
-					InitializeRawRow();
-					return dnFile.MetaData.GuidStream.Read(rawRow.EncBaseId);
-				}
+			encBaseId.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return dnFile.MetaData.GuidStream.Read(rawRow.EncBaseId);
 			};
 		}
 
