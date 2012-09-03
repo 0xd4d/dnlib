@@ -9,11 +9,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="name">Simple assembly name</param>
 		/// <param name="version">Version or null</param>
 		/// <param name="culture">Culture or null</param>
-		/// <param name="publicKeyOrToken">Public key / public key token or null</param>
-		/// <param name="isToken"><c>true</c> if <paramref name="publicKeyOrToken"/> is a public
-		/// key token, <c>false</c> if <paramref name="publicKeyOrToken"/> is a public key</param>
+		/// <param name="publicKey">Public key / public key token or null</param>
 		/// <returns>An assembly name string</returns>
-		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, byte[] publicKeyOrToken, bool isToken) {
+		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey) {
 			var sb = new StringBuilder();
 			sb.Append(UTF8String.IsNullOrEmpty(name) ? "" : name.String);
 
@@ -28,11 +26,8 @@ namespace dot10.dotNET.Types {
 			}
 
 			sb.Append(", ");
-			sb.Append(isToken ? "PublicKeyToken=" : "PublicKey=");
-			if (publicKeyOrToken != null && publicKeyOrToken.Length > 0)
-				sb.Append(ToHex(publicKeyOrToken, false));
-			else
-				sb.Append("null");
+			sb.Append(publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
+			sb.Append(publicKey.ToString());
 
 			return sb.ToString();
 		}

@@ -12,14 +12,17 @@ namespace dot10.dotNET.Types {
 		UserValue<AssemblyHashAlgorithm> hashAlgId;
 		UserValue<Version> version;
 		UserValue<AssemblyFlags> flags;
-		UserValue<byte[]> publicKey;
+		UserValue<PublicKey> publicKey;
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> locale;
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
 			get { return hashAlgId.Value; }
-			set { hashAlgId.Value = value; }
+			set {
+				hashAlgId.Value = value;
+				publicKey.Value.HashAlgorithm = hashAlgId.Value;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -39,9 +42,12 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <inheritdoc/>
-		public override byte[] PublicKey {
+		public override PublicKey PublicKey {
 			get { return publicKey.Value; }
-			set { publicKey.Value = value; }
+			set {
+				publicKey.Value = value ?? new PublicKey();
+				publicKey.Value.HashAlgorithm = hashAlgId.Value;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -90,7 +96,7 @@ namespace dot10.dotNET.Types {
 			};
 			publicKey.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return metaData.BlobStream.Read(rawRow.PublicKey);
+				return new PublicKey(metaData.BlobStream.Read(rawRow.PublicKey));
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();

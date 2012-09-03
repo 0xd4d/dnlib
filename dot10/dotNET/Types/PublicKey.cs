@@ -13,7 +13,7 @@
 		public PublicKeyToken Token {
 			get {
 				if (publicKeyToken == null)
-					publicKeyToken = new PublicKeyToken(AssemblyHash.Hash(data, hashAlgo));
+					publicKeyToken = AssemblyHash.CreatePublicKeyToken(data, hashAlgo);
 				return publicKeyToken;
 			}
 		}

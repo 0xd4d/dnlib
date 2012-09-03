@@ -11,8 +11,8 @@ namespace dot10.dotNET.Types {
 		AssemblyHashAlgorithm hashAlgId;
 		Version version;
 		AssemblyFlags flags;
-		byte[] publicKey;
-		byte[] publicKeyToken;
+		PublicKey publicKey;
+		PublicKeyToken publicKeyToken;
 		UTF8String name;
 		UTF8String locale;
 
@@ -43,7 +43,7 @@ namespace dot10.dotNET.Types {
 		/// <summary>
 		/// Gets/sets the public key or null if none specified
 		/// </summary>
-		public byte[] PublicKey {
+		public PublicKey PublicKey {
 			get { return publicKey; }
 			set { publicKey = value; }
 		}
@@ -51,7 +51,7 @@ namespace dot10.dotNET.Types {
 		/// <summary>
 		/// Gets/sets the public key token or null if none specified
 		/// </summary>
-		public byte[] PublicKeyToken {
+		public PublicKeyToken PublicKeyToken {
 			get { return publicKeyToken; }
 			set { publicKeyToken = value; }
 		}
@@ -94,10 +94,22 @@ namespace dot10.dotNET.Types {
 			this.hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.flags = (AssemblyFlags)asmName.Flags;
-			this.publicKey = asmName.GetPublicKey();
-			this.publicKeyToken = asmName.GetPublicKeyToken();
+			this.publicKey = CreatePublicKey(asmName.GetPublicKey());
+			this.publicKeyToken = CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			this.name = new UTF8String(asmName.Name ?? string.Empty);
 			this.locale = new UTF8String(asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : "");
+		}
+
+		static PublicKey CreatePublicKey(byte[] data) {
+			if (data == null)
+				return null;
+			return new PublicKey(data);
+		}
+
+		static PublicKeyToken CreatePublicKeyToken(byte[] data) {
+			if (data == null)
+				return null;
+			return new PublicKeyToken(data);
 		}
 
 		/// <summary>
@@ -140,7 +152,7 @@ namespace dot10.dotNET.Types {
 					if (value == "null")
 						publicKey = null;
 					else {
-						publicKey = Utils.ParseBytes(value);
+						publicKey = CreatePublicKey(Utils.ParseBytes(value));
 						if (publicKey == null)
 							error = true;
 					}
@@ -150,7 +162,7 @@ namespace dot10.dotNET.Types {
 					if (value == "null")
 						publicKey = null;
 					else {
-						publicKeyToken = Utils.ParseBytes(value);
+						publicKeyToken = CreatePublicKeyToken(Utils.ParseBytes(value));
 						if (publicKeyToken == null)
 							error = true;
 					}
@@ -182,9 +194,7 @@ namespace dot10.dotNET.Types {
 
 		/// <inhertidoc/>
 		public override string ToString() {
-			if (publicKey != null && publicKey.Length > 0)
-				return Utils.GetAssemblyNameString(name, version, locale, publicKey, false);
-			return Utils.GetAssemblyNameString(name, version, locale, publicKeyToken, true);
+			return Utils.GetAssemblyNameString(name, version, locale, publicKey != null && !publicKey.IsNullOrEmpty ? (PublicKeyBase)publicKey : publicKeyToken);
 		}
 	}
 }

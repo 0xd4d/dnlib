@@ -52,7 +52,15 @@ namespace dot10.dotNET.Types {
 		/// <summary>
 		/// From column Assembly.PublicKey
 		/// </summary>
-		public abstract byte[] PublicKey { get; set; }
+		/// <remarks>An empty <see cref="PublicKey"/> is created if the caller writes <c>null</c></remarks>
+		public abstract PublicKey PublicKey { get; set; }
+
+		/// <summary>
+		/// Gets the public key token which is calculated from <see cref="PublicKey"/>
+		/// </summary>
+		public PublicKeyToken PublicKeyToken {
+			get { return PublicKey.Token; }
+		}
 
 		/// <summary>
 		/// From column Assembly.Name
@@ -206,6 +214,29 @@ namespace dot10.dotNET.Types {
 				throw;
 			}
 		}
+
+		/// <summary>
+		/// Gets the assembly name with the public key
+		/// </summary>
+		public string GetFullNameWithPublicKey() {
+			return GetFullName(PublicKey);
+		}
+
+		/// <summary>
+		/// Gets the assembly name with the public key token
+		/// </summary>
+		public string GetFullNameWithPublicKeyToken() {
+			return GetFullName(PublicKeyToken);
+		}
+
+		string GetFullName(PublicKeyBase pkBase) {
+			return Utils.GetAssemblyNameString(Name, Version, Locale, pkBase);
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return GetFullNameWithPublicKeyToken();
+		}
 	}
 
 	/// <summary>
@@ -215,14 +246,17 @@ namespace dot10.dotNET.Types {
 		AssemblyHashAlgorithm hashAlgId;
 		Version version;
 		AssemblyFlags flags;
-		byte[] publicKey;
+		PublicKey publicKey;
 		UTF8String name;
 		UTF8String locale;
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
 			get { return hashAlgId; }
-			set { hashAlgId = value; }
+			set {
+				hashAlgId = value;
+				publicKey.HashAlgorithm = hashAlgId;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -242,9 +276,12 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <inheritdoc/>
-		public override byte[] PublicKey {
+		public override PublicKey PublicKey {
 			get { return publicKey; }
-			set { publicKey = value; }
+			set {
+				publicKey = value ?? new PublicKey();
+				publicKey.HashAlgorithm = hashAlgId;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -273,7 +310,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="version">Version</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
 		public AssemblyDefUser(string name, Version version)
-			: this(name, version, new byte[0]) {
+			: this(name, version, new PublicKey()) {
 		}
 
 		/// <summary>
@@ -283,7 +320,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="version">Version</param>
 		/// <param name="publicKey">Public key</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(string name, Version version, byte[] publicKey)
+		public AssemblyDefUser(string name, Version version, PublicKey publicKey)
 			: this(name, version, publicKey, "") {
 		}
 
@@ -295,7 +332,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="publicKey">Public key</param>
 		/// <param name="locale">Locale</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(string name, Version version, byte[] publicKey, string locale)
+		public AssemblyDefUser(string name, Version version, PublicKey publicKey, string locale)
 			: this(new UTF8String(name), version, publicKey, new UTF8String(locale)) {
 		}
 
@@ -306,7 +343,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="version">Version</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
 		public AssemblyDefUser(UTF8String name, Version version)
-			: this(name, version, new byte[0]) {
+			: this(name, version, new PublicKey()) {
 		}
 
 		/// <summary>
@@ -316,7 +353,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="version">Version</param>
 		/// <param name="publicKey">Public key</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(UTF8String name, Version version, byte[] publicKey)
+		public AssemblyDefUser(UTF8String name, Version version, PublicKey publicKey)
 			: this(name, version, publicKey, UTF8String.Empty) {
 		}
 
@@ -328,7 +365,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="publicKey">Public key</param>
 		/// <param name="locale">Locale</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(UTF8String name, Version version, byte[] publicKey, UTF8String locale) {
+		public AssemblyDefUser(UTF8String name, Version version, PublicKey publicKey, UTF8String locale) {
 			if ((object)name == null)
 				throw new ArgumentNullException("name");
 			if (version == null)
@@ -337,7 +374,7 @@ namespace dot10.dotNET.Types {
 				throw new ArgumentNullException("locale");
 			this.name = name;
 			this.version = version;
-			this.publicKey = publicKey;
+			this.publicKey = publicKey ?? new PublicKey();
 			this.locale = locale;
 		}
 
@@ -362,7 +399,7 @@ namespace dot10.dotNET.Types {
 				throw new ArgumentNullException("asmName");
 			this.name = asmName.Name;
 			this.version = asmName.Version ?? new Version();
-			this.publicKey = asmName.PublicKey;
+			this.publicKey = asmName.PublicKey ?? new PublicKey();
 			this.locale = asmName.Locale;
 			this.flags = AssemblyFlags.None;
 			this.hashAlgId = AssemblyHashAlgorithm.SHA1;
