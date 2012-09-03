@@ -76,6 +76,7 @@ namespace dot10.dotNET.Types {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmFullName">An assembly name</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmFullName"/> is null</exception>
 		public AssemblyNameInfo(string asmFullName) {
 			if (asmFullName == null)
 				throw new ArgumentNullException("asmFullName");
@@ -86,6 +87,7 @@ namespace dot10.dotNET.Types {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is null</exception>
 		public AssemblyNameInfo(AssemblyName asmName) {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
@@ -171,10 +173,10 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Converts a hex string to a <see cref="byte[]"/>
+		/// Converts a hex string to a byte[]
 		/// </summary>
 		/// <param name="hexString">A string with an even number of hex characters</param>
-		/// <returns><paramref name="hexString"/> converted to a <see cref="byte[]"/> or null
+		/// <returns><paramref name="hexString"/> converted to a byte[] or null
 		/// if <paramref name="hexString"/> is invalid</returns>
 		static byte[] ParseBytes(string hexString) {
 			try {
