@@ -62,11 +62,11 @@ namespace dot10.dotNET.Types {
 		/// <param name="metaData">The metadata which contains this Assembly row</param>
 		/// <param name="rid">Row ID</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="metaData"/> is <c>null</c></exception>
-		/// <exception cref="ArgumentException">If <paramref name="rid"/> &gt; <c>0x00FFFFFF</c></exception>
+		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
 		public AssemblyDefMD(IMetaData metaData, uint rid) {
 			if (metaData == null)
 				throw new ArgumentNullException("metaData");
-			if (rid > 0x00FFFFFF)
+			if (rid == 0 || rid > 0x00FFFFFF)
 				throw new ArgumentException("rid");
 			this.rid = rid;
 			this.metaData = metaData;
