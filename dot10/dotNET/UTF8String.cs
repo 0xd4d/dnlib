@@ -187,5 +187,10 @@ namespace dot10.dotNET {
 			}
 			return (int)val;
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return String;
+		}
 	}
 }
