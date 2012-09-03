@@ -89,6 +89,9 @@
     <Compile Include="dotNET\Types\ModuleRef.cs" />
     <Compile Include="dotNET\Types\ParamDef.cs" />
     <Compile Include="dotNET\Types\PropertyDef.cs" />
+    <Compile Include="dotNET\Types\PublicKey.cs" />
+    <Compile Include="dotNET\Types\PublicKeyBase.cs" />
+    <Compile Include="dotNET\Types\PublicKeyToken.cs" />
     <Compile Include="dotNET\Types\StandAloneSig.cs" />
     <Compile Include="dotNET\Types\TypeDef.cs" />
     <Compile Include="dotNET\Types\TypeRef.cs" />
