@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace dot10.dotNET.Types {
 	/// <summary>
@@ -63,11 +64,146 @@ namespace dot10.dotNET.Types {
 		public abstract UTF8String Locale { get; set; }
 
 		/// <summary>
-		/// Gets/sets the manifest module
+		/// Gets/sets the manifest (main) module
 		/// </summary>
 		public ModuleDef ManifestModule {
 			get { return manifestModule; }
 			set { manifestModule = value; }
+		}
+
+		/// <summary>
+		/// Creates an <see cref="AssemblyDef"/> instance from a file
+		/// </summary>
+		/// <param name="fileName">File name of an existing .NET assembly</param>
+		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
+		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
+		/// <seealso cref="ModuleDef.Load(string)"/>
+		public static AssemblyDef Load(string fileName) {
+			if (fileName == null)
+				throw new ArgumentNullException("fileName");
+			ModuleDef module = null;
+			try {
+				module = ModuleDefMD.Load(fileName);
+				var asm = module.Assembly;
+				if (asm == null)
+					throw new BadImageFormatException(string.Format("{0} is only a .NET module, not a .NET assembly. Use ModuleDef.Load().", fileName));
+				return asm;
+			}
+			catch {
+				if (module != null)
+					module.Dispose();
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Creates an <see cref="AssemblyDef"/> instance from a byte[]
+		/// </summary>
+		/// <param name="data">Contents of a .NET assembly</param>
+		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
+		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
+		/// <seealso cref="ModuleDef.Load(byte[])"/>
+		public static AssemblyDef Load(byte[] data) {
+			if (data == null)
+				throw new ArgumentNullException("data");
+			ModuleDef module = null;
+			try {
+				module = ModuleDefMD.Load(data);
+				var asm = module.Assembly;
+				if (asm == null)
+					throw new BadImageFormatException(string.Format("{0} is only a .NET module, not a .NET assembly. Use ModuleDef.Load().", module.ToString()));
+				return asm;
+			}
+			catch {
+				if (module != null)
+					module.Dispose();
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Creates an <see cref="AssemblyDef"/> instance from a memory location
+		/// </summary>
+		/// <param name="addr">Address of a .NET assembly</param>
+		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
+		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
+		/// <seealso cref="ModuleDef.Load(IntPtr)"/>
+		public static AssemblyDef Load(IntPtr addr) {
+			if (addr == IntPtr.Zero)
+				throw new ArgumentNullException("addr");
+			ModuleDef module = null;
+			try {
+				module = ModuleDefMD.Load(addr);
+				var asm = module.Assembly;
+				if (asm == null)
+					throw new BadImageFormatException(string.Format("{0} (addr: {1:X8}) is only a .NET module, not a .NET assembly. Use ModuleDef.Load().", module.ToString(), addr.ToInt64()));
+				return asm;
+			}
+			catch {
+				if (module != null)
+					module.Dispose();
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Creates an <see cref="AssemblyDef"/> instance from a stream
+		/// </summary>
+		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[])"/>.
+		/// It's better to use one of the other Load() methods.</remarks>
+		/// <param name="stream">The stream</param>
+		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
+		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
+		/// <seealso cref="Load(string)"/>
+		/// <seealso cref="Load(byte[])"/>
+		/// <seealso cref="Load(IntPtr)"/>
+		/// <seealso cref="ModuleDef.Load(Stream)"/>
+		public static AssemblyDef Load(Stream stream) {
+			if (stream == null)
+				throw new ArgumentNullException("stream");
+			ModuleDef module = null;
+			try {
+				module = ModuleDefMD.Load(stream);
+				var asm = module.Assembly;
+				if (asm == null)
+					throw new BadImageFormatException(string.Format("{0} is only a .NET module, not a .NET assembly. Use ModuleDef.Load().", module.ToString()));
+				return asm;
+			}
+			catch {
+				if (module != null)
+					module.Dispose();
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Creates an <see cref="AssemblyDef"/> instance from a <see cref="DotNetFile"/>
+		/// </summary>
+		/// <param name="dnFile">The loaded .NET file</param>
+		/// <returns>A new <see cref="AssemblyDef"/> instance that now owns <paramref name="dnFile"/></returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
+		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
+		/// <seealso cref="ModuleDef.Load(DotNetFile)"/>
+		public static AssemblyDef Load(DotNetFile dnFile) {
+			if (dnFile == null)
+				throw new ArgumentNullException("dnFile");
+			ModuleDef module = null;
+			try {
+				module = ModuleDefMD.Load(dnFile);
+				var asm = module.Assembly;
+				if (asm == null)
+					throw new BadImageFormatException(string.Format("{0} is only a .NET module, not a .NET assembly. Use ModuleDef.Load().", module.ToString()));
+				return asm;
+			}
+			catch {
+				if (module != null)
+					module.Dispose();
+				throw;
+			}
 		}
 	}
 
