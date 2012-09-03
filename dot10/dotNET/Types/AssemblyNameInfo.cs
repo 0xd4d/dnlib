@@ -137,15 +137,23 @@ namespace dot10.dotNET.Types {
 					break;
 
 				case "publickey":
-					publicKey = ParseBytes(value);
-					if (publicKey == null)
-						error = true;
+					if (value == "null")
+						publicKey = null;
+					else {
+						publicKey = ParseBytes(value);
+						if (publicKey == null)
+							error = true;
+					}
 					break;
 
 				case "publickeytoken":
-					publicKeyToken = ParseBytes(value);
-					if (publicKeyToken == null)
-						error = true;
+					if (value == "null")
+						publicKey = null;
+					else {
+						publicKeyToken = ParseBytes(value);
+						if (publicKeyToken == null)
+							error = true;
+					}
 					break;
 
 				case "culture":
