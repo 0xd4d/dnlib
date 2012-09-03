@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Represents a public key token
 	/// </summary>
-	public class PublicKeyToken : PublicKeyBase {
+	public sealed class PublicKeyToken : PublicKeyBase {
 		/// <inheritdoc/>
 		public PublicKeyToken()
 			: base() {

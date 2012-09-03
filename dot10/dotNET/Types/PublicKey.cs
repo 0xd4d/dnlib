@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Represents a public key
 	/// </summary>
-	public class PublicKey : PublicKeyBase {
+	public sealed class PublicKey : PublicKeyBase {
 		const AssemblyHashAlgorithm DEFAULT_ALGORITHM = AssemblyHashAlgorithm.SHA1;
 		AssemblyHashAlgorithm hashAlgo;
 		PublicKeyToken publicKeyToken;
