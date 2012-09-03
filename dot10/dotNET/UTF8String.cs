@@ -11,6 +11,11 @@ namespace dot10.dotNET {
 	/// is what the CLR does when comparing strings in the #Strings stream.</remarks>
 	[DebuggerDisplay("{String}")]
 	public class UTF8String : IEquatable<UTF8String>, IComparable<UTF8String> {
+		/// <summary>
+		/// An empty <see cref="UTF8String"/>
+		/// </summary>
+		public static readonly UTF8String Empty = new UTF8String(string.Empty);
+
 		byte[] data;
 		string asString;
 
