@@ -63,7 +63,11 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
+		/// <seealso cref="AssemblyDef.Load(string)"/>
 		public static ModuleDef Load(string fileName) {
+			if (fileName == null)
+				throw new ArgumentNullException("fileName");
 			return ModuleDefMD.Load(fileName);
 		}
 
@@ -72,7 +76,11 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
+		/// <seealso cref="AssemblyDef.Load(byte[])"/>
 		public static ModuleDef Load(byte[] data) {
+			if (data == null)
+				throw new ArgumentNullException("data");
 			return ModuleDefMD.Load(data);
 		}
 
@@ -81,7 +89,11 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
+		/// <seealso cref="AssemblyDef.Load(IntPtr)"/>
 		public static ModuleDef Load(IntPtr addr) {
+			if (addr == IntPtr.Zero)
+				throw new ArgumentNullException("addr");
 			return ModuleDefMD.Load(addr);
 		}
 
@@ -92,10 +104,14 @@ namespace dot10.dotNET.Types {
 		/// It's better to use one of the other Load() methods.</remarks>
 		/// <param name="stream">The stream</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		/// <seealso cref="Load(string)"/>
 		/// <seealso cref="Load(byte[])"/>
 		/// <seealso cref="Load(IntPtr)"/>
+		/// <seealso cref="AssemblyDef.Load(Stream)"/>
 		public static ModuleDef Load(Stream stream) {
+			if (stream == null)
+				throw new ArgumentNullException("stream");
 			if (stream.Length > int.MaxValue)
 				throw new ArgumentException("Stream is too big");
 			var data = new byte[(int)stream.Length];
@@ -110,7 +126,11 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="dnFile">The loaded .NET file</param>
 		/// <returns>A new <see cref="ModuleDef"/> instance that now owns <paramref name="dnFile"/></returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
+		/// <seealso cref="AssemblyDef.Load(DotNetFile)"/>
 		public static ModuleDef Load(DotNetFile dnFile) {
+			if (dnFile == null)
+				throw new ArgumentNullException("dnFile");
 			return ModuleDefMD.Load(dnFile);
 		}
 
