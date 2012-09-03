@@ -95,6 +95,7 @@
     <Compile Include="dotNET\Types\StandAloneSig.cs" />
     <Compile Include="dotNET\Types\TypeAttributes.cs" />
     <Compile Include="dotNET\Types\TypeDef.cs" />
+    <Compile Include="dotNET\Types\TypeDefMD.cs" />
     <Compile Include="dotNET\Types\TypeRef.cs" />
     <Compile Include="dotNET\Types\TypeSpec.cs" />
     <Compile Include="dotNET\Types\ISignature.cs" />
