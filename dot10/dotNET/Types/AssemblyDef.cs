@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 
 namespace dot10.dotNET.Types {
 	/// <summary>
@@ -261,7 +262,8 @@ namespace dot10.dotNET.Types {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public AssemblyDefUser() {
+		public AssemblyDefUser()
+			: this(UTF8String.Empty, new Version()) {
 		}
 
 		/// <summary>
@@ -337,6 +339,33 @@ namespace dot10.dotNET.Types {
 			this.version = version;
 			this.publicKey = publicKey;
 			this.locale = locale;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="asmName">Assembly name info</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is null</exception>
+		public AssemblyDefUser(AssemblyName asmName)
+			: this(new AssemblyNameInfo(asmName)) {
+			this.hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
+			this.flags = (AssemblyFlags)asmName.Flags;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="asmName">Assembly name info</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is null</exception>
+		public AssemblyDefUser(AssemblyNameInfo asmName) {
+			if (asmName == null)
+				throw new ArgumentNullException("asmName");
+			this.name = asmName.Name;
+			this.version = asmName.Version ?? new Version();
+			this.publicKey = asmName.PublicKey;
+			this.locale = asmName.Locale;
+			this.flags = AssemblyFlags.None;
+			this.hashAlgId = AssemblyHashAlgorithm.SHA1;
 		}
 	}
 }
