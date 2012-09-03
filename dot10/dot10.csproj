@@ -67,6 +67,7 @@
     <Compile Include="dotNET\Types\AssemblyDefMD.cs" />
     <Compile Include="dotNET\Types\AssemblyFlags.cs" />
     <Compile Include="dotNET\Types\AssemblyHashAlgorithm.cs" />
+    <Compile Include="dotNET\Types\AssemblyNameInfo.cs" />
     <Compile Include="dotNET\Types\AssemblyRef.cs" />
     <Compile Include="dotNET\Types\DeclSecurity.cs" />
     <Compile Include="dotNET\Types\EventDef.cs" />
