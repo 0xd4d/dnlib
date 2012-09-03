@@ -71,6 +71,7 @@
     <Compile Include="dotNET\Types\DeclSecurity.cs" />
     <Compile Include="dotNET\Types\EventDef.cs" />
     <Compile Include="dotNET\Types\ExportedType.cs" />
+    <Compile Include="dotNET\Types\Extensions.cs" />
     <Compile Include="dotNET\Types\FieldDef.cs" />
     <Compile Include="dotNET\Types\FileDef.cs" />
     <Compile Include="dotNET\Types\GenericParam.cs" />
