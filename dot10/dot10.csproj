@@ -85,6 +85,7 @@
     <Compile Include="dotNET\Types\FileDefMD.cs" />
     <Compile Include="dotNET\Types\FileFlags.cs" />
     <Compile Include="dotNET\Types\GenericParam.cs" />
+    <Compile Include="dotNET\Types\GenericParamAttributes.cs" />
     <Compile Include="dotNET\Types\GenericParamConstraint.cs" />
     <Compile Include="dotNET\Types\GenericParamConstraintMD.cs" />
     <Compile Include="dotNET\Types\GenericParamMD.cs" />
