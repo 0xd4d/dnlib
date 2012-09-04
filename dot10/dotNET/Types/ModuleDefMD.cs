@@ -193,15 +193,16 @@ namespace dot10.dotNET.Types {
 		/// <param name="dnFile">The loaded .NET file</param>
 		/// <param name="rid">Row ID</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is null</exception>
-		/// <exception cref="ArgumentException">If <paramref name="rid"/> &gt; <c>0x00FFFFFF</c></exception>
+		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
 		ModuleDefMD(DotNetFile dnFile, uint rid) {
-			if (rid > 0x00FFFFFF)
-				throw new ArgumentException("rid");
+#if DEBUG
 			if (dnFile == null)
 				throw new ArgumentNullException("dnFile");
-
-			this.dnFile = dnFile;
+			if (rid == 0 || rid > 0x00FFFFFF)
+				throw new ArgumentException("rid");
+#endif
 			this.rid = rid;
+			this.dnFile = dnFile;
 			Initialize();
 		}
 

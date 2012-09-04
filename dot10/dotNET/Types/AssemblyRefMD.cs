@@ -73,16 +73,16 @@ namespace dot10.dotNET.Types {
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
 		public AssemblyRefMD(ModuleDefMD readerModule, uint rid) {
+#if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (rid == 0 || rid > 0x00FFFFFF)
 				throw new ArgumentException("rid");
-			this.rid = rid;
-			this.readerModule = readerModule;
-#if DEBUG
 			if (readerModule.TablesStream.Get(Table.AssemblyRef).Rows < rid)
 				throw new BadImageFormatException(string.Format("AssemblyRef rid {0} does not exist", rid));
 #endif
+			this.rid = rid;
+			this.readerModule = readerModule;
 			Initialize();
 		}
 
