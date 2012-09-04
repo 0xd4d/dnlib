@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class MethodDefMD : MethodDef {
+	/// <summary>
+	/// Created from a row in the Method table
+	/// </summary>
+	sealed class MethodDefMD : MethodDef {
 	}
 }

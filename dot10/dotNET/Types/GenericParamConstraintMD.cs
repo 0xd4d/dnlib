@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class GenericParamConstraintMD : GenericParamConstraint {
+	/// <summary>
+	/// Created from a row in the GenericParamConstraint table
+	/// </summary>
+	sealed class GenericParamConstraintMD : GenericParamConstraint {
 	}
 }

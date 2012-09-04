@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class GenericParamMD : GenericParam {
+	/// <summary>
+	/// Created from a row in the GenericParam table
+	/// </summary>
+	sealed class GenericParamMD : GenericParam {
 	}
 }

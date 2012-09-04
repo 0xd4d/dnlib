@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class EventDefMD : EventDef {
+	/// <summary>
+	/// Created from a row in the Event table
+	/// </summary>
+	sealed class EventDefMD : EventDef {
 	}
 }

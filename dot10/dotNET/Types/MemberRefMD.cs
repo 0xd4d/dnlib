@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class MemberRefMD : MemberRef {
+	/// <summary>
+	/// Created from a row in the MemberRef table
+	/// </summary>
+	sealed class MemberRefMD : MemberRef {
 	}
 }

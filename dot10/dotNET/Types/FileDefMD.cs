@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class FileDefMD : FileDef {
+	/// <summary>
+	/// Created from a row in the File table
+	/// </summary>
+	sealed class FileDefMD : FileDef {
 	}
 }

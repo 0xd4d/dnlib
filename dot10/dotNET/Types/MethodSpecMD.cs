@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class MethodSpecMD : MethodSpec {
+	/// <summary>
+	/// Created from a row in the MethodSpec table
+	/// </summary>
+	sealed class MethodSpecMD : MethodSpec {
 	}
 }

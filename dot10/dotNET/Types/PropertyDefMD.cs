@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class PropertyDefMD : PropertyDef {
+	/// <summary>
+	/// Created from a row in the Property table
+	/// </summary>
+	sealed class PropertyDefMD : PropertyDef {
 	}
 }

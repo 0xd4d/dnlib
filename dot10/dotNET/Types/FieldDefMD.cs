@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class FieldDefMD : FieldDef {
+	/// <summary>
+	/// Created from a row in the Field table
+	/// </summary>
+	sealed class FieldDefMD : FieldDef {
 	}
 }

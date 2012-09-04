@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class TypeSpecMD : TypeSpec {
+	/// <summary>
+	/// Created from a row in the TypeSpec table
+	/// </summary>
+	sealed class TypeSpecMD : TypeSpec {
 	}
 }

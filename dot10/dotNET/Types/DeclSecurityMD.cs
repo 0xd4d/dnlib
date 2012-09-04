@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class DeclSecurityMD : DeclSecurity {
+	/// <summary>
+	/// Created from a row in the DeclSecurity table
+	/// </summary>
+	sealed class DeclSecurityMD : DeclSecurity {
 	}
 }

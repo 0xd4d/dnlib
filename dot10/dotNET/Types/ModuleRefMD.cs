@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class ModuleRefMD : ModuleRef {
+	/// <summary>
+	/// Created from a row in the ModuleRef table
+	/// </summary>
+	sealed class ModuleRefMD : ModuleRef {
 	}
 }

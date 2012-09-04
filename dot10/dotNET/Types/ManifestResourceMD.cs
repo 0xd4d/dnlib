@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	class ManifestResourceMD : ManifestResource {
+	/// <summary>
+	/// Created from a row in the ManifestResource table
+	/// </summary>
+	sealed class ManifestResourceMD : ManifestResource {
 	}
 }
