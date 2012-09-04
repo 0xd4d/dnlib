@@ -277,7 +277,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ModuleDefMD"/>
+		/// Reads a <see cref="ModuleDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -288,7 +288,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="TypeRefMD"/>
+		/// Reads a <see cref="TypeRefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -297,7 +297,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="TypeDefMD"/>
+		/// Reads a <see cref="TypeDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -306,7 +306,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="FieldDefMD"/>
+		/// Reads a <see cref="FieldDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FieldDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -315,7 +315,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="MethodDefMD"/>
+		/// Reads a <see cref="MethodDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -324,7 +324,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ParamDefMD"/>
+		/// Reads a <see cref="ParamDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ParamDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -333,7 +333,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="InterfaceImplMD"/>
+		/// Reads a <see cref="InterfaceImplMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="InterfaceImplMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -342,7 +342,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="MemberRefMD"/>
+		/// Reads a <see cref="MemberRefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MemberRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -351,7 +351,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="DeclSecurityMD"/>
+		/// Reads a <see cref="DeclSecurityMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="DeclSecurityMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -360,7 +360,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="StandAloneSigMD"/>
+		/// Reads a <see cref="StandAloneSigMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="StandAloneSigMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -369,7 +369,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="EventDefMD"/>
+		/// Reads a <see cref="EventDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="EventDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -378,7 +378,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="PropertyDefMD"/>
+		/// Reads a <see cref="PropertyDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="PropertyDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -387,7 +387,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ModuleRefMD"/>
+		/// Reads a <see cref="ModuleRefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -396,7 +396,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="TypeSpecMD"/>
+		/// Reads a <see cref="TypeSpecMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -405,7 +405,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyDefMD"/>
+		/// Reads a <see cref="AssemblyDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -414,7 +414,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyRefMD"/>
+		/// Reads a <see cref="AssemblyRefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -423,7 +423,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="FileDefMD"/>
+		/// Reads a <see cref="FileDefMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FileDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -432,7 +432,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ExportedTypeMD"/>
+		/// Reads a <see cref="ExportedTypeMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ExportedTypeMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -441,7 +441,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ManifestResourceMD"/>
+		/// Reads a <see cref="ManifestResourceMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ManifestResourceMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -450,7 +450,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="GenericParamMD"/>
+		/// Reads a <see cref="GenericParamMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -459,7 +459,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="MethodSpecMD"/>
+		/// Reads a <see cref="MethodSpecMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -468,7 +468,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="GenericParamConstraintMD"/>
+		/// Reads a <see cref="GenericParamConstraintMD"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamConstraintMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
