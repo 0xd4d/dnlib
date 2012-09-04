@@ -94,6 +94,7 @@
     <Compile Include="dotNET\Types\InterfaceImplMD.cs" />
     <Compile Include="dotNET\Types\LazyList.cs" />
     <Compile Include="dotNET\Types\ManifestResource.cs" />
+    <Compile Include="dotNET\Types\ManifestResourceAttributes.cs" />
     <Compile Include="dotNET\Types\ManifestResourceMD.cs" />
     <Compile Include="dotNET\Types\MemberRefMD.cs" />
     <Compile Include="dotNET\Types\MethodDefMD.cs" />
