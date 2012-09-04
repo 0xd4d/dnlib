@@ -9,12 +9,36 @@ namespace dot10.dotNET.Types {
 		DotNetFile dnFile;
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawModuleRow rawRow;
+
 		UserValue<ushort> generation;
 		UserValue<UTF8String> name;
 		UserValue<Guid?> mvid;
 		UserValue<Guid?> encId;
 		UserValue<Guid?> encBaseId;
 		UserValue<AssemblyDef> assembly;
+
+		LazyList<ModuleDefMD> listModuleDefMD;
+		LazyList<TypeRefMD> listTypeRefMD;
+		LazyList<TypeDefMD> listTypeDefMD;
+		LazyList<FieldDefMD> listFieldDefMD;
+		LazyList<MethodDefMD> listMethodDefMD;
+		LazyList<ParamDefMD> listParamDefMD;
+		LazyList<InterfaceImplMD> listInterfaceImplMD;
+		LazyList<MemberRefMD> listMemberRefMD;
+		LazyList<DeclSecurityMD> listDeclSecurityMD;
+		LazyList<StandAloneSigMD> listStandAloneSigMD;
+		LazyList<EventDefMD> listEventDefMD;
+		LazyList<PropertyDefMD> listPropertyDefMD;
+		LazyList<ModuleRefMD> listModuleRefMD;
+		LazyList<TypeSpecMD> listTypeSpecMD;
+		LazyList<AssemblyDefMD> listAssemblyDefMD;
+		LazyList<AssemblyRefMD> listAssemblyRefMD;
+		LazyList<FileDefMD> listFileDefMD;
+		LazyList<ExportedTypeMD> listExportedTypeMD;
+		LazyList<ManifestResourceMD> listManifestResourceMD;
+		LazyList<GenericParamMD> listGenericParamMD;
+		LazyList<MethodSpecMD> listMethodSpecMD;
+		LazyList<GenericParamConstraintMD> listGenericParamConstraintMD;
 
 		/// <summary>
 		/// Returns the .NET file
@@ -345,7 +369,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FileDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public FileDef ReadFile(uint rid) {
+		public FileDefMD ReadFile(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -452,7 +476,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ModuleDef ResolveModule(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listModuleDefMD == null)
+				listModuleDefMD = new LazyList<ModuleDefMD>(dnFile.MetaData.TablesStream.Get(Table.Module).Rows, ReadModule);
+			return listModuleDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -461,7 +487,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public TypeRef ResolveTypeRef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listTypeRefMD == null)
+				listTypeRefMD = new LazyList<TypeRefMD>(dnFile.MetaData.TablesStream.Get(Table.TypeRef).Rows, ReadTypeRef);
+			return listTypeRefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -470,7 +498,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public TypeDef ResolveTypeDef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listTypeDefMD == null)
+				listTypeDefMD = new LazyList<TypeDefMD>(dnFile.MetaData.TablesStream.Get(Table.TypeDef).Rows, ReadTypeDef);
+			return listTypeDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -479,7 +509,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FieldDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public FieldDef ResolveField(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listFieldDefMD == null)
+				listFieldDefMD = new LazyList<FieldDefMD>(dnFile.MetaData.TablesStream.Get(Table.Field).Rows, ReadField);
+			return listFieldDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -488,7 +520,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public MethodDef ResolveMethod(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listMethodDefMD == null)
+				listMethodDefMD = new LazyList<MethodDefMD>(dnFile.MetaData.TablesStream.Get(Table.Method).Rows, ReadMethod);
+			return listMethodDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -497,7 +531,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ParamDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ParamDef ResolveParam(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listParamDefMD == null)
+				listParamDefMD = new LazyList<ParamDefMD>(dnFile.MetaData.TablesStream.Get(Table.Param).Rows, ReadParam);
+			return listParamDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -506,7 +542,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="InterfaceImpl"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public InterfaceImpl ResolveInterfaceImpl(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listInterfaceImplMD == null)
+				listInterfaceImplMD = new LazyList<InterfaceImplMD>(dnFile.MetaData.TablesStream.Get(Table.InterfaceImpl).Rows, ReadInterfaceImpl);
+			return listInterfaceImplMD[rid - 1];
 		}
 
 		/// <summary>
@@ -515,7 +553,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MemberRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public MemberRef ResolveMemberRef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listMemberRefMD == null)
+				listMemberRefMD = new LazyList<MemberRefMD>(dnFile.MetaData.TablesStream.Get(Table.MemberRef).Rows, ReadMemberRef);
+			return listMemberRefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -524,7 +564,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="DeclSecurity"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public DeclSecurity ResolveDeclSecurity(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listDeclSecurityMD == null)
+				listDeclSecurityMD = new LazyList<DeclSecurityMD>(dnFile.MetaData.TablesStream.Get(Table.DeclSecurity).Rows, ReadDeclSecurity);
+			return listDeclSecurityMD[rid - 1];
 		}
 
 		/// <summary>
@@ -533,7 +575,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="StandAloneSig"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public StandAloneSig ResolveStandAloneSig(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listStandAloneSigMD == null)
+				listStandAloneSigMD = new LazyList<StandAloneSigMD>(dnFile.MetaData.TablesStream.Get(Table.StandAloneSig).Rows, ReadStandAloneSig);
+			return listStandAloneSigMD[rid - 1];
 		}
 
 		/// <summary>
@@ -542,7 +586,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="EventDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public EventDef ResolveEvent(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listEventDefMD == null)
+				listEventDefMD = new LazyList<EventDefMD>(dnFile.MetaData.TablesStream.Get(Table.Event).Rows, ReadEvent);
+			return listEventDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -551,7 +597,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="PropertyDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public PropertyDef ResolveProperty(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listPropertyDefMD == null)
+				listPropertyDefMD = new LazyList<PropertyDefMD>(dnFile.MetaData.TablesStream.Get(Table.Property).Rows, ReadProperty);
+			return listPropertyDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -560,7 +608,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ModuleRef ResolveModuleRef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listModuleRefMD == null)
+				listModuleRefMD = new LazyList<ModuleRefMD>(dnFile.MetaData.TablesStream.Get(Table.ModuleRef).Rows, ReadModuleRef);
+			return listModuleRefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -569,7 +619,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeSpec"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public TypeSpec ResolveTypeSpec(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listTypeSpecMD == null)
+				listTypeSpecMD = new LazyList<TypeSpecMD>(dnFile.MetaData.TablesStream.Get(Table.TypeSpec).Rows, ReadTypeSpec);
+			return listTypeSpecMD[rid - 1];
 		}
 
 		/// <summary>
@@ -578,7 +630,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public AssemblyDef ResolveAssembly(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listAssemblyDefMD == null)
+				listAssemblyDefMD = new LazyList<AssemblyDefMD>(dnFile.MetaData.TablesStream.Get(Table.Assembly).Rows, ReadAssembly);
+			return listAssemblyDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -587,7 +641,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public AssemblyRef ResolveAssemblyRef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listAssemblyRefMD == null)
+				listAssemblyRefMD = new LazyList<AssemblyRefMD>(dnFile.MetaData.TablesStream.Get(Table.AssemblyRef).Rows, ReadAssemblyRef);
+			return listAssemblyRefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -596,7 +652,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FileDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public FileDef ResolveFile(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listFileDefMD == null)
+				listFileDefMD = new LazyList<FileDefMD>(dnFile.MetaData.TablesStream.Get(Table.File).Rows, ReadFile);
+			return listFileDefMD[rid - 1];
 		}
 
 		/// <summary>
@@ -605,7 +663,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ExportedType"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ExportedType ResolveExportedType(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listExportedTypeMD == null)
+				listExportedTypeMD = new LazyList<ExportedTypeMD>(dnFile.MetaData.TablesStream.Get(Table.ExportedType).Rows, ReadExportedType);
+			return listExportedTypeMD[rid - 1];
 		}
 
 		/// <summary>
@@ -614,7 +674,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ManifestResource"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ManifestResource ResolveManifestResource(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listManifestResourceMD == null)
+				listManifestResourceMD = new LazyList<ManifestResourceMD>(dnFile.MetaData.TablesStream.Get(Table.ManifestResource).Rows, ReadManifestResource);
+			return listManifestResourceMD[rid - 1];
 		}
 
 		/// <summary>
@@ -623,7 +685,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParam"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public GenericParam ResolveGenericParam(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listGenericParamMD == null)
+				listGenericParamMD = new LazyList<GenericParamMD>(dnFile.MetaData.TablesStream.Get(Table.GenericParam).Rows, ReadGenericParam);
+			return listGenericParamMD[rid - 1];
 		}
 
 		/// <summary>
@@ -632,7 +696,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodSpec"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public MethodSpec ResolveMethodSpec(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listMethodSpecMD == null)
+				listMethodSpecMD = new LazyList<MethodSpecMD>(dnFile.MetaData.TablesStream.Get(Table.MethodSpec).Rows, ReadMethodSpec);
+			return listMethodSpecMD[rid - 1];
 		}
 
 		/// <summary>
@@ -641,7 +707,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamConstraint"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public GenericParamConstraint ResolveGenericParamConstraint(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (listGenericParamConstraintMD == null)
+				listGenericParamConstraintMD = new LazyList<GenericParamConstraintMD>(dnFile.MetaData.TablesStream.Get(Table.GenericParamConstraint).Rows, ReadGenericParamConstraint);
+			return listGenericParamConstraintMD[rid - 1];
 		}
 
 		/// <summary>
