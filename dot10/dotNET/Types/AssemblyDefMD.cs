@@ -5,8 +5,8 @@ namespace dot10.dotNET.Types {
 	/// Created from a row in the Assembly table
 	/// </summary>
 	sealed class AssemblyDefMD : AssemblyDef {
-		/// <summary>The .NET metadata where this instance is located</summary>
-		IMetaData metaData;
+		/// <summary>The module where this instance is located</summary>
+		ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawAssemblyRow rawRow;
 		UserValue<AssemblyHashAlgorithm> hashAlgId;
@@ -65,21 +65,21 @@ namespace dot10.dotNET.Types {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="metaData">The metadata which contains this Assembly row</param>
+		/// <param name="readerModule">The module which contains this <c>Assembly</c> row</param>
 		/// <param name="rid">Row ID</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="metaData"/> is <c>null</c></exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
-		public AssemblyDefMD(IMetaData metaData, uint rid) {
+		public AssemblyDefMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
-			if (metaData == null)
-				throw new ArgumentNullException("metaData");
+			if (readerModule == null)
+				throw new ArgumentNullException("readerModule");
 			if (rid == 0 || rid > 0x00FFFFFF)
 				throw new ArgumentException("rid");
-			if (metaData.TablesStream.Get(Table.Assembly).Rows < rid)
+			if (readerModule.TablesStream.Get(Table.Assembly).Rows < rid)
 				throw new BadImageFormatException(string.Format("Assembly rid {0} does not exist", rid));
 #endif
 			this.rid = rid;
-			this.metaData = metaData;
+			this.readerModule = readerModule;
 			Initialize();
 		}
 
@@ -98,22 +98,22 @@ namespace dot10.dotNET.Types {
 			};
 			publicKey.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return new PublicKey(metaData.BlobStream.Read(rawRow.PublicKey));
+				return new PublicKey(readerModule.BlobStream.Read(rawRow.PublicKey));
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return metaData.StringsStream.Read(rawRow.Name);
+				return readerModule.StringsStream.Read(rawRow.Name);
 			};
 			locale.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return metaData.StringsStream.Read(rawRow.Locale);
+				return readerModule.StringsStream.Read(rawRow.Locale);
 			};
 		}
 
 		void InitializeRawRow() {
 			if (rawRow != null)
 				return;
-			rawRow = metaData.TablesStream.ReadAssemblyRow(rid);
+			rawRow = readerModule.TablesStream.ReadAssemblyRow(rid);
 		}
 	}
 }

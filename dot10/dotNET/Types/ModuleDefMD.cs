@@ -410,7 +410,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		AssemblyDefMD ReadAssembly(uint rid) {
-			return new AssemblyDefMD(dnFile.MetaData, rid);
+			return new AssemblyDefMD(this, rid);
 		}
 
 		/// <summary>
