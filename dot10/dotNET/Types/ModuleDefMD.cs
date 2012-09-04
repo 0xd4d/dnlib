@@ -194,13 +194,10 @@ namespace dot10.dotNET.Types {
 			assembly.ReadOriginalValue = () => {
 				if (rid != 1)
 					return null;
-				//TODO: Call ResolveAssembly(1) instead.
-				if (dnFile.MetaData.TablesStream.Get(Table.Assembly).Rows >= 1) {
-					var asm = new AssemblyDefMD(dnFile.MetaData, 1);
+				var asm = ResolveAssembly(1);
+				if (asm != null)
 					asm.ManifestModule = this;
-					return asm;
-				}
-				return null;
+				return asm;
 			};
 			var ts = dnFile.MetaData.TablesStream;
 			listModuleDefMD = new LazyList<ModuleDefMD>(ts.Get(Table.Module).Rows, ReadModule);
@@ -248,7 +245,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public ModuleDefMD ReadModule(uint rid) {
+		ModuleDefMD ReadModule(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -257,7 +254,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public TypeRefMD ReadTypeRef(uint rid) {
+		TypeRefMD ReadTypeRef(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -266,7 +263,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public TypeDefMD ReadTypeDef(uint rid) {
+		TypeDefMD ReadTypeDef(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -275,7 +272,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FieldDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public FieldDefMD ReadField(uint rid) {
+		FieldDefMD ReadField(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -284,7 +281,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public MethodDefMD ReadMethod(uint rid) {
+		MethodDefMD ReadMethod(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -293,7 +290,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ParamDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public ParamDefMD ReadParam(uint rid) {
+		ParamDefMD ReadParam(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -302,7 +299,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="InterfaceImplMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public InterfaceImplMD ReadInterfaceImpl(uint rid) {
+		InterfaceImplMD ReadInterfaceImpl(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -311,7 +308,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MemberRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public MemberRefMD ReadMemberRef(uint rid) {
+		MemberRefMD ReadMemberRef(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -320,7 +317,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="DeclSecurityMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public DeclSecurityMD ReadDeclSecurity(uint rid) {
+		DeclSecurityMD ReadDeclSecurity(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -329,7 +326,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="StandAloneSigMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public StandAloneSigMD ReadStandAloneSig(uint rid) {
+		StandAloneSigMD ReadStandAloneSig(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -338,7 +335,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="EventDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public EventDefMD ReadEvent(uint rid) {
+		EventDefMD ReadEvent(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -347,7 +344,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="PropertyDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public PropertyDefMD ReadProperty(uint rid) {
+		PropertyDefMD ReadProperty(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -356,7 +353,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public ModuleRefMD ReadModuleRef(uint rid) {
+		ModuleRefMD ReadModuleRef(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -365,7 +362,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public TypeSpecMD ReadTypeSpec(uint rid) {
+		TypeSpecMD ReadTypeSpec(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -374,8 +371,8 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public AssemblyDefMD ReadAssembly(uint rid) {
-			throw new NotImplementedException();	//TODO:
+		AssemblyDefMD ReadAssembly(uint rid) {
+			return new AssemblyDefMD(dnFile.MetaData, rid);
 		}
 
 		/// <summary>
@@ -383,7 +380,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public AssemblyRefMD ReadAssemblyRef(uint rid) {
+		AssemblyRefMD ReadAssemblyRef(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -392,7 +389,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FileDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public FileDefMD ReadFile(uint rid) {
+		FileDefMD ReadFile(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -401,7 +398,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ExportedTypeMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public ExportedTypeMD ReadExportedType(uint rid) {
+		ExportedTypeMD ReadExportedType(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -410,7 +407,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ManifestResourceMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public ManifestResourceMD ReadManifestResource(uint rid) {
+		ManifestResourceMD ReadManifestResource(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -419,7 +416,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public GenericParamMD ReadGenericParam(uint rid) {
+		GenericParamMD ReadGenericParam(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -428,7 +425,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public MethodSpecMD ReadMethodSpec(uint rid) {
+		MethodSpecMD ReadMethodSpec(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
@@ -437,7 +434,7 @@ namespace dot10.dotNET.Types {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamConstraintMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
-		public GenericParamConstraintMD ReadGenericParamConstraint(uint rid) {
+		GenericParamConstraintMD ReadGenericParamConstraint(uint rid) {
 			throw new NotImplementedException();	//TODO:
 		}
 
