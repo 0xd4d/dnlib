@@ -106,6 +106,7 @@
     <Compile Include="dotNET\Types\ModuleDef.cs" />
     <Compile Include="dotNET\Types\ModuleRef.cs" />
     <Compile Include="dotNET\Types\ModuleRefMD.cs" />
+    <Compile Include="dotNET\Types\ParamAttributes.cs" />
     <Compile Include="dotNET\Types\ParamDef.cs" />
     <Compile Include="dotNET\Types\ParamDefMD.cs" />
     <Compile Include="dotNET\Types\PropertyDef.cs" />
