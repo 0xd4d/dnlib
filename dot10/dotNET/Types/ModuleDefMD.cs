@@ -337,7 +337,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="InterfaceImplMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		InterfaceImplMD ReadInterfaceImpl(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new InterfaceImplMD(this, rid);
 		}
 
 		/// <summary>
