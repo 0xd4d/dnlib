@@ -246,7 +246,9 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		ModuleDefMD ReadModule(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			if (rid == this.rid)
+				return this;
+			return new ModuleDefMD(dnFile, rid);
 		}
 
 		/// <summary>
@@ -264,7 +266,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		TypeDefMD ReadTypeDef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new TypeDefMD(dnFile.MetaData, rid);
 		}
 
 		/// <summary>
