@@ -2,6 +2,6 @@
 	/// <summary>
 	/// Extension methods
 	/// </summary>
-	public partial class Extensions {
+	public static partial class Extensions {
 	}
 }

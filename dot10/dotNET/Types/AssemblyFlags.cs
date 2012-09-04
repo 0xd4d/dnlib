@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Text;
 
 namespace dot10.dotNET.Types {
 	/// <summary>
 	/// Assembly flags from Assembly.Flags column.
 	/// </summary>
 	/// <remarks>See CorHdr.h/CorAssemblyFlags</remarks>
-	[Flags]
+	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
 	public enum AssemblyFlags : uint {
 		/// <summary>No flags set</summary>
 		None						= 0,
@@ -50,5 +52,46 @@ namespace dot10.dotNET.Types {
 		ContentType_WindowsRuntime	= 0x0200,
 		/// <summary>Bits describing ContentType</summary>
 		ContentType_Mask			= 0x0E00,
+	}
+
+	public static partial class Extensions {
+		internal static string ToString(AssemblyFlags flags) {
+			if (flags == AssemblyFlags.None)
+				return "None";
+
+			var sb = new StringBuilder();
+
+			switch ((flags & AssemblyFlags.PA_FullMask)) {
+			case AssemblyFlags.PA_None: sb.Append("PA_None"); break;
+			case AssemblyFlags.PA_MSIL: sb.Append("PA_MSIL"); break;
+			case AssemblyFlags.PA_x86: sb.Append("PA_x86"); break;
+			case AssemblyFlags.PA_IA64: sb.Append("PA_IA64"); break;
+			case AssemblyFlags.PA_AMD64: sb.Append("PA_AMD64"); break;
+			case AssemblyFlags.PA_ARM: sb.Append("PA_ARM"); break;
+			case AssemblyFlags.PA_NoPlatform: sb.Append("PA_NoPlatform"); break;
+			case AssemblyFlags.PA_Specified: sb.Append("PA_Specified"); break;
+			default: sb.Append("PA_UNKNOWN"); break;
+			}
+
+			if ((flags & AssemblyFlags.PublicKey) != 0)
+				sb.Append(" | PublicKey");
+
+			if ((flags & AssemblyFlags.EnableJITcompileTracking) != 0)
+				sb.Append(" | EnableJITcompileTracking");
+
+			if ((flags & AssemblyFlags.DisableJITcompileOptimizer) != 0)
+				sb.Append(" | DisableJITcompileOptimizer");
+
+			if ((flags & AssemblyFlags.Retargetable) != 0)
+				sb.Append(" | Retargetable");
+
+			switch ((flags & AssemblyFlags.ContentType_Mask)) {
+			case AssemblyFlags.ContentType_Default: sb.Append(" | ContentType_Default"); break;
+			case AssemblyFlags.ContentType_WindowsRuntime: sb.Append(" | ContentType_WindowsRuntime"); break;
+			default: sb.Append(" | ContentType_UNKNOWN"); break;
+			}
+
+			return sb.ToString();
+		}
 	}
 }
