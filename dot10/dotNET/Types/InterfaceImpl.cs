@@ -33,7 +33,7 @@ namespace dot10.dotNET.Types {
 	}
 
 	/// <summary>
-	/// A InterfaceImpl row created by the user and not present in the original .NET file
+	/// An InterfaceImpl row created by the user and not present in the original .NET file
 	/// </summary>
 	public class InterfaceImplUser : InterfaceImpl {
 		TypeDef @class;

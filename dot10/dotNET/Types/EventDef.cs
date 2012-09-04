@@ -42,7 +42,7 @@ namespace dot10.dotNET.Types {
 	}
 
 	/// <summary>
-	/// A Event row created by the user and not present in the original .NET file
+	/// An Event row created by the user and not present in the original .NET file
 	/// </summary>
 	public class EventDefUser : EventDef {
 	}
