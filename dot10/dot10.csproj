@@ -72,6 +72,7 @@
     <Compile Include="dotNET\Types\AssemblyRef.cs" />
     <Compile Include="dotNET\Types\AssemblyRefMD.cs" />
     <Compile Include="dotNET\Types\DeclSecurity.cs" />
+    <Compile Include="dotNET\Types\DeclSecurityAction.cs" />
     <Compile Include="dotNET\Types\DeclSecurityMD.cs" />
     <Compile Include="dotNET\Types\EventDef.cs" />
     <Compile Include="dotNET\Types\EventDefMD.cs" />
