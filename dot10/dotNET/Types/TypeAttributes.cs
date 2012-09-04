@@ -5,7 +5,7 @@ namespace dot10.dotNET.Types {
 	/// TypeDef and ExportedType flags. See CorHdr.h/CorTypeAttr
 	/// </summary>
 	[Flags]
-	public enum TypeAttributes {
+	public enum TypeAttributes : uint {
 		/// <summary>Use this mask to retrieve the type visibility information.</summary>
 		VisibilityMask			= 0x00000007,
 		/// <summary>Class is not public scope.</summary>
