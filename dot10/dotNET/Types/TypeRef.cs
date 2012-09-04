@@ -1,6 +1,4 @@
-﻿#pragma warning disable 0169	//TODO:
-
-namespace dot10.dotNET.Types {
+﻿namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the TypeRef table
 	/// </summary>
@@ -9,21 +7,6 @@ namespace dot10.dotNET.Types {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
-
-		/// <summary>
-		/// From column TypeRef.ResolutionScope
-		/// </summary>
-		IResolutionScope resolutionScope;
-
-		/// <summary>
-		/// From column TypeRef.Name
-		/// </summary>
-		string name;
-
-		/// <summary>
-		/// From column TypeRef.Namespace
-		/// </summary>
-		string @namespace;
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -49,11 +32,105 @@ namespace dot10.dotNET.Types {
 		public int ResolutionScopeTag {
 			get { return 3; }
 		}
+
+		/// <summary>
+		/// From column TypeRef.ResolutionScope
+		/// </summary>
+		public abstract IResolutionScope ResolutionScope { get; set; }
+
+		/// <summary>
+		/// From column TypeRef.Name
+		/// </summary>
+		public abstract UTF8String Name { get; set; }
+
+		/// <summary>
+		/// From column TypeRef.Namespace
+		/// </summary>
+		public abstract UTF8String Namespace { get; set; }
 	}
 
 	/// <summary>
 	/// A TypeRef row created by the user and not present in the original .NET file
 	/// </summary>
 	public class TypeRefUser : TypeRef {
+		IResolutionScope resolutionScope;
+		UTF8String name;
+		UTF8String @namespace;
+
+		/// <inheritdoc/>
+		public override IResolutionScope ResolutionScope {
+			get { return resolutionScope; }
+			set { resolutionScope = value; }
+		}
+
+		/// <inheritdoc/>
+		public override UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+
+		/// <inheritdoc/>
+		public override UTF8String Namespace {
+			get { return @namespace; }
+			set { @namespace = value; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Type name</param>
+		public TypeRefUser(UTF8String name)
+			: this(UTF8String.Empty, name) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="namespace">Type namespace</param>
+		/// <param name="name">Type name</param>
+		public TypeRefUser(UTF8String @namespace, UTF8String name)
+			: this(@namespace, name, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="namespace">Type namespace</param>
+		/// <param name="name">Type name</param>
+		/// <param name="resolutionScope">Resolution scope (a <see cref="ModuleDef"/>,
+		/// <see cref="ModuleRef"/>, <see cref="AssemblyRef"/> or <see cref="TypeRef"/>)</param>
+		public TypeRefUser(UTF8String @namespace, UTF8String name, IResolutionScope resolutionScope) {
+			this.resolutionScope = resolutionScope;
+			this.name = name;
+			this.@namespace = @namespace;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Type name</param>
+		public TypeRefUser(string name)
+			: this(string.Empty, name) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="namespace">Type namespace</param>
+		/// <param name="name">Type name</param>
+		public TypeRefUser(string @namespace, string name)
+			: this(@namespace, name, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="namespace">Type namespace</param>
+		/// <param name="name">Type name</param>
+		/// <param name="resolutionScope">Resolution scope (a <see cref="ModuleDef"/>,
+		/// <see cref="ModuleRef"/>, <see cref="AssemblyRef"/> or <see cref="TypeRef"/>)</param>
+		public TypeRefUser(string @namespace, string name, IResolutionScope resolutionScope)
+			: this(new UTF8String(@namespace), new UTF8String(name), resolutionScope) {
+		}
 	}
 }

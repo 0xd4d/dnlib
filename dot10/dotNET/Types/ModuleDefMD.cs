@@ -292,7 +292,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		TypeRefMD ReadTypeRef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new TypeRefMD(this, rid);
 		}
 
 		/// <summary>
