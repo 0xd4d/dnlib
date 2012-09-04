@@ -47,6 +47,41 @@ namespace dot10.dotNET.Types {
 			get { return dnFile; }
 		}
 
+		/// <summary>
+		/// Returns the #~ or #- tables stream
+		/// </summary>
+		public TablesStream TablesStream {
+			get { return dnFile.MetaData.TablesStream; }
+		}
+
+		/// <summary>
+		/// Returns the #Strings stream
+		/// </summary>
+		public StringsStream StringsStream {
+			get { return dnFile.MetaData.StringsStream; }
+		}
+
+		/// <summary>
+		/// Returns the #Blob stream
+		/// </summary>
+		public BlobStream BlobStream {
+			get { return dnFile.MetaData.BlobStream; }
+		}
+
+		/// <summary>
+		/// Returns the #GUID stream
+		/// </summary>
+		public GuidStream GuidStream {
+			get { return dnFile.MetaData.GuidStream; }
+		}
+
+		/// <summary>
+		/// Returns the #US stream
+		/// </summary>
+		public USStream USStream {
+			get { return dnFile.MetaData.USStream; }
+		}
+
 		/// <inheritdoc/>
 		public override ushort Generation {
 			get { return generation.Value; }
