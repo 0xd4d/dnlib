@@ -436,7 +436,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ExportedTypeMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		ExportedTypeMD ReadExportedType(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new ExportedTypeMD(this, rid);
 		}
 
 		/// <summary>
