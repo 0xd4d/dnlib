@@ -6,8 +6,8 @@ namespace dot10.dotNET.Types {
 	/// Created from a row in the TypeDef table
 	/// </summary>
 	class TypeDefMD : TypeDef {
-		/// <summary>The .NET metadata where this instance is located</summary>
-		IMetaData metaData;
+		/// <summary>The module where this instance is located</summary>
+		ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawTypeDefRow rawRow;
 
@@ -36,8 +36,8 @@ namespace dot10.dotNET.Types {
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Extends {
-			get { throw new System.NotImplementedException();/*TODO*/ }
-			set { throw new System.NotImplementedException();/*TODO*/ }
+			get { return extends.Value; }
+			set { extends.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -50,15 +50,22 @@ namespace dot10.dotNET.Types {
 			get { throw new System.NotImplementedException();/*TODO*/ }
 		}
 
-		public TypeDefMD(IMetaData metaData, uint rid) {
-			if (metaData == null)
-				throw new ArgumentNullException("metaData");
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="readerModule">The module which contains this <c>TypeDef</c> row</param>
+		/// <param name="rid">Row ID</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
+		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
+		public TypeDefMD(ModuleDefMD readerModule, uint rid) {
+			if (readerModule == null)
+				throw new ArgumentNullException("readerModule");
 			if (rid == 0 || rid > 0x00FFFFFF)
 				throw new ArgumentException("rid");
 			this.rid = rid;
-			this.metaData = metaData;
+			this.readerModule = readerModule;
 #if DEBUG
-			if (metaData.TablesStream.Get(Table.TypeDef).Rows < rid)
+			if (readerModule.TablesStream.Get(Table.TypeDef).Rows < rid)
 				throw new BadImageFormatException(string.Format("TypeDef rid {0} does not exist", rid));
 #endif
 			Initialize();
@@ -71,22 +78,22 @@ namespace dot10.dotNET.Types {
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return metaData.StringsStream.Read(rawRow.Name);
+				return readerModule.StringsStream.Read(rawRow.Name);
 			};
 			@namespace.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return metaData.StringsStream.Read(rawRow.Namespace);
+				return readerModule.StringsStream.Read(rawRow.Namespace);
 			};
 			extends.ReadOriginalValue = () => {
 				InitializeRawRow();
-				throw new NotImplementedException();//TODO:
+				return readerModule.ResolveTypeDefOrRef(rawRow.Extends);
 			};
 		}
 
 		void InitializeRawRow() {
 			if (rawRow != null)
 				return;
-			rawRow = metaData.TablesStream.ReadTypeDefRow(rid);
+			rawRow = readerModule.TablesStream.ReadTypeDefRow(rid);
 		}
 	}
 }

@@ -301,7 +301,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		TypeDefMD ReadTypeDef(uint rid) {
-			return new TypeDefMD(dnFile.MetaData, rid);
+			return new TypeDefMD(this, rid);
 		}
 
 		/// <summary>
