@@ -202,6 +202,29 @@ namespace dot10.dotNET.Types {
 				}
 				return null;
 			};
+			var ts = dnFile.MetaData.TablesStream;
+			listModuleDefMD = new LazyList<ModuleDefMD>(ts.Get(Table.Module).Rows, ReadModule);
+			listTypeRefMD = new LazyList<TypeRefMD>(ts.Get(Table.TypeRef).Rows, ReadTypeRef);
+			listTypeDefMD = new LazyList<TypeDefMD>(ts.Get(Table.TypeDef).Rows, ReadTypeDef);
+			listFieldDefMD = new LazyList<FieldDefMD>(ts.Get(Table.Field).Rows, ReadField);
+			listMethodDefMD = new LazyList<MethodDefMD>(ts.Get(Table.Method).Rows, ReadMethod);
+			listParamDefMD = new LazyList<ParamDefMD>(ts.Get(Table.Param).Rows, ReadParam);
+			listInterfaceImplMD = new LazyList<InterfaceImplMD>(ts.Get(Table.InterfaceImpl).Rows, ReadInterfaceImpl);
+			listMemberRefMD = new LazyList<MemberRefMD>(ts.Get(Table.MemberRef).Rows, ReadMemberRef);
+			listDeclSecurityMD = new LazyList<DeclSecurityMD>(ts.Get(Table.DeclSecurity).Rows, ReadDeclSecurity);
+			listStandAloneSigMD = new LazyList<StandAloneSigMD>(ts.Get(Table.StandAloneSig).Rows, ReadStandAloneSig);
+			listEventDefMD = new LazyList<EventDefMD>(ts.Get(Table.Event).Rows, ReadEvent);
+			listPropertyDefMD = new LazyList<PropertyDefMD>(ts.Get(Table.Property).Rows, ReadProperty);
+			listModuleRefMD = new LazyList<ModuleRefMD>(ts.Get(Table.ModuleRef).Rows, ReadModuleRef);
+			listTypeSpecMD = new LazyList<TypeSpecMD>(ts.Get(Table.TypeSpec).Rows, ReadTypeSpec);
+			listAssemblyDefMD = new LazyList<AssemblyDefMD>(ts.Get(Table.Assembly).Rows, ReadAssembly);
+			listAssemblyRefMD = new LazyList<AssemblyRefMD>(ts.Get(Table.AssemblyRef).Rows, ReadAssemblyRef);
+			listFileDefMD = new LazyList<FileDefMD>(ts.Get(Table.File).Rows, ReadFile);
+			listExportedTypeMD = new LazyList<ExportedTypeMD>(ts.Get(Table.ExportedType).Rows, ReadExportedType);
+			listManifestResourceMD = new LazyList<ManifestResourceMD>(ts.Get(Table.ManifestResource).Rows, ReadManifestResource);
+			listGenericParamMD = new LazyList<GenericParamMD>(ts.Get(Table.GenericParam).Rows, ReadGenericParam);
+			listMethodSpecMD = new LazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, ReadMethodSpec);
+			listGenericParamConstraintMD = new LazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, ReadGenericParamConstraint);
 		}
 
 		void InitializeRawRow() {
@@ -476,8 +499,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ModuleDef ResolveModule(uint rid) {
-			if (listModuleDefMD == null)
-				listModuleDefMD = new LazyList<ModuleDefMD>(dnFile.MetaData.TablesStream.Get(Table.Module).Rows, ReadModule);
 			return listModuleDefMD[rid - 1];
 		}
 
@@ -487,8 +508,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public TypeRef ResolveTypeRef(uint rid) {
-			if (listTypeRefMD == null)
-				listTypeRefMD = new LazyList<TypeRefMD>(dnFile.MetaData.TablesStream.Get(Table.TypeRef).Rows, ReadTypeRef);
 			return listTypeRefMD[rid - 1];
 		}
 
@@ -498,8 +517,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public TypeDef ResolveTypeDef(uint rid) {
-			if (listTypeDefMD == null)
-				listTypeDefMD = new LazyList<TypeDefMD>(dnFile.MetaData.TablesStream.Get(Table.TypeDef).Rows, ReadTypeDef);
 			return listTypeDefMD[rid - 1];
 		}
 
@@ -509,8 +526,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FieldDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public FieldDef ResolveField(uint rid) {
-			if (listFieldDefMD == null)
-				listFieldDefMD = new LazyList<FieldDefMD>(dnFile.MetaData.TablesStream.Get(Table.Field).Rows, ReadField);
 			return listFieldDefMD[rid - 1];
 		}
 
@@ -520,8 +535,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public MethodDef ResolveMethod(uint rid) {
-			if (listMethodDefMD == null)
-				listMethodDefMD = new LazyList<MethodDefMD>(dnFile.MetaData.TablesStream.Get(Table.Method).Rows, ReadMethod);
 			return listMethodDefMD[rid - 1];
 		}
 
@@ -531,8 +544,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ParamDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ParamDef ResolveParam(uint rid) {
-			if (listParamDefMD == null)
-				listParamDefMD = new LazyList<ParamDefMD>(dnFile.MetaData.TablesStream.Get(Table.Param).Rows, ReadParam);
 			return listParamDefMD[rid - 1];
 		}
 
@@ -542,8 +553,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="InterfaceImpl"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public InterfaceImpl ResolveInterfaceImpl(uint rid) {
-			if (listInterfaceImplMD == null)
-				listInterfaceImplMD = new LazyList<InterfaceImplMD>(dnFile.MetaData.TablesStream.Get(Table.InterfaceImpl).Rows, ReadInterfaceImpl);
 			return listInterfaceImplMD[rid - 1];
 		}
 
@@ -553,8 +562,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MemberRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public MemberRef ResolveMemberRef(uint rid) {
-			if (listMemberRefMD == null)
-				listMemberRefMD = new LazyList<MemberRefMD>(dnFile.MetaData.TablesStream.Get(Table.MemberRef).Rows, ReadMemberRef);
 			return listMemberRefMD[rid - 1];
 		}
 
@@ -564,8 +571,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="DeclSecurity"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public DeclSecurity ResolveDeclSecurity(uint rid) {
-			if (listDeclSecurityMD == null)
-				listDeclSecurityMD = new LazyList<DeclSecurityMD>(dnFile.MetaData.TablesStream.Get(Table.DeclSecurity).Rows, ReadDeclSecurity);
 			return listDeclSecurityMD[rid - 1];
 		}
 
@@ -575,8 +580,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="StandAloneSig"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public StandAloneSig ResolveStandAloneSig(uint rid) {
-			if (listStandAloneSigMD == null)
-				listStandAloneSigMD = new LazyList<StandAloneSigMD>(dnFile.MetaData.TablesStream.Get(Table.StandAloneSig).Rows, ReadStandAloneSig);
 			return listStandAloneSigMD[rid - 1];
 		}
 
@@ -586,8 +589,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="EventDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public EventDef ResolveEvent(uint rid) {
-			if (listEventDefMD == null)
-				listEventDefMD = new LazyList<EventDefMD>(dnFile.MetaData.TablesStream.Get(Table.Event).Rows, ReadEvent);
 			return listEventDefMD[rid - 1];
 		}
 
@@ -597,8 +598,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="PropertyDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public PropertyDef ResolveProperty(uint rid) {
-			if (listPropertyDefMD == null)
-				listPropertyDefMD = new LazyList<PropertyDefMD>(dnFile.MetaData.TablesStream.Get(Table.Property).Rows, ReadProperty);
 			return listPropertyDefMD[rid - 1];
 		}
 
@@ -608,8 +607,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ModuleRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ModuleRef ResolveModuleRef(uint rid) {
-			if (listModuleRefMD == null)
-				listModuleRefMD = new LazyList<ModuleRefMD>(dnFile.MetaData.TablesStream.Get(Table.ModuleRef).Rows, ReadModuleRef);
 			return listModuleRefMD[rid - 1];
 		}
 
@@ -619,8 +616,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeSpec"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public TypeSpec ResolveTypeSpec(uint rid) {
-			if (listTypeSpecMD == null)
-				listTypeSpecMD = new LazyList<TypeSpecMD>(dnFile.MetaData.TablesStream.Get(Table.TypeSpec).Rows, ReadTypeSpec);
 			return listTypeSpecMD[rid - 1];
 		}
 
@@ -630,8 +625,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public AssemblyDef ResolveAssembly(uint rid) {
-			if (listAssemblyDefMD == null)
-				listAssemblyDefMD = new LazyList<AssemblyDefMD>(dnFile.MetaData.TablesStream.Get(Table.Assembly).Rows, ReadAssembly);
 			return listAssemblyDefMD[rid - 1];
 		}
 
@@ -641,8 +634,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public AssemblyRef ResolveAssemblyRef(uint rid) {
-			if (listAssemblyRefMD == null)
-				listAssemblyRefMD = new LazyList<AssemblyRefMD>(dnFile.MetaData.TablesStream.Get(Table.AssemblyRef).Rows, ReadAssemblyRef);
 			return listAssemblyRefMD[rid - 1];
 		}
 
@@ -652,8 +643,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FileDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public FileDef ResolveFile(uint rid) {
-			if (listFileDefMD == null)
-				listFileDefMD = new LazyList<FileDefMD>(dnFile.MetaData.TablesStream.Get(Table.File).Rows, ReadFile);
 			return listFileDefMD[rid - 1];
 		}
 
@@ -663,8 +652,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ExportedType"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ExportedType ResolveExportedType(uint rid) {
-			if (listExportedTypeMD == null)
-				listExportedTypeMD = new LazyList<ExportedTypeMD>(dnFile.MetaData.TablesStream.Get(Table.ExportedType).Rows, ReadExportedType);
 			return listExportedTypeMD[rid - 1];
 		}
 
@@ -674,8 +661,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ManifestResource"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public ManifestResource ResolveManifestResource(uint rid) {
-			if (listManifestResourceMD == null)
-				listManifestResourceMD = new LazyList<ManifestResourceMD>(dnFile.MetaData.TablesStream.Get(Table.ManifestResource).Rows, ReadManifestResource);
 			return listManifestResourceMD[rid - 1];
 		}
 
@@ -685,8 +670,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParam"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public GenericParam ResolveGenericParam(uint rid) {
-			if (listGenericParamMD == null)
-				listGenericParamMD = new LazyList<GenericParamMD>(dnFile.MetaData.TablesStream.Get(Table.GenericParam).Rows, ReadGenericParam);
 			return listGenericParamMD[rid - 1];
 		}
 
@@ -696,8 +679,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodSpec"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public MethodSpec ResolveMethodSpec(uint rid) {
-			if (listMethodSpecMD == null)
-				listMethodSpecMD = new LazyList<MethodSpecMD>(dnFile.MetaData.TablesStream.Get(Table.MethodSpec).Rows, ReadMethodSpec);
 			return listMethodSpecMD[rid - 1];
 		}
 
@@ -707,8 +688,6 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamConstraint"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public GenericParamConstraint ResolveGenericParamConstraint(uint rid) {
-			if (listGenericParamConstraintMD == null)
-				listGenericParamConstraintMD = new LazyList<GenericParamConstraintMD>(dnFile.MetaData.TablesStream.Get(Table.GenericParamConstraint).Rows, ReadGenericParamConstraint);
 			return listGenericParamConstraintMD[rid - 1];
 		}
 
