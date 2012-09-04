@@ -139,10 +139,8 @@ namespace dot10.dotNET {
 		public UTF8String(byte[] data) {
 			this.data = data;
 #if DEBUG
-			foreach (var b in data) {
-				if (b == 0)
-					throw new ArgumentException("No nul bytes are allowed");
-			}
+			if (Array.IndexOf(data, 0) >= 0)
+				throw new ArgumentException("No nul bytes are allowed");
 #endif
 		}
 
