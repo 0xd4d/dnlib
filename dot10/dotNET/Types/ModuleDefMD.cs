@@ -418,7 +418,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		AssemblyRefMD ReadAssemblyRef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new AssemblyRefMD(this, rid);
 		}
 
 		/// <summary>
