@@ -1,4 +1,6 @@
 ﻿namespace dot10.dotNET.Types {
+	delegate T MFunc<T, U>(U u);
+
 	/// <summary>
 	/// A readonly list that gets initialized lazily
 	/// </summary>
@@ -6,6 +8,7 @@
 	class LazyList<T> where T : class {
 		readonly T[] elements;
 		readonly bool[] initialized;
+		readonly MFunc<T, uint> readElement;
 
 		/// <summary>
 		/// Gets the length of this list
@@ -24,7 +27,7 @@
 				if (index > initialized.Length)
 					return null;
 				if (!initialized[index]) {
-					elements[index] = null;	//TODO:
+					elements[index] = readElement(index);
 					initialized[index] = true;
 				}
 				return elements[index];
@@ -35,9 +38,11 @@
 		/// Constructor
 		/// </summary>
 		/// <param name="length">Length of the list</param>
-		public LazyList(uint length) {
+		/// <param name="readElement">Delegate instance that lazily reads an element</param>
+		public LazyList(uint length, MFunc<T, uint> readElement) {
 			this.elements = new T[length];
 			this.initialized = new bool[length];
+			this.readElement = readElement;
 		}
 	}
 }
