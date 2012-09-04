@@ -197,6 +197,204 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
+		/// Resolves a <see cref="ModuleDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="ModuleDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public ModuleDefMD ReadModule(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="TypeRefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="TypeRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public TypeRefMD ReadTypeRef(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="TypeDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="TypeDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public TypeDefMD ReadTypeDef(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="FieldDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="FieldDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public FieldDefMD ReadField(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="MethodDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="MethodDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public MethodDefMD ReadMethod(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="ParamDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="ParamDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public ParamDefMD ReadParam(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="InterfaceImplMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="InterfaceImplMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public InterfaceImplMD ReadInterfaceImpl(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="MemberRefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="MemberRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public MemberRefMD ReadMemberRef(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="DeclSecurityMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="DeclSecurityMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public DeclSecurityMD ReadDeclSecurity(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="StandAloneSigMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="StandAloneSigMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public StandAloneSigMD ReadStandAloneSig(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="EventDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="EventDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public EventDefMD ReadEvent(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="PropertyDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="PropertyDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public PropertyDefMD ReadProperty(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="ModuleRefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="ModuleRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public ModuleRefMD ReadModuleRef(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="TypeSpecMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="TypeSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public TypeSpecMD ReadTypeSpec(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="AssemblyDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="AssemblyDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public AssemblyDefMD ReadAssembly(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="AssemblyRefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="AssemblyRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public AssemblyRefMD ReadAssemblyRef(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="FileDefMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="FileDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public FileDef ReadFile(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="ExportedTypeMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="ExportedTypeMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public ExportedTypeMD ReadExportedType(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="ManifestResourceMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="ManifestResourceMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public ManifestResourceMD ReadManifestResource(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="GenericParamMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="GenericParamMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public GenericParamMD ReadGenericParam(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="MethodSpecMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="MethodSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public MethodSpecMD ReadMethodSpec(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
+		/// Resolves a <see cref="GenericParamConstraintMD"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		/// <returns>A <see cref="GenericParamConstraintMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		public GenericParamConstraintMD ReadGenericParamConstraint(uint rid) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <summary>
 		/// Resolve a token
 		/// </summary>
 		/// <param name="mdToken">The metadata token</param>
