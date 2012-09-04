@@ -476,7 +476,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolve a token
+		/// Resolves a token
 		/// </summary>
 		/// <param name="mdToken">The metadata token</param>
 		/// <returns>A <see cref="ICodedToken"/> or null if <paramref name="mdToken"/> is invalid</returns>
@@ -485,7 +485,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolve a token
+		/// Resolves a token
 		/// </summary>
 		/// <param name="token">The metadata token</param>
 		/// <returns>A <see cref="ICodedToken"/> or null if <paramref name="token"/> is invalid</returns>
@@ -494,7 +494,7 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
-		/// Resolve a token
+		/// Resolves a token
 		/// </summary>
 		/// <param name="token">The metadata token</param>
 		/// <returns>A <see cref="ICodedToken"/> or null if <paramref name="token"/> is invalid</returns>
