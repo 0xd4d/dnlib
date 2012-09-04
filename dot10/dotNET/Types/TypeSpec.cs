@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the TypeSpec table
 	/// </summary>
-	public class TypeSpec : ITypeDefOrRef, IHasCustomAttribute, IMemberRefParent {
+	public abstract class TypeSpec : ITypeDefOrRef, IHasCustomAttribute, IMemberRefParent {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -34,5 +34,11 @@ namespace dot10.dotNET.Types {
 		public int MemberRefParentTag {
 			get { return 4; }
 		}
+	}
+
+	/// <summary>
+	/// A TypeSpec row created by the user and not present in the original .NET file
+	/// </summary>
+	public class TypeSpecUser : TypeSpec {
 	}
 }

@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the Field table
 	/// </summary>
-	public class FieldDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal, IMemberForwarded {
+	public abstract class FieldDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal, IMemberForwarded {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -49,5 +49,11 @@ namespace dot10.dotNET.Types {
 		public int MemberForwardedTag {
 			get { return 0; }
 		}
+	}
+
+	/// <summary>
+	/// A Field row created by the user and not present in the original .NET file
+	/// </summary>
+	public class FieldDefUser : FieldDef {
 	}
 }

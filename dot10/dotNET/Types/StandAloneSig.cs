@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the StandAloneSig table
 	/// </summary>
-	public class StandAloneSig : IHasCustomAttribute {
+	public abstract class StandAloneSig : IHasCustomAttribute {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -24,5 +24,11 @@ namespace dot10.dotNET.Types {
 		public int HasCustomAttributeTag {
 			get { return 11; }
 		}
+	}
+
+	/// <summary>
+	/// A StandAloneSig row created by the user and not present in the original .NET file
+	/// </summary>
+	public class StandAloneSigUser : StandAloneSig {
 	}
 }

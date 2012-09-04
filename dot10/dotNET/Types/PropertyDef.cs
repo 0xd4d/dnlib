@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the Property table
 	/// </summary>
-	public class PropertyDef : IHasConstant, IHasCustomAttribute, IHasSemantic {
+	public abstract class PropertyDef : IHasConstant, IHasCustomAttribute, IHasSemantic {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -44,5 +44,11 @@ namespace dot10.dotNET.Types {
 		public int HasSemanticTag {
 			get { return 1; }
 		}
+	}
+
+	/// <summary>
+	/// A Property row created by the user and not present in the original .NET file
+	/// </summary>
+	public class PropertyDefUser : PropertyDef {
 	}
 }

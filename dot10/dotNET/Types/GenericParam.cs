@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the GenericParam table
 	/// </summary>
-	public class GenericParam : IHasCustomAttribute {
+	public abstract class GenericParam : IHasCustomAttribute {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -44,5 +44,11 @@ namespace dot10.dotNET.Types {
 		public int HasCustomAttributeTag {
 			get { return 19; }
 		}
+	}
+
+	/// <summary>
+	/// A GenericParam row created by the user and not present in the original .NET file
+	/// </summary>
+	public class GenericParamUser : GenericParam {
 	}
 }

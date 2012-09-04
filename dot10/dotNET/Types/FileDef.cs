@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the File table
 	/// </summary>
-	public class FileDef : IHasCustomAttribute, IImplementation {
+	public abstract class FileDef : IHasCustomAttribute, IImplementation {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -39,5 +39,11 @@ namespace dot10.dotNET.Types {
 		public int ImplementationTag {
 			get { return 0; }
 		}
+	}
+
+	/// <summary>
+	/// A File row created by the user and not present in the original .NET file
+	/// </summary>
+	public class FileDefUser : FileDef {
 	}
 }

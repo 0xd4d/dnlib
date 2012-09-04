@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the ExportedType table
 	/// </summary>
-	public class ExportedType : IHasCustomAttribute, IImplementation {
+	public abstract class ExportedType : IHasCustomAttribute, IImplementation {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -49,5 +49,11 @@ namespace dot10.dotNET.Types {
 		public int ImplementationTag {
 			get { return 2; }
 		}
+	}
+
+	/// <summary>
+	/// A ExportedType row created by the user and not present in the original .NET file
+	/// </summary>
+	public class ExportedTypeUser : ExportedType {
 	}
 }

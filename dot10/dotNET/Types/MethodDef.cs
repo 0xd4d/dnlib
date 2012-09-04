@@ -7,7 +7,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the Method table
 	/// </summary>
-	public class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef {
+	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -82,5 +82,11 @@ namespace dot10.dotNET.Types {
 		public int TypeOrMethodDefTag {
 			get { return 1; }
 		}
+	}
+
+	/// <summary>
+	/// A Method row created by the user and not present in the original .NET file
+	/// </summary>
+	public class MethodDefUser : MethodDef {
 	}
 }

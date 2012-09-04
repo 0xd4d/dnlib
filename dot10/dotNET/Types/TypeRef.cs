@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the TypeRef table
 	/// </summary>
-	public class TypeRef : ITypeDefOrRef, IHasCustomAttribute, IMemberRefParent, IResolutionScope {
+	public abstract class TypeRef : ITypeDefOrRef, IHasCustomAttribute, IMemberRefParent, IResolutionScope {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -49,5 +49,11 @@ namespace dot10.dotNET.Types {
 		public int ResolutionScopeTag {
 			get { return 3; }
 		}
+	}
+
+	/// <summary>
+	/// A TypeRef row created by the user and not present in the original .NET file
+	/// </summary>
+	public class TypeRefUser : TypeRef {
 	}
 }

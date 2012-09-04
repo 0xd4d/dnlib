@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the Param table
 	/// </summary>
-	public class ParamDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal {
+	public abstract class ParamDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -44,5 +44,11 @@ namespace dot10.dotNET.Types {
 		public int HasFieldMarshalTag {
 			get { return 1; }
 		}
+	}
+
+	/// <summary>
+	/// A Param row created by the user and not present in the original .NET file
+	/// </summary>
+	public class ParamDefUser : ParamDef {
 	}
 }

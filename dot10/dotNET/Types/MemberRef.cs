@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the MemberRef table
 	/// </summary>
-	public class MemberRef : IHasCustomAttribute, IMethodDefOrRef, ICustomAttributeType {
+	public abstract class MemberRef : IHasCustomAttribute, IMethodDefOrRef, ICustomAttributeType {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -44,5 +44,11 @@ namespace dot10.dotNET.Types {
 		public int CustomAttributeTypeTag {
 			get { return 3; }
 		}
+	}
+
+	/// <summary>
+	/// A MemberRef row created by the user and not present in the original .NET file
+	/// </summary>
+	public class MemberRefUser : MemberRef {
 	}
 }

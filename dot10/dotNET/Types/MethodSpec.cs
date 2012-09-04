@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the MethodSpec table
 	/// </summary>
-	public class MethodSpec : IHasCustomAttribute {
+	public abstract class MethodSpec : IHasCustomAttribute {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -29,5 +29,11 @@ namespace dot10.dotNET.Types {
 		public int HasCustomAttributeTag {
 			get { return 21; }
 		}
+	}
+
+	/// <summary>
+	/// A MethodSpec row created by the user and not present in the original .NET file
+	/// </summary>
+	public class MethodSpecUser : MethodSpec {
 	}
 }

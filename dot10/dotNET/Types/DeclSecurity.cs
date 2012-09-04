@@ -4,7 +4,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// A high-level representation of a row in the DeclSecurity table
 	/// </summary>
-	public class DeclSecurity : IHasCustomAttribute {
+	public abstract class DeclSecurity : IHasCustomAttribute {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -34,5 +34,11 @@ namespace dot10.dotNET.Types {
 		public int HasCustomAttributeTag {
 			get { return 8; }
 		}
+	}
+
+	/// <summary>
+	/// A DeclSecurity row created by the user and not present in the original .NET file
+	/// </summary>
+	public class DeclSecurityUser : DeclSecurity {
 	}
 }
