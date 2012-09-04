@@ -355,7 +355,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="DeclSecurityMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		DeclSecurityMD ReadDeclSecurity(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new DeclSecurityMD(this, rid);
 		}
 
 		/// <summary>
