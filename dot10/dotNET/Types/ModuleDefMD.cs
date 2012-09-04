@@ -445,7 +445,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ManifestResourceMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		ManifestResourceMD ReadManifestResource(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new ManifestResourceMD(this, rid);
 		}
 
 		/// <summary>
