@@ -472,7 +472,7 @@ namespace dot10.dotNET.Types {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamConstraintMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		GenericParamConstraintMD ReadGenericParamConstraint(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new GenericParamConstraintMD(this, rid);
 		}
 
 		/// <summary>
