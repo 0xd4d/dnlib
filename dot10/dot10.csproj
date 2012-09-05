@@ -69,6 +69,7 @@
     <Compile Include="dotNET\Types\AssemblyHashAlgorithm.cs" />
     <Compile Include="dotNET\Types\AssemblyNameInfo.cs" />
     <Compile Include="dotNET\Types\AssemblyRef.cs" />
+    <Compile Include="dotNET\Types\CallingConvention.cs" />
     <Compile Include="dotNET\Types\DeclSecurity.cs" />
     <Compile Include="dotNET\Types\DeclSecurityAction.cs" />
     <Compile Include="dotNET\Types\ElementType.cs" />
