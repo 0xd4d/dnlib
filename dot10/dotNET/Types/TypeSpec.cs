@@ -41,4 +41,10 @@ namespace dot10.dotNET.Types {
 	/// </summary>
 	public class TypeSpecUser : TypeSpec {
 	}
+
+	/// <summary>
+	/// Created from a row in the TypeSpec table
+	/// </summary>
+	sealed class TypeSpecMD : TypeSpec {
+	}
 }

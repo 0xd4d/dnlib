@@ -36,4 +36,10 @@ namespace dot10.dotNET.Types {
 	/// </summary>
 	public class MethodSpecUser : MethodSpec {
 	}
+
+	/// <summary>
+	/// Created from a row in the MethodSpec table
+	/// </summary>
+	sealed class MethodSpecMD : MethodSpec {
+	}
 }

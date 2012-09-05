@@ -46,4 +46,10 @@ namespace dot10.dotNET.Types {
 	/// </summary>
 	public class EventDefUser : EventDef {
 	}
+
+	/// <summary>
+	/// Created from a row in the Event table
+	/// </summary>
+	sealed class EventDefMD : EventDef {
+	}
 }

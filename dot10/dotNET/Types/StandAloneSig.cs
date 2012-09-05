@@ -31,4 +31,10 @@ namespace dot10.dotNET.Types {
 	/// </summary>
 	public class StandAloneSigUser : StandAloneSig {
 	}
+
+	/// <summary>
+	/// Created from a row in the StandAloneSig table
+	/// </summary>
+	sealed class StandAloneSigMD : StandAloneSig {
+	}
 }

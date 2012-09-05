@@ -51,4 +51,10 @@ namespace dot10.dotNET.Types {
 	/// </summary>
 	public class MemberRefUser : MemberRef {
 	}
+
+	/// <summary>
+	/// Created from a row in the MemberRef table
+	/// </summary>
+	sealed class MemberRefMD : MemberRef {
+	}
 }
