@@ -3,6 +3,42 @@
 namespace dot10.dotNET.Types {
 	static class FullNameHelper {
 		/// <summary>
+		/// Returns the name
+		/// </summary>
+		/// <param name="name">The name</param>
+		/// <returns>The name (always non-null)</returns>
+		public static string GetName(string name) {
+			return name ?? string.Empty;
+		}
+
+		/// <summary>
+		/// Returns the name
+		/// </summary>
+		/// <param name="name">The name</param>
+		/// <returns>The name (always non-null)</returns>
+		public static string GetName(UTF8String name) {
+			return GetName(UTF8String.ToSystemString(name));
+		}
+
+		/// <summary>
+		/// Returns the reflection name
+		/// </summary>
+		/// <param name="name">The name</param>
+		/// <returns>The reflection name</returns>
+		public static string GetReflectionName(string name) {
+			return EscapeIdentifier(name ?? string.Empty, true);
+		}
+
+		/// <summary>
+		/// Returns the reflection name
+		/// </summary>
+		/// <param name="name">The name</param>
+		/// <returns>The reflection name</returns>
+		public static string GetReflectionName(UTF8String name) {
+			return GetReflectionName(UTF8String.ToSystemString(name));
+		}
+
+		/// <summary>
 		/// Returns the full name
 		/// </summary>
 		/// <param name="namespace">The namespace or <c>null</c> if none</param>
@@ -15,6 +51,16 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <summary>
+		/// Returns the full name
+		/// </summary>
+		/// <param name="namespace">The namespace or <c>null</c> if none</param>
+		/// <param name="name">The name</param>
+		/// <returns>The full name, eg. <c>The.NameSpace.Name</c></returns>
+		public static string GetFullName(UTF8String @namespace, UTF8String name) {
+			return GetFullName(UTF8String.ToSystemString(@namespace), UTF8String.ToSystemString(name));
+		}
+
+		/// <summary>
 		/// Returns the reflection full name
 		/// </summary>
 		/// <param name="namespace">The namespace or <c>null</c> if none</param>
@@ -24,6 +70,16 @@ namespace dot10.dotNET.Types {
 			if (string.IsNullOrEmpty(@namespace))
 				return EscapeIdentifier(name ?? string.Empty, true);
 			return EscapeIdentifier(@namespace, false) + "." + EscapeIdentifier(name ?? string.Empty, true);
+		}
+
+		/// <summary>
+		/// Returns the reflection full name
+		/// </summary>
+		/// <param name="namespace">The namespace or <c>null</c> if none</param>
+		/// <param name="name">The name</param>
+		/// <returns>The full name, eg. <c>The.NameSpace.Name</c></returns>
+		public static string GetReflectionFullName(UTF8String @namespace, UTF8String name) {
+			return GetReflectionFullName(UTF8String.ToSystemString(@namespace), UTF8String.ToSystemString(name));
 		}
 
 		/// <summary>
