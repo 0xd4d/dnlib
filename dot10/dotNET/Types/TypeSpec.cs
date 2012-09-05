@@ -46,6 +46,16 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <inheritdoc/>
+		string IFullName.Namespace {
+			get { return "TODO:"; }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionNamespace {
+			get { return "TODO:"; }
+		}
+
+		/// <inheritdoc/>
 		public string FullName {
 			get { return "TODO:"; }
 		}

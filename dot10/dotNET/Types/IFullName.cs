@@ -14,6 +14,16 @@
 		string ReflectionName { get; }
 
 		/// <summary>
+		/// Returns the namespace of this type
+		/// </summary>
+		string Namespace { get; }
+
+		/// <summary>
+		/// Returns the reflection namespace of this type
+		/// </summary>
+		string ReflectionNamespace { get; }
+
+		/// <summary>
 		/// Returns the human readable full name of this type
 		/// </summary>
 		string FullName { get; }
