@@ -36,6 +36,16 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <inheritdoc/>
+		public string Name {
+			get { return "TODO:"; }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionName {
+			get { return "TODO:"; }
+		}
+
+		/// <inheritdoc/>
 		public string FullName {
 			get { return "TODO:"; }
 		}

@@ -42,15 +42,25 @@ namespace dot10.dotNET.Types {
 		}
 
 		/// <inheritdoc/>
+		string IFullName.Name {
+			get { return FullNameHelper.GetName(Name); }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionName {
+			get { return FullNameHelper.GetReflectionName(Name); }
+		}
+
+		/// <inheritdoc/>
 		public string FullName {
-			get { return FullNameHelper.GetFullName(Namespace.String, Name.String); }
+			get { return FullNameHelper.GetFullName(Namespace, Name); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
 			//TODO: Include the assembly name
 			//TODO: If nested, add the nested class
-			get { return FullNameHelper.GetReflectionFullName(Namespace.String, Name.String); }
+			get { return FullNameHelper.GetReflectionFullName(Namespace, Name); }
 		}
 
 		/// <summary>

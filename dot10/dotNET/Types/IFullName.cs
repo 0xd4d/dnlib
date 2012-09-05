@@ -4,6 +4,16 @@
 	/// </summary>
 	public interface IFullName {
 		/// <summary>
+		/// Returns the name of this type
+		/// </summary>
+		string Name { get; }
+
+		/// <summary>
+		/// Returns the reflection name of this type
+		/// </summary>
+		string ReflectionName { get; }
+
+		/// <summary>
 		/// Returns the human readable full name of this type
 		/// </summary>
 		string FullName { get; }
