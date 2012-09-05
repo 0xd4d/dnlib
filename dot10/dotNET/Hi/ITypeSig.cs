@@ -52,6 +52,11 @@
 
 		/// <inheritdoc/>
 		public abstract string ReflectionFullName { get; }
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>
@@ -173,7 +178,7 @@
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Var"/> and a <see cref="ElementType.MVar"/>
+	/// Generic method/type var base class
 	/// </summary>
 	public abstract class GenericSig : LeafSig {
 		bool isTypeVar;
@@ -240,11 +245,6 @@
 
 		string GetName() {
 			return string.Format("{0}{1}", isTypeVar ? "!" : "!!", number);
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
 		}
 	}
 
@@ -357,6 +357,11 @@
 		/// <param name="reflectionFullName">The element type's <see cref="ReflectionFullName"/></param>
 		protected virtual string GetReflectionFullName(string reflectionFullName) {
 			return reflectionFullName;
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
 		}
 	}
 
