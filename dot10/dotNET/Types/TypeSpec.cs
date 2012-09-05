@@ -34,6 +34,21 @@ namespace dot10.dotNET.Types {
 		public int MemberRefParentTag {
 			get { return 4; }
 		}
+
+		/// <inheritdoc/>
+		public string FullName {
+			get { return "TODO:"; }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionFullName {
+			get { return "TODO:"; }
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>

@@ -41,6 +41,18 @@ namespace dot10.dotNET.Types {
 			get { return 0; }
 		}
 
+		/// <inheritdoc/>
+		public string FullName {
+			get { return FullNameHelper.GetFullName(Namespace.String, Name.String); }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionFullName {
+			//TODO: Include the assembly name
+			//TODO: If nested, add the nested class
+			get { return FullNameHelper.GetReflectionFullName(Namespace.String, Name.String); }
+		}
+
 		/// <summary>
 		/// From column TypeDef.Flags
 		/// </summary>
@@ -70,6 +82,11 @@ namespace dot10.dotNET.Types {
 		/// From column TypeDef.MethodList
 		/// </summary>
 		public abstract IList<MethodDef> Methods { get; }
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>

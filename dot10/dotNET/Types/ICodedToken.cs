@@ -18,7 +18,7 @@
 	/// <summary>
 	/// TypeDefOrRef coded token interface
 	/// </summary>
-	public interface ITypeDefOrRef : ICodedToken {
+	public interface ITypeDefOrRef : ICodedToken, IFullName {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>

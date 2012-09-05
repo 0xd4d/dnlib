@@ -35,6 +35,18 @@ namespace dot10.dotNET.Types {
 			get { return 3; }
 		}
 
+		/// <inheritdoc/>
+		public string FullName {
+			get { return FullNameHelper.GetFullName(Namespace.String, Name.String); }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionFullName {
+			//TODO: Include the assembly name
+			//TODO: If nested, add the nested class
+			get { return FullNameHelper.GetReflectionFullName(Namespace.String, Name.String); }
+		}
+
 		/// <summary>
 		/// From column TypeRef.ResolutionScope
 		/// </summary>
@@ -49,6 +61,11 @@ namespace dot10.dotNET.Types {
 		/// From column TypeRef.Namespace
 		/// </summary>
 		public abstract UTF8String Namespace { get; set; }
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>
