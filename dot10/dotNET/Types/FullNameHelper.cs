@@ -24,7 +24,7 @@ namespace dot10.dotNET.Types {
 		/// Returns the reflection name
 		/// </summary>
 		/// <param name="name">The name</param>
-		/// <returns>The reflection name</returns>
+		/// <returns>The reflection name (always non-null)</returns>
 		public static string GetReflectionName(string name) {
 			return EscapeIdentifier(name ?? string.Empty, true);
 		}
@@ -33,9 +33,45 @@ namespace dot10.dotNET.Types {
 		/// Returns the reflection name
 		/// </summary>
 		/// <param name="name">The name</param>
-		/// <returns>The reflection name</returns>
+		/// <returns>The reflection name (always non-null)</returns>
 		public static string GetReflectionName(UTF8String name) {
 			return GetReflectionName(UTF8String.ToSystemString(name));
+		}
+
+		/// <summary>
+		/// Returns the namespace
+		/// </summary>
+		/// <param name="namespace">The namespace</param>
+		/// <returns>The namespace (always non-null)</returns>
+		public static string GetNamespace(string @namespace) {
+			return @namespace ?? string.Empty;
+		}
+
+		/// <summary>
+		/// Returns the namespace
+		/// </summary>
+		/// <param name="namespace">The namespace</param>
+		/// <returns>The namespace (always non-null)</returns>
+		public static string GetNamespace(UTF8String @namespace) {
+			return GetNamespace(UTF8String.ToSystemString(@namespace));
+		}
+
+		/// <summary>
+		/// Returns the reflection namespace
+		/// </summary>
+		/// <param name="namespace">The namespace</param>
+		/// <returns>The reflection namespace (always non-null)</returns>
+		public static string GetReflectionNamespace(string @namespace) {
+			return EscapeIdentifier(@namespace ?? string.Empty, false);
+		}
+
+		/// <summary>
+		/// Returns the reflection namespace
+		/// </summary>
+		/// <param name="namespace">The namespace</param>
+		/// <returns>The reflection namespace (always non-null)</returns>
+		public static string GetReflectionNamespace(UTF8String @namespace) {
+			return GetReflectionNamespace(UTF8String.ToSystemString(@namespace));
 		}
 
 		/// <summary>
