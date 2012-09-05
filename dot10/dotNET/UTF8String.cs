@@ -48,6 +48,15 @@ namespace dot10.dotNET {
 			return (object)utf8 == null || utf8.data == null || utf8.data.Length == 0;
 		}
 
+		/// <summary>
+		/// Converts it to a <see cref="string"/>
+		/// </summary>
+		/// <param name="utf8">The UTF-8 string instace or <c>null</c></param>
+		/// <returns>A <see cref="string"/> or null if <paramref name="utf8"/> is <c>null</c></returns>
+		public static string ToSystemString(UTF8String utf8) {
+			return IsNullOrEmpty(utf8) ? null : utf8.String;
+		}
+
 		/// <inheritdoc/>
 		public int CompareTo(UTF8String other) {
 			return CompareTo(this, other);
