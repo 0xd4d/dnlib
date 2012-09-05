@@ -1,5 +1,8 @@
 ﻿namespace dot10.dotNET.Types {
-	interface IFullName {
+	/// <summary>
+	/// Interface to get the full name of a type
+	/// </summary>
+	public interface IFullName {
 		/// <summary>
 		/// Returns the human readable full name of this type
 		/// </summary>
