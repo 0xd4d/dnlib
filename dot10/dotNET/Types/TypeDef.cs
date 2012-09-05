@@ -121,7 +121,7 @@ namespace dot10.dotNET.Types {
 	/// <summary>
 	/// Created from a row in the TypeDef table
 	/// </summary>
-	class TypeDefMD : TypeDef {
+	sealed class TypeDefMD : TypeDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
