@@ -1,4 +1,7 @@
 ﻿namespace dot10.dotNET.Types {
-	interface ISignature {
+	/// <summary>
+	/// All signatures implement this interface
+	/// </summary>
+	public interface ISignature {
 	}
 }

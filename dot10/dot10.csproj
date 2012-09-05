@@ -86,6 +86,7 @@
     <Compile Include="dotNET\Types\ICodedToken.cs" />
     <Compile Include="dotNET\Types\IFullName.cs" />
     <Compile Include="dotNET\Types\InterfaceImpl.cs" />
+    <Compile Include="dotNET\Types\ITypeSig.cs" />
     <Compile Include="dotNET\Types\LazyList.cs" />
     <Compile Include="dotNET\Types\ManifestResource.cs" />
     <Compile Include="dotNET\Types\ManifestResourceAttributes.cs" />
