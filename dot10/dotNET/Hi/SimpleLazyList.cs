@@ -5,7 +5,7 @@
 	/// A readonly list that gets initialized lazily
 	/// </summary>
 	/// <typeparam name="T">A <see cref="ICodedToken"/> type</typeparam>
-	class LazyList<T> where T : class, ICodedToken {
+	class SimpleLazyList<T> where T : class, ICodedToken {
 		T[] elements;
 		bool[] initialized;
 		readonly MFunc<T, uint> readElementByRID;
@@ -44,7 +44,7 @@
 		/// </summary>
 		/// <param name="length">Length of the list</param>
 		/// <param name="readElementByRID">Delegate instance that lazily reads an element</param>
-		public LazyList(uint length, MFunc<T, uint> readElementByRID) {
+		public SimpleLazyList(uint length, MFunc<T, uint> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;
 		}

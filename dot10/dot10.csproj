@@ -63,7 +63,7 @@
     <Compile Include="dotNET\Hi\InterfaceImpl.cs" />
     <Compile Include="dotNET\Hi\ISignature.cs" />
     <Compile Include="dotNET\Hi\ITypeSig.cs" />
-    <Compile Include="dotNET\Hi\LazyList.cs" />
+    <Compile Include="dotNET\Hi\SimpleLazyList.cs" />
     <Compile Include="dotNET\Hi\ManifestResource.cs" />
     <Compile Include="dotNET\Hi\ManifestResourceAttributes.cs" />
     <Compile Include="dotNET\Hi\MemberRef.cs" />
