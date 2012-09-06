@@ -6,7 +6,7 @@ namespace dot10.dotNET.Hi {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>
-	sealed class ModuleDefMD : ModuleDef {
+	public sealed class ModuleDefMD : ModuleDef {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>

@@ -66,57 +66,57 @@ namespace dot10.dotNET.Hi {
 		public abstract IList<TypeDef> Types { get; }
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDef"/> instance from a file
+		/// Creates a <see cref="ModuleDefMD"/> instance from a file
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
-		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
 		/// <seealso cref="AssemblyDef.Load(string)"/>
-		public static ModuleDef Load(string fileName) {
+		public static ModuleDefMD Load(string fileName) {
 			if (fileName == null)
 				throw new ArgumentNullException("fileName");
 			return ModuleDefMD.Load(fileName);
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDef"/> instance from a byte[]
+		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
 		/// </summary>
 		/// <param name="data">Contents of a .NET module/assembly</param>
-		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
 		/// <seealso cref="AssemblyDef.Load(byte[])"/>
-		public static ModuleDef Load(byte[] data) {
+		public static ModuleDefMD Load(byte[] data) {
 			if (data == null)
 				throw new ArgumentNullException("data");
 			return ModuleDefMD.Load(data);
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDef"/> instance from a memory location
+		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
 		/// </summary>
 		/// <param name="addr">Address of a .NET module/assembly</param>
-		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
 		/// <seealso cref="AssemblyDef.Load(IntPtr)"/>
-		public static ModuleDef Load(IntPtr addr) {
+		public static ModuleDefMD Load(IntPtr addr) {
 			if (addr == IntPtr.Zero)
 				throw new ArgumentNullException("addr");
 			return ModuleDefMD.Load(addr);
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDef"/> instance from a stream
+		/// Creates a <see cref="ModuleDefMD"/> instance from a stream
 		/// </summary>
 		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[])"/>.
 		/// It's better to use one of the other Load() methods.</remarks>
 		/// <param name="stream">The stream</param>
-		/// <returns>A new <see cref="ModuleDef"/> instance</returns>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		/// <seealso cref="Load(string)"/>
 		/// <seealso cref="Load(byte[])"/>
 		/// <seealso cref="Load(IntPtr)"/>
 		/// <seealso cref="AssemblyDef.Load(Stream)"/>
-		public static ModuleDef Load(Stream stream) {
+		public static ModuleDefMD Load(Stream stream) {
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 			if (stream.Length > int.MaxValue)
@@ -129,13 +129,13 @@ namespace dot10.dotNET.Hi {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDef"/> instance from a <see cref="DotNetFile"/>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="DotNetFile"/>
 		/// </summary>
 		/// <param name="dnFile">The loaded .NET file</param>
-		/// <returns>A new <see cref="ModuleDef"/> instance that now owns <paramref name="dnFile"/></returns>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="dnFile"/></returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
 		/// <seealso cref="AssemblyDef.Load(DotNetFile)"/>
-		public static ModuleDef Load(DotNetFile dnFile) {
+		public static ModuleDefMD Load(DotNetFile dnFile) {
 			if (dnFile == null)
 				throw new ArgumentNullException("dnFile");
 			return ModuleDefMD.Load(dnFile);
