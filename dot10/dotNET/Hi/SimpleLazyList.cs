@@ -1,5 +1,5 @@
 ﻿namespace dot10.dotNET.Hi {
-	delegate T MFunc<T, U>(U u);
+	delegate U MFunc<T, U>(T t);
 
 	/// <summary>
 	/// A readonly list that gets initialized lazily
@@ -8,7 +8,7 @@
 	class SimpleLazyList<T> where T : class, ICodedToken {
 		T[] elements;
 		bool[] initialized;
-		readonly MFunc<T, uint> readElementByRID;
+		readonly MFunc<uint, T> readElementByRID;
 		readonly uint length;
 
 		/// <summary>
@@ -44,7 +44,7 @@
 		/// </summary>
 		/// <param name="length">Length of the list</param>
 		/// <param name="readElementByRID">Delegate instance that lazily reads an element</param>
-		public SimpleLazyList(uint length, MFunc<T, uint> readElementByRID) {
+		public SimpleLazyList(uint length, MFunc<uint, T> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;
 		}
