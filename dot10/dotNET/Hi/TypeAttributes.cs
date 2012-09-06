@@ -105,10 +105,10 @@ namespace dot10.dotNET.Hi {
 			default: sb.Append(" | Layout_UNKNOWN"); break;
 			}
 
-			if ((flags & TypeAttributes.ClassSemanticsMask) != 0)
-				sb.Append(" | Class");
-			else
+			if ((flags & TypeAttributes.Interface) != 0)
 				sb.Append(" | Interface");
+			else
+				sb.Append(" | Class");
 
 			if ((flags & TypeAttributes.Abstract) != 0)
 				sb.Append(" | Abstract");
