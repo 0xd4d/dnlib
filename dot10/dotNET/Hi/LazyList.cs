@@ -1,16 +1,25 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace dot10.dotNET.Hi {
 	/// <summary>
 	/// Implements a <see cref="IList{T}"/> that is lazily initialized
 	/// </summary>
 	/// <typeparam name="TValue">Type to store in list</typeparam>
+	[DebuggerDisplay("Count = {Count}")]
 	class LazyList<TValue> : IList<TValue> where TValue : class {
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		uint indexBase;
+
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		MFunc<uint, TValue> readOriginalValue;
+
+		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 		List<Element> list;
+
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		int id = 0;
 
 		/// <summary>
@@ -18,47 +27,35 @@ namespace dot10.dotNET.Hi {
 		/// initialized or not.
 		/// </summary>
 		class Element {
-			const uint NOT_INITIALIZED = 0x80000000;
 			uint origIndex;
 			TValue value;
-
-			/// <summary>
-			/// Gets the original index. This is valid iff <see cref="IsInitialized"/> is <c>false</c>
-			/// </summary>
-			public uint OrigIndex {
-				get { return origIndex & ~NOT_INITIALIZED; }
-			}
+			LazyList<TValue> lazyList;
 
 			/// <summary>
 			/// Gets/sets the value
 			/// </summary>
 			public TValue Value {
 				get {
-#if DEBUG
-					if (!IsInitialized)
-						throw new InvalidOperationException("Data isn't initialized yet");
-#endif
+					if (lazyList != null) {
+						value = lazyList.readOriginalValue(lazyList.indexBase + origIndex);
+						lazyList = null;
+					}
 					return value;
 				}
 				set {
 					this.value = value;
-					origIndex = 0;
+					lazyList = null;
 				}
-			}
-
-			/// <summary>
-			/// Returns true if <see cref="Value"/> has been initialized
-			/// </summary>
-			public bool IsInitialized {
-				get { return (origIndex & NOT_INITIALIZED) == 0; }
 			}
 
 			/// <summary>
 			/// Constructor that should only be called when <see cref="LazyList{T}"/> is initialized.
 			/// </summary>
 			/// <param name="origIndex">Original index of this element</param>
-			public Element(int origIndex) {
-				this.origIndex = (uint)origIndex | NOT_INITIALIZED;
+			/// <param name="lazyList">LazyList instance</param>
+			public Element(int origIndex, LazyList<TValue> lazyList) {
+				this.origIndex = (uint)origIndex;
+				this.lazyList = lazyList;
 			}
 
 			/// <summary>
@@ -71,23 +68,29 @@ namespace dot10.dotNET.Hi {
 
 			/// <inheritdoc/>
 			public override string ToString() {
+				if (lazyList != null) {
+					value = lazyList.readOriginalValue(lazyList.indexBase + origIndex);
+					lazyList = null;
+				}
 				return value == null ? string.Empty : value.ToString();
 			}
 		}
 
 		/// <inheritdoc/>
+		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
 		public int Count {
 			get { return list.Count; }
 		}
 
 		/// <inheritdoc/>
+		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
 		public bool IsReadOnly {
 			get { return false; }
 		}
 
 		/// <inheritdoc/>
 		public TValue this[int index] {
-			get { return InitializeElem(index).Value; }
+			get { return list[index].Value; }
 			set { list[index].Value = value; id++; }
 		}
 
@@ -112,20 +115,13 @@ namespace dot10.dotNET.Hi {
 			this.readOriginalValue = readOriginalValue;
 			this.list = new List<Element>(length);
 			for (int i = 0; i < length; i++)
-				list.Add(new Element(i));
-		}
-
-		Element InitializeElem(int index) {
-			var elem = list[index];
-			if (!elem.IsInitialized)
-				elem.Value = readOriginalValue((uint)(indexBase + index));
-			return elem;
+				list.Add(new Element(i, this));
 		}
 
 		/// <inheritdoc/>
 		public int IndexOf(TValue item) {
 			for (int i = 0; i < list.Count; i++) {
-				if (InitializeElem(i).Value == item)
+				if (list[i].Value == item)
 					return i;
 			}
 			return -1;
@@ -163,7 +159,7 @@ namespace dot10.dotNET.Hi {
 		/// <inheritdoc/>
 		public void CopyTo(TValue[] array, int arrayIndex) {
 			for (int i = 0; i < list.Count; i++)
-				array[arrayIndex + i] = InitializeElem(i).Value;
+				array[arrayIndex + i] = list[i].Value;
 		}
 
 		/// <inheritdoc/>
@@ -181,7 +177,7 @@ namespace dot10.dotNET.Hi {
 			for (int i = 0; i < list.Count; i++) {
 				if (id != id2)
 					throw new InvalidOperationException("List was modified");
-				yield return InitializeElem(i).Value;
+				yield return list[i].Value;
 			}
 		}
 
