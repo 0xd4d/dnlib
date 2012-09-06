@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using dot10.dotNET.MD;
@@ -58,6 +59,11 @@ namespace dot10.dotNET.Hi {
 		/// Gets/sets the module's assembly
 		/// </summary>
 		public abstract AssemblyDef Assembly { get; set; }
+
+		/// <summary>
+		/// Gets a list of all <see cref="TypeDef"/>s
+		/// </summary>
+		public abstract IList<TypeDef> Types { get; }
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDef"/> instance from a file
@@ -164,6 +170,7 @@ namespace dot10.dotNET.Hi {
 		Guid? encId;
 		Guid? encBaseId;
 		AssemblyDef assembly;
+		List<TypeDef> types = new List<TypeDef>();
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -199,6 +206,11 @@ namespace dot10.dotNET.Hi {
 		public override AssemblyDef Assembly {
 			get { return assembly; }
 			set { assembly = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<TypeDef> Types {
+			get { return types; }
 		}
 
 		/// <summary>

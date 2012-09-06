@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using dot10.dotNET.MD;
 
 namespace dot10.dotNET.Hi {
@@ -40,6 +41,8 @@ namespace dot10.dotNET.Hi {
 		SimpleLazyList<GenericParamMD> listGenericParamMD;
 		SimpleLazyList<MethodSpecMD> listMethodSpecMD;
 		SimpleLazyList<GenericParamConstraintMD> listGenericParamConstraintMD;
+
+		LazyList<TypeDef> types;
 
 		/// <summary>
 		/// Returns the .NET file
@@ -117,6 +120,11 @@ namespace dot10.dotNET.Hi {
 		public override AssemblyDef Assembly {
 			get { return assembly.Value; }
 			set { assembly.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<TypeDef> Types {
+			get { return types; }
 		}
 
 		/// <summary>
@@ -259,6 +267,7 @@ namespace dot10.dotNET.Hi {
 			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.Get(Table.GenericParam).Rows, ReadGenericParam);
 			listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, ReadMethodSpec);
 			listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, ReadGenericParamConstraint);
+			types = new LazyList<TypeDef>((int)ts.Get(Table.TypeDef).Rows, 1, ResolveTypeDef);
 		}
 
 		void InitializeRawRow() {
