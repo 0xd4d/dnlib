@@ -68,6 +68,11 @@ namespace dot10.dotNET.Hi {
 			public Element(TValue data) {
 				this.value = data;
 			}
+
+			/// <inheritdoc/>
+			public override string ToString() {
+				return value == null ? string.Empty : value.ToString();
+			}
 		}
 
 		/// <inheritdoc/>
