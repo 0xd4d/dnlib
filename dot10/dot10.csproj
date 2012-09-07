@@ -67,6 +67,7 @@
     <Compile Include="dotNET\Hi\ITypeSig.cs" />
     <Compile Include="dotNET\Hi\LazyList.cs" />
     <Compile Include="dotNET\Hi\MethodAttributes.cs" />
+    <Compile Include="dotNET\Hi\MethodImplAttributes.cs" />
     <Compile Include="dotNET\Hi\SignatureReader.cs" />
     <Compile Include="dotNET\Hi\SimpleLazyList.cs" />
     <Compile Include="dotNET\Hi\ManifestResource.cs" />
