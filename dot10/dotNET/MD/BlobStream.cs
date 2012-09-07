@@ -26,7 +26,7 @@ namespace dot10.dotNET.MD {
 				return null;
 			imageStream.Position = offset;
 			uint length;
-			if (!ReadCompressedUInt32(out length))
+			if (!imageStream.ReadCompressedUInt32(out length))
 				return null;
 			if (imageStream.Position + length < length || imageStream.Position + length > imageStream.Length)
 				return null;
