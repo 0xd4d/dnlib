@@ -308,9 +308,9 @@
 	/// <summary>
 	/// Represents a <see cref="ElementType.Var"/>
 	/// </summary>
-	public sealed class VarSig : GenericSig {
+	public sealed class GenericVar : GenericSig {
 		/// <inheritdoc/>
-		public VarSig(uint number)
+		public GenericVar(uint number)
 			: base(true, number) {
 		}
 	}
@@ -318,9 +318,9 @@
 	/// <summary>
 	/// Represents a <see cref="ElementType.MVar"/>
 	/// </summary>
-	public sealed class MVarSig : GenericSig {
+	public sealed class GenericMVar : GenericSig {
 		/// <inheritdoc/>
-		public MVarSig(uint number)
+		public GenericMVar(uint number)
 			: base(false, number) {
 		}
 	}
