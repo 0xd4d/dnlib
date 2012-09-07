@@ -52,6 +52,13 @@ namespace dot10.dotNET.Hi {
 		}
 
 		/// <summary>
+		/// Returns the .NET metadata interface
+		/// </summary>
+		public IMetaData MetaData {
+			get { return dnFile.MetaData; }
+		}
+
+		/// <summary>
 		/// Returns the #~ or #- tables stream
 		/// </summary>
 		public TablesStream TablesStream {
