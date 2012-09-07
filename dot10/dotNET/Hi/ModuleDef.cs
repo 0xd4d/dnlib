@@ -156,7 +156,7 @@ namespace dot10.dotNET.Hi {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return Name.String;
+			return UTF8String.IsNullOrEmpty(Name) ? string.Empty : Name.String;
 		}
 	}
 
