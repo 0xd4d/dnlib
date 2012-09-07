@@ -107,6 +107,36 @@ namespace dot10.dotNET.MD {
 			return listRid;
 		}
 
+		/// <inheritdoc/>
+		public override uint GetParamRange(uint methodRid, out uint startRid) {
+			return GetListRange(Table.Method, methodRid, 5, Table.Param, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToParamRid(uint listRid) {
+			return listRid;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetEventMapRange(uint eventMapRid, out uint startRid) {
+			return GetListRange(Table.EventMap, eventMapRid, 1, Table.Event, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToEventRid(uint listRid) {
+			return listRid;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetPropertyMapRange(uint propertyMapRid, out uint startRid) {
+			return GetListRange(Table.PropertyMap, propertyMapRid, 1, Table.Property, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToPropertyRid(uint listRid) {
+			return listRid;
+		}
+
 		/// <summary>
 		/// Gets a list range (eg. field list)
 		/// </summary>

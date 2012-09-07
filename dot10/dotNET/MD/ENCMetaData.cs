@@ -120,6 +120,45 @@ namespace dot10.dotNET.MD {
 			return tablesStream.ReadColumn(Table.MethodPtr, listRid, 0, out listValue) ? listValue : 0;
 		}
 
+		/// <inheritdoc/>
+		public override uint GetParamRange(uint methodRid, out uint startRid) {
+			return GetListRange(Table.Method, methodRid, 5, Table.Param, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToParamRid(uint listRid) {
+			if (!hasParamPtr)
+				return listRid;
+			uint listValue;
+			return tablesStream.ReadColumn(Table.ParamPtr, listRid, 0, out listValue) ? listValue : 0;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetEventMapRange(uint eventMapRid, out uint startRid) {
+			return GetListRange(Table.EventMap, eventMapRid, 1, Table.Event, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToEventRid(uint listRid) {
+			if (!hasEventPtr)
+				return listRid;
+			uint listValue;
+			return tablesStream.ReadColumn(Table.EventPtr, listRid, 0, out listValue) ? listValue : 0;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetPropertyMapRange(uint propertyMapRid, out uint startRid) {
+			return GetListRange(Table.PropertyMap, propertyMapRid, 1, Table.Property, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToPropertyRid(uint listRid) {
+			if (!hasPropertyPtr)
+				return listRid;
+			uint listValue;
+			return tablesStream.ReadColumn(Table.PropertyPtr, listRid, 0, out listValue) ? listValue : 0;
+		}
+
 		/// <summary>
 		/// Gets a list range (eg. field list)
 		/// </summary>
