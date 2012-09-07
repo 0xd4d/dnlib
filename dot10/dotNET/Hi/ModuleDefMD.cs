@@ -328,7 +328,7 @@ namespace dot10.dotNET.Hi {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="FieldDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		FieldDefMD ReadField(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new FieldDefMD(this, rid);
 		}
 
 		/// <summary>
@@ -990,6 +990,15 @@ namespace dot10.dotNET.Hi {
 			case Table.TypeDef: return ResolveTypeDef(rid);
 			case Table.Method: return ResolveMethod(rid);
 			}
+			return null;
+		}
+
+		/// <summary>
+		/// Reads a signature from the #Blob stream
+		/// </summary>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <returns>A new <see cref="ISignature"/> instance</returns>
+		public ISignature ReadSignature(uint sig) {
 			return null;
 		}
 	}
