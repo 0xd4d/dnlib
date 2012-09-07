@@ -181,15 +181,22 @@
 	/// Generic method/type var base class
 	/// </summary>
 	public abstract class GenericSig : LeafSig {
-		bool isTypeVar;
-		ushort number;
+		readonly bool isTypeVar;
+		readonly uint number;
+
+		/// <summary>
+		/// Gets the generic param number
+		/// </summary>
+		public uint Number {
+			get { return number; }
+		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="isTypeVar"><c>true</c> if it's a <c>Var</c>, <c>false</c> if it's a <c>MVar</c></param>
 		/// <param name="number">Generic param number</param>
-		protected GenericSig(bool isTypeVar, ushort number) {
+		protected GenericSig(bool isTypeVar, uint number) {
 			this.isTypeVar = isTypeVar;
 			this.number = number;
 		}
@@ -253,7 +260,7 @@
 	/// </summary>
 	public sealed class VarSig : GenericSig {
 		/// <inheritdoc/>
-		public VarSig(ushort number)
+		public VarSig(uint number)
 			: base(true, number) {
 		}
 	}
@@ -263,7 +270,7 @@
 	/// </summary>
 	public sealed class MVarSig : GenericSig {
 		/// <inheritdoc/>
-		public MVarSig(ushort number)
+		public MVarSig(uint number)
 			: base(false, number) {
 		}
 	}
@@ -595,7 +602,7 @@
 	/// Base class for modifier type sigs
 	/// </summary>
 	public abstract class ModifierSig : NonLeafSig {
-		ITypeDefOrRef modifier;
+		readonly ITypeDefOrRef modifier;
 
 		/// <summary>
 		/// Returns the modifier type
