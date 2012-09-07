@@ -103,6 +103,18 @@ namespace dot10.dotNET.MD {
 		public abstract void Initialize();
 
 		/// <inheritdoc/>
+		public abstract uint GetFieldRange(uint typeDefRid, out uint startRid);
+
+		/// <inheritdoc/>
+		public abstract uint ToFieldRid(uint listRid);
+
+		/// <inheritdoc/>
+		public abstract uint GetMethodRange(uint typeDefRid, out uint startRid);
+
+		/// <inheritdoc/>
+		public abstract uint ToMethodRid(uint listRid);
+
+		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);

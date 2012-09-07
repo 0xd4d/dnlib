@@ -86,5 +86,52 @@ namespace dot10.dotNET.MD {
 					dns.Dispose();
 			}
 		}
+
+		/// <inheritdoc/>
+		public override uint GetFieldRange(uint typeDefRid, out uint startRid) {
+			return GetListRange(Table.TypeDef, typeDefRid, 4, Table.Field, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToFieldRid(uint listRid) {
+			return listRid;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetMethodRange(uint typeDefRid, out uint startRid) {
+			return GetListRange(Table.TypeDef, typeDefRid, 5, Table.Method, out startRid);
+		}
+
+		/// <inheritdoc/>
+		public override uint ToMethodRid(uint listRid) {
+			return listRid;
+		}
+
+		/// <summary>
+		/// Gets a list range (eg. field list)
+		/// </summary>
+		/// <param name="tableSource">Source table, eg. <c>TypeDef</c></param>
+		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
+		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
+		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
+		/// <param name="startRid">Start rid in <paramref name="tableDest"/></param>
+		/// <returns>Size of range starting from <paramref name="startRid"/></returns>
+		uint GetListRange(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest, out uint startRid) {
+			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
+			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
+				return 0;
+			uint nextListRid;
+			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
+
+			uint lastRid = tablesStream.Get(tableDest).Rows + 1;
+			if (startRid == 0 || startRid >= lastRid)
+				return 0;
+			uint endRid = hasNext ? nextListRid : lastRid;
+			if (endRid < startRid)
+				endRid = startRid;
+			if (endRid > lastRid)
+				endRid = lastRid;
+			return endRid - startRid;
+		}
 	}
 }
