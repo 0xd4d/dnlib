@@ -507,7 +507,7 @@ namespace dot10.dotNET.Hi {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodDefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		MethodDefMD ReadMethod(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new MethodDefMD(this, rid);
 		}
 
 		/// <summary>
