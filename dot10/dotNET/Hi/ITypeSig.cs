@@ -202,6 +202,32 @@
 	}
 
 	/// <summary>
+	/// Represents a <see cref="ElementType.ValueType"/>
+	/// </summary>
+	public sealed class ValueTypeSig : TypeDefOrRefSig {
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="typeDefOrRef">A <see cref="ITypeDefOrRef"/></param>
+		public ValueTypeSig(ITypeDefOrRef typeDefOrRef)
+			: base(typeDefOrRef) {
+		}
+	}
+
+	/// <summary>
+	/// Represents a <see cref="ElementType.Class"/>
+	/// </summary>
+	public sealed class ClassSig : TypeDefOrRefSig {
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="typeDefOrRef">A <see cref="ITypeDefOrRef"/></param>
+		public ClassSig(ITypeDefOrRef typeDefOrRef)
+			: base(typeDefOrRef) {
+		}
+	}
+
+	/// <summary>
 	/// Generic method/type var base class
 	/// </summary>
 	public abstract class GenericSig : LeafSig {
@@ -459,32 +485,6 @@
 		/// <inheritdoc/>
 		protected override string GetReflectionFullName(string reflectionFullName) {
 			return reflectionFullName + '&';
-		}
-	}
-
-	/// <summary>
-	/// Represents a <see cref="ElementType.ValueType"/>
-	/// </summary>
-	public sealed class ValueTypeSig : NonLeafSig {
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="nextSig">The next element type</param>
-		public ValueTypeSig(ITypeSig nextSig)
-			: base(nextSig) {
-		}
-	}
-
-	/// <summary>
-	/// Represents a <see cref="ElementType.Class"/>
-	/// </summary>
-	public sealed class ClassSig : NonLeafSig {
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="nextSig">The next element type</param>
-		public ClassSig(ITypeSig nextSig)
-			: base(nextSig) {
 		}
 	}
 
