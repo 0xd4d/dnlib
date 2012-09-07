@@ -62,7 +62,7 @@
 	/// <summary>
 	/// Wraps a <see cref="ITypeDefOrRef"/>
 	/// </summary>
-	public sealed class TypeDefOrRefSig : LeafSig {
+	public class TypeDefOrRefSig : LeafSig {
 		const string nullName = "<<<NULL>>>";
 		readonly ITypeDefOrRef typeDefOrRef;
 
@@ -174,6 +174,30 @@
 		/// a <see cref="TypeSpec"/></param>
 		public TypeDefOrRefSig(ITypeDefOrRef typeDefOrRef) {
 			this.typeDefOrRef = typeDefOrRef;
+		}
+	}
+
+	/// <summary>
+	/// A core library type
+	/// </summary>
+	public sealed class CorLibTypeSig : TypeDefOrRefSig {
+		readonly ElementType elementType;
+
+		/// <summary>
+		/// Gets the element type
+		/// </summary>
+		public ElementType ElementType {
+			get { return elementType; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="corType">The type</param>
+		/// <param name="elementType">The type's element type</param>
+		public CorLibTypeSig(TypeRef corType, ElementType elementType)
+			: base(corType) {
+			this.elementType = elementType;
 		}
 	}
 
