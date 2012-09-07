@@ -104,7 +104,13 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		public uint GenParamCount {
 			get { return genParamCount; }
-			set { genParamCount = value; }
+			set {
+				genParamCount = value;
+				if (genParamCount == 0)
+					callingConvention &= ~CallingConvention.Generic;
+				else
+					callingConvention |= CallingConvention.Generic;
+			}
 		}
 
 		/// <summary>
