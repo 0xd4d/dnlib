@@ -6,7 +6,7 @@ namespace dot10.dotNET.Hi {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>
-	public sealed class ModuleDefMD : ModuleDef {
+	public sealed class ModuleDefMD : ModuleDef, ICorLibTypes {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
@@ -132,6 +132,101 @@ namespace dot10.dotNET.Hi {
 		/// <inheritdoc/>
 		public override IList<TypeDef> Types {
 			get { return types; }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Void {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Boolean {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Char {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig SByte {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Byte {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Int16 {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig UInt16 {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Int32 {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig UInt32 {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Int64 {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig UInt64 {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Single {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Double {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig String {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig TypedReference {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig IntPtr {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig UIntPtr {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public ITypeSig Object {
+			get { throw new NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public AssemblyRef AssemblyRef {
+			get { throw new NotImplementedException(); /*TODO:*/ }
 		}
 
 		/// <summary>
