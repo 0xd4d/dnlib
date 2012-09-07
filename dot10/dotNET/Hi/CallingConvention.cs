@@ -2,7 +2,7 @@
 	/// <summary>
 	/// See CorHdr.h/CorCallingConvention
 	/// </summary>
-	enum CallingConvention : byte {
+	public enum CallingConvention : byte {
 		/// <summary></summary>
 		Default			= 0x0,
 		/// <summary></summary>
