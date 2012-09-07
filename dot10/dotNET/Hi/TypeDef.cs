@@ -169,6 +169,8 @@ namespace dot10.dotNET.Hi {
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> @namespace;
 		UserValue<ITypeDefOrRef> extends;
+		LazyList<FieldDef> fields;
+		LazyList<MethodDef> methods;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -196,12 +198,26 @@ namespace dot10.dotNET.Hi {
 
 		/// <inheritdoc/>
 		public override IList<FieldDef> Fields {
-			get { throw new System.NotImplementedException();/*TODO*/ }
+			get {
+				if (fields == null) {
+					uint startRid;
+					uint num = readerModule.MetaData.GetFieldRange(rid, out startRid);
+					fields = new LazyList<FieldDef>((int)num, startRid, rid2 => readerModule.ResolveField(readerModule.MetaData.ToFieldRid(rid2)));
+				}
+				return fields;
+			}
 		}
 
 		/// <inheritdoc/>
 		public override IList<MethodDef> Methods {
-			get { throw new System.NotImplementedException();/*TODO*/ }
+			get {
+				if (methods == null) {
+					uint startRid;
+					uint num = readerModule.MetaData.GetMethodRange(rid, out startRid);
+					methods = new LazyList<MethodDef>((int)num, startRid, rid2 => readerModule.ResolveMethod(readerModule.MetaData.ToMethodRid(rid2)));
+				}
+				return methods;
+			}
 		}
 
 		/// <summary>
