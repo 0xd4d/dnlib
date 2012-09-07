@@ -2,7 +2,7 @@
 	/// <summary>
 	/// See CorHdr.h/CorElementType
 	/// </summary>
-	enum ElementType : byte {
+	public enum ElementType : byte {
 		/// <summary></summary>
 		End			= 0x00,
 		/// <summary>System.Void</summary>
