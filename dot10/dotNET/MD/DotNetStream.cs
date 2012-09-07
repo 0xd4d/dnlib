@@ -16,6 +16,13 @@ namespace dot10.dotNET.MD {
 		StreamHeader streamHeader;
 
 		/// <summary>
+		/// Returns the internal image stream
+		/// </summary>
+		public IImageStream ImageStream {
+			get { return imageStream; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="imageStream">Stream data</param>
