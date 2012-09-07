@@ -51,6 +51,7 @@
     <Compile Include="dotNET\Hi\EventDef.cs" />
     <Compile Include="dotNET\Hi\ExportedType.cs" />
     <Compile Include="dotNET\Hi\Extensions.cs" />
+    <Compile Include="dotNET\Hi\FieldAttributes.cs" />
     <Compile Include="dotNET\Hi\FieldDef.cs" />
     <Compile Include="dotNET\Hi\FileDef.cs" />
     <Compile Include="dotNET\Hi\FileFlags.cs" />
