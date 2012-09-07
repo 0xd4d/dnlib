@@ -158,7 +158,7 @@ namespace dot10.dotNET.MD {
 		/// </summary>
 		/// <param name="s">The string</param>
 		public UTF8String(string s)
-			: this(Encoding.UTF8.GetBytes(s)) {
+			: this(s == null ? null : Encoding.UTF8.GetBytes(s)) {
 		}
 
 		static string ConvertToUTF8(byte[] data) {
