@@ -78,24 +78,24 @@ namespace dot10.dotNET.Hi {
 		ITypeSig ReadType() {
 			uint num;
 			switch ((ElementType)reader.ReadByte()) {
-			case ElementType.Void: return readerModule.Void;
-			case ElementType.Boolean: return readerModule.Boolean;
-			case ElementType.Char: return readerModule.Char;
-			case ElementType.I1: return readerModule.SByte;
-			case ElementType.U1: return readerModule.Byte;
-			case ElementType.I2: return readerModule.Int16;
-			case ElementType.U2: return readerModule.UInt16;
-			case ElementType.I4: return readerModule.Int32;
-			case ElementType.U4: return readerModule.UInt32;
-			case ElementType.I8: return readerModule.Int64;
-			case ElementType.U8: return readerModule.UInt64;
-			case ElementType.R4: return readerModule.Single;
-			case ElementType.R8: return readerModule.Double;
-			case ElementType.String: return readerModule.String;
-			case ElementType.TypedByRef: return readerModule.TypedReference;
-			case ElementType.I: return readerModule.IntPtr;
-			case ElementType.U: return readerModule.UIntPtr;
-			case ElementType.Object: return readerModule.Object;
+			case ElementType.Void: return readerModule.CorLibTypes.Void;
+			case ElementType.Boolean: return readerModule.CorLibTypes.Boolean;
+			case ElementType.Char: return readerModule.CorLibTypes.Char;
+			case ElementType.I1: return readerModule.CorLibTypes.SByte;
+			case ElementType.U1: return readerModule.CorLibTypes.Byte;
+			case ElementType.I2: return readerModule.CorLibTypes.Int16;
+			case ElementType.U2: return readerModule.CorLibTypes.UInt16;
+			case ElementType.I4: return readerModule.CorLibTypes.Int32;
+			case ElementType.U4: return readerModule.CorLibTypes.UInt32;
+			case ElementType.I8: return readerModule.CorLibTypes.Int64;
+			case ElementType.U8: return readerModule.CorLibTypes.UInt64;
+			case ElementType.R4: return readerModule.CorLibTypes.Single;
+			case ElementType.R8: return readerModule.CorLibTypes.Double;
+			case ElementType.String: return readerModule.CorLibTypes.String;
+			case ElementType.TypedByRef: return readerModule.CorLibTypes.TypedReference;
+			case ElementType.I: return readerModule.CorLibTypes.IntPtr;
+			case ElementType.U: return readerModule.CorLibTypes.UIntPtr;
+			case ElementType.Object: return readerModule.CorLibTypes.Object;
 
 			case ElementType.Ptr: return new PtrSig(ReadType());
 			case ElementType.ByRef: return new ByRefSig(ReadType());
