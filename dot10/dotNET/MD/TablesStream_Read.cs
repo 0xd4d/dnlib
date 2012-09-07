@@ -808,5 +808,37 @@
 			return new RawGenericParamConstraintRow(columns[0].Read(reader),
 				columns[1].Read(reader));
 		}
+
+		/// <summary>
+		/// Reads a column
+		/// </summary>
+		/// <param name="table">The table</param>
+		/// <param name="rid">Row ID</param>
+		/// <param name="colIndex">Column index in <paramref name="table"/></param>
+		/// <param name="value">Result is put here or 0 if we return <c>false</c></param>
+		/// <returns><c>true</c> if we could read the column, <c>false</c> otherwise</returns>
+		public bool ReadColumn(Table table, uint rid, int colIndex, out uint value) {
+			return ReadColumn(table, rid, Get(table).TableInfo.Columns[colIndex], out value);
+		}
+
+		/// <summary>
+		/// Reads a column
+		/// </summary>
+		/// <param name="table">The table</param>
+		/// <param name="rid">Row ID</param>
+		/// <param name="column">Column</param>
+		/// <param name="value">Result is put here or 0 if we return <c>false</c></param>
+		/// <returns><c>true</c> if we could read the column, <c>false</c> otherwise</returns>
+		public bool ReadColumn(Table table, uint rid, ColumnInfo column, out uint value) {
+			var tbl = Get(table);
+			if (tbl == null || rid == 0 || rid > tbl.Rows) {
+				value = 0;
+				return false;
+			}
+			var reader = tbl.ImageStream;
+			reader.Position = (rid - 1) * tbl.TableInfo.RowSize + column.Offset;
+			value = column.Read(reader);
+			return true;
+		}
 	}
 }
