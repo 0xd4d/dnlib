@@ -60,6 +60,7 @@
     <Compile Include="dotNET\Hi\GenericParamAttributes.cs" />
     <Compile Include="dotNET\Hi\GenericParamConstraint.cs" />
     <Compile Include="dotNET\Hi\ICodedToken.cs" />
+    <Compile Include="dotNET\Hi\ICorLibTypes.cs" />
     <Compile Include="dotNET\Hi\IFullName.cs" />
     <Compile Include="dotNET\Hi\InterfaceImpl.cs" />
     <Compile Include="dotNET\Hi\ISignature.cs" />
