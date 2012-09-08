@@ -188,12 +188,23 @@ namespace dot10.dotNET {
 					return null;
 				return new GenericMVar(num);
 
+			case ElementType.ValueArray:
+				var nextType = ReadType();
+				if (!reader.ReadCompressedUInt32(out num))
+					return null;
+				return new ValueArraySig(nextType, num);
+
+			case ElementType.Module:
+				if (!reader.ReadCompressedUInt32(out num))
+					return null;
+				return new ModuleSig(num, ReadType());
+
 			case ElementType.Array:
 			case ElementType.GenericInst:
 			case ElementType.FnPtr:
 			case ElementType.End:
+			case ElementType.R:
 			case ElementType.Internal:
-			case ElementType.Modifier:
 			default:
 				return null;
 			}

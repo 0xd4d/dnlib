@@ -705,4 +705,86 @@
 			: base(nextSig) {
 		}
 	}
+
+	/// <summary>
+	/// Represents a <see cref="ElementType.ValueArray"/>
+	/// </summary>
+	public sealed class ValueArraySig : NonLeafSig {
+		uint size;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="nextSig">The next element type</param>
+		/// <param name="size">Size of the array</param>
+		public ValueArraySig(ITypeSig nextSig, uint size)
+			: base(nextSig) {
+			this.size = size;
+		}
+
+		/// <inheritdoc/>
+		protected override string GetName(string name) {
+			return ToString(name);
+		}
+
+		/// <inheritdoc/>
+		protected override string GetReflectionName(string reflectionName) {
+			return ToString(reflectionName);
+		}
+
+		/// <inheritdoc/>
+		protected override string GetFullName(string fullName) {
+			return ToString(fullName);
+		}
+
+		/// <inheritdoc/>
+		protected override string GetReflectionFullName(string reflectionFullName) {
+			return ToString(reflectionFullName);
+		}
+
+		string ToString(string name) {
+			return string.Format("ValueArray({0}, {1})", name, size);
+		}
+	}
+
+	/// <summary>
+	/// Represents a <see cref="ElementType.Module"/>
+	/// </summary>
+	public sealed class ModuleSig : NonLeafSig {
+		uint index;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="index">Index</param>
+		/// <param name="nextSig">The next element type</param>
+		public ModuleSig(uint index, ITypeSig nextSig)
+			: base(nextSig) {
+			this.index = index;
+		}
+
+		/// <inheritdoc/>
+		protected override string GetName(string name) {
+			return ToString(name);
+		}
+
+		/// <inheritdoc/>
+		protected override string GetReflectionName(string reflectionName) {
+			return ToString(reflectionName);
+		}
+
+		/// <inheritdoc/>
+		protected override string GetFullName(string fullName) {
+			return ToString(fullName);
+		}
+
+		/// <inheritdoc/>
+		protected override string GetReflectionFullName(string reflectionFullName) {
+			return ToString(reflectionFullName);
+		}
+
+		string ToString(string name) {
+			return string.Format("Module({0}, {1})", index, name);
+		}
+	}
 }
