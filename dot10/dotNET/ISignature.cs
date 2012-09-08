@@ -837,4 +837,84 @@ namespace dot10.dotNET {
 			this.locals = new List<ITypeSig>(locals);
 		}
 	}
+
+	/// <summary>
+	/// An instantiated generic method signature
+	/// </summary>
+	public sealed class GenericInstMethodSig : CallingConventionSig {
+		readonly IList<ITypeSig> genericArgs;
+
+		/// <summary>
+		/// Gets the generic arguments (must be instantiated types, i.e., closed types)
+		/// </summary>
+		public IList<ITypeSig> GenericArguments {
+			get { return genericArgs; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public GenericInstMethodSig() {
+			this.callingConvention = CallingConvention.GenericInst;
+			this.genericArgs = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention (must have GenericInst set)</param>
+		/// <param name="size">Number of generic args</param>
+		internal GenericInstMethodSig(CallingConvention callingConvention, uint size) {
+			this.callingConvention = callingConvention;
+			this.genericArgs = new List<ITypeSig>((int)size);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arg1">Generic arg #1</param>
+		public GenericInstMethodSig(ITypeSig arg1) {
+			this.callingConvention = CallingConvention.GenericInst;
+			this.genericArgs = new List<ITypeSig> { arg1 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arg1">Generic arg #1</param>
+		/// <param name="arg2">Generic arg #2</param>
+		public GenericInstMethodSig(ITypeSig arg1, ITypeSig arg2) {
+			this.callingConvention = CallingConvention.GenericInst;
+			this.genericArgs = new List<ITypeSig> { arg1, arg2 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arg1">Generic arg #1</param>
+		/// <param name="arg2">Generic arg #2</param>
+		/// <param name="arg3">Generic arg #3</param>
+		public GenericInstMethodSig(ITypeSig arg1, ITypeSig arg2, ITypeSig arg3) {
+			this.callingConvention = CallingConvention.GenericInst;
+			this.genericArgs = new List<ITypeSig> { arg1, arg2, arg3 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="args">Generic args</param>
+		public GenericInstMethodSig(params ITypeSig[] args) {
+			this.callingConvention = CallingConvention.GenericInst;
+			this.genericArgs = new List<ITypeSig>(args);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="args">Generic args</param>
+		public GenericInstMethodSig(IList<ITypeSig> args) {
+			this.callingConvention = CallingConvention.GenericInst;
+			this.genericArgs = new List<ITypeSig>(args);
+		}
+	}
 }

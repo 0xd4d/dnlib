@@ -63,8 +63,10 @@ namespace dot10.dotNET {
 			case CallingConvention.Property:
 				return ReadProperty(callingConvention);
 
-			case CallingConvention.Unmanaged:
 			case CallingConvention.GenericInst:
+				return ReadGenericInstMethod(callingConvention);
+
+			case CallingConvention.Unmanaged:
 			case CallingConvention.NativeVarArg:
 			default:
 				return null;
@@ -139,6 +141,22 @@ namespace dot10.dotNET {
 			var locals = sig.Locals;
 			for (uint i = 0; i < count; i++)
 				locals.Add(ReadType());
+			return sig;
+		}
+
+		/// <summary>
+		/// Reads a <see cref="GenericInstMethodSig"/>
+		/// </summary>
+		/// <param name="callingConvention">First byte of signature</param>
+		/// <returns>A new <see cref="GenericInstMethodSig"/> instance</returns>
+		GenericInstMethodSig ReadGenericInstMethod(CallingConvention callingConvention) {
+			uint count;
+			if (!reader.ReadCompressedUInt32(out count))
+				return null;
+			var sig = new GenericInstMethodSig(callingConvention, count);
+			var args = sig.GenericArguments;
+			for (uint i = 0; i < count; i++)
+				args.Add(ReadType());
 			return sig;
 		}
 
