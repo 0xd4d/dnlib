@@ -17,9 +17,24 @@ namespace dot10.dotNET {
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
-		public static ISignature Read(ModuleDefMD readerModule, uint sig) {
+		public static ISignature ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
-				return new SignatureReader(readerModule, sig).Read();
+				return new SignatureReader(readerModule, sig).ReadSig();
+			}
+			catch {
+				return null;
+			}
+		}
+
+		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
+		public static ITypeSig ReadType(ModuleDefMD readerModule, uint sig) {
+			try {
+				return new SignatureReader(readerModule, sig).ReadType();
 			}
 			catch {
 				return null;
@@ -41,7 +56,7 @@ namespace dot10.dotNET {
 		/// Reads the signature
 		/// </summary>
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
-		ISignature Read() {
+		ISignature ReadSig() {
 			if (!reader.ReadCompressedUInt32(out sigLen))
 				return null;
 			var callingConvention = (CallingConvention)reader.ReadByte();
@@ -191,7 +206,7 @@ namespace dot10.dotNET {
 			case ElementType.ByRef: return new ByRefSig(ReadType());
 			case ElementType.ValueType: return new ValueTypeSig(ReadTypeDefOrRef());
 			case ElementType.Class: return new ClassSig(ReadTypeDefOrRef());
-			case ElementType.FnPtr: return new FnPtrSig(Read());
+			case ElementType.FnPtr: return new FnPtrSig(ReadSig());
 			case ElementType.SZArray: return new SZArraySig(ReadType());
 			case ElementType.CModReqd: return new CModReqdSig(ReadTypeDefOrRef(), ReadType());
 			case ElementType.CModOpt: return new CModOptSig(ReadTypeDefOrRef(), ReadType());
