@@ -121,18 +121,16 @@ namespace dot10.IO {
 				return true;
 			}
 
-			if ((b & 0xE0) == 0xC0) {
-				if (pos + 3 < pos || pos + 3 >= len) {
-					val = 0;
-					return false;
-				}
-				val = (uint)(((b & 0x1F) << 24) | (reader.ReadByte() << 16) |
-						(reader.ReadByte() << 8) | reader.ReadByte());
-				return true;
-			}
+			// The encoding 111x isn't allowed but the CLR sometimes doesn't verify this
+			// and just assumes it's 110x. Don't fail if it's 111x, just assume it's 110x.
 
-			val = 0;
-			return false;
+			if (pos + 3 < pos || pos + 3 >= len) {
+				val = 0;
+				return false;
+			}
+			val = (uint)(((b & 0x1F) << 24) | (reader.ReadByte() << 16) |
+					(reader.ReadByte() << 8) | reader.ReadByte());
+			return true;
 		}
 	}
 }
