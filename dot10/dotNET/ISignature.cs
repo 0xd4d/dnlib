@@ -10,7 +10,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// Base class for sigs with a calling convention
 	/// </summary>
-	public class CallingConventionSig : ISignature {
+	public abstract class CallingConventionSig : ISignature {
 		/// <summary>
 		/// The calling convention
 		/// </summary>
@@ -174,7 +174,7 @@ namespace dot10.dotNET {
 		ITypeSig type;
 
 		/// <summary>
-		/// The field type
+		/// Gets/sets the field type
 		/// </summary>
 		public ITypeSig Type {
 			get { return type; }
