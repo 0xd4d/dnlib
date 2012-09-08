@@ -42,6 +42,28 @@ namespace dot10.dotNET.Hi {
 		/// From column ManifestResource.Implementation
 		/// </summary>
 		public abstract IImplementation Implementation { get; set; }
+
+		/// <summary>
+		/// Gets/sets the visibility
+		/// </summary>
+		public ManifestResourceAttributes Visibility {
+			get { return Flags & ManifestResourceAttributes.VisibilityMask; }
+			set { Flags = (Flags & ~ManifestResourceAttributes.VisibilityMask) | (value & ManifestResourceAttributes.VisibilityMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ManifestResourceAttributes.Public"/> is set
+		/// </summary>
+		public bool IsPublic {
+			get { return (Flags & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Public; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ManifestResourceAttributes.Private"/> is set
+		/// </summary>
+		public bool IsPrivate {
+			get { return (Flags & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Private; }
+		}
 	}
 
 	/// <summary>
