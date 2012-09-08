@@ -41,6 +41,32 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		public abstract byte[] HashValue { get; set; }
 
+		/// <summary>
+		/// Gets/sets the <see cref="FileFlags.ContainsMetaData"/> bit
+		/// </summary>
+		public bool ContainsMetaData {
+			get { return (Flags & FileFlags.ContainsNoMetaData) == 0; }
+			set {
+				if (value)
+					Flags &= ~FileFlags.ContainsNoMetaData;
+				else
+					Flags |= FileFlags.ContainsNoMetaData;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="FileFlags.ContainsNoMetaData"/> bit
+		/// </summary>
+		public bool ContainsNoMetaData {
+			get { return (Flags & FileFlags.ContainsNoMetaData) != 0; }
+			set {
+				if (value)
+					Flags |= FileFlags.ContainsNoMetaData;
+				else
+					Flags &= ~FileFlags.ContainsNoMetaData;
+			}
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return Name.String;
