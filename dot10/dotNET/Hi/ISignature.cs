@@ -761,7 +761,7 @@ namespace dot10.dotNET.Hi {
 	/// <summary>
 	/// A local variables signature
 	/// </summary>
-	public sealed class LocalVarSig : CallingConventionSig {
+	public sealed class LocalSig : CallingConventionSig {
 		readonly IList<ITypeSig> locals;
 
 		/// <summary>
@@ -774,7 +774,7 @@ namespace dot10.dotNET.Hi {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public LocalVarSig() {
+		public LocalSig() {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = new List<ITypeSig>();
 		}
@@ -784,7 +784,7 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		/// <param name="callingConvention">Calling convention (must have LocalSig set)</param>
 		/// <param name="count">Number of locals</param>
-		internal LocalVarSig(CallingConvention callingConvention, uint count) {
+		internal LocalSig(CallingConvention callingConvention, uint count) {
 			this.callingConvention = callingConvention;
 			this.locals = new List<ITypeSig>((int)count);
 		}
@@ -793,7 +793,7 @@ namespace dot10.dotNET.Hi {
 		/// Constructor
 		/// </summary>
 		/// <param name="local1">Local type #1</param>
-		public LocalVarSig(ITypeSig local1) {
+		public LocalSig(ITypeSig local1) {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = new List<ITypeSig> { local1 };
 		}
@@ -803,7 +803,7 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		/// <param name="local1">Local type #1</param>
 		/// <param name="local2">Local type #2</param>
-		public LocalVarSig(ITypeSig local1, ITypeSig local2) {
+		public LocalSig(ITypeSig local1, ITypeSig local2) {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = new List<ITypeSig> { local1, local2 };
 		}
@@ -814,7 +814,7 @@ namespace dot10.dotNET.Hi {
 		/// <param name="local1">Local type #1</param>
 		/// <param name="local2">Local type #2</param>
 		/// <param name="local3">Local type #3</param>
-		public LocalVarSig(ITypeSig local1, ITypeSig local2, ITypeSig local3) {
+		public LocalSig(ITypeSig local1, ITypeSig local2, ITypeSig local3) {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = new List<ITypeSig> { local1, local2, local3 };
 		}
@@ -823,7 +823,7 @@ namespace dot10.dotNET.Hi {
 		/// Constructor
 		/// </summary>
 		/// <param name="locals">All locals</param>
-		public LocalVarSig(params ITypeSig[] locals) {
+		public LocalSig(params ITypeSig[] locals) {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = new List<ITypeSig>(locals);
 		}
@@ -832,7 +832,7 @@ namespace dot10.dotNET.Hi {
 		/// Constructor
 		/// </summary>
 		/// <param name="locals">All locals</param>
-		public LocalVarSig(IList<ITypeSig> locals) {
+		public LocalSig(IList<ITypeSig> locals) {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = new List<ITypeSig>(locals);
 		}

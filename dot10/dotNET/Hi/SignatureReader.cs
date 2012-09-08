@@ -127,15 +127,15 @@ namespace dot10.dotNET.Hi {
 		}
 
 		/// <summary>
-		/// Reads a <see cref="LocalVarSig"/>
+		/// Reads a <see cref="LocalSig"/>
 		/// </summary>
 		/// <param name="callingConvention">First byte of signature</param>
-		/// <returns>A new <see cref="LocalVarSig"/> instance</returns>
-		LocalVarSig ReadLocalSig(CallingConvention callingConvention) {
+		/// <returns>A new <see cref="LocalSig"/> instance</returns>
+		LocalSig ReadLocalSig(CallingConvention callingConvention) {
 			uint count;
 			if (!reader.ReadCompressedUInt32(out count))
 				return null;
-			var sig = new LocalVarSig(callingConvention, count);
+			var sig = new LocalSig(callingConvention, count);
 			var locals = sig.Locals;
 			for (uint i = 0; i < count; i++)
 				locals.Add(ReadType());
