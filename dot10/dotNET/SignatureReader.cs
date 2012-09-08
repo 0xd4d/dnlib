@@ -244,7 +244,7 @@ namespace dot10.dotNET {
 				nextType = ReadType();
 				if (!reader.ReadCompressedUInt32(out num))
 					return null;
-				var genericInstSig = new GenericInstSig(nextType as ClassOrValueType, num);
+				var genericInstSig = new GenericInstSig(nextType as ClassOrValueTypeSig, num);
 				var args = genericInstSig.GenericArguments;
 				for (uint i = 0; i < num; i++)
 					args.Add(ReadType());

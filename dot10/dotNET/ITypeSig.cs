@@ -204,12 +204,12 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// Base class for class/valuetype element types
 	/// </summary>
-	public abstract class ClassOrValueType : TypeDefOrRefSig {
+	public abstract class ClassOrValueTypeSig : TypeDefOrRefSig {
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="typeDefOrRef">A <see cref="ITypeDefOrRef"/></param>
-		public ClassOrValueType(ITypeDefOrRef typeDefOrRef)
+		public ClassOrValueTypeSig(ITypeDefOrRef typeDefOrRef)
 			: base(typeDefOrRef) {
 		}
 	}
@@ -217,7 +217,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// Represents a <see cref="ElementType.ValueType"/>
 	/// </summary>
-	public sealed class ValueTypeSig : ClassOrValueType {
+	public sealed class ValueTypeSig : ClassOrValueTypeSig {
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -230,7 +230,7 @@ namespace dot10.dotNET {
 	/// <summary>
 	/// Represents a <see cref="ElementType.Class"/>
 	/// </summary>
-	public sealed class ClassSig : ClassOrValueType {
+	public sealed class ClassSig : ClassOrValueTypeSig {
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -431,13 +431,13 @@ namespace dot10.dotNET {
 	/// Represents a <see cref="ElementType.GenericInst"/>
 	/// </summary>
 	public sealed class GenericInstSig : LeafSig {
-		ClassOrValueType genericType;
+		ClassOrValueTypeSig genericType;
 		readonly IList<ITypeSig> genericArgs;
 
 		/// <summary>
 		/// Gets the generic type
 		/// </summary>
-		public ClassOrValueType GenericType {
+		public ClassOrValueTypeSig GenericType {
 			get { return genericType; }
 			set { genericType = value; }
 		}
@@ -460,7 +460,7 @@ namespace dot10.dotNET {
 		/// Constructor
 		/// </summary>
 		/// <param name="genericType">The generic type</param>
-		public GenericInstSig(ClassOrValueType genericType) {
+		public GenericInstSig(ClassOrValueTypeSig genericType) {
 			this.genericType = genericType;
 			this.genericArgs = new List<ITypeSig>();
 		}
@@ -470,7 +470,7 @@ namespace dot10.dotNET {
 		/// </summary>
 		/// <param name="genericType">The generic type</param>
 		/// <param name="genArgCount">Number of generic arguments</param>
-		public GenericInstSig(ClassOrValueType genericType, uint genArgCount) {
+		public GenericInstSig(ClassOrValueTypeSig genericType, uint genArgCount) {
 			this.genericType = genericType;
 			this.genericArgs = new List<ITypeSig>((int)genArgCount);
 		}
