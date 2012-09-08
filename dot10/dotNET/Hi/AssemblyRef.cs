@@ -65,6 +65,151 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		public abstract byte[] HashValue { get; set; }
 
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyFlags.PublicKey"/> bit
+		/// </summary>
+		public bool HasPublicKey {
+			get { return (Flags & AssemblyFlags.PublicKey) != 0; }
+			set {
+				if (value)
+					Flags |= AssemblyFlags.PublicKey;
+				else
+					Flags &= ~AssemblyFlags.PublicKey;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the processor architecture
+		/// </summary>
+		public AssemblyFlags ProcessorArchitecture {
+			get { return Flags & AssemblyFlags.PA_Mask; }
+			set { Flags = (Flags & ~AssemblyFlags.PA_Mask) | (value & AssemblyFlags.PA_Mask); }
+		}
+
+		/// <summary>
+		/// Gets/sets the processor architecture
+		/// </summary>
+		public AssemblyFlags ProcessorArchitectureFull {
+			get { return Flags & AssemblyFlags.PA_FullMask; }
+			set { Flags = (Flags & ~AssemblyFlags.PA_FullMask) | (value & AssemblyFlags.PA_FullMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if unspecified processor architecture
+		/// </summary>
+		public bool IsProcessorArchitectureNone {
+			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_None; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if neutral (PE32) architecture
+		/// </summary>
+		public bool IsProcessorArchitectureMSIL {
+			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_MSIL; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if x86 (PE32) architecture
+		/// </summary>
+		public bool IsProcessorArchitectureX86 {
+			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_x86; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if IA-64 (PE32+) architecture
+		/// </summary>
+		public bool IsProcessorArchitectureIA64 {
+			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_IA64; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if x64 (PE32+) architecture
+		/// </summary>
+		public bool IsProcessorArchitectureX64 {
+			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_AMD64; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if ARM (PE32) architecture
+		/// </summary>
+		public bool IsProcessorArchitectureARM {
+			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_ARM; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if eg. reference assembly (not runnable)
+		/// </summary>
+		public bool IsProcessorArchitectureNoPlatform {
+			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_NoPlatform; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyFlags.PA_Specified"/> bit
+		/// </summary>
+		public bool IsProcessorArchitectureSpecified {
+			get { return (Flags & AssemblyFlags.PA_Specified) != 0; }
+			set {
+				if (value)
+					Flags |= AssemblyFlags.PA_Specified;
+				else
+					Flags &= ~AssemblyFlags.PA_Specified;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyFlags.EnableJITcompileTracking"/> bit
+		/// </summary>
+		public bool EnableJITcompileTracking {
+			get { return (Flags & AssemblyFlags.EnableJITcompileTracking) != 0; }
+			set {
+				if (value)
+					Flags |= AssemblyFlags.EnableJITcompileTracking;
+				else
+					Flags &= ~AssemblyFlags.EnableJITcompileTracking;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyFlags.DisableJITcompileOptimizer"/> bit
+		/// </summary>
+		public bool DisableJITcompileOptimizer {
+			get { return (Flags & AssemblyFlags.DisableJITcompileOptimizer) != 0; }
+			set {
+				if (value)
+					Flags |= AssemblyFlags.DisableJITcompileOptimizer;
+				else
+					Flags &= ~AssemblyFlags.DisableJITcompileOptimizer;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyFlags.Retargetable"/> bit
+		/// </summary>
+		public bool IsRetargetable {
+			get { return (Flags & AssemblyFlags.Retargetable) != 0; }
+			set {
+				if (value)
+					Flags |= AssemblyFlags.Retargetable;
+				else
+					Flags &= ~AssemblyFlags.Retargetable;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the content type
+		/// </summary>
+		public AssemblyFlags ContentType {
+			get { return Flags & AssemblyFlags.ContentType_Mask; }
+			set { Flags = (Flags & ~AssemblyFlags.ContentType_Mask) | (value & AssemblyFlags.ContentType_Mask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if content type is <c>WindowsRuntime</c>
+		/// </summary>
+		public bool IsContentTypeWindowsRuntime {
+			get { return (Flags & AssemblyFlags.ContentType_Mask) == AssemblyFlags.ContentType_WindowsRuntime; }
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return Utils.GetAssemblyNameString(Name, Version, Locale, PublicKeyOrToken);
