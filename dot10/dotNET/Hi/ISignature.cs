@@ -8,21 +8,170 @@ namespace dot10.dotNET.Hi {
 	}
 
 	/// <summary>
-	/// A field signature
+	/// Base class for sigs with a calling convention
 	/// </summary>
-	public class FieldSig : ISignature {
-		CallingConvention callingConvention;
-		ITypeSig type;
+	public class CallingConventionSig : ISignature {
+		/// <summary>
+		/// The calling convention
+		/// </summary>
+		protected CallingConvention callingConvention;
 
 		/// <summary>
-		/// Gets/sets the <see cref="dot10.dotNET.Hi.CallingConvention"/>
+		/// Returns true if <see cref="CallingConvention.Default"/> is set
 		/// </summary>
-		public CallingConvention CallingConvention {
-			get { return callingConvention; }
+		public bool IsDefault {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Default; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.C"/> is set
+		/// </summary>
+		public bool IsC {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.C; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.StdCall"/> is set
+		/// </summary>
+		public bool IsStdCall {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.StdCall; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.ThisCall"/> is set
+		/// </summary>
+		public bool IsThisCall {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.ThisCall; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.FastCall"/> is set
+		/// </summary>
+		public bool IsFastCall {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.FastCall; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.VarArg"/> is set
+		/// </summary>
+		public bool IsVarArg {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.VarArg; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.Field"/> is set
+		/// </summary>
+		public bool IsField {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Field; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.LocalSig"/> is set
+		/// </summary>
+		public bool IsLocalSig {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.LocalSig; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.Property"/> is set
+		/// </summary>
+		public bool IsProperty {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Property; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.Unmanaged"/> is set
+		/// </summary>
+		public bool IsUnmanaged {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Unmanaged; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.GenericInst"/> is set
+		/// </summary>
+		public bool IsGenericInst {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.GenericInst; }
+		}
+
+		/// <summary>
+		/// Returns true if <see cref="CallingConvention.NativeVarArg"/> is set
+		/// </summary>
+		public bool IsNativeVarArg {
+			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.NativeVarArg; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="CallingConvention.Generic"/> bit
+		/// </summary>
+		public bool Generic {
+			get { return (callingConvention & CallingConvention.Generic) != 0; }
 			set {
-				callingConvention = (callingConvention & CallingConvention.Mask) | (value & ~CallingConvention.Mask);
+				if (value)
+					callingConvention |= CallingConvention.Generic;
+				else
+					callingConvention &= ~CallingConvention.Generic;
 			}
 		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="CallingConvention.HasThis"/> bit
+		/// </summary>
+		public bool HasThis {
+			get { return (callingConvention & CallingConvention.HasThis) != 0; }
+			set {
+				if (value)
+					callingConvention |= CallingConvention.HasThis;
+				else
+					callingConvention &= ~CallingConvention.HasThis;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="CallingConvention.ExplicitThis"/> bit
+		/// </summary>
+		public bool ExplicitThis {
+			get { return (callingConvention & CallingConvention.ExplicitThis) != 0; }
+			set {
+				if (value)
+					callingConvention |= CallingConvention.ExplicitThis;
+				else
+					callingConvention &= ~CallingConvention.ExplicitThis;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="CallingConvention.ReservedByCLR"/> bit
+		/// </summary>
+		public bool ReservedByCLR {
+			get { return (callingConvention & CallingConvention.ReservedByCLR) != 0; }
+			set {
+				if (value)
+					callingConvention |= CallingConvention.ReservedByCLR;
+				else
+					callingConvention &= ~CallingConvention.ReservedByCLR;
+			}
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		protected CallingConventionSig() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">The calling convention</param>
+		protected CallingConventionSig(CallingConvention callingConvention) {
+			this.callingConvention = callingConvention;
+		}
+	}
+
+	/// <summary>
+	/// A field signature
+	/// </summary>
+	public sealed class FieldSig : CallingConventionSig {
+		ITypeSig type;
 
 		/// <summary>
 		/// The field type
@@ -69,8 +218,7 @@ namespace dot10.dotNET.Hi {
 	/// <summary>
 	/// A method signature
 	/// </summary>
-	public class MethodSig : ISignature {
-		CallingConvention callingConvention;
+	public class MethodSig : CallingConventionSig {
 		ITypeSig retType;
 		IList<ITypeSig> parameters;
 		uint genParamCount;
@@ -104,13 +252,7 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		public uint GenParamCount {
 			get { return genParamCount; }
-			set {
-				genParamCount = value;
-				if (genParamCount == 0)
-					callingConvention &= ~CallingConvention.Generic;
-				else
-					callingConvention |= CallingConvention.Generic;
-			}
+			set { genParamCount = value; }
 		}
 
 		/// <summary>
@@ -321,6 +463,33 @@ namespace dot10.dotNET.Hi {
 		}
 
 		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public MethodSig() {
+			this.parameters = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention</param>
+		public MethodSig(CallingConvention callingConvention) {
+			this.callingConvention = callingConvention;
+			this.parameters = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention</param>
+		/// <param name="genParamCount">Number of generic parameters</param>
+		public MethodSig(CallingConvention callingConvention, uint genParamCount) {
+			this.callingConvention = callingConvention;
+			this.genParamCount = genParamCount;
+			this.parameters = new List<ITypeSig>();
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="callingConvention">Calling convention</param>
@@ -328,6 +497,7 @@ namespace dot10.dotNET.Hi {
 		/// <param name="retType">Return type</param>
 		public MethodSig(CallingConvention callingConvention, uint genParamCount, ITypeSig retType) {
 			this.callingConvention = callingConvention;
+			this.genParamCount = genParamCount;
 			this.retType = retType;
 			this.parameters = new List<ITypeSig>();
 		}
