@@ -201,9 +201,9 @@ namespace dot10.dotNET.Hi {
 		/// Constructor
 		/// </summary>
 		/// <param name="type">Field type</param>
-		/// <param name="callingConvention">The calling convention</param>
-		public FieldSig(ITypeSig type, CallingConvention callingConvention) {
-			this.callingConvention = CallingConvention.Field | (callingConvention & ~CallingConvention.Mask);
+		/// <param name="callingConvention">The calling convention (must have Field set)</param>
+		internal FieldSig(CallingConvention callingConvention, ITypeSig type) {
+			this.callingConvention = callingConvention;
 			this.type = type;
 		}
 

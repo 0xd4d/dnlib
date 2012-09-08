@@ -77,7 +77,7 @@ namespace dot10.dotNET.Hi {
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="FieldSig"/> instance</returns>
 		FieldSig ReadField(CallingConvention callingConvention) {
-			return new FieldSig(ReadType(), callingConvention);
+			return new FieldSig(callingConvention, ReadType());
 		}
 
 		/// <summary>
