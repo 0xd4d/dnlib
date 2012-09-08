@@ -132,5 +132,59 @@ namespace dot10.IO {
 					(reader.ReadByte() << 8) | reader.ReadByte());
 			return true;
 		}
+
+		/// <summary>
+		/// Reads a compressed <see cref="int"/> from the current position in <paramref name="reader"/>
+		/// </summary>
+		/// <param name="reader">The reader</param>
+		/// <param name="val">Decompressed value</param>
+		/// <returns><c>true</c> if successful, <c>false</c> on failure</returns>
+		public static bool ReadCompressedInt32(this IBinaryReader reader, out int val) {
+			var pos = reader.Position;
+			var len = reader.Length;
+			if (pos >= len) {
+				val = 0;
+				return false;
+			}
+
+			byte b = reader.ReadByte();
+			if ((b & 0x80) == 0) {
+				if ((b & 1) != 0)
+					val = -0x40 | (b >> 1);
+				else
+					val = b;
+				return true;
+			}
+
+			if ((b & 0xC0) == 0x80) {
+				if (pos + 1 < pos || pos + 1 >= len) {
+					val = 0;
+					return false;
+				}
+				uint tmp = (uint)(((b & 0x3F) << 8) | reader.ReadByte());
+				if ((tmp & 1) != 0)
+					val = -0x2000 | (int)(tmp >> 1);
+				else
+					val = (int)(tmp >> 1);
+				return true;
+			}
+
+			if ((b & 0xE0) == 0xC0) {
+				if (pos + 3 < pos || pos + 3 >= len) {
+					val = 0;
+					return false;
+				}
+				uint tmp = (uint)(((b & 0x1F) << 24) | (reader.ReadByte() << 16) |
+						(reader.ReadByte() << 8) | reader.ReadByte());
+				if ((tmp & 1) != 0)
+					val = -0x10000000 | (int)(tmp >> 1);
+				else
+					val = (int)(tmp >> 1);
+				return true;
+			}
+
+			val = 0;
+			return false;
+		}
 	}
 }
