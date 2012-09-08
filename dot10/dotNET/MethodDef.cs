@@ -76,7 +76,7 @@ namespace dot10.dotNET {
 		/// <summary>
 		/// From column Method.Signature
 		/// </summary>
-		public abstract ISignature Signature { get; set; }
+		public abstract CallingConventionSig Signature { get; set; }
 
 		/// <summary>
 		/// From column Method.ParamList
@@ -464,7 +464,7 @@ namespace dot10.dotNET {
 		MethodImplAttributes implFlags;
 		MethodAttributes flags;
 		UTF8String name;
-		ISignature signature;
+		CallingConventionSig signature;
 		IList<ParamDef> parameters = new List<ParamDef>();
 
 		/// <inheritdoc/>
@@ -492,7 +492,7 @@ namespace dot10.dotNET {
 		}
 
 		/// <inheritdoc/>
-		public override ISignature Signature {
+		public override CallingConventionSig Signature {
 			get { return signature; }
 			set { signature = value; }
 		}
@@ -621,7 +621,7 @@ namespace dot10.dotNET {
 		UserValue<MethodImplAttributes> implFlags;
 		UserValue<MethodAttributes> flags;
 		UserValue<UTF8String> name;
-		UserValue<ISignature> signature;
+		UserValue<CallingConventionSig> signature;
 		LazyList<ParamDef> parameters;
 
 		/// <inheritdoc/>
@@ -649,7 +649,7 @@ namespace dot10.dotNET {
 		}
 
 		/// <inheritdoc/>
-		public override ISignature Signature {
+		public override CallingConventionSig Signature {
 			get { return signature.Value; }
 			set { signature.Value = value; }
 		}

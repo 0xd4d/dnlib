@@ -18,7 +18,7 @@ namespace dot10.dotNET {
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
-		public static ISignature ReadSig(ModuleDefMD readerModule, uint sig) {
+		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
 				var reader = new SignatureReader(readerModule, sig);
 				if (reader.failedReadingLength)
@@ -64,7 +64,7 @@ namespace dot10.dotNET {
 		/// Reads the signature
 		/// </summary>
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
-		ISignature ReadSig() {
+		CallingConventionSig ReadSig() {
 			var callingConvention = (CallingConvention)reader.ReadByte();
 			switch (callingConvention & CallingConvention.Mask) {
 			case CallingConvention.Default:

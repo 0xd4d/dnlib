@@ -1167,8 +1167,8 @@ namespace dot10.dotNET {
 		/// Reads a signature from the #Blob stream
 		/// </summary>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="ISignature"/> instance</returns>
-		public ISignature ReadSignature(uint sig) {
+		/// <returns>A new <see cref="CallingConventionSig"/> instance</returns>
+		public CallingConventionSig ReadSignature(uint sig) {
 			return SignatureReader.ReadSig(this, sig);
 		}
 

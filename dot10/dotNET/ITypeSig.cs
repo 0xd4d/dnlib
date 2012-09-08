@@ -372,12 +372,12 @@ namespace dot10.dotNET {
 	/// Represents a <see cref="ElementType.FnPtr"/>
 	/// </summary>
 	public sealed class FnPtrSig : LeafSig {
-		readonly ISignature signature;
+		readonly CallingConventionSig signature;
 
 		/// <summary>
 		/// Gets the signature
 		/// </summary>
-		public ISignature Signature {
+		public CallingConventionSig Signature {
 			get { return signature; }
 		}
 
@@ -392,7 +392,7 @@ namespace dot10.dotNET {
 		/// Constructor
 		/// </summary>
 		/// <param name="signature">The method signature</param>
-		public FnPtrSig(ISignature signature) {
+		public FnPtrSig(CallingConventionSig signature) {
 			this.signature = signature;
 		}
 

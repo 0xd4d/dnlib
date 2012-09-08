@@ -49,7 +49,7 @@ namespace dot10.dotNET {
 		/// <summary>
 		/// From column Field.Signature
 		/// </summary>
-		public abstract ISignature Signature { get; set; }
+		public abstract CallingConventionSig Signature { get; set; }
 
 		/// <summary>
 		/// Gets/sets the <see cref="FieldSig"/>
@@ -271,7 +271,7 @@ namespace dot10.dotNET {
 	public class FieldDefUser : FieldDef {
 		FieldAttributes flags;
 		UTF8String name;
-		ISignature signature;
+		CallingConventionSig signature;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -286,7 +286,7 @@ namespace dot10.dotNET {
 		}
 
 		/// <inheritdoc/>
-		public override ISignature Signature {
+		public override CallingConventionSig Signature {
 			get { return signature; }
 			set { signature = value; }
 		}
@@ -365,7 +365,7 @@ namespace dot10.dotNET {
 
 		UserValue<FieldAttributes> flags;
 		UserValue<UTF8String> name;
-		UserValue<ISignature> signature;
+		UserValue<CallingConventionSig> signature;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -380,7 +380,7 @@ namespace dot10.dotNET {
 		}
 
 		/// <inheritdoc/>
-		public override ISignature Signature {
+		public override CallingConventionSig Signature {
 			get { return signature.Value; }
 			set { signature.Value = value; }
 		}
