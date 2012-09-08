@@ -14,7 +14,7 @@ namespace dot10.dotNET.Hi {
 		/// <returns>An assembly name string</returns>
 		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey) {
 			var sb = new StringBuilder();
-			sb.Append(UTF8String.IsNullOrEmpty(name) ? "" : name.String);
+			sb.Append(UTF8String.IsNullOrEmpty(name) ? "" : FullNameHelper.GetReflectionName(name.String));
 
 			if (version != null) {
 				sb.Append(", Version=");
@@ -23,7 +23,7 @@ namespace dot10.dotNET.Hi {
 
 			if ((object)culture != null) {
 				sb.Append(", Culture=");
-				sb.Append(UTF8String.IsNullOrEmpty(culture) ? "neutral" : culture.String);
+				sb.Append(UTF8String.IsNullOrEmpty(culture) ? "neutral" : FullNameHelper.GetReflectionName(culture.String));
 			}
 
 			sb.Append(", ");
