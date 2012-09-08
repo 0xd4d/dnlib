@@ -104,6 +104,291 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		public abstract IList<MethodDef> Methods { get; }
 
+		/// <summary>
+		/// Gets/sets the visibility
+		/// </summary>
+		public TypeAttributes Visibility {
+			get { return Flags & TypeAttributes.VisibilityMask; }
+			set { Flags = (Flags & ~TypeAttributes.VisibilityMask) | (value & TypeAttributes.VisibilityMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.NotPublic"/> is set
+		/// </summary>
+		public bool IsNotPublic {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.Public"/> is set
+		/// </summary>
+		public bool IsPublic {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.Public; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.NestedPublic"/> is set
+		/// </summary>
+		public bool IsNestedPublic {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPublic; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.NestedPrivate"/> is set
+		/// </summary>
+		public bool IsNestedPrivate {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPrivate; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.NestedFamily"/> is set
+		/// </summary>
+		public bool IsNestedFamily {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamily; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.NestedAssembly"/> is set
+		/// </summary>
+		public bool IsNestedAssembly {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedAssembly; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.NestedFamANDAssem"/> is set
+		/// </summary>
+		public bool IsNestedFamANDAssem {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamANDAssem; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.NestedFamORAssem"/> is set
+		/// </summary>
+		public bool IsNestedFamORAssem {
+			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamORAssem; }
+		}
+
+		/// <summary>
+		/// Gets/sets the layout
+		/// </summary>
+		public TypeAttributes Layout {
+			get { return Flags & TypeAttributes.LayoutMask; }
+			set { Flags = (Flags & ~TypeAttributes.LayoutMask) | (value & TypeAttributes.LayoutMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.AutoLayout"/> is set
+		/// </summary>
+		public bool IsAutoLayout {
+			get { return (Flags & TypeAttributes.LayoutMask) == TypeAttributes.AutoLayout; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.SequentialLayout"/> is set
+		/// </summary>
+		public bool IsSequentialLayout {
+			get { return (Flags & TypeAttributes.LayoutMask) == TypeAttributes.SequentialLayout; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.ExplicitLayout"/> is set
+		/// </summary>
+		public bool IsExplicitLayout {
+			get { return (Flags & TypeAttributes.LayoutMask) == TypeAttributes.ExplicitLayout; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.Interface"/> bit
+		/// </summary>
+		public bool IsInterface {
+			get { return (Flags & TypeAttributes.Interface) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.Interface;
+				else
+					Flags &= ~TypeAttributes.Interface;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.Class"/> bit
+		/// </summary>
+		public bool IsClass {
+			get { return (Flags & TypeAttributes.Interface) == 0; }
+			set {
+				if (value)
+					Flags &= ~TypeAttributes.Interface;
+				else
+					Flags |= TypeAttributes.Interface;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.Abstract"/> bit
+		/// </summary>
+		public bool IsAbstract {
+			get { return (Flags & TypeAttributes.Abstract) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.Abstract;
+				else
+					Flags &= ~TypeAttributes.Abstract;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.Sealed"/> bit
+		/// </summary>
+		public bool IsSealed {
+			get { return (Flags & TypeAttributes.Sealed) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.Sealed;
+				else
+					Flags &= ~TypeAttributes.Sealed;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.SpecialName"/> bit
+		/// </summary>
+		public bool IsSpecialName {
+			get { return (Flags & TypeAttributes.SpecialName) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.SpecialName;
+				else
+					Flags &= ~TypeAttributes.SpecialName;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.Import"/> bit
+		/// </summary>
+		public bool IsImport {
+			get { return (Flags & TypeAttributes.Import) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.Import;
+				else
+					Flags &= ~TypeAttributes.Import;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.Serializable"/> bit
+		/// </summary>
+		public bool IsSerializable {
+			get { return (Flags & TypeAttributes.Serializable) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.Serializable;
+				else
+					Flags &= ~TypeAttributes.Serializable;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.WindowsRuntime"/> bit
+		/// </summary>
+		public bool IsWindowsRuntime {
+			get { return (Flags & TypeAttributes.WindowsRuntime) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.WindowsRuntime;
+				else
+					Flags &= ~TypeAttributes.WindowsRuntime;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the string format
+		/// </summary>
+		public TypeAttributes StringFormat {
+			get { return Flags & TypeAttributes.StringFormatMask; }
+			set { Flags = (Flags & ~TypeAttributes.StringFormatMask) | (value & TypeAttributes.StringFormatMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.AnsiClass"/> is set
+		/// </summary>
+		public bool IsAnsiClass {
+			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.AnsiClass; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.UnicodeClass"/> is set
+		/// </summary>
+		public bool IsUnicodeClass {
+			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.UnicodeClass; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.AutoClass"/> is set
+		/// </summary>
+		public bool IsAutoClass {
+			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.AutoClass; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="TypeAttributes.CustomFormatClass"/> is set
+		/// </summary>
+		public bool IsCustomFormatClass {
+			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.CustomFormatClass; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.BeforeFieldInit"/> bit
+		/// </summary>
+		public bool IsBeforeFieldInit {
+			get { return (Flags & TypeAttributes.BeforeFieldInit) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.BeforeFieldInit;
+				else
+					Flags &= ~TypeAttributes.BeforeFieldInit;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.Forwarder"/> bit
+		/// </summary>
+		public bool IsForwarder {
+			get { return (Flags & TypeAttributes.Forwarder) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.Forwarder;
+				else
+					Flags &= ~TypeAttributes.Forwarder;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.RTSpecialName"/> bit
+		/// </summary>
+		public bool IsRTSpecialName {
+			get { return (Flags & TypeAttributes.RTSpecialName) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.RTSpecialName;
+				else
+					Flags &= ~TypeAttributes.RTSpecialName;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TypeAttributes.HasSecurity"/> bit
+		/// </summary>
+		public bool HasSecurity {
+			get { return (Flags & TypeAttributes.HasSecurity) != 0; }
+			set {
+				if (value)
+					Flags |= TypeAttributes.HasSecurity;
+				else
+					Flags &= ~TypeAttributes.HasSecurity;
+			}
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
