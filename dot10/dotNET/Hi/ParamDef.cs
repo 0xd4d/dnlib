@@ -47,6 +47,71 @@ namespace dot10.dotNET.Hi {
 		/// From column Param.Name
 		/// </summary>
 		public abstract UTF8String Name { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="ParamAttributes.In"/> bit
+		/// </summary>
+		public bool IsIn {
+			get { return (Flags & ParamAttributes.In) != 0; }
+			set {
+				if (value)
+					Flags |= ParamAttributes.In;
+				else
+					Flags &= ~ParamAttributes.In;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ParamAttributes.Out"/> bit
+		/// </summary>
+		public bool IsOut {
+			get { return (Flags & ParamAttributes.Out) != 0; }
+			set {
+				if (value)
+					Flags |= ParamAttributes.Out;
+				else
+					Flags &= ~ParamAttributes.Out;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ParamAttributes.Optional"/> bit
+		/// </summary>
+		public bool IsOptional {
+			get { return (Flags & ParamAttributes.Optional) != 0; }
+			set {
+				if (value)
+					Flags |= ParamAttributes.Optional;
+				else
+					Flags &= ~ParamAttributes.Optional;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ParamAttributes.HasDefault"/> bit
+		/// </summary>
+		public bool HasDefault {
+			get { return (Flags & ParamAttributes.HasDefault) != 0; }
+			set {
+				if (value)
+					Flags |= ParamAttributes.HasDefault;
+				else
+					Flags &= ~ParamAttributes.HasDefault;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ParamAttributes.HasFieldMarshal"/> bit
+		/// </summary>
+		public bool HasFieldMarshal {
+			get { return (Flags & ParamAttributes.HasFieldMarshal) != 0; }
+			set {
+				if (value)
+					Flags |= ParamAttributes.HasFieldMarshal;
+				else
+					Flags &= ~ParamAttributes.HasFieldMarshal;
+			}
+		}
 	}
 
 	/// <summary>
