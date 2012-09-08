@@ -318,9 +318,9 @@
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Pinned"/>
+	/// Represents a <see cref="ElementType.Sentinel"/>
 	/// </summary>
-	public sealed class PinnedSig : LeafSig {
+	public sealed class SentinelSig : LeafSig {
 		/// <inheritdoc/>
 		public override string Name {
 			get { return string.Empty; }
@@ -694,14 +694,14 @@
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Sentinel"/>
+	/// Represents a <see cref="ElementType.Pinned"/>
 	/// </summary>
-	public sealed class SentinelSig : NonLeafSig {
+	public sealed class PinnedSig : NonLeafSig {
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
-		public SentinelSig(ITypeSig nextSig)
+		public PinnedSig(ITypeSig nextSig)
 			: base(nextSig) {
 		}
 	}
