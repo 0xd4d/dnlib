@@ -683,6 +683,7 @@ namespace dot10.dotNET.Hi {
 		/// <param name="callingConvention">Calling convention (must have Property set)</param>
 		internal PropertySig(CallingConvention callingConvention) {
 			this.callingConvention = callingConvention;
+			this.parameters = new List<ITypeSig>();
 		}
 
 		/// <summary>
@@ -754,6 +755,86 @@ namespace dot10.dotNET.Hi {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
 			this.parameters = new List<ITypeSig>(argTypes);
+		}
+	}
+
+	/// <summary>
+	/// A local variables signature
+	/// </summary>
+	public sealed class LocalVarSig : CallingConventionSig {
+		readonly IList<ITypeSig> locals;
+
+		/// <summary>
+		/// All local types. This is never <c>null</c>.
+		/// </summary>
+		public IList<ITypeSig> Locals {
+			get { return locals; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public LocalVarSig() {
+			this.callingConvention = CallingConvention.LocalSig;
+			this.locals = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention (must have LocalSig set)</param>
+		/// <param name="count">Number of locals</param>
+		internal LocalVarSig(CallingConvention callingConvention, uint count) {
+			this.callingConvention = callingConvention;
+			this.locals = new List<ITypeSig>((int)count);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="local1">Local type #1</param>
+		public LocalVarSig(ITypeSig local1) {
+			this.callingConvention = CallingConvention.LocalSig;
+			this.locals = new List<ITypeSig> { local1 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="local1">Local type #1</param>
+		/// <param name="local2">Local type #2</param>
+		public LocalVarSig(ITypeSig local1, ITypeSig local2) {
+			this.callingConvention = CallingConvention.LocalSig;
+			this.locals = new List<ITypeSig> { local1, local2 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="local1">Local type #1</param>
+		/// <param name="local2">Local type #2</param>
+		/// <param name="local3">Local type #3</param>
+		public LocalVarSig(ITypeSig local1, ITypeSig local2, ITypeSig local3) {
+			this.callingConvention = CallingConvention.LocalSig;
+			this.locals = new List<ITypeSig> { local1, local2, local3 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="locals">All locals</param>
+		public LocalVarSig(params ITypeSig[] locals) {
+			this.callingConvention = CallingConvention.LocalSig;
+			this.locals = new List<ITypeSig>(locals);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="locals">All locals</param>
+		public LocalVarSig(IList<ITypeSig> locals) {
+			this.callingConvention = CallingConvention.LocalSig;
+			this.locals = new List<ITypeSig>(locals);
 		}
 	}
 }
