@@ -329,6 +329,131 @@ namespace dot10.dotNET.Hi {
 					Flags &= ~MethodAttributes.RequireSecObject;
 			}
 		}
+
+		/// <summary>
+		/// Gets/sets the code type
+		/// </summary>
+		public MethodImplAttributes CodeType {
+			get { return ImplFlags & MethodImplAttributes.CodeTypeMask; }
+			set { ImplFlags = (ImplFlags & ~MethodImplAttributes.CodeTypeMask) | (value & MethodImplAttributes.CodeTypeMask); }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.Unmanaged"/> bit
+		/// </summary>
+		public bool IsUnmanaged {
+			get { return (ImplFlags & MethodImplAttributes.Unmanaged) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.Unmanaged;
+				else
+					ImplFlags &= ~MethodImplAttributes.Unmanaged;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.Managed"/> bit
+		/// </summary>
+		public bool IsManaged {
+			get { return (ImplFlags & MethodImplAttributes.Unmanaged) == 0; }
+			set {
+				if (value)
+					ImplFlags &= ~MethodImplAttributes.Unmanaged;
+				else
+					ImplFlags |= MethodImplAttributes.Unmanaged;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.ForwardRef"/> bit
+		/// </summary>
+		public bool IsForwardRef {
+			get { return (ImplFlags & MethodImplAttributes.ForwardRef) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.ForwardRef;
+				else
+					ImplFlags &= ~MethodImplAttributes.ForwardRef;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.PreserveSig"/> bit
+		/// </summary>
+		public bool IsPreserveSig {
+			get { return (ImplFlags & MethodImplAttributes.PreserveSig) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.PreserveSig;
+				else
+					ImplFlags &= ~MethodImplAttributes.PreserveSig;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.InternalCall"/> bit
+		/// </summary>
+		public bool IsInternalCall {
+			get { return (ImplFlags & MethodImplAttributes.InternalCall) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.InternalCall;
+				else
+					ImplFlags &= ~MethodImplAttributes.InternalCall;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.Synchronized"/> bit
+		/// </summary>
+		public bool IsSynchronized {
+			get { return (ImplFlags & MethodImplAttributes.Synchronized) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.Synchronized;
+				else
+					ImplFlags &= ~MethodImplAttributes.Synchronized;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.NoInlining"/> bit
+		/// </summary>
+		public bool IsNoInlining {
+			get { return (ImplFlags & MethodImplAttributes.NoInlining) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.NoInlining;
+				else
+					ImplFlags &= ~MethodImplAttributes.NoInlining;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.AggressiveInlining"/> bit
+		/// </summary>
+		public bool IsAggressiveInlining {
+			get { return (ImplFlags & MethodImplAttributes.AggressiveInlining) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.AggressiveInlining;
+				else
+					ImplFlags &= ~MethodImplAttributes.AggressiveInlining;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.NoOptimization"/> bit
+		/// </summary>
+		public bool IsNoOptimization {
+			get { return (ImplFlags & MethodImplAttributes.NoOptimization) != 0; }
+			set {
+				if (value)
+					ImplFlags |= MethodImplAttributes.NoOptimization;
+				else
+					ImplFlags &= ~MethodImplAttributes.NoOptimization;
+			}
+		}
 	}
 
 	/// <summary>
