@@ -31,7 +31,7 @@ namespace dot10.dotNET {
 
 	/// <summary>
 	/// Base class for element types that are last in a type sig, ie.,
-	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="PinnedSig"/>,
+	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="SentinelSig"/>,
 	/// <see cref="FnPtrSig"/>, <see cref="GenericInstSig"/>
 	/// </summary>
 	public abstract class LeafSig : ITypeSig {
