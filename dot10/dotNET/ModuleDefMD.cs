@@ -588,7 +588,7 @@ namespace dot10.dotNET {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		TypeSpecMD ReadTypeSpec(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new TypeSpecMD(this, rid);
 		}
 
 		/// <summary>
@@ -1170,6 +1170,15 @@ namespace dot10.dotNET {
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
 		public ISignature ReadSignature(uint sig) {
 			return SignatureReader.ReadSig(this, sig);
+		}
+
+		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
+		public ITypeSig ReadTypeSignature(uint sig) {
+			return SignatureReader.ReadType(this, sig);
 		}
 	}
 }
