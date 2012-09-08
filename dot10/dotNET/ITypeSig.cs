@@ -674,12 +674,66 @@ namespace dot10.dotNET {
 	/// </summary>
 	/// <seealso cref="SZArraySig"/>
 	public sealed class ArraySig : NonLeafSig {
+		uint rank;
+		readonly IList<uint> sizes;
+		readonly IList<int> lowerBounds;
+
+		/// <summary>
+		/// Gets/sets the rank (max value is 0x1FFFFFFF)
+		/// </summary>
+		public uint Rank {
+			get { return rank; }
+			set { rank = value; }
+		}
+
+		/// <summary>
+		/// Gets all sizes (max elements is 0x1FFFFFFF)
+		/// </summary>
+		public IList<uint> Sizes {
+			get { return sizes; }
+		}
+
+		/// <summary>
+		/// Gets all lower bounds (max elements is 0x1FFFFFFF)
+		/// </summary>
+		public IList<int> LowerBounds {
+			get { return lowerBounds; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="nextSig">The next element type</param>
-		public ArraySig(ITypeSig nextSig)
-			: base(nextSig) {
+		/// <param name="arrayType">Array type</param>
+		public ArraySig(ITypeSig arrayType)
+			: base(arrayType) {
+			this.sizes = new List<uint>();
+			this.lowerBounds = new List<int>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arrayType">Array type</param>
+		/// <param name="rank">Array rank</param>
+		public ArraySig(ITypeSig arrayType, uint rank)
+			: base(arrayType) {
+			this.rank = rank;
+			this.sizes = new List<uint>();
+			this.lowerBounds = new List<int>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arrayType">Array type</param>
+		/// <param name="rank">Array rank</param>
+		/// <param name="sizes">Sizes list. <c>This instance will be the owner of this list.</c></param>
+		/// <param name="lowerBounds">Lower bounds list. <c>This instance will be the owner of this list.</c></param>
+		internal ArraySig(ITypeSig arrayType, uint rank, List<uint> sizes, List<int> lowerBounds)
+			: base(arrayType) {
+			this.rank = rank;
+			this.sizes = sizes;
+			this.lowerBounds = lowerBounds;
 		}
 
 		/// <inheritdoc/>

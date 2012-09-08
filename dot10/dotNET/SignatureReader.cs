@@ -251,6 +251,30 @@ namespace dot10.dotNET {
 				return genericInstSig;
 
 			case ElementType.Array:
+				nextType = ReadType();
+				uint rank;
+				if (!reader.ReadCompressedUInt32(out rank))
+					return null;
+				if (!reader.ReadCompressedUInt32(out num))
+					return null;
+				var sizes = new List<uint>((int)num);
+				for (uint i = 0; i < num; i++) {
+					uint size;
+					if (!reader.ReadCompressedUInt32(out size))
+						return null;
+					sizes.Add(size);
+				}
+				if (!reader.ReadCompressedUInt32(out num))
+					return null;
+				var lowerBounds = new List<int>((int)num);
+				for (uint i = 0; i < num; i++) {
+					int size;
+					if (!reader.ReadCompressedInt32(out size))
+						return null;
+					lowerBounds.Add(size);
+				}
+				return new ArraySig(nextType, rank, sizes, lowerBounds);
+
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
