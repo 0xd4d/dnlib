@@ -8,7 +8,7 @@ namespace dot10.dotNET.Hi {
 	/// </summary>
 	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
 	public enum CallingConvention : byte {
-		/// <summary></summary>
+		/// <summary>The managed calling convention</summary>
 		Default			= 0x0,
 		/// <summary></summary>
 		C				= 0x1,
