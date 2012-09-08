@@ -432,7 +432,7 @@ namespace dot10.dotNET {
 	/// </summary>
 	public sealed class GenericInstSig : LeafSig {
 		ClassOrValueTypeSig genericType;
-		readonly IList<ITypeSig> genericArgs;
+		readonly List<ITypeSig> genericArgs;
 
 		/// <summary>
 		/// Gets the generic type
@@ -443,10 +443,15 @@ namespace dot10.dotNET {
 		}
 
 		/// <summary>
-		/// Gets the generic arguments (never <c>null</c>)
+		/// Gets/sets the generic arguments (it's never <c>null</c>)
 		/// </summary>
 		public IList<ITypeSig> GenericArguments {
 			get { return genericArgs; }
+			set {
+				genericArgs.Clear();
+				if (value != null)
+					genericArgs.AddRange(value);
+			}
 		}
 
 		/// <summary>
@@ -473,6 +478,59 @@ namespace dot10.dotNET {
 		public GenericInstSig(ClassOrValueTypeSig genericType, uint genArgCount) {
 			this.genericType = genericType;
 			this.genericArgs = new List<ITypeSig>((int)genArgCount);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		/// <param name="genArg1">Generic argument #1</param>
+		public GenericInstSig(ClassOrValueTypeSig genericType, ITypeSig genArg1) {
+			this.genericType = genericType;
+			this.genericArgs = new List<ITypeSig> { genArg1 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		/// <param name="genArg1">Generic argument #1</param>
+		/// <param name="genArg2">Generic argument #2</param>
+		public GenericInstSig(ClassOrValueTypeSig genericType, ITypeSig genArg1, ITypeSig genArg2) {
+			this.genericType = genericType;
+			this.genericArgs = new List<ITypeSig> { genArg1, genArg2 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		/// <param name="genArg1">Generic argument #1</param>
+		/// <param name="genArg2">Generic argument #2</param>
+		/// <param name="genArg3">Generic argument #3</param>
+		public GenericInstSig(ClassOrValueTypeSig genericType, ITypeSig genArg1, ITypeSig genArg2, ITypeSig genArg3) {
+			this.genericType = genericType;
+			this.genericArgs = new List<ITypeSig> { genArg1, genArg2, genArg3 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		/// <param name="genArgs">Generic arguments</param>
+		public GenericInstSig(ClassOrValueTypeSig genericType, params ITypeSig[] genArgs) {
+			this.genericType = genericType;
+			this.genericArgs = new List<ITypeSig>(genArgs);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		/// <param name="genArgs">Generic arguments</param>
+		public GenericInstSig(ClassOrValueTypeSig genericType, IList<ITypeSig> genArgs) {
+			this.genericType = genericType;
+			this.genericArgs = new List<ITypeSig>(genArgs);
 		}
 
 		/// <inheritdoc/>
@@ -855,6 +913,14 @@ namespace dot10.dotNET {
 		uint size;
 
 		/// <summary>
+		/// Gets/sets the size
+		/// </summary>
+		public uint Size {
+			get { return size; }
+			set { size = value; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
@@ -894,6 +960,14 @@ namespace dot10.dotNET {
 	/// </summary>
 	public sealed class ModuleSig : NonLeafSig {
 		uint index;
+
+		/// <summary>
+		/// Gets/sets the index
+		/// </summary>
+		public uint Index {
+			get { return index; }
+			set { index = value; }
+		}
 
 		/// <summary>
 		/// Constructor
