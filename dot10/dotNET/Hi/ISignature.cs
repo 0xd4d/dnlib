@@ -216,13 +216,17 @@ namespace dot10.dotNET.Hi {
 	}
 
 	/// <summary>
-	/// A method signature
+	/// Method sig base class
 	/// </summary>
-	public class MethodSig : CallingConventionSig {
-		ITypeSig retType;
-		IList<ITypeSig> parameters;
-		uint genParamCount;
-		IList<ITypeSig> paramsAfterSentinel;
+	public abstract class MethodBaseSig : CallingConventionSig {
+		/// <summary></summary>
+		protected ITypeSig retType;
+		/// <summary></summary>
+		protected IList<ITypeSig> parameters;
+		/// <summary></summary>
+		protected uint genParamCount;
+		/// <summary></summary>
+		protected IList<ITypeSig> paramsAfterSentinel;
 
 		/// <summary>
 		/// Gets/sets the calling convention
@@ -263,7 +267,12 @@ namespace dot10.dotNET.Hi {
 			get { return paramsAfterSentinel; }
 			set { paramsAfterSentinel = value; }
 		}
+	}
 
+	/// <summary>
+	/// A method signature
+	/// </summary>
+	public sealed class MethodSig : MethodBaseSig {
 		/// <summary>
 		/// Creates a static MethodSig
 		/// </summary>
@@ -557,6 +566,192 @@ namespace dot10.dotNET.Hi {
 		public MethodSig(CallingConvention callingConvention, uint genParamCount, ITypeSig retType, params ITypeSig[] argTypes) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
+			this.retType = retType;
+			this.parameters = new List<ITypeSig>(argTypes);
+		}
+	}
+
+	/// <summary>
+	/// A property signature
+	/// </summary>
+	public sealed class PropertySig : MethodBaseSig {
+		/// <summary>
+		/// Creates a static PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		public static PropertySig CreateStatic(ITypeSig retType) {
+			return new PropertySig(false, retType);
+		}
+
+		/// <summary>
+		/// Creates a static PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		public static PropertySig CreateStatic(ITypeSig retType, ITypeSig argType1) {
+			return new PropertySig(false, retType, argType1);
+		}
+
+		/// <summary>
+		/// Creates a static PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		/// <param name="argType2">Arg type #2</param>
+		public static PropertySig CreateStatic(ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+			return new PropertySig(false, retType, argType1, argType2);
+		}
+
+		/// <summary>
+		/// Creates a static PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		/// <param name="argType2">Arg type #2</param>
+		/// <param name="argType3">Arg type #3</param>
+		public static PropertySig CreateStatic(ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+			return new PropertySig(false, retType, argType1, argType2, argType3);
+		}
+
+		/// <summary>
+		/// Creates a static PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argTypes">Argument types</param>
+		public static PropertySig CreateStatic(ITypeSig retType, params ITypeSig[] argTypes) {
+			return new PropertySig(false, retType, argTypes);
+		}
+
+		/// <summary>
+		/// Creates an instance PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		public static PropertySig CreateInstance(ITypeSig retType) {
+			return new PropertySig(true, retType);
+		}
+
+		/// <summary>
+		/// Creates an instance PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		public static PropertySig CreateInstance(ITypeSig retType, ITypeSig argType1) {
+			return new PropertySig(true, retType, argType1);
+		}
+
+		/// <summary>
+		/// Creates an instance PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		/// <param name="argType2">Arg type #2</param>
+		public static PropertySig CreateInstance(ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+			return new PropertySig(true, retType, argType1, argType2);
+		}
+
+		/// <summary>
+		/// Creates an instance PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		/// <param name="argType2">Arg type #2</param>
+		/// <param name="argType3">Arg type #3</param>
+		public static PropertySig CreateInstance(ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+			return new PropertySig(true, retType, argType1, argType2, argType3);
+		}
+
+		/// <summary>
+		/// Creates an instance PropertySig
+		/// </summary>
+		/// <param name="retType">Return type</param>
+		/// <param name="argTypes">Argument types</param>
+		public static PropertySig CreateInstance(ITypeSig retType, params ITypeSig[] argTypes) {
+			return new PropertySig(true, retType, argTypes);
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public PropertySig() {
+			this.callingConvention = CallingConvention.Property;
+			this.parameters = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention (must have Property set)</param>
+		internal PropertySig(CallingConvention callingConvention) {
+			this.callingConvention = callingConvention;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
+		public PropertySig(bool hasThis) {
+			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
+			this.parameters = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
+		/// <param name="retType">Return type</param>
+		public PropertySig(bool hasThis, ITypeSig retType) {
+			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
+			this.retType = retType;
+			this.parameters = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		public PropertySig(bool hasThis, ITypeSig retType, ITypeSig argType1) {
+			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
+			this.retType = retType;
+			this.parameters = new List<ITypeSig> { argType1 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		/// <param name="argType2">Arg type #2</param>
+		public PropertySig(bool hasThis, ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
+			this.retType = retType;
+			this.parameters = new List<ITypeSig> { argType1, argType2 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
+		/// <param name="retType">Return type</param>
+		/// <param name="argType1">Arg type #1</param>
+		/// <param name="argType2">Arg type #2</param>
+		/// <param name="argType3">Arg type #3</param>
+		public PropertySig(bool hasThis, ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
+			this.retType = retType;
+			this.parameters = new List<ITypeSig> { argType1, argType2, argType3 };
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
+		/// <param name="retType">Return type</param>
+		/// <param name="argTypes">Argument types</param>
+		public PropertySig(bool hasThis, ITypeSig retType, params ITypeSig[] argTypes) {
+			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
 			this.parameters = new List<ITypeSig>(argTypes);
 		}
