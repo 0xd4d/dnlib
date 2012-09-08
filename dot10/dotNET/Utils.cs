@@ -27,8 +27,8 @@ namespace dot10.dotNET {
 			}
 
 			sb.Append(", ");
-			sb.Append(publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
-			sb.Append(publicKey.ToString());
+			sb.Append(publicKey == null || publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
+			sb.Append(publicKey == null ? "null" : publicKey.ToString());
 
 			return sb.ToString();
 		}
