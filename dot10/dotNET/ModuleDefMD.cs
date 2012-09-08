@@ -1178,7 +1178,7 @@ namespace dot10.dotNET {
 		/// <param name="sig">#Blob stream offset of signature</param>
 		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
 		public ITypeSig ReadTypeSignature(uint sig) {
-			return SignatureReader.ReadType(this, sig);
+			return SignatureReader.ReadTypeSig(this, sig);
 		}
 	}
 }

@@ -10,6 +10,7 @@ namespace dot10.dotNET {
 		ModuleDefMD readerModule;
 		IImageStream reader;
 		uint sigLen;
+		bool failedReadingLength;
 
 		/// <summary>
 		/// Reads a signature from the #Blob stream
@@ -19,7 +20,10 @@ namespace dot10.dotNET {
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
 		public static ISignature ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
-				return new SignatureReader(readerModule, sig).ReadSig();
+				var reader = new SignatureReader(readerModule, sig);
+				if (reader.failedReadingLength)
+					return null;
+				return reader.ReadSig();
 			}
 			catch {
 				return null;
@@ -32,9 +36,12 @@ namespace dot10.dotNET {
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
 		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
-		public static ITypeSig ReadType(ModuleDefMD readerModule, uint sig) {
+		public static ITypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig) {
 			try {
-				return new SignatureReader(readerModule, sig).ReadType();
+				var reader = new SignatureReader(readerModule, sig);
+				if (reader.failedReadingLength)
+					return null;
+				return reader.ReadType();
 			}
 			catch {
 				return null;
@@ -50,6 +57,7 @@ namespace dot10.dotNET {
 			this.readerModule = readerModule;
 			this.reader = readerModule.BlobStream.ImageStream;
 			this.reader.Position = sig;
+			failedReadingLength = !reader.ReadCompressedUInt32(out sigLen);
 		}
 
 		/// <summary>
@@ -57,8 +65,6 @@ namespace dot10.dotNET {
 		/// </summary>
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
 		ISignature ReadSig() {
-			if (!reader.ReadCompressedUInt32(out sigLen))
-				return null;
 			var callingConvention = (CallingConvention)reader.ReadByte();
 			switch (callingConvention & CallingConvention.Mask) {
 			case CallingConvention.Default:
