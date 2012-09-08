@@ -29,11 +29,13 @@
 
 	/// <summary>
 	/// Base class for element types that are last in a type sig, ie.,
-	/// <see cref="TypeDefOrRefSig"/> and <see cref="GenericSig"/>
+	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="PinnedSig"/>
 	/// </summary>
 	public abstract class LeafSig : ITypeSig {
 		/// <inheritdoc/>
-		public abstract ITypeSig Next { get; }
+		public ITypeSig Next {
+			get { return null; }
+		}
 
 		/// <inheritdoc/>
 		public abstract string Name { get; }
@@ -160,11 +162,6 @@
 					return nullName;
 				return typeDefOrRef.ReflectionFullName;
 			}
-		}
-
-		/// <inheritdoc/>
-		public override ITypeSig Next {
-			get { return null; }
 		}
 
 		/// <summary>
@@ -295,11 +292,6 @@
 			get { return GetName(); }
 		}
 
-		/// <inheritdoc/>
-		public override ITypeSig Next {
-			get { return null; }
-		}
-
 		string GetName() {
 			return string.Format("{0}{1}", isTypeVar ? "!" : "!!", number);
 		}
@@ -322,6 +314,41 @@
 		/// <inheritdoc/>
 		public GenericMVar(uint number)
 			: base(false, number) {
+		}
+	}
+
+	/// <summary>
+	/// Represents a <see cref="ElementType.Pinned"/>
+	/// </summary>
+	public sealed class PinnedSig : LeafSig {
+		/// <inheritdoc/>
+		public override string Name {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionName {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string Namespace {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionNamespace {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string FullName {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionFullName {
+			get { return string.Empty; }
 		}
 	}
 
@@ -675,19 +702,6 @@
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
 		public SentinelSig(ITypeSig nextSig)
-			: base(nextSig) {
-		}
-	}
-
-	/// <summary>
-	/// Represents a <see cref="ElementType.Pinned"/>
-	/// </summary>
-	public sealed class PinnedSig : NonLeafSig {
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="nextSig">The next element type</param>
-		public PinnedSig(ITypeSig nextSig)
 			: base(nextSig) {
 		}
 	}
