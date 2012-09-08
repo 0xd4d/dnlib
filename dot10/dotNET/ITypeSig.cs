@@ -1,4 +1,6 @@
-﻿namespace dot10.dotNET {
+﻿using System.Collections.Generic;
+
+namespace dot10.dotNET {
 	/// <summary>
 	/// Interface to access a type signature
 	/// </summary>
@@ -30,7 +32,7 @@
 	/// <summary>
 	/// Base class for element types that are last in a type sig, ie.,
 	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="PinnedSig"/>,
-	/// <see cref="FnPtrSig"/>
+	/// <see cref="FnPtrSig"/>, <see cref="GenericInstSig"/>
 	/// </summary>
 	public abstract class LeafSig : ITypeSig {
 		/// <inheritdoc/>
@@ -65,7 +67,7 @@
 	/// <summary>
 	/// Wraps a <see cref="ITypeDefOrRef"/>
 	/// </summary>
-	public class TypeDefOrRefSig : LeafSig {
+	public abstract class TypeDefOrRefSig : LeafSig {
 		const string nullName = "<<<NULL>>>";
 		readonly ITypeDefOrRef typeDefOrRef;
 
@@ -170,7 +172,7 @@
 		/// </summary>
 		/// <param name="typeDefOrRef">A <see cref="TypeRef"/>, <see cref="TypeDef"/> or
 		/// a <see cref="TypeSpec"/></param>
-		public TypeDefOrRefSig(ITypeDefOrRef typeDefOrRef) {
+		protected TypeDefOrRefSig(ITypeDefOrRef typeDefOrRef) {
 			this.typeDefOrRef = typeDefOrRef;
 		}
 	}
@@ -200,9 +202,22 @@
 	}
 
 	/// <summary>
+	/// Base class for class/valuetype element types
+	/// </summary>
+	public abstract class ClassOrValueType : TypeDefOrRefSig {
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="typeDefOrRef">A <see cref="ITypeDefOrRef"/></param>
+		public ClassOrValueType(ITypeDefOrRef typeDefOrRef)
+			: base(typeDefOrRef) {
+		}
+	}
+
+	/// <summary>
 	/// Represents a <see cref="ElementType.ValueType"/>
 	/// </summary>
-	public sealed class ValueTypeSig : TypeDefOrRefSig {
+	public sealed class ValueTypeSig : ClassOrValueType {
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -215,7 +230,7 @@
 	/// <summary>
 	/// Represents a <see cref="ElementType.Class"/>
 	/// </summary>
-	public sealed class ClassSig : TypeDefOrRefSig {
+	public sealed class ClassSig : ClassOrValueType {
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -413,6 +428,85 @@
 	}
 
 	/// <summary>
+	/// Represents a <see cref="ElementType.GenericInst"/>
+	/// </summary>
+	public sealed class GenericInstSig : LeafSig {
+		ClassOrValueType genericType;
+		readonly IList<ITypeSig> genericArgs;
+
+		/// <summary>
+		/// Gets the generic type
+		/// </summary>
+		public ClassOrValueType GenericType {
+			get { return genericType; }
+			set { genericType = value; }
+		}
+
+		/// <summary>
+		/// Gets the generic arguments (never <c>null</c>)
+		/// </summary>
+		public IList<ITypeSig> GenericArguments {
+			get { return genericArgs; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public GenericInstSig() {
+			this.genericArgs = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		public GenericInstSig(ClassOrValueType genericType) {
+			this.genericType = genericType;
+			this.genericArgs = new List<ITypeSig>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		/// <param name="genArgCount">Number of generic arguments</param>
+		public GenericInstSig(ClassOrValueType genericType, uint genArgCount) {
+			this.genericType = genericType;
+			this.genericArgs = new List<ITypeSig>((int)genArgCount);
+		}
+
+		/// <inheritdoc/>
+		public override string Name {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionName {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public override string Namespace {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionNamespace {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public override string FullName {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionFullName {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+	}
+
+	/// <summary>
 	/// Base class of non-leaf element types
 	/// </summary>
 	public abstract class NonLeafSig : ITypeSig {
@@ -585,39 +679,6 @@
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
 		public ArraySig(ITypeSig nextSig)
-			: base(nextSig) {
-		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-	}
-
-	/// <summary>
-	/// Represents a <see cref="ElementType.GenericInst"/>
-	/// </summary>
-	public sealed class GenericInstSig : NonLeafSig {
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="nextSig">The next element type</param>
-		public GenericInstSig(ITypeSig nextSig)
 			: base(nextSig) {
 		}
 

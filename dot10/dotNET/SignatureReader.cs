@@ -166,6 +166,7 @@ namespace dot10.dotNET {
 		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
 		ITypeSig ReadType() {
 			uint num;
+			ITypeSig nextType;
 			switch ((ElementType)reader.ReadByte()) {
 			case ElementType.Void: return readerModule.CorLibTypes.Void;
 			case ElementType.Boolean: return readerModule.CorLibTypes.Boolean;
@@ -208,7 +209,7 @@ namespace dot10.dotNET {
 				return new GenericMVar(num);
 
 			case ElementType.ValueArray:
-				var nextType = ReadType();
+				nextType = ReadType();
 				if (!reader.ReadCompressedUInt32(out num))
 					return null;
 				return new ValueArraySig(nextType, num);
@@ -218,8 +219,17 @@ namespace dot10.dotNET {
 					return null;
 				return new ModuleSig(num, ReadType());
 
-			case ElementType.Array:
 			case ElementType.GenericInst:
+				nextType = ReadType();
+				if (!reader.ReadCompressedUInt32(out num))
+					return null;
+				var genericInstSig = new GenericInstSig(nextType as ClassOrValueType, num);
+				var args = genericInstSig.GenericArguments;
+				for (uint i = 0; i < num; i++)
+					args.Add(ReadType());
+				return genericInstSig;
+
+			case ElementType.Array:
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
