@@ -94,7 +94,7 @@
 		/// <summary>RID into GenericParamConstraint table</summary>
 		GenericParamConstraint,
 		/// <summary>8-bit byte</summary>
-		Byte,
+		Byte = 0x40,
 		/// <summary>16-bit signed int</summary>
 		Int16,
 		/// <summary>16-bit unsigned int</summary>
