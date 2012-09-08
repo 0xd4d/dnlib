@@ -49,10 +49,14 @@
 		GenericInst	= 0x15,
 		/// <summary></summary>
 		TypedByRef	= 0x16,
+		/// <summary></summary>
+		ValueArray	= 0x17,
 		/// <summary>System.IntPtr</summary>
 		I			= 0x18,
 		/// <summary>System.UIntPtr</summary>
 		U			= 0x19,
+		/// <summary>native real</summary>
+		R			= 0x1A,
 		/// <summary></summary>
 		FnPtr		= 0x1B,
 		/// <summary>System.Object</summary>
@@ -68,7 +72,7 @@
 		/// <summary></summary>
 		Internal	= 0x21,
 		/// <summary></summary>
-		Modifier	= 0x40,
+		Module		= 0x3F,
 		/// <summary></summary>
 		Sentinel	= 0x41,
 		/// <summary></summary>
