@@ -209,7 +209,7 @@ namespace dot10.dotNET {
 		/// Constructor
 		/// </summary>
 		/// <param name="typeDefOrRef">A <see cref="ITypeDefOrRef"/></param>
-		public ClassOrValueTypeSig(ITypeDefOrRef typeDefOrRef)
+		protected ClassOrValueTypeSig(ITypeDefOrRef typeDefOrRef)
 			: base(typeDefOrRef) {
 		}
 	}
