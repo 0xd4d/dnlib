@@ -190,6 +190,7 @@ namespace dot10.dotNET {
 			case ElementType.ByRef: return new ByRefSig(ReadType());
 			case ElementType.ValueType: return new ValueTypeSig(ReadTypeDefOrRef());
 			case ElementType.Class: return new ClassSig(ReadTypeDefOrRef());
+			case ElementType.FnPtr: return new FnPtrSig(Read());
 			case ElementType.SZArray: return new SZArraySig(ReadType());
 			case ElementType.CModReqd: return new CModReqdSig(ReadTypeDefOrRef(), ReadType());
 			case ElementType.CModOpt: return new CModOptSig(ReadTypeDefOrRef(), ReadType());
@@ -219,7 +220,6 @@ namespace dot10.dotNET {
 
 			case ElementType.Array:
 			case ElementType.GenericInst:
-			case ElementType.FnPtr:
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:

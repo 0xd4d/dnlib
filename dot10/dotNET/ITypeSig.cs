@@ -29,7 +29,8 @@
 
 	/// <summary>
 	/// Base class for element types that are last in a type sig, ie.,
-	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="PinnedSig"/>
+	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="PinnedSig"/>,
+	/// <see cref="FnPtrSig"/>
 	/// </summary>
 	public abstract class LeafSig : ITypeSig {
 		/// <inheritdoc/>
@@ -353,6 +354,65 @@
 	}
 
 	/// <summary>
+	/// Represents a <see cref="ElementType.FnPtr"/>
+	/// </summary>
+	public sealed class FnPtrSig : LeafSig {
+		readonly ISignature signature;
+
+		/// <summary>
+		/// Gets the signature
+		/// </summary>
+		public ISignature Signature {
+			get { return signature; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MethodSig"/>
+		/// </summary>
+		public MethodSig MethodSig {
+			get { return signature as MethodSig; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="signature">The method signature</param>
+		public FnPtrSig(ISignature signature) {
+			this.signature = signature;
+		}
+
+		/// <inheritdoc/>
+		public override string Name {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionName {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string Namespace {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionNamespace {
+			get { return string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override string FullName {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+
+		/// <inheritdoc/>
+		public override string ReflectionFullName {
+			get { throw new System.NotImplementedException(); /*TODO:*/ }
+		}
+	}
+
+	/// <summary>
 	/// Base class of non-leaf element types
 	/// </summary>
 	public abstract class NonLeafSig : ITypeSig {
@@ -558,39 +618,6 @@
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
 		public GenericInstSig(ITypeSig nextSig)
-			: base(nextSig) {
-		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			throw new System.NotImplementedException();	//TODO:
-		}
-	}
-
-	/// <summary>
-	/// Represents a <see cref="ElementType.FnPtr"/>
-	/// </summary>
-	public sealed class FnPtrSig : NonLeafSig {
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="nextSig">The next element type</param>
-		public FnPtrSig(ITypeSig nextSig)
 			: base(nextSig) {
 		}
 
