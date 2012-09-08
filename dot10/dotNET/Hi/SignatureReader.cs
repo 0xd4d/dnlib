@@ -1,4 +1,5 @@
-﻿using dot10.IO;
+﻿using System.Collections.Generic;
+using dot10.IO;
 using dot10.dotNET.MD;
 
 namespace dot10.dotNET.Hi {
@@ -8,6 +9,7 @@ namespace dot10.dotNET.Hi {
 	class SignatureReader {
 		ModuleDefMD readerModule;
 		IImageStream reader;
+		uint sigLen;
 
 		/// <summary>
 		/// Reads a signature from the #Blob stream
@@ -40,6 +42,8 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		/// <returns>A new <see cref="ISignature"/> instance</returns>
 		ISignature Read() {
+			if (!reader.ReadCompressedUInt32(out sigLen))
+				return null;
 			var callingConvention = (CallingConvention)reader.ReadByte();
 			switch (callingConvention & CallingConvention.Mask) {
 			case CallingConvention.Default:
@@ -48,16 +52,22 @@ namespace dot10.dotNET.Hi {
 			case CallingConvention.ThisCall:
 			case CallingConvention.FastCall:
 			case CallingConvention.VarArg:
+				return ReadMethod(callingConvention);
+
+			case CallingConvention.Field:
+				return ReadField(callingConvention);
+
 			case CallingConvention.LocalSig:
+				return ReadLocalSig(callingConvention);
+
 			case CallingConvention.Property:
+				return ReadProperty(callingConvention);
+
 			case CallingConvention.Unmanaged:
 			case CallingConvention.GenericInst:
 			case CallingConvention.NativeVarArg:
 			default:
 				return null;
-
-			case CallingConvention.Field:
-				return ReadField(callingConvention);
 			}
 		}
 
@@ -67,8 +77,69 @@ namespace dot10.dotNET.Hi {
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="FieldSig"/> instance</returns>
 		FieldSig ReadField(CallingConvention callingConvention) {
-			var type = ReadType();
-			return null;
+			return new FieldSig(ReadType(), callingConvention);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="MethodSig"/>
+		/// </summary>
+		/// <param name="callingConvention">First byte of signature</param>
+		/// <returns>A new <see cref="MethodSig"/> instance</returns>
+		MethodSig ReadMethod(CallingConvention callingConvention) {
+			return ReadSig(new MethodSig(callingConvention));
+		}
+
+		/// <summary>
+		/// Reads a <see cref="PropertySig"/>
+		/// </summary>
+		/// <param name="callingConvention">First byte of signature</param>
+		/// <returns>A new <see cref="PropertySig"/> instance</returns>
+		PropertySig ReadProperty(CallingConvention callingConvention) {
+			return ReadSig(new PropertySig(callingConvention));
+		}
+
+		T ReadSig<T>(T methodSig) where T : MethodBaseSig {
+			if (methodSig.Generic) {
+				uint count;
+				if (!reader.ReadCompressedUInt32(out count))
+					return null;
+				methodSig.GenParamCount = count;
+			}
+
+			var parameters = methodSig.Params;
+			uint numParams;
+			if (!reader.ReadCompressedUInt32(out numParams))
+				return null;
+
+			methodSig.RetType = ReadType();
+
+			for (uint i = 0; i < numParams; i++) {
+				var type = ReadType();
+				if (type is SentinelSig && methodSig.ParamsAfterSentinel == null) {
+					methodSig.ParamsAfterSentinel = parameters = new List<ITypeSig>((int)(numParams - i));
+					i--;
+				}
+				else
+					parameters.Add(type);
+			}
+
+			return methodSig;
+		}
+
+		/// <summary>
+		/// Reads a <see cref="LocalVarSig"/>
+		/// </summary>
+		/// <param name="callingConvention">First byte of signature</param>
+		/// <returns>A new <see cref="LocalVarSig"/> instance</returns>
+		LocalVarSig ReadLocalSig(CallingConvention callingConvention) {
+			uint count;
+			if (!reader.ReadCompressedUInt32(out count))
+				return null;
+			var sig = new LocalVarSig(callingConvention, count);
+			var locals = sig.Locals;
+			for (uint i = 0; i < count; i++)
+				locals.Add(ReadType());
+			return sig;
 		}
 
 		/// <summary>
@@ -99,23 +170,23 @@ namespace dot10.dotNET.Hi {
 
 			case ElementType.Ptr: return new PtrSig(ReadType());
 			case ElementType.ByRef: return new ByRefSig(ReadType());
-			case ElementType.ValueType: return new ValueTypeSig(ReadType());
-			case ElementType.Class: return new ClassSig(ReadType());
+			case ElementType.ValueType: return new ValueTypeSig(ReadTypeDefOrRef());
+			case ElementType.Class: return new ClassSig(ReadTypeDefOrRef());
 			case ElementType.SZArray: return new SZArraySig(ReadType());
 			case ElementType.CModReqd: return new CModReqdSig(ReadTypeDefOrRef(), ReadType());
 			case ElementType.CModOpt: return new CModOptSig(ReadTypeDefOrRef(), ReadType());
-			case ElementType.Sentinel: return new SentinelSig(ReadType());
+			case ElementType.Sentinel: return new SentinelSig();
 			case ElementType.Pinned: return new PinnedSig(ReadType());
 
 			case ElementType.Var:
 				if (!reader.ReadCompressedUInt32(out num))
 					return null;
-				return new VarSig(num);
+				return new GenericVar(num);
 
 			case ElementType.MVar:
 				if (!reader.ReadCompressedUInt32(out num))
 					return null;
-				return new MVarSig(num);
+				return new GenericMVar(num);
 
 			case ElementType.Array:
 			case ElementType.GenericInst:
@@ -136,6 +207,7 @@ namespace dot10.dotNET.Hi {
 			uint codedToken;
 			if (!reader.ReadCompressedUInt32(out codedToken))
 				return null;
+			//TODO: Perhaps we should read this lazily. If so, update ValueTypeSig, etc to take a coded token
 			return readerModule.ResolveTypeDefOrRef(codedToken);
 		}
 	}
