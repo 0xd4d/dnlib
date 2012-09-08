@@ -48,6 +48,22 @@ namespace dot10.dotNET.Hi {
 		/// </summary>
 		public abstract ITypeDefOrRef Kind { get; set; }
 
+		/// <summary>
+		/// Gets/sets variance (non, contra, co)
+		/// </summary>
+		public GenericParamAttributes Variance {
+			get { return Flags & GenericParamAttributes.VarianceMask; }
+			set { Flags = (Flags & ~GenericParamAttributes.VarianceMask) | (value & GenericParamAttributes.VarianceMask); }
+		}
+
+		/// <summary>
+		/// Gets/sets the special constraint
+		/// </summary>
+		public GenericParamAttributes SpecialConstraint {
+			get { return Flags & GenericParamAttributes.SpecialConstraintMask; }
+			set { Flags = (Flags & ~GenericParamAttributes.SpecialConstraintMask) | (value & GenericParamAttributes.SpecialConstraintMask); }
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (Owner is TypeDef)
