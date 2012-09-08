@@ -90,6 +90,245 @@ namespace dot10.dotNET.Hi {
 			get { return Signature as MethodSig; }
 			set { Signature = value; }
 		}
+
+		/// <summary>
+		/// Gets/sets the method access
+		/// </summary>
+		public MethodAttributes Access {
+			get { return Flags & MethodAttributes.MemberAccessMask; }
+			set { Flags = (Flags & ~MethodAttributes.MemberAccessMask) | (value & MethodAttributes.MemberAccessMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.PrivateScope"/> is set
+		/// </summary>
+		public bool IsPrivateScope {
+			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.PrivateScope; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.Private"/> is set
+		/// </summary>
+		public bool IsPrivate {
+			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Private; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.FamANDAssem"/> is set
+		/// </summary>
+		public bool IsFamANDAssem {
+			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.Assembly"/> is set
+		/// </summary>
+		public bool IsAssembly {
+			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.Family"/> is set
+		/// </summary>
+		public bool IsFamily {
+			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Family; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.FamORAssem"/> is set
+		/// </summary>
+		public bool IsFamORAssem {
+			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.Public"/> is set
+		/// </summary>
+		public bool IsPublic {
+			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Public; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.Static"/> bit
+		/// </summary>
+		public bool IsStatic {
+			get { return (Flags & MethodAttributes.Static) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.Static;
+				else
+					Flags &= ~MethodAttributes.Static;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.Final"/> bit
+		/// </summary>
+		public bool IsFinal {
+			get { return (Flags & MethodAttributes.Final) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.Final;
+				else
+					Flags &= ~MethodAttributes.Final;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.Virtual"/> bit
+		/// </summary>
+		public bool IsVirtual {
+			get { return (Flags & MethodAttributes.Virtual) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.Virtual;
+				else
+					Flags &= ~MethodAttributes.Virtual;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.HideBySig"/> bit
+		/// </summary>
+		public bool IsHideBySig {
+			get { return (Flags & MethodAttributes.HideBySig) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.HideBySig;
+				else
+					Flags &= ~MethodAttributes.HideBySig;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.NewSlot"/> bit
+		/// </summary>
+		public bool IsNewSlot {
+			get { return (Flags & MethodAttributes.NewSlot) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.NewSlot;
+				else
+					Flags &= ~MethodAttributes.NewSlot;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.ReuseSlot"/> bit
+		/// </summary>
+		public bool IsReuseSlot {
+			get { return (Flags & MethodAttributes.NewSlot) == 0; }
+			set {
+				if (value)
+					Flags &= ~MethodAttributes.NewSlot;
+				else
+					Flags |= MethodAttributes.NewSlot;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.CheckAccessOnOverride"/> bit
+		/// </summary>
+		public bool IsCheckAccessOnOverride {
+			get { return (Flags & MethodAttributes.CheckAccessOnOverride) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.CheckAccessOnOverride;
+				else
+					Flags &= ~MethodAttributes.CheckAccessOnOverride;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.Abstract"/> bit
+		/// </summary>
+		public bool IsAbstract {
+			get { return (Flags & MethodAttributes.Abstract) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.Abstract;
+				else
+					Flags &= ~MethodAttributes.Abstract;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.SpecialName"/> bit
+		/// </summary>
+		public bool IsSpecialName {
+			get { return (Flags & MethodAttributes.SpecialName) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.SpecialName;
+				else
+					Flags &= ~MethodAttributes.SpecialName;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.PinvokeImpl"/> bit
+		/// </summary>
+		public bool IsPinvokeImpl {
+			get { return (Flags & MethodAttributes.PinvokeImpl) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.PinvokeImpl;
+				else
+					Flags &= ~MethodAttributes.PinvokeImpl;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.UnmanagedExport"/> bit
+		/// </summary>
+		public bool IsUnmanagedExport {
+			get { return (Flags & MethodAttributes.UnmanagedExport) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.UnmanagedExport;
+				else
+					Flags &= ~MethodAttributes.UnmanagedExport;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.RTSpecialName"/> bit
+		/// </summary>
+		public bool IsRTSpecialName {
+			get { return (Flags & MethodAttributes.RTSpecialName) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.RTSpecialName;
+				else
+					Flags &= ~MethodAttributes.RTSpecialName;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.HasSecurity"/> bit
+		/// </summary>
+		public bool HasSecurity {
+			get { return (Flags & MethodAttributes.HasSecurity) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.HasSecurity;
+				else
+					Flags &= ~MethodAttributes.HasSecurity;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodAttributes.RequireSecObject"/> bit
+		/// </summary>
+		public bool IsRequireSecObject {
+			get { return (Flags & MethodAttributes.RequireSecObject) != 0; }
+			set {
+				if (value)
+					Flags |= MethodAttributes.RequireSecObject;
+				else
+					Flags &= ~MethodAttributes.RequireSecObject;
+			}
+		}
 	}
 
 	/// <summary>
