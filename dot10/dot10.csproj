@@ -68,6 +68,7 @@
     <Compile Include="dotNET\LazyList.cs" />
     <Compile Include="dotNET\MethodAttributes.cs" />
     <Compile Include="dotNET\MethodImplAttributes.cs" />
+    <Compile Include="dotNET\PropertyAttributes.cs" />
     <Compile Include="dotNET\SignatureReader.cs" />
     <Compile Include="dotNET\SimpleLazyList.cs" />
     <Compile Include="dotNET\ManifestResource.cs" />
