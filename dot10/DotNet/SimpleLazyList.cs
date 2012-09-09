@@ -5,7 +5,7 @@
 	/// A readonly list that gets initialized lazily
 	/// </summary>
 	/// <typeparam name="T">A <see cref="ICodedToken"/> type</typeparam>
-	class SimpleLazyList<T> where T : class, ICodedToken {
+	class SimpleLazyList<T> where T : class, IMDTokenProvider {
 		T[] elements;
 		bool[] initialized;
 		readonly MFunc<uint, T> readElementByRID;
