@@ -651,7 +651,7 @@ namespace dot10.dotNET {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodSpecMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		MethodSpecMD ReadMethodSpec(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new MethodSpecMD(this, rid);
 		}
 
 		/// <summary>
