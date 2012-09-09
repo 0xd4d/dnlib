@@ -260,6 +260,17 @@ namespace dot10.DotNet {
 			this.memberForwarded = memberForwarded;
 			this.flags = flags;
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="scope">Scope</param>
+		/// <param name="name">Name</param>
+		/// <param name="memberForwarded">MemberForwarded</param>
+		/// <param name="flags">Flags</param>
+		public ImplMapUser(ModuleRef scope, string name, IMemberForwarded memberForwarded, PInvokeAttributes flags)
+			: this(scope, new UTF8String(name), memberForwarded, flags) {
+		}
 	}
 
 	/// <summary>
