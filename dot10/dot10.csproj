@@ -48,6 +48,7 @@
     <Compile Include="dotNET\DeclSecurity.cs" />
     <Compile Include="dotNET\DeclSecurityAction.cs" />
     <Compile Include="dotNET\ElementType.cs" />
+    <Compile Include="dotNET\EventAttributes.cs" />
     <Compile Include="dotNET\EventDef.cs" />
     <Compile Include="dotNET\ExportedType.cs" />
     <Compile Include="dotNET\Extensions.cs" />
