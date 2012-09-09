@@ -6,20 +6,11 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>
-	public sealed class ModuleDefMD : ModuleDef, ICorLibTypes {
+	public sealed class ModuleDefMD : ModuleDefMD2, ICorLibTypes {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
-		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
-		RawModuleRow rawRow;
 
-		UserValue<ushort> generation;
-		UserValue<UTF8String> name;
-		UserValue<Guid?> mvid;
-		UserValue<Guid?> encId;
-		UserValue<Guid?> encBaseId;
-		UserValue<AssemblyDef> assembly;
-
-		SimpleLazyList<ModuleDefMD> listModuleDefMD;
+		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
 		SimpleLazyList<TypeRefMD> listTypeRefMD;
 		SimpleLazyList<TypeDefMD> listTypeDefMD;
 		SimpleLazyList<FieldPtrMD> listFieldPtrMD;
@@ -134,42 +125,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		public USStream USStream {
 			get { return dnFile.MetaData.USStream; }
-		}
-
-		/// <inheritdoc/>
-		public override ushort Generation {
-			get { return generation.Value; }
-			set { generation.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Guid? Mvid {
-			get { return mvid.Value; }
-			set { mvid.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Guid? EncId {
-			get { return encId.Value; }
-			set { encId.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Guid? EncBaseId {
-			get { return encBaseId.Value; }
-			set { encBaseId.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override AssemblyDef Assembly {
-			get { return assembly.Value; }
-			set { assembly.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -345,57 +300,19 @@ namespace dot10.DotNet {
 		/// <param name="dnFile">The loaded .NET file</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is null</exception>
 		ModuleDefMD(DotNetFile dnFile)
-			: this(dnFile, 1) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="dnFile">The loaded .NET file</param>
-		/// <param name="rid">Row ID</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is null</exception>
-		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
-		ModuleDefMD(DotNetFile dnFile, uint rid) {
+			: base(null, 1) {
 #if DEBUG
 			if (dnFile == null)
 				throw new ArgumentNullException("dnFile");
-			if (rid == 0 || rid > 0x00FFFFFF)
-				throw new ArgumentException("rid");
 #endif
-			this.rid = rid;
 			this.dnFile = dnFile;
 			Initialize();
 			InitializeCorLibTypes();
 		}
 
 		void Initialize() {
-			generation.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return rawRow.Generation;
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return dnFile.MetaData.StringsStream.Read(rawRow.Name);
-			};
-			mvid.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return dnFile.MetaData.GuidStream.Read(rawRow.Mvid);
-			};
-			encId.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return dnFile.MetaData.GuidStream.Read(rawRow.EncId);
-			};
-			encBaseId.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return dnFile.MetaData.GuidStream.Read(rawRow.EncBaseId);
-			};
-			assembly.ReadOriginalValue = () => {
-				if (rid != 1)
-					return null;
-				return ResolveAssembly(1);
-			};
 			var ts = dnFile.MetaData.TablesStream;
-			listModuleDefMD = new SimpleLazyList<ModuleDefMD>(ts.Get(Table.Module).Rows, rid2 => rid2 == rid ? this : new ModuleDefMD(dnFile, rid2));
+			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.Get(Table.Module).Rows, rid2 => rid2 == rid ? this : new ModuleDefMD2(this, rid2));
 			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.Get(Table.TypeRef).Rows, rid2 => new TypeRefMD(this, rid2));
 			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.Get(Table.TypeDef).Rows, rid2 => new TypeDefMD(this, rid2));
 			listFieldPtrMD = new SimpleLazyList<FieldPtrMD>(ts.Get(Table.FieldPtr).Rows, rid2 => new FieldPtrMD(this, rid2));
@@ -493,12 +410,6 @@ namespace dot10.DotNet {
 			if (corLibAsmRef != null)
 				return corLibAsmRef;
 			return new AssemblyRefUser("mscorlib", new Version(2, 0, 0, 0), new PublicKeyToken("b77a5c561934e089"));
-		}
-
-		void InitializeRawRow() {
-			if (rawRow != null)
-				return;
-			rawRow = dnFile.MetaData.TablesStream.ReadModuleRow(rid) ?? new RawModuleRow();
 		}
 
 		/// <inheritdoc/>

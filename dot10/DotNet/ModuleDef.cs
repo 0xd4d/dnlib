@@ -256,4 +256,119 @@ namespace dot10.DotNet {
 			this.mvid = mvid;
 		}
 	}
+
+	/// <summary>
+	/// Created from a row in the Module table
+	/// </summary>
+	public class ModuleDefMD2 : ModuleDef {
+		/// <summary>The module where this instance is located</summary>
+		ModuleDefMD readerModule;
+		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
+		RawModuleRow rawRow;
+
+		UserValue<ushort> generation;
+		UserValue<UTF8String> name;
+		UserValue<Guid?> mvid;
+		UserValue<Guid?> encId;
+		UserValue<Guid?> encBaseId;
+		UserValue<AssemblyDef> assembly;
+		IList<TypeDef> types;
+
+		/// <inheritdoc/>
+		public override ushort Generation {
+			get { return generation.Value; }
+			set { generation.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override UTF8String Name {
+			get { return name.Value; }
+			set { name.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? Mvid {
+			get { return mvid.Value; }
+			set { mvid.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? EncId {
+			get { return encId.Value; }
+			set { encId.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Guid? EncBaseId {
+			get { return encBaseId.Value; }
+			set { encBaseId.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override AssemblyDef Assembly {
+			get { return assembly.Value; }
+			set { assembly.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<TypeDef> Types {
+			get { return types; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="readerModule">The module which contains this <c>Assembly</c> row</param>
+		/// <param name="rid">Row ID</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
+		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
+		public ModuleDefMD2(ModuleDefMD readerModule, uint rid) {
+			if (rid == 1 && readerModule == null)
+				readerModule = (ModuleDefMD)this;
+#if DEBUG
+			if (readerModule == null)
+				throw new ArgumentNullException("readerModule");
+			if (rid == 0 || rid > 0x00FFFFFF)
+				throw new ArgumentException("rid");
+#endif
+			this.rid = rid;
+			this.readerModule = readerModule;
+			this.types = new List<TypeDef>();
+			Initialize();
+		}
+
+		void Initialize() {
+			generation.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return rawRow.Generation;
+			};
+			name.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return readerModule.StringsStream.Read(rawRow.Name);
+			};
+			mvid.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return readerModule.GuidStream.Read(rawRow.Mvid);
+			};
+			encId.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return readerModule.GuidStream.Read(rawRow.EncId);
+			};
+			encBaseId.ReadOriginalValue = () => {
+				InitializeRawRow();
+				return readerModule.GuidStream.Read(rawRow.EncBaseId);
+			};
+			assembly.ReadOriginalValue = () => {
+				if (rid != 1)
+					return null;
+				return readerModule.ResolveAssembly(1);
+			};
+		}
+
+		void InitializeRawRow() {
+			if (rawRow != null)
+				return;
+			rawRow = readerModule.TablesStream.ReadModuleRow(rid) ?? new RawModuleRow();
+		}
+	}
 }
