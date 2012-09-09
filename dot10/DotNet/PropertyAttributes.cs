@@ -1,7 +1,10 @@
-﻿namespace dot10.DotNet {
+﻿using System;
+
+namespace dot10.DotNet {
 	/// <summary>
 	/// Property attributes, see CorHdr.h/CorPropertyAttr
 	/// </summary>
+	[Flags]
 	public enum PropertyAttributes : ushort {
 		/// <summary>property is special.  Name describes how.</summary>
 		SpecialName			= 0x0200,

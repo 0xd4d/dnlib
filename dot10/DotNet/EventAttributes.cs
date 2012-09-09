@@ -1,7 +1,10 @@
-﻿namespace dot10.DotNet {
+﻿using System;
+
+namespace dot10.DotNet {
 	/// <summary>
 	/// Event attributes, see CorHdr.h/CorEventAttr
 	/// </summary>
+	[Flags]
 	public enum EventAttributes : ushort {
 		/// <summary>event is special.  Name describes how.</summary>
 		SpecialName			= 0x0200,

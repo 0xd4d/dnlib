@@ -1,7 +1,10 @@
-﻿namespace dot10.DotNet {
+﻿using System;
+
+namespace dot10.DotNet {
 	/// <summary>
 	/// Parameter flags. See CorHdr.h/CorParamAttr
 	/// </summary>
+	[Flags]
 	public enum ParamAttributes : ushort {
 		/// <summary>Param is [In]</summary>
 		In					= 0x0001,
