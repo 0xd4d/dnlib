@@ -17,7 +17,8 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="ISignature"/> instance</returns>
+		/// <returns>A new <see cref="ISignature"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
 				var reader = new SignatureReader(readerModule, sig);
@@ -35,7 +36,8 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
+		/// <returns>A new <see cref="ITypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
 		public static ITypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig) {
 			try {
 				var reader = new SignatureReader(readerModule, sig);

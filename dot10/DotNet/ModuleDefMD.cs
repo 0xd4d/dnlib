@@ -1167,7 +1167,8 @@ namespace dot10.DotNet {
 		/// Reads a signature from the #Blob stream
 		/// </summary>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="CallingConventionSig"/> instance</returns>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
 		public CallingConventionSig ReadSignature(uint sig) {
 			return SignatureReader.ReadSig(this, sig);
 		}
@@ -1176,7 +1177,8 @@ namespace dot10.DotNet {
 		/// Reads a type signature from the #Blob stream
 		/// </summary>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
+		/// <returns>A new <see cref="ITypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
 		public ITypeSig ReadTypeSignature(uint sig) {
 			return SignatureReader.ReadTypeSig(this, sig);
 		}
