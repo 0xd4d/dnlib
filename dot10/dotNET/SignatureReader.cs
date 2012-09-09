@@ -129,13 +129,13 @@ namespace dot10.dotNET {
 				methodSig.GenParamCount = count;
 			}
 
-			var parameters = methodSig.Params;
 			uint numParams;
 			if (!reader.ReadCompressedUInt32(out numParams))
 				return null;
 
 			methodSig.RetType = ReadType();
 
+			var parameters = methodSig.Params;
 			for (uint i = 0; i < numParams; i++) {
 				var type = ReadType();
 				if (type is SentinelSig && methodSig.ParamsAfterSentinel == null) {
