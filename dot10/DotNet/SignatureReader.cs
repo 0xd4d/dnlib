@@ -140,8 +140,9 @@ namespace dot10.DotNet {
 			var parameters = methodSig.Params;
 			for (uint i = 0; i < numParams; i++) {
 				var type = ReadType();
-				if (type is SentinelSig && methodSig.ParamsAfterSentinel == null) {
-					methodSig.ParamsAfterSentinel = parameters = new List<ITypeSig>((int)(numParams - i));
+				if (type is SentinelSig) {
+					if (methodSig.ParamsAfterSentinel == null)
+						methodSig.ParamsAfterSentinel = parameters = new List<ITypeSig>((int)(numParams - i));
 					i--;
 				}
 				else
