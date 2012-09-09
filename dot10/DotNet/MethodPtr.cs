@@ -19,17 +19,17 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column MethodPtr.Method
 		/// </summary>
-		public abstract uint Method { get; set; }
+		public abstract MethodDef Method { get; set; }
 	}
 
 	/// <summary>
 	/// A MethodPtr row created by the user and not present in the original .NET file
 	/// </summary>
 	public class MethodPtrUser : MethodPtr {
-		uint method;
+		MethodDef method;
 
 		/// <inheritdoc/>
-		public override uint Method {
+		public override MethodDef Method {
 			get { return method; }
 			set { method = value; }
 		}
@@ -43,8 +43,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="method">Method rid</param>
-		public MethodPtrUser(uint method) {
+		/// <param name="method">Method</param>
+		public MethodPtrUser(MethodDef method) {
 			this.method = method;
 		}
 	}
@@ -58,10 +58,10 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawMethodPtrRow rawRow;
 
-		UserValue<uint> method;
+		UserValue<MethodDef> method;
 
 		/// <inheritdoc/>
-		public override uint Method {
+		public override MethodDef Method {
 			get { return method.Value; }
 			set { method.Value = value; }
 		}
@@ -90,7 +90,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			method.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return rawRow.Method;
+				return readerModule.ResolveMethod(rawRow.Method);
 			};
 		}
 

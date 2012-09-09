@@ -19,17 +19,17 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column PropertyPtr.Property
 		/// </summary>
-		public abstract uint Property { get; set; }
+		public abstract PropertyDef Property { get; set; }
 	}
 
 	/// <summary>
 	/// A PropertyPtr row created by the user and not present in the original .NET file
 	/// </summary>
 	public class PropertyPtrUser : PropertyPtr {
-		uint property;
+		PropertyDef property;
 
 		/// <inheritdoc/>
-		public override uint Property {
+		public override PropertyDef Property {
 			get { return property; }
 			set { property = value; }
 		}
@@ -43,8 +43,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="property">Property rid</param>
-		public PropertyPtrUser(uint property) {
+		/// <param name="property">Property</param>
+		public PropertyPtrUser(PropertyDef property) {
 			this.property = property;
 		}
 	}
@@ -58,10 +58,10 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawPropertyPtrRow rawRow;
 
-		UserValue<uint> property;
+		UserValue<PropertyDef> property;
 
 		/// <inheritdoc/>
-		public override uint Property {
+		public override PropertyDef Property {
 			get { return property.Value; }
 			set { property.Value = value; }
 		}
@@ -90,7 +90,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			property.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return rawRow.Property;
+				return readerModule.ResolveProperty(rawRow.Property);
 			};
 		}
 

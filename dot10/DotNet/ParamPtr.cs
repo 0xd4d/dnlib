@@ -19,17 +19,17 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column ParamPtr.Param
 		/// </summary>
-		public abstract uint Param { get; set; }
+		public abstract ParamDef Param { get; set; }
 	}
 
 	/// <summary>
 	/// A ParamPtr row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ParamPtrUser : ParamPtr {
-		uint param;
+		ParamDef param;
 
 		/// <inheritdoc/>
-		public override uint Param {
+		public override ParamDef Param {
 			get { return param; }
 			set { param = value; }
 		}
@@ -43,8 +43,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="param">Param rid</param>
-		public ParamPtrUser(uint param) {
+		/// <param name="param">Param</param>
+		public ParamPtrUser(ParamDef param) {
 			this.param = param;
 		}
 	}
@@ -58,10 +58,10 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawParamPtrRow rawRow;
 
-		UserValue<uint> param;
+		UserValue<ParamDef> param;
 
 		/// <inheritdoc/>
-		public override uint Param {
+		public override ParamDef Param {
 			get { return param.Value; }
 			set { param.Value = value; }
 		}
@@ -90,7 +90,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			param.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return rawRow.Param;
+				return readerModule.ResolveParam(rawRow.Param);
 			};
 		}
 

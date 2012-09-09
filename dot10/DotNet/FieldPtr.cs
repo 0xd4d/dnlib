@@ -19,17 +19,17 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column FieldPtr.Field
 		/// </summary>
-		public abstract uint Field { get; set; }
+		public abstract FieldDef Field { get; set; }
 	}
 
 	/// <summary>
 	/// A FieldPtr row created by the user and not present in the original .NET file
 	/// </summary>
 	public class FieldPtrUser : FieldPtr {
-		uint field;
+		FieldDef field;
 
 		/// <inheritdoc/>
-		public override uint Field {
+		public override FieldDef Field {
 			get { return field; }
 			set { field = value; }
 		}
@@ -43,8 +43,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="field">Field rid</param>
-		public FieldPtrUser(uint field) {
+		/// <param name="field">Field</param>
+		public FieldPtrUser(FieldDef field) {
 			this.field = field;
 		}
 	}
@@ -58,10 +58,10 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawFieldPtrRow rawRow;
 
-		UserValue<uint> field;
+		UserValue<FieldDef> field;
 
 		/// <inheritdoc/>
-		public override uint Field {
+		public override FieldDef Field {
 			get { return field.Value; }
 			set { field.Value = value; }
 		}
@@ -90,7 +90,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			field.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return rawRow.Field;
+				return readerModule.ResolveField(rawRow.Field);
 			};
 		}
 

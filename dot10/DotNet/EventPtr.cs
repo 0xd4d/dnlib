@@ -19,17 +19,17 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column EventPtr.Event
 		/// </summary>
-		public abstract uint Event { get; set; }
+		public abstract EventDef Event { get; set; }
 	}
 
 	/// <summary>
 	/// A EventPtr row created by the user and not present in the original .NET file
 	/// </summary>
 	public class EventPtrUser : EventPtr {
-		uint @event;
+		EventDef @event;
 
 		/// <inheritdoc/>
-		public override uint Event {
+		public override EventDef Event {
 			get { return @event; }
 			set { @event = value; }
 		}
@@ -43,8 +43,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="event">Event rid</param>
-		public EventPtrUser(uint @event) {
+		/// <param name="event">Event</param>
+		public EventPtrUser(EventDef @event) {
 			this.@event = @event;
 		}
 	}
@@ -58,10 +58,10 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawEventPtrRow rawRow;
 
-		UserValue<uint> @event;
+		UserValue<EventDef> @event;
 
 		/// <inheritdoc/>
-		public override uint Event {
+		public override EventDef Event {
 			get { return @event.Value; }
 			set { @event.Value = value; }
 		}
@@ -90,7 +90,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			@event.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return rawRow.Event;
+				return readerModule.ResolveEvent(rawRow.Event);
 			};
 		}
 
