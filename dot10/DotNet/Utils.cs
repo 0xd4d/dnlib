@@ -14,7 +14,7 @@ namespace dot10.DotNet {
 		/// <returns>An assembly name string</returns>
 		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey) {
 			var sb = new StringBuilder();
-			sb.Append(UTF8String.IsNullOrEmpty(name) ? "" : FullNameHelper.GetReflectionName(name.String));
+			sb.Append(UTF8String.IsNullOrEmpty(name) ? "" : FullNameHelper.GetReflectionNamespace(name.String));
 
 			if (version != null) {
 				sb.Append(", Version=");
