@@ -534,7 +534,7 @@ namespace dot10.dotNET {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MemberRefMD"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		MemberRefMD ReadMemberRef(uint rid) {
-			throw new NotImplementedException();	//TODO:
+			return new MemberRefMD(this, rid);
 		}
 
 		/// <summary>
