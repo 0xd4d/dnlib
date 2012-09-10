@@ -38,6 +38,40 @@ namespace dot10.DotNet {
 			get { return Instantiation as GenericInstMethodSig; }
 			set { Instantiation = value; }
 		}
+
+		/// <summary>
+		/// Gets the full name
+		/// </summary>
+		public string FullName {
+			get {
+				var methodDef = Method as MethodDef;
+				if (methodDef != null) {
+					var methodGenArgs = GenericInstMethodSig == null ? null : GenericInstMethodSig.GenericArguments;
+					return Utils.GetMethodString(null, methodDef.Name, methodDef.MethodSig, null, methodGenArgs);
+				}
+
+				var memberRef = Method as MemberRef;
+				if (memberRef != null && memberRef.IsMethodRef)
+					return Utils.GetMethodString(null, memberRef.Name, memberRef.MethodSig, null, null);
+
+				return string.Empty;
+			}
+		}
+
+		static UTF8String GetName(IMethodDefOrRef method) {
+			var methodDef = method as MethodDef;
+			if (methodDef != null)
+				return methodDef.Name;
+			var memberRef = method as MemberRef;
+			if (memberRef != null)
+				return memberRef.Name;
+			return null;
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>

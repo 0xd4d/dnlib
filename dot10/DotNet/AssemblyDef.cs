@@ -9,7 +9,7 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>
 	[DebuggerDisplay("{GetFullNameWithPublicKeyToken()}")]
-	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity {
+	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -74,6 +74,11 @@ namespace dot10.DotNet {
 		/// From column Assembly.Locale
 		/// </summary>
 		public abstract UTF8String Locale { get; set; }
+
+		/// <inheritdoc/>
+		public PublicKeyBase PublicKeyOrToken {
+			get { return PublicKey; }
+		}
 
 		/// <summary>
 		/// Gets/sets the manifest (main) module

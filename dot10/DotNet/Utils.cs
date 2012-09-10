@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using dot10.DotNet.MD;
 
@@ -31,6 +32,125 @@ namespace dot10.DotNet {
 			sb.Append(publicKey == null ? "null" : publicKey.ToString());
 
 			return sb.ToString();
+		}
+
+		internal static string GetFieldString(string declaringType, UTF8String name, FieldSig fieldSig) {
+			return GetFieldString(declaringType, name, fieldSig, null);
+		}
+
+		internal static string GetFieldString(string declaringType, UTF8String name, FieldSig fieldSig, IList<ITypeSig> typeGenArgs) {
+			return GetFieldString(declaringType, UTF8String.IsNullOrEmpty(name) ? null : name.String, fieldSig, typeGenArgs);
+		}
+
+		internal static string GetFieldString(string declaringType, string name, FieldSig fieldSig) {
+			return GetFieldString(declaringType, name, fieldSig, null);
+		}
+
+		internal static string GetFieldString(string declaringType, string name, FieldSig fieldSig, IList<ITypeSig> typeGenArgs) {
+			if (fieldSig == null)
+				return string.Empty;
+			var sb = new StringBuilder();
+			sb.Append(GetTypeFullName(fieldSig.Type, typeGenArgs));
+			sb.Append(' ');
+			if (!string.IsNullOrEmpty(declaringType)) {
+				sb.Append(declaringType);
+				sb.Append("::");
+			}
+			if (!string.IsNullOrEmpty(name))
+				sb.Append(name);
+			return sb.ToString();
+		}
+
+		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig) {
+			return GetMethodString(declaringType, name, methodSig, null, null);
+		}
+
+		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig, IList<ITypeSig> typeGenArgs) {
+			return GetMethodString(declaringType, name, methodSig, typeGenArgs, null);
+		}
+
+		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+			return GetMethodString(declaringType, UTF8String.IsNullOrEmpty(name) ? null : name.String, methodSig, typeGenArgs, methodGenArgs);
+		}
+
+		internal static string GetMethodString(string declaringType, string name, MethodSig methodSig) {
+			return GetMethodString(declaringType, name, methodSig, null, null);
+		}
+
+		internal static string GetMethodString(string declaringType, string name, MethodSig methodSig, IList<ITypeSig> typeGenArgs) {
+			return GetMethodString(declaringType, name, methodSig, typeGenArgs, null);
+		}
+
+		internal static string GetMethodString(string declaringType, string name, MethodSig methodSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+			if (methodSig == null)
+				return string.Empty;
+
+			var sb = new StringBuilder();
+
+			sb.Append(GetTypeFullName(methodSig.RetType, typeGenArgs, methodGenArgs));
+			sb.Append(' ');
+			if (!string.IsNullOrEmpty(declaringType)) {
+				sb.Append(declaringType);
+				sb.Append("::");
+			}
+			if (name != null)
+				sb.Append(name);
+
+			if (methodSig.Generic) {
+				sb.Append('<');
+				for (int i = 0; i < methodSig.GenParamCount; i++) {
+					if (i != 0)
+						sb.Append(',');
+					if (methodGenArgs != null && i < methodGenArgs.Count)
+						sb.Append(GetTypeFullName(methodGenArgs[i]));
+					else
+						sb.Append(string.Format("!!{0}", i));
+				}
+				sb.Append('>');
+			}
+			sb.Append('(');
+			int count = PrintMethodArgList(sb, methodSig.Params, typeGenArgs, methodGenArgs, false);
+			PrintMethodArgList(sb, methodSig.ParamsAfterSentinel, typeGenArgs, methodGenArgs, count > 0);
+			sb.Append(')');
+			return sb.ToString();
+		}
+
+		static int PrintMethodArgList(StringBuilder sb, IEnumerable<ITypeSig> args, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs, bool hasPrintedArgs) {
+			if (args == null)
+				return 0;
+			int count = 0;
+			foreach (var arg in args) {
+				count++;
+				if (hasPrintedArgs)
+					sb.Append(',');
+				sb.Append(GetTypeFullName(arg, typeGenArgs, methodGenArgs));
+				hasPrintedArgs = true;
+			}
+			return count;
+		}
+
+		internal static string GetTypeFullName(ITypeSig typeSig) {
+			return GetTypeFullName(typeSig, null, null);
+		}
+
+		internal static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs) {
+			return GetTypeFullName(typeSig, typeGenArgs, null);
+		}
+
+		internal static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+			if (typeSig == null)
+				return "<<<NULL>>>";
+			if (typeGenArgs != null && typeSig is GenericVar) {
+				var gvar = (GenericVar)typeSig;
+				if (gvar.Number < typeGenArgs.Count)
+					return GetTypeFullName(typeGenArgs[(int)gvar.Number]);
+			}
+			else if (methodGenArgs != null && typeSig is GenericMVar) {
+				var gmvar = (GenericMVar)typeSig;
+				if (gmvar.Number < methodGenArgs.Count)
+					return GetTypeFullName(methodGenArgs[(int)gmvar.Number]);
+			}
+			return typeSig.FullName;
 		}
 
 		/// <summary>

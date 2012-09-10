@@ -84,6 +84,13 @@ namespace dot10.DotNet {
 		public abstract IList<ParamDef> ParamList { get; }
 
 		/// <summary>
+		/// Gets the full name
+		/// </summary>
+		public string FullName {
+			get { return Utils.GetMethodString(null, Name, MethodSig); }
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="MethodSig"/>
 		/// </summary>
 		public MethodSig MethodSig {
@@ -453,6 +460,11 @@ namespace dot10.DotNet {
 				else
 					ImplFlags &= ~MethodImplAttributes.NoOptimization;
 			}
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
 		}
 	}
 

@@ -12,6 +12,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
+		/// <summary>
+		/// The owner module
+		/// </summary>
+		protected ModuleDef ownerModule;
+
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.TypeDef, rid); }
@@ -69,9 +74,18 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			//TODO: Include the assembly name
 			//TODO: If nested, add the nested class
 			get { return FullNameHelper.GetReflectionFullName(Namespace, Name); }
+		}
+
+		/// <inheritdoc/>
+		public IAssembly DefinitionAssembly {
+			get { return ownerModule == null ? null : ownerModule.Assembly; }
+		}
+
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get { return ownerModule; }
 		}
 
 		/// <summary>
@@ -439,6 +453,89 @@ namespace dot10.DotNet {
 		public override IList<MethodDef> Methods {
 			get { return methods; }
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="name">Name</param>
+		public TypeDefUser(ModuleDef ownerModule, UTF8String name)
+			: this(ownerModule, null, name, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="namespace">Namespace</param>
+		/// <param name="name">Name</param>
+		public TypeDefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name)
+			: this(ownerModule, @namespace, name, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="name">Name</param>
+		/// <param name="extends">Base class or null if it's an interface</param>
+		public TypeDefUser(ModuleDef ownerModule, UTF8String name, ITypeDefOrRef extends)
+			: this(ownerModule, null, name, extends) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="namespace">Namespace</param>
+		/// <param name="name">Name</param>
+		/// <param name="extends">Base class or null if it's an interface</param>
+		public TypeDefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name, ITypeDefOrRef extends) {
+			this.ownerModule = ownerModule;
+			this.@namespace = @namespace;
+			this.name = name;
+			this.extends = extends;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="name">Name</param>
+		public TypeDefUser(ModuleDef ownerModule, string name)
+			: this(ownerModule, null, name, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="namespace">Namespace</param>
+		/// <param name="name">Name</param>
+		public TypeDefUser(ModuleDef ownerModule, string @namespace, string name)
+			: this(ownerModule, @namespace, name, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="name">Name</param>
+		/// <param name="extends">Base class or null if it's an interface</param>
+		public TypeDefUser(ModuleDef ownerModule, string name, ITypeDefOrRef extends)
+			: this(ownerModule, null, name, extends) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
+		/// <param name="namespace">Namespace</param>
+		/// <param name="name">Name</param>
+		/// <param name="extends">Base class or null if it's an interface</param>
+		public TypeDefUser(ModuleDef ownerModule, string @namespace, string name, ITypeDefOrRef extends)
+			: this(ownerModule, new UTF8String(@namespace), new UTF8String(name), extends) {
+		}
 	}
 
 	/// <summary>
@@ -523,6 +620,7 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.ownerModule = readerModule;
 			Initialize();
 		}
 

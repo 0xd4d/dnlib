@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -57,6 +59,12 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public abstract string ReflectionFullName { get; }
+
+		/// <inheritdoc/>
+		public abstract IAssembly DefinitionAssembly { get; }
+
+		/// <inheritdoc/>
+		public abstract ModuleDef OwnerModule { get; }
 
 		/// <inheritdoc/>
 		public override string ToString() {
@@ -118,7 +126,13 @@ namespace dot10.DotNet {
 			get {
 				if (typeDefOrRef == null)
 					return nullName;
-				return typeDefOrRef.Name;
+				try {
+					return typeDefOrRef.Name;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return nullName;
+				}
 			}
 		}
 
@@ -127,7 +141,13 @@ namespace dot10.DotNet {
 			get {
 				if (typeDefOrRef == null)
 					return nullName;
-				return typeDefOrRef.ReflectionName;
+				try {
+					return typeDefOrRef.ReflectionName;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return nullName;
+				}
 			}
 		}
 
@@ -136,7 +156,13 @@ namespace dot10.DotNet {
 			get {
 				if (typeDefOrRef == null)
 					return nullName;
-				return typeDefOrRef.Namespace;
+				try {
+					return typeDefOrRef.Namespace;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return nullName;
+				}
 			}
 		}
 
@@ -145,7 +171,13 @@ namespace dot10.DotNet {
 			get {
 				if (typeDefOrRef == null)
 					return nullName;
-				return typeDefOrRef.ReflectionNamespace;
+				try {
+					return typeDefOrRef.ReflectionNamespace;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return nullName;
+				}
 			}
 		}
 
@@ -154,7 +186,13 @@ namespace dot10.DotNet {
 			get {
 				if (typeDefOrRef == null)
 					return nullName;
-				return typeDefOrRef.FullName;
+				try {
+					return typeDefOrRef.FullName;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return nullName;
+				}
 			}
 		}
 
@@ -163,7 +201,43 @@ namespace dot10.DotNet {
 			get {
 				if (typeDefOrRef == null)
 					return nullName;
-				return typeDefOrRef.ReflectionFullName;
+				try {
+					return typeDefOrRef.ReflectionFullName;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return nullName;
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IAssembly DefinitionAssembly {
+			get {
+				if (typeDefOrRef == null)
+					return null;
+				try {
+					return typeDefOrRef.DefinitionAssembly;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return null;
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public override ModuleDef OwnerModule {
+			get {
+				if (typeDefOrRef == null)
+					return null;
+				try {
+					return typeDefOrRef.OwnerModule;
+				}
+				catch (StackOverflowException) {
+					// It's possible that a TypeSpec points to itself, causing a stack overflow.
+					return null;
+				}
 			}
 		}
 
@@ -308,6 +382,16 @@ namespace dot10.DotNet {
 			get { return GetName(); }
 		}
 
+		/// <inheritdoc/>
+		public override IAssembly DefinitionAssembly {
+			get { return null; }
+		}
+
+		/// <inheritdoc/>
+		public override ModuleDef OwnerModule {
+			get { return null; }
+		}
+
 		string GetName() {
 			return string.Format("{0}{1}", isTypeVar ? "!" : "!!", number);
 		}
@@ -366,6 +450,16 @@ namespace dot10.DotNet {
 		public override string ReflectionFullName {
 			get { return string.Empty; }
 		}
+
+		/// <inheritdoc/>
+		public override IAssembly DefinitionAssembly {
+			get { return null; }
+		}
+
+		/// <inheritdoc/>
+		public override ModuleDef OwnerModule {
+			get { return null; }
+		}
 	}
 
 	/// <summary>
@@ -418,12 +512,22 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string FullName {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return Utils.GetMethodString(null, (UTF8String)null, MethodSig); }
 		}
 
 		/// <inheritdoc/>
 		public override string ReflectionFullName {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return Utils.GetMethodString(null, (UTF8String)null, MethodSig); }
+		}
+
+		/// <inheritdoc/>
+		public override IAssembly DefinitionAssembly {
+			get { return null; }
+		}
+
+		/// <inheritdoc/>
+		public override ModuleDef OwnerModule {
+			get { return null; }
 		}
 	}
 
@@ -535,32 +639,42 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string Name {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return genericType == null ? "<<<NULL>>>" : genericType.Name; }
 		}
 
 		/// <inheritdoc/>
 		public override string ReflectionName {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return genericType == null ? "<<<NULL>>>" : genericType.ReflectionName; }
 		}
 
 		/// <inheritdoc/>
 		public override string Namespace {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return genericType == null ? "<<<NULL>>>" : genericType.Namespace; }
 		}
 
 		/// <inheritdoc/>
 		public override string ReflectionNamespace {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return genericType == null ? "<<<NULL>>>" : genericType.ReflectionNamespace; }
 		}
 
 		/// <inheritdoc/>
 		public override string FullName {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return FullNameHelper.GetGenericInstanceFullName(Namespace, Name, genericArgs); }
 		}
 
 		/// <inheritdoc/>
 		public override string ReflectionFullName {
-			get { throw new System.NotImplementedException(); /*TODO:*/ }
+			get { return FullNameHelper.GetGenericInstanceReflectionFullName(Namespace, Name, genericArgs); }
+		}
+
+		/// <inheritdoc/>
+		public override IAssembly DefinitionAssembly {
+			get { return genericType == null ? null : genericType.DefinitionAssembly; }
+		}
+
+		/// <inheritdoc/>
+		public override ModuleDef OwnerModule {
+			get { return genericType == null ? null : genericType.OwnerModule; }
 		}
 	}
 
@@ -607,6 +721,16 @@ namespace dot10.DotNet {
 			get {
 				return GetReflectionFullName(nextSig == null ? nullName : nextSig.ReflectionFullName);
 			}
+		}
+
+		/// <inheritdoc/>
+		public IAssembly DefinitionAssembly {
+			get { return nextSig == null ? null : nextSig.DefinitionAssembly; }
+		}
+
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get { return nextSig == null ? null : nextSig.OwnerModule; }
 		}
 
 		/// <inheritdoc/>

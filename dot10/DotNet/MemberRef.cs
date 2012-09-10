@@ -75,6 +75,24 @@ namespace dot10.DotNet {
 			get { return Signature as FieldSig; }
 			set { Signature = value; }
 		}
+
+		/// <summary>
+		/// Get the full name
+		/// </summary>
+		public string FullName {
+			get {
+				if (IsMethodRef)
+					return Utils.GetMethodString(null, Name, MethodSig);
+				if (IsFieldRef)
+					return Utils.GetFieldString(null, Name, FieldSig);
+				return string.Empty;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>

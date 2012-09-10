@@ -33,5 +33,15 @@
 		/// <see cref="System.Type.GetType(string)"/> to load the type.
 		/// </summary>
 		string ReflectionFullName { get; }
+
+		/// <summary>
+		/// Gets the assembly where this type is defined
+		/// </summary>
+		IAssembly DefinitionAssembly { get; }
+
+		/// <summary>
+		/// Gets the owner module. The type was created from metadata in this module.
+		/// </summary>
+		ModuleDef OwnerModule { get; }
 	}
 }

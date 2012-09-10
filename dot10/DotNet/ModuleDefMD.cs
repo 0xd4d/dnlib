@@ -388,7 +388,7 @@ namespace dot10.DotNet {
 		}
 
 		TypeRef CreateCorLibTypeRef(string name) {
-			return new TypeRefUser("System", name, corLibAssemblyRef);
+			return new TypeRefUser(this, "System", name, corLibAssemblyRef);
 		}
 
 		/// <summary>

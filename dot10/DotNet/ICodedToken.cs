@@ -1,4 +1,5 @@
-﻿using dot10.DotNet.MD;
+﻿using System;
+using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -9,6 +10,36 @@ namespace dot10.DotNet {
 		/// Returns the metadata token
 		/// </summary>
 		MDToken MDToken { get; }
+	}
+
+	/// <summary>
+	/// Interface to access an <see cref="AssemblyRef"/> or an <see cref="AssemblyDef"/>
+	/// </summary>
+	public interface IAssembly {
+		/// <summary>
+		/// The assembly version
+		/// </summary>
+		Version Version { get; set; }
+
+		/// <summary>
+		/// Assembly flags
+		/// </summary>
+		AssemblyFlags Flags { get; set; }
+
+		/// <summary>
+		/// Public key or public key token
+		/// </summary>
+		PublicKeyBase PublicKeyOrToken { get; }
+
+		/// <summary>
+		/// Simple assembly name
+		/// </summary>
+		UTF8String Name { get; set; }
+
+		/// <summary>
+		/// Locale, aka culture
+		/// </summary>
+		UTF8String Locale { get; set; }
 	}
 
 	/// <summary>

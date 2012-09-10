@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the AssemblyRef table
 	/// </summary>
-	public abstract class AssemblyRef : IHasCustomAttribute, IImplementation, IResolutionScope {
+	public abstract class AssemblyRef : IHasCustomAttribute, IImplementation, IResolutionScope, IAssembly {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>

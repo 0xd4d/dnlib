@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
@@ -117,6 +118,78 @@ namespace dot10.DotNet {
 		/// <returns>The full name, eg. <c>The.NameSpace.Name</c></returns>
 		public static string GetReflectionFullName(UTF8String @namespace, UTF8String name) {
 			return GetReflectionFullName(UTF8String.ToSystemString(@namespace), UTF8String.ToSystemString(name));
+		}
+
+		/// <summary>
+		/// Returns the full name of a generic instance type
+		/// </summary>
+		/// <param name="namespace">The namespace or <c>null</c> if none</param>
+		/// <param name="name">The name</param>
+		/// <param name="genArgs">The generic args or null if not a generic instance type</param>
+		/// <returns>The full name, eg. <c>The.NameSpace.Name&lt;System.Int32&gt;</c></returns>
+		public static string GetGenericInstanceFullName(string @namespace, string name, IList<ITypeSig> genArgs) {
+			var sb = new StringBuilder();
+			sb.Append(GetFullName(@namespace, name));
+			if (genArgs != null) {
+				sb.Append('<');
+				for (int i = 0; i < genArgs.Count; i++) {
+					if (i != 0)
+						sb.Append(',');
+					sb.Append(GetTypeFullName(genArgs[i]));
+				}
+				sb.Append('>');
+			}
+			return sb.ToString();
+		}
+
+		static string GetTypeFullName(ITypeSig typeSig) {
+			if (typeSig == null)
+				return "<<<NULL>>>";
+			return typeSig.FullName;
+		}
+
+		/// <summary>
+		/// Returns the reflection full name of a generic instance type
+		/// </summary>
+		/// <param name="namespace">The namespace or <c>null</c> if none</param>
+		/// <param name="name">The name</param>
+		/// <param name="genArgs">The generic args or null if not a generic instance type</param>
+		/// <returns>The full name, eg. <c>The.NameSpace.Name&lt;System.Int32&gt;</c></returns>
+		public static string GetGenericInstanceReflectionFullName(string @namespace, string name, IList<ITypeSig> genArgs) {
+			var sb = new StringBuilder();
+			sb.Append(GetReflectionFullName(@namespace, name));
+			if (genArgs != null && genArgs.Count > 0) {
+				sb.Append('[');
+				for (int i = 0; i < genArgs.Count; i++) {
+					if (i != 0)
+						sb.Append(',');
+					var genArg = genArgs[i];
+					sb.Append('[');
+					sb.Append(GetTypeReflectionFullName(genArg));
+					sb.Append(", ");
+					var asm = genArg.DefinitionAssembly;
+					if (asm == null)
+						sb.Append("<<<NULL>>>");
+					else
+						sb.Append(GetAssemblyName(asm));
+					sb.Append(']');
+				}
+				sb.Append(']');
+			}
+			return sb.ToString();
+		}
+
+		static string GetTypeReflectionFullName(ITypeSig typeSig) {
+			if (typeSig == null)
+				return "<<<NULL>>>";
+			return typeSig.ReflectionFullName;
+		}
+
+		static string GetAssemblyName(IAssembly assembly) {
+			var pk = assembly.PublicKeyOrToken;
+			if (pk is PublicKey)
+				pk = ((PublicKey)pk).Token;
+			return Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Locale, pk);
 		}
 
 		/// <summary>

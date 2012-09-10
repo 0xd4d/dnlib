@@ -11,6 +11,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
+		/// <summary>
+		/// The owner module
+		/// </summary>
+		protected ModuleDef ownerModule;
+
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.TypeRef, rid); }
@@ -68,6 +73,29 @@ namespace dot10.DotNet {
 			get { return FullNameHelper.GetReflectionFullName(Namespace, Name); }
 		}
 
+		/// <inheritdoc/>
+		public IAssembly DefinitionAssembly {
+			get {
+				var scope = ResolutionScope;
+				if (scope == null)
+					return null;	//TODO: Check ownerModule's ExportedType table
+				if (scope is TypeRef)
+					return ((TypeRef)scope).DefinitionAssembly;
+				if (scope is AssemblyRef)
+					return (AssemblyRef)scope;
+				if (scope is ModuleRef)
+					return ownerModule == null ? null : ownerModule.Assembly;
+				if (scope is ModuleDef)
+					return ((ModuleDef)scope).Assembly;
+				return null;
+			}
+		}
+
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get { return ownerModule; }
+		}
+
 		/// <summary>
 		/// From column TypeRef.ResolutionScope
 		/// </summary>
@@ -82,6 +110,13 @@ namespace dot10.DotNet {
 		/// From column TypeRef.Namespace
 		/// </summary>
 		public abstract UTF8String Namespace { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
+		/// </summary>
+		public bool IsNested {
+			get { return ResolutionScope is TypeRef; }
+		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
@@ -118,28 +153,32 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(UTF8String name)
-			: this(UTF8String.Empty, name) {
+		public TypeRefUser(ModuleDef ownerModule, UTF8String name)
+			: this(ownerModule, UTF8String.Empty, name) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Type namespace</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(UTF8String @namespace, UTF8String name)
-			: this(@namespace, name, null) {
+		public TypeRefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name)
+			: this(ownerModule, @namespace, name, null) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Type namespace</param>
 		/// <param name="name">Type name</param>
 		/// <param name="resolutionScope">Resolution scope (a <see cref="ModuleDef"/>,
 		/// <see cref="ModuleRef"/>, <see cref="AssemblyRef"/> or <see cref="TypeRef"/>)</param>
-		public TypeRefUser(UTF8String @namespace, UTF8String name, IResolutionScope resolutionScope) {
+		public TypeRefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name, IResolutionScope resolutionScope) {
+			this.ownerModule = ownerModule;
 			this.resolutionScope = resolutionScope;
 			this.name = name;
 			this.@namespace = @namespace;
@@ -148,29 +187,32 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(string name)
-			: this(string.Empty, name) {
+		public TypeRefUser(ModuleDef ownerModule, string name)
+			: this(ownerModule, string.Empty, name) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Type namespace</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(string @namespace, string name)
-			: this(@namespace, name, null) {
+		public TypeRefUser(ModuleDef ownerModule, string @namespace, string name)
+			: this(ownerModule, @namespace, name, null) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Type namespace</param>
 		/// <param name="name">Type name</param>
 		/// <param name="resolutionScope">Resolution scope (a <see cref="ModuleDef"/>,
 		/// <see cref="ModuleRef"/>, <see cref="AssemblyRef"/> or <see cref="TypeRef"/>)</param>
-		public TypeRefUser(string @namespace, string name, IResolutionScope resolutionScope)
-			: this(new UTF8String(@namespace), new UTF8String(name), resolutionScope) {
+		public TypeRefUser(ModuleDef ownerModule, string @namespace, string name, IResolutionScope resolutionScope)
+			: this(ownerModule, new UTF8String(@namespace), new UTF8String(name), resolutionScope) {
 		}
 	}
 
@@ -223,6 +265,7 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.ownerModule = readerModule;
 			Initialize();
 		}
 

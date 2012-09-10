@@ -11,6 +11,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
+		/// <summary>
+		/// The owner module
+		/// </summary>
+		protected ModuleDef ownerModule;
+
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.TypeSpec, rid); }
@@ -62,14 +67,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
+		public IAssembly DefinitionAssembly {
+			get { return TypeSig == null ? null : TypeSig.DefinitionAssembly; }
+		}
+
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get { return ownerModule != null ? ownerModule : TypeSig == null ? null : TypeSig.OwnerModule; }
 		}
 
 		/// <summary>
 		/// From column TypeSpec.Signature
 		/// </summary>
 		public abstract ITypeSig TypeSig { get; set; }
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>
@@ -85,16 +100,20 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Default constructor
+		/// Constructor
 		/// </summary>
-		public TypeSpecUser() {
+		/// <param name="ownerModule">Owner module</param>
+		public TypeSpecUser(ModuleDef ownerModule) {
+			this.ownerModule = ownerModule;
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="typeSig">A type sig</param>
-		public TypeSpecUser(ITypeSig typeSig) {
+		public TypeSpecUser(ModuleDef ownerModule, ITypeSig typeSig) {
+			this.ownerModule = ownerModule;
 			this.typeSig = typeSig;
 		}
 	}
@@ -134,6 +153,7 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.ownerModule = ownerModule;
 			Initialize();
 		}
 
