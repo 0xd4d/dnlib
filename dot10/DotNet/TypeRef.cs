@@ -67,7 +67,13 @@ namespace dot10.DotNet {
 				var enclosingTypeRef = ResolutionScope as TypeRef;
 				if (enclosingTypeRef == null)
 					return FullNameHelper.GetFullName(Namespace, Name);
-				return string.Format("{0}.{1}", enclosingTypeRef.FullName, FullNameHelper.GetName(Name));
+				try {
+					return string.Format("{0}.{1}", enclosingTypeRef.FullName, FullNameHelper.GetName(Name));
+				}
+				catch (StackOverflowException) {
+					// Invalid metadata
+					return string.Empty;
+				}
 			}
 		}
 
@@ -77,7 +83,13 @@ namespace dot10.DotNet {
 				var enclosingTypeRef = ResolutionScope as TypeRef;
 				if (enclosingTypeRef == null)
 					return FullNameHelper.GetReflectionFullName(Namespace, Name);
-				return string.Format("{0}+{1}", enclosingTypeRef.ReflectionFullName, FullNameHelper.GetReflectionName(Name));
+				try {
+					return string.Format("{0}+{1}", enclosingTypeRef.ReflectionFullName, FullNameHelper.GetReflectionName(Name));
+				}
+				catch (StackOverflowException) {
+					// Invalid metadata
+					return string.Empty;
+				}
 			}
 		}
 
@@ -87,8 +99,15 @@ namespace dot10.DotNet {
 				var scope = ResolutionScope;
 				if (scope == null)
 					return null;	//TODO: Check ownerModule's ExportedType table
-				if (scope is TypeRef)
-					return ((TypeRef)scope).DefinitionAssembly;
+				if (scope is TypeRef) {
+					try {
+						return ((TypeRef)scope).DefinitionAssembly;
+					}
+					catch (StackOverflowException) {
+						// Invalid metadata
+						return null;
+					}
+				}
 				if (scope is AssemblyRef)
 					return (AssemblyRef)scope;
 				if (scope is ModuleRef)
