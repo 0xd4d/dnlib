@@ -63,14 +63,22 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return FullNameHelper.GetFullName(Namespace, Name); }
+			get {
+				var enclosingTypeRef = ResolutionScope as TypeRef;
+				if (enclosingTypeRef == null)
+					return FullNameHelper.GetFullName(Namespace, Name);
+				return string.Format("{0}.{1}", enclosingTypeRef.FullName, FullNameHelper.GetName(Name));
+			}
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			//TODO: Include the assembly name
-			//TODO: If nested, add the nested class
-			get { return FullNameHelper.GetReflectionFullName(Namespace, Name); }
+			get {
+				var enclosingTypeRef = ResolutionScope as TypeRef;
+				if (enclosingTypeRef == null)
+					return FullNameHelper.GetReflectionFullName(Namespace, Name);
+				return string.Format("{0}+{1}", enclosingTypeRef.ReflectionFullName, FullNameHelper.GetReflectionName(Name));
+			}
 		}
 
 		/// <inheritdoc/>
