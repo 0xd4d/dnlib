@@ -1,7 +1,7 @@
 ﻿namespace dot10.DotNet.MD {
 	public partial class TablesStream {
 		/// <summary>
-		/// Read a raw Module row
+		/// Reads a raw Module row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -21,7 +21,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw TypeRef row
+		/// Reads a raw TypeRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -39,7 +39,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw TypeDef row
+		/// Reads a raw TypeDef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -60,7 +60,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw FieldPtr row
+		/// Reads a raw FieldPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -76,7 +76,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw Field row
+		/// Reads a raw Field row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -94,7 +94,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw MethodPtr row
+		/// Reads a raw MethodPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -110,7 +110,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw Method row
+		/// Reads a raw Method row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -131,7 +131,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ParamPtr row
+		/// Reads a raw ParamPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -147,7 +147,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw Param row
+		/// Reads a raw Param row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -165,7 +165,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw InterfaceImpl row
+		/// Reads a raw InterfaceImpl row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -182,7 +182,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw MemberRef row
+		/// Reads a raw MemberRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -200,7 +200,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw Constant row
+		/// Reads a raw Constant row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -219,7 +219,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw CustomAttribute row
+		/// Reads a raw CustomAttribute row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -237,7 +237,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw FieldMarshal row
+		/// Reads a raw FieldMarshal row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -254,7 +254,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw DeclSecurity row
+		/// Reads a raw DeclSecurity row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -272,7 +272,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ClassLayout row
+		/// Reads a raw ClassLayout row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -290,7 +290,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw FieldLayout row
+		/// Reads a raw FieldLayout row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -307,7 +307,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw StandAloneSig row
+		/// Reads a raw StandAloneSig row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -323,7 +323,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw EventMap row
+		/// Reads a raw EventMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -340,7 +340,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw EventPtr row
+		/// Reads a raw EventPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -356,7 +356,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw Event row
+		/// Reads a raw Event row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -374,7 +374,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw PropertyMap row
+		/// Reads a raw PropertyMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -391,7 +391,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw PropertyPtr row
+		/// Reads a raw PropertyPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -407,7 +407,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw Property row
+		/// Reads a raw Property row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -425,7 +425,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw MethodSemantics row
+		/// Reads a raw MethodSemantics row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -443,7 +443,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw MethodImpl row
+		/// Reads a raw MethodImpl row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -461,7 +461,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ModuleRef row
+		/// Reads a raw ModuleRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -477,7 +477,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw TypeSpec row
+		/// Reads a raw TypeSpec row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -493,7 +493,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ImplMap row
+		/// Reads a raw ImplMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -512,7 +512,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw FieldRVA row
+		/// Reads a raw FieldRVA row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -529,7 +529,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ENCLog row
+		/// Reads a raw ENCLog row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -545,7 +545,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ENCMap row
+		/// Reads a raw ENCMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -560,7 +560,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw Assembly row
+		/// Reads a raw Assembly row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -584,7 +584,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw AssemblyProcessor row
+		/// Reads a raw AssemblyProcessor row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -599,7 +599,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw AssemblyOS row
+		/// Reads a raw AssemblyOS row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -616,7 +616,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw AssemblyRef row
+		/// Reads a raw AssemblyRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -640,7 +640,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw AssemblyRefProcessor row
+		/// Reads a raw AssemblyRefProcessor row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -657,7 +657,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw AssemblyRefOS row
+		/// Reads a raw AssemblyRefOS row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -676,7 +676,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw File row
+		/// Reads a raw File row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -694,7 +694,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ExportedType row
+		/// Reads a raw ExportedType row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -714,7 +714,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw ManifestResource row
+		/// Reads a raw ManifestResource row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -733,7 +733,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw NestedClass row
+		/// Reads a raw NestedClass row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -750,7 +750,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw GenericParam row
+		/// Reads a raw GenericParam row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -776,7 +776,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw MethodSpec row
+		/// Reads a raw MethodSpec row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
@@ -793,7 +793,7 @@
 		}
 
 		/// <summary>
-		/// Read a raw GenericParamConstraint row
+		/// Reads a raw GenericParamConstraint row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
 		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
