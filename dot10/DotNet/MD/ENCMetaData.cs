@@ -157,33 +157,6 @@ namespace dot10.DotNet.MD {
 			return tablesStream.ReadColumn(Table.PropertyPtr, listRid, 0, out listValue) ? listValue : 0;
 		}
 
-		/// <summary>
-		/// Gets a list range (eg. field list)
-		/// </summary>
-		/// <param name="tableSource">Source table, eg. <c>TypeDef</c></param>
-		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
-		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
-		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
-		/// <param name="startRid">Start rid in <paramref name="tableDest"/></param>
-		/// <returns>Size of range starting from <paramref name="startRid"/></returns>
-		uint GetListRange(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest, out uint startRid) {
-			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
-			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
-				return 0;
-			uint nextListRid;
-			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
-
-			uint lastRid = tablesStream.Get(tableDest).Rows + 1;
-			if (startRid == 0 || startRid >= lastRid)
-				return 0;
-			uint endRid = hasNext && nextListRid != 0 ? nextListRid : lastRid;
-			if (endRid < startRid)
-				endRid = startRid;
-			if (endRid > lastRid)
-				endRid = lastRid;
-			return endRid - startRid;
-		}
-
 		/// <inheritdoc/>
 		public override RidRange GetFieldRange(uint typeDefRid) {
 			var range = GetListRange(Table.TypeDef, typeDefRid, 4, Table.Field);
