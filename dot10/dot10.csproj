@@ -83,6 +83,7 @@
     <Compile Include="DotNet\ISignature.cs" />
     <Compile Include="DotNet\ITypeSig.cs" />
     <Compile Include="DotNet\LazyList.cs" />
+    <Compile Include="DotNet\MD\RidRange.cs" />
     <Compile Include="DotNet\MethodAttributes.cs" />
     <Compile Include="DotNet\MethodImpl.cs" />
     <Compile Include="DotNet\MethodImplAttributes.cs" />

@@ -103,35 +103,19 @@ namespace dot10.DotNet.MD {
 		public abstract void Initialize();
 
 		/// <inheritdoc/>
-		public abstract uint GetFieldRange(uint typeDefRid, out uint startRid);
+		public abstract RidRange GetFieldRange(uint typeDefRid);
 
 		/// <inheritdoc/>
-		public abstract uint ToFieldRid(uint listRid);
+		public abstract RidRange GetMethodRange(uint typeDefRid);
 
 		/// <inheritdoc/>
-		public abstract uint GetMethodRange(uint typeDefRid, out uint startRid);
+		public abstract RidRange GetParamRange(uint methodRid);
 
 		/// <inheritdoc/>
-		public abstract uint ToMethodRid(uint listRid);
-
-
-		/// <inheritdoc/>
-		public abstract uint GetParamRange(uint methodRid, out uint startRid);
+		public abstract RidRange GetEventRange(uint eventMapRid);
 
 		/// <inheritdoc/>
-		public abstract uint ToParamRid(uint listRid);
-
-		/// <inheritdoc/>
-		public abstract uint GetEventMapRange(uint eventMapRid, out uint startRid);
-
-		/// <inheritdoc/>
-		public abstract uint ToEventRid(uint listRid);
-
-		/// <inheritdoc/>
-		public abstract uint GetPropertyMapRange(uint propertyMapRid, out uint startRid);
-
-		/// <inheritdoc/>
-		public abstract uint ToPropertyRid(uint listRid);
+		public abstract RidRange GetPropertyRange(uint propertyMapRid);
 
 		/// <inheritdoc/>
 		public void Dispose() {

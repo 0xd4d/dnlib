@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace dot10.DotNet {
+	delegate V MFunc<T, U, V>(T t, U u);
+
 	/// <summary>
 	/// Implements a <see cref="IList{T}"/> that is lazily initialized
 	/// </summary>
@@ -11,10 +13,10 @@ namespace dot10.DotNet {
 	[DebuggerDisplay("Count = {Count}")]
 	class LazyList<TValue> : IList<TValue> where TValue : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		uint indexBase;
+		object context;
 
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		MFunc<uint, TValue> readOriginalValue;
+		MFunc<object, uint, TValue> readOriginalValue;
 
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 		List<Element> list;
@@ -37,7 +39,7 @@ namespace dot10.DotNet {
 			public TValue Value {
 				get {
 					if (lazyList != null) {
-						value = lazyList.readOriginalValue(lazyList.indexBase + origIndex);
+						value = lazyList.readOriginalValue(lazyList.context, origIndex);
 						lazyList = null;
 					}
 					return value;
@@ -69,7 +71,7 @@ namespace dot10.DotNet {
 			/// <inheritdoc/>
 			public override string ToString() {
 				if (lazyList != null) {
-					value = lazyList.readOriginalValue(lazyList.indexBase + origIndex);
+					value = lazyList.readOriginalValue(lazyList.context, origIndex);
 					lazyList = null;
 				}
 				return value == null ? string.Empty : value.ToString();
@@ -99,7 +101,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public LazyList(int length, MFunc<uint, TValue> readOriginalValue)
+		public LazyList(int length, MFunc<object, uint, TValue> readOriginalValue)
 			: this(length, 0, readOriginalValue) {
 		}
 
@@ -107,11 +109,10 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="length">Initial length of the list</param>
-		/// <param name="indexBase">Value to add to element index when calling
-		/// <paramref name="readOriginalValue"/>, eg. <c>1</c> or <c>0x06000001</c></param>
+		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public LazyList(int length, uint indexBase, MFunc<uint, TValue> readOriginalValue) {
-			this.indexBase = indexBase;
+		public LazyList(int length, object context, MFunc<object, uint, TValue> readOriginalValue) {
+			this.context = context;
 			this.readOriginalValue = readOriginalValue;
 			this.list = new List<Element>(length);
 			for (int i = 0; i < length; i++)

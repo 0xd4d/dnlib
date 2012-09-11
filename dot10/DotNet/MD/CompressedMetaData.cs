@@ -88,53 +88,28 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetFieldRange(uint typeDefRid, out uint startRid) {
-			return GetListRange(Table.TypeDef, typeDefRid, 4, Table.Field, out startRid);
+		public override RidRange GetFieldRange(uint typeDefRid) {
+			return GetListRange(Table.TypeDef, typeDefRid, 4, Table.Field);
 		}
 
 		/// <inheritdoc/>
-		public override uint ToFieldRid(uint listRid) {
-			return listRid;
+		public override RidRange GetMethodRange(uint typeDefRid) {
+			return GetListRange(Table.TypeDef, typeDefRid, 5, Table.Method);
 		}
 
 		/// <inheritdoc/>
-		public override uint GetMethodRange(uint typeDefRid, out uint startRid) {
-			return GetListRange(Table.TypeDef, typeDefRid, 5, Table.Method, out startRid);
+		public override RidRange GetParamRange(uint methodRid) {
+			return GetListRange(Table.Method, methodRid, 5, Table.Param);
 		}
 
 		/// <inheritdoc/>
-		public override uint ToMethodRid(uint listRid) {
-			return listRid;
+		public override RidRange GetEventRange(uint eventMapRid) {
+			return GetListRange(Table.EventMap, eventMapRid, 1, Table.Event);
 		}
 
 		/// <inheritdoc/>
-		public override uint GetParamRange(uint methodRid, out uint startRid) {
-			return GetListRange(Table.Method, methodRid, 5, Table.Param, out startRid);
-		}
-
-		/// <inheritdoc/>
-		public override uint ToParamRid(uint listRid) {
-			return listRid;
-		}
-
-		/// <inheritdoc/>
-		public override uint GetEventMapRange(uint eventMapRid, out uint startRid) {
-			return GetListRange(Table.EventMap, eventMapRid, 1, Table.Event, out startRid);
-		}
-
-		/// <inheritdoc/>
-		public override uint ToEventRid(uint listRid) {
-			return listRid;
-		}
-
-		/// <inheritdoc/>
-		public override uint GetPropertyMapRange(uint propertyMapRid, out uint startRid) {
-			return GetListRange(Table.PropertyMap, propertyMapRid, 1, Table.Property, out startRid);
-		}
-
-		/// <inheritdoc/>
-		public override uint ToPropertyRid(uint listRid) {
-			return listRid;
+		public override RidRange GetPropertyRange(uint propertyMapRid) {
+			return GetListRange(Table.PropertyMap, propertyMapRid, 1, Table.Property);
 		}
 
 		/// <summary>
@@ -144,24 +119,24 @@ namespace dot10.DotNet.MD {
 		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
-		/// <param name="startRid">Start rid in <paramref name="tableDest"/></param>
-		/// <returns>Size of range starting from <paramref name="startRid"/></returns>
-		uint GetListRange(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest, out uint startRid) {
+		/// <returns>A new <see cref="RidRange"/> instance</returns>
+		RidRange GetListRange(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
 			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
+			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
-				return 0;
+				return ContiguousRidRange.Empty;
 			uint nextListRid;
 			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
 
 			uint lastRid = tablesStream.Get(tableDest).Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
-				return 0;
+				return ContiguousRidRange.Empty;
 			uint endRid = hasNext ? nextListRid : lastRid;
 			if (endRid < startRid)
 				endRid = startRid;
 			if (endRid > lastRid)
 				endRid = lastRid;
-			return endRid - startRid;
+			return new ContiguousRidRange(startRid, endRid - startRid);
 		}
 	}
 }

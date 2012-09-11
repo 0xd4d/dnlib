@@ -670,9 +670,8 @@ namespace dot10.DotNet {
 		public override IList<ParamDef> ParamList {
 			get {
 				if (parameters == null) {
-					uint startRid;
-					uint num = readerModule.MetaData.GetParamRange(rid, out startRid);
-					parameters = new LazyList<ParamDef>((int)num, startRid, rid2 => readerModule.ResolveParam(readerModule.MetaData.ToParamRid(rid2)));
+					var range = readerModule.MetaData.GetParamRange(rid);
+					parameters = new LazyList<ParamDef>((int)range.Length, range, (range2, index) => readerModule.ResolveParam(((RidRange)range2)[index]));
 				}
 				return parameters;
 			}

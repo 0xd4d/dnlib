@@ -582,9 +582,8 @@ namespace dot10.DotNet {
 		public override IList<FieldDef> Fields {
 			get {
 				if (fields == null) {
-					uint startRid;
-					uint num = readerModule.MetaData.GetFieldRange(rid, out startRid);
-					fields = new LazyList<FieldDef>((int)num, startRid, rid2 => readerModule.ResolveField(readerModule.MetaData.ToFieldRid(rid2)));
+					var range = readerModule.MetaData.GetFieldRange(rid);
+					fields = new LazyList<FieldDef>((int)range.Length, range, (range2, index) => readerModule.ResolveField(((RidRange)range2)[index]));
 				}
 				return fields;
 			}
@@ -594,9 +593,8 @@ namespace dot10.DotNet {
 		public override IList<MethodDef> Methods {
 			get {
 				if (methods == null) {
-					uint startRid;
-					uint num = readerModule.MetaData.GetMethodRange(rid, out startRid);
-					methods = new LazyList<MethodDef>((int)num, startRid, rid2 => readerModule.ResolveMethod(readerModule.MetaData.ToMethodRid(rid2)));
+					var range = readerModule.MetaData.GetMethodRange(rid);
+					methods = new LazyList<MethodDef>((int)range.Length, range, (range2, index) => readerModule.ResolveMethod(((RidRange)range2)[index]));
 				}
 				return methods;
 			}
