@@ -129,8 +129,8 @@ namespace dot10.DotNet {
 		public override IList<PropertyDef> Properties {
 			get {
 				if (properties == null) {
-					var range = readerModule.MetaData.GetPropertyRange(rid);
-					properties = new LazyList<PropertyDef>((int)range.Length, range, (range2, index) => readerModule.ResolveProperty(((RidRange)range2)[index]));
+					var list = readerModule.MetaData.GetPropertyRidList(rid);
+					properties = new LazyList<PropertyDef>((int)list.Length, list, (list2, index) => readerModule.ResolveProperty(((RidList)list2)[index]));
 				}
 				return properties;
 			}

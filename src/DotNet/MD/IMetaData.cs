@@ -31,38 +31,38 @@ namespace dot10.DotNet.MD {
 		TablesStream TablesStream { get; }
 
 		/// <summary>
-		/// Gets the <c>Field</c> rid range
+		/// Gets the <c>Field</c> rid list
 		/// </summary>
 		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>
-		/// <returns>A new <see cref="RidRange"/> instance</returns>
-		RidRange GetFieldRange(uint typeDefRid);
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetFieldRidList(uint typeDefRid);
 
 		/// <summary>
-		/// Gets the <c>Method</c> rid range
+		/// Gets the <c>Method</c> rid list
 		/// </summary>
 		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>
-		/// <returns>A new <see cref="RidRange"/> instance</returns>
-		RidRange GetMethodRange(uint typeDefRid);
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetMethodRidList(uint typeDefRid);
 
 		/// <summary>
-		/// Gets the <c>Param</c> rid range
+		/// Gets the <c>Param</c> rid list
 		/// </summary>
 		/// <param name="methodRid"><c>Method</c> rid</param>
-		/// <returns>A new <see cref="RidRange"/> instance</returns>
-		RidRange GetParamRange(uint methodRid);
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetParamRidList(uint methodRid);
 
 		/// <summary>
-		/// Gets the <c>Event</c> rid range
+		/// Gets the <c>Event</c> rid list
 		/// </summary>
 		/// <param name="eventMapRid"><c>EventMap</c> rid</param>
-		/// <returns>A new <see cref="RidRange"/> instance</returns>
-		RidRange GetEventRange(uint eventMapRid);
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetEventRidList(uint eventMapRid);
 
 		/// <summary>
-		/// Gets the <c>Property</c> rid range
+		/// Gets the <c>Property</c> rid list
 		/// </summary>
 		/// <param name="propertyMapRid"><c>PropertyMap</c> rid</param>
-		/// <returns>A new <see cref="RidRange"/> instance</returns>
-		RidRange GetPropertyRange(uint propertyMapRid);
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetPropertyRidList(uint propertyMapRid);
 	}
 }

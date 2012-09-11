@@ -88,55 +88,55 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetFieldRange(uint typeDefRid) {
-			return GetListRange(Table.TypeDef, typeDefRid, 4, Table.Field);
+		public override RidList GetFieldRidList(uint typeDefRid) {
+			return GetRidList(Table.TypeDef, typeDefRid, 4, Table.Field);
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetMethodRange(uint typeDefRid) {
-			return GetListRange(Table.TypeDef, typeDefRid, 5, Table.Method);
+		public override RidList GetMethodRidList(uint typeDefRid) {
+			return GetRidList(Table.TypeDef, typeDefRid, 5, Table.Method);
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetParamRange(uint methodRid) {
-			return GetListRange(Table.Method, methodRid, 5, Table.Param);
+		public override RidList GetParamRidList(uint methodRid) {
+			return GetRidList(Table.Method, methodRid, 5, Table.Param);
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetEventRange(uint eventMapRid) {
-			return GetListRange(Table.EventMap, eventMapRid, 1, Table.Event);
+		public override RidList GetEventRidList(uint eventMapRid) {
+			return GetRidList(Table.EventMap, eventMapRid, 1, Table.Event);
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetPropertyRange(uint propertyMapRid) {
-			return GetListRange(Table.PropertyMap, propertyMapRid, 1, Table.Property);
+		public override RidList GetPropertyRidList(uint propertyMapRid) {
+			return GetRidList(Table.PropertyMap, propertyMapRid, 1, Table.Property);
 		}
 
 		/// <summary>
-		/// Gets a list range (eg. field list)
+		/// Gets a rid list (eg. field list)
 		/// </summary>
 		/// <param name="tableSource">Source table, eg. <c>TypeDef</c></param>
 		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
-		/// <returns>A new <see cref="RidRange"/> instance</returns>
-		RidRange GetListRange(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetRidList(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
 			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
 			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
-				return ContiguousRidRange.Empty;
+				return ContiguousRidList.Empty;
 			uint nextListRid;
 			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
 
 			uint lastRid = tablesStream.Get(tableDest).Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
-				return ContiguousRidRange.Empty;
+				return ContiguousRidList.Empty;
 			uint endRid = hasNext ? nextListRid : lastRid;
 			if (endRid < startRid)
 				endRid = startRid;
 			if (endRid > lastRid)
 				endRid = lastRid;
-			return new ContiguousRidRange(startRid, endRid - startRid);
+			return new ContiguousRidList(startRid, endRid - startRid);
 		}
 	}
 }

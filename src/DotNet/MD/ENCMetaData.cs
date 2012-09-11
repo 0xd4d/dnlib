@@ -158,15 +158,15 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetFieldRange(uint typeDefRid) {
-			var range = GetListRange(Table.TypeDef, typeDefRid, 4, Table.Field);
-			if (range.Length == 0 || (!hasFieldPtr && !hasDeletedRows))
-				return range;
+		public override RidList GetFieldRidList(uint typeDefRid) {
+			var list = GetRidList(Table.TypeDef, typeDefRid, 4, Table.Field);
+			if (list.Length == 0 || (!hasFieldPtr && !hasDeletedRows))
+				return list;
 
 			var destTable = tablesStream.Get(Table.Field);
-			var newRange = new RandomRidRange((int)range.Length);
-			for (uint i = 0; i < range.Length; i++) {
-				var rid = ToFieldRid(range[i]);
+			var newList = new RandomRidList((int)list.Length);
+			for (uint i = 0; i < list.Length; i++) {
+				var rid = ToFieldRid(list[i]);
 				if (rid == 0 || rid > destTable.Rows)
 					continue;
 				if (hasDeletedRows) {
@@ -181,21 +181,21 @@ namespace dot10.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newRange.Add(rid);
+				newList.Add(rid);
 			}
-			return newRange;
+			return newList;
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetMethodRange(uint typeDefRid) {
-			var range = GetListRange(Table.TypeDef, typeDefRid, 5, Table.Method);
-			if (range.Length == 0 || (!hasMethodPtr && !hasDeletedRows))
-				return range;
+		public override RidList GetMethodRidList(uint typeDefRid) {
+			var list = GetRidList(Table.TypeDef, typeDefRid, 5, Table.Method);
+			if (list.Length == 0 || (!hasMethodPtr && !hasDeletedRows))
+				return list;
 
 			var destTable = tablesStream.Get(Table.Method);
-			var newRange = new RandomRidRange((int)range.Length);
-			for (uint i = 0; i < range.Length; i++) {
-				var rid = ToMethodRid(range[i]);
+			var newList = new RandomRidList((int)list.Length);
+			for (uint i = 0; i < list.Length; i++) {
+				var rid = ToMethodRid(list[i]);
 				if (rid == 0 || rid > destTable.Rows)
 					continue;
 				if (hasDeletedRows) {
@@ -210,38 +210,38 @@ namespace dot10.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newRange.Add(rid);
+				newList.Add(rid);
 			}
-			return newRange;
+			return newList;
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetParamRange(uint methodRid) {
-			var range = GetListRange(Table.Method, methodRid, 5, Table.Param);
-			if (range.Length == 0 || !hasParamPtr)
-				return range;
+		public override RidList GetParamRidList(uint methodRid) {
+			var list = GetRidList(Table.Method, methodRid, 5, Table.Param);
+			if (list.Length == 0 || !hasParamPtr)
+				return list;
 
 			var destTable = tablesStream.Get(Table.Param);
-			var newRange = new RandomRidRange((int)range.Length);
-			for (uint i = 0; i < range.Length; i++) {
-				var rid = ToParamRid(range[i]);
+			var newList = new RandomRidList((int)list.Length);
+			for (uint i = 0; i < list.Length; i++) {
+				var rid = ToParamRid(list[i]);
 				if (rid == 0 || rid > destTable.Rows)
 					continue;
-				newRange.Add(rid);
+				newList.Add(rid);
 			}
-			return newRange;
+			return newList;
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetEventRange(uint eventMapRid) {
-			var range = GetListRange(Table.EventMap, eventMapRid, 1, Table.Event);
-			if (range.Length == 0 || (!hasEventPtr && !hasDeletedRows))
-				return range;
+		public override RidList GetEventRidList(uint eventMapRid) {
+			var list = GetRidList(Table.EventMap, eventMapRid, 1, Table.Event);
+			if (list.Length == 0 || (!hasEventPtr && !hasDeletedRows))
+				return list;
 
 			var destTable = tablesStream.Get(Table.Event);
-			var newRange = new RandomRidRange((int)range.Length);
-			for (uint i = 0; i < range.Length; i++) {
-				var rid = ToEventRid(range[i]);
+			var newList = new RandomRidList((int)list.Length);
+			for (uint i = 0; i < list.Length; i++) {
+				var rid = ToEventRid(list[i]);
 				if (rid == 0 || rid > destTable.Rows)
 					continue;
 				if (hasDeletedRows) {
@@ -256,21 +256,21 @@ namespace dot10.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newRange.Add(rid);
+				newList.Add(rid);
 			}
-			return newRange;
+			return newList;
 		}
 
 		/// <inheritdoc/>
-		public override RidRange GetPropertyRange(uint propertyMapRid) {
-			var range = GetListRange(Table.PropertyMap, propertyMapRid, 1, Table.Property);
-			if (range.Length == 0 || (!hasPropertyPtr && !hasDeletedRows))
-				return range;
+		public override RidList GetPropertyRidList(uint propertyMapRid) {
+			var list = GetRidList(Table.PropertyMap, propertyMapRid, 1, Table.Property);
+			if (list.Length == 0 || (!hasPropertyPtr && !hasDeletedRows))
+				return list;
 
 			var destTable = tablesStream.Get(Table.Property);
-			var newRange = new RandomRidRange((int)range.Length);
-			for (uint i = 0; i < range.Length; i++) {
-				var rid = ToPropertyRid(range[i]);
+			var newList = new RandomRidList((int)list.Length);
+			for (uint i = 0; i < list.Length; i++) {
+				var rid = ToPropertyRid(list[i]);
 				if (rid == 0 || rid > destTable.Rows)
 					continue;
 				if (hasDeletedRows) {
@@ -285,36 +285,36 @@ namespace dot10.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newRange.Add(rid);
+				newList.Add(rid);
 			}
-			return newRange;
+			return newList;
 		}
 
 		/// <summary>
-		/// Gets a list range (eg. field list)
+		/// Gets a rid list (eg. field list)
 		/// </summary>
 		/// <param name="tableSource">Source table, eg. <c>TypeDef</c></param>
 		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
-		/// <returns>A new <see cref="RidRange"/> instance</returns>
-		ContiguousRidRange GetListRange(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		ContiguousRidList GetRidList(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
 			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
 			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
-				return ContiguousRidRange.Empty;
+				return ContiguousRidList.Empty;
 			uint nextListRid;
 			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
 
 			uint lastRid = tablesStream.Get(tableDest).Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
-				return ContiguousRidRange.Empty;
+				return ContiguousRidList.Empty;
 			uint endRid = hasNext && nextListRid != 0 ? nextListRid : lastRid;
 			if (endRid < startRid)
 				endRid = startRid;
 			if (endRid > lastRid)
 				endRid = lastRid;
-			return new ContiguousRidRange(startRid, endRid - startRid);
+			return new ContiguousRidList(startRid, endRid - startRid);
 		}
 	}
 }

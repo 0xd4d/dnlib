@@ -2,9 +2,9 @@
 
 namespace dot10.DotNet.MD {
 	/// <summary>
-	/// Iterates over a range of rids
+	/// Stores a list of rids
 	/// </summary>
-	public abstract class RidRange {
+	public abstract class RidList {
 		/// <summary>
 		/// Gets the number of rids it will iterate over
 		/// </summary>
@@ -19,13 +19,13 @@ namespace dot10.DotNet.MD {
 	}
 
 	/// <summary>
-	/// A <see cref="RidRange"/> where the rid range is contiguous
+	/// A <see cref="RidList"/> where the rids are contiguous
 	/// </summary>
-	class ContiguousRidRange : RidRange {
+	class ContiguousRidList : RidList {
 		/// <summary>
-		/// The empty <see cref="RidRange"/>
+		/// The empty <see cref="RidList"/>
 		/// </summary>
-		public static readonly ContiguousRidRange Empty = new ContiguousRidRange(0, 0);
+		public static readonly ContiguousRidList Empty = new ContiguousRidList(0, 0);
 
 		readonly uint startRid;
 		readonly uint length;
@@ -56,17 +56,17 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="startRid">First rid to return</param>
 		/// <param name="length">Number of rids to return</param>
-		public ContiguousRidRange(uint startRid, uint length) {
+		public ContiguousRidList(uint startRid, uint length) {
 			this.startRid = startRid;
 			this.length = length;
 		}
 	}
 
 	/// <summary>
-	/// A <see cref="RidRange"/> where the returned rids aren't necessarily contiguous.
+	/// A <see cref="RidList"/> where the returned rids aren't necessarily contiguous.
 	/// This should be used if eg. the pointer tables are present.
 	/// </summary>
-	class RandomRidRange : RidRange {
+	class RandomRidList : RidList {
 		readonly IList<uint> indexToRid;
 
 		/// <inheritdoc/>
@@ -86,7 +86,7 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public RandomRidRange() {
+		public RandomRidList() {
 			this.indexToRid = new List<uint>();
 		}
 
@@ -94,7 +94,7 @@ namespace dot10.DotNet.MD {
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Approximate number of rids that will be returned</param>
-		public RandomRidRange(int capacity) {
+		public RandomRidList(int capacity) {
 			this.indexToRid = new List<uint>(capacity);
 		}
 

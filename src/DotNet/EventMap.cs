@@ -129,8 +129,8 @@ namespace dot10.DotNet {
 		public override IList<EventDef> Events {
 			get {
 				if (events == null) {
-					var range = readerModule.MetaData.GetEventRange(rid);
-					events = new LazyList<EventDef>((int)range.Length, range, (range2, index) => readerModule.ResolveEvent(((RidRange)range2)[index]));
+					var list = readerModule.MetaData.GetEventRidList(rid);
+					events = new LazyList<EventDef>((int)list.Length, list, (list2, index) => readerModule.ResolveEvent(((RidList)list2)[index]));
 				}
 				return events;
 			}
