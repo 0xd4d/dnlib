@@ -47,6 +47,55 @@ namespace dot10.DotNet.MD {
 			get { return flags; }
 		}
 
+		/// <summary>
+		/// Gets the <see cref="MDStreamFlags.BigStrings"/> bit
+		/// </summary>
+		public bool HasBigStrings {
+			get { return (flags & MDStreamFlags.BigStrings) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MDStreamFlags.BigGUID"/> bit
+		/// </summary>
+		public bool HasBigGUID {
+			get { return (flags & MDStreamFlags.BigGUID) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MDStreamFlags.BigBlob"/> bit
+		/// </summary>
+		public bool HasBigBlob {
+			get { return (flags & MDStreamFlags.BigBlob) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MDStreamFlags.Padding"/> bit
+		/// </summary>
+		public bool HasPadding {
+			get { return (flags & MDStreamFlags.Padding) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MDStreamFlags.DeltaOnly"/> bit
+		/// </summary>
+		public bool HasDeltaOnly {
+			get { return (flags & MDStreamFlags.DeltaOnly) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MDStreamFlags.ExtraData"/> bit
+		/// </summary>
+		public bool HasExtraData {
+			get { return (flags & MDStreamFlags.ExtraData) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MDStreamFlags.HasDelete"/> bit
+		/// </summary>
+		public bool HasDelete {
+			get { return (flags & MDStreamFlags.HasDelete) != 0; }
+		}
+
 		/// <inheritdoc/>
 		protected TablesStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
@@ -75,7 +124,7 @@ namespace dot10.DotNet.MD {
 					mdTables[i] = new MDTable(rows, tableInfos[i]);
 			}
 
-			if ((flags & MDStreamFlags.ExtraData) != 0)
+			if (HasExtraData)
 				extraData = imageStream.ReadUInt32();
 
 			foreach (var mdTable in mdTables) {
@@ -140,9 +189,9 @@ namespace dot10.DotNet.MD {
 				case ColumnSize.UInt16: return 2;
 				case ColumnSize.Int32: return 4;
 				case ColumnSize.UInt32: return 4;
-				case ColumnSize.Strings: return (flags & MDStreamFlags.BigStrings) != 0 ? 4 : 2;
-				case ColumnSize.GUID: return (flags & MDStreamFlags.BigGUID) != 0 ? 4 : 2;
-				case ColumnSize.Blob: return (flags & MDStreamFlags.BigBlob) != 0 ? 4 : 2;
+				case ColumnSize.Strings: return HasBigStrings ? 4 : 2;
+				case ColumnSize.GUID: return HasBigGUID ? 4 : 2;
+				case ColumnSize.Blob: return HasBigBlob ? 4 : 2;
 				}
 			}
 			throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));

@@ -87,7 +87,7 @@ namespace dot10.DotNet.MD {
 				hasParamPtr = tablesStream.Get(Table.ParamPtr).Rows > 0;
 				hasEventPtr = tablesStream.Get(Table.EventPtr).Rows > 0;
 				hasPropertyPtr = tablesStream.Get(Table.PropertyPtr).Rows > 0;
-				hasDeletedRows = (tablesStream.Flags & MDStreamFlags.HasDelete) != 0;
+				hasDeletedRows = tablesStream.HasDelete;
 			}
 			finally {
 				if (imageStream != null)
