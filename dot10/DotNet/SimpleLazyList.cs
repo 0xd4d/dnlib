@@ -1,6 +1,4 @@
 ﻿namespace dot10.DotNet {
-	delegate U MFunc<T, U>(T t);
-
 	/// <summary>
 	/// A readonly list that gets initialized lazily
 	/// </summary>

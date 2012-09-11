@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace dot10.DotNet {
-	delegate V MFunc<T, U, V>(T t, U u);
-
 	/// <summary>
 	/// Implements a <see cref="IList{T}"/> that is lazily initialized
 	/// </summary>
