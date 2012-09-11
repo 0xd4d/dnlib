@@ -9,7 +9,7 @@ namespace dot10.DotNet.MD {
 	/// MDStream flags
 	/// </summary>
 	[Flags]
-	enum MDStreamFlags : byte {
+	public enum MDStreamFlags : byte {
 		/// <summary>#Strings stream is big and requires 4 byte offsets</summary>
 		BigStrings = 1,
 		/// <summary>#GUID stream is big and requires 4 byte offsets</summary>
@@ -22,7 +22,7 @@ namespace dot10.DotNet.MD {
 		DeltaOnly = 0x20,
 		/// <summary>Extra data follows the row counts</summary>
 		ExtraData = 0x40,
-		/// <summary></summary>
+		/// <summary>Set if certain tables can contain deleted rows. The name column (if present) is set to "_Deleted"</summary>
 		HasDelete = 0x80,
 	}
 
@@ -39,6 +39,13 @@ namespace dot10.DotNet.MD {
 		ulong sortedMask;
 		uint extraData;
 		MDTable[] mdTables;
+
+		/// <summary>
+		/// Gets <see cref="MDStreamFlags"/>
+		/// </summary>
+		public MDStreamFlags Flags {
+			get { return flags; }
+		}
 
 		/// <inheritdoc/>
 		protected TablesStream(IImageStream imageStream, StreamHeader streamHeader)
