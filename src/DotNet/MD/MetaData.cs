@@ -135,7 +135,7 @@ namespace dot10.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>A <see cref="ContiguousRidList"/> instance</returns>
-		ContiguousRidList FindAllRows(Table tableSource, int keyColIndex, uint key) {
+		protected RidList FindAllRows(Table tableSource, int keyColIndex, uint key) {
 			uint startRid = BinarySearch(tableSource, keyColIndex, key);
 			var table = tablesStream.Get(tableSource);
 			if (table == null || table.IsInvalidRID(startRid))
@@ -158,6 +158,19 @@ namespace dot10.DotNet.MD {
 			return new ContiguousRidList(startRid, endRid - startRid);
 		}
 
+		/// <summary>
+		/// Finds all rows owned by <paramref name="key"/> in table <paramref name="tableSource"/>
+		/// whose index is <paramref name="keyColIndex"/>. Should be called if <paramref name="tableSource"/>
+		/// could be unsorted.
+		/// </summary>
+		/// <param name="tableSource">Table to search</param>
+		/// <param name="keyColIndex">Key column index</param>
+		/// <param name="key">Key</param>
+		/// <returns>A <see cref="ContiguousRidList"/> instance</returns>
+		protected virtual RidList FindAllRowsUnsorted(Table tableSource, int keyColIndex, uint key) {
+			return FindAllRows(tableSource, keyColIndex, key);
+		}
+
 		/// <inheritdoc/>
 		public RidList GetGenericParamRidList(Table table, uint rid) {
 			var tbl = tablesStream.Get(table);
@@ -166,7 +179,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.GenericParam, 2, codedToken);
+			return FindAllRowsUnsorted(Table.GenericParam, 2, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -177,7 +190,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.MethodDefOrRef.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.MethodSpec, 0, codedToken);
+			return FindAllRowsUnsorted(Table.MethodSpec, 0, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -185,7 +198,7 @@ namespace dot10.DotNet.MD {
 			var tbl = tablesStream.Get(Table.TypeDef);
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.InterfaceImpl, 0, typeDefRid);
+			return FindAllRowsUnsorted(Table.InterfaceImpl, 0, typeDefRid);
 		}
 
 		/// <inheritdoc/>
@@ -196,7 +209,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.CustomAttribute, 0, codedToken);
+			return FindAllRowsUnsorted(Table.CustomAttribute, 0, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -207,7 +220,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasDeclSecurity.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.DeclSecurity, 1, codedToken);
+			return FindAllRowsUnsorted(Table.DeclSecurity, 1, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -218,7 +231,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasSemantic.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.MethodSemantics, 2, codedToken);
+			return FindAllRowsUnsorted(Table.MethodSemantics, 2, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -226,7 +239,7 @@ namespace dot10.DotNet.MD {
 			var tbl = tablesStream.Get(Table.TypeDef);
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.MethodImpl, 0, typeDefRid);
+			return FindAllRowsUnsorted(Table.MethodImpl, 0, typeDefRid);
 		}
 
 		/// <inheritdoc/>
@@ -234,7 +247,7 @@ namespace dot10.DotNet.MD {
 			var tbl = tablesStream.Get(Table.GenericParam);
 			if (tbl == null || tbl.IsInvalidRID(genericParamRid))
 				return ContiguousRidList.Empty;
-			return FindAllRows(Table.GenericParamConstraint, 0, genericParamRid);
+			return FindAllRowsUnsorted(Table.GenericParamConstraint, 0, genericParamRid);
 		}
 
 		/// <inheritdoc/>

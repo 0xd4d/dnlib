@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using dot10.IO;
 using dot10.PE;
 
@@ -10,6 +11,108 @@ namespace dot10.DotNet.MD {
 		static readonly UTF8String DeletedName = new UTF8String("_Deleted");
 		bool hasMethodPtr, hasFieldPtr, hasParamPtr, hasEventPtr, hasPropertyPtr;
 		bool hasDeletedRows;
+		Dictionary<Table, SortedTable> sortedTables = new Dictionary<Table, SortedTable>();
+
+		/// <summary>
+		/// Sorts a table by key column
+		/// </summary>
+		class SortedTable {
+			RowInfo[] rows;
+
+			/// <summary>
+			/// Remembers <c>rid</c> and key
+			/// </summary>
+			struct RowInfo : IComparable<RowInfo> {
+				public uint rid;
+				public uint key;
+
+				/// <summary>
+				/// Constructor
+				/// </summary>
+				/// <param name="rid">Row ID</param>
+				/// <param name="key">Key</param>
+				public RowInfo(uint rid, uint key) {
+					this.rid = rid;
+					this.key = key;
+				}
+
+				/// <inheritdoc/>
+				public int CompareTo(RowInfo other) {
+					if (key < other.key)
+						return -1;
+					if (key > other.key)
+						return 1;
+					return rid.CompareTo(other.rid);
+				}
+			}
+
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			/// <param name="mdTable">The MD table</param>
+			/// <param name="keyColIndex">Index of key column</param>
+			public SortedTable(MDTable mdTable, int keyColIndex) {
+				InitializeKeys(mdTable, keyColIndex);
+				Array.Sort(rows);
+			}
+
+			void InitializeKeys(MDTable mdTable, int keyColIndex) {
+				var keyColumn = mdTable.TableInfo.Columns[keyColIndex];
+				rows = new RowInfo[mdTable.Rows + 1];
+				var reader = mdTable.ImageStream;
+				reader.Position = keyColumn.Offset;
+				int increment = mdTable.TableInfo.RowSize - keyColumn.Size;
+				for (uint i = 1; i <= mdTable.Rows; i++) {
+					rows[i] = new RowInfo(i, keyColumn.Read(reader));
+					reader.Position += increment;
+				}
+			}
+
+			/// <summary>
+			/// Binary searches for a row with a certain key
+			/// </summary>
+			/// <param name="key">The key</param>
+			/// <returns>The row or 0 if not found</returns>
+			int BinarySearch(uint key) {
+				int lo = 1, hi = rows.Length - 1;
+				while (lo <= hi) {
+					int curr = (lo + hi) / 2;
+					uint key2 = rows[curr].key;
+					if (key == key2)
+						return curr;
+					if (key2 > key)
+						hi = curr - 1;
+					else
+						lo = curr + 1;
+				}
+
+				return 0;
+			}
+
+			/// <summary>
+			/// Find all rids that contain <paramref name="key"/>
+			/// </summary>
+			/// <param name="key">The key</param>
+			/// <returns>A new <see cref="RidList"/> instance</returns>
+			public RidList FindAllRows(uint key) {
+				int startIndex = BinarySearch(key);
+				if (startIndex == 0)
+					return ContiguousRidList.Empty;
+				int endIndex = startIndex + 1;
+				for (; startIndex > 1; startIndex--) {
+					if (key != rows[startIndex - 1].key)
+						break;
+				}
+				for (; endIndex < rows.Length; endIndex++) {
+					if (key != rows[endIndex].key)
+						break;
+				}
+				var list = new RandomRidList(endIndex - startIndex);
+				for (int i = startIndex; i < endIndex; i++)
+					list.Add(rows[i].rid);
+				return list;
+			}
+		}
 
 		/// <inheritdoc/>
 		public ENCMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
@@ -364,6 +467,16 @@ namespace dot10.DotNet.MD {
 					return rid;
 			}
 			return 0;
+		}
+
+		/// <inheritdoc/>
+		protected override RidList FindAllRowsUnsorted(Table tableSource, int keyColIndex, uint key) {
+			if (tablesStream.IsSorted(tableSource))
+				return FindAllRows(tableSource, keyColIndex, key);
+			SortedTable sortedTable;
+			if (!sortedTables.TryGetValue(tableSource, out sortedTable))
+				sortedTables[tableSource] = sortedTable = new SortedTable(tablesStream.Get(tableSource), keyColIndex);
+			return sortedTable.FindAllRows(key);
 		}
 	}
 }
