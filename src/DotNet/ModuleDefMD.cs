@@ -883,6 +883,8 @@ namespace dot10.DotNet {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParam"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public GenericParam ResolveGenericParam(uint rid) {
+			if (listGenericParamMD == null)
+				return null;
 			return listGenericParamMD[rid - 1];
 		}
 
@@ -892,6 +894,8 @@ namespace dot10.DotNet {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodSpec"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public MethodSpec ResolveMethodSpec(uint rid) {
+			if (listMethodSpecMD == null)
+				return null;
 			return listMethodSpecMD[rid - 1];
 		}
 
@@ -901,6 +905,8 @@ namespace dot10.DotNet {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamConstraint"/> instance or null if <paramref name="rid"/> is invalid</returns>
 		public GenericParamConstraint ResolveGenericParamConstraint(uint rid) {
+			if (listGenericParamConstraintMD == null)
+				return null;
 			return listGenericParamConstraintMD[rid - 1];
 		}
 
