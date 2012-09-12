@@ -9,9 +9,17 @@ namespace dot10.DotNet.MD {
 	/// </summary>
 	[DebuggerDisplay("DL:{imageStream.Length} R:{numRows} RS:{tableInfo.RowSize} C:{tableInfo.Columns.Count} {tableInfo.Name}")]
 	public sealed class MDTable : IDisposable {
+		readonly Table table;
 		uint numRows;
 		TableInfo tableInfo;
 		IImageStream imageStream;
+
+		/// <summary>
+		/// Gets the table
+		/// </summary>
+		public Table Table {
+			get { return table; }
+		}
 
 		/// <summary>
 		/// Returns total number of rows
@@ -49,9 +57,11 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="table">The table</param>
 		/// <param name="numRows">Number of rows in this table</param>
 		/// <param name="tableInfo">Info about this table</param>
-		internal MDTable(uint numRows, TableInfo tableInfo) {
+		internal MDTable(Table table, uint numRows, TableInfo tableInfo) {
+			this.table = table;
 			this.numRows = numRows;
 			this.tableInfo = tableInfo;
 		}

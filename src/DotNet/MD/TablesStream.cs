@@ -121,7 +121,7 @@ namespace dot10.DotNet.MD {
 			for (int i = 0; i < 64; valid >>= 1, i++) {
 				uint rows = (valid & 1) == 0 ? 0 : imageStream.ReadUInt32();
 				if (i < mdTables.Length)
-					mdTables[i] = new MDTable(rows, tableInfos[i]);
+					mdTables[i] = new MDTable((Table)i, rows, tableInfos[i]);
 			}
 
 			if (HasExtraData)
