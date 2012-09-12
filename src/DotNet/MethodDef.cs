@@ -83,9 +83,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<ParamDef> ParamList { get; }
 
-		/// <summary>
-		/// Gets the generic parameters
-		/// </summary>
+		/// <inheritdoc/>
 		public abstract IList<GenericParam> GenericParams { get; }
 
 		/// <inheritdoc/>

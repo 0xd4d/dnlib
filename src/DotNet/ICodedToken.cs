@@ -182,5 +182,10 @@ namespace dot10.DotNet {
 		/// The coded token tag
 		/// </summary>
 		int TypeOrMethodDefTag { get; }
+
+		/// <summary>
+		/// Gets the generic parameters
+		/// </summary>
+		IList<GenericParam> GenericParams { get; }
 	}
 }

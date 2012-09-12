@@ -118,9 +118,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<MethodDef> Methods { get; }
 
-		/// <summary>
-		/// Gets the generic parameters
-		/// </summary>
+		/// <inheritdoc/>
 		public abstract IList<GenericParam> GenericParams { get; }
 
 		/// <summary>
