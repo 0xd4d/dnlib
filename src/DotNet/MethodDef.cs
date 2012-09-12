@@ -88,6 +88,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<GenericParam> GenericParams { get; }
 
+		/// <inheritdoc/>
+		public abstract IList<DeclSecurity> DeclSecurities { get; }
+
 		/// <summary>
 		/// Gets the full name
 		/// </summary>
@@ -484,6 +487,7 @@ namespace dot10.DotNet {
 		CallingConventionSig signature;
 		IList<ParamDef> parameters = new List<ParamDef>();
 		IList<GenericParam> genericParams = new List<GenericParam>();
+		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -523,6 +527,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<GenericParam> GenericParams {
 			get { return genericParams; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<DeclSecurity> DeclSecurities {
+			get { return declSecurities; }
 		}
 
 		/// <summary>
@@ -647,6 +656,7 @@ namespace dot10.DotNet {
 		UserValue<CallingConventionSig> signature;
 		LazyList<ParamDef> parameters;
 		LazyList<GenericParam> genericParams;
+		LazyList<DeclSecurity> declSecurities;
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -697,6 +707,17 @@ namespace dot10.DotNet {
 					genericParams = new LazyList<GenericParam>((int)list.Length, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
 				}
 				return genericParams;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IList<DeclSecurity> DeclSecurities {
+			get {
+				if (declSecurities == null) {
+					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Method, rid);
+					declSecurities = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+				}
+				return declSecurities;
 			}
 		}
 

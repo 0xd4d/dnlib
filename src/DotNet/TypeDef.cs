@@ -128,6 +128,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<InterfaceImpl> InterfaceImpls { get; }
 
+		/// <inheritdoc/>
+		public abstract IList<DeclSecurity> DeclSecurities { get; }
+
 		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
@@ -431,6 +434,7 @@ namespace dot10.DotNet {
 		IList<MethodDef> methods = new List<MethodDef>();
 		IList<GenericParam> genericParams = new List<GenericParam>();
 		IList<InterfaceImpl> interfaceImpls = new List<InterfaceImpl>();
+		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -474,6 +478,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<InterfaceImpl> InterfaceImpls {
 			get { return interfaceImpls; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<DeclSecurity> DeclSecurities {
+			get { return declSecurities; }
 		}
 
 		/// <summary>
@@ -577,6 +586,7 @@ namespace dot10.DotNet {
 		LazyList<MethodDef> methods;
 		LazyList<GenericParam> genericParams;
 		LazyList<InterfaceImpl> interfaceImpls;
+		LazyList<DeclSecurity> declSecurities;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -643,6 +653,17 @@ namespace dot10.DotNet {
 					interfaceImpls = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index]));
 				}
 				return interfaceImpls;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IList<DeclSecurity> DeclSecurities {
+			get {
+				if (declSecurities == null) {
+					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.TypeDef, rid);
+					declSecurities = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+				}
+				return declSecurities;
 			}
 		}
 

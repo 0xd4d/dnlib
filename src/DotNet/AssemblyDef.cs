@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -74,6 +75,9 @@ namespace dot10.DotNet {
 		/// From column Assembly.Locale
 		/// </summary>
 		public abstract UTF8String Locale { get; set; }
+
+		/// <inheritdoc/>
+		public abstract IList<DeclSecurity> DeclSecurities { get; }
 
 		/// <inheritdoc/>
 		public PublicKeyBase PublicKeyOrToken {
@@ -402,6 +406,7 @@ namespace dot10.DotNet {
 		PublicKey publicKey;
 		UTF8String name;
 		UTF8String locale;
+		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
@@ -447,6 +452,11 @@ namespace dot10.DotNet {
 		public override UTF8String Locale {
 			get { return locale; }
 			set { locale = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<DeclSecurity> DeclSecurities {
+			get { return declSecurities; }
 		}
 
 		/// <summary>
@@ -573,6 +583,7 @@ namespace dot10.DotNet {
 		UserValue<PublicKey> publicKey;
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> locale;
+		LazyList<DeclSecurity> declSecurities;
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
@@ -618,6 +629,17 @@ namespace dot10.DotNet {
 		public override UTF8String Locale {
 			get { return locale.Value; }
 			set { locale.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<DeclSecurity> DeclSecurities {
+			get {
+				if (declSecurities == null) {
+					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, rid);
+					declSecurities = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+				}
+				return declSecurities;
+			}
 		}
 
 		/// <summary>

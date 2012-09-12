@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
@@ -96,6 +97,11 @@ namespace dot10.DotNet {
 		/// The coded token tag
 		/// </summary>
 		int HasDeclSecurityTag { get; }
+
+		/// <summary>
+		/// Gets the permission sets
+		/// </summary>
+		IList<DeclSecurity> DeclSecurities { get; }
 	}
 
 	/// <summary>
