@@ -98,7 +98,7 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Initialize the metadata, tables, streams
+		/// Initializes the metadata, tables, streams
 		/// </summary>
 		public abstract void Initialize();
 
@@ -128,7 +128,7 @@ namespace dot10.DotNet.MD {
 		protected abstract uint BinarySearch(Table tableSource, int keyColIndex, uint key);
 
 		/// <summary>
-		/// Find all rows owned by <paramref name="key"/> in table <paramref name="tableSource"/>
+		/// Finds all rows owned by <paramref name="key"/> in table <paramref name="tableSource"/>
 		/// whose index is <paramref name="keyColIndex"/>
 		/// </summary>
 		/// <param name="tableSource">Table to search</param>
