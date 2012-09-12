@@ -241,6 +241,84 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		public uint GetClassLayoutRid(uint typeDefRid) {
+			var tbl = tablesStream.Get(Table.TypeDef);
+			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.ClassLayout, 2, typeDefRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetFieldLayoutRid(uint fieldRid) {
+			var tbl = tablesStream.Get(Table.Field);
+			if (tbl == null || tbl.IsInvalidRID(fieldRid))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.FieldLayout, 1, fieldRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetFieldMarshalRid(Table table, uint rid) {
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
+				return 0;
+			uint codedToken;
+			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out codedToken))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.FieldMarshal, 0, rid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetFieldRVARid(uint fieldRid) {
+			var tbl = tablesStream.Get(Table.Field);
+			if (tbl == null || tbl.IsInvalidRID(fieldRid))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.FieldRVA, 1, fieldRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetImplMapRid(Table table, uint rid) {
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
+				return 0;
+			uint codedToken;
+			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out codedToken))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.ImplMap, 1, rid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetNestedClassRid(uint typeDefRid) {
+			var tbl = tablesStream.Get(Table.TypeDef);
+			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.NestedClass, 0, typeDefRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetEventMapRid(uint typeDefRid) {
+			var tbl = tablesStream.Get(Table.TypeDef);
+			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.EventMap, 0, typeDefRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetPropertyMapRid(uint typeDefRid) {
+			var tbl = tablesStream.Get(Table.TypeDef);
+			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.PropertyMap, 0, typeDefRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
