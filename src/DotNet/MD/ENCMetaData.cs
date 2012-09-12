@@ -82,11 +82,11 @@ namespace dot10.DotNet.MD {
 				tablesStream.Initialize(peImage);
 
 				// The pointer tables are used iff row count != 0
-				hasFieldPtr = tablesStream.Get(Table.FieldPtr).Rows > 0;
-				hasMethodPtr = tablesStream.Get(Table.MethodPtr).Rows > 0;
-				hasParamPtr = tablesStream.Get(Table.ParamPtr).Rows > 0;
-				hasEventPtr = tablesStream.Get(Table.EventPtr).Rows > 0;
-				hasPropertyPtr = tablesStream.Get(Table.PropertyPtr).Rows > 0;
+				hasFieldPtr = !tablesStream.Get(Table.FieldPtr).IsEmpty;
+				hasMethodPtr = !tablesStream.Get(Table.MethodPtr).IsEmpty;
+				hasParamPtr = !tablesStream.Get(Table.ParamPtr).IsEmpty;
+				hasEventPtr = !tablesStream.Get(Table.EventPtr).IsEmpty;
+				hasPropertyPtr = !tablesStream.Get(Table.PropertyPtr).IsEmpty;
 				hasDeletedRows = tablesStream.HasDelete;
 			}
 			finally {
@@ -167,7 +167,7 @@ namespace dot10.DotNet.MD {
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToFieldRid(list[i]);
-				if (rid == 0 || rid > destTable.Rows)
+				if (destTable.IsInvalidRID(rid))
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
@@ -196,7 +196,7 @@ namespace dot10.DotNet.MD {
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToMethodRid(list[i]);
-				if (rid == 0 || rid > destTable.Rows)
+				if (destTable.IsInvalidRID(rid))
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
@@ -225,7 +225,7 @@ namespace dot10.DotNet.MD {
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToParamRid(list[i]);
-				if (rid == 0 || rid > destTable.Rows)
+				if (destTable.IsInvalidRID(rid))
 					continue;
 				newList.Add(rid);
 			}
@@ -242,7 +242,7 @@ namespace dot10.DotNet.MD {
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToEventRid(list[i]);
-				if (rid == 0 || rid > destTable.Rows)
+				if (destTable.IsInvalidRID(rid))
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
@@ -271,7 +271,7 @@ namespace dot10.DotNet.MD {
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToPropertyRid(list[i]);
-				if (rid == 0 || rid > destTable.Rows)
+				if (destTable.IsInvalidRID(rid))
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"

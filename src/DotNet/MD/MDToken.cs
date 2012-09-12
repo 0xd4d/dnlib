@@ -7,20 +7,35 @@ namespace dot10.DotNet.MD {
 	/// </summary>
 	[DebuggerDisplay("{Table} {Rid}")]
 	public struct MDToken : IEquatable<MDToken>, IComparable<MDToken> {
+		/// <summary>
+		/// Mask to get the rid from a raw metadata token
+		/// </summary>
+		public const uint RID_MASK = 0x00FFFFFF;
+
+		/// <summary>
+		/// Max rid value
+		/// </summary>
+		public const uint RID_MAX = RID_MASK;
+
+		/// <summary>
+		/// Number of bits to right shift a raw metadata token to get the table index
+		/// </summary>
+		public const int TABLE_SHIFT = 24;
+
 		uint token;
 
 		/// <summary>
 		/// Returns the table type
 		/// </summary>
 		public Table Table {
-			get { return (Table)(token >> 24); }
+			get { return ToTable(token); }
 		}
 
 		/// <summary>
 		/// Returns the row id
 		/// </summary>
 		public uint Rid {
-			get { return token & 0x00FFFFFF; }
+			get { return ToRID(token); }
 		}
 
 		/// <summary>
@@ -59,7 +74,7 @@ namespace dot10.DotNet.MD {
 		/// <param name="table">The table type</param>
 		/// <param name="rid">Row id</param>
 		public MDToken(Table table, uint rid)
-			: this(((uint)table << 24) | rid) {
+			: this(((uint)table << TABLE_SHIFT) | rid) {
 		}
 
 		/// <summary>
@@ -68,7 +83,25 @@ namespace dot10.DotNet.MD {
 		/// <param name="table">The table type</param>
 		/// <param name="rid">Row id</param>
 		public MDToken(Table table, int rid)
-			: this(((uint)table << 24) | (uint)rid) {
+			: this(((uint)table << TABLE_SHIFT) | (uint)rid) {
+		}
+
+		/// <summary>
+		/// Returns the <c>rid</c> (row ID)
+		/// </summary>
+		/// <param name="token">A raw metadata token</param>
+		/// <returns>A <c>rid</c></returns>
+		public static uint ToRID(uint token) {
+			return token & RID_MASK;
+		}
+
+		/// <summary>
+		/// Returns the <c>table</c>
+		/// </summary>
+		/// <param name="token">A raw metadata token</param>
+		/// <returns>A metadata table index</returns>
+		public static Table ToTable(uint token) {
+			return (Table)(token >> TABLE_SHIFT);
 		}
 
 		/// <summary>Overloaded operator</summary>

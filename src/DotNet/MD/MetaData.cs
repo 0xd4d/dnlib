@@ -138,7 +138,7 @@ namespace dot10.DotNet.MD {
 		ContiguousRidList FindAllRows(Table tableSource, int keyColIndex, uint key) {
 			uint startRid = BinarySearch(tableSource, keyColIndex, key);
 			var table = tablesStream.Get(tableSource);
-			if (table == null || startRid == 0 || startRid > table.Rows)
+			if (table == null || table.IsInvalidRID(startRid))
 				return ContiguousRidList.Empty;
 			uint endRid = startRid + 1;
 			for (; startRid > 1; startRid--) {
@@ -160,7 +160,8 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public RidList GetGenericParamRidList(Table table, uint rid) {
-			if (rid == 0 || rid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
 				return ContiguousRidList.Empty;
 			uint codedToken;
 			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out codedToken))
@@ -170,7 +171,8 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public RidList GetMethodSpecRidList(Table table, uint rid) {
-			if (rid == 0 || rid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
 				return ContiguousRidList.Empty;
 			uint codedToken;
 			if (!CodedToken.MethodDefOrRef.Encode(new MDToken(table, rid), out codedToken))
@@ -180,14 +182,16 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public RidList GetInterfaceImplRidList(uint typeDefRid) {
-			if (typeDefRid == 0 || typeDefRid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(Table.TypeDef);
+			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return ContiguousRidList.Empty;
 			return FindAllRows(Table.InterfaceImpl, 0, typeDefRid);
 		}
 
 		/// <inheritdoc/>
 		public RidList GetCustomAttributeRidList(Table table, uint rid) {
-			if (rid == 0 || rid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
 				return ContiguousRidList.Empty;
 			uint codedToken;
 			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out codedToken))
@@ -197,7 +201,8 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public RidList GetDeclSecurityRidList(Table table, uint rid) {
-			if (rid == 0 || rid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
 				return ContiguousRidList.Empty;
 			uint codedToken;
 			if (!CodedToken.HasDeclSecurity.Encode(new MDToken(table, rid), out codedToken))
@@ -207,7 +212,8 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public RidList GetMethodSemanticsRidList(Table table, uint rid) {
-			if (rid == 0 || rid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
 				return ContiguousRidList.Empty;
 			uint codedToken;
 			if (!CodedToken.HasSemantic.Encode(new MDToken(table, rid), out codedToken))
@@ -217,14 +223,16 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public RidList GetMethodImplRidList(uint typeDefRid) {
-			if (typeDefRid == 0 || typeDefRid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(Table.TypeDef);
+			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return ContiguousRidList.Empty;
 			return FindAllRows(Table.MethodImpl, 0, typeDefRid);
 		}
 
 		/// <inheritdoc/>
 		public RidList GetGenericParamConstraintRidList(uint genericParamRid) {
-			if (genericParamRid == 0 || genericParamRid > 0x00FFFFFF)
+			var tbl = tablesStream.Get(Table.GenericParam);
+			if (tbl == null || tbl.IsInvalidRID(genericParamRid))
 				return ContiguousRidList.Empty;
 			return FindAllRows(Table.GenericParamConstraint, 0, genericParamRid);
 		}

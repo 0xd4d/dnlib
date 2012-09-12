@@ -448,8 +448,8 @@ namespace dot10.DotNet {
 		/// <param name="token">The metadata token</param>
 		/// <returns>A <see cref="IMDTokenProvider"/> or null if <paramref name="token"/> is invalid</returns>
 		public IMDTokenProvider ResolveToken(uint token) {
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Module: return ResolveModule(rid);
 			case Table.TypeRef: return ResolveTypeRef(rid);
 			case Table.TypeDef: return ResolveTypeDef(rid);
@@ -919,8 +919,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.TypeDefOrRef.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.TypeDef: return ResolveTypeDef(rid);
 			case Table.TypeRef: return ResolveTypeRef(rid);
 			case Table.TypeSpec: return ResolveTypeSpec(rid);
@@ -937,8 +937,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.HasConstant.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Field: return ResolveField(rid);
 			case Table.Param: return ResolveParam(rid);
 			case Table.Property: return ResolveProperty(rid);
@@ -955,8 +955,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.HasCustomAttribute.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Method: return ResolveMethod(rid);
 			case Table.Field: return ResolveField(rid);
 			case Table.TypeRef: return ResolveTypeRef(rid);
@@ -992,8 +992,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.HasFieldMarshal.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Field: return ResolveField(rid);
 			case Table.Param: return ResolveParam(rid);
 			}
@@ -1009,8 +1009,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.HasDeclSecurity.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.TypeDef: return ResolveTypeDef(rid);
 			case Table.Method: return ResolveMethod(rid);
 			case Table.Assembly: return ResolveAssembly(rid);
@@ -1027,8 +1027,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.MemberRefParent.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.TypeDef: return ResolveTypeDef(rid);
 			case Table.TypeRef: return ResolveTypeRef(rid);
 			case Table.ModuleRef: return ResolveModuleRef(rid);
@@ -1047,8 +1047,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.HasSemantic.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Event: return ResolveEvent(rid);
 			case Table.Property: return ResolveProperty(rid);
 			}
@@ -1064,8 +1064,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.MethodDefOrRef.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Method: return ResolveMethod(rid);
 			case Table.MemberRef: return ResolveMemberRef(rid);
 			}
@@ -1081,8 +1081,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.MemberForwarded.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Field: return ResolveField(rid);
 			case Table.Method: return ResolveMethod(rid);
 			}
@@ -1098,8 +1098,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.Implementation.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.File: return ResolveFile(rid);
 			case Table.AssemblyRef: return ResolveAssemblyRef(rid);
 			case Table.ExportedType: return ResolveExportedType(rid);
@@ -1116,8 +1116,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.CustomAttributeType.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Method: return ResolveMethod(rid);
 			case Table.MemberRef: return ResolveMemberRef(rid);
 			}
@@ -1133,8 +1133,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.ResolutionScope.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.Module: return ResolveModule(rid);
 			case Table.ModuleRef: return ResolveModuleRef(rid);
 			case Table.AssemblyRef: return ResolveAssemblyRef(rid);
@@ -1152,8 +1152,8 @@ namespace dot10.DotNet {
 			uint token;
 			if (!CodedToken.TypeOrMethodDef.Decode(codedToken, out token))
 				return null;
-			uint rid = token & 0x00FFFFFF;
-			switch ((Table)(token >> 24)) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
 			case Table.TypeDef: return ResolveTypeDef(rid);
 			case Table.Method: return ResolveMethod(rid);
 			}

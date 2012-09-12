@@ -21,6 +21,13 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
+		/// Returns <c>true</c> if there are no valid rows
+		/// </summary>
+		public bool IsEmpty {
+			get { return numRows == 0; }
+		}
+
+		/// <summary>
 		/// Returns info about this table
 		/// </summary>
 		public TableInfo TableInfo {
@@ -47,6 +54,22 @@ namespace dot10.DotNet.MD {
 		internal MDTable(uint numRows, TableInfo tableInfo) {
 			this.numRows = numRows;
 			this.tableInfo = tableInfo;
+		}
+
+		/// <summary>
+		/// Checks whether the row <paramref name="rid"/> exists
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		public bool IsValidRID(uint rid) {
+			return rid != 0 && rid <= numRows;
+		}
+
+		/// <summary>
+		/// Checks whether the row <paramref name="rid"/> does not exist
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		public bool IsInvalidRID(uint rid) {
+			return rid == 0 || rid > numRows;
 		}
 
 		/// <inheritdoc/>

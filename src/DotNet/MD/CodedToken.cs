@@ -144,12 +144,12 @@ namespace dot10.DotNet.MD {
 		/// <param name="codedToken">Coded token</param>
 		/// <returns>true if successful</returns>
 		public bool Encode(uint token, out uint codedToken) {
-			int index = Array.IndexOf(tableTypes, (Table)(token >> 24));
+			int index = Array.IndexOf(tableTypes, MDToken.ToTable(token));
 			if (index < 0) {
 				codedToken = uint.MaxValue;
 				return false;
 			}
-			codedToken = ((token & 0x00FFFFFF) << bits) | (uint)index;
+			codedToken = (MDToken.ToRID(token) << bits) | (uint)index;
 			return true;
 		}
 
@@ -199,12 +199,12 @@ namespace dot10.DotNet.MD {
 		public bool Decode(uint codedToken, out uint token) {
 			uint rid = codedToken >> bits;
 			int index = (int)(codedToken & mask);
-			if (rid > 0x00FFFFFF || index > tableTypes.Length) {
+			if (rid > MDToken.RID_MAX || index > tableTypes.Length) {
 				token = 0;
 				return false;
 			}
 
-			token = ((uint)tableTypes[index] << 24) | rid;
+			token = ((uint)tableTypes[index] << MDToken.TABLE_SHIFT) | rid;
 			return true;
 		}
 	}

@@ -83,14 +83,12 @@ namespace dot10.DotNet {
 		/// <param name="readerModule">The module which contains this <c>FieldMarshal</c> row</param>
 		/// <param name="rid">Row ID</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
-		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
+		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public FieldMarshalMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (rid == 0 || rid > 0x00FFFFFF)
-				throw new ArgumentException("rid");
-			if (readerModule.TablesStream.Get(Table.FieldMarshal).Rows < rid)
+			if (readerModule.TablesStream.Get(Table.FieldMarshal).IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("FieldMarshal rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

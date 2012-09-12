@@ -165,14 +165,12 @@ namespace dot10.DotNet {
 		/// <param name="readerModule">The module which contains this <c>File</c> row</param>
 		/// <param name="rid">Row ID</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
-		/// <exception cref="ArgumentException">If <paramref name="rid"/> is <c>0</c> or &gt; <c>0x00FFFFFF</c></exception>
+		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public FileDefMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (rid == 0 || rid > 0x00FFFFFF)
-				throw new ArgumentException("rid");
-			if (readerModule.TablesStream.Get(Table.File).Rows < rid)
+			if (readerModule.TablesStream.Get(Table.File).IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("File rid {0} does not exist", rid));
 #endif
 			this.rid = rid;
