@@ -120,7 +120,6 @@
     <Compile Include="DotNet\Utils.cs" />
     <Compile Include="DotNet\MD\BlobStream.cs" />
     <Compile Include="DotNet\MD\CodedToken.cs" />
-    <Compile Include="DotNet\MD\CodedTokenInfo.cs" />
     <Compile Include="DotNet\MD\ColumnInfo.cs" />
     <Compile Include="DotNet\MD\ColumnSize.cs" />
     <Compile Include="DotNet\MD\CompressedMetaData.cs" />

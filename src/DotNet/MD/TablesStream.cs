@@ -156,7 +156,7 @@ namespace dot10.DotNet.MD {
 				return mdTables[table].Rows > 0xFFFF ? 4 : 2;
 			}
 			else if (ColumnSize.TypeDefOrRef <= columnSize && columnSize <= ColumnSize.TypeOrMethodDef) {
-				CodedTokenInfo info;
+				CodedToken info;
 				switch (columnSize) {
 				case ColumnSize.TypeDefOrRef: info = CodedToken.TypeDefOrRef; break;
 				case ColumnSize.HasConstant: info = CodedToken.HasConstant; break;
