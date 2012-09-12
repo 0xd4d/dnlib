@@ -119,6 +119,11 @@ namespace dot10.DotNet {
 		public abstract IList<MethodDef> Methods { get; }
 
 		/// <summary>
+		/// Gets the generic parameters
+		/// </summary>
+		public abstract IList<GenericParam> GenericParams { get; }
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
@@ -419,6 +424,7 @@ namespace dot10.DotNet {
 		ITypeDefOrRef extends;
 		IList<FieldDef> fields = new List<FieldDef>();
 		IList<MethodDef> methods = new List<MethodDef>();
+		IList<GenericParam> genericParams = new List<GenericParam>();
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -452,6 +458,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<MethodDef> Methods {
 			get { return methods; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<GenericParam> GenericParams {
+			get { return genericParams; }
 		}
 
 		/// <summary>
@@ -553,6 +564,7 @@ namespace dot10.DotNet {
 		UserValue<ITypeDefOrRef> extends;
 		LazyList<FieldDef> fields;
 		LazyList<MethodDef> methods;
+		LazyList<GenericParam> genericParams;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -597,6 +609,17 @@ namespace dot10.DotNet {
 					methods = new LazyList<MethodDef>((int)list.Length, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[index]));
 				}
 				return methods;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IList<GenericParam> GenericParams {
+			get {
+				if (genericParams == null) {
+					var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, rid);
+					genericParams = new LazyList<GenericParam>((int)list.Length, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
+				}
+				return genericParams;
 			}
 		}
 
