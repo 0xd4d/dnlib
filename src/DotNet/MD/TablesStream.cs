@@ -474,5 +474,16 @@ namespace dot10.DotNet.MD {
 		public bool HasTable(Table table) {
 			return (uint)table < (uint)mdTables.Length;
 		}
+
+		/// <summary>
+		/// Checks whether table <paramref name="table"/> is sorted
+		/// </summary>
+		/// <param name="table">The table</param>
+		public bool IsSorted(Table table) {
+			int index = (int)table;
+			if ((uint)index >= 64)
+				return false;
+			return (sortedMask & (1UL << index)) != 0;
+		}
 	}
 }

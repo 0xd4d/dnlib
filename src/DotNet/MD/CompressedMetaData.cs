@@ -138,5 +138,26 @@ namespace dot10.DotNet.MD {
 				endRid = lastRid;
 			return new ContiguousRidList(startRid, endRid - startRid);
 		}
+
+		/// <inheritdoc/>
+		protected override uint BinarySearch(Table tableSource, int keyColIndex, uint key) {
+			var table = tablesStream.Get(tableSource);
+			var keyColumn = table.TableInfo.Columns[keyColIndex];
+			uint ridLo = 1, ridHi = table.Rows;
+			while (ridLo <= ridHi) {
+				uint rid = (ridLo + ridHi) / 2;
+				uint key2;
+				if (!tablesStream.ReadColumn(tableSource, rid, keyColumn, out key2))
+					break;	// Never happens since rid is valid
+				if (key == key2)
+					return rid;
+				if (key2 > key)
+					ridHi = rid - 1;
+				else
+					ridLo = rid + 1;
+			}
+
+			return 0;
+		}
 	}
 }

@@ -117,6 +117,118 @@ namespace dot10.DotNet.MD {
 		/// <inheritdoc/>
 		public abstract RidList GetPropertyRidList(uint propertyMapRid);
 
+		/// <summary>
+		/// Binary searches the table for a <c>rid</c> whose key column at index
+		/// <paramref name="keyColIndex"/> is equal to <paramref name="key"/>.
+		/// </summary>
+		/// <param name="tableSource">Table to search</param>
+		/// <param name="keyColIndex">Key column index</param>
+		/// <param name="key">Key</param>
+		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
+		protected abstract uint BinarySearch(Table tableSource, int keyColIndex, uint key);
+
+		/// <summary>
+		/// Find all rows owned by <paramref name="key"/> in table <paramref name="tableSource"/>
+		/// whose index is <paramref name="keyColIndex"/>
+		/// </summary>
+		/// <param name="tableSource">Table to search</param>
+		/// <param name="keyColIndex">Key column index</param>
+		/// <param name="key">Key</param>
+		/// <returns>A <see cref="ContiguousRidList"/> instance</returns>
+		ContiguousRidList FindAllRows(Table tableSource, int keyColIndex, uint key) {
+			uint startRid = BinarySearch(tableSource, keyColIndex, key);
+			var table = tablesStream.Get(tableSource);
+			if (table == null || startRid == 0 || startRid > table.Rows)
+				return ContiguousRidList.Empty;
+			uint endRid = startRid + 1;
+			for (; startRid > 1; startRid--) {
+				uint key2;
+				if (!tablesStream.ReadColumn(tableSource, startRid - 1, keyColIndex, out key2))
+					break;	// Should never happen since startRid is valid
+				if (key != key2)
+					break;
+			}
+			for (; endRid <= table.Rows; endRid++) {
+				uint key2;
+				if (!tablesStream.ReadColumn(tableSource, endRid, keyColIndex, out key2))
+					break;	// Should never happen since endRid is valid
+				if (key != key2)
+					break;
+			}
+			return new ContiguousRidList(startRid, endRid - startRid);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetGenericParamRidList(Table table, uint rid) {
+			if (rid == 0 || rid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			uint codedToken;
+			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out codedToken))
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.GenericParam, 2, codedToken);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetMethodSpecRidList(Table table, uint rid) {
+			if (rid == 0 || rid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			uint codedToken;
+			if (!CodedToken.MethodDefOrRef.Encode(new MDToken(table, rid), out codedToken))
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.MethodSpec, 0, codedToken);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetInterfaceImplRidList(uint typeDefRid) {
+			if (typeDefRid == 0 || typeDefRid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.InterfaceImpl, 0, typeDefRid);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetCustomAttributeRidList(Table table, uint rid) {
+			if (rid == 0 || rid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			uint codedToken;
+			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out codedToken))
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.CustomAttribute, 0, codedToken);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetDeclSecurityRidList(Table table, uint rid) {
+			if (rid == 0 || rid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			uint codedToken;
+			if (!CodedToken.HasDeclSecurity.Encode(new MDToken(table, rid), out codedToken))
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.DeclSecurity, 1, codedToken);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetMethodSemanticsRidList(Table table, uint rid) {
+			if (rid == 0 || rid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			uint codedToken;
+			if (!CodedToken.HasSemantic.Encode(new MDToken(table, rid), out codedToken))
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.MethodSemantics, 2, codedToken);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetMethodImplRidList(uint typeDefRid) {
+			if (typeDefRid == 0 || typeDefRid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.MethodImpl, 0, typeDefRid);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetGenericParamConstraintRidList(uint genericParamRid) {
+			if (genericParamRid == 0 || genericParamRid > 0x00FFFFFF)
+				return ContiguousRidList.Empty;
+			return FindAllRows(Table.GenericParamConstraint, 0, genericParamRid);
+		}
+
 		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);

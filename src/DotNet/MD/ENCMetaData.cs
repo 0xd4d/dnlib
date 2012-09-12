@@ -316,5 +316,50 @@ namespace dot10.DotNet.MD {
 				endRid = lastRid;
 			return new ContiguousRidList(startRid, endRid - startRid);
 		}
+
+		/// <inheritdoc/>
+		protected override uint BinarySearch(Table tableSource, int keyColIndex, uint key) {
+			var table = tablesStream.Get(tableSource);
+			var keyColumn = table.TableInfo.Columns[keyColIndex];
+			uint ridLo = 1, ridHi = table.Rows;
+			while (ridLo <= ridHi) {
+				uint rid = (ridLo + ridHi) / 2;
+				uint key2;
+				if (!tablesStream.ReadColumn(tableSource, rid, keyColumn, out key2))
+					break;	// Never happens since rid is valid
+				if (key == key2)
+					return rid;
+				if (key2 > key && key2 != 0)
+					ridHi = rid - 1;
+				else
+					ridLo = rid + 1;
+			}
+
+			if (tableSource == Table.GenericParam && !tablesStream.IsSorted(tableSource))
+				return LinearSearch(tableSource, keyColIndex, key);
+
+			return 0;
+		}
+
+		/// <summary>
+		/// Linear searches the table (O(n)) for a <c>rid</c> whose key column at index
+		/// <paramref name="keyColIndex"/> is equal to <paramref name="key"/>.
+		/// </summary>
+		/// <param name="tableSource">Table to search</param>
+		/// <param name="keyColIndex">Key column index</param>
+		/// <param name="key">Key</param>
+		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
+		uint LinearSearch(Table tableSource, int keyColIndex, uint key) {
+			var table = tablesStream.Get(tableSource);
+			var keyColumn = table.TableInfo.Columns[keyColIndex];
+			for (uint rid = 1; rid <= table.Rows; rid++) {
+				uint key2;
+				if (!tablesStream.ReadColumn(tableSource, rid, keyColumn, out key2))
+					break;	// Never happens since rid is valid
+				if (key == key2)
+					return rid;
+			}
+			return 0;
+		}
 	}
 }
