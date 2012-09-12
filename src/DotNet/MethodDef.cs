@@ -741,7 +741,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			rva.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return new RVA(rawRow.RVA);
+				return (RVA)rawRow.RVA;
 			};
 			implFlags.ReadOriginalValue = () => {
 				InitializeRawRow();

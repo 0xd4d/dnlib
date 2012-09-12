@@ -56,11 +56,11 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public IImageStream Create(FileOffset offset, long length) {
-			if (offset.Value < 0 || offset.Value > int.MaxValue)
+			if (offset < 0 || (long)offset > int.MaxValue)
 				throw new ArgumentOutOfRangeException("offset");
 			if (length < 0 || length > int.MaxValue)
 				throw new ArgumentOutOfRangeException("length");
-			int offs = (int)offset.Value;
+			int offs = (int)offset;
 			int len = (int)length;
 			if (offs + len < offs)
 				throw new ArgumentOutOfRangeException("length");
@@ -71,7 +71,7 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public IImageStream CreateFull() {
-			return new MemoryImageStream(FileOffset.Zero, data, dataOffset, dataLength);
+			return new MemoryImageStream(0, data, dataOffset, dataLength);
 		}
 
 		/// <inheritdoc/>

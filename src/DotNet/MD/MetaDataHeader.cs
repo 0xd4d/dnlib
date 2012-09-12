@@ -127,7 +127,7 @@ namespace dot10.DotNet.MD {
 			this.reserved1 = reader.ReadUInt32();
 			this.stringLength = reader.ReadUInt32();
 			this.versionString = ReadString(reader, stringLength, verify);
-			this.offset2ndPart = (uint)(reader.Position - startOffset.Value);
+			this.offset2ndPart = (uint)(reader.Position - startOffset);
 			this.flags = (StorageFlags)reader.ReadByte();
 			if (verify && this.flags != 0)
 				throw new BadImageFormatException(string.Format("Storage flags != 0 ({0:X2})", this.flags));

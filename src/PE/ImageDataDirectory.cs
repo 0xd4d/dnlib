@@ -40,7 +40,7 @@ namespace dot10.PE {
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
 		public ImageDataDirectory(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
-			this.virtualAddress = new RVA(reader.ReadUInt32());
+			this.virtualAddress = (RVA)reader.ReadUInt32();
 			this.dataSize = reader.ReadUInt32();
 			SetEndoffset(reader);
 		}

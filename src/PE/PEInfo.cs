@@ -47,7 +47,7 @@ namespace dot10.PE {
 			reader.Position = this.imageDosHeader.NTHeadersOffset;
 			this.imageNTHeaders = new ImageNTHeaders(reader, verify);
 
-			reader.Position = (this.imageNTHeaders.OptionalHeader.StartOffset + this.imageNTHeaders.FileHeader.SizeOfOptionalHeader).Value;
+			reader.Position = (long)this.imageNTHeaders.OptionalHeader.StartOffset + this.imageNTHeaders.FileHeader.SizeOfOptionalHeader;
 			this.imageSectionHeaders = new ImageSectionHeader[this.imageNTHeaders.FileHeader.NumberOfSections];
 			for (int i = 0; i < this.imageSectionHeaders.Length; i++)
 				this.imageSectionHeaders[i] = new ImageSectionHeader(reader, verify);
@@ -61,7 +61,7 @@ namespace dot10.PE {
 		/// <returns></returns>
 		public ImageSectionHeader ToImageSectionHeader(FileOffset offset) {
 			foreach (var section in imageSectionHeaders) {
-				if (offset.Value >= section.PointerToRawData && offset.Value < section.PointerToRawData + section.SizeOfRawData)
+				if ((long)offset >= section.PointerToRawData && (long)offset < section.PointerToRawData + section.SizeOfRawData)
 					return section;
 			}
 			return null;
@@ -89,8 +89,8 @@ namespace dot10.PE {
 		public RVA ToRVA(FileOffset offset) {
 			var section = ToImageSectionHeader(offset);
 			if (section != null)
-				return (uint)(offset.Value - section.PointerToRawData) + section.VirtualAddress;
-			return new RVA((uint)offset.Value);
+				return (uint)(offset - section.PointerToRawData) + section.VirtualAddress;
+			return (RVA)offset;
 		}
 
 		/// <summary>
@@ -101,8 +101,8 @@ namespace dot10.PE {
 		public FileOffset ToFileOffset(RVA rva) {
 			var section = ToImageSectionHeader(rva);
 			if (section != null)
-				return new FileOffset((long)(rva.Value - section.VirtualAddress.Value) + section.PointerToRawData);
-			return new FileOffset(rva.Value);
+				return (FileOffset)((long)(rva - section.VirtualAddress) + section.PointerToRawData);
+			return (FileOffset)rva;
 		}
 
 		static ulong alignUp(ulong val, uint alignment) {
@@ -119,7 +119,7 @@ namespace dot10.PE {
 			uint alignment = optHdr.SectionAlignment;
 			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
 			foreach (var section in ImageSectionHeaders) {
-				ulong len2 = alignUp((ulong)section.VirtualAddress.Value + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
+				ulong len2 = alignUp((ulong)section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
 				if (len2 > len)
 					len = len2;
 			}

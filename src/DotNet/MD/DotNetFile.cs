@@ -95,14 +95,14 @@ namespace dot10.DotNet.MD {
 			MetaData md = null;
 			try {
 				var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
-				if (dotNetDir.VirtualAddress == RVA.Zero)
+				if (dotNetDir.VirtualAddress == 0)
 					throw new BadImageFormatException(".NET data directory RVA is 0");
 				if (dotNetDir.Size < 0x48)
 					throw new BadImageFormatException(".NET data directory size < 0x48");
 				var cor20Header = new ImageCor20Header(cor20HeaderStream = peImage.CreateStream(dotNetDir.VirtualAddress, 0x48), verify);
 				if (cor20Header.HasNativeHeader)
 					throw new BadImageFormatException(".NET native header isn't supported");	//TODO: Fix this
-				if (cor20Header.MetaData.VirtualAddress == RVA.Zero)
+				if (cor20Header.MetaData.VirtualAddress == 0)
 					throw new BadImageFormatException(".NET MetaData RVA is 0");
 				if (cor20Header.MetaData.Size < 16)
 					throw new BadImageFormatException(".NET MetaData size is too small");

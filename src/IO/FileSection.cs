@@ -33,7 +33,7 @@ namespace dot10.IO {
 		/// </summary>
 		/// <param name="reader">The reader</param>
 		protected void SetStartOffset(IImageStream reader) {
-			startOffset = new FileOffset(reader.Position);
+			startOffset = (FileOffset)reader.Position;
 		}
 
 		/// <summary>
@@ -41,8 +41,8 @@ namespace dot10.IO {
 		/// </summary>
 		/// <param name="reader">The reader</param>
 		protected void SetEndoffset(IImageStream reader) {
-			size = (uint)(reader.Position - startOffset.Value);
-			startOffset = reader.FileOffset + startOffset.Value;
+			size = (uint)(reader.Position - startOffset);
+			startOffset = reader.FileOffset + (long)startOffset;
 		}
 	}
 }

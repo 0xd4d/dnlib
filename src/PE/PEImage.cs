@@ -46,12 +46,12 @@ namespace dot10.PE {
 		class MemoryPEType : IPEType {
 			/// <inheritdoc/>
 			public RVA ToRVA(PEInfo peInfo, FileOffset offset) {
-				return new RVA((uint)offset.Value);
+				return (RVA)offset;
 			}
 
 			/// <inheritdoc/>
 			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) {
-				return new FileOffset(rva.Value);
+				return (FileOffset)rva;
 			}
 		}
 
@@ -258,9 +258,9 @@ namespace dot10.PE {
 
 		/// <inheritdoc/>
 		public IImageStream CreateStream(FileOffset offset) {
-			if (offset.Value > imageStreamCreator.Length)
+			if ((long)offset > imageStreamCreator.Length)
 				throw new ArgumentOutOfRangeException("offset");
-			long length = imageStreamCreator.Length - offset.Value;
+			long length = imageStreamCreator.Length - (long)offset;
 			return CreateStream(offset, length);
 		}
 

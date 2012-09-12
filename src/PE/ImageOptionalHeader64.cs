@@ -98,7 +98,7 @@ namespace dot10.PE {
 		/// Returns 0 since BaseOfData is not present in IMAGE_OPTIONAL_HEADER64
 		/// </summary>
 		public RVA BaseOfData {
-			get { return RVA.Zero; }
+			get { return 0; }
 		}
 
 		/// <summary>
@@ -274,8 +274,8 @@ namespace dot10.PE {
 			this.sizeOfCode = reader.ReadUInt32();
 			this.sizeOfInitializedData = reader.ReadUInt32();
 			this.sizeOfUninitializedData = reader.ReadUInt32();
-			this.addressOfEntryPoint = new RVA(reader.ReadUInt32());
-			this.baseOfCode = new RVA(reader.ReadUInt32());
+			this.addressOfEntryPoint = (RVA)reader.ReadUInt32();
+			this.baseOfCode = (RVA)reader.ReadUInt32();
 			this.imageBase = reader.ReadUInt64();
 			this.sectionAlignment = reader.ReadUInt32();
 			this.fileAlignment = reader.ReadUInt32();
@@ -298,13 +298,13 @@ namespace dot10.PE {
 			this.loaderFlags = reader.ReadUInt32();
 			this.numberOfRvaAndSizes = reader.ReadUInt32();
 			for (int i = 0; i < dataDirectories.Length; i++) {
-				uint len = (uint)(reader.Position - startOffset.Value);
+				uint len = (uint)(reader.Position - startOffset);
 				if (len + 8 <= totalSize)
 					dataDirectories[i] = new ImageDataDirectory(reader, verify);
 				else
 					dataDirectories[i] = new ImageDataDirectory();
 			}
-			reader.Position = startOffset.Value + totalSize;
+			reader.Position = (long)startOffset + totalSize;
 			SetEndoffset(reader);
 		}
 	}

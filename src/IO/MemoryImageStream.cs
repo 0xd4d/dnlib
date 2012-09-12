@@ -156,7 +156,7 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			fileOffset = FileOffset.Zero;
+			fileOffset = 0;
 			data = null;
 			dataOffset = 0;
 			dataEnd = 0;

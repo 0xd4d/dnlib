@@ -110,7 +110,7 @@ namespace dot10.PE {
 			SetStartOffset(reader);
 			this.name = reader.ReadBytes(8);
 			this.virtualSize = reader.ReadUInt32();
-			this.virtualAddress = new RVA(reader.ReadUInt32());
+			this.virtualAddress = (RVA)reader.ReadUInt32();
 			this.sizeOfRawData = reader.ReadUInt32();
 			this.pointerToRawData = reader.ReadUInt32();
 			this.pointerToRelocations = reader.ReadUInt32();

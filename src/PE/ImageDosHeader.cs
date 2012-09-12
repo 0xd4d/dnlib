@@ -27,7 +27,7 @@ namespace dot10.PE {
 			ushort sig = reader.ReadUInt16();
 			if (verify && sig != 0x5A4D)
 				throw new BadImageFormatException("Invalid DOS signature");
-			reader.Position = startOffset.Value + 0x3C;
+			reader.Position = (long)startOffset + 0x3C;
 			this.ntHeadersOffset = reader.ReadUInt32();
 			SetEndoffset(reader);
 		}
