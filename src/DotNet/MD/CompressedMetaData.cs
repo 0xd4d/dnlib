@@ -142,6 +142,8 @@ namespace dot10.DotNet.MD {
 		/// <inheritdoc/>
 		protected override uint BinarySearch(Table tableSource, int keyColIndex, uint key) {
 			var table = tablesStream.Get(tableSource);
+			if (table == null)
+				return 0;
 			var keyColumn = table.TableInfo.Columns[keyColIndex];
 			uint ridLo = 1, ridHi = table.Rows;
 			while (ridLo <= ridHi) {
