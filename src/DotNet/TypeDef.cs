@@ -124,6 +124,11 @@ namespace dot10.DotNet {
 		public abstract IList<GenericParam> GenericParams { get; }
 
 		/// <summary>
+		/// Gets the interfaces
+		/// </summary>
+		public abstract IList<InterfaceImpl> InterfaceImpls { get; }
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
@@ -425,6 +430,7 @@ namespace dot10.DotNet {
 		IList<FieldDef> fields = new List<FieldDef>();
 		IList<MethodDef> methods = new List<MethodDef>();
 		IList<GenericParam> genericParams = new List<GenericParam>();
+		IList<InterfaceImpl> interfaceImpls = new List<InterfaceImpl>();
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -463,6 +469,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<GenericParam> GenericParams {
 			get { return genericParams; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<InterfaceImpl> InterfaceImpls {
+			get { return interfaceImpls; }
 		}
 
 		/// <summary>
@@ -565,6 +576,7 @@ namespace dot10.DotNet {
 		LazyList<FieldDef> fields;
 		LazyList<MethodDef> methods;
 		LazyList<GenericParam> genericParams;
+		LazyList<InterfaceImpl> interfaceImpls;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -620,6 +632,17 @@ namespace dot10.DotNet {
 					genericParams = new LazyList<GenericParam>((int)list.Length, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
 				}
 				return genericParams;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IList<InterfaceImpl> InterfaceImpls {
+			get {
+				if (interfaceImpls == null) {
+					var list = readerModule.MetaData.GetInterfaceImplRidList(rid);
+					interfaceImpls = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index]));
+				}
+				return interfaceImpls;
 			}
 		}
 
