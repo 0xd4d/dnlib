@@ -179,7 +179,8 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.GenericParam, 2, codedToken);
+			// Sorted or not, the CLR only searches this table as if it were sorted.
+			return FindAllRows(Table.GenericParam, 2, codedToken);
 		}
 
 		/// <inheritdoc/>
