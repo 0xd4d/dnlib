@@ -66,7 +66,7 @@ namespace dot10.DotNet.MD {
 		RidList GetPropertyRidList(uint propertyMapRid);
 
 		/// <summary>
-		/// Find all <c>GenericParam</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
+		/// Finds all <c>GenericParam</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
 		/// </summary>
 		/// <param name="table">A <c>TypeOrMethodDef</c> table</param>
 		/// <param name="rid">Owner rid</param>
@@ -74,7 +74,7 @@ namespace dot10.DotNet.MD {
 		RidList GetGenericParamRidList(Table table, uint rid);
 
 		/// <summary>
-		/// Find all <c>MethodSpec</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
+		/// Finds all <c>MethodSpec</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
 		/// </summary>
 		/// <param name="table">A <c>MethodDefOrRef</c> table</param>
 		/// <param name="rid">Owner rid</param>
@@ -82,14 +82,14 @@ namespace dot10.DotNet.MD {
 		RidList GetMethodSpecRidList(Table table, uint rid);
 
 		/// <summary>
-		/// Find all <c>InterfaceImpl</c> rids owned by <paramref name="typeDefRid"/>
+		/// Finds all <c>InterfaceImpl</c> rids owned by <paramref name="typeDefRid"/>
 		/// </summary>
 		/// <param name="typeDefRid">Owner <c>TypeDef</c> rid</param>
 		/// <returns>A <see cref="RidList"/> instance containing the valid <c>InterfaceImpl</c> rids</returns>
 		RidList GetInterfaceImplRidList(uint typeDefRid);
 
 		/// <summary>
-		/// Find all <c>CustomAttribute</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
+		/// Finds all <c>CustomAttribute</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
 		/// </summary>
 		/// <param name="table">A <c>HasCustomAttribute</c> table</param>
 		/// <param name="rid">Owner rid</param>
@@ -97,7 +97,7 @@ namespace dot10.DotNet.MD {
 		RidList GetCustomAttributeRidList(Table table, uint rid);
 
 		/// <summary>
-		/// Find all <c>DeclSecurity</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
+		/// Finds all <c>DeclSecurity</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
 		/// </summary>
 		/// <param name="table">A <c>HasDeclSecurity</c> table</param>
 		/// <param name="rid">Owner rid</param>
@@ -105,7 +105,7 @@ namespace dot10.DotNet.MD {
 		RidList GetDeclSecurityRidList(Table table, uint rid);
 
 		/// <summary>
-		/// Find all <c>MethodSemantics</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
+		/// Finds all <c>MethodSemantics</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
 		/// </summary>
 		/// <param name="table">A <c>HasSemantic</c> table</param>
 		/// <param name="rid">Owner rid</param>
@@ -113,14 +113,14 @@ namespace dot10.DotNet.MD {
 		RidList GetMethodSemanticsRidList(Table table, uint rid);
 
 		/// <summary>
-		/// Find all <c>MethodImpl</c> rids owned by <paramref name="typeDefRid"/>
+		/// Finds all <c>MethodImpl</c> rids owned by <paramref name="typeDefRid"/>
 		/// </summary>
 		/// <param name="typeDefRid">Owner <c>TypeDef</c> rid</param>
 		/// <returns>A <see cref="RidList"/> instance containing the valid <c>MethodImpl</c> rids</returns>
 		RidList GetMethodImplRidList(uint typeDefRid);
 
 		/// <summary>
-		/// Find all <c>GenericParamConstraint</c> rids owned by <paramref name="genericParamRid"/>
+		/// Finds all <c>GenericParamConstraint</c> rids owned by <paramref name="genericParamRid"/>
 		/// </summary>
 		/// <param name="genericParamRid">Owner <c>GenericParam</c> rid</param>
 		/// <returns>A <see cref="RidList"/> instance containing the valid <c>GenericParamConstraint</c> rids</returns>
