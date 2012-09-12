@@ -211,17 +211,6 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public RidList GetMethodSpecRidList(Table table, uint rid) {
-			var tbl = tablesStream.Get(table);
-			if (tbl == null || tbl.IsInvalidRID(rid))
-				return ContiguousRidList.Empty;
-			uint codedToken;
-			if (!CodedToken.MethodDefOrRef.Encode(new MDToken(table, rid), out codedToken))
-				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.MethodSpec, 0, codedToken);
-		}
-
-		/// <inheritdoc/>
 		public RidList GetDeclSecurityRidList(Table table, uint rid) {
 			var tbl = tablesStream.Get(table);
 			if (tbl == null || tbl.IsInvalidRID(rid))

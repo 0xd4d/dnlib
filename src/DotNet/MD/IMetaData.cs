@@ -96,14 +96,6 @@ namespace dot10.DotNet.MD {
 		RidList GetCustomAttributeRidList(Table table, uint rid);
 
 		/// <summary>
-		/// Finds all <c>MethodSpec</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
-		/// </summary>
-		/// <param name="table">A <c>MethodDefOrRef</c> table</param>
-		/// <param name="rid">Owner rid</param>
-		/// <returns>A <see cref="RidList"/> instance containing the valid <c>MethodSpec</c> rids</returns>
-		RidList GetMethodSpecRidList(Table table, uint rid);
-
-		/// <summary>
 		/// Finds all <c>DeclSecurity</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
 		/// </summary>
 		/// <param name="table">A <c>HasDeclSecurity</c> table</param>
