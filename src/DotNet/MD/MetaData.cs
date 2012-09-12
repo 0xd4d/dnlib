@@ -172,6 +172,14 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		public RidList GetInterfaceImplRidList(uint typeDefRid) {
+			var tbl = tablesStream.Get(Table.TypeDef);
+			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
+				return ContiguousRidList.Empty;
+			return FindAllRowsUnsorted(Table.InterfaceImpl, 0, typeDefRid);
+		}
+
+		/// <inheritdoc/>
 		public RidList GetGenericParamRidList(Table table, uint rid) {
 			var tbl = tablesStream.Get(table);
 			if (tbl == null || tbl.IsInvalidRID(rid))
@@ -184,22 +192,11 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public RidList GetMethodSpecRidList(Table table, uint rid) {
-			var tbl = tablesStream.Get(table);
-			if (tbl == null || tbl.IsInvalidRID(rid))
+		public RidList GetGenericParamConstraintRidList(uint genericParamRid) {
+			var tbl = tablesStream.Get(Table.GenericParam);
+			if (tbl == null || tbl.IsInvalidRID(genericParamRid))
 				return ContiguousRidList.Empty;
-			uint codedToken;
-			if (!CodedToken.MethodDefOrRef.Encode(new MDToken(table, rid), out codedToken))
-				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.MethodSpec, 0, codedToken);
-		}
-
-		/// <inheritdoc/>
-		public RidList GetInterfaceImplRidList(uint typeDefRid) {
-			var tbl = tablesStream.Get(Table.TypeDef);
-			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
-				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.InterfaceImpl, 0, typeDefRid);
+			return FindAllRowsUnsorted(Table.GenericParamConstraint, 0, genericParamRid);
 		}
 
 		/// <inheritdoc/>
@@ -211,6 +208,17 @@ namespace dot10.DotNet.MD {
 			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
 			return FindAllRowsUnsorted(Table.CustomAttribute, 0, codedToken);
+		}
+
+		/// <inheritdoc/>
+		public RidList GetMethodSpecRidList(Table table, uint rid) {
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
+				return ContiguousRidList.Empty;
+			uint codedToken;
+			if (!CodedToken.MethodDefOrRef.Encode(new MDToken(table, rid), out codedToken))
+				return ContiguousRidList.Empty;
+			return FindAllRowsUnsorted(Table.MethodSpec, 0, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -241,14 +249,6 @@ namespace dot10.DotNet.MD {
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return ContiguousRidList.Empty;
 			return FindAllRowsUnsorted(Table.MethodImpl, 0, typeDefRid);
-		}
-
-		/// <inheritdoc/>
-		public RidList GetGenericParamConstraintRidList(uint genericParamRid) {
-			var tbl = tablesStream.Get(Table.GenericParam);
-			if (tbl == null || tbl.IsInvalidRID(genericParamRid))
-				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.GenericParamConstraint, 0, genericParamRid);
 		}
 
 		/// <inheritdoc/>
