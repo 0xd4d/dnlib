@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using dot10.DotNet.MD;
 
@@ -49,6 +50,11 @@ namespace dot10.DotNet {
 		public abstract ITypeDefOrRef Kind { get; set; }
 
 		/// <summary>
+		/// Gets the generic param constraints
+		/// </summary>
+		public abstract IList<GenericParamConstraint> GenericParamConstraints { get; }
+
+		/// <summary>
 		/// Gets/sets variance (non, contra, co)
 		/// </summary>
 		public GenericParamAttributes Variance {
@@ -81,6 +87,7 @@ namespace dot10.DotNet {
 		ITypeOrMethodDef owner;
 		UTF8String name;
 		ITypeDefOrRef kind;
+		IList<GenericParamConstraint> genericParamConstraints = new List<GenericParamConstraint>();
 
 		/// <inheritdoc/>
 		public override ushort Number {
@@ -110,6 +117,11 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Kind {
 			get { return kind; }
 			set { kind = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<GenericParamConstraint> GenericParamConstraints {
+			get { return genericParamConstraints; }
 		}
 
 		/// <summary>
@@ -177,6 +189,7 @@ namespace dot10.DotNet {
 		UserValue<ITypeOrMethodDef> owner;
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> kind;
+		LazyList<GenericParamConstraint> genericParamConstraints;
 
 		/// <inheritdoc/>
 		public override ushort Number {
@@ -206,6 +219,17 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Kind {
 			get { return kind.Value; }
 			set { kind.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<GenericParamConstraint> GenericParamConstraints {
+			get {
+				if (genericParamConstraints == null) {
+					var list = readerModule.MetaData.GetGenericParamConstraintRidList(rid);
+					genericParamConstraints = new LazyList<GenericParamConstraint>((int)list.Length, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index]));
+				}
+				return genericParamConstraints;
+			}
 		}
 
 		/// <summary>
