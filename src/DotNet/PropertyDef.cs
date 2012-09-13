@@ -46,6 +46,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract CallingConventionSig Type { get; set; }
 
+		/// <inheritdoc/>
+		public abstract Constant Constant { get; set; }
+
 		/// <summary>
 		/// Gets/sets the <see cref="PropertyAttributes.SpecialName"/> bit
 		/// </summary>
@@ -101,6 +104,7 @@ namespace dot10.DotNet {
 		PropertyAttributes flags;
 		UTF8String name;
 		CallingConventionSig type;
+		Constant constant;
 
 		/// <inheritdoc/>
 		public override PropertyAttributes Flags {
@@ -118,6 +122,12 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Type {
 			get { return type; }
 			set { type = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Constant Constant {
+			get { return constant; }
+			set { constant = value; }
 		}
 
 		/// <summary>
@@ -195,6 +205,7 @@ namespace dot10.DotNet {
 		UserValue<PropertyAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> type;
+		UserValue<Constant> constant;
 
 		/// <inheritdoc/>
 		public override PropertyAttributes Flags {
@@ -212,6 +223,12 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Type {
 			get { return type.Value; }
 			set { type.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Constant Constant {
+			get { return constant.Value; }
+			set { constant.Value = value; }
 		}
 
 		/// <summary>
@@ -245,6 +262,9 @@ namespace dot10.DotNet {
 			type.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ReadSignature(rawRow.Type);
+			};
+			constant.ReadOriginalValue = () => {
+				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Property, rid));
 			};
 		}
 

@@ -67,6 +67,11 @@ namespace dot10.DotNet {
 		/// The coded token tag
 		/// </summary>
 		int HasConstantTag { get; }
+
+		/// <summary>
+		/// Gets/sets the constant value
+		/// </summary>
+		Constant Constant { get; set; }
 	}
 
 	/// <summary>

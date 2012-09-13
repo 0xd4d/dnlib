@@ -266,7 +266,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.FieldMarshal, 0, rid);
+			var list = FindAllRowsUnsorted(Table.FieldMarshal, 0, codedToken);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
@@ -287,7 +287,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.ImplMap, 1, rid);
+			var list = FindAllRowsUnsorted(Table.ImplMap, 1, codedToken);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
@@ -315,6 +315,18 @@ namespace dot10.DotNet.MD {
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return 0;
 			var list = FindAllRowsUnsorted(Table.PropertyMap, 0, typeDefRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetConstantRid(Table table, uint rid) {
+			var tbl = tablesStream.Get(table);
+			if (tbl == null || tbl.IsInvalidRID(rid))
+				return 0;
+			uint codedToken;
+			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out codedToken))
+				return 0;
+			var list = FindAllRowsUnsorted(Table.Constant, 1, codedToken);
 			return list.Length == 0 ? 0 : list[0];
 		}
 

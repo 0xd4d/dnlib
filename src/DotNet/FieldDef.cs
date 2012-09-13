@@ -67,6 +67,9 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public abstract ImplMap ImplMap { get; set; }
 
+		/// <inheritdoc/>
+		public abstract Constant Constant { get; set; }
+
 		/// <summary>
 		/// Gets/sets the <see cref="FieldSig"/>
 		/// </summary>
@@ -292,6 +295,7 @@ namespace dot10.DotNet {
 		FieldMarshal fieldMarshal;
 		FieldRVA fieldRVA;
 		ImplMap implMap;
+		Constant constant;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -333,6 +337,12 @@ namespace dot10.DotNet {
 		public override ImplMap ImplMap {
 			get { return implMap; }
 			set { implMap = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Constant Constant {
+			get { return constant; }
+			set { constant = value; }
 		}
 
 		/// <summary>
@@ -414,6 +424,7 @@ namespace dot10.DotNet {
 		UserValue<FieldMarshal> fieldMarshal;
 		UserValue<FieldRVA> fieldRVA;
 		UserValue<ImplMap> implMap;
+		UserValue<Constant> constant;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -455,6 +466,12 @@ namespace dot10.DotNet {
 		public override ImplMap ImplMap {
 			get { return implMap.Value; }
 			set { implMap.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Constant Constant {
+			get { return constant.Value; }
+			set { constant.Value = value; }
 		}
 
 		/// <summary>
@@ -500,6 +517,9 @@ namespace dot10.DotNet {
 			};
 			implMap.ReadOriginalValue = () => {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Field, rid));
+			};
+			constant.ReadOriginalValue = () => {
+				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Field, rid));
 			};
 		}
 

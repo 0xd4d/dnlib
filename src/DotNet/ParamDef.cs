@@ -51,6 +51,9 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public abstract FieldMarshal FieldMarshal { get; set; }
 
+		/// <inheritdoc/>
+		public abstract Constant Constant { get; set; }
+
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.In"/> bit
 		/// </summary>
@@ -125,6 +128,7 @@ namespace dot10.DotNet {
 		ushort sequence;
 		UTF8String name;
 		FieldMarshal fieldMarshal;
+		Constant constant;
 
 		/// <inheritdoc/>
 		public override ParamAttributes Flags {
@@ -148,6 +152,12 @@ namespace dot10.DotNet {
 		public override FieldMarshal FieldMarshal {
 			get { return fieldMarshal; }
 			set { fieldMarshal = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Constant Constant {
+			get { return constant; }
+			set { constant = value; }
 		}
 
 		/// <summary>
@@ -226,6 +236,7 @@ namespace dot10.DotNet {
 		UserValue<ushort> sequence;
 		UserValue<UTF8String> name;
 		UserValue<FieldMarshal> fieldMarshal;
+		UserValue<Constant> constant;
 
 		/// <inheritdoc/>
 		public override ParamAttributes Flags {
@@ -249,6 +260,12 @@ namespace dot10.DotNet {
 		public override FieldMarshal FieldMarshal {
 			get { return fieldMarshal.Value; }
 			set { fieldMarshal.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override Constant Constant {
+			get { return constant.Value; }
+			set { constant.Value = value; }
 		}
 
 		/// <summary>
@@ -285,6 +302,9 @@ namespace dot10.DotNet {
 			};
 			fieldMarshal.ReadOriginalValue = () => {
 				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Param, rid));
+			};
+			constant.ReadOriginalValue = () => {
+				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, rid));
 			};
 		}
 

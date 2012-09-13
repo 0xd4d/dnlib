@@ -183,5 +183,14 @@ namespace dot10.DotNet.MD {
 		/// <returns>The <c>PropertyMap</c> rid or 0 if <paramref name="typeDefRid"/> is invalid
 		/// or if it has no row in the <c>PropertyMap</c> table.</returns>
 		uint GetPropertyMapRid(uint typeDefRid);
+
+		/// <summary>
+		/// Finds a <c>Constant</c> rid
+		/// </summary>
+		/// <param name="table">A <c>HasConstant</c> table</param>
+		/// <param name="rid">Owner rid</param>
+		/// <returns>The <c>Constant</c> rid or 0 if <paramref name="rid"/> is invalid
+		/// or if it has no row in the <c>Constant</c> table.</returns>
+		uint GetConstantRid(Table table, uint rid);
 	}
 }
