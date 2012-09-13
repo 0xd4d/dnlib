@@ -31,6 +31,12 @@ namespace dot10.DotNet.MD {
 		TablesStream TablesStream { get; }
 
 		/// <summary>
+		/// Gets a list of all the valid <c>TypeDef</c> rids. It's usually every rid in the
+		/// <c>TypeDef</c> table, but could be less if a type has been deleted.
+		/// </summary>
+		RidList GetTypeDefRidList();
+
+		/// <summary>
 		/// Gets the <c>Field</c> rid list
 		/// </summary>
 		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>

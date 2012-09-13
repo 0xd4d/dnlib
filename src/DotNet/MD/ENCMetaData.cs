@@ -205,6 +205,23 @@ namespace dot10.DotNet.MD {
 			}
 		}
 
+		/// <inheritdoc/>
+		public override RidList GetTypeDefRidList() {
+			if (!hasDeletedRows)
+				return base.GetTypeDefRidList();
+			var list = new RandomRidList((int)tablesStream.Get(Table.TypeDef).Rows);
+			for (uint rid = 1; rid <= list.Length; rid++) {
+				var row = tablesStream.ReadTypeDefRow(rid);
+				if (row == null)
+					continue;	// Should never happen since rid is valid
+				var name = stringsStream.Read(row.Name);
+				if ((object)name != null && name == DeletedName)
+					continue;	// ignore this deleted row
+				list.Add(rid);
+			}
+			return list;
+		}
+
 		/// <summary>
 		/// Converts a logical <c>Field</c> rid to a physical <c>Field</c> rid
 		/// </summary>

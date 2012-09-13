@@ -364,7 +364,9 @@ namespace dot10.DotNet {
 				listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, rid2 => new MethodSpecMD(this, rid2));
 				listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
 			}
-			types = new LazyList<TypeDef>((int)ts.Get(Table.TypeDef).Rows, null, (ctx, i) => ResolveTypeDef(1 + i));
+
+			var list = MetaData.GetTypeDefRidList();
+			types = new LazyList<TypeDef>((int)list.Length, list, (list2, i) => ResolveTypeDef(((RidList)list2)[i]));
 		}
 
 		void InitializeCorLibTypes() {
