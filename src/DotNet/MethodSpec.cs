@@ -44,15 +44,14 @@ namespace dot10.DotNet {
 		/// </summary>
 		public string FullName {
 			get {
+				var methodGenArgs = GenericInstMethodSig == null ? null : GenericInstMethodSig.GenericArguments;
 				var methodDef = Method as MethodDef;
-				if (methodDef != null) {
-					var methodGenArgs = GenericInstMethodSig == null ? null : GenericInstMethodSig.GenericArguments;
+				if (methodDef != null)
 					return Utils.GetMethodString(null, methodDef.Name, methodDef.MethodSig, null, methodGenArgs);
-				}
 
 				var memberRef = Method as MemberRef;
 				if (memberRef != null && memberRef.IsMethodRef)
-					return Utils.GetMethodString(null, memberRef.Name, memberRef.MethodSig, null, null);
+					return Utils.GetMethodString(null, memberRef.Name, memberRef.MethodSig, null, methodGenArgs);
 
 				return string.Empty;
 			}
