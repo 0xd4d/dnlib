@@ -474,8 +474,12 @@ namespace dot10.DotNet.MD {
 			if (tablesStream.IsSorted(tableSource))
 				return FindAllRows(tableSource, keyColIndex, key);
 			SortedTable sortedTable;
-			if (!sortedTables.TryGetValue(tableSource, out sortedTable))
-				sortedTables[tableSource] = sortedTable = new SortedTable(tablesStream.Get(tableSource), keyColIndex);
+			if (!sortedTables.TryGetValue(tableSource, out sortedTable)) {
+				var table = tablesStream.Get(tableSource);
+				if (table == null)
+					return ContiguousRidList.Empty;
+				sortedTables[tableSource] = sortedTable = new SortedTable(table, keyColIndex);
+			}
 			return sortedTable.FindAllRows(key);
 		}
 	}
