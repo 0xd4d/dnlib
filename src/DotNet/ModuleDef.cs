@@ -66,6 +66,11 @@ namespace dot10.DotNet {
 		public abstract IList<TypeDef> Types { get; }
 
 		/// <summary>
+		/// Gets a list of all <see cref="ExportedType"/>s
+		/// </summary>
+		public abstract IList<ExportedType> ExportedTypes { get; }
+
+		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a file
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
@@ -171,6 +176,7 @@ namespace dot10.DotNet {
 		Guid? encBaseId;
 		AssemblyDef assembly;
 		List<TypeDef> types = new List<TypeDef>();
+		List<ExportedType> exportedTypes = new List<ExportedType>();
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -211,6 +217,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<TypeDef> Types {
 			get { return types; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<ExportedType> ExportedTypes {
+			get { return exportedTypes; }
 		}
 
 		/// <summary>
@@ -272,7 +283,10 @@ namespace dot10.DotNet {
 		UserValue<Guid?> encId;
 		UserValue<Guid?> encBaseId;
 		UserValue<AssemblyDef> assembly;
-		IList<TypeDef> types;
+		/// <summary></summary>
+		protected IList<TypeDef> types;
+		/// <summary></summary>
+		protected IList<ExportedType> exportedTypes;
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -315,6 +329,11 @@ namespace dot10.DotNet {
 			get { return types; }
 		}
 
+		/// <inheritdoc/>
+		public override IList<ExportedType> ExportedTypes {
+			get { return exportedTypes; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -334,6 +353,7 @@ namespace dot10.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.types = new List<TypeDef>();
+			this.exportedTypes = new List<ExportedType>();
 			Initialize();
 		}
 

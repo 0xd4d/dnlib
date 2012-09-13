@@ -56,8 +56,6 @@ namespace dot10.DotNet {
 		SimpleLazyList<MethodSpecMD> listMethodSpecMD;
 		SimpleLazyList<GenericParamConstraintMD> listGenericParamConstraintMD;
 
-		LazyList<TypeDef> types;
-
 		CorLibTypeSig typeVoid;
 		CorLibTypeSig typeBoolean;
 		CorLibTypeSig typeChar;
@@ -125,11 +123,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		public USStream USStream {
 			get { return dnFile.MetaData.USStream; }
-		}
-
-		/// <inheritdoc/>
-		public override IList<TypeDef> Types {
-			get { return types; }
 		}
 
 		/// <inheritdoc/>
@@ -365,8 +358,11 @@ namespace dot10.DotNet {
 				listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
 			}
 
-			var list = MetaData.GetTypeDefRidList();
+			RidList list;
+			list = MetaData.GetTypeDefRidList();
 			types = new LazyList<TypeDef>((int)list.Length, list, (list2, i) => ResolveTypeDef(((RidList)list2)[i]));
+			list = MetaData.GetExportedTypeRidList();
+			exportedTypes = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
 		}
 
 		void InitializeCorLibTypes() {

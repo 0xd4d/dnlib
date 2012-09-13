@@ -222,6 +222,23 @@ namespace dot10.DotNet.MD {
 			return list;
 		}
 
+		/// <inheritdoc/>
+		public override RidList GetExportedTypeRidList() {
+			if (!hasDeletedRows)
+				return base.GetExportedTypeRidList();
+			var list = new RandomRidList((int)tablesStream.Get(Table.ExportedType).Rows);
+			for (uint rid = 1; rid <= list.Length; rid++) {
+				var row = tablesStream.ReadExportedTypeRow(rid);
+				if (row == null)
+					continue;	// Should never happen since rid is valid
+				var name = stringsStream.Read(row.TypeName);
+				if ((object)name != null && name == DeletedName)
+					continue;	// ignore this deleted row
+				list.Add(rid);
+			}
+			return list;
+		}
+
 		/// <summary>
 		/// Converts a logical <c>Field</c> rid to a physical <c>Field</c> rid
 		/// </summary>

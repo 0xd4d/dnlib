@@ -37,6 +37,12 @@ namespace dot10.DotNet.MD {
 		RidList GetTypeDefRidList();
 
 		/// <summary>
+		/// Gets a list of all the valid <c>ExportedType</c> rids. It's usually every rid in the
+		/// <c>ExportedType</c> table, but could be less if a type has been deleted.
+		/// </summary>
+		RidList GetExportedTypeRidList();
+
+		/// <summary>
 		/// Gets the <c>Field</c> rid list
 		/// </summary>
 		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>

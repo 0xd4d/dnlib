@@ -102,10 +102,14 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		public abstract void Initialize();
 
-
 		/// <inheritdoc/>
 		public virtual RidList GetTypeDefRidList() {
 			return new ContiguousRidList(1, tablesStream.Get(Table.TypeDef).Rows);
+		}
+
+		/// <inheritdoc/>
+		public virtual RidList GetExportedTypeRidList() {
+			return new ContiguousRidList(1, tablesStream.Get(Table.ExportedType).Rows);
 		}
 
 		/// <inheritdoc/>
