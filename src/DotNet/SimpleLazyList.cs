@@ -1,12 +1,19 @@
-﻿namespace dot10.DotNet {
+﻿using System.Diagnostics;
+
+namespace dot10.DotNet {
 	/// <summary>
 	/// A readonly list that gets initialized lazily
 	/// </summary>
 	/// <typeparam name="T">A <see cref="ICodedToken"/> type</typeparam>
+	[DebuggerDisplay("Count = {Length}")]
 	class SimpleLazyList<T> where T : class, IMDTokenProvider {
+		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 		T[] elements;
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		bool[] initialized;
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		readonly MFunc<uint, T> readElementByRID;
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		readonly uint length;
 
 		/// <summary>
