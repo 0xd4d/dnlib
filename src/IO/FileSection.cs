@@ -6,7 +6,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// Base class for classes needing to implement IFileSection
 	/// </summary>
-	[DebuggerDisplay("O:{startOffset.val} L:{size} {GetType().Name}")]
+	[DebuggerDisplay("O:{startOffset} L:{size} {GetType().Name}")]
 	public class FileSection : IFileSection {
 		/// <summary>
 		/// The start file offset of this section

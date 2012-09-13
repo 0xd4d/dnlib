@@ -6,7 +6,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// IImageStream for byte[]
 	/// </summary>
-	[DebuggerDisplay("FO:{fileOffset.val} S:{Length}")]
+	[DebuggerDisplay("FO:{fileOffset} S:{Length}")]
 	sealed class MemoryImageStream : IImageStream {
 		FileOffset fileOffset;
 		byte[] data;

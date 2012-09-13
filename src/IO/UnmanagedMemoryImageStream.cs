@@ -7,7 +7,7 @@ namespace dot10.IO {
 	/// <summary>
 	/// IImageStream for unmanaged memory
 	/// </summary>
-	[DebuggerDisplay("FO:{fileOffset.Value} S:{Length} A:{startAddr}")]
+	[DebuggerDisplay("FO:{fileOffset} S:{Length} A:{startAddr}")]
 	sealed unsafe class UnmanagedMemoryImageStream : IImageStream {
 		FileOffset fileOffset;
 		byte* startAddr;
