@@ -70,6 +70,10 @@ namespace dot10.DotNet {
 				try {
 					return string.Format("{0}/{1}", enclosingTypeRef.FullName, FullNameHelper.GetName(Name));
 				}
+				catch (OutOfMemoryException) {
+					// Invalid metadata
+					return string.Empty;
+				}
 				catch (StackOverflowException) {
 					// Invalid metadata
 					return string.Empty;
@@ -85,6 +89,10 @@ namespace dot10.DotNet {
 					return FullNameHelper.GetReflectionFullName(Namespace, Name);
 				try {
 					return string.Format("{0}+{1}", enclosingTypeRef.ReflectionFullName, FullNameHelper.GetReflectionName(Name));
+				}
+				catch (OutOfMemoryException) {
+					// Invalid metadata
+					return string.Empty;
 				}
 				catch (StackOverflowException) {
 					// Invalid metadata
@@ -102,6 +110,10 @@ namespace dot10.DotNet {
 				if (scope is TypeRef) {
 					try {
 						return ((TypeRef)scope).DefinitionAssembly;
+					}
+					catch (OutOfMemoryException) {
+						// Invalid metadata
+						return null;
 					}
 					catch (StackOverflowException) {
 						// Invalid metadata

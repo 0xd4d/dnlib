@@ -80,6 +80,10 @@ namespace dot10.DotNet {
 					else
 						enclosingName = nestedClass.EnclosingType.FullName;
 				}
+				catch (OutOfMemoryException) {
+					// Invalid metadata
+					return string.Empty;
+				}
 				catch (StackOverflowException) {
 					// Invalid metadata
 					return string.Empty;
@@ -100,6 +104,10 @@ namespace dot10.DotNet {
 						enclosingName = "<<<NULL>>>";
 					else
 						enclosingName = nestedClass.EnclosingType.ReflectionFullName;
+				}
+				catch (OutOfMemoryException) {
+					// Invalid metadata
+					return string.Empty;
 				}
 				catch (StackOverflowException) {
 					// Invalid metadata

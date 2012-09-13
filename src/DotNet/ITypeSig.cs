@@ -129,6 +129,9 @@ namespace dot10.DotNet {
 				try {
 					return typeDefOrRef.Name;
 				}
+				catch (OutOfMemoryException) {
+					return nullName;
+				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
 					return nullName;
@@ -143,6 +146,9 @@ namespace dot10.DotNet {
 					return nullName;
 				try {
 					return typeDefOrRef.ReflectionName;
+				}
+				catch (OutOfMemoryException) {
+					return nullName;
 				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
@@ -159,6 +165,9 @@ namespace dot10.DotNet {
 				try {
 					return typeDefOrRef.Namespace;
 				}
+				catch (OutOfMemoryException) {
+					return nullName;
+				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
 					return nullName;
@@ -173,6 +182,9 @@ namespace dot10.DotNet {
 					return nullName;
 				try {
 					return typeDefOrRef.ReflectionNamespace;
+				}
+				catch (OutOfMemoryException) {
+					return nullName;
 				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
@@ -189,6 +201,9 @@ namespace dot10.DotNet {
 				try {
 					return typeDefOrRef.FullName;
 				}
+				catch (OutOfMemoryException) {
+					return nullName;
+				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
 					return nullName;
@@ -203,6 +218,9 @@ namespace dot10.DotNet {
 					return nullName;
 				try {
 					return typeDefOrRef.ReflectionFullName;
+				}
+				catch (OutOfMemoryException) {
+					return nullName;
 				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
@@ -219,6 +237,9 @@ namespace dot10.DotNet {
 				try {
 					return typeDefOrRef.DefinitionAssembly;
 				}
+				catch (OutOfMemoryException) {
+					return null;
+				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
 					return null;
@@ -233,6 +254,9 @@ namespace dot10.DotNet {
 					return null;
 				try {
 					return typeDefOrRef.OwnerModule;
+				}
+				catch (OutOfMemoryException) {
+					return null;
 				}
 				catch (StackOverflowException) {
 					// It's possible that a TypeSpec points to itself, causing a stack overflow.
