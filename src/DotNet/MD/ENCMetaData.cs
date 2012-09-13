@@ -59,12 +59,15 @@ namespace dot10.DotNet.MD {
 			void InitializeKeys(MDTable mdTable, int keyColIndex) {
 				var keyColumn = mdTable.TableInfo.Columns[keyColIndex];
 				rows = new RowInfo[mdTable.Rows + 1];
+				if (mdTable.Rows == 0)
+					return;
 				var reader = mdTable.ImageStream;
 				reader.Position = keyColumn.Offset;
 				int increment = mdTable.TableInfo.RowSize - keyColumn.Size;
 				for (uint i = 1; i <= mdTable.Rows; i++) {
 					rows[i] = new RowInfo(i, keyColumn.Read(reader));
-					reader.Position += increment;
+					if (i < mdTable.Rows)
+						reader.Position += increment;
 				}
 			}
 
