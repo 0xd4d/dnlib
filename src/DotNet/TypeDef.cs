@@ -130,6 +130,26 @@ namespace dot10.DotNet {
 		public abstract IList<DeclSecurity> DeclSecurities { get; }
 
 		/// <summary>
+		/// Gets/sets the class layout
+		/// </summary>
+		public abstract ClassLayout ClassLayout { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="NestedClass"/>. It's null if this isn't a nested class.
+		/// </summary>
+		public abstract NestedClass NestedClass { get; set; }
+
+		/// <summary>
+		/// Gets/sets the event map
+		/// </summary>
+		public abstract EventMap EventMap { get; set; }
+
+		/// <summary>
+		/// Gets/sets the property map
+		/// </summary>
+		public abstract PropertyMap PropertyMap { get; set; }
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
@@ -433,6 +453,10 @@ namespace dot10.DotNet {
 		IList<GenericParam> genericParams = new List<GenericParam>();
 		IList<InterfaceImpl> interfaceImpls = new List<InterfaceImpl>();
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
+		ClassLayout classLayout;
+		NestedClass nestedClass;
+		EventMap eventMap;
+		PropertyMap propertyMap;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -481,6 +505,30 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<DeclSecurity> DeclSecurities {
 			get { return declSecurities; }
+		}
+
+		/// <inheritdoc/>
+		public override ClassLayout ClassLayout {
+			get { return classLayout; }
+			set { classLayout = value; }
+		}
+
+		/// <inheritdoc/>
+		public override NestedClass NestedClass {
+			get { return nestedClass; }
+			set { nestedClass = value; }
+		}
+
+		/// <inheritdoc/>
+		public override EventMap EventMap {
+			get { return eventMap; }
+			set { eventMap = value; }
+		}
+
+		/// <inheritdoc/>
+		public override PropertyMap PropertyMap {
+			get { return propertyMap; }
+			set { propertyMap = value; }
 		}
 
 		/// <summary>
@@ -585,6 +633,10 @@ namespace dot10.DotNet {
 		LazyList<GenericParam> genericParams;
 		LazyList<InterfaceImpl> interfaceImpls;
 		LazyList<DeclSecurity> declSecurities;
+		UserValue<ClassLayout> classLayout;
+		UserValue<NestedClass> nestedClass;
+		UserValue<EventMap> eventMap;
+		UserValue<PropertyMap> propertyMap;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -665,6 +717,30 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		public override ClassLayout ClassLayout {
+			get { return classLayout.Value; }
+			set { classLayout.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override NestedClass NestedClass {
+			get { return nestedClass.Value; }
+			set { nestedClass.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override EventMap EventMap {
+			get { return eventMap.Value; }
+			set { eventMap.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override PropertyMap PropertyMap {
+			get { return propertyMap.Value; }
+			set { propertyMap.Value = value; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -701,6 +777,18 @@ namespace dot10.DotNet {
 			extends.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Extends);
+			};
+			classLayout.ReadOriginalValue = () => {
+				return readerModule.ResolveClassLayout(readerModule.MetaData.GetClassLayoutRid(rid));
+			};
+			nestedClass.ReadOriginalValue = () => {
+				return readerModule.ResolveNestedClass(readerModule.MetaData.GetNestedClassRid(rid));
+			};
+			eventMap.ReadOriginalValue = () => {
+				return readerModule.ResolveEventMap(readerModule.MetaData.GetEventMapRid(rid));
+			};
+			propertyMap.ReadOriginalValue = () => {
+				return readerModule.ResolvePropertyMap(readerModule.MetaData.GetPropertyMapRid(rid));
 			};
 		}
 

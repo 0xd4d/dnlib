@@ -89,6 +89,9 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public abstract IList<DeclSecurity> DeclSecurities { get; }
 
+		/// <inheritdoc/>
+		public abstract ImplMap ImplMap { get; set; }
+
 		/// <summary>
 		/// Gets the full name
 		/// </summary>
@@ -486,6 +489,7 @@ namespace dot10.DotNet {
 		IList<ParamDef> parameters = new List<ParamDef>();
 		IList<GenericParam> genericParams = new List<GenericParam>();
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
+		ImplMap implMap;
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -530,6 +534,12 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<DeclSecurity> DeclSecurities {
 			get { return declSecurities; }
+		}
+
+		/// <inheritdoc/>
+		public override ImplMap ImplMap {
+			get { return implMap; }
+			set { implMap = value; }
 		}
 
 		/// <summary>
@@ -655,6 +665,7 @@ namespace dot10.DotNet {
 		LazyList<ParamDef> parameters;
 		LazyList<GenericParam> genericParams;
 		LazyList<DeclSecurity> declSecurities;
+		UserValue<ImplMap> implMap;
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -719,6 +730,12 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		public override ImplMap ImplMap {
+			get { return implMap.Value; }
+			set { implMap.Value = value; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -758,6 +775,9 @@ namespace dot10.DotNet {
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ReadSignature(rawRow.Signature);
+			};
+			implMap.ReadOriginalValue = () => {
+				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, rid));
 			};
 		}
 

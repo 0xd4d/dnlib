@@ -87,6 +87,11 @@ namespace dot10.DotNet {
 		/// The coded token tag
 		/// </summary>
 		int HasFieldMarshalTag { get; }
+
+		/// <summary>
+		/// Gets/sets the field marshal
+		/// </summary>
+		FieldMarshal FieldMarshal { get; set; }
 	}
 
 	/// <summary>
@@ -142,6 +147,11 @@ namespace dot10.DotNet {
 		/// The coded token tag
 		/// </summary>
 		int MemberForwardedTag { get; }
+
+		/// <summary>
+		/// Gets/sets the impl map
+		/// </summary>
+		ImplMap ImplMap { get; set; }
 	}
 
 	/// <summary>

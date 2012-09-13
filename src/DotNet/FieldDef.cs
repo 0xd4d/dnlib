@@ -52,6 +52,22 @@ namespace dot10.DotNet {
 		public abstract CallingConventionSig Signature { get; set; }
 
 		/// <summary>
+		/// Gets/sets the field layout
+		/// </summary>
+		public abstract FieldLayout FieldLayout { get; set; }
+
+		/// <inheritdoc/>
+		public abstract FieldMarshal FieldMarshal { get; set; }
+
+		/// <summary>
+		/// Gets/sets the field RVA
+		/// </summary>
+		public abstract FieldRVA FieldRVA { get; set; }
+
+		/// <inheritdoc/>
+		public abstract ImplMap ImplMap { get; set; }
+
+		/// <summary>
 		/// Gets/sets the <see cref="FieldSig"/>
 		/// </summary>
 		public FieldSig FieldSig {
@@ -272,6 +288,10 @@ namespace dot10.DotNet {
 		FieldAttributes flags;
 		UTF8String name;
 		CallingConventionSig signature;
+		FieldLayout fieldLayout;
+		FieldMarshal fieldMarshal;
+		FieldRVA fieldRVA;
+		ImplMap implMap;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -289,6 +309,30 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Signature {
 			get { return signature; }
 			set { signature = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldLayout FieldLayout {
+			get { return fieldLayout; }
+			set { fieldLayout = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldMarshal FieldMarshal {
+			get { return fieldMarshal; }
+			set { fieldMarshal = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldRVA FieldRVA {
+			get { return fieldRVA; }
+			set { fieldRVA = value; }
+		}
+
+		/// <inheritdoc/>
+		public override ImplMap ImplMap {
+			get { return implMap; }
+			set { implMap = value; }
 		}
 
 		/// <summary>
@@ -366,6 +410,10 @@ namespace dot10.DotNet {
 		UserValue<FieldAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> signature;
+		UserValue<FieldLayout> fieldLayout;
+		UserValue<FieldMarshal> fieldMarshal;
+		UserValue<FieldRVA> fieldRVA;
+		UserValue<ImplMap> implMap;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -383,6 +431,30 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Signature {
 			get { return signature.Value; }
 			set { signature.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldLayout FieldLayout {
+			get { return fieldLayout.Value; }
+			set { fieldLayout.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldMarshal FieldMarshal {
+			get { return fieldMarshal.Value; }
+			set { fieldMarshal.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldRVA FieldRVA {
+			get { return fieldRVA.Value; }
+			set { fieldRVA.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override ImplMap ImplMap {
+			get { return implMap.Value; }
+			set { implMap.Value = value; }
 		}
 
 		/// <summary>
@@ -416,6 +488,18 @@ namespace dot10.DotNet {
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ReadSignature(rawRow.Signature);
+			};
+			fieldLayout.ReadOriginalValue = () => {
+				return readerModule.ResolveFieldLayout(readerModule.MetaData.GetFieldLayoutRid(rid));
+			};
+			fieldMarshal.ReadOriginalValue = () => {
+				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Field, rid));
+			};
+			fieldRVA.ReadOriginalValue = () => {
+				return readerModule.ResolveFieldRVA(readerModule.MetaData.GetFieldRVARid(rid));
+			};
+			implMap.ReadOriginalValue = () => {
+				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Field, rid));
 			};
 		}
 

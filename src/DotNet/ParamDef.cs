@@ -48,6 +48,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract UTF8String Name { get; set; }
 
+		/// <inheritdoc/>
+		public abstract FieldMarshal FieldMarshal { get; set; }
+
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.In"/> bit
 		/// </summary>
@@ -121,6 +124,7 @@ namespace dot10.DotNet {
 		ParamAttributes flags;
 		ushort sequence;
 		UTF8String name;
+		FieldMarshal fieldMarshal;
 
 		/// <inheritdoc/>
 		public override ParamAttributes Flags {
@@ -138,6 +142,12 @@ namespace dot10.DotNet {
 		public override UTF8String Name {
 			get { return name; }
 			set { name = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldMarshal FieldMarshal {
+			get { return fieldMarshal; }
+			set { fieldMarshal = value; }
 		}
 
 		/// <summary>
@@ -215,6 +225,7 @@ namespace dot10.DotNet {
 		UserValue<ParamAttributes> flags;
 		UserValue<ushort> sequence;
 		UserValue<UTF8String> name;
+		UserValue<FieldMarshal> fieldMarshal;
 
 		/// <inheritdoc/>
 		public override ParamAttributes Flags {
@@ -232,6 +243,12 @@ namespace dot10.DotNet {
 		public override UTF8String Name {
 			get { return name.Value; }
 			set { name.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override FieldMarshal FieldMarshal {
+			get { return fieldMarshal.Value; }
+			set { fieldMarshal.Value = value; }
 		}
 
 		/// <summary>
@@ -265,6 +282,9 @@ namespace dot10.DotNet {
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.StringsStream.Read(rawRow.Name);
+			};
+			fieldMarshal.ReadOriginalValue = () => {
+				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Param, rid));
 			};
 		}
 
