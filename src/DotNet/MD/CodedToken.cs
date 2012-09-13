@@ -199,7 +199,7 @@ namespace dot10.DotNet.MD {
 		public bool Decode(uint codedToken, out uint token) {
 			uint rid = codedToken >> bits;
 			int index = (int)(codedToken & mask);
-			if (rid > MDToken.RID_MAX || index > tableTypes.Length) {
+			if (rid > MDToken.RID_MAX || index >= tableTypes.Length) {
 				token = 0;
 				return false;
 			}
