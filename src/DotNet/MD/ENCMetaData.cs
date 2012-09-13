@@ -421,7 +421,7 @@ namespace dot10.DotNet.MD {
 			if (endRid < startRid)
 				endRid = startRid;
 			if (endRid > lastRid)
-				endRid = lastRid;
+				return ContiguousRidList.Empty;
 			return new ContiguousRidList(startRid, endRid - startRid);
 		}
 
