@@ -406,7 +406,7 @@ namespace dot10.DotNet.MD {
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
-		ContiguousRidList GetRidList(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
+		RidList GetRidList(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
 			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
 			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
