@@ -55,6 +55,13 @@
     <Compile Include="DotNet\DeclSecurity.cs" />
     <Compile Include="DotNet\DeclSecurityAction.cs" />
     <Compile Include="DotNet\ElementType.cs" />
+    <Compile Include="DotNet\Emit\Code.cs" />
+    <Compile Include="DotNet\Emit\FlowControl.cs" />
+    <Compile Include="DotNet\Emit\OpCode.cs" />
+    <Compile Include="DotNet\Emit\OpCodes.cs" />
+    <Compile Include="DotNet\Emit\OpCodeType.cs" />
+    <Compile Include="DotNet\Emit\OperandType.cs" />
+    <Compile Include="DotNet\Emit\StackBehaviour.cs" />
     <Compile Include="DotNet\ENCLog.cs" />
     <Compile Include="DotNet\ENCMap.cs" />
     <Compile Include="DotNet\EventAttributes.cs" />
