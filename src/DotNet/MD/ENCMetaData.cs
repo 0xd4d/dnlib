@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using dot10.IO;
 using dot10.PE;
 
@@ -22,6 +23,7 @@ namespace dot10.DotNet.MD {
 			/// <summary>
 			/// Remembers <c>rid</c> and key
 			/// </summary>
+			[DebuggerDisplay("{rid} {key}")]
 			struct RowInfo : IComparable<RowInfo> {
 				public uint rid;
 				public uint key;
