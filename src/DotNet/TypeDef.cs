@@ -69,13 +69,44 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return FullNameHelper.GetFullName(Namespace, Name); }
+			get {
+				if (!IsNested)
+					return FullNameHelper.GetFullName(Namespace, Name);
+				var nestedClass = NestedClass;
+				string enclosingName;
+				try {
+					if (nestedClass == null || nestedClass.EnclosingType == null)
+						enclosingName = "<<<NULL>>>";
+					else
+						enclosingName = nestedClass.EnclosingType.FullName;
+				}
+				catch (StackOverflowException) {
+					// Invalid metadata
+					return string.Empty;
+				}
+				return string.Format("{0}/{1}", enclosingName, FullNameHelper.GetName(Name));
+			}
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			//TODO: If nested, add the nested class
-			get { return FullNameHelper.GetReflectionFullName(Namespace, Name); }
+			get {
+				if (!IsNested)
+					return FullNameHelper.GetReflectionFullName(Namespace, Name);
+				var nestedClass = NestedClass;
+				string enclosingName;
+				try {
+					if (nestedClass == null || nestedClass.EnclosingType == null)
+						enclosingName = "<<<NULL>>>";
+					else
+						enclosingName = nestedClass.EnclosingType.ReflectionFullName;
+				}
+				catch (StackOverflowException) {
+					// Invalid metadata
+					return string.Empty;
+				}
+				return string.Format("{0}+{1}", enclosingName, FullNameHelper.GetReflectionName(Name));
+			}
 		}
 
 		/// <inheritdoc/>
@@ -211,6 +242,15 @@ namespace dot10.DotNet {
 		/// </summary>
 		public bool IsNestedFamORAssem {
 			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamORAssem; }
+		}
+
+		/// <summary>
+		/// Checks whether the type is nested. It's nested if <see cref="Visibility"/> is one of
+		/// the nested visibility values. <see cref="NestedClass"/> is not checked, and can still
+		/// be <c>null</c>.
+		/// </summary>
+		public bool IsNested {
+			get { return Visibility >= TypeAttributes.NestedPublic; }
 		}
 
 		/// <summary>

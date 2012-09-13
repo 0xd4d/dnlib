@@ -68,7 +68,7 @@ namespace dot10.DotNet {
 				if (enclosingTypeRef == null)
 					return FullNameHelper.GetFullName(Namespace, Name);
 				try {
-					return string.Format("{0}.{1}", enclosingTypeRef.FullName, FullNameHelper.GetName(Name));
+					return string.Format("{0}/{1}", enclosingTypeRef.FullName, FullNameHelper.GetName(Name));
 				}
 				catch (StackOverflowException) {
 					// Invalid metadata
