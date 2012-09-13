@@ -38,7 +38,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// A AssemblyRefOS row created by the user and not present in the original .NET file
+	/// An AssemblyRefOS row created by the user and not present in the original .NET file
 	/// </summary>
 	public class AssemblyRefOSUser : AssemblyRefOS {
 		uint osPlatformId;

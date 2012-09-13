@@ -23,7 +23,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// A ENCMap row created by the user and not present in the original .NET file
+	/// An ENCMap row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ENCMapUser : ENCMap {
 		uint token;

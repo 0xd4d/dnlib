@@ -28,7 +28,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// A ENCLog row created by the user and not present in the original .NET file
+	/// An ENCLog row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ENCLogUser : ENCLog {
 		uint token;

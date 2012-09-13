@@ -29,7 +29,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// A EventMap row created by the user and not present in the original .NET file
+	/// An EventMap row created by the user and not present in the original .NET file
 	/// </summary>
 	public class EventMapUser : EventMap {
 		TypeDef parent;

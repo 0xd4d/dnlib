@@ -23,7 +23,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// A EventPtr row created by the user and not present in the original .NET file
+	/// An EventPtr row created by the user and not present in the original .NET file
 	/// </summary>
 	public class EventPtrUser : EventPtr {
 		EventDef @event;

@@ -28,7 +28,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// A AssemblyRefProcessor row created by the user and not present in the original .NET file
+	/// An AssemblyRefProcessor row created by the user and not present in the original .NET file
 	/// </summary>
 	public class AssemblyRefProcessorUser : AssemblyRefProcessor {
 		uint processor;

@@ -121,7 +121,7 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Finds a <c>ClassLayout</c> rid
 		/// </summary>
-		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>
+		/// <param name="typeDefRid">Owner <c>TypeDef</c> rid</param>
 		/// <returns>The <c>ClassLayout</c> rid or 0 if <paramref name="typeDefRid"/> is invalid
 		/// or if it has no row in the <c>ClassLayout</c> table.</returns>
 		uint GetClassLayoutRid(uint typeDefRid);
@@ -129,7 +129,7 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Finds a <c>FieldLayout</c> rid
 		/// </summary>
-		/// <param name="fieldRid"><c>Field</c> rid</param>
+		/// <param name="fieldRid">Owner <c>Field</c> rid</param>
 		/// <returns>The <c>FieldLayout</c> rid or 0 if <paramref name="fieldRid"/> is invalid
 		/// or if it has no row in the <c>FieldLayout</c> table.</returns>
 		uint GetFieldLayoutRid(uint fieldRid);
@@ -146,13 +146,13 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Finds a <c>FieldRVA</c> rid
 		/// </summary>
-		/// <param name="fieldRid"><c>Field</c> rid</param>
+		/// <param name="fieldRid">Owner <c>Field</c> rid</param>
 		/// <returns>The <c>FieldRVA</c> rid or 0 if <paramref name="fieldRid"/> is invalid
 		/// or if it has no row in the <c>FieldRVA</c> table.</returns>
 		uint GetFieldRVARid(uint fieldRid);
 
 		/// <summary>
-		/// Finds a <c>ImplMap</c> rid
+		/// Finds an <c>ImplMap</c> rid
 		/// </summary>
 		/// <param name="table">A <c>MemberForwarded</c> table</param>
 		/// <param name="rid">Owner rid</param>
@@ -163,15 +163,15 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Finds a <c>NestedClass</c> rid
 		/// </summary>
-		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>
+		/// <param name="typeDefRid">Owner <c>TypeDef</c> rid</param>
 		/// <returns>The <c>NestedClass</c> rid or 0 if <paramref name="typeDefRid"/> is invalid
 		/// or if it has no row in the <c>NestedClass</c> table.</returns>
 		uint GetNestedClassRid(uint typeDefRid);
 
 		/// <summary>
-		/// Finds a <c>EventMap</c> rid
+		/// Finds an <c>EventMap</c> rid
 		/// </summary>
-		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>
+		/// <param name="typeDefRid">Owner <c>TypeDef</c> rid</param>
 		/// <returns>The <c>EventMap</c> rid or 0 if <paramref name="typeDefRid"/> is invalid
 		/// or if it has no row in the <c>EventMap</c> table.</returns>
 		uint GetEventMapRid(uint typeDefRid);
@@ -179,7 +179,7 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Finds a <c>PropertyMap</c> rid
 		/// </summary>
-		/// <param name="typeDefRid"><c>TypeDef</c> rid</param>
+		/// <param name="typeDefRid">Owner <c>TypeDef</c> rid</param>
 		/// <returns>The <c>PropertyMap</c> rid or 0 if <paramref name="typeDefRid"/> is invalid
 		/// or if it has no row in the <c>PropertyMap</c> table.</returns>
 		uint GetPropertyMapRid(uint typeDefRid);

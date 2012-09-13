@@ -201,7 +201,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// A ImplMap row created by the user and not present in the original .NET file
+	/// An ImplMap row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ImplMapUser : ImplMap {
 		PInvokeAttributes flags;
