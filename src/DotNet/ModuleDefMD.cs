@@ -435,7 +435,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="InterfaceImpl"/>
+		/// Resolves an <see cref="InterfaceImpl"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="InterfaceImpl"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -516,7 +516,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="EventMap"/>
+		/// Resolves an <see cref="EventMap"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="EventMap"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -525,7 +525,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="EventPtr"/>
+		/// Resolves an <see cref="EventPtr"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="EventPtr"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -534,7 +534,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="EventDef"/>
+		/// Resolves an <see cref="EventDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="EventDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -606,7 +606,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ImplMap"/>
+		/// Resolves an <see cref="ImplMap"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ImplMap"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -624,7 +624,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ENCLog"/>
+		/// Resolves an <see cref="ENCLog"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ENCLog"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -633,7 +633,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ENCMap"/>
+		/// Resolves an <see cref="ENCMap"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ENCMap"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -642,7 +642,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyDef"/>
+		/// Resolves an <see cref="AssemblyDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -651,7 +651,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyProcessor"/>
+		/// Resolves an <see cref="AssemblyProcessor"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyProcessor"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -660,7 +660,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyOS"/>
+		/// Resolves an <see cref="AssemblyOS"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyOS"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -669,7 +669,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyRef"/>
+		/// Resolves an <see cref="AssemblyRef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -678,7 +678,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyRefProcessor"/>
+		/// Resolves an <see cref="AssemblyRefProcessor"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRefProcessor"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -687,7 +687,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="AssemblyRefOS"/>
+		/// Resolves an <see cref="AssemblyRefOS"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRefOS"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -705,7 +705,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="ExportedType"/>
+		/// Resolves an <see cref="ExportedType"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="ExportedType"/> instance or null if <paramref name="rid"/> is invalid</returns>
@@ -944,7 +944,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="IImplementation"/>
+		/// Resolves an <see cref="IImplementation"/>
 		/// </summary>
 		/// <param name="codedToken">An <c>Implementation</c> coded token</param>
 		/// <returns>A <see cref="IImplementation"/> or null if <paramref name="codedToken"/> is invalid</returns>
