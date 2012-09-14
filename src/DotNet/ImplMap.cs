@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the ImplMap table
 	/// </summary>
+	[DebuggerDisplay("{Scope} {Name}")]
 	public abstract class ImplMap : IMDTokenProvider {
 		/// <summary>
 		/// The row id in its table
