@@ -77,16 +77,29 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Get the full name
+		/// Gets the full name
 		/// </summary>
 		public string FullName {
 			get {
 				if (IsMethodRef)
-					return Utils.GetMethodString(null, Name, MethodSig);
+					return Utils.GetMethodString(GetDeclaringTypeFullName(), Name, MethodSig);
 				if (IsFieldRef)
-					return Utils.GetFieldString(null, Name, FieldSig);
+					return Utils.GetFieldString(GetDeclaringTypeFullName(), Name, FieldSig);
 				return string.Empty;
 			}
+		}
+
+		string GetDeclaringTypeFullName() {
+			var parent = Class;
+			if (parent == null)
+				return null;
+			if (parent is ITypeDefOrRef)
+				return ((ITypeDefOrRef)parent).FullName;
+			if (parent is ModuleRef)
+				return string.Format("[module:{0}]<Module>", ((ModuleRef)parent).ToString());
+			if (parent is MethodDef)
+				return null;
+			return null;	// Should never be reached
 		}
 
 		/// <inheritdoc/>
