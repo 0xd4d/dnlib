@@ -270,7 +270,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public string FullName {
 			get {
-				var name = UTF8String.IsNullOrEmpty(Name) ? "" : Name.String;
+				var name = UTF8String.IsNullOrEmpty(Name) ? string.Empty : Name.String;
 				var fieldSig = FieldSig;
 				if (fieldSig == null || fieldSig.Type == null)
 					return name;
