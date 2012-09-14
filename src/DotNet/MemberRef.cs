@@ -5,7 +5,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the MemberRef table
 	/// </summary>
-	public abstract class MemberRef : IHasCustomAttribute, IMethodDefOrRef, ICustomAttributeType {
+	public abstract class MemberRef : IHasCustomAttribute, IMethodDefOrRef, ICustomAttributeType, IField {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>

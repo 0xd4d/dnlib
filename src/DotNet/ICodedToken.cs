@@ -44,6 +44,24 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
+	/// Implememented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
+	/// </summary>
+	public interface IField {
+	}
+
+	/// <summary>
+	/// Implememented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)
+	/// </summary>
+	public interface IMethod : ITokenOperand {
+	}
+
+	/// <summary>
+	/// Implemented by tables that can be a token in the <c>ldtoken</c> instruction
+	/// </summary>
+	public interface ITokenOperand {
+	}
+
+	/// <summary>
 	/// The table row can be referenced by a coded token
 	/// </summary>
 	public interface ICodedToken : IMDTokenProvider {
@@ -52,7 +70,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// TypeDefOrRef coded token interface
 	/// </summary>
-	public interface ITypeDefOrRef : ICodedToken, IFullName {
+	public interface ITypeDefOrRef : ICodedToken, IFullName, ITokenOperand {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -137,7 +155,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// MethodDefOrRef coded token interface
 	/// </summary>
-	public interface IMethodDefOrRef : ICodedToken {
+	public interface IMethodDefOrRef : ICodedToken, IMethod {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>

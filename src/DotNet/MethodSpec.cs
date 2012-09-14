@@ -5,7 +5,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the MethodSpec table
 	/// </summary>
-	public abstract class MethodSpec : IHasCustomAttribute {
+	public abstract class MethodSpec : IHasCustomAttribute, IMethod {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>

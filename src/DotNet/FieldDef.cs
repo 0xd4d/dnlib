@@ -5,7 +5,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Field table
 	/// </summary>
-	public abstract class FieldDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal, IMemberForwarded {
+	public abstract class FieldDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal, IMemberForwarded, IField, ITokenOperand {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
