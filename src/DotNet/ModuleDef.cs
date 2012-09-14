@@ -15,6 +15,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
+		/// <summary>
+		/// Initialize this in the ctor
+		/// </summary>
+		protected ICorLibTypes corLibTypes;
+
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.Module, rid); }
@@ -69,6 +74,13 @@ namespace dot10.DotNet {
 		/// Gets a list of all <see cref="ExportedType"/>s
 		/// </summary>
 		public abstract IList<ExportedType> ExportedTypes { get; }
+
+		/// <summary>
+		/// Gets the <see cref="ICorLibTypes"/>
+		/// </summary>
+		public ICorLibTypes CorLibTypes {
+			get { return corLibTypes; }
+		}
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a file
@@ -228,6 +240,7 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public ModuleDefUser() {
+			this.corLibTypes = new CorLibTypes(this);
 		}
 
 		/// <summary>
@@ -263,6 +276,7 @@ namespace dot10.DotNet {
 		/// <param name="name">Module name</param>
 		/// <param name="mvid">Module version ID</param>
 		public ModuleDefUser(UTF8String name, Guid? mvid) {
+			this.corLibTypes = new CorLibTypes(this);
 			this.name = name;
 			this.mvid = mvid;
 		}
@@ -352,8 +366,11 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
-			this.types = new List<TypeDef>();
-			this.exportedTypes = new List<ExportedType>();
+			if (rid != 1) {
+				this.types = new List<TypeDef>();
+				this.exportedTypes = new List<ExportedType>();
+				this.corLibTypes = new CorLibTypes(this);
+			}
 			Initialize();
 		}
 

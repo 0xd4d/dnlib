@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>
-	public sealed class ModuleDefMD : ModuleDefMD2, ICorLibTypes {
+	public sealed class ModuleDefMD : ModuleDefMD2 {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
 
@@ -56,26 +56,6 @@ namespace dot10.DotNet {
 		SimpleLazyList<MethodSpecMD> listMethodSpecMD;
 		SimpleLazyList<GenericParamConstraintMD> listGenericParamConstraintMD;
 
-		CorLibTypeSig typeVoid;
-		CorLibTypeSig typeBoolean;
-		CorLibTypeSig typeChar;
-		CorLibTypeSig typeSByte;
-		CorLibTypeSig typeByte;
-		CorLibTypeSig typeInt16;
-		CorLibTypeSig typeUInt16;
-		CorLibTypeSig typeInt32;
-		CorLibTypeSig typeUInt32;
-		CorLibTypeSig typeInt64;
-		CorLibTypeSig typeUInt64;
-		CorLibTypeSig typeSingle;
-		CorLibTypeSig typeDouble;
-		CorLibTypeSig typeString;
-		CorLibTypeSig typeTypedReference;
-		CorLibTypeSig typeIntPtr;
-		CorLibTypeSig typeUIntPtr;
-		CorLibTypeSig typeObject;
-		AssemblyRef corLibAssemblyRef;
-
 		/// <summary>
 		/// Returns the .NET file
 		/// </summary>
@@ -123,108 +103,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		public USStream USStream {
 			get { return dnFile.MetaData.USStream; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Void {
-			get { return typeVoid; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Boolean {
-			get { return typeBoolean; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Char {
-			get { return typeChar; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.SByte {
-			get { return typeSByte; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Byte {
-			get { return typeByte; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Int16 {
-			get { return typeInt16; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.UInt16 {
-			get { return typeUInt16; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Int32 {
-			get { return typeInt32; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.UInt32 {
-			get { return typeUInt32; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Int64 {
-			get { return typeInt64; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.UInt64 {
-			get { return typeUInt64; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Single {
-			get { return typeSingle; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Double {
-			get { return typeDouble; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.String {
-			get { return typeString; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.TypedReference {
-			get { return typeTypedReference; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.IntPtr {
-			get { return typeIntPtr; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.UIntPtr {
-			get { return typeUIntPtr; }
-		}
-
-		/// <inheritdoc/>
-		CorLibTypeSig ICorLibTypes.Object {
-			get { return typeObject; }
-		}
-
-		/// <inheritdoc/>
-		AssemblyRef ICorLibTypes.AssemblyRef {
-			get { return corLibAssemblyRef; }
-		}
-
-		/// <summary>
-		/// Gets the <see cref="ICorLibTypes"/>
-		/// </summary>
-		public ICorLibTypes CorLibTypes {
-			get { return this; }
 		}
 
 		/// <summary>
@@ -300,7 +178,7 @@ namespace dot10.DotNet {
 #endif
 			this.dnFile = dnFile;
 			Initialize();
-			InitializeCorLibTypes();
+			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
 		}
 
 		void Initialize() {
@@ -365,32 +243,6 @@ namespace dot10.DotNet {
 			exportedTypes = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
 		}
 
-		void InitializeCorLibTypes() {
-			corLibAssemblyRef = FindCorLibAssemblyRef();
-			typeVoid = new CorLibTypeSig(CreateCorLibTypeRef("Void"), ElementType.Void);
-			typeBoolean = new CorLibTypeSig(CreateCorLibTypeRef("Boolean"), ElementType.Boolean);
-			typeChar = new CorLibTypeSig(CreateCorLibTypeRef("Char"), ElementType.Char);
-			typeSByte = new CorLibTypeSig(CreateCorLibTypeRef("SByte"), ElementType.I1);
-			typeByte = new CorLibTypeSig(CreateCorLibTypeRef("Byte"), ElementType.U1);
-			typeInt16 = new CorLibTypeSig(CreateCorLibTypeRef("Int16"), ElementType.I2);
-			typeUInt16 = new CorLibTypeSig(CreateCorLibTypeRef("UInt16"), ElementType.U2);
-			typeInt32 = new CorLibTypeSig(CreateCorLibTypeRef("Int32"), ElementType.I4);
-			typeUInt32 = new CorLibTypeSig(CreateCorLibTypeRef("UInt32"), ElementType.U4);
-			typeInt64 = new CorLibTypeSig(CreateCorLibTypeRef("Int64"), ElementType.I8);
-			typeUInt64 = new CorLibTypeSig(CreateCorLibTypeRef("UInt64"), ElementType.U8);
-			typeSingle = new CorLibTypeSig(CreateCorLibTypeRef("Single"), ElementType.R4);
-			typeDouble = new CorLibTypeSig(CreateCorLibTypeRef("Double"), ElementType.R8);
-			typeString = new CorLibTypeSig(CreateCorLibTypeRef("String"), ElementType.String);
-			typeTypedReference = new CorLibTypeSig(CreateCorLibTypeRef("TypedReference"), ElementType.TypedByRef);
-			typeIntPtr = new CorLibTypeSig(CreateCorLibTypeRef("IntPtr"), ElementType.I);
-			typeUIntPtr = new CorLibTypeSig(CreateCorLibTypeRef("UIntPtr"), ElementType.U);
-			typeObject = new CorLibTypeSig(CreateCorLibTypeRef("Object"), ElementType.Object);
-		}
-
-		TypeRef CreateCorLibTypeRef(string name) {
-			return new TypeRefUser(this, "System", name, corLibAssemblyRef);
-		}
-
 		/// <summary>
 		/// Finds or creates a mscorlib <see cref="AssemblyRef"/>
 		/// </summary>
@@ -409,7 +261,7 @@ namespace dot10.DotNet {
 			}
 			if (corLibAsmRef != null)
 				return corLibAsmRef;
-			return new AssemblyRefUser("mscorlib", new Version(2, 0, 0, 0), new PublicKeyToken("b77a5c561934e089"));
+			return null;
 		}
 
 		/// <inheritdoc/>

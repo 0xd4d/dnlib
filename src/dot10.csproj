@@ -51,6 +51,7 @@
     <Compile Include="DotNet\CallingConvention.cs" />
     <Compile Include="DotNet\ClassLayout.cs" />
     <Compile Include="DotNet\Constant.cs" />
+    <Compile Include="DotNet\CorLibTypes.cs" />
     <Compile Include="DotNet\CustomAttribute.cs" />
     <Compile Include="DotNet\DeclSecurity.cs" />
     <Compile Include="DotNet\DeclSecurityAction.cs" />
