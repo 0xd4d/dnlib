@@ -65,5 +65,10 @@
 			else if (((ushort)code >> 8) == 0xFE)
 				OpCodes.TwoByteOpCodes[(byte)code] = this;
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return Name;
+		}
 	}
 }
