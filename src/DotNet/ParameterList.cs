@@ -52,7 +52,7 @@ namespace dot10.DotNet {
 			if (UpdateThisParameter())
 				parameters.Clear();
 			var methodSigParams = method.MethodSig.Params;
-			ResizeParameters(methodSigParams.Count);
+			ResizeParameters(methodSigParams.Count + methodSigIndexBase);
 			if (methodSigIndexBase > 0)
 				parameters[0] = hiddenThisParameter;
 			for (int i = 0; i < methodSigParams.Count; i++)
