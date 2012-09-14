@@ -178,11 +178,16 @@ namespace dot10.DotNet {
 #endif
 			this.dnFile = dnFile;
 			Initialize();
-			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
 		}
 
 		void Initialize() {
 			var ts = dnFile.MetaData.TablesStream;
+
+			// FindCorLibAssemblyRef() needs this list initialized. Other code may need corLibTypes
+			// so initialize these two first.
+			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.Get(Table.AssemblyRef).Rows, rid2 => new AssemblyRefMD(this, rid2));
+			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
+
 			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.Get(Table.Module).Rows, rid2 => rid2 == rid ? this : new ModuleDefMD2(this, rid2));
 			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.Get(Table.TypeRef).Rows, rid2 => new TypeRefMD(this, rid2));
 			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.Get(Table.TypeDef).Rows, rid2 => new TypeDefMD(this, rid2));
@@ -223,7 +228,6 @@ namespace dot10.DotNet {
 			});
 			listAssemblyProcessorMD = new SimpleLazyList<AssemblyProcessorMD>(ts.Get(Table.AssemblyProcessor).Rows, rid2 => new AssemblyProcessorMD(this, rid2));
 			listAssemblyOSMD = new SimpleLazyList<AssemblyOSMD>(ts.Get(Table.AssemblyOS).Rows, rid2 => new AssemblyOSMD(this, rid2));
-			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.Get(Table.AssemblyRef).Rows, rid2 => new AssemblyRefMD(this, rid2));
 			listAssemblyRefProcessorMD = new SimpleLazyList<AssemblyRefProcessorMD>(ts.Get(Table.AssemblyRefProcessor).Rows, rid2 => new AssemblyRefProcessorMD(this, rid2));
 			listAssemblyRefOSMD = new SimpleLazyList<AssemblyRefOSMD>(ts.Get(Table.AssemblyRefOS).Rows, rid2 => new AssemblyRefOSMD(this, rid2));
 			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.Get(Table.File).Rows, rid2 => new FileDefMD(this, rid2));
