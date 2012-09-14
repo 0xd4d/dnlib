@@ -30,12 +30,12 @@ namespace dot10.DotNet {
 		/// <returns>The element or null if <paramref name="index"/> is invalid</returns>
 		public T this[uint index] {
 			get {
+				if (index >= length)
+					return null;
 				if (elements == null) {
 					elements = new T[length];
 					initialized = new bool[length];
 				}
-				if (index >= length)
-					return null;
 				if (!initialized[index]) {
 					elements[index] = readElementByRID(index + 1);
 					initialized[index] = true;
