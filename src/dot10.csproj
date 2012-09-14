@@ -98,6 +98,7 @@
     <Compile Include="DotNet\MethodSemanticsAttributes.cs" />
     <Compile Include="DotNet\MFunc.cs" />
     <Compile Include="DotNet\NestedClass.cs" />
+    <Compile Include="DotNet\ParameterList.cs" />
     <Compile Include="DotNet\ParamPtr.cs" />
     <Compile Include="DotNet\PInvokeAttributes.cs" />
     <Compile Include="DotNet\PropertyAttributes.cs" />

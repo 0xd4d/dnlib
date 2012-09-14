@@ -13,6 +13,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
+		/// <summary>
+		/// All parameters
+		/// </summary>
+		protected ParameterList parameterList;
+
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.Method, rid); }
@@ -105,6 +110,13 @@ namespace dot10.DotNet {
 		public MethodSig MethodSig {
 			get { return Signature as MethodSig; }
 			set { Signature = value; }
+		}
+
+		/// <summary>
+		/// Gets the parameters
+		/// </summary>
+		public ParameterList Parameters {
+			get { return parameterList; }
 		}
 
 		/// <summary>
@@ -518,7 +530,10 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override CallingConventionSig Signature {
 			get { return signature; }
-			set { signature = value; }
+			set {
+				signature = value;
+				parameterList.UpdateParameterTypes();
+			}
 		}
 
 		/// <inheritdoc/>
@@ -546,6 +561,7 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public MethodDefUser() {
+			this.parameterList = new ParameterList(this);
 		}
 
 		/// <summary>
@@ -597,6 +613,7 @@ namespace dot10.DotNet {
 			this.signature = methodSig;
 			this.implFlags = implFlags;
 			this.flags = flags;
+			this.parameterList = new ParameterList(this);
 		}
 
 		/// <summary>
@@ -694,7 +711,10 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override CallingConventionSig Signature {
 			get { return signature.Value; }
-			set { signature.Value = value; }
+			set {
+				signature.Value = value;
+				parameterList.UpdateParameterTypes();
+			}
 		}
 
 		/// <inheritdoc/>
@@ -753,6 +773,7 @@ namespace dot10.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
+			this.parameterList = new ParameterList(this);
 		}
 
 		void Initialize() {
