@@ -44,8 +44,8 @@ namespace dot10.IO {
 			get { return position - dataOffset; }
 			set {
 				long newPos = dataOffset + value;
-				if (newPos < dataOffset || newPos > dataEnd)
-					throw new IOException("Invalid position");
+				if (newPos < dataOffset || newPos > int.MaxValue)
+					throw new ArgumentOutOfRangeException("value", "Can't seek to a negative offset or an offset > 0x7FFFFFFF");
 				position = (int)newPos;
 			}
 		}
