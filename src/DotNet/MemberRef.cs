@@ -98,7 +98,7 @@ namespace dot10.DotNet {
 			if (parent is ModuleRef)
 				return string.Format("[module:{0}]<Module>", ((ModuleRef)parent).ToString());
 			if (parent is MethodDef)
-				return null;
+				return null;	//TODO: return parent's declaring type's full name
 			return null;	// Should never be reached
 		}
 
