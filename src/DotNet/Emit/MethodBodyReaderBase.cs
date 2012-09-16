@@ -450,9 +450,6 @@ namespace dot10.DotNet.Emit {
 		/// <param name="eh">The exception handler</param>
 		/// <returns><c>true</c> if it was added, <c>false</c> otherwise</returns>
 		protected bool Add(ExceptionHandler eh) {
-			if (eh.HandlerType == ExceptionClause.Catch && eh.CatchType == null)
-				return false;
-
 			uint tryStart = GetOffset(eh.TryStart);
 			uint tryEnd = GetOffset(eh.TryEnd);
 			if (tryEnd <= tryStart)
