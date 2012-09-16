@@ -1,4 +1,5 @@
-﻿using dot10.IO;
+﻿using System;
+using dot10.IO;
 
 namespace dot10.DotNet.MD {
 	/// <summary>
@@ -26,7 +27,17 @@ namespace dot10.DotNet.MD {
 				return null;
 			if (imageStream.Position + length < length || imageStream.Position + length > imageStream.Length)
 				return null;
-			return imageStream.ReadString((int)(length / 2));
+			try {
+				return imageStream.ReadString((int)(length / 2));
+			}
+			catch (OutOfMemoryException) {
+				throw;
+			}
+			catch {
+				// It's possible that an exception is thrown when converting a char* to
+				// a string. If so, return an empty string.
+				return string.Empty;
+			}
 		}
 
 		/// <summary>
