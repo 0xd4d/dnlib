@@ -177,6 +177,17 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public unsafe string ReadString(int chars) {
+			if (IntPtr.Size == 4 && (uint)chars > (uint)int.MaxValue)
+				throw new IOException("Not enough space to read the string");
+			if (currentAddr + chars * 2 < currentAddr || (chars != 0 && currentAddr + chars * 2 - 1 >= endAddr))
+				throw new IOException("Not enough space to read the string");
+			var s = new string((char*)currentAddr, 0, chars);
+			currentAddr += chars * 2;
+			return s;
+		}
+
+		/// <inheritdoc/>
 		public void Dispose() {
 			fileOffset = 0;
 			startAddr = null;

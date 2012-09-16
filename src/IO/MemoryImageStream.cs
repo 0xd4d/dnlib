@@ -173,6 +173,18 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public string ReadString(int chars) {
+			if ((uint)chars > (uint)int.MaxValue)
+				throw new IOException("Not enough space to read the string");
+			if (position + chars * 2 < position || (chars != 0 && position + chars * 2 - 1 >= dataEnd))
+				throw new IOException("Not enough space to read the string");
+			var array = new char[chars];
+			for (int i = 0; i < chars; i++)
+				array[i] = (char)(data[position++] | (data[position++] << 8));
+			return new string(array);
+		}
+
+		/// <inheritdoc/>
 		public void Dispose() {
 			fileOffset = 0;
 			data = null;

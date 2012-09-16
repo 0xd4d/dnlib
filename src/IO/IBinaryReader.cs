@@ -102,6 +102,15 @@ namespace dot10.IO {
 		/// <returns>The 64-bit double</returns>
 		/// <exception cref="IOException">An I/O error occurs</exception>
 		double ReadDouble();
+
+		/// <summary>
+		/// Reads a <see cref="String"/> from the current position and increments <see cref="Position"/>
+		/// by the number of bytes read.
+		/// </summary>
+		/// <param name="chars">Number of characters to read</param>
+		/// <returns>The string</returns>
+		/// <exception cref="IOException">An I/O error occurs</exception>
+		string ReadString(int chars);
 	}
 
 	public static partial class IOExtensions {
