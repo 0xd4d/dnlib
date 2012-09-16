@@ -1,7 +1,10 @@
-﻿namespace dot10.DotNet.Emit {
+﻿using System.Diagnostics;
+
+namespace dot10.DotNet.Emit {
 	/// <summary>
 	/// A method local
 	/// </summary>
+	[DebuggerDisplay("{typeSig}")]
 	public sealed class Local {
 		ITypeSig typeSig;
 
