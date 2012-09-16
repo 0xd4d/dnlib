@@ -53,6 +53,11 @@ namespace dot10.DotNet.MD {
 		protected List<DotNetStream> allStreams;
 
 		/// <inheritdoc/>
+		public IPEImage PEImage {
+			get { return peImage; }
+		}
+
+		/// <inheritdoc/>
 		public StringsStream StringsStream {
 			get { return stringsStream; }
 		}

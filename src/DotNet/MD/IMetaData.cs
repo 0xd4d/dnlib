@@ -1,10 +1,16 @@
 ﻿using System;
+using dot10.PE;
 
 namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Interface to access the .NET metadata
 	/// </summary>
 	public interface IMetaData : IDisposable {
+		/// <summary>
+		/// Gets the <see cref="IPEImage"/>
+		/// </summary>
+		IPEImage PEImage { get; }
+
 		/// <summary>
 		/// Returns the #Strings stream or a default empty one if it's not present
 		/// </summary>
