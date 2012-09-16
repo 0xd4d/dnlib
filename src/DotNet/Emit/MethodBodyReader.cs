@@ -36,7 +36,7 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// Reads the method body header, all instructions, and the exception handlers (if any)
+		/// Reads the method body header, locals, all instructions, and the exception handlers (if any)
 		/// </summary>
 		/// <exception cref="InvalidMethodException">If it's an invalid method body. It's not thrown
 		/// if an invalid instruction is found.</exception>
@@ -78,12 +78,12 @@ namespace dot10.DotNet.Emit {
 			case 3:
 				// Fat header. Can have locals and exception handlers
 				flags = (ushort)((reader.ReadByte() << 8) | b);
-				if ((flags >> 12) < 4)
-					throw new InvalidMethodException("Header size in dwords < 4");
+				if ((flags >> 12) < 3)
+					throw new InvalidMethodException("Header size in dwords < 3");
 				maxStack = reader.ReadUInt16();
 				codeSize = reader.ReadUInt32();
 				localVarSigTok = reader.ReadUInt32();
-				reader.Position += ((flags >> 12) - 4) * 4;
+				reader.Position += ((flags >> 12) - 3) * 4;
 				break;
 
 			default:
@@ -97,8 +97,8 @@ namespace dot10.DotNet.Emit {
 		/// <summary>
 		/// Reads the locals
 		/// </summary>
+		/// <returns>All locals or <c>null</c> if there are none</returns>
 		/// <exception cref="InvalidMethodException">If <see cref="localVarSigTok"/> is invalid</exception>
-		/// <returns>All locals or null if there are none</returns>
 		IList<ITypeSig> ReadLocals() {
 			if (localVarSigTok == 0)
 				return null;
@@ -163,7 +163,57 @@ namespace dot10.DotNet.Emit {
 			if ((flags & 8) == 0)
 				return;
 			reader.Position = (reader.Position + 3) & ~3;
-			//TODO:
+			// Only read the first one. Any others aren't used.
+			//TODO: Verify this
+			byte b = reader.ReadByte();
+			if ((b & 0x3F) != 1)
+				return;	// Not exception handler clauses
+			if ((b & 0x40) != 0)
+				ReadFatExceptionHandlers();
+			else
+				ReadSmallExceptionHandlers();
+		}
+
+		void ReadFatExceptionHandlers() {
+			reader.Position--;
+			int num = (int)((reader.ReadUInt32() >> 8) / 24);
+			for (int i = 0; i < num; i++) {
+				var eh = new ExceptionHandler((ExceptionClause)reader.ReadUInt32());
+				uint offs = reader.ReadUInt32();
+				eh.TryStart = GetInstruction(offs);
+				eh.TryEnd = GetInstruction(offs + reader.ReadUInt32());
+				offs = reader.ReadUInt32();
+				eh.HandlerStart = GetInstruction(offs);
+				eh.HandlerEnd = GetInstruction(offs + reader.ReadUInt32());
+				if (eh.HandlerType == ExceptionClause.Catch)
+					eh.CatchType = module.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
+				else if (eh.HandlerType == ExceptionClause.Filter)
+					eh.FilterStart = GetInstruction(reader.ReadUInt32());
+				else
+					reader.ReadUInt32();
+				Add(eh);
+			}
+		}
+
+		void ReadSmallExceptionHandlers() {
+			int num = reader.ReadByte() / 12;
+			reader.Position += 2;
+			for (int i = 0; i < num; i++) {
+				var eh = new ExceptionHandler((ExceptionClause)reader.ReadUInt16());
+				uint offs = reader.ReadUInt16();
+				eh.TryStart = GetInstruction(offs);
+				eh.TryEnd = GetInstruction(offs + reader.ReadByte());
+				offs = reader.ReadUInt16();
+				eh.HandlerStart = GetInstruction(offs);
+				eh.HandlerEnd = GetInstruction(offs + reader.ReadByte());
+				if (eh.HandlerType == ExceptionClause.Catch)
+					eh.CatchType = module.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
+				else if (eh.HandlerType == ExceptionClause.Filter)
+					eh.FilterStart = GetInstruction(reader.ReadUInt32());
+				else
+					reader.ReadUInt32();
+				Add(eh);
+			}
 		}
 	}
 }

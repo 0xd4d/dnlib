@@ -129,7 +129,7 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <param name="offset">Offset of instruction</param>
 		/// <returns>The instruction or <c>null</c> if there's no instruction at <paramref name="offset"/>.</returns>
-		Instruction GetInstruction(uint offset) {
+		protected Instruction GetInstruction(uint offset) {
 			// The instructions are sorted and all Offset fields are correct. Do a binary search.
 			int lo = 0, hi = instructions.Count - 1;
 			while (lo <= hi) {
@@ -442,6 +442,61 @@ namespace dot10.DotNet.Emit {
 			if ((uint)index >= locals.Count)
 				return null;
 			return locals[index];
+		}
+
+		/// <summary>
+		/// Add an exception handler if it appears valid
+		/// </summary>
+		/// <param name="eh">The exception handler</param>
+		/// <returns><c>true</c> if it was added, <c>false</c> otherwise</returns>
+		protected bool Add(ExceptionHandler eh) {
+			if (eh.HandlerType == ExceptionClause.Catch && eh.CatchType == null)
+				return false;
+
+			uint tryStart = GetOffset(eh.TryStart);
+			uint tryEnd = GetOffset(eh.TryEnd);
+			if (tryEnd <= tryStart)
+				return false;
+
+			uint handlerStart = GetOffset(eh.HandlerStart);
+			uint handlerEnd = GetOffset(eh.HandlerEnd);
+			if (handlerEnd <= handlerStart)
+				return false;
+
+			if (eh.HandlerType == ExceptionClause.Filter) {
+				if (eh.FilterStart == null)
+					return false;
+				if (eh.FilterStart.Offset >= handlerStart)
+					return false;
+			}
+
+			if (handlerStart <= tryStart && tryStart <= handlerEnd)
+				return false;
+			if (handlerStart <= tryEnd && tryEnd <= handlerEnd)
+				return false;
+
+			if (tryStart <= handlerStart && handlerStart <= tryEnd)
+				return false;
+			if (tryStart <= handlerEnd && handlerEnd <= tryEnd)
+				return false;
+
+			// It's probably valid, so let's add it.
+			exceptionHandlers.Add(eh);
+			return true;
+		}
+
+		/// <summary>
+		/// Gets the offset of an instruction
+		/// </summary>
+		/// <param name="instr">The instruction or <c>null</c> if the offset is the first offset
+		/// at the end of the method.</param>
+		/// <returns>The instruction offset</returns>
+		uint GetOffset(Instruction instr) {
+			if (instr != null)
+				return instr.Offset;
+			if (instructions.Count == 0)
+				return 0;
+			return instructions[instructions.Count - 1].Offset;
 		}
 	}
 }
