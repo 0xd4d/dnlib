@@ -367,6 +367,34 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="MethodImplAttributes.IL"/> is set
+		/// </summary>
+		public bool IsIL {
+			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.IL; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodImplAttributes.Native"/> is set
+		/// </summary>
+		public bool IsNative {
+			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Native; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodImplAttributes.OPTIL"/> is set
+		/// </summary>
+		public bool IsOPTIL {
+			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.OPTIL; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodImplAttributes.Runtime"/> is set
+		/// </summary>
+		public bool IsRuntime {
+			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Runtime; }
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.Unmanaged"/> bit
 		/// </summary>
 		public bool IsUnmanaged {
