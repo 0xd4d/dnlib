@@ -470,14 +470,14 @@ namespace dot10.DotNet.Emit {
 					return false;
 			}
 
-			if (handlerStart <= tryStart && tryStart <= handlerEnd)
+			if (handlerStart <= tryStart && tryStart < handlerEnd)
 				return false;
-			if (handlerStart <= tryEnd && tryEnd <= handlerEnd)
+			if (handlerStart < tryEnd && tryEnd <= handlerEnd)
 				return false;
 
-			if (tryStart <= handlerStart && handlerStart <= tryEnd)
+			if (tryStart <= handlerStart && handlerStart < tryEnd)
 				return false;
-			if (tryStart <= handlerEnd && handlerEnd <= tryEnd)
+			if (tryStart < handlerEnd && handlerEnd <= tryEnd)
 				return false;
 
 			// It's probably valid, so let's add it.
