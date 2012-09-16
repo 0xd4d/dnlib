@@ -63,6 +63,8 @@
     <Compile Include="DotNet\Emit\InvalidMethodException.cs" />
     <Compile Include="DotNet\Emit\Local.cs" />
     <Compile Include="DotNet\Emit\MethodBody.cs" />
+    <Compile Include="DotNet\Emit\MethodBodyReader.cs" />
+    <Compile Include="DotNet\Emit\MethodBodyReaderBase.cs" />
     <Compile Include="DotNet\Emit\OpCode.cs" />
     <Compile Include="DotNet\Emit\OpCodes.cs" />
     <Compile Include="DotNet\Emit\OpCodeType.cs" />
