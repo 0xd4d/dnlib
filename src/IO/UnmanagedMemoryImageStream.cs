@@ -159,6 +159,24 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public unsafe float ReadSingle() {
+			if (currentAddr + 3 >= endAddr)
+				throw new IOException("Can't read one Single");
+			var val = *(float*)currentAddr;
+			currentAddr += 4;
+			return val;
+		}
+
+		/// <inheritdoc/>
+		public unsafe double ReadDouble() {
+			if (currentAddr + 7 >= endAddr)
+				throw new IOException("Can't read one Double");
+			var val = *(double*)currentAddr;
+			currentAddr += 8;
+			return val;
+		}
+
+		/// <inheritdoc/>
 		public void Dispose() {
 			fileOffset = 0;
 			startAddr = null;

@@ -155,6 +155,24 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public float ReadSingle() {
+			if (position + 3 >= dataEnd)
+				throw new IOException("Can't read one Single");
+			var val = BitConverter.ToSingle(data, position);
+			position += 4;
+			return val;
+		}
+
+		/// <inheritdoc/>
+		public double ReadDouble() {
+			if (position + 7 >= dataEnd)
+				throw new IOException("Can't read one Double");
+			var val = BitConverter.ToDouble(data, position);
+			position += 8;
+			return val;
+		}
+
+		/// <inheritdoc/>
 		public void Dispose() {
 			fileOffset = 0;
 			data = null;

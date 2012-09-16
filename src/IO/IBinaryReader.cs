@@ -88,6 +88,20 @@ namespace dot10.IO {
 		/// <returns>The 64-bit unsigned integer</returns>
 		/// <exception cref="IOException">An I/O error occurs</exception>
 		ulong ReadUInt64();
+
+		/// <summary>
+		/// Reads a <see cref="Single"/> from the current position and increments <see cref="Position"/> by 4
+		/// </summary>
+		/// <returns>The 32-bit single</returns>
+		/// <exception cref="IOException">An I/O error occurs</exception>
+		float ReadSingle();
+
+		/// <summary>
+		/// Reads a <see cref="Double"/> from the current position and increments <see cref="Position"/> by 8
+		/// </summary>
+		/// <returns>The 64-bit double</returns>
+		/// <exception cref="IOException">An I/O error occurs</exception>
+		double ReadDouble();
 	}
 
 	public static partial class IOExtensions {
