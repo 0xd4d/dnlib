@@ -109,18 +109,21 @@ namespace dot10.DotNet {
 				sb.Append('>');
 			}
 			sb.Append('(');
-			int count = PrintMethodArgList(sb, methodSig.Params, typeGenArgs, methodGenArgs, false);
-			PrintMethodArgList(sb, methodSig.ParamsAfterSentinel, typeGenArgs, methodGenArgs, true);
+			int count = PrintMethodArgList(sb, methodSig.Params, typeGenArgs, methodGenArgs, false, false);
+			PrintMethodArgList(sb, methodSig.ParamsAfterSentinel, typeGenArgs, methodGenArgs, count > 0, true);
 			sb.Append(')');
 			return sb.ToString();
 		}
 
-		static int PrintMethodArgList(StringBuilder sb, IEnumerable<ITypeSig> args, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs, bool isAfterSentinel) {
+		static int PrintMethodArgList(StringBuilder sb, IEnumerable<ITypeSig> args, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs, bool hasPrintedArgs, bool isAfterSentinel) {
 			if (args == null)
 				return 0;
-			bool hasPrintedArgs = isAfterSentinel;
-			if (isAfterSentinel)
-				sb.Append(",...");
+			if (isAfterSentinel) {
+				if (hasPrintedArgs)
+					sb.Append(',');
+				sb.Append("...");
+				hasPrintedArgs = true;
+			}
 			int count = 0;
 			foreach (var arg in args) {
 				count++;
