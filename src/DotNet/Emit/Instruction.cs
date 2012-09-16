@@ -17,6 +17,11 @@ namespace dot10.DotNet.Emit {
 		public object Operand;
 
 		/// <summary>
+		/// Offset of the instruction in the method body
+		/// </summary>
+		public uint Offset;
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public Instruction() {
@@ -241,6 +246,46 @@ namespace dot10.DotNet.Emit {
 			if (opCode.OperandType != OperandType.ShortInlineVar && opCode.OperandType != OperandType.InlineVar)
 				throw new ArgumentException("Opcode does not have a method local operand", "opCode");
 			return new Instruction(opCode, local);
+		}
+
+		/// <summary>
+		/// Gets the size in bytes of the instruction
+		/// </summary>
+		/// <returns></returns>
+		public int GetSize() {
+			switch (OpCode.OperandType) {
+			case OperandType.InlineBrTarget:
+			case OperandType.InlineField:
+			case OperandType.InlineI:
+			case OperandType.InlineMethod:
+			case OperandType.InlineSig:
+			case OperandType.InlineString:
+			case OperandType.InlineTok:
+			case OperandType.InlineType:
+			case OperandType.ShortInlineR:
+				return OpCode.Size + 4;
+
+			case OperandType.InlineI8:
+			case OperandType.InlineR:
+				return OpCode.Size + 8;
+
+			case OperandType.InlineNone:
+			case OperandType.InlinePhi:
+			default:
+				return OpCode.Size;
+
+			case OperandType.InlineSwitch:
+				var targets = Operand as IList<Instruction>;
+				return OpCode.Size + 4 + (targets == null ? 0 : targets.Count * 4);
+
+			case OperandType.InlineVar:
+				return OpCode.Size + 2;
+
+			case OperandType.ShortInlineBrTarget:
+			case OperandType.ShortInlineI:
+			case OperandType.ShortInlineVar:
+				return OpCode.Size + 1;
+			}
 		}
 	}
 }
