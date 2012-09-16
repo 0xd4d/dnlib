@@ -287,5 +287,12 @@ namespace dot10.DotNet.Emit {
 				return OpCode.Size + 1;
 			}
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			if (Operand == null)
+				return string.Format("IL_{0:X4} {1}", Offset, OpCode.Name);
+			return string.Format("IL_{0:X4} {1} {2}", Offset, OpCode.Name, Operand);
+		}
 	}
 }
