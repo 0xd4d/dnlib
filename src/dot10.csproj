@@ -57,6 +57,7 @@
     <Compile Include="DotNet\DeclSecurityAction.cs" />
     <Compile Include="DotNet\ElementType.cs" />
     <Compile Include="DotNet\Emit\Code.cs" />
+    <Compile Include="DotNet\Emit\ExceptionHandler.cs" />
     <Compile Include="DotNet\Emit\FlowControl.cs" />
     <Compile Include="DotNet\Emit\Instruction.cs" />
     <Compile Include="DotNet\Emit\Local.cs" />
