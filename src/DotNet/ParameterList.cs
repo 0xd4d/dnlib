@@ -7,7 +7,7 @@ namespace dot10.DotNet {
 	/// A list of all method parameters
 	/// </summary>
 	[DebuggerDisplay("Count = {Length}")]
-	public class ParameterList {
+	public sealed class ParameterList {
 		MethodDef method;
 		List<Parameter> parameters;
 		Parameter hiddenThisParameter;
@@ -18,6 +18,13 @@ namespace dot10.DotNet {
 		/// </summary>
 		public int Length {
 			get { return parameters.Count; }
+		}
+
+		/// <summary>
+		/// Gets the parameters
+		/// </summary>
+		public IList<Parameter> Parameters {
+			get { return parameters; }
 		}
 
 		/// <summary>
@@ -98,7 +105,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A method parameter
 	/// </summary>
-	public class Parameter {
+	public sealed class Parameter {
 		ParameterList parameterList;
 		ITypeSig typeSig;
 		int paramIndex;
