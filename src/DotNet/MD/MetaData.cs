@@ -52,6 +52,9 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		protected List<DotNetStream> allStreams;
 
+		uint[] fieldRidToTypeDefRid;
+		uint[] methodRidToTypeDefRid;
+
 		/// <inheritdoc/>
 		public IPEImage PEImage {
 			get { return peImage; }
@@ -343,6 +346,60 @@ namespace dot10.DotNet.MD {
 				return 0;
 			var list = FindAllRowsUnsorted(Table.Constant, 1, codedToken);
 			return list.Length == 0 ? 0 : list[0];
+		}
+
+		/// <inheritdoc/>
+		public uint GetOwnerTypeOfField(uint fieldRid) {
+			if (fieldRidToTypeDefRid == null) 
+				InitializeInverseFieldOwnerRidList();
+			uint index = fieldRid - 1;
+			if (index >= fieldRidToTypeDefRid.LongLength)
+				return 0;
+			return fieldRidToTypeDefRid[index];
+		}
+
+		void InitializeInverseFieldOwnerRidList() {
+			if (fieldRidToTypeDefRid != null)
+				return;
+			fieldRidToTypeDefRid = new uint[tablesStream.Get(Table.Field).Rows];
+			var ownerList = GetTypeDefRidList();
+			for (uint i = 0; i < ownerList.Length; i++) {
+				var ownerRid = ownerList[i];
+				var fieldList = GetFieldRidList(ownerRid);
+				for (uint j = 0; j < fieldList.Length; j++) {
+					uint ridIndex = fieldList[j] - 1;
+					if (fieldRidToTypeDefRid[ridIndex] != 0)
+						continue;
+					fieldRidToTypeDefRid[ridIndex] = ownerRid;
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public uint GetOwnerTypeOfMethod(uint methodRid) {
+			if (methodRidToTypeDefRid == null)
+				InitializeInverseMethodOwnerRidList();
+			uint index = methodRid - 1;
+			if (index >= methodRidToTypeDefRid.LongLength)
+				return 0;
+			return methodRidToTypeDefRid[index];
+		}
+
+		void InitializeInverseMethodOwnerRidList() {
+			if (methodRidToTypeDefRid != null)
+				return;
+			methodRidToTypeDefRid = new uint[tablesStream.Get(Table.Method).Rows];
+			var ownerList = GetTypeDefRidList();
+			for (uint i = 0; i < ownerList.Length; i++) {
+				var ownerRid = ownerList[i];
+				var methodList = GetMethodRidList(ownerRid);
+				for (uint j = 0; j < methodList.Length; j++) {
+					uint ridIndex = methodList[j] - 1;
+					if (methodRidToTypeDefRid[ridIndex] != 0)
+						continue;
+					methodRidToTypeDefRid[ridIndex] = ownerRid;
+				}
+			}
 		}
 
 		/// <inheritdoc/>

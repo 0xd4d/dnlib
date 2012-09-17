@@ -210,5 +210,21 @@ namespace dot10.DotNet.MD {
 		/// <returns>The <c>Constant</c> rid or 0 if <paramref name="rid"/> is invalid
 		/// or if it has no row in the <c>Constant</c> table.</returns>
 		uint GetConstantRid(Table table, uint rid);
+
+		/// <summary>
+		/// Returns the owner <c>TypeDef</c> rid
+		/// </summary>
+		/// <param name="fieldRid">A <c>Field</c> rid</param>
+		/// <returns>The owner <c>TypeDef</c> rid or 0 if <paramref name="fieldRid"/> is invalid
+		/// or if it has no owner.</returns>
+		uint GetOwnerTypeOfField(uint fieldRid);
+
+		/// <summary>
+		/// Returns the owner <c>TypeDef</c> rid
+		/// </summary>
+		/// <param name="methodRid">A <c>Method</c> rid</param>
+		/// <returns>The owner <c>TypeDef</c> rid or 0 if <paramref name="methodRid"/> is invalid
+		/// or if it has no owner.</returns>
+		uint GetOwnerTypeOfMethod(uint methodRid);
 	}
 }
