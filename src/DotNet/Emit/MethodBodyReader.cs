@@ -98,18 +98,17 @@ namespace dot10.DotNet.Emit {
 		/// Reads the locals
 		/// </summary>
 		/// <returns>All locals or <c>null</c> if there are none</returns>
-		/// <exception cref="InvalidMethodException">If <see cref="localVarSigTok"/> is invalid</exception>
 		IList<ITypeSig> ReadLocals() {
 			if (localVarSigTok == 0)
 				return null;
 			if (MDToken.ToTable(localVarSigTok) != Table.StandAloneSig)
-				throw new InvalidMethodException(string.Format("LocalVarSigTok ({0:X8}) is not a StandAloneSig token", localVarSigTok));
+				return null;
 			var standAloneSig = module.ResolveStandAloneSig(MDToken.ToRID(localVarSigTok));
 			if (standAloneSig == null)
-				throw new InvalidMethodException(string.Format("LocalVarSigTok ({0:X8}) has an invalid RID", localVarSigTok));
+				return null;
 			var localSig = standAloneSig.LocalSig;
 			if (localSig == null)
-				throw new InvalidMethodException(string.Format("LocalVarSigTok ({0:X8}) isn't a locals sig", localVarSigTok));
+				return null;
 			return localSig.Locals;
 		}
 
