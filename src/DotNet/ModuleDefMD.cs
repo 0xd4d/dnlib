@@ -1046,7 +1046,16 @@ namespace dot10.DotNet {
 		public CilBody ReadCilBody(IList<Parameter> parameters, RVA rva) {
 			if (rva == 0)
 				return new CilBody();
-			return MethodBodyReader.Create(this, dnFile.MetaData.PEImage.CreateStream(rva), parameters);
+
+			// Create a full stream so position will be the real position in the file. This
+			// is important when reading exception handlers since those must be 4-byte aligned.
+			// If we create a partial stream starting from rva, then position will be 0 and always
+			// 4-byte aligned. All fat method bodies should be 4-byte aligned, but the CLR doesn't
+			// seem to verify it. We must parse the method exactly the way the CLR parses it.
+			using (var reader = dnFile.MetaData.PEImage.CreateFullStream()) {
+				reader.Position = (long)dnFile.MetaData.PEImage.ToFileOffset(rva);
+				return MethodBodyReader.Create(this, reader, parameters);
+			}
 		}
 	}
 }
