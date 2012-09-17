@@ -18,7 +18,8 @@ namespace dot10.DotNet {
 		void OnAdd(int index, TListValue value, bool isLazyAdd);
 
 		/// <summary>
-		/// Called before a value is removed from the list.
+		/// Called before a value is removed from the list. If all elements are removed,
+		/// <see cref="OnClear()"/> is called, and this method is not called.
 		/// </summary>
 		/// <param name="index">Index of value</param>
 		/// <param name="value">The value that will be removed</param>
