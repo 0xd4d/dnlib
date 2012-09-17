@@ -79,7 +79,7 @@ namespace dot10.DotNet.Emit {
 			codeEndOffs = reader.Length;	// We don't know the end pos so use the last one
 			instructions = new List<Instruction>(numInstrs);
 			currentOffset = 0;
-			for (int i = 0; i < instructions.Count; i++)
+			for (int i = 0; i < numInstrs; i++)
 				instructions[i] = ReadOneInstruction();
 			FixBranches();
 		}
@@ -155,7 +155,7 @@ namespace dot10.DotNet.Emit {
 			instr.Operand = ReadOperand(instr);
 
 			if (instr.OpCode.Code == Code.Switch) {
-				IList<uint> targets = (IList<uint>)instr.Operand;
+				var targets = (IList<uint>)instr.Operand;
 				currentOffset += (uint)(instr.OpCode.Size + 4 + 4 * targets.Count);
 			}
 			else
