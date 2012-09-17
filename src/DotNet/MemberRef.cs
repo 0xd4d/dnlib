@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
@@ -81,15 +82,26 @@ namespace dot10.DotNet {
 		/// </summary>
 		public string FullName {
 			get {
+				var parent = Class;
+				IList<ITypeSig> typeGenArgs = null;
+				if (parent is TypeSpec) {
+					var sig = ((TypeSpec)parent).TypeSig as GenericInstSig;
+					if (sig != null)
+						typeGenArgs = sig.GenericArguments;
+				}
 				if (IsMethodRef)
-					return Utils.GetMethodString(GetDeclaringTypeFullName(), Name, MethodSig);
+					return Utils.GetMethodString(GetDeclaringTypeFullName(), Name, MethodSig, typeGenArgs, null);
 				if (IsFieldRef)
-					return Utils.GetFieldString(GetDeclaringTypeFullName(), Name, FieldSig);
+					return Utils.GetFieldString(GetDeclaringTypeFullName(), Name, FieldSig, typeGenArgs);
 				return string.Empty;
 			}
 		}
 
-		string GetDeclaringTypeFullName() {
+		/// <summary>
+		/// Get the declaring type's full name
+		/// </summary>
+		/// <returns>Full name or <c>null</c> if there's no declaring type</returns>
+		public string GetDeclaringTypeFullName() {
 			var parent = Class;
 			if (parent == null)
 				return null;
@@ -97,8 +109,10 @@ namespace dot10.DotNet {
 				return ((ITypeDefOrRef)parent).FullName;
 			if (parent is ModuleRef)
 				return string.Format("[module:{0}]<Module>", ((ModuleRef)parent).ToString());
-			if (parent is MethodDef)
-				return null;	//TODO: return parent's declaring type's full name
+			if (parent is MethodDef) {
+				var declaringType = ((MethodDef)parent).DeclaringType;
+				return declaringType == null ? null : declaringType.FullName;
+			}
 			return null;	// Should never be reached
 		}
 

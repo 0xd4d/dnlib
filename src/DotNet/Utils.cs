@@ -144,17 +144,23 @@ namespace dot10.DotNet {
 		}
 
 		internal static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+			return GetTypeFullName(typeSig, typeGenArgs, methodGenArgs, 0);
+		}
+
+		static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs, int recurse) {
+			if (recurse++ >= 100)
+				return "<<<INFRECURS>>>";
 			if (typeSig == null)
 				return "<<<NULL>>>";
 			if (typeGenArgs != null && typeSig is GenericVar) {
 				var gvar = (GenericVar)typeSig;
 				if (gvar.Number < typeGenArgs.Count)
-					return GetTypeFullName(typeGenArgs[(int)gvar.Number]);
+					return GetTypeFullName(typeGenArgs[(int)gvar.Number], typeGenArgs, methodGenArgs, recurse);
 			}
-			else if (methodGenArgs != null && typeSig is GenericMVar) {
+			if (methodGenArgs != null && typeSig is GenericMVar) {
 				var gmvar = (GenericMVar)typeSig;
 				if (gmvar.Number < methodGenArgs.Count)
-					return GetTypeFullName(methodGenArgs[(int)gmvar.Number]);
+					return GetTypeFullName(methodGenArgs[(int)gmvar.Number], typeGenArgs, methodGenArgs, recurse);
 			}
 			return typeSig.FullName;
 		}

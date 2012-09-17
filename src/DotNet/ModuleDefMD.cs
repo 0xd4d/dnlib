@@ -1057,5 +1057,23 @@ namespace dot10.DotNet {
 				return MethodBodyReader.Create(this, reader, parameters);
 			}
 		}
+
+		/// <summary>
+		/// Returns the owner type of a field
+		/// </summary>
+		/// <param name="field">The field</param>
+		/// <returns>The owner type or <c>null</c> if none</returns>
+		internal TypeDef GetOwnerType(FieldDefMD field) {
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfField(field.MDToken.Rid));
+		}
+
+		/// <summary>
+		/// Returns the owner type of a method
+		/// </summary>
+		/// <param name="method">The method</param>
+		/// <returns>The owner type or <c>null</c> if none</returns>
+		internal TypeDef GetOwnerType(MethodDefMD method) {
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfMethod(method.MDToken.Rid));
+		}
 	}
 }

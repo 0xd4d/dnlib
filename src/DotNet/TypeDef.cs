@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the TypeDef table
 	/// </summary>
-	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef {
+	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -483,6 +483,64 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		void IListListener<FieldDef>.OnAdd(int index, FieldDef value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.DeclaringType != this)
+					throw new ArgumentException("Added field's DeclaringType != this");
+#endif
+				return;
+			}
+			if (value.DeclaringType != null)
+				throw new ArgumentException("Field is already owned by another type. Set DeclaringType to null first.");
+			value.SetDeclaringType(this);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<FieldDef>.OnRemove(int index, FieldDef value) {
+			value.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<FieldDef>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<FieldDef>.OnClear() {
+			foreach (var field in Fields)
+				field.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<MethodDef>.OnAdd(int index, MethodDef value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.DeclaringType != this)
+					throw new ArgumentException("Added method's DeclaringType != this");
+#endif
+				return;
+			}
+			if (value.DeclaringType != null)
+				throw new ArgumentException("Method is already owned by another type. Set DeclaringType to null first.");
+			value.SetDeclaringType(this);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<MethodDef>.OnRemove(int index, MethodDef value) {
+			value.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<MethodDef>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<MethodDef>.OnClear() {
+			foreach (var method in Methods)
+				method.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
 		}
@@ -496,8 +554,8 @@ namespace dot10.DotNet {
 		UTF8String name;
 		UTF8String @namespace;
 		ITypeDefOrRef extends;
-		IList<FieldDef> fields = new List<FieldDef>();
-		IList<MethodDef> methods = new List<MethodDef>();
+		LazyList<FieldDef> fields;
+		LazyList<MethodDef> methods;
 		IList<GenericParam> genericParams = new List<GenericParam>();
 		IList<InterfaceImpl> interfaceImpls = new List<InterfaceImpl>();
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
@@ -616,6 +674,8 @@ namespace dot10.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="extends">Base class or null if it's an interface</param>
 		public TypeDefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name, ITypeDefOrRef extends) {
+			this.fields = new LazyList<FieldDef>(this);
+			this.methods = new LazyList<MethodDef>(this);
 			this.ownerModule = ownerModule;
 			this.@namespace = @namespace;
 			this.name = name;
@@ -715,7 +775,7 @@ namespace dot10.DotNet {
 			get {
 				if (fields == null) {
 					var list = readerModule.MetaData.GetFieldRidList(rid);
-					fields = new LazyList<FieldDef>((int)list.Length, list, (list2, index) => readerModule.ResolveField(((RidList)list2)[index]));
+					fields = new LazyList<FieldDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveField(((RidList)list2)[index]));
 				}
 				return fields;
 			}
@@ -726,7 +786,7 @@ namespace dot10.DotNet {
 			get {
 				if (methods == null) {
 					var list = readerModule.MetaData.GetMethodRidList(rid);
-					methods = new LazyList<MethodDef>((int)list.Length, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[index]));
+					methods = new LazyList<MethodDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[index]));
 				}
 				return methods;
 			}

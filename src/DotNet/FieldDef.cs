@@ -71,6 +71,33 @@ namespace dot10.DotNet {
 		public abstract Constant Constant { get; set; }
 
 		/// <summary>
+		/// Gets/sets the declaring type (owner type)
+		/// </summary>
+		public TypeDef DeclaringType {
+			get { return DeclaringType2; }
+			set {
+				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType != null)
+					currentDeclaringType.Fields.Remove(this);	// Will call SetDeclaringType(null)
+				if (value != null)
+					value.Fields.Add(this);		// Will call SetDeclaringType(value)
+			}
+		}
+
+		/// <summary>
+		/// Called by <see cref="DeclaringType"/>
+		/// </summary>
+		protected abstract TypeDef DeclaringType2 { get; set; }
+
+		/// <summary>
+		/// Called by <see cref="TypeDef"/> to set the declaring type.
+		/// </summary>
+		/// <param name="newDeclaringType">New declaring type or <c>null</c> if none</param>
+		internal void SetDeclaringType(TypeDef newDeclaringType) {
+			DeclaringType2 = newDeclaringType;
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="FieldSig"/>
 		/// </summary>
 		public FieldSig FieldSig {
@@ -274,7 +301,8 @@ namespace dot10.DotNet {
 				var fieldSig = FieldSig;
 				if (fieldSig == null || fieldSig.Type == null)
 					return name;
-				return string.Format("{0} {1}", fieldSig.Type.FullName, name);
+				var declaringType = DeclaringType;
+				return string.Format("{0} {1}::{2}", fieldSig.Type.FullName, declaringType == null ? "<<<NULL>>>" : declaringType.FullName, name);
 			}
 		}
 
@@ -296,6 +324,7 @@ namespace dot10.DotNet {
 		FieldRVA fieldRVA;
 		ImplMap implMap;
 		Constant constant;
+		TypeDef declaringType;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -343,6 +372,12 @@ namespace dot10.DotNet {
 		public override Constant Constant {
 			get { return constant; }
 			set { constant = value; }
+		}
+
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType; }
+			set { declaringType = value; }
 		}
 
 		/// <summary>
@@ -425,6 +460,7 @@ namespace dot10.DotNet {
 		UserValue<FieldRVA> fieldRVA;
 		UserValue<ImplMap> implMap;
 		UserValue<Constant> constant;
+		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -474,6 +510,12 @@ namespace dot10.DotNet {
 			set { constant.Value = value; }
 		}
 
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType.Value; }
+			set { declaringType.Value = value; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -520,6 +562,9 @@ namespace dot10.DotNet {
 			};
 			constant.ReadOriginalValue = () => {
 				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Field, rid));
+			};
+			declaringType.ReadOriginalValue = () => {
+				return readerModule.GetOwnerType(this);
 			};
 		}
 

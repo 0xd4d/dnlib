@@ -104,6 +104,33 @@ namespace dot10.DotNet {
 		public abstract MethodBody MethodBody { get; set; }
 
 		/// <summary>
+		/// Gets/sets the declaring type (owner type)
+		/// </summary>
+		public TypeDef DeclaringType {
+			get { return DeclaringType2; }
+			set {
+				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType != null)
+					currentDeclaringType.Methods.Remove(this);	// Will call SetDeclaringType(null)
+				if (value != null)
+					value.Methods.Add(this);	// Will call SetDeclaringType(value)
+			}
+		}
+
+		/// <summary>
+		/// Called by <see cref="DeclaringType"/>
+		/// </summary>
+		protected abstract TypeDef DeclaringType2 { get; set; }
+
+		/// <summary>
+		/// Called by <see cref="TypeDef"/> to set the declaring type.
+		/// </summary>
+		/// <param name="newDeclaringType">New declaring type or <c>null</c> if none</param>
+		internal void SetDeclaringType(TypeDef newDeclaringType) {
+			DeclaringType2 = newDeclaringType;
+		}
+
+		/// <summary>
 		/// Gets/sets the CIL method body
 		/// </summary>
 		public CilBody CilBody {
@@ -115,7 +142,10 @@ namespace dot10.DotNet {
 		/// Gets the full name
 		/// </summary>
 		public string FullName {
-			get { return Utils.GetMethodString(null, Name, MethodSig); }
+			get {
+				var declaringType = DeclaringType;
+				return Utils.GetMethodString(declaringType == null ? null : declaringType.FullName, Name, MethodSig);
+			}
 		}
 
 		/// <summary>
@@ -545,6 +575,7 @@ namespace dot10.DotNet {
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		ImplMap implMap;
 		MethodBody methodBody;
+		TypeDef declaringType;
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -604,6 +635,12 @@ namespace dot10.DotNet {
 		public override MethodBody MethodBody {
 			get { return methodBody; }
 			set { methodBody = value; }
+		}
+
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType; }
+			set { declaringType = value; }
 		}
 
 		/// <summary>
@@ -733,6 +770,7 @@ namespace dot10.DotNet {
 		LazyList<DeclSecurity> declSecurities;
 		UserValue<ImplMap> implMap;
 		UserValue<MethodBody> methodBody;
+		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -812,6 +850,12 @@ namespace dot10.DotNet {
 			set { methodBody.Value = value; }
 		}
 
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType.Value; }
+			set { declaringType.Value = value; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -865,6 +909,9 @@ namespace dot10.DotNet {
 				if (((MethodImplAttributes)rawRow.ImplFlags & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL)
 					return null;
 				return readerModule.ReadCilBody(Parameters.Parameters, (RVA)rawRow.RVA);
+			};
+			declaringType.ReadOriginalValue = () => {
+				return readerModule.GetOwnerType(this);
 			};
 		}
 
