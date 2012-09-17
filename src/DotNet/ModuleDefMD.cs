@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using dot10.PE;
 using dot10.DotNet.MD;
+using dot10.DotNet.Emit;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -1032,6 +1034,19 @@ namespace dot10.DotNet {
 		/// <paramref name="sig"/> is invalid.</returns>
 		public ITypeSig ReadTypeSignature(uint sig) {
 			return SignatureReader.ReadTypeSig(this, sig);
+		}
+
+		/// <summary>
+		/// Reads a CIL method body
+		/// </summary>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="rva">RVA</param>
+		/// <returns>A new <see cref="CilBody"/> instance. It's empty if RVA is invalid (eg. 0 or
+		/// it doesn't point to a CIL method body)</returns>
+		public CilBody ReadCilBody(IList<Parameter> parameters, RVA rva) {
+			if (rva == 0)
+				return new CilBody();
+			return MethodBodyReader.Create(this, dnFile.MetaData.PEImage.CreateStream(rva), parameters);
 		}
 	}
 }

@@ -15,6 +15,35 @@ namespace dot10.DotNet.Emit {
 		uint localVarSigTok;
 
 		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="module">The reader module</param>
+		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="method">Use parameters from this method</param>
+		public static CilBody Create(ModuleDefMD module, IBinaryReader reader, MethodDef method) {
+			return Create(module, reader, method.Parameters.Parameters);
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="module">The reader module</param>
+		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="parameters">Method parameters</param>
+		public static CilBody Create(ModuleDefMD module, IBinaryReader reader, IList<Parameter> parameters) {
+			try {
+				var mbReader = new MethodBodyReader(module, reader, parameters);
+				mbReader.Read();
+				return mbReader.CreateCilBody();
+			}
+			catch (InvalidMethodException) {
+				return new CilBody();
+			}
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The reader module</param>
@@ -213,6 +242,22 @@ namespace dot10.DotNet.Emit {
 					reader.ReadUInt32();
 				Add(eh);
 			}
+		}
+
+		/// <summary>
+		/// Creates a CIL body. Must be called after <see cref="Read()"/>, and can only be
+		/// called once.
+		/// </summary>
+		/// <returns>A new <see cref="CilBody"/> instance</returns>
+		public CilBody CreateCilBody() {
+			// Set init locals if it's a tiny method or if the init locals bit is set (fat header)
+			bool initLocals = flags == 2 || (flags & 0x10) != 0;
+			var cilBody = new CilBody(initLocals, instructions, exceptionHandlers, locals);
+			cilBody.MaxStack = maxStack;
+			instructions = null;
+			exceptionHandlers = null;
+			locals = null;
+			return cilBody;
 		}
 	}
 }

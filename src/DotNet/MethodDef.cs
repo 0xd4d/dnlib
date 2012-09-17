@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using dot10.PE;
 using dot10.DotNet.MD;
+using dot10.DotNet.Emit;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -96,6 +97,19 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public abstract ImplMap ImplMap { get; set; }
+
+		/// <summary>
+		/// Gets/sets the method body. See also <see cref="CilBody"/>
+		/// </summary>
+		public abstract MethodBody MethodBody { get; set; }
+
+		/// <summary>
+		/// Gets/sets the CIL method body
+		/// </summary>
+		public CilBody CilBody {
+			get { return MethodBody as CilBody; }
+			set { MethodBody = value; }
+		}
 
 		/// <summary>
 		/// Gets the full name
@@ -530,6 +544,7 @@ namespace dot10.DotNet {
 		IList<GenericParam> genericParams = new List<GenericParam>();
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		ImplMap implMap;
+		MethodBody methodBody;
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -583,6 +598,12 @@ namespace dot10.DotNet {
 		public override ImplMap ImplMap {
 			get { return implMap; }
 			set { implMap = value; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodBody MethodBody {
+			get { return methodBody; }
+			set { methodBody = value; }
 		}
 
 		/// <summary>
@@ -711,6 +732,7 @@ namespace dot10.DotNet {
 		LazyList<GenericParam> genericParams;
 		LazyList<DeclSecurity> declSecurities;
 		UserValue<ImplMap> implMap;
+		UserValue<MethodBody> methodBody;
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -784,6 +806,12 @@ namespace dot10.DotNet {
 			set { implMap.Value = value; }
 		}
 
+		/// <inheritdoc/>
+		public override MethodBody MethodBody {
+			get { return methodBody.Value; }
+			set { methodBody.Value = value; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -827,6 +855,16 @@ namespace dot10.DotNet {
 			};
 			implMap.ReadOriginalValue = () => {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, rid));
+			};
+			methodBody.ReadOriginalValue = () => {
+				// Use RVA and ImplFlags from the original row, not the current values the
+				// user may have modified.
+				InitializeRawRow();
+				if (rawRow.RVA == 0)
+					return null;
+				if (((MethodImplAttributes)rawRow.ImplFlags & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL)
+					return null;
+				return readerModule.ReadCilBody(Parameters.Parameters, (RVA)rawRow.RVA);
 			};
 		}
 
