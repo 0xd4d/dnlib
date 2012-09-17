@@ -1,6 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace dot10.DotNet.Emit {
+	/// <summary>
+	/// Stores a collection of <see cref="Local"/>
+	/// </summary>
+	class LocalList {
+	}
+
 	/// <summary>
 	/// A method local
 	/// </summary>
