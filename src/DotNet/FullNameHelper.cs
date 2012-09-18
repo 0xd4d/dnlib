@@ -28,7 +28,7 @@ namespace dot10.DotNet {
 		/// <param name="name">The name</param>
 		/// <returns>The reflection name (always non-null)</returns>
 		public static string GetReflectionName(string name) {
-			return EscapeIdentifier(name ?? string.Empty, true);
+			return EscapeIdentifier(name ?? string.Empty);
 		}
 
 		/// <summary>
@@ -64,7 +64,7 @@ namespace dot10.DotNet {
 		/// <param name="namespace">The namespace</param>
 		/// <returns>The reflection namespace (always non-null)</returns>
 		public static string GetReflectionNamespace(string @namespace) {
-			return EscapeIdentifier(@namespace ?? string.Empty, false);
+			return EscapeIdentifier(@namespace ?? string.Empty);
 		}
 
 		/// <summary>
@@ -106,8 +106,8 @@ namespace dot10.DotNet {
 		/// <returns>The full name, eg. <c>The.NameSpace.Name</c></returns>
 		public static string GetReflectionFullName(string @namespace, string name) {
 			if (string.IsNullOrEmpty(@namespace))
-				return EscapeIdentifier(name ?? string.Empty, true);
-			return EscapeIdentifier(@namespace, false) + "." + EscapeIdentifier(name ?? string.Empty, true);
+				return EscapeIdentifier(name ?? string.Empty);
+			return EscapeIdentifier(@namespace) + "." + EscapeIdentifier(name ?? string.Empty);
 		}
 
 		/// <summary>
@@ -171,7 +171,7 @@ namespace dot10.DotNet {
 					if (asm == null)
 						sb.Append("<<<NULL>>>");
 					else
-						sb.Append(GetAssemblyName(asm));
+						sb.Append(EscapeAssemblyName(GetAssemblyName(asm)));
 					sb.Append(']');
 				}
 				sb.Append(']');
@@ -189,26 +189,19 @@ namespace dot10.DotNet {
 			var pk = assembly.PublicKeyOrToken;
 			if (pk is PublicKey)
 				pk = ((PublicKey)pk).Token;
-			return Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Locale, pk);
+			return Utils.GetAssemblyNameString(new UTF8String(EscapeAssemblyName(assembly.Name)), assembly.Version, assembly.Locale, pk);
 		}
 
 		/// <summary>
 		/// Escapes reserved characters in an identifier
 		/// </summary>
 		/// <param name="id">The identifier</param>
-		/// <param name="escapePeriods"><c>true</c> if periods should be escaped. This should
-		/// be <c>false</c> if <paramref name="id"/> is a namespace identifier.</param>
 		/// <returns>The escaped identifier</returns>
-		static string EscapeIdentifier(string id, bool escapePeriods) {
+		static string EscapeIdentifier(string id) {
 			var sb = new StringBuilder(id.Length);
+			// Periods are not escaped by Reflection, even if they're part of a type name.
 			foreach (var c in id) {
 				switch (c) {
-				case '.':
-					if (!escapePeriods)
-						break;
-					sb.Append('\\');
-					break;
-
 				case ',':
 				case '+':
 				case '&':
@@ -219,6 +212,20 @@ namespace dot10.DotNet {
 					sb.Append('\\');
 					break;
 				}
+				sb.Append(c);
+			}
+			return sb.ToString();
+		}
+
+		static string EscapeAssemblyName(UTF8String asmSimplName) {
+			return EscapeAssemblyName(UTF8String.ToSystemString(asmSimplName));
+		}
+
+		static string EscapeAssemblyName(string asmSimplName) {
+			var sb = new StringBuilder(asmSimplName.Length);
+			foreach (var c in asmSimplName) {
+				if (c == ']')
+					sb.Append('\\');
 				sb.Append(c);
 			}
 			return sb.ToString();
