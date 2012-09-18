@@ -20,6 +20,8 @@ namespace dot10.DotNet.Emit {
 		uint currentOffset;
 		/// <summary>First byte after the end of the code</summary>
 		protected long codeEndOffs;
+		/// <summary>Start offset of method</summary>
+		protected long codeStartOffs;
 
 		/// <summary>
 		/// Gets all parameters
@@ -76,10 +78,11 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <param name="numInstrs">Number of instructions to read</param>
 		protected void ReadInstructions(int numInstrs) {
+			codeStartOffs = reader.Position;
 			codeEndOffs = reader.Length;	// We don't know the end pos so use the last one
 			instructions = new List<Instruction>(numInstrs);
 			currentOffset = 0;
-			for (int i = 0; i < numInstrs; i++)
+			for (int i = 0; i < numInstrs && reader.Position < codeEndOffs; i++)
 				instructions[i] = ReadOneInstruction();
 			FixBranches();
 		}
@@ -89,8 +92,9 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <param name="codeSize">Size of code</param>
 		protected void ReadInstructionsNumBytes(uint codeSize) {
+			codeStartOffs = reader.Position;
 			codeEndOffs = reader.Position + codeSize;
-			if (codeEndOffs < reader.Position || codeEndOffs > reader.Length)
+			if (codeEndOffs < codeStartOffs || codeEndOffs > reader.Length)
 				throw new InvalidMethodException("Invalid code size");
 
 			instructions = new List<Instruction>();	//TODO: Estimate number of instructions based on codeSize
@@ -160,6 +164,8 @@ namespace dot10.DotNet.Emit {
 			}
 			else
 				currentOffset += (uint)instr.GetSize();
+			if (currentOffset < instr.Offset)
+				reader.Position = codeEndOffs;
 			return instr;
 		}
 
@@ -291,13 +297,13 @@ namespace dot10.DotNet.Emit {
 		protected virtual IList<uint> ReadInlineSwitch(Instruction instr) {
 			var num = reader.ReadUInt32();
 			long offsetAfterInstr = (long)instr.Offset + (long)instr.OpCode.Size + 4L + (long)num * 4;
-			if (offsetAfterInstr < instr.Offset || offsetAfterInstr > codeEndOffs) {
+			if (offsetAfterInstr > uint.MaxValue || codeStartOffs + offsetAfterInstr > codeEndOffs) {
 				reader.Position = codeEndOffs;
 				return new uint[0];
 			}
 
 			var targets = new uint[num];
-			uint offset = instr.Offset + (uint)instr.OpCode.Size + 4 + num * 4;
+			uint offset = (uint)offsetAfterInstr;
 			for (int i = 0; i < targets.Length; i++)
 				targets[i] = offset + reader.ReadUInt32();
 			return targets;
