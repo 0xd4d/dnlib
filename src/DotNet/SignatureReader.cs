@@ -258,6 +258,8 @@ namespace dot10.DotNet {
 				uint rank;
 				if (!reader.ReadCompressedUInt32(out rank))
 					return null;
+				if (rank == 0)
+					return new ArraySig(nextType, rank, new List<uint>(), new List<int>());
 				if (!reader.ReadCompressedUInt32(out num))
 					return null;
 				var sizes = new List<uint>((int)num);
