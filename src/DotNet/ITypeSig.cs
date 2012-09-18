@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
@@ -944,22 +945,60 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		protected override string GetName(string name) {
-			throw new System.NotImplementedException();	//TODO:
+			var sb = new StringBuilder();
+			sb.Append(name);
+			AddArrayInfo(sb, true);
+			return sb.ToString();
 		}
 
 		/// <inheritdoc/>
 		protected override string GetReflectionName(string reflectionName) {
-			throw new System.NotImplementedException();	//TODO:
+			var sb = new StringBuilder();
+			sb.Append(reflectionName);
+			AddArrayInfo(sb, false);
+			return sb.ToString();
 		}
 
 		/// <inheritdoc/>
 		protected override string GetFullName(string fullName) {
-			throw new System.NotImplementedException();	//TODO:
+			var sb = new StringBuilder();
+			sb.Append(fullName);
+			AddArrayInfo(sb, true);
+			return sb.ToString();
 		}
 
 		/// <inheritdoc/>
 		protected override string GetReflectionFullName(string reflectionFullName) {
-			throw new System.NotImplementedException();	//TODO:
+			var sb = new StringBuilder();
+			sb.Append(reflectionFullName);
+			AddArrayInfo(sb, false);
+			return sb.ToString();
+		}
+
+		void AddArrayInfo(StringBuilder sb, bool showLimits) {
+			sb.Append('[');
+			if (rank == 1 && !showLimits)
+				sb.Append('*');
+			else for (int i = 0; i < (int)rank; i++) {
+				if (i != 0)
+					sb.Append(',');
+				if (showLimits)
+					AddLimits(sb, i);
+			}
+			sb.Append(']');
+		}
+
+		void AddLimits(StringBuilder sb, int index) {
+			const int NO_LOWER = int.MinValue;
+			const uint NO_SIZE = uint.MaxValue;
+			int lower = index >= lowerBounds.Count ? NO_LOWER : lowerBounds[index];
+			uint size = index >= sizes.Count ? NO_SIZE : sizes[index];
+			if (lower != NO_LOWER) {
+				sb.Append(lower);
+				sb.Append("...");
+				if (size != NO_SIZE)
+					sb.Append(lower + (int)size - 1);
+			}
 		}
 	}
 
