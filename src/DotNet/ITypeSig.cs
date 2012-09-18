@@ -13,6 +13,11 @@ namespace dot10.DotNet {
 		/// if it's a <see cref="LeafSig"/>
 		/// </summary>
 		ITypeSig Next { get; }
+
+		/// <summary>
+		/// Gets the element type
+		/// </summary>
+		ElementType ElementType { get; }
 	}
 
 	public static partial class Extensions {
@@ -42,6 +47,9 @@ namespace dot10.DotNet {
 		public ITypeSig Next {
 			get { return null; }
 		}
+
+		/// <inheritdoc/>
+		public abstract ElementType ElementType { get; }
 
 		/// <inheritdoc/>
 		public abstract string Name { get; }
@@ -79,6 +87,13 @@ namespace dot10.DotNet {
 	public abstract class TypeDefOrRefSig : LeafSig {
 		const string nullName = "<<<NULL>>>";
 		readonly ITypeDefOrRef typeDefOrRef;
+
+		/// <summary>
+		/// Gets the the <c>TypeDefOrRef</c>
+		/// </summary>
+		public ITypeDefOrRef TypeDefOrRef {
+			get { return typeDefOrRef; }
+		}
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeRef"/> != <c>null</c>
@@ -285,7 +300,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the element type
 		/// </summary>
-		public ElementType ElementType {
+		public override ElementType ElementType {
 			get { return elementType; }
 		}
 
@@ -314,9 +329,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.ValueType"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.ValueType"/>
 	/// </summary>
 	public sealed class ValueTypeSig : ClassOrValueTypeSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.ValueType; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -327,9 +347,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Class"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.Class"/>
 	/// </summary>
 	public sealed class ClassSig : ClassOrValueTypeSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Class; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -423,9 +448,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Var"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.Var"/>
 	/// </summary>
 	public sealed class GenericVar : GenericSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Var; }
+		}
+
 		/// <inheritdoc/>
 		public GenericVar(uint number)
 			: base(true, number) {
@@ -433,9 +463,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.MVar"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.MVar"/>
 	/// </summary>
 	public sealed class GenericMVar : GenericSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.MVar; }
+		}
+
 		/// <inheritdoc/>
 		public GenericMVar(uint number)
 			: base(false, number) {
@@ -443,9 +478,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Sentinel"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.Sentinel"/>
 	/// </summary>
 	public sealed class SentinelSig : LeafSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Sentinel; }
+		}
+
 		/// <inheritdoc/>
 		public override string Name {
 			get { return string.Empty; }
@@ -488,7 +528,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.FnPtr"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.FnPtr"/>
 	/// </summary>
 	public sealed class FnPtrSig : LeafSig {
 		readonly CallingConventionSig signature;
@@ -516,6 +556,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.FnPtr; }
+		}
+
+		/// <inheritdoc/>
 		public override string Name {
 			get { return string.Empty; }
 		}
@@ -557,7 +602,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.GenericInst"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.GenericInst"/>
 	/// </summary>
 	public sealed class GenericInstSig : LeafSig {
 		ClassOrValueTypeSig genericType;
@@ -663,6 +708,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.GenericInst; }
+		}
+
+		/// <inheritdoc/>
 		public override string Name {
 			get { return genericType == null ? "<<<NULL>>>" : genericType.Name; }
 		}
@@ -709,6 +759,9 @@ namespace dot10.DotNet {
 	public abstract class NonLeafSig : ITypeSig {
 		const string nullName = "<<<NULL>>>";
 		readonly ITypeSig nextSig;
+
+		/// <inheritdoc/>
+		public abstract ElementType ElementType { get; }
 
 		/// <inheritdoc/>
 		public string Name {
@@ -811,7 +864,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Ptr"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.Ptr"/>
 	/// </summary>
 	public sealed class PtrSig : NonLeafSig {
 		/// <summary>
@@ -820,6 +873,11 @@ namespace dot10.DotNet {
 		/// <param name="nextSig">The next element type</param>
 		public PtrSig(ITypeSig nextSig)
 			: base(nextSig) {
+		}
+
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Ptr; }
 		}
 
 		/// <inheritdoc/>
@@ -844,7 +902,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.ByRef"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.ByRef"/>
 	/// </summary>
 	public sealed class ByRefSig : NonLeafSig {
 		/// <summary>
@@ -853,6 +911,11 @@ namespace dot10.DotNet {
 		/// <param name="nextSig">The next element type</param>
 		public ByRefSig(ITypeSig nextSig)
 			: base(nextSig) {
+		}
+
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.ByRef; }
 		}
 
 		/// <inheritdoc/>
@@ -877,7 +940,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Array"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.Array"/>
 	/// </summary>
 	/// <seealso cref="SZArraySig"/>
 	public sealed class ArraySig : NonLeafSig {
@@ -944,6 +1007,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Array; }
+		}
+
+		/// <inheritdoc/>
 		protected override string GetName(string name) {
 			var sb = new StringBuilder();
 			sb.Append(name);
@@ -1003,10 +1071,15 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.SZArray"/> (single dimension, zero lower bound array)
+	/// Represents a <see cref="dot10.DotNet.ElementType.SZArray"/> (single dimension, zero lower bound array)
 	/// </summary>
 	/// <seealso cref="ArraySig"/>
 	public sealed class SZArraySig : NonLeafSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.SZArray; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -1061,9 +1134,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.CModReqd"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.CModReqd"/>
 	/// </summary>
 	public sealed class CModReqdSig : ModifierSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.CModReqd; }
+		}
+
 		/// <inheritdoc/>
 		public CModReqdSig(ITypeDefOrRef modifier, ITypeSig nextSig)
 			: base(modifier, nextSig) {
@@ -1071,9 +1149,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.CModOpt"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.CModOpt"/>
 	/// </summary>
 	public sealed class CModOptSig : ModifierSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.CModOpt; }
+		}
+
 		/// <inheritdoc/>
 		public CModOptSig(ITypeDefOrRef modifier, ITypeSig nextSig)
 			: base(modifier, nextSig) {
@@ -1081,9 +1164,14 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Pinned"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.Pinned"/>
 	/// </summary>
 	public sealed class PinnedSig : NonLeafSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Pinned; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -1094,10 +1182,15 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.ValueArray"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.ValueArray"/>
 	/// </summary>
 	public sealed class ValueArraySig : NonLeafSig {
 		uint size;
+
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.ValueArray; }
+		}
 
 		/// <summary>
 		/// Gets/sets the size
@@ -1143,10 +1236,15 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="ElementType.Module"/>
+	/// Represents a <see cref="dot10.DotNet.ElementType.Module"/>
 	/// </summary>
 	public sealed class ModuleSig : NonLeafSig {
 		uint index;
+
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Module; }
+		}
 
 		/// <summary>
 		/// Gets/sets the index
