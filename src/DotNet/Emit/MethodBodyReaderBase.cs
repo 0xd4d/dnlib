@@ -322,7 +322,7 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual object ReadInlineVar(Instruction instr) {
+		protected virtual IVariable ReadInlineVar(Instruction instr) {
 			if (IsArgOperandInstruction(instr))
 				return ReadInlineVarArg(instr);
 			return ReadInlineVarLocal(instr);
@@ -380,7 +380,7 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual object ReadShortInlineVar(Instruction instr) {
+		protected virtual IVariable ReadShortInlineVar(Instruction instr) {
 			if (IsArgOperandInstruction(instr))
 				return ReadShortInlineVarArg(instr);
 			return ReadShortInlineVarLocal(instr);

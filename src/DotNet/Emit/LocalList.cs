@@ -6,8 +6,8 @@ namespace dot10.DotNet.Emit {
 	/// Stores a collection of <see cref="Local"/>
 	/// </summary>
 	[DebuggerDisplay("Count = {Length}")]
-	public class LocalList {
-		List<Local> locals;
+	public sealed class LocalList : IListListener<Local> {
+		LazyList<Local> locals;
 
 		/// <summary>
 		/// Gets the number of locals
@@ -35,7 +35,7 @@ namespace dot10.DotNet.Emit {
 		/// Default constructor
 		/// </summary>
 		public LocalList() {
-			this.locals = new List<Local>();
+			this.locals = new LazyList<Local>(this);
 		}
 
 		/// <summary>
@@ -43,16 +43,50 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <param name="locals">All locals that will be owned by this instance</param>
 		public LocalList(IEnumerable<Local> locals) {
-			this.locals = new List<Local>(locals);
+			this.locals = new LazyList<Local>(this);
+			foreach (var local in locals)
+				this.locals.Add(local);
+		}
+
+		/// <summary>
+		/// Adds a new local and then returns it
+		/// </summary>
+		/// <param name="local">The local that should be added to the list</param>
+		/// <returns>The input is always returned</returns>
+		public Local Add(Local local) {
+			locals.Add(local);
+			return local;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<Local>.OnAdd(int index, Local value, bool isLazyAdd) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<Local>.OnRemove(int index, Local value) {
+			value.Number = -1;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<Local>.OnResize(int index) {
+			for (int i = index; i < locals.Count; i++)
+				locals[i].Number = i;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<Local>.OnClear() {
+			foreach (var local in locals)
+				local.Number = -1;
 		}
 	}
 
 	/// <summary>
 	/// A method local
 	/// </summary>
-	[DebuggerDisplay("{typeSig}")]
-	public sealed class Local {
+	public sealed class Local : IVariable {
 		ITypeSig typeSig;
+		int number;
+		string name;
 
 		/// <summary>
 		/// Gets/sets the type of the local
@@ -63,11 +97,34 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Local index
+		/// </summary>
+		public int Number {
+			get { return number; }
+			internal set { number = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the name
+		/// </summary>
+		public string Name {
+			get { return name; }
+			set { name = value; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="typeSig">The type</param>
 		public Local(ITypeSig typeSig) {
 			this.typeSig = typeSig;
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			if (string.IsNullOrEmpty(Name))
+				return string.Format("V_{0}", Number);
+			return Name;
 		}
 	}
 }

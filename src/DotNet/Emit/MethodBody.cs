@@ -63,7 +63,7 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Locals"/> is not empty
+		/// <c>true</c> if <see cref="LocalList"/> is not empty
 		/// </summary>
 		public bool HasLocals {
 			get { return localList.Length > 0; }
@@ -72,7 +72,7 @@ namespace dot10.DotNet.Emit {
 		/// <summary>
 		/// Gets the locals
 		/// </summary>
-		public LocalList Locals {
+		public LocalList LocalList {
 			get { return localList; }
 		}
 

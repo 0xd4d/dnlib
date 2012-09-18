@@ -63,7 +63,7 @@ namespace dot10.DotNet {
 			if (methodSigIndexBase > 0)
 				parameters[0] = hiddenThisParameter;
 			for (int i = 0; i < methodSigParams.Count; i++)
-				parameters[i + methodSigIndexBase].TypeSig = methodSigParams[i];
+				parameters[i + methodSigIndexBase].Type = methodSigParams[i];
 		}
 
 		bool UpdateThisParameter() {
@@ -105,7 +105,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A method parameter
 	/// </summary>
-	public sealed class Parameter {
+	public sealed class Parameter : IVariable {
 		ParameterList parameterList;
 		ITypeSig typeSig;
 		int paramIndex;
@@ -115,7 +115,7 @@ namespace dot10.DotNet {
 		/// Gets the parameter index. If the method has a hidden 'this' parameter, that parameter
 		/// has index 0 and the remaining parameters in the method signature start from index 1.
 		/// </summary>
-		public int Index {
+		public int Number {
 			get { return paramIndex; }
 		}
 
@@ -130,7 +130,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the parameter type
 		/// </summary>
-		public ITypeSig TypeSig {
+		public ITypeSig Type {
 			get { return typeSig; }
 			internal set { typeSig = value; }
 		}
@@ -151,6 +151,11 @@ namespace dot10.DotNet {
 				var paramDef = ParamDef;
 				return paramDef == null || UTF8String.IsNullOrEmpty(paramDef.Name) ? string.Empty : paramDef.Name.String;
 			}
+			set {
+				var paramDef = ParamDef;
+				if (paramDef != null)
+					paramDef.Name = new UTF8String(value);
+			}
 		}
 
 		internal Parameter(ParameterList parameterList, int paramIndex, int methodSigIndex) {
@@ -161,7 +166,9 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("{0} {1}", typeSig == null ? "<<<NULL>>>" : typeSig.FullName, Name);
+			if (string.IsNullOrEmpty(Name))
+				return string.Format("A_{0}", Number);
+			return Name;
 		}
 	}
 }
