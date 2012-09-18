@@ -54,6 +54,7 @@ namespace dot10.DotNet.MD {
 
 		uint[] fieldRidToTypeDefRid;
 		uint[] methodRidToTypeDefRid;
+		Dictionary<uint, RandomRidList> typeDefRidToNestedClasses;
 
 		/// <inheritdoc/>
 		public IPEImage PEImage {
@@ -403,6 +404,45 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		public RidList GetNestedClassRidList(uint typeDefRid) {
+			if (typeDefRidToNestedClasses == null)
+				InitializeNestedClassesDictionary();
+			RandomRidList ridList;
+			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out ridList))
+				return ridList;
+			return ContiguousRidList.Empty;
+		}
+
+		void InitializeNestedClassesDictionary() {
+			var table = tablesStream.Get(Table.NestedClass);
+			var destTable = tablesStream.Get(Table.TypeDef);
+			var nestedRidsDict = new Dictionary<uint, bool>((int)table.Rows);
+			var nestedRids = new List<uint>((int)table.Rows);	// Need it so we add the rids in correct order
+			for (uint rid = 1; rid <= table.Rows; rid++) {
+				var row = tablesStream.ReadNestedClassRow(rid);
+				if (row == null)
+					continue;	// Should never happen since rid is valid
+				if (!destTable.IsValidRID(row.NestedClass) || !destTable.IsValidRID(row.EnclosingClass))
+					continue;
+				if (nestedRidsDict.ContainsKey(row.NestedClass))
+					continue;
+				nestedRidsDict[row.NestedClass] = true;
+				nestedRids.Add(row.NestedClass);
+			}
+
+			typeDefRidToNestedClasses = new Dictionary<uint, RandomRidList>();
+			foreach (var nestedRid in nestedRids) {
+				var row = tablesStream.ReadNestedClassRow(GetNestedClassRid(nestedRid));
+				if (row == null)
+					continue;
+				RandomRidList ridList;
+				if (!typeDefRidToNestedClasses.TryGetValue(row.EnclosingClass, out ridList))
+					typeDefRidToNestedClasses[row.EnclosingClass] = ridList = new RandomRidList();
+				ridList.Add(nestedRid);
+			}
+		}
+
+		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -436,6 +476,9 @@ namespace dot10.DotNet.MD {
 			guidStream = null;
 			tablesStream = null;
 			allStreams = null;
+			fieldRidToTypeDefRid = null;
+			methodRidToTypeDefRid = null;
+			typeDefRidToNestedClasses = null;
 		}
 	}
 }

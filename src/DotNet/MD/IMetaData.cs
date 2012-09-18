@@ -226,5 +226,12 @@ namespace dot10.DotNet.MD {
 		/// <returns>The owner <c>TypeDef</c> rid or 0 if <paramref name="methodRid"/> is invalid
 		/// or if it has no owner.</returns>
 		uint GetOwnerTypeOfMethod(uint methodRid);
+
+		/// <summary>
+		/// Gets a list of all nested classes owned by <paramref name="typeDefRid"/>
+		/// </summary>
+		/// <param name="typeDefRid">A <c>TypeDef</c> rid</param>
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetNestedClassRidList(uint typeDefRid);
 	}
 }
