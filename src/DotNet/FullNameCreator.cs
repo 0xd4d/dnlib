@@ -767,5 +767,10 @@ namespace dot10.DotNet {
 			else
 				sb.Append(id);
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return Result;
+		}
 	}
 }
