@@ -63,7 +63,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			get { return FullNameCreator.FullName(this, false); }
+			get { return FullNameCreator.FullName(this, true); }
 		}
 
 		/// <inheritdoc/>
