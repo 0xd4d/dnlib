@@ -550,7 +550,7 @@ namespace dot10.DotNet {
 
 			case ElementType.Module:
 				var moduleSig = (ModuleSig)typeSig;
-				sb.Append("ValueArray(");
+				sb.Append("Module(");
 				CreateName(moduleSig.Next);
 				sb.Append(',');
 				sb.Append(moduleSig.Index);
