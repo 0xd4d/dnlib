@@ -53,6 +53,17 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeRef"/>
+		/// </summary>
+		/// <param name="typeRef">The <c>TypeRef</c></param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeRef typeRef) {
+			var fnc = new FullNameCreator(true);
+			fnc.CreateAssemblyQualifiedName(typeRef);
+			return fnc.Result;
+		}
+
+		/// <summary>
 		/// Returns the namespace of a <see cref="TypeDef"/>
 		/// </summary>
 		/// <param name="typeDef">The <c>TypeDef</c></param>
@@ -85,6 +96,17 @@ namespace dot10.DotNet {
 		public static string FullName(TypeDef typeDef, bool isReflection) {
 			var fnc = new FullNameCreator(isReflection);
 			fnc.CreateFullName(typeDef);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="typeDef">The <c>TypeDef</c></param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeDef typeDef) {
+			var fnc = new FullNameCreator(true);
+			fnc.CreateAssemblyQualifiedName(typeDef);
 			return fnc.Result;
 		}
 
@@ -125,6 +147,17 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeSpec"/>
+		/// </summary>
+		/// <param name="typeSpec">The <c>TypeSpec</c></param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeSpec typeSpec) {
+			var fnc = new FullNameCreator(true);
+			fnc.CreateAssemblyQualifiedName(typeSpec);
+			return fnc.Result;
+		}
+
+		/// <summary>
 		/// Returns the namespace of a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
@@ -155,9 +188,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The full name</returns>
 		public static string FullName(TypeSig typeSig, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
-			fnc.CreateFullName(typeSig);
-			return fnc.Result;
+			return FullName(typeSig, isReflection, null, null);
 		}
 
 		/// <summary>
@@ -177,6 +208,17 @@ namespace dot10.DotNet {
 			if (methodGenArgs != null)
 				fnc.genericArguments.PushMethodArgs(methodGenArgs);
 			fnc.CreateFullName(typeSig);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="typeSig">The <c>TypeSig</c></param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeSig typeSig) {
+			var fnc = new FullNameCreator(true);
+			fnc.CreateAssemblyQualifiedName(typeSig);
 			return fnc.Result;
 		}
 
@@ -249,6 +291,33 @@ namespace dot10.DotNet {
 				sb.Append(NULLVALUE);
 		}
 
+		void CreateAssemblyQualifiedName(ITypeDefOrRef typeDefOrRef) {
+			if (typeDefOrRef is TypeRef)
+				CreateAssemblyQualifiedName((TypeRef)typeDefOrRef);
+			else if (typeDefOrRef is TypeDef)
+				CreateAssemblyQualifiedName((TypeDef)typeDefOrRef);
+			else if (typeDefOrRef is TypeSpec)
+				CreateAssemblyQualifiedName((TypeSpec)typeDefOrRef);
+			else
+				sb.Append(NULLVALUE);
+		}
+
+		void CreateAssemblyQualifiedName(TypeRef typeRef) {
+			if (typeRef == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			if (!IncrementRecursionCounter()) {
+				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				return;
+			}
+
+			CreateFullName(typeRef);
+			AddAssemblyName(typeRef.DefinitionAssembly);
+
+			DecrementRecursionCounter();
+		}
+
 		void CreateFullName(TypeRef typeRef) {
 			if (typeRef == null) {
 				sb.Append(NULLVALUE);
@@ -286,6 +355,22 @@ namespace dot10.DotNet {
 				return;
 			}
 			AddName(typeRef.Name);
+		}
+
+		void CreateAssemblyQualifiedName(TypeDef typeDef) {
+			if (typeDef == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			if (!IncrementRecursionCounter()) {
+				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				return;
+			}
+
+			CreateFullName(typeDef);
+			AddAssemblyName(typeDef.DefinitionAssembly);
+
+			DecrementRecursionCounter();
 		}
 
 		void CreateFullName(TypeDef typeDef) {
@@ -331,6 +416,14 @@ namespace dot10.DotNet {
 			AddName(typeDef.Name);
 		}
 
+		void CreateAssemblyQualifiedName(TypeSpec typeSpec) {
+			if (typeSpec == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			CreateAssemblyQualifiedName(typeSpec.TypeSig);
+		}
+
 		void CreateFullName(TypeSpec typeSpec) {
 			if (typeSpec == null) {
 				sb.Append(NULLVALUE);
@@ -355,6 +448,22 @@ namespace dot10.DotNet {
 			CreateName(typeSpec.TypeSig);
 		}
 
+
+		void CreateAssemblyQualifiedName(TypeSig typeSig) {
+			if (typeSig == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			if (!IncrementRecursionCounter()) {
+				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				return;
+			}
+
+			CreateFullName(typeSig);
+			AddAssemblyName(typeSig.DefinitionAssembly);
+
+			DecrementRecursionCounter();
+		}
 		void CreateFullName(TypeSig typeSig) {
 			CreateTypeSigName(typeSig, TYPESIG_NAMESPACE | TYPESIG_NAME);
 		}
@@ -623,6 +732,18 @@ namespace dot10.DotNet {
 				return false;
 			AddIdentifier(name.String);
 			return true;
+		}
+
+		void AddAssemblyName(IAssembly assembly) {
+			sb.Append(", ");
+			if (assembly == null)
+				sb.Append(NULLVALUE);
+			else {
+				var pkt = assembly.PublicKeyOrToken;
+				if (pkt is PublicKey)
+					pkt = ((PublicKey)pkt).Token;
+				sb.Append(Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Locale, pkt));
+			}
 		}
 
 		void AddIdentifier(string id) {

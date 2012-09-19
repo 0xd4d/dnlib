@@ -72,6 +72,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public string AssemblyQualifiedName {
+			get { return FullNameCreator.AssemblyQualifiedName(this); }
+		}
+
+		/// <inheritdoc/>
 		public IAssembly DefinitionAssembly {
 			get {
 				var scope = ResolutionScope;

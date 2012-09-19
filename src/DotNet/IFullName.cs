@@ -29,10 +29,16 @@
 		string FullName { get; }
 
 		/// <summary>
-		/// Returns the reflection name of this type. It can be passed to
-		/// <see cref="System.Type.GetType(string)"/> to load the type.
+		/// Returns the reflection name of this type. See also <see cref="AssemblyQualifiedName"/>.
 		/// </summary>
 		string ReflectionFullName { get; }
+
+		/// <summary>
+		/// Returns the reflection name of this type, and includes the assembly name where the
+		/// type is located. It can be passed to <see cref="System.Type.GetType(string)"/> to
+		/// load the type.
+		/// </summary>
+		string AssemblyQualifiedName { get; }
 
 		/// <summary>
 		/// Gets the assembly where this type is defined
