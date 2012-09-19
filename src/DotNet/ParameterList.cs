@@ -107,7 +107,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	public sealed class Parameter : IVariable {
 		ParameterList parameterList;
-		ITypeSig typeSig;
+		TypeSig typeSig;
 		int paramIndex;
 		int methodSigIndex;
 
@@ -130,7 +130,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the parameter type
 		/// </summary>
-		public ITypeSig Type {
+		public TypeSig Type {
 			get { return typeSig; }
 			internal set { typeSig = value; }
 		}

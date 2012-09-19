@@ -1030,9 +1030,9 @@ namespace dot10.DotNet {
 		/// Reads a type signature from the #Blob stream
 		/// </summary>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="ITypeSig"/> instance or <c>null</c> if
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public ITypeSig ReadTypeSignature(uint sig) {
+		public TypeSig ReadTypeSignature(uint sig) {
 			return SignatureReader.ReadTypeSig(this, sig);
 		}
 

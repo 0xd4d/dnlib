@@ -84,14 +84,14 @@ namespace dot10.DotNet.Emit {
 	/// A method local
 	/// </summary>
 	public sealed class Local : IVariable {
-		ITypeSig typeSig;
+		TypeSig typeSig;
 		int number;
 		string name;
 
 		/// <summary>
 		/// Gets/sets the type of the local
 		/// </summary>
-		public ITypeSig Type {
+		public TypeSig Type {
 			get { return typeSig; }
 			set { typeSig = value; }
 		}
@@ -116,7 +116,7 @@ namespace dot10.DotNet.Emit {
 		/// Constructor
 		/// </summary>
 		/// <param name="typeSig">The type</param>
-		public Local(ITypeSig typeSig) {
+		public Local(TypeSig typeSig) {
 			this.typeSig = typeSig;
 		}
 

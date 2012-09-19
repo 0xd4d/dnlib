@@ -98,7 +98,7 @@
     <Compile Include="DotNet\ImplMap.cs" />
     <Compile Include="DotNet\InterfaceImpl.cs" />
     <Compile Include="DotNet\ISignature.cs" />
-    <Compile Include="DotNet\ITypeSig.cs" />
+    <Compile Include="DotNet\TypeSig.cs" />
     <Compile Include="DotNet\LazyList.cs" />
     <Compile Include="DotNet\MethodAttributes.cs" />
     <Compile Include="DotNet\MethodImpl.cs" />

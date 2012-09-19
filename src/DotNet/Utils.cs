@@ -38,7 +38,7 @@ namespace dot10.DotNet {
 			return GetFieldString(declaringType, name, fieldSig, null);
 		}
 
-		internal static string GetFieldString(string declaringType, UTF8String name, FieldSig fieldSig, IList<ITypeSig> typeGenArgs) {
+		internal static string GetFieldString(string declaringType, UTF8String name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
 			return GetFieldString(declaringType, UTF8String.IsNullOrEmpty(name) ? null : name.String, fieldSig, typeGenArgs);
 		}
 
@@ -46,7 +46,7 @@ namespace dot10.DotNet {
 			return GetFieldString(declaringType, name, fieldSig, null);
 		}
 
-		internal static string GetFieldString(string declaringType, string name, FieldSig fieldSig, IList<ITypeSig> typeGenArgs) {
+		internal static string GetFieldString(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
 			if (fieldSig == null)
 				return string.Empty;
 			var sb = new StringBuilder();
@@ -65,11 +65,11 @@ namespace dot10.DotNet {
 			return GetMethodString(declaringType, name, methodSig, null, null);
 		}
 
-		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig, IList<ITypeSig> typeGenArgs) {
+		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig, IList<TypeSig> typeGenArgs) {
 			return GetMethodString(declaringType, name, methodSig, typeGenArgs, null);
 		}
 
-		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
 			return GetMethodString(declaringType, UTF8String.IsNullOrEmpty(name) ? null : name.String, methodSig, typeGenArgs, methodGenArgs);
 		}
 
@@ -77,11 +77,11 @@ namespace dot10.DotNet {
 			return GetMethodString(declaringType, name, methodSig, null, null);
 		}
 
-		internal static string GetMethodString(string declaringType, string name, MethodSig methodSig, IList<ITypeSig> typeGenArgs) {
+		internal static string GetMethodString(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs) {
 			return GetMethodString(declaringType, name, methodSig, typeGenArgs, null);
 		}
 
-		internal static string GetMethodString(string declaringType, string name, MethodSig methodSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+		internal static string GetMethodString(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
 			if (methodSig == null)
 				return string.Empty;
 
@@ -115,7 +115,7 @@ namespace dot10.DotNet {
 			return sb.ToString();
 		}
 
-		static int PrintMethodArgList(StringBuilder sb, IEnumerable<ITypeSig> args, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs, bool hasPrintedArgs, bool isAfterSentinel) {
+		static int PrintMethodArgList(StringBuilder sb, IEnumerable<TypeSig> args, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, bool hasPrintedArgs, bool isAfterSentinel) {
 			if (args == null)
 				return 0;
 			if (isAfterSentinel) {
@@ -135,15 +135,15 @@ namespace dot10.DotNet {
 			return count;
 		}
 
-		internal static string GetTypeFullName(ITypeSig typeSig) {
+		internal static string GetTypeFullName(TypeSig typeSig) {
 			return GetTypeFullName(typeSig, null, null);
 		}
 
-		internal static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs) {
+		internal static string GetTypeFullName(TypeSig typeSig, IList<TypeSig> typeGenArgs) {
 			return GetTypeFullName(typeSig, typeGenArgs, null);
 		}
 
-		internal static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+		internal static string GetTypeFullName(TypeSig typeSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
 			return FullNameCreator.FullName(typeSig, false, typeGenArgs, methodGenArgs);
 		}
 

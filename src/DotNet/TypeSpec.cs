@@ -79,7 +79,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column TypeSpec.Signature
 		/// </summary>
-		public abstract ITypeSig TypeSig { get; set; }
+		public abstract TypeSig TypeSig { get; set; }
 
 		/// <inheritdoc/>
 		public override string ToString() {
@@ -91,10 +91,10 @@ namespace dot10.DotNet {
 	/// A TypeSpec row created by the user and not present in the original .NET file
 	/// </summary>
 	public class TypeSpecUser : TypeSpec {
-		ITypeSig typeSig;
+		TypeSig typeSig;
 
 		/// <inheritdoc/>
-		public override ITypeSig TypeSig {
+		public override TypeSig TypeSig {
 			get { return typeSig; }
 			set { typeSig = value; }
 		}
@@ -112,7 +112,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="ownerModule">Owner module</param>
 		/// <param name="typeSig">A type sig</param>
-		public TypeSpecUser(ModuleDef ownerModule, ITypeSig typeSig) {
+		public TypeSpecUser(ModuleDef ownerModule, TypeSig typeSig) {
 			this.ownerModule = ownerModule;
 			this.typeSig = typeSig;
 		}
@@ -127,10 +127,10 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
 		RawTypeSpecRow rawRow;
 
-		UserValue<ITypeSig> typeSig;
+		UserValue<TypeSig> typeSig;
 
 		/// <inheritdoc/>
-		public override ITypeSig TypeSig {
+		public override TypeSig TypeSig {
 			get { return typeSig.Value; }
 			set { typeSig.Value = value; }
 		}

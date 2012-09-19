@@ -127,7 +127,7 @@ namespace dot10.DotNet.Emit {
 		/// Reads the locals
 		/// </summary>
 		/// <returns>All locals or <c>null</c> if there are none</returns>
-		IList<ITypeSig> ReadLocals() {
+		IList<TypeSig> ReadLocals() {
 			if (localVarSigTok == 0)
 				return null;
 			if (MDToken.ToTable(localVarSigTok) != Table.StandAloneSig)

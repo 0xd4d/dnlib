@@ -2,13 +2,13 @@
 
 namespace dot10.DotNet {
 	class GenericArgumentsStack<TGenericType> where TGenericType : GenericSig {
-		List<IList<ITypeSig>> argsStack = new List<IList<ITypeSig>>();
+		List<IList<TypeSig>> argsStack = new List<IList<TypeSig>>();
 
 		/// <summary>
 		/// Pushes generic arguments
 		/// </summary>
 		/// <param name="args">The generic arguments</param>
-		public void Push(IList<ITypeSig> args) {
+		public void Push(IList<TypeSig> args) {
 			argsStack.Add(args);
 		}
 
@@ -16,7 +16,7 @@ namespace dot10.DotNet {
 		/// Pops generic arguments
 		/// </summary>
 		/// <returns>The popped generic arguments</returns>
-		public IList<ITypeSig> Pop() {
+		public IList<TypeSig> Pop() {
 			int index = argsStack.Count - 1;
 			var result = argsStack[index];
 			argsStack.RemoveAt(index);
@@ -27,9 +27,9 @@ namespace dot10.DotNet {
 		/// Resolves a generic argument
 		/// </summary>
 		/// <param name="number">Generic variable number</param>
-		/// <returns>A <see cref="ITypeSig"/> or <c>null</c> if none was found</returns>
-		public ITypeSig Resolve(uint number) {
-			ITypeSig result = null;
+		/// <returns>A <see cref="TypeSig"/> or <c>null</c> if none was found</returns>
+		public TypeSig Resolve(uint number) {
+			TypeSig result = null;
 			for (int i = argsStack.Count - 1; i >= 0; i--) {
 				var args = argsStack[i];
 				if (number >= args.Count)
@@ -54,7 +54,7 @@ namespace dot10.DotNet {
 		/// Pushes generic arguments
 		/// </summary>
 		/// <param name="typeArgs">The generic arguments</param>
-		public void PushTypeArgs(IList<ITypeSig> typeArgs) {
+		public void PushTypeArgs(IList<TypeSig> typeArgs) {
 			typeArgsStack.Push(typeArgs);
 		}
 
@@ -62,7 +62,7 @@ namespace dot10.DotNet {
 		/// Pops generic arguments
 		/// </summary>
 		/// <returns>The popped generic arguments</returns>
-		public IList<ITypeSig> PopTypeArgs() {
+		public IList<TypeSig> PopTypeArgs() {
 			return typeArgsStack.Pop();
 		}
 
@@ -70,7 +70,7 @@ namespace dot10.DotNet {
 		/// Pushes generic arguments
 		/// </summary>
 		/// <param name="methodArgs">The generic arguments</param>
-		public void PushMethodArgs(IList<ITypeSig> methodArgs) {
+		public void PushMethodArgs(IList<TypeSig> methodArgs) {
 			methodArgsStack.Push(methodArgs);
 		}
 
@@ -78,7 +78,7 @@ namespace dot10.DotNet {
 		/// Pops generic arguments
 		/// </summary>
 		/// <returns>The popped generic arguments</returns>
-		public IList<ITypeSig> PopMethodArgs() {
+		public IList<TypeSig> PopMethodArgs() {
 			return methodArgsStack.Pop();
 		}
 
@@ -86,9 +86,9 @@ namespace dot10.DotNet {
 		/// Replaces a generic type/method var with its generic argument (if any)
 		/// </summary>
 		/// <param name="typeSig">Type signature</param>
-		/// <returns>New <see cref="ITypeSig"/> which is never <c>null</c> unless
+		/// <returns>New <see cref="TypeSig"/> which is never <c>null</c> unless
 		/// <paramref name="typeSig"/> is <c>null</c></returns>
-		public ITypeSig Resolve(ITypeSig typeSig) {
+		public TypeSig Resolve(TypeSig typeSig) {
 			if (typeSig == null)
 				return null;
 			var sig = typeSig;

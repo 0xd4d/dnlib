@@ -36,9 +36,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="ITypeSig"/> instance or <c>null</c> if
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static ITypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig) {
+		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig) {
 			try {
 				var reader = new SignatureReader(readerModule, sig);
 				if (reader.failedReadingLength)
@@ -142,7 +142,7 @@ namespace dot10.DotNet {
 				var type = ReadType();
 				if (type is SentinelSig) {
 					if (methodSig.ParamsAfterSentinel == null)
-						methodSig.ParamsAfterSentinel = parameters = new List<ITypeSig>((int)(numParams - i));
+						methodSig.ParamsAfterSentinel = parameters = new List<TypeSig>((int)(numParams - i));
 					i--;
 				}
 				else
@@ -187,10 +187,10 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Reads the next type
 		/// </summary>
-		/// <returns>A new <see cref="ITypeSig"/> instance</returns>
-		ITypeSig ReadType() {
+		/// <returns>A new <see cref="TypeSig"/> instance</returns>
+		TypeSig ReadType() {
 			uint num;
-			ITypeSig nextType;
+			TypeSig nextType;
 			switch ((ElementType)reader.ReadByte()) {
 			case ElementType.Void: return readerModule.CorLibTypes.Void;
 			case ElementType.Boolean: return readerModule.CorLibTypes.Boolean;

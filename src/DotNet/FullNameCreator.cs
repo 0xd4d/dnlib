@@ -125,50 +125,50 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Returns the namespace of a <see cref="ITypeSig"/>
+		/// Returns the namespace of a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The namespace</returns>
-		public static string Namespace(ITypeSig typeSig, bool isReflection) {
+		public static string Namespace(TypeSig typeSig, bool isReflection) {
 			var fnc = new FullNameCreator(isReflection);
 			fnc.CreateNamespace(typeSig);
 			return fnc.Result;
 		}
 
 		/// <summary>
-		/// Returns the name of a <see cref="ITypeSig"/>
+		/// Returns the name of a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The name</returns>
-		public static string Name(ITypeSig typeSig, bool isReflection) {
+		public static string Name(TypeSig typeSig, bool isReflection) {
 			var fnc = new FullNameCreator(isReflection);
 			fnc.CreateName(typeSig);
 			return fnc.Result;
 		}
 
 		/// <summary>
-		/// Returns the full name of a <see cref="ITypeSig"/>
+		/// Returns the full name of a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The full name</returns>
-		public static string FullName(ITypeSig typeSig, bool isReflection) {
+		public static string FullName(TypeSig typeSig, bool isReflection) {
 			var fnc = new FullNameCreator(isReflection);
 			fnc.CreateFullName(typeSig);
 			return fnc.Result;
 		}
 
 		/// <summary>
-		/// Returns the full name of a <see cref="ITypeSig"/>
+		/// Returns the full name of a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="typeGenArgs">Type generic args or <c>null</c> if none</param>
 		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
 		/// <returns>The full name</returns>
-		public static string FullName(ITypeSig typeSig, bool isReflection, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
+		public static string FullName(TypeSig typeSig, bool isReflection, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
 			var fnc = new FullNameCreator(isReflection);
 			if (fnc.genericArguments == null && (typeGenArgs != null || methodGenArgs != null))
 				fnc.genericArguments = new GenericArguments();
@@ -355,7 +355,7 @@ namespace dot10.DotNet {
 			CreateName(typeSpec.TypeSig);
 		}
 
-		void CreateFullName(ITypeSig typeSig) {
+		void CreateFullName(TypeSig typeSig) {
 			if (typeSig == null) {
 				sb.Append(NULLVALUE);
 				return;
@@ -377,7 +377,7 @@ namespace dot10.DotNet {
 			DecrementRecursionCounter();
 		}
 
-		void CreateNamespace(ITypeSig typeSig) {
+		void CreateNamespace(TypeSig typeSig) {
 			if (typeSig == null) {
 				sb.Append(NULLVALUE);
 				return;
@@ -452,7 +452,7 @@ namespace dot10.DotNet {
 			DecrementRecursionCounter();
 		}
 
-		void CreateName(ITypeSig typeSig) {
+		void CreateName(TypeSig typeSig) {
 			if (typeSig == null) {
 				sb.Append(NULLVALUE);
 				return;

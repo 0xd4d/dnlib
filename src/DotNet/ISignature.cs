@@ -171,12 +171,12 @@ namespace dot10.DotNet {
 	/// A field signature
 	/// </summary>
 	public sealed class FieldSig : CallingConventionSig {
-		ITypeSig type;
+		TypeSig type;
 
 		/// <summary>
 		/// Gets/sets the field type
 		/// </summary>
-		public ITypeSig Type {
+		public TypeSig Type {
 			get { return type; }
 			set { type = value; }
 		}
@@ -192,7 +192,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="type">Field type</param>
-		public FieldSig(ITypeSig type) {
+		public FieldSig(TypeSig type) {
 			this.callingConvention = CallingConvention.Field;
 			this.type = type;
 		}
@@ -202,7 +202,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="type">Field type</param>
 		/// <param name="callingConvention">The calling convention (must have Field set)</param>
-		internal FieldSig(CallingConvention callingConvention, ITypeSig type) {
+		internal FieldSig(CallingConvention callingConvention, TypeSig type) {
 			this.callingConvention = callingConvention;
 			this.type = type;
 		}
@@ -220,13 +220,13 @@ namespace dot10.DotNet {
 	/// </summary>
 	public abstract class MethodBaseSig : CallingConventionSig {
 		/// <summary></summary>
-		protected ITypeSig retType;
+		protected TypeSig retType;
 		/// <summary></summary>
-		protected IList<ITypeSig> parameters;
+		protected IList<TypeSig> parameters;
 		/// <summary></summary>
 		protected uint genParamCount;
 		/// <summary></summary>
-		protected IList<ITypeSig> paramsAfterSentinel;
+		protected IList<TypeSig> paramsAfterSentinel;
 
 		/// <summary>
 		/// Gets/sets the calling convention
@@ -239,7 +239,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the return type
 		/// </summary>
-		public ITypeSig RetType {
+		public TypeSig RetType {
 			get { return retType; }
 			set { retType = value; }
 		}
@@ -247,7 +247,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the parameters. This is never <c>null</c>
 		/// </summary>
-		public IList<ITypeSig> Params {
+		public IList<TypeSig> Params {
 			get { return parameters; }
 		}
 
@@ -263,7 +263,7 @@ namespace dot10.DotNet {
 		/// Gets the parameters that are present after the sentinel. Note that this is <c>null</c>
 		/// if there's no sentinel. It can still be empty even if it's not <c>null</c>.
 		/// </summary>
-		public IList<ITypeSig> ParamsAfterSentinel {
+		public IList<TypeSig> ParamsAfterSentinel {
 			get { return paramsAfterSentinel; }
 			set { paramsAfterSentinel = value; }
 		}
@@ -277,7 +277,7 @@ namespace dot10.DotNet {
 		/// Creates a static MethodSig
 		/// </summary>
 		/// <param name="retType">Return type</param>
-		public static MethodSig CreateStatic(ITypeSig retType) {
+		public static MethodSig CreateStatic(TypeSig retType) {
 			return new MethodSig(CallingConvention.Default, 0, retType);
 		}
 
@@ -286,7 +286,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public static MethodSig CreateStatic(ITypeSig retType, ITypeSig argType1) {
+		public static MethodSig CreateStatic(TypeSig retType, TypeSig argType1) {
 			return new MethodSig(CallingConvention.Default, 0, retType, argType1);
 		}
 
@@ -296,7 +296,7 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public static MethodSig CreateStatic(ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public static MethodSig CreateStatic(TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			return new MethodSig(CallingConvention.Default, 0, retType, argType1, argType2);
 		}
 
@@ -307,7 +307,7 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public static MethodSig CreateStatic(ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public static MethodSig CreateStatic(TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			return new MethodSig(CallingConvention.Default, 0, retType, argType1, argType2, argType3);
 		}
 
@@ -316,7 +316,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public static MethodSig CreateStatic(ITypeSig retType, params ITypeSig[] argTypes) {
+		public static MethodSig CreateStatic(TypeSig retType, params TypeSig[] argTypes) {
 			return new MethodSig(CallingConvention.Default, 0, retType, argTypes);
 		}
 
@@ -324,7 +324,7 @@ namespace dot10.DotNet {
 		/// Creates an instance MethodSig
 		/// </summary>
 		/// <param name="retType">Return type</param>
-		public static MethodSig CreateInstance(ITypeSig retType) {
+		public static MethodSig CreateInstance(TypeSig retType) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis, 0, retType);
 		}
 
@@ -333,7 +333,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public static MethodSig CreateInstance(ITypeSig retType, ITypeSig argType1) {
+		public static MethodSig CreateInstance(TypeSig retType, TypeSig argType1) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis, 0, retType, argType1);
 		}
 
@@ -343,7 +343,7 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public static MethodSig CreateInstance(ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public static MethodSig CreateInstance(TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis, 0, retType, argType1, argType2);
 		}
 
@@ -354,7 +354,7 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public static MethodSig CreateInstance(ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public static MethodSig CreateInstance(TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis, 0, retType, argType1, argType2, argType3);
 		}
 
@@ -363,7 +363,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public static MethodSig CreateInstance(ITypeSig retType, params ITypeSig[] argTypes) {
+		public static MethodSig CreateInstance(TypeSig retType, params TypeSig[] argTypes) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis, 0, retType, argTypes);
 		}
 
@@ -372,7 +372,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
-		public static MethodSig CreateStaticGeneric(uint genParamCount, ITypeSig retType) {
+		public static MethodSig CreateStaticGeneric(uint genParamCount, TypeSig retType) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.Generic, genParamCount, retType);
 		}
 
@@ -382,7 +382,7 @@ namespace dot10.DotNet {
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public static MethodSig CreateStaticGeneric(uint genParamCount, ITypeSig retType, ITypeSig argType1) {
+		public static MethodSig CreateStaticGeneric(uint genParamCount, TypeSig retType, TypeSig argType1) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.Generic, genParamCount, retType, argType1);
 		}
 
@@ -393,7 +393,7 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public static MethodSig CreateStaticGeneric(uint genParamCount, ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public static MethodSig CreateStaticGeneric(uint genParamCount, TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.Generic, genParamCount, retType, argType1, argType2);
 		}
 
@@ -405,7 +405,7 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public static MethodSig CreateStaticGeneric(uint genParamCount, ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public static MethodSig CreateStaticGeneric(uint genParamCount, TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.Generic, genParamCount, retType, argType1, argType2, argType3);
 		}
 
@@ -415,7 +415,7 @@ namespace dot10.DotNet {
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public static MethodSig CreateStaticGeneric(uint genParamCount, ITypeSig retType, params ITypeSig[] argTypes) {
+		public static MethodSig CreateStaticGeneric(uint genParamCount, TypeSig retType, params TypeSig[] argTypes) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.Generic, genParamCount, retType, argTypes);
 		}
 
@@ -424,7 +424,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
-		public static MethodSig CreateInstanceGeneric(uint genParamCount, ITypeSig retType) {
+		public static MethodSig CreateInstanceGeneric(uint genParamCount, TypeSig retType) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis | CallingConvention.Generic, genParamCount, retType);
 		}
 
@@ -434,7 +434,7 @@ namespace dot10.DotNet {
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public static MethodSig CreateInstanceGeneric(uint genParamCount, ITypeSig retType, ITypeSig argType1) {
+		public static MethodSig CreateInstanceGeneric(uint genParamCount, TypeSig retType, TypeSig argType1) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis | CallingConvention.Generic, genParamCount, retType, argType1);
 		}
 
@@ -445,7 +445,7 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public static MethodSig CreateInstanceGeneric(uint genParamCount, ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public static MethodSig CreateInstanceGeneric(uint genParamCount, TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis | CallingConvention.Generic, genParamCount, retType, argType1, argType2);
 		}
 
@@ -457,7 +457,7 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public static MethodSig CreateInstanceGeneric(uint genParamCount, ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public static MethodSig CreateInstanceGeneric(uint genParamCount, TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis | CallingConvention.Generic, genParamCount, retType, argType1, argType2, argType3);
 		}
 
@@ -467,7 +467,7 @@ namespace dot10.DotNet {
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public static MethodSig CreateInstanceGeneric(uint genParamCount, ITypeSig retType, params ITypeSig[] argTypes) {
+		public static MethodSig CreateInstanceGeneric(uint genParamCount, TypeSig retType, params TypeSig[] argTypes) {
 			return new MethodSig(CallingConvention.Default | CallingConvention.HasThis | CallingConvention.Generic, genParamCount, retType, argTypes);
 		}
 
@@ -475,7 +475,7 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public MethodSig() {
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -484,7 +484,7 @@ namespace dot10.DotNet {
 		/// <param name="callingConvention">Calling convention</param>
 		public MethodSig(CallingConvention callingConvention) {
 			this.callingConvention = callingConvention;
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -495,7 +495,7 @@ namespace dot10.DotNet {
 		public MethodSig(CallingConvention callingConvention, uint genParamCount) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -504,11 +504,11 @@ namespace dot10.DotNet {
 		/// <param name="callingConvention">Calling convention</param>
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
-		public MethodSig(CallingConvention callingConvention, uint genParamCount, ITypeSig retType) {
+		public MethodSig(CallingConvention callingConvention, uint genParamCount, TypeSig retType) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -518,11 +518,11 @@ namespace dot10.DotNet {
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public MethodSig(CallingConvention callingConvention, uint genParamCount, ITypeSig retType, ITypeSig argType1) {
+		public MethodSig(CallingConvention callingConvention, uint genParamCount, TypeSig retType, TypeSig argType1) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			this.parameters = new List<ITypeSig> { argType1 };
+			this.parameters = new List<TypeSig> { argType1 };
 		}
 
 		/// <summary>
@@ -533,11 +533,11 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public MethodSig(CallingConvention callingConvention, uint genParamCount, ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public MethodSig(CallingConvention callingConvention, uint genParamCount, TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			this.parameters = new List<ITypeSig> { argType1, argType2 };
+			this.parameters = new List<TypeSig> { argType1, argType2 };
 		}
 
 		/// <summary>
@@ -549,11 +549,11 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public MethodSig(CallingConvention callingConvention, uint genParamCount, ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public MethodSig(CallingConvention callingConvention, uint genParamCount, TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			this.parameters = new List<ITypeSig> { argType1, argType2, argType3 };
+			this.parameters = new List<TypeSig> { argType1, argType2, argType3 };
 		}
 
 		/// <summary>
@@ -563,11 +563,11 @@ namespace dot10.DotNet {
 		/// <param name="genParamCount">Number of generic parameters</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public MethodSig(CallingConvention callingConvention, uint genParamCount, ITypeSig retType, params ITypeSig[] argTypes) {
+		public MethodSig(CallingConvention callingConvention, uint genParamCount, TypeSig retType, params TypeSig[] argTypes) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			this.parameters = new List<ITypeSig>(argTypes);
+			this.parameters = new List<TypeSig>(argTypes);
 		}
 	}
 
@@ -579,7 +579,7 @@ namespace dot10.DotNet {
 		/// Creates a static PropertySig
 		/// </summary>
 		/// <param name="retType">Return type</param>
-		public static PropertySig CreateStatic(ITypeSig retType) {
+		public static PropertySig CreateStatic(TypeSig retType) {
 			return new PropertySig(false, retType);
 		}
 
@@ -588,7 +588,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public static PropertySig CreateStatic(ITypeSig retType, ITypeSig argType1) {
+		public static PropertySig CreateStatic(TypeSig retType, TypeSig argType1) {
 			return new PropertySig(false, retType, argType1);
 		}
 
@@ -598,7 +598,7 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public static PropertySig CreateStatic(ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public static PropertySig CreateStatic(TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			return new PropertySig(false, retType, argType1, argType2);
 		}
 
@@ -609,7 +609,7 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public static PropertySig CreateStatic(ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public static PropertySig CreateStatic(TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			return new PropertySig(false, retType, argType1, argType2, argType3);
 		}
 
@@ -618,7 +618,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public static PropertySig CreateStatic(ITypeSig retType, params ITypeSig[] argTypes) {
+		public static PropertySig CreateStatic(TypeSig retType, params TypeSig[] argTypes) {
 			return new PropertySig(false, retType, argTypes);
 		}
 
@@ -626,7 +626,7 @@ namespace dot10.DotNet {
 		/// Creates an instance PropertySig
 		/// </summary>
 		/// <param name="retType">Return type</param>
-		public static PropertySig CreateInstance(ITypeSig retType) {
+		public static PropertySig CreateInstance(TypeSig retType) {
 			return new PropertySig(true, retType);
 		}
 
@@ -635,7 +635,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public static PropertySig CreateInstance(ITypeSig retType, ITypeSig argType1) {
+		public static PropertySig CreateInstance(TypeSig retType, TypeSig argType1) {
 			return new PropertySig(true, retType, argType1);
 		}
 
@@ -645,7 +645,7 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public static PropertySig CreateInstance(ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public static PropertySig CreateInstance(TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			return new PropertySig(true, retType, argType1, argType2);
 		}
 
@@ -656,7 +656,7 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public static PropertySig CreateInstance(ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public static PropertySig CreateInstance(TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			return new PropertySig(true, retType, argType1, argType2, argType3);
 		}
 
@@ -665,7 +665,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public static PropertySig CreateInstance(ITypeSig retType, params ITypeSig[] argTypes) {
+		public static PropertySig CreateInstance(TypeSig retType, params TypeSig[] argTypes) {
 			return new PropertySig(true, retType, argTypes);
 		}
 
@@ -674,7 +674,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public PropertySig() {
 			this.callingConvention = CallingConvention.Property;
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -683,7 +683,7 @@ namespace dot10.DotNet {
 		/// <param name="callingConvention">Calling convention (must have Property set)</param>
 		internal PropertySig(CallingConvention callingConvention) {
 			this.callingConvention = callingConvention;
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -692,7 +692,7 @@ namespace dot10.DotNet {
 		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
 		public PropertySig(bool hasThis) {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -700,10 +700,10 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
 		/// <param name="retType">Return type</param>
-		public PropertySig(bool hasThis, ITypeSig retType) {
+		public PropertySig(bool hasThis, TypeSig retType) {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			this.parameters = new List<ITypeSig>();
+			this.parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -712,10 +712,10 @@ namespace dot10.DotNet {
 		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
-		public PropertySig(bool hasThis, ITypeSig retType, ITypeSig argType1) {
+		public PropertySig(bool hasThis, TypeSig retType, TypeSig argType1) {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			this.parameters = new List<ITypeSig> { argType1 };
+			this.parameters = new List<TypeSig> { argType1 };
 		}
 
 		/// <summary>
@@ -725,10 +725,10 @@ namespace dot10.DotNet {
 		/// <param name="retType">Return type</param>
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
-		public PropertySig(bool hasThis, ITypeSig retType, ITypeSig argType1, ITypeSig argType2) {
+		public PropertySig(bool hasThis, TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			this.parameters = new List<ITypeSig> { argType1, argType2 };
+			this.parameters = new List<TypeSig> { argType1, argType2 };
 		}
 
 		/// <summary>
@@ -739,10 +739,10 @@ namespace dot10.DotNet {
 		/// <param name="argType1">Arg type #1</param>
 		/// <param name="argType2">Arg type #2</param>
 		/// <param name="argType3">Arg type #3</param>
-		public PropertySig(bool hasThis, ITypeSig retType, ITypeSig argType1, ITypeSig argType2, ITypeSig argType3) {
+		public PropertySig(bool hasThis, TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			this.parameters = new List<ITypeSig> { argType1, argType2, argType3 };
+			this.parameters = new List<TypeSig> { argType1, argType2, argType3 };
 		}
 
 		/// <summary>
@@ -751,10 +751,10 @@ namespace dot10.DotNet {
 		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
 		/// <param name="retType">Return type</param>
 		/// <param name="argTypes">Argument types</param>
-		public PropertySig(bool hasThis, ITypeSig retType, params ITypeSig[] argTypes) {
+		public PropertySig(bool hasThis, TypeSig retType, params TypeSig[] argTypes) {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			this.parameters = new List<ITypeSig>(argTypes);
+			this.parameters = new List<TypeSig>(argTypes);
 		}
 	}
 
@@ -762,12 +762,12 @@ namespace dot10.DotNet {
 	/// A local variables signature
 	/// </summary>
 	public sealed class LocalSig : CallingConventionSig {
-		readonly IList<ITypeSig> locals;
+		readonly IList<TypeSig> locals;
 
 		/// <summary>
 		/// All local types. This is never <c>null</c>.
 		/// </summary>
-		public IList<ITypeSig> Locals {
+		public IList<TypeSig> Locals {
 			get { return locals; }
 		}
 
@@ -776,7 +776,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public LocalSig() {
 			this.callingConvention = CallingConvention.LocalSig;
-			this.locals = new List<ITypeSig>();
+			this.locals = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -786,16 +786,16 @@ namespace dot10.DotNet {
 		/// <param name="count">Number of locals</param>
 		internal LocalSig(CallingConvention callingConvention, uint count) {
 			this.callingConvention = callingConvention;
-			this.locals = new List<ITypeSig>((int)count);
+			this.locals = new List<TypeSig>((int)count);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="local1">Local type #1</param>
-		public LocalSig(ITypeSig local1) {
+		public LocalSig(TypeSig local1) {
 			this.callingConvention = CallingConvention.LocalSig;
-			this.locals = new List<ITypeSig> { local1 };
+			this.locals = new List<TypeSig> { local1 };
 		}
 
 		/// <summary>
@@ -803,9 +803,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="local1">Local type #1</param>
 		/// <param name="local2">Local type #2</param>
-		public LocalSig(ITypeSig local1, ITypeSig local2) {
+		public LocalSig(TypeSig local1, TypeSig local2) {
 			this.callingConvention = CallingConvention.LocalSig;
-			this.locals = new List<ITypeSig> { local1, local2 };
+			this.locals = new List<TypeSig> { local1, local2 };
 		}
 
 		/// <summary>
@@ -814,27 +814,27 @@ namespace dot10.DotNet {
 		/// <param name="local1">Local type #1</param>
 		/// <param name="local2">Local type #2</param>
 		/// <param name="local3">Local type #3</param>
-		public LocalSig(ITypeSig local1, ITypeSig local2, ITypeSig local3) {
+		public LocalSig(TypeSig local1, TypeSig local2, TypeSig local3) {
 			this.callingConvention = CallingConvention.LocalSig;
-			this.locals = new List<ITypeSig> { local1, local2, local3 };
+			this.locals = new List<TypeSig> { local1, local2, local3 };
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="locals">All locals</param>
-		public LocalSig(params ITypeSig[] locals) {
+		public LocalSig(params TypeSig[] locals) {
 			this.callingConvention = CallingConvention.LocalSig;
-			this.locals = new List<ITypeSig>(locals);
+			this.locals = new List<TypeSig>(locals);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="locals">All locals</param>
-		public LocalSig(IList<ITypeSig> locals) {
+		public LocalSig(IList<TypeSig> locals) {
 			this.callingConvention = CallingConvention.LocalSig;
-			this.locals = new List<ITypeSig>(locals);
+			this.locals = new List<TypeSig>(locals);
 		}
 	}
 
@@ -842,12 +842,12 @@ namespace dot10.DotNet {
 	/// An instantiated generic method signature
 	/// </summary>
 	public sealed class GenericInstMethodSig : CallingConventionSig {
-		readonly IList<ITypeSig> genericArgs;
+		readonly IList<TypeSig> genericArgs;
 
 		/// <summary>
 		/// Gets the generic arguments (must be instantiated types, i.e., closed types)
 		/// </summary>
-		public IList<ITypeSig> GenericArguments {
+		public IList<TypeSig> GenericArguments {
 			get { return genericArgs; }
 		}
 
@@ -856,7 +856,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public GenericInstMethodSig() {
 			this.callingConvention = CallingConvention.GenericInst;
-			this.genericArgs = new List<ITypeSig>();
+			this.genericArgs = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -866,16 +866,16 @@ namespace dot10.DotNet {
 		/// <param name="size">Number of generic args</param>
 		internal GenericInstMethodSig(CallingConvention callingConvention, uint size) {
 			this.callingConvention = callingConvention;
-			this.genericArgs = new List<ITypeSig>((int)size);
+			this.genericArgs = new List<TypeSig>((int)size);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="arg1">Generic arg #1</param>
-		public GenericInstMethodSig(ITypeSig arg1) {
+		public GenericInstMethodSig(TypeSig arg1) {
 			this.callingConvention = CallingConvention.GenericInst;
-			this.genericArgs = new List<ITypeSig> { arg1 };
+			this.genericArgs = new List<TypeSig> { arg1 };
 		}
 
 		/// <summary>
@@ -883,9 +883,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="arg1">Generic arg #1</param>
 		/// <param name="arg2">Generic arg #2</param>
-		public GenericInstMethodSig(ITypeSig arg1, ITypeSig arg2) {
+		public GenericInstMethodSig(TypeSig arg1, TypeSig arg2) {
 			this.callingConvention = CallingConvention.GenericInst;
-			this.genericArgs = new List<ITypeSig> { arg1, arg2 };
+			this.genericArgs = new List<TypeSig> { arg1, arg2 };
 		}
 
 		/// <summary>
@@ -894,27 +894,27 @@ namespace dot10.DotNet {
 		/// <param name="arg1">Generic arg #1</param>
 		/// <param name="arg2">Generic arg #2</param>
 		/// <param name="arg3">Generic arg #3</param>
-		public GenericInstMethodSig(ITypeSig arg1, ITypeSig arg2, ITypeSig arg3) {
+		public GenericInstMethodSig(TypeSig arg1, TypeSig arg2, TypeSig arg3) {
 			this.callingConvention = CallingConvention.GenericInst;
-			this.genericArgs = new List<ITypeSig> { arg1, arg2, arg3 };
+			this.genericArgs = new List<TypeSig> { arg1, arg2, arg3 };
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="args">Generic args</param>
-		public GenericInstMethodSig(params ITypeSig[] args) {
+		public GenericInstMethodSig(params TypeSig[] args) {
 			this.callingConvention = CallingConvention.GenericInst;
-			this.genericArgs = new List<ITypeSig>(args);
+			this.genericArgs = new List<TypeSig>(args);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="args">Generic args</param>
-		public GenericInstMethodSig(IList<ITypeSig> args) {
+		public GenericInstMethodSig(IList<TypeSig> args) {
 			this.callingConvention = CallingConvention.GenericInst;
-			this.genericArgs = new List<ITypeSig>(args);
+			this.genericArgs = new List<TypeSig>(args);
 		}
 	}
 }

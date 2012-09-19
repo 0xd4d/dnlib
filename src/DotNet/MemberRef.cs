@@ -83,7 +83,7 @@ namespace dot10.DotNet {
 		public string FullName {
 			get {
 				var parent = Class;
-				IList<ITypeSig> typeGenArgs = null;
+				IList<TypeSig> typeGenArgs = null;
 				if (parent is TypeSpec) {
 					var sig = ((TypeSpec)parent).TypeSig as GenericInstSig;
 					if (sig != null)

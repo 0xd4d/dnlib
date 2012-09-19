@@ -5,46 +5,18 @@ using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
-	/// Interface to access a type signature
+	/// Type sig base class
 	/// </summary>
-	public interface ITypeSig : ISignature, IFullName {
+	public abstract class TypeSig : ISignature, IFullName {
 		/// <summary>
 		/// Returns the wrapped element type. Can only be null if it was an invalid sig or
 		/// if it's a <see cref="LeafSig"/>
 		/// </summary>
-		ITypeSig Next { get; }
+		public abstract TypeSig Next { get; }
 
 		/// <summary>
 		/// Gets the element type
 		/// </summary>
-		ElementType ElementType { get; }
-	}
-
-	public static partial class Extensions {
-		/// <summary>
-		/// Returns the last element type in the signature but could be null if we parsed invalid
-		/// metadata.
-		/// </summary>
-		/// <returns>The last element type in the signature</returns>
-		public static LeafSig GetLeafSig(this ITypeSig self) {
-			while (self != null) {
-				var leaf = self as LeafSig;
-				if (leaf != null)
-					return leaf;
-				self = self.Next;
-			}
-			return null;
-		}
-	}
-
-	/// <summary>
-	/// Type sig base class
-	/// </summary>
-	public abstract class TypeSig : ITypeSig {
-		/// <inheritdoc/>
-		public abstract ITypeSig Next { get; }
-
-		/// <inheritdoc/>
 		public abstract ElementType ElementType { get; }
 
 		/// <inheritdoc/>
@@ -96,7 +68,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	public abstract class LeafSig : TypeSig {
 		/// <inheritdoc/>
-		public sealed override ITypeSig Next {
+		public sealed override TypeSig Next {
 			get { return null; }
 		}
 	}
@@ -423,7 +395,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	public sealed class GenericInstSig : LeafSig {
 		ClassOrValueTypeSig genericType;
-		readonly List<ITypeSig> genericArgs;
+		readonly List<TypeSig> genericArgs;
 
 		/// <inheritdoc/>
 		public override ElementType ElementType {
@@ -451,7 +423,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the generic arguments (it's never <c>null</c>)
 		/// </summary>
-		public IList<ITypeSig> GenericArguments {
+		public IList<TypeSig> GenericArguments {
 			get { return genericArgs; }
 			set {
 				genericArgs.Clear();
@@ -464,7 +436,7 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public GenericInstSig() {
-			this.genericArgs = new List<ITypeSig>();
+			this.genericArgs = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -473,7 +445,7 @@ namespace dot10.DotNet {
 		/// <param name="genericType">The generic type</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType) {
 			this.genericType = genericType;
-			this.genericArgs = new List<ITypeSig>();
+			this.genericArgs = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -483,7 +455,7 @@ namespace dot10.DotNet {
 		/// <param name="genArgCount">Number of generic arguments</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, uint genArgCount) {
 			this.genericType = genericType;
-			this.genericArgs = new List<ITypeSig>((int)genArgCount);
+			this.genericArgs = new List<TypeSig>((int)genArgCount);
 		}
 
 		/// <summary>
@@ -491,9 +463,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="genericType">The generic type</param>
 		/// <param name="genArg1">Generic argument #1</param>
-		public GenericInstSig(ClassOrValueTypeSig genericType, ITypeSig genArg1) {
+		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1) {
 			this.genericType = genericType;
-			this.genericArgs = new List<ITypeSig> { genArg1 };
+			this.genericArgs = new List<TypeSig> { genArg1 };
 		}
 
 		/// <summary>
@@ -502,9 +474,9 @@ namespace dot10.DotNet {
 		/// <param name="genericType">The generic type</param>
 		/// <param name="genArg1">Generic argument #1</param>
 		/// <param name="genArg2">Generic argument #2</param>
-		public GenericInstSig(ClassOrValueTypeSig genericType, ITypeSig genArg1, ITypeSig genArg2) {
+		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1, TypeSig genArg2) {
 			this.genericType = genericType;
-			this.genericArgs = new List<ITypeSig> { genArg1, genArg2 };
+			this.genericArgs = new List<TypeSig> { genArg1, genArg2 };
 		}
 
 		/// <summary>
@@ -514,9 +486,9 @@ namespace dot10.DotNet {
 		/// <param name="genArg1">Generic argument #1</param>
 		/// <param name="genArg2">Generic argument #2</param>
 		/// <param name="genArg3">Generic argument #3</param>
-		public GenericInstSig(ClassOrValueTypeSig genericType, ITypeSig genArg1, ITypeSig genArg2, ITypeSig genArg3) {
+		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1, TypeSig genArg2, TypeSig genArg3) {
 			this.genericType = genericType;
-			this.genericArgs = new List<ITypeSig> { genArg1, genArg2, genArg3 };
+			this.genericArgs = new List<TypeSig> { genArg1, genArg2, genArg3 };
 		}
 
 		/// <summary>
@@ -524,9 +496,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="genericType">The generic type</param>
 		/// <param name="genArgs">Generic arguments</param>
-		public GenericInstSig(ClassOrValueTypeSig genericType, params ITypeSig[] genArgs) {
+		public GenericInstSig(ClassOrValueTypeSig genericType, params TypeSig[] genArgs) {
 			this.genericType = genericType;
-			this.genericArgs = new List<ITypeSig>(genArgs);
+			this.genericArgs = new List<TypeSig>(genArgs);
 		}
 
 		/// <summary>
@@ -534,9 +506,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="genericType">The generic type</param>
 		/// <param name="genArgs">Generic arguments</param>
-		public GenericInstSig(ClassOrValueTypeSig genericType, IList<ITypeSig> genArgs) {
+		public GenericInstSig(ClassOrValueTypeSig genericType, IList<TypeSig> genArgs) {
 			this.genericType = genericType;
-			this.genericArgs = new List<ITypeSig>(genArgs);
+			this.genericArgs = new List<TypeSig>(genArgs);
 		}
 	}
 
@@ -544,10 +516,10 @@ namespace dot10.DotNet {
 	/// Base class of non-leaf element types
 	/// </summary>
 	public abstract class NonLeafSig : TypeSig {
-		readonly ITypeSig nextSig;
+		readonly TypeSig nextSig;
 
 		/// <inheritdoc/>
-		public sealed override ITypeSig Next {
+		public sealed override TypeSig Next {
 			get { return nextSig; }
 		}
 
@@ -565,7 +537,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">Next sig</param>
-		protected NonLeafSig(ITypeSig nextSig) {
+		protected NonLeafSig(TypeSig nextSig) {
 			this.nextSig = nextSig;
 		}
 	}
@@ -583,7 +555,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
-		public PtrSig(ITypeSig nextSig)
+		public PtrSig(TypeSig nextSig)
 			: base(nextSig) {
 		}
 	}
@@ -601,7 +573,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
-		public ByRefSig(ITypeSig nextSig)
+		public ByRefSig(TypeSig nextSig)
 			: base(nextSig) {
 		}
 	}
@@ -646,7 +618,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="arrayType">Array type</param>
-		public ArraySig(ITypeSig arrayType)
+		public ArraySig(TypeSig arrayType)
 			: base(arrayType) {
 			this.sizes = new List<uint>();
 			this.lowerBounds = new List<int>();
@@ -657,7 +629,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="arrayType">Array type</param>
 		/// <param name="rank">Array rank</param>
-		public ArraySig(ITypeSig arrayType, uint rank)
+		public ArraySig(TypeSig arrayType, uint rank)
 			: base(arrayType) {
 			this.rank = rank;
 			this.sizes = new List<uint>();
@@ -671,7 +643,7 @@ namespace dot10.DotNet {
 		/// <param name="rank">Array rank</param>
 		/// <param name="sizes">Sizes list. <c>This instance will be the owner of this list.</c></param>
 		/// <param name="lowerBounds">Lower bounds list. <c>This instance will be the owner of this list.</c></param>
-		internal ArraySig(ITypeSig arrayType, uint rank, List<uint> sizes, List<int> lowerBounds)
+		internal ArraySig(TypeSig arrayType, uint rank, List<uint> sizes, List<int> lowerBounds)
 			: base(arrayType) {
 			this.rank = rank;
 			this.sizes = sizes;
@@ -693,7 +665,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
-		public SZArraySig(ITypeSig nextSig)
+		public SZArraySig(TypeSig nextSig)
 			: base(nextSig) {
 		}
 	}
@@ -716,7 +688,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="modifier">Modifier type</param>
 		/// <param name="nextSig">The next element type</param>
-		protected ModifierSig(ITypeDefOrRef modifier, ITypeSig nextSig)
+		protected ModifierSig(ITypeDefOrRef modifier, TypeSig nextSig)
 			: base(nextSig) {
 			this.modifier = modifier;
 		}
@@ -732,7 +704,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public CModReqdSig(ITypeDefOrRef modifier, ITypeSig nextSig)
+		public CModReqdSig(ITypeDefOrRef modifier, TypeSig nextSig)
 			: base(modifier, nextSig) {
 		}
 	}
@@ -747,7 +719,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public CModOptSig(ITypeDefOrRef modifier, ITypeSig nextSig)
+		public CModOptSig(ITypeDefOrRef modifier, TypeSig nextSig)
 			: base(modifier, nextSig) {
 		}
 	}
@@ -765,7 +737,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
-		public PinnedSig(ITypeSig nextSig)
+		public PinnedSig(TypeSig nextSig)
 			: base(nextSig) {
 		}
 	}
@@ -794,7 +766,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
 		/// <param name="size">Size of the array</param>
-		public ValueArraySig(ITypeSig nextSig, uint size)
+		public ValueArraySig(TypeSig nextSig, uint size)
 			: base(nextSig) {
 			this.size = size;
 		}
@@ -824,7 +796,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="index">Index</param>
 		/// <param name="nextSig">The next element type</param>
-		public ModuleSig(uint index, ITypeSig nextSig)
+		public ModuleSig(uint index, TypeSig nextSig)
 			: base(nextSig) {
 			this.index = index;
 		}

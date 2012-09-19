@@ -65,7 +65,7 @@ namespace dot10.DotNet.Emit {
 		/// Sets new locals
 		/// </summary>
 		/// <param name="newLocals">A list of types of all locals or <c>null</c> if none</param>
-		protected void SetLocals(IList<ITypeSig> newLocals) {
+		protected void SetLocals(IList<TypeSig> newLocals) {
 			locals.Clear();
 			if (newLocals == null)
 				return;

@@ -6,7 +6,7 @@
 		/// <summary>
 		/// Gets the variable type
 		/// </summary>
-		ITypeSig Type { get; }
+		TypeSig Type { get; }
 
 		/// <summary>
 		/// Gets the 0-based position
