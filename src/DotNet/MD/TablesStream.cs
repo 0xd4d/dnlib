@@ -458,7 +458,7 @@ namespace dot10.DotNet.MD {
 		/// Returns a MD table
 		/// </summary>
 		/// <param name="table">The table type</param>
-		/// <returns>A <see cref="MDTable"/> or null if table doesn't exist</returns>
+		/// <returns>A <see cref="MDTable"/> or <c>null</c> if table doesn't exist</returns>
 		public MDTable Get(Table table) {
 			int index = (int)table;
 			if ((uint)index >= (uint)mdTables.Length)
@@ -470,7 +470,7 @@ namespace dot10.DotNet.MD {
 		/// Checks whether a table exists
 		/// </summary>
 		/// <param name="table">The table type</param>
-		/// <returns>true if the table exists</returns>
+		/// <returns><c>true</c> if the table exists</returns>
 		public bool HasTable(Table table) {
 			return (uint)table < (uint)mdTables.Length;
 		}

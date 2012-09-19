@@ -101,7 +101,7 @@ namespace dot10.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="fileName">Name of the file</param>
-		/// <param name="mapAsImage">true if we should map it as an executable</param>
+		/// <param name="mapAsImage"><c>true</c> if we should map it as an executable</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string fileName, bool mapAsImage, bool verify)
 			: this(new MemoryMappedFileStreamCreator(fileName, mapAsImage), mapAsImage ? ImageLayout.Memory : ImageLayout.File, verify) {

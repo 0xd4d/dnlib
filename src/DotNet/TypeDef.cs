@@ -139,7 +139,7 @@ namespace dot10.DotNet {
 		public abstract ClassLayout ClassLayout { get; set; }
 
 		/// <summary>
-		/// Gets/sets the enclosing type. It's null if this isn't a nested class.
+		/// Gets/sets the enclosing type. It's <c>null</c> if this isn't a nested class.
 		/// </summary>
 		public TypeDef EnclosingType {
 			get { return EnclosingType2; }
@@ -680,7 +680,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or null if it's an interface</param>
+		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
 		public TypeDefUser(ModuleDef ownerModule, UTF8String name, ITypeDefOrRef extends)
 			: this(ownerModule, null, name, extends) {
 		}
@@ -691,7 +691,7 @@ namespace dot10.DotNet {
 		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or null if it's an interface</param>
+		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
 		public TypeDefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name, ITypeDefOrRef extends) {
 			this.fields = new LazyList<FieldDef>(this);
 			this.methods = new LazyList<MethodDef>(this);
@@ -726,7 +726,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or null if it's an interface</param>
+		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
 		public TypeDefUser(ModuleDef ownerModule, string name, ITypeDefOrRef extends)
 			: this(ownerModule, null, name, extends) {
 		}
@@ -737,7 +737,7 @@ namespace dot10.DotNet {
 		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or null if it's an interface</param>
+		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
 		public TypeDefUser(ModuleDef ownerModule, string @namespace, string name, ITypeDefOrRef extends)
 			: this(ownerModule, new UTF8String(@namespace), new UTF8String(name), extends) {
 		}
@@ -749,7 +749,7 @@ namespace dot10.DotNet {
 	sealed class TypeDefMD : TypeDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawTypeDefRow rawRow;
 
 		UserValue<TypeAttributes> flags;

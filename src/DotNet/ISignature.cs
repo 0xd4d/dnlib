@@ -17,84 +17,84 @@ namespace dot10.DotNet {
 		protected CallingConvention callingConvention;
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.Default"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.Default"/> is set
 		/// </summary>
 		public bool IsDefault {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Default; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.C"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.C"/> is set
 		/// </summary>
 		public bool IsC {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.C; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.StdCall"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.StdCall"/> is set
 		/// </summary>
 		public bool IsStdCall {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.StdCall; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.ThisCall"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.ThisCall"/> is set
 		/// </summary>
 		public bool IsThisCall {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.ThisCall; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.FastCall"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.FastCall"/> is set
 		/// </summary>
 		public bool IsFastCall {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.FastCall; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.VarArg"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.VarArg"/> is set
 		/// </summary>
 		public bool IsVarArg {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.VarArg; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.Field"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.Field"/> is set
 		/// </summary>
 		public bool IsField {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Field; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.LocalSig"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.LocalSig"/> is set
 		/// </summary>
 		public bool IsLocalSig {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.LocalSig; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.Property"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.Property"/> is set
 		/// </summary>
 		public bool IsProperty {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Property; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.Unmanaged"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.Unmanaged"/> is set
 		/// </summary>
 		public bool IsUnmanaged {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.Unmanaged; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.GenericInst"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.GenericInst"/> is set
 		/// </summary>
 		public bool IsGenericInst {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.GenericInst; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="CallingConvention.NativeVarArg"/> is set
+		/// Returns <c>true</c> if <see cref="CallingConvention.NativeVarArg"/> is set
 		/// </summary>
 		public bool IsNativeVarArg {
 			get { return (callingConvention & CallingConvention.Mask) == CallingConvention.NativeVarArg; }

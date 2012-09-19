@@ -136,7 +136,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="dot10.DotNet.ParamDef"/> or null if not present
+		/// Gets the <see cref="dot10.DotNet.ParamDef"/> or <c>null</c> if not present
 		/// </summary>
 		public ParamDef ParamDef {
 			get { return parameterList.FindParamDef(this); }

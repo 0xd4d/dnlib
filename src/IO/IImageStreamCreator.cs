@@ -6,7 +6,7 @@ namespace dot10.IO {
 	/// </summary>
 	public interface IImageStreamCreator : IDisposable {
 		/// <summary>
-		/// The file name or null if data is not from a file
+		/// The file name or <c>null</c> if data is not from a file
 		/// </summary>
 		string FileName { get; }
 

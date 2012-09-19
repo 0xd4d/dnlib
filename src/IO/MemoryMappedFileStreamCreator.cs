@@ -44,12 +44,12 @@ namespace dot10.IO {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <remarks>If <paramref name="mapAsImage"/> is true, then the created
+		/// <remarks>If <paramref name="mapAsImage"/> is <c>true</c>, then the created
 		/// <see cref="UnmanagedMemoryStreamCreator"/> that is used internally by the class,
 		/// can only access bytes up to the file size, not to the end of the mapped image. You must
 		/// set <see cref="UnmanagedMemoryStreamCreator.Length"/> to the correct image length to access the full image.</remarks>
 		/// <param name="fileName">Name of the file</param>
-		/// <param name="mapAsImage">true if we should map it as an executable</param>
+		/// <param name="mapAsImage"><c>true</c> if we should map it as an executable</param>
 		/// <exception cref="IOException">If we can't open/map the file</exception>
 		public MemoryMappedFileStreamCreator(string fileName, bool mapAsImage) {
 			this.theFileName = fileName;

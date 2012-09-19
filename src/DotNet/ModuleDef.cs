@@ -167,7 +167,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Dispose method
 		/// </summary>
-		/// <param name="disposing">true if called by <see cref="Dispose()"/></param>
+		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
 		}
 
@@ -288,7 +288,7 @@ namespace dot10.DotNet {
 	public class ModuleDefMD2 : ModuleDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawModuleRow rawRow;
 
 		UserValue<ushort> generation;

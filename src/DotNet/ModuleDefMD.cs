@@ -171,7 +171,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="dnFile">The loaded .NET file</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is null</exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
 		ModuleDefMD(DotNetFile dnFile)
 			: base(null, 1) {
 #if DEBUG
@@ -284,7 +284,7 @@ namespace dot10.DotNet {
 		/// Resolves a token
 		/// </summary>
 		/// <param name="mdToken">The metadata token</param>
-		/// <returns>A <see cref="IMDTokenProvider"/> or null if <paramref name="mdToken"/> is invalid</returns>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="mdToken"/> is invalid</returns>
 		public IMDTokenProvider ResolveToken(MDToken mdToken) {
 			return ResolveToken(mdToken.Raw);
 		}
@@ -293,7 +293,7 @@ namespace dot10.DotNet {
 		/// Resolves a token
 		/// </summary>
 		/// <param name="token">The metadata token</param>
-		/// <returns>A <see cref="IMDTokenProvider"/> or null if <paramref name="token"/> is invalid</returns>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
 		public IMDTokenProvider ResolveToken(int token) {
 			return ResolveToken((uint)token);
 		}
@@ -302,7 +302,7 @@ namespace dot10.DotNet {
 		/// Resolves a token
 		/// </summary>
 		/// <param name="token">The metadata token</param>
-		/// <returns>A <see cref="IMDTokenProvider"/> or null if <paramref name="token"/> is invalid</returns>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
 		public IMDTokenProvider ResolveToken(uint token) {
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
@@ -359,7 +359,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ModuleDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ModuleDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ModuleDef ResolveModule(uint rid) {
 			return listModuleDefMD[rid - 1];
 		}
@@ -368,7 +368,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="TypeRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="TypeRef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public TypeRef ResolveTypeRef(uint rid) {
 			return listTypeRefMD[rid - 1];
 		}
@@ -377,7 +377,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="TypeDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="TypeDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public TypeDef ResolveTypeDef(uint rid) {
 			return listTypeDefMD[rid - 1];
 		}
@@ -386,7 +386,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="FieldPtr"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldPtr"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="FieldPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public FieldPtr ResolveFieldPtr(uint rid) {
 			return listFieldPtrMD[rid - 1];
 		}
@@ -395,7 +395,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="FieldDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public FieldDef ResolveField(uint rid) {
 			return listFieldDefMD[rid - 1];
 		}
@@ -404,7 +404,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="MethodPtr"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodPtr"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="MethodPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MethodPtr ResolveMethodPtr(uint rid) {
 			return listMethodPtrMD[rid - 1];
 		}
@@ -413,7 +413,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="MethodDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MethodDef ResolveMethod(uint rid) {
 			return listMethodDefMD[rid - 1];
 		}
@@ -422,7 +422,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ParamPtr"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ParamPtr"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ParamPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ParamPtr ResolveParamPtr(uint rid) {
 			return listParamPtrMD[rid - 1];
 		}
@@ -431,7 +431,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ParamDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ParamDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ParamDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ParamDef ResolveParam(uint rid) {
 			return listParamDefMD[rid - 1];
 		}
@@ -440,7 +440,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="InterfaceImpl"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="InterfaceImpl"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="InterfaceImpl"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public InterfaceImpl ResolveInterfaceImpl(uint rid) {
 			return listInterfaceImplMD[rid - 1];
 		}
@@ -449,7 +449,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="MemberRef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MemberRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="MemberRef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MemberRef ResolveMemberRef(uint rid) {
 			return listMemberRefMD[rid - 1];
 		}
@@ -458,7 +458,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="Constant"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="Constant"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="Constant"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public Constant ResolveConstant(uint rid) {
 			return listConstantMD[rid - 1];
 		}
@@ -467,7 +467,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="CustomAttribute"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="CustomAttribute"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="CustomAttribute"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public CustomAttribute ResolveCustomAttribute(uint rid) {
 			return listCustomAttributeMD[rid - 1];
 		}
@@ -476,7 +476,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="FieldMarshal"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldMarshal"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="FieldMarshal"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public FieldMarshal ResolveFieldMarshal(uint rid) {
 			return listFieldMarshalMD[rid - 1];
 		}
@@ -485,7 +485,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="DeclSecurity"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="DeclSecurity"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="DeclSecurity"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public DeclSecurity ResolveDeclSecurity(uint rid) {
 			return listDeclSecurityMD[rid - 1];
 		}
@@ -494,7 +494,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ClassLayout"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ClassLayout"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ClassLayout"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ClassLayout ResolveClassLayout(uint rid) {
 			return listClassLayoutMD[rid - 1];
 		}
@@ -503,7 +503,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="FieldLayout"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldLayout"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="FieldLayout"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public FieldLayout ResolveFieldLayout(uint rid) {
 			return listFieldLayoutMD[rid - 1];
 		}
@@ -512,7 +512,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="StandAloneSig"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="StandAloneSig"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="StandAloneSig"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public StandAloneSig ResolveStandAloneSig(uint rid) {
 			return listStandAloneSigMD[rid - 1];
 		}
@@ -521,7 +521,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="EventMap"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="EventMap"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="EventMap"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public EventMap ResolveEventMap(uint rid) {
 			return listEventMapMD[rid - 1];
 		}
@@ -530,7 +530,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="EventPtr"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="EventPtr"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="EventPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public EventPtr ResolveEventPtr(uint rid) {
 			return listEventPtrMD[rid - 1];
 		}
@@ -539,7 +539,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="EventDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="EventDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="EventDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public EventDef ResolveEvent(uint rid) {
 			return listEventDefMD[rid - 1];
 		}
@@ -548,7 +548,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="PropertyMap"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="PropertyMap"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="PropertyMap"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public PropertyMap ResolvePropertyMap(uint rid) {
 			return listPropertyMapMD[rid - 1];
 		}
@@ -557,7 +557,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="PropertyPtr"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="PropertyPtr"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="PropertyPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public PropertyPtr ResolvePropertyPtr(uint rid) {
 			return listPropertyPtrMD[rid - 1];
 		}
@@ -566,7 +566,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="PropertyDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="PropertyDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="PropertyDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public PropertyDef ResolveProperty(uint rid) {
 			return listPropertyDefMD[rid - 1];
 		}
@@ -575,7 +575,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="MethodSemantics"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodSemantics"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="MethodSemantics"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MethodSemantics ResolveMethodSemantics(uint rid) {
 			return listMethodSemanticsMD[rid - 1];
 		}
@@ -584,7 +584,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="MethodImpl"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodImpl"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="MethodImpl"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MethodImpl ResolveMethodImpl(uint rid) {
 			return listMethodImplMD[rid - 1];
 		}
@@ -593,7 +593,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ModuleRef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ModuleRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ModuleRef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ModuleRef ResolveModuleRef(uint rid) {
 			return listModuleRefMD[rid - 1];
 		}
@@ -602,7 +602,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="TypeSpec"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="TypeSpec"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="TypeSpec"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public TypeSpec ResolveTypeSpec(uint rid) {
 			return listTypeSpecMD[rid - 1];
 		}
@@ -611,7 +611,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="ImplMap"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ImplMap"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ImplMap"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ImplMap ResolveImplMap(uint rid) {
 			return listImplMapMD[rid - 1];
 		}
@@ -620,7 +620,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="FieldRVA"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldRVA"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="FieldRVA"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public FieldRVA ResolveFieldRVA(uint rid) {
 			return listFieldRVAMD[rid - 1];
 		}
@@ -629,7 +629,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="ENCLog"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ENCLog"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ENCLog"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ENCLog ResolveENCLog(uint rid) {
 			return listENCLogMD[rid - 1];
 		}
@@ -638,7 +638,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="ENCMap"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ENCMap"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ENCMap"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ENCMap ResolveENCMap(uint rid) {
 			return listENCMapMD[rid - 1];
 		}
@@ -647,7 +647,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="AssemblyDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="AssemblyDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public AssemblyDef ResolveAssembly(uint rid) {
 			return listAssemblyDefMD[rid - 1];
 		}
@@ -656,7 +656,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="AssemblyProcessor"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyProcessor"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="AssemblyProcessor"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public AssemblyProcessor ResolveAssemblyProcessor(uint rid) {
 			return listAssemblyProcessorMD[rid - 1];
 		}
@@ -665,7 +665,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="AssemblyOS"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyOS"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="AssemblyOS"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public AssemblyOS ResolveAssemblyOS(uint rid) {
 			return listAssemblyOSMD[rid - 1];
 		}
@@ -674,7 +674,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="AssemblyRef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyRef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="AssemblyRef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public AssemblyRef ResolveAssemblyRef(uint rid) {
 			return listAssemblyRefMD[rid - 1];
 		}
@@ -683,7 +683,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="AssemblyRefProcessor"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyRefProcessor"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="AssemblyRefProcessor"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public AssemblyRefProcessor ResolveAssemblyRefProcessor(uint rid) {
 			return listAssemblyRefProcessorMD[rid - 1];
 		}
@@ -692,7 +692,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="AssemblyRefOS"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyRefOS"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="AssemblyRefOS"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public AssemblyRefOS ResolveAssemblyRefOS(uint rid) {
 			return listAssemblyRefOSMD[rid - 1];
 		}
@@ -701,7 +701,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="FileDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FileDef"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="FileDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public FileDef ResolveFile(uint rid) {
 			return listFileDefMD[rid - 1];
 		}
@@ -710,7 +710,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="ExportedType"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ExportedType"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ExportedType"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ExportedType ResolveExportedType(uint rid) {
 			return listExportedTypeMD[rid - 1];
 		}
@@ -719,7 +719,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ManifestResource"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ManifestResource"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="ManifestResource"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ManifestResource ResolveManifestResource(uint rid) {
 			return listManifestResourceMD[rid - 1];
 		}
@@ -728,7 +728,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="NestedClass"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="NestedClass"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="NestedClass"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public NestedClass ResolveNestedClass(uint rid) {
 			return listNestedClassMD[rid - 1];
 		}
@@ -737,7 +737,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="GenericParam"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="GenericParam"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="GenericParam"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public GenericParam ResolveGenericParam(uint rid) {
 			if (listGenericParamMD == null)
 				return null;
@@ -748,7 +748,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="MethodSpec"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodSpec"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="MethodSpec"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MethodSpec ResolveMethodSpec(uint rid) {
 			if (listMethodSpecMD == null)
 				return null;
@@ -759,7 +759,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="GenericParamConstraint"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="GenericParamConstraint"/> instance or null if <paramref name="rid"/> is invalid</returns>
+		/// <returns>A <see cref="GenericParamConstraint"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public GenericParamConstraint ResolveGenericParamConstraint(uint rid) {
 			if (listGenericParamConstraintMD == null)
 				return null;
@@ -770,7 +770,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ITypeDefOrRef"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>TypeDefOrRef</c> coded token</param>
-		/// <returns>A <see cref="ITypeDefOrRef"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="ITypeDefOrRef"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public ITypeDefOrRef ResolveTypeDefOrRef(uint codedToken) {
 			uint token;
 			if (!CodedToken.TypeDefOrRef.Decode(codedToken, out token))
@@ -788,7 +788,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IHasConstant"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>HasConstant</c> coded token</param>
-		/// <returns>A <see cref="IHasConstant"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IHasConstant"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IHasConstant ResolveHasConstant(uint codedToken) {
 			uint token;
 			if (!CodedToken.HasConstant.Decode(codedToken, out token))
@@ -806,7 +806,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IHasCustomAttribute"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>HasCustomAttribute</c> coded token</param>
-		/// <returns>A <see cref="IHasCustomAttribute"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IHasCustomAttribute"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IHasCustomAttribute ResolveHasCustomAttribute(uint codedToken) {
 			uint token;
 			if (!CodedToken.HasCustomAttribute.Decode(codedToken, out token))
@@ -843,7 +843,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IHasFieldMarshal"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>HasFieldMarshal</c> coded token</param>
-		/// <returns>A <see cref="IHasFieldMarshal"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IHasFieldMarshal"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IHasFieldMarshal ResolveHasFieldMarshal(uint codedToken) {
 			uint token;
 			if (!CodedToken.HasFieldMarshal.Decode(codedToken, out token))
@@ -860,7 +860,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IHasDeclSecurity"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>HasDeclSecurity</c> coded token</param>
-		/// <returns>A <see cref="IHasDeclSecurity"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IHasDeclSecurity"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IHasDeclSecurity ResolveHasDeclSecurity(uint codedToken) {
 			uint token;
 			if (!CodedToken.HasDeclSecurity.Decode(codedToken, out token))
@@ -878,7 +878,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IMemberRefParent"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>MemberRefParent</c> coded token</param>
-		/// <returns>A <see cref="IMemberRefParent"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IMemberRefParent"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IMemberRefParent ResolveMemberRefParent(uint codedToken) {
 			uint token;
 			if (!CodedToken.MemberRefParent.Decode(codedToken, out token))
@@ -898,7 +898,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IHasSemantic"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>HasSemantic</c> coded token</param>
-		/// <returns>A <see cref="IHasSemantic"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IHasSemantic"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IHasSemantic ResolveHasSemantic(uint codedToken) {
 			uint token;
 			if (!CodedToken.HasSemantic.Decode(codedToken, out token))
@@ -915,7 +915,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IMethodDefOrRef"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>MethodDefOrRef</c> coded token</param>
-		/// <returns>A <see cref="IMethodDefOrRef"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IMethodDefOrRef"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IMethodDefOrRef ResolveMethodDefOrRef(uint codedToken) {
 			uint token;
 			if (!CodedToken.MethodDefOrRef.Decode(codedToken, out token))
@@ -932,7 +932,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IMemberForwarded"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>MemberForwarded</c> coded token</param>
-		/// <returns>A <see cref="IMemberForwarded"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IMemberForwarded"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IMemberForwarded ResolveMemberForwarded(uint codedToken) {
 			uint token;
 			if (!CodedToken.MemberForwarded.Decode(codedToken, out token))
@@ -949,7 +949,7 @@ namespace dot10.DotNet {
 		/// Resolves an <see cref="IImplementation"/>
 		/// </summary>
 		/// <param name="codedToken">An <c>Implementation</c> coded token</param>
-		/// <returns>A <see cref="IImplementation"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IImplementation"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IImplementation ResolveImplementation(uint codedToken) {
 			uint token;
 			if (!CodedToken.Implementation.Decode(codedToken, out token))
@@ -967,7 +967,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ICustomAttributeType"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>CustomAttributeType</c> coded token</param>
-		/// <returns>A <see cref="ICustomAttributeType"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="ICustomAttributeType"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public ICustomAttributeType ResolveCustomAttributeType(uint codedToken) {
 			uint token;
 			if (!CodedToken.CustomAttributeType.Decode(codedToken, out token))
@@ -984,7 +984,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="IResolutionScope"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>ResolutionScope</c> coded token</param>
-		/// <returns>A <see cref="IResolutionScope"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="IResolutionScope"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public IResolutionScope ResolveResolutionScope(uint codedToken) {
 			uint token;
 			if (!CodedToken.ResolutionScope.Decode(codedToken, out token))
@@ -1003,7 +1003,7 @@ namespace dot10.DotNet {
 		/// Resolves a <see cref="ITypeOrMethodDef"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>TypeOrMethodDef</c>> coded token</param>
-		/// <returns>A <see cref="ITypeOrMethodDef"/> or null if <paramref name="codedToken"/> is invalid</returns>
+		/// <returns>A <see cref="ITypeOrMethodDef"/> or <c>null</c> if <paramref name="codedToken"/> is invalid</returns>
 		public ITypeOrMethodDef ResolveTypeOrMethodDef(uint codedToken) {
 			uint token;
 			if (!CodedToken.TypeOrMethodDef.Decode(codedToken, out token))

@@ -84,7 +84,7 @@ namespace dot10.DotNet {
 	sealed class StandAloneSigMD : StandAloneSig {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawStandAloneSigRow rawRow;
 
 		UserValue<CallingConventionSig> signature;

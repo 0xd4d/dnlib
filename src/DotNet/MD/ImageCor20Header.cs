@@ -63,7 +63,7 @@ namespace dot10.DotNet.MD {
 		ImageDataDirectory managedNativeHeader;
 
 		/// <summary>
-		/// Returns true if it has a native header
+		/// Returns <c>true</c> if it has a native header
 		/// </summary>
 		public bool HasNativeHeader {
 			get { return (flags & ComImageFlags.ILLibrary) != 0; }

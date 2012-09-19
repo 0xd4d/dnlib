@@ -29,7 +29,7 @@ namespace dot10.IO {
 		/// Reads bytes until byte <paramref name="b"/> is found
 		/// </summary>
 		/// <param name="b">The terminating byte</param>
-		/// <returns>All the bytes (not including <paramref name="b"/>) or null if
+		/// <returns>All the bytes (not including <paramref name="b"/>) or <c>null</c> if
 		/// <paramref name="b"/> wasn't found.</returns>
 		byte[] ReadBytesUntilByte(byte b);
 

@@ -9,7 +9,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	public abstract class TypeSig : ISignature, IFullName {
 		/// <summary>
-		/// Returns the wrapped element type. Can only be null if it was an invalid sig or
+		/// Returns the wrapped element type. Can only be <c>null</c> if it was an invalid sig or
 		/// if it's a <see cref="LeafSig"/>
 		/// </summary>
 		public abstract TypeSig Next { get; }

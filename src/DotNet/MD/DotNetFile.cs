@@ -88,7 +88,7 @@ namespace dot10.DotNet.MD {
 		/// Create a <see cref="DotNetFile"/> instance
 		/// </summary>
 		/// <param name="peImage">The PE image</param>
-		/// <param name="verify">true if we should verify that it's a .NET PE file</param>
+		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(IPEImage peImage, bool verify) {
 			IImageStream cor20HeaderStream = null, mdHeaderStream = null;

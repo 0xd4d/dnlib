@@ -27,7 +27,7 @@ namespace dot10.DotNet {
 		/// Access the list
 		/// </summary>
 		/// <param name="index">Index</param>
-		/// <returns>The element or null if <paramref name="index"/> is invalid</returns>
+		/// <returns>The element or <c>null</c> if <paramref name="index"/> is invalid</returns>
 		public T this[uint index] {
 			get {
 				if (index >= length)

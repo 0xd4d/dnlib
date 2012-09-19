@@ -132,7 +132,7 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="token">The token</param>
 		/// <param name="codedToken">Coded token</param>
-		/// <returns>true if successful</returns>
+		/// <returns><c>true</c> if successful</returns>
 		public bool Encode(MDToken token, out uint codedToken) {
 			return Encode(token.Raw, out codedToken);
 		}
@@ -142,7 +142,7 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="token">The token</param>
 		/// <param name="codedToken">Coded token</param>
-		/// <returns>true if successful</returns>
+		/// <returns><c>true</c> if successful</returns>
 		public bool Encode(uint token, out uint codedToken) {
 			int index = Array.IndexOf(tableTypes, MDToken.ToTable(token));
 			if (index < 0) {
@@ -182,7 +182,7 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="codedToken">The coded token</param>
 		/// <param name="token">Decoded token</param>
-		/// <returns>true if successful</returns>
+		/// <returns><c>true</c> if successful</returns>
 		public bool Decode(uint codedToken, out MDToken token) {
 			uint decodedToken;
 			bool result = Decode(codedToken, out decodedToken);
@@ -195,7 +195,7 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="codedToken">The coded token</param>
 		/// <param name="token">Decoded token</param>
-		/// <returns>true if successful</returns>
+		/// <returns><c>true</c> if successful</returns>
 		public bool Decode(uint codedToken, out uint token) {
 			uint rid = codedToken >> bits;
 			int index = (int)(codedToken & mask);

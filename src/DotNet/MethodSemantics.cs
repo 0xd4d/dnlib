@@ -161,7 +161,7 @@ namespace dot10.DotNet {
 	sealed class MethodSemanticsMD : MethodSemantics {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawMethodSemanticsRow rawRow;
 
 		UserValue<MethodSemanticsAttributes> semantic;

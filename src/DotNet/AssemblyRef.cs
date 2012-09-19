@@ -36,7 +36,7 @@ namespace dot10.DotNet {
 		/// From columns AssemblyRef.MajorVersion, AssemblyRef.MinorVersion,
 		/// AssemblyRef.BuildNumber, AssemblyRef.RevisionNumber
 		/// </summary>
-		/// <exception cref="ArgumentNullException">If <paramref name="value"/> is null</exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="value"/> is <c>null</c></exception>
 		public abstract Version Version { get; set; }
 
 		/// <summary>
@@ -47,7 +47,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column AssemblyRef.PublicKeyOrToken
 		/// </summary>
-		/// <exception cref="ArgumentNullException">If <paramref name="value"/> is null</exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="value"/> is <c>null</c></exception>
 		public abstract PublicKeyBase PublicKeyOrToken { get; set; }
 
 		/// <summary>
@@ -371,7 +371,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is null</exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyRefUser(AssemblyName asmName)
 			: this(new AssemblyNameInfo(asmName)) {
 			this.flags = (AssemblyFlags)asmName.Flags;
@@ -381,7 +381,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is null</exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyRefUser(AssemblyNameInfo asmName) {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
@@ -403,7 +403,7 @@ namespace dot10.DotNet {
 	sealed class AssemblyRefMD : AssemblyRef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawAssemblyRefRow rawRow;
 
 		UserValue<Version> version;

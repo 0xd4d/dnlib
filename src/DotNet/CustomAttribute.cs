@@ -71,7 +71,7 @@ namespace dot10.DotNet {
 	sealed class CustomAttributeMD : CustomAttribute {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's null until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawCustomAttributeRow rawRow;
 
 		UserValue<IHasCustomAttribute> parent;

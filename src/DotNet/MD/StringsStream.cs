@@ -14,7 +14,7 @@ namespace dot10.DotNet.MD {
 		/// Read a <see cref="UTF8String"/>
 		/// </summary>
 		/// <param name="offset">Offset of string</param>
-		/// <returns>A <see cref="UTF8String"/> instance or null if invalid offset</returns>
+		/// <returns>A <see cref="UTF8String"/> instance or <c>null</c> if invalid offset</returns>
 		public UTF8String Read(uint offset) {
 			if (offset >= imageStream.Length)
 				return null;

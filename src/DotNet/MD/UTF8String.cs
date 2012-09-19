@@ -39,11 +39,11 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Checks whether <paramref name="utf8"/> is null or if its data is null or the
+		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c> or the
 		/// data is zero length.
 		/// </summary>
 		/// <param name="utf8">The instance to check</param>
-		/// <returns><c>true</c> if null or empty, <c>false</c> otherwise</returns>
+		/// <returns><c>true</c> if <c>null</c> or empty, <c>false</c> otherwise</returns>
 		public static bool IsNullOrEmpty(UTF8String utf8) {
 			return (object)utf8 == null || utf8.data == null || utf8.data.Length == 0;
 		}
@@ -52,7 +52,7 @@ namespace dot10.DotNet.MD {
 		/// Converts it to a <see cref="string"/>
 		/// </summary>
 		/// <param name="utf8">The UTF-8 string instace or <c>null</c></param>
-		/// <returns>A <see cref="string"/> or null if <paramref name="utf8"/> is <c>null</c></returns>
+		/// <returns>A <see cref="string"/> or <c>null</c> if <paramref name="utf8"/> is <c>null</c></returns>
 		public static string ToSystemString(UTF8String utf8) {
 			return IsNullOrEmpty(utf8) ? null : utf8.String;
 		}

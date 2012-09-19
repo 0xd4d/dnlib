@@ -20,7 +20,7 @@ namespace dot10.DotNet.MD {
 		/// Read a <see cref="Guid"/>
 		/// </summary>
 		/// <param name="index">Index into this stream</param>
-		/// <returns>A <see cref="Guid"/> or null if <paramref name="index"/> is 0 or invalid</returns>
+		/// <returns>A <see cref="Guid"/> or <c>null</c> if <paramref name="index"/> is 0 or invalid</returns>
 		public Guid? Read(uint index) {
 			if (index == 0 || !IsValidIndex(index))
 				return null;

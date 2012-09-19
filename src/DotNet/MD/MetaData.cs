@@ -451,7 +451,7 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Dispose method
 		/// </summary>
-		/// <param name="disposing">true if called by <see cref="Dispose()"/></param>
+		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;

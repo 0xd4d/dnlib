@@ -41,7 +41,7 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Dispose method
 		/// </summary>
-		/// <param name="disposing">true if called by <see cref="Dispose()"/></param>
+		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				if (imageStream != null)
@@ -55,7 +55,7 @@ namespace dot10.DotNet.MD {
 		/// Checks whether an index is valid
 		/// </summary>
 		/// <param name="index">The index</param>
-		/// <returns>true if the index is valid</returns>
+		/// <returns><c>true</c> if the index is valid</returns>
 		public virtual bool IsValidIndex(uint index) {
 			return IsValidOffset(index);
 		}
@@ -64,7 +64,7 @@ namespace dot10.DotNet.MD {
 		/// Check whether an offset is within the stream
 		/// </summary>
 		/// <param name="offset">Stream offset</param>
-		/// <returns>true if the offset is valid</returns>
+		/// <returns><c>true</c> if the offset is valid</returns>
 		public bool IsValidOffset(uint offset) {
 			return offset == 0 || offset < imageStream.Length;
 		}
@@ -74,7 +74,7 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="offset">Stream offset</param>
 		/// <param name="size">Size of data</param>
-		/// <returns>true if the offset is valid</returns>
+		/// <returns><c>true</c> if the offset is valid</returns>
 		public bool IsValidOffset(uint offset, int size) {
 			if (size == 0)
 				return IsValidOffset(offset);

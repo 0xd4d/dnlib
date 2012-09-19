@@ -9,14 +9,14 @@
 		protected byte[] data;
 
 		/// <summary>
-		/// Returns true if <see cref="Data"/> is <c>null</c> or empty
+		/// Returns <c>true</c> if <see cref="Data"/> is <c>null</c> or empty
 		/// </summary>
 		public bool IsNullOrEmpty {
 			get { return data == null || data.Length == 0; }
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="Data"/> is <c>null</c>
+		/// Returns <c>true</c> if <see cref="Data"/> is <c>null</c>
 		/// </summary>
 		public bool IsNull {
 			get { return data == null; }

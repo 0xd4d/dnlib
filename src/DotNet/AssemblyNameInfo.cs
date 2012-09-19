@@ -26,7 +26,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Version"/> or null if none specified
+		/// Gets/sets the <see cref="Version"/> or <c>null</c> if none specified
 		/// </summary>
 		public Version Version {
 			get { return version; }
@@ -42,7 +42,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the public key or null if none specified
+		/// Gets/sets the public key or <c>null</c> if none specified
 		/// </summary>
 		public PublicKey PublicKey {
 			get { return publicKey; }
@@ -50,7 +50,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the public key token or null if none specified
+		/// Gets/sets the public key token or <c>null</c> if none specified
 		/// </summary>
 		public PublicKeyToken PublicKeyToken {
 			get { return publicKeyToken; }
@@ -58,7 +58,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the name. It is never null.
+		/// Gets/sets the name. It is never <c>null</c>.
 		/// </summary>
 		public UTF8String Name {
 			get { return name; }
@@ -66,7 +66,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the locale or null if none specified
+		/// Gets/sets the locale or <c>null</c> if none specified
 		/// </summary>
 		public UTF8String Locale {
 			get { return locale; }
@@ -77,7 +77,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmFullName">An assembly name</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmFullName"/> is null</exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmFullName"/> is <c>null</c></exception>
 		public AssemblyNameInfo(string asmFullName) {
 			if (asmFullName == null)
 				throw new ArgumentNullException("asmFullName");
@@ -88,7 +88,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is null</exception>
+		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyNameInfo(AssemblyName asmName) {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
@@ -182,7 +182,7 @@ namespace dot10.DotNet {
 		/// Parses a version string
 		/// </summary>
 		/// <param name="versionString">Version string</param>
-		/// <returns>A new <see cref="Version"/> or null if <paramref name="versionString"/>
+		/// <returns>A new <see cref="Version"/> or <c>null</c> if <paramref name="versionString"/>
 		/// is an invalid version</returns>
 		static Version ParseVersion(string versionString) {
 			try {

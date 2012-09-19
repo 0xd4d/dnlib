@@ -9,9 +9,9 @@ namespace dot10.DotNet {
 		/// Returns an assembly name string
 		/// </summary>
 		/// <param name="name">Simple assembly name</param>
-		/// <param name="version">Version or null</param>
-		/// <param name="culture">Culture or null</param>
-		/// <param name="publicKey">Public key / public key token or null</param>
+		/// <param name="version">Version or <c>null</c></param>
+		/// <param name="culture">Culture or <c>null</c></param>
+		/// <param name="publicKey">Public key / public key token or <c>null</c></param>
 		/// <returns>An assembly name string</returns>
 		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey) {
 			var sb = new StringBuilder();
@@ -174,7 +174,7 @@ namespace dot10.DotNet {
 		/// Converts a hex string to a byte[]
 		/// </summary>
 		/// <param name="hexString">A string with an even number of hex characters</param>
-		/// <returns><paramref name="hexString"/> converted to a byte[] or null
+		/// <returns><paramref name="hexString"/> converted to a byte[] or <c>null</c>
 		/// if <paramref name="hexString"/> is invalid</returns>
 		internal static byte[] ParseBytes(string hexString) {
 			try {

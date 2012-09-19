@@ -46,7 +46,7 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Returns true if it's a null token
+		/// Returns <c>true</c> if it's a <c>null</c> token
 		/// </summary>
 		public bool IsNull {
 			get { return Rid == 0; }

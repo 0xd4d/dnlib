@@ -42,14 +42,14 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Returns true if the value has been initialized
+		/// Returns <c>true</c> if the value has been initialized
 		/// </summary>
 		public bool IsValueInitialized {
 			get { return isValueInitialized; }
 		}
 
 		/// <summary>
-		/// Returns true if the value was set by the user
+		/// Returns <c>true</c> if the value was set by the user
 		/// </summary>
 		public bool IsUserValue {
 			get { return isUserValue; }

@@ -4,7 +4,7 @@
 		/// Reads a raw Module row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawModuleRow ReadModuleRow(uint rid) {
 			var table = Get(Table.Module);
 			if (table == null || table.IsInvalidRID(rid))
@@ -24,7 +24,7 @@
 		/// Reads a raw TypeRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeRefRow ReadTypeRefRow(uint rid) {
 			var table = Get(Table.TypeRef);
 			if (table == null || table.IsInvalidRID(rid))
@@ -42,7 +42,7 @@
 		/// Reads a raw TypeDef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeDefRow ReadTypeDefRow(uint rid) {
 			var table = Get(Table.TypeDef);
 			if (table == null || table.IsInvalidRID(rid))
@@ -63,7 +63,7 @@
 		/// Reads a raw FieldPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldPtrRow ReadFieldPtrRow(uint rid) {
 			var table = Get(Table.FieldPtr);
 			if (table == null || table.IsInvalidRID(rid))
@@ -79,7 +79,7 @@
 		/// Reads a raw Field row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldRow ReadFieldRow(uint rid) {
 			var table = Get(Table.Field);
 			if (table == null || table.IsInvalidRID(rid))
@@ -97,7 +97,7 @@
 		/// Reads a raw MethodPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodPtrRow ReadMethodPtrRow(uint rid) {
 			var table = Get(Table.MethodPtr);
 			if (table == null || table.IsInvalidRID(rid))
@@ -113,7 +113,7 @@
 		/// Reads a raw Method row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodRow ReadMethodRow(uint rid) {
 			var table = Get(Table.Method);
 			if (table == null || table.IsInvalidRID(rid))
@@ -134,7 +134,7 @@
 		/// Reads a raw ParamPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawParamPtrRow ReadParamPtrRow(uint rid) {
 			var table = Get(Table.ParamPtr);
 			if (table == null || table.IsInvalidRID(rid))
@@ -150,7 +150,7 @@
 		/// Reads a raw Param row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawParamRow ReadParamRow(uint rid) {
 			var table = Get(Table.Param);
 			if (table == null || table.IsInvalidRID(rid))
@@ -168,7 +168,7 @@
 		/// Reads a raw InterfaceImpl row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawInterfaceImplRow ReadInterfaceImplRow(uint rid) {
 			var table = Get(Table.InterfaceImpl);
 			if (table == null || table.IsInvalidRID(rid))
@@ -185,7 +185,7 @@
 		/// Reads a raw MemberRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMemberRefRow ReadMemberRefRow(uint rid) {
 			var table = Get(Table.MemberRef);
 			if (table == null || table.IsInvalidRID(rid))
@@ -203,7 +203,7 @@
 		/// Reads a raw Constant row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawConstantRow ReadConstantRow(uint rid) {
 			var table = Get(Table.Constant);
 			if (table == null || table.IsInvalidRID(rid))
@@ -222,7 +222,7 @@
 		/// Reads a raw CustomAttribute row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawCustomAttributeRow ReadCustomAttributeRow(uint rid) {
 			var table = Get(Table.CustomAttribute);
 			if (table == null || table.IsInvalidRID(rid))
@@ -240,7 +240,7 @@
 		/// Reads a raw FieldMarshal row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldMarshalRow ReadFieldMarshalRow(uint rid) {
 			var table = Get(Table.FieldMarshal);
 			if (table == null || table.IsInvalidRID(rid))
@@ -257,7 +257,7 @@
 		/// Reads a raw DeclSecurity row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawDeclSecurityRow ReadDeclSecurityRow(uint rid) {
 			var table = Get(Table.DeclSecurity);
 			if (table == null || table.IsInvalidRID(rid))
@@ -275,7 +275,7 @@
 		/// Reads a raw ClassLayout row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawClassLayoutRow ReadClassLayoutRow(uint rid) {
 			var table = Get(Table.ClassLayout);
 			if (table == null || table.IsInvalidRID(rid))
@@ -293,7 +293,7 @@
 		/// Reads a raw FieldLayout row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldLayoutRow ReadFieldLayoutRow(uint rid) {
 			var table = Get(Table.FieldLayout);
 			if (table == null || table.IsInvalidRID(rid))
@@ -310,7 +310,7 @@
 		/// Reads a raw StandAloneSig row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawStandAloneSigRow ReadStandAloneSigRow(uint rid) {
 			var table = Get(Table.StandAloneSig);
 			if (table == null || table.IsInvalidRID(rid))
@@ -326,7 +326,7 @@
 		/// Reads a raw EventMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventMapRow ReadEventMapRow(uint rid) {
 			var table = Get(Table.EventMap);
 			if (table == null || table.IsInvalidRID(rid))
@@ -343,7 +343,7 @@
 		/// Reads a raw EventPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventPtrRow ReadEventPtrRow(uint rid) {
 			var table = Get(Table.EventPtr);
 			if (table == null || table.IsInvalidRID(rid))
@@ -359,7 +359,7 @@
 		/// Reads a raw Event row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventRow ReadEventRow(uint rid) {
 			var table = Get(Table.Event);
 			if (table == null || table.IsInvalidRID(rid))
@@ -377,7 +377,7 @@
 		/// Reads a raw PropertyMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyMapRow ReadPropertyMapRow(uint rid) {
 			var table = Get(Table.PropertyMap);
 			if (table == null || table.IsInvalidRID(rid))
@@ -394,7 +394,7 @@
 		/// Reads a raw PropertyPtr row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyPtrRow ReadPropertyPtrRow(uint rid) {
 			var table = Get(Table.PropertyPtr);
 			if (table == null || table.IsInvalidRID(rid))
@@ -410,7 +410,7 @@
 		/// Reads a raw Property row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyRow ReadPropertyRow(uint rid) {
 			var table = Get(Table.Property);
 			if (table == null || table.IsInvalidRID(rid))
@@ -428,7 +428,7 @@
 		/// Reads a raw MethodSemantics row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodSemanticsRow ReadMethodSemanticsRow(uint rid) {
 			var table = Get(Table.MethodSemantics);
 			if (table == null || table.IsInvalidRID(rid))
@@ -446,7 +446,7 @@
 		/// Reads a raw MethodImpl row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodImplRow ReadMethodImplRow(uint rid) {
 			var table = Get(Table.MethodImpl);
 			if (table == null || table.IsInvalidRID(rid))
@@ -464,7 +464,7 @@
 		/// Reads a raw ModuleRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawModuleRefRow ReadModuleRefRow(uint rid) {
 			var table = Get(Table.ModuleRef);
 			if (table == null || table.IsInvalidRID(rid))
@@ -480,7 +480,7 @@
 		/// Reads a raw TypeSpec row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeSpecRow ReadTypeSpecRow(uint rid) {
 			var table = Get(Table.TypeSpec);
 			if (table == null || table.IsInvalidRID(rid))
@@ -496,7 +496,7 @@
 		/// Reads a raw ImplMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawImplMapRow ReadImplMapRow(uint rid) {
 			var table = Get(Table.ImplMap);
 			if (table == null || table.IsInvalidRID(rid))
@@ -515,7 +515,7 @@
 		/// Reads a raw FieldRVA row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldRVARow ReadFieldRVARow(uint rid) {
 			var table = Get(Table.FieldRVA);
 			if (table == null || table.IsInvalidRID(rid))
@@ -532,7 +532,7 @@
 		/// Reads a raw ENCLog row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawENCLogRow ReadENCLogRow(uint rid) {
 			var table = Get(Table.ENCLog);
 			if (table == null || table.IsInvalidRID(rid))
@@ -548,7 +548,7 @@
 		/// Reads a raw ENCMap row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawENCMapRow ReadENCMapRow(uint rid) {
 			var table = Get(Table.ENCMap);
 			if (table == null || table.IsInvalidRID(rid))
@@ -563,7 +563,7 @@
 		/// Reads a raw Assembly row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRow ReadAssemblyRow(uint rid) {
 			var table = Get(Table.Assembly);
 			if (table == null || table.IsInvalidRID(rid))
@@ -587,7 +587,7 @@
 		/// Reads a raw AssemblyProcessor row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyProcessorRow ReadAssemblyProcessorRow(uint rid) {
 			var table = Get(Table.AssemblyProcessor);
 			if (table == null || table.IsInvalidRID(rid))
@@ -602,7 +602,7 @@
 		/// Reads a raw AssemblyOS row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyOSRow ReadAssemblyOSRow(uint rid) {
 			var table = Get(Table.AssemblyOS);
 			if (table == null || table.IsInvalidRID(rid))
@@ -619,7 +619,7 @@
 		/// Reads a raw AssemblyRef row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefRow ReadAssemblyRefRow(uint rid) {
 			var table = Get(Table.AssemblyRef);
 			if (table == null || table.IsInvalidRID(rid))
@@ -643,7 +643,7 @@
 		/// Reads a raw AssemblyRefProcessor row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefProcessorRow ReadAssemblyRefProcessorRow(uint rid) {
 			var table = Get(Table.AssemblyRefProcessor);
 			if (table == null || table.IsInvalidRID(rid))
@@ -660,7 +660,7 @@
 		/// Reads a raw AssemblyRefOS row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefOSRow ReadAssemblyRefOSRow(uint rid) {
 			var table = Get(Table.AssemblyRefOS);
 			if (table == null || table.IsInvalidRID(rid))
@@ -679,7 +679,7 @@
 		/// Reads a raw File row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFileRow ReadFileRow(uint rid) {
 			var table = Get(Table.File);
 			if (table == null || table.IsInvalidRID(rid))
@@ -697,7 +697,7 @@
 		/// Reads a raw ExportedType row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawExportedTypeRow ReadExportedTypeRow(uint rid) {
 			var table = Get(Table.ExportedType);
 			if (table == null || table.IsInvalidRID(rid))
@@ -717,7 +717,7 @@
 		/// Reads a raw ManifestResource row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawManifestResourceRow ReadManifestResourceRow(uint rid) {
 			var table = Get(Table.ManifestResource);
 			if (table == null || table.IsInvalidRID(rid))
@@ -736,7 +736,7 @@
 		/// Reads a raw NestedClass row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawNestedClassRow ReadNestedClassRow(uint rid) {
 			var table = Get(Table.NestedClass);
 			if (table == null || table.IsInvalidRID(rid))
@@ -753,7 +753,7 @@
 		/// Reads a raw GenericParam row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawGenericParamRow ReadGenericParamRow(uint rid) {
 			var table = Get(Table.GenericParam);
 			if (table == null || table.IsInvalidRID(rid))
@@ -779,7 +779,7 @@
 		/// Reads a raw MethodSpec row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodSpecRow ReadMethodSpecRow(uint rid) {
 			var table = Get(Table.MethodSpec);
 			if (table == null || table.IsInvalidRID(rid))
@@ -796,7 +796,7 @@
 		/// Reads a raw GenericParamConstraint row
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		/// <returns>The row or null if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawGenericParamConstraintRow ReadGenericParamConstraintRow(uint rid) {
 			var table = Get(Table.GenericParamConstraint);
 			if (table == null || table.IsInvalidRID(rid))
