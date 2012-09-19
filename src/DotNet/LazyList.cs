@@ -60,23 +60,30 @@ namespace dot10.DotNet {
 		IListListener<TValue> listener;
 
 		/// <summary>
-		/// Stores data and keeps track of the original index and whether the data has been
-		/// initialized or not.
+		/// Stores a simple value
 		/// </summary>
 		class Element {
-			internal uint origIndex;
-			TValue value;
-			LazyList<TValue> lazyList;
+			protected TValue value;
+
+			/// <summary>
+			/// Default constructor
+			/// </summary>
+			protected Element() {
+			}
+
+			/// <summary>
+			/// Constructor that should be used when new elements are inserted into <see cref="LazyList{T}"/>
+			/// </summary>
+			/// <param name="data">User data</param>
+			public Element(TValue data) {
+				this.value = data;
+			}
 
 			/// <summary>
 			/// Gets the value
 			/// </summary>
 			/// <param name="index">Index in the list</param>
-			public TValue GetValue(int index) {
-				if (lazyList != null) {
-					value = lazyList.ReadOriginalValue(index);
-					lazyList = null;
-				}
+			public virtual TValue GetValue(int index) {
 				return value;
 			}
 
@@ -85,7 +92,35 @@ namespace dot10.DotNet {
 			/// </summary>
 			/// <param name="index">Index in the list</param>
 			/// <param name="value">New value</param>
-			public void SetValue(int index, TValue value) {
+			public virtual void SetValue(int index, TValue value) {
+				this.value = value;
+			}
+
+			/// <inheritdoc/>
+			public override string ToString() {
+				return value == null ? string.Empty : value.ToString();
+			}
+		}
+
+		/// <summary>
+		/// Stores data and keeps track of the original index and whether the data has been
+		/// initialized or not.
+		/// </summary>
+		class LazyElement : Element {
+			internal uint origIndex;
+			LazyList<TValue> lazyList;
+
+			/// <inheritdoc/>
+			public override TValue GetValue(int index) {
+				if (lazyList != null) {
+					value = lazyList.ReadOriginalValue(index, origIndex);
+					lazyList = null;
+				}
+				return value;
+			}
+
+			/// <inheritdoc/>
+			public override void SetValue(int index, TValue value) {
 				this.value = value;
 				lazyList = null;
 			}
@@ -95,17 +130,9 @@ namespace dot10.DotNet {
 			/// </summary>
 			/// <param name="origIndex">Original index of this element</param>
 			/// <param name="lazyList">LazyList instance</param>
-			public Element(int origIndex, LazyList<TValue> lazyList) {
+			public LazyElement(int origIndex, LazyList<TValue> lazyList) {
 				this.origIndex = (uint)origIndex;
 				this.lazyList = lazyList;
-			}
-
-			/// <summary>
-			/// Constructor that should be used when new elements are inserted into <see cref="LazyList{T}"/>
-			/// </summary>
-			/// <param name="data">User data</param>
-			public Element(TValue data) {
-				this.value = data;
 			}
 
 			/// <inheritdoc/>
@@ -175,16 +202,15 @@ namespace dot10.DotNet {
 			this.readOriginalValue = readOriginalValue;
 			this.list = new List<Element>(length);
 			for (int i = 0; i < length; i++)
-				list.Add(new Element(i, this));
+				list.Add(new LazyElement(i, this));
 		}
 
-		TValue ReadOriginalValue(Element elem) {
-			return ReadOriginalValue(list.IndexOf(elem));
+		TValue ReadOriginalValue(LazyElement elem) {
+			return ReadOriginalValue(list.IndexOf(elem), elem.origIndex);
 		}
 
-		TValue ReadOriginalValue(int index) {
-			var elem = list[index];
-			var newValue = readOriginalValue(context, elem.origIndex);
+		TValue ReadOriginalValue(int index, uint origIndex) {
+			var newValue = readOriginalValue(context, origIndex);
 			if (listener != null)
 				listener.OnAdd(index, newValue, true);
 			return newValue;
