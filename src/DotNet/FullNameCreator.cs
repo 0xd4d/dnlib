@@ -295,7 +295,7 @@ namespace dot10.DotNet {
 		}
 
 		string Result {
-			get { return sb.ToString(); }
+			get { return sb == null ? null : sb.ToString(); }
 		}
 
 		FullNameCreator() {
