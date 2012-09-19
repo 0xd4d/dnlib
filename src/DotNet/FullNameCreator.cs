@@ -703,7 +703,7 @@ namespace dot10.DotNet {
 					CreateName(genericType == null ? null : genericType.TypeDefOrRef);
 				}
 				genericArguments.PopTypeArgs();
-				if (createName) {
+				if (createNamespace && createName) {
 					if (isReflection) {
 						sb.Append('[');
 						for (int i = 0; i < typeGenArgs.Count; i++) {
