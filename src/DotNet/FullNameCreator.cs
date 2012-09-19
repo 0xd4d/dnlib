@@ -504,7 +504,7 @@ namespace dot10.DotNet {
 				sb.Append('[');
 				if (arraySig.Rank == 0)
 					sb.Append("<RANK0>");	// Not allowed
-				else if (arraySig.Rank == 1 && isReflection)
+				else if (arraySig.Rank == 1)
 					sb.Append('*');
 				else for (int i = 0; i < (int)arraySig.Rank; i++) {
 					if (i != 0)
