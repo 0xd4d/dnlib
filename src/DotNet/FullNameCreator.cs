@@ -624,21 +624,21 @@ namespace dot10.DotNet {
 					else if (arraySig.Rank == 1)
 						sb.Append('*');
 					else for (int i = 0; i < (int)arraySig.Rank; i++) {
-							if (i != 0)
-								sb.Append(',');
-							if (!isReflection) {
-								const int NO_LOWER = int.MinValue;
-								const uint NO_SIZE = uint.MaxValue;
-								int lower = i >= arraySig.LowerBounds.Count ? NO_LOWER : arraySig.LowerBounds[i];
-								uint size = i >= arraySig.Sizes.Count ? NO_SIZE : arraySig.Sizes[i];
-								if (lower != NO_LOWER) {
-									sb.Append(lower);
-									sb.Append("...");
-									if (size != NO_SIZE)
-										sb.Append(lower + (int)size - 1);
-								}
+						if (i != 0)
+							sb.Append(',');
+						if (!isReflection) {
+							const int NO_LOWER = int.MinValue;
+							const uint NO_SIZE = uint.MaxValue;
+							int lower = i >= arraySig.LowerBounds.Count ? NO_LOWER : arraySig.LowerBounds[i];
+							uint size = i >= arraySig.Sizes.Count ? NO_SIZE : arraySig.Sizes[i];
+							if (lower != NO_LOWER) {
+								sb.Append(lower);
+								sb.Append("...");
+								if (size != NO_SIZE)
+									sb.Append(lower + (int)size - 1);
 							}
 						}
+					}
 					sb.Append(']');
 				}
 				break;
