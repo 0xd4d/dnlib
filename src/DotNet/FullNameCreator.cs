@@ -356,103 +356,20 @@ namespace dot10.DotNet {
 		}
 
 		void CreateFullName(TypeSig typeSig) {
-			if (typeSig == null) {
-				sb.Append(NULLVALUE);
-				return;
-			}
-			if (!IncrementRecursionCounter()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
-				return;
-			}
-
-			if (genericArguments != null)
-				typeSig = genericArguments.Resolve(typeSig);
-
-			int len = sb.Length;
-			CreateNamespace(typeSig);
-			if (len != sb.Length)
-				sb.Append('.');
-			CreateName(typeSig);
-
-			DecrementRecursionCounter();
+			CreateTypeSigName(typeSig, TYPESIG_NAMESPACE | TYPESIG_NAME);
 		}
 
 		void CreateNamespace(TypeSig typeSig) {
-			if (typeSig == null) {
-				sb.Append(NULLVALUE);
-				return;
-			}
-			if (!IncrementRecursionCounter()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
-				return;
-			}
-
-			if (genericArguments != null)
-				typeSig = genericArguments.Resolve(typeSig);
-
-			switch (typeSig.ElementType) {
-			case ElementType.Void:
-			case ElementType.Boolean:
-			case ElementType.Char:
-			case ElementType.I1:
-			case ElementType.U1:
-			case ElementType.I2:
-			case ElementType.U2:
-			case ElementType.I4:
-			case ElementType.U4:
-			case ElementType.I8:
-			case ElementType.U8:
-			case ElementType.R4:
-			case ElementType.R8:
-			case ElementType.String:
-			case ElementType.TypedByRef:
-			case ElementType.I:
-			case ElementType.U:
-			case ElementType.Object:
-			case ElementType.ValueType:
-			case ElementType.Class:
-				CreateNamespace(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
-				break;
-
-			case ElementType.Ptr:
-			case ElementType.ByRef:
-			case ElementType.Array:
-			case ElementType.SZArray:
-			case ElementType.CModReqd:
-			case ElementType.CModOpt:
-			case ElementType.Pinned:
-			case ElementType.ValueArray:
-			case ElementType.Module:
-				CreateNamespace(((NonLeafSig)typeSig).Next);
-				break;
-
-			case ElementType.GenericInst:
-				var genericInstSig = (GenericInstSig)typeSig;
-				var genericType = genericInstSig.GenericType;
-				if (genericArguments == null)
-					genericArguments = new GenericArguments();
-				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
-				CreateNamespace(genericType == null ? null : genericType.TypeDefOrRef);
-				genericArguments.PopTypeArgs();
-				break;
-
-			case ElementType.Var:
-			case ElementType.MVar:
-			case ElementType.FnPtr:
-			case ElementType.Sentinel:
-				break;
-
-			case ElementType.End:
-			case ElementType.R:
-			case ElementType.Internal:
-			default:
-				break;
-			}
-
-			DecrementRecursionCounter();
+			CreateTypeSigName(typeSig, TYPESIG_NAMESPACE);
 		}
 
 		void CreateName(TypeSig typeSig) {
+			CreateTypeSigName(typeSig, TYPESIG_NAME);
+		}
+
+		const int TYPESIG_NAMESPACE = 1;
+		const int TYPESIG_NAME = 2;
+		void CreateTypeSigName(TypeSig typeSig, int flags) {
 			if (typeSig == null) {
 				sb.Append(NULLVALUE);
 				return;
@@ -465,6 +382,9 @@ namespace dot10.DotNet {
 			if (genericArguments != null)
 				typeSig = genericArguments.Resolve(typeSig);
 
+			bool createNamespace = (flags & TYPESIG_NAMESPACE) != 0;
+			bool createName = (flags & TYPESIG_NAME) != 0;
+			int len = sb.Length;
 			switch (typeSig.ElementType) {
 			case ElementType.Void:
 			case ElementType.Boolean:
@@ -486,75 +406,101 @@ namespace dot10.DotNet {
 			case ElementType.Object:
 			case ElementType.ValueType:
 			case ElementType.Class:
-				CreateName(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				if (createNamespace && createName)
+					CreateFullName(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				else if (createNamespace)
+					CreateNamespace(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				else if (createName)
+					CreateName(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
 				break;
 
 			case ElementType.Ptr:
-				CreateName(((PtrSig)typeSig).Next);
-				sb.Append('*');
+				CreateTypeSigName(((PtrSig)typeSig).Next, flags);
+				if (createName)
+					sb.Append('*');
 				break;
 
 			case ElementType.ByRef:
-				CreateName(((ByRefSig)typeSig).Next);
-				sb.Append('&');
+				CreateTypeSigName(((ByRefSig)typeSig).Next, flags);
+				if (createName)
+					sb.Append('&');
 				break;
 
 			case ElementType.Array:
-				var arraySig = (ArraySig)typeSig;
-				sb.Append('[');
-				if (arraySig.Rank == 0)
-					sb.Append("<RANK0>");	// Not allowed
-				else if (arraySig.Rank == 1)
-					sb.Append('*');
-				else for (int i = 0; i < (int)arraySig.Rank; i++) {
-					if (i != 0)
-						sb.Append(',');
-					if (!isReflection) {
-						const int NO_LOWER = int.MinValue;
-						const uint NO_SIZE = uint.MaxValue;
-						int lower = i >= arraySig.LowerBounds.Count ? NO_LOWER : arraySig.LowerBounds[i];
-						uint size = i >= arraySig.Sizes.Count ? NO_SIZE : arraySig.Sizes[i];
-						if (lower != NO_LOWER) {
-							sb.Append(lower);
-							sb.Append("...");
-							if (size != NO_SIZE)
-								sb.Append(lower + (int)size - 1);
+				if (createNamespace)
+					CreateNamespace(((NonLeafSig)typeSig).Next);
+				if (createName) {
+					if (len != sb.Length)
+						sb.Append('.');	// We printed the namespace so add a dot
+					var arraySig = (ArraySig)typeSig;
+					sb.Append('[');
+					if (arraySig.Rank == 0)
+						sb.Append("<RANK0>");	// Not allowed
+					else if (arraySig.Rank == 1)
+						sb.Append('*');
+					else for (int i = 0; i < (int)arraySig.Rank; i++) {
+							if (i != 0)
+								sb.Append(',');
+							if (!isReflection) {
+								const int NO_LOWER = int.MinValue;
+								const uint NO_SIZE = uint.MaxValue;
+								int lower = i >= arraySig.LowerBounds.Count ? NO_LOWER : arraySig.LowerBounds[i];
+								uint size = i >= arraySig.Sizes.Count ? NO_SIZE : arraySig.Sizes[i];
+								if (lower != NO_LOWER) {
+									sb.Append(lower);
+									sb.Append("...");
+									if (size != NO_SIZE)
+										sb.Append(lower + (int)size - 1);
+								}
+							}
 						}
-					}
+					sb.Append(']');
 				}
-				sb.Append(']');
 				break;
 
 			case ElementType.SZArray:
-				CreateName(((SZArraySig)typeSig).Next);
-				sb.Append("[]");
+				CreateTypeSigName(((SZArraySig)typeSig).Next, flags);
+				if (createName)
+					sb.Append("[]");
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
-				CreateName(((ModifierSig)typeSig).Next);
+				CreateTypeSigName(((ModifierSig)typeSig).Next, flags);
 				break;
 
 			case ElementType.Pinned:
-				CreateName(((PinnedSig)typeSig).Next);
+				CreateTypeSigName(((PinnedSig)typeSig).Next, flags);
 				break;
 
 			case ElementType.ValueArray:
-				var valueArraySig = (ValueArraySig)typeSig;
-				sb.Append("ValueArray(");
-				CreateName(valueArraySig.Next);
-				sb.Append(',');
-				sb.Append(valueArraySig.Size);
-				sb.Append(')');
+				if (createNamespace)
+					CreateNamespace(((NonLeafSig)typeSig).Next);
+				if (createName) {
+					if (len != sb.Length)
+						sb.Append('.');	// We printed the namespace so add a dot
+					var valueArraySig = (ValueArraySig)typeSig;
+					sb.Append("ValueArray(");
+					CreateTypeSigName(valueArraySig.Next, flags);
+					sb.Append(',');
+					sb.Append(valueArraySig.Size);
+					sb.Append(')');
+				}
 				break;
 
 			case ElementType.Module:
-				var moduleSig = (ModuleSig)typeSig;
-				sb.Append("Module(");
-				CreateName(moduleSig.Next);
-				sb.Append(',');
-				sb.Append(moduleSig.Index);
-				sb.Append(')');
+				if (createNamespace)
+					CreateNamespace(((NonLeafSig)typeSig).Next);
+				if (createName) {
+					if (len != sb.Length)
+						sb.Append('.');	// We printed the namespace so add a dot
+					var moduleSig = (ModuleSig)typeSig;
+					sb.Append("Module(");
+					CreateTypeSigName(moduleSig.Next, flags);
+					sb.Append(',');
+					sb.Append(moduleSig.Index);
+					sb.Append(')');
+				}
 				break;
 
 			case ElementType.GenericInst:
@@ -564,50 +510,64 @@ namespace dot10.DotNet {
 				if (genericArguments == null)
 					genericArguments = new GenericArguments();
 				genericArguments.PushTypeArgs(typeGenArgs);
-				CreateName(genericType == null ? null : genericType.TypeDefOrRef);
+				if (createNamespace)
+					CreateNamespace(genericType == null ? null : genericType.TypeDefOrRef);
+				if (createName) {
+					if (len != sb.Length)
+						sb.Append('.');	// We printed the namespace so add a dot
+					CreateName(genericType == null ? null : genericType.TypeDefOrRef);
+				}
 				genericArguments.PopTypeArgs();
-				if (isReflection) {
-					sb.Append('[');
-					for (int i = 0; i < typeGenArgs.Count; i++) {
-						if (i != 0)
-							sb.Append(',');
-						var genArg = typeGenArgs[i];
+				if (createName) {
+					if (isReflection) {
 						sb.Append('[');
-						CreateFullName(genArg);
-						sb.Append(", ");
-						var asm = genArg.DefinitionAssembly;
-						if (asm == null)
-							sb.Append(NULLVALUE);
-						else
-							sb.Append(EscapeAssemblyName(GetAssemblyName(asm)));
+						for (int i = 0; i < typeGenArgs.Count; i++) {
+							if (i != 0)
+								sb.Append(',');
+							var genArg = typeGenArgs[i];
+							sb.Append('[');
+							CreateFullName(genArg);
+							sb.Append(", ");
+							var asm = genArg.DefinitionAssembly;
+							if (asm == null)
+								sb.Append(NULLVALUE);
+							else
+								sb.Append(EscapeAssemblyName(GetAssemblyName(asm)));
+							sb.Append(']');
+						}
 						sb.Append(']');
 					}
-					sb.Append(']');
-				}
-				else {
-					sb.Append('<');
-					for (int i = 0; i < typeGenArgs.Count; i++) {
-						if (i != 0)
-							sb.Append(',');
-						CreateFullName(typeGenArgs[i]);
+					else {
+						sb.Append('<');
+						for (int i = 0; i < typeGenArgs.Count; i++) {
+							if (i != 0)
+								sb.Append(',');
+							CreateFullName(typeGenArgs[i]);
+						}
+						sb.Append('>');
 					}
-					sb.Append('>');
 				}
 				break;
 
 			case ElementType.Var:
-				sb.Append('!');
-				sb.Append(((GenericSig)typeSig).Number);
+				if (createName) {
+					sb.Append('!');
+					sb.Append(((GenericSig)typeSig).Number);
+				}
 				break;
 
 			case ElementType.MVar:
-				sb.Append("!!");
-				sb.Append(((GenericSig)typeSig).Number);
+				if (createName) {
+					sb.Append("!!");
+					sb.Append(((GenericSig)typeSig).Number);
+				}
 				break;
 
 			case ElementType.FnPtr:
-				//TODO: Move printing methods to this class as well so the same recursion counter is used
-				sb.Append(Utils.GetMethodString(null, (UTF8String)null, ((FnPtrSig)typeSig).MethodSig));
+				if (createName) {
+					//TODO: Move printing methods to this class as well so the same recursion counter is used
+					sb.Append(Utils.GetMethodString(null, (UTF8String)null, ((FnPtrSig)typeSig).MethodSig));
+				}
 				break;
 
 			case ElementType.Sentinel:
