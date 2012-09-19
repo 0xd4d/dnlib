@@ -64,6 +64,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Returns the assembly where this type is defined
+		/// </summary>
+		/// <param name="typeRef">The <c>TypeRef</c></param>
+		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
+		public static IAssembly DefinitionAssembly(TypeRef typeRef) {
+			return new FullNameCreator().GetDefinitionAssembly(typeRef);
+		}
+
+		/// <summary>
+		/// Returns the owner module. The type was created from metadata in this module.
+		/// </summary>
+		/// <param name="typeRef">The <c>TypeRef</c></param>
+		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
+		public static ModuleDef OwnerModule(TypeRef typeRef) {
+			return new FullNameCreator().GetOwnerModule(typeRef);
+		}
+
+		/// <summary>
 		/// Returns the namespace of a <see cref="TypeDef"/>
 		/// </summary>
 		/// <param name="typeDef">The <c>TypeDef</c></param>
@@ -111,6 +129,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Returns the assembly where this type is defined
+		/// </summary>
+		/// <param name="typeDef">The <c>TypeDef</c></param>
+		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
+		public static IAssembly DefinitionAssembly(TypeDef typeDef) {
+			return new FullNameCreator().GetDefinitionAssembly(typeDef);
+		}
+
+		/// <summary>
+		/// Returns the owner module. The type was created from metadata in this module.
+		/// </summary>
+		/// <param name="typeDef">The <c>TypeDef</c></param>
+		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
+		public static ModuleDef OwnerModule(TypeDef typeDef) {
+			return new FullNameCreator().GetOwnerModule(typeDef);
+		}
+
+		/// <summary>
 		/// Returns the namespace of a <see cref="TypeSpec"/>
 		/// </summary>
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
@@ -155,6 +191,24 @@ namespace dot10.DotNet {
 			var fnc = new FullNameCreator(true);
 			fnc.CreateAssemblyQualifiedName(typeSpec);
 			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the assembly where this type is defined
+		/// </summary>
+		/// <param name="typeSpec">The <c>TypeSpec</c></param>
+		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
+		public static IAssembly DefinitionAssembly(TypeSpec typeSpec) {
+			return new FullNameCreator().GetDefinitionAssembly(typeSpec);
+		}
+
+		/// <summary>
+		/// Returns the owner module. The type was created from metadata in this module.
+		/// </summary>
+		/// <param name="typeSpec">The <c>TypeSpec</c></param>
+		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
+		public static ModuleDef OwnerModule(TypeSpec typeSpec) {
+			return new FullNameCreator().GetOwnerModule(typeSpec);
 		}
 
 		/// <summary>
@@ -222,8 +276,30 @@ namespace dot10.DotNet {
 			return fnc.Result;
 		}
 
+		/// <summary>
+		/// Returns the assembly where this type is defined
+		/// </summary>
+		/// <param name="typeSig">The <c>TypeSig</c></param>
+		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
+		public static IAssembly DefinitionAssembly(TypeSig typeSig) {
+			return new FullNameCreator().GetDefinitionAssembly(typeSig);
+		}
+
+		/// <summary>
+		/// Returns the owner module. The type was created from metadata in this module.
+		/// </summary>
+		/// <param name="typeSig">The <c>TypeSig</c></param>
+		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
+		public static ModuleDef OwnerModule(TypeSig typeSig) {
+			return new FullNameCreator().GetOwnerModule(typeSig);
+		}
+
 		string Result {
 			get { return sb.ToString(); }
+		}
+
+		FullNameCreator() {
+			this.recursionCounter = 0;
 		}
 
 		FullNameCreator(bool isReflection) {
@@ -313,7 +389,7 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeRef);
-			AddAssemblyName(typeRef.DefinitionAssembly);
+			AddAssemblyName(GetDefinitionAssembly(typeRef));
 
 			DecrementRecursionCounter();
 		}
@@ -368,7 +444,7 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeDef);
-			AddAssemblyName(typeDef.DefinitionAssembly);
+			AddAssemblyName(GetDefinitionAssembly(typeDef));
 
 			DecrementRecursionCounter();
 		}
@@ -460,7 +536,7 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeSig);
-			AddAssemblyName(typeSig.DefinitionAssembly);
+			AddAssemblyName(GetDefinitionAssembly(typeSig));
 
 			DecrementRecursionCounter();
 		}
@@ -637,7 +713,7 @@ namespace dot10.DotNet {
 							sb.Append('[');
 							CreateFullName(genArg);
 							sb.Append(", ");
-							var asm = genArg.DefinitionAssembly;
+							var asm = GetDefinitionAssembly(genArg);
 							if (asm == null)
 								sb.Append(NULLVALUE);
 							else
@@ -766,6 +842,241 @@ namespace dot10.DotNet {
 			}
 			else
 				sb.Append(id);
+		}
+
+		IAssembly GetDefinitionAssembly(ITypeDefOrRef typeDefOrRef) {
+			if (typeDefOrRef is TypeRef)
+				return GetDefinitionAssembly((TypeRef)typeDefOrRef);
+			else if (typeDefOrRef is TypeDef)
+				return GetDefinitionAssembly((TypeDef)typeDefOrRef);
+			else if (typeDefOrRef is TypeSpec)
+				return GetDefinitionAssembly((TypeSpec)typeDefOrRef);
+			else
+				return null;
+		}
+
+		ModuleDef GetOwnerModule(ITypeDefOrRef typeDefOrRef) {
+			if (typeDefOrRef is TypeRef)
+				return GetOwnerModule((TypeRef)typeDefOrRef);
+			else if (typeDefOrRef is TypeDef)
+				return GetOwnerModule((TypeDef)typeDefOrRef);
+			else if (typeDefOrRef is TypeSpec)
+				return GetOwnerModule((TypeSpec)typeDefOrRef);
+			else
+				return null;
+		}
+
+		IAssembly GetDefinitionAssembly(TypeRef typeRef) {
+			if (typeRef == null)
+				return null;
+			if (!IncrementRecursionCounter())
+				return null;
+			IAssembly result;
+
+			var scope = typeRef.ResolutionScope;
+			if (scope == null)
+				result = null;	//TODO: Check ownerModule's ExportedType table
+			else if (scope is TypeRef)
+				result = GetDefinitionAssembly((TypeRef)scope);
+			else if (scope is AssemblyRef)
+				result = (AssemblyRef)scope;
+			else if (scope is ModuleRef) {
+				var ownerModule = GetOwnerModule(typeRef);
+				result = ownerModule == null ? null : ownerModule.Assembly;
+			}
+			else if (scope is ModuleDef)
+				result = ((ModuleDef)scope).Assembly;
+			else
+				result = null;	// Should never be reached
+
+			DecrementRecursionCounter();
+			return result;
+		}
+
+		ModuleDef GetOwnerModule(TypeRef typeRef) {
+			if (typeRef == null)
+				return null;
+			return typeRef.OwnerModule;
+		}
+
+		IAssembly GetDefinitionAssembly(TypeDef typeDef) {
+			if (typeDef == null)
+				return null;
+			return typeDef.DefinitionAssembly;
+		}
+
+		ModuleDef GetOwnerModule(TypeDef typeDef) {
+			if (typeDef == null)
+				return null;
+			return typeDef.OwnerModule;
+		}
+
+		IAssembly GetDefinitionAssembly(TypeSpec typeSpec) {
+			if (typeSpec == null)
+				return null;
+			return GetDefinitionAssembly(typeSpec.TypeSig);
+		}
+
+		ModuleDef GetOwnerModule(TypeSpec typeSpec) {
+			if (typeSpec == null)
+				return null;
+			return GetOwnerModule(typeSpec.TypeSig);
+		}
+
+		IAssembly GetDefinitionAssembly(TypeSig typeSig) {
+			if (typeSig == null)
+				return null;
+			if (!IncrementRecursionCounter())
+				return null;
+			IAssembly result;
+
+			if (genericArguments != null)
+				typeSig = genericArguments.Resolve(typeSig);
+
+			switch (typeSig.ElementType) {
+			case ElementType.Void:
+			case ElementType.Boolean:
+			case ElementType.Char:
+			case ElementType.I1:
+			case ElementType.U1:
+			case ElementType.I2:
+			case ElementType.U2:
+			case ElementType.I4:
+			case ElementType.U4:
+			case ElementType.I8:
+			case ElementType.U8:
+			case ElementType.R4:
+			case ElementType.R8:
+			case ElementType.String:
+			case ElementType.TypedByRef:
+			case ElementType.I:
+			case ElementType.U:
+			case ElementType.Object:
+			case ElementType.ValueType:
+			case ElementType.Class:
+				result = GetDefinitionAssembly(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				break;
+
+			case ElementType.Ptr:
+			case ElementType.ByRef:
+			case ElementType.Array:
+			case ElementType.SZArray:
+			case ElementType.CModReqd:
+			case ElementType.CModOpt:
+			case ElementType.Pinned:
+			case ElementType.ValueArray:
+			case ElementType.Module:
+				result = GetDefinitionAssembly(((NonLeafSig)typeSig).Next);
+				break;
+
+			case ElementType.GenericInst:
+				var genericInstSig = (GenericInstSig)typeSig;
+				var genericType = genericInstSig.GenericType;
+				if (genericArguments == null)
+					genericArguments = new GenericArguments();
+				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
+				result = GetDefinitionAssembly(genericType == null ? null : genericType.TypeDefOrRef);
+				genericArguments.PopTypeArgs();
+				break;
+
+			case ElementType.Var:
+			case ElementType.MVar:
+				result = null;
+				break;
+
+			case ElementType.FnPtr:
+			case ElementType.Sentinel:
+				result = null;
+				break;
+
+			case ElementType.End:
+			case ElementType.R:
+			case ElementType.Internal:
+			default:
+				result = null;
+				break;
+			}
+
+			DecrementRecursionCounter();
+			return result;
+		}
+
+		ModuleDef GetOwnerModule(TypeSig typeSig) {
+			if (typeSig == null)
+				return null;
+			if (!IncrementRecursionCounter())
+				return null;
+			ModuleDef result;
+
+			if (genericArguments != null)
+				typeSig = genericArguments.Resolve(typeSig);
+
+			switch (typeSig.ElementType) {
+			case ElementType.Void:
+			case ElementType.Boolean:
+			case ElementType.Char:
+			case ElementType.I1:
+			case ElementType.U1:
+			case ElementType.I2:
+			case ElementType.U2:
+			case ElementType.I4:
+			case ElementType.U4:
+			case ElementType.I8:
+			case ElementType.U8:
+			case ElementType.R4:
+			case ElementType.R8:
+			case ElementType.String:
+			case ElementType.TypedByRef:
+			case ElementType.I:
+			case ElementType.U:
+			case ElementType.Object:
+			case ElementType.ValueType:
+			case ElementType.Class:
+				result = GetOwnerModule(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				break;
+
+			case ElementType.Ptr:
+			case ElementType.ByRef:
+			case ElementType.Array:
+			case ElementType.SZArray:
+			case ElementType.CModReqd:
+			case ElementType.CModOpt:
+			case ElementType.Pinned:
+			case ElementType.ValueArray:
+			case ElementType.Module:
+				result = GetOwnerModule(((NonLeafSig)typeSig).Next);
+				break;
+
+			case ElementType.GenericInst:
+				var genericInstSig = (GenericInstSig)typeSig;
+				var genericType = genericInstSig.GenericType;
+				if (genericArguments == null)
+					genericArguments = new GenericArguments();
+				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
+				result = GetOwnerModule(genericType == null ? null : genericType.TypeDefOrRef);
+				genericArguments.PopTypeArgs();
+				break;
+
+			case ElementType.Var:
+			case ElementType.MVar:
+				result = null;
+				break;
+
+			case ElementType.FnPtr:
+			case ElementType.Sentinel:
+				result = null;
+				break;
+
+			case ElementType.End:
+			case ElementType.R:
+			case ElementType.Internal:
+			default:
+				result = null;
+				break;
+			}
+
+			DecrementRecursionCounter();
+			return result;
 		}
 
 		/// <inheritdoc/>

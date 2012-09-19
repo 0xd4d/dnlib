@@ -73,12 +73,12 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public IAssembly DefinitionAssembly {
-			get { return TypeSig == null ? null : TypeSig.DefinitionAssembly; }
+			get { return FullNameCreator.DefinitionAssembly(this); }
 		}
 
 		/// <inheritdoc/>
 		public ModuleDef OwnerModule {
-			get { return ownerModule != null ? ownerModule : TypeSig == null ? null : TypeSig.OwnerModule; }
+			get { return FullNameCreator.OwnerModule(this); }
 		}
 
 		/// <summary>

@@ -55,10 +55,14 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public abstract IAssembly DefinitionAssembly { get; }
+		public IAssembly DefinitionAssembly {
+			get { return FullNameCreator.DefinitionAssembly(this); }
+		}
 
 		/// <inheritdoc/>
-		public abstract ModuleDef OwnerModule { get; }
+		public ModuleDef OwnerModule {
+			get { return FullNameCreator.OwnerModule(this); }
+		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
@@ -131,42 +135,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		public TypeSpec TypeSpec {
 			get { return typeDefOrRef as TypeSpec; }
-		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get {
-				if (typeDefOrRef == null)
-					return null;
-				try {
-					return typeDefOrRef.DefinitionAssembly;
-				}
-				catch (OutOfMemoryException) {
-					return null;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return null;
-				}
-			}
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get {
-				if (typeDefOrRef == null)
-					return null;
-				try {
-					return typeDefOrRef.OwnerModule;
-				}
-				catch (OutOfMemoryException) {
-					return null;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return null;
-				}
-			}
 		}
 
 		/// <summary>
@@ -289,16 +257,6 @@ namespace dot10.DotNet {
 		public bool IsTypeVar {
 			get { return isTypeVar; }
 		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get { return null; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get { return null; }
-		}
 	}
 
 	/// <summary>
@@ -339,16 +297,6 @@ namespace dot10.DotNet {
 		public override ElementType ElementType {
 			get { return ElementType.Sentinel; }
 		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get { return null; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get { return null; }
-		}
 	}
 
 	/// <summary>
@@ -360,16 +308,6 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override ElementType ElementType {
 			get { return ElementType.FnPtr; }
-		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get { return null; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get { return null; }
 		}
 
 		/// <summary>
@@ -405,16 +343,6 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override ElementType ElementType {
 			get { return ElementType.GenericInst; }
-		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get { return genericType == null ? null : genericType.DefinitionAssembly; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get { return genericType == null ? null : genericType.OwnerModule; }
 		}
 
 		/// <summary>
@@ -526,16 +454,6 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public sealed override TypeSig Next {
 			get { return nextSig; }
-		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get { return nextSig == null ? null : nextSig.DefinitionAssembly; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get { return nextSig == null ? null : nextSig.OwnerModule; }
 		}
 
 		/// <summary>

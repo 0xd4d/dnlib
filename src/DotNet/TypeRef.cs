@@ -78,31 +78,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public IAssembly DefinitionAssembly {
-			get {
-				var scope = ResolutionScope;
-				if (scope == null)
-					return null;	//TODO: Check ownerModule's ExportedType table
-				if (scope is TypeRef) {
-					try {
-						return ((TypeRef)scope).DefinitionAssembly;
-					}
-					catch (OutOfMemoryException) {
-						// Invalid metadata
-						return null;
-					}
-					catch (StackOverflowException) {
-						// Invalid metadata
-						return null;
-					}
-				}
-				if (scope is AssemblyRef)
-					return (AssemblyRef)scope;
-				if (scope is ModuleRef)
-					return ownerModule == null ? null : ownerModule.Assembly;
-				if (scope is ModuleDef)
-					return ((ModuleDef)scope).Assembly;
-				return null;
-			}
+			get { return FullNameCreator.DefinitionAssembly(this); }
 		}
 
 		/// <inheritdoc/>
