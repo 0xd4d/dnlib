@@ -15,7 +15,7 @@ namespace dot10.DotNet {
 		/// <returns>An assembly name string</returns>
 		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey) {
 			var sb = new StringBuilder();
-			sb.Append(UTF8String.IsNullOrEmpty(name) ? string.Empty : name.String);
+			sb.Append(UTF8String.ToSystemString(name));
 
 			if (version != null) {
 				sb.Append(", Version=");
@@ -24,7 +24,7 @@ namespace dot10.DotNet {
 
 			if ((object)culture != null) {
 				sb.Append(", Culture=");
-				sb.Append(UTF8String.IsNullOrEmpty(culture) ? "neutral" : FullNameHelper.GetReflectionName(culture.String));
+				sb.Append(UTF8String.IsNullOrEmpty(culture) ? "neutral" : culture.String);
 			}
 
 			sb.Append(", ");
@@ -144,25 +144,7 @@ namespace dot10.DotNet {
 		}
 
 		internal static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs) {
-			return GetTypeFullName(typeSig, typeGenArgs, methodGenArgs, 0);
-		}
-
-		static string GetTypeFullName(ITypeSig typeSig, IList<ITypeSig> typeGenArgs, IList<ITypeSig> methodGenArgs, int recurse) {
-			if (recurse++ >= 100)
-				return "<<<INFRECURS>>>";
-			if (typeSig == null)
-				return "<<<NULL>>>";
-			if (typeGenArgs != null && typeSig is GenericVar) {
-				var gvar = (GenericVar)typeSig;
-				if (gvar.Number < typeGenArgs.Count)
-					return GetTypeFullName(typeGenArgs[(int)gvar.Number], typeGenArgs, methodGenArgs, recurse);
-			}
-			if (methodGenArgs != null && typeSig is GenericMVar) {
-				var gmvar = (GenericMVar)typeSig;
-				if (gmvar.Number < methodGenArgs.Count)
-					return GetTypeFullName(methodGenArgs[(int)gmvar.Number], typeGenArgs, methodGenArgs, recurse);
-			}
-			return typeSig.FullName;
+			return FullNameCreator.FullName(typeSig, false, typeGenArgs, methodGenArgs);
 		}
 
 		/// <summary>

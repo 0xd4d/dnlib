@@ -49,72 +49,32 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		string IFullName.Name {
-			get { return FullNameHelper.GetName(Name); }
+			get { return FullNameCreator.Name(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionName {
-			get { return FullNameHelper.GetReflectionName(Name); }
+			get { return FullNameCreator.Name(this, true); }
 		}
 
 		/// <inheritdoc/>
 		string IFullName.Namespace {
-			get { return FullNameHelper.GetNamespace(Namespace); }
+			get { return FullNameCreator.Namespace(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionNamespace {
-			get { return FullNameHelper.GetReflectionNamespace(Namespace); }
+			get { return FullNameCreator.Namespace(this, true); }
 		}
 
 		/// <inheritdoc/>
 		public string FullName {
-			get {
-				if (!IsNested)
-					return FullNameHelper.GetFullName(Namespace, Name);
-				var enclosingType = EnclosingType;
-				string enclosingName;
-				try {
-					if (enclosingType == null)
-						enclosingName = "<<<NULL>>>";
-					else
-						enclosingName = enclosingType.FullName;
-				}
-				catch (OutOfMemoryException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-				catch (StackOverflowException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-				return string.Format("{0}/{1}", enclosingName, FullNameHelper.GetName(Name));
-			}
+			get { return FullNameCreator.FullName(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			get {
-				if (!IsNested)
-					return FullNameHelper.GetReflectionFullName(Namespace, Name);
-				var enclosingType = EnclosingType;
-				string enclosingName;
-				try {
-					if (enclosingType == null)
-						enclosingName = "<<<NULL>>>";
-					else
-						enclosingName = enclosingType.ReflectionFullName;
-				}
-				catch (OutOfMemoryException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-				catch (StackOverflowException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-				return string.Format("{0}+{1}", enclosingName, FullNameHelper.GetReflectionName(Name));
-			}
+			get { return FullNameCreator.FullName(this, true); }
 		}
 
 		/// <inheritdoc/>

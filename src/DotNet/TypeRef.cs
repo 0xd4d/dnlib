@@ -43,62 +43,32 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		string IFullName.Name {
-			get { return FullNameHelper.GetName(Name); }
+			get { return FullNameCreator.Name(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionName {
-			get { return FullNameHelper.GetReflectionName(Name); }
+			get { return FullNameCreator.Name(this, true); }
 		}
 
 		/// <inheritdoc/>
 		string IFullName.Namespace {
-			get { return FullNameHelper.GetNamespace(Namespace); }
+			get { return FullNameCreator.Namespace(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionNamespace {
-			get { return FullNameHelper.GetReflectionNamespace(Namespace); }
+			get { return FullNameCreator.Namespace(this, true); }
 		}
 
 		/// <inheritdoc/>
 		public string FullName {
-			get {
-				var enclosingTypeRef = ResolutionScope as TypeRef;
-				if (enclosingTypeRef == null)
-					return FullNameHelper.GetFullName(Namespace, Name);
-				try {
-					return string.Format("{0}/{1}", enclosingTypeRef.FullName, FullNameHelper.GetName(Name));
-				}
-				catch (OutOfMemoryException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-				catch (StackOverflowException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-			}
+			get { return FullNameCreator.FullName(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			get {
-				var enclosingTypeRef = ResolutionScope as TypeRef;
-				if (enclosingTypeRef == null)
-					return FullNameHelper.GetReflectionFullName(Namespace, Name);
-				try {
-					return string.Format("{0}+{1}", enclosingTypeRef.ReflectionFullName, FullNameHelper.GetReflectionName(Name));
-				}
-				catch (OutOfMemoryException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-				catch (StackOverflowException) {
-					// Invalid metadata
-					return string.Empty;
-				}
-			}
+			get { return FullNameCreator.FullName(this, true); }
 		}
 
 		/// <inheritdoc/>

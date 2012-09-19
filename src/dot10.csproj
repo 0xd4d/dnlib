@@ -62,6 +62,7 @@
     <Compile Include="DotNet\Emit\FlowControl.cs" />
     <Compile Include="DotNet\Emit\Instruction.cs" />
     <Compile Include="DotNet\Emit\InvalidMethodException.cs" />
+    <Compile Include="DotNet\GenericArguments.cs" />
     <Compile Include="DotNet\IVariable.cs" />
     <Compile Include="DotNet\Emit\LocalList.cs" />
     <Compile Include="DotNet\Emit\MethodBody.cs" />
@@ -88,7 +89,6 @@
     <Compile Include="DotNet\FieldRVA.cs" />
     <Compile Include="DotNet\FileDef.cs" />
     <Compile Include="DotNet\FileFlags.cs" />
-    <Compile Include="DotNet\FullNameHelper.cs" />
     <Compile Include="DotNet\GenericParam.cs" />
     <Compile Include="DotNet\GenericParamAttributes.cs" />
     <Compile Include="DotNet\GenericParamConstraint.cs" />
@@ -133,6 +133,7 @@
     <Compile Include="DotNet\StandAloneSig.cs" />
     <Compile Include="DotNet\TypeAttributes.cs" />
     <Compile Include="DotNet\TypeDef.cs" />
+    <Compile Include="DotNet\FullNameCreator.cs" />
     <Compile Include="DotNet\TypeRef.cs" />
     <Compile Include="DotNet\TypeSpec.cs" />
     <Compile Include="DotNet\Utils.cs" />

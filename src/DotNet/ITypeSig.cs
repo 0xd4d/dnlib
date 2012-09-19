@@ -38,36 +38,44 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Base class for element types that are last in a type sig, ie.,
-	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="SentinelSig"/>,
-	/// <see cref="FnPtrSig"/>, <see cref="GenericInstSig"/>
+	/// Type sig base class
 	/// </summary>
-	public abstract class LeafSig : ITypeSig {
+	public abstract class TypeSig : ITypeSig {
 		/// <inheritdoc/>
-		public ITypeSig Next {
-			get { return null; }
-		}
+		public abstract ITypeSig Next { get; }
 
 		/// <inheritdoc/>
 		public abstract ElementType ElementType { get; }
 
 		/// <inheritdoc/>
-		public abstract string Name { get; }
+		public string Name {
+			get { return FullNameCreator.Name(this, false); }
+		}
 
 		/// <inheritdoc/>
-		public abstract string ReflectionName { get; }
+		public string ReflectionName {
+			get { return FullNameCreator.Name(this, true); }
+		}
 
 		/// <inheritdoc/>
-		public abstract string Namespace { get; }
+		public string Namespace {
+			get { return FullNameCreator.Namespace(this, false); }
+		}
 
 		/// <inheritdoc/>
-		public abstract string ReflectionNamespace { get; }
+		public string ReflectionNamespace {
+			get { return FullNameCreator.Namespace(this, true); }
+		}
 
 		/// <inheritdoc/>
-		public abstract string FullName { get; }
+		public string FullName {
+			get { return FullNameCreator.FullName(this, false); }
+		}
 
 		/// <inheritdoc/>
-		public abstract string ReflectionFullName { get; }
+		public string ReflectionFullName {
+			get { return FullNameCreator.FullName(this, true); }
+		}
 
 		/// <inheritdoc/>
 		public abstract IAssembly DefinitionAssembly { get; }
@@ -82,10 +90,21 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
+	/// Base class for element types that are last in a type sig, ie.,
+	/// <see cref="TypeDefOrRefSig"/>, <see cref="GenericSig"/>, <see cref="SentinelSig"/>,
+	/// <see cref="FnPtrSig"/>, <see cref="GenericInstSig"/>
+	/// </summary>
+	public abstract class LeafSig : TypeSig {
+		/// <inheritdoc/>
+		public sealed override ITypeSig Next {
+			get { return null; }
+		}
+	}
+
+	/// <summary>
 	/// Wraps a <see cref="ITypeDefOrRef"/>
 	/// </summary>
 	public abstract class TypeDefOrRefSig : LeafSig {
-		const string nullName = "<<<NULL>>>";
 		readonly ITypeDefOrRef typeDefOrRef;
 
 		/// <summary>
@@ -135,114 +154,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		public TypeSpec TypeSpec {
 			get { return typeDefOrRef as TypeSpec; }
-		}
-
-		/// <inheritdoc/>
-		public override string Name {
-			get {
-				if (typeDefOrRef == null)
-					return nullName;
-				try {
-					return typeDefOrRef.Name;
-				}
-				catch (OutOfMemoryException) {
-					return nullName;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return nullName;
-				}
-			}
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionName {
-			get {
-				if (typeDefOrRef == null)
-					return nullName;
-				try {
-					return typeDefOrRef.ReflectionName;
-				}
-				catch (OutOfMemoryException) {
-					return nullName;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return nullName;
-				}
-			}
-		}
-
-		/// <inheritdoc/>
-		public override string Namespace {
-			get {
-				if (typeDefOrRef == null)
-					return nullName;
-				try {
-					return typeDefOrRef.Namespace;
-				}
-				catch (OutOfMemoryException) {
-					return nullName;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return nullName;
-				}
-			}
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionNamespace {
-			get {
-				if (typeDefOrRef == null)
-					return nullName;
-				try {
-					return typeDefOrRef.ReflectionNamespace;
-				}
-				catch (OutOfMemoryException) {
-					return nullName;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return nullName;
-				}
-			}
-		}
-
-		/// <inheritdoc/>
-		public override string FullName {
-			get {
-				if (typeDefOrRef == null)
-					return nullName;
-				try {
-					return typeDefOrRef.FullName;
-				}
-				catch (OutOfMemoryException) {
-					return nullName;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return nullName;
-				}
-			}
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionFullName {
-			get {
-				if (typeDefOrRef == null)
-					return nullName;
-				try {
-					return typeDefOrRef.ReflectionFullName;
-				}
-				catch (OutOfMemoryException) {
-					return nullName;
-				}
-				catch (StackOverflowException) {
-					// It's possible that a TypeSpec points to itself, causing a stack overflow.
-					return nullName;
-				}
-			}
 		}
 
 		/// <inheritdoc/>
@@ -403,36 +314,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string Name {
-			get { return GetName(); }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionName {
-			get { return GetName(); }
-		}
-
-		/// <inheritdoc/>
-		public override string Namespace {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionNamespace {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string FullName {
-			get { return GetName(); }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionFullName {
-			get { return GetName(); }
-		}
-
-		/// <inheritdoc/>
 		public override IAssembly DefinitionAssembly {
 			get { return null; }
 		}
@@ -440,10 +321,6 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override ModuleDef OwnerModule {
 			get { return null; }
-		}
-
-		string GetName() {
-			return string.Format("{0}{1}", isTypeVar ? "!" : "!!", number);
 		}
 	}
 
@@ -487,36 +364,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string Name {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionName {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string Namespace {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionNamespace {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string FullName {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionFullName {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
 		public override IAssembly DefinitionAssembly {
 			get { return null; }
 		}
@@ -532,6 +379,21 @@ namespace dot10.DotNet {
 	/// </summary>
 	public sealed class FnPtrSig : LeafSig {
 		readonly CallingConventionSig signature;
+
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.FnPtr; }
+		}
+
+		/// <inheritdoc/>
+		public override IAssembly DefinitionAssembly {
+			get { return null; }
+		}
+
+		/// <inheritdoc/>
+		public override ModuleDef OwnerModule {
+			get { return null; }
+		}
 
 		/// <summary>
 		/// Gets the signature
@@ -554,51 +416,6 @@ namespace dot10.DotNet {
 		public FnPtrSig(CallingConventionSig signature) {
 			this.signature = signature;
 		}
-
-		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.FnPtr; }
-		}
-
-		/// <inheritdoc/>
-		public override string Name {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionName {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string Namespace {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionNamespace {
-			get { return string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override string FullName {
-			get { return Utils.GetMethodString(null, (UTF8String)null, MethodSig); }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionFullName {
-			get { return Utils.GetMethodString(null, (UTF8String)null, MethodSig); }
-		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get { return null; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get { return null; }
-		}
 	}
 
 	/// <summary>
@@ -607,6 +424,21 @@ namespace dot10.DotNet {
 	public sealed class GenericInstSig : LeafSig {
 		ClassOrValueTypeSig genericType;
 		readonly List<ITypeSig> genericArgs;
+
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.GenericInst; }
+		}
+
+		/// <inheritdoc/>
+		public override IAssembly DefinitionAssembly {
+			get { return genericType == null ? null : genericType.DefinitionAssembly; }
+		}
+
+		/// <inheritdoc/>
+		public override ModuleDef OwnerModule {
+			get { return genericType == null ? null : genericType.OwnerModule; }
+		}
 
 		/// <summary>
 		/// Gets the generic type
@@ -706,114 +538,27 @@ namespace dot10.DotNet {
 			this.genericType = genericType;
 			this.genericArgs = new List<ITypeSig>(genArgs);
 		}
-
-		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.GenericInst; }
-		}
-
-		/// <inheritdoc/>
-		public override string Name {
-			get { return genericType == null ? "<<<NULL>>>" : genericType.Name; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionName {
-			get { return genericType == null ? "<<<NULL>>>" : genericType.ReflectionName; }
-		}
-
-		/// <inheritdoc/>
-		public override string Namespace {
-			get { return genericType == null ? "<<<NULL>>>" : genericType.Namespace; }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionNamespace {
-			get { return genericType == null ? "<<<NULL>>>" : genericType.ReflectionNamespace; }
-		}
-
-		/// <inheritdoc/>
-		public override string FullName {
-			get { return FullNameHelper.GetGenericInstanceFullName(Namespace, Name, genericArgs); }
-		}
-
-		/// <inheritdoc/>
-		public override string ReflectionFullName {
-			get { return FullNameHelper.GetGenericInstanceReflectionFullName(Namespace, Name, genericArgs); }
-		}
-
-		/// <inheritdoc/>
-		public override IAssembly DefinitionAssembly {
-			get { return genericType == null ? null : genericType.DefinitionAssembly; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleDef OwnerModule {
-			get { return genericType == null ? null : genericType.OwnerModule; }
-		}
 	}
 
 	/// <summary>
 	/// Base class of non-leaf element types
 	/// </summary>
-	public abstract class NonLeafSig : ITypeSig {
-		const string nullName = "<<<NULL>>>";
+	public abstract class NonLeafSig : TypeSig {
 		readonly ITypeSig nextSig;
 
 		/// <inheritdoc/>
-		public abstract ElementType ElementType { get; }
-
-		/// <inheritdoc/>
-		public string Name {
-			get {
-				return GetName(nextSig == null ? nullName : nextSig.Name);
-			}
+		public sealed override ITypeSig Next {
+			get { return nextSig; }
 		}
 
 		/// <inheritdoc/>
-		public string ReflectionName {
-			get {
-				return GetReflectionName(nextSig == null ? nullName : nextSig.ReflectionName);
-			}
-		}
-
-		/// <inheritdoc/>
-		public string Namespace {
-			get { return nextSig == null ? nullName : nextSig.Namespace; }
-		}
-
-		/// <inheritdoc/>
-		public string ReflectionNamespace {
-			get { return nextSig == null ? nullName : nextSig.ReflectionNamespace; }
-		}
-
-		/// <inheritdoc/>
-		public string FullName {
-			get {
-				return GetFullName(nextSig == null ? nullName : nextSig.FullName);
-			}
-		}
-
-		/// <inheritdoc/>
-		public string ReflectionFullName {
-			get {
-				return GetReflectionFullName(nextSig == null ? nullName : nextSig.ReflectionFullName);
-			}
-		}
-
-		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly {
+		public override IAssembly DefinitionAssembly {
 			get { return nextSig == null ? null : nextSig.DefinitionAssembly; }
 		}
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
+		public override ModuleDef OwnerModule {
 			get { return nextSig == null ? null : nextSig.OwnerModule; }
-		}
-
-		/// <inheritdoc/>
-		public ITypeSig Next {
-			get { return nextSig; }
 		}
 
 		/// <summary>
@@ -823,50 +568,17 @@ namespace dot10.DotNet {
 		protected NonLeafSig(ITypeSig nextSig) {
 			this.nextSig = nextSig;
 		}
-
-		/// <summary>
-		/// Returns the name of this type.
-		/// </summary>
-		/// <param name="name">The element type's <see cref="Name"/></param>
-		protected virtual string GetName(string name) {
-			return name;
-		}
-
-		/// <summary>
-		/// Returns the reflection name of this type.
-		/// </summary>
-		/// <param name="reflectionName">The element type's <see cref="ReflectionName"/></param>
-		protected virtual string GetReflectionName(string reflectionName) {
-			return reflectionName;
-		}
-
-		/// <summary>
-		/// Returns the full name of this type.
-		/// </summary>
-		/// <param name="fullName">The element type's <see cref="FullName"/></param>
-		protected virtual string GetFullName(string fullName) {
-			return fullName;
-		}
-
-		/// <summary>
-		/// Returns the reflection name of this type. It can be passed to
-		/// <see cref="System.Type.GetType(string)"/> to load the type.
-		/// </summary>
-		/// <param name="reflectionFullName">The element type's <see cref="ReflectionFullName"/></param>
-		protected virtual string GetReflectionFullName(string reflectionFullName) {
-			return reflectionFullName;
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
-		}
 	}
 
 	/// <summary>
 	/// Represents a <see cref="dot10.DotNet.ElementType.Ptr"/>
 	/// </summary>
 	public sealed class PtrSig : NonLeafSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Ptr; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -874,68 +586,23 @@ namespace dot10.DotNet {
 		public PtrSig(ITypeSig nextSig)
 			: base(nextSig) {
 		}
-
-		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Ptr; }
-		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			return name + '*';
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			return reflectionName + '*';
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			return fullName + '*';
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			return reflectionFullName + '*';
-		}
 	}
 
 	/// <summary>
 	/// Represents a <see cref="dot10.DotNet.ElementType.ByRef"/>
 	/// </summary>
 	public sealed class ByRefSig : NonLeafSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.ByRef; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">The next element type</param>
 		public ByRefSig(ITypeSig nextSig)
 			: base(nextSig) {
-		}
-
-		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.ByRef; }
-		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			return name + '&';
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			return reflectionName + '&';
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			return fullName + '&';
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			return reflectionFullName + '&';
 		}
 	}
 
@@ -947,6 +614,11 @@ namespace dot10.DotNet {
 		uint rank;
 		readonly IList<uint> sizes;
 		readonly IList<int> lowerBounds;
+
+		/// <inheritdoc/>
+		public override ElementType ElementType {
+			get { return ElementType.Array; }
+		}
 
 		/// <summary>
 		/// Gets/sets the rank (max value is 0x1FFFFFFF)
@@ -1005,69 +677,6 @@ namespace dot10.DotNet {
 			this.sizes = sizes;
 			this.lowerBounds = lowerBounds;
 		}
-
-		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Array; }
-		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			var sb = new StringBuilder();
-			sb.Append(name);
-			AddArrayInfo(sb, true);
-			return sb.ToString();
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			var sb = new StringBuilder();
-			sb.Append(reflectionName);
-			AddArrayInfo(sb, false);
-			return sb.ToString();
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			var sb = new StringBuilder();
-			sb.Append(fullName);
-			AddArrayInfo(sb, true);
-			return sb.ToString();
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			var sb = new StringBuilder();
-			sb.Append(reflectionFullName);
-			AddArrayInfo(sb, false);
-			return sb.ToString();
-		}
-
-		void AddArrayInfo(StringBuilder sb, bool showLimits) {
-			sb.Append('[');
-			if (rank == 1 && !showLimits)
-				sb.Append('*');
-			else for (int i = 0; i < (int)rank; i++) {
-				if (i != 0)
-					sb.Append(',');
-				if (showLimits)
-					AddLimits(sb, i);
-			}
-			sb.Append(']');
-		}
-
-		void AddLimits(StringBuilder sb, int index) {
-			const int NO_LOWER = int.MinValue;
-			const uint NO_SIZE = uint.MaxValue;
-			int lower = index >= lowerBounds.Count ? NO_LOWER : lowerBounds[index];
-			uint size = index >= sizes.Count ? NO_SIZE : sizes[index];
-			if (lower != NO_LOWER) {
-				sb.Append(lower);
-				sb.Append("...");
-				if (size != NO_SIZE)
-					sb.Append(lower + (int)size - 1);
-			}
-		}
 	}
 
 	/// <summary>
@@ -1086,26 +695,6 @@ namespace dot10.DotNet {
 		/// <param name="nextSig">The next element type</param>
 		public SZArraySig(ITypeSig nextSig)
 			: base(nextSig) {
-		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			return name + "[]";
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			return reflectionName + "[]";
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			return fullName + "[]";
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			return reflectionFullName + "[]";
 		}
 	}
 
@@ -1209,30 +798,6 @@ namespace dot10.DotNet {
 			: base(nextSig) {
 			this.size = size;
 		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			return ToString(name);
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			return ToString(reflectionName);
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			return ToString(fullName);
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			return ToString(reflectionFullName);
-		}
-
-		string ToString(string name) {
-			return string.Format("ValueArray({0}, {1})", name, size);
-		}
 	}
 
 	/// <summary>
@@ -1262,30 +827,6 @@ namespace dot10.DotNet {
 		public ModuleSig(uint index, ITypeSig nextSig)
 			: base(nextSig) {
 			this.index = index;
-		}
-
-		/// <inheritdoc/>
-		protected override string GetName(string name) {
-			return ToString(name);
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionName(string reflectionName) {
-			return ToString(reflectionName);
-		}
-
-		/// <inheritdoc/>
-		protected override string GetFullName(string fullName) {
-			return ToString(fullName);
-		}
-
-		/// <inheritdoc/>
-		protected override string GetReflectionFullName(string reflectionFullName) {
-			return ToString(reflectionFullName);
-		}
-
-		string ToString(string name) {
-			return string.Format("Module({0}, {1})", index, name);
 		}
 	}
 }

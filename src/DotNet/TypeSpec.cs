@@ -38,32 +38,32 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public string Name {
-			get { return TypeSig == null ? string.Empty : TypeSig.Name; }
+			get { return FullNameCreator.Name(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionName {
-			get { return TypeSig == null ? string.Empty : TypeSig.ReflectionName; }
+			get { return FullNameCreator.Name(this, true); }
 		}
 
 		/// <inheritdoc/>
 		string IFullName.Namespace {
-			get { return TypeSig == null ? string.Empty : TypeSig.Namespace; }
+			get { return FullNameCreator.Namespace(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionNamespace {
-			get { return TypeSig == null ? string.Empty : TypeSig.ReflectionNamespace; }
+			get { return FullNameCreator.Namespace(this, true); }
 		}
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return TypeSig == null ? string.Empty : TypeSig.FullName; }
+			get { return FullNameCreator.FullName(this, false); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			get { return TypeSig == null ? string.Empty : TypeSig.ReflectionFullName; }
+			get { return FullNameCreator.FullName(this, false); }
 		}
 
 		/// <inheritdoc/>
