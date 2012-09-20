@@ -209,9 +209,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			if (type == null)
-				return "<<<NULL>>>";
-			return type.FullName;
+			return FullNameCreator.FullName(type == null ? null : type, false);
 		}
 	}
 

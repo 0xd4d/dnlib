@@ -296,14 +296,7 @@ namespace dot10.DotNet {
 		/// Returns the full name of this field
 		/// </summary>
 		public string FullName {
-			get {
-				var name = UTF8String.IsNullOrEmpty(Name) ? string.Empty : Name.String;
-				var fieldSig = FieldSig;
-				if (fieldSig == null || fieldSig.Type == null)
-					return name;
-				var declaringType = DeclaringType;
-				return string.Format("{0} {1}::{2}", fieldSig.Type.FullName, declaringType == null ? "<<<NULL>>>" : declaringType.FullName, name);
-			}
+			get { return FullNameCreator.FieldFullName(FullNameCreator.FullName(DeclaringType, false), Name, FieldSig); }
 		}
 
 		/// <inheritdoc/>
