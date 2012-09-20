@@ -144,7 +144,7 @@ namespace dot10.DotNet {
 		public string FullName {
 			get {
 				var declaringType = DeclaringType;
-				return Utils.GetMethodString(declaringType == null ? null : declaringType.FullName, Name, MethodSig);
+				return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, Name, MethodSig);
 			}
 		}
 

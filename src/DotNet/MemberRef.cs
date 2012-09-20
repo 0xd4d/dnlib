@@ -90,7 +90,7 @@ namespace dot10.DotNet {
 						typeGenArgs = sig.GenericArguments;
 				}
 				if (IsMethodRef)
-					return Utils.GetMethodString(GetDeclaringTypeFullName(), Name, MethodSig, typeGenArgs, null);
+					return FullNameCreator.MethodFullName(GetDeclaringTypeFullName(), Name, MethodSig, typeGenArgs, null);
 				if (IsFieldRef)
 					return FullNameCreator.FieldFullName(GetDeclaringTypeFullName(), Name, FieldSig, typeGenArgs);
 				return string.Empty;

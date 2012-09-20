@@ -65,6 +65,86 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Returns the full name of a method
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of method or <c>null</c> if none</param>
+		/// <param name="methodSig">Method signature</param>
+		/// <returns>Method full name</returns>
+		public static string MethodFullName(string declaringType, UTF8String name, MethodSig methodSig) {
+			return MethodFullName(declaringType, UTF8String.ToSystemString(name), methodSig, null, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a method
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of method or <c>null</c> if none</param>
+		/// <param name="methodSig">Method signature</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <returns>Method full name</returns>
+		public static string MethodFullName(string declaringType, UTF8String name, MethodSig methodSig, IList<TypeSig> typeGenArgs) {
+			return MethodFullName(declaringType, UTF8String.ToSystemString(name), methodSig, typeGenArgs, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a method
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of method or <c>null</c> if none</param>
+		/// <param name="methodSig">Method signature</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <param name="methodGenArgs">Method generic arguments or <c>null</c> if none</param>
+		/// <returns>Method full name</returns>
+		public static string MethodFullName(string declaringType, UTF8String name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
+			return MethodFullName(declaringType, UTF8String.ToSystemString(name), methodSig, typeGenArgs, methodGenArgs);
+		}
+
+		/// <summary>
+		/// Returns the full name of a method
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of method or <c>null</c> if none</param>
+		/// <param name="methodSig">Method signature</param>
+		/// <returns>Method full name</returns>
+		public static string MethodFullName(string declaringType, string name, MethodSig methodSig) {
+			return MethodFullName(declaringType, name, methodSig, null, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a method
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of method or <c>null</c> if none</param>
+		/// <param name="methodSig">Method signature</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <returns>Method full name</returns>
+		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs) {
+			return MethodFullName(declaringType, name, methodSig, typeGenArgs, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a method
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of method or <c>null</c> if none</param>
+		/// <param name="methodSig">Method signature</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <param name="methodGenArgs">Method generic arguments or <c>null</c> if none</param>
+		/// <returns>Method full name</returns>
+		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
+			var fnc = new FullNameCreator(false);
+			if ((typeGenArgs != null || methodGenArgs != null) && fnc.genericArguments == null)
+				fnc.genericArguments = new GenericArguments();
+			if (typeGenArgs != null)
+				fnc.genericArguments.PushTypeArgs(typeGenArgs);
+			if (methodGenArgs != null)
+				fnc.genericArguments.PushMethodArgs(methodGenArgs);
+			fnc.CreateMethodFullName(declaringType, name, methodSig);
+			return fnc.Result;
+		}
+
+		/// <summary>
 		/// Returns the namespace of a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>
@@ -771,10 +851,8 @@ namespace dot10.DotNet {
 				break;
 
 			case ElementType.FnPtr:
-				if (createName) {
-					//TODO: Move printing methods to this class as well so the same recursion counter is used
-					sb.Append(Utils.GetMethodString(null, (UTF8String)null, ((FnPtrSig)typeSig).MethodSig));
-				}
+				if (createName)
+					CreateMethodFullName(null, null, ((FnPtrSig)typeSig).MethodSig);
 				break;
 
 			case ElementType.Sentinel:
@@ -1111,6 +1189,59 @@ namespace dot10.DotNet {
 			}
 			if (!string.IsNullOrEmpty(name))
 				sb.Append(name);
+		}
+
+		void CreateMethodFullName(string declaringType, string name, MethodSig methodSig) {
+			if (methodSig == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+
+			CreateFullName(methodSig.RetType);
+			sb.Append(' ');
+			if (!string.IsNullOrEmpty(declaringType)) {
+				sb.Append(declaringType);
+				sb.Append("::");
+			}
+			if (name != null)
+				sb.Append(name);
+
+			if (methodSig.Generic) {
+				sb.Append('<');
+				for (int i = 0; i < methodSig.GenParamCount; i++) {
+					if (i != 0)
+						sb.Append(',');
+					TypeSig typeSig = new GenericMVar((uint)i);
+					if (genericArguments != null)
+						typeSig = genericArguments.Resolve(typeSig);
+					CreateFullName(typeSig);
+				}
+				sb.Append('>');
+			}
+			sb.Append('(');
+			int count = PrintMethodArgList(methodSig.Params, false, false);
+			PrintMethodArgList(methodSig.ParamsAfterSentinel, count > 0, true);
+			sb.Append(')');
+		}
+
+		int PrintMethodArgList(IEnumerable<TypeSig> args, bool hasPrintedArgs, bool isAfterSentinel) {
+			if (args == null)
+				return 0;
+			if (isAfterSentinel) {
+				if (hasPrintedArgs)
+					sb.Append(',');
+				sb.Append("...");
+				hasPrintedArgs = true;
+			}
+			int count = 0;
+			foreach (var arg in args) {
+				count++;
+				if (hasPrintedArgs)
+					sb.Append(',');
+				CreateFullName(arg);
+				hasPrintedArgs = true;
+			}
+			return count;
 		}
 
 		/// <inheritdoc/>
