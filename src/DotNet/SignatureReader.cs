@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Reads signatures from the #Blob stream
 	/// </summary>
-	class SignatureReader {
+	class SignatureReader : RecursionCounter {
 		ModuleDefMD readerModule;
 		IImageStream reader;
 		uint sigLen;
@@ -65,8 +65,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Reads the signature
 		/// </summary>
-		/// <returns>A new <see cref="ISignature"/> instance</returns>
+		/// <returns>A new <see cref="ISignature"/> instance or <c>null</c> if invalid signature</returns>
 		CallingConventionSig ReadSig() {
+			if (!IncrementRecursionCounter())
+				return null;
+
+			CallingConventionSig result;
 			var callingConvention = (CallingConvention)reader.ReadByte();
 			switch (callingConvention & CallingConvention.Mask) {
 			case CallingConvention.Default:
@@ -75,25 +79,34 @@ namespace dot10.DotNet {
 			case CallingConvention.ThisCall:
 			case CallingConvention.FastCall:
 			case CallingConvention.VarArg:
-				return ReadMethod(callingConvention);
+				result = ReadMethod(callingConvention);
+				break;
 
 			case CallingConvention.Field:
-				return ReadField(callingConvention);
+				result = ReadField(callingConvention);
+				break;
 
 			case CallingConvention.LocalSig:
-				return ReadLocalSig(callingConvention);
+				result = ReadLocalSig(callingConvention);
+				break;
 
 			case CallingConvention.Property:
-				return ReadProperty(callingConvention);
+				result = ReadProperty(callingConvention);
+				break;
 
 			case CallingConvention.GenericInst:
-				return ReadGenericInstMethod(callingConvention);
+				result = ReadGenericInstMethod(callingConvention);
+				break;
 
 			case CallingConvention.Unmanaged:
 			case CallingConvention.NativeVarArg:
 			default:
-				return null;
+				result = null;
+				break;
 			}
+
+			DecrementRecursionCounter();
+			return result;
 		}
 
 		/// <summary>
@@ -187,105 +200,120 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Reads the next type
 		/// </summary>
-		/// <returns>A new <see cref="TypeSig"/> instance</returns>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if invalid element type</returns>
 		TypeSig ReadType() {
-			uint num;
-			TypeSig nextType;
-			switch ((ElementType)reader.ReadByte()) {
-			case ElementType.Void: return readerModule.CorLibTypes.Void;
-			case ElementType.Boolean: return readerModule.CorLibTypes.Boolean;
-			case ElementType.Char: return readerModule.CorLibTypes.Char;
-			case ElementType.I1: return readerModule.CorLibTypes.SByte;
-			case ElementType.U1: return readerModule.CorLibTypes.Byte;
-			case ElementType.I2: return readerModule.CorLibTypes.Int16;
-			case ElementType.U2: return readerModule.CorLibTypes.UInt16;
-			case ElementType.I4: return readerModule.CorLibTypes.Int32;
-			case ElementType.U4: return readerModule.CorLibTypes.UInt32;
-			case ElementType.I8: return readerModule.CorLibTypes.Int64;
-			case ElementType.U8: return readerModule.CorLibTypes.UInt64;
-			case ElementType.R4: return readerModule.CorLibTypes.Single;
-			case ElementType.R8: return readerModule.CorLibTypes.Double;
-			case ElementType.String: return readerModule.CorLibTypes.String;
-			case ElementType.TypedByRef: return readerModule.CorLibTypes.TypedReference;
-			case ElementType.I: return readerModule.CorLibTypes.IntPtr;
-			case ElementType.U: return readerModule.CorLibTypes.UIntPtr;
-			case ElementType.Object: return readerModule.CorLibTypes.Object;
+			if (!IncrementRecursionCounter())
+				return null;
 
-			case ElementType.Ptr: return new PtrSig(ReadType());
-			case ElementType.ByRef: return new ByRefSig(ReadType());
-			case ElementType.ValueType: return new ValueTypeSig(ReadTypeDefOrRef());
-			case ElementType.Class: return new ClassSig(ReadTypeDefOrRef());
-			case ElementType.FnPtr: return new FnPtrSig(ReadSig());
-			case ElementType.SZArray: return new SZArraySig(ReadType());
-			case ElementType.CModReqd: return new CModReqdSig(ReadTypeDefOrRef(), ReadType());
-			case ElementType.CModOpt: return new CModOptSig(ReadTypeDefOrRef(), ReadType());
-			case ElementType.Sentinel: return new SentinelSig();
-			case ElementType.Pinned: return new PinnedSig(ReadType());
+			uint num;
+			TypeSig nextType, result = null;
+			switch ((ElementType)reader.ReadByte()) {
+			case ElementType.Void: result = readerModule.CorLibTypes.Void; break;
+			case ElementType.Boolean: result = readerModule.CorLibTypes.Boolean; break;
+			case ElementType.Char: result = readerModule.CorLibTypes.Char; break;
+			case ElementType.I1: result = readerModule.CorLibTypes.SByte; break;
+			case ElementType.U1: result = readerModule.CorLibTypes.Byte; break;
+			case ElementType.I2: result = readerModule.CorLibTypes.Int16; break;
+			case ElementType.U2: result = readerModule.CorLibTypes.UInt16; break;
+			case ElementType.I4: result = readerModule.CorLibTypes.Int32; break;
+			case ElementType.U4: result = readerModule.CorLibTypes.UInt32; break;
+			case ElementType.I8: result = readerModule.CorLibTypes.Int64; break;
+			case ElementType.U8: result = readerModule.CorLibTypes.UInt64; break;
+			case ElementType.R4: result = readerModule.CorLibTypes.Single; break;
+			case ElementType.R8: result = readerModule.CorLibTypes.Double; break;
+			case ElementType.String: result = readerModule.CorLibTypes.String; break;
+			case ElementType.TypedByRef: result = readerModule.CorLibTypes.TypedReference; break;
+			case ElementType.I: result = readerModule.CorLibTypes.IntPtr; break;
+			case ElementType.U: result = readerModule.CorLibTypes.UIntPtr; break;
+			case ElementType.Object: result = readerModule.CorLibTypes.Object; break;
+
+			case ElementType.Ptr: result = new PtrSig(ReadType()); break;
+			case ElementType.ByRef: result = new ByRefSig(ReadType()); break;
+			case ElementType.ValueType: result = new ValueTypeSig(ReadTypeDefOrRef()); break;
+			case ElementType.Class: result = new ClassSig(ReadTypeDefOrRef()); break;
+			case ElementType.FnPtr: result = new FnPtrSig(ReadSig()); break;
+			case ElementType.SZArray: result = new SZArraySig(ReadType()); break;
+			case ElementType.CModReqd: result = new CModReqdSig(ReadTypeDefOrRef(), ReadType()); break;
+			case ElementType.CModOpt: result = new CModOptSig(ReadTypeDefOrRef(), ReadType()); break;
+			case ElementType.Sentinel: result = new SentinelSig(); break;
+			case ElementType.Pinned: result = new PinnedSig(ReadType()); break;
 
 			case ElementType.Var:
 				if (!reader.ReadCompressedUInt32(out num))
-					return null;
-				return new GenericVar(num);
+					break;
+				result = new GenericVar(num);
+				break;
 
 			case ElementType.MVar:
 				if (!reader.ReadCompressedUInt32(out num))
-					return null;
-				return new GenericMVar(num);
+					break;
+				result = new GenericMVar(num);
+				break;
 
 			case ElementType.ValueArray:
 				nextType = ReadType();
 				if (!reader.ReadCompressedUInt32(out num))
-					return null;
-				return new ValueArraySig(nextType, num);
+					break;
+				result = new ValueArraySig(nextType, num);
+				break;
 
 			case ElementType.Module:
 				if (!reader.ReadCompressedUInt32(out num))
-					return null;
-				return new ModuleSig(num, ReadType());
+					break;
+				result = new ModuleSig(num, ReadType());
+				break;
 
 			case ElementType.GenericInst:
 				nextType = ReadType();
 				if (!reader.ReadCompressedUInt32(out num))
-					return null;
+					break;
 				var genericInstSig = new GenericInstSig(nextType as ClassOrValueTypeSig, num);
 				var args = genericInstSig.GenericArguments;
 				for (uint i = 0; i < num; i++)
 					args.Add(ReadType());
-				return genericInstSig;
+				result = genericInstSig;
+				break;
 
 			case ElementType.Array:
 				nextType = ReadType();
 				uint rank;
 				if (!reader.ReadCompressedUInt32(out rank))
-					return null;
-				if (rank == 0)
-					return new ArraySig(nextType, rank, new List<uint>(), new List<int>());
+					break;
+				if (rank == 0) {
+					result = new ArraySig(nextType, rank, new List<uint>(), new List<int>());
+					break;
+				}
 				if (!reader.ReadCompressedUInt32(out num))
-					return null;
+					break;
 				var sizes = new List<uint>((int)num);
 				for (uint i = 0; i < num; i++) {
 					uint size;
 					if (!reader.ReadCompressedUInt32(out size))
-						return null;
+						goto exit;
 					sizes.Add(size);
 				}
 				if (!reader.ReadCompressedUInt32(out num))
-					return null;
+					break;
 				var lowerBounds = new List<int>((int)num);
 				for (uint i = 0; i < num; i++) {
 					int size;
 					if (!reader.ReadCompressedInt32(out size))
-						return null;
+						goto exit;
 					lowerBounds.Add(size);
 				}
-				return new ArraySig(nextType, rank, sizes, lowerBounds);
+				result = new ArraySig(nextType, rank, sizes, lowerBounds);
+				break;
 
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
 			default:
-				return null;
+				result = null;
+				break;
 			}
+exit:
+			DecrementRecursionCounter();
+			return result;
 		}
 
 		/// <summary>
