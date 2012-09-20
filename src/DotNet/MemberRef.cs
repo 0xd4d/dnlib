@@ -92,7 +92,7 @@ namespace dot10.DotNet {
 				if (IsMethodRef)
 					return Utils.GetMethodString(GetDeclaringTypeFullName(), Name, MethodSig, typeGenArgs, null);
 				if (IsFieldRef)
-					return Utils.GetFieldString(GetDeclaringTypeFullName(), Name, FieldSig, typeGenArgs);
+					return FullNameCreator.FieldFullName(GetDeclaringTypeFullName(), Name, FieldSig, typeGenArgs);
 				return string.Empty;
 			}
 		}

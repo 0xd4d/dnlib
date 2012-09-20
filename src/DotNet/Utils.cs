@@ -34,33 +34,6 @@ namespace dot10.DotNet {
 			return sb.ToString();
 		}
 
-		internal static string GetFieldString(string declaringType, UTF8String name, FieldSig fieldSig) {
-			return GetFieldString(declaringType, name, fieldSig, null);
-		}
-
-		internal static string GetFieldString(string declaringType, UTF8String name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
-			return GetFieldString(declaringType, UTF8String.IsNullOrEmpty(name) ? null : name.String, fieldSig, typeGenArgs);
-		}
-
-		internal static string GetFieldString(string declaringType, string name, FieldSig fieldSig) {
-			return GetFieldString(declaringType, name, fieldSig, null);
-		}
-
-		internal static string GetFieldString(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
-			if (fieldSig == null)
-				return string.Empty;
-			var sb = new StringBuilder();
-			sb.Append(GetTypeFullName(fieldSig.Type, typeGenArgs));
-			sb.Append(' ');
-			if (!string.IsNullOrEmpty(declaringType)) {
-				sb.Append(declaringType);
-				sb.Append("::");
-			}
-			if (!string.IsNullOrEmpty(name))
-				sb.Append(name);
-			return sb.ToString();
-		}
-
 		internal static string GetMethodString(string declaringType, UTF8String name, MethodSig methodSig) {
 			return GetMethodString(declaringType, name, methodSig, null, null);
 		}

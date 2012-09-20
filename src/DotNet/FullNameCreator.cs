@@ -11,6 +11,60 @@ namespace dot10.DotNet {
 		GenericArguments genericArguments;
 
 		/// <summary>
+		/// Returns the full name of a field
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of field</param>
+		/// <param name="fieldSig">Field signature</param>
+		/// <returns>Field full name</returns>
+		public static string FieldFullName(string declaringType, UTF8String name, FieldSig fieldSig) {
+			return FieldFullName(declaringType, UTF8String.ToSystemString(name), fieldSig, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a field
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of field</param>
+		/// <param name="fieldSig">Field signature</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <returns>Field full name</returns>
+		public static string FieldFullName(string declaringType, UTF8String name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
+			return FieldFullName(declaringType, UTF8String.ToSystemString(name), fieldSig, typeGenArgs);
+		}
+
+		/// <summary>
+		/// Returns the full name of a field
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of field</param>
+		/// <param name="fieldSig">Field signature</param>
+		/// <returns>Field full name</returns>
+		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig) {
+			return FieldFullName(declaringType, name, fieldSig, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a field
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of field</param>
+		/// <param name="fieldSig">Field signature</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <returns>Field full name</returns>
+		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
+			var fnc = new FullNameCreator(false);
+			if (typeGenArgs != null) {
+				if (fnc.genericArguments == null)
+					fnc.genericArguments = new GenericArguments();
+				fnc.genericArguments.PushTypeArgs(typeGenArgs);
+			}
+
+			fnc.CreateFieldFullName(declaringType, name, fieldSig);
+			return fnc.Result;
+		}
+
+		/// <summary>
 		/// Returns the namespace of a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>
@@ -1045,6 +1099,18 @@ namespace dot10.DotNet {
 
 			DecrementRecursionCounter();
 			return result;
+		}
+
+		void CreateFieldFullName(string declaringType, string name, FieldSig fieldSig) {
+			CreateFullName(fieldSig == null ? null : fieldSig.Type);
+			sb.Append(' ');
+
+			if (!string.IsNullOrEmpty(declaringType)) {
+				sb.Append(declaringType);
+				sb.Append("::");
+			}
+			if (!string.IsNullOrEmpty(name))
+				sb.Append(name);
 		}
 
 		/// <inheritdoc/>
