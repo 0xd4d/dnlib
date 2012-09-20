@@ -633,9 +633,11 @@ namespace dot10.DotNet {
 							uint size = i >= arraySig.Sizes.Count ? NO_SIZE : arraySig.Sizes[i];
 							if (lower != NO_LOWER) {
 								sb.Append(lower);
-								sb.Append("...");
+								sb.Append("..");
 								if (size != NO_SIZE)
 									sb.Append(lower + (int)size - 1);
+								else
+									sb.Append('.');
 							}
 						}
 					}
