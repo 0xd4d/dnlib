@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
-	class FullNameCreator {
+	class FullNameCreator : RecursionCounter {
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
-		/// <summary>
-		/// Max recursion count. If this is reached, we won't continue, and will use a default value.
-		/// </summary>
-		const int MAX_RECURSION_COUNT = 100;
-		int recursionCounter;
 		StringBuilder sb;
 		bool isReflection;
 		GenericArguments genericArguments;
@@ -299,39 +293,11 @@ namespace dot10.DotNet {
 		}
 
 		FullNameCreator() {
-			this.recursionCounter = 0;
 		}
 
 		FullNameCreator(bool isReflection) {
 			this.isReflection = isReflection;
-			this.recursionCounter = 0;
 			this.sb = new StringBuilder();
-		}
-
-		/// <summary>
-		/// Increments <see cref="recursionCounter"/> if it's not too high. <c>ALL</c> instance methods
-		/// that can be called recursively must call this method and <see cref="DecrementRecursionCounter"/>
-		/// (if this method returns <c>true</c>)
-		/// </summary>
-		/// <returns><c>true</c> if it was incremented and caller can continue, <c>false</c> if
-		/// it was <c>not</c> incremented and the caller must return to its caller.</returns>
-		bool IncrementRecursionCounter() {
-			if (recursionCounter >= MAX_RECURSION_COUNT)
-				return false;
-			recursionCounter++;
-			return true;
-		}
-
-		/// <summary>
-		/// Must be called before returning to caller if <see cref="IncrementRecursionCounter"/>
-		/// returned <c>true</c>
-		/// </summary>
-		void DecrementRecursionCounter() {
-#if DEBUG
-			if (recursionCounter <= 0)
-				throw new InvalidOperationException("recursionCounter <= 0");
-#endif
-			recursionCounter--;
 		}
 
 		void CreateFullName(ITypeDefOrRef typeDefOrRef) {
