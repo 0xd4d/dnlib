@@ -516,7 +516,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the rank (max value is 0x1FFFFFFF)
+		/// Gets/sets the rank (max value is <c>0x1FFFFFFF</c>)
 		/// </summary>
 		public uint Rank {
 			get { return rank; }
@@ -524,14 +524,14 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets all sizes (max elements is 0x1FFFFFFF)
+		/// Gets all sizes (max elements is <c>0x1FFFFFFF</c>)
 		/// </summary>
 		public IList<uint> Sizes {
 			get { return sizes; }
 		}
 
 		/// <summary>
-		/// Gets all lower bounds (max elements is 0x1FFFFFFF)
+		/// Gets all lower bounds (max elements is <c>0x1FFFFFFF</c>)
 		/// </summary>
 		public IList<int> LowerBounds {
 			get { return lowerBounds; }
