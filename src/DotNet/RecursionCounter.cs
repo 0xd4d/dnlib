@@ -33,5 +33,10 @@ namespace dot10.DotNet {
 #endif
 			counter--;
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return counter.ToString();
+		}
 	}
 }
