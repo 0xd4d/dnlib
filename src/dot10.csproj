@@ -61,6 +61,7 @@
     <Compile Include="DotNet\Emit\ExceptionHandler.cs" />
     <Compile Include="DotNet\Emit\FlowControl.cs" />
     <Compile Include="DotNet\Emit\Instruction.cs" />
+    <Compile Include="DotNet\Emit\InstructionPrinter.cs" />
     <Compile Include="DotNet\Emit\InvalidMethodException.cs" />
     <Compile Include="DotNet\GenericArguments.cs" />
     <Compile Include="DotNet\IVariable.cs" />
@@ -94,7 +95,7 @@
     <Compile Include="DotNet\GenericParamConstraint.cs" />
     <Compile Include="DotNet\ICodedToken.cs" />
     <Compile Include="DotNet\ICorLibTypes.cs" />
-    <Compile Include="DotNet\IFullName.cs" />
+    <Compile Include="DotNet\IType.cs" />
     <Compile Include="DotNet\ImplMap.cs" />
     <Compile Include="DotNet\InterfaceImpl.cs" />
     <Compile Include="DotNet\ISignature.cs" />

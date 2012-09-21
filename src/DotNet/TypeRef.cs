@@ -42,7 +42,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		string IFullName.Name {
+		string IType.Name {
 			get { return FullNameCreator.Name(this, false); }
 		}
 
@@ -52,7 +52,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		string IFullName.Namespace {
+		string IType.Namespace {
 			get { return FullNameCreator.Namespace(this, false); }
 		}
 

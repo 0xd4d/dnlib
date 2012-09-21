@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Interface to get the full name of a type
 	/// </summary>
-	public interface IFullName {
+	public interface IType {
 		/// <summary>
 		/// Returns the name of this type
 		/// </summary>
