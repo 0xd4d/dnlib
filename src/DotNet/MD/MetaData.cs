@@ -467,6 +467,12 @@ namespace dot10.DotNet.MD {
 				guidStream.Dispose();
 			if (tablesStream != null)
 				tablesStream.Dispose();
+			if (allStreams != null) {
+				foreach (var stream in allStreams) {
+					if (stream != null)
+						stream.Dispose();
+				}
+			}
 			peImage = null;
 			cor20Header = null;
 			mdHeader = null;
