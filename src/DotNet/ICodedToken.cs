@@ -44,15 +44,25 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Implememented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
+	/// Interface to get the full name of a type, field, or method
 	/// </summary>
-	public interface IField {
+	public interface IFullName {
+		/// <summary>
+		/// Gets the full name
+		/// </summary>
+		string FullName { get; }
 	}
 
 	/// <summary>
-	/// Implememented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)
+	/// Implemented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
 	/// </summary>
-	public interface IMethod : ITokenOperand {
+	public interface IField : IFullName {
+	}
+
+	/// <summary>
+	/// Implemented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)
+	/// </summary>
+	public interface IMethod : ITokenOperand, IFullName {
 	}
 
 	/// <summary>
@@ -70,7 +80,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// TypeDefOrRef coded token interface
 	/// </summary>
-	public interface ITypeDefOrRef : ICodedToken, IFullName, ITokenOperand {
+	public interface ITypeDefOrRef : ICodedToken, IType, ITokenOperand {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>

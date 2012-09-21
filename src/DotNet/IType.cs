@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Interface to get the full name of a type
 	/// </summary>
-	public interface IType {
+	public interface IType : IFullName {
 		/// <summary>
 		/// Returns the name of this type
 		/// </summary>
@@ -22,11 +22,6 @@
 		/// Returns the reflection namespace of this type
 		/// </summary>
 		string ReflectionNamespace { get; }
-
-		/// <summary>
-		/// Returns the human readable full name of this type
-		/// </summary>
-		string FullName { get; }
 
 		/// <summary>
 		/// Returns the reflection name of this type. See also <see cref="AssemblyQualifiedName"/>.
