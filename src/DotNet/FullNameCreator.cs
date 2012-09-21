@@ -3,12 +3,13 @@ using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
-	class FullNameCreator : RecursionCounter {
+	class FullNameCreator {
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
 		StringBuilder sb;
 		bool isReflection;
 		GenericArguments genericArguments;
+		RecursionCounter recursionCounter;
 
 		/// <summary>
 		/// Returns the full name of a field
@@ -483,7 +484,7 @@ namespace dot10.DotNet {
 				sb.Append(NULLVALUE);
 				return;
 			}
-			if (!IncrementRecursionCounter()) {
+			if (!recursionCounter.IncrementRecursionCounter()) {
 				sb.Append(RECURSION_ERROR_RESULT_STRING);
 				return;
 			}
@@ -491,7 +492,7 @@ namespace dot10.DotNet {
 			CreateFullName(typeRef);
 			AddAssemblyName(GetDefinitionAssembly(typeRef));
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 		}
 
 		void CreateFullName(TypeRef typeRef) {
@@ -499,7 +500,7 @@ namespace dot10.DotNet {
 				sb.Append(NULLVALUE);
 				return;
 			}
-			if (!IncrementRecursionCounter()) {
+			if (!recursionCounter.IncrementRecursionCounter()) {
 				sb.Append(RECURSION_ERROR_RESULT_STRING);
 				return;
 			}
@@ -514,7 +515,7 @@ namespace dot10.DotNet {
 				sb.Append('.');
 			AddName(typeRef.Name);
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 		}
 
 		void CreateNamespace(TypeRef typeRef) {
@@ -538,7 +539,7 @@ namespace dot10.DotNet {
 				sb.Append(NULLVALUE);
 				return;
 			}
-			if (!IncrementRecursionCounter()) {
+			if (!recursionCounter.IncrementRecursionCounter()) {
 				sb.Append(RECURSION_ERROR_RESULT_STRING);
 				return;
 			}
@@ -546,7 +547,7 @@ namespace dot10.DotNet {
 			CreateFullName(typeDef);
 			AddAssemblyName(GetDefinitionAssembly(typeDef));
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 		}
 
 		void CreateFullName(TypeDef typeDef) {
@@ -554,7 +555,7 @@ namespace dot10.DotNet {
 				sb.Append(NULLVALUE);
 				return;
 			}
-			if (!IncrementRecursionCounter()) {
+			if (!recursionCounter.IncrementRecursionCounter()) {
 				sb.Append(RECURSION_ERROR_RESULT_STRING);
 				return;
 			}
@@ -573,7 +574,7 @@ namespace dot10.DotNet {
 				sb.Append('.');
 			AddName(typeDef.Name);
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 		}
 
 		void CreateNamespace(TypeDef typeDef) {
@@ -630,7 +631,7 @@ namespace dot10.DotNet {
 				sb.Append(NULLVALUE);
 				return;
 			}
-			if (!IncrementRecursionCounter()) {
+			if (!recursionCounter.IncrementRecursionCounter()) {
 				sb.Append(RECURSION_ERROR_RESULT_STRING);
 				return;
 			}
@@ -638,7 +639,7 @@ namespace dot10.DotNet {
 			CreateFullName(typeSig);
 			AddAssemblyName(GetDefinitionAssembly(typeSig));
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 		}
 		void CreateFullName(TypeSig typeSig) {
 			CreateTypeSigName(typeSig, TYPESIG_NAMESPACE | TYPESIG_NAME);
@@ -659,7 +660,7 @@ namespace dot10.DotNet {
 				sb.Append(NULLVALUE);
 				return;
 			}
-			if (!IncrementRecursionCounter()) {
+			if (!recursionCounter.IncrementRecursionCounter()) {
 				sb.Append(RECURSION_ERROR_RESULT_STRING);
 				return;
 			}
@@ -865,7 +866,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 		}
 
 		static string GetAssemblyName(IAssembly assembly) {
@@ -969,7 +970,7 @@ namespace dot10.DotNet {
 		IAssembly GetDefinitionAssembly(TypeRef typeRef) {
 			if (typeRef == null)
 				return null;
-			if (!IncrementRecursionCounter())
+			if (!recursionCounter.IncrementRecursionCounter())
 				return null;
 			IAssembly result;
 
@@ -989,7 +990,7 @@ namespace dot10.DotNet {
 			else
 				result = null;	// Should never be reached
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 			return result;
 		}
 
@@ -1026,7 +1027,7 @@ namespace dot10.DotNet {
 		IAssembly GetDefinitionAssembly(TypeSig typeSig) {
 			if (typeSig == null)
 				return null;
-			if (!IncrementRecursionCounter())
+			if (!recursionCounter.IncrementRecursionCounter())
 				return null;
 			IAssembly result;
 
@@ -1097,14 +1098,14 @@ namespace dot10.DotNet {
 				break;
 			}
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 			return result;
 		}
 
 		ModuleDef GetOwnerModule(TypeSig typeSig) {
 			if (typeSig == null)
 				return null;
-			if (!IncrementRecursionCounter())
+			if (!recursionCounter.IncrementRecursionCounter())
 				return null;
 			ModuleDef result;
 
@@ -1175,7 +1176,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 			return result;
 		}
 

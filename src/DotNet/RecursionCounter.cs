@@ -1,18 +1,12 @@
 ﻿using System;
 
 namespace dot10.DotNet {
-	class RecursionCounter {
+	struct RecursionCounter {
 		/// <summary>
 		/// Max recursion count. If this is reached, we won't continue, and will use a default value.
 		/// </summary>
 		const int MAX_RECURSION_COUNT = 100;
 		int counter;
-
-		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public RecursionCounter() {
-		}
 
 		/// <summary>
 		/// Increments <see cref="counter"/> if it's not too high. <c>ALL</c> instance methods

@@ -6,11 +6,12 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Reads signatures from the #Blob stream
 	/// </summary>
-	class SignatureReader : RecursionCounter {
+	struct SignatureReader {
 		ModuleDefMD readerModule;
 		IImageStream reader;
 		uint sigLen;
 		bool failedReadingLength;
+		RecursionCounter recursionCounter;
 
 		/// <summary>
 		/// Reads a signature from the #Blob stream
@@ -59,7 +60,8 @@ namespace dot10.DotNet {
 			this.readerModule = readerModule;
 			this.reader = readerModule.BlobStream.ImageStream;
 			this.reader.Position = sig;
-			failedReadingLength = !reader.ReadCompressedUInt32(out sigLen);
+			this.failedReadingLength = !reader.ReadCompressedUInt32(out sigLen);
+			this.recursionCounter = new RecursionCounter();
 		}
 
 		/// <summary>
@@ -67,7 +69,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="ISignature"/> instance or <c>null</c> if invalid signature</returns>
 		CallingConventionSig ReadSig() {
-			if (!IncrementRecursionCounter())
+			if (!recursionCounter.IncrementRecursionCounter())
 				return null;
 
 			CallingConventionSig result;
@@ -105,7 +107,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 			return result;
 		}
 
@@ -202,7 +204,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if invalid element type</returns>
 		TypeSig ReadType() {
-			if (!IncrementRecursionCounter())
+			if (!recursionCounter.IncrementRecursionCounter())
 				return null;
 
 			uint num;
@@ -312,7 +314,7 @@ namespace dot10.DotNet {
 				break;
 			}
 exit:
-			DecrementRecursionCounter();
+			recursionCounter.DecrementRecursionCounter();
 			return result;
 		}
 
