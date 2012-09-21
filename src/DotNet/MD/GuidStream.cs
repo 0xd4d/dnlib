@@ -7,6 +7,10 @@ namespace dot10.DotNet.MD {
 	/// </summary>
 	public class GuidStream : DotNetStream {
 		/// <inheritdoc/>
+		public GuidStream() {
+		}
+
+		/// <inheritdoc/>
 		public GuidStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
 		}

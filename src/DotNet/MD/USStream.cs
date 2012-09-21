@@ -7,6 +7,10 @@ namespace dot10.DotNet.MD {
 	/// </summary>
 	public class USStream : DotNetStream {
 		/// <inheritdoc/>
+		public USStream() {
+		}
+
+		/// <inheritdoc/>
 		public USStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
 		}

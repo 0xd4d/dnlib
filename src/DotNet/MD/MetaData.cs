@@ -109,7 +109,25 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Initializes the metadata, tables, streams
 		/// </summary>
-		public abstract void Initialize();
+		public void Initialize() {
+			Initialize2();
+
+			if (tablesStream == null)
+				throw new BadImageFormatException("Missing MD stream");
+			if (stringsStream == null)
+				stringsStream = new StringsStream();
+			if (usStream == null)
+				usStream = new USStream();
+			if (blobStream == null)
+				blobStream = new BlobStream();
+			if (guidStream == null)
+				guidStream = new GuidStream();
+		}
+
+		/// <summary>
+		/// Called by <see cref="Initialize()"/>
+		/// </summary>
+		protected abstract void Initialize2();
 
 		/// <inheritdoc/>
 		public virtual RidList GetTypeDefRidList() {

@@ -13,6 +13,9 @@ namespace dot10.DotNet.MD {
 		/// Reader that can access the whole stream
 		/// </summary>
 		protected IImageStream imageStream;
+		/// <summary>
+		/// <c>null</c> if it wasn't present in the file
+		/// </summary>
 		StreamHeader streamHeader;
 
 		/// <summary>
@@ -20,6 +23,14 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		public IImageStream ImageStream {
 			get { return imageStream; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public DotNetStream() {
+			this.imageStream = new MemoryImageStream(0, new byte[0], 0, 0);
+			this.streamHeader = null;
 		}
 
 		/// <summary>

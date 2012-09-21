@@ -8,6 +8,10 @@ namespace dot10.DotNet.MD {
 		static readonly byte[] noData = new byte[0];
 
 		/// <inheritdoc/>
+		public BlobStream() {
+		}
+
+		/// <inheritdoc/>
 		public BlobStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
 		}

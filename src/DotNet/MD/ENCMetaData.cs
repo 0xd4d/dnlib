@@ -125,7 +125,7 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override void Initialize() {
+		protected override void Initialize2() {
 			IImageStream imageStream = null;
 			DotNetStream dns = null;
 			try {
@@ -184,18 +184,6 @@ namespace dot10.DotNet.MD {
 					allStreams.Add(dns);
 					dns = null;
 				}
-
-				if (tablesStream == null)
-					throw new BadImageFormatException("Missing MD stream");
-				tablesStream.Initialize(peImage);
-
-				// The pointer tables are used iff row count != 0
-				hasFieldPtr = !tablesStream.Get(Table.FieldPtr).IsEmpty;
-				hasMethodPtr = !tablesStream.Get(Table.MethodPtr).IsEmpty;
-				hasParamPtr = !tablesStream.Get(Table.ParamPtr).IsEmpty;
-				hasEventPtr = !tablesStream.Get(Table.EventPtr).IsEmpty;
-				hasPropertyPtr = !tablesStream.Get(Table.PropertyPtr).IsEmpty;
-				hasDeletedRows = tablesStream.HasDelete;
 			}
 			finally {
 				if (imageStream != null)
@@ -203,6 +191,18 @@ namespace dot10.DotNet.MD {
 				if (dns != null)
 					dns.Dispose();
 			}
+
+			if (tablesStream == null)
+				throw new BadImageFormatException("Missing MD stream");
+			tablesStream.Initialize(peImage);
+
+			// The pointer tables are used iff row count != 0
+			hasFieldPtr = !tablesStream.Get(Table.FieldPtr).IsEmpty;
+			hasMethodPtr = !tablesStream.Get(Table.MethodPtr).IsEmpty;
+			hasParamPtr = !tablesStream.Get(Table.ParamPtr).IsEmpty;
+			hasEventPtr = !tablesStream.Get(Table.EventPtr).IsEmpty;
+			hasPropertyPtr = !tablesStream.Get(Table.PropertyPtr).IsEmpty;
+			hasDeletedRows = tablesStream.HasDelete;
 		}
 
 		/// <inheritdoc/>

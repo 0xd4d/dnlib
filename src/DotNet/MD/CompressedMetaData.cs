@@ -13,7 +13,7 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override void Initialize() {
+		protected override void Initialize2() {
 			IImageStream imageStream = null;
 			DotNetStream dns = null;
 			try {
@@ -73,11 +73,6 @@ namespace dot10.DotNet.MD {
 					allStreams.Add(dns);
 					dns = null;
 				}
-				allStreams.Reverse();
-
-				if (tablesStream == null)
-					throw new BadImageFormatException("Missing MD stream");
-				tablesStream.Initialize(peImage);
 			}
 			finally {
 				if (imageStream != null)
@@ -85,6 +80,12 @@ namespace dot10.DotNet.MD {
 				if (dns != null)
 					dns.Dispose();
 			}
+
+			allStreams.Reverse();
+
+			if (tablesStream == null)
+				throw new BadImageFormatException("Missing MD stream");
+			tablesStream.Initialize(peImage);
 		}
 
 		/// <inheritdoc/>

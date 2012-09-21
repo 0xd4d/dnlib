@@ -6,6 +6,10 @@ namespace dot10.DotNet.MD {
 	/// </summary>
 	public class StringsStream : DotNetStream {
 		/// <inheritdoc/>
+		public StringsStream() {
+		}
+
+		/// <inheritdoc/>
 		public StringsStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
 		}
