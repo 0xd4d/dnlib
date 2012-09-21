@@ -560,13 +560,13 @@ namespace dot10.DotNet {
 			}
 
 			if (typeDef.IsNested) {
-				var enclosingTypeDef = typeDef.EnclosingType;
-				if (enclosingTypeDef != null) {
-					CreateFullName(enclosingTypeDef);
+				var declaringTypeDef = typeDef.DeclaringType;
+				if (declaringTypeDef != null) {
+					CreateFullName(declaringTypeDef);
 					AddNestedTypeSeparator();
 				}
 				else
-					sb.Append("<<<ENCLOSINGTYPENULL>>>");
+					sb.Append("<<<DECLARINGTYPENULL>>>");
 			}
 
 			if (AddNamespace(typeDef.Namespace))

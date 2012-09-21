@@ -141,21 +141,21 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the enclosing type. It's <c>null</c> if this isn't a nested class.
 		/// </summary>
-		public TypeDef EnclosingType {
-			get { return EnclosingType2; }
+		public TypeDef DeclaringType {
+			get { return DeclaringType2; }
 			set {
-				var currentEnclosingType = EnclosingType2;
-				if (currentEnclosingType != null)
-					currentEnclosingType.NestedTypes.Remove(this);	// Will set EnclosingType2 = null
+				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType != null)
+					currentDeclaringType.NestedTypes.Remove(this);	// Will set DeclaringType2 = null
 				if (value != null)
-					value.NestedTypes.Add(this);		// Will set EnclosingType2 = value
+					value.NestedTypes.Add(this);		// Will set DeclaringType2 = value
 			}
 		}
 
 		/// <summary>
-		/// Called by <see cref="EnclosingType"/>
+		/// Called by <see cref="DeclaringType"/>
 		/// </summary>
-		protected abstract TypeDef EnclosingType2 { get; set; }
+		protected abstract TypeDef DeclaringType2 { get; set; }
 
 		/// <summary>
 		/// Gets all the nested types
@@ -238,7 +238,7 @@ namespace dot10.DotNet {
 
 		/// <summary>
 		/// Checks whether the type is nested. It's nested if <see cref="Visibility"/> is one of
-		/// the nested visibility values. <see cref="EnclosingType"/> is not checked, and can still
+		/// the nested visibility values. <see cref="DeclaringType"/> is not checked, and can still
 		/// be <c>null</c>.
 		/// </summary>
 		public bool IsNested {
@@ -528,19 +528,19 @@ namespace dot10.DotNet {
 		void IListListener<TypeDef>.OnAdd(int index, TypeDef value, bool isLazyAdd) {
 			if (isLazyAdd) {
 #if DEBUG
-				if (value.EnclosingType != this)
-					throw new ArgumentException("Added nested type's EnclosingType != this");
+				if (value.DeclaringType != this)
+					throw new ArgumentException("Added nested type's DeclaringType != this");
 #endif
 				return;
 			}
-			if (value.EnclosingType != null)
-				throw new ArgumentException("Nested type is already owned by another type. Set EnclosingType to null first.");
-			value.EnclosingType2 = this;
+			if (value.DeclaringType != null)
+				throw new ArgumentException("Nested type is already owned by another type. Set DeclaringType to null first.");
+			value.DeclaringType2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnRemove(int index, TypeDef value) {
-			value.EnclosingType2 = null;
+			value.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -550,7 +550,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnClear() {
 			foreach (var type in NestedTypes)
-				type.EnclosingType2 = null;
+				type.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -573,7 +573,7 @@ namespace dot10.DotNet {
 		IList<InterfaceImpl> interfaceImpls = new List<InterfaceImpl>();
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		ClassLayout classLayout;
-		TypeDef enclosingType;
+		TypeDef declaringType;
 		EventMap eventMap;
 		PropertyMap propertyMap;
 		LazyList<TypeDef> nestedTypes;
@@ -634,9 +634,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeDef EnclosingType2 {
-			get { return enclosingType; }
-			set { enclosingType = value; }
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType; }
+			set { declaringType = value; }
 		}
 
 		/// <inheritdoc/>
@@ -762,7 +762,7 @@ namespace dot10.DotNet {
 		LazyList<InterfaceImpl> interfaceImpls;
 		LazyList<DeclSecurity> declSecurities;
 		UserValue<ClassLayout> classLayout;
-		UserValue<TypeDef> enclosingType;
+		UserValue<TypeDef> declaringType;
 		UserValue<EventMap> eventMap;
 		UserValue<PropertyMap> propertyMap;
 		LazyList<TypeDef> nestedTypes;
@@ -853,9 +853,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeDef EnclosingType2 {
-			get { return enclosingType.Value; }
-			set { enclosingType.Value = value; }
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType.Value; }
+			set { declaringType.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -921,7 +921,7 @@ namespace dot10.DotNet {
 			classLayout.ReadOriginalValue = () => {
 				return readerModule.ResolveClassLayout(readerModule.MetaData.GetClassLayoutRid(rid));
 			};
-			enclosingType.ReadOriginalValue = () => {
+			declaringType.ReadOriginalValue = () => {
 				var nestedClass = readerModule.ResolveNestedClass(readerModule.MetaData.GetNestedClassRid(rid));
 				return nestedClass == null ? null : nestedClass.EnclosingType;
 			};
