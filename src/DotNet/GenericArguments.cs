@@ -1,8 +1,18 @@
 ﻿using System.Collections.Generic;
 
 namespace dot10.DotNet {
-	class GenericArgumentsStack<TGenericType> where TGenericType : GenericSig {
-		List<IList<TypeSig>> argsStack = new List<IList<TypeSig>>();
+	struct GenericArgumentsStack {
+		List<IList<TypeSig>> argsStack;
+		bool isTypeVar;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="isTypeVar"><c>true</c> if it's for generic types, <c>false</c> if generic methods</param>
+		public GenericArgumentsStack(bool isTypeVar) {
+			this.argsStack = new List<IList<TypeSig>>();
+			this.isTypeVar = isTypeVar;
+		}
 
 		/// <summary>
 		/// Pushes generic arguments
@@ -35,8 +45,8 @@ namespace dot10.DotNet {
 				if (number >= args.Count)
 					return null;
 				var typeSig = args[(int)number];
-				var gvar = typeSig as TGenericType;
-				if (gvar == null)
+				var gvar = typeSig as GenericSig;
+				if (gvar == null || gvar.IsTypeVar != isTypeVar)
 					return typeSig;
 				result = gvar;
 				number = gvar.Number;
@@ -47,8 +57,8 @@ namespace dot10.DotNet {
 
 	class GenericArguments {
 		const int MAX_RESOLVE_TRIES = 30;
-		GenericArgumentsStack<GenericVar> typeArgsStack = new GenericArgumentsStack<GenericVar>();
-		GenericArgumentsStack<GenericMVar> methodArgsStack = new GenericArgumentsStack<GenericMVar>();
+		GenericArgumentsStack typeArgsStack = new GenericArgumentsStack(true);
+		GenericArgumentsStack methodArgsStack = new GenericArgumentsStack(false);
 
 		/// <summary>
 		/// Pushes generic arguments
