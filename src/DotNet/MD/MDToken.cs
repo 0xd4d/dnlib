@@ -22,7 +22,7 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		public const int TABLE_SHIFT = 24;
 
-		uint token;
+		readonly uint token;
 
 		/// <summary>
 		/// Returns the table type
