@@ -1211,10 +1211,7 @@ namespace dot10.DotNet {
 				for (int i = 0; i < methodSig.GenParamCount; i++) {
 					if (i != 0)
 						sb.Append(',');
-					TypeSig typeSig = new GenericMVar((uint)i);
-					if (genericArguments != null)
-						typeSig = genericArguments.Resolve(typeSig);
-					CreateFullName(typeSig);
+					CreateFullName(new GenericMVar((uint)i));
 				}
 				sb.Append('>');
 			}
