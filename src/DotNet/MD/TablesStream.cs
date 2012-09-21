@@ -29,7 +29,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// .NET metadata tables stream
 	/// </summary>
-	public abstract partial class TablesStream : DotNetStream {
+	public sealed partial class TablesStream : DotNetStream {
 		uint reserved1;
 		byte majorVersion;
 		byte minorVersion;
@@ -97,7 +97,7 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected TablesStream(IImageStream imageStream, StreamHeader streamHeader)
+		public TablesStream(IImageStream imageStream, StreamHeader streamHeader)
 			: base(imageStream, streamHeader) {
 		}
 

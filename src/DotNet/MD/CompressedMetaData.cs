@@ -61,7 +61,7 @@ namespace dot10.DotNet.MD {
 
 					case "#~":
 						if (tablesStream == null) {
-							tablesStream = new CompressedTablesStream(imageStream, sh);
+							tablesStream = new TablesStream(imageStream, sh);
 							imageStream = null;
 							allStreams.Add(tablesStream);
 							continue;
