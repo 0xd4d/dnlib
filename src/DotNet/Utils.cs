@@ -43,12 +43,13 @@ namespace dot10.DotNet {
 		internal static string ToHex(byte[] bytes, bool upper) {
 			if (bytes == null)
 				return "";
-			var sb = new StringBuilder(bytes.Length / 2);
-			foreach (var b in bytes) {
-				sb.Append(ToHexChar(b >> 4, upper));
-				sb.Append(ToHexChar(b & 0x0F, upper));
+			var chars = new char[bytes.Length * 2];
+			for (int i = 0, j = 0; i < bytes.Length; i++) {
+				byte b = bytes[i];
+				chars[j++] = ToHexChar(b >> 4, upper);
+				chars[j++] = ToHexChar(b & 0x0F, upper);
 			}
-			return sb.ToString();
+			return new string(chars);
 		}
 
 		static char ToHexChar(int val, bool upper) {
