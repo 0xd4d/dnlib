@@ -3,7 +3,7 @@ using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
-	class FullNameCreator {
+	struct FullNameCreator {
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
 		StringBuilder sb;
@@ -427,12 +427,11 @@ namespace dot10.DotNet {
 			get { return sb == null ? null : sb.ToString(); }
 		}
 
-		FullNameCreator() {
-		}
-
 		FullNameCreator(bool isReflection) {
-			this.isReflection = isReflection;
 			this.sb = new StringBuilder();
+			this.isReflection = isReflection;
+			this.genericArguments = null;
+			this.recursionCounter = new RecursionCounter();
 		}
 
 		void CreateFullName(ITypeDefOrRef typeDefOrRef) {
