@@ -84,12 +84,20 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public IAssembly DefinitionAssembly {
-			get { return ownerModule == null ? null : ownerModule.Assembly; }
+			get { return FullNameCreator.DefinitionAssembly(this); }
 		}
 
 		/// <inheritdoc/>
 		public ModuleDef OwnerModule {
+			get { return FullNameCreator.OwnerModule(this); }
+		}
+
+		/// <summary>
+		/// Gets/sets the owner module
+		/// </summary>
+		internal ModuleDef OwnerModule2 {
 			get { return ownerModule; }
+			set { ownerModule = value; }
 		}
 
 		/// <summary>
@@ -234,15 +242,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		public bool IsNestedFamORAssem {
 			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamORAssem; }
-		}
-
-		/// <summary>
-		/// Checks whether the type is nested. It's nested if <see cref="Visibility"/> is one of
-		/// the nested visibility values. <see cref="DeclaringType"/> is not checked, and can still
-		/// be <c>null</c>.
-		/// </summary>
-		public bool IsNested {
-			get { return Visibility >= TypeAttributes.NestedPublic; }
 		}
 
 		/// <summary>
@@ -528,13 +527,17 @@ namespace dot10.DotNet {
 		void IListListener<TypeDef>.OnAdd(int index, TypeDef value, bool isLazyAdd) {
 			if (isLazyAdd) {
 #if DEBUG
+				if (value.OwnerModule2 != null)
+					throw new InvalidOperationException("Added nested type's OwnerModule != null");
 				if (value.DeclaringType != this)
-					throw new ArgumentException("Added nested type's DeclaringType != this");
+					throw new InvalidOperationException("Added nested type's DeclaringType != this");
 #endif
 				return;
 			}
 			if (value.DeclaringType != null)
-				throw new ArgumentException("Nested type is already owned by another type. Set DeclaringType to null first.");
+				throw new InvalidOperationException("Nested type is already owned by another type. Set DeclaringType to null first.");
+			if (value.OwnerModule != null)
+				throw new InvalidOperationException("Type is already owned by another module. Remove it from that module's type list.");
 			value.DeclaringType2 = this;
 		}
 
@@ -659,44 +662,39 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Name</param>
-		public TypeDefUser(ModuleDef ownerModule, UTF8String name)
-			: this(ownerModule, null, name, null) {
+		public TypeDefUser(UTF8String name)
+			: this(null, name, null) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		public TypeDefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name)
-			: this(ownerModule, @namespace, name, null) {
+		public TypeDefUser(UTF8String @namespace, UTF8String name)
+			: this(@namespace, name, null) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Name</param>
 		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(ModuleDef ownerModule, UTF8String name, ITypeDefOrRef extends)
-			: this(ownerModule, null, name, extends) {
+		public TypeDefUser(UTF8String name, ITypeDefOrRef extends)
+			: this(null, name, extends) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
 		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(ModuleDef ownerModule, UTF8String @namespace, UTF8String name, ITypeDefOrRef extends) {
+		public TypeDefUser(UTF8String @namespace, UTF8String name, ITypeDefOrRef extends) {
 			this.fields = new LazyList<FieldDef>(this);
 			this.methods = new LazyList<MethodDef>(this);
 			this.nestedTypes = new LazyList<TypeDef>(this);
-			this.ownerModule = ownerModule;
 			this.@namespace = @namespace;
 			this.name = name;
 			this.extends = extends;
@@ -705,41 +703,37 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Name</param>
-		public TypeDefUser(ModuleDef ownerModule, string name)
-			: this(ownerModule, null, name, null) {
+		public TypeDefUser(string name)
+			: this(null, name, null) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		public TypeDefUser(ModuleDef ownerModule, string @namespace, string name)
-			: this(ownerModule, @namespace, name, null) {
+		public TypeDefUser(string @namespace, string name)
+			: this(@namespace, name, null) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Name</param>
 		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(ModuleDef ownerModule, string name, ITypeDefOrRef extends)
-			: this(ownerModule, null, name, extends) {
+		public TypeDefUser(string name, ITypeDefOrRef extends)
+			: this(null, name, extends) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
 		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(ModuleDef ownerModule, string @namespace, string name, ITypeDefOrRef extends)
-			: this(ownerModule, new UTF8String(@namespace), new UTF8String(name), extends) {
+		public TypeDefUser(string @namespace, string name, ITypeDefOrRef extends)
+			: this(new UTF8String(@namespace), new UTF8String(name), extends) {
 		}
 	}
 
@@ -897,7 +891,6 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
-			this.ownerModule = readerModule;
 			Initialize();
 		}
 

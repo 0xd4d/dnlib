@@ -107,6 +107,17 @@ namespace dot10.DotNet {
 			get { return dnFile.MetaData.USStream; }
 		}
 
+		/// <inheritdoc/>
+		public override IList<TypeDef> Types {
+			get {
+				if (types == null) {
+					var list = MetaData.GetNonNestedClassRidList();
+					types = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[index]));
+				}
+				return types;
+			}
+		}
+
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a file
 		/// </summary>
@@ -242,10 +253,7 @@ namespace dot10.DotNet {
 				listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
 			}
 
-			RidList list;
-			list = MetaData.GetTypeDefRidList();
-			types = new LazyList<TypeDef>((int)list.Length, list, (list2, i) => ResolveTypeDef(((RidList)list2)[i]));
-			list = MetaData.GetExportedTypeRidList();
+			RidList list = MetaData.GetExportedTypeRidList();
 			exportedTypes = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
 		}
 

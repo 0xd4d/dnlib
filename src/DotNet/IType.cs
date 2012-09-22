@@ -41,7 +41,7 @@
 		IAssembly DefinitionAssembly { get; }
 
 		/// <summary>
-		/// Gets the owner module. The type was created from metadata in this module.
+		/// Gets the owner module.
 		/// </summary>
 		ModuleDef OwnerModule { get; }
 	}

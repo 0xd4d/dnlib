@@ -9,7 +9,7 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the Module table
 	/// </summary>
 	[DebuggerDisplay("{Name.String}")]
-	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable {
+	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -66,7 +66,7 @@ namespace dot10.DotNet {
 		public abstract AssemblyDef Assembly { get; set; }
 
 		/// <summary>
-		/// Gets a list of all <see cref="TypeDef"/>s
+		/// Gets a list of all non-nested <see cref="TypeDef"/>s
 		/// </summary>
 		public abstract IList<TypeDef> Types { get; }
 
@@ -171,6 +171,52 @@ namespace dot10.DotNet {
 		protected virtual void Dispose(bool disposing) {
 		}
 
+		/// <summary>
+		/// Adds <paramref name="typeDef"/> as a non-nested type. If it's already nested, its
+		/// <see cref="TypeDef.DeclaringType"/> will be set to <c>null</c>.
+		/// </summary>
+		/// <param name="typeDef">The <see cref="TypeDef"/> to insert</param>
+		public void AddAsNonNestedType(TypeDef typeDef) {
+			if (typeDef == null)
+				return;
+			typeDef.DeclaringType = null;
+			Types.Add(typeDef);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<TypeDef>.OnAdd(int index, TypeDef value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.OwnerModule != null)
+					throw new InvalidOperationException("Added nested type's OwnerModule != null");
+				if (value.DeclaringType != null)
+					throw new InvalidOperationException("Added nested type's DeclaringType != null");
+#endif
+				value.OwnerModule2 = this;
+				return;
+			}
+			if (value.DeclaringType != null)
+				throw new InvalidOperationException("Nested type is already owned by another type. Set DeclaringType to null first.");
+			if (value.OwnerModule != null)
+				throw new InvalidOperationException("Type is already owned by another module. Remove it from that module's type list.");
+			value.OwnerModule2 = this;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<TypeDef>.OnRemove(int index, TypeDef value) {
+			value.OwnerModule2 = null;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<TypeDef>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<TypeDef>.OnClear() {
+			foreach (var type in Types)
+				type.OwnerModule2 = null;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return UTF8String.IsNullOrEmpty(Name) ? string.Empty : Name.String;
@@ -187,7 +233,7 @@ namespace dot10.DotNet {
 		Guid? encId;
 		Guid? encBaseId;
 		AssemblyDef assembly;
-		List<TypeDef> types = new List<TypeDef>();
+		LazyList<TypeDef> types;
 		List<ExportedType> exportedTypes = new List<ExportedType>();
 
 		/// <inheritdoc/>
@@ -241,6 +287,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public ModuleDefUser() {
 			this.corLibTypes = new CorLibTypes(this);
+			this.types = new LazyList<TypeDef>(this);
 		}
 
 		/// <summary>
@@ -277,6 +324,7 @@ namespace dot10.DotNet {
 		/// <param name="mvid">Module version ID</param>
 		public ModuleDefUser(UTF8String name, Guid? mvid) {
 			this.corLibTypes = new CorLibTypes(this);
+			this.types = new LazyList<TypeDef>(this);
 			this.name = name;
 			this.mvid = mvid;
 		}
@@ -367,7 +415,7 @@ namespace dot10.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			if (rid != 1) {
-				this.types = new List<TypeDef>();
+				this.types = new LazyList<TypeDef>(this);
 				this.exportedTypes = new List<ExportedType>();
 				this.corLibTypes = new CorLibTypes(this);
 			}

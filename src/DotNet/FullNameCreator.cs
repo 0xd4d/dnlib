@@ -504,9 +504,9 @@ namespace dot10.DotNet {
 				return;
 			}
 
-			var enclosingTypeRef = typeRef.ResolutionScope as TypeRef;
-			if (enclosingTypeRef != null) {
-				CreateFullName(enclosingTypeRef);
+			var declaringTypeRef = typeRef.ResolutionScope as TypeRef;
+			if (declaringTypeRef != null) {
+				CreateFullName(declaringTypeRef);
 				AddNestedTypeSeparator();
 			}
 
@@ -559,14 +559,10 @@ namespace dot10.DotNet {
 				return;
 			}
 
-			if (typeDef.IsNested) {
-				var declaringTypeDef = typeDef.DeclaringType;
-				if (declaringTypeDef != null) {
-					CreateFullName(declaringTypeDef);
-					AddNestedTypeSeparator();
-				}
-				else
-					sb.Append("<<<DECLARINGTYPENULL>>>");
+			var declaringTypeDef = typeDef.DeclaringType;
+			if (declaringTypeDef != null) {
+				CreateFullName(declaringTypeDef);
+				AddNestedTypeSeparator();
 			}
 
 			if (AddNamespace(typeDef.Namespace))
@@ -1000,15 +996,25 @@ namespace dot10.DotNet {
 		}
 
 		IAssembly GetDefinitionAssembly(TypeDef typeDef) {
-			if (typeDef == null)
-				return null;
-			return typeDef.DefinitionAssembly;
+			var ownerModule = GetOwnerModule(typeDef);
+			return ownerModule == null ? null : ownerModule.Assembly;
 		}
 
 		ModuleDef GetOwnerModule(TypeDef typeDef) {
 			if (typeDef == null)
 				return null;
-			return typeDef.OwnerModule;
+
+			ModuleDef result = null;
+			for (int i = recursionCounter.Counter; i < RecursionCounter.MAX_RECURSION_COUNT; i++) {
+				var declaringType = typeDef.DeclaringType;
+				if (declaringType == null) {
+					result = typeDef.OwnerModule2;
+					break;
+				}
+				typeDef = declaringType;
+			}
+
+			return result;
 		}
 
 		IAssembly GetDefinitionAssembly(TypeSpec typeSpec) {
