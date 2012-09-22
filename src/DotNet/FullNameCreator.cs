@@ -1189,11 +1189,11 @@ namespace dot10.DotNet {
 			CreateFullName(fieldSig == null ? null : fieldSig.Type);
 			sb.Append(' ');
 
-			if (!string.IsNullOrEmpty(declaringType)) {
+			if (declaringType != null) {
 				sb.Append(declaringType);
 				sb.Append("::");
 			}
-			if (!string.IsNullOrEmpty(name))
+			if (name != null)
 				sb.Append(name);
 		}
 
@@ -1205,7 +1205,7 @@ namespace dot10.DotNet {
 
 			CreateFullName(methodSig.RetType);
 			sb.Append(' ');
-			if (!string.IsNullOrEmpty(declaringType)) {
+			if (declaringType != null) {
 				sb.Append(declaringType);
 				sb.Append("::");
 			}
