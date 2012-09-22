@@ -11,6 +11,7 @@ namespace dot10.DotNet {
 		RecursionCounter recursionCounter;
 
 		const bool compareDeclaringType = false;	//TODO: Should be an instance flag
+		const bool compareSentinelParams = false;	//TODO: Should be an instance flag
 
 		public bool Compare(IType a, IType b) {
 			if (a == b)
@@ -183,12 +184,10 @@ exit:
 				return false;
 			if (recursionCounter.IncrementRecursionCounter())
 				return false;
-			bool result;
 
-			if (UTF8String.CompareTo(a.Name, b.Name) != 0 || UTF8String.CompareTo(a.Namespace, b.Namespace) != 0)
-				result = false;
-			else
-				result = Compare(a.ResolutionScope, b.ResolutionScope);
+			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
+					CompareResolutionScope(a, b);
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -201,14 +200,11 @@ exit:
 				return false;
 			if (recursionCounter.IncrementRecursionCounter())
 				return false;
-			bool result;
 
-			if (UTF8String.CompareTo(a.Name, b.Name) != 0 || UTF8String.CompareTo(a.Namespace, b.Namespace) != 0)
-				result = false;
-			else if (!Compare(a.DeclaringType, b.DeclaringType))
-				result = false;
-			else
-				result = Compare(a.OwnerModule, b.OwnerModule);
+			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
+					Compare(a.DeclaringType, b.DeclaringType) &&
+					Compare(a.OwnerModule, b.OwnerModule);
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -228,31 +224,59 @@ exit:
 			return result;
 		}
 
-		public bool Compare(IResolutionScope a, IResolutionScope b) {
+		public bool CompareResolutionScope(TypeRef a, TypeRef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
+				return false;
+			var ra = a.ResolutionScope;
+			var rb = b.ResolutionScope;
+			if (ra == rb)
+				return true;
+			if (ra == null || rb == null)
 				return false;
 			if (recursionCounter.IncrementRecursionCounter())
 				return false;
 			bool result;
 
-			TypeRef ea = a as TypeRef, eb = b as TypeRef;
+			TypeRef ea = ra as TypeRef, eb = rb as TypeRef;
 			if (ea != null || eb != null) {	// if one of them is a TypeRef, the other one must be too
 				result = Compare(ea, eb);
 				goto exit;
 			}
-			IModule ma = a as IModule, mb = b as IModule;
+			IModule ma = ra as IModule, mb = rb as IModule;
 			if (ma != null && mb != null) {	// only compare if both are modules
 				result = Compare(ma, mb);
 				goto exit;
 			}
-			AssemblyRef aa = a as AssemblyRef, ab = b as AssemblyRef;
+			AssemblyRef aa = ra as AssemblyRef, ab = rb as AssemblyRef;
 			if (aa != null && ab != null) {	// only compare if both are assemblies
 				result = Compare((IAssembly)aa, (IAssembly)ab);
 				goto exit;
 			}
-			//TODO: Handle the case when one of them is a ModuleRef/ModuleDef and the other is an AssemblyRef
+			ModuleRef modRef = rb as ModuleRef;
+			if (aa != null && modRef != null) {
+				var bMod = b.OwnerModule;
+				result = bMod != null && Compare(aa, bMod.Assembly);
+				goto exit;
+			}
+			modRef = ra as ModuleRef;
+			if (ab != null && modRef != null) {
+				var aMod = a.OwnerModule;
+				result = aMod != null && Compare(ab, aMod.Assembly);
+				goto exit;
+			}
+			ModuleDef modDef = rb as ModuleDef;
+			if (aa != null && modDef != null) {
+				result = Compare(aa, modDef.Assembly);
+				goto exit;
+			}
+			modDef = ra as ModuleDef;
+			if (ab != null && modDef != null) {
+				result = Compare(ab, modDef.Assembly);
+				goto exit;
+			}
+
 			result = false;
 
 exit:
@@ -268,7 +292,7 @@ exit:
 			if (recursionCounter.IncrementRecursionCounter())
 				return false;
 
-			//TODO: Should we perform a case insensitive comparison here?
+			//TODO: Case insensitive or case sensitive comparison???
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0;
 
 			recursionCounter.DecrementRecursionCounter();
@@ -297,7 +321,7 @@ exit:
 			if (recursionCounter.IncrementRecursionCounter())
 				return false;
 
-			//TODO: Should we perform a case insensitive comparison here?
+			//TODO: Case insensitive or case sensitive comparison???
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0;
 
 			recursionCounter.DecrementRecursionCounter();
@@ -345,10 +369,17 @@ exit:
 
 				case ElementType.Ptr:
 				case ElementType.ByRef:
-				case ElementType.Array:
 				case ElementType.SZArray:
 				case ElementType.Pinned:
 					result = Compare(a.Next, b.Next);
+					break;
+
+				case ElementType.Array:
+					ArraySig ara = a as ArraySig, arb = b as ArraySig;
+					result = ara.Rank == arb.Rank &&
+							Compare(ara.Sizes, arb.Sizes) &&
+							Compare(ara.LowerBounds, arb.LowerBounds) &&
+							Compare(a.Next, b.Next);
 					break;
 
 				case ElementType.ValueType:
@@ -364,14 +395,12 @@ exit:
 				case ElementType.GenericInst:
 					var gia = (GenericInstSig)a;
 					var gib = (GenericInstSig)b;
-					if (!Compare(gia.GenericType, gib.GenericType))
-						result = false;
-					else
-						result = Compare(gia.GenericArguments, gia.GenericArguments);
+					result = Compare(gia.GenericType, gib.GenericType) &&
+							Compare(gia.GenericArguments, gib.GenericArguments);
 					break;
 
 				case ElementType.FnPtr:
-					result = Compare((a as FnPtrSig).MethodSig, (b as FnPtrSig).MethodSig);
+					result = Compare((a as FnPtrSig).Signature, (b as FnPtrSig).Signature);
 					break;
 
 				case ElementType.CModReqd:
@@ -422,6 +451,34 @@ exit:
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
+		}
+
+		private bool Compare(IList<uint> a, IList<uint> b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			if (a.Count != b.Count)
+				return false;
+			for (int i = 0; i < a.Count; i++) {
+				if (a[i] != b[i])
+					return false;
+			}
+			return true;
+		}
+
+		private bool Compare(IList<int> a, IList<int> b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			if (a.Count != b.Count)
+				return false;
+			for (int i = 0; i < a.Count; i++) {
+				if (a[i] != b[i])
+					return false;
+			}
+			return true;
 		}
 
 		public bool Compare(CallingConventionSig a, CallingConventionSig b) {
@@ -482,21 +539,12 @@ exit:
 				return false;
 			if (recursionCounter.IncrementRecursionCounter())
 				return false;
-			bool result;
 
-			if (a.GetCallingConvention() != b.GetCallingConvention())
-				result = false;
-			else if (Compare(a.RetType, b.RetType))
-				result = false;
-			else if (!Compare(a.Params, b.Params))
-				result = false;
-			else if (a.Generic && a.GenParamCount != b.GenParamCount)
-				result = false;
-			else {
-				//TODO: There should be an option to ignore the params after the sentinel,
-				//		and it should default to 'ignore them'.
-				result = Compare(a.ParamsAfterSentinel, b.ParamsAfterSentinel);
-			}
+			bool result = a.GetCallingConvention() == b.GetCallingConvention() &&
+					Compare(a.RetType, b.RetType) &&
+					Compare(a.Params, b.Params) &&
+					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
+					(!compareSentinelParams || Compare(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -806,17 +854,8 @@ exit:
 				return false;
 			if (recursionCounter.IncrementRecursionCounter())
 				return false;
-			bool result;
 
-			var aMod = a.OwnerModule;
-			if (aMod == null)
-				result = false;
-			else if (aMod.Types.Count == 0 || aMod.Types[0] != a)
-				result = false;	// 'a' is not the global type
-			else if (!Compare((IModule)aMod, (IModule)b))
-				result = false;
-			else
-				result = true;
+			bool result = a.IsGlobalModuleType && Compare((IModule)a.OwnerModule, (IModule)b);
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -831,7 +870,7 @@ exit:
 			bool result = false;
 
 			var scope = a.ResolutionScope;
-			if (scope == null || (scope is TypeRef))
+			if (scope == null || scope is TypeRef)
 				goto exit;
 			var aMod = scope as IModule;
 			if (aMod != null && !Compare(aMod, b))
@@ -852,7 +891,7 @@ exit:
 				return false;
 			// scope is AssemblyRef, ModuleDef, or ModuleRef
 
-			//TODO: Resolve it and check whether TypeDef is the 1st type in its module
+			//TODO: Resolve it and check whether TypeDef.IsGlobalModuleType is set
 			// Until then, compare it by name
 			return UTF8String.CompareTo(a.Name, new UTF8String("<Module>")) == 0;
 		}
