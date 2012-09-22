@@ -165,6 +165,13 @@ namespace dot10.DotNet {
 		protected CallingConventionSig(CallingConvention callingConvention) {
 			this.callingConvention = callingConvention;
 		}
+
+		/// <summary>
+		/// Gets the calling convention
+		/// </summary>
+		public CallingConvention GetCallingConvention() {
+			return callingConvention;
+		}
 	}
 
 	/// <summary>
