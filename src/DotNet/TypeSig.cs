@@ -1,7 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using dot10.DotNet.MD;
+﻿using System.Collections.Generic;
+
+/*
+All TypeSig classes:
+
+TypeSig								base class
+	LeafSig							base class for leaf types
+		TypeDefOrRefSig				contains a ITypeDefOrRef instance
+			CorLibTypeSig			simple corlib types (eg. System.Int32)
+			ClassOrValueTypeSig		base class for Class/ValueType element types
+				ValueTypeSig		ValueType
+				ClassSig			Class
+		GenericSig					base class for generic vars
+			GenericVar				Generic type parameter
+			GenericMVar				Generic method parameter
+		SentinelSig					Sentinel
+		FnPtrSig					Function pointer sig
+		GenericInstSig				Generic instance type (contains a generic type + all generic args)
+	NonLeafSig						base class for non-leaf types
+		PtrSig						Pointer
+		ByRefSig					By ref
+		ArraySig					Array
+		SZArraySig					Single dimension, zero lower limit array (i.e., THETYPE[])
+		ModifierSig					C modifier base class
+			CModReqdSig				C required modifier
+			CModOptSig				C optional modifier
+		PinnedSig					Pinned
+		ValueArraySig				Value array (undocumented/not implemented by the CLR so don't use it)
+		ModuleSig					Module (undocumented/not implemented by the CLR so don't use it)
+*/
 
 namespace dot10.DotNet {
 	/// <summary>
