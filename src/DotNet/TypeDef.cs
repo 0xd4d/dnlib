@@ -466,6 +466,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if this is the global (aka. &lt;Module&gt;) type
+		/// </summary>
+		public bool IsGlobalModuleType {
+			get {
+				var mod = OwnerModule;
+				return mod != null && mod.Types.Count != 0 && mod.Types[0] == this;
+			}
+		}
+
+		/// <summary>
 		/// Gets a list of all nested types and all their nested types
 		/// </summary>
 		public IEnumerable<TypeDef> GetTypes() {
