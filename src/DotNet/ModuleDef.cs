@@ -8,7 +8,6 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
-	[DebuggerDisplay("{Name.String}")]
 	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef> {
 		/// <summary>
 		/// The row id in its table
@@ -292,9 +291,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public ModuleDefUser() {
-			this.corLibTypes = new CorLibTypes(this);
-			this.types = new LazyList<TypeDef>(this);
+		public ModuleDefUser()
+			: this((UTF8String)null, null) {
 		}
 
 		/// <summary>
@@ -334,6 +332,13 @@ namespace dot10.DotNet {
 			this.types = new LazyList<TypeDef>(this);
 			this.name = name;
 			this.mvid = mvid;
+			types.Add(CreateModuleType());
+		}
+
+		static TypeDef CreateModuleType() {
+			var type = new TypeDefUser(null, "<Module>", null);
+			type.Flags = TypeAttributes.NotPublic | TypeAttributes.AutoLayout | TypeAttributes.Class | TypeAttributes.AnsiClass;
+			return type;
 		}
 	}
 
