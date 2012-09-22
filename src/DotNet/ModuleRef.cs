@@ -5,7 +5,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the ModuleRef table
 	/// </summary>
-	public abstract class ModuleRef : IHasCustomAttribute, IMemberRefParent, IResolutionScope {
+	public abstract class ModuleRef : IHasCustomAttribute, IMemberRefParent, IResolutionScope, IModule {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>

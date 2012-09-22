@@ -44,6 +44,16 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
+	/// Interface to access a module def/ref
+	/// </summary>
+	public interface IModule {
+		/// <summary>
+		/// Gets the module name
+		/// </summary>
+		UTF8String Name { get; }
+	}
+
+	/// <summary>
 	/// Interface to get the full name of a type, field, or method
 	/// </summary>
 	public interface IFullName {
