@@ -734,6 +734,10 @@ exit:
 			return result;
 		}
 
+		public bool Compare(MemberRef a, FieldDef b) {
+			return Compare(b, a);
+		}
+
 		public bool Compare(FieldDef a, MemberRef b) {
 			if (a == null || b == null)
 				return false;
