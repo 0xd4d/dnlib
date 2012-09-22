@@ -148,7 +148,7 @@ namespace dot10.DotNet.MD {
 		public UTF8String(byte[] data) {
 			this.data = data;
 #if DEBUG
-			if (Array.IndexOf(data, 0) >= 0)
+			if (data != null && Array.IndexOf(data, 0) >= 0)
 				throw new ArgumentException("No nul bytes are allowed");
 #endif
 		}
