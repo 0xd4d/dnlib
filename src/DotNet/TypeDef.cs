@@ -477,12 +477,12 @@ namespace dot10.DotNet {
 			if (isLazyAdd) {
 #if DEBUG
 				if (value.DeclaringType != this)
-					throw new ArgumentException("Added field's DeclaringType != this");
+					throw new InvalidOperationException("Added field's DeclaringType != this");
 #endif
 				return;
 			}
 			if (value.DeclaringType != null)
-				throw new ArgumentException("Field is already owned by another type. Set DeclaringType to null first.");
+				throw new InvalidOperationException("Field is already owned by another type. Set DeclaringType to null first.");
 			value.SetDeclaringType(this);
 		}
 
@@ -506,12 +506,12 @@ namespace dot10.DotNet {
 			if (isLazyAdd) {
 #if DEBUG
 				if (value.DeclaringType != this)
-					throw new ArgumentException("Added method's DeclaringType != this");
+					throw new InvalidOperationException("Added method's DeclaringType != this");
 #endif
 				return;
 			}
 			if (value.DeclaringType != null)
-				throw new ArgumentException("Method is already owned by another type. Set DeclaringType to null first.");
+				throw new InvalidOperationException("Method is already owned by another type. Set DeclaringType to null first.");
 			value.SetDeclaringType(this);
 		}
 
