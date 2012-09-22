@@ -14,7 +14,7 @@ namespace dot10.DotNet {
 		const bool compareSentinelParams = false;	//TODO: Should be an instance flag
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -82,7 +82,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -92,7 +92,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -132,7 +132,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -142,7 +142,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -154,7 +154,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -164,7 +164,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -183,7 +183,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -193,7 +193,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -205,7 +205,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -215,7 +215,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -234,7 +234,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -244,7 +244,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -256,7 +256,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -278,7 +278,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -301,7 +301,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -321,7 +321,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -387,7 +387,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare modules
+		/// Compares modules
 		/// </summary>
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
@@ -408,7 +408,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare modules
+		/// Compares modules
 		/// </summary>
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
@@ -428,7 +428,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare assemblies
+		/// Compares assemblies
 		/// </summary>
 		/// <param name="a">Assembly #1</param>
 		/// <param name="b">Assembly #2</param>
@@ -449,7 +449,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare types
+		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
@@ -556,7 +556,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare type lists
+		/// Compares type lists
 		/// </summary>
 		/// <param name="a">Type list #1</param>
 		/// <param name="b">Type list #2</param>
@@ -614,7 +614,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare signatures
+		/// Compares signatures
 		/// </summary>
 		/// <param name="a">Sig #1</param>
 		/// <param name="b">Sig #2</param>
@@ -671,7 +671,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare method/property sigs
+		/// Compares method/property sigs
 		/// </summary>
 		/// <param name="a">Method/property #1</param>
 		/// <param name="b">Method/property #2</param>
@@ -695,7 +695,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare field sigs
+		/// Compares field sigs
 		/// </summary>
 		/// <param name="a">Field sig #1</param>
 		/// <param name="b">Field sig #2</param>
@@ -715,7 +715,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare local sigs
+		/// Compares local sigs
 		/// </summary>
 		/// <param name="a">Local sig #1</param>
 		/// <param name="b">Local sig #2</param>
@@ -735,7 +735,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare generic instance method sigs
+		/// Compares generic instance method sigs
 		/// </summary>
 		/// <param name="a">Generic method inst #1</param>
 		/// <param name="b">Generic method inst #2</param>
@@ -755,7 +755,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare methods
+		/// Compares methods
 		/// </summary>
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
@@ -799,7 +799,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare methods
+		/// Compares methods
 		/// </summary>
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
@@ -809,7 +809,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare methods
+		/// Compares methods
 		/// </summary>
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
@@ -832,7 +832,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare methods
+		/// Compares methods
 		/// </summary>
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
@@ -854,7 +854,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare <c>MemberRef</c>s
+		/// Compares <c>MemberRef</c>s
 		/// </summary>
 		/// <param name="a"><c>MemberRef</c> #1</param>
 		/// <param name="b"><c>MemberRef</c> #2</param>
@@ -876,7 +876,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare <c>MethodSpec</c>s
+		/// Compares <c>MethodSpec</c>s
 		/// </summary>
 		/// <param name="a"><c>MethodSpec</c> #1</param>
 		/// <param name="b"><c>MethodSpec</c> #2</param>
@@ -896,7 +896,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare <c>MemberRefParent</c>s
+		/// Compares <c>MemberRefParent</c>s
 		/// </summary>
 		/// <param name="a"><c>MemberRefParent</c> #1</param>
 		/// <param name="b"><c>MemberRefParent</c> #2</param>
@@ -953,7 +953,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare fields
+		/// Compares fields
 		/// </summary>
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
@@ -993,7 +993,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare fields
+		/// Compares fields
 		/// </summary>
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
@@ -1003,7 +1003,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare fields
+		/// Compares fields
 		/// </summary>
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
@@ -1023,7 +1023,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare fields
+		/// Compares fields
 		/// </summary>
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
@@ -1045,7 +1045,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare properties
+		/// Compares properties
 		/// </summary>
 		/// <param name="a">Property #1</param>
 		/// <param name="b">Property #2</param>
@@ -1067,7 +1067,7 @@ exit:
 		}
 
 		/// <summary>
-		/// Compare events
+		/// Compares events
 		/// </summary>
 		/// <param name="a">Event #1</param>
 		/// <param name="b">Event #2</param>
