@@ -7,12 +7,18 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares types, signatures, methods, fields, properties, events
 	/// </summary>
-	struct SigComparer {
+	public struct SigComparer {
 		RecursionCounter recursionCounter;
 
 		const bool compareDeclaringType = false;	//TODO: Should be an instance flag
 		const bool compareSentinelParams = false;	//TODO: Should be an instance flag
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(IType a, IType b) {
 			if (a == b)
 				return true;
@@ -75,10 +81,22 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeRef a, TypeDef b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeDef a, TypeRef b) {
 			if (a == null || b == null)
 				return false;
@@ -113,20 +131,44 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSpec a, TypeDef b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeDef a, TypeSpec b) {
 			if (a == null || b == null)
 				return false;
 			return Compare(a, b.TypeSig);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSig a, TypeDef b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeDef a, TypeSig b) {
 			if (a == null || b == null)
 				return false;
@@ -140,20 +182,44 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSpec a, TypeRef b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeRef a, TypeSpec b) {
 			if (a == null || b == null)
 				return false;
 			return Compare(a, b.TypeSig);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSig a, TypeRef b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeRef a, TypeSig b) {
 			if (a == null || b == null)
 				return false;
@@ -167,16 +233,34 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSig a, TypeSpec b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSpec a, TypeSig b) {
 			if (a == null || b == null)
 				return false;
 			return Compare(a.TypeSig, b);
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeRef a, TypeRef b) {
 			if (a == b)
 				return true;
@@ -193,6 +277,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeDef a, TypeDef b) {
 			if (a == b)
 				return true;
@@ -210,6 +300,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSpec a, TypeSpec b) {
 			if (a == b)
 				return true;
@@ -224,6 +320,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool CompareResolutionScope(TypeRef a, TypeRef b) {
 			if (a == b)
 				return true;
@@ -284,6 +386,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare modules
+		/// </summary>
+		/// <param name="a">Module #1</param>
+		/// <param name="b">Module #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(IModule a, IModule b) {
 			if (a == b)
 				return true;
@@ -299,6 +407,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare modules
+		/// </summary>
+		/// <param name="a">Module #1</param>
+		/// <param name="b">Module #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(ModuleDef a, ModuleDef b) {
 			if (a == b)
 				return true;
@@ -313,6 +427,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare assemblies
+		/// </summary>
+		/// <param name="a">Assembly #1</param>
+		/// <param name="b">Assembly #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(IAssembly a, IAssembly b) {
 			if (a == b)
 				return true;
@@ -328,6 +448,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSig a, TypeSig b) {
 			if (a == b)
 				return true;
@@ -429,6 +555,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare type lists
+		/// </summary>
+		/// <param name="a">Type list #1</param>
+		/// <param name="b">Type list #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(IList<TypeSig> a, IList<TypeSig> b) {
 			if (a == b)
 				return true;
@@ -481,6 +613,12 @@ exit:
 			return true;
 		}
 
+		/// <summary>
+		/// Compare signatures
+		/// </summary>
+		/// <param name="a">Sig #1</param>
+		/// <param name="b">Sig #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(CallingConventionSig a, CallingConventionSig b) {
 			if (a == b)
 				return true;
@@ -532,6 +670,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare method/property sigs
+		/// </summary>
+		/// <param name="a">Method/property #1</param>
+		/// <param name="b">Method/property #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(MethodBaseSig a, MethodBaseSig b) {
 			if (a == b)
 				return true;
@@ -550,6 +694,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare field sigs
+		/// </summary>
+		/// <param name="a">Field sig #1</param>
+		/// <param name="b">Field sig #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(FieldSig a, FieldSig b) {
 			if (a == b)
 				return true;
@@ -564,6 +714,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare local sigs
+		/// </summary>
+		/// <param name="a">Local sig #1</param>
+		/// <param name="b">Local sig #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(LocalSig a, LocalSig b) {
 			if (a == b)
 				return true;
@@ -578,6 +734,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare generic instance method sigs
+		/// </summary>
+		/// <param name="a">Generic method inst #1</param>
+		/// <param name="b">Generic method inst #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(GenericInstMethodSig a, GenericInstMethodSig b) {
 			if (a == b)
 				return true;
@@ -592,6 +754,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare methods
+		/// </summary>
+		/// <param name="a">Method #1</param>
+		/// <param name="b">Method #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(IMethod a, IMethod b) {
 			if (a == b)
 				return true;
@@ -630,10 +798,22 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare methods
+		/// </summary>
+		/// <param name="a">Method #1</param>
+		/// <param name="b">Method #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(MemberRef a, MethodDef b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare methods
+		/// </summary>
+		/// <param name="a">Method #1</param>
+		/// <param name="b">Method #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(MethodDef a, MemberRef b) {
 			if (a == null || b == null)
 				return false;
@@ -651,6 +831,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare methods
+		/// </summary>
+		/// <param name="a">Method #1</param>
+		/// <param name="b">Method #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(MethodDef a, MethodDef b) {
 			if (a == b)
 				return true;
@@ -667,6 +853,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare <c>MemberRef</c>s
+		/// </summary>
+		/// <param name="a"><c>MemberRef</c> #1</param>
+		/// <param name="b"><c>MemberRef</c> #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(MemberRef a, MemberRef b) {
 			if (a == b)
 				return true;
@@ -683,6 +875,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare <c>MethodSpec</c>s
+		/// </summary>
+		/// <param name="a"><c>MethodSpec</c> #1</param>
+		/// <param name="b"><c>MethodSpec</c> #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(MethodSpec a, MethodSpec b) {
 			if (a == b)
 				return true;
@@ -697,6 +895,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare <c>MemberRefParent</c>s
+		/// </summary>
+		/// <param name="a"><c>MemberRefParent</c> #1</param>
+		/// <param name="b"><c>MemberRefParent</c> #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(IMemberRefParent a, IMemberRefParent b) {
 			if (a == b)
 				return true;
@@ -748,6 +952,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(IField a, IField b) {
 			if (a == b)
 				return true;
@@ -782,10 +992,22 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(MemberRef a, FieldDef b) {
 			return Compare(b, a);
 		}
 
+		/// <summary>
+		/// Compare fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(FieldDef a, MemberRef b) {
 			if (a == null || b == null)
 				return false;
@@ -800,6 +1022,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(FieldDef a, FieldDef b) {
 			if (a == b)
 				return true;
@@ -816,6 +1044,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare properties
+		/// </summary>
+		/// <param name="a">Property #1</param>
+		/// <param name="b">Property #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(PropertyDef a, PropertyDef b) {
 			if (a == b)
 				return true;
@@ -832,6 +1066,12 @@ exit:
 			return result;
 		}
 
+		/// <summary>
+		/// Compare events
+		/// </summary>
+		/// <param name="a">Event #1</param>
+		/// <param name="b">Event #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(EventDef a, EventDef b) {
 			if (a == b)
 				return true;
