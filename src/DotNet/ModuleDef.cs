@@ -172,6 +172,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets all the types (including nested types) present in this module
+		/// </summary>
+		public IEnumerable<TypeDef> GetTypes() {
+			return AllTypesHelper.Types(Types);
+		}
+
+		/// <summary>
 		/// Adds <paramref name="typeDef"/> as a non-nested type. If it's already nested, its
 		/// <see cref="TypeDef.DeclaringType"/> will be set to <c>null</c>.
 		/// </summary>

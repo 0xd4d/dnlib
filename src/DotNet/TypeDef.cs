@@ -465,6 +465,13 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Gets a list of all nested types and all their nested types
+		/// </summary>
+		public IEnumerable<TypeDef> GetTypes() {
+			return AllTypesHelper.Types(NestedTypes);
+		}
+
 		/// <inheritdoc/>
 		void IListListener<FieldDef>.OnAdd(int index, FieldDef value, bool isLazyAdd) {
 			if (isLazyAdd) {
