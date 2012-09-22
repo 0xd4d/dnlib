@@ -15,7 +15,7 @@ namespace dot10.DotNet {
 		/// <returns>An assembly name string</returns>
 		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey) {
 			var sb = new StringBuilder();
-			sb.Append(UTF8String.ToSystemString(name));
+			sb.Append(UTF8String.ToSystemStringOrEmpty(name));
 
 			if (version != null) {
 				sb.Append(", Version=");

@@ -54,7 +54,20 @@ namespace dot10.DotNet.MD {
 		/// <param name="utf8">The UTF-8 string instace or <c>null</c></param>
 		/// <returns>A <see cref="string"/> or <c>null</c> if <paramref name="utf8"/> is <c>null</c></returns>
 		public static string ToSystemString(UTF8String utf8) {
-			return IsNullOrEmpty(utf8) ? null : utf8.String;
+			if ((object)utf8 == null || utf8.data == null)
+				return null;
+			if (utf8.data.Length == 0)
+				return string.Empty;
+			return utf8.String;
+		}
+
+		/// <summary>
+		/// Converts it to a <see cref="string"/> or an empty string if <paramref name="utf8"/> is <c>null</c>
+		/// </summary>
+		/// <param name="utf8">The UTF-8 string instace or <c>null</c></param>
+		/// <returns>A <see cref="string"/> (never <c>null</c>)</returns>
+		public static string ToSystemStringOrEmpty(UTF8String utf8) {
+			return ToSystemString(utf8) ?? string.Empty;
 		}
 
 		/// <inheritdoc/>
@@ -62,7 +75,13 @@ namespace dot10.DotNet.MD {
 			return CompareTo(this, other);
 		}
 
-		static int CompareTo(UTF8String a, UTF8String b) {
+		/// <summary>
+		/// Compares two <see cref="UTF8String"/> instances
+		/// </summary>
+		/// <param name="a">Instance #1 or <c>null</c></param>
+		/// <param name="b">Instance #2 or <c>null</c></param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		public static int CompareTo(UTF8String a, UTF8String b) {
 			if ((object)a == null)
 				return -1;
 			if ((object)b == null)
@@ -77,9 +96,8 @@ namespace dot10.DotNet.MD {
 				return -1;
 			if (b == null)
 				return 1;
-			if (a.Length != b.Length)
-				return a.Length.CompareTo(b.Length);
-			for (int i = 0; i < a.Length; i++) {
+			int count = Math.Min(a.Length, b.Length);
+			for (int i = 0; i < count; i++) {
 				var ai = a[i];
 				var bi = b[i];
 				if (ai < bi)
@@ -87,7 +105,7 @@ namespace dot10.DotNet.MD {
 				if (ai > bi)
 					return 1;
 			}
-			return 0;
+			return a.Length.CompareTo(b.Length);
 		}
 
 		/// <summary>Overloaded operator</summary>
