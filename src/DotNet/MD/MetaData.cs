@@ -55,6 +55,7 @@ namespace dot10.DotNet.MD {
 		uint[] fieldRidToTypeDefRid;
 		uint[] methodRidToTypeDefRid;
 		Dictionary<uint, RandomRidList> typeDefRidToNestedClasses;
+		RandomRidList nonNestedTypes;
 
 		/// <inheritdoc/>
 		public IPEImage PEImage {
@@ -434,9 +435,20 @@ namespace dot10.DotNet.MD {
 		void InitializeNestedClassesDictionary() {
 			var table = tablesStream.Get(Table.NestedClass);
 			var destTable = tablesStream.Get(Table.TypeDef);
+
+			Dictionary<uint, bool> validTypeDefRids = null;
+			var typeDefRidList = GetTypeDefRidList();
+			if (typeDefRidList.Length != destTable.Rows) {
+				validTypeDefRids = new Dictionary<uint, bool>((int)typeDefRidList.Length);
+				for (uint i = 0; i < typeDefRidList.Length; i++)
+					validTypeDefRids[typeDefRidList[i]] = true;
+			}
+
 			var nestedRidsDict = new Dictionary<uint, bool>((int)table.Rows);
 			var nestedRids = new List<uint>((int)table.Rows);	// Need it so we add the rids in correct order
 			for (uint rid = 1; rid <= table.Rows; rid++) {
+				if (validTypeDefRids != null && !validTypeDefRids.ContainsKey(rid))
+					continue;
 				var row = tablesStream.ReadNestedClassRow(rid);
 				if (row == null)
 					continue;	// Should never happen since rid is valid
@@ -458,6 +470,21 @@ namespace dot10.DotNet.MD {
 					typeDefRidToNestedClasses[row.EnclosingClass] = ridList = new RandomRidList();
 				ridList.Add(nestedRid);
 			}
+
+			nonNestedTypes = new RandomRidList((int)(destTable.Rows - nestedRidsDict.Count));
+			for (uint rid = 1; rid <= destTable.Rows; rid++) {
+				if (validTypeDefRids != null && !validTypeDefRids.ContainsKey(rid))
+					continue;
+				if (nestedRidsDict.ContainsKey(rid))
+					continue;
+				nonNestedTypes.Add(rid);
+			}
+		}
+
+		public RidList GetNonNestedClassRidList() {
+			if (nonNestedTypes == null)
+				InitializeNestedClassesDictionary();
+			return nonNestedTypes;
 		}
 
 		/// <inheritdoc/>

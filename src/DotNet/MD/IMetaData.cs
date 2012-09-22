@@ -233,5 +233,12 @@ namespace dot10.DotNet.MD {
 		/// <param name="typeDefRid">A <c>TypeDef</c> rid</param>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		RidList GetNestedClassRidList(uint typeDefRid);
+
+		/// <summary>
+		/// Gets a list of all non-nested classes. A type is a non-nested type if
+		/// <see cref="GetNestedClassRidList(uint)"/> returns an empty list.
+		/// </summary>
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		RidList GetNonNestedClassRidList();
 	}
 }
