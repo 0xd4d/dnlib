@@ -12,7 +12,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default instance
 		/// </summary>
-		public static readonly TypeEqualityComparer Instance = new TypeEqualityComparer(0);
+		public static readonly TypeEqualityComparer Instance = new TypeEqualityComparer(SigComparer.Options.CompareTypeScope);
 
 		/// <summary>
 		/// Constructor
@@ -82,12 +82,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly FieldEqualityComparer CompareDeclaringTypes = new FieldEqualityComparer(SigComparer.Options.CompareMethodFieldDeclaringType);
+		public static readonly FieldEqualityComparer CompareDeclaringTypes = new FieldEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.CompareMethodFieldDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly FieldEqualityComparer DontCompareDeclaringTypes = new FieldEqualityComparer(0);
+		public static readonly FieldEqualityComparer DontCompareDeclaringTypes = new FieldEqualityComparer(SigComparer.Options.CompareTypeScope);
 
 		/// <summary>
 		/// Constructor
@@ -137,12 +137,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly MethodEqualityComparer CompareDeclaringTypes = new MethodEqualityComparer(SigComparer.Options.CompareMethodFieldDeclaringType);
+		public static readonly MethodEqualityComparer CompareDeclaringTypes = new MethodEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.CompareMethodFieldDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly MethodEqualityComparer DontCompareDeclaringTypes = new MethodEqualityComparer(0);
+		public static readonly MethodEqualityComparer DontCompareDeclaringTypes = new MethodEqualityComparer(SigComparer.Options.CompareTypeScope);
 
 		/// <summary>
 		/// Constructor
@@ -202,12 +202,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly PropertyEqualityComparer CompareDeclaringTypes = new PropertyEqualityComparer(SigComparer.Options.ComparePropertyDeclaringType);
+		public static readonly PropertyEqualityComparer CompareDeclaringTypes = new PropertyEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.ComparePropertyDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly PropertyEqualityComparer DontCompareDeclaringTypes = new PropertyEqualityComparer(0);
+		public static readonly PropertyEqualityComparer DontCompareDeclaringTypes = new PropertyEqualityComparer(SigComparer.Options.CompareTypeScope);
 
 		/// <summary>
 		/// Constructor
@@ -237,12 +237,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly EventEqualityComparer CompareDeclaringTypes = new EventEqualityComparer(SigComparer.Options.CompareEventDeclaringType);
+		public static readonly EventEqualityComparer CompareDeclaringTypes = new EventEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.CompareEventDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly EventEqualityComparer DontCompareDeclaringTypes = new EventEqualityComparer(0);
+		public static readonly EventEqualityComparer DontCompareDeclaringTypes = new EventEqualityComparer(SigComparer.Options.CompareTypeScope);
 
 		/// <summary>
 		/// Constructor
@@ -272,7 +272,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default instance
 		/// </summary>
-		public static readonly SignatureEqualityComparer Instance = new SignatureEqualityComparer(0);
+		public static readonly SignatureEqualityComparer Instance = new SignatureEqualityComparer(SigComparer.Options.CompareTypeScope);
 
 		/// <summary>
 		/// Constructor
@@ -380,24 +380,29 @@ namespace dot10.DotNet {
 		[Flags]
 		public enum Options {
 			/// <summary>
+			/// Compares a type's scope
+			/// </summary>
+			CompareTypeScope = 1,
+
+			/// <summary>
 			/// Compares a method/field's declaring type.
 			/// </summary>
-			CompareMethodFieldDeclaringType = 1,
+			CompareMethodFieldDeclaringType = 2,
 
 			/// <summary>
 			/// Compares a property's declaring type
 			/// </summary>
-			ComparePropertyDeclaringType = 2,
+			ComparePropertyDeclaringType = 4,
 
 			/// <summary>
 			/// Compares an event's declaring type
 			/// </summary>
-			CompareEventDeclaringType = 4,
+			CompareEventDeclaringType = 8,
 
 			/// <summary>
 			/// Compares parameters after a sentinel in method sigs
 			/// </summary>
-			CompareSentinelParams = 8,
+			CompareSentinelParams = 0x10,
 		}
 
 		/// <summary>
@@ -406,6 +411,19 @@ namespace dot10.DotNet {
 		public Options Flags {
 			get { return options; }
 			set { options = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="Options.CompareTypeScope"/> bit
+		/// </summary>
+		public bool CompareTypeScope {
+			get { return (options & Options.CompareTypeScope) != 0; }
+			set {
+				if (value)
+					options |= Options.CompareTypeScope;
+				else
+					options &= ~Options.CompareTypeScope;
+			}
 		}
 
 		/// <summary>
@@ -612,6 +630,10 @@ exit:
 			if (a.DeclaringType != null)
 				goto exit;	// a is nested, b isn't
 
+			if (!CompareTypeScope) {
+				result = true;
+				goto exit;
+			}
 			var bMod = scope as IModule;
 			if (bMod != null) {	// 'b' is defined in the same assembly as 'a'
 				result = Compare((IModule)a.OwnerModule, (IModule)bMod);
@@ -850,8 +872,7 @@ exit:
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
 					Compare(a.DeclaringType, b.DeclaringType) &&
-					a.IsGlobalModuleType == b.IsGlobalModuleType &&
-					Compare(a.OwnerModule, b.OwnerModule);
+					(!CompareTypeScope || Compare(a.OwnerModule, b.OwnerModule));
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -915,7 +936,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool CompareResolutionScope(TypeRef a, TypeRef b) {
+		bool CompareResolutionScope(TypeRef a, TypeRef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -933,6 +954,10 @@ exit:
 			TypeRef ea = ra as TypeRef, eb = rb as TypeRef;
 			if (ea != null || eb != null) {	// if one of them is a TypeRef, the other one must be too
 				result = Compare(ea, eb);
+				goto exit;
+			}
+			if (!CompareTypeScope) {
+				result = true;
 				goto exit;
 			}
 			IModule ma = ra as IModule, mb = rb as IModule;
@@ -980,7 +1005,7 @@ exit:
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(IModule a, IModule b) {
+		bool Compare(IModule a, IModule b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1001,7 +1026,7 @@ exit:
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(ModuleDef a, ModuleDef b) {
+		bool Compare(ModuleDef a, ModuleDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1021,7 +1046,7 @@ exit:
 		/// <param name="a">Assembly #1</param>
 		/// <param name="b">Assembly #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(IAssembly a, IAssembly b) {
+		bool Compare(IAssembly a, IAssembly b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1297,7 +1322,7 @@ exit:
 			return (int)hash;
 		}
 
-		private bool Compare(IList<uint> a, IList<uint> b) {
+		bool Compare(IList<uint> a, IList<uint> b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1311,7 +1336,7 @@ exit:
 			return true;
 		}
 
-		private int GetHashCode(IList<uint> a) {
+		int GetHashCode(IList<uint> a) {
 			if (a == null)
 				return 0;
 			uint hash = 0;
@@ -1322,7 +1347,7 @@ exit:
 			return (int)hash;
 		}
 
-		private bool Compare(IList<int> a, IList<int> b) {
+		bool Compare(IList<int> a, IList<int> b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1336,7 +1361,7 @@ exit:
 			return true;
 		}
 
-		private int GetHashCode(IList<int> a) {
+		int GetHashCode(IList<int> a) {
 			if (a == null)
 				return 0;
 			uint hash = 0;
@@ -1860,7 +1885,7 @@ exit:
 		/// <param name="a"><c>MemberRefParent</c> #1</param>
 		/// <param name="b"><c>MemberRefParent</c> #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(IMemberRefParent a, IMemberRefParent b) {
+		bool Compare(IMemberRefParent a, IMemberRefParent b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1916,7 +1941,7 @@ exit:
 		/// </summary>
 		/// <param name="a">The <c>MemberRefParent</c></param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(IMemberRefParent a) {
+		int GetHashCode(IMemberRefParent a) {
 			if (a == null)
 				return 0;
 			if (!recursionCounter.IncrementRecursionCounter())
@@ -2175,7 +2200,7 @@ exit:
 		}
 
 		// Compares a with b, and a must be the global type
-		private bool CompareGlobal(TypeDef a, ModuleRef b) {
+		bool CompareGlobal(TypeDef a, ModuleRef b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -2190,7 +2215,7 @@ exit:
 		}
 
 		// Compares a with b, and a must be the global type
-		private bool CompareGlobal(TypeRef a, ModuleRef b) {
+		bool CompareGlobal(TypeRef a, ModuleRef b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -2204,7 +2229,7 @@ exit:
 				goto exit;
 			var aMod = scope as IModule;
 			if (aMod != null && !Compare(aMod, b))
-					goto exit;
+				goto exit;
 			result = IsGlobalModuleType(a);
 exit:
 			recursionCounter.DecrementRecursionCounter();
@@ -2212,7 +2237,7 @@ exit:
 		}
 
 		static readonly UTF8String MODULE_GLOBAL_TYPE_NAME = new UTF8String("<Module>");
-		private bool IsGlobalModuleType(TypeRef a) {
+		bool IsGlobalModuleType(TypeRef a) {
 			var scope = a.ResolutionScope;
 			var modDef = scope as ModuleDef;
 			if (modDef != null)
