@@ -70,6 +70,22 @@ namespace dot10.DotNet.MD {
 			return ToSystemString(utf8) ?? string.Empty;
 		}
 
+		/// <summary>
+		/// Gets the hash code of a <see cref="UTF8String"/>
+		/// </summary>
+		/// <param name="utf8">Input</param>
+		public static int GetHashCode(UTF8String utf8) {
+			if (IsNullOrEmpty(utf8))
+				return 0;
+			int count = Math.Min(utf8.data.Length / 2, 20);
+			uint hash = 0;
+			for (int i = 0, j = utf8.data.Length - 1; i < count; i++, j--) {
+				hash ^= utf8.data[i] | ((uint)utf8.data[j] << 8);
+				hash = (hash << 13) | (hash >> 19);
+			}
+			return (int)hash;
+		}
+
 		/// <inheritdoc/>
 		public int CompareTo(UTF8String other) {
 			return CompareTo(this, other);
