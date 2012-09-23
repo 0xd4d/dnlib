@@ -12,11 +12,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
-		/// <summary>
-		/// The owner module
-		/// </summary>
-		protected ModuleDef ownerModule;
-
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.TypeDef, rid); }
@@ -95,10 +90,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the owner module
 		/// </summary>
-		internal ModuleDef OwnerModule2 {
-			get { return ownerModule; }
-			set { ownerModule = value; }
-		}
+		internal abstract ModuleDef OwnerModule2 { get; set; }
 
 		/// <summary>
 		/// From column TypeDef.Flags
@@ -153,10 +145,16 @@ namespace dot10.DotNet {
 			get { return DeclaringType2; }
 			set {
 				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType == value)
+					return;
+
 				if (currentDeclaringType != null)
 					currentDeclaringType.NestedTypes.Remove(this);	// Will set DeclaringType2 = null
 				if (value != null)
 					value.NestedTypes.Add(this);		// Will set DeclaringType2 = value
+
+				// Make sure this is clear. Will be set whenever it's inserted into ModulDef.Types
+				OwnerModule2 = null;
 			}
 		}
 
@@ -597,6 +595,7 @@ namespace dot10.DotNet {
 		EventMap eventMap;
 		PropertyMap propertyMap;
 		LazyList<TypeDef> nestedTypes;
+		ModuleDef ownerModule;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -674,6 +673,12 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<TypeDef> NestedTypes {
 			get { return nestedTypes; }
+		}
+
+		/// <inheritdoc/>
+		internal override ModuleDef OwnerModule2 {
+			get { return ownerModule; }
+			set { ownerModule = value; }
 		}
 
 		/// <summary>
@@ -777,6 +782,7 @@ namespace dot10.DotNet {
 		UserValue<EventMap> eventMap;
 		UserValue<PropertyMap> propertyMap;
 		LazyList<TypeDef> nestedTypes;
+		UserValue<ModuleDef> ownerModule;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -892,6 +898,12 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		internal override ModuleDef OwnerModule2 {
+			get { return ownerModule.Value; }
+			set { ownerModule.Value = value; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -940,6 +952,9 @@ namespace dot10.DotNet {
 			};
 			propertyMap.ReadOriginalValue = () => {
 				return readerModule.ResolvePropertyMap(readerModule.MetaData.GetPropertyMapRid(rid));
+			};
+			ownerModule.ReadOriginalValue = () => {
+				return DeclaringType != null ? null : readerModule;
 			};
 		}
 

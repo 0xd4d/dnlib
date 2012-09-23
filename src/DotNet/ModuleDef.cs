@@ -193,8 +193,6 @@ namespace dot10.DotNet {
 		void IListListener<TypeDef>.OnAdd(int index, TypeDef value, bool isLazyAdd) {
 			if (isLazyAdd) {
 #if DEBUG
-				if (value.OwnerModule != null)
-					throw new InvalidOperationException("Added nested type's OwnerModule != null");
 				if (value.DeclaringType != null)
 					throw new InvalidOperationException("Added nested type's DeclaringType != null");
 #endif
