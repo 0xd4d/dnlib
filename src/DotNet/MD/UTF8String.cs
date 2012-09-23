@@ -78,6 +78,8 @@ namespace dot10.DotNet.MD {
 			if (IsNullOrEmpty(utf8))
 				return 0;
 			int count = Math.Min(utf8.data.Length / 2, 20);
+			if (count == 0)
+				count = 1;
 			uint hash = 0;
 			for (int i = 0, j = utf8.data.Length - 1; i < count; i++, j--) {
 				hash ^= utf8.data[i] | ((uint)utf8.data[j] << 8);
