@@ -50,6 +50,14 @@ namespace dot10.DotNet {
 		public abstract Constant Constant { get; set; }
 
 		/// <summary>
+		/// Gets/sets the property sig
+		/// </summary>
+		public PropertySig PropertySig {
+			get { return Type as PropertySig; }
+			set { Type = value; }
+		}
+
+		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
 		public TypeDef DeclaringType {
@@ -74,6 +82,16 @@ namespace dot10.DotNet {
 		/// <param name="newDeclaringType">New declaring type or <c>null</c> if none</param>
 		internal void SetDeclaringType(TypeDef newDeclaringType) {
 			DeclaringType2 = newDeclaringType;
+		}
+
+		/// <summary>
+		/// Gets the full name of the property
+		/// </summary>
+		public string FullName {
+			get {
+				var dt = DeclaringType;
+				return FullNameCreator.PropertyFullName(dt == null ? null : dt.FullName, Name, Type);
+			}
 		}
 
 		/// <summary>
@@ -115,12 +133,9 @@ namespace dot10.DotNet {
 			}
 		}
 
-		/// <summary>
-		/// Gets/sets the property sig
-		/// </summary>
-		public PropertySig PropertySig {
-			get { return Type as PropertySig; }
-			set { Type = value; }
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
 		}
 	}
 

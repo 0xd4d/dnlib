@@ -12,6 +12,68 @@ namespace dot10.DotNet {
 		RecursionCounter recursionCounter;
 
 		/// <summary>
+		/// Returns the full name of a property
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of property</param>
+		/// <param name="propertySig">Property signature</param>
+		/// <returns>Property full name</returns>
+		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig) {
+			return PropertyFullName(declaringType, name, propertySig, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a property
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of property</param>
+		/// <param name="propertySig">Property signature</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <returns>Property full name</returns>
+		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs) {
+			var fnc = new FullNameCreator(false);
+			if (typeGenArgs != null) {
+				if (fnc.genericArguments == null)
+					fnc.genericArguments = new GenericArguments();
+				fnc.genericArguments.PushTypeArgs(typeGenArgs);
+			}
+
+			fnc.CreatePropertyFullName(declaringType, name, propertySig);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the full name of an event
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of event</param>
+		/// <param name="typeDefOrRef">Event type</param>
+		/// <returns>Event full name</returns>
+		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef) {
+			return EventFullName(declaringType, name, typeDefOrRef, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a property
+		/// </summary>
+		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
+		/// <param name="name">Name of property</param>
+		/// <param name="typeDefOrRef">Event type</param>
+		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
+		/// <returns>Property full name</returns>
+		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs) {
+			var fnc = new FullNameCreator(false);
+			if (typeGenArgs != null) {
+				if (fnc.genericArguments == null)
+					fnc.genericArguments = new GenericArguments();
+				fnc.genericArguments.PushTypeArgs(typeGenArgs);
+			}
+
+			fnc.CreateEventFullName(declaringType, name, typeDefOrRef);
+			return fnc.Result;
+		}
+
+		/// <summary>
 		/// Returns the full name of a field
 		/// </summary>
 		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
@@ -1176,7 +1238,7 @@ namespace dot10.DotNet {
 				sb.Append(name);
 		}
 
-		void CreateMethodFullName(string declaringType, string name, MethodSig methodSig) {
+		void CreateMethodFullName(string declaringType, string name, MethodBaseSig methodSig) {
 			if (methodSig == null) {
 				sb.Append(NULLVALUE);
 				return;
@@ -1224,6 +1286,21 @@ namespace dot10.DotNet {
 				hasPrintedArgs = true;
 			}
 			return count;
+		}
+
+		void CreatePropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig) {
+			CreateMethodFullName(declaringType, UTF8String.ToSystemString(name), propertySig as MethodBaseSig);
+		}
+
+		void CreateEventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef) {
+			CreateFullName(typeDefOrRef);
+			sb.Append(' ');
+			if (declaringType != null) {
+				sb.Append(declaringType);
+				sb.Append("::");
+			}
+			if (!UTF8String.IsNull(name))
+				sb.Append(UTF8String.ToSystemString(name));
 		}
 
 		/// <inheritdoc/>

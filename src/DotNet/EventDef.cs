@@ -69,6 +69,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the full name of the event
+		/// </summary>
+		public string FullName {
+			get {
+				var dt = DeclaringType;
+				return FullNameCreator.EventFullName(dt == null ? null : dt.FullName, Name, Type);
+			}
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="EventAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
@@ -92,6 +102,11 @@ namespace dot10.DotNet {
 				else
 					Flags &= ~EventAttributes.RTSpecialName;
 			}
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
 		}
 	}
 
