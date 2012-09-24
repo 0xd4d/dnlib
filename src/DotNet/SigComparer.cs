@@ -845,8 +845,6 @@ exit:
 			// **********************************************************
 			if (a == null)
 				return 0;
-			if (IsGlobalModuleType(a))
-				return GetHashCodeGlobalType();
 			int hash;
 			hash = UTF8String.GetHashCode(a.Name) ^
 				UTF8String.GetHashCode(a.Namespace);
@@ -1919,16 +1917,6 @@ exit:
 				result = CompareGlobal(td, moda);
 				goto exit;
 			}
-			var tr = a as TypeRef;
-			if (tr != null && modb != null) {
-				result = CompareGlobal(tr, modb);
-				goto exit;
-			}
-			tr = b as TypeRef;
-			if (tr != null && moda != null) {
-				result = CompareGlobal(tr, moda);
-				goto exit;
-			}
 
 			result = false;
 exit:
@@ -2211,54 +2199,6 @@ exit:
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
-		}
-
-		// Compares a with b, and a must be the global type
-		bool CompareGlobal(TypeRef a, ModuleRef b) {
-			if ((object)a == (object)b)
-				return true;	// both are null
-			if (a == null || b == null)
-				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
-				return false;
-			bool result = false;
-
-			var scope = a.ResolutionScope;
-			if (scope == null || scope is TypeRef)
-				goto exit;
-			var aMod = scope as IModule;
-			if (aMod != null && !Compare(aMod, b))
-				goto exit;
-			result = IsGlobalModuleType(a);
-exit:
-			recursionCounter.DecrementRecursionCounter();
-			return result;
-		}
-
-		static readonly UTF8String MODULE_GLOBAL_TYPE_NAME = new UTF8String("<Module>");
-		bool IsGlobalModuleType(TypeRef a) {
-			var scope = a.ResolutionScope;
-			var modDef = scope as ModuleDef;
-			if (modDef != null)
-				return IsGlobalModuleType(a, modDef);
-
-			if (scope == null || scope is TypeRef)
-				return false;
-
-			//TODO: Use a.OwnerModule.Assembly to find the module a.ResolutionScope (asm or modref)
-			//		points to. Then call IsGlobalModuleType(TypeRef,ModuleDef)
-			// Until then, check the name
-			return UTF8String.CompareTo(a.Name, MODULE_GLOBAL_TYPE_NAME) == 0;
-		}
-
-		bool IsGlobalModuleType(TypeRef a, ModuleDef module) {
-			if (a == null || module == null || module.Types.Count == 0)
-				return false;
-			var global = module.Types[0];
-			if (a.ResolutionScope is TypeRef != (global.DeclaringType != null))
-				return false;
-			return UTF8String.CompareTo(global.Namespace, a.Namespace) == 0 &&
-					UTF8String.CompareTo(global.Name, a.Name) == 0;
 		}
 	}
 }
