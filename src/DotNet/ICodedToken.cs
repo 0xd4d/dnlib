@@ -90,7 +90,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// TypeDefOrRef coded token interface
 	/// </summary>
-	public interface ITypeDefOrRef : ICodedToken, IType, ITokenOperand {
+	public interface ITypeDefOrRef : ICodedToken, IHasCustomAttribute, IMemberRefParent, IType, ITokenOperand {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -100,7 +100,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// HasConstant coded token interface
 	/// </summary>
-	public interface IHasConstant : ICodedToken {
+	public interface IHasConstant : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -125,7 +125,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// HasFieldMarshal coded token interface
 	/// </summary>
-	public interface IHasFieldMarshal : ICodedToken {
+	public interface IHasFieldMarshal : ICodedToken, IHasCustomAttribute, IHasConstant {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -140,7 +140,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// HasDeclSecurity coded token interface
 	/// </summary>
-	public interface IHasDeclSecurity : ICodedToken {
+	public interface IHasDeclSecurity : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -155,7 +155,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// MemberRefParent coded token interface
 	/// </summary>
-	public interface IMemberRefParent : ICodedToken {
+	public interface IMemberRefParent : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -165,7 +165,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// HasSemantic coded token interface
 	/// </summary>
-	public interface IHasSemantic : ICodedToken {
+	public interface IHasSemantic : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -175,7 +175,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// MethodDefOrRef coded token interface
 	/// </summary>
-	public interface IMethodDefOrRef : ICodedToken, IMethod {
+	public interface IMethodDefOrRef : ICodedToken, IHasCustomAttribute, ICustomAttributeType, IMethod {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -185,7 +185,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// MemberForwarded coded token interface
 	/// </summary>
-	public interface IMemberForwarded : ICodedToken {
+	public interface IMemberForwarded : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -200,7 +200,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implementation coded token interface
 	/// </summary>
-	public interface IImplementation : ICodedToken {
+	public interface IImplementation : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -210,7 +210,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// CustomAttributeType coded token interface
 	/// </summary>
-	public interface ICustomAttributeType : ICodedToken {
+	public interface ICustomAttributeType : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -220,7 +220,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// ResolutionScope coded token interface
 	/// </summary>
-	public interface IResolutionScope : ICodedToken {
+	public interface IResolutionScope : ICodedToken, IHasCustomAttribute {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -230,7 +230,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// TypeOrMethodDef coded token interface
 	/// </summary>
-	public interface ITypeOrMethodDef : ICodedToken {
+	public interface ITypeOrMethodDef : ICodedToken, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>

@@ -708,7 +708,7 @@ exit:
 			//****************************************************************************************
 			var b2 = b as TypeDefOrRefSig;
 			if (b2 != null)
-				result = Compare(a, b2.TypeDefOrRef);
+				result = Compare(a, (IType)b2.TypeDefOrRef);
 			else if (b is ModifierSig || b is PinnedSig)
 				result = Compare(a, b.Next);
 			else
@@ -772,7 +772,7 @@ exit:
 			//****************************************************************************************
 			var b2 = b as TypeDefOrRefSig;
 			if (b2 != null)
-				result = Compare(a, b2.TypeDefOrRef);
+				result = Compare(a, (IType)b2.TypeDefOrRef);
 			else if (b is ModifierSig || b is PinnedSig)
 				result = Compare(a, b.Next);
 			else
@@ -1123,7 +1123,7 @@ exit:
 
 				case ElementType.ValueType:
 				case ElementType.Class:
-					result = Compare((a as ClassOrValueTypeSig).TypeDefOrRef, (b as ClassOrValueTypeSig).TypeDefOrRef);
+					result = Compare((IType)(a as ClassOrValueTypeSig).TypeDefOrRef, (IType)(b as ClassOrValueTypeSig).TypeDefOrRef);
 					break;
 
 				case ElementType.Var:
@@ -1144,7 +1144,7 @@ exit:
 
 				case ElementType.CModReqd:
 				case ElementType.CModOpt:
-					result = Compare((a as ModifierSig).Modifier, (b as ModifierSig).Modifier) && Compare(a.Next, b.Next);
+					result = Compare((IType)(a as ModifierSig).Modifier, (IType)(b as ModifierSig).Modifier) && Compare(a.Next, b.Next);
 					break;
 
 				case ElementType.ValueArray:
@@ -1203,7 +1203,7 @@ exit:
 			case ElementType.Class:
 				// When comparing a TypeDef/TypeRef to a TypeDefOrRefSig/Class/ValueType, the
 				// ET is ignored, so we must ignore it when calculating the hash.
-				hash = GetHashCode((a as TypeDefOrRefSig).TypeDefOrRef);
+				hash = GetHashCode((IType)(a as TypeDefOrRefSig).TypeDefOrRef);
 				break;
 
 			case ElementType.Sentinel:
@@ -1896,7 +1896,7 @@ exit:
 
 			ITypeDefOrRef ita = a as ITypeDefOrRef, itb = b as ITypeDefOrRef;
 			if (ita != null && itb != null) {
-				result = Compare(ita, itb);
+				result = Compare((IType)ita, (IType)itb);
 				goto exit;
 			}
 			ModuleRef moda = a as ModuleRef, modb = b as ModuleRef;
@@ -1950,7 +1950,7 @@ exit:
 
 			ITypeDefOrRef ita = a as ITypeDefOrRef;
 			if (ita != null) {
-				hash = GetHashCode(ita);
+				hash = GetHashCode((IType)ita);
 				goto exit;
 			}
 			ModuleRef moda = a as ModuleRef;
@@ -2174,7 +2174,7 @@ exit:
 
 			//TODO: Also compare its declaring type if CompareEventDeclaringType is true
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Type, b.Type);
+					Compare((IType)a.Type, (IType)b.Type);
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -2193,7 +2193,7 @@ exit:
 
 			//TODO: Also compare its declaring type if CompareEventDeclaringType is true
 			int hash = UTF8String.GetHashCode(a.Name) ^
-					GetHashCode(a.Type);
+					GetHashCode((IType)a.Type);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
