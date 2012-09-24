@@ -1953,8 +1953,7 @@ exit:
 				hash = GetHashCode((IType)ita);
 				goto exit;
 			}
-			ModuleRef moda = a as ModuleRef;
-			if (moda != null) {
+			if (a is ModuleRef) {
 				hash = GetHashCodeGlobalType();
 				goto exit;
 			}
