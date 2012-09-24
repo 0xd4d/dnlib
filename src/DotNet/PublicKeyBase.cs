@@ -59,6 +59,20 @@
 			return Utils.ParseBytes(hexString);
 		}
 
+		/// <summary>
+		/// Returns a <see cref="PublicKeyToken"/>
+		/// </summary>
+		/// <param name="pkb">A <see cref="PublicKey"/> or a <see cref="PublicKeyToken"/> instance</param>
+		public static PublicKeyToken ToPublicKeyToken(PublicKeyBase pkb) {
+			var pkt = pkb as PublicKeyToken;
+			if (pkt != null)
+				return pkt;
+			var pk = pkb as PublicKey;
+			if (pk != null)
+				return pk.Token;
+			return null;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (IsNullOrEmpty)
