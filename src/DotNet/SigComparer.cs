@@ -846,10 +846,10 @@ exit:
 			if (a == null)
 				return 0;
 			int hash;
-			hash = UTF8String.GetHashCode(a.Name) ^
+			hash = UTF8String.GetHashCode(a.Name) +
 				UTF8String.GetHashCode(a.Namespace);
 			if (a.ResolutionScope is TypeRef)
-				hash ^= HASHCODE_MAGIC_NESTED_TYPE;
+				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			return hash;
 		}
 
@@ -890,10 +890,10 @@ exit:
 			if (a.IsGlobalModuleType)
 				return GetHashCodeGlobalType();
 			int hash;
-			hash = UTF8String.GetHashCode(a.Name) ^
+			hash = UTF8String.GetHashCode(a.Name) +
 				UTF8String.GetHashCode(a.Namespace);
 			if (a.DeclaringType != null)
-				hash ^= HASHCODE_MAGIC_NESTED_TYPE;
+				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			return hash;
 		}
 
@@ -1313,7 +1313,7 @@ exit:
 				return 0;
 			uint hash = 0;
 			for (int i = 0; i < a.Count; i++) {
-				hash ^= (uint)GetHashCode(a[i]);
+				hash += (uint)GetHashCode(a[i]);
 				hash = (hash << 13) | (hash >> 19);
 			}
 			recursionCounter.DecrementRecursionCounter();
@@ -1339,7 +1339,7 @@ exit:
 				return 0;
 			uint hash = 0;
 			for (int i = 0; i < a.Count; i++) {
-				hash ^= a[i];
+				hash += a[i];
 				hash = (hash << 13) | (hash >> 19);
 			}
 			return (int)hash;
@@ -1364,7 +1364,7 @@ exit:
 				return 0;
 			uint hash = 0;
 			for (int i = 0; i < a.Count; i++) {
-				hash ^= (uint)a[i];
+				hash += (uint)a[i];
 				hash = (hash << 13) | (hash >> 19);
 			}
 			return (int)hash;
@@ -1512,13 +1512,13 @@ exit:
 				return 0;
 			int hash;
 
-			hash = (int)a.GetCallingConvention() ^
-					GetHashCode(a.RetType) ^
+			hash = (int)a.GetCallingConvention() +
+					GetHashCode(a.RetType) +
 					GetHashCode(a.Params);
 			if (a.Generic)
-				hash ^= (int)a.GenParamCount;
+				hash += (int)a.GenParamCount;
 			if (CompareSentinelParams)
-				hash ^= GetHashCode(a.ParamsAfterSentinel);
+				hash += GetHashCode(a.ParamsAfterSentinel);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -1556,7 +1556,7 @@ exit:
 				return 0;
 			int hash;
 
-			hash = (int)a.GetCallingConvention() ^ GetHashCode(a.Type);
+			hash = (int)a.GetCallingConvention() + GetHashCode(a.Type);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -1594,7 +1594,7 @@ exit:
 				return 0;
 			int hash;
 
-			hash = (int)a.GetCallingConvention() ^ GetHashCode(a.Locals);
+			hash = (int)a.GetCallingConvention() + GetHashCode(a.Locals);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -1632,7 +1632,7 @@ exit:
 				return 0;
 			int hash;
 
-			hash = (int)a.GetCallingConvention() ^ GetHashCode(a.GenericArguments);
+			hash = (int)a.GetCallingConvention() + GetHashCode(a.GenericArguments);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -1786,10 +1786,10 @@ exit:
 			if (!recursionCounter.IncrementRecursionCounter())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) ^
+			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
-				hash ^= GetHashCode(a.DeclaringType);
+				hash += GetHashCode(a.DeclaringType);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -1831,10 +1831,10 @@ exit:
 			if (!recursionCounter.IncrementRecursionCounter())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) ^
+			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
-				hash ^= GetHashCode(a.Class);
+				hash += GetHashCode(a.Class);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -1871,7 +1871,7 @@ exit:
 			if (!recursionCounter.IncrementRecursionCounter())
 				return 0;
 
-			int hash = GetHashCode(a.Method) ^ GetHashCode(a.Instantiation);
+			int hash = GetHashCode(a.Method) + GetHashCode(a.Instantiation);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -2095,10 +2095,10 @@ exit:
 			if (!recursionCounter.IncrementRecursionCounter())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) ^
+			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
-				hash ^= GetHashCode(a.DeclaringType);
+				hash += GetHashCode(a.DeclaringType);
 
 			recursionCounter.DecrementRecursionCounter();
 			return hash;
@@ -2138,7 +2138,7 @@ exit:
 				return 0;
 
 			//TODO: Also compare its declaring type if ComparePropertyDeclaringType is true
-			int hash = UTF8String.GetHashCode(a.Name) ^
+			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode(a.Type);
 
 			recursionCounter.DecrementRecursionCounter();
@@ -2179,7 +2179,7 @@ exit:
 				return 0;
 
 			//TODO: Also compare its declaring type if CompareEventDeclaringType is true
-			int hash = UTF8String.GetHashCode(a.Name) ^
+			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode((IType)a.Type);
 
 			recursionCounter.DecrementRecursionCounter();
