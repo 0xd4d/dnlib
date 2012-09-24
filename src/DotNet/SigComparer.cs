@@ -7,7 +7,7 @@ namespace dot10.DotNet {
 	/// Compares types
 	/// </summary>
 	public sealed class TypeEqualityComparer : IEqualityComparer<IType>, IEqualityComparer<TypeRef>, IEqualityComparer<TypeDef>, IEqualityComparer<TypeSpec>, IEqualityComparer<TypeSig> {
-		readonly SigComparer.Options options;
+		readonly SigComparerOptions options;
 
 		/// <summary>
 		/// Default instance
@@ -18,58 +18,58 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public TypeEqualityComparer(SigComparer.Options options) {
+		public TypeEqualityComparer(SigComparerOptions options) {
 			this.options = options;
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(IType x, IType y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(IType obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeRef x, TypeRef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeRef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeDef x, TypeDef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeDef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeSpec x, TypeSpec y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeSpec obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeSig x, TypeSig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeSig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 	}
 
@@ -77,12 +77,12 @@ namespace dot10.DotNet {
 	/// Compares fields
 	/// </summary>
 	public sealed class FieldEqualityComparer : IEqualityComparer<IField>, IEqualityComparer<FieldDef>, IEqualityComparer<MemberRef> {
-		readonly SigComparer.Options options;
+		readonly SigComparerOptions options;
 
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly FieldEqualityComparer CompareDeclaringTypes = new FieldEqualityComparer(SigComparer.Options.CompareMethodFieldDeclaringType);
+		public static readonly FieldEqualityComparer CompareDeclaringTypes = new FieldEqualityComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
@@ -93,38 +93,38 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public FieldEqualityComparer(SigComparer.Options options) {
+		public FieldEqualityComparer(SigComparerOptions options) {
 			this.options = options;
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(IField x, IField y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(IField obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(FieldDef x, FieldDef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(FieldDef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MemberRef x, MemberRef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MemberRef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 	}
 
@@ -132,12 +132,12 @@ namespace dot10.DotNet {
 	/// Compares methods
 	/// </summary>
 	public sealed class MethodEqualityComparer : IEqualityComparer<IMethod>, IEqualityComparer<MethodDef>, IEqualityComparer<MemberRef>, IEqualityComparer<MethodSpec> {
-		readonly SigComparer.Options options;
+		readonly SigComparerOptions options;
 
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly MethodEqualityComparer CompareDeclaringTypes = new MethodEqualityComparer(SigComparer.Options.CompareMethodFieldDeclaringType);
+		public static readonly MethodEqualityComparer CompareDeclaringTypes = new MethodEqualityComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
@@ -148,48 +148,48 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public MethodEqualityComparer(SigComparer.Options options) {
+		public MethodEqualityComparer(SigComparerOptions options) {
 			this.options = options;
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(IMethod x, IMethod y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(IMethod obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodDef x, MethodDef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodDef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MemberRef x, MemberRef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MemberRef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodSpec x, MethodSpec y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodSpec obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 	}
 
@@ -197,12 +197,12 @@ namespace dot10.DotNet {
 	/// Compares properties
 	/// </summary>
 	public sealed class PropertyEqualityComparer : IEqualityComparer<PropertyDef> {
-		readonly SigComparer.Options options;
+		readonly SigComparerOptions options;
 
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly PropertyEqualityComparer CompareDeclaringTypes = new PropertyEqualityComparer(SigComparer.Options.ComparePropertyDeclaringType);
+		public static readonly PropertyEqualityComparer CompareDeclaringTypes = new PropertyEqualityComparer(SigComparerOptions.ComparePropertyDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
@@ -213,18 +213,18 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public PropertyEqualityComparer(SigComparer.Options options) {
+		public PropertyEqualityComparer(SigComparerOptions options) {
 			this.options = options;
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(PropertyDef x, PropertyDef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(PropertyDef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 	}
 
@@ -232,12 +232,12 @@ namespace dot10.DotNet {
 	/// Compares events
 	/// </summary>
 	public sealed class EventEqualityComparer : IEqualityComparer<EventDef> {
-		readonly SigComparer.Options options;
+		readonly SigComparerOptions options;
 
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly EventEqualityComparer CompareDeclaringTypes = new EventEqualityComparer(SigComparer.Options.CompareEventDeclaringType);
+		public static readonly EventEqualityComparer CompareDeclaringTypes = new EventEqualityComparer(SigComparerOptions.CompareEventDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
@@ -248,18 +248,18 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public EventEqualityComparer(SigComparer.Options options) {
+		public EventEqualityComparer(SigComparerOptions options) {
 			this.options = options;
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(EventDef x, EventDef y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(EventDef obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 	}
 
@@ -267,7 +267,7 @@ namespace dot10.DotNet {
 	/// Compares calling convention signatures
 	/// </summary>
 	public sealed class SignatureEqualityComparer : IEqualityComparer<CallingConventionSig>, IEqualityComparer<MethodBaseSig>, IEqualityComparer<MethodSig>, IEqualityComparer<PropertySig>, IEqualityComparer<FieldSig>, IEqualityComparer<LocalSig>, IEqualityComparer<GenericInstMethodSig> {
-		readonly SigComparer.Options options;
+		readonly SigComparerOptions options;
 
 		/// <summary>
 		/// Default instance
@@ -278,79 +278,125 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public SignatureEqualityComparer(SigComparer.Options options) {
+		public SignatureEqualityComparer(SigComparerOptions options) {
 			this.options = options;
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(CallingConventionSig x, CallingConventionSig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(CallingConventionSig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodBaseSig x, MethodBaseSig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodBaseSig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodSig x, MethodSig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodSig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(PropertySig x, PropertySig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(PropertySig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(FieldSig x, FieldSig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(FieldSig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(LocalSig x, LocalSig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(LocalSig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(GenericInstMethodSig x, GenericInstMethodSig y) {
-			return new SigComparer { Flags = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Compare(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(GenericInstMethodSig obj) {
-			return new SigComparer { Flags = options }.GetHashCode(obj);
+			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
+	}
+
+	/// <summary>
+	/// Decides how to compare types, sigs, etc
+	/// </summary>
+	[Flags]
+	public enum SigComparerOptions {
+		/// <summary>
+		/// Don't compares a type's (assembly/module) scope
+		/// </summary>
+		DontCompareTypeScope = 1,
+
+		/// <summary>
+		/// Compares a method/field's declaring type.
+		/// </summary>
+		CompareMethodFieldDeclaringType = 2,
+
+		/// <summary>
+		/// Compares a property's declaring type
+		/// </summary>
+		ComparePropertyDeclaringType = 4,
+
+		/// <summary>
+		/// Compares an event's declaring type
+		/// </summary>
+		CompareEventDeclaringType = 8,
+
+		/// <summary>
+		/// Compares parameters after a sentinel in method sigs
+		/// </summary>
+		CompareSentinelParams = 0x10,
+
+		/// <summary>
+		/// Compares assembly public key token
+		/// </summary>
+		CompareAssemblyPublicKeyToken = 0x20,
+
+		/// <summary>
+		/// Compares assembly version
+		/// </summary>
+		CompareAssemblyVersion = 0x40,
+
+		/// <summary>
+		/// Compares assembly locale
+		/// </summary>
+		CompareAssemblyLocale = 0x80,
 	}
 
 	/// <summary>
@@ -372,163 +418,117 @@ namespace dot10.DotNet {
 		const int HASHCODE_MAGIC_ET_SENTINEL = 68439620;
 
 		RecursionCounter recursionCounter;
-		Options options;
-
-		/// <summary>
-		/// Decides how to compare types, sigs, etc
-		/// </summary>
-		[Flags]
-		public enum Options {
-			/// <summary>
-			/// Don't compares a type's (assembly/module) scope
-			/// </summary>
-			DontCompareTypeScope = 1,
-
-			/// <summary>
-			/// Compares a method/field's declaring type.
-			/// </summary>
-			CompareMethodFieldDeclaringType = 2,
-
-			/// <summary>
-			/// Compares a property's declaring type
-			/// </summary>
-			ComparePropertyDeclaringType = 4,
-
-			/// <summary>
-			/// Compares an event's declaring type
-			/// </summary>
-			CompareEventDeclaringType = 8,
-
-			/// <summary>
-			/// Compares parameters after a sentinel in method sigs
-			/// </summary>
-			CompareSentinelParams = 0x10,
-
-			/// <summary>
-			/// Compares assembly public key token
-			/// </summary>
-			CompareAssemblyPublicKeyToken = 0x20,
-
-			/// <summary>
-			/// Compares assembly version
-			/// </summary>
-			CompareAssemblyVersion = 0x40,
-
-			/// <summary>
-			/// Compares assembly locale
-			/// </summary>
-			CompareAssemblyLocale = 0x80,
-		}
+		SigComparerOptions options;
 
 		/// <summary>
 		/// Gets/sets the options
 		/// </summary>
-		public Options Flags {
+		public SigComparerOptions Options {
 			get { return options; }
 			set { options = value; }
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.DontCompareTypeScope"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.DontCompareTypeScope"/> bit
 		/// </summary>
 		public bool DontCompareTypeScope {
-			get { return (options & Options.DontCompareTypeScope) != 0; }
+			get { return (options & SigComparerOptions.DontCompareTypeScope) != 0; }
 			set {
 				if (value)
-					options |= Options.DontCompareTypeScope;
+					options |= SigComparerOptions.DontCompareTypeScope;
 				else
-					options &= ~Options.DontCompareTypeScope;
+					options &= ~SigComparerOptions.DontCompareTypeScope;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.CompareMethodFieldDeclaringType"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.CompareMethodFieldDeclaringType"/> bit
 		/// </summary>
 		public bool CompareMethodFieldDeclaringType {
-			get { return (options & Options.CompareMethodFieldDeclaringType) != 0; }
+			get { return (options & SigComparerOptions.CompareMethodFieldDeclaringType) != 0; }
 			set {
 				if (value)
-					options |= Options.CompareMethodFieldDeclaringType;
+					options |= SigComparerOptions.CompareMethodFieldDeclaringType;
 				else
-					options &= ~Options.CompareMethodFieldDeclaringType;
+					options &= ~SigComparerOptions.CompareMethodFieldDeclaringType;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.ComparePropertyDeclaringType"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.ComparePropertyDeclaringType"/> bit
 		/// </summary>
 		public bool ComparePropertyDeclaringType {
-			get { return (options & Options.ComparePropertyDeclaringType) != 0; }
+			get { return (options & SigComparerOptions.ComparePropertyDeclaringType) != 0; }
 			set {
 				if (value)
-					options |= Options.ComparePropertyDeclaringType;
+					options |= SigComparerOptions.ComparePropertyDeclaringType;
 				else
-					options &= ~Options.ComparePropertyDeclaringType;
+					options &= ~SigComparerOptions.ComparePropertyDeclaringType;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.CompareEventDeclaringType"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.CompareEventDeclaringType"/> bit
 		/// </summary>
 		public bool CompareEventDeclaringType {
-			get { return (options & Options.CompareEventDeclaringType) != 0; }
+			get { return (options & SigComparerOptions.CompareEventDeclaringType) != 0; }
 			set {
 				if (value)
-					options |= Options.CompareEventDeclaringType;
+					options |= SigComparerOptions.CompareEventDeclaringType;
 				else
-					options &= ~Options.CompareEventDeclaringType;
+					options &= ~SigComparerOptions.CompareEventDeclaringType;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.CompareSentinelParams"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.CompareSentinelParams"/> bit
 		/// </summary>
 		public bool CompareSentinelParams {
-			get { return (options & Options.CompareSentinelParams) != 0; }
+			get { return (options & SigComparerOptions.CompareSentinelParams) != 0; }
 			set {
 				if (value)
-					options |= Options.CompareSentinelParams;
+					options |= SigComparerOptions.CompareSentinelParams;
 				else
-					options &= ~Options.CompareSentinelParams;
+					options &= ~SigComparerOptions.CompareSentinelParams;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.CompareAssemblyPublicKeyToken"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.CompareAssemblyPublicKeyToken"/> bit
 		/// </summary>
 		public bool CompareAssemblyPublicKeyToken {
-			get { return (options & Options.CompareAssemblyPublicKeyToken) != 0; }
+			get { return (options & SigComparerOptions.CompareAssemblyPublicKeyToken) != 0; }
 			set {
 				if (value)
-					options |= Options.CompareAssemblyPublicKeyToken;
+					options |= SigComparerOptions.CompareAssemblyPublicKeyToken;
 				else
-					options &= ~Options.CompareAssemblyPublicKeyToken;
+					options &= ~SigComparerOptions.CompareAssemblyPublicKeyToken;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.CompareAssemblyVersion"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.CompareAssemblyVersion"/> bit
 		/// </summary>
 		public bool CompareAssemblyVersion {
-			get { return (options & Options.CompareAssemblyVersion) != 0; }
+			get { return (options & SigComparerOptions.CompareAssemblyVersion) != 0; }
 			set {
 				if (value)
-					options |= Options.CompareAssemblyVersion;
+					options |= SigComparerOptions.CompareAssemblyVersion;
 				else
-					options &= ~Options.CompareAssemblyVersion;
+					options &= ~SigComparerOptions.CompareAssemblyVersion;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.CompareAssemblyLocale"/> bit
+		/// Gets/sets the <see cref="SigComparerOptions.CompareAssemblyLocale"/> bit
 		/// </summary>
 		public bool CompareAssemblyLocale {
-			get { return (options & Options.CompareAssemblyLocale) != 0; }
+			get { return (options & SigComparerOptions.CompareAssemblyLocale) != 0; }
 			set {
 				if (value)
-					options |= Options.CompareAssemblyLocale;
+					options |= SigComparerOptions.CompareAssemblyLocale;
 				else
-					options &= ~Options.CompareAssemblyLocale;
+					options &= ~SigComparerOptions.CompareAssemblyLocale;
 			}
 		}
 
@@ -536,7 +536,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public SigComparer(Options options) {
+		public SigComparer(SigComparerOptions options) {
 			this.recursionCounter = new RecursionCounter();
 			this.options = options;
 		}
