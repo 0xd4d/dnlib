@@ -1127,8 +1127,6 @@ exit:
 		bool Compare(PublicKeyBase a, PublicKeyBase b) {
 			if (a == b)
 				return true;
-			if (a == null || b == null)
-				return false;
 			var pkta = PublicKeyBase.ToPublicKeyToken(a);
 			var pktb = PublicKeyBase.ToPublicKeyToken(b);
 			return Utils.CompareTo(pkta == null ? null : pkta.Data, pktb == null ? null : pktb.Data) == 0;
