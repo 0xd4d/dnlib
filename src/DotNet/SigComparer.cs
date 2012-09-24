@@ -650,6 +650,8 @@ exit:
 			}
 			//TODO: Handle the case where scope == null
 exit:
+			if (result && a.IsGlobalModuleType)
+				result = false;
 			recursionCounter.DecrementRecursionCounter();
 			return result;
 		}
