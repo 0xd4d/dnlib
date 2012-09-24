@@ -100,30 +100,7 @@ namespace dot10.DotNet.MD {
 		/// <param name="b">Instance #2 or <c>null</c></param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
 		public static int CompareTo(UTF8String a, UTF8String b) {
-			if ((object)a == null)
-				return -1;
-			if ((object)b == null)
-				return 1;
-			return CompareBytes(a.data, b.data);
-		}
-
-		static int CompareBytes(byte[] a, byte[] b) {
-			if (a == b)
-				return 0;
-			if (a == null)
-				return -1;
-			if (b == null)
-				return 1;
-			int count = Math.Min(a.Length, b.Length);
-			for (int i = 0; i < count; i++) {
-				var ai = a[i];
-				var bi = b[i];
-				if (ai < bi)
-					return -1;
-				if (ai > bi)
-					return 1;
-			}
-			return a.Length.CompareTo(b.Length);
+			return Utils.CompareTo((object)a == null ? null : a.data, (object)b == null ? null : b.data);
 		}
 
 		/// <summary>Overloaded operator</summary>

@@ -98,5 +98,24 @@ namespace dot10.DotNet {
 				return 10 + (ushort)c - (ushort)'A';
 			return -1;
 		}
+
+		internal static int CompareTo(byte[] a, byte[] b) {
+			if (a == b)
+				return 0;
+			if (a == null)
+				return -1;
+			if (b == null)
+				return 1;
+			int count = Math.Min(a.Length, b.Length);
+			for (int i = 0; i < count; i++) {
+				var ai = a[i];
+				var bi = b[i];
+				if (ai < bi)
+					return -1;
+				if (ai > bi)
+					return 1;
+			}
+			return a.Length.CompareTo(b.Length);
+		}
 	}
 }
