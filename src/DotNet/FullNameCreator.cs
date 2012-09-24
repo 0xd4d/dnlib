@@ -665,7 +665,6 @@ namespace dot10.DotNet {
 
 			bool createNamespace = (flags & TYPESIG_NAMESPACE) != 0;
 			bool createName = (flags & TYPESIG_NAME) != 0;
-			int len = sb.Length;
 			switch (typeSig.ElementType) {
 			case ElementType.Void:
 			case ElementType.Boolean:
@@ -696,23 +695,20 @@ namespace dot10.DotNet {
 				break;
 
 			case ElementType.Ptr:
-				CreateTypeSigName(((PtrSig)typeSig).Next, flags);
+				CreateTypeSigName(typeSig.Next, flags);
 				if (createName)
 					sb.Append('*');
 				break;
 
 			case ElementType.ByRef:
-				CreateTypeSigName(((ByRefSig)typeSig).Next, flags);
+				CreateTypeSigName(typeSig.Next, flags);
 				if (createName)
 					sb.Append('&');
 				break;
 
 			case ElementType.Array:
-				if (createNamespace)
-					CreateNamespace(((NonLeafSig)typeSig).Next);
+				CreateTypeSigName(typeSig.Next, flags);
 				if (createName) {
-					if (len != sb.Length)
-						sb.Append('.');	// We printed the namespace so add a dot
 					var arraySig = (ArraySig)typeSig;
 					sb.Append('[');
 					if (arraySig.Rank == 0)
@@ -742,45 +738,35 @@ namespace dot10.DotNet {
 				break;
 
 			case ElementType.SZArray:
-				CreateTypeSigName(((SZArraySig)typeSig).Next, flags);
+				CreateTypeSigName(typeSig.Next, flags);
 				if (createName)
 					sb.Append("[]");
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
-				CreateTypeSigName(((ModifierSig)typeSig).Next, flags);
+				CreateTypeSigName(typeSig.Next, flags);
 				break;
 
 			case ElementType.Pinned:
-				CreateTypeSigName(((PinnedSig)typeSig).Next, flags);
+				CreateTypeSigName(typeSig.Next, flags);
 				break;
 
 			case ElementType.ValueArray:
-				if (createNamespace)
-					CreateNamespace(((NonLeafSig)typeSig).Next);
+				CreateTypeSigName(typeSig.Next, flags);
 				if (createName) {
-					if (len != sb.Length)
-						sb.Append('.');	// We printed the namespace so add a dot
 					var valueArraySig = (ValueArraySig)typeSig;
-					sb.Append("ValueArray(");
-					CreateTypeSigName(valueArraySig.Next, flags);
-					sb.Append(',');
+					sb.Append(" ValueArray(");
 					sb.Append(valueArraySig.Size);
 					sb.Append(')');
 				}
 				break;
 
 			case ElementType.Module:
-				if (createNamespace)
-					CreateNamespace(((NonLeafSig)typeSig).Next);
+				CreateTypeSigName(typeSig.Next, flags);
 				if (createName) {
-					if (len != sb.Length)
-						sb.Append('.');	// We printed the namespace so add a dot
 					var moduleSig = (ModuleSig)typeSig;
-					sb.Append("Module(");
-					CreateTypeSigName(moduleSig.Next, flags);
-					sb.Append(',');
+					sb.Append(" Module(");
 					sb.Append(moduleSig.Index);
 					sb.Append(')');
 				}
@@ -788,18 +774,11 @@ namespace dot10.DotNet {
 
 			case ElementType.GenericInst:
 				var genericInstSig = (GenericInstSig)typeSig;
-				var genericType = genericInstSig.GenericType;
 				var typeGenArgs = genericInstSig.GenericArguments;
 				if (genericArguments == null)
 					genericArguments = new GenericArguments();
 				genericArguments.PushTypeArgs(typeGenArgs);
-				if (createNamespace)
-					CreateNamespace(genericType == null ? null : genericType.TypeDefOrRef);
-				if (createName) {
-					if (len != sb.Length)
-						sb.Append('.');	// We printed the namespace so add a dot
-					CreateName(genericType == null ? null : genericType.TypeDefOrRef);
-				}
+				CreateTypeSigName(genericInstSig.GenericType, flags);
 				genericArguments.PopTypeArgs();
 				if (createNamespace && createName) {
 					if (isReflection) {
