@@ -130,7 +130,8 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The owner module</param>
-		/// <param name="corLibAssemblyRef">Corlib assembly reference</param>
+		/// <param name="corLibAssemblyRef">Corlib assembly reference or <c>null</c> if a default
+		/// assembly reference should be created</param>
 		public CorLibTypes(ModuleDef module, AssemblyRef corLibAssemblyRef) {
 			this.module = module;
 			this.corLibAssemblyRef = corLibAssemblyRef ?? CreateCorLibAssemblyRef();

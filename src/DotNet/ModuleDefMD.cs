@@ -258,9 +258,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Finds or creates a mscorlib <see cref="AssemblyRef"/>
+		/// Finds a mscorlib <see cref="AssemblyRef"/>
 		/// </summary>
-		/// <returns>An existing or new <see cref="AssemblyRef"/></returns>
+		/// <returns>An existing <see cref="AssemblyRef"/> instance or <c>null</c> if it wasn't found</returns>
 		AssemblyRef FindCorLibAssemblyRef() {
 			var numAsmRefs = TablesStream.Get(Table.AssemblyRef).Rows;
 			AssemblyRef corLibAsmRef = null;
