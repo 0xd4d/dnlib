@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares types
 	/// </summary>
-	public class TypeEqualityComparer : IEqualityComparer<IType>, IEqualityComparer<TypeRef>, IEqualityComparer<TypeDef>, IEqualityComparer<TypeSpec>, IEqualityComparer<TypeSig> {
+	public sealed class TypeEqualityComparer : IEqualityComparer<IType>, IEqualityComparer<TypeRef>, IEqualityComparer<TypeDef>, IEqualityComparer<TypeSpec>, IEqualityComparer<TypeSig> {
 		readonly SigComparer.Options options;
 
 		/// <summary>
@@ -76,7 +76,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares fields
 	/// </summary>
-	public class FieldEqualityComparer : IEqualityComparer<IField>, IEqualityComparer<FieldDef>, IEqualityComparer<MemberRef> {
+	public sealed class FieldEqualityComparer : IEqualityComparer<IField>, IEqualityComparer<FieldDef>, IEqualityComparer<MemberRef> {
 		readonly SigComparer.Options options;
 
 		/// <summary>
@@ -131,7 +131,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares methods
 	/// </summary>
-	public class MethodEqualityComparer : IEqualityComparer<IMethod>, IEqualityComparer<MethodDef>, IEqualityComparer<MemberRef>, IEqualityComparer<MethodSpec> {
+	public sealed class MethodEqualityComparer : IEqualityComparer<IMethod>, IEqualityComparer<MethodDef>, IEqualityComparer<MemberRef>, IEqualityComparer<MethodSpec> {
 		readonly SigComparer.Options options;
 
 		/// <summary>
@@ -196,7 +196,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares properties
 	/// </summary>
-	public class PropertyEqualityComparer : IEqualityComparer<PropertyDef> {
+	public sealed class PropertyEqualityComparer : IEqualityComparer<PropertyDef> {
 		readonly SigComparer.Options options;
 
 		/// <summary>
@@ -231,7 +231,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares events
 	/// </summary>
-	public class EventEqualityComparer : IEqualityComparer<EventDef> {
+	public sealed class EventEqualityComparer : IEqualityComparer<EventDef> {
 		readonly SigComparer.Options options;
 
 		/// <summary>
@@ -266,7 +266,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares calling convention signatures
 	/// </summary>
-	public class SignatureEqualityComparer : IEqualityComparer<CallingConventionSig>, IEqualityComparer<MethodBaseSig>, IEqualityComparer<MethodSig>, IEqualityComparer<PropertySig>, IEqualityComparer<FieldSig>, IEqualityComparer<LocalSig>, IEqualityComparer<GenericInstMethodSig> {
+	public sealed class SignatureEqualityComparer : IEqualityComparer<CallingConventionSig>, IEqualityComparer<MethodBaseSig>, IEqualityComparer<MethodSig>, IEqualityComparer<PropertySig>, IEqualityComparer<FieldSig>, IEqualityComparer<LocalSig>, IEqualityComparer<GenericInstMethodSig> {
 		readonly SigComparer.Options options;
 
 		/// <summary>
