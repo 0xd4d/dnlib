@@ -1083,5 +1083,23 @@ namespace dot10.DotNet {
 		internal TypeDef GetOwnerType(MethodDefMD method) {
 			return ResolveTypeDef(MetaData.GetOwnerTypeOfMethod(method.MDToken.Rid));
 		}
+
+		/// <summary>
+		/// Returns the owner type of an event
+		/// </summary>
+		/// <param name="evt">The event</param>
+		/// <returns>The owner type or <c>null</c> if none</returns>
+		internal TypeDef GetOwnerType(EventDefMD evt) {
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfEvent(evt.MDToken.Rid));
+		}
+
+		/// <summary>
+		/// Returns the owner type of a property
+		/// </summary>
+		/// <param name="property">The property</param>
+		/// <returns>The owner type or <c>null</c> if none</returns>
+		internal TypeDef GetOwnerType(PropertyDefMD property) {
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.MDToken.Rid));
+		}
 	}
 }

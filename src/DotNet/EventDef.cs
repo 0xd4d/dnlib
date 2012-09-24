@@ -42,6 +42,33 @@ namespace dot10.DotNet {
 		public abstract ITypeDefOrRef Type { get; set; }
 
 		/// <summary>
+		/// Gets/sets the declaring type (owner type)
+		/// </summary>
+		public TypeDef DeclaringType {
+			get { return DeclaringType2; }
+			set {
+				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType != null)
+					currentDeclaringType.Events.Remove(this);	// Will call SetDeclaringType(null)
+				if (value != null)
+					value.Events.Add(this);	// Will call SetDeclaringType(value)
+			}
+		}
+
+		/// <summary>
+		/// Called by <see cref="DeclaringType"/>
+		/// </summary>
+		protected abstract TypeDef DeclaringType2 { get; set; }
+
+		/// <summary>
+		/// Called by <see cref="TypeDef"/> to set the declaring type.
+		/// </summary>
+		/// <param name="newDeclaringType">New declaring type or <c>null</c> if none</param>
+		internal void SetDeclaringType(TypeDef newDeclaringType) {
+			DeclaringType2 = newDeclaringType;
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="EventAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
@@ -75,6 +102,7 @@ namespace dot10.DotNet {
 		EventAttributes flags;
 		UTF8String name;
 		ITypeDefOrRef type;
+		TypeDef declaringType;
 
 		/// <inheritdoc/>
 		public override EventAttributes Flags {
@@ -92,6 +120,12 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Type {
 			get { return type; }
 			set { type = value; }
+		}
+
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType; }
+			set { declaringType = value; }
 		}
 
 		/// <summary>
@@ -169,6 +203,7 @@ namespace dot10.DotNet {
 		UserValue<EventAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> type;
+		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
 		public override EventAttributes Flags {
@@ -186,6 +221,12 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Type {
 			get { return type.Value; }
 			set { type.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType.Value; }
+			set { declaringType.Value = value; }
 		}
 
 		/// <summary>
@@ -219,6 +260,9 @@ namespace dot10.DotNet {
 			type.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ResolveTypeDefOrRef(rawRow.EventType);
+			};
+			declaringType.ReadOriginalValue = () => {
+				return readerModule.GetOwnerType(this);
 			};
 		}
 

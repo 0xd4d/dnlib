@@ -2212,9 +2212,9 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			//TODO: Also compare its declaring type if ComparePropertyDeclaringType is true
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Type, b.Type);
+					Compare(a.Type, b.Type) &&
+					(!ComparePropertyDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2231,9 +2231,10 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			//TODO: Also compare its declaring type if ComparePropertyDeclaringType is true
 			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode(a.Type);
+			if (ComparePropertyDeclaringType)
+				hash += GetHashCode(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -2253,9 +2254,9 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			//TODO: Also compare its declaring type if CompareEventDeclaringType is true
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare((IType)a.Type, (IType)b.Type);
+					Compare((IType)a.Type, (IType)b.Type) &&
+					(!CompareEventDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2272,9 +2273,10 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			//TODO: Also compare its declaring type if CompareEventDeclaringType is true
 			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode((IType)a.Type);
+			if (CompareEventDeclaringType)
+				hash += GetHashCode(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;

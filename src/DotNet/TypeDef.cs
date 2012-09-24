@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the TypeDef table
 	/// </summary>
-	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef> {
+	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef>, IListListener<EventDef>, IListListener<PropertyDef> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -169,14 +169,14 @@ namespace dot10.DotNet {
 		public abstract IList<TypeDef> NestedTypes { get; }
 
 		/// <summary>
-		/// Gets/sets the event map
+		/// Gets all events
 		/// </summary>
-		public abstract EventMap EventMap { get; set; }
+		public abstract IList<EventDef> Events { get; }
 
 		/// <summary>
-		/// Gets/sets the property map
+		/// Gets all properties
 		/// </summary>
-		public abstract PropertyMap PropertyMap { get; set; }
+		public abstract IList<PropertyDef> Properties { get; }
 
 		/// <summary>
 		/// Gets/sets the visibility
@@ -572,6 +572,64 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		void IListListener<EventDef>.OnAdd(int index, EventDef value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.DeclaringType != this)
+					throw new InvalidOperationException("Added method's DeclaringType != this");
+#endif
+				return;
+			}
+			if (value.DeclaringType != null)
+				throw new InvalidOperationException("Event is already owned by another type. Set DeclaringType to null first.");
+			value.SetDeclaringType(this);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<EventDef>.OnRemove(int index, EventDef value) {
+			value.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<EventDef>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<EventDef>.OnClear() {
+			foreach (var method in Methods)
+				method.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<PropertyDef>.OnAdd(int index, PropertyDef value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.DeclaringType != this)
+					throw new InvalidOperationException("Added method's DeclaringType != this");
+#endif
+				return;
+			}
+			if (value.DeclaringType != null)
+				throw new InvalidOperationException("Property is already owned by another type. Set DeclaringType to null first.");
+			value.SetDeclaringType(this);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<PropertyDef>.OnRemove(int index, PropertyDef value) {
+			value.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
+		void IListListener<PropertyDef>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<PropertyDef>.OnClear() {
+			foreach (var method in Methods)
+				method.SetDeclaringType(null);
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
 		}
@@ -592,8 +650,8 @@ namespace dot10.DotNet {
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		ClassLayout classLayout;
 		TypeDef declaringType;
-		EventMap eventMap;
-		PropertyMap propertyMap;
+		LazyList<EventDef> events;
+		LazyList<PropertyDef> properties;
 		LazyList<TypeDef> nestedTypes;
 		ModuleDef ownerModule;
 
@@ -659,15 +717,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override EventMap EventMap {
-			get { return eventMap; }
-			set { eventMap = value; }
+		public override IList<EventDef> Events {
+			get { return events; }
 		}
 
 		/// <inheritdoc/>
-		public override PropertyMap PropertyMap {
-			get { return propertyMap; }
-			set { propertyMap = value; }
+		public override IList<PropertyDef> Properties {
+			get { return properties; }
 		}
 
 		/// <inheritdoc/>
@@ -717,6 +773,8 @@ namespace dot10.DotNet {
 			this.fields = new LazyList<FieldDef>(this);
 			this.methods = new LazyList<MethodDef>(this);
 			this.nestedTypes = new LazyList<TypeDef>(this);
+			this.events = new LazyList<EventDef>(this);
+			this.properties = new LazyList<PropertyDef>(this);
 			this.@namespace = @namespace;
 			this.name = name;
 			this.extends = extends;
@@ -779,8 +837,8 @@ namespace dot10.DotNet {
 		LazyList<DeclSecurity> declSecurities;
 		UserValue<ClassLayout> classLayout;
 		UserValue<TypeDef> declaringType;
-		UserValue<EventMap> eventMap;
-		UserValue<PropertyMap> propertyMap;
+		LazyList<EventDef> events;
+		LazyList<PropertyDef> properties;
 		LazyList<TypeDef> nestedTypes;
 		UserValue<ModuleDef> ownerModule;
 
@@ -876,15 +934,27 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override EventMap EventMap {
-			get { return eventMap.Value; }
-			set { eventMap.Value = value; }
+		public override IList<EventDef> Events {
+			get {
+				if (events == null) {
+					var mapRid = readerModule.MetaData.GetEventMapRid(rid);
+					var list = readerModule.MetaData.GetEventRidList(mapRid);
+					events = new LazyList<EventDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveEvent(((RidList)list2)[index]));
+				}
+				return events;
+			}
 		}
 
 		/// <inheritdoc/>
-		public override PropertyMap PropertyMap {
-			get { return propertyMap.Value; }
-			set { propertyMap.Value = value; }
+		public override IList<PropertyDef> Properties {
+			get {
+				if (properties == null) {
+					var mapRid = readerModule.MetaData.GetPropertyMapRid(rid);
+					var list = readerModule.MetaData.GetPropertyRidList(mapRid);
+					properties = new LazyList<PropertyDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveProperty(((RidList)list2)[index]));
+				}
+				return properties;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -946,12 +1016,6 @@ namespace dot10.DotNet {
 			declaringType.ReadOriginalValue = () => {
 				var nestedClass = readerModule.ResolveNestedClass(readerModule.MetaData.GetNestedClassRid(rid));
 				return nestedClass == null ? null : nestedClass.EnclosingType;
-			};
-			eventMap.ReadOriginalValue = () => {
-				return readerModule.ResolveEventMap(readerModule.MetaData.GetEventMapRid(rid));
-			};
-			propertyMap.ReadOriginalValue = () => {
-				return readerModule.ResolvePropertyMap(readerModule.MetaData.GetPropertyMapRid(rid));
 			};
 			ownerModule.ReadOriginalValue = () => {
 				return DeclaringType != null ? null : readerModule;

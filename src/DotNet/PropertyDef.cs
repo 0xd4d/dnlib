@@ -50,6 +50,33 @@ namespace dot10.DotNet {
 		public abstract Constant Constant { get; set; }
 
 		/// <summary>
+		/// Gets/sets the declaring type (owner type)
+		/// </summary>
+		public TypeDef DeclaringType {
+			get { return DeclaringType2; }
+			set {
+				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType != null)
+					currentDeclaringType.Properties.Remove(this);	// Will call SetDeclaringType(null)
+				if (value != null)
+					value.Properties.Add(this);	// Will call SetDeclaringType(value)
+			}
+		}
+
+		/// <summary>
+		/// Called by <see cref="DeclaringType"/>
+		/// </summary>
+		protected abstract TypeDef DeclaringType2 { get; set; }
+
+		/// <summary>
+		/// Called by <see cref="TypeDef"/> to set the declaring type.
+		/// </summary>
+		/// <param name="newDeclaringType">New declaring type or <c>null</c> if none</param>
+		internal void SetDeclaringType(TypeDef newDeclaringType) {
+			DeclaringType2 = newDeclaringType;
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="PropertyAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
@@ -105,6 +132,7 @@ namespace dot10.DotNet {
 		UTF8String name;
 		CallingConventionSig type;
 		Constant constant;
+		TypeDef declaringType;
 
 		/// <inheritdoc/>
 		public override PropertyAttributes Flags {
@@ -128,6 +156,12 @@ namespace dot10.DotNet {
 		public override Constant Constant {
 			get { return constant; }
 			set { constant = value; }
+		}
+
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType; }
+			set { declaringType = value; }
 		}
 
 		/// <summary>
@@ -206,6 +240,7 @@ namespace dot10.DotNet {
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> type;
 		UserValue<Constant> constant;
+		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
 		public override PropertyAttributes Flags {
@@ -229,6 +264,12 @@ namespace dot10.DotNet {
 		public override Constant Constant {
 			get { return constant.Value; }
 			set { constant.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		protected override TypeDef DeclaringType2 {
+			get { return declaringType.Value; }
+			set { declaringType.Value = value; }
 		}
 
 		/// <summary>
@@ -265,6 +306,9 @@ namespace dot10.DotNet {
 			};
 			constant.ReadOriginalValue = () => {
 				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Property, rid));
+			};
+			declaringType.ReadOriginalValue = () => {
+				return readerModule.GetOwnerType(this);
 			};
 		}
 
