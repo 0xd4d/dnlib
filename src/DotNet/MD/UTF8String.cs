@@ -39,6 +39,15 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
+		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c>.
+		/// </summary>
+		/// <param name="utf8">The instance to check</param>
+		/// <returns><c>true</c> if <c>null</c> or empty, <c>false</c> otherwise</returns>
+		public static bool IsNull(UTF8String utf8) {
+			return (object)utf8 == null || utf8.data == null;
+		}
+
+		/// <summary>
 		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c> or the
 		/// data is zero length.
 		/// </summary>
