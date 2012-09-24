@@ -12,7 +12,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default instance
 		/// </summary>
-		public static readonly TypeEqualityComparer Instance = new TypeEqualityComparer(SigComparer.Options.CompareTypeScope);
+		public static readonly TypeEqualityComparer Instance = new TypeEqualityComparer(0);
 
 		/// <summary>
 		/// Constructor
@@ -82,12 +82,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly FieldEqualityComparer CompareDeclaringTypes = new FieldEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.CompareMethodFieldDeclaringType);
+		public static readonly FieldEqualityComparer CompareDeclaringTypes = new FieldEqualityComparer(SigComparer.Options.CompareMethodFieldDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly FieldEqualityComparer DontCompareDeclaringTypes = new FieldEqualityComparer(SigComparer.Options.CompareTypeScope);
+		public static readonly FieldEqualityComparer DontCompareDeclaringTypes = new FieldEqualityComparer(0);
 
 		/// <summary>
 		/// Constructor
@@ -137,12 +137,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly MethodEqualityComparer CompareDeclaringTypes = new MethodEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.CompareMethodFieldDeclaringType);
+		public static readonly MethodEqualityComparer CompareDeclaringTypes = new MethodEqualityComparer(SigComparer.Options.CompareMethodFieldDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly MethodEqualityComparer DontCompareDeclaringTypes = new MethodEqualityComparer(SigComparer.Options.CompareTypeScope);
+		public static readonly MethodEqualityComparer DontCompareDeclaringTypes = new MethodEqualityComparer(0);
 
 		/// <summary>
 		/// Constructor
@@ -202,12 +202,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly PropertyEqualityComparer CompareDeclaringTypes = new PropertyEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.ComparePropertyDeclaringType);
+		public static readonly PropertyEqualityComparer CompareDeclaringTypes = new PropertyEqualityComparer(SigComparer.Options.ComparePropertyDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly PropertyEqualityComparer DontCompareDeclaringTypes = new PropertyEqualityComparer(SigComparer.Options.CompareTypeScope);
+		public static readonly PropertyEqualityComparer DontCompareDeclaringTypes = new PropertyEqualityComparer(0);
 
 		/// <summary>
 		/// Constructor
@@ -237,12 +237,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Compares the declaring types
 		/// </summary>
-		public static readonly EventEqualityComparer CompareDeclaringTypes = new EventEqualityComparer(SigComparer.Options.CompareTypeScope | SigComparer.Options.CompareEventDeclaringType);
+		public static readonly EventEqualityComparer CompareDeclaringTypes = new EventEqualityComparer(SigComparer.Options.CompareEventDeclaringType);
 
 		/// <summary>
 		/// Doesn't compare the declaring types
 		/// </summary>
-		public static readonly EventEqualityComparer DontCompareDeclaringTypes = new EventEqualityComparer(SigComparer.Options.CompareTypeScope);
+		public static readonly EventEqualityComparer DontCompareDeclaringTypes = new EventEqualityComparer(0);
 
 		/// <summary>
 		/// Constructor
@@ -272,7 +272,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default instance
 		/// </summary>
-		public static readonly SignatureEqualityComparer Instance = new SignatureEqualityComparer(SigComparer.Options.CompareTypeScope);
+		public static readonly SignatureEqualityComparer Instance = new SignatureEqualityComparer(0);
 
 		/// <summary>
 		/// Constructor
@@ -380,9 +380,9 @@ namespace dot10.DotNet {
 		[Flags]
 		public enum Options {
 			/// <summary>
-			/// Compares a type's scope
+			/// Don't compares a type's (assembly/module) scope
 			/// </summary>
-			CompareTypeScope = 1,
+			DontCompareTypeScope = 1,
 
 			/// <summary>
 			/// Compares a method/field's declaring type.
@@ -414,15 +414,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="Options.CompareTypeScope"/> bit
+		/// Gets/sets the <see cref="Options.DontCompareTypeScope"/> bit
 		/// </summary>
-		public bool CompareTypeScope {
-			get { return (options & Options.CompareTypeScope) != 0; }
+		public bool DontCompareTypeScope {
+			get { return (options & Options.DontCompareTypeScope) != 0; }
 			set {
 				if (value)
-					options |= Options.CompareTypeScope;
+					options |= Options.DontCompareTypeScope;
 				else
-					options &= ~Options.CompareTypeScope;
+					options &= ~Options.DontCompareTypeScope;
 			}
 		}
 
@@ -630,7 +630,7 @@ exit:
 			if (a.DeclaringType != null)
 				goto exit;	// a is nested, b isn't
 
-			if (!CompareTypeScope) {
+			if (DontCompareTypeScope) {
 				result = true;
 				goto exit;
 			}
@@ -872,7 +872,7 @@ exit:
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
 					Compare(a.DeclaringType, b.DeclaringType) &&
-					(!CompareTypeScope || Compare(a.OwnerModule, b.OwnerModule));
+					(DontCompareTypeScope || Compare(a.OwnerModule, b.OwnerModule));
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -956,7 +956,7 @@ exit:
 				result = Compare(ea, eb);
 				goto exit;
 			}
-			if (!CompareTypeScope) {
+			if (DontCompareTypeScope) {
 				result = true;
 				goto exit;
 			}
