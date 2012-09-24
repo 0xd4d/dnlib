@@ -413,6 +413,11 @@ namespace dot10.DotNet {
 			/// Compares assembly version
 			/// </summary>
 			CompareAssemblyVersion = 0x40,
+
+			/// <summary>
+			/// Compares assembly locale
+			/// </summary>
+			CompareAssemblyLocale = 0x80,
 		}
 
 		/// <summary>
@@ -511,6 +516,19 @@ namespace dot10.DotNet {
 					options |= Options.CompareAssemblyVersion;
 				else
 					options &= ~Options.CompareAssemblyVersion;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="Options.CompareAssemblyLocale"/> bit
+		/// </summary>
+		public bool CompareAssemblyLocale {
+			get { return (options & Options.CompareAssemblyLocale) != 0; }
+			set {
+				if (value)
+					options |= Options.CompareAssemblyLocale;
+				else
+					options &= ~Options.CompareAssemblyLocale;
 			}
 		}
 
@@ -1093,7 +1111,8 @@ exit:
 			//TODO: Case insensitive or case sensitive comparison???
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 				(!CompareAssemblyPublicKeyToken || Compare(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
-				(!CompareAssemblyVersion || Compare(a.Version, b.Version));
+				(!CompareAssemblyVersion || Compare(a.Version, b.Version)) &&
+				(!CompareAssemblyLocale || CompareLocale(a.Locale, b.Locale));
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -1123,6 +1142,17 @@ exit:
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		bool Compare(Version a, Version b) {
 			return (a ?? new Version()).CompareTo(b ?? new Version()) == 0;
+		}
+
+		/// <summary>
+		/// Compares two assembly locales
+		/// </summary>
+		/// <param name="a">Locale #1</param>
+		/// <param name="b">Locale #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool CompareLocale(UTF8String a, UTF8String b) {
+			//TODO: Case insensitive or case sensitive comparison???
+			return UTF8String.CompareTo(a, b) == 0;
 		}
 
 		/// <summary>
