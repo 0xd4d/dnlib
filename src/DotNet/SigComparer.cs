@@ -403,6 +403,11 @@ namespace dot10.DotNet {
 			/// Compares parameters after a sentinel in method sigs
 			/// </summary>
 			CompareSentinelParams = 0x10,
+
+			/// <summary>
+			/// Compares assembly public key token
+			/// </summary>
+			CompareAssemblyPublicKeyToken = 0x20,
 		}
 
 		/// <summary>
@@ -475,6 +480,19 @@ namespace dot10.DotNet {
 					options |= Options.CompareSentinelParams;
 				else
 					options &= ~Options.CompareSentinelParams;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="Options.CompareAssemblyPublicKeyToken"/> bit
+		/// </summary>
+		public bool CompareAssemblyPublicKeyToken {
+			get { return (options & Options.CompareAssemblyPublicKeyToken) != 0; }
+			set {
+				if (value)
+					options |= Options.CompareAssemblyPublicKeyToken;
+				else
+					options &= ~Options.CompareAssemblyPublicKeyToken;
 			}
 		}
 
@@ -1055,10 +1073,27 @@ exit:
 				return false;
 
 			//TODO: Case insensitive or case sensitive comparison???
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0;
+			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+				(!CompareAssemblyPublicKeyToken || Compare(a.PublicKeyOrToken, b.PublicKeyOrToken));
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
+		}
+
+		/// <summary>
+		/// Compares two public keys / public key tokens
+		/// </summary>
+		/// <param name="a">Public key or token #1</param>
+		/// <param name="b">Public key or token #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool Compare(PublicKeyBase a, PublicKeyBase b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			var pkta = PublicKeyBase.ToPublicKeyToken(a);
+			var pktb = PublicKeyBase.ToPublicKeyToken(b);
+			return Utils.CompareTo(pkta == null ? null : pkta.Data, pktb == null ? null : pktb.Data) == 0;
 		}
 
 		/// <summary>
