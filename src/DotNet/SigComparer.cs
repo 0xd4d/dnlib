@@ -408,6 +408,11 @@ namespace dot10.DotNet {
 			/// Compares assembly public key token
 			/// </summary>
 			CompareAssemblyPublicKeyToken = 0x20,
+
+			/// <summary>
+			/// Compares assembly version
+			/// </summary>
+			CompareAssemblyVersion = 0x40,
 		}
 
 		/// <summary>
@@ -493,6 +498,19 @@ namespace dot10.DotNet {
 					options |= Options.CompareAssemblyPublicKeyToken;
 				else
 					options &= ~Options.CompareAssemblyPublicKeyToken;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="Options.CompareAssemblyVersion"/> bit
+		/// </summary>
+		public bool CompareAssemblyVersion {
+			get { return (options & Options.CompareAssemblyVersion) != 0; }
+			set {
+				if (value)
+					options |= Options.CompareAssemblyVersion;
+				else
+					options &= ~Options.CompareAssemblyVersion;
 			}
 		}
 
@@ -1074,7 +1092,8 @@ exit:
 
 			//TODO: Case insensitive or case sensitive comparison???
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-				(!CompareAssemblyPublicKeyToken || Compare(a.PublicKeyOrToken, b.PublicKeyOrToken));
+				(!CompareAssemblyPublicKeyToken || Compare(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
+				(!CompareAssemblyVersion || Compare(a.Version, b.Version));
 
 			recursionCounter.DecrementRecursionCounter();
 			return result;
@@ -1094,6 +1113,16 @@ exit:
 			var pkta = PublicKeyBase.ToPublicKeyToken(a);
 			var pktb = PublicKeyBase.ToPublicKeyToken(b);
 			return Utils.CompareTo(pkta == null ? null : pkta.Data, pktb == null ? null : pktb.Data) == 0;
+		}
+
+		/// <summary>
+		/// Compares two versions. A <c>null</c> value is treated as version 0.0.0.0.
+		/// </summary>
+		/// <param name="a">Version #1</param>
+		/// <param name="b">Version #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool Compare(Version a, Version b) {
+			return (a ?? new Version()).CompareTo(b ?? new Version()) == 0;
 		}
 
 		/// <summary>
