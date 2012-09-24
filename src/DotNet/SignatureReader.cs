@@ -69,7 +69,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="ISignature"/> instance or <c>null</c> if invalid signature</returns>
 		CallingConventionSig ReadSig() {
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return null;
 
 			CallingConventionSig result;
@@ -107,7 +107,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -204,7 +204,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if invalid element type</returns>
 		TypeSig ReadType() {
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return null;
 
 			uint num;
@@ -314,7 +314,7 @@ namespace dot10.DotNet {
 				break;
 			}
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 

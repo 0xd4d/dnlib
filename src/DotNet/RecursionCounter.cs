@@ -43,12 +43,12 @@ namespace dot10.DotNet {
 
 		/// <summary>
 		/// Increments <see cref="counter"/> if it's not too high. <c>ALL</c> instance methods
-		/// that can be called recursively must call this method and <see cref="DecrementRecursionCounter"/>
+		/// that can be called recursively must call this method and <see cref="Decrement"/>
 		/// (if this method returns <c>true</c>)
 		/// </summary>
 		/// <returns><c>true</c> if it was incremented and caller can continue, <c>false</c> if
 		/// it was <c>not</c> incremented and the caller must return to its caller.</returns>
-		public bool IncrementRecursionCounter() {
+		public bool Increment() {
 			if (counter >= MAX_RECURSION_COUNT)
 				return false;
 			counter++;
@@ -57,23 +57,23 @@ namespace dot10.DotNet {
 
 		/// <summary>
 		/// Increments <see cref="counter"/> if it's not too high. <c>ALL</c> instance methods
-		/// that can be called recursively must call this method and <see cref="DecrementRecursionCounter"/>
+		/// that can be called recursively must call this method and <see cref="Decrement"/>
 		/// (if this method returns <c>true</c>)
 		/// </summary>
-		/// <exception cref="InfiniteRecursionException"><see cref="IncrementRecursionCounterThrow"/>
+		/// <exception cref="InfiniteRecursionException"><see cref="IncrementThrow"/>
 		/// has been called too many times</exception>
-		public void IncrementRecursionCounterThrow() {
+		public void IncrementThrow() {
 			if (counter >= MAX_RECURSION_COUNT)
 				throw new InfiniteRecursionException("Infinite recursion");
 			counter++;
 		}
 
 		/// <summary>
-		/// Must be called before returning to caller if <see cref="IncrementRecursionCounter"/>
-		/// returned <c>true</c> or if <see cref="IncrementRecursionCounterThrow"/> didn't throw an
+		/// Must be called before returning to caller if <see cref="Increment"/>
+		/// returned <c>true</c> or if <see cref="IncrementThrow"/> didn't throw an
 		/// exception.
 		/// </summary>
-		public void DecrementRecursionCounter() {
+		public void Decrement() {
 #if DEBUG
 			if (counter <= 0)
 				throw new InvalidOperationException("recursionCounter <= 0");

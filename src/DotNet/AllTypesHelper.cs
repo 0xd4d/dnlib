@@ -16,7 +16,7 @@ namespace dot10.DotNet {
 		}
 
 		IEnumerable<TypeDef> GetTypes(IEnumerable<TypeDef> types) {
-			if (!recursionCounter.IncrementRecursionCounter()) {
+			if (!recursionCounter.Increment()) {
 			}
 			else {
 				foreach (var type in types) {
@@ -29,7 +29,7 @@ namespace dot10.DotNet {
 							yield return nested;
 					}
 				}
-				recursionCounter.DecrementRecursionCounter();
+				recursionCounter.Decrement();
 			}
 		}
 	}

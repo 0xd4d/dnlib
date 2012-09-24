@@ -552,7 +552,7 @@ namespace dot10.DotNet {
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -605,7 +605,7 @@ namespace dot10.DotNet {
 				result = false;	// Should never be reached
 
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -617,7 +617,7 @@ exit:
 		public int GetHashCode(IType a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
@@ -643,7 +643,7 @@ exit:
 			}
 			hash = 0;	// Should never be reached
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -668,7 +668,7 @@ exit:
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result = false;
 
@@ -706,7 +706,7 @@ exit:
 exit:
 			if (result && a.IsGlobalModuleType)
 				result = false;
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -755,7 +755,7 @@ exit:
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -770,7 +770,7 @@ exit:
 			else
 				result = false;
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -819,7 +819,7 @@ exit:
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -834,7 +834,7 @@ exit:
 			else
 				result = false;
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -873,14 +873,14 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
 					CompareResolutionScope(a, b);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -920,7 +920,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
@@ -928,7 +928,7 @@ exit:
 					Compare(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Compare(a.OwnerModule, b.OwnerModule));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -964,12 +964,12 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = Compare(a.TypeSig, b.TypeSig);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1001,7 +1001,7 @@ exit:
 				return true;
 			if (ra == null || rb == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -1049,7 +1049,7 @@ exit:
 
 			result = false;
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1064,13 +1064,13 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			//TODO: Case insensitive or case sensitive comparison???
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0;
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1085,12 +1085,12 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = Compare((IModule)a, (IModule)b) && Compare(a.Assembly, b.Assembly);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1105,7 +1105,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			//TODO: Case insensitive or case sensitive comparison???
@@ -1114,7 +1114,7 @@ exit:
 				(!CompareAssemblyVersion || Compare(a.Version, b.Version)) &&
 				(!CompareAssemblyLocale || CompareLocale(a.Locale, b.Locale));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1164,7 +1164,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -1256,7 +1256,7 @@ exit:
 				}
 			}
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1268,7 +1268,7 @@ exit:
 		public int GetHashCode(TypeSig a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
@@ -1361,7 +1361,7 @@ exit:
 				break;
 			}
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1376,7 +1376,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -1391,7 +1391,7 @@ exit:
 				result = i == a.Count;
 			}
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1403,14 +1403,14 @@ exit:
 		public int GetHashCode(IList<TypeSig> a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			uint hash = 0;
 			for (int i = 0; i < a.Count; i++) {
 				hash += (uint)GetHashCode(a[i]);
 				hash = (hash << 13) | (hash >> 19);
 			}
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return (int)hash;
 		}
 
@@ -1475,7 +1475,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -1517,7 +1517,7 @@ exit:
 				}
 			}
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1529,7 +1529,7 @@ exit:
 		public int GetHashCode(CallingConventionSig a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
@@ -1581,7 +1581,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = a.GetCallingConvention() == b.GetCallingConvention() &&
@@ -1590,7 +1590,7 @@ exit:
 					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
 					(!CompareSentinelParams || Compare(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1602,7 +1602,7 @@ exit:
 		public int GetHashCode(MethodBaseSig a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
@@ -1614,7 +1614,7 @@ exit:
 			if (CompareSentinelParams)
 				hash += GetHashCode(a.ParamsAfterSentinel);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1629,12 +1629,12 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Compare(a.Type, b.Type);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1646,13 +1646,13 @@ exit:
 		public int GetHashCode(FieldSig a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
 			hash = (int)a.GetCallingConvention() + GetHashCode(a.Type);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1667,12 +1667,12 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Compare(a.Locals, b.Locals);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1684,13 +1684,13 @@ exit:
 		public int GetHashCode(LocalSig a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
 			hash = (int)a.GetCallingConvention() + GetHashCode(a.Locals);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1705,12 +1705,12 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Compare(a.GenericArguments, b.GenericArguments);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1722,13 +1722,13 @@ exit:
 		public int GetHashCode(GenericInstMethodSig a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
 			hash = (int)a.GetCallingConvention() + GetHashCode(a.GenericArguments);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1743,7 +1743,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -1772,7 +1772,7 @@ exit:
 			}
 			result = false;
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1784,7 +1784,7 @@ exit:
 		public int GetHashCode(IMethod a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
@@ -1805,7 +1805,7 @@ exit:
 			}
 			hash = 0;
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1830,7 +1830,7 @@ exit:
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			//TODO: If a.IsPrivateScope, then you should probably always return false since Method
@@ -1840,7 +1840,7 @@ exit:
 					Compare(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.Class));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1855,14 +1855,14 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					Compare(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1877,7 +1877,7 @@ exit:
 			// ************************************************************
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 
 			int hash = UTF8String.GetHashCode(a.Name) +
@@ -1885,7 +1885,7 @@ exit:
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1900,14 +1900,14 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					Compare(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Compare(a.Class, b.Class));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1922,7 +1922,7 @@ exit:
 			// *********************************************************************
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 
 			int hash = UTF8String.GetHashCode(a.Name) +
@@ -1930,7 +1930,7 @@ exit:
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.Class);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1945,12 +1945,12 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = Compare(a.Method, b.Method) && Compare(a.Instantiation, b.Instantiation);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -1962,12 +1962,12 @@ exit:
 		public int GetHashCode(MethodSpec a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 
 			int hash = GetHashCode(a.Method) + GetHashCode(a.Instantiation);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -1982,7 +1982,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -2014,7 +2014,7 @@ exit:
 
 			result = false;
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -2026,7 +2026,7 @@ exit:
 		int GetHashCode(IMemberRefParent a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
@@ -2046,7 +2046,7 @@ exit:
 			}
 			hash = 0;
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -2061,7 +2061,7 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
@@ -2086,7 +2086,7 @@ exit:
 
 			result = false;
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -2098,7 +2098,7 @@ exit:
 		public int GetHashCode(IField a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 			int hash;
 
@@ -2114,7 +2114,7 @@ exit:
 			}
 			hash = 0;
 exit:
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -2139,7 +2139,7 @@ exit:
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			//TODO: If a.IsPrivateScope, then you should probably always return false since Field
@@ -2149,7 +2149,7 @@ exit:
 					Compare(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.Class));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -2164,14 +2164,14 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					Compare(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -2186,7 +2186,7 @@ exit:
 			// ************************************************************
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 
 			int hash = UTF8String.GetHashCode(a.Name) +
@@ -2194,7 +2194,7 @@ exit:
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -2209,14 +2209,14 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			//TODO: Also compare its declaring type if ComparePropertyDeclaringType is true
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					Compare(a.Type, b.Type);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -2228,14 +2228,14 @@ exit:
 		public int GetHashCode(PropertyDef a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 
 			//TODO: Also compare its declaring type if ComparePropertyDeclaringType is true
 			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode(a.Type);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -2250,14 +2250,14 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			//TODO: Also compare its declaring type if CompareEventDeclaringType is true
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					Compare((IType)a.Type, (IType)b.Type);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 
@@ -2269,14 +2269,14 @@ exit:
 		public int GetHashCode(EventDef a) {
 			if (a == null)
 				return 0;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return 0;
 
 			//TODO: Also compare its declaring type if CompareEventDeclaringType is true
 			int hash = UTF8String.GetHashCode(a.Name) +
 					GetHashCode((IType)a.Type);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -2286,12 +2286,12 @@ exit:
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.IncrementRecursionCounter())
+			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = a.IsGlobalModuleType && Compare((IModule)a.OwnerModule, (IModule)b);
 
-			recursionCounter.DecrementRecursionCounter();
+			recursionCounter.Decrement();
 			return result;
 		}
 	}
