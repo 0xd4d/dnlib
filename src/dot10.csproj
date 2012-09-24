@@ -90,7 +90,7 @@
     <Compile Include="DotNet\FieldPtr.cs" />
     <Compile Include="DotNet\FieldRVA.cs" />
     <Compile Include="DotNet\FileDef.cs" />
-    <Compile Include="DotNet\FileFlags.cs" />
+    <Compile Include="DotNet\FileAttributes.cs" />
     <Compile Include="DotNet\GenericParam.cs" />
     <Compile Include="DotNet\GenericParamAttributes.cs" />
     <Compile Include="DotNet\GenericParamConstraint.cs" />

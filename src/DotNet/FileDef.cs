@@ -29,7 +29,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column File.Flags
 		/// </summary>
-		public abstract FileFlags Flags { get; set; }
+		public abstract FileAttributes Flags { get; set; }
 
 		/// <summary>
 		/// From column File.Name
@@ -42,28 +42,28 @@ namespace dot10.DotNet {
 		public abstract byte[] HashValue { get; set; }
 
 		/// <summary>
-		/// Gets/sets the <see cref="FileFlags.ContainsMetaData"/> bit
+		/// Gets/sets the <see cref="FileAttributes.ContainsMetaData"/> bit
 		/// </summary>
 		public bool ContainsMetaData {
-			get { return (Flags & FileFlags.ContainsNoMetaData) == 0; }
+			get { return (Flags & FileAttributes.ContainsNoMetaData) == 0; }
 			set {
 				if (value)
-					Flags &= ~FileFlags.ContainsNoMetaData;
+					Flags &= ~FileAttributes.ContainsNoMetaData;
 				else
-					Flags |= FileFlags.ContainsNoMetaData;
+					Flags |= FileAttributes.ContainsNoMetaData;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="FileFlags.ContainsNoMetaData"/> bit
+		/// Gets/sets the <see cref="FileAttributes.ContainsNoMetaData"/> bit
 		/// </summary>
 		public bool ContainsNoMetaData {
-			get { return (Flags & FileFlags.ContainsNoMetaData) != 0; }
+			get { return (Flags & FileAttributes.ContainsNoMetaData) != 0; }
 			set {
 				if (value)
-					Flags |= FileFlags.ContainsNoMetaData;
+					Flags |= FileAttributes.ContainsNoMetaData;
 				else
-					Flags &= ~FileFlags.ContainsNoMetaData;
+					Flags &= ~FileAttributes.ContainsNoMetaData;
 			}
 		}
 
@@ -77,12 +77,12 @@ namespace dot10.DotNet {
 	/// A File row created by the user and not present in the original .NET file
 	/// </summary>
 	public class FileDefUser : FileDef {
-		FileFlags flags;
+		FileAttributes flags;
 		UTF8String name;
 		byte[] hashValue;
 
 		/// <inheritdoc/>
-		public override FileFlags Flags {
+		public override FileAttributes Flags {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -111,7 +111,7 @@ namespace dot10.DotNet {
 		/// <param name="name">Name of file</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="hashValue">File hash</param>
-		public FileDefUser(string name, FileFlags flags, byte[] hashValue)
+		public FileDefUser(string name, FileAttributes flags, byte[] hashValue)
 			: this(new UTF8String(name), flags, hashValue) {
 		}
 
@@ -121,7 +121,7 @@ namespace dot10.DotNet {
 		/// <param name="name">Name of file</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="hashValue">File hash</param>
-		public FileDefUser(UTF8String name, FileFlags flags, byte[] hashValue) {
+		public FileDefUser(UTF8String name, FileAttributes flags, byte[] hashValue) {
 			this.name = name;
 			this.flags = flags;
 			this.hashValue = hashValue;
@@ -137,12 +137,12 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawFileRow rawRow;
 
-		UserValue<FileFlags> flags;
+		UserValue<FileAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<byte[]> hashValue;
 
 		/// <inheritdoc/>
-		public override FileFlags Flags {
+		public override FileAttributes Flags {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -181,7 +181,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			flags.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return (FileFlags)rawRow.Flags;
+				return (FileAttributes)rawRow.Flags;
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
