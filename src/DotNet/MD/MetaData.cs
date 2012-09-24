@@ -54,6 +54,8 @@ namespace dot10.DotNet.MD {
 
 		uint[] fieldRidToTypeDefRid;
 		uint[] methodRidToTypeDefRid;
+		uint[] eventRidToTypeDefRid;
+		uint[] propertyRidToTypeDefRid;
 		Dictionary<uint, RandomRidList> typeDefRidToNestedClasses;
 		RandomRidList nonNestedTypes;
 
@@ -418,6 +420,60 @@ namespace dot10.DotNet.MD {
 					if (methodRidToTypeDefRid[ridIndex] != 0)
 						continue;
 					methodRidToTypeDefRid[ridIndex] = ownerRid;
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public uint GetOwnerTypeOfEvent(uint eventRid) {
+			if (eventRidToTypeDefRid == null)
+				InitializeInverseEventOwnerRidList();
+			uint index = eventRid - 1;
+			if (index >= eventRidToTypeDefRid.LongLength)
+				return 0;
+			return eventRidToTypeDefRid[index];
+		}
+
+		void InitializeInverseEventOwnerRidList() {
+			if (eventRidToTypeDefRid != null)
+				return;
+			eventRidToTypeDefRid = new uint[tablesStream.Get(Table.Event).Rows];
+			var ownerList = GetTypeDefRidList();
+			for (uint i = 0; i < ownerList.Length; i++) {
+				var ownerRid = ownerList[i];
+				var eventList = GetEventRidList(GetEventMapRid(ownerRid));
+				for (uint j = 0; j < eventList.Length; j++) {
+					uint ridIndex = eventList[j] - 1;
+					if (eventRidToTypeDefRid[ridIndex] != 0)
+						continue;
+					eventRidToTypeDefRid[ridIndex] = ownerRid;
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public uint GetOwnerTypeOfProperty(uint propertyRid) {
+			if (propertyRidToTypeDefRid == null)
+				InitializeInversePropertyOwnerRidList();
+			uint index = propertyRid - 1;
+			if (index >= propertyRidToTypeDefRid.LongLength)
+				return 0;
+			return propertyRidToTypeDefRid[index];
+		}
+
+		void InitializeInversePropertyOwnerRidList() {
+			if (propertyRidToTypeDefRid != null)
+				return;
+			propertyRidToTypeDefRid = new uint[tablesStream.Get(Table.Property).Rows];
+			var ownerList = GetTypeDefRidList();
+			for (uint i = 0; i < ownerList.Length; i++) {
+				var ownerRid = ownerList[i];
+				var propertyList = GetPropertyRidList(GetPropertyMapRid(ownerRid));
+				for (uint j = 0; j < propertyList.Length; j++) {
+					uint ridIndex = propertyList[j] - 1;
+					if (propertyRidToTypeDefRid[ridIndex] != 0)
+						continue;
+					propertyRidToTypeDefRid[ridIndex] = ownerRid;
 				}
 			}
 		}

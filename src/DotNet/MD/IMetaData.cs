@@ -228,6 +228,22 @@ namespace dot10.DotNet.MD {
 		uint GetOwnerTypeOfMethod(uint methodRid);
 
 		/// <summary>
+		/// Returns the owner <c>TypeDef</c> rid
+		/// </summary>
+		/// <param name="eventRid">A <c>Event</c> rid</param>
+		/// <returns>The owner <c>TypeDef</c> rid or 0 if <paramref name="eventRid"/> is invalid
+		/// or if it has no owner.</returns>
+		uint GetOwnerTypeOfEvent(uint eventRid);
+
+		/// <summary>
+		/// Returns the owner <c>TypeDef</c> rid
+		/// </summary>
+		/// <param name="propertyRid">A <c>Property</c> rid</param>
+		/// <returns>The owner <c>TypeDef</c> rid or 0 if <paramref name="propertyRid"/> is invalid
+		/// or if it has no owner.</returns>
+		uint GetOwnerTypeOfProperty(uint propertyRid);
+
+		/// <summary>
 		/// Gets a list of all nested classes owned by <paramref name="typeDefRid"/>
 		/// </summary>
 		/// <param name="typeDefRid">A <c>TypeDef</c> rid</param>
