@@ -245,6 +245,29 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Finds a module in this assembly
+		/// </summary>
+		/// <param name="name">Name of module</param>
+		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
+		ModuleDef FindModule(string name) {
+			return FindModule(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds a module in this assembly
+		/// </summary>
+		/// <param name="name">Name of module</param>
+		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
+		ModuleDef FindModule(UTF8String name) {
+			foreach (var module in Modules) {
+				//TODO: Case sensitive or case insensitive comparison???
+				if (UTF8String.CompareTo(module.Name, name) == 0)
+					return module;
+			}
+			return null;
+		}
+
+		/// <summary>
 		/// Creates an <see cref="AssemblyDef"/> instance from a file
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET assembly</param>
