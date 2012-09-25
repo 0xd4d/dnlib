@@ -65,24 +65,16 @@ namespace dot10.DotNet {
 			set {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType != null)
-					currentDeclaringType.Properties.Remove(this);	// Will call SetDeclaringType(null)
+					currentDeclaringType.Properties.Remove(this);	// Will set DeclaringType2 = null
 				if (value != null)
-					value.Properties.Add(this);	// Will call SetDeclaringType(value)
+					value.Properties.Add(this);	// Will set DeclaringType2 = value
 			}
 		}
 
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/>
 		/// </summary>
-		protected abstract TypeDef DeclaringType2 { get; set; }
-
-		/// <summary>
-		/// Called by <see cref="TypeDef"/> to set the declaring type.
-		/// </summary>
-		/// <param name="newDeclaringType">New declaring type or <c>null</c> if none</param>
-		internal void SetDeclaringType(TypeDef newDeclaringType) {
-			DeclaringType2 = newDeclaringType;
-		}
+		protected internal abstract TypeDef DeclaringType2 { get; set; }
 
 		/// <summary>
 		/// Gets the full name of the property
@@ -174,7 +166,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeDef DeclaringType2 {
+		protected internal override TypeDef DeclaringType2 {
 			get { return declaringType; }
 			set { declaringType = value; }
 		}
@@ -282,7 +274,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeDef DeclaringType2 {
+		protected internal override TypeDef DeclaringType2 {
 			get { return declaringType.Value; }
 			set { declaringType.Value = value; }
 		}

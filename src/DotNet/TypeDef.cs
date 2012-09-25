@@ -491,12 +491,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Field is already owned by another type. Set DeclaringType to null first.");
-			value.SetDeclaringType(this);
+			value.DeclaringType = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<FieldDef>.OnRemove(int index, FieldDef value) {
-			value.SetDeclaringType(null);
+			value.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
@@ -506,7 +506,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<FieldDef>.OnClear() {
 			foreach (var field in Fields)
-				field.SetDeclaringType(null);
+				field.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
@@ -520,12 +520,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Method is already owned by another type. Set DeclaringType to null first.");
-			value.SetDeclaringType(this);
+			value.DeclaringType = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnRemove(int index, MethodDef value) {
-			value.SetDeclaringType(null);
+			value.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
@@ -535,7 +535,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnClear() {
 			foreach (var method in Methods)
-				method.SetDeclaringType(null);
+				method.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
@@ -582,12 +582,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Event is already owned by another type. Set DeclaringType to null first.");
-			value.SetDeclaringType(this);
+			value.DeclaringType = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<EventDef>.OnRemove(int index, EventDef value) {
-			value.SetDeclaringType(null);
+			value.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
@@ -597,7 +597,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<EventDef>.OnClear() {
 			foreach (var method in Methods)
-				method.SetDeclaringType(null);
+				method.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
@@ -611,12 +611,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Property is already owned by another type. Set DeclaringType to null first.");
-			value.SetDeclaringType(this);
+			value.DeclaringType = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<PropertyDef>.OnRemove(int index, PropertyDef value) {
-			value.SetDeclaringType(null);
+			value.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
@@ -626,7 +626,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<PropertyDef>.OnClear() {
 			foreach (var method in Methods)
-				method.SetDeclaringType(null);
+				method.DeclaringType = null;
 		}
 
 		/// <inheritdoc/>
