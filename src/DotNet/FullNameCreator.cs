@@ -485,6 +485,71 @@ namespace dot10.DotNet {
 			return new FullNameCreator().GetOwnerModule(typeSig);
 		}
 
+		/// <summary>
+		/// Returns the namespace of a <see cref="ExportedType"/>
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <returns>The namespace</returns>
+		public static string Namespace(ExportedType exportedType, bool isReflection) {
+			var fnc = new FullNameCreator(isReflection);
+			fnc.CreateNamespace(exportedType);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the name of a <see cref="ExportedType"/>
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <returns>The name</returns>
+		public static string Name(ExportedType exportedType, bool isReflection) {
+			var fnc = new FullNameCreator(isReflection);
+			fnc.CreateName(exportedType);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the full name of a <see cref="ExportedType"/>
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <returns>The full name</returns>
+		public static string FullName(ExportedType exportedType, bool isReflection) {
+			var fnc = new FullNameCreator(isReflection);
+			fnc.CreateFullName(exportedType);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="ExportedType"/>
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(ExportedType exportedType) {
+			var fnc = new FullNameCreator(true);
+			fnc.CreateAssemblyQualifiedName(exportedType);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the assembly where this type is defined
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
+		public static IAssembly DefinitionAssembly(ExportedType exportedType) {
+			return new FullNameCreator().GetDefinitionAssembly(exportedType);
+		}
+
+		/// <summary>
+		/// Returns the owner module. The type was created from metadata in this module.
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
+		public static ModuleDef OwnerModule(ExportedType exportedType) {
+			return new FullNameCreator().GetOwnerModule(exportedType);
+		}
+
 		string Result {
 			get { return sb == null ? null : sb.ToString(); }
 		}
@@ -698,6 +763,7 @@ namespace dot10.DotNet {
 
 			recursionCounter.Decrement();
 		}
+
 		void CreateFullName(TypeSig typeSig) {
 			CreateTypeSigName(typeSig, TYPESIG_NAMESPACE | TYPESIG_NAME);
 		}
@@ -903,6 +969,61 @@ namespace dot10.DotNet {
 			}
 
 			recursionCounter.Decrement();
+		}
+
+		void CreateAssemblyQualifiedName(ExportedType exportedType) {
+			if (exportedType == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			if (!recursionCounter.Increment()) {
+				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				return;
+			}
+
+			CreateFullName(exportedType);
+			AddAssemblyName(GetDefinitionAssembly(exportedType));
+
+			recursionCounter.Decrement();
+		}
+
+		void CreateFullName(ExportedType exportedType) {
+			if (exportedType == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			if (!recursionCounter.Increment()) {
+				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				return;
+			}
+
+			var declaringExportedType = exportedType.Implementation as ExportedType;
+			if (declaringExportedType != null) {
+				CreateFullName(declaringExportedType);
+				AddNestedTypeSeparator();
+			}
+
+			if (AddNamespace(exportedType.TypeNamespace))
+				sb.Append('.');
+			AddName(exportedType.TypeName);
+
+			recursionCounter.Decrement();
+		}
+
+		void CreateNamespace(ExportedType exportedType) {
+			if (exportedType == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			AddNamespace(exportedType.TypeNamespace);
+		}
+
+		void CreateName(ExportedType exportedType) {
+			if (exportedType == null) {
+				sb.Append(NULLVALUE);
+				return;
+			}
+			AddName(exportedType.TypeName);
 		}
 
 		static string GetAssemblyName(IAssembly assembly) {
@@ -1224,6 +1345,35 @@ namespace dot10.DotNet {
 
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		IAssembly GetDefinitionAssembly(ExportedType exportedType) {
+			if (exportedType == null)
+				return null;
+			if (!recursionCounter.Increment())
+				return null;
+			IAssembly result;
+
+			var scope = exportedType.Implementation;
+			if (scope is ExportedType)
+				result = GetDefinitionAssembly((ExportedType)scope);
+			else if (scope is AssemblyRef)
+				result = (AssemblyRef)scope;
+			else if (scope is FileDef) {
+				var ownerModule = GetOwnerModule(exportedType);
+				result = ownerModule == null ? null : ownerModule.Assembly;
+			}
+			else
+				result = null;
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		ModuleDef GetOwnerModule(ExportedType exportedType) {
+			if (exportedType == null)
+				return null;
+			return exportedType.OwnerModule;
 		}
 
 		void CreateFieldFullName(string declaringType, string name, FieldSig fieldSig) {

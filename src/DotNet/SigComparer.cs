@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares types
 	/// </summary>
-	public sealed class TypeEqualityComparer : IEqualityComparer<IType>, IEqualityComparer<TypeRef>, IEqualityComparer<TypeDef>, IEqualityComparer<TypeSpec>, IEqualityComparer<TypeSig> {
+	public sealed class TypeEqualityComparer : IEqualityComparer<IType>, IEqualityComparer<TypeRef>, IEqualityComparer<TypeDef>, IEqualityComparer<TypeSpec>, IEqualityComparer<TypeSig>, IEqualityComparer<ExportedType> {
 		readonly SigComparerOptions options;
 
 		/// <summary>
@@ -69,6 +69,16 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeSig obj) {
+			return new SigComparer { Options = options }.GetHashCode(obj);
+		}
+
+		/// <inheritdoc/>
+		public bool Equals(ExportedType x, ExportedType y) {
+			return new SigComparer { Options = options }.Compare(x, y);
+		}
+
+		/// <inheritdoc/>
+		public int GetHashCode(ExportedType obj) {
 			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 	}
@@ -576,31 +586,52 @@ namespace dot10.DotNet {
 				result = Compare(sa, sb);
 				goto exit;
 			}
+			ExportedType eta = a as ExportedType, etb = b as ExportedType;
+			if (eta != null && etb != null) {
+				result = Compare(eta, etb);
+				goto exit;
+			}
 
 			if (tda != null && trb != null)
-				result = Compare(tda, trb);
+				result = Compare(tda, trb);		// TypeDef vs TypeRef
 			else if (tra != null && tdb != null)
-				result = Compare(tdb, tra);
+				result = Compare(tdb, tra);		// TypeDef vs TypeRef
 			else if (tda != null && tsb != null)
-				result = Compare(tda, tsb);
+				result = Compare(tda, tsb);		// TypeDef vs TypeSpec
 			else if (tsa != null && tdb != null)
-				result = Compare(tdb, tsa);
+				result = Compare(tdb, tsa);		// TypeDef vs TypeSpec
 			else if (tda != null && sb != null)
-				result = Compare(tda, sb);
+				result = Compare(tda, sb);		// TypeDef vs TypeSig
 			else if (sa != null && tdb != null)
-				result = Compare(tdb, sa);
+				result = Compare(tdb, sa);		// TypeDef vs TypeSig
+			else if (tda != null && etb != null)
+				result = Compare(tda, etb);		// TypeDef vs ExportedType
+			else if (eta != null && tdb != null)
+				result = Compare(tdb, eta);		// TypeDef vs ExportedType
 			else if (tra != null && tsb != null)
-				result = Compare(tra, tsb);
+				result = Compare(tra, tsb);		// TypeRef vs TypeSpec
 			else if (tsa != null && trb != null)
-				result = Compare(trb, tsa);
+				result = Compare(trb, tsa);		// TypeRef vs TypeSpec
 			else if (tra != null && sb != null)
-				result = Compare(tra, sb);
+				result = Compare(tra, sb);		// TypeRef vs TypeSig
 			else if (sa != null && trb != null)
-				result = Compare(trb, sa);
+				result = Compare(trb, sa);		// TypeRef vs TypeSig
+			else if (tra != null && etb != null)
+				result = Compare(tra, etb);		// TypeRef vs ExportedType
+			else if (eta != null && trb != null)
+				result = Compare(trb, eta);		// TypeRef vs ExportedType
 			else if (tsa != null && sb != null)
-				result = Compare(tsa, sb);
+				result = Compare(tsa, sb);		// TypeSpec vs TypeSig
 			else if (sa != null && tsb != null)
-				result = Compare(tsb, sa);
+				result = Compare(tsb, sa);		// TypeSpec vs TypeSig
+			else if (tsa != null && etb != null)
+				result = Compare(tsa, etb);		// TypeSpec vs ExportedType
+			else if (eta != null && tsb != null)
+				result = Compare(tsb, eta);		// TypeSpec vs ExportedType
+			else if (sa != null && etb != null)
+				result = Compare(sa, etb);		// TypeSig vs ExportedType
+			else if (eta != null && sb != null)
+				result = Compare(sb, eta);		// TypeSig vs ExportedType
 			else
 				result = false;	// Should never be reached
 
@@ -639,6 +670,11 @@ exit:
 			var sig = a as TypeSig;
 			if (sig != null) {
 				hash = GetHashCode(sig);
+				goto exit;
+			}
+			var et = a as ExportedType;
+			if (et != null) {
+				hash = GetHashCode(et);
 				goto exit;
 			}
 			hash = 0;	// Should never be reached
@@ -690,19 +726,77 @@ exit:
 			}
 			var bMod = scope as IModule;
 			if (bMod != null) {	// 'b' is defined in the same assembly as 'a'
-				result = Compare((IModule)a.OwnerModule, (IModule)bMod);
+				result = Compare((IModule)a.OwnerModule, (IModule)bMod) &&
+						Compare(a.DefinitionAssembly, b.DefinitionAssembly);
 				goto exit;
 			}
 			var bAsm = scope as AssemblyRef;
 			if (bAsm != null) {
 				var aMod = a.OwnerModule;
-				result = aMod != null &&
-						aMod.Assembly != null &&
-						aMod.Assembly.ManifestModule == aMod &&
-						Compare(aMod.Assembly, bAsm);
+				result = aMod != null && Compare(aMod.Assembly, bAsm);
 				goto exit;
 			}
 			//TODO: Handle the case where scope == null
+exit:
+			if (result && a.IsGlobalModuleType)
+				result = false;
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(ExportedType a, TypeDef b) {
+			return Compare(b, a);
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(TypeDef a, ExportedType b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+			bool result = false;
+
+			if (UTF8String.CompareTo(a.Name, b.TypeName) != 0 || UTF8String.CompareTo(a.Namespace, b.TypeNamespace) != 0)
+				goto exit;
+
+			var scope = b.Implementation;
+			var dtb = scope as ExportedType;
+			if (dtb != null) {	// nested type
+				result = Compare(a.DeclaringType, dtb);	// Compare enclosing types
+				goto exit;
+			}
+			if (a.DeclaringType != null)
+				goto exit;	// a is nested, b isn't
+
+			if (DontCompareTypeScope) {
+				result = true;
+				goto exit;
+			}
+			var bFile = scope as FileDef;
+			if (bFile != null) {
+				result = Compare(a.OwnerModule, bFile) &&
+						Compare(a.DefinitionAssembly, b.DefinitionAssembly);
+				goto exit;
+			}
+			var bAsm = scope as AssemblyRef;
+			if (bAsm != null) {
+				var aMod = a.OwnerModule;
+				result = aMod != null && Compare(aMod.Assembly, bAsm);
+				goto exit;
+			}
 exit:
 			if (result && a.IsGlobalModuleType)
 				result = false;
@@ -759,9 +853,10 @@ exit:
 				return false;
 			bool result;
 
-			//****************************************************************************************
-			// If this code gets updated, update GetHashCode(TypeSig) and Compare(TypeRef,TypeSig) too
-			//****************************************************************************************
+			//***************************************************************
+			// If this code gets updated, update GetHashCode(TypeSig),
+			// Compare(TypeRef,TypeSig) and Compare(TypeSig,ExportedType) too
+			//***************************************************************
 			var b2 = b as TypeDefOrRefSig;
 			if (b2 != null)
 				result = Compare(a, (IType)b2.TypeDefOrRef);
@@ -804,6 +899,38 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(ExportedType a, TypeRef b) {
+			return Compare(b, a);
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(TypeRef a, ExportedType b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result = UTF8String.CompareTo(a.Name, b.TypeName) == 0 &&
+					UTF8String.CompareTo(a.Namespace, b.TypeNamespace) == 0 &&
+					CompareScope(a, b);
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeSig a, TypeRef b) {
 			return Compare(b, a);
 		}
@@ -823,9 +950,10 @@ exit:
 				return false;
 			bool result;
 
-			//****************************************************************************************
-			// If this code gets updated, update GetHashCode(TypeSig) and Compare(TypeDef,TypeSig) too
-			//****************************************************************************************
+			//***************************************************************
+			// If this code gets updated, update GetHashCode(TypeSig),
+			// Compare(TypeDef,TypeSig) and Compare(TypeSig,ExportedType) too
+			//***************************************************************
 			var b2 = b as TypeDefOrRefSig;
 			if (b2 != null)
 				result = Compare(a, (IType)b2.TypeDefOrRef);
@@ -868,6 +996,77 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(ExportedType a, TypeSpec b) {
+			return Compare(b, a);
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(TypeSpec a, ExportedType b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			return Compare(a.TypeSig, b);
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(ExportedType a, TypeSig b) {
+			return Compare(b, a);
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(TypeSig a, ExportedType b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+			bool result;
+
+			//***************************************************************
+			// If this code gets updated, update GetHashCode(TypeSig),
+			// Compare(TypeDef,TypeSig) and Compare(TypeRef,TypeSig) too
+			//***************************************************************
+			var a2 = a as TypeDefOrRefSig;
+			if (a2 != null)
+				result = Compare(a2.TypeDefOrRef, b);
+			else if (a is ModifierSig || a is PinnedSig)
+				result = Compare(a.Next, b);
+			else
+				result = false;
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		int GetHashCodeGlobalType() {
+			// We don't always know the name+namespace of the global type, eg. when it's
+			// referenced by a ModuleRef. Use the same hash for all global types.
+			return HASHCODE_MAGIC_GLOBAL_TYPE;
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Compare(TypeRef a, TypeRef b) {
 			if (a == b)
 				return true;
@@ -884,10 +1083,45 @@ exit:
 			return result;
 		}
 
-		int GetHashCodeGlobalType() {
-			// We don't always know the name+namespace of the global type, eg. when it's
-			// referenced by a ModuleRef. Use the same hash for all global types.
-			return HASHCODE_MAGIC_GLOBAL_TYPE;
+		/// <summary>
+		/// Gets the hash code of a type
+		/// </summary>
+		/// <param name="a">The type</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(TypeRef a) {
+			// ***********************************************************************
+			// IMPORTANT: This hash code must match the TypeDef/ExportedType hash code
+			// ***********************************************************************
+			if (a == null)
+				return 0;
+			int hash;
+			hash = UTF8String.GetHashCode(a.Name) +
+				UTF8String.GetHashCode(a.Namespace);
+			if (a.ResolutionScope is TypeRef)
+				hash += HASHCODE_MAGIC_NESTED_TYPE;
+			return hash;
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Compare(ExportedType a, ExportedType b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result = UTF8String.CompareTo(a.TypeName, b.TypeName) == 0 &&
+					UTF8String.CompareTo(a.TypeNamespace, b.TypeNamespace) == 0 &&
+					CompareImplementation(a, b);
+
+			recursionCounter.Decrement();
+			return result;
 		}
 
 		/// <summary>
@@ -895,16 +1129,16 @@ exit:
 		/// </summary>
 		/// <param name="a">The type</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(TypeRef a) {
-			// **********************************************************
-			// IMPORTANT: This hash code must match the TypeDef hash code
-			// **********************************************************
+		public int GetHashCode(ExportedType a) {
+			// ******************************************************************
+			// IMPORTANT: This hash code must match the TypeDef/TypeRef hash code
+			// ******************************************************************
 			if (a == null)
 				return 0;
 			int hash;
-			hash = UTF8String.GetHashCode(a.Name) +
-				UTF8String.GetHashCode(a.Namespace);
-			if (a.ResolutionScope is TypeRef)
+			hash = UTF8String.GetHashCode(a.TypeName) +
+				UTF8String.GetHashCode(a.TypeNamespace);
+			if (a.Implementation is ExportedType)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			return hash;
 		}
@@ -938,9 +1172,9 @@ exit:
 		/// <param name="a">The type</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(TypeDef a) {
-			// **********************************************************
-			// IMPORTANT: This hash code must match the TypeRef hash code
-			// **********************************************************
+			// ***********************************************************************
+			// IMPORTANT: This hash code must match the TypeRef/ExportedType hash code
+			// ***********************************************************************
 			if (a == null)
 				return 0;
 			if (a.IsGlobalModuleType)
@@ -1016,7 +1250,7 @@ exit:
 			}
 			IModule ma = ra as IModule, mb = rb as IModule;
 			if (ma != null && mb != null) {	// only compare if both are modules
-				result = Compare(ma, mb);
+				result = Compare(ma, mb) && Compare(a.DefinitionAssembly, b.DefinitionAssembly);
 				goto exit;
 			}
 			AssemblyRef aa = ra as AssemblyRef, ab = rb as AssemblyRef;
@@ -1054,6 +1288,147 @@ exit:
 		}
 
 		/// <summary>
+		/// Compares implementation
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool CompareImplementation(ExportedType a, ExportedType b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			var ia = a.Implementation;
+			var ib = b.Implementation;
+			if (ia == ib)
+				return true;
+			if (ia == null || ib == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+			bool result;
+
+			ExportedType ea = ia as ExportedType, eb = ib as ExportedType;
+			if (ea != null || eb != null) {	// if one of them is a ExportedType, the other one must be too
+				result = Compare(ea, eb);
+				goto exit;
+			}
+			if (DontCompareTypeScope) {
+				result = true;
+				goto exit;
+			}
+			FileDef fa = ia as FileDef, fb = ib as FileDef;
+			if (fa != null && fb != null) {	// only compare if both are files
+				result = Compare(fa, fb);
+				goto exit;
+			}
+			AssemblyRef aa = ia as AssemblyRef, ab = ib as AssemblyRef;
+			if (aa != null && ab != null) {	// only compare if both are assemblies
+				result = Compare((IAssembly)aa, (IAssembly)ab);
+				goto exit;
+			}
+			if (fa != null && ab != null) {
+				result = Compare(a.DefinitionAssembly, ab);
+				goto exit;
+			}
+			if (fb != null && aa != null) {
+				result = Compare(b.DefinitionAssembly, aa);
+				goto exit;
+			}
+
+			result = false;
+exit:
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares resolution scope and implementation
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool CompareScope(TypeRef a, ExportedType b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			var ra = a.ResolutionScope;
+			var ib = b.Implementation;
+			if (ra == ib)
+				return true;
+			if (ra == null || ib == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+			bool result;
+
+			var ea = ra as TypeRef;
+			var eb = ib as ExportedType;
+			if (ea != null || eb != null) {	// If one is a nested type, the other one must be too
+				result = Compare(ea, eb);
+				goto exit;
+			}
+			var ma = ra as IModule;
+			var fb = ib as FileDef;
+			if (ma != null && fb != null) {
+				result = Compare(ma, fb) && Compare(a.DefinitionAssembly, b.DefinitionAssembly);
+				goto exit;
+			}
+			var aa = ra as AssemblyRef;
+			var ab = ib as AssemblyRef;
+			if (aa != null && ab != null) {
+				result = Compare(aa, ab);
+				goto exit;
+			}
+			if (ma != null && ab != null) {
+				result = Compare(a.DefinitionAssembly, ab);
+				goto exit;
+			}
+			if (fb != null && aa != null) {
+				result = Compare(b.DefinitionAssembly, aa);
+				goto exit;
+			}
+
+			result = false;
+exit:
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares files
+		/// </summary>
+		/// <param name="a">File #1</param>
+		/// <param name="b">File #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool Compare(FileDef a, FileDef b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+
+			//TODO: Case insensitive or case sensitive comparison???
+			return UTF8String.CompareTo(a.Name, b.Name) == 0;
+		}
+
+		/// <summary>
+		/// Compares a module with a file
+		/// </summary>
+		/// <param name="a">Module</param>
+		/// <param name="b">File</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool Compare(IModule a, FileDef b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+
+			//TODO: Case insensitive or case sensitive comparison???
+			return UTF8String.CompareTo(a.Name, b.Name) == 0;
+		}
+
+		/// <summary>
 		/// Compares modules
 		/// </summary>
 		/// <param name="a">Module #1</param>
@@ -1064,14 +1439,9 @@ exit:
 				return true;
 			if (a == null || b == null)
 				return false;
-			if (!recursionCounter.Increment())
-				return false;
 
 			//TODO: Case insensitive or case sensitive comparison???
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0;
-
-			recursionCounter.Decrement();
-			return result;
+			return UTF8String.CompareTo(a.Name, b.Name) == 0;
 		}
 
 		/// <summary>
@@ -1084,8 +1454,6 @@ exit:
 			if (a == b)
 				return true;
 			if (a == null || b == null)
-				return false;
-			if (!recursionCounter.Increment())
 				return false;
 
 			bool result = Compare((IModule)a, (IModule)b) && Compare(a.Assembly, b.Assembly);
@@ -1293,8 +1661,8 @@ exit:
 			case ElementType.Object:
 			case ElementType.ValueType:
 			case ElementType.Class:
-				// When comparing a TypeDef/TypeRef to a TypeDefOrRefSig/Class/ValueType, the
-				// ET is ignored, so we must ignore it when calculating the hash.
+				// When comparing a ExportedType/TypeDef/TypeRef to a TypeDefOrRefSig/Class/ValueType,
+				// the ET is ignored, so we must ignore it when calculating the hash.
 				hash = GetHashCode((IType)(a as TypeDefOrRefSig).TypeDefOrRef);
 				break;
 
@@ -1317,8 +1685,8 @@ exit:
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
-				// When comparing a TypeDef/TypeRef to a ModifierSig/PinnedSig, the ET is
-				// ignored, so we must ignore it when calculating the hash.
+				// When comparing a ExportedType//TypeDef/TypeRef to a ModifierSig/PinnedSig,
+				// the ET is ignored, so we must ignore it when calculating the hash.
 				hash = GetHashCode(a.Next);
 				break;
 
@@ -1993,6 +2361,7 @@ exit:
 			}
 			ModuleRef moda = a as ModuleRef, modb = b as ModuleRef;
 			if (moda != null && modb != null) {
+				//TODO: Also compare assembly
 				result = Compare((IModule)moda, (IModule)modb);
 				goto exit;
 			}

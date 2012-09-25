@@ -1,17 +1,20 @@
 ﻿using System;
-using System.Diagnostics;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the ExportedType table
 	/// </summary>
-	[DebuggerDisplay("{TypeDefId} {TypeNamespace}.{TypeName} {Implementation} {Flags}")]
-	public abstract class ExportedType : IHasCustomAttribute, IImplementation {
+	public abstract class ExportedType : IHasCustomAttribute, IImplementation, IType {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+		/// <summary>
+		/// The owner module
+		/// </summary>
+		protected ModuleDef ownerModule;
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -26,6 +29,51 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public int ImplementationTag {
 			get { return 2; }
+		}
+
+		/// <inheritdoc/>
+		public string Name {
+			get { return FullNameCreator.Name(this, false); }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionName {
+			get { return FullNameCreator.Name(this, true); }
+		}
+
+		/// <inheritdoc/>
+		public string Namespace {
+			get { return FullNameCreator.Namespace(this, false); }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionNamespace {
+			get { return FullNameCreator.Namespace(this, true); }
+		}
+
+		/// <inheritdoc/>
+		public string FullName {
+			get { return FullNameCreator.FullName(this, false); }
+		}
+
+		/// <inheritdoc/>
+		public string ReflectionFullName {
+			get { return FullNameCreator.FullName(this, true); }
+		}
+
+		/// <inheritdoc/>
+		public string AssemblyQualifiedName {
+			get { return FullNameCreator.AssemblyQualifiedName(this); }
+		}
+
+		/// <inheritdoc/>
+		public IAssembly DefinitionAssembly {
+			get { return FullNameCreator.DefinitionAssembly(this); }
+		}
+
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get { return ownerModule; }
 		}
 
 		/// <summary>
@@ -337,6 +385,11 @@ namespace dot10.DotNet {
 					Flags &= ~TypeAttributes.HasSecurity;
 			}
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
 	}
 
 	/// <summary>
@@ -380,20 +433,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Default constructor
+		/// Constructor
 		/// </summary>
-		public ExportedTypeUser() {
+		/// <param name="ownerModule">Owner module</param>
+		public ExportedTypeUser(ModuleDef ownerModule) {
+			this.ownerModule = ownerModule;
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="typeDefId">TypeDef ID</param>
 		/// <param name="typeName">Type name</param>
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(uint typeDefId, UTF8String typeName, UTF8String typeNamespace, TypeAttributes flags, IImplementation implementation) {
+		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, UTF8String typeName, UTF8String typeNamespace, TypeAttributes flags, IImplementation implementation) {
+			this.ownerModule = ownerModule;
 			this.typeDefId = typeDefId;
 			this.typeName = typeName;
 			this.typeNamespace = typeNamespace;
@@ -404,13 +461,14 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="typeDefId">TypeDef ID</param>
 		/// <param name="typeName">Type name</param>
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(uint typeDefId, string typeName, string typeNamespace, TypeAttributes flags, IImplementation implementation)
-			: this(typeDefId, new UTF8String(typeName), new UTF8String(typeNamespace), flags, implementation) {
+		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, string typeName, string typeNamespace, TypeAttributes flags, IImplementation implementation)
+			: this(ownerModule, typeDefId, new UTF8String(typeName), new UTF8String(typeNamespace), flags, implementation) {
 		}
 	}
 
@@ -475,6 +533,7 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.ownerModule = readerModule;
 			Initialize();
 		}
 
