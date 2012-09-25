@@ -60,9 +60,9 @@ namespace dot10.DotNet {
 		public abstract Guid? EncBaseId { get; set; }
 
 		/// <summary>
-		/// Gets/sets the module's assembly
+		/// Gets the module's assembly
 		/// </summary>
-		public abstract AssemblyDef Assembly { get; set; }
+		public abstract AssemblyDef Assembly { get; internal set; }
 
 		/// <summary>
 		/// Gets a list of all non-nested <see cref="TypeDef"/>s
@@ -84,6 +84,13 @@ namespace dot10.DotNet {
 		/// </summary>
 		public ICorLibTypes CorLibTypes {
 			get { return corLibTypes; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is the manifest (main) module
+		/// </summary>
+		public bool IsManifestModule {
+			get { return Assembly != null && Assembly.ManifestModule == this; }
 		}
 
 		/// <summary>
@@ -278,7 +285,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override AssemblyDef Assembly {
 			get { return assembly; }
-			set { assembly = value; }
+			internal set { assembly = value; }
 		}
 
 		/// <inheritdoc/>
@@ -398,7 +405,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override AssemblyDef Assembly {
 			get { return assembly.Value; }
-			set { assembly.Value = value; }
+			internal set { assembly.Value = value; }
 		}
 
 		/// <inheritdoc/>

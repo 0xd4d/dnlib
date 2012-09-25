@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using dot10.PE;
 using dot10.DotNet.MD;
 using dot10.DotNet.Emit;
@@ -11,6 +12,9 @@ namespace dot10.DotNet {
 	public sealed class ModuleDefMD : ModuleDefMD2 {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
+
+		RandomRidList moduleRidList;
+		RandomRidList resourceRidList;
 
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
 		SimpleLazyList<TypeRefMD> listTypeRefMD;
@@ -233,12 +237,7 @@ namespace dot10.DotNet {
 			listFieldRVAMD = new SimpleLazyList<FieldRVAMD>(ts.Get(Table.FieldRVA).Rows, rid2 => new FieldRVAMD(this, rid2));
 			listENCLogMD = new SimpleLazyList<ENCLogMD>(ts.Get(Table.ENCLog).Rows, rid2 => new ENCLogMD(this, rid2));
 			listENCMapMD = new SimpleLazyList<ENCMapMD>(ts.Get(Table.ENCMap).Rows, rid2 => new ENCMapMD(this, rid2));
-			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.Get(Table.Assembly).Rows, rid2 => {
-				var asm = new AssemblyDefMD(this, rid2);
-				if (rid2 == 1)
-					asm.ManifestModule = this;
-				return asm;
-			});
+			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.Get(Table.Assembly).Rows, rid2 => new AssemblyDefMD(this, rid2));
 			listAssemblyProcessorMD = new SimpleLazyList<AssemblyProcessorMD>(ts.Get(Table.AssemblyProcessor).Rows, rid2 => new AssemblyProcessorMD(this, rid2));
 			listAssemblyOSMD = new SimpleLazyList<AssemblyOSMD>(ts.Get(Table.AssemblyOS).Rows, rid2 => new AssemblyOSMD(this, rid2));
 			listAssemblyRefProcessorMD = new SimpleLazyList<AssemblyRefProcessorMD>(ts.Get(Table.AssemblyRefProcessor).Rows, rid2 => new AssemblyRefProcessorMD(this, rid2));
@@ -1100,6 +1099,91 @@ namespace dot10.DotNet {
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(PropertyDefMD property) {
 			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.MDToken.Rid));
+		}
+
+		/// <summary>
+		/// Reads a module
+		/// </summary>
+		/// <param name="fileRid">File rid</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance or <c>null</c> if <paramref name="fileRid"/>
+		/// is invalid or if it's not a .NET module.</returns>
+		internal ModuleDefMD ReadModule(uint fileRid) {
+			var fileDef = ResolveFile(fileRid);
+			if (fileDef == null)
+				return null;
+			if (!fileDef.ContainsMetaData)
+				return null;
+			var fileName = GetValidFilename(GetBaseDirectoryOfImage(), UTF8String.ToSystemString(fileDef.Name));
+			if (fileName == null)
+				return null;
+			return ModuleDefMD.Load(fileName);
+		}
+
+		/// <summary>
+		/// Gets a list of all <c>File</c> rids that are .NET modules. Call <see cref="ReadModule(uint)"/>
+		/// to read one of these modules.
+		/// </summary>
+		/// <returns>A new <see cref="RidList"/> instance</returns>
+		internal RidList GetModuleRidList() {
+			InitializeModuleAndResourceLists();
+			return moduleRidList;
+		}
+
+		void InitializeModuleAndResourceLists() {
+			if (moduleRidList != null)
+				return;
+			var table = TablesStream.Get(Table.File);
+			moduleRidList = new RandomRidList((int)table.Rows);
+			resourceRidList = new RandomRidList((int)table.Rows);
+
+			var baseDir = GetBaseDirectoryOfImage();
+			for (uint fileRid = 1; fileRid <= table.Rows; fileRid++) {
+				var fileDef = ResolveFile(fileRid);
+				if (fileDef == null)
+					continue;	// Should never happen
+				if (fileDef.ContainsMetaData) {
+					var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
+					if (pathName != null)
+						moduleRidList.Add(fileRid);
+				}
+				else
+					resourceRidList.Add(fileRid);
+			}
+		}
+
+		static string GetValidFilename(string baseDir, string name) {
+			if (baseDir == null)
+				return null;
+
+			string pathName;
+			try {
+				if (name.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+					return null;
+				pathName = Path.Combine(baseDir, name);
+				if (pathName != Path.GetFullPath(pathName))
+					return null;
+				if (!File.Exists(pathName))
+					return null;
+			}
+			catch {
+				return null;
+			}
+
+			return pathName;
+		}
+
+		string GetBaseDirectoryOfImage() {
+			var imageFileName = dnFile.MetaData.PEImage.FileName;
+			if (imageFileName == null)
+				return null;
+			try {
+				return Path.GetDirectoryName(imageFileName);
+			}
+			catch (IOException) {
+			}
+			catch (ArgumentException) {
+			}
+			return null;
 		}
 	}
 }

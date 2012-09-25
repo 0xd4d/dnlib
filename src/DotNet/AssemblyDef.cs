@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>
-	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly {
+	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly, IListListener<ModuleDef> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -88,11 +88,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the manifest (main) module
+		/// Gets all modules. The first module is always the <see cref="ManifestModule"/>.
+		/// </summary>
+		public abstract IList<ModuleDef> Modules { get; }
+
+		/// <summary>
+		/// Gets the manifest (main) module. This is always the first module in <see cref="Modules"/>.
 		/// </summary>
 		public ModuleDef ManifestModule {
-			get { return manifestModule; }
-			set { manifestModule = value; }
+			get { return Modules.Count == 0 ? null : Modules[0]; }
 		}
 
 		/// <summary>
@@ -393,6 +397,36 @@ namespace dot10.DotNet {
 			return Utils.GetAssemblyNameString(Name, Version, Locale, pkBase);
 		}
 
+		void IListListener<ModuleDef>.OnAdd(int index, ModuleDef module, bool isLazyAdd) {
+			if (module == null)
+				return;
+			if (isLazyAdd) {
+#if DEBUG
+				if (module.Assembly == null)
+					throw new InvalidOperationException("Module.Assembly == null");
+#endif
+				return;
+			}
+			if (module.Assembly != null)
+				throw new InvalidOperationException("Module already has an assembly. Remove it from that assembly before adding it to this assembly.");
+			module.Assembly = this;
+		}
+
+		void IListListener<ModuleDef>.OnRemove(int index, ModuleDef module) {
+			if (module != null)
+				module.Assembly = null;
+		}
+
+		void IListListener<ModuleDef>.OnResize(int index) {
+		}
+
+		void IListListener<ModuleDef>.OnClear() {
+			foreach (var module in Modules) {
+				if (module != null)
+					module.Assembly = null;
+			}
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -410,6 +444,7 @@ namespace dot10.DotNet {
 		UTF8String name;
 		UTF8String locale;
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
+		LazyList<ModuleDef> modules;
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
@@ -460,6 +495,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<DeclSecurity> DeclSecurities {
 			get { return declSecurities; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<ModuleDef> Modules {
+			get { return modules; }
 		}
 
 		/// <summary>
@@ -538,6 +578,7 @@ namespace dot10.DotNet {
 				throw new ArgumentNullException("version");
 			if ((object)locale == null)
 				throw new ArgumentNullException("locale");
+			this.modules = new LazyList<ModuleDef>(this);
 			this.name = name;
 			this.version = version;
 			this.publicKey = publicKey ?? new PublicKey();
@@ -563,6 +604,7 @@ namespace dot10.DotNet {
 		public AssemblyDefUser(AssemblyNameInfo asmName) {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
+			this.modules = new LazyList<ModuleDef>(this);
 			this.name = asmName.Name;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.publicKey = asmName.PublicKey ?? new PublicKey();
@@ -587,6 +629,7 @@ namespace dot10.DotNet {
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> locale;
 		LazyList<DeclSecurity> declSecurities;
+		LazyList<ModuleDef> modules;
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
@@ -645,6 +688,26 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		public override IList<ModuleDef> Modules {
+			get {
+				if (modules == null) {
+					var list = readerModule.GetModuleRidList();
+					this.modules = new LazyList<ModuleDef>((int)list.Length + 1, this, list, (list2, index) => {
+						ModuleDef module;
+						if (index == 0)
+							module = readerModule;
+						else
+							module = readerModule.ReadModule(((RidList)list2)[index - 1]);
+						if (module != null)
+							module.Assembly = this;
+						return module;
+					});
+				}
+				return modules;
+			}
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -661,6 +724,8 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
+			if (rid != 1)
+				this.modules = new LazyList<ModuleDef>(this);
 			Initialize();
 		}
 
