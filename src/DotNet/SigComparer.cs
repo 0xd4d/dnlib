@@ -1651,7 +1651,7 @@ exit:
 			case ElementType.Object:
 			case ElementType.ValueType:
 			case ElementType.Class:
-				// When comparing a ExportedType/TypeDef/TypeRef to a TypeDefOrRefSig/Class/ValueType,
+				// When comparing an ExportedType/TypeDef/TypeRef to a TypeDefOrRefSig/Class/ValueType,
 				// the ET is ignored, so we must ignore it when calculating the hash.
 				hash = GetHashCode((IType)(a as TypeDefOrRefSig).TypeDefOrRef);
 				break;
@@ -1675,7 +1675,7 @@ exit:
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
-				// When comparing a ExportedType//TypeDef/TypeRef to a ModifierSig/PinnedSig,
+				// When comparing an ExportedType/TypeDef/TypeRef to a ModifierSig/PinnedSig,
 				// the ET is ignored, so we must ignore it when calculating the hash.
 				hash = GetHashCode(a.Next);
 				break;
