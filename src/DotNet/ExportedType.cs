@@ -449,7 +449,7 @@ namespace dot10.DotNet {
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, UTF8String typeName, UTF8String typeNamespace, TypeAttributes flags, IImplementation implementation) {
+		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, UTF8String typeNamespace, UTF8String typeName, TypeAttributes flags, IImplementation implementation) {
 			this.ownerModule = ownerModule;
 			this.typeDefId = typeDefId;
 			this.typeName = typeName;
@@ -467,8 +467,8 @@ namespace dot10.DotNet {
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, string typeName, string typeNamespace, TypeAttributes flags, IImplementation implementation)
-			: this(ownerModule, typeDefId, new UTF8String(typeName), new UTF8String(typeNamespace), flags, implementation) {
+		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, string typeNamespace, string typeName, TypeAttributes flags, IImplementation implementation)
+			: this(ownerModule, typeDefId, new UTF8String(typeNamespace), new UTF8String(typeName), flags, implementation) {
 		}
 	}
 
