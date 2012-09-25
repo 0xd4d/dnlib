@@ -1479,7 +1479,7 @@ exit:
 			//TODO: Case insensitive or case sensitive comparison???
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 				(!CompareAssemblyPublicKeyToken || Compare(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
-				(!CompareAssemblyVersion || Compare(a.Version, b.Version)) &&
+				(!CompareAssemblyVersion || Utils.CompareTo(a.Version, b.Version) == 0) &&
 				(!CompareAssemblyLocale || CompareLocale(a.Locale, b.Locale));
 
 			recursionCounter.Decrement();
@@ -1498,16 +1498,6 @@ exit:
 			var pkta = PublicKeyBase.ToPublicKeyToken(a);
 			var pktb = PublicKeyBase.ToPublicKeyToken(b);
 			return Utils.CompareTo(pkta == null ? null : pkta.Data, pktb == null ? null : pktb.Data) == 0;
-		}
-
-		/// <summary>
-		/// Compares two versions. A <c>null</c> value is treated as version 0.0.0.0.
-		/// </summary>
-		/// <param name="a">Version #1</param>
-		/// <param name="b">Version #2</param>
-		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(Version a, Version b) {
-			return (a ?? new Version()).CompareTo(b ?? new Version()) == 0;
 		}
 
 		/// <summary>
