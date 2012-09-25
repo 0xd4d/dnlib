@@ -19,7 +19,7 @@ namespace dot10.DotNet {
 
 			if (version != null) {
 				sb.Append(", Version=");
-				sb.Append(version.ToString());
+				sb.Append(CreateVersionWithNoUndefinedValues(version).ToString());
 			}
 
 			if ((object)culture != null) {
@@ -99,6 +99,12 @@ namespace dot10.DotNet {
 			return -1;
 		}
 
+		/// <summary>
+		/// Compares two byte arrays
+		/// </summary>
+		/// <param name="a">Byte array #1</param>
+		/// <param name="b">Byte array #2</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
 		internal static int CompareTo(byte[] a, byte[] b) {
 			if (a == b)
 				return 0;
@@ -116,6 +122,45 @@ namespace dot10.DotNet {
 					return 1;
 			}
 			return a.Length.CompareTo(b.Length);
+		}
+
+		/// <summary>
+		/// Compares two versions
+		/// </summary>
+		/// <remarks>This differs from <see cref="System.Version.CompareTo(Version)"/> if the build
+		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>.
+		/// </remarks>
+		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		internal static int CompareTo(Version a, Version b) {
+			if (a == null)
+				a = new Version();
+			if (b == null)
+				b = new Version();
+			if (a.Major != b.Major)
+				return a.Major.CompareTo(b.Major);
+			if (a.Minor != b.Minor)
+				return a.Minor.CompareTo(b.Minor);
+			if (GetDefaultVersionValue(a.Build) != GetDefaultVersionValue(b.Build))
+				return GetDefaultVersionValue(a.Build).CompareTo(GetDefaultVersionValue(b.Build));
+			return GetDefaultVersionValue(a.Revision).CompareTo(GetDefaultVersionValue(b.Revision));
+		}
+
+		/// <summary>
+		/// Creates a new <see cref="Version"/> instance with no undefined version values (eg.
+		/// the build and revision values won't be -1).
+		/// </summary>
+		/// <param name="a">A <see cref="Version"/> instance</param>
+		/// <returns>A new <see cref="Version"/> instance</returns>
+		internal static Version CreateVersionWithNoUndefinedValues(Version a) {
+			if (a == null)
+				return new Version(0, 0, 0, 0);
+			return new Version(a.Major, a.Minor, GetDefaultVersionValue(a.Build), GetDefaultVersionValue(a.Revision));
+		}
+
+		static int GetDefaultVersionValue(int val) {
+			return val == -1 ? 0 : val;
 		}
 	}
 }
