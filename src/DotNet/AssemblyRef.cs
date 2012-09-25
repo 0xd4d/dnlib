@@ -65,6 +65,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract byte[] HashValue { get; set; }
 
+		/// <inheritdoc/>
+		public string FullName {
+			get { return Utils.GetAssemblyNameString(Name, Version, Locale, PublicKeyOrToken); }
+		}
+
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyFlags.PublicKey"/> bit
 		/// </summary>
@@ -212,7 +217,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return Utils.GetAssemblyNameString(Name, Version, Locale, PublicKeyOrToken);
+			return FullName;
 		}
 	}
 

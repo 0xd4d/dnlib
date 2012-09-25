@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using dot10.DotNet.MD;
@@ -9,7 +8,6 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>
-	[DebuggerDisplay("{GetFullNameWithPublicKeyToken()}")]
 	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly {
 		/// <summary>
 		/// The row id in its table
@@ -82,6 +80,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public PublicKeyBase PublicKeyOrToken {
 			get { return PublicKey; }
+		}
+
+		/// <inheritdoc/>
+		public string FullName {
+			get { return GetFullNameWithPublicKeyToken(); }
 		}
 
 		/// <summary>
@@ -392,7 +395,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return GetFullNameWithPublicKeyToken();
+			return FullName;
 		}
 	}
 

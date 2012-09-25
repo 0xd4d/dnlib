@@ -37,8 +37,13 @@ namespace dot10.DotNet {
 		public abstract UTF8String Name { get; set; }
 
 		/// <inheritdoc/>
+		public string FullName {
+			get { return UTF8String.ToSystemStringOrEmpty(Name); }
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
-			return UTF8String.IsNullOrEmpty(Name) ? string.Empty : Name.String;
+			return FullName;
 		}
 	}
 

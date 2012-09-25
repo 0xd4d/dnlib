@@ -54,6 +54,16 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public abstract Constant Constant { get; set; }
 
+		/// <inheritdoc/>
+		public string FullName {
+			get {
+				var name = Name;
+				if (UTF8String.IsNullOrEmpty(name))
+					return string.Format("A_{0}", Sequence);
+				return name.String;
+			}
+		}
+
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.In"/> bit
 		/// </summary>

@@ -68,8 +68,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public string FullName {
+			get { return UTF8String.ToSystemStringOrEmpty(Name); }
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
-			return UTF8String.IsNullOrEmpty(Name) ? string.Empty : Name.String;
+			return FullName;
 		}
 	}
 
