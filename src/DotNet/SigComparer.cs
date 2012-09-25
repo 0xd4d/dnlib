@@ -24,7 +24,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(IType x, IType y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -34,7 +34,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(TypeRef x, TypeRef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -44,7 +44,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(TypeDef x, TypeDef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -54,7 +54,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(TypeSpec x, TypeSpec y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -64,7 +64,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(TypeSig x, TypeSig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -74,7 +74,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(ExportedType x, ExportedType y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -109,7 +109,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(IField x, IField y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -119,7 +119,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(FieldDef x, FieldDef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -129,7 +129,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(MemberRef x, MemberRef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -164,7 +164,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(IMethod x, IMethod y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -174,7 +174,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(MethodDef x, MethodDef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -184,7 +184,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(MemberRef x, MemberRef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -194,7 +194,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(MethodSpec x, MethodSpec y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -229,7 +229,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(PropertyDef x, PropertyDef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -264,7 +264,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(EventDef x, EventDef y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -294,7 +294,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(CallingConventionSig x, CallingConventionSig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -304,7 +304,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(MethodBaseSig x, MethodBaseSig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -314,7 +314,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(MethodSig x, MethodSig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -324,7 +324,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(PropertySig x, PropertySig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -334,7 +334,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(FieldSig x, FieldSig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -344,7 +344,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(LocalSig x, LocalSig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -354,7 +354,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(GenericInstMethodSig x, GenericInstMethodSig y) {
-			return new SigComparer { Options = options }.Compare(x, y);
+			return new SigComparer { Options = options }.Equals(x, y);
 		}
 
 		/// <inheritdoc/>
@@ -557,7 +557,7 @@ namespace dot10.DotNet {
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(IType a, IType b) {
+		public bool Equals(IType a, IType b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -568,70 +568,70 @@ namespace dot10.DotNet {
 
 			TypeDef tda = a as TypeDef, tdb = b as TypeDef;
 			if (tda != null && tdb != null) {
-				result = Compare(tda, tdb);
+				result = Equals(tda, tdb);
 				goto exit;
 			}
 			TypeRef tra = a as TypeRef, trb = b as TypeRef;
 			if (tra != null && trb != null) {
-				result = Compare(tra, trb);
+				result = Equals(tra, trb);
 				goto exit;
 			}
 			TypeSpec tsa = a as TypeSpec, tsb = b as TypeSpec;
 			if (tsa != null && tsb != null) {
-				result = Compare(tsa, tsb);
+				result = Equals(tsa, tsb);
 				goto exit;
 			}
 			TypeSig sa = a as TypeSig, sb = b as TypeSig;
 			if (sa != null && sb != null) {
-				result = Compare(sa, sb);
+				result = Equals(sa, sb);
 				goto exit;
 			}
 			ExportedType eta = a as ExportedType, etb = b as ExportedType;
 			if (eta != null && etb != null) {
-				result = Compare(eta, etb);
+				result = Equals(eta, etb);
 				goto exit;
 			}
 
 			if (tda != null && trb != null)
-				result = Compare(tda, trb);		// TypeDef vs TypeRef
+				result = Equals(tda, trb);		// TypeDef vs TypeRef
 			else if (tra != null && tdb != null)
-				result = Compare(tdb, tra);		// TypeDef vs TypeRef
+				result = Equals(tdb, tra);		// TypeDef vs TypeRef
 			else if (tda != null && tsb != null)
-				result = Compare(tda, tsb);		// TypeDef vs TypeSpec
+				result = Equals(tda, tsb);		// TypeDef vs TypeSpec
 			else if (tsa != null && tdb != null)
-				result = Compare(tdb, tsa);		// TypeDef vs TypeSpec
+				result = Equals(tdb, tsa);		// TypeDef vs TypeSpec
 			else if (tda != null && sb != null)
-				result = Compare(tda, sb);		// TypeDef vs TypeSig
+				result = Equals(tda, sb);		// TypeDef vs TypeSig
 			else if (sa != null && tdb != null)
-				result = Compare(tdb, sa);		// TypeDef vs TypeSig
+				result = Equals(tdb, sa);		// TypeDef vs TypeSig
 			else if (tda != null && etb != null)
-				result = Compare(tda, etb);		// TypeDef vs ExportedType
+				result = Equals(tda, etb);		// TypeDef vs ExportedType
 			else if (eta != null && tdb != null)
-				result = Compare(tdb, eta);		// TypeDef vs ExportedType
+				result = Equals(tdb, eta);		// TypeDef vs ExportedType
 			else if (tra != null && tsb != null)
-				result = Compare(tra, tsb);		// TypeRef vs TypeSpec
+				result = Equals(tra, tsb);		// TypeRef vs TypeSpec
 			else if (tsa != null && trb != null)
-				result = Compare(trb, tsa);		// TypeRef vs TypeSpec
+				result = Equals(trb, tsa);		// TypeRef vs TypeSpec
 			else if (tra != null && sb != null)
-				result = Compare(tra, sb);		// TypeRef vs TypeSig
+				result = Equals(tra, sb);		// TypeRef vs TypeSig
 			else if (sa != null && trb != null)
-				result = Compare(trb, sa);		// TypeRef vs TypeSig
+				result = Equals(trb, sa);		// TypeRef vs TypeSig
 			else if (tra != null && etb != null)
-				result = Compare(tra, etb);		// TypeRef vs ExportedType
+				result = Equals(tra, etb);		// TypeRef vs ExportedType
 			else if (eta != null && trb != null)
-				result = Compare(trb, eta);		// TypeRef vs ExportedType
+				result = Equals(trb, eta);		// TypeRef vs ExportedType
 			else if (tsa != null && sb != null)
-				result = Compare(tsa, sb);		// TypeSpec vs TypeSig
+				result = Equals(tsa, sb);		// TypeSpec vs TypeSig
 			else if (sa != null && tsb != null)
-				result = Compare(tsb, sa);		// TypeSpec vs TypeSig
+				result = Equals(tsb, sa);		// TypeSpec vs TypeSig
 			else if (tsa != null && etb != null)
-				result = Compare(tsa, etb);		// TypeSpec vs ExportedType
+				result = Equals(tsa, etb);		// TypeSpec vs ExportedType
 			else if (eta != null && tsb != null)
-				result = Compare(tsb, eta);		// TypeSpec vs ExportedType
+				result = Equals(tsb, eta);		// TypeSpec vs ExportedType
 			else if (sa != null && etb != null)
-				result = Compare(sa, etb);		// TypeSig vs ExportedType
+				result = Equals(sa, etb);		// TypeSig vs ExportedType
 			else if (eta != null && sb != null)
-				result = Compare(sb, eta);		// TypeSig vs ExportedType
+				result = Equals(sb, eta);		// TypeSig vs ExportedType
 			else
 				result = false;	// Should never be reached
 
@@ -689,8 +689,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeRef a, TypeDef b) {
-			return Compare(b, a);
+		public bool Equals(TypeRef a, TypeDef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -699,7 +699,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeDef a, TypeRef b) {
+		public bool Equals(TypeDef a, TypeRef b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -714,7 +714,7 @@ exit:
 			var scope = b.ResolutionScope;
 			var dtb = scope as TypeRef;
 			if (dtb != null) {	// nested type
-				result = Compare(a.DeclaringType, dtb);	// Compare enclosing types
+				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
 				goto exit;
 			}
 			if (a.DeclaringType != null)
@@ -726,14 +726,14 @@ exit:
 			}
 			var bMod = scope as IModule;
 			if (bMod != null) {	// 'b' is defined in the same assembly as 'a'
-				result = Compare((IModule)a.OwnerModule, (IModule)bMod) &&
-						Compare(a.DefinitionAssembly, b.DefinitionAssembly);
+				result = Equals((IModule)a.OwnerModule, (IModule)bMod) &&
+						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
 				goto exit;
 			}
 			var bAsm = scope as AssemblyRef;
 			if (bAsm != null) {
 				var aMod = a.OwnerModule;
-				result = aMod != null && Compare(aMod.Assembly, bAsm);
+				result = aMod != null && Equals(aMod.Assembly, bAsm);
 				goto exit;
 			}
 			//TODO: Handle the case where scope == null
@@ -750,8 +750,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(ExportedType a, TypeDef b) {
-			return Compare(b, a);
+		public bool Equals(ExportedType a, TypeDef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -760,7 +760,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeDef a, ExportedType b) {
+		public bool Equals(TypeDef a, ExportedType b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -775,7 +775,7 @@ exit:
 			var scope = b.Implementation;
 			var dtb = scope as ExportedType;
 			if (dtb != null) {	// nested type
-				result = Compare(a.DeclaringType, dtb);	// Compare enclosing types
+				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
 				goto exit;
 			}
 			if (a.DeclaringType != null)
@@ -787,14 +787,14 @@ exit:
 			}
 			var bFile = scope as FileDef;
 			if (bFile != null) {
-				result = Compare(a.OwnerModule, bFile) &&
-						Compare(a.DefinitionAssembly, b.DefinitionAssembly);
+				result = Equals(a.OwnerModule, bFile) &&
+						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
 				goto exit;
 			}
 			var bAsm = scope as AssemblyRef;
 			if (bAsm != null) {
 				var aMod = a.OwnerModule;
-				result = aMod != null && Compare(aMod.Assembly, bAsm);
+				result = aMod != null && Equals(aMod.Assembly, bAsm);
 				goto exit;
 			}
 exit:
@@ -810,8 +810,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSpec a, TypeDef b) {
-			return Compare(b, a);
+		public bool Equals(TypeSpec a, TypeDef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -820,12 +820,12 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeDef a, TypeSpec b) {
+		public bool Equals(TypeDef a, TypeSpec b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			return Compare(a, b.TypeSig);
+			return Equals(a, b.TypeSig);
 		}
 
 		/// <summary>
@@ -834,8 +834,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSig a, TypeDef b) {
-			return Compare(b, a);
+		public bool Equals(TypeSig a, TypeDef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -844,7 +844,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeDef a, TypeSig b) {
+		public bool Equals(TypeDef a, TypeSig b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -853,15 +853,15 @@ exit:
 				return false;
 			bool result;
 
-			//***************************************************************
+			//************************************************************
 			// If this code gets updated, update GetHashCode(TypeSig),
-			// Compare(TypeRef,TypeSig) and Compare(TypeSig,ExportedType) too
-			//***************************************************************
+			// Equals(TypeRef,TypeSig) and EqualsTypeSig,ExportedType) too
+			//************************************************************
 			var b2 = b as TypeDefOrRefSig;
 			if (b2 != null)
-				result = Compare(a, (IType)b2.TypeDefOrRef);
+				result = Equals(a, (IType)b2.TypeDefOrRef);
 			else if (b is ModifierSig || b is PinnedSig)
-				result = Compare(a, b.Next);
+				result = Equals(a, b.Next);
 			else
 				result = false;
 
@@ -875,8 +875,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSpec a, TypeRef b) {
-			return Compare(b, a);
+		public bool Equals(TypeSpec a, TypeRef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -885,12 +885,12 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeRef a, TypeSpec b) {
+		public bool Equals(TypeRef a, TypeSpec b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			return Compare(a, b.TypeSig);
+			return Equals(a, b.TypeSig);
 		}
 
 		/// <summary>
@@ -899,8 +899,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(ExportedType a, TypeRef b) {
-			return Compare(b, a);
+		public bool Equals(ExportedType a, TypeRef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -909,7 +909,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeRef a, ExportedType b) {
+		public bool Equals(TypeRef a, ExportedType b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -919,7 +919,7 @@ exit:
 
 			bool result = UTF8String.CompareTo(a.Name, b.TypeName) == 0 &&
 					UTF8String.CompareTo(a.Namespace, b.TypeNamespace) == 0 &&
-					CompareScope(a, b);
+					EqualsScope(a, b);
 
 			recursionCounter.Decrement();
 			return result;
@@ -931,8 +931,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSig a, TypeRef b) {
-			return Compare(b, a);
+		public bool Equals(TypeSig a, TypeRef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -941,7 +941,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeRef a, TypeSig b) {
+		public bool Equals(TypeRef a, TypeSig b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -950,15 +950,15 @@ exit:
 				return false;
 			bool result;
 
-			//***************************************************************
+			//*************************************************************
 			// If this code gets updated, update GetHashCode(TypeSig),
-			// Compare(TypeDef,TypeSig) and Compare(TypeSig,ExportedType) too
-			//***************************************************************
+			// Equals(TypeDef,TypeSig) and Equals(TypeSig,ExportedType) too
+			//*************************************************************
 			var b2 = b as TypeDefOrRefSig;
 			if (b2 != null)
-				result = Compare(a, (IType)b2.TypeDefOrRef);
+				result = Equals(a, (IType)b2.TypeDefOrRef);
 			else if (b is ModifierSig || b is PinnedSig)
-				result = Compare(a, b.Next);
+				result = Equals(a, b.Next);
 			else
 				result = false;
 
@@ -972,8 +972,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSig a, TypeSpec b) {
-			return Compare(b, a);
+		public bool Equals(TypeSig a, TypeSpec b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -982,12 +982,12 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSpec a, TypeSig b) {
+		public bool Equals(TypeSpec a, TypeSig b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			return Compare(a.TypeSig, b);
+			return Equals(a.TypeSig, b);
 		}
 
 		/// <summary>
@@ -996,8 +996,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(ExportedType a, TypeSpec b) {
-			return Compare(b, a);
+		public bool Equals(ExportedType a, TypeSpec b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -1006,12 +1006,12 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSpec a, ExportedType b) {
+		public bool Equals(TypeSpec a, ExportedType b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
-			return Compare(a.TypeSig, b);
+			return Equals(a.TypeSig, b);
 		}
 
 		/// <summary>
@@ -1020,8 +1020,8 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(ExportedType a, TypeSig b) {
-			return Compare(b, a);
+		public bool Equals(ExportedType a, TypeSig b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -1030,7 +1030,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSig a, ExportedType b) {
+		public bool Equals(TypeSig a, ExportedType b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -1039,15 +1039,15 @@ exit:
 				return false;
 			bool result;
 
-			//***************************************************************
+			//********************************************************
 			// If this code gets updated, update GetHashCode(TypeSig),
-			// Compare(TypeDef,TypeSig) and Compare(TypeRef,TypeSig) too
-			//***************************************************************
+			// Equals(TypeDef,TypeSig) and Equals(TypeRef,TypeSig) too
+			//********************************************************
 			var a2 = a as TypeDefOrRefSig;
 			if (a2 != null)
-				result = Compare(a2.TypeDefOrRef, b);
+				result = Equals(a2.TypeDefOrRef, b);
 			else if (a is ModifierSig || a is PinnedSig)
-				result = Compare(a.Next, b);
+				result = Equals(a.Next, b);
 			else
 				result = false;
 
@@ -1067,7 +1067,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeRef a, TypeRef b) {
+		public bool Equals(TypeRef a, TypeRef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1077,7 +1077,7 @@ exit:
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
-					CompareResolutionScope(a, b);
+					EqualsResolutionScope(a, b);
 
 			recursionCounter.Decrement();
 			return result;
@@ -1108,7 +1108,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(ExportedType a, ExportedType b) {
+		public bool Equals(ExportedType a, ExportedType b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1118,7 +1118,7 @@ exit:
 
 			bool result = UTF8String.CompareTo(a.TypeName, b.TypeName) == 0 &&
 					UTF8String.CompareTo(a.TypeNamespace, b.TypeNamespace) == 0 &&
-					CompareImplementation(a, b);
+					EqualsImplementation(a, b);
 
 			recursionCounter.Decrement();
 			return result;
@@ -1149,7 +1149,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeDef a, TypeDef b) {
+		public bool Equals(TypeDef a, TypeDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1159,8 +1159,8 @@ exit:
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
 					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
-					Compare(a.DeclaringType, b.DeclaringType) &&
-					(DontCompareTypeScope || Compare(a.OwnerModule, b.OwnerModule));
+					Equals(a.DeclaringType, b.DeclaringType) &&
+					(DontCompareTypeScope || Equals(a.OwnerModule, b.OwnerModule));
 
 			recursionCounter.Decrement();
 			return result;
@@ -1193,7 +1193,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSpec a, TypeSpec b) {
+		public bool Equals(TypeSpec a, TypeSpec b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1201,7 +1201,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = Compare(a.TypeSig, b.TypeSig);
+			bool result = Equals(a.TypeSig, b.TypeSig);
 
 			recursionCounter.Decrement();
 			return result;
@@ -1224,7 +1224,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool CompareResolutionScope(TypeRef a, TypeRef b) {
+		bool EqualsResolutionScope(TypeRef a, TypeRef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1241,7 +1241,7 @@ exit:
 
 			TypeRef ea = ra as TypeRef, eb = rb as TypeRef;
 			if (ea != null || eb != null) {	// if one of them is a TypeRef, the other one must be too
-				result = Compare(ea, eb);
+				result = Equals(ea, eb);
 				goto exit;
 			}
 			if (DontCompareTypeScope) {
@@ -1250,34 +1250,34 @@ exit:
 			}
 			IModule ma = ra as IModule, mb = rb as IModule;
 			if (ma != null && mb != null) {	// only compare if both are modules
-				result = Compare(ma, mb) && Compare(a.DefinitionAssembly, b.DefinitionAssembly);
+				result = Equals(ma, mb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly);
 				goto exit;
 			}
 			AssemblyRef aa = ra as AssemblyRef, ab = rb as AssemblyRef;
 			if (aa != null && ab != null) {	// only compare if both are assemblies
-				result = Compare((IAssembly)aa, (IAssembly)ab);
+				result = Equals((IAssembly)aa, (IAssembly)ab);
 				goto exit;
 			}
 			ModuleRef modRef = rb as ModuleRef;
 			if (aa != null && modRef != null) {
 				var bMod = b.OwnerModule;
-				result = bMod != null && Compare(aa, bMod.Assembly);
+				result = bMod != null && Equals(aa, bMod.Assembly);
 				goto exit;
 			}
 			modRef = ra as ModuleRef;
 			if (ab != null && modRef != null) {
 				var aMod = a.OwnerModule;
-				result = aMod != null && Compare(ab, aMod.Assembly);
+				result = aMod != null && Equals(ab, aMod.Assembly);
 				goto exit;
 			}
 			ModuleDef modDef = rb as ModuleDef;
 			if (aa != null && modDef != null) {
-				result = Compare(aa, modDef.Assembly);
+				result = Equals(aa, modDef.Assembly);
 				goto exit;
 			}
 			modDef = ra as ModuleDef;
 			if (ab != null && modDef != null) {
-				result = Compare(ab, modDef.Assembly);
+				result = Equals(ab, modDef.Assembly);
 				goto exit;
 			}
 
@@ -1293,7 +1293,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool CompareImplementation(ExportedType a, ExportedType b) {
+		bool EqualsImplementation(ExportedType a, ExportedType b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1310,7 +1310,7 @@ exit:
 
 			ExportedType ea = ia as ExportedType, eb = ib as ExportedType;
 			if (ea != null || eb != null) {	// if one of them is a ExportedType, the other one must be too
-				result = Compare(ea, eb);
+				result = Equals(ea, eb);
 				goto exit;
 			}
 			if (DontCompareTypeScope) {
@@ -1319,20 +1319,20 @@ exit:
 			}
 			FileDef fa = ia as FileDef, fb = ib as FileDef;
 			if (fa != null && fb != null) {	// only compare if both are files
-				result = Compare(fa, fb);
+				result = Equals(fa, fb);
 				goto exit;
 			}
 			AssemblyRef aa = ia as AssemblyRef, ab = ib as AssemblyRef;
 			if (aa != null && ab != null) {	// only compare if both are assemblies
-				result = Compare((IAssembly)aa, (IAssembly)ab);
+				result = Equals((IAssembly)aa, (IAssembly)ab);
 				goto exit;
 			}
 			if (fa != null && ab != null) {
-				result = Compare(a.DefinitionAssembly, ab);
+				result = Equals(a.DefinitionAssembly, ab);
 				goto exit;
 			}
 			if (fb != null && aa != null) {
-				result = Compare(b.DefinitionAssembly, aa);
+				result = Equals(b.DefinitionAssembly, aa);
 				goto exit;
 			}
 
@@ -1348,7 +1348,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool CompareScope(TypeRef a, ExportedType b) {
+		bool EqualsScope(TypeRef a, ExportedType b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -1366,27 +1366,27 @@ exit:
 			var ea = ra as TypeRef;
 			var eb = ib as ExportedType;
 			if (ea != null || eb != null) {	// If one is a nested type, the other one must be too
-				result = Compare(ea, eb);
+				result = Equals(ea, eb);
 				goto exit;
 			}
 			var ma = ra as IModule;
 			var fb = ib as FileDef;
 			if (ma != null && fb != null) {
-				result = Compare(ma, fb) && Compare(a.DefinitionAssembly, b.DefinitionAssembly);
+				result = Equals(ma, fb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly);
 				goto exit;
 			}
 			var aa = ra as AssemblyRef;
 			var ab = ib as AssemblyRef;
 			if (aa != null && ab != null) {
-				result = Compare(aa, ab);
+				result = Equals(aa, ab);
 				goto exit;
 			}
 			if (ma != null && ab != null) {
-				result = Compare(a.DefinitionAssembly, ab);
+				result = Equals(a.DefinitionAssembly, ab);
 				goto exit;
 			}
 			if (fb != null && aa != null) {
-				result = Compare(b.DefinitionAssembly, aa);
+				result = Equals(b.DefinitionAssembly, aa);
 				goto exit;
 			}
 
@@ -1402,7 +1402,7 @@ exit:
 		/// <param name="a">File #1</param>
 		/// <param name="b">File #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(FileDef a, FileDef b) {
+		bool Equals(FileDef a, FileDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1418,7 +1418,7 @@ exit:
 		/// <param name="a">Module</param>
 		/// <param name="b">File</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(IModule a, FileDef b) {
+		bool Equals(IModule a, FileDef b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -1434,7 +1434,7 @@ exit:
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(IModule a, IModule b) {
+		bool Equals(IModule a, IModule b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1450,13 +1450,13 @@ exit:
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(ModuleDef a, ModuleDef b) {
+		bool Equals(ModuleDef a, ModuleDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
 				return false;
 
-			bool result = Compare((IModule)a, (IModule)b) && Compare(a.Assembly, b.Assembly);
+			bool result = Equals((IModule)a, (IModule)b) && Equals(a.Assembly, b.Assembly);
 
 			recursionCounter.Decrement();
 			return result;
@@ -1468,7 +1468,7 @@ exit:
 		/// <param name="a">Assembly #1</param>
 		/// <param name="b">Assembly #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(IAssembly a, IAssembly b) {
+		bool Equals(IAssembly a, IAssembly b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1478,9 +1478,9 @@ exit:
 
 			//TODO: Case insensitive or case sensitive comparison???
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-				(!CompareAssemblyPublicKeyToken || Compare(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
+				(!CompareAssemblyPublicKeyToken || Equals(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
 				(!CompareAssemblyVersion || Utils.CompareTo(a.Version, b.Version) == 0) &&
-				(!CompareAssemblyLocale || CompareLocale(a.Locale, b.Locale));
+				(!CompareAssemblyLocale || EqualsLocale(a.Locale, b.Locale));
 
 			recursionCounter.Decrement();
 			return result;
@@ -1492,7 +1492,7 @@ exit:
 		/// <param name="a">Public key or token #1</param>
 		/// <param name="b">Public key or token #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(PublicKeyBase a, PublicKeyBase b) {
+		bool Equals(PublicKeyBase a, PublicKeyBase b) {
 			if (a == b)
 				return true;
 			var pkta = PublicKeyBase.ToPublicKeyToken(a);
@@ -1506,7 +1506,7 @@ exit:
 		/// <param name="a">Locale #1</param>
 		/// <param name="b">Locale #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool CompareLocale(UTF8String a, UTF8String b) {
+		bool EqualsLocale(UTF8String a, UTF8String b) {
 			//TODO: Case insensitive or case sensitive comparison???
 			return UTF8String.CompareTo(a, b) == 0;
 		}
@@ -1517,7 +1517,7 @@ exit:
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(TypeSig a, TypeSig b) {
+		public bool Equals(TypeSig a, TypeSig b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1560,20 +1560,20 @@ exit:
 				case ElementType.ByRef:
 				case ElementType.SZArray:
 				case ElementType.Pinned:
-					result = Compare(a.Next, b.Next);
+					result = Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.Array:
 					ArraySig ara = a as ArraySig, arb = b as ArraySig;
 					result = ara.Rank == arb.Rank &&
-							Compare(ara.Sizes, arb.Sizes) &&
-							Compare(ara.LowerBounds, arb.LowerBounds) &&
-							Compare(a.Next, b.Next);
+							Equals(ara.Sizes, arb.Sizes) &&
+							Equals(ara.LowerBounds, arb.LowerBounds) &&
+							Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.ValueType:
 				case ElementType.Class:
-					result = Compare((IType)(a as ClassOrValueTypeSig).TypeDefOrRef, (IType)(b as ClassOrValueTypeSig).TypeDefOrRef);
+					result = Equals((IType)(a as ClassOrValueTypeSig).TypeDefOrRef, (IType)(b as ClassOrValueTypeSig).TypeDefOrRef);
 					break;
 
 				case ElementType.Var:
@@ -1584,25 +1584,25 @@ exit:
 				case ElementType.GenericInst:
 					var gia = (GenericInstSig)a;
 					var gib = (GenericInstSig)b;
-					result = Compare(gia.GenericType, gib.GenericType) &&
-							Compare(gia.GenericArguments, gib.GenericArguments);
+					result = Equals(gia.GenericType, gib.GenericType) &&
+							Equals(gia.GenericArguments, gib.GenericArguments);
 					break;
 
 				case ElementType.FnPtr:
-					result = Compare((a as FnPtrSig).Signature, (b as FnPtrSig).Signature);
+					result = Equals((a as FnPtrSig).Signature, (b as FnPtrSig).Signature);
 					break;
 
 				case ElementType.CModReqd:
 				case ElementType.CModOpt:
-					result = Compare((IType)(a as ModifierSig).Modifier, (IType)(b as ModifierSig).Modifier) && Compare(a.Next, b.Next);
+					result = Equals((IType)(a as ModifierSig).Modifier, (IType)(b as ModifierSig).Modifier) && Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.ValueArray:
-					result = (a as ValueArraySig).Size == (b as ValueArraySig).Size && Compare(a.Next, b.Next);
+					result = (a as ValueArraySig).Size == (b as ValueArraySig).Size && Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.Module:
-					result = (a as ModuleSig).Index == (b as ModuleSig).Index && Compare(a.Next, b.Next);
+					result = (a as ModuleSig).Index == (b as ModuleSig).Index && Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.End:
@@ -1729,7 +1729,7 @@ exit:
 		/// <param name="a">Type list #1</param>
 		/// <param name="b">Type list #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(IList<TypeSig> a, IList<TypeSig> b) {
+		public bool Equals(IList<TypeSig> a, IList<TypeSig> b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1743,7 +1743,7 @@ exit:
 			else {
 				int i;
 				for (i = 0; i < a.Count; i++) {
-					if (!Compare(a[i], b[i]))
+					if (!Equals(a[i], b[i]))
 						break;
 				}
 				result = i == a.Count;
@@ -1772,7 +1772,7 @@ exit:
 			return (int)hash;
 		}
 
-		bool Compare(IList<uint> a, IList<uint> b) {
+		bool Equals(IList<uint> a, IList<uint> b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1797,7 +1797,7 @@ exit:
 			return (int)hash;
 		}
 
-		bool Compare(IList<int> a, IList<int> b) {
+		bool Equals(IList<int> a, IList<int> b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1828,7 +1828,7 @@ exit:
 		/// <param name="a">Sig #1</param>
 		/// <param name="b">Sig #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(CallingConventionSig a, CallingConventionSig b) {
+		public bool Equals(CallingConventionSig a, CallingConventionSig b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1849,22 +1849,22 @@ exit:
 				case CallingConvention.VarArg:
 				case CallingConvention.Property:
 					MethodBaseSig ma = a as MethodBaseSig, mb = b as MethodBaseSig;
-					result = ma != null && mb != null && Compare(ma, mb);
+					result = ma != null && mb != null && Equals(ma, mb);
 					break;
 
 				case CallingConvention.Field:
 					FieldSig fa = a as FieldSig, fb = b as FieldSig;
-					result = fa != null && fb != null && Compare(fa, fb);
+					result = fa != null && fb != null && Equals(fa, fb);
 					break;
 
 				case CallingConvention.LocalSig:
 					LocalSig la = a as LocalSig, lb = b as LocalSig;
-					result = la != null && lb != null && Compare(la, lb);
+					result = la != null && lb != null && Equals(la, lb);
 					break;
 
 				case CallingConvention.GenericInst:
 					GenericInstMethodSig ga = a as GenericInstMethodSig, gb = b as GenericInstMethodSig;
-					result = ga != null && gb != null && Compare(ga, gb);
+					result = ga != null && gb != null && Equals(ga, gb);
 					break;
 
 				case CallingConvention.Unmanaged:
@@ -1934,7 +1934,7 @@ exit:
 		/// <param name="a">Method/property #1</param>
 		/// <param name="b">Method/property #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(MethodBaseSig a, MethodBaseSig b) {
+		public bool Equals(MethodBaseSig a, MethodBaseSig b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1943,10 +1943,10 @@ exit:
 				return false;
 
 			bool result = a.GetCallingConvention() == b.GetCallingConvention() &&
-					Compare(a.RetType, b.RetType) &&
-					Compare(a.Params, b.Params) &&
+					Equals(a.RetType, b.RetType) &&
+					Equals(a.Params, b.Params) &&
 					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
-					(!CompareSentinelParams || Compare(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
+					(!CompareSentinelParams || Equals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
 
 			recursionCounter.Decrement();
 			return result;
@@ -1982,7 +1982,7 @@ exit:
 		/// <param name="a">Field sig #1</param>
 		/// <param name="b">Field sig #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(FieldSig a, FieldSig b) {
+		public bool Equals(FieldSig a, FieldSig b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -1990,7 +1990,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Compare(a.Type, b.Type);
+			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Equals(a.Type, b.Type);
 
 			recursionCounter.Decrement();
 			return result;
@@ -2020,7 +2020,7 @@ exit:
 		/// <param name="a">Local sig #1</param>
 		/// <param name="b">Local sig #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(LocalSig a, LocalSig b) {
+		public bool Equals(LocalSig a, LocalSig b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2028,7 +2028,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Compare(a.Locals, b.Locals);
+			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Equals(a.Locals, b.Locals);
 
 			recursionCounter.Decrement();
 			return result;
@@ -2058,7 +2058,7 @@ exit:
 		/// <param name="a">Generic inst method #1</param>
 		/// <param name="b">Generic inst method #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(GenericInstMethodSig a, GenericInstMethodSig b) {
+		public bool Equals(GenericInstMethodSig a, GenericInstMethodSig b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2066,7 +2066,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Compare(a.GenericArguments, b.GenericArguments);
+			bool result = a.GetCallingConvention() == b.GetCallingConvention() && Equals(a.GenericArguments, b.GenericArguments);
 
 			recursionCounter.Decrement();
 			return result;
@@ -2096,7 +2096,7 @@ exit:
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(IMethod a, IMethod b) {
+		public bool Equals(IMethod a, IMethod b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2107,25 +2107,25 @@ exit:
 
 			MethodDef mda = a as MethodDef, mdb = b as MethodDef;
 			if (mda != null && mdb != null) {
-				result = Compare(mda, mdb);
+				result = Equals(mda, mdb);
 				goto exit;
 			}
 			MemberRef mra = a as MemberRef, mrb = b as MemberRef;
 			if (mra != null && mrb != null) {
-				result = Compare(mra, mrb);
+				result = Equals(mra, mrb);
 				goto exit;
 			}
 			MethodSpec msa = a as MethodSpec, msb = b as MethodSpec;
 			if (msa != null && msb != null) {
-				result = Compare(msa, msb);
+				result = Equals(msa, msb);
 				goto exit;
 			}
 			if (mda != null && mrb != null) {
-				result = Compare(mda, mrb);
+				result = Equals(mda, mrb);
 				goto exit;
 			}
 			if (mra != null && mdb != null) {
-				result = Compare(mdb, mra);
+				result = Equals(mdb, mra);
 				goto exit;
 			}
 			result = false;
@@ -2173,8 +2173,8 @@ exit:
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(MemberRef a, MethodDef b) {
-			return Compare(b, a);
+		public bool Equals(MemberRef a, MethodDef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -2183,7 +2183,7 @@ exit:
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(MethodDef a, MemberRef b) {
+		public bool Equals(MethodDef a, MemberRef b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -2195,8 +2195,8 @@ exit:
 			//		tokens must be used to call the method.
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Signature, b.Signature) &&
-					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.Class));
+					Equals(a.Signature, b.Signature) &&
+					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2208,7 +2208,7 @@ exit:
 		/// <param name="a">Method #1</param>
 		/// <param name="b">Method #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(MethodDef a, MethodDef b) {
+		public bool Equals(MethodDef a, MethodDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2217,8 +2217,8 @@ exit:
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Signature, b.Signature) &&
-					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
+					Equals(a.Signature, b.Signature) &&
+					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2253,7 +2253,7 @@ exit:
 		/// <param name="a"><c>MemberRef</c> #1</param>
 		/// <param name="b"><c>MemberRef</c> #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(MemberRef a, MemberRef b) {
+		public bool Equals(MemberRef a, MemberRef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2262,8 +2262,8 @@ exit:
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Signature, b.Signature) &&
-					(!CompareMethodFieldDeclaringType || Compare(a.Class, b.Class));
+					Equals(a.Signature, b.Signature) &&
+					(!CompareMethodFieldDeclaringType || Equals(a.Class, b.Class));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2298,7 +2298,7 @@ exit:
 		/// <param name="a"><c>MethodSpec</c> #1</param>
 		/// <param name="b"><c>MethodSpec</c> #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(MethodSpec a, MethodSpec b) {
+		public bool Equals(MethodSpec a, MethodSpec b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2306,7 +2306,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = Compare(a.Method, b.Method) && Compare(a.Instantiation, b.Instantiation);
+			bool result = Equals(a.Method, b.Method) && Equals(a.Instantiation, b.Instantiation);
 
 			recursionCounter.Decrement();
 			return result;
@@ -2335,7 +2335,7 @@ exit:
 		/// <param name="a"><c>MemberRefParent</c> #1</param>
 		/// <param name="b"><c>MemberRefParent</c> #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Compare(IMemberRefParent a, IMemberRefParent b) {
+		bool Equals(IMemberRefParent a, IMemberRefParent b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2346,28 +2346,28 @@ exit:
 
 			ITypeDefOrRef ita = a as ITypeDefOrRef, itb = b as ITypeDefOrRef;
 			if (ita != null && itb != null) {
-				result = Compare((IType)ita, (IType)itb);
+				result = Equals((IType)ita, (IType)itb);
 				goto exit;
 			}
 			ModuleRef moda = a as ModuleRef, modb = b as ModuleRef;
 			if (moda != null && modb != null) {
 				//TODO: Also compare assembly
-				result = Compare((IModule)moda, (IModule)modb);
+				result = Equals((IModule)moda, (IModule)modb);
 				goto exit;
 			}
 			MethodDef ma = a as MethodDef, mb = b as MethodDef;
 			if (ma != null && mb != null) {
-				result = Compare(ma, mb);
+				result = Equals(ma, mb);
 				goto exit;
 			}
 			var td = a as TypeDef;
 			if (td != null && modb != null) {
-				result = CompareGlobal(td, modb);
+				result = EqualsGlobal(td, modb);
 				goto exit;
 			}
 			td = b as TypeDef;
 			if (td != null && moda != null) {
-				result = CompareGlobal(td, moda);
+				result = EqualsGlobal(td, moda);
 				goto exit;
 			}
 
@@ -2415,7 +2415,7 @@ exit:
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(IField a, IField b) {
+		public bool Equals(IField a, IField b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2426,20 +2426,20 @@ exit:
 
 			FieldDef fa = a as FieldDef, fb = b as FieldDef;
 			if (fa != null && fb != null) {
-				result = Compare(fa, fb);
+				result = Equals(fa, fb);
 				goto exit;
 			}
 			MemberRef ma = a as MemberRef, mb = b as MemberRef;
 			if (ma != null && mb != null) {
-				result = Compare(ma, mb);
+				result = Equals(ma, mb);
 				goto exit;
 			}
 			if (fa != null && mb != null) {
-				result = Compare(fa, mb);
+				result = Equals(fa, mb);
 				goto exit;
 			}
 			if (fb != null && ma != null) {
-				result = Compare(fb, ma);
+				result = Equals(fb, ma);
 				goto exit;
 			}
 
@@ -2483,8 +2483,8 @@ exit:
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(MemberRef a, FieldDef b) {
-			return Compare(b, a);
+		public bool Equals(MemberRef a, FieldDef b) {
+			return Equals(b, a);
 		}
 
 		/// <summary>
@@ -2493,7 +2493,7 @@ exit:
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(FieldDef a, MemberRef b) {
+		public bool Equals(FieldDef a, MemberRef b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -2505,8 +2505,8 @@ exit:
 			//		tokens must be used to access the field
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Signature, b.Signature) &&
-					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.Class));
+					Equals(a.Signature, b.Signature) &&
+					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2518,7 +2518,7 @@ exit:
 		/// <param name="a">Field #1</param>
 		/// <param name="b">Field #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(FieldDef a, FieldDef b) {
+		public bool Equals(FieldDef a, FieldDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2527,8 +2527,8 @@ exit:
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Signature, b.Signature) &&
-					(!CompareMethodFieldDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
+					Equals(a.Signature, b.Signature) &&
+					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2563,7 +2563,7 @@ exit:
 		/// <param name="a">Property #1</param>
 		/// <param name="b">Property #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(PropertyDef a, PropertyDef b) {
+		public bool Equals(PropertyDef a, PropertyDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2572,8 +2572,8 @@ exit:
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare(a.Type, b.Type) &&
-					(!ComparePropertyDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
+					Equals(a.Type, b.Type) &&
+					(!ComparePropertyDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2605,7 +2605,7 @@ exit:
 		/// <param name="a">Event #1</param>
 		/// <param name="b">Event #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Compare(EventDef a, EventDef b) {
+		public bool Equals(EventDef a, EventDef b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -2614,8 +2614,8 @@ exit:
 				return false;
 
 			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					Compare((IType)a.Type, (IType)b.Type) &&
-					(!CompareEventDeclaringType || Compare(a.DeclaringType, b.DeclaringType));
+					Equals((IType)a.Type, (IType)b.Type) &&
+					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2642,7 +2642,7 @@ exit:
 		}
 
 		// Compares a with b, and a must be the global type
-		bool CompareGlobal(TypeDef a, ModuleRef b) {
+		bool EqualsGlobal(TypeDef a, ModuleRef b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
 			if (a == null || b == null)
@@ -2650,7 +2650,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = a.IsGlobalModuleType && Compare((IModule)a.OwnerModule, (IModule)b);
+			bool result = a.IsGlobalModuleType && Equals((IModule)a.OwnerModule, (IModule)b);
 
 			recursionCounter.Decrement();
 			return result;
