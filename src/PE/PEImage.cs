@@ -56,6 +56,11 @@ namespace dot10.PE {
 		}
 
 		/// <inheritdoc/>
+		public string FileName {
+			get { return imageStreamCreator.FileName; }
+		}
+
+		/// <inheritdoc/>
 		public ImageDosHeader ImageDosHeader {
 			get { return peInfo.ImageDosHeader; }
 		}

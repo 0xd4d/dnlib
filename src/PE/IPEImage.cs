@@ -9,6 +9,11 @@ namespace dot10.PE {
 	/// </summary>
 	public interface IPEImage : IDisposable {
 		/// <summary>
+		/// The file name or <c>null</c> if data is not from a file
+		/// </summary>
+		string FileName { get; }
+
+		/// <summary>
 		/// Returns the DOS header
 		/// </summary>
 		ImageDosHeader ImageDosHeader { get; }
