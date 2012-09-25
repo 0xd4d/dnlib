@@ -102,6 +102,20 @@ namespace dot10.DotNet {
 		public abstract IImplementation Implementation { get; set; }
 
 		/// <summary>
+		/// <c>true</c> if it's nested within another <see cref="ExportedType"/>
+		/// </summary>
+		public bool IsNested {
+			get { return DeclaringType != null; }
+		}
+
+		/// <summary>
+		/// Gets the declaring type, if any
+		/// </summary>
+		public ExportedType DeclaringType {
+			get { return Implementation as ExportedType; }
+		}
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {

@@ -105,7 +105,14 @@ namespace dot10.DotNet {
 		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
 		/// </summary>
 		public bool IsNested {
-			get { return ResolutionScope is TypeRef; }
+			get { return DeclaringType != null; }
+		}
+
+		/// <summary>
+		/// Gets the declaring type, if any
+		/// </summary>
+		public TypeRef DeclaringType {
+			get { return ResolutionScope as TypeRef; }
 		}
 
 		/// <inheritdoc/>
