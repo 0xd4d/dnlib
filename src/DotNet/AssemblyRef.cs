@@ -293,7 +293,7 @@ namespace dot10.DotNet {
 		/// <param name="name">Simple name</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
 		public AssemblyRefUser(UTF8String name)
-			: this(name, new Version()) {
+			: this(name, new Version(0, 0, 0, 0)) {
 		}
 
 		/// <summary>
@@ -391,7 +391,7 @@ namespace dot10.DotNet {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
 
-			this.version = asmName.Version ?? new Version();
+			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			if (!asmName.PublicKey.IsNullOrEmpty)
 				this.publicKeyOrToken = asmName.PublicKey;
 			else

@@ -186,7 +186,7 @@ namespace dot10.DotNet {
 		/// is an invalid version</returns>
 		static Version ParseVersion(string versionString) {
 			try {
-				return new Version(versionString);
+				return Utils.CreateVersionWithNoUndefinedValues(new Version(versionString));
 			}
 			catch {
 				return null;

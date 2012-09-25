@@ -466,7 +466,7 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public AssemblyDefUser()
-			: this(UTF8String.Empty, new Version()) {
+			: this(UTF8String.Empty, new Version(0, 0, 0, 0)) {
 		}
 
 		/// <summary>
@@ -564,7 +564,7 @@ namespace dot10.DotNet {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
 			this.name = asmName.Name;
-			this.version = asmName.Version ?? new Version();
+			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.publicKey = asmName.PublicKey ?? new PublicKey();
 			this.locale = asmName.Locale;
 			this.flags = AssemblyFlags.None;
