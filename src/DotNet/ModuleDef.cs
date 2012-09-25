@@ -94,6 +94,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the global (aka. &lt;Module&gt;) type or <c>null</c> if there are no types
+		/// </summary>
+		public TypeDef GlobalType {
+			get { return Types.Count == 0 ? null : Types[0]; }
+		}
+
+		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a file
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>

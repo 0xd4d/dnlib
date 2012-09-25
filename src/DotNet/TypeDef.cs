@@ -469,7 +469,7 @@ namespace dot10.DotNet {
 		public bool IsGlobalModuleType {
 			get {
 				var mod = OwnerModule;
-				return mod != null && mod.Types.Count != 0 && mod.Types[0] == this;
+				return mod != null && mod.GlobalType == this;
 			}
 		}
 
