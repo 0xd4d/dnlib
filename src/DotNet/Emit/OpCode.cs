@@ -49,7 +49,7 @@
 		/// Gets the size of the opcode. It's either 1 or 2 bytes.
 		/// </summary>
 		public int Size {
-			get { return Code < (Code)0x100 ? 1 : 2; }
+			get { return Code < (Code)0x100 || Code == Code.UNKNOWN ? 1 : 2; }
 		}
 
 		internal OpCode(string name, Code code, OperandType operandType, FlowControl flowControl, OpCodeType opCodeType, StackBehaviour push, StackBehaviour pop) {
