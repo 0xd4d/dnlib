@@ -46,6 +46,30 @@ namespace dot10.DotNet {
 			get { return ownerModule; }
 		}
 
+		/// <summary>
+		/// Gets the definition module, i.e., the module which it references, or <c>null</c>
+		/// if the module can't be found.
+		/// </summary>
+		public ModuleDef DefinitionModule {
+			get {
+				if (ownerModule == null)
+					return null;
+				//TODO: Case sensitive or case insensitive comparison?
+				if (UTF8String.CompareTo(Name, ownerModule.Name) == 0)
+					return ownerModule;
+				var asm = DefinitionAssembly;
+				return asm == null ? null : asm.FindModule(Name);
+			}
+		}
+
+		/// <summary>
+		/// Gets the definition assembly, i.e., the assembly of the module it references, or
+		/// <c>null</c> if the assembly can't be found.
+		/// </summary>
+		public AssemblyDef DefinitionAssembly {
+			get { return ownerModule == null ? null : ownerModule.Assembly; }
+		}
+
 		/// <inheritdoc/>
 		public string FullName {
 			get { return UTF8String.ToSystemStringOrEmpty(Name); }
