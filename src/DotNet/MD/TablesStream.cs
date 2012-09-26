@@ -114,12 +114,15 @@ namespace dot10.DotNet.MD {
 			validMask = imageStream.ReadUInt64();
 			sortedMask = imageStream.ReadUInt64();
 
-			var tableInfos = CreateTables();
+			int maxPresentTables;
+			var tableInfos = CreateTables(out maxPresentTables);
 			mdTables = new MDTable[tableInfos.Length];
 
 			ulong valid = validMask;
 			for (int i = 0; i < 64; valid >>= 1, i++) {
 				uint rows = (valid & 1) == 0 ? 0 : imageStream.ReadUInt32();
+				if (i >= maxPresentTables)
+					rows = 0;
 				if (i < mdTables.Length)
 					mdTables[i] = new MDTable((Table)i, rows, tableInfos[i]);
 			}
@@ -197,12 +200,12 @@ namespace dot10.DotNet.MD {
 			throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));
 		}
 
-		TableInfo[] CreateTables() {
+		TableInfo[] CreateTables(out int maxPresentTables) {
 			// v1.0 doesn't support generics. 1.1 supports generics but the GenericParam
 			// table is different from the 2.0 GenericParam table.
-			int maxTables = (majorVersion == 1 && minorVersion == 0) ? (int)Table.NestedClass + 1 : (int)Table.GenericParamConstraint + 1;
+			maxPresentTables = (majorVersion == 1 && minorVersion == 0) ? (int)Table.NestedClass + 1 : (int)Table.GenericParamConstraint + 1;
 
-			var tableInfos = new TableInfo[maxTables];
+			var tableInfos = new TableInfo[(int)Table.GenericParamConstraint + 1];
 
 			tableInfos[(int)Table.Module] = new TableInfo(Table.Module, "Module", new ColumnInfo[] {
 				new ColumnInfo("Generation", ColumnSize.UInt16),
@@ -410,33 +413,31 @@ namespace dot10.DotNet.MD {
 				new ColumnInfo("NestedClass", ColumnSize.TypeDef),
 				new ColumnInfo("EnclosingClass", ColumnSize.TypeDef),
 			});
-			if (maxTables >= (int)Table.GenericParam) {
-				if (majorVersion == 1 && minorVersion == 1) {
-					tableInfos[(int)Table.GenericParam] = new TableInfo(Table.GenericParam, "GenericParam", new ColumnInfo[] {
-						new ColumnInfo("Number", ColumnSize.UInt16),
-						new ColumnInfo("Flags", ColumnSize.UInt16),
-						new ColumnInfo("Owner", ColumnSize.TypeOrMethodDef),
-						new ColumnInfo("Name", ColumnSize.Strings),
-						new ColumnInfo("Kind", ColumnSize.TypeDefOrRef),
-					});
-				}
-				else {
-					tableInfos[(int)Table.GenericParam] = new TableInfo(Table.GenericParam, "GenericParam", new ColumnInfo[] {
-						new ColumnInfo("Number", ColumnSize.UInt16),
-						new ColumnInfo("Flags", ColumnSize.UInt16),
-						new ColumnInfo("Owner", ColumnSize.TypeOrMethodDef),
-						new ColumnInfo("Name", ColumnSize.Strings),
-					});
-				}
-				tableInfos[(int)Table.MethodSpec] = new TableInfo(Table.MethodSpec, "MethodSpec", new ColumnInfo[] {
-					new ColumnInfo("Method", ColumnSize.MethodDefOrRef),
-					new ColumnInfo("Instantiation", ColumnSize.Blob),
-				});
-				tableInfos[(int)Table.GenericParamConstraint] = new TableInfo(Table.GenericParamConstraint, "GenericParamConstraint", new ColumnInfo[] {
-					new ColumnInfo("Owner", ColumnSize.GenericParam),
-					new ColumnInfo("Constraint", ColumnSize.TypeDefOrRef),
+			if (majorVersion == 1 && minorVersion == 1) {
+				tableInfos[(int)Table.GenericParam] = new TableInfo(Table.GenericParam, "GenericParam", new ColumnInfo[] {
+					new ColumnInfo("Number", ColumnSize.UInt16),
+					new ColumnInfo("Flags", ColumnSize.UInt16),
+					new ColumnInfo("Owner", ColumnSize.TypeOrMethodDef),
+					new ColumnInfo("Name", ColumnSize.Strings),
+					new ColumnInfo("Kind", ColumnSize.TypeDefOrRef),
 				});
 			}
+			else {
+				tableInfos[(int)Table.GenericParam] = new TableInfo(Table.GenericParam, "GenericParam", new ColumnInfo[] {
+					new ColumnInfo("Number", ColumnSize.UInt16),
+					new ColumnInfo("Flags", ColumnSize.UInt16),
+					new ColumnInfo("Owner", ColumnSize.TypeOrMethodDef),
+					new ColumnInfo("Name", ColumnSize.Strings),
+				});
+			}
+			tableInfos[(int)Table.MethodSpec] = new TableInfo(Table.MethodSpec, "MethodSpec", new ColumnInfo[] {
+				new ColumnInfo("Method", ColumnSize.MethodDefOrRef),
+				new ColumnInfo("Instantiation", ColumnSize.Blob),
+			});
+			tableInfos[(int)Table.GenericParamConstraint] = new TableInfo(Table.GenericParamConstraint, "GenericParamConstraint", new ColumnInfo[] {
+				new ColumnInfo("Owner", ColumnSize.GenericParam),
+				new ColumnInfo("Constraint", ColumnSize.TypeDefOrRef),
+			});
 			return tableInfos;
 		}
 

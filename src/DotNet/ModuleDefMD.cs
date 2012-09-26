@@ -268,11 +268,9 @@ namespace dot10.DotNet {
 			listExportedTypeMD = new SimpleLazyList<ExportedTypeMD>(ts.Get(Table.ExportedType).Rows, rid2 => new ExportedTypeMD(this, rid2));
 			listManifestResourceMD = new SimpleLazyList<ManifestResourceMD>(ts.Get(Table.ManifestResource).Rows, rid2 => new ManifestResourceMD(this, rid2));
 			listNestedClassMD = new SimpleLazyList<NestedClassMD>(ts.Get(Table.NestedClass).Rows, rid2 => new NestedClassMD(this, rid2));
-			if (ts.Get(Table.GenericParam) != null) {
-				listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.Get(Table.GenericParam).Rows, rid2 => new GenericParamMD(this, rid2));
-				listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, rid2 => new MethodSpecMD(this, rid2));
-				listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
-			}
+			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.Get(Table.GenericParam).Rows, rid2 => new GenericParamMD(this, rid2));
+			listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, rid2 => new MethodSpecMD(this, rid2));
+			listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
 		}
 
 		/// <summary>
