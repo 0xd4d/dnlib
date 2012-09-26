@@ -50,6 +50,13 @@ namespace dot10.IO {
 			}
 		}
 
+		/// <summary>
+		/// Creates an empty <see cref="MemoryImageStream"/> instance
+		/// </summary>
+		public static MemoryImageStream CreateEmpty() {
+			return new MemoryImageStream(0, new byte[0], 0, 0);
+		}
+
 		/// <inheritdoc/>
 		public byte[] ReadBytes(int size) {
 			if (position + size < position || position + size > dataEnd)

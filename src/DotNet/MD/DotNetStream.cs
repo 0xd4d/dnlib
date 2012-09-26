@@ -29,7 +29,7 @@ namespace dot10.DotNet.MD {
 		/// Default constructor
 		/// </summary>
 		public DotNetStream() {
-			this.imageStream = new MemoryImageStream(0, new byte[0], 0, 0);
+			this.imageStream = MemoryImageStream.CreateEmpty();
 			this.streamHeader = null;
 		}
 
