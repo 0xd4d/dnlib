@@ -11,6 +11,22 @@ namespace dot10.DotNet {
 		ManifestResourceAttributes flags;
 
 		/// <summary>
+		/// Gets/sets the name
+		/// </summary>
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the flags
+		/// </summary>
+		public ManifestResourceAttributes Flags {
+			get { return flags; }
+			set { flags = value; }
+		}
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public ManifestResourceAttributes Visibility {
@@ -165,6 +181,11 @@ namespace dot10.DotNet {
 				dataStream.Dispose();
 			dataStream = null;
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("{0} - size: {1}", UTF8String.ToSystemStringOrEmpty(Name), dataStream.Length);
+		}
 	}
 
 	/// <summary>
@@ -206,6 +227,11 @@ namespace dot10.DotNet {
 		public AssemblyLinkedResource(string name, AssemblyRef asmRef, ManifestResourceAttributes flags)
 			: this(new UTF8String(name), asmRef, flags) {
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("{0} - assembly: {1}", UTF8String.ToSystemStringOrEmpty(Name), asmRef.FullName);
+		}
 	}
 
 	/// <summary>
@@ -241,6 +267,11 @@ namespace dot10.DotNet {
 		/// <param name="flags">Resource flags</param>
 		public LinkedResource(string name, string fileName, ManifestResourceAttributes flags)
 			: this(new UTF8String(name), new UTF8String(fileName), flags) {
+		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("{0} - file: {1}", UTF8String.ToSystemStringOrEmpty(Name), UTF8String.ToSystemStringOrEmpty(fileName));
 		}
 	}
 }
