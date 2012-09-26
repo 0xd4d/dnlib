@@ -1408,8 +1408,7 @@ exit:
 			if (a == null || b == null)
 				return false;
 
-			//TODO: Case insensitive or case sensitive comparison???
-			return UTF8String.CompareTo(a.Name, b.Name) == 0;
+			return UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0;
 		}
 
 		/// <summary>
@@ -1424,8 +1423,7 @@ exit:
 			if (a == null || b == null)
 				return false;
 
-			//TODO: Case insensitive or case sensitive comparison???
-			return UTF8String.CompareTo(a.Name, b.Name) == 0;
+			return UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0;
 		}
 
 		/// <summary>
@@ -1440,8 +1438,7 @@ exit:
 			if (a == null || b == null)
 				return false;
 
-			//TODO: Case insensitive or case sensitive comparison???
-			return UTF8String.CompareTo(a.Name, b.Name) == 0;
+			return UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0;
 		}
 
 		/// <summary>
@@ -1476,8 +1473,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			//TODO: Case insensitive or case sensitive comparison???
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0 &&
 				(!CompareAssemblyPublicKeyToken || Equals(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
 				(!CompareAssemblyVersion || Utils.CompareTo(a.Version, b.Version) == 0) &&
 				(!CompareAssemblyLocale || EqualsLocale(a.Locale, b.Locale));
@@ -1507,8 +1503,7 @@ exit:
 		/// <param name="b">Locale #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		bool EqualsLocale(UTF8String a, UTF8String b) {
-			//TODO: Case insensitive or case sensitive comparison???
-			return UTF8String.CompareTo(a, b) == 0;
+			return UTF8String.CaseInsensitiveCompareTo(a, b) == 0;
 		}
 
 		/// <summary>

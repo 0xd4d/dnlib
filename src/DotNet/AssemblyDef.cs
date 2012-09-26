@@ -260,8 +260,7 @@ namespace dot10.DotNet {
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
 		public ModuleDef FindModule(UTF8String name) {
 			foreach (var module in Modules) {
-				//TODO: Case sensitive or case insensitive comparison???
-				if (UTF8String.CompareTo(module.Name, name) == 0)
+				if (UTF8String.CaseInsensitiveCompareTo(module.Name, name) == 0)
 					return module;
 			}
 			return null;

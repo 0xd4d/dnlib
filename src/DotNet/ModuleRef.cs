@@ -54,8 +54,7 @@ namespace dot10.DotNet {
 			get {
 				if (ownerModule == null)
 					return null;
-				//TODO: Case sensitive or case insensitive comparison?
-				if (UTF8String.CompareTo(Name, ownerModule.Name) == 0)
+				if (UTF8String.CaseInsensitiveCompareTo(Name, ownerModule.Name) == 0)
 					return ownerModule;
 				var asm = DefinitionAssembly;
 				return asm == null ? null : asm.FindModule(Name);
