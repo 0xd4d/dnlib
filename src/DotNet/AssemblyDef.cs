@@ -249,7 +249,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of module</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
-		ModuleDef FindModule(string name) {
+		public ModuleDef FindModule(string name) {
 			return FindModule(new UTF8String(name));
 		}
 
@@ -258,7 +258,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of module</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
-		ModuleDef FindModule(UTF8String name) {
+		public ModuleDef FindModule(UTF8String name) {
 			foreach (var module in Modules) {
 				//TODO: Case sensitive or case insensitive comparison???
 				if (UTF8String.CompareTo(module.Name, name) == 0)
