@@ -103,13 +103,33 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Compares two <see cref="UTF8String"/> instances
+		/// Compares two <see cref="UTF8String"/> instances (case sensitive)
 		/// </summary>
 		/// <param name="a">Instance #1 or <c>null</c></param>
 		/// <param name="b">Instance #2 or <c>null</c></param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
 		public static int CompareTo(UTF8String a, UTF8String b) {
 			return Utils.CompareTo((object)a == null ? null : a.data, (object)b == null ? null : b.data);
+		}
+
+		/// <summary>
+		/// Compares two <see cref="UTF8String"/> instances (case insensitive)
+		/// </summary>
+		/// <param name="a">Instance #1 or <c>null</c></param>
+		/// <param name="b">Instance #2 or <c>null</c></param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		public static int CaseInsensitiveCompareTo(UTF8String a, UTF8String b) {
+			if ((object)a == (object)b)
+				return 0;
+			var sa = ToSystemString(a);
+			var sb = ToSystemString(b);
+			if ((object)sa == (object)sb)
+				return 0;
+			if (sa == null)
+				return -1;
+			if (sb == null)
+				return 1;
+			return sa.ToLowerInvariant().CompareTo(sb.ToLowerInvariant());
 		}
 
 		/// <summary>Overloaded operator</summary>
