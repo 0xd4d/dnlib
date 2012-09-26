@@ -4,6 +4,7 @@ using System.IO;
 using dot10.PE;
 using dot10.DotNet.MD;
 using dot10.DotNet.Emit;
+using dot10.IO;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -14,7 +15,6 @@ namespace dot10.DotNet {
 		DotNetFile dnFile;
 
 		RandomRidList moduleRidList;
-		RandomRidList resourceRidList;
 
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
 		SimpleLazyList<TypeRefMD> listTypeRefMD;
@@ -119,6 +119,28 @@ namespace dot10.DotNet {
 					types = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[index]));
 				}
 				return types;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IList<ExportedType> ExportedTypes {
+			get {
+				if (exportedTypes == null) {
+					var list = MetaData.GetExportedTypeRidList();
+					exportedTypes = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
+				}
+				return exportedTypes;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IList<Resource> Resources {
+			get {
+				if (resources == null) {
+					var table = TablesStream.Get(Table.ManifestResource);
+					resources = new LazyList<Resource>((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
+				}
+				return resources;
 			}
 		}
 
@@ -251,9 +273,6 @@ namespace dot10.DotNet {
 				listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, rid2 => new MethodSpecMD(this, rid2));
 				listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
 			}
-
-			RidList list = MetaData.GetExportedTypeRidList();
-			exportedTypes = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
 		}
 
 		/// <summary>
@@ -1128,16 +1147,15 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		internal RidList GetModuleRidList() {
-			InitializeModuleAndResourceLists();
+			InitializeModuleList();
 			return moduleRidList;
 		}
 
-		void InitializeModuleAndResourceLists() {
+		void InitializeModuleList() {
 			if (moduleRidList != null)
 				return;
 			var table = TablesStream.Get(Table.File);
 			moduleRidList = new RandomRidList((int)table.Rows);
-			resourceRidList = new RandomRidList((int)table.Rows);
 
 			var baseDir = GetBaseDirectoryOfImage();
 			for (uint fileRid = 1; fileRid <= table.Rows; fileRid++) {
@@ -1149,8 +1167,6 @@ namespace dot10.DotNet {
 					if (pathName != null)
 						moduleRidList.Add(fileRid);
 				}
-				else
-					resourceRidList.Add(fileRid);
 			}
 		}
 
@@ -1187,6 +1203,44 @@ namespace dot10.DotNet {
 			catch (ArgumentException) {
 			}
 			return null;
+		}
+
+		Resource CreateResource(uint rid) {
+			var mr = ResolveManifestResource(rid);
+			if (mr == null)
+				return null;
+			if (mr.Implementation == null)
+				return new EmbeddedResource(mr.Name, CreateResourceStream(mr.Offset), mr.Flags);
+			var file = mr.Implementation as FileDef;
+			if (file != null)
+				return new LinkedResource(mr.Name, file.Name, mr.Flags);
+			var asmRef = mr.Implementation as AssemblyRef;
+			if (asmRef != null)
+				return new AssemblyLinkedResource(mr.Name, asmRef, mr.Flags);
+			return new EmbeddedResource(mr.Name, MemoryImageStream.CreateEmpty(), mr.Flags);
+		}
+
+		IImageStream CreateResourceStream(uint offset) {
+			var peImage = dnFile.MetaData.PEImage;
+			var cor20Header = dnFile.MetaData.ImageCor20Header;
+			var resources = cor20Header.Resources;
+			if (resources.VirtualAddress == 0 || resources.Size == 0)
+				return MemoryImageStream.CreateEmpty();
+			var fs = peImage.CreateFullStream();
+
+			var resourceOffset = (long)peImage.ToFileOffset(resources.VirtualAddress);
+			if (resourceOffset <= 0 || resourceOffset + offset < resourceOffset)
+				return MemoryImageStream.CreateEmpty();
+			if (resourceOffset + offset + 3 < resourceOffset || resourceOffset + offset + 3 >= fs.Length)
+				return MemoryImageStream.CreateEmpty();
+			fs.Position = resourceOffset + offset;
+			uint length = fs.ReadUInt32();
+			if (length == 0 || fs.Position + length - 1 < fs.Position || fs.Position + length - 1 >= fs.Length)
+				return MemoryImageStream.CreateEmpty();
+			if (fs.Position - resourceOffset + length - 1 >= resources.Size)
+				return MemoryImageStream.CreateEmpty();
+
+			return peImage.CreateStream((FileOffset)fs.Position, length);
 		}
 	}
 }

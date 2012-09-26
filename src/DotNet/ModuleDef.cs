@@ -74,6 +74,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<ExportedType> ExportedTypes { get; }
 
+		/// <summary>
+		/// Gets a list of all <see cref="Resource"/>s
+		/// </summary>
+		public abstract IList<Resource> Resources { get; }
+
 		/// <inheritdoc/>
 		public string FullName {
 			get { return UTF8String.ToSystemStringOrEmpty(Name); }
@@ -187,6 +192,13 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
+			if (!disposing)
+				return;
+			foreach (var resource in Resources) {
+				if (resource != null)
+					resource.Dispose();
+			}
+			Resources.Clear();
 		}
 
 		/// <summary>
@@ -258,6 +270,7 @@ namespace dot10.DotNet {
 		AssemblyDef assembly;
 		LazyList<TypeDef> types;
 		List<ExportedType> exportedTypes = new List<ExportedType>();
+		IList<Resource> resources = new List<Resource>();
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -303,6 +316,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<ExportedType> ExportedTypes {
 			get { return exportedTypes; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<Resource> Resources {
+			get { return resources; }
 		}
 
 		/// <summary>
@@ -378,6 +396,8 @@ namespace dot10.DotNet {
 		protected IList<TypeDef> types;
 		/// <summary></summary>
 		protected IList<ExportedType> exportedTypes;
+		/// <summary></summary>
+		protected IList<Resource> resources;
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -425,6 +445,11 @@ namespace dot10.DotNet {
 			get { return exportedTypes; }
 		}
 
+		/// <inheritdoc/>
+		public override IList<Resource> Resources {
+			get { return resources; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -446,6 +471,7 @@ namespace dot10.DotNet {
 			if (rid != 1) {
 				this.types = new LazyList<TypeDef>(this);
 				this.exportedTypes = new List<ExportedType>();
+				this.resources = new List<Resource>();
 				this.corLibTypes = new CorLibTypes(this);
 			}
 			Initialize();
