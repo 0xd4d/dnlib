@@ -1221,26 +1221,46 @@ namespace dot10.DotNet {
 		}
 
 		IImageStream CreateResourceStream(uint offset) {
-			var peImage = dnFile.MetaData.PEImage;
-			var cor20Header = dnFile.MetaData.ImageCor20Header;
-			var resources = cor20Header.Resources;
-			if (resources.VirtualAddress == 0 || resources.Size == 0)
-				return MemoryImageStream.CreateEmpty();
-			var fs = peImage.CreateFullStream();
+			IImageStream fs = null, imageStream = null;
+			try {
+				var peImage = dnFile.MetaData.PEImage;
+				var cor20Header = dnFile.MetaData.ImageCor20Header;
+				var resources = cor20Header.Resources;
+				if (resources.VirtualAddress == 0 || resources.Size == 0)
+					return MemoryImageStream.CreateEmpty();
+				fs = peImage.CreateFullStream();
 
-			var resourceOffset = (long)peImage.ToFileOffset(resources.VirtualAddress);
-			if (resourceOffset <= 0 || resourceOffset + offset < resourceOffset)
-				return MemoryImageStream.CreateEmpty();
-			if (resourceOffset + offset + 3 < resourceOffset || resourceOffset + offset + 3 >= fs.Length)
-				return MemoryImageStream.CreateEmpty();
-			fs.Position = resourceOffset + offset;
-			uint length = fs.ReadUInt32();
-			if (length == 0 || fs.Position + length - 1 < fs.Position || fs.Position + length - 1 >= fs.Length)
-				return MemoryImageStream.CreateEmpty();
-			if (fs.Position - resourceOffset + length - 1 >= resources.Size)
-				return MemoryImageStream.CreateEmpty();
+				var resourceOffset = (long)peImage.ToFileOffset(resources.VirtualAddress);
+				if (resourceOffset <= 0 || resourceOffset + offset < resourceOffset)
+					return MemoryImageStream.CreateEmpty();
+				if (offset + 3 <= offset || offset + 3 >= resources.Size)
+					return MemoryImageStream.CreateEmpty();
+				if (resourceOffset + offset + 3 < resourceOffset || resourceOffset + offset + 3 >= fs.Length)
+					return MemoryImageStream.CreateEmpty();
+				fs.Position = resourceOffset + offset;
+				uint length = fs.ReadUInt32();	// Could throw
+				if (length == 0 || fs.Position + length - 1 < fs.Position || fs.Position + length - 1 >= fs.Length)
+					return MemoryImageStream.CreateEmpty();
+				if (fs.Position - resourceOffset + length - 1 >= resources.Size)
+					return MemoryImageStream.CreateEmpty();
 
-			return peImage.CreateStream((FileOffset)fs.Position, length);
+				imageStream = peImage.CreateStream((FileOffset)fs.Position, length);
+				for (; imageStream.Position < imageStream.Length; imageStream.Position += 0x1000)
+					imageStream.ReadByte();	// Could throw
+				imageStream.Position = imageStream.Length - 1;	// length is never 0 if we're here
+				imageStream.ReadByte();	// Could throw
+				imageStream.Position = 0;
+			}
+			catch (AccessViolationException) {
+				if (imageStream != null)
+					imageStream.Dispose();
+				return MemoryImageStream.CreateEmpty();
+			}
+			finally {
+				if (fs != null)
+					fs.Dispose();
+			}
+			return imageStream;
 		}
 	}
 }
