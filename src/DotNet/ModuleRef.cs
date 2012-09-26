@@ -11,6 +11,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
+		/// <summary>
+		/// The owner module
+		/// </summary>
+		protected ModuleDef ownerModule;
+
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.ModuleRef, rid); }
@@ -37,6 +42,11 @@ namespace dot10.DotNet {
 		public abstract UTF8String Name { get; set; }
 
 		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get { return ownerModule; }
+		}
+
+		/// <inheritdoc/>
 		public string FullName {
 			get { return UTF8String.ToSystemStringOrEmpty(Name); }
 		}
@@ -60,25 +70,29 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Default constructor
+		/// Constructor
 		/// </summary>
-		public ModuleRefUser()
-			: this(UTF8String.Empty) {
+		/// <param name="ownerModule">Owner module</param>
+		public ModuleRefUser(ModuleDef ownerModule)
+			: this(ownerModule, UTF8String.Empty) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="ownerModule">Owner module</param>
 		/// <param name="name">Module name</param>
-		public ModuleRefUser(string name)
-			: this(new UTF8String(name)) {
+		public ModuleRefUser(ModuleDef ownerModule, string name)
+			: this(ownerModule, new UTF8String(name)) {
 		}
 
 		/// <summary>
 		/// Constructor
+		/// <param name="ownerModule">Owner module</param>
 		/// </summary>
 		/// <param name="name">Module name</param>
-		public ModuleRefUser(UTF8String name) {
+		public ModuleRefUser(ModuleDef ownerModule, UTF8String name) {
+			this.ownerModule = ownerModule;
 			this.name = name;
 		}
 	}
@@ -116,6 +130,7 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.ownerModule = readerModule;
 			Initialize();
 		}
 
