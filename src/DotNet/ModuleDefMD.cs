@@ -1147,29 +1147,36 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		internal RidList GetModuleRidList() {
-			InitializeModuleList();
+			if (moduleRidList == null)
+				InitializeModuleList();
 			return moduleRidList;
 		}
 
 		void InitializeModuleList() {
 			if (moduleRidList != null)
 				return;
-			var table = TablesStream.Get(Table.File);
-			moduleRidList = new RandomRidList((int)table.Rows);
+			uint rows = TablesStream.Get(Table.File).Rows;
+			moduleRidList = new RandomRidList((int)rows);
 
 			var baseDir = GetBaseDirectoryOfImage();
-			for (uint fileRid = 1; fileRid <= table.Rows; fileRid++) {
+			for (uint fileRid = 1; fileRid <= rows; fileRid++) {
 				var fileDef = ResolveFile(fileRid);
 				if (fileDef == null)
 					continue;	// Should never happen
-				if (fileDef.ContainsMetaData) {
-					var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
-					if (pathName != null)
-						moduleRidList.Add(fileRid);
-				}
+				if (!fileDef.ContainsMetaData)
+					continue;
+				var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
+				if (pathName != null)
+					moduleRidList.Add(fileRid);
 			}
 		}
 
+		/// <summary>
+		/// Concatenates the inputs and returns the result if it's a valid path
+		/// </summary>
+		/// <param name="baseDir">Base dir</param>
+		/// <param name="name">File name</param>
+		/// <returns>Full path to the file or <c>null</c> if one of the inputs is invalid</returns>
 		static string GetValidFilename(string baseDir, string name) {
 			if (baseDir == null)
 				return null;
@@ -1191,6 +1198,10 @@ namespace dot10.DotNet {
 			return pathName;
 		}
 
+		/// <summary>
+		/// Gets the base directory where this .NET module is located on disk
+		/// </summary>
+		/// <returns>Base directory or <c>null</c> if unknown or if an error occurred</returns>
 		string GetBaseDirectoryOfImage() {
 			var imageFileName = dnFile.MetaData.PEImage.FileName;
 			if (imageFileName == null)
@@ -1205,6 +1216,12 @@ namespace dot10.DotNet {
 			return null;
 		}
 
+		/// <summary>
+		/// Creates a <see cref="Resource"/> instance
+		/// </summary>
+		/// <param name="rid"><c>ManifestResource</c> rid</param>
+		/// <returns>A new <see cref="Resource"/> instance or <c>null</c> if <paramref name="rid"/>
+		/// is invalid.</returns>
 		Resource CreateResource(uint rid) {
 			var mr = ResolveManifestResource(rid);
 			if (mr == null)
@@ -1220,6 +1237,11 @@ namespace dot10.DotNet {
 			return new EmbeddedResource(mr.Name, MemoryImageStream.CreateEmpty(), mr.Flags);
 		}
 
+		/// <summary>
+		/// Creates a resource stream that can access part of the resource section of this module
+		/// </summary>
+		/// <param name="offset">Offset of resource relative to the .NET resources section</param>
+		/// <returns>A stream the size of the resource</returns>
 		IImageStream CreateResourceStream(uint offset) {
 			IImageStream fs = null, imageStream = null;
 			try {
