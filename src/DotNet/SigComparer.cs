@@ -2351,8 +2351,9 @@ exit:
 			}
 			ModuleRef moda = a as ModuleRef, modb = b as ModuleRef;
 			if (moda != null && modb != null) {
-				//TODO: Also compare assembly
-				result = Equals((IModule)moda, (IModule)modb);
+				ModuleDef omoda = moda.OwnerModule, omodb = modb.OwnerModule;
+				result = Equals((IModule)moda, (IModule)modb) &&
+						Equals(omoda == null ? null : omoda.Assembly, omodb == null ? null : omodb.Assembly);
 				goto exit;
 			}
 			MethodDef ma = a as MethodDef, mb = b as MethodDef;
@@ -2650,7 +2651,9 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = a.IsGlobalModuleType && Equals((IModule)a.OwnerModule, (IModule)b);
+			bool result = a.IsGlobalModuleType &&
+				Equals((IModule)a.OwnerModule, (IModule)b) &&
+				Equals(a.DefinitionAssembly, b.OwnerModule == null ? null : b.OwnerModule.Assembly);
 
 			recursionCounter.Decrement();
 			return result;
