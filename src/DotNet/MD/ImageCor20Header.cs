@@ -8,7 +8,7 @@ namespace dot10.DotNet.MD {
 	/// See COMIMAGE_FLAGS_XXX in CorHdr.h in the Windows SDK
 	/// </summary>
 	[Flags]
-	enum ComImageFlags : uint {
+	public enum ComImageFlags : uint {
 		/// <summary>
 		/// See COMIMAGE_FLAGS_ILONLY in the Windows SDK
 		/// </summary>
@@ -48,7 +48,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Represents the IMAGE_COR20_HEADER structure
 	/// </summary>
-	class ImageCor20Header : FileSection {
+	public class ImageCor20Header : FileSection {
 		uint cb;
 		ushort majorRuntimeVersion;
 		ushort minorRuntimeVersion;

@@ -60,6 +60,11 @@ namespace dot10.DotNet.MD {
 		RandomRidList nonNestedTypes;
 
 		/// <inheritdoc/>
+		public ImageCor20Header ImageCor20Header {
+			get { return cor20Header; }
+		}
+
+		/// <inheritdoc/>
 		public IPEImage PEImage {
 			get { return peImage; }
 		}

@@ -7,6 +7,11 @@ namespace dot10.DotNet.MD {
 	/// </summary>
 	public interface IMetaData : IDisposable {
 		/// <summary>
+		/// Gets the .NET header
+		/// </summary>
+		ImageCor20Header ImageCor20Header { get; }
+
+		/// <summary>
 		/// Gets the <see cref="IPEImage"/>
 		/// </summary>
 		IPEImage PEImage { get; }
