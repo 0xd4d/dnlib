@@ -209,6 +209,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if content type is <c>Default</c>
+		/// </summary>
+		public bool IsContentTypeDefault {
+			get { return (Flags & AssemblyFlags.ContentType_Mask) == AssemblyFlags.ContentType_Default; }
+		}
+
+		/// <summary>
 		/// <c>true</c> if content type is <c>WindowsRuntime</c>
 		/// </summary>
 		public bool IsContentTypeWindowsRuntime {

@@ -238,6 +238,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if content type is <c>Default</c>
+		/// </summary>
+		public bool IsContentTypeDefault {
+			get { return (Flags & AssemblyFlags.ContentType_Mask) == AssemblyFlags.ContentType_Default; }
+		}
+
+		/// <summary>
 		/// <c>true</c> if content type is <c>WindowsRuntime</c>
 		/// </summary>
 		public bool IsContentTypeWindowsRuntime {
@@ -715,7 +722,7 @@ namespace dot10.DotNet {
 			get {
 				if (modules == null) {
 					var list = readerModule.GetModuleRidList();
-					this.modules = new LazyList<ModuleDef>((int)list.Length + 1, this, list, (list2, index) => {
+					modules = new LazyList<ModuleDef>((int)list.Length + 1, this, list, (list2, index) => {
 						ModuleDef module;
 						if (index == 0)
 							module = readerModule;
