@@ -14,7 +14,7 @@
 		public static readonly OpCode[] TwoByteOpCodes = new OpCode[0x100];
 
 #pragma warning disable 1591	// disable XML doc warning
-		public static readonly OpCode UNKNOWN		= new OpCode("UNKNOWN",			Code.UNKNOWN, OperandType.InlineNone, FlowControl.Meta, OpCodeType.Nternal, StackBehaviour.Push0, StackBehaviour.Pop0);
+		public static readonly OpCode UNKNOWN1		= new OpCode("UNKNOWN1",		Code.UNKNOWN1, OperandType.InlineNone, FlowControl.Meta, OpCodeType.Nternal, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode UNKNOWN2		= new OpCode("UNKNOWN2",		Code.UNKNOWN2, OperandType.InlineNone, FlowControl.Meta, OpCodeType.Nternal, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Nop			= new OpCode("nop",				Code.Nop, OperandType.InlineNone, FlowControl.Next, OpCodeType.Primitive, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Break			= new OpCode("break",			Code.Break, OperandType.InlineNone, FlowControl.Break, OpCodeType.Primitive, StackBehaviour.Push0, StackBehaviour.Pop0);
@@ -247,10 +247,10 @@
 
 		static OpCodes() {
 			// The OpCode ctor copies itself to one of these arrays. Whatever are still null
-			// are unsupported opcodes. Set them all to UNKNOWN.
+			// are unsupported opcodes. Set them all to UNKNOWN1 or UNKNOWN2.
 			for (int i = 0; i < OneByteOpCodes.Length; i++) {
 				if (OneByteOpCodes[i] == null)
-					OneByteOpCodes[i] = UNKNOWN;
+					OneByteOpCodes[i] = UNKNOWN1;
 			}
 			for (int i = 0; i < TwoByteOpCodes.Length; i++) {
 				if (TwoByteOpCodes[i] == null)

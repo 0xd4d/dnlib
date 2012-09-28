@@ -1,11 +1,11 @@
 ﻿namespace dot10.DotNet.Emit {
 	/// <summary>
-	/// A CIL opcode. If the high byte is 0 or if it's <see cref="UNKNOWN"/>, it's a 1-byte opcode,
+	/// A CIL opcode. If the high byte is 0 or if it's <see cref="UNKNOWN1"/>, it's a 1-byte opcode,
 	/// else it's a two-byte opcode and the highest byte is the first byte of the opcode.
 	/// </summary>
 	public enum Code : ushort {
 #pragma warning disable 1591	// disable XML doc warning
-		UNKNOWN			= 0x0100,
+		UNKNOWN1		= 0x0100,
 		UNKNOWN2		= 0x0101,
 		Add				= 0x0058,
 		Add_Ovf			= 0x00D6,
