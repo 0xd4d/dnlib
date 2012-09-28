@@ -721,8 +721,9 @@ namespace dot10.DotNet {
 							module = readerModule;
 						else
 							module = readerModule.ReadModule(((RidList)list2)[index - 1]);
-						if (module != null)
-							module.Assembly = this;
+						if (module == null)
+							module = new ModuleDefUser("INVALID", Guid.NewGuid());
+						module.Assembly = this;
 						return module;
 					});
 				}
