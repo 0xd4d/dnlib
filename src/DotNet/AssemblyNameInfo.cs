@@ -12,8 +12,7 @@ namespace dot10.DotNet {
 		AssemblyHashAlgorithm hashAlgId;
 		Version version;
 		AssemblyFlags flags;
-		PublicKey publicKey;
-		PublicKeyToken publicKeyToken;
+		PublicKeyBase publicKeyOrToken;
 		UTF8String name;
 		UTF8String locale;
 
@@ -42,19 +41,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the public key or <c>null</c> if none specified
+		/// Gets/sets the public key or token
 		/// </summary>
-		public PublicKey PublicKey {
-			get { return publicKey; }
-			set { publicKey = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the public key token or <c>null</c> if none specified
-		/// </summary>
-		public PublicKeyToken PublicKeyToken {
-			get { return publicKeyToken; }
-			set { publicKeyToken = value; }
+		public PublicKeyBase PublicKeyOrToken {
+			get { return publicKeyOrToken; }
+			set { publicKeyOrToken = value; }
 		}
 
 		/// <summary>
@@ -87,6 +78,23 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="asm">The assembly</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="asm"/> is <c>null</c></exception>
+		public AssemblyNameInfo(IAssembly asm) {
+			if (asm == null)
+				throw new ArgumentNullException("asmName");
+			var asmDef = asm as AssemblyDef;
+			this.hashAlgId = asmDef == null ? 0 : asmDef.HashAlgId;
+			this.version = asm.Version ?? new Version(0, 0, 0, 0);
+			this.flags = asm.Flags;
+			this.publicKeyOrToken = asm.PublicKeyOrToken;
+			this.name = UTF8String.IsNullOrEmpty(asm.Name) ? UTF8String.Empty : asm.Name;
+			this.locale = UTF8String.IsNullOrEmpty(asm.Locale) ? UTF8String.Empty : asm.Locale;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyNameInfo(AssemblyName asmName) {
@@ -95,8 +103,7 @@ namespace dot10.DotNet {
 			this.hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.flags = (AssemblyFlags)asmName.Flags;
-			this.publicKey = CreatePublicKey(asmName.GetPublicKey());
-			this.publicKeyToken = CreatePublicKeyToken(asmName.GetPublicKeyToken());
+			this.publicKeyOrToken = (PublicKeyBase)CreatePublicKey(asmName.GetPublicKey()) ?? CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			this.name = new UTF8String(asmName.Name ?? string.Empty);
 			this.locale = new UTF8String(asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : "");
 		}
@@ -151,20 +158,20 @@ namespace dot10.DotNet {
 
 				case "publickey":
 					if (value == "null")
-						publicKey = null;
+						publicKeyOrToken = null;
 					else {
-						publicKey = CreatePublicKey(Utils.ParseBytes(value));
-						if (publicKey == null)
+						publicKeyOrToken = CreatePublicKey(Utils.ParseBytes(value));
+						if (publicKeyOrToken == null)
 							error = true;
 					}
 					break;
 
 				case "publickeytoken":
 					if (value == "null")
-						publicKey = null;
+						publicKeyOrToken = null;
 					else {
-						publicKeyToken = CreatePublicKeyToken(Utils.ParseBytes(value));
-						if (publicKeyToken == null)
+						publicKeyOrToken = CreatePublicKeyToken(Utils.ParseBytes(value));
+						if (publicKeyOrToken == null)
 							error = true;
 					}
 					break;
@@ -195,7 +202,7 @@ namespace dot10.DotNet {
 
 		/// <inhertidoc/>
 		public override string ToString() {
-			return Utils.GetAssemblyNameString(name, version, locale, publicKey != null && !publicKey.IsNullOrEmpty ? (PublicKeyBase)publicKey : publicKeyToken);
+			return Utils.GetAssemblyNameString(name, version, locale, publicKeyOrToken);
 		}
 	}
 }

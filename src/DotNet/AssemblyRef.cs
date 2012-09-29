@@ -399,10 +399,7 @@ namespace dot10.DotNet {
 				throw new ArgumentNullException("asmName");
 
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
-			if (!asmName.PublicKey.IsNullOrEmpty)
-				this.publicKeyOrToken = asmName.PublicKey;
-			else
-				this.publicKeyOrToken = asmName.PublicKeyToken;
+			this.publicKeyOrToken = asmName.PublicKeyOrToken;
 			this.name = asmName.Name;
 			this.locale = asmName.Locale;
 			this.flags = publicKeyOrToken is PublicKey ? AssemblyFlags.PublicKey : AssemblyFlags.None;

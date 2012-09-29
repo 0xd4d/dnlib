@@ -636,7 +636,7 @@ namespace dot10.DotNet {
 			this.modules = new LazyList<ModuleDef>(this);
 			this.name = asmName.Name;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
-			this.publicKey = asmName.PublicKey ?? new PublicKey();
+			this.publicKey = asmName.PublicKeyOrToken as PublicKey ?? new PublicKey();
 			this.locale = asmName.Locale;
 			this.flags = AssemblyFlags.None;
 			this.hashAlgId = AssemblyHashAlgorithm.SHA1;
