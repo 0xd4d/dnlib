@@ -125,6 +125,25 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the hash code of a byte array
+		/// </summary>
+		/// <param name="a">Byte array</param>
+		/// <returns>The hash code</returns>
+		internal static int GetHashCode(byte[] a) {
+			if (a == null || a.Length == 0)
+				return 0;
+			int count = Math.Min(a.Length / 2, 20);
+			if (count == 0)
+				count = 1;
+			uint hash = 0;
+			for (int i = 0, j = a.Length - 1; i < count; i++, j--) {
+				hash ^= a[i] | ((uint)a[j] << 8);
+				hash = (hash << 13) | (hash >> 19);
+			}
+			return (int)hash;
+		}
+
+		/// <summary>
 		/// Compares two versions
 		/// </summary>
 		/// <remarks>This differs from <see cref="System.Version.CompareTo(Version)"/> if the build
