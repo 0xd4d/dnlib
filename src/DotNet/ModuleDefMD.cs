@@ -296,12 +296,14 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
+			// Call base first since it will dispose of all the resources, which will
+			// eventually use dnFile that we will dispose
+			base.Dispose(disposing);
 			if (disposing) {
 				if (dnFile != null)
 					dnFile.Dispose();
 				dnFile = null;
 			}
-			base.Dispose(disposing);
 		}
 
 		/// <summary>
