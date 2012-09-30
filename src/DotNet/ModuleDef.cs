@@ -85,6 +85,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the path of the assembly or an empty string if it wasn't loaded from disk
+		/// </summary>
+		public abstract string Location { get; set; }
+
+		/// <summary>
 		/// Gets the <see cref="ICorLibTypes"/>
 		/// </summary>
 		public ICorLibTypes CorLibTypes {
@@ -271,6 +276,7 @@ namespace dot10.DotNet {
 		LazyList<TypeDef> types;
 		List<ExportedType> exportedTypes = new List<ExportedType>();
 		IList<Resource> resources = new List<Resource>();
+		string location = string.Empty;
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -321,6 +327,12 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<Resource> Resources {
 			get { return resources; }
+		}
+
+		/// <inheritdoc/>
+		public override string Location {
+			get { return location; }
+			set { location = value ?? string.Empty; }
 		}
 
 		/// <summary>
@@ -398,6 +410,7 @@ namespace dot10.DotNet {
 		protected IList<ExportedType> exportedTypes;
 		/// <summary></summary>
 		protected IList<Resource> resources;
+		string location;
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -450,6 +463,12 @@ namespace dot10.DotNet {
 			get { return resources; }
 		}
 
+		/// <inheritdoc/>
+		public override string Location {
+			get { return location; }
+			set { location = value ?? string.Empty; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -473,6 +492,7 @@ namespace dot10.DotNet {
 				this.exportedTypes = new List<ExportedType>();
 				this.resources = new List<Resource>();
 				this.corLibTypes = new CorLibTypes(this);
+				this.location = string.Empty;
 			}
 			Initialize();
 		}

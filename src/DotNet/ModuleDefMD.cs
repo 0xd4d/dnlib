@@ -14,6 +14,7 @@ namespace dot10.DotNet {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
 
+		UserValue<string> location;
 		RandomRidList moduleRidList;
 
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
@@ -144,6 +145,12 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		public override string Location {
+			get { return location.Value; }
+			set { location.Value = value ?? string.Empty; }
+		}
+
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a file
 		/// </summary>
@@ -271,6 +278,10 @@ namespace dot10.DotNet {
 			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.Get(Table.GenericParam).Rows, rid2 => new GenericParamMD(this, rid2));
 			listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, rid2 => new MethodSpecMD(this, rid2));
 			listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
+
+			location.ReadOriginalValue = () => {
+				return dnFile.MetaData.PEImage.FileName ?? string.Empty;
+			};
 		}
 
 		/// <summary>
@@ -1203,7 +1214,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>Base directory or <c>null</c> if unknown or if an error occurred</returns>
 		string GetBaseDirectoryOfImage() {
-			var imageFileName = dnFile.MetaData.PEImage.FileName;
+			var imageFileName = Location;
 			if (imageFileName == null)
 				return null;
 			try {
