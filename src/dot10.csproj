@@ -43,6 +43,7 @@
     <Compile Include="DotNet\AssemblyFlags.cs" />
     <Compile Include="DotNet\AssemblyHash.cs" />
     <Compile Include="DotNet\AssemblyHashAlgorithm.cs" />
+    <Compile Include="DotNet\AssemblyNameComparer.cs" />
     <Compile Include="DotNet\AssemblyNameInfo.cs" />
     <Compile Include="DotNet\AssemblyOS.cs" />
     <Compile Include="DotNet\AssemblyProcessor.cs" />
