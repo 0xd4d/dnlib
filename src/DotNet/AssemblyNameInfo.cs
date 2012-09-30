@@ -49,11 +49,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the name. It is never <c>null</c>.
+		/// Gets/sets the name
 		/// </summary>
 		public UTF8String Name {
 			get { return name; }
-			set { name = value ?? UTF8String.Empty; }
+			set { name = value; }
 		}
 
 		/// <summary>
@@ -65,24 +65,40 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the full name of the assembly
+		/// </summary>
+		public string FullName {
+			get { return Utils.GetAssemblyNameString(name, version, locale, publicKeyOrToken); }
+		}
+
+		/// <summary>
+		/// Gets the full name of the assembly but use a public key token
+		/// </summary>
+		public string FullNameToken {
+			get {
+				var pk = publicKeyOrToken;
+				if (pk is PublicKey)
+					pk = (pk as PublicKey).Token;
+				return Utils.GetAssemblyNameString(name, version, locale, pk);
+			}
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="asmFullName">An assembly name</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmFullName"/> is <c>null</c></exception>
 		public AssemblyNameInfo(string asmFullName) {
-			if (asmFullName == null)
-				throw new ArgumentNullException("asmFullName");
-			Parse(asmFullName);
+			if (asmFullName != null)
+				Parse(asmFullName);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="asm">The assembly</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asm"/> is <c>null</c></exception>
 		public AssemblyNameInfo(IAssembly asm) {
 			if (asm == null)
-				throw new ArgumentNullException("asmName");
+				return;
 			var asmDef = asm as AssemblyDef;
 			this.hashAlgId = asmDef == null ? 0 : asmDef.HashAlgId;
 			this.version = asm.Version ?? new Version(0, 0, 0, 0);
@@ -96,10 +112,9 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyNameInfo(AssemblyName asmName) {
 			if (asmName == null)
-				throw new ArgumentNullException("asmName");
+				return;
 			this.hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.flags = (AssemblyFlags)asmName.Flags;
@@ -177,7 +192,10 @@ namespace dot10.DotNet {
 					break;
 
 				case "culture":
-					locale = new UTF8String(value);
+					if (value.ToLowerInvariant() == "neutral")
+						locale = UTF8String.Empty;
+					else
+						locale = new UTF8String(value);
 					break;
 				}
 			}
@@ -202,7 +220,7 @@ namespace dot10.DotNet {
 
 		/// <inhertidoc/>
 		public override string ToString() {
-			return Utils.GetAssemblyNameString(name, version, locale, publicKeyOrToken);
+			return FullName;
 		}
 	}
 }

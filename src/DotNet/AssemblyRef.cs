@@ -400,7 +400,7 @@ namespace dot10.DotNet {
 
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.publicKeyOrToken = asmName.PublicKeyOrToken;
-			this.name = asmName.Name;
+			this.name = UTF8String.IsNullOrEmpty(asmName.Name) ? UTF8String.Empty : asmName.Name;
 			this.locale = asmName.Locale;
 			this.flags = publicKeyOrToken is PublicKey ? AssemblyFlags.PublicKey : AssemblyFlags.None;
 		}
