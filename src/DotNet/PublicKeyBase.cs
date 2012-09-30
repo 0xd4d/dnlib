@@ -73,6 +73,58 @@
 			return null;
 		}
 
+		/// <summary>
+		/// Compares two <see cref="PublicKeyBase"/>s as <see cref="PublicKeyToken"/>s
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		public static int TokenCompareTo(PublicKeyBase a, PublicKeyBase b) {
+			if (a == b)
+				return 0;
+			if (a == null)
+				return -1;
+			if (b == null)
+				return 1;
+			return TokenCompareTo(ToPublicKeyToken(a), ToPublicKeyToken(b));
+		}
+
+		/// <summary>
+		/// Compares two <see cref="PublicKeyToken"/>s
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		public static int TokenCompareTo(PublicKeyToken a, PublicKeyToken b) {
+			if (a == b)
+				return 0;
+			if (a == null)
+				return -1;
+			if (b == null)
+				return 1;
+			return Utils.CompareTo(a.data, b.data);
+		}
+
+		/// <summary>
+		/// Gets the public key token hash code
+		/// </summary>
+		/// <param name="a">Public key or token</param>
+		/// <returns>The hash code</returns>
+		public static int GetHashCodeToken(PublicKeyBase a) {
+			return GetHashCode(ToPublicKeyToken(a));
+		}
+
+		/// <summary>
+		/// Gets the public key token hash code
+		/// </summary>
+		/// <param name="a">Public key token</param>
+		/// <returns>The hash code</returns>
+		public static int GetHashCode(PublicKeyToken a) {
+			if (a == null)
+				return 0;
+			return Utils.GetHashCode(a.Data);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (IsNullOrEmpty)
