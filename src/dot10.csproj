@@ -50,6 +50,7 @@
     <Compile Include="DotNet\AssemblyRef.cs" />
     <Compile Include="DotNet\AssemblyRefOS.cs" />
     <Compile Include="DotNet\AssemblyRefProcessor.cs" />
+    <Compile Include="DotNet\AssemblyResolver.cs" />
     <Compile Include="DotNet\CallingConvention.cs" />
     <Compile Include="DotNet\ClassLayout.cs" />
     <Compile Include="DotNet\Constant.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="DotNet\Emit\InstructionPrinter.cs" />
     <Compile Include="DotNet\Emit\InvalidMethodException.cs" />
     <Compile Include="DotNet\GenericArguments.cs" />
+    <Compile Include="DotNet\IAssemblyResolver.cs" />
     <Compile Include="DotNet\IVariable.cs" />
     <Compile Include="DotNet\Emit\LocalList.cs" />
     <Compile Include="DotNet\Emit\MethodBody.cs" />
@@ -197,6 +199,9 @@
     <Compile Include="PE\PEInfo.cs" />
     <Compile Include="PE\RVA.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.XML" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
