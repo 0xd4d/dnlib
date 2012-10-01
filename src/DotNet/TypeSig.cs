@@ -592,7 +592,7 @@ namespace dot10.DotNet {
 		/// <param name="rank">Array rank</param>
 		/// <param name="sizes">Sizes list. <c>This instance will be the owner of this list.</c></param>
 		/// <param name="lowerBounds">Lower bounds list. <c>This instance will be the owner of this list.</c></param>
-		internal ArraySig(TypeSig arrayType, uint rank, List<uint> sizes, List<int> lowerBounds)
+		internal ArraySig(TypeSig arrayType, uint rank, IList<uint> sizes, IList<int> lowerBounds)
 			: base(arrayType) {
 			this.rank = rank;
 			this.sizes = sizes;
