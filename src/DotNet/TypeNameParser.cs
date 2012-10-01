@@ -323,7 +323,7 @@ namespace dot10.DotNet {
 			if (asmRef != null)
 				return asmRef;
 			if (ownerModule != null && ownerModule.Assembly != null)
-				return new AssemblyRefUser(ownerModule.Assembly.Name, ownerModule.Assembly.Version, ownerModule.Assembly.PublicKeyOrToken, ownerModule.Assembly.Locale);
+				return ownerModule.Assembly.ToAssemblyRef();
 			return new AssemblyRefUser("<<<UNKNOWN>>>");
 		}
 

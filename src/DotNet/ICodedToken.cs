@@ -57,6 +57,18 @@ namespace dot10.DotNet {
 				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name).ToLowerInvariant()) == "mscorlib" ||
 				asmName == "system.runtime");
 		}
+
+		/// <summary>
+		/// Converts <paramref name="asm"/> to a <see cref="AssemblyRef"/> instance
+		/// </summary>
+		/// <param name="asm">The assembly</param>
+		/// <returns>A new <see cref="AssemblyRef"/> instance</returns>
+		public static AssemblyRef ToAssemblyRef(this IAssembly asm) {
+			if (asm == null)
+				return null;
+			// Always create a new one, even if it happens to be an AssemblyRef
+			return new AssemblyRefUser(asm.Name, asm.Version, asm.PublicKeyOrToken, asm.Locale);
+		}
 	}
 
 	/// <summary>
