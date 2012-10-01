@@ -94,7 +94,7 @@ namespace dot10.DotNet {
 
 		static string GetAssemblyNameKey(AssemblyNameInfo asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
-			return asmName.FullNameToken;
+			return asmName.FullNameToken.ToLowerInvariant();
 		}
 
 		AssemblyDef Resolve2(AssemblyNameInfo assembly, ModuleDef sourceModule) {
@@ -103,7 +103,6 @@ namespace dot10.DotNet {
 			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out resolvedAssembly))
 				return resolvedAssembly;
 
-			var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, true)) ??
 					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, true)) ??
 					FindExactAssembly(assembly, PostFindAssemblies(assembly, sourceModule, true));
@@ -151,6 +150,11 @@ namespace dot10.DotNet {
 			return null;
 		}
 
+		/// <summary>
+		/// Finds the closest assembly from the already cached assemblies
+		/// </summary>
+		/// <param name="assembly">Assembly name to find</param>
+		/// <returns>The closest <see cref="AssemblyDef"/> or <c>null</c> if none found</returns>
 		AssemblyDef FindClosestAssembly(AssemblyNameInfo assembly) {
 			AssemblyDef closest = null;
 			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
@@ -203,8 +207,8 @@ namespace dot10.DotNet {
 		IEnumerable<string> FindAssemblies2(AssemblyNameInfo assembly, IEnumerable<string> paths) {
 			if (paths != null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
-				foreach (var path in paths) {
-					foreach (var ext in assemblyExtensions) {
+				foreach (var ext in assemblyExtensions) {
+					foreach (var path in paths) {
 						var fullPath = Path.Combine(path, asmSimpleName + ext);
 						if (File.Exists(fullPath))
 							yield return fullPath;
@@ -338,12 +342,13 @@ namespace dot10.DotNet {
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of all search paths to use for this module</returns>
 		IEnumerable<string> GetSearchPaths(ModuleDef module) {
-			if (module == null)
-				module = nullModule;
+			ModuleDef keyModule = module;
+			if (keyModule == null)
+				keyModule = nullModule;
 			List<string> searchPaths;
-			if (moduleSearchPaths.TryGetValue(module, out searchPaths))
+			if (moduleSearchPaths.TryGetValue(keyModule, out searchPaths))
 				return searchPaths;
-			moduleSearchPaths[module] = searchPaths = new List<string>(GetModuleSearchPaths(module));
+			moduleSearchPaths[keyModule] = searchPaths = new List<string>(GetModuleSearchPaths(module));
 			return searchPaths;
 		}
 
@@ -400,9 +405,12 @@ namespace dot10.DotNet {
 						var privatePath = probingElem.GetAttribute("privatePath");
 						if (string.IsNullOrEmpty(privatePath))
 							continue;
-						foreach (var path in privatePath.Split(';')) {
+						foreach (var tmp2 in privatePath.Split(';')) {
+							var path = tmp2.Trim();
+							if (path == "")
+								continue;
 							var newPath = Path.GetFullPath(Path.Combine(dirName, path.Replace('\\', Path.DirectorySeparatorChar)));
-							if (Directory.Exists(newPath) && newPath.Contains(baseDir + Path.DirectorySeparatorChar))
+							if (Directory.Exists(newPath) && newPath.StartsWith(baseDir + Path.DirectorySeparatorChar))
 								searchPaths.Add(newPath);
 						}
 					}
