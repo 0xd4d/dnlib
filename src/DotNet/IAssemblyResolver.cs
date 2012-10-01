@@ -94,7 +94,7 @@ namespace dot10.DotNet {
 			var asm = self.Resolve(assembly, sourceModule);
 			if (asm != null)
 				return asm;
-			throw new AssemblyResolveException(string.Format("Could not resolve {0}", assembly));
+			throw new AssemblyResolveException(string.Format("Could not resolve assembly: {0}", assembly));
 		}
 
 		/// <summary>
@@ -109,7 +109,7 @@ namespace dot10.DotNet {
 			var asm = self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 			if (asm != null)
 				return asm;
-			throw new AssemblyResolveException(string.Format("Could not resolve {0}", assembly));
+			throw new AssemblyResolveException(string.Format("Could not resolve assembly: {0}", assembly));
 		}
 
 		/// <summary>
@@ -124,7 +124,7 @@ namespace dot10.DotNet {
 			var asm = self.Resolve(new AssemblyNameInfo(asmFullName), sourceModule);
 			if (asm != null)
 				return asm;
-			throw new AssemblyResolveException(string.Format("Could not resolve {0}", asmFullName));
+			throw new AssemblyResolveException(string.Format("Could not resolve assembly: {0}", asmFullName));
 		}
 
 		/// <summary>
@@ -139,7 +139,7 @@ namespace dot10.DotNet {
 			var asm = self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 			if (asm != null)
 				return asm;
-			throw new AssemblyResolveException(string.Format("Could not resolve {0}", assembly));
+			throw new AssemblyResolveException(string.Format("Could not resolve assembly: {0}", assembly));
 		}
 	}
 }
