@@ -68,6 +68,7 @@
     <Compile Include="DotNet\Emit\InvalidMethodException.cs" />
     <Compile Include="DotNet\GenericArguments.cs" />
     <Compile Include="DotNet\IAssemblyResolver.cs" />
+    <Compile Include="DotNet\ILazyList.cs" />
     <Compile Include="DotNet\IVariable.cs" />
     <Compile Include="DotNet\Emit\LocalList.cs" />
     <Compile Include="DotNet\Emit\MethodBody.cs" />

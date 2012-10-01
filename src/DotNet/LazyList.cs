@@ -43,7 +43,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	/// <typeparam name="TValue">Type to store in list</typeparam>
 	[DebuggerDisplay("Count = {Count}")]
-	class LazyList<TValue> : IList<TValue> where TValue : class {
+	class LazyList<TValue> : ILazyList<TValue> where TValue : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		object context;
 
@@ -64,6 +64,13 @@ namespace dot10.DotNet {
 		/// </summary>
 		class Element {
 			protected TValue value;
+
+			/// <summary>
+			/// <c>true</c> if it has been initialized, <c>false</c> otherwise
+			/// </summary>
+			public virtual bool IsInitialized {
+				get { return true; }
+			}
 
 			/// <summary>
 			/// Default constructor
@@ -109,6 +116,11 @@ namespace dot10.DotNet {
 		class LazyElement : Element {
 			internal uint origIndex;
 			LazyList<TValue> lazyList;
+
+			/// <inheritdoc/>
+			public override bool IsInitialized {
+				get { return lazyList == null; }
+			}
 
 			/// <inheritdoc/>
 			public override TValue GetValue(int index) {
@@ -168,6 +180,13 @@ namespace dot10.DotNet {
 				list[index].SetValue(index, value);
 				id++;
 			}
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public LazyList()
+			: this(null) {
 		}
 
 		/// <summary>
@@ -287,12 +306,32 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public bool IsInitialized(int index) {
+			if ((uint)index >= (uint)list.Count)
+				return false;
+			return list[index].IsInitialized;
+		}
+
+		/// <inheritdoc/>
 		public IEnumerator<TValue> GetEnumerator() {
 			int id2 = id;
 			for (int i = 0; i < list.Count; i++) {
 				if (id != id2)
 					throw new InvalidOperationException("List was modified");
 				yield return list[i].GetValue(i);
+			}
+		}
+
+		/// <inheritdoc/>
+		public IEnumerable<TValue> GetInitializedElements() {
+			int id2 = id;
+			for (int i = 0; i < list.Count; i++) {
+				if (id != id2)
+					throw new InvalidOperationException("List was modified");
+				var elem = list[i];
+				if (!elem.IsInitialized)
+					continue;
+				yield return elem.GetValue(i);
 			}
 		}
 
