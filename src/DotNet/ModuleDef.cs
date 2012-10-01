@@ -85,7 +85,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the path of the assembly or an empty string if it wasn't loaded from disk
+		/// Gets/sets the path of the module or an empty string if it wasn't loaded from disk
 		/// </summary>
 		public abstract string Location { get; set; }
 
