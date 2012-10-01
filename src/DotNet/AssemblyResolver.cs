@@ -92,6 +92,35 @@ namespace dot10.DotNet {
 			return resolvedAssembly;
 		}
 
+		/// <summary>
+		/// Add an assembly to the assembly cache
+		/// </summary>
+		/// <param name="asm">The assembly</param>
+		/// <returns><c>true</c> if <paramref name="asm"/> is cached, <c>false</c> if it's not
+		/// cached because some other assembly with the exact same full name has already been
+		/// cached or if <paramref name="asm"/> is <c>null</c>.</returns>
+		public bool AddToCache(AssemblyDef asm) {
+			if (asm == null)
+				return false;
+			var asmKey = GetAssemblyNameKey(new AssemblyNameInfo(asm));
+			AssemblyDef cachedAsm;
+			if (cachedAssemblies.TryGetValue(asmKey, out cachedAsm))
+				return asm == cachedAsm;
+			cachedAssemblies.Add(asmKey, asm);
+			return true;
+		}
+
+		/// <summary>
+		/// Add a module's assembly to the assembly cache
+		/// </summary>
+		/// <param name="module">The module whose assembly should be cached</param>
+		/// <returns><c>true</c> if <paramref name="module"/>'s assembly is cached, <c>false</c>
+		/// if it's not cached because some other assembly with the exact same full name has
+		/// already been cached or if <paramref name="module"/> or its assembly is <c>null</c>.</returns>
+		public bool AddToCache(ModuleDef module) {
+			return module != null && AddToCache(module.Assembly);
+		}
+
 		static string GetAssemblyNameKey(AssemblyNameInfo asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
 			return asmName.FullNameToken.ToLowerInvariant();
