@@ -1474,26 +1474,12 @@ exit:
 				return false;
 
 			bool result = UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0 &&
-				(!CompareAssemblyPublicKeyToken || Equals(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
+				(!CompareAssemblyPublicKeyToken || PublicKeyBase.TokenCompareTo(a.PublicKeyOrToken, b.PublicKeyOrToken) == 0) &&
 				(!CompareAssemblyVersion || Utils.CompareTo(a.Version, b.Version) == 0) &&
 				(!CompareAssemblyLocale || Utils.LocaleCompareTo(a.Locale, b.Locale) == 0);
 
 			recursionCounter.Decrement();
 			return result;
-		}
-
-		/// <summary>
-		/// Compares two public keys / public key tokens
-		/// </summary>
-		/// <param name="a">Public key or token #1</param>
-		/// <param name="b">Public key or token #2</param>
-		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Equals(PublicKeyBase a, PublicKeyBase b) {
-			if (a == b)
-				return true;
-			var pkta = PublicKeyBase.ToPublicKeyToken(a);
-			var pktb = PublicKeyBase.ToPublicKeyToken(b);
-			return Utils.CompareTo(pkta == null ? null : pkta.Data, pktb == null ? null : pktb.Data) == 0;
 		}
 
 		/// <summary>
