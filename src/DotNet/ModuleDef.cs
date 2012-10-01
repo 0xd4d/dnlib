@@ -206,7 +206,7 @@ namespace dot10.DotNet {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;
-			foreach (var resource in Resources) {
+			foreach (var resource in Resources2.GetInitializedElements()) {
 				if (resource != null)
 					resource.Dispose();
 			}
