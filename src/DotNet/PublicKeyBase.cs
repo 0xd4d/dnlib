@@ -82,10 +82,6 @@
 		public static int TokenCompareTo(PublicKeyBase a, PublicKeyBase b) {
 			if (a == b)
 				return 0;
-			if (a == null)
-				return -1;
-			if (b == null)
-				return 1;
 			return TokenCompareTo(ToPublicKeyToken(a), ToPublicKeyToken(b));
 		}
 
@@ -98,11 +94,7 @@
 		public static int TokenCompareTo(PublicKeyToken a, PublicKeyToken b) {
 			if (a == b)
 				return 0;
-			if (a == null)
-				return -1;
-			if (b == null)
-				return 1;
-			return Utils.CompareTo(a.data, b.data);
+			return Utils.CompareTo(a == null ? null : a.data, b == null ? null : b.data);
 		}
 
 		/// <summary>
