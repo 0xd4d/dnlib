@@ -1476,7 +1476,7 @@ exit:
 			bool result = UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0 &&
 				(!CompareAssemblyPublicKeyToken || Equals(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
 				(!CompareAssemblyVersion || Utils.CompareTo(a.Version, b.Version) == 0) &&
-				(!CompareAssemblyLocale || EqualsLocale(a.Locale, b.Locale));
+				(!CompareAssemblyLocale || Utils.LocaleCompareTo(a.Locale, b.Locale) == 0);
 
 			recursionCounter.Decrement();
 			return result;
@@ -1494,16 +1494,6 @@ exit:
 			var pkta = PublicKeyBase.ToPublicKeyToken(a);
 			var pktb = PublicKeyBase.ToPublicKeyToken(b);
 			return Utils.CompareTo(pkta == null ? null : pkta.Data, pktb == null ? null : pktb.Data) == 0;
-		}
-
-		/// <summary>
-		/// Compares two assembly locales
-		/// </summary>
-		/// <param name="a">Locale #1</param>
-		/// <param name="b">Locale #2</param>
-		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool EqualsLocale(UTF8String a, UTF8String b) {
-			return UTF8String.CaseInsensitiveCompareTo(a, b) == 0;
 		}
 
 		/// <summary>

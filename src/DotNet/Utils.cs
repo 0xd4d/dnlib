@@ -181,5 +181,31 @@ namespace dot10.DotNet {
 		static int GetDefaultVersionValue(int val) {
 			return val == -1 ? 0 : val;
 		}
+
+		/// <summary>
+		/// Compares two locales (cultures)
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		internal static int LocaleCompareTo(UTF8String a, UTF8String b) {
+			return GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
+		}
+
+		/// <summary>
+		/// Gets the hash code of a locale
+		/// </summary>
+		/// <param name="a">Value</param>
+		/// <returns>The hash code</returns>
+		internal static int GetHashCodeLocale(UTF8String a) {
+			return GetCanonicalLocale(a).GetHashCode();
+		}
+
+		static string GetCanonicalLocale(UTF8String locale) {
+			var s = UTF8String.ToSystemStringOrEmpty(locale).ToLowerInvariant();
+			if (s == "neutral")
+				s = string.Empty;
+			return s;
+		}
 	}
 }

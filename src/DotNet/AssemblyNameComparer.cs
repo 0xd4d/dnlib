@@ -130,17 +130,10 @@ namespace dot10.DotNet {
 				return v;
 			if (ComparePublicKeyToken && (v = PublicKeyBase.TokenCompareTo(a.PublicKeyOrToken, b.PublicKeyOrToken)) != 0)
 				return v;
-			if (CompareLocale && (v = GetCanonicalLocale(a.Locale).CompareTo(GetCanonicalLocale(b.Locale))) != 0)
+			if (CompareLocale && (v = Utils.LocaleCompareTo(a.Locale, b.Locale)) != 0)
 				return v;
 
 			return 0;
-		}
-
-		static string GetCanonicalLocale(UTF8String locale) {
-			var s = UTF8String.ToSystemStringOrEmpty(locale).ToLowerInvariant();
-			if (s == "neutral")
-				s = string.Empty;
-			return s;
 		}
 
 		/// <summary>
@@ -232,9 +225,8 @@ namespace dot10.DotNet {
 			}
 
 			if (CompareLocale) {
-				var lr = GetCanonicalLocale(requested.Locale);
-				bool la = lr == GetCanonicalLocale(a.Locale);
-				bool lb = lr == GetCanonicalLocale(b.Locale);
+				bool la = Utils.LocaleCompareTo(requested.Locale, a.Locale) == 0;
+				bool lb = Utils.LocaleCompareTo(requested.Locale, b.Locale) == 0;
 				if (la && !lb)
 					return 0;
 				if (!la && lb)
@@ -262,7 +254,7 @@ namespace dot10.DotNet {
 			if (ComparePublicKeyToken)
 				hash += PublicKeyBase.GetHashCodeToken(a.PublicKeyOrToken);
 			if (CompareLocale)
-				hash += GetCanonicalLocale(a.Locale).GetHashCode();
+				hash += Utils.GetHashCodeLocale(a.Locale);
 
 			return hash;
 		}
