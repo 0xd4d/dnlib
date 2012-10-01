@@ -1146,7 +1146,13 @@ namespace dot10.DotNet {
 			var fileName = GetValidFilename(GetBaseDirectoryOfImage(), UTF8String.ToSystemString(fileDef.Name));
 			if (fileName == null)
 				return null;
-			var module = ModuleDefMD.Load(fileName);
+			ModuleDefMD module;
+			try {
+				module = ModuleDefMD.Load(fileName);
+			}
+			catch {
+				module = null;
+			}
 			if (module != null && module.Assembly != null)
 				module.Assembly.Modules.Remove(module);
 			return module;
