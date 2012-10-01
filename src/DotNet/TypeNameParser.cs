@@ -319,7 +319,7 @@ namespace dot10.DotNet {
 
 		internal AssemblyRef FindAssemblyRef(TypeRef nonNestedTypeRef) {
 			AssemblyRef asmRef = null;
-			if (typeNameParserHelper != null)
+			if (nonNestedTypeRef != null && typeNameParserHelper != null)
 				asmRef = typeNameParserHelper.FindAssemblyRef(nonNestedTypeRef);
 			if (asmRef != null)
 				return asmRef;
@@ -329,6 +329,8 @@ namespace dot10.DotNet {
 		}
 
 		internal bool IsValueType(TypeRef typeRef) {
+			if (typeRef == null)
+				return false;
 			if (typeNameParserHelper == null)
 				return false;	// Assume it's a reference type
 			return typeNameParserHelper.IsValueType(typeRef);
