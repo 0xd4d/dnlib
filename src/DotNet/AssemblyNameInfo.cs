@@ -166,7 +166,7 @@ namespace dot10.DotNet {
 				var value = kv.Substring(index + 1).Trim();
 				switch (key) {
 				case "version":
-					version = ParseVersion(value);
+					version = Utils.ParseVersion(value);
 					if (version == null)
 						error = true;
 					break;
@@ -201,21 +201,6 @@ namespace dot10.DotNet {
 			}
 
 			return error;
-		}
-
-		/// <summary>
-		/// Parses a version string
-		/// </summary>
-		/// <param name="versionString">Version string</param>
-		/// <returns>A new <see cref="Version"/> or <c>null</c> if <paramref name="versionString"/>
-		/// is an invalid version</returns>
-		static Version ParseVersion(string versionString) {
-			try {
-				return Utils.CreateVersionWithNoUndefinedValues(new Version(versionString));
-			}
-			catch {
-				return null;
-			}
 		}
 
 		/// <inhertidoc/>

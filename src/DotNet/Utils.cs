@@ -183,6 +183,21 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Parses a version string
+		/// </summary>
+		/// <param name="versionString">Version string</param>
+		/// <returns>A new <see cref="Version"/> or <c>null</c> if <paramref name="versionString"/>
+		/// is an invalid version</returns>
+		internal static Version ParseVersion(string versionString) {
+			try {
+				return Utils.CreateVersionWithNoUndefinedValues(new Version(versionString));
+			}
+			catch {
+				return null;
+			}
+		}
+
+		/// <summary>
 		/// Compares two locales (cultures)
 		/// </summary>
 		/// <param name="a">First</param>
