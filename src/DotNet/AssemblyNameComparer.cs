@@ -182,6 +182,8 @@ namespace dot10.DotNet {
 					return 0;
 				if (!na && nb)
 					return 1;
+				if (!na && !nb)
+					return -1;
 			}
 
 			if (ComparePublicKeyToken) {
