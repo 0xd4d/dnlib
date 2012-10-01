@@ -350,6 +350,15 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Simple name</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyRefUser(string name)
+			: this(name, new Version(0, 0, 0, 0)) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
 		/// <param name="version">Version</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
 		public AssemblyRefUser(string name, Version version)
