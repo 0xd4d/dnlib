@@ -214,8 +214,8 @@
 			reader.Position = (rid - 1) * tableInfo.RowSize;
 			return new RawConstantRow(reader.ReadByte(),
 				reader.ReadByte(),
-				columns[2].Read(reader),
-				columns[3].Read(reader));
+				columns[1].Read(reader),
+				columns[2].Read(reader));
 		}
 
 		/// <summary>
