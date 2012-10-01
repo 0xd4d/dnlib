@@ -135,7 +135,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<Resource> Resources {
+		internal override ILazyList<Resource> Resources2 {
 			get {
 				if (resources == null) {
 					var table = TablesStream.Get(Table.ManifestResource);

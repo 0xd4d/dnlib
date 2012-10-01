@@ -77,7 +77,14 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets a list of all <see cref="Resource"/>s
 		/// </summary>
-		public abstract IList<Resource> Resources { get; }
+		public IList<Resource> Resources {
+			get { return Resources2; }
+		}
+
+		/// <summary>
+		/// Gets a list of all <see cref="Resource"/>s
+		/// </summary>
+		internal abstract ILazyList<Resource> Resources2 { get; }
 
 		/// <inheritdoc/>
 		public string FullName {
@@ -275,7 +282,7 @@ namespace dot10.DotNet {
 		AssemblyDef assembly;
 		LazyList<TypeDef> types;
 		List<ExportedType> exportedTypes = new List<ExportedType>();
-		IList<Resource> resources = new List<Resource>();
+		ILazyList<Resource> resources = new LazyList<Resource>();
 		string location = string.Empty;
 
 		/// <inheritdoc/>
@@ -325,7 +332,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<Resource> Resources {
+		internal override ILazyList<Resource> Resources2 {
 			get { return resources; }
 		}
 
@@ -409,7 +416,7 @@ namespace dot10.DotNet {
 		/// <summary></summary>
 		protected IList<ExportedType> exportedTypes;
 		/// <summary></summary>
-		protected IList<Resource> resources;
+		internal ILazyList<Resource> resources;
 		string location;
 
 		/// <inheritdoc/>
@@ -459,7 +466,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<Resource> Resources {
+		internal override ILazyList<Resource> Resources2 {
 			get { return resources; }
 		}
 
@@ -490,7 +497,7 @@ namespace dot10.DotNet {
 			if (rid != 1) {
 				this.types = new LazyList<TypeDef>(this);
 				this.exportedTypes = new List<ExportedType>();
-				this.resources = new List<Resource>();
+				this.resources = new LazyList<Resource>();
 				this.corLibTypes = new CorLibTypes(this);
 				this.location = string.Empty;
 			}
