@@ -258,12 +258,13 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Reads a <see cref="TypeRef"/> including any possible nested <see cref="TypeRef"/>s.
 		/// </summary>
+		/// <param name="nestedChar">Character separating nested types</param>
 		/// <returns>A new <see cref="TypeRef"/> instance, which could be nested.</returns>
-		protected TypeRef ReadTypeRefAndNestedNoAssembly() {
+		protected TypeRef ReadTypeRefAndNestedNoAssembly(char nestedChar) {
 			var typeRef = ReadTypeRefNoAssembly();
 			while (true) {
 				SkipWhite();
-				if (reader.Peek() != '+')
+				if (reader.Peek() != nestedChar)
 					break;
 				reader.Read();
 				var newTypeRef = ReadTypeRefNoAssembly();
@@ -449,7 +450,7 @@ namespace dot10.DotNet {
 				result = CreateTypeSig(tspecs, currentSig);
 			}
 			else {
-				TypeRef typeRef = ReadTypeRefAndNestedNoAssembly();
+				TypeRef typeRef = ReadTypeRefAndNestedNoAssembly('+');
 				var tspecs = ReadTSpecs();
 				var nonNestedTypeRef = GetNonNestedTypeRef(typeRef);
 				if (reader.Peek() == ',') {
