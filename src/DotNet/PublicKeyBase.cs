@@ -117,6 +117,30 @@
 			return Utils.GetHashCode(a.Data);
 		}
 
+		/// <summary>
+		/// Creates a <see cref="PublicKey"/>
+		/// </summary>
+		/// <param name="data">Public key data or <c>null</c></param>
+		/// <returns>A new <see cref="PublicKey"/> instance or <c>null</c> if <paramref name="data"/>
+		/// was <c>null</c></returns>
+		public static PublicKey CreatePublicKey(byte[] data) {
+			if (data == null)
+				return null;
+			return new PublicKey(data);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="PublicKeyToken"/>
+		/// </summary>
+		/// <param name="data">Public key token data or <c>null</c></param>
+		/// <returns>A new <see cref="PublicKeyToken"/> instance or <c>null</c> if <paramref name="data"/>
+		/// was <c>null</c></returns>
+		public static PublicKeyToken CreatePublicKeyToken(byte[] data) {
+			if (data == null)
+				return null;
+			return new PublicKeyToken(data);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (IsNullOrEmpty)

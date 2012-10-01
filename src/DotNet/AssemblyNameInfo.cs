@@ -118,21 +118,10 @@ namespace dot10.DotNet {
 			this.hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.flags = (AssemblyFlags)asmName.Flags;
-			this.publicKeyOrToken = (PublicKeyBase)CreatePublicKey(asmName.GetPublicKey()) ?? CreatePublicKeyToken(asmName.GetPublicKeyToken());
+			this.publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
+							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			this.name = new UTF8String(asmName.Name ?? string.Empty);
 			this.locale = new UTF8String(asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : "");
-		}
-
-		static PublicKey CreatePublicKey(byte[] data) {
-			if (data == null)
-				return null;
-			return new PublicKey(data);
-		}
-
-		static PublicKeyToken CreatePublicKeyToken(byte[] data) {
-			if (data == null)
-				return null;
-			return new PublicKeyToken(data);
 		}
 
 		/// <summary>
@@ -175,7 +164,7 @@ namespace dot10.DotNet {
 					if (value == "null")
 						publicKeyOrToken = null;
 					else {
-						publicKeyOrToken = CreatePublicKey(Utils.ParseBytes(value));
+						publicKeyOrToken = PublicKeyBase.CreatePublicKey(Utils.ParseBytes(value));
 						if (publicKeyOrToken == null)
 							error = true;
 					}
@@ -185,7 +174,7 @@ namespace dot10.DotNet {
 					if (value == "null")
 						publicKeyOrToken = null;
 					else {
-						publicKeyOrToken = CreatePublicKeyToken(Utils.ParseBytes(value));
+						publicKeyOrToken = PublicKeyBase.CreatePublicKeyToken(Utils.ParseBytes(value));
 						if (publicKeyOrToken == null)
 							error = true;
 					}
