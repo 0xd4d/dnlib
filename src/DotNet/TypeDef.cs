@@ -179,6 +179,22 @@ namespace dot10.DotNet {
 		public abstract IList<PropertyDef> Properties { get; }
 
 		/// <summary>
+		/// <c>true</c> if it's a value type
+		/// </summary>
+		public bool IsValueType {
+			get {
+				var extends = Extends;
+				if (extends == null)
+					return false;
+				if (extends.Namespace != "System")
+					return false;
+				if (extends.Name != "ValueType" && extends.Name != "Enum")
+					return false;
+				return extends.DefinitionAssembly.IsCorLib();
+			}
+		}
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
