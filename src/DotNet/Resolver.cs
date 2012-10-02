@@ -19,6 +19,22 @@ namespace dot10.DotNet {
 		public TypeDef Resolve(TypeRef typeRef) {
 			if (typeRef == null)
 				return null;
+
+			var nonNestedTypeRef = TypeRef.GetNonNestedTypeRef(typeRef);
+			if (nonNestedTypeRef != null) {
+				var moduleDef = nonNestedTypeRef.ResolutionScope as ModuleDef;
+				if (moduleDef != null)
+					return moduleDef.Find(typeRef);
+
+				var moduleRef = nonNestedTypeRef.ResolutionScope as ModuleRef;
+				if (moduleRef != null && nonNestedTypeRef.OwnerModule != null) {
+					if (new SigComparer().Equals(moduleRef, nonNestedTypeRef.OwnerModule))
+						return nonNestedTypeRef.OwnerModule.Find(typeRef);
+					if (nonNestedTypeRef.OwnerModule.Assembly != null)
+						return nonNestedTypeRef.OwnerModule.Assembly.Find(typeRef);
+				}
+			}
+
 			var asm = assemblyResolver.Resolve(typeRef.DefinitionAssembly, typeRef.OwnerModule);
 			return asm == null ? null : asm.Find(typeRef);
 		}
