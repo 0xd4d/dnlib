@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the TypeDef table
 	/// </summary>
-	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef>, IListListener<EventDef>, IListListener<PropertyDef> {
+	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef>, IListListener<EventDef>, IListListener<PropertyDef>, IMemberRefResolver {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -494,6 +494,66 @@ namespace dot10.DotNet {
 		/// </summary>
 		public IEnumerable<TypeDef> GetTypes() {
 			return AllTypesHelper.Types(NestedTypes);
+		}
+
+		/// <summary>
+		/// Resolves a method or a field. The <see cref="MemberRef.Class"/> (owner type) is
+		/// ignored when resolving the method/field.
+		/// </summary>
+		/// <param name="memberRef">A method/field reference</param>
+		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
+		/// if it couldn't be resolved.</returns>
+		public IMemberForwarded Resolve(MemberRef memberRef) {
+			if (memberRef == null)
+				return null;
+
+			var methodSig = memberRef.MethodSig;
+			if (methodSig != null)
+				return ResolveMethod(memberRef.Name, methodSig);
+
+			var fieldSig = memberRef.FieldSig;
+			if (fieldSig != null)
+				return ResolveField(memberRef.Name, fieldSig);
+
+			return null;
+		}
+
+		/// <summary>
+		/// Resolves a method
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <param name="sig">Method signature</param>
+		/// <returns>The first method that matches or <c>null</c> if none found</returns>
+		public MethodDef ResolveMethod(UTF8String name, MethodSig sig) {
+			if (UTF8String.IsNull(name) || sig == null)
+				return null;
+			var comparer = new SigComparer(0);
+			foreach (var method in Methods) {
+				if (UTF8String.CompareTo(name, method.Name) != 0)
+					continue;
+				if (comparer.Equals(method.MethodSig, sig))
+					return method;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Resolves a field
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <param name="sig">Field signature</param>
+		/// <returns>The first field that matches or <c>null</c> if none found</returns>
+		public FieldDef ResolveField(UTF8String name, FieldSig sig) {
+			if (UTF8String.IsNull(name) || sig == null)
+				return null;
+			var comparer = new SigComparer(0);
+			foreach (var field in Fields) {
+				if (UTF8String.CompareTo(name, field.Name) != 0)
+					continue;
+				if (comparer.Equals(field.FieldSig, sig))
+					return field;
+			}
+			return null;
 		}
 
 		/// <inheritdoc/>
