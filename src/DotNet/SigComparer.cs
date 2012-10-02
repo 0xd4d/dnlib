@@ -369,7 +369,7 @@ namespace dot10.DotNet {
 	[Flags]
 	public enum SigComparerOptions {
 		/// <summary>
-		/// Don't compares a type's (assembly/module) scope
+		/// Don't compare a type's (assembly/module) scope
 		/// </summary>
 		DontCompareTypeScope = 1,
 
