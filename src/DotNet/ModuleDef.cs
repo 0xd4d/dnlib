@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
-	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule {
+	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -18,6 +18,8 @@ namespace dot10.DotNet {
 		/// Initialize this in the ctor
 		/// </summary>
 		protected ICorLibTypes corLibTypes;
+
+		TypeDefFinder typeDefFinder;
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -101,6 +103,33 @@ namespace dot10.DotNet {
 		/// </summary>
 		public ICorLibTypes CorLibTypes {
 			get { return corLibTypes; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="TypeDefFinder"/> instance
+		/// </summary>
+		internal TypeDefFinder TypeDefFinder {
+			get {
+				if (typeDefFinder == null)
+					typeDefFinder = new TypeDefFinder(Types);
+				return typeDefFinder;
+			}
+		}
+
+		/// <summary>
+		/// If <c>true</c>, the <see cref="TypeDef"/> cache is enabled. The cache is used by
+		/// <see cref="Find(string,bool)"/> and <see cref="Find(TypeRef)"/> to find types.
+		/// <br/><br/>
+		/// <c>IMPORTANT:</c> Only enable the cache if this module's types keep their exact
+		/// name, namespace, and declaring type and if <c>no</c> type is either added or
+		/// removed from <see cref="Types"/> or from any type that is reachable from the
+		/// top-level types in <see cref="Types"/> (i.e., any type owned by this module).
+		/// This is disabled by default. When disabled, all calls to <see cref="Find(string,bool)"/>
+		/// and <see cref="Find(TypeRef)"/> will result in a slow <c>O(n)</c> (linear) search.
+		/// </summary>
+		public bool EnableTypeDefFindCache {
+			get { return TypeDefFinder.IsCacheEnabled; }
+			set { TypeDefFinder.IsCacheEnabled = value; }
 		}
 
 		/// <summary>
@@ -262,6 +291,30 @@ namespace dot10.DotNet {
 		void IListListener<TypeDef>.OnClear() {
 			foreach (var type in Types)
 				type.OwnerModule2 = null;
+		}
+
+		/// <summary>
+		/// Finds a <see cref="TypeDef"/>. For speed, enable <see cref="EnableTypeDefFindCache"/>
+		/// if possible (read the documentation first).
+		/// </summary>
+		/// <param name="fullName">Full name of the type (no assembly information)</param>
+		/// <param name="isReflectionName"><c>true</c> if it's a reflection name, and nested
+		/// type names are separated by a <c>+</c> character. If <c>false</c>, nested type names
+		/// are separated by a <c>/</c> character.</param>
+		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
+		public TypeDef Find(string fullName, bool isReflectionName) {
+			return TypeDefFinder.Find(fullName, isReflectionName);
+		}
+
+		/// <summary>
+		/// Finds a <see cref="TypeDef"/>. Its scope (i.e., module or assembly) is ignored when
+		/// looking up the type. For speed, enable <see cref="EnableTypeDefFindCache"/> if possible
+		/// (read the documentation first).
+		/// </summary>
+		/// <param name="typeRef">The type ref</param>
+		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
+		public TypeDef Find(TypeRef typeRef) {
+			return TypeDefFinder.Find(typeRef);
 		}
 
 		/// <inheritdoc/>
