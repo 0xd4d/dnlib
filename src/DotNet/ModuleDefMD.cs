@@ -157,9 +157,19 @@ namespace dot10.DotNet {
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(string fileName) {
+			return Load(fileName, null);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a file
+		/// </summary>
+		/// <param name="fileName">File name of an existing .NET module/assembly</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(string fileName, ModuleContext context) {
 			DotNetFile dnFile = null;
 			try {
-				return Load(dnFile = DotNetFile.Load(fileName));
+				return Load(dnFile = DotNetFile.Load(fileName), context);
 			}
 			catch {
 				if (dnFile != null)
@@ -167,16 +177,25 @@ namespace dot10.DotNet {
 				throw;
 			}
 		}
-
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
 		/// </summary>
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(byte[] data) {
+			return Load(data, null);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
+		/// </summary>
+		/// <param name="data">Contents of a .NET module/assembly</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(byte[] data, ModuleContext context) {
 			DotNetFile dnFile = null;
 			try {
-				return Load(dnFile = DotNetFile.Load(data));
+				return Load(dnFile = DotNetFile.Load(data), context);
 			}
 			catch {
 				if (dnFile != null)
@@ -191,9 +210,19 @@ namespace dot10.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(IntPtr addr) {
+			return Load(addr, null);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
+		/// </summary>
+		/// <param name="addr">Address of a .NET module/assembly</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) {
 			DotNetFile dnFile = null;
 			try {
-				return Load(dnFile = DotNetFile.Load(addr));
+				return Load(dnFile = DotNetFile.Load(addr), context);
 			}
 			catch {
 				if (dnFile != null)
@@ -211,6 +240,19 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		public static ModuleDefMD Load(Stream stream) {
+			return Load(stream, null);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a stream
+		/// </summary>
+		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[],ModuleContext)"/>.
+		/// It's better to use one of the other Load() methods.</remarks>
+		/// <param name="stream">The stream (owned by caller)</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
+		public static ModuleDefMD Load(Stream stream, ModuleContext context) {
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 			if (stream.Length > int.MaxValue)
@@ -219,7 +261,7 @@ namespace dot10.DotNet {
 			stream.Position = 0;
 			if (stream.Read(data, 0, data.Length) != data.Length)
 				throw new IOException("Could not read all bytes from the stream");
-			return Load(data);
+			return Load(data, context);
 		}
 
 		/// <summary>
@@ -228,21 +270,33 @@ namespace dot10.DotNet {
 		/// <param name="dnFile">The loaded .NET file</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="dnFile"/></returns>
 		public static ModuleDefMD Load(DotNetFile dnFile) {
-			return new ModuleDefMD(dnFile);
+			return Load(dnFile, null);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="DotNetFile"/>
+		/// </summary>
+		/// <param name="dnFile">The loaded .NET file</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="dnFile"/></returns>
+		public static ModuleDefMD Load(DotNetFile dnFile, ModuleContext context) {
+			return new ModuleDefMD(dnFile, context);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="dnFile">The loaded .NET file</param>
+		/// <param name="context">Module context or <c>null</c></param>
 		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
-		ModuleDefMD(DotNetFile dnFile)
+		ModuleDefMD(DotNetFile dnFile, ModuleContext context)
 			: base(null, 1) {
 #if DEBUG
 			if (dnFile == null)
 				throw new ArgumentNullException("dnFile");
 #endif
 			this.dnFile = dnFile;
+			this.context = context;
 			Initialize();
 		}
 
@@ -1171,8 +1225,13 @@ namespace dot10.DotNet {
 			catch {
 				module = null;
 			}
-			if (module != null && module.Assembly != null)
-				module.Assembly.Modules.Remove(module);
+			if (module != null) {
+				// share context
+				module.context = context;
+
+				if (module.Assembly != null)
+					module.Assembly.Modules.Remove(module);
+			}
 			return module;
 		}
 
