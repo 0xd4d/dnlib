@@ -1282,11 +1282,13 @@ namespace dot10.DotNet {
 					return MemoryImageStream.CreateEmpty();
 
 				imageStream = peImage.CreateStream((FileOffset)fs.Position, length);
-				for (; imageStream.Position < imageStream.Length; imageStream.Position += 0x1000)
+				if (peImage.MayHaveInvalidAddresses) {
+					for (; imageStream.Position < imageStream.Length; imageStream.Position += 0x1000)
+						imageStream.ReadByte();	// Could throw
+					imageStream.Position = imageStream.Length - 1;	// length is never 0 if we're here
 					imageStream.ReadByte();	// Could throw
-				imageStream.Position = imageStream.Length - 1;	// length is never 0 if we're here
-				imageStream.ReadByte();	// Could throw
-				imageStream.Position = 0;
+					imageStream.Position = 0;
+				}
 			}
 			catch (AccessViolationException) {
 				if (imageStream != null)
