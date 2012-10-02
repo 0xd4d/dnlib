@@ -22,6 +22,7 @@ namespace dot10.DotNet {
 		List<string> preSearchPaths = new List<string>();
 		List<string> postSearchPaths = new List<string>();
 		bool findExactMatch;
+		bool enableTypeDefCache;
 
 		class GacInfo {
 			public string path;
@@ -55,6 +56,15 @@ namespace dot10.DotNet {
 		public bool FindExactMatch {
 			get { return findExactMatch; }
 			set { findExactMatch = value; }
+		}
+
+		/// <summary>
+		/// If <c>true</c>, all modules in newly resolved assemblies will have their
+		/// <see cref="ModuleDef.EnableTypeDefFindCache"/> property set to <c>true</c>.
+		/// </summary>
+		public bool EnableTypeDefCache {
+			get { return enableTypeDefCache; }
+			set { enableTypeDefCache = value; }
 		}
 
 		/// <summary>
@@ -93,10 +103,19 @@ namespace dot10.DotNet {
 			if (resolvedAssembly != null) {
 				AssemblyDef cachedAssembly;
 				var resolvedAsmKey = GetAssemblyNameKey(new AssemblyNameInfo(resolvedAssembly));
-				if (cachedAssemblies.TryGetValue(resolvedAsmKey, out cachedAssembly) && cachedAssembly != resolvedAssembly) {
-					if (resolvedAssembly.ManifestModule != null)
-						resolvedAssembly.ManifestModule.Dispose();
-					resolvedAssembly = cachedAssembly;
+				if (cachedAssemblies.TryGetValue(resolvedAsmKey, out cachedAssembly)) {
+					if (cachedAssembly != resolvedAssembly) {
+						if (resolvedAssembly.ManifestModule != null)
+							resolvedAssembly.ManifestModule.Dispose();
+						resolvedAssembly = cachedAssembly;
+					}
+				}
+				else {
+					// This assembly was just resolved
+					if (enableTypeDefCache) {
+						foreach (var module in resolvedAssembly.Modules)
+							module.EnableTypeDefFindCache = true;
+					}
 				}
 				cachedAssemblies.Add(GetAssemblyNameKey(assembly), resolvedAssembly);
 				cachedAssemblies[resolvedAsmKey] = resolvedAssembly;
