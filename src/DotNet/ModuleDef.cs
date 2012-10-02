@@ -240,6 +240,10 @@ namespace dot10.DotNet {
 					resource.Dispose();
 			}
 			Resources.Clear();
+			if (typeDefFinder != null) {
+				typeDefFinder.Dispose();
+				typeDefFinder = null;
+			}
 		}
 
 		/// <summary>
