@@ -25,8 +25,7 @@
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public ModuleContext()
-			: this(null, null) {
+		public ModuleContext() {
 		}
 
 		/// <summary>
@@ -55,10 +54,6 @@
 			this.resolver = resolver;
 			if (resolver == null && assemblyResolver != null)
 				this.resolver = new Resolver(assemblyResolver);
-			if (this.assemblyResolver == null)
-				this.assemblyResolver = NullResolver.Instance;
-			if (this.resolver == null)
-				this.resolver = NullResolver.Instance;
 		}
 	}
 }
