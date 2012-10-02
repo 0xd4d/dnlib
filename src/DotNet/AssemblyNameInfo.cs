@@ -87,9 +87,8 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmFullName">An assembly name</param>
-		public AssemblyNameInfo(string asmFullName) {
-			if (asmFullName != null)
-				Parse(asmFullName);
+		public AssemblyNameInfo(string asmFullName)
+			: this(ReflectionTypeNameParser.ParseAssemblyRef(asmFullName)) {
 		}
 
 		/// <summary>
@@ -122,74 +121,6 @@ namespace dot10.DotNet {
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			this.name = new UTF8String(asmName.Name ?? string.Empty);
 			this.locale = new UTF8String(asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : "");
-		}
-
-		/// <summary>
-		/// Parses an assembly name string
-		/// </summary>
-		/// <param name="asmFullName">Assembly name</param>
-		/// <returns><c>true</c> if no error was detected</returns>
-		bool Parse(string asmFullName) {
-			//TODO:  http://msdn.microsoft.com/en-us/library/yfsftwz6.aspx
-
-			bool error = false;
-
-			var s = asmFullName;
-			int index = s.IndexOf(',');
-			if (index < 0) {
-				name = new UTF8String(asmFullName);
-				return error;
-			}
-
-			name = new UTF8String(s.Substring(0, index));
-			var kvString = s.Substring(index + 1);
-			if (kvString.Trim() == "")
-				return error;
-			foreach (var kv in kvString.Split(',')) {
-				index = kv.IndexOf('=');
-				if (index < 0) {
-					error = true;
-					continue;
-				}
-				var key = kv.Substring(0, index).Trim().ToLowerInvariant();
-				var value = kv.Substring(index + 1).Trim();
-				switch (key) {
-				case "version":
-					version = Utils.ParseVersion(value);
-					if (version == null)
-						error = true;
-					break;
-
-				case "publickey":
-					if (value == "null")
-						publicKeyOrToken = null;
-					else {
-						publicKeyOrToken = PublicKeyBase.CreatePublicKey(Utils.ParseBytes(value));
-						if (publicKeyOrToken == null)
-							error = true;
-					}
-					break;
-
-				case "publickeytoken":
-					if (value == "null")
-						publicKeyOrToken = null;
-					else {
-						publicKeyOrToken = PublicKeyBase.CreatePublicKeyToken(Utils.ParseBytes(value));
-						if (publicKeyOrToken == null)
-							error = true;
-					}
-					break;
-
-				case "culture":
-					if (value.ToLowerInvariant() == "neutral")
-						locale = UTF8String.Empty;
-					else
-						locale = new UTF8String(value);
-					break;
-				}
-			}
-
-			return error;
 		}
 
 		/// <inhertidoc/>
