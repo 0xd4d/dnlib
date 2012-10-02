@@ -106,6 +106,7 @@
     <Compile Include="DotNet\ImplMap.cs" />
     <Compile Include="DotNet\InterfaceImpl.cs" />
     <Compile Include="DotNet\ISignature.cs" />
+    <Compile Include="DotNet\NullResolvers.cs" />
     <Compile Include="DotNet\RecursionCounter.cs" />
     <Compile Include="DotNet\ResolveException.cs" />
     <Compile Include="DotNet\Resolver.cs" />
