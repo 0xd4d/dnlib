@@ -55,6 +55,8 @@ namespace dot10.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver or
 		/// <c>null</c> if the assembly couldn't be found.</returns>
 		public static AssemblyDef Resolve(this IAssemblyResolver self, AssemblyName assembly, ModuleDef sourceModule) {
+			if (assembly == null)
+				return null;
 			return self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 		}
 
@@ -67,6 +69,8 @@ namespace dot10.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver or
 		/// <c>null</c> if the assembly couldn't be found.</returns>
 		public static AssemblyDef Resolve(this IAssemblyResolver self, string asmFullName, ModuleDef sourceModule) {
+			if (asmFullName == null)
+				return null;
 			return self.Resolve(new AssemblyNameInfo(asmFullName), sourceModule);
 		}
 
@@ -79,6 +83,8 @@ namespace dot10.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver or
 		/// <c>null</c> if the assembly couldn't be found.</returns>
 		public static AssemblyDef Resolve(this IAssemblyResolver self, IAssembly assembly, ModuleDef sourceModule) {
+			if (assembly == null)
+				return null;
 			return self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 		}
 
@@ -91,6 +97,8 @@ namespace dot10.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		public static AssemblyDef ResolveThrow(this IAssemblyResolver self, AssemblyNameInfo assembly, ModuleDef sourceModule) {
+			if (assembly == null)
+				return null;
 			var asm = self.Resolve(assembly, sourceModule);
 			if (asm != null)
 				return asm;
@@ -106,6 +114,8 @@ namespace dot10.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		public static AssemblyDef ResolveThrow(this IAssemblyResolver self, AssemblyName assembly, ModuleDef sourceModule) {
+			if (assembly == null)
+				return null;
 			var asm = self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 			if (asm != null)
 				return asm;
@@ -121,6 +131,8 @@ namespace dot10.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		public static AssemblyDef ResolveThrow(this IAssemblyResolver self, string asmFullName, ModuleDef sourceModule) {
+			if (asmFullName == null)
+				return null;
 			var asm = self.Resolve(new AssemblyNameInfo(asmFullName), sourceModule);
 			if (asm != null)
 				return asm;
@@ -136,6 +148,8 @@ namespace dot10.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		public static AssemblyDef ResolveThrow(this IAssemblyResolver self, IAssembly assembly, ModuleDef sourceModule) {
+			if (assembly == null)
+				return null;
 			var asm = self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 			if (asm != null)
 				return asm;
