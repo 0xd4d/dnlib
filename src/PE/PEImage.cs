@@ -56,6 +56,16 @@ namespace dot10.PE {
 		}
 
 		/// <inheritdoc/>
+		public bool IsFileImageLayout {
+			get { return peType is FilePEType; }
+		}
+
+		/// <inheritdoc/>
+		public bool MayHaveInvalidAddresses {
+			get { return !IsFileImageLayout; }
+		}
+
+		/// <inheritdoc/>
 		public string FileName {
 			get { return imageStreamCreator.FileName; }
 		}

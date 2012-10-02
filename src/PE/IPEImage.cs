@@ -9,6 +9,18 @@ namespace dot10.PE {
 	/// </summary>
 	public interface IPEImage : IDisposable {
 		/// <summary>
+		/// <c>true</c> if image layout is the same as the raw PE image layout, <c>false</c>
+		/// if it's the same layout as a PE image loaded by the OS PE loader.
+		/// </summary>
+		bool IsFileImageLayout { get; }
+
+		/// <summary>
+		/// <c>true</c> if some of the memory where the image is located could be unavailable.
+		/// This could happen if it's been loaded by the OS loader.
+		/// </summary>
+		bool MayHaveInvalidAddresses { get; }
+
+		/// <summary>
 		/// The file name or <c>null</c> if data is not from a file
 		/// </summary>
 		string FileName { get; }
