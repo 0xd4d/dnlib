@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// Finds <see cref="TypeDef"/>s
 	/// </summary>
 	sealed class TypeDefFinder : ITypeDefFinder, IDisposable {
-		const SigComparerOptions TypeComparerOptions = SigComparerOptions.DontCompareTypeScope;
+		const SigComparerOptions TypeComparerOptions = SigComparerOptions.DontCompareTypeScope | SigComparerOptions.TypeRefCanReferenceGlobalType;
 		bool isCacheEnabled;
 		readonly bool includeNestedTypes;
 		Dictionary<ITypeDefOrRef, TypeDef> typeRefCache = new Dictionary<ITypeDefOrRef, TypeDef>(new TypeEqualityComparer(TypeComparerOptions));
@@ -45,6 +45,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="rootTypes">All root types. All their nested types are also included.</param>
+		/// <exception cref="ArgumentNullException">If <paramref name="rootTypes"/> is <c>null</c></exception>
 		public TypeDefFinder(IEnumerable<TypeDef> rootTypes)
 			: this(rootTypes, true) {
 		}
@@ -68,25 +69,7 @@ namespace dot10.DotNet {
 				typeEnumerator.Dispose();
 				typeEnumerator = null;
 			}
-			typeEnumerator = GetTypeDefsToIterateOver(rootTypes, includeNestedTypes).GetEnumerator();
-		}
-
-		static IEnumerable<TypeDef> GetTypeDefsToIterateOver(IEnumerable<TypeDef> types, bool includeNestedTypes) {
-			if (!includeNestedTypes)
-				return types;
-			return GetTypesAndNestedTypesToIterateOver(types, 0);
-		}
-
-		static IEnumerable<TypeDef> GetTypesAndNestedTypesToIterateOver(IEnumerable<TypeDef> types, int recursionLevel) {
-			if (types != null && recursionLevel < 100) {
-				foreach (var type in types) {
-					yield return type;
-					if (type.NestedTypes.Count > 0) {
-						foreach (var nested in GetTypesAndNestedTypesToIterateOver(type.NestedTypes, recursionLevel + 1))
-							yield return nested;
-					}
-				}
-			}
+			typeEnumerator = (includeNestedTypes ? AllTypesHelper.Types(rootTypes) : rootTypes).GetEnumerator();
 		}
 
 		/// <inheritdoc/>
@@ -125,7 +108,6 @@ namespace dot10.DotNet {
 				return cachedType;
 
 			// Build the cache lazily
-			var comparer = new SigComparer { Options = TypeComparerOptions };
 			while (true) {
 				cachedType = GetNextTypeDefCache();
 				if (cachedType == null || cachedType.ReflectionFullName == fullName)
@@ -139,7 +121,6 @@ namespace dot10.DotNet {
 				return cachedType;
 
 			// Build the cache lazily
-			var comparer = new SigComparer { Options = TypeComparerOptions };
 			while (true) {
 				cachedType = GetNextTypeDefCache();
 				if (cachedType == null || cachedType.FullName == fullName)
@@ -217,6 +198,7 @@ namespace dot10.DotNet {
 		public void Dispose() {
 			if (typeEnumerator != null)
 				typeEnumerator.Dispose();
+			typeEnumerator = null;
 			typeRefCache = null;
 			normalNameCache = null;
 			reflectionNameCache = null;
