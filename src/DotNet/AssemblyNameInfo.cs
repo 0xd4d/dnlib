@@ -84,6 +84,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public AssemblyNameInfo() {
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="asmFullName">An assembly name</param>
