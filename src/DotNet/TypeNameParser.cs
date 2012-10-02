@@ -245,14 +245,15 @@ namespace dot10.DotNet {
 		/// <param name="typeRef">Input</param>
 		/// <returns>The non-nested <see cref="TypeRef"/> or <c>null</c></returns>
 		protected static TypeRef GetNonNestedTypeRef(TypeRef typeRef) {
-			for (int i = 0; typeRef != null; i++) {
-				if (i >= 1000)
-					return null;	// Should never happen
+			if (typeRef == null)
+				return null;
+			for (int i = 0; i < 1000; i++) {
 				var next = typeRef.ResolutionScope as TypeRef;
 				if (next == null)
 					return typeRef;
+				typeRef = next;
 			}
-			return null;
+			return null;	// Should never happen
 		}
 
 		/// <summary>
