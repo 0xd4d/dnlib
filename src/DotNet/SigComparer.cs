@@ -417,6 +417,12 @@ namespace dot10.DotNet {
 		/// Compares assembly locale
 		/// </summary>
 		CompareAssemblyLocale = 0x80,
+
+		/// <summary>
+		/// If set, a <see cref="TypeRef"/> and an <see cref="ExportedType"/> can reference the
+		/// global <c>&lt;Module&gt;</c> type.
+		/// </summary>
+		TypeRefCanReferenceGlobalType = 0x100,
 	}
 
 	/// <summary>
@@ -549,6 +555,19 @@ namespace dot10.DotNet {
 					options |= SigComparerOptions.CompareAssemblyLocale;
 				else
 					options &= ~SigComparerOptions.CompareAssemblyLocale;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.TypeRefCanReferenceGlobalType"/> bit
+		/// </summary>
+		public bool TypeRefCanReferenceGlobalType {
+			get { return (options & SigComparerOptions.TypeRefCanReferenceGlobalType) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.TypeRefCanReferenceGlobalType;
+				else
+					options &= ~SigComparerOptions.TypeRefCanReferenceGlobalType;
 			}
 		}
 
@@ -748,7 +767,7 @@ exit:
 			}
 			//TODO: Handle the case where scope == null
 exit:
-			if (result && a.IsGlobalModuleType)
+			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
 			recursionCounter.Decrement();
 			return result;
@@ -808,7 +827,7 @@ exit:
 				goto exit;
 			}
 exit:
-			if (result && a.IsGlobalModuleType)
+			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
 			recursionCounter.Decrement();
 			return result;
