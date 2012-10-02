@@ -293,9 +293,7 @@ namespace dot10.DotNet {
 			AssemblyRef corLibAsmRef = null;
 			for (uint i = 1; i <= numAsmRefs; i++) {
 				var asmRef = ResolveAssemblyRef(i);
-				if (UTF8String.IsNullOrEmpty(asmRef.Name))
-					continue;
-				if (asmRef.Name != "mscorlib")
+				if (UTF8String.ToSystemStringOrEmpty(asmRef.Name).ToLowerInvariant() != "mscorlib")
 					continue;
 				if (corLibAsmRef == null || corLibAsmRef.Version == null || (asmRef.Version != null && asmRef.Version >= corLibAsmRef.Version))
 					corLibAsmRef = asmRef;
