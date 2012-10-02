@@ -206,6 +206,16 @@ namespace dot10.DotNet.MD {
 			return null;
 		}
 
+		/// <summary>
+		/// Compares two instances
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		public static bool Equals(UTF8String a, UTF8String b) {
+			return CompareTo(a, b) == 0;
+		}
+
 		/// <inheritdoc/>
 		public bool Equals(UTF8String other) {
 			return CompareTo(this, other) == 0;

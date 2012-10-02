@@ -199,7 +199,7 @@ namespace dot10.DotNet {
 					return 1;
 			}
 
-			if (CompareVersion && Utils.CompareTo(a.Version, b.Version) != 0) {
+			if (CompareVersion && !Utils.Equals(a.Version, b.Version)) {
 				var rv = Utils.CreateVersionWithNoUndefinedValues(requested.Version);
 				if (rv == new Version(0, 0, 0, 0))
 					rv = new Version(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, ushort.MaxValue);

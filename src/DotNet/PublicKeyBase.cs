@@ -86,6 +86,16 @@
 		}
 
 		/// <summary>
+		/// Checks whether two public key tokens are equal
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public static bool TokenEquals(PublicKeyBase a, PublicKeyBase b) {
+			return TokenCompareTo(a, b) == 0;
+		}
+
+		/// <summary>
 		/// Compares two <see cref="PublicKeyToken"/>s
 		/// </summary>
 		/// <param name="a">First</param>
@@ -95,6 +105,16 @@
 			if (a == b)
 				return 0;
 			return Utils.CompareTo(a == null ? null : a.data, b == null ? null : b.data);
+		}
+
+		/// <summary>
+		/// Checks whether two public key tokens are equal
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public static bool TokenEquals(PublicKeyToken a, PublicKeyToken b) {
+			return TokenCompareTo(a, b) == 0;
 		}
 
 		/// <summary>

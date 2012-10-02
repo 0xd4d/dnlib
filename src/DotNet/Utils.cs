@@ -125,6 +125,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Checks whether two byte arrays are equal
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		internal static bool Equals(byte[] a, byte[] b) {
+			return CompareTo(a, b) == 0;
+		}
+
+		/// <summary>
 		/// Gets the hash code of a byte array
 		/// </summary>
 		/// <param name="a">Byte array</param>
@@ -164,6 +174,19 @@ namespace dot10.DotNet {
 			if (GetDefaultVersionValue(a.Build) != GetDefaultVersionValue(b.Build))
 				return GetDefaultVersionValue(a.Build).CompareTo(GetDefaultVersionValue(b.Build));
 			return GetDefaultVersionValue(a.Revision).CompareTo(GetDefaultVersionValue(b.Revision));
+		}
+
+		/// <summary>
+		/// Checks whether two versions are the same
+		/// </summary>
+		/// <remarks>This differs from <see cref="System.Version.Equals(Version)"/> if the build
+		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>.
+		/// </remarks>
+		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		internal static bool Equals(Version a, Version b) {
+			return CompareTo(a, b) == 0;
 		}
 
 		/// <summary>

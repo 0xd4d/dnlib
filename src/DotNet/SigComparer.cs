@@ -737,7 +737,7 @@ exit:
 				return false;
 			bool result = false;
 
-			if (UTF8String.CompareTo(a.Name, b.Name) != 0 || UTF8String.CompareTo(a.Namespace, b.Namespace) != 0)
+			if (!UTF8String.Equals(a.Name, b.Name) || !UTF8String.Equals(a.Namespace, b.Namespace))
 				goto exit;
 
 			var scope = b.ResolutionScope;
@@ -798,7 +798,7 @@ exit:
 				return false;
 			bool result = false;
 
-			if (UTF8String.CompareTo(a.Name, b.TypeName) != 0 || UTF8String.CompareTo(a.Namespace, b.TypeNamespace) != 0)
+			if (!UTF8String.Equals(a.Name, b.TypeName) || !UTF8String.Equals(a.Namespace, b.TypeNamespace))
 				goto exit;
 
 			var scope = b.Implementation;
@@ -946,8 +946,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.TypeName) == 0 &&
-					UTF8String.CompareTo(a.Namespace, b.TypeNamespace) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.TypeName) &&
+					UTF8String.Equals(a.Namespace, b.TypeNamespace) &&
 					EqualsScope(a, b);
 
 			recursionCounter.Decrement();
@@ -1104,8 +1104,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
+					UTF8String.Equals(a.Namespace, b.Namespace) &&
 					EqualsResolutionScope(a, b);
 
 			recursionCounter.Decrement();
@@ -1145,8 +1145,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.TypeName, b.TypeName) == 0 &&
-					UTF8String.CompareTo(a.TypeNamespace, b.TypeNamespace) == 0 &&
+			bool result = UTF8String.Equals(a.TypeName, b.TypeName) &&
+					UTF8String.Equals(a.TypeNamespace, b.TypeNamespace) &&
 					EqualsImplementation(a, b);
 
 			recursionCounter.Decrement();
@@ -1186,8 +1186,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
-					UTF8String.CompareTo(a.Namespace, b.Namespace) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
+					UTF8String.Equals(a.Namespace, b.Namespace) &&
 					Equals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.OwnerModule, b.OwnerModule));
 
@@ -1504,7 +1504,7 @@ exit:
 
 			bool result = UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0 &&
 				(!CompareAssemblyPublicKeyToken || PublicKeyBase.TokenCompareTo(a.PublicKeyOrToken, b.PublicKeyOrToken) == 0) &&
-				(!CompareAssemblyVersion || Utils.CompareTo(a.Version, b.Version) == 0) &&
+				(!CompareAssemblyVersion || Utils.Equals(a.Version, b.Version)) &&
 				(!CompareAssemblyLocale || Utils.LocaleCompareTo(a.Locale, b.Locale) == 0);
 
 			recursionCounter.Decrement();
@@ -2194,7 +2194,7 @@ exit:
 			//TODO: If a.IsPrivateScope, then you should probably always return false since Method
 			//		tokens must be used to call the method.
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
@@ -2216,7 +2216,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -2261,7 +2261,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.Class, b.Class));
 
@@ -2505,7 +2505,7 @@ exit:
 			//TODO: If a.IsPrivateScope, then you should probably always return false since Field
 			//		tokens must be used to access the field
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
@@ -2527,7 +2527,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -2572,7 +2572,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
 					Equals(a.Type, b.Type) &&
 					(!ComparePropertyDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -2614,7 +2614,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CompareTo(a.Name, b.Name) == 0 &&
+			bool result = UTF8String.Equals(a.Name, b.Name) &&
 					Equals((IType)a.Type, (IType)b.Type) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 

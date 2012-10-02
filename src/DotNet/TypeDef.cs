@@ -529,7 +529,7 @@ namespace dot10.DotNet {
 				return null;
 			var comparer = new SigComparer(0);
 			foreach (var method in Methods) {
-				if (UTF8String.CompareTo(name, method.Name) != 0)
+				if (!UTF8String.Equals(method.Name, name))
 					continue;
 				if (comparer.Equals(method.MethodSig, sig))
 					return method;
@@ -548,7 +548,7 @@ namespace dot10.DotNet {
 				return null;
 			var comparer = new SigComparer(0);
 			foreach (var field in Fields) {
-				if (UTF8String.CompareTo(name, field.Name) != 0)
+				if (!UTF8String.Equals(field.Name, name))
 					continue;
 				if (comparer.Equals(field.FieldSig, sig))
 					return field;
