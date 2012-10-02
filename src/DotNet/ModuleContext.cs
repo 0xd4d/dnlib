@@ -10,16 +10,16 @@
 		/// Gets/sets the assembly resolver. This is never <c>null</c>.
 		/// </summary>
 		public IAssemblyResolver AssemblyResolver {
-			get { return assemblyResolver; }
-			set { assemblyResolver = value ?? NullAssemblyResolver.Instance; }
+			get { return assemblyResolver ?? (assemblyResolver = NullResolver.Instance); }
+			set { assemblyResolver = value; }
 		}
 
 		/// <summary>
 		/// Gets/sets the resolver. This is never <c>null</c>.
 		/// </summary>
 		public IResolver Resolver {
-			get { return resolver; }
-			set { resolver = value ?? NullResolver.Instance; }
+			get { return resolver ?? (resolver = NullResolver.Instance); }
+			set { resolver = value; }
 		}
 
 		/// <summary>
@@ -56,7 +56,7 @@
 			if (resolver == null && assemblyResolver != null)
 				this.resolver = new Resolver(assemblyResolver);
 			if (this.assemblyResolver == null)
-				this.assemblyResolver = NullAssemblyResolver.Instance;
+				this.assemblyResolver = NullResolver.Instance;
 			if (this.resolver == null)
 				this.resolver = NullResolver.Instance;
 		}
