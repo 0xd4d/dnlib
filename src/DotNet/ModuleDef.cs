@@ -20,6 +20,7 @@ namespace dot10.DotNet {
 		protected ICorLibTypes corLibTypes;
 
 		TypeDefFinder typeDefFinder;
+		ModuleContext moduleContext;
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -114,6 +115,14 @@ namespace dot10.DotNet {
 					typeDefFinder = new TypeDefFinder(Types);
 				return typeDefFinder;
 			}
+		}
+
+		/// <summary>
+		/// Gets/sets the module context. This is never <c>null</c>.
+		/// </summary>
+		public ModuleContext Context {
+			get { return moduleContext ?? (moduleContext = new ModuleContext()); }
+			set { moduleContext = value; }
 		}
 
 		/// <summary>
