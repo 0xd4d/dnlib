@@ -23,6 +23,11 @@ namespace dot10.PE {
 	/// Accesses a PE file
 	/// </summary>
 	public sealed class PEImage : IPEImage {
+		// Default to false because an OS loaded PE image may contain memory holes. If there
+		// are memory holes, other code (eg. .NET resource creator) must verify that all memory
+		// is available, which will be slower.
+		const bool USE_MEMORY_LAYOUT_WITH_MAPPED_FILES = false;
+
 		static readonly IPEType MemoryLayout = new MemoryPEType();
 		static readonly IPEType FileLayout = new FilePEType();
 
@@ -138,7 +143,7 @@ namespace dot10.PE {
 		/// <param name="fileName">Name of the file</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string fileName, bool verify)
-			: this(fileName, true, verify) {
+			: this(fileName, USE_MEMORY_LAYOUT_WITH_MAPPED_FILES, verify) {
 		}
 
 		/// <summary>
