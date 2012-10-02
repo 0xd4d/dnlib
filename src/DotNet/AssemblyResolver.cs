@@ -77,6 +77,19 @@ namespace dot10.DotNet {
 				return null;
 
 			AssemblyDef resolvedAssembly = Resolve2(assembly, sourceModule);
+			if (resolvedAssembly == null) {
+				string asmName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
+				string asmNameTrimmed = asmName.Trim();
+				if (asmName != asmNameTrimmed) {
+					assembly = new AssemblyNameInfo {
+						Name = new UTF8String(asmNameTrimmed),
+						Version = assembly.Version,
+						PublicKeyOrToken = assembly.PublicKeyOrToken,
+						Locale = assembly.Locale,
+					};
+					resolvedAssembly = Resolve2(assembly, sourceModule);
+				}
+			}
 			if (resolvedAssembly != null) {
 				AssemblyDef cachedAssembly;
 				var resolvedAsmKey = GetAssemblyNameKey(new AssemblyNameInfo(resolvedAssembly));
