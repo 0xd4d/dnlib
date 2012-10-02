@@ -1461,7 +1461,7 @@ exit:
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Equals(IModule a, IModule b) {
+		internal bool Equals(IModule a, IModule b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
