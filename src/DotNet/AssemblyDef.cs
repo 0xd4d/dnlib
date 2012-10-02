@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>
-	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly, IListListener<ModuleDef> {
+	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly, IListListener<ModuleDef>, ITypeDefFinder {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -424,6 +424,44 @@ namespace dot10.DotNet {
 
 		string GetFullName(PublicKeyBase pkBase) {
 			return Utils.GetAssemblyNameString(Name, Version, Locale, pkBase);
+		}
+
+		/// <summary>
+		/// Finds a <see cref="TypeDef"/>. For speed, enable <see cref="ModuleDef.EnableTypeDefFindCache"/>
+		/// if possible (read the documentation first).
+		/// </summary>
+		/// <param name="fullName">Full name of the type (no assembly information)</param>
+		/// <param name="isReflectionName"><c>true</c> if it's a reflection name, and nested
+		/// type names are separated by a <c>+</c> character. If <c>false</c>, nested type names
+		/// are separated by a <c>/</c> character.</param>
+		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
+		public TypeDef Find(string fullName, bool isReflectionName) {
+			foreach (var module in Modules) {
+				if (module == null)
+					continue;
+				var type = module.Find(fullName, isReflectionName);
+				if (type != null)
+					return type;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a <see cref="TypeDef"/>. Its scope (i.e., module or assembly) is ignored when
+		/// looking up the type. For speed, enable <see cref="ModuleDef.EnableTypeDefFindCache"/>
+		/// if possible (read the documentation first).
+		/// </summary>
+		/// <param name="typeRef">The type ref</param>
+		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
+		public TypeDef Find(TypeRef typeRef) {
+			foreach (var module in Modules) {
+				if (module == null)
+					continue;
+				var type = module.Find(typeRef);
+				if (type != null)
+					return type;
+			}
+			return null;
 		}
 
 		void IListListener<ModuleDef>.OnAdd(int index, ModuleDef module, bool isLazyAdd) {
