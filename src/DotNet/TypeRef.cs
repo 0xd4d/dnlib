@@ -115,6 +115,28 @@ namespace dot10.DotNet {
 			get { return ResolutionScope as TypeRef; }
 		}
 
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
+		public TypeDef Resolve() {
+			if (ownerModule == null)
+				return null;
+			return ownerModule.Context.Resolver.Resolve(this);
+		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		public TypeDef ResolveThrow() {
+			var type = Resolve();
+			if (type != null)
+				return type;
+			throw new TypeResolveException(string.Format("Could not resolve type: {0}", this));
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;

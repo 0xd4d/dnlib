@@ -126,6 +126,69 @@ namespace dot10.DotNet {
 			return null;	// Should never be reached
 		}
 
+		/// <summary>
+		/// Resolves the method/field
+		/// </summary>
+		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
+		/// if it couldn't be resolved.</returns>
+		public IMemberForwarded Resolve() {
+			if (ownerModule == null)
+				return null;
+			return ownerModule.Context.Resolver.Resolve(this);
+		}
+
+		/// <summary>
+		/// Resolves the method/field
+		/// </summary>
+		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance</returns>
+		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
+		public IMemberForwarded ResolveThrow() {
+			var memberDef = Resolve();
+			if (memberDef != null)
+				return memberDef;
+			throw new MemberRefResolveException(string.Format("Could not resolve method/field: {0}", this));
+		}
+
+		/// <summary>
+		/// Resolves the field
+		/// </summary>
+		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
+		public FieldDef ResolveField() {
+			return Resolve() as FieldDef;
+		}
+
+		/// <summary>
+		/// Resolves the field
+		/// </summary>
+		/// <returns>A <see cref="FieldDef"/> instance</returns>
+		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
+		public FieldDef ResolveFieldThrow() {
+			var field = ResolveField();
+			if (field != null)
+				return field;
+			throw new MemberRefResolveException(string.Format("Could not resolve field: {0}", this));
+		}
+
+		/// <summary>
+		/// Resolves the method
+		/// </summary>
+		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
+		public MethodDef ResolveMethod() {
+			return Resolve() as MethodDef;
+		}
+
+		/// <summary>
+		/// Resolves the method
+		/// </summary>
+		/// <returns>A <see cref="MethodDef"/> instance</returns>
+		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
+		public MethodDef ResolveMethodThrow() {
+			var method = ResolveMethod();
+			if (method != null)
+				return method;
+			throw new MemberRefResolveException(string.Format("Could not resolve method: {0}", this));
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
