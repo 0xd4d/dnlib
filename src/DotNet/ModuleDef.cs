@@ -108,7 +108,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the <see cref="TypeDefFinder"/> instance
 		/// </summary>
-		internal TypeDefFinder TypeDefFinder {
+		TypeDefFinder TypeDefFinder {
 			get {
 				if (typeDefFinder == null)
 					typeDefFinder = new TypeDefFinder(Types);
