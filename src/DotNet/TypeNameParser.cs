@@ -421,6 +421,21 @@ namespace dot10.DotNet {
 			: base(ownerModule, typeFullName, typeNameParserHelper) {
 		}
 
+		/// <summary>
+		/// Parses an assembly name
+		/// </summary>
+		/// <param name="asmFullName">Full assembly name</param>
+		/// <returns>A new <see cref="AssemblyRef"/> instance or <c>null</c> if parsing failed</returns>
+		public static AssemblyRef ParseAssemblyRef(string asmFullName) {
+			try {
+				using (var parser = new ReflectionTypeNameParser(null, asmFullName, null))
+					return parser.ReadAssemblyRef();
+			}
+			catch {
+				return null;
+			}
+		}
+
 		/// <inheritdoc/>
 		internal override IType Parse() {
 			try {
