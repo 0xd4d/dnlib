@@ -3,35 +3,6 @@ using System.Reflection;
 
 namespace dot10.DotNet {
 	/// <summary>
-	/// Thrown if any of the <c>ResolveThrow()</c> methods fail to resolve an assembly
-	/// </summary>
-	[Serializable]
-	public class AssemblyResolveException : Exception {
-		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public AssemblyResolveException() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="message">Exception message</param>
-		public AssemblyResolveException(string message)
-			: base(message) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="message">Exception message</param>
-		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
-		public AssemblyResolveException(string message, Exception innerException)
-			: base(message, innerException) {
-		}
-	}
-
-	/// <summary>
 	/// Resolves assemblies
 	/// </summary>
 	public interface IAssemblyResolver {
