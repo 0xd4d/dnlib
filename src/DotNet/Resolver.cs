@@ -25,6 +25,11 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public IMemberForwarded Resolve(MemberRef memberRef) {
+			var declaringType = GetDeclaringType(memberRef);
+			return declaringType == null ? null : declaringType.Resolve(memberRef);
+		}
+
+		TypeDef GetDeclaringType(MemberRef memberRef) {
 			if (memberRef == null)
 				return null;
 
@@ -34,13 +39,11 @@ namespace dot10.DotNet {
 
 			var declaringTypeDef = parent as TypeDef;
 			if (declaringTypeDef != null)
-				return declaringTypeDef.Resolve(memberRef);
+				return declaringTypeDef;
 
 			var declaringTypeRef = parent as TypeRef;
-			if (declaringTypeRef != null) {
-				declaringTypeDef = Resolve(declaringTypeRef);
-				return declaringTypeDef == null ? null : declaringTypeDef.Resolve(memberRef);
-			}
+			if (declaringTypeRef != null)
+				return Resolve(declaringTypeRef);
 
 			// A module ref is used to reference the global type of a module in the same
 			// assembly as the current module.
@@ -57,7 +60,7 @@ namespace dot10.DotNet {
 					if (moduleDef != null)
 						globalType = moduleDef.GlobalType;
 				}
-				return globalType == null ? null : globalType.Resolve(memberRef);
+				return globalType;
 			}
 
 			// parent is Method or TypeSpec
