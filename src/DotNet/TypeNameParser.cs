@@ -514,18 +514,9 @@ namespace dot10.DotNet {
 						while (true) {
 							SkipWhite();
 							int c = reader.Peek();
-							if (c == -1 || c == ']')
-								break;
-
-							if (arraySpec.rank != 0) {
-								Verify(reader.Read() == ',', "Expected ','");
-								SkipWhite();
-								c = reader.Peek();
-							}
-
 							if (c == '*')
 								reader.Read();
-							else if (c == ',') {
+							else if (c == ',' || c == ']') {
 							}
 							else if (c == '-' || char.IsDigit((char)c)) {
 								int lower = ReadInt32();
@@ -561,6 +552,10 @@ namespace dot10.DotNet {
 								Verify(false, "Unknown char");
 
 							arraySpec.rank++;
+							SkipWhite();
+							if (reader.Peek() != ',')
+								break;
+							reader.Read();
 						}
 
 						Verify(reader.Read() == ']', "Expected ']'");
