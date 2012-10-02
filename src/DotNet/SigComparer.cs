@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares types
 	/// </summary>
-	public sealed class TypeEqualityComparer : IEqualityComparer<IType>, IEqualityComparer<TypeRef>, IEqualityComparer<TypeDef>, IEqualityComparer<TypeSpec>, IEqualityComparer<TypeSig>, IEqualityComparer<ExportedType> {
+	public sealed class TypeEqualityComparer : IEqualityComparer<IType>, IEqualityComparer<ITypeDefOrRef>, IEqualityComparer<TypeRef>, IEqualityComparer<TypeDef>, IEqualityComparer<TypeSpec>, IEqualityComparer<TypeSig>, IEqualityComparer<ExportedType> {
 		readonly SigComparerOptions options;
 
 		/// <summary>
@@ -29,6 +29,16 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public int GetHashCode(IType obj) {
+			return new SigComparer { Options = options }.GetHashCode(obj);
+		}
+
+		/// <inheritdoc/>
+		public bool Equals(ITypeDefOrRef x, ITypeDefOrRef y) {
+			return new SigComparer { Options = options }.Equals(x, y);
+		}
+
+		/// <inheritdoc/>
+		public int GetHashCode(ITypeDefOrRef obj) {
 			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
