@@ -445,24 +445,14 @@ namespace dot10.DotNet {
 			if (reader.Peek() == '!') {
 				var currentSig = ReadGenericSig();
 				var tspecs = ReadTSpecs();
-				if (reader.Peek() == ',') {
-					reader.Read();
-					ReadAssemblyRef();
-				}
-
+				ReadOptionalAssemblyRef();
 				result = CreateTypeSig(tspecs, currentSig);
 			}
 			else {
 				TypeRef typeRef = ReadTypeRefAndNestedNoAssembly('+');
 				var tspecs = ReadTSpecs();
 				var nonNestedTypeRef = GetNonNestedTypeRef(typeRef);
-				if (reader.Peek() == ',') {
-					reader.Read();
-					nonNestedTypeRef.ResolutionScope = ReadAssemblyRef();
-				}
-				else
-					nonNestedTypeRef.ResolutionScope = FindAssemblyRef(nonNestedTypeRef);
-
+				nonNestedTypeRef.ResolutionScope = ReadOptionalAssemblyRef() ?? FindAssemblyRef(nonNestedTypeRef);
 				if (tspecs.Count == 0)
 					result = typeRef;
 				else
@@ -471,6 +461,15 @@ namespace dot10.DotNet {
 
 			RecursionDecrement();
 			return result;
+		}
+
+		AssemblyRef ReadOptionalAssemblyRef() {
+			SkipWhite();
+			if (reader.Peek() == ',') {
+				reader.Read();
+				return ReadAssemblyRef();
+			}
+			return null;
 		}
 
 		IList<TSpec> ReadTSpecs() {
