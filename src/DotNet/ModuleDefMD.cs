@@ -156,7 +156,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public new static ModuleDefMD Load(string fileName) {
+		public static ModuleDefMD Load(string fileName) {
 			DotNetFile dnFile = null;
 			try {
 				return Load(dnFile = DotNetFile.Load(fileName));
@@ -173,7 +173,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public new static ModuleDefMD Load(byte[] data) {
+		public static ModuleDefMD Load(byte[] data) {
 			DotNetFile dnFile = null;
 			try {
 				return Load(dnFile = DotNetFile.Load(data));
@@ -190,7 +190,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public new static ModuleDefMD Load(IntPtr addr) {
+		public static ModuleDefMD Load(IntPtr addr) {
 			DotNetFile dnFile = null;
 			try {
 				return Load(dnFile = DotNetFile.Load(addr));
@@ -203,11 +203,31 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a stream
+		/// </summary>
+		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[])"/>.
+		/// It's better to use one of the other Load() methods.</remarks>
+		/// <param name="stream">The stream (owned by caller)</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
+		public static ModuleDefMD Load(Stream stream) {
+			if (stream == null)
+				throw new ArgumentNullException("stream");
+			if (stream.Length > int.MaxValue)
+				throw new ArgumentException("Stream is too big");
+			var data = new byte[(int)stream.Length];
+			stream.Position = 0;
+			if (stream.Read(data, 0, data.Length) != data.Length)
+				throw new IOException("Could not read all bytes from the stream");
+			return Load(data);
+		}
+
+		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="DotNetFile"/>
 		/// </summary>
 		/// <param name="dnFile">The loaded .NET file</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="dnFile"/></returns>
-		public new static ModuleDefMD Load(DotNetFile dnFile) {
+		public static ModuleDefMD Load(DotNetFile dnFile) {
 			return new ModuleDefMD(dnFile);
 		}
 

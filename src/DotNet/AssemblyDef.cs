@@ -280,7 +280,6 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		/// <seealso cref="ModuleDef.Load(string)"/>
 		public static AssemblyDef Load(string fileName) {
 			if (fileName == null)
 				throw new ArgumentNullException("fileName");
@@ -306,7 +305,6 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		/// <seealso cref="ModuleDef.Load(byte[])"/>
 		public static AssemblyDef Load(byte[] data) {
 			if (data == null)
 				throw new ArgumentNullException("data");
@@ -332,7 +330,6 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		/// <seealso cref="ModuleDef.Load(IntPtr)"/>
 		public static AssemblyDef Load(IntPtr addr) {
 			if (addr == IntPtr.Zero)
 				throw new ArgumentNullException("addr");
@@ -360,10 +357,6 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		/// <seealso cref="Load(string)"/>
-		/// <seealso cref="Load(byte[])"/>
-		/// <seealso cref="Load(IntPtr)"/>
-		/// <seealso cref="ModuleDef.Load(Stream)"/>
 		public static AssemblyDef Load(Stream stream) {
 			if (stream == null)
 				throw new ArgumentNullException("stream");
@@ -389,7 +382,6 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance that now owns <paramref name="dnFile"/></returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		/// <seealso cref="ModuleDef.Load(DotNetFile)"/>
 		public static AssemblyDef Load(DotNetFile dnFile) {
 			if (dnFile == null)
 				throw new ArgumentNullException("dnFile");
