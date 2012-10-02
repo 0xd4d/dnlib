@@ -69,6 +69,7 @@
     <Compile Include="DotNet\GenericArguments.cs" />
     <Compile Include="DotNet\IAssemblyResolver.cs" />
     <Compile Include="DotNet\ILazyList.cs" />
+    <Compile Include="DotNet\ITypeDefFinder.cs" />
     <Compile Include="DotNet\IVariable.cs" />
     <Compile Include="DotNet\Emit\LocalList.cs" />
     <Compile Include="DotNet\Emit\MethodBody.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="DotNet\RecursionCounter.cs" />
     <Compile Include="DotNet\Resource.cs" />
     <Compile Include="DotNet\SigComparer.cs" />
+    <Compile Include="DotNet\TypeDefFinder.cs" />
     <Compile Include="DotNet\TypeNameParser.cs" />
     <Compile Include="DotNet\TypeSig.cs" />
     <Compile Include="DotNet\LazyList.cs" />
