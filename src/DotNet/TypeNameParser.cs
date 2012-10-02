@@ -240,23 +240,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the top-most (non-nested) <see cref="TypeRef"/>
-		/// </summary>
-		/// <param name="typeRef">Input</param>
-		/// <returns>The non-nested <see cref="TypeRef"/> or <c>null</c></returns>
-		protected static TypeRef GetNonNestedTypeRef(TypeRef typeRef) {
-			if (typeRef == null)
-				return null;
-			for (int i = 0; i < 1000; i++) {
-				var next = typeRef.ResolutionScope as TypeRef;
-				if (next == null)
-					return typeRef;
-				typeRef = next;
-			}
-			return null;	// Should never happen
-		}
-
-		/// <summary>
 		/// Reads a <see cref="TypeRef"/> including any possible nested <see cref="TypeRef"/>s.
 		/// </summary>
 		/// <param name="nestedChar">Character separating nested types</param>
@@ -466,7 +449,7 @@ namespace dot10.DotNet {
 			else {
 				TypeRef typeRef = ReadTypeRefAndNestedNoAssembly('+');
 				var tspecs = ReadTSpecs();
-				var nonNestedTypeRef = GetNonNestedTypeRef(typeRef);
+				var nonNestedTypeRef = TypeRef.GetNonNestedTypeRef(typeRef);
 				nonNestedTypeRef.ResolutionScope = ReadOptionalAssemblyRef() ?? FindAssemblyRef(nonNestedTypeRef);
 				if (tspecs.Count == 0)
 					result = typeRef;

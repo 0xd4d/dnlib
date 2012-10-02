@@ -137,6 +137,23 @@ namespace dot10.DotNet {
 			throw new TypeResolveException(string.Format("Could not resolve type: {0}", this));
 		}
 
+		/// <summary>
+		/// Gets the top-most (non-nested) <see cref="TypeRef"/>
+		/// </summary>
+		/// <param name="typeRef">Input</param>
+		/// <returns>The non-nested <see cref="TypeRef"/> or <c>null</c></returns>
+		internal static TypeRef GetNonNestedTypeRef(TypeRef typeRef) {
+			if (typeRef == null)
+				return null;
+			for (int i = 0; i < 1000; i++) {
+				var next = typeRef.ResolutionScope as TypeRef;
+				if (next == null)
+					return typeRef;
+				typeRef = next;
+			}
+			return null;	// Should never happen
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
