@@ -436,16 +436,20 @@ namespace dot10.DotNet {
 			if (module == null)
 				return new List<string>();	// Should never happen
 
+			string baseDir = null;
 			try {
 				var imageName = module.Location;
-				var configName = imageName + ".config";
-				if (imageName != "" && File.Exists(configName)) {
-					var baseDir = Directory.GetParent(imageName).FullName;
-					return GetPrivatePaths(baseDir, configName);
+				if (imageName != "") {
+					baseDir = Directory.GetParent(imageName).FullName;
+					var configName = imageName + ".config";
+					if (File.Exists(configName))
+						return GetPrivatePaths(baseDir, configName);
 				}
 			}
 			catch {
 			}
+			if (baseDir != null)
+				return new List<string> { baseDir };
 			return new List<string>();
 		}
 
