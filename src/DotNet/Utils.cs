@@ -231,6 +231,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Compares two locales (cultures)
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		internal static bool LocaleEquals(UTF8String a, UTF8String b) {
+			return LocaleCompareTo(a, b) == 0;
+		}
+
+		/// <summary>
 		/// Gets the hash code of a locale
 		/// </summary>
 		/// <param name="a">Value</param>

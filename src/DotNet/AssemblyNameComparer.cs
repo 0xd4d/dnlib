@@ -225,8 +225,8 @@ namespace dot10.DotNet {
 			}
 
 			if (CompareLocale) {
-				bool la = Utils.LocaleCompareTo(requested.Locale, a.Locale) == 0;
-				bool lb = Utils.LocaleCompareTo(requested.Locale, b.Locale) == 0;
+				bool la = Utils.LocaleEquals(requested.Locale, a.Locale);
+				bool lb = Utils.LocaleEquals(requested.Locale, b.Locale);
 				if (la && !lb)
 					return 0;
 				if (!la && lb)

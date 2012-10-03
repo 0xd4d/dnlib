@@ -1505,7 +1505,7 @@ exit:
 			bool result = UTF8String.CaseInsensitiveEquals(a.Name, b.Name) &&
 				(!CompareAssemblyPublicKeyToken || PublicKeyBase.TokenEquals(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
 				(!CompareAssemblyVersion || Utils.Equals(a.Version, b.Version)) &&
-				(!CompareAssemblyLocale || Utils.LocaleCompareTo(a.Locale, b.Locale) == 0);
+				(!CompareAssemblyLocale || Utils.LocaleEquals(a.Locale, b.Locale));
 
 			recursionCounter.Decrement();
 			return result;
