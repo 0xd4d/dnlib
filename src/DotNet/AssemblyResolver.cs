@@ -100,28 +100,40 @@ namespace dot10.DotNet {
 					resolvedAssembly = Resolve2(assembly, sourceModule);
 				}
 			}
-			if (resolvedAssembly != null) {
-				AssemblyDef cachedAssembly;
-				var resolvedAsmKey = GetAssemblyNameKey(new AssemblyNameInfo(resolvedAssembly));
-				if (cachedAssemblies.TryGetValue(resolvedAsmKey, out cachedAssembly)) {
-					if (cachedAssembly != resolvedAssembly) {
-						if (resolvedAssembly.ManifestModule != null)
-							resolvedAssembly.ManifestModule.Dispose();
-						resolvedAssembly = cachedAssembly;
-					}
+
+			if (resolvedAssembly == null)
+				return null;
+
+			var key1 = GetAssemblyNameKey(new AssemblyNameInfo(resolvedAssembly));
+			var key2 = GetAssemblyNameKey(assembly);
+			AssemblyDef asm1, asm2;
+			cachedAssemblies.TryGetValue(key1, out asm1);
+			cachedAssemblies.TryGetValue(key2, out asm2);
+
+			if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
+				// This assembly was just resolved
+				if (enableTypeDefCache) {
+					foreach (var module in resolvedAssembly.Modules)
+						module.EnableTypeDefFindCache = true;
 				}
-				else {
-					// This assembly was just resolved
-					if (enableTypeDefCache) {
-						foreach (var module in resolvedAssembly.Modules)
-							module.EnableTypeDefFindCache = true;
-					}
-				}
-				cachedAssemblies.Add(GetAssemblyNameKey(assembly), resolvedAssembly);
-				cachedAssemblies[resolvedAsmKey] = resolvedAssembly;
 			}
 
-			return resolvedAssembly;
+			bool inserted = false;
+			if (!cachedAssemblies.ContainsKey(key1)) {
+				cachedAssemblies.Add(key1, resolvedAssembly);
+				inserted = true;
+			}
+			if (!cachedAssemblies.ContainsKey(key2)) {
+				cachedAssemblies.Add(key2, resolvedAssembly);
+				inserted = true;
+			}
+			if (inserted || asm1 == resolvedAssembly || asm2 == resolvedAssembly)
+				return resolvedAssembly;
+
+			// Dupe assembly. Don't insert it.
+			if (resolvedAssembly.ManifestModule != null)
+				resolvedAssembly.ManifestModule.Dispose();
+			return asm1 ?? asm2;
 		}
 
 		/// <summary>
