@@ -423,6 +423,11 @@ namespace dot10.DotNet {
 		/// global <c>&lt;Module&gt;</c> type.
 		/// </summary>
 		TypeRefCanReferenceGlobalType = 0x100,
+
+		/// <summary>
+		/// Don't compare a method/property's return type
+		/// </summary>
+		DontCompareReturnType = 0x200,
 	}
 
 	/// <summary>
@@ -568,6 +573,19 @@ namespace dot10.DotNet {
 					options |= SigComparerOptions.TypeRefCanReferenceGlobalType;
 				else
 					options &= ~SigComparerOptions.TypeRefCanReferenceGlobalType;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.DontCompareReturnType"/> bit
+		/// </summary>
+		public bool DontCompareReturnType {
+			get { return (options & SigComparerOptions.DontCompareReturnType) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.DontCompareReturnType;
+				else
+					options &= ~SigComparerOptions.DontCompareReturnType;
 			}
 		}
 
@@ -1943,7 +1961,7 @@ exit:
 				return false;
 
 			bool result = a.GetCallingConvention() == b.GetCallingConvention() &&
-					Equals(a.RetType, b.RetType) &&
+					(DontCompareReturnType || Equals(a.RetType, b.RetType)) &&
 					Equals(a.Params, b.Params) &&
 					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
 					(!CompareSentinelParams || Equals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
@@ -1965,8 +1983,9 @@ exit:
 			int hash;
 
 			hash = (int)a.GetCallingConvention() +
-					GetHashCode(a.RetType) +
 					GetHashCode(a.Params);
+			if (!DontCompareReturnType)
+				hash += GetHashCode(a.RetType);
 			if (a.Generic)
 				hash += (int)a.GenParamCount;
 			if (CompareSentinelParams)
