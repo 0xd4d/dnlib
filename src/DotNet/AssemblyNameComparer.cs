@@ -169,8 +169,8 @@ namespace dot10.DotNet {
 
 			if (CompareName) {
 				// If the name only matches one of a or b, return that one.
-				bool na = UTF8String.CaseInsensitiveCompareTo(requested.Name, a.Name) == 0;
-				bool nb = UTF8String.CaseInsensitiveCompareTo(requested.Name, b.Name) == 0;
+				bool na = UTF8String.CaseInsensitiveEquals(requested.Name, a.Name);
+				bool nb = UTF8String.CaseInsensitiveEquals(requested.Name, b.Name);
 				if (na && !nb)
 					return 0;
 				if (!na && nb)
@@ -190,8 +190,8 @@ namespace dot10.DotNet {
 				else {
 					// If one of them has the correct pkt, but the other one has an incorrect
 					// pkt, return the one with the correct pkt.
-					pa = PublicKeyBase.TokenCompareTo(requested.PublicKeyOrToken, a.PublicKeyOrToken) == 0;
-					pb = PublicKeyBase.TokenCompareTo(requested.PublicKeyOrToken, b.PublicKeyOrToken) == 0;
+					pa = PublicKeyBase.TokenEquals(requested.PublicKeyOrToken, a.PublicKeyOrToken);
+					pb = PublicKeyBase.TokenEquals(requested.PublicKeyOrToken, b.PublicKeyOrToken);
 				}
 				if (pa && !pb)
 					return 0;

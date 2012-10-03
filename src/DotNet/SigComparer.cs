@@ -1437,7 +1437,7 @@ exit:
 			if (a == null || b == null)
 				return false;
 
-			return UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0;
+			return UTF8String.CaseInsensitiveEquals(a.Name, b.Name);
 		}
 
 		/// <summary>
@@ -1452,7 +1452,7 @@ exit:
 			if (a == null || b == null)
 				return false;
 
-			return UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0;
+			return UTF8String.CaseInsensitiveEquals(a.Name, b.Name);
 		}
 
 		/// <summary>
@@ -1467,7 +1467,7 @@ exit:
 			if (a == null || b == null)
 				return false;
 
-			return UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0;
+			return UTF8String.CaseInsensitiveEquals(a.Name, b.Name);
 		}
 
 		/// <summary>
@@ -1502,8 +1502,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.CaseInsensitiveCompareTo(a.Name, b.Name) == 0 &&
-				(!CompareAssemblyPublicKeyToken || PublicKeyBase.TokenCompareTo(a.PublicKeyOrToken, b.PublicKeyOrToken) == 0) &&
+			bool result = UTF8String.CaseInsensitiveEquals(a.Name, b.Name) &&
+				(!CompareAssemblyPublicKeyToken || PublicKeyBase.TokenEquals(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
 				(!CompareAssemblyVersion || Utils.Equals(a.Version, b.Version)) &&
 				(!CompareAssemblyLocale || Utils.LocaleCompareTo(a.Locale, b.Locale) == 0);
 

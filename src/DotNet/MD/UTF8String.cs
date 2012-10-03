@@ -124,6 +124,16 @@ namespace dot10.DotNet.MD {
 			return sa.ToLowerInvariant().CompareTo(sb.ToLowerInvariant());
 		}
 
+		/// <summary>
+		/// Compares two <see cref="UTF8String"/> instances (case insensitive)
+		/// </summary>
+		/// <param name="a">Instance #1 or <c>null</c></param>
+		/// <param name="b">Instance #2 or <c>null</c></param>
+		/// <returns><c>true</c> if equals, <c>false</c> otherwise</returns>
+		public static bool CaseInsensitiveEquals(UTF8String a, UTF8String b) {
+			return CaseInsensitiveCompareTo(a, b) == 0;
+		}
+
 		/// <summary>Overloaded operator</summary>
 		public static bool operator ==(UTF8String left, UTF8String right) {
 			return CompareTo(left, right) == 0;
@@ -211,7 +221,7 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
-		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		/// <returns><c>true</c> if equals, <c>false</c> otherwise</returns>
 		public static bool Equals(UTF8String a, UTF8String b) {
 			return CompareTo(a, b) == 0;
 		}
