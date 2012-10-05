@@ -12,7 +12,7 @@
 		/// </summary>
 		public PublicKeyToken Token {
 			get {
-				if (publicKeyToken == null)
+				if (publicKeyToken == null && !IsNullOrEmpty)
 					publicKeyToken = AssemblyHash.CreatePublicKeyToken(data, hashAlgo);
 				return publicKeyToken;
 			}
