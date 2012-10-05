@@ -90,6 +90,22 @@ namespace dot10.DotNet {
 			get { return FullNameCreator.OwnerModule(this); }
 		}
 
+		/// <summary>
+		/// Removes all C optional/required modifiers
+		/// </summary>
+		/// <param name="a">A <see cref="TypeSig"/> instance</param>
+		/// <returns>Input after all modifiers</returns>
+		public static TypeSig RemoveModifiers(TypeSig a) {
+			if (a == null)
+				return null;
+			while (true) {
+				var modifier = a as ModifierSig;
+				if (modifier == null)
+					return a;
+				a = a.Next;
+			}
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
