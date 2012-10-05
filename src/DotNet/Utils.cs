@@ -241,6 +241,26 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Compares two locales (cultures)
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		internal static int LocaleCompareTo(UTF8String a, string b) {
+			return GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
+		}
+
+		/// <summary>
+		/// Compares two locales (cultures)
+		/// </summary>
+		/// <param name="a">First</param>
+		/// <param name="b">Second</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		internal static bool LocaleEquals(UTF8String a, string b) {
+			return LocaleCompareTo(a, b) == 0;
+		}
+
+		/// <summary>
 		/// Gets the hash code of a locale
 		/// </summary>
 		/// <param name="a">Value</param>
@@ -250,7 +270,11 @@ namespace dot10.DotNet {
 		}
 
 		static string GetCanonicalLocale(UTF8String locale) {
-			var s = UTF8String.ToSystemStringOrEmpty(locale).ToLowerInvariant();
+			return GetCanonicalLocale(UTF8String.ToSystemStringOrEmpty(locale));
+		}
+
+		static string GetCanonicalLocale(string locale) {
+			var s = locale.ToLowerInvariant();
 			if (s == "neutral")
 				s = string.Empty;
 			return s;
