@@ -2792,7 +2792,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
+			bool result = !b.HasElementType &&
+					UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
 					NamespaceEquals(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.OwnerModule, b.Module));
@@ -2837,6 +2838,8 @@ exit:
 				return false;
 			bool result = false;
 
+			if (b.HasElementType)
+				goto exit;
 			if (UTF8String.ToSystemStringOrEmpty(a.Name) != b.Name || !NamespaceEquals(a.Namespace, b))
 				goto exit;
 
@@ -3140,6 +3143,8 @@ exit:
 				return false;
 			bool result = false;
 
+			if (b.HasElementType)
+				goto exit;
 			if (UTF8String.ToSystemStringOrEmpty(a.TypeName) != b.Name || !NamespaceEquals(a.TypeNamespace, b))
 				goto exit;
 
