@@ -59,16 +59,6 @@ namespace dot10.DotNet {
 			}
 		}
 
-		static UTF8String GetName(IMethodDefOrRef method) {
-			var methodDef = method as MethodDef;
-			if (methodDef != null)
-				return methodDef.Name;
-			var memberRef = method as MemberRef;
-			if (memberRef != null)
-				return memberRef.Name;
-			return null;
-		}
-
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
