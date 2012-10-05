@@ -21,22 +21,32 @@ namespace dot10.DotNet {
 				return null;
 
 			var nonNestedTypeRef = TypeRef.GetNonNestedTypeRef(typeRef);
-			if (nonNestedTypeRef != null) {
-				var moduleDef = nonNestedTypeRef.ResolutionScope as ModuleDef;
-				if (moduleDef != null)
-					return moduleDef.Find(typeRef);
+			if (nonNestedTypeRef == null)
+				return null;
 
-				var moduleRef = nonNestedTypeRef.ResolutionScope as ModuleRef;
-				if (moduleRef != null && nonNestedTypeRef.OwnerModule != null) {
-					if (new SigComparer().Equals(moduleRef, nonNestedTypeRef.OwnerModule))
-						return nonNestedTypeRef.OwnerModule.Find(typeRef);
-					if (nonNestedTypeRef.OwnerModule.Assembly != null)
-						return nonNestedTypeRef.OwnerModule.Assembly.Find(typeRef);
-				}
+			var asmRef = nonNestedTypeRef.ResolutionScope as AssemblyRef;
+			if (asmRef != null) {
+				var asm = assemblyResolver.Resolve(asmRef, nonNestedTypeRef.OwnerModule);
+				return asm == null ? null : asm.Find(typeRef);
 			}
 
-			var asm = assemblyResolver.Resolve(typeRef.DefinitionAssembly, typeRef.OwnerModule);
-			return asm == null ? null : asm.Find(typeRef);
+			var moduleDef = nonNestedTypeRef.ResolutionScope as ModuleDef;
+			if (moduleDef != null)
+				return moduleDef.Find(typeRef);
+
+			var moduleRef = nonNestedTypeRef.ResolutionScope as ModuleRef;
+			if (moduleRef != null) {
+				if (nonNestedTypeRef.OwnerModule == null)
+					return null;
+				if (new SigComparer().Equals(moduleRef, nonNestedTypeRef.OwnerModule))
+					return nonNestedTypeRef.OwnerModule.Find(typeRef);
+				if (nonNestedTypeRef.OwnerModule.Assembly == null)
+					return null;
+				var resolvedModule = nonNestedTypeRef.OwnerModule.Assembly.FindModule(moduleRef.Name);
+				return resolvedModule == null ? null : resolvedModule.Find(typeRef);
+			}
+
+			return null;
 		}
 
 		/// <inheritdoc/>
