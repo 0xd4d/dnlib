@@ -95,6 +95,7 @@
 			return TokenCompareTo(a, b) == 0;
 		}
 
+		static readonly byte[] EmptyByteArray = new byte[0];
 		/// <summary>
 		/// Compares two <see cref="PublicKeyToken"/>s
 		/// </summary>
@@ -104,7 +105,11 @@
 		public static int TokenCompareTo(PublicKeyToken a, PublicKeyToken b) {
 			if (a == b)
 				return 0;
-			return Utils.CompareTo(a == null ? null : a.data, b == null ? null : b.data);
+			return TokenCompareTo(a == null ? null : a.data, b == null ? null : b.data);
+		}
+
+		static int TokenCompareTo(byte[] a, byte[] b) {
+			return Utils.CompareTo(a ?? EmptyByteArray, b ?? EmptyByteArray);
 		}
 
 		/// <summary>
