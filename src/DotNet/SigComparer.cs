@@ -461,7 +461,7 @@ namespace dot10.DotNet {
 
 		// FnPtr is mapped to System.IntPtr, so use the same hash code for both
 		// IMPORTANT: This must match GetHashCode(TYPE)
-		static readonly int HASHCODE_MAGIC_ET_FNPTR_AND_I = UTF8String.GetHashCode(new UTF8String("System")) + UTF8String.GetHashCode(new UTF8String("IntPtr"));
+		static readonly int HASHCODE_MAGIC_ET_FNPTR_AND_I = "System".GetHashCode() + "IntPtr".GetHashCode();
 
 		RecursionCounter recursionCounter;
 		SigComparerOptions options;
@@ -1203,11 +1203,11 @@ exit:
 			if (a == null)
 				return TypeRefCanReferenceGlobalType ? GetHashCodeGlobalType() : 0;
 			int hash;
-			hash = UTF8String.GetHashCode(a.Name);
+			hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode();
 			if (a.ResolutionScope is TypeRef)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += UTF8String.GetHashCode(a.Namespace);
+				hash += UTF8String.ToSystemStringOrEmpty(a.Namespace).GetHashCode();
 			return hash;
 		}
 
@@ -1248,11 +1248,11 @@ exit:
 			if (a == null)
 				return TypeRefCanReferenceGlobalType ? GetHashCodeGlobalType() : 0;
 			int hash;
-			hash = UTF8String.GetHashCode(a.TypeName);
+			hash = UTF8String.ToSystemStringOrEmpty(a.TypeName).GetHashCode();
 			if (a.Implementation is ExportedType)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += UTF8String.GetHashCode(a.TypeNamespace);
+				hash += UTF8String.ToSystemStringOrEmpty(a.TypeNamespace).GetHashCode();
 			return hash;
 		}
 
@@ -1294,11 +1294,11 @@ exit:
 			if (a == null || a.IsGlobalModuleType)
 				return GetHashCodeGlobalType();
 			int hash;
-			hash = UTF8String.GetHashCode(a.Name);
+			hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode();
 			if (a.DeclaringType != null)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += UTF8String.GetHashCode(a.Namespace);
+				hash += UTF8String.ToSystemStringOrEmpty(a.Namespace).GetHashCode();
 			return hash;
 		}
 
@@ -2349,7 +2349,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) +
+			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2394,7 +2394,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name);
+			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode();
 			GenericInstSig git;
 			if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) != null) {
 				InitializeGenericArguments();
@@ -2682,7 +2682,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) +
+			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2724,7 +2724,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) +
+			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
 					GetHashCode(a.Type);
 			if (ComparePropertyDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2766,7 +2766,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) +
+			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
 					GetHashCode((IType)a.Type);
 			if (CompareEventDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2875,7 +2875,7 @@ exit:
 				return false;
 
 			bool result = !b.HasElementType &&
-					UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
+					UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
 					NamespaceEquals(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.OwnerModule, b.Module));
@@ -2922,7 +2922,7 @@ exit:
 
 			if (b.HasElementType)
 				goto exit;
-			if (UTF8String.ToSystemStringOrEmpty(a.Name) != b.Name || !NamespaceEquals(a.Namespace, b))
+			if (UTF8String.ToSystemStringOrEmpty(a.Name) != (b.Name ?? string.Empty) || !NamespaceEquals(a.Namespace, b))
 				goto exit;
 
 			var scope = a.ResolutionScope;
@@ -3203,7 +3203,7 @@ exit:
 			var prop = a.GetType().GetProperty("IsSzArray", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			if (prop != null)
 				return (bool)prop.GetValue(a, new object[0]);
-			return a.Name.EndsWith("[]");
+			return (a.Name ?? string.Empty).EndsWith("[]");
 		}
 
 		/// <summary>
@@ -3235,7 +3235,7 @@ exit:
 
 			if (b.HasElementType)
 				goto exit;
-			if (UTF8String.ToSystemStringOrEmpty(a.TypeName) != b.Name || !NamespaceEquals(a.TypeNamespace, b))
+			if (UTF8String.ToSystemStringOrEmpty(a.TypeName) != (b.Name ?? string.Empty) || !NamespaceEquals(a.TypeNamespace, b))
 				goto exit;
 
 			var scope = a.Implementation;
@@ -3448,7 +3448,7 @@ exit:
 				return ElementType.GenericInst;
 
 			if (IsCorLib(a.Assembly) && (a.Namespace ?? string.Empty) == "System") {
-				switch (a.Name) {
+				switch (a.Name ?? string.Empty) {
 				case "Void": return ElementType.Void;
 				case "Boolean": return ElementType.Boolean;
 				case "Char": return ElementType.Char;
@@ -3490,11 +3490,11 @@ exit:
 			if (a == null)
 				return GetHashCodeGlobalType();
 			int hash;
-			hash = UTF8String.GetHashCode(new UTF8String(a.Name));
+			hash = (a.Name ?? string.Empty).GetHashCode();
 			if (a.IsNested)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += UTF8String.GetHashCode(new UTF8String(a.Namespace ?? string.Empty));
+				hash += (a.Namespace ?? string.Empty).GetHashCode();
 			return hash;
 		}
 
@@ -3748,7 +3748,7 @@ exit:
 				return false;
 
 			var amSig = a.MethodSig;
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
+			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
 					((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 					(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
 					amSig != null && Equals(amSig, b) &&
@@ -3830,7 +3830,7 @@ exit:
 			}
 			else {
 				var amSig = a.MethodSig;
-				result = UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
+				result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
 						((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 						(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
 						amSig != null;
@@ -3965,7 +3965,7 @@ exit:
 			// ***********************************************************************
 			// IMPORTANT: This hash code must match the MemberRef/MethodSpec hash code
 			// ***********************************************************************
-			int hash = UTF8String.GetHashCode(new UTF8String(a.Name)) +
+			int hash = (a.Name ?? string.Empty).GetHashCode() +
 					GetHashCode_MethodSig(a);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
