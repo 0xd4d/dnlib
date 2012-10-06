@@ -4013,7 +4013,7 @@ exit:
 		}
 
 		int GetHashCode(ParameterInfo a, Type declaringType) {
-			return GetHashCode(a.ParameterType, MustTreatParamTypeAsGenericInstType(a, declaringType));
+			return GetHashCode(a.ParameterType, MustTreatTypeAsGenericInstType(a.ParameterType, declaringType));
 		}
 
 		/// <summary>
@@ -4026,16 +4026,14 @@ exit:
 		/// <param name="p">Parameter</param>
 		/// <param name="declaringType">Declaring type of method which owns <paramref name="p"/></param>
 		static bool MustTreatParamTypeAsGenericInstType(ParameterInfo p, Type declaringType) {
-			return declaringType != null &&
-				declaringType.IsGenericTypeDefinition &&
-				p.ParameterType == declaringType;
+			return MustTreatTypeAsGenericInstType(p.ParameterType, declaringType);
 		}
 
 		int GetHashCode(Type a, Type declaringType) {
-			return GetHashCode(a, MustTreatParamTypeAsGenericInstType(a, declaringType));
+			return GetHashCode(a, MustTreatTypeAsGenericInstType(a, declaringType));
 		}
 
-		static bool MustTreatParamTypeAsGenericInstType(Type t, Type declaringType) {
+		static bool MustTreatTypeAsGenericInstType(Type t, Type declaringType) {
 			return declaringType != null &&
 				declaringType.IsGenericTypeDefinition &&
 				t == declaringType;
@@ -4455,7 +4453,7 @@ exit:
 
 			TypeSig a2;
 			bool result = ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
-					Equals(a2, b.PropertyType, MustTreatParamTypeAsGenericInstType(b.PropertyType, b.DeclaringType));
+					Equals(a2, b.PropertyType, MustTreatTypeAsGenericInstType(b.PropertyType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -4496,7 +4494,7 @@ exit:
 				return false;
 
 			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
-					Equals(a.Type, b.EventHandlerType, MustTreatParamTypeAsGenericInstType(b.EventHandlerType, b.DeclaringType)) &&
+					Equals(a.Type, b.EventHandlerType, MustTreatTypeAsGenericInstType(b.EventHandlerType, b.DeclaringType)) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
