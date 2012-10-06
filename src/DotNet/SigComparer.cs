@@ -4417,20 +4417,11 @@ exit:
 				return false;
 
 			TypeSig a2;
-			bool result = ModifiersEquals(a, b, out a2) &&
+			bool result = ModifiersEquals(a, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
 						Equals(a2, b.ParameterType, MustTreatParamTypeAsGenericInstType(b, declaringType));
 
 			recursionCounter.Decrement();
 			return result;
-		}
-
-		bool ModifiersEquals(TypeSig a, ParameterInfo b, out TypeSig aAfterModifiers) {
-			aAfterModifiers = a;
-			if ((object)a == (object)b)
-				return true;	// both are null
-			if (a == null || b == null)
-				return false;
-			return ModifiersEquals(a, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out aAfterModifiers);
 		}
 
 		bool ModifiersEquals(TypeSig a, IList<Type> reqMods2, IList<Type> optMods2, out TypeSig aAfterModifiers) {
