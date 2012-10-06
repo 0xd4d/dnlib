@@ -3289,25 +3289,12 @@ exit:
 			var et = a.GetElementType();
 			if (et == null || et.HasElementType)
 				return false;
-			if (!IsSystemIntPtr(et))	// FnPtr is mapped to System.IntPtr
+			if (et != typeof(IntPtr))	// FnPtr is mapped to System.IntPtr
 				return false;
 			if (!a.FullName.StartsWith("(fnptr)"))
 				return false;
 
 			return true;
-		}
-
-		static bool IsSystemIntPtr(Type a) {
-			return a != null &&
-				a.IsValueType &&
-				a.FullName == "System.IntPtr" &&
-				IsCorLib(a.Assembly);
-		}
-
-		static bool IsCorLib(Assembly assembly) {
-			var asmName = assembly.GetName();
-			return (asmName.Name == "mscorlib" || asmName.Name == "System.Runtime") &&
-					string.IsNullOrEmpty(asmName.CultureInfo.Name);
 		}
 
 		/// <summary>
@@ -3444,7 +3431,7 @@ exit:
 
 			case ElementType.FnPtr:
 				// At least in method sigs, this will be mapped to System.IntPtr
-				result = IsSystemIntPtr(b);
+				result = b == typeof(IntPtr);
 				break;
 
 			case ElementType.Sentinel:
@@ -3703,28 +3690,24 @@ exit:
 			if (a.IsGenericType && !a.IsGenericTypeDefinition)
 				return ElementType.GenericInst;
 
-			if (!a.IsNested && (a.Namespace ?? string.Empty) == "System" && IsCorLib(a.Assembly)) {
-				switch (a.Name ?? string.Empty) {
-				case "Void":	return ElementType.Void;
-				case "Boolean":	return ElementType.Boolean;
-				case "Char":	return ElementType.Char;
-				case "SByte":	return ElementType.I1;
-				case "Byte":	return ElementType.U1;
-				case "Int16":	return ElementType.I2;
-				case "UInt16":	return ElementType.U2;
-				case "Int32":	return ElementType.I4;
-				case "UInt32":	return ElementType.U4;
-				case "Int64":	return ElementType.I8;
-				case "UInt64":	return ElementType.U8;
-				case "Single":	return ElementType.R4;
-				case "Double":	return ElementType.R8;
-				case "String":	return ElementType.String;
-				case "TypedReference": return ElementType.TypedByRef;
-				case "IntPtr":	return ElementType.I;
-				case "UIntPtr":	return ElementType.U;
-				case "Object":	return ElementType.Object;
-				}
-			}
+			if (a == typeof(void))		return ElementType.Void;
+			if (a == typeof(bool))		return ElementType.Boolean;
+			if (a == typeof(char))		return ElementType.Char;
+			if (a == typeof(sbyte))		return ElementType.I1;
+			if (a == typeof(byte))		return ElementType.U1;
+			if (a == typeof(short))		return ElementType.I2;
+			if (a == typeof(ushort))	return ElementType.U2;
+			if (a == typeof(int))		return ElementType.I4;
+			if (a == typeof(uint))		return ElementType.U4;
+			if (a == typeof(long))		return ElementType.I8;
+			if (a == typeof(ulong))		return ElementType.U8;
+			if (a == typeof(float))		return ElementType.R4;
+			if (a == typeof(double))	return ElementType.R8;
+			if (a == typeof(string))	return ElementType.String;
+			if (a == typeof(TypedReference)) return ElementType.TypedByRef;
+			if (a == typeof(IntPtr))	return ElementType.I;
+			if (a == typeof(UIntPtr))	return ElementType.U;
+			if (a == typeof(object))	return ElementType.Object;
 
 			return a.IsValueType ? ElementType.ValueType : ElementType.Class;
 		}
