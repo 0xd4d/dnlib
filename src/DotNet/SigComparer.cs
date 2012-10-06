@@ -4337,7 +4337,7 @@ exit:
 
 			TypeSig a2;
 			bool result = ModifiersEquals(a.Type, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
-					Equals(a2, b.FieldType);
+					Equals(a2, b.FieldType, MustTreatTypeAsGenericInstType(b.FieldType, b.DeclaringType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -4415,7 +4415,7 @@ exit:
 				return 0;
 			int hash;
 
-			hash = GetHashCode_CallingConvention(0, false) + GetHashCode(a.FieldType);
+			hash = GetHashCode_CallingConvention(0, false) + GetHashCode(a.FieldType, a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
