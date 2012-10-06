@@ -181,11 +181,11 @@ namespace dot10.DotNet {
 
 			if (ComparePublicKeyToken) {
 				bool pa, pb;
-				if (requested.PublicKeyOrToken == null) {
+				if (PublicKeyBase.IsNullOrEmpty2(requested.PublicKeyOrToken)) {
 					// If one of them has a pkt but the other one hasn't, return the one with
 					// no pkt.
-					pa = a.PublicKeyOrToken == null;
-					pb = b.PublicKeyOrToken == null;
+					pa = PublicKeyBase.IsNullOrEmpty2(a.PublicKeyOrToken);
+					pb = PublicKeyBase.IsNullOrEmpty2(b.PublicKeyOrToken);
 				}
 				else {
 					// If one of them has the correct pkt, but the other one has an incorrect
