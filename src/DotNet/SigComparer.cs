@@ -4759,7 +4759,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = GetHashCode_EventName(a.Name).GetHashCode() +
+			int hash = GetHashCode_EventName(a.Name) +
 					GetHashCode(a.EventHandlerType, a.DeclaringType);
 			if (CompareEventDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
