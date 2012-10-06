@@ -2724,8 +2724,9 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
+			var sig = a.PropertySig;
 			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
-					GetHashCode(a.Type);
+					GetHashCode(sig == null ? null : sig.RetType);
 			if (ComparePropertyDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
 
@@ -3053,7 +3054,7 @@ exit:
 		/// <param name="treatAsGenericInst"><c>true</c> if we should treat <paramref name="b"/>
 		/// as a generic instance type</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Equals(TypeSig a, Type b, bool treatAsGenericInst) {
+		bool Equals(TypeSig a, Type b, bool treatAsGenericInst) {
 			// Global methods and fields have their DeclaringType set to null. Assume
 			// null always means the global type.
 			if (a == null)
@@ -3399,15 +3400,6 @@ exit:
 		}
 
 		/// <summary>
-		/// Gets the hash code of a list with only generic type parameters (<see cref="ElementType.Var"/>)
-		/// </summary>
-		/// <param name="numGenericParams">Number of generic type parameters</param>
-		/// <returns>Hash code</returns>
-		static int GetHashCode_ElementType_Var(int numGenericParams) {
-			return GetHashCode(numGenericParams, HASHCODE_MAGIC_ET_VAR);
-		}
-
-		/// <summary>
 		/// Gets the hash code of a list with only generic method parameters (<see cref="ElementType.MVar"/>)
 		/// </summary>
 		/// <param name="numGenericParams">Number of generic method parameters</param>
@@ -3447,7 +3439,7 @@ exit:
 			if (a.IsGenericType && !a.IsGenericTypeDefinition)
 				return ElementType.GenericInst;
 
-			if (IsCorLib(a.Assembly) && (a.Namespace ?? string.Empty) == "System") {
+			if (!a.IsNested && (a.Namespace ?? string.Empty) == "System" && IsCorLib(a.Assembly)) {
 				switch (a.Name ?? string.Empty) {
 				case "Void": return ElementType.Void;
 				case "Boolean": return ElementType.Boolean;
@@ -3464,7 +3456,6 @@ exit:
 				case "Double": return ElementType.R8;
 				case "String": return ElementType.String;
 				case "TypedReference": return ElementType.TypedByRef;
-					//TODO: FnPtr is mapped to System.IntPtr too!
 				case "IntPtr": return ElementType.I;
 				case "UIntPtr": return ElementType.U;
 				case "Object": return ElementType.Object;
@@ -3842,9 +3833,8 @@ exit:
 					result = result && Equals(amSig, b);
 					genericArguments.PopTypeArgs();
 				}
-				else {
+				else
 					result = result && Equals(amSig, b);
-				}
 
 				result = result && (!CompareMethodFieldDeclaringType || Equals(a.Class, b.DeclaringType, b.Module));
 			}
@@ -4041,6 +4031,16 @@ exit:
 				p.ParameterType == declaringType;
 		}
 
+		int GetHashCode(Type a, Type declaringType) {
+			return GetHashCode(a, MustTreatParamTypeAsGenericInstType(a, declaringType));
+		}
+
+		static bool MustTreatParamTypeAsGenericInstType(Type t, Type declaringType) {
+			return declaringType != null &&
+				declaringType.IsGenericTypeDefinition &&
+				t == declaringType;
+		}
+
 		/// <summary>
 		/// Compares calling conventions
 		/// </summary>
@@ -4185,20 +4185,19 @@ exit:
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
+			return ModifiersEquals(a, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out aAfterModifiers);
+		}
+
+		bool ModifiersEquals(TypeSig a, IList<Type> reqMods2, IList<Type> optMods2, out TypeSig aAfterModifiers) {
+			aAfterModifiers = a;
+			if (!(a is ModifierSig))
+				return reqMods2.Count == 0 && optMods2.Count == 0;
 			if (!recursionCounter.Increment())
 				return false;
 			bool result;
 
-			var reqMods2 = b.GetRequiredCustomModifiers();
-			var optMods2 = b.GetOptionalCustomModifiers();
-			// Exit quickly if this is the common case
-			if (!(a is ModifierSig)) {
-				result = reqMods2.Length == 0 && optMods2.Length == 0;
-				goto exit;
-			}
-
-			var reqMods1 = new List<ITypeDefOrRef>(reqMods2.Length);
-			var optMods1 = new List<ITypeDefOrRef>(optMods2.Length);
+			var reqMods1 = new List<ITypeDefOrRef>(reqMods2.Count);
+			var optMods1 = new List<ITypeDefOrRef>(optMods2.Count);
 			while (true) {
 				var modifierSig = aAfterModifiers as ModifierSig;
 				if (modifierSig == null)
@@ -4213,12 +4212,11 @@ exit:
 				aAfterModifiers = aAfterModifiers.Next;
 			}
 
-			result = reqMods1.Count == reqMods2.Length &&
-					optMods1.Count == optMods2.Length &&
+			result = reqMods1.Count == reqMods2.Count &&
+					optMods1.Count == optMods2.Count &&
 					ModifiersEquals(reqMods1, reqMods2) &&
 					ModifiersEquals(optMods1, optMods2);
 
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -4257,8 +4255,272 @@ exit:
 			return -1;
 		}
 
-		//TODO: Compare fields
-		//TODO: Compare properties
-		//TODO: Compare events
+		/// <summary>
+		/// Compares fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(FieldInfo a, IField b) {
+			return Equals(b, a);
+		}
+
+		/// <summary>
+		/// Compares fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(IField a, FieldInfo b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+			bool result;
+
+			FieldDef fa = a as FieldDef;
+			if (fa != null) {
+				result = Equals(fa, b);
+				goto exit;
+			}
+			MemberRef ma = a as MemberRef;
+			if (ma != null) {
+				result = Equals(ma, b);
+				goto exit;
+			}
+
+			result = false;
+exit:
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(FieldInfo a, FieldDef b) {
+			return Equals(b, a);
+		}
+
+		/// <summary>
+		/// Compares fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(FieldDef a, FieldInfo b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+					Equals(a.FieldSig, b) &&
+					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		bool Equals(FieldSig a, FieldInfo b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			TypeSig a2;
+			bool result = ModifiersEquals(a.Type, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
+					Equals(a2, b.FieldType);
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(FieldInfo a, MemberRef b) {
+			return Equals(b, a);
+		}
+
+		/// <summary>
+		/// Compares fields
+		/// </summary>
+		/// <param name="a">Field #1</param>
+		/// <param name="b">Field #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(MemberRef a, FieldInfo b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty);
+
+			GenericInstSig git;
+			if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) != null) {
+				InitializeGenericArguments();
+				genericArguments.PushTypeArgs(git.GenericArguments);
+				result = result && Equals(a.FieldSig, b);
+				genericArguments.PopTypeArgs();
+			}
+			else
+				result = result && Equals(a.FieldSig, b);
+
+			result = result && (!CompareMethodFieldDeclaringType || Equals(a.Class, b.DeclaringType, b.Module));
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Gets the hash code of a field
+		/// </summary>
+		/// <param name="a">The field</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(FieldInfo a) {
+			// ************************************************************
+			// IMPORTANT: This hash code must match the MemberRef hash code
+			// ************************************************************
+			if (a == null)
+				return 0;
+			if (!recursionCounter.Increment())
+				return 0;
+
+			int hash = (a.Name ?? string.Empty).GetHashCode() +
+					GetHashCode_FieldSig(a);
+			if (CompareMethodFieldDeclaringType)
+				hash += GetHashCode(a.DeclaringType);
+
+			recursionCounter.Decrement();
+			return hash;
+		}
+
+		int GetHashCode_FieldSig(FieldInfo a) {
+			if (a == null)
+				return 0;
+			if (!recursionCounter.Increment())
+				return 0;
+			int hash;
+
+			hash = GetHashCode_CallingConvention(0, false) + GetHashCode(a.FieldType);
+
+			recursionCounter.Decrement();
+			return hash;
+		}
+
+		/// <summary>
+		/// Compares properties
+		/// </summary>
+		/// <param name="a">Property #1</param>
+		/// <param name="b">Property #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(PropertyDef a, PropertyInfo b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+					Equals(a.PropertySig, b) &&
+					(!ComparePropertyDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		bool Equals(PropertySig a, PropertyInfo b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			TypeSig a2;
+			bool result = ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
+					Equals(a2, b.PropertyType, MustTreatParamTypeAsGenericInstType(b.PropertyType, b.DeclaringType));
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Gets the hash code of a property
+		/// </summary>
+		/// <param name="a">The property</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(PropertyInfo a) {
+			if (a == null)
+				return 0;
+			if (!recursionCounter.Increment())
+				return 0;
+
+			int hash = (a.Name ?? string.Empty).GetHashCode() +
+					GetHashCode(a.PropertyType, a.DeclaringType);
+			if (ComparePropertyDeclaringType)
+				hash += GetHashCode(a.DeclaringType);
+
+			recursionCounter.Decrement();
+			return hash;
+		}
+
+		/// <summary>
+		/// Compares events
+		/// </summary>
+		/// <param name="a">Event #1</param>
+		/// <param name="b">Event #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(EventDef a, EventInfo b) {
+			if ((object)a == (object)b)
+				return true;	// both are null
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+					Equals(a.Type, b.EventHandlerType, MustTreatParamTypeAsGenericInstType(b.EventHandlerType, b.DeclaringType)) &&
+					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Gets the hash code of an event
+		/// </summary>
+		/// <param name="a">The event</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(EventInfo a) {
+			if (a == null)
+				return 0;
+			if (!recursionCounter.Increment())
+				return 0;
+
+			int hash = (a.Name ?? string.Empty).GetHashCode() +
+					GetHashCode(a.EventHandlerType, a.DeclaringType);
+			if (CompareEventDeclaringType)
+				hash += GetHashCode(a.DeclaringType);
+
+			recursionCounter.Decrement();
+			return hash;
+		}
 	}
 }
