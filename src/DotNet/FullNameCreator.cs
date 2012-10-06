@@ -954,8 +954,12 @@ namespace dot10.DotNet {
 				break;
 
 			case ElementType.FnPtr:
-				if (createName)
-					CreateMethodFullName(null, null, ((FnPtrSig)typeSig).MethodSig);
+				if (createName) {
+					if (isReflection)
+						sb.Append("(fnptr)");
+					else
+						CreateMethodFullName(null, null, ((FnPtrSig)typeSig).MethodSig);
+				}
 				break;
 
 			case ElementType.Sentinel:
