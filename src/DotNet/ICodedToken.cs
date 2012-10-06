@@ -52,7 +52,6 @@ namespace dot10.DotNet {
 		internal static bool IsCorLib(this IAssembly asm) {
 			string asmName;
 			return asm != null &&
-				asm.PublicKeyOrToken != null &&
 				UTF8String.IsNullOrEmpty(asm.Locale) &&
 				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name).ToLowerInvariant()) == "mscorlib" ||
 				asmName == "system.runtime");
