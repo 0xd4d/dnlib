@@ -440,6 +440,44 @@ namespace dot10.DotNet {
 		/// be a generic instance type.
 		/// </summary>
 		SubstituteGenericParameters = 0x400,
+
+		/// <summary>
+		/// Type namespaces are case insensitive
+		/// </summary>
+		CaseInsensitiveTypeNamespaces = 0x800,
+
+		/// <summary>
+		/// Type names (not namespaces) are case insensitive
+		/// </summary>
+		CaseInsensitiveTypeNames = 0x1000,
+
+		/// <summary>
+		/// Type names and namespaces are case insensitive
+		/// </summary>
+		CaseInsensitiveTypes = CaseInsensitiveTypeNames | CaseInsensitiveTypeNamespaces,
+
+		/// <summary>
+		/// Method and field names are case insensitive
+		/// </summary>
+		CaseInsensitiveMethodFieldNames = 0x2000,
+
+		/// <summary>
+		/// Property names are case insensitive
+		/// </summary>
+		CaseInsensitivePropertyNames = 0x4000,
+
+		/// <summary>
+		/// Event names are case insensitive
+		/// </summary>
+		CaseInsensitiveEventNames = 0x8000,
+
+		/// <summary>
+		/// Type namespaces, type names, method names, field names, property names
+		/// and event names are all case insensitive
+		/// </summary>
+		CaseInsensitiveAll = CaseInsensitiveTypeNamespaces | CaseInsensitiveTypeNames |
+						CaseInsensitiveMethodFieldNames | CaseInsensitivePropertyNames |
+						CaseInsensitiveEventNames,
 	}
 
 	/// <summary>
@@ -458,10 +496,6 @@ namespace dot10.DotNet {
 		const int HASHCODE_MAGIC_ET_BYREF = -634749586;
 		const int HASHCODE_MAGIC_ET_PTR = 1976400808;
 		const int HASHCODE_MAGIC_ET_SENTINEL = 68439620;
-
-		// FnPtr is mapped to System.IntPtr, so use the same hash code for both
-		// IMPORTANT: This must match GetHashCode(TYPE)
-		static readonly int HASHCODE_MAGIC_ET_FNPTR_AND_I = "System".GetHashCode() + "IntPtr".GetHashCode();
 
 		RecursionCounter recursionCounter;
 		SigComparerOptions options;
@@ -619,6 +653,71 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveTypeNamespaces"/> bit
+		/// </summary>
+		public bool CaseInsensitiveTypeNamespaces {
+			get { return (options & SigComparerOptions.CaseInsensitiveTypeNamespaces) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.CaseInsensitiveTypeNamespaces;
+				else
+					options &= ~SigComparerOptions.CaseInsensitiveTypeNamespaces;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveTypeNames"/> bit
+		/// </summary>
+		public bool CaseInsensitiveTypeNames {
+			get { return (options & SigComparerOptions.CaseInsensitiveTypeNames) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.CaseInsensitiveTypeNames;
+				else
+					options &= ~SigComparerOptions.CaseInsensitiveTypeNames;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveMethodFieldNames"/> bit
+		/// </summary>
+		public bool CaseInsensitiveMethodFieldNames {
+			get { return (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.CaseInsensitiveMethodFieldNames;
+				else
+					options &= ~SigComparerOptions.CaseInsensitiveMethodFieldNames;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitivePropertyNames"/> bit
+		/// </summary>
+		public bool CaseInsensitivePropertyNames {
+			get { return (options & SigComparerOptions.CaseInsensitivePropertyNames) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.CaseInsensitivePropertyNames;
+				else
+					options &= ~SigComparerOptions.CaseInsensitivePropertyNames;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveEventNames"/> bit
+		/// </summary>
+		public bool CaseInsensitiveEventNames {
+			get { return (options & SigComparerOptions.CaseInsensitiveEventNames) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.CaseInsensitiveEventNames;
+				else
+					options &= ~SigComparerOptions.CaseInsensitiveEventNames;
+			}
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -626,6 +725,121 @@ namespace dot10.DotNet {
 			this.recursionCounter = new RecursionCounter();
 			this.options = options;
 			this.genericArguments = null;
+		}
+
+		/// <summary>
+		/// FnPtr is mapped to System.IntPtr, so use the same hash code for both
+		/// </summary>
+		int GetHashCode_FnPtr_SystemIntPtr() {
+			// ********************************************
+			// IMPORTANT: This must match GetHashCode(TYPE)
+			// ********************************************
+
+			int hash = 0;
+
+			if (CaseInsensitiveTypeNamespaces)
+				hash += "system".GetHashCode();
+			else
+				hash += "System".GetHashCode();
+
+			if (CaseInsensitiveTypeNames)
+				hash += "intptr".GetHashCode();
+			else
+				hash += "IntPtr".GetHashCode();
+
+			return hash;
+		}
+
+		bool Equals_Names(bool caseInsensitive, string a, string b) {
+			if (caseInsensitive)
+				return (a ?? string.Empty).ToLowerInvariant() == (b ?? string.Empty).ToLowerInvariant();
+			return (a ?? string.Empty) == (b ?? string.Empty);
+		}
+
+		int GetHashCode_Name(bool caseInsensitive, string a) {
+			if (caseInsensitive)
+				return (a ?? string.Empty).ToLowerInvariant().GetHashCode();
+			return (a ?? string.Empty).GetHashCode();
+		}
+
+		bool Equals_TypeNamespaces(UTF8String a, UTF8String b) {
+			return Equals_Names(CaseInsensitiveTypeNamespaces, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+		}
+
+		bool Equals_TypeNamespaces(UTF8String a, string b) {
+			return Equals_Names(CaseInsensitiveTypeNamespaces, UTF8String.ToSystemStringOrEmpty(a), b);
+		}
+
+		int GetHashCode_TypeNamespace(UTF8String a) {
+			return GetHashCode_Name(CaseInsensitiveTypeNamespaces, UTF8String.ToSystemStringOrEmpty(a));
+		}
+
+		int GetHashCode_TypeNamespace(string a) {
+			return GetHashCode_Name(CaseInsensitiveTypeNamespaces, a);
+		}
+
+		bool Equals_TypeNames(UTF8String a, UTF8String b) {
+			return Equals_Names(CaseInsensitiveTypeNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+		}
+
+		bool Equals_TypeNames(UTF8String a, string b) {
+			return Equals_Names(CaseInsensitiveTypeNames, UTF8String.ToSystemStringOrEmpty(a), b);
+		}
+
+		int GetHashCode_TypeName(UTF8String a) {
+			return GetHashCode_Name(CaseInsensitiveTypeNames, UTF8String.ToSystemStringOrEmpty(a));
+		}
+
+		int GetHashCode_TypeName(string a) {
+			return GetHashCode_Name(CaseInsensitiveTypeNames, a);
+		}
+
+		bool Equals_MethodFieldNames(UTF8String a, UTF8String b) {
+			return Equals_Names(CaseInsensitiveMethodFieldNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+		}
+
+		bool Equals_MethodFieldNames(UTF8String a, string b) {
+			return Equals_Names(CaseInsensitiveMethodFieldNames, UTF8String.ToSystemStringOrEmpty(a), b);
+		}
+
+		int GetHashCode_MethodFieldName(UTF8String a) {
+			return GetHashCode_Name(CaseInsensitiveMethodFieldNames, UTF8String.ToSystemStringOrEmpty(a));
+		}
+
+		int GetHashCode_MethodFieldName(string a) {
+			return GetHashCode_Name(CaseInsensitiveMethodFieldNames, a);
+		}
+
+		bool Equals_PropertyNames(UTF8String a, UTF8String b) {
+			return Equals_Names(CaseInsensitivePropertyNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+		}
+
+		bool Equals_PropertyNames(UTF8String a, string b) {
+			return Equals_Names(CaseInsensitivePropertyNames, UTF8String.ToSystemStringOrEmpty(a), b);
+		}
+
+		int GetHashCode_PropertyName(UTF8String a) {
+			return GetHashCode_Name(CaseInsensitivePropertyNames, UTF8String.ToSystemStringOrEmpty(a));
+		}
+
+		int GetHashCode_PropertyName(string a) {
+			return GetHashCode_Name(CaseInsensitivePropertyNames, a);
+		}
+
+		bool Equals_EventNames(UTF8String a, UTF8String b) {
+			return Equals_Names(CaseInsensitiveEventNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+		}
+
+		bool Equals_EventNames(UTF8String a, string b) {
+			return Equals_Names(CaseInsensitiveEventNames, UTF8String.ToSystemStringOrEmpty(a), b);
+		}
+
+		int GetHashCode_EventName(UTF8String a) {
+			return GetHashCode_Name(CaseInsensitiveEventNames, UTF8String.ToSystemStringOrEmpty(a));
+		}
+
+		int GetHashCode_EventName(string a) {
+			return GetHashCode_Name(CaseInsensitiveEventNames, a);
 		}
 
 		SigComparerOptions ClearOptions(SigComparerOptions flags) {
@@ -813,7 +1027,7 @@ exit:
 				return false;
 			bool result = false;
 
-			if (!UTF8String.Equals(a.Name, b.Name) || !UTF8String.Equals(a.Namespace, b.Namespace))
+			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b.Namespace))
 				goto exit;
 
 			var scope = b.ResolutionScope;
@@ -874,7 +1088,7 @@ exit:
 				return false;
 			bool result = false;
 
-			if (!UTF8String.Equals(a.Name, b.TypeName) || !UTF8String.Equals(a.Namespace, b.TypeNamespace))
+			if (!Equals_TypeNames(a.Name, b.TypeName) || !Equals_TypeNamespaces(a.Namespace, b.TypeNamespace))
 				goto exit;
 
 			var scope = b.Implementation;
@@ -1022,8 +1236,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.TypeName) &&
-					UTF8String.Equals(a.Namespace, b.TypeNamespace) &&
+			bool result = Equals_TypeNames(a.Name, b.TypeName) &&
+					Equals_TypeNamespaces(a.Namespace, b.TypeNamespace) &&
 					EqualsScope(a, b);
 
 			recursionCounter.Decrement();
@@ -1180,8 +1394,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
-					UTF8String.Equals(a.Namespace, b.Namespace) &&
+			bool result = Equals_TypeNames(a.Name, b.Name) &&
+					Equals_TypeNamespaces(a.Namespace, b.Namespace) &&
 					EqualsResolutionScope(a, b);
 
 			recursionCounter.Decrement();
@@ -1196,18 +1410,18 @@ exit:
 		public int GetHashCode(TypeRef a) {
 			// ************************************************************************************
 			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
-			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
+			// hash code and GetHashCode_FnPtr_SystemIntPtr() method
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
 			if (a == null)
 				return TypeRefCanReferenceGlobalType ? GetHashCodeGlobalType() : 0;
 			int hash;
-			hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode();
+			hash = GetHashCode_TypeName(a.Name);
 			if (a.ResolutionScope is TypeRef)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += UTF8String.ToSystemStringOrEmpty(a.Namespace).GetHashCode();
+				hash += GetHashCode_TypeNamespace(a.Namespace);
 			return hash;
 		}
 
@@ -1225,8 +1439,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.TypeName, b.TypeName) &&
-					UTF8String.Equals(a.TypeNamespace, b.TypeNamespace) &&
+			bool result = Equals_TypeNames(a.TypeName, b.TypeName) &&
+					Equals_TypeNamespaces(a.TypeNamespace, b.TypeNamespace) &&
 					EqualsImplementation(a, b);
 
 			recursionCounter.Decrement();
@@ -1241,18 +1455,18 @@ exit:
 		public int GetHashCode(ExportedType a) {
 			// ************************************************************************************
 			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
-			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
+			// hash code and GetHashCode_FnPtr_SystemIntPtr() method
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
 			if (a == null)
 				return TypeRefCanReferenceGlobalType ? GetHashCodeGlobalType() : 0;
 			int hash;
-			hash = UTF8String.ToSystemStringOrEmpty(a.TypeName).GetHashCode();
+			hash = GetHashCode_TypeName(a.TypeName);
 			if (a.Implementation is ExportedType)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += UTF8String.ToSystemStringOrEmpty(a.TypeNamespace).GetHashCode();
+				hash += GetHashCode_TypeNamespace(a.TypeNamespace);
 			return hash;
 		}
 
@@ -1270,8 +1484,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
-					UTF8String.Equals(a.Namespace, b.Namespace) &&
+			bool result = Equals_TypeNames(a.Name, b.Name) &&
+					Equals_TypeNamespaces(a.Namespace, b.Namespace) &&
 					Equals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.OwnerModule, b.OwnerModule));
 
@@ -1287,18 +1501,18 @@ exit:
 		public int GetHashCode(TypeDef a) {
 			// ************************************************************************************
 			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
-			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
+			// hash code and GetHashCode_FnPtr_SystemIntPtr() method
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
 			if (a == null || a.IsGlobalModuleType)
 				return GetHashCodeGlobalType();
 			int hash;
-			hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode();
+			hash = GetHashCode_TypeName(a.Name);
 			if (a.DeclaringType != null)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += UTF8String.ToSystemStringOrEmpty(a.Namespace).GetHashCode();
+				hash += GetHashCode_TypeNamespace(a.Namespace);
 			return hash;
 		}
 
@@ -1800,7 +2014,7 @@ exit:
 				break;
 
 			case ElementType.FnPtr:
-				hash = HASHCODE_MAGIC_ET_FNPTR_AND_I;
+				hash = GetHashCode_FnPtr_SystemIntPtr();
 				break;
 
 			case ElementType.ValueArray:
@@ -2305,7 +2519,7 @@ exit:
 			//TODO: If a.IsPrivateScope, then you should probably always return false since Method
 			//		tokens must be used to call the method.
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
+			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
@@ -2327,7 +2541,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
+			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -2349,7 +2563,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
+			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2372,7 +2586,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
+			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.Class, b.Class));
 
@@ -2394,7 +2608,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode();
+			int hash = GetHashCode_MethodFieldName(a.Name);
 			GenericInstSig git;
 			if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) != null) {
 				InitializeGenericArguments();
@@ -2638,7 +2852,7 @@ exit:
 			//TODO: If a.IsPrivateScope, then you should probably always return false since Field
 			//		tokens must be used to access the field
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
+			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
@@ -2660,7 +2874,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
+			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -2682,7 +2896,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
+			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2705,7 +2919,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
+			bool result = Equals_PropertyNames(a.Name, b.Name) &&
 					Equals(a.Type, b.Type) &&
 					(!ComparePropertyDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -2725,7 +2939,7 @@ exit:
 				return 0;
 
 			var sig = a.PropertySig;
-			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
+			int hash = GetHashCode_PropertyName(a.Name) +
 					GetHashCode(sig == null ? null : sig.RetType);
 			if (ComparePropertyDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2748,7 +2962,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.Equals(a.Name, b.Name) &&
+			bool result = Equals_EventNames(a.Name, b.Name) &&
 					Equals((IType)a.Type, (IType)b.Type) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -2767,7 +2981,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.ToSystemStringOrEmpty(a.Name).GetHashCode() +
+			int hash = GetHashCode_EventName(a.Name) +
 					GetHashCode((IType)a.Type);
 			if (CompareEventDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -2876,8 +3090,8 @@ exit:
 				return false;
 
 			bool result = !b.HasElementType &&
-					UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
-					NamespaceEquals(a.Namespace, b) &&
+					Equals_TypeNames(a.Name, b.Name) &&
+					Equals_TypeNamespaces(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.OwnerModule, b.Module));
 
@@ -2923,7 +3137,7 @@ exit:
 
 			if (b.HasElementType)
 				goto exit;
-			if (UTF8String.ToSystemStringOrEmpty(a.Name) != (b.Name ?? string.Empty) || !NamespaceEquals(a.Namespace, b))
+			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b))
 				goto exit;
 
 			var scope = a.ResolutionScope;
@@ -2956,10 +3170,10 @@ exit:
 			return result;
 		}
 
-		static bool NamespaceEquals(UTF8String a, Type b) {
+		bool Equals_TypeNamespaces(UTF8String a, Type b) {
 			if (b.IsNested)
 				return true;
-			return UTF8String.ToSystemStringOrEmpty(a) == (b.Namespace ?? string.Empty);
+			return Equals_TypeNamespaces(a, b.Namespace);
 		}
 
 		/// <summary>
@@ -3236,7 +3450,7 @@ exit:
 
 			if (b.HasElementType)
 				goto exit;
-			if (UTF8String.ToSystemStringOrEmpty(a.TypeName) != (b.Name ?? string.Empty) || !NamespaceEquals(a.TypeNamespace, b))
+			if (!Equals_TypeNames(a.TypeName, b.Name) || !Equals_TypeNamespaces(a.TypeNamespace, b))
 				goto exit;
 
 			var scope = a.Implementation;
@@ -3316,7 +3530,7 @@ exit:
 				break;
 
 			case ElementType.FnPtr:
-				hash = HASHCODE_MAGIC_ET_FNPTR_AND_I;
+				hash = GetHashCode_FnPtr_SystemIntPtr();
 				break;
 
 			case ElementType.Sentinel:
@@ -3325,17 +3539,17 @@ exit:
 
 			case ElementType.Ptr:
 				hash = HASHCODE_MAGIC_ET_PTR +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.ByRef:
 				hash = HASHCODE_MAGIC_ET_BYREF +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.SZArray:
 				hash = HASHCODE_MAGIC_ET_SZARRAY +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.CModReqd:
@@ -3348,7 +3562,7 @@ exit:
 				// The type doesn't store sizes and lower bounds, so can't use them to
 				// create the hash
 				hash = HASHCODE_MAGIC_ET_ARRAY + a.GetArrayRank() +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.Var:
@@ -3473,7 +3687,7 @@ exit:
 		public int GetHashCode_TypeDef(Type a) {
 			// ************************************************************************************
 			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
-			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
+			// hash code and GetHashCode_FnPtr_SystemIntPtr() method
 			// ************************************************************************************
 
 			// A global method/field's declaring type is null. This is the reason we must
@@ -3481,11 +3695,11 @@ exit:
 			if (a == null)
 				return GetHashCodeGlobalType();
 			int hash;
-			hash = (a.Name ?? string.Empty).GetHashCode();
+			hash = GetHashCode_TypeName(a.Name);
 			if (a.IsNested)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
-				hash += (a.Namespace ?? string.Empty).GetHashCode();
+				hash += GetHashCode_TypeNamespace(a.Namespace);
 			return hash;
 		}
 
@@ -3739,7 +3953,7 @@ exit:
 				return false;
 
 			var amSig = a.MethodSig;
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 					(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
 					amSig != null && Equals(amSig, b) &&
@@ -3821,7 +4035,7 @@ exit:
 			}
 			else {
 				var amSig = a.MethodSig;
-				result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+				result = Equals_MethodFieldNames(a.Name, b.Name) &&
 						((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 						(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
 						amSig != null;
@@ -3955,7 +4169,7 @@ exit:
 			// ***********************************************************************
 			// IMPORTANT: This hash code must match the MemberRef/MethodSpec hash code
 			// ***********************************************************************
-			int hash = (a.Name ?? string.Empty).GetHashCode() +
+			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode_MethodSig(a);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -4319,7 +4533,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.FieldSig, b) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -4367,7 +4581,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty);
+			bool result = Equals_MethodFieldNames(a.Name, b.Name);
 
 			GenericInstSig git;
 			if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) != null) {
@@ -4399,7 +4613,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = (a.Name ?? string.Empty).GetHashCode() +
+			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode_FieldSig(a);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -4435,7 +4649,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+			bool result = Equals_PropertyNames(a.Name, b.Name) &&
 					Equals(a.PropertySig, b) &&
 					(!ComparePropertyDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -4470,7 +4684,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = (a.Name ?? string.Empty).GetHashCode() +
+			int hash = GetHashCode_PropertyName(a.Name) +
 					GetHashCode(a.PropertyType, a.DeclaringType);
 			if (ComparePropertyDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
@@ -4493,7 +4707,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == (b.Name ?? string.Empty) &&
+			bool result = Equals_EventNames(a.Name, b.Name) &&
 					Equals(a.Type, b.EventHandlerType, MustTreatTypeAsGenericInstType(b.EventHandlerType, b.DeclaringType)) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
@@ -4512,7 +4726,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = (a.Name ?? string.Empty).GetHashCode() +
+			int hash = GetHashCode_EventName(a.Name).GetHashCode() +
 					GetHashCode(a.EventHandlerType, a.DeclaringType);
 			if (CompareEventDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
