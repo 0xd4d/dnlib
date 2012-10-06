@@ -3705,24 +3705,24 @@ exit:
 
 			if (!a.IsNested && (a.Namespace ?? string.Empty) == "System" && IsCorLib(a.Assembly)) {
 				switch (a.Name ?? string.Empty) {
-				case "Void": return ElementType.Void;
-				case "Boolean": return ElementType.Boolean;
-				case "Char": return ElementType.Char;
-				case "SByte": return ElementType.I1;
-				case "Byte": return ElementType.U1;
-				case "Int16": return ElementType.I2;
-				case "UInt16": return ElementType.U2;
-				case "Int32": return ElementType.I4;
-				case "UInt32": return ElementType.U4;
-				case "Int64": return ElementType.I8;
-				case "UInt64": return ElementType.U8;
-				case "Single": return ElementType.R4;
-				case "Double": return ElementType.R8;
-				case "String": return ElementType.String;
+				case "Void":	return ElementType.Void;
+				case "Boolean":	return ElementType.Boolean;
+				case "Char":	return ElementType.Char;
+				case "SByte":	return ElementType.I1;
+				case "Byte":	return ElementType.U1;
+				case "Int16":	return ElementType.I2;
+				case "UInt16":	return ElementType.U2;
+				case "Int32":	return ElementType.I4;
+				case "UInt32":	return ElementType.U4;
+				case "Int64":	return ElementType.I8;
+				case "UInt64":	return ElementType.U8;
+				case "Single":	return ElementType.R4;
+				case "Double":	return ElementType.R8;
+				case "String":	return ElementType.String;
 				case "TypedReference": return ElementType.TypedByRef;
-				case "IntPtr": return ElementType.I;
-				case "UIntPtr": return ElementType.U;
-				case "Object": return ElementType.Object;
+				case "IntPtr":	return ElementType.I;
+				case "UIntPtr":	return ElementType.U;
+				case "Object":	return ElementType.Object;
 				}
 			}
 
