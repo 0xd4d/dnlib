@@ -400,7 +400,9 @@ namespace dot10.DotNet {
 		CompareEventDeclaringType = 8,
 
 		/// <summary>
-		/// Compares parameters after a sentinel in method sigs
+		/// Compares parameters after a sentinel in method sigs. Should not be enabled when
+		/// comparing <see cref="MethodSig"/>s against <see cref="MethodInfo"/>s since it's
+		/// not possible to get those sentinel params from a <see cref="MethodInfo"/>.
 		/// </summary>
 		CompareSentinelParams = 0x10,
 
@@ -429,6 +431,15 @@ namespace dot10.DotNet {
 		/// Don't compare a method/property's return type
 		/// </summary>
 		DontCompareReturnType = 0x200,
+
+		/// <summary>
+		/// If set, all generic parameters are replaced with their generic arguments prior
+		/// to comparing types. You should enable this when comparing a method, field, property
+		/// or an event to a <see cref="MethodInfo"/>, <see cref="FieldInfo"/>,
+		/// <see cref="PropertyInfo"/> or an <see cref="EventInfo"/> if the owner type could
+		/// be a generic instance type.
+		/// </summary>
+		SubstituteGenericParameters = 0x400,
 	}
 
 	/// <summary>
@@ -439,7 +450,6 @@ namespace dot10.DotNet {
 		const int HASHCODE_MAGIC_NESTED_TYPE = -1049070942;
 		const int HASHCODE_MAGIC_ET_MODULE = -299744851;
 		const int HASHCODE_MAGIC_ET_VALUEARRAY = -674970533;
-		const int HASHCODE_MAGIC_ET_FNPTR = -1333778933;
 		const int HASHCODE_MAGIC_ET_GENERICINST = -2050514639;
 		const int HASHCODE_MAGIC_ET_VAR = 1288450097;
 		const int HASHCODE_MAGIC_ET_MVAR = -990598495;
@@ -449,8 +459,13 @@ namespace dot10.DotNet {
 		const int HASHCODE_MAGIC_ET_PTR = 1976400808;
 		const int HASHCODE_MAGIC_ET_SENTINEL = 68439620;
 
+		// FnPtr is mapped to System.IntPtr, so use the same hash code for both
+		// IMPORTANT: This must match GetHashCode(TYPE)
+		static readonly int HASHCODE_MAGIC_ET_FNPTR_AND_I = UTF8String.GetHashCode(new UTF8String("System")) + UTF8String.GetHashCode(new UTF8String("IntPtr"));
+
 		RecursionCounter recursionCounter;
 		SigComparerOptions options;
+		GenericArguments genericArguments;
 
 		/// <summary>
 		/// Gets/sets the options
@@ -591,18 +606,54 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.SubstituteGenericParameters"/> bit
+		/// </summary>
+		public bool SubstituteGenericParameters {
+			get { return (options & SigComparerOptions.SubstituteGenericParameters) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.SubstituteGenericParameters;
+				else
+					options &= ~SigComparerOptions.SubstituteGenericParameters;
+			}
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
 		public SigComparer(SigComparerOptions options) {
 			this.recursionCounter = new RecursionCounter();
 			this.options = options;
+			this.genericArguments = null;
 		}
 
 		SigComparerOptions ClearOptions(SigComparerOptions flags) {
 			var old = options;
 			options &= ~flags;
 			return old;
+		}
+
+		SigComparerOptions SetOptions(SigComparerOptions flags) {
+			var old = options;
+			options |= flags;
+			return old;
+		}
+
+		void RestoreOptions(SigComparerOptions oldFlags) {
+			options = oldFlags;
+		}
+
+		void InitializeGenericArguments() {
+			if (genericArguments == null)
+				genericArguments = new GenericArguments();
+		}
+
+		static GenericInstSig GetGenericInstanceType(IMemberRefParent parent) {
+			var ts = parent as TypeSpec;
+			if (ts == null)
+				return null;
+			return TypeSig.RemoveModifiers(ts.TypeSig) as GenericInstSig;
 		}
 
 		/// <summary>
@@ -1144,7 +1195,8 @@ exit:
 		/// <returns>The hash code</returns>
 		public int GetHashCode(TypeRef a) {
 			// ************************************************************************************
-			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType hash code
+			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
+			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
@@ -1188,7 +1240,8 @@ exit:
 		/// <returns>The hash code</returns>
 		public int GetHashCode(ExportedType a) {
 			// ************************************************************************************
-			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType hash code
+			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
+			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
@@ -1233,7 +1286,8 @@ exit:
 		/// <returns>The hash code</returns>
 		public int GetHashCode(TypeDef a) {
 			// ************************************************************************************
-			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType hash code
+			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
+			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
@@ -1664,6 +1718,9 @@ exit:
 				return 0;
 			int hash;
 
+			if (genericArguments != null)
+				a = genericArguments.Resolve(a);
+
 			switch (a.ElementType) {
 			case ElementType.Void:
 			case ElementType.Boolean:
@@ -1730,14 +1787,20 @@ exit:
 
 			case ElementType.GenericInst:
 				var gia = (GenericInstSig)a;
-				hash = HASHCODE_MAGIC_ET_GENERICINST + GetHashCode(gia.GenericType) + GetHashCode(gia.GenericArguments);
+				hash = HASHCODE_MAGIC_ET_GENERICINST;
+				if (SubstituteGenericParameters) {
+					InitializeGenericArguments();
+					genericArguments.PushTypeArgs(gia.GenericArguments);
+					hash += GetHashCode(gia.GenericType);
+					genericArguments.PopTypeArgs();
+				}
+				else
+					hash += GetHashCode(gia.GenericType);
+				hash += GetHashCode(gia.GenericArguments);
 				break;
 
 			case ElementType.FnPtr:
-				hash = HASHCODE_MAGIC_ET_FNPTR;
-				// Don't calculate the hash of the method signature since GetHashCode(Type)
-				// doesn't (and can't).
-				// hash += GetHashCode((a as FnPtrSig).Signature);
+				hash = HASHCODE_MAGIC_ET_FNPTR_AND_I;
 				break;
 
 			case ElementType.ValueArray:
@@ -1987,7 +2050,7 @@ exit:
 			if (!DontCompareReturnType)
 				hash += GetHashCode(a.RetType);
 			if (a.Generic)
-				hash += (int)a.GenParamCount;
+				hash += GetHashCode_ElementType_MVar((int)a.GenParamCount);
 			if (CompareSentinelParams)
 				hash += GetHashCode(a.ParamsAfterSentinel);
 
@@ -2331,8 +2394,16 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = UTF8String.GetHashCode(a.Name) +
-					GetHashCode(a.Signature);
+			int hash = UTF8String.GetHashCode(a.Name);
+			GenericInstSig git;
+			if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) != null) {
+				InitializeGenericArguments();
+				genericArguments.PushTypeArgs(git.GenericArguments);
+				hash += GetHashCode(a.Signature);
+				genericArguments.PopTypeArgs();
+			}
+			else
+				hash += GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.Class);
 
@@ -2374,7 +2445,17 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = GetHashCode(a.Method) + GetHashCode(a.Instantiation);
+			// We must do this or it won't get the same hash code as some MethodInfos
+			var oldOptions = SetOptions(SigComparerOptions.SubstituteGenericParameters);
+			var gim = a.GenericInstMethodSig;
+			if (gim != null) {
+				InitializeGenericArguments();
+				genericArguments.PushMethodArgs(gim.GenericArguments);
+			}
+			int hash = GetHashCode(a.Method);
+			if (gim != null)
+				genericArguments.PopMethodArgs();
+			RestoreOptions(oldOptions);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -2452,7 +2533,8 @@ exit:
 			}
 			MethodDef ma = a as MethodDef;
 			if (ma != null) {
-				hash = GetHashCode(ma);
+				// Only use the declaring type so we get the same hash code when hashing a MethodBase.
+				hash = GetHashCode(ma.DeclaringType);
 				goto exit;
 			}
 			hash = 0;
@@ -2959,10 +3041,8 @@ exit:
 
 		static bool IsCorLib(Assembly assembly) {
 			var asmName = assembly.GetName();
-			byte[] pkt;
 			return (asmName.Name == "mscorlib" || asmName.Name == "System.Runtime") &&
-					string.IsNullOrEmpty(asmName.CultureInfo.Name) &&
-					(pkt = asmName.GetPublicKeyToken()) != null && pkt.Length == 8;
+					string.IsNullOrEmpty(asmName.CultureInfo.Name);
 		}
 
 		/// <summary>
@@ -2983,6 +3063,9 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 			bool result;
+
+			if (genericArguments != null)
+				a = genericArguments.Resolve(a);
 
 			switch (a.ElementType) {
 			case ElementType.Void:
@@ -3078,8 +3161,15 @@ exit:
 					break;
 				}
 				var gia = (GenericInstSig)a;
-				result = Equals(gia.GenericType, b.GetGenericTypeDefinition()) &&
-						Equals(gia.GenericArguments, b.GetGenericArguments());
+				if (SubstituteGenericParameters) {
+					InitializeGenericArguments();
+					genericArguments.PushTypeArgs(gia.GenericArguments);
+					result = Equals(gia.GenericType, b.GetGenericTypeDefinition());
+					genericArguments.PopTypeArgs();
+				}
+				else
+					result = Equals(gia.GenericType, b.GetGenericTypeDefinition());
+				result = result && Equals(gia.GenericArguments, b.GetGenericArguments());
 				break;
 
 			case ElementType.CModReqd:
@@ -3224,23 +3314,27 @@ exit:
 				hash = GetHashCode_TypeDef(a);
 				break;
 
+			case ElementType.FnPtr:
+				hash = HASHCODE_MAGIC_ET_FNPTR_AND_I;
+				break;
+
 			case ElementType.Sentinel:
 				hash = HASHCODE_MAGIC_ET_SENTINEL;
 				break;
 
 			case ElementType.Ptr:
 				hash = HASHCODE_MAGIC_ET_PTR +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.ByRef:
 				hash = HASHCODE_MAGIC_ET_BYREF +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.SZArray:
 				hash = HASHCODE_MAGIC_ET_SZARRAY +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.CModReqd:
@@ -3253,7 +3347,7 @@ exit:
 				// The type doesn't store sizes and lower bounds, so can't use them to
 				// create the hash
 				hash = HASHCODE_MAGIC_ET_ARRAY + a.GetArrayRank() +
-					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR : GetHashCode(a.GetElementType()));
+					(IsFnPtrElementType(a) ? HASHCODE_MAGIC_ET_FNPTR_AND_I : GetHashCode(a.GetElementType()));
 				break;
 
 			case ElementType.Var:
@@ -3268,7 +3362,6 @@ exit:
 				hash = HASHCODE_MAGIC_ET_GENERICINST + GetHashCode(a.GetGenericTypeDefinition()) + GetHashCode(a.GetGenericArguments());
 				break;
 
-			case ElementType.FnPtr:	// mapped to System.IntPtr
 			case ElementType.ValueArray:
 			case ElementType.Module:
 			case ElementType.End:
@@ -3302,6 +3395,36 @@ exit:
 				hash = (hash << 13) | (hash >> 19);
 			}
 			recursionCounter.Decrement();
+			return (int)hash;
+		}
+
+		/// <summary>
+		/// Gets the hash code of a list with only generic type parameters (<see cref="ElementType.Var"/>)
+		/// </summary>
+		/// <param name="numGenericParams">Number of generic type parameters</param>
+		/// <returns>Hash code</returns>
+		static int GetHashCode_ElementType_Var(int numGenericParams) {
+			return GetHashCode(numGenericParams, HASHCODE_MAGIC_ET_VAR);
+		}
+
+		/// <summary>
+		/// Gets the hash code of a list with only generic method parameters (<see cref="ElementType.MVar"/>)
+		/// </summary>
+		/// <param name="numGenericParams">Number of generic method parameters</param>
+		/// <returns>Hash code</returns>
+		static int GetHashCode_ElementType_MVar(int numGenericParams) {
+			return GetHashCode(numGenericParams, HASHCODE_MAGIC_ET_MVAR);
+		}
+
+		static int GetHashCode(int numGenericParams, int etypeHashCode) {
+			//************************************************************************
+			// IMPORTANT: This code must match any other GetHashCode(IList<SOME_TYPE>)
+			//************************************************************************
+			uint hash = 0;
+			for (int i = 0; i < numGenericParams; i++) {
+				hash += (uint)(etypeHashCode + i);
+				hash = (hash << 13) | (hash >> 19);
+			}
 			return (int)hash;
 		}
 
@@ -3358,7 +3481,8 @@ exit:
 		/// <returns>The hash code</returns>
 		public int GetHashCode_TypeDef(Type a) {
 			// ************************************************************************************
-			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType hash code
+			// IMPORTANT: This hash code must match the Type/TypeRef/TypeDef/ExportedType
+			// hash code and HASHCODE_MAGIC_ET_FNPTR_AND_I constant
 			// ************************************************************************************
 
 			// A global method/field's declaring type is null. This is the reason we must
@@ -3625,8 +3749,9 @@ exit:
 
 			var amSig = a.MethodSig;
 			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
-					amSig != null && amSig.Generic == b.IsGenericMethodDefinition &&
-					Equals(amSig, b) &&
+					((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
+					(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
+					amSig != null && Equals(amSig, b) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
@@ -3689,15 +3814,60 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
+			bool result;
 
-			var amSig = a.MethodSig;
-			bool result = UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
-					amSig != null && amSig.Generic == b.IsGenericMethodDefinition &&
-					Equals(amSig, b) &&
-					(!CompareMethodFieldDeclaringType || Equals(a.Class, b.DeclaringType, b.Module));
+			if (b.IsGenericMethod && !b.IsGenericMethodDefinition) {
+				// 'a' must be a method ref in a generic type. This comparison must match
+				// the MethodSpec vs MethodBase comparison code.
+				result = a.IsMethodRef && a.MethodSig.Generic;
+
+				var oldOptions = ClearOptions(SigComparerOptions.CompareMethodFieldDeclaringType);
+				result = result && Equals(a, b.Module.ResolveMethod(b.MetadataToken));
+				RestoreOptions(oldOptions);
+				result = result && DeclaringTypeEquals(a, b);
+
+				result = result && GenericMethodArgsEquals((int)a.MethodSig.GenParamCount, b.GetGenericArguments());
+			}
+			else {
+				var amSig = a.MethodSig;
+				result = UTF8String.ToSystemStringOrEmpty(a.Name) == b.Name &&
+						((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
+						(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
+						amSig != null;
+
+				GenericInstSig git;
+				if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) != null) {
+					InitializeGenericArguments();
+					genericArguments.PushTypeArgs(git.GenericArguments);
+					result = result && Equals(amSig, b);
+					genericArguments.PopTypeArgs();
+				}
+				else {
+					result = result && Equals(amSig, b);
+				}
+
+				result = result && (!CompareMethodFieldDeclaringType || Equals(a.Class, b.DeclaringType, b.Module));
+			}
 
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		/// <summary>
+		/// Compares generic method args, making sure <paramref name="methodGenArgs"/> only
+		/// contains <see cref="ElementType.MVar"/>s.
+		/// </summary>
+		/// <param name="numMethodArgs">Number of generic method args in method #1</param>
+		/// <param name="methodGenArgs">Generic method args in method #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		bool GenericMethodArgsEquals(int numMethodArgs, IList<Type> methodGenArgs) {
+			if (numMethodArgs != methodGenArgs.Count)
+				return false;
+			for (int i = 0; i < numMethodArgs; i++) {
+				if (GetElementType(methodGenArgs[i]) != ElementType.MVar)
+					return false;
+			}
+			return true;
 		}
 
 		bool Equals(IMemberRefParent a, Type b, Module bModule) {
@@ -3724,7 +3894,7 @@ exit:
 			}
 			MethodDef ma = a as MethodDef;
 			if (ma != null) {
-				result = false;	//TODO: Compare ma with some method
+				result = Equals(ma.DeclaringType, b);
 				goto exit;
 			}
 			var td = a as TypeDef;
@@ -3768,12 +3938,13 @@ exit:
 
 			// Don't compare declaring types yet because the resolved method has the wrong
 			// declaring type (its declaring type is a generic type def).
+			// NOTE: We must not push generic method args when comparing a.Method
 			var oldOptions = ClearOptions(SigComparerOptions.CompareMethodFieldDeclaringType);
 			result = result && Equals(a.Method, b.Module.ResolveMethod(b.MetadataToken));
-			options = oldOptions;
+			RestoreOptions(oldOptions);
 			result = result && DeclaringTypeEquals(a.Method, b);
 
-			GenericInstMethodSig gim = a.GenericInstMethodSig;
+			var gim = a.GenericInstMethodSig;
 			result = result && gim != null && Equals(gim.GenericArguments, b.GetGenericArguments());
 
 			recursionCounter.Decrement();
@@ -3791,29 +3962,13 @@ exit:
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash;
-			if (a.IsGenericMethod && !a.IsGenericMethodDefinition) {
-				// MethodSpec
-				// *************************************************************
-				// IMPORTANT: This hash code must match the MethodSpec hash code
-				// *************************************************************
-				var oldOptions = ClearOptions(SigComparerOptions.CompareMethodFieldDeclaringType);
-				hash = GetHashCode(a.Module.ResolveMethod(a.MetadataToken));
-				options = oldOptions;
-				if (CompareMethodFieldDeclaringType)
-					hash += GetHashCode(a.DeclaringType);
-				hash += GetHashCode(a.GetGenericArguments());
-			}
-			else {
-				// MethodDef
-				// *************************************************************
-				// IMPORTANT: This hash code must match the MemberRef hash code
-				// *************************************************************
-				hash = UTF8String.GetHashCode(new UTF8String(a.Name)) +
-						GetHashCode_MethodSig(a);
-				if (CompareMethodFieldDeclaringType)
-					hash += GetHashCode(a.DeclaringType);
-			}
+			// ***********************************************************************
+			// IMPORTANT: This hash code must match the MemberRef/MethodSpec hash code
+			// ***********************************************************************
+			int hash = UTF8String.GetHashCode(new UTF8String(a.Name)) +
+					GetHashCode_MethodSig(a);
+			if (CompareMethodFieldDeclaringType)
+				hash += GetHashCode(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -3826,12 +3981,12 @@ exit:
 				return 0;
 			int hash;
 
-			hash = GetHashCode_CallingConvention(a.CallingConvention, a.IsGenericMethodDefinition) +
+			hash = GetHashCode_CallingConvention(a.CallingConvention, a.IsGenericMethod) +
 					GetHashCode(a.GetParameters(), a.DeclaringType);
 			if (!DontCompareReturnType)
 				hash += GetHashCode_ReturnType(a);
-			if (a.IsGenericMethodDefinition)
-				hash += a.GetGenericArguments().Length;
+			if (a.IsGenericMethod)
+				hash += GetHashCode_ElementType_MVar(a.GetGenericArguments().Length);
 
 			recursionCounter.Decrement();
 			return hash;
