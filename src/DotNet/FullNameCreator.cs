@@ -872,8 +872,27 @@ namespace dot10.DotNet {
 				break;
 
 			case ElementType.CModReqd:
+				CreateTypeSigName(typeSig.Next, flags);
+				if (!isReflection && createName) {
+					sb.Append(" modreq(");
+					if (createNamespace)
+						CreateFullName(((ModifierSig)typeSig).Modifier);
+					else
+						CreateName(((ModifierSig)typeSig).Modifier);
+					sb.Append(")");
+				}
+				break;
+
 			case ElementType.CModOpt:
 				CreateTypeSigName(typeSig.Next, flags);
+				if (!isReflection && createName) {
+					sb.Append(" modopt(");
+					if (createNamespace)
+						CreateFullName(((ModifierSig)typeSig).Modifier);
+					else
+						CreateName(((ModifierSig)typeSig).Modifier);
+					sb.Append(")");
+				}
 				break;
 
 			case ElementType.Pinned:
