@@ -23,7 +23,7 @@ namespace dot10.IO {
 		const uint SECTION_MAP_READ = 0x0004;
 		const uint FILE_MAP_READ = SECTION_MAP_READ;
 
-		[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		[DllImport("kernel32", SetLastError = true, CharSet = CharSet.Auto)]
 		static extern SafeFileHandle CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
 
 		[DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
