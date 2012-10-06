@@ -4447,6 +4447,8 @@ exit:
 				// to create a loop with invalid metadata.
 				aAfterModifiers = aAfterModifiers.Next;
 			}
+			optMods1.Reverse();
+			reqMods1.Reverse();
 
 			result = reqMods1.Count == reqMods2.Count &&
 					optMods1.Count == optMods2.Count &&
@@ -4471,24 +4473,14 @@ exit:
 			else {
 				int i;
 				for (i = 0; i < b.Count; i++) {
-					int index = IndexOf(a, b[i]);
-					if (index < 0)
+					if (!Equals(a[i], b[i]))
 						break;
-					a.RemoveAt(index);
 				}
 				result = i == b.Count;
 			}
 
 			recursionCounter.Decrement();
 			return result;
-		}
-
-		int IndexOf(IList<ITypeDefOrRef> list, Type t) {
-			for (int i = 0; i < list.Count; i++) {
-				if (Equals(list[i], t))
-					return i;
-			}
-			return -1;
 		}
 
 		/// <summary>
