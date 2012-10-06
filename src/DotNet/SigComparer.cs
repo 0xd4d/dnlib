@@ -16,6 +16,11 @@ namespace dot10.DotNet {
 		public static readonly TypeEqualityComparer Instance = new TypeEqualityComparer(0);
 
 		/// <summary>
+		/// Case insensitive names
+		/// </summary>
+		public static readonly TypeEqualityComparer CaseInsensitive = new TypeEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -111,6 +116,16 @@ namespace dot10.DotNet {
 		public static readonly FieldEqualityComparer DontCompareDeclaringTypes = new FieldEqualityComparer(0);
 
 		/// <summary>
+		/// Compares the declaring types, case insensitive names
+		/// </summary>
+		public static readonly FieldEqualityComparer CaseInsensitiveCompareDeclaringTypes = new FieldEqualityComparer(SigComparerOptions.CompareMethodFieldDeclaringType | SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Doesn't compare the declaring types, case insensitive names
+		/// </summary>
+		public static readonly FieldEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new FieldEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -164,6 +179,16 @@ namespace dot10.DotNet {
 		/// Doesn't compare the declaring types
 		/// </summary>
 		public static readonly MethodEqualityComparer DontCompareDeclaringTypes = new MethodEqualityComparer(0);
+
+		/// <summary>
+		/// Compares the declaring types, case insensitive names
+		/// </summary>
+		public static readonly MethodEqualityComparer CaseInsensitiveCompareDeclaringTypes = new MethodEqualityComparer(SigComparerOptions.CompareMethodFieldDeclaringType | SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Doesn't compare the declaring types, case insensitive names
+		/// </summary>
+		public static readonly MethodEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new MethodEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
 		/// Constructor
@@ -231,6 +256,16 @@ namespace dot10.DotNet {
 		public static readonly PropertyEqualityComparer DontCompareDeclaringTypes = new PropertyEqualityComparer(0);
 
 		/// <summary>
+		/// Compares the declaring types, case insensitive names
+		/// </summary>
+		public static readonly PropertyEqualityComparer CaseInsensitiveCompareDeclaringTypes = new PropertyEqualityComparer(SigComparerOptions.ComparePropertyDeclaringType | SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Doesn't compare the declaring types, case insensitive names
+		/// </summary>
+		public static readonly PropertyEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new PropertyEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -266,6 +301,16 @@ namespace dot10.DotNet {
 		public static readonly EventEqualityComparer DontCompareDeclaringTypes = new EventEqualityComparer(0);
 
 		/// <summary>
+		/// Compares the declaring types, case insensitive names
+		/// </summary>
+		public static readonly EventEqualityComparer CaseInsensitiveCompareDeclaringTypes = new EventEqualityComparer(SigComparerOptions.CompareEventDeclaringType | SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Doesn't compare the declaring types, case insensitive names
+		/// </summary>
+		public static readonly EventEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new EventEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -294,6 +339,11 @@ namespace dot10.DotNet {
 		/// Default instance
 		/// </summary>
 		public static readonly SignatureEqualityComparer Instance = new SignatureEqualityComparer(0);
+
+		/// <summary>
+		/// Case insensitive names
+		/// </summary>
+		public static readonly SignatureEqualityComparer CaseInsensitive = new SignatureEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
 		/// Constructor
