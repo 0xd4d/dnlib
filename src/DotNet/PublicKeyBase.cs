@@ -60,6 +60,14 @@
 		}
 
 		/// <summary>
+		/// Checks whether a public key or token is null or empty
+		/// </summary>
+		/// <param name="a">Public key or token instance</param>
+		public static bool IsNullOrEmpty2(PublicKeyBase a) {
+			return a == null || a.data == null || a.data.Length == 0;
+		}
+
+		/// <summary>
 		/// Returns a <see cref="PublicKeyToken"/>
 		/// </summary>
 		/// <param name="pkb">A <see cref="PublicKey"/> or a <see cref="PublicKeyToken"/> instance</param>
