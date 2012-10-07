@@ -33,49 +33,49 @@
 		R8			= 0x0D,
 		/// <summary>System.String</summary>
 		String		= 0x0E,
-		/// <summary></summary>
+		/// <summary>Pointer type (*)</summary>
 		Ptr			= 0x0F,
-		/// <summary></summary>
+		/// <summary>ByRef type (&amp;)</summary>
 		ByRef		= 0x10,
-		/// <summary></summary>
+		/// <summary>Value type</summary>
 		ValueType	= 0x11,
-		/// <summary></summary>
+		/// <summary>Reference type</summary>
 		Class		= 0x12,
 		/// <summary>Type generic parameter</summary>
 		Var			= 0x13,
-		/// <summary></summary>
+		/// <summary>Any dimension array ([*], [,], [,,], ...)</summary>
 		Array		= 0x14,
-		/// <summary></summary>
+		/// <summary>Generic instance type</summary>
 		GenericInst	= 0x15,
-		/// <summary></summary>
+		/// <summary>Typed byref</summary>
 		TypedByRef	= 0x16,
-		/// <summary></summary>
+		/// <summary>Value array (don't use)</summary>
 		ValueArray	= 0x17,
 		/// <summary>System.IntPtr</summary>
 		I			= 0x18,
 		/// <summary>System.UIntPtr</summary>
 		U			= 0x19,
-		/// <summary>native real</summary>
+		/// <summary>native real (don't use)</summary>
 		R			= 0x1A,
-		/// <summary></summary>
+		/// <summary>Function pointer</summary>
 		FnPtr		= 0x1B,
 		/// <summary>System.Object</summary>
 		Object		= 0x1C,
-		/// <summary></summary>
+		/// <summary>Single-dimension, zero lower bound array ([])</summary>
 		SZArray		= 0x1D,
 		/// <summary>Method generic parameter</summary>
 		MVar		= 0x1E,
-		/// <summary></summary>
+		/// <summary>Required C modifier</summary>
 		CModReqd	= 0x1F,
-		/// <summary></summary>
+		/// <summary>Optional C modifier</summary>
 		CModOpt		= 0x20,
-		/// <summary></summary>
+		/// <summary>Used internally by the CLR (don't use)</summary>
 		Internal	= 0x21,
-		/// <summary></summary>
+		/// <summary>Module (don't use)</summary>
 		Module		= 0x3F,
-		/// <summary></summary>
+		/// <summary>Sentinel (method sigs only)</summary>
 		Sentinel	= 0x41,
-		/// <summary></summary>
+		/// <summary>Pinned type (locals only)</summary>
 		Pinned		= 0x45,
 	}
 }
