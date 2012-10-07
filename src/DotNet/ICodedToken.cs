@@ -268,4 +268,19 @@ namespace dot10.DotNet {
 		/// </summary>
 		IList<GenericParam> GenericParams { get; }
 	}
+
+	static partial class Extensions {
+		/// <summary>
+		/// Convert a <see cref="TypeSig"/> to a <see cref="ITypeDefOrRef"/>
+		/// </summary>
+		/// <param name="sig">The sig</param>
+		public static ITypeDefOrRef ToTypeDefOrRef(this TypeSig sig) {
+			if (sig == null)
+				return null;
+			var tdrSig = sig as TypeDefOrRefSig;
+			if (tdrSig != null)
+				return tdrSig.TypeDefOrRef;
+			return new TypeSpecUser(sig);
+		}
+	}
 }
