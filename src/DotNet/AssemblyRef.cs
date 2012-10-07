@@ -413,6 +413,21 @@ namespace dot10.DotNet {
 			this.locale = asmName.Locale;
 			this.flags = publicKeyOrToken is PublicKey ? AssemblyFlags.PublicKey : AssemblyFlags.None;
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="assembly">Assembly</param>
+		public AssemblyRefUser(IAssembly assembly) {
+			if (assembly == null)
+				throw new ArgumentNullException("asmName");
+
+			this.version = assembly.Version ?? new Version(0, 0, 0, 0);
+			this.publicKeyOrToken = assembly.PublicKeyOrToken;
+			this.name = UTF8String.IsNullOrEmpty(assembly.Name) ? UTF8String.Empty : assembly.Name;
+			this.locale = assembly.Locale;
+			this.flags = publicKeyOrToken is PublicKey ? AssemblyFlags.PublicKey : AssemblyFlags.None;
+		}
 	}
 
 	/// <summary>
