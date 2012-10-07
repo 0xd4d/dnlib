@@ -69,6 +69,7 @@
     <Compile Include="DotNet\GenericArguments.cs" />
     <Compile Include="DotNet\IAssemblyResolver.cs" />
     <Compile Include="DotNet\ILazyList.cs" />
+    <Compile Include="DotNet\Importer.cs" />
     <Compile Include="DotNet\IResolver.cs" />
     <Compile Include="DotNet\ITypeDefFinder.cs" />
     <Compile Include="DotNet\IVariable.cs" />
