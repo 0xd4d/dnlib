@@ -504,7 +504,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Type names and namespaces are case insensitive
 		/// </summary>
-		CaseInsensitiveTypes = CaseInsensitiveTypeNames | CaseInsensitiveTypeNamespaces,
+		CaseInsensitiveTypes = CaseInsensitiveTypeNamespaces | CaseInsensitiveTypeNames,
 
 		/// <summary>
 		/// Method and field names are case insensitive
@@ -778,7 +778,8 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// FnPtr is mapped to System.IntPtr, so use the same hash code for both
+		/// <see cref="ElementType.FnPtr"/> is mapped to <see cref="System.IntPtr"/>, so use
+		/// the same hash code for both
 		/// </summary>
 		int GetHashCode_FnPtr_SystemIntPtr() {
 			// ********************************************
@@ -3364,7 +3365,7 @@ exit:
 				break;
 
 			case ElementType.SZArray:
-				if (!b.IsArray || !IsSZArray(b))
+				if (!b.IsArray || !b.IsSZArray())
 					result = false;
 				else if (IsFnPtrElementType(b)) {
 					a = TypeSig.RemoveModifiers(a.Next);
@@ -3379,7 +3380,7 @@ exit:
 				break;
 
 			case ElementType.Array:
-				if (!b.IsArray || IsSZArray(b))
+				if (!b.IsArray || b.IsSZArray())
 					result = false;
 				else {
 					ArraySig ara = a as ArraySig;
@@ -3447,15 +3448,6 @@ exit:
 
 			recursionCounter.Decrement();
 			return result;
-		}
-
-		static bool IsSZArray(Type a) {
-			if (a == null || !a.IsArray)
-				return false;
-			var prop = a.GetType().GetProperty("IsSzArray", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			if (prop != null)
-				return (bool)prop.GetValue(a, new object[0]);
-			return (a.Name ?? string.Empty).EndsWith("[]");
 		}
 
 		/// <summary>
@@ -3542,7 +3534,7 @@ exit:
 				return 0;
 			int hash;
 
-			switch (treatAsGenericInst ? ElementType.GenericInst : GetElementType(a)) {
+			switch (treatAsGenericInst ? ElementType.GenericInst : a.GetElementType2()) {
 			case ElementType.Void:
 			case ElementType.Boolean:
 			case ElementType.Char:
@@ -3669,47 +3661,6 @@ exit:
 				hash = (hash << 13) | (hash >> 19);
 			}
 			return (int)hash;
-		}
-
-		/// <summary>
-		/// Gets a <see cref="Type"/>'s <see cref="ElementType"/>
-		/// </summary>
-		/// <param name="a">The type</param>
-		/// <returns>The type's element type</returns>
-		static ElementType GetElementType(Type a) {
-			if (a == null)
-				return ElementType.End;	// Any invalid one is good enough
-			if (a.IsArray)
-				return IsSZArray(a) ? ElementType.SZArray : ElementType.Array;
-			if (a.IsByRef)
-				return ElementType.ByRef;
-			if (a.IsPointer)
-				return ElementType.Ptr;
-			if (a.IsGenericParameter)
-				return a.DeclaringMethod == null ? ElementType.Var : ElementType.MVar;
-			if (a.IsGenericType && !a.IsGenericTypeDefinition)
-				return ElementType.GenericInst;
-
-			if (a == typeof(void))		return ElementType.Void;
-			if (a == typeof(bool))		return ElementType.Boolean;
-			if (a == typeof(char))		return ElementType.Char;
-			if (a == typeof(sbyte))		return ElementType.I1;
-			if (a == typeof(byte))		return ElementType.U1;
-			if (a == typeof(short))		return ElementType.I2;
-			if (a == typeof(ushort))	return ElementType.U2;
-			if (a == typeof(int))		return ElementType.I4;
-			if (a == typeof(uint))		return ElementType.U4;
-			if (a == typeof(long))		return ElementType.I8;
-			if (a == typeof(ulong))		return ElementType.U8;
-			if (a == typeof(float))		return ElementType.R4;
-			if (a == typeof(double))	return ElementType.R8;
-			if (a == typeof(string))	return ElementType.String;
-			if (a == typeof(TypedReference)) return ElementType.TypedByRef;
-			if (a == typeof(IntPtr))	return ElementType.I;
-			if (a == typeof(UIntPtr))	return ElementType.U;
-			if (a == typeof(object))	return ElementType.Object;
-
-			return a.IsValueType ? ElementType.ValueType : ElementType.Class;
 		}
 
 		/// <summary>
@@ -4101,7 +4052,7 @@ exit:
 			if (numMethodArgs != methodGenArgs.Count)
 				return false;
 			for (int i = 0; i < numMethodArgs; i++) {
-				if (GetElementType(methodGenArgs[i]) != ElementType.MVar)
+				if (methodGenArgs[i].GetElementType2() != ElementType.MVar)
 					return false;
 			}
 			return true;
@@ -4260,30 +4211,11 @@ exit:
 		}
 
 		int GetHashCode(ParameterInfo a, Type declaringType) {
-			return GetHashCode(a.ParameterType, MustTreatTypeAsGenericInstType(a.ParameterType, declaringType));
-		}
-
-		/// <summary>
-		/// Checks whether a parameter type should be treated as if it is really a generic instance
-		/// type and not a generic type definition. In the .NET metadata (method sig), the parameter
-		/// is a generic instance type, but the CLR treats it as if it's just a generic type def.
-		/// This seems to happen only if the parameter type is exactly the same type as the
-		/// declaring type, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>.
-		/// </summary>
-		/// <param name="p">Parameter</param>
-		/// <param name="declaringType">Declaring type of method which owns <paramref name="p"/></param>
-		static bool MustTreatParamTypeAsGenericInstType(ParameterInfo p, Type declaringType) {
-			return MustTreatTypeAsGenericInstType(p.ParameterType, declaringType);
+			return GetHashCode(a.ParameterType, declaringType.MustTreatTypeAsGenericInstType(a.ParameterType));
 		}
 
 		int GetHashCode(Type a, Type declaringType) {
-			return GetHashCode(a, MustTreatTypeAsGenericInstType(a, declaringType));
-		}
-
-		static bool MustTreatTypeAsGenericInstType(Type t, Type declaringType) {
-			return declaringType != null &&
-				declaringType.IsGenericTypeDefinition &&
-				t == declaringType;
+			return GetHashCode(a, declaringType.MustTreatTypeAsGenericInstType(a));
 		}
 
 		/// <summary>
@@ -4418,7 +4350,7 @@ exit:
 
 			TypeSig a2;
 			bool result = ModifiersEquals(a, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
-						Equals(a2, b.ParameterType, MustTreatParamTypeAsGenericInstType(b, declaringType));
+						Equals(a2, b.ParameterType, declaringType.MustTreatTypeAsGenericInstType(b.ParameterType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -4567,7 +4499,7 @@ exit:
 
 			TypeSig a2;
 			bool result = ModifiersEquals(a.Type, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
-					Equals(a2, b.FieldType, MustTreatTypeAsGenericInstType(b.FieldType, b.DeclaringType));
+					Equals(a2, b.FieldType, b.DeclaringType.MustTreatTypeAsGenericInstType(b.FieldType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -4683,7 +4615,7 @@ exit:
 
 			TypeSig a2;
 			bool result = ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
-					Equals(a2, b.PropertyType, MustTreatTypeAsGenericInstType(b.PropertyType, b.DeclaringType));
+					Equals(a2, b.PropertyType, b.DeclaringType.MustTreatTypeAsGenericInstType(b.PropertyType));
 
 			recursionCounter.Decrement();
 			return result;
@@ -4724,7 +4656,7 @@ exit:
 				return false;
 
 			bool result = Equals_EventNames(a.Name, b.Name) &&
-					Equals(a.Type, b.EventHandlerType, MustTreatTypeAsGenericInstType(b.EventHandlerType, b.DeclaringType)) &&
+					Equals(a.Type, b.EventHandlerType, b.DeclaringType.MustTreatTypeAsGenericInstType(b.EventHandlerType)) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
