@@ -11,11 +11,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected uint rid;
 
-		/// <summary>
-		/// The owner module
-		/// </summary>
-		protected ModuleDef ownerModule;
-
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.TypeSpec, rid); }
@@ -105,20 +100,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Constructor
+		/// Default constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
-		public TypeSpecUser(ModuleDef ownerModule) {
-			this.ownerModule = ownerModule;
+		public TypeSpecUser() {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
 		/// <param name="typeSig">A type sig</param>
-		public TypeSpecUser(ModuleDef ownerModule, TypeSig typeSig) {
-			this.ownerModule = ownerModule;
+		public TypeSpecUser(TypeSig typeSig) {
 			this.typeSig = typeSig;
 		}
 	}
@@ -156,7 +147,6 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
-			this.ownerModule = ownerModule;
 			Initialize();
 		}
 
