@@ -1,5 +1,17 @@
 ﻿using System.Collections.Generic;
 
+/*
+All signature classes:
+
+CallingConventionSig
+	FieldSig
+	MethodBaseSig
+		MethodSig
+		PropertySig
+	LocalSig
+	GenericInstMethodSig
+*/
+
 namespace dot10.DotNet {
 	/// <summary>
 	/// All signatures implement this interface
