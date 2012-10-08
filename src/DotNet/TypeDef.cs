@@ -705,6 +705,35 @@ namespace dot10.DotNet {
 				method.DeclaringType = null;
 		}
 
+		/// <summary>
+		/// Gets all fields named <paramref name="name"/>
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <returns>A list of 0 or more fields with name <paramref name="name"/></returns>
+		public List<FieldDef> GetFields(string name) {
+			var fields = new List<FieldDef>();
+			var name2 = new UTF8String(name);
+			foreach (var field in Fields) {
+				if (field.Name == name2)
+					fields.Add(field);
+			}
+			return fields;
+		}
+
+		/// <summary>
+		/// Gets the first field named <paramref name="name"/>
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <returns>The field or <c>null</c> if none found</returns>
+		public FieldDef GetField(string name) {
+			var name2 = new UTF8String(name);
+			foreach (var field in Fields) {
+				if (field.Name == name2)
+					return field;
+			}
+			return null;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
