@@ -62,6 +62,7 @@
     <Compile Include="DotNet\Emit\Code.cs" />
     <Compile Include="DotNet\Emit\ExceptionClause.cs" />
     <Compile Include="DotNet\Emit\ExceptionHandler.cs" />
+    <Compile Include="DotNet\Emit\Extensions.cs" />
     <Compile Include="DotNet\Emit\FlowControl.cs" />
     <Compile Include="DotNet\Emit\Instruction.cs" />
     <Compile Include="DotNet\Emit\InstructionPrinter.cs" />
