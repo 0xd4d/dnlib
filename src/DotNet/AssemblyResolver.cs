@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Xml;
 using dot10.DotNet.MD;
 
@@ -79,6 +80,23 @@ namespace dot10.DotNet {
 		/// </summary>
 		public IList<string> PostSearchPaths {
 			get { return postSearchPaths; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public AssemblyResolver()
+			: this(true) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="addOtherSearchPaths">If <c>true</c>, add other common assembly search
+		/// paths, not just the module search paths and the GAC.</param>
+		public AssemblyResolver(bool addOtherSearchPaths) {
+			if (addOtherSearchPaths)
+				AddOtherSearchPaths(postSearchPaths);
 		}
 
 		/// <inheritdoc/>
@@ -501,6 +519,90 @@ namespace dot10.DotNet {
 			}
 
 			return searchPaths;
+		}
+
+		/// <summary>
+		/// Add other common search paths
+		/// </summary>
+		/// <param name="paths">A list that gets updated with the new paths</param>
+		protected static void AddOtherSearchPaths(IList<string> paths) {
+			AddOtherAssemblySearchPaths(paths, Environment.GetEnvironmentVariable("ProgramFiles"));
+			AddOtherAssemblySearchPaths(paths, Environment.GetEnvironmentVariable("ProgramFiles(x86)"));
+		}
+
+		static void AddOtherAssemblySearchPaths(IList<string> paths, string path) {
+			if (string.IsNullOrEmpty(path))
+				return;
+			AddSilverlightDirs(paths, Path.Combine(path, @"Microsoft Silverlight"));
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v2.0\Libraries\Client");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v2.0\Libraries\Server");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v2.0\Reference Assemblies");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v3.0\Libraries\Client");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v3.0\Libraries\Server");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v4.0\Libraries\Client");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v4.0\Libraries\Server");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v5.0\Libraries\Client");
+			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v5.0\Libraries\Server");
+			AddIfExists(paths, path, @"Microsoft.NET\SDK\CompactFramework\v2.0\WindowsCE");
+			AddIfExists(paths, path, @"Microsoft.NET\SDK\CompactFramework\v3.5\WindowsCE");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\Silverlight\v3.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\Silverlight\v4.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\Silverlight\v5.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\2.0\Runtime\v2.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\2.0\Runtime\v4.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\WindowsPowerShell\v1.0");
+			AddIfExists(paths, path, @"Microsoft Visual Studio .NET\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio .NET\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 8.0\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 8.0\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 9.0\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 9.0\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 10.0\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 10.0\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 11.0\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 11.0\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v2.0\References\Windows\x86");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v2.0\References\Xbox360");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v3.0\References\Windows\x86");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v3.0\References\Xbox360");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v3.0\References\Zune");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v3.1\References\Windows\x86");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v3.1\References\Xbox360");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v3.1\References\Zune");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86");
+			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v4.0\References\Xbox360");
+			AddIfExists(paths, path, @"Windows CE Tools\wce500\Windows Mobile 5.0 Pocket PC SDK\Designtimereferences");
+			AddIfExists(paths, path, @"Windows CE Tools\wce500\Windows Mobile 5.0 Smartphone SDK\Designtimereferences");
+			AddIfExists(paths, path, @"Windows Mobile 5.0 SDK R2\Managed Libraries");
+			AddIfExists(paths, path, @"Windows Mobile 6 SDK\Managed Libraries");
+			AddIfExists(paths, path, @"Windows Mobile 6.5.3 DTK\Managed Libraries");
+			AddIfExists(paths, path, @"Microsoft SQL Server\90\SDK\Assemblies");
+			AddIfExists(paths, path, @"Microsoft SQL Server\100\SDK\Assemblies");
+			AddIfExists(paths, path, @"Microsoft SQL Server\110\SDK\Assemblies");
+			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET MVC 2\Assemblies");
+			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET MVC 3\Assemblies");
+			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET MVC 4\Assemblies");
+			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET Web Pages\v1.0\Assemblies");
+			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET Web Pages\v2.0\Assemblies");
+			AddIfExists(paths, path, @"Microsoft SDKs\F#\3.0\Framework\v4.0");
+		}
+
+		static void AddSilverlightDirs(IList<string> paths, string basePath) {
+			try {
+				var di = new DirectoryInfo(basePath);
+				foreach (var dir in di.GetDirectories()) {
+					if (Regex.IsMatch(dir.Name, @"^\d+(?:\.\d+){3}$"))
+						AddIfExists(paths, basePath, dir.Name);
+				}
+			}
+			catch {
+			}
+		}
+
+		static void AddIfExists(IList<string> paths, string basePath, string extraPath) {
+			var path = Path.Combine(basePath, extraPath);
+			if (Directory.Exists(path))
+				paths.Add(path);
 		}
 	}
 }
