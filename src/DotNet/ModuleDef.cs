@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.IO;
 using dot10.DotNet.MD;
 
@@ -228,6 +229,144 @@ namespace dot10.DotNet {
 			if ((uint)table >= lastUsedRids.Length)
 				return 0;
 			return ++lastUsedRids[(int)table];
+		}
+
+		/// <summary>
+		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
+		public ITypeDefOrRef Import(Type type) {
+			return new Importer(this).Import(type);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="Type"/> as a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
+		public TypeSig ImportAsTypeSig(Type type) {
+			return new Importer(this).ImportAsTypeSig(type);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="FieldInfo"/> as a <see cref="MemberRef"/>
+		/// </summary>
+		/// <param name="fieldInfo">The field</param>
+		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
+		/// or if we failed to import the field</returns>
+		public MemberRef Import(FieldInfo fieldInfo) {
+			return new Importer(this).Import(fieldInfo);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="MethodBase"/> as a <see cref="IMethod"/>. This will be either
+		/// a <see cref="MemberRef"/> or a <see cref="MethodSpec"/>.
+		/// </summary>
+		/// <param name="methodBase">The method</param>
+		/// <returns>The imported method or <c>null</c> if <paramref name="methodBase"/> is invalid
+		/// or if we failed to import the method</returns>
+		public IMethod Import(MethodBase methodBase) {
+			return new Importer(this).Import(methodBase);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="IType"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c></returns>
+		public IType Import(IType type) {
+			return new Importer(this).Import(type);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="TypeDef"/> as a <see cref="TypeRef"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c></returns>
+		public TypeRef Import(TypeDef type) {
+			return new Importer(this).Import(type);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="TypeRef"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c></returns>
+		public TypeRef Import(TypeRef type) {
+			return new Importer(this).Import(type);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="TypeSpec"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c></returns>
+		public TypeSpec Import(TypeSpec type) {
+			return new Importer(this).Import(type);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c></returns>
+		public TypeSig Import(TypeSig type) {
+			return new Importer(this).Import(type);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="IField"/>
+		/// </summary>
+		/// <param name="field">The field</param>
+		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
+		public IField Import(IField field) {
+			return new Importer(this).Import(field);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="FieldDef"/> as a <see cref="MemberRef"/>
+		/// </summary>
+		/// <param name="field">The field</param>
+		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
+		public MemberRef Import(FieldDef field) {
+			return new Importer(this).Import(field);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="IMethod"/>
+		/// </summary>
+		/// <param name="method">The method</param>
+		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
+		public IMethod Import(IMethod method) {
+			return new Importer(this).Import(method);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="MethodDef"/> as a <see cref="MemberRef"/>
+		/// </summary>
+		/// <param name="method">The method</param>
+		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
+		public MemberRef Import(MethodDef method) {
+			return new Importer(this).Import(method);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="MethodSpec"/>
+		/// </summary>
+		/// <param name="method">The method</param>
+		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
+		public MethodSpec Import(MethodSpec method) {
+			return new Importer(this).Import(method);
+		}
+
+		/// <summary>
+		/// Imports a <see cref="MemberRef"/>
+		/// </summary>
+		/// <param name="memberRef">The member ref</param>
+		/// <returns>The imported member ref or <c>null</c> if <paramref name="memberRef"/> is invalid</returns>
+		public MemberRef Import(MemberRef memberRef) {
+			return new Importer(this).Import(memberRef);
 		}
 
 		/// <inheritdoc/>
