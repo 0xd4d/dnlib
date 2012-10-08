@@ -51,6 +51,11 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public IMemberForwarded Resolve(MemberRef memberRef) {
+			if (memberRef == null)
+				return null;
+			var method = memberRef.Class as MethodDef;
+			if (method != null)
+				return method;
 			var declaringType = GetDeclaringType(memberRef);
 			return declaringType == null ? null : declaringType.Resolve(memberRef);
 		}
@@ -89,7 +94,24 @@ namespace dot10.DotNet {
 				return globalType;
 			}
 
-			// parent is Method or TypeSpec
+			var method = parent as MethodDef;
+			if (method != null)
+				return method.DeclaringType;
+
+			var ts = parent as TypeSpec;
+			if (ts != null) {
+				var git = ts.TypeSig as GenericInstSig;
+				if (git != null) {
+					var td = git.GenericType.TypeDef;
+					if (td != null)
+						return td;
+					var tr = git.GenericType.TypeRef;
+					if (tr != null)
+						return Resolve(tr);
+				}
+				return null;
+			}
+
 			return null;
 		}
 	}
