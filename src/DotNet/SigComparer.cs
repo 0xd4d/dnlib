@@ -1977,6 +1977,9 @@ exit:
 		/// <param name="a">The type</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(TypeSig a) {
+			// ********************************************
+			// IMPORTANT: This must match GetHashCode(Type)
+			// ********************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
@@ -2606,9 +2609,9 @@ exit:
 		/// <param name="a">The method</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(MethodDef a) {
-			// ************************************************************
-			// IMPORTANT: This hash code must match the MemberRef hash code
-			// ************************************************************
+			// ***********************************************************************
+			// IMPORTANT: This hash code must match the MemberRef/MethodBase hash code
+			// ***********************************************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
@@ -2651,9 +2654,9 @@ exit:
 		/// <param name="a">The <c>MemberRef</c></param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(MemberRef a) {
-			// *********************************************************************
-			// IMPORTANT: This hash code must match the MethodDef/FieldDef hash code
-			// *********************************************************************
+			// ********************************************************************************
+			// IMPORTANT: This hash code must match the MethodDef/FieldDef/MethodBase hash code
+			// ********************************************************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
@@ -2939,9 +2942,9 @@ exit:
 		/// <param name="a">The field</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(FieldDef a) {
-			// ************************************************************
-			// IMPORTANT: This hash code must match the MemberRef hash code
-			// ************************************************************
+			// **********************************************************************
+			// IMPORTANT: This hash code must match the MemberRef/FieldInfo hash code
+			// **********************************************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
@@ -2984,6 +2987,9 @@ exit:
 		/// <param name="a">The property</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(PropertyDef a) {
+			// ***************************************************************
+			// IMPORTANT: This hash code must match the PropertyInfo hash code
+			// ***************************************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
@@ -3027,6 +3033,9 @@ exit:
 		/// <param name="a">The event</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(EventDef a) {
+			// ************************************************************
+			// IMPORTANT: This hash code must match the EventInfo hash code
+			// ************************************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
@@ -3528,6 +3537,9 @@ exit:
 		/// as a generic instance type</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(Type a, bool treatAsGenericInst) {
+			// **************************************************************************
+			// IMPORTANT: This hash code must match the TypeSig/TypeDef/TypeRef hash code
+			// **************************************************************************
 			if (a == null)	// Could be global type
 				return GetHashCode_TypeDef(a);
 			if (!recursionCounter.Increment())
@@ -4627,6 +4639,9 @@ exit:
 		/// <param name="a">The property</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(PropertyInfo a) {
+			// **************************************************************
+			// IMPORTANT: This hash code must match the PropertyDef hash code
+			// **************************************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
@@ -4669,6 +4684,9 @@ exit:
 		/// <param name="a">The event</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(EventInfo a) {
+			// ***********************************************************
+			// IMPORTANT: This hash code must match the EventDef hash code
+			// ***********************************************************
 			if (a == null)
 				return 0;
 			if (!recursionCounter.Increment())
