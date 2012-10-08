@@ -580,7 +580,9 @@ done:
 		}
 
 		AssemblyRef ReadAssemblyRef() {
-			var asmRef = ownerModule.UpdateRowId(new AssemblyRefUser());
+			var asmRef = new AssemblyRefUser();
+			if (ownerModule != null)
+				ownerModule.UpdateRowId(asmRef);
 
 			asmRef.Name = new UTF8String(ReadId());
 			SkipWhite();
