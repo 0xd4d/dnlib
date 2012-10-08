@@ -356,6 +356,11 @@ namespace dot10.DotNet {
 			location.ReadOriginalValue = () => {
 				return dnFile.MetaData.PEImage.FileName ?? string.Empty;
 			};
+
+			for (int i = 0; i < 64; i++) {
+				var tbl = TablesStream.Get((Table)i);
+				lastUsedRids[i] = tbl == null ? 0 : tbl.Rows;
+			}
 		}
 
 		/// <summary>

@@ -21,6 +21,11 @@ namespace dot10.DotNet {
 
 		TypeDefFinder typeDefFinder;
 
+		/// <summary>
+		/// Array of last used rid in each table. I.e., next free rid is value + 1
+		/// </summary>
+		protected uint[] lastUsedRids = new uint[64];
+
 		/// <summary>Module context</summary>
 		protected ModuleContext context;
 
@@ -206,6 +211,25 @@ namespace dot10.DotNet {
 			Types.Add(typeDef);
 		}
 
+		/// <summary>
+		/// Updates the <c>rid</c> to the next free <c>rid</c> available. It's only updated if
+		/// the original <c>rid</c> is 0.
+		/// </summary>
+		/// <typeparam name="T">IMDTokenProvider</typeparam>
+		/// <param name="tableRow">The row that should be updated</param>
+		/// <returns>Returns the input</returns>
+		public T UpdateRowId<T>(T tableRow) where T : IMDTokenProvider {
+			if (tableRow != null && tableRow.Rid == 0)
+				tableRow.Rid = GetNextFreeRid(tableRow.MDToken.Table);
+			return tableRow;
+		}
+
+		uint GetNextFreeRid(Table table) {
+			if ((uint)table >= lastUsedRids.Length)
+				return 0;
+			return ++lastUsedRids[(int)table];
+		}
+
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnAdd(int index, TypeDef value, bool isLazyAdd) {
 			if (isLazyAdd) {
@@ -385,6 +409,7 @@ namespace dot10.DotNet {
 			this.name = name;
 			this.mvid = mvid;
 			types.Add(CreateModuleType());
+			UpdateRowId(this);
 		}
 
 		static TypeDef CreateModuleType() {
