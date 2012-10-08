@@ -43,7 +43,7 @@
 		Class		= 0x12,
 		/// <summary>Type generic parameter</summary>
 		Var			= 0x13,
-		/// <summary>Any dimension array ([*], [,], [,,], ...)</summary>
+		/// <summary>Multidimensional array ([*], [,], [,,], ...)</summary>
 		Array		= 0x14,
 		/// <summary>Generic instance type</summary>
 		GenericInst	= 0x15,
