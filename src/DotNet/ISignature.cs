@@ -14,15 +14,9 @@ CallingConventionSig
 
 namespace dot10.DotNet {
 	/// <summary>
-	/// All signatures implement this interface
-	/// </summary>
-	public interface ISignature {
-	}
-
-	/// <summary>
 	/// Base class for sigs with a calling convention
 	/// </summary>
-	public abstract class CallingConventionSig : ISignature {
+	public abstract class CallingConventionSig {
 		/// <summary>
 		/// The calling convention
 		/// </summary>

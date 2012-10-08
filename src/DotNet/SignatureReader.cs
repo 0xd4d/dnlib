@@ -18,7 +18,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		/// <returns>A new <see cref="ISignature"/> instance or <c>null</c> if
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
@@ -67,7 +67,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Reads the signature
 		/// </summary>
-		/// <returns>A new <see cref="ISignature"/> instance or <c>null</c> if invalid signature</returns>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if invalid signature</returns>
 		CallingConventionSig ReadSig() {
 			if (!recursionCounter.Increment())
 				return null;
