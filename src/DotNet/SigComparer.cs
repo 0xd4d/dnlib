@@ -4061,7 +4061,7 @@ exit:
 		/// <param name="numMethodArgs">Number of generic method args in method #1</param>
 		/// <param name="methodGenArgs">Generic method args in method #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool GenericMethodArgsEquals(int numMethodArgs, IList<Type> methodGenArgs) {
+		static bool GenericMethodArgsEquals(int numMethodArgs, IList<Type> methodGenArgs) {
 			if (numMethodArgs != methodGenArgs.Count)
 				return false;
 			for (int i = 0; i < numMethodArgs; i++) {
