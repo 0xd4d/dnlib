@@ -863,8 +863,10 @@ exit:
 				return new ModuleRefUser(ownerModule, modRef.Name);
 
 			var method = parent as MethodDef;
-			if (method != null)
-				return null;	// Can't import it as a MemberRefParent
+			if (method != null) {
+				var dt = method.DeclaringType;
+				return dt == null || dt.OwnerModule != ownerModule ? null : method;
+			}
 
 			return null;
 		}
