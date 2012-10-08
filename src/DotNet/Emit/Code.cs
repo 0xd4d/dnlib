@@ -236,4 +236,25 @@
 		Xor				= 0x0061,
 #pragma warning restore
 	}
+
+	static partial class Extensions {
+		/// <summary>
+		/// Converts a <see cref="Code"/> to an <see cref="OpCode"/>
+		/// </summary>
+		/// <param name="code">The code</param>
+		/// <returns>A <see cref="OpCode"/> or <c>null</c> if it's invalid</returns>
+		public static OpCode ToOpCode(this Code code) {
+			int hi = (ushort)code >> 8;
+			int lo = (byte)code;
+			if (hi == 0)
+				return OpCodes.OneByteOpCodes[lo];
+			if (hi == 0xFE)
+				return OpCodes.TwoByteOpCodes[lo];
+			if (code == Code.UNKNOWN1)
+				return OpCodes.UNKNOWN1;
+			if (code == Code.UNKNOWN2)
+				return OpCodes.UNKNOWN2;
+			return null;
+		}
+	}
 }
