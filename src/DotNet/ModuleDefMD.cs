@@ -1178,7 +1178,7 @@ namespace dot10.DotNet {
 		/// <param name="field">The field</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(FieldDefMD field) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfField(field.MDToken.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfField(field.Rid));
 		}
 
 		/// <summary>
@@ -1187,7 +1187,7 @@ namespace dot10.DotNet {
 		/// <param name="method">The method</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(MethodDefMD method) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfMethod(method.MDToken.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfMethod(method.Rid));
 		}
 
 		/// <summary>
@@ -1196,7 +1196,7 @@ namespace dot10.DotNet {
 		/// <param name="evt">The event</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(EventDefMD evt) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfEvent(evt.MDToken.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfEvent(evt.Rid));
 		}
 
 		/// <summary>
@@ -1205,7 +1205,7 @@ namespace dot10.DotNet {
 		/// <param name="property">The property</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(PropertyDefMD property) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.MDToken.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.Rid));
 		}
 
 		/// <summary>
