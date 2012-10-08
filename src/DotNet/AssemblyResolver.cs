@@ -18,6 +18,7 @@ namespace dot10.DotNet {
 		static readonly GacInfo gac2Info;	// .NET 1.x and 2.x
 		static readonly GacInfo gac4Info;	// .NET 4.x
 
+		ModuleContext defaultModuleContext;
 		Dictionary<ModuleDef, List<string>> moduleSearchPaths = new Dictionary<ModuleDef, List<string>>();
 		Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.Ordinal);
 		List<string> preSearchPaths = new List<string>();
@@ -47,6 +48,14 @@ namespace dot10.DotNet {
 					"GAC_MSIL", "GAC_32", "GAC_64"
 				});
 			}
+		}
+
+		/// <summary>
+		/// Gets/sets the default <see cref="ModuleContext"/>
+		/// </summary>
+		public ModuleContext DefaultModuleContext {
+			get { return defaultModuleContext; }
+			set { defaultModuleContext = value; }
 		}
 
 		/// <summary>
@@ -86,15 +95,25 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public AssemblyResolver()
-			: this(true) {
+			: this(null, true) {
+		}
+
+		/// <summary>
+		/// Contstructor
+		/// </summary>
+		/// <param name="defaultModuleContext">Module context for all resolved assemblies</param>
+		public AssemblyResolver(ModuleContext defaultModuleContext)
+			: this(defaultModuleContext, true) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="defaultModuleContext">Module context for all resolved assemblies</param>
 		/// <param name="addOtherSearchPaths">If <c>true</c>, add other common assembly search
 		/// paths, not just the module search paths and the GAC.</param>
-		public AssemblyResolver(bool addOtherSearchPaths) {
+		public AssemblyResolver(ModuleContext defaultModuleContext, bool addOtherSearchPaths) {
+			this.defaultModuleContext = defaultModuleContext;
 			if (addOtherSearchPaths)
 				AddOtherSearchPaths(postSearchPaths);
 		}
@@ -194,17 +213,19 @@ namespace dot10.DotNet {
 			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out resolvedAssembly))
 				return resolvedAssembly;
 
-			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, true)) ??
-					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, true)) ??
-					FindExactAssembly(assembly, PostFindAssemblies(assembly, sourceModule, true));
+			var moduleContext = defaultModuleContext ?? sourceModule.Context;
+
+			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, true), moduleContext) ??
+					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, true), moduleContext) ??
+					FindExactAssembly(assembly, PostFindAssemblies(assembly, sourceModule, true), moduleContext);
 			if (resolvedAssembly != null)
 				return resolvedAssembly;
 
 			if (!findExactMatch) {
 				resolvedAssembly = FindClosestAssembly(assembly);
-				resolvedAssembly = FindClosestAssembly(assembly, resolvedAssembly, PreFindAssemblies(assembly, sourceModule, false));
-				resolvedAssembly = FindClosestAssembly(assembly, resolvedAssembly, FindAssemblies(assembly, sourceModule, false));
-				resolvedAssembly = FindClosestAssembly(assembly, resolvedAssembly, PostFindAssemblies(assembly, sourceModule, false));
+				resolvedAssembly = FindClosestAssembly(assembly, resolvedAssembly, PreFindAssemblies(assembly, sourceModule, false), moduleContext);
+				resolvedAssembly = FindClosestAssembly(assembly, resolvedAssembly, FindAssemblies(assembly, sourceModule, false), moduleContext);
+				resolvedAssembly = FindClosestAssembly(assembly, resolvedAssembly, PostFindAssemblies(assembly, sourceModule, false), moduleContext);
 			}
 
 			return resolvedAssembly;
@@ -215,16 +236,17 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="assembly">Assembly name to find</param>
 		/// <param name="paths">Search paths or <c>null</c> if none</param>
+		/// <param name="moduleContext">Module context</param>
 		/// <returns>An <see cref="AssemblyDef"/> instance or <c>null</c> if an exact match
 		/// couldn't be found.</returns>
-		AssemblyDef FindExactAssembly(AssemblyNameInfo assembly, IEnumerable<string> paths) {
+		AssemblyDef FindExactAssembly(AssemblyNameInfo assembly, IEnumerable<string> paths, ModuleContext moduleContext) {
 			if (paths == null)
 				return null;
 			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 			foreach (var path in paths) {
 				ModuleDefMD mod = null;
 				try {
-					mod = ModuleDefMD.Load(path);
+					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
 					if (asm != null && asmComparer.Equals(assembly, new AssemblyNameInfo(asm))) {
 						mod = null;
@@ -256,14 +278,14 @@ namespace dot10.DotNet {
 			return closest;
 		}
 
-		AssemblyDef FindClosestAssembly(AssemblyNameInfo assembly, AssemblyDef closest, IEnumerable<string> paths) {
+		AssemblyDef FindClosestAssembly(AssemblyNameInfo assembly, AssemblyDef closest, IEnumerable<string> paths, ModuleContext moduleContext) {
 			if (paths == null)
 				return closest;
 			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 			foreach (var path in paths) {
 				ModuleDefMD mod = null;
 				try {
-					mod = ModuleDefMD.Load(path);
+					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
 					if (asm != null && asmComparer.CompareClosest(assembly, new AssemblyNameInfo(closest), new AssemblyNameInfo(asm)) == 1) {
 						if (!IsCached(closest) && closest != null && closest.ManifestModule != null)
