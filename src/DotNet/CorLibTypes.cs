@@ -139,7 +139,7 @@ namespace dot10.DotNet {
 		}
 
 		AssemblyRef CreateCorLibAssemblyRef() {
-			return new AssemblyRefUser("mscorlib", new Version(2, 0, 0, 0), new PublicKeyToken("b77a5c561934e089"));
+			return module.UpdateRowId(new AssemblyRefUser("mscorlib", new Version(2, 0, 0, 0), new PublicKeyToken("b77a5c561934e089")));
 		}
 
 		void Initialize() {
@@ -164,7 +164,7 @@ namespace dot10.DotNet {
 		}
 
 		TypeRef CreateCorLibTypeRef(string name) {
-			return new TypeRefUser(module, "System", name, corLibAssemblyRef);
+			return module.UpdateRowId(new TypeRefUser(module, "System", name, corLibAssemblyRef));
 		}
 	}
 }

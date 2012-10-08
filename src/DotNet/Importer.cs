@@ -30,7 +30,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef Import(Type type) {
-			return ImportAsTypeSig(type).ToTypeDefOrRef();
+			return ownerModule.UpdateRowId(ImportAsTypeSig(type).ToTypeDefOrRef());
 		}
 
 		/// <summary>
@@ -41,7 +41,7 @@ namespace dot10.DotNet {
 		/// <param name="optionalModifiers">A list of all optional modifiers or <c>null</c></param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef Import(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers) {
-			return ImportAsTypeSig(type, requiredModifiers, optionalModifiers).ToTypeDefOrRef();
+			return ownerModule.UpdateRowId(ImportAsTypeSig(type, requiredModifiers, optionalModifiers).ToTypeDefOrRef());
 		}
 
 		/// <summary>
@@ -114,8 +114,8 @@ namespace dot10.DotNet {
 
 		TypeRef CreateTypeRef(Type type) {
 			if (!type.IsNested)
-				return new TypeRefUser(ownerModule, type.Namespace ?? string.Empty, type.Name ?? string.Empty, CreateScopeReference(type));
-			return new TypeRefUser(ownerModule, string.Empty, type.Name ?? string.Empty, CreateTypeRef(type.DeclaringType));
+				return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace ?? string.Empty, type.Name ?? string.Empty, CreateScopeReference(type)));
+			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, string.Empty, type.Name ?? string.Empty, CreateTypeRef(type.DeclaringType)));
 		}
 
 		IResolutionScope CreateScopeReference(Type type) {
@@ -126,13 +126,13 @@ namespace dot10.DotNet {
 				if (UTF8String.ToSystemStringOrEmpty(ownerModule.Assembly.Name).Equals(asmName.Name, StringComparison.OrdinalIgnoreCase)) {
 					if (UTF8String.ToSystemStringOrEmpty(ownerModule.Name).Equals(type.Module.ScopeName, StringComparison.OrdinalIgnoreCase))
 						return ownerModule;
-					return new ModuleRefUser(ownerModule, type.Module.ScopeName);
+					return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, type.Module.ScopeName));
 				}
 			}
 			var pkt = asmName.GetPublicKeyToken();
 			if (pkt == null || pkt.Length == 0)
 				pkt = null;
-			return new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name);
+			return ownerModule.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
 		}
 
 		/// <summary>
@@ -209,7 +209,7 @@ namespace dot10.DotNet {
 			if (isMethodSpec) {
 				var method = Import(methodBase.Module.ResolveMethod(methodBase.MetadataToken)) as IMethodDefOrRef;
 				var gim = CreateGenericInstMethodSig(methodBase);
-				var methodSpec = new MethodSpecUser(method, gim);
+				var methodSpec = ownerModule.UpdateRowId(new MethodSpecUser(method, gim));
 				if (fixSignature && !forceFixSignature) {
 					//TODO:
 				}
@@ -240,7 +240,7 @@ namespace dot10.DotNet {
 				}
 
 				var methodSig = CreateMethodSig(origMethod);
-				var methodRef = new MemberRefUser(ownerModule, methodBase.Name, methodSig, parent);
+				var methodRef = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, methodBase.Name, methodSig, parent));
 				if (fixSignature && !forceFixSignature) {
 					//TODO:
 				}
@@ -314,7 +314,7 @@ namespace dot10.DotNet {
 				UTF8String.ToSystemStringOrEmpty(ownerModule.Assembly.Name).Equals(module.Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase);
 			if (!isSameAssembly)
 				return null;
-			return new ModuleRefUser(ownerModule, ownerModule.Name);
+			return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, ownerModule.Name));
 		}
 
 		/// <summary>
@@ -365,7 +365,7 @@ namespace dot10.DotNet {
 			}
 
 			var fieldSig = new FieldSig(ImportAsTypeSig(origField.FieldType));
-			var fieldRef = new MemberRefUser(ownerModule, fieldInfo.Name, fieldSig, parent);
+			var fieldRef = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, fieldInfo.Name, fieldSig, parent));
 			if (fixSignature && !forceFixSignature) {
 				//TODO:
 			}
@@ -425,9 +425,9 @@ exit:
 			TypeRef result;
 
 			if (type.DeclaringType != null)
-				result = new TypeRefUser(ownerModule, type.Namespace, type.Name, Import(type.DeclaringType));
+				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import(type.DeclaringType)));
 			else
-				result = new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule));
+				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule)));
 
 			recursionCounter.Decrement();
 			return result;
@@ -440,13 +440,13 @@ exit:
 				if (UTF8String.CaseInsensitiveEquals(ownerModule.Assembly.Name, defAsm.Name)) {
 					if (UTF8String.CaseInsensitiveEquals(ownerModule.Name, defMod.Name))
 						return ownerModule;
-					return new ModuleRefUser(ownerModule, defMod.Name);
+					return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, defMod.Name));
 				}
 			}
 			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
-			return new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Locale);
+			return ownerModule.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Locale));
 		}
 
 		/// <summary>
@@ -463,9 +463,9 @@ exit:
 
 			var declaringType = type.DeclaringType;
 			if (declaringType != null)
-				result = new TypeRefUser(ownerModule, type.Namespace, type.Name, Import(declaringType));
+				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import(declaringType)));
 			else
-				result = new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule));
+				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule)));
 
 			recursionCounter.Decrement();
 			return result;
@@ -479,7 +479,7 @@ exit:
 		public TypeSpec Import(TypeSpec type) {
 			if (type == null)
 				return null;
-			return new TypeSpecUser(Import(type.TypeSig));
+			return ownerModule.UpdateRowId(new TypeSpecUser(Import(type.TypeSig)));
 		}
 
 		/// <summary>
@@ -771,7 +771,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return null;
 
-			MemberRef result = new MemberRefUser(ownerModule, field.Name);
+			MemberRef result = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, field.Name));
 			result.Signature = Import(field.Signature);
 			result.Class = ImportParent(field.DeclaringType);
 
@@ -784,7 +784,7 @@ exit:
 				return null;
 			if (type.IsGlobalModuleType) {
 				var om = type.OwnerModule;
-				return new ModuleRefUser(ownerModule, om == null ? null : om.Name);
+				return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, om == null ? null : om.Name));
 			}
 			return Import(type);
 		}
@@ -800,7 +800,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return null;
 
-			MemberRef result = new MemberRefUser(ownerModule, method.Name);
+			MemberRef result = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, method.Name));
 			result.Signature = Import(method.Signature);
 			result.Class = ImportParent(method.DeclaringType);
 
@@ -819,7 +819,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return null;
 
-			MethodSpec result = new MethodSpecUser((IMethodDefOrRef)Import(method.Method));
+			MethodSpec result = ownerModule.UpdateRowId(new MethodSpecUser((IMethodDefOrRef)Import(method.Method)));
 			result.Instantiation = Import(method.Instantiation);
 
 			recursionCounter.Decrement();
@@ -837,7 +837,7 @@ exit:
 			if (!recursionCounter.Increment())
 				return null;
 
-			MemberRef result = new MemberRefUser(ownerModule, memberRef.Name);
+			MemberRef result = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, memberRef.Name));
 			result.Signature = Import(memberRef.Signature);
 			result.Class = Import(memberRef.Class);
 			if (result.Class == null)	// Will be null if memberRef.Class is null or a MethodDef
@@ -853,14 +853,14 @@ exit:
 				var td = tdr as TypeDef;
 				if (td != null && td.IsGlobalModuleType) {
 					var om = td.OwnerModule;
-					return new ModuleRefUser(ownerModule, om == null ? null : om.Name);
+					return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, om == null ? null : om.Name));
 				}
 				return Import(tdr);
 			}
 
 			var modRef = parent as ModuleRef;
 			if (modRef != null)
-				return new ModuleRefUser(ownerModule, modRef.Name);
+				return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, modRef.Name));
 
 			var method = parent as MethodDef;
 			if (method != null) {

@@ -285,7 +285,10 @@ namespace dot10.DotNet {
 			var tdrSig = sig as TypeDefOrRefSig;
 			if (tdrSig != null)
 				return tdrSig.TypeDefOrRef;
-			return new TypeSpecUser(sig);
+			var ownerModule = sig.OwnerModule;
+			if (ownerModule == null)
+				return new TypeSpecUser(sig);
+			return ownerModule.UpdateRowId(new TypeSpecUser(sig));
 		}
 	}
 }

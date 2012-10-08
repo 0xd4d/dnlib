@@ -265,7 +265,7 @@ namespace dot10.DotNet {
 		protected TypeRef ReadTypeRefNoAssembly() {
 			string ns, name;
 			GetNamespaceAndName(ReadId(), out ns, out name);
-			return new TypeRefUser(ownerModule, ns, name);
+			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, ns, name));
 		}
 
 		static void GetNamespaceAndName(string fullName, out string ns, out string name) {
@@ -308,8 +308,8 @@ namespace dot10.DotNet {
 			if (asmRef != null)
 				return asmRef;
 			if (ownerModule != null && ownerModule.Assembly != null)
-				return ownerModule.Assembly.ToAssemblyRef();
-			return new AssemblyRefUser("<<<UNKNOWN>>>");
+				return ownerModule.UpdateRowId(ownerModule.Assembly.ToAssemblyRef());
+			return ownerModule.UpdateRowId(new AssemblyRefUser("<<<UNKNOWN>>>"));
 		}
 
 		internal bool IsValueType(TypeRef typeRef) {
@@ -580,7 +580,7 @@ done:
 		}
 
 		AssemblyRef ReadAssemblyRef() {
-			var asmRef = new AssemblyRefUser();
+			var asmRef = ownerModule.UpdateRowId(new AssemblyRefUser());
 
 			asmRef.Name = new UTF8String(ReadId());
 			SkipWhite();

@@ -412,8 +412,8 @@ namespace dot10.DotNet {
 			UpdateRowId(this);
 		}
 
-		static TypeDef CreateModuleType() {
-			var type = new TypeDefUser(null, "<Module>", null);
+		TypeDef CreateModuleType() {
+			var type = UpdateRowId(new TypeDefUser(null, "<Module>", null));
 			type.Flags = TypeAttributes.NotPublic | TypeAttributes.AutoLayout | TypeAttributes.Class | TypeAttributes.AnsiClass;
 			return type;
 		}
