@@ -143,24 +143,24 @@ namespace dot10.DotNet {
 		}
 
 		void Initialize() {
-			typeVoid = new CorLibTypeSig(CreateCorLibTypeRef("Void"), ElementType.Void);
-			typeBoolean = new CorLibTypeSig(CreateCorLibTypeRef("Boolean"), ElementType.Boolean);
-			typeChar = new CorLibTypeSig(CreateCorLibTypeRef("Char"), ElementType.Char);
-			typeSByte = new CorLibTypeSig(CreateCorLibTypeRef("SByte"), ElementType.I1);
-			typeByte = new CorLibTypeSig(CreateCorLibTypeRef("Byte"), ElementType.U1);
-			typeInt16 = new CorLibTypeSig(CreateCorLibTypeRef("Int16"), ElementType.I2);
-			typeUInt16 = new CorLibTypeSig(CreateCorLibTypeRef("UInt16"), ElementType.U2);
-			typeInt32 = new CorLibTypeSig(CreateCorLibTypeRef("Int32"), ElementType.I4);
-			typeUInt32 = new CorLibTypeSig(CreateCorLibTypeRef("UInt32"), ElementType.U4);
-			typeInt64 = new CorLibTypeSig(CreateCorLibTypeRef("Int64"), ElementType.I8);
-			typeUInt64 = new CorLibTypeSig(CreateCorLibTypeRef("UInt64"), ElementType.U8);
-			typeSingle = new CorLibTypeSig(CreateCorLibTypeRef("Single"), ElementType.R4);
-			typeDouble = new CorLibTypeSig(CreateCorLibTypeRef("Double"), ElementType.R8);
-			typeString = new CorLibTypeSig(CreateCorLibTypeRef("String"), ElementType.String);
+			typeVoid	= new CorLibTypeSig(CreateCorLibTypeRef("Void"),	ElementType.Void);
+			typeBoolean	= new CorLibTypeSig(CreateCorLibTypeRef("Boolean"),	ElementType.Boolean);
+			typeChar	= new CorLibTypeSig(CreateCorLibTypeRef("Char"),	ElementType.Char);
+			typeSByte	= new CorLibTypeSig(CreateCorLibTypeRef("SByte"),	ElementType.I1);
+			typeByte	= new CorLibTypeSig(CreateCorLibTypeRef("Byte"),	ElementType.U1);
+			typeInt16	= new CorLibTypeSig(CreateCorLibTypeRef("Int16"),	ElementType.I2);
+			typeUInt16	= new CorLibTypeSig(CreateCorLibTypeRef("UInt16"),	ElementType.U2);
+			typeInt32	= new CorLibTypeSig(CreateCorLibTypeRef("Int32"),	ElementType.I4);
+			typeUInt32	= new CorLibTypeSig(CreateCorLibTypeRef("UInt32"),	ElementType.U4);
+			typeInt64	= new CorLibTypeSig(CreateCorLibTypeRef("Int64"),	ElementType.I8);
+			typeUInt64	= new CorLibTypeSig(CreateCorLibTypeRef("UInt64"),	ElementType.U8);
+			typeSingle	= new CorLibTypeSig(CreateCorLibTypeRef("Single"),	ElementType.R4);
+			typeDouble	= new CorLibTypeSig(CreateCorLibTypeRef("Double"),	ElementType.R8);
+			typeString	= new CorLibTypeSig(CreateCorLibTypeRef("String"),	ElementType.String);
 			typeTypedReference = new CorLibTypeSig(CreateCorLibTypeRef("TypedReference"), ElementType.TypedByRef);
-			typeIntPtr = new CorLibTypeSig(CreateCorLibTypeRef("IntPtr"), ElementType.I);
-			typeUIntPtr = new CorLibTypeSig(CreateCorLibTypeRef("UIntPtr"), ElementType.U);
-			typeObject = new CorLibTypeSig(CreateCorLibTypeRef("Object"), ElementType.Object);
+			typeIntPtr	= new CorLibTypeSig(CreateCorLibTypeRef("IntPtr"),	ElementType.I);
+			typeUIntPtr	= new CorLibTypeSig(CreateCorLibTypeRef("UIntPtr"),	ElementType.U);
+			typeObject	= new CorLibTypeSig(CreateCorLibTypeRef("Object"),	ElementType.Object);
 		}
 
 		TypeRef CreateCorLibTypeRef(string name) {
