@@ -3950,9 +3950,10 @@ exit:
 
 			var amSig = a.MethodSig;
 			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
+					amSig != null &&
 					((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 					(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
-					amSig != null && Equals(amSig, b) &&
+					Equals(amSig, b) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
@@ -4032,9 +4033,9 @@ exit:
 			else {
 				var amSig = a.MethodSig;
 				result = Equals_MethodFieldNames(a.Name, b.Name) &&
+						amSig != null &&
 						((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
-						(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
-						amSig != null;
+						(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod));
 
 				GenericInstSig git;
 				if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) != null) {
