@@ -314,6 +314,11 @@ namespace dot10.DotNet {
 		public GenericVar(uint number)
 			: base(true, number) {
 		}
+
+		/// <inheritdoc/>
+		public GenericVar(int number)
+			: base(true, (uint)number) {
+		}
 	}
 
 	/// <summary>
@@ -328,6 +333,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public GenericMVar(uint number)
 			: base(false, number) {
+		}
+
+		/// <inheritdoc/>
+		public GenericMVar(int number)
+			: base(true, (uint)number) {
 		}
 	}
 
@@ -431,6 +441,15 @@ namespace dot10.DotNet {
 		public GenericInstSig(ClassOrValueTypeSig genericType, uint genArgCount) {
 			this.genericType = genericType;
 			this.genericArgs = new List<TypeSig>((int)genArgCount);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericType">The generic type</param>
+		/// <param name="genArgCount">Number of generic arguments</param>
+		public GenericInstSig(ClassOrValueTypeSig genericType, int genArgCount)
+			: this(genericType, (uint)genArgCount) {
 		}
 
 		/// <summary>
@@ -599,6 +618,15 @@ namespace dot10.DotNet {
 			this.rank = rank;
 			this.sizes = new List<uint>();
 			this.lowerBounds = new List<int>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arrayType">Array type</param>
+		/// <param name="rank">Array rank</param>
+		public ArraySig(TypeSig arrayType, int rank)
+			: this(arrayType, (uint)rank) {
 		}
 
 		/// <summary>
