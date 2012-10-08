@@ -16,6 +16,12 @@ namespace dot10.DotNet {
 			get { return new MDToken(Table.MethodImpl, rid); }
 		}
 
+		/// <inheritdoc/>
+		public uint Rid {
+			get { return rid; }
+			set { rid = value; }
+		}
+
 		/// <summary>
 		/// From column MethodImpl.Class
 		/// </summary>

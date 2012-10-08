@@ -17,6 +17,12 @@ namespace dot10.DotNet {
 			get { return new MDToken(Table.FieldRVA, rid); }
 		}
 
+		/// <inheritdoc/>
+		public uint Rid {
+			get { return rid; }
+			set { rid = value; }
+		}
+
 		/// <summary>
 		/// From column FieldRVA.RVA
 		/// </summary>

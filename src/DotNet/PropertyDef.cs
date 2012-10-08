@@ -17,6 +17,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public uint Rid {
+			get { return rid; }
+			set { rid = value; }
+		}
+
+		/// <inheritdoc/>
 		public int HasConstantTag {
 			get { return 2; }
 		}

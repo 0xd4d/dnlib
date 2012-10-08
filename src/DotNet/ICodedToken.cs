@@ -11,6 +11,11 @@ namespace dot10.DotNet {
 		/// Returns the metadata token
 		/// </summary>
 		MDToken MDToken { get; }
+
+		/// <summary>
+		/// Getst/sets the row ID
+		/// </summary>
+		uint Rid { get; set; }
 	}
 
 	/// <summary>

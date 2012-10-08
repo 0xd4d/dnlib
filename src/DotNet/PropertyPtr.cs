@@ -16,6 +16,12 @@ namespace dot10.DotNet {
 			get { return new MDToken(Table.PropertyPtr, rid); }
 		}
 
+		/// <inheritdoc/>
+		public uint Rid {
+			get { return rid; }
+			set { rid = value; }
+		}
+
 		/// <summary>
 		/// From column PropertyPtr.Property
 		/// </summary>

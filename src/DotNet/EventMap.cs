@@ -17,6 +17,12 @@ namespace dot10.DotNet {
 			get { return new MDToken(Table.EventMap, rid); }
 		}
 
+		/// <inheritdoc/>
+		public uint Rid {
+			get { return rid; }
+			set { rid = value; }
+		}
+
 		/// <summary>
 		/// From column EventMap.Parent
 		/// </summary>
