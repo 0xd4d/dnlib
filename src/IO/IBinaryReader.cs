@@ -115,6 +115,26 @@ namespace dot10.IO {
 
 	public static partial class IOExtensions {
 		/// <summary>
+		/// Reads a <see cref="Boolean"/> from the current position and increments <see cref="IBinaryReader.Position"/> by 1
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns>The boolean</returns>
+		/// <exception cref="IOException">An I/O error occurs</exception>
+		public static bool ReadBoolean(this IBinaryReader self) {
+			return self.ReadByte() != 0;
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Char"/> from the current position and increments <see cref="IBinaryReader.Position"/> by 2
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns>The char</returns>
+		/// <exception cref="IOException">An I/O error occurs</exception>
+		public static char ReadChar(this IBinaryReader self) {
+			return (char)self.ReadUInt16();
+		}
+
+		/// <summary>
 		/// Reads a compressed <see cref="uint"/> from the current position in <paramref name="reader"/>
 		/// </summary>
 		/// <remarks>Max value it can return is <c>0x1FFFFFFF</c></remarks>
