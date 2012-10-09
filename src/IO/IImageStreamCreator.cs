@@ -21,7 +21,6 @@ namespace dot10.IO {
 		/// <param name="offset">Offset within the original data</param>
 		/// <param name="length">Length of section within the original data</param>
 		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If one of the args is invalid</exception>
 		IImageStream Create(FileOffset offset, long length);
 
 		/// <summary>
@@ -29,5 +28,17 @@ namespace dot10.IO {
 		/// </summary>
 		/// <returns>A new stream</returns>
 		IImageStream CreateFull();
+	}
+
+	static partial class IOExtensions {
+		/// <summary>
+		/// Creates a stream that can access all data starting from <paramref name="offset"/>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="offset">Offset within the original data</param>
+		/// <returns>A new stream</returns>
+		public static IImageStream Create(this IImageStreamCreator self, FileOffset offset) {
+			return self.Create(offset, long.MaxValue);
+		}
 	}
 }

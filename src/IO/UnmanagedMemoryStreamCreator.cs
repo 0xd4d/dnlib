@@ -77,14 +77,12 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public unsafe IImageStream Create(FileOffset offset, long length) {
-			if (offset < 0)
-				throw new ArgumentOutOfRangeException("offset");
-			if (length < 0)
-				throw new ArgumentOutOfRangeException("length");
-			ulong offs = (ulong)offset;
-			if (offs + (ulong)length < offs || offs + (ulong)length > (ulong)dataLength)
-				throw new ArgumentOutOfRangeException("length");
-			return new UnmanagedMemoryImageStream(offset, (byte*)data.ToPointer() + (long)offset, length);
+			if (offset < 0 || length < 0)
+				return MemoryImageStream.CreateEmpty();
+
+			long offs = Math.Min((long)dataLength, (long)offset);
+			long len = Math.Min((long)dataLength - offs, length);
+			return new UnmanagedMemoryImageStream(offset, (byte*)data.ToPointer() + (long)offs, len);
 		}
 
 		/// <inheritdoc/>
