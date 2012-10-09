@@ -274,8 +274,8 @@ namespace dot10.DotNet {
 		}
 
 		static string GetCanonicalLocale(string locale) {
-			var s = locale.ToLowerInvariant();
-			if (s == "neutral")
+			var s = locale.ToUpperInvariant();
+			if (s == "NEUTRAL")
 				s = string.Empty;
 			return s;
 		}

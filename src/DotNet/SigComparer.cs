@@ -786,30 +786,19 @@ namespace dot10.DotNet {
 			// IMPORTANT: This must match GetHashCode(TYPE)
 			// ********************************************
 
-			int hash = 0;
-
-			if (CaseInsensitiveTypeNamespaces)
-				hash += "system".GetHashCode();
-			else
-				hash += "System".GetHashCode();
-
-			if (CaseInsensitiveTypeNames)
-				hash += "intptr".GetHashCode();
-			else
-				hash += "IntPtr".GetHashCode();
-
-			return hash;
+			return GetHashCode_TypeNamespace("System") +
+					GetHashCode_TypeName("IntPtr");
 		}
 
 		bool Equals_Names(bool caseInsensitive, string a, string b) {
 			if (caseInsensitive)
-				return (a ?? string.Empty).ToLowerInvariant() == (b ?? string.Empty).ToLowerInvariant();
+				return (a ?? string.Empty).Equals(b ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 			return (a ?? string.Empty) == (b ?? string.Empty);
 		}
 
 		int GetHashCode_Name(bool caseInsensitive, string a) {
 			if (caseInsensitive)
-				return (a ?? string.Empty).ToLowerInvariant().GetHashCode();
+				return (a ?? string.Empty).ToUpperInvariant().GetHashCode();
 			return (a ?? string.Empty).GetHashCode();
 		}
 

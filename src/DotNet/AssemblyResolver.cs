@@ -204,7 +204,7 @@ namespace dot10.DotNet {
 
 		static string GetAssemblyNameKey(AssemblyNameInfo asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
-			return asmName.FullNameToken.ToLowerInvariant();
+			return asmName.FullNameToken.ToUpperInvariant();
 		}
 
 		AssemblyDef Resolve2(AssemblyNameInfo assembly, ModuleDef sourceModule) {

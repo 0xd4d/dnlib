@@ -58,8 +58,8 @@ namespace dot10.DotNet {
 			string asmName;
 			return asm != null &&
 				UTF8String.IsNullOrEmpty(asm.Locale) &&
-				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name).ToLowerInvariant()) == "mscorlib" ||
-				asmName == "system.runtime");
+				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name)).Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
+				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase));
 		}
 
 		/// <summary>

@@ -607,27 +607,27 @@ done:
 				reader.Read();
 				string value = ReadId();
 
-				switch (key.ToLowerInvariant()) {
-				case "version":
+				switch (key.ToUpperInvariant()) {
+				case "VERSION":
 					asmRef.Version = Utils.ParseVersion(value);
 					break;
 
-				case "publickey":
-					if (value == "null")
+				case "PUBLICKEY":
+					if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
 						asmRef.PublicKeyOrToken = null;
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKey(Utils.ParseBytes(value));
 					break;
 
-				case "publickeytoken":
-					if (value == "null")
+				case "PUBLICKEYTOKEN":
+					if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
 						asmRef.PublicKeyOrToken = null;
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKeyToken(Utils.ParseBytes(value));
 					break;
 
-				case "culture":
-					if (value.ToLowerInvariant() == "neutral")
+				case "CULTURE":
+					if (value.Equals("neutral", StringComparison.OrdinalIgnoreCase))
 						asmRef.Locale = UTF8String.Empty;
 					else
 						asmRef.Locale = new UTF8String(value);

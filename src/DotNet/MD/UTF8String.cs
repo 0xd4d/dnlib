@@ -121,7 +121,7 @@ namespace dot10.DotNet.MD {
 				return -1;
 			if (sb == null)
 				return 1;
-			return sa.ToLowerInvariant().CompareTo(sb.ToLowerInvariant());
+			return sa.ToUpperInvariant().CompareTo(sb.ToUpperInvariant());
 		}
 
 		/// <summary>
