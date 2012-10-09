@@ -307,7 +307,7 @@ namespace dot10.DotNet {
 				asmRef = typeNameParserHelper.FindAssemblyRef(nonNestedTypeRef);
 			if (asmRef != null)
 				return asmRef;
-			if (ownerModule != null && ownerModule.Assembly != null)
+			if (ownerModule.Assembly != null)
 				return ownerModule.UpdateRowId(ownerModule.Assembly.ToAssemblyRef());
 			return ownerModule.UpdateRowId(new AssemblyRefUser("<<<UNKNOWN>>>"));
 		}
