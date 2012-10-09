@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using dot10.IO;
 using dot10.DotNet.MD;
 
@@ -6,11 +7,9 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Reads signatures from the #Blob stream
 	/// </summary>
-	struct SignatureReader {
+	struct SignatureReader : IDisposable {
 		ModuleDefMD readerModule;
 		IImageStream reader;
-		uint sigLen;
-		bool failedReadingLength;
 		RecursionCounter recursionCounter;
 
 		/// <summary>
@@ -22,10 +21,8 @@ namespace dot10.DotNet {
 		/// <paramref name="sig"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
-				var reader = new SignatureReader(readerModule, sig);
-				if (reader.failedReadingLength)
-					return null;
-				return reader.ReadSig();
+				using (var reader = new SignatureReader(readerModule, sig))
+					return reader.ReadSig();
 			}
 			catch {
 				return null;
@@ -41,10 +38,8 @@ namespace dot10.DotNet {
 		/// <paramref name="sig"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig) {
 			try {
-				var reader = new SignatureReader(readerModule, sig);
-				if (reader.failedReadingLength)
-					return null;
-				return reader.ReadType();
+				using (var reader = new SignatureReader(readerModule, sig))
+					return reader.ReadType();
 			}
 			catch {
 				return null;
@@ -58,9 +53,7 @@ namespace dot10.DotNet {
 		/// <param name="sig">#Blob stream offset of signature</param>
 		SignatureReader(ModuleDefMD readerModule, uint sig) {
 			this.readerModule = readerModule;
-			this.reader = readerModule.BlobStream.ImageStream;
-			this.reader.Position = sig;
-			this.failedReadingLength = !reader.ReadCompressedUInt32(out sigLen);
+			this.reader = readerModule.BlobStream.CreateStream(sig);
 			this.recursionCounter = new RecursionCounter();
 		}
 
@@ -328,6 +321,12 @@ exit:
 				return null;
 			//TODO: Perhaps we should read this lazily. If so, update ValueTypeSig, etc to take a coded token
 			return readerModule.ResolveTypeDefOrRef(codedToken);
+		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
+			if (reader != null)
+				reader.Dispose();
 		}
 	}
 }
