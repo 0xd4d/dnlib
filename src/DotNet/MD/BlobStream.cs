@@ -26,15 +26,11 @@ namespace dot10.DotNet.MD {
 			// 0-length data, even if that first byte isn't 0 at all.
 			if (offset == 0)
 				return noData;
-			if (!IsValidOffset(offset))
+			int compressedLen;
+			int size = GetSize(offset, out compressedLen);
+			if (size < 0)
 				return null;
-			imageStream.Position = offset;
-			uint length;
-			if (!imageStream.ReadCompressedUInt32(out length))
-				return null;
-			if (imageStream.Position + length < length || imageStream.Position + length > imageStream.Length)
-				return null;
-			return imageStream.ReadBytes((int)length);	// length <= 0x1FFFFFFF so this cast does not make it negative
+			return imageStream.ReadBytes(size);
 		}
 
 		/// <summary>
@@ -45,6 +41,34 @@ namespace dot10.DotNet.MD {
 		/// <returns>The data</returns>
 		public byte[] ReadNoNull(uint offset) {
 			return Read(offset) ?? noData;
+		}
+
+		/// <summary>
+		/// Creates a new sub stream of the #Blob stream that can access one blob
+		/// </summary>
+		/// <param name="offset">Offset of blob</param>
+		/// <returns>A new stream</returns>
+		public IImageStream CreateStream(uint offset) {
+			int compressedLen;
+			int size = GetSize(offset, out compressedLen);
+			if (size < 0)
+				return MemoryImageStream.CreateEmpty();
+			return imageStream.Create((FileOffset)((long)offset + compressedLen), size);
+		}
+
+		int GetSize(uint offset, out int compressedLen) {
+			compressedLen = -1;
+			if (!IsValidOffset(offset))
+				return -1;
+			imageStream.Position = offset;
+			uint length;
+			if (!imageStream.ReadCompressedUInt32(out length))
+				return -1;
+			if (imageStream.Position + length < length || imageStream.Position + length > imageStream.Length)
+				return -1;
+
+			compressedLen = (int)(imageStream.Position - offset);
+			return (int)length;	// length <= 0x1FFFFFFF so this cast does not make it negative
 		}
 	}
 }
