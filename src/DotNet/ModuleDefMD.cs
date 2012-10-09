@@ -29,7 +29,7 @@ namespace dot10.DotNet {
 		SimpleLazyList<InterfaceImplMD> listInterfaceImplMD;
 		SimpleLazyList<MemberRefMD> listMemberRefMD;
 		SimpleLazyList<ConstantMD> listConstantMD;
-		SimpleLazyList<CustomAttributeMD> listCustomAttributeMD;
+		SimpleLazyList<CustomAttributeDefMD> listCustomAttributeDefMD;
 		SimpleLazyList<FieldMarshalMD> listFieldMarshalMD;
 		SimpleLazyList<DeclSecurityMD> listDeclSecurityMD;
 		SimpleLazyList<ClassLayoutMD> listClassLayoutMD;
@@ -320,7 +320,7 @@ namespace dot10.DotNet {
 			listInterfaceImplMD = new SimpleLazyList<InterfaceImplMD>(ts.Get(Table.InterfaceImpl).Rows, rid2 => new InterfaceImplMD(this, rid2));
 			listMemberRefMD = new SimpleLazyList<MemberRefMD>(ts.Get(Table.MemberRef).Rows, rid2 => new MemberRefMD(this, rid2));
 			listConstantMD = new SimpleLazyList<ConstantMD>(ts.Get(Table.Constant).Rows, rid2 => new ConstantMD(this, rid2));
-			listCustomAttributeMD = new SimpleLazyList<CustomAttributeMD>(ts.Get(Table.CustomAttribute).Rows, rid2 => new CustomAttributeMD(this, rid2));
+			listCustomAttributeDefMD = new SimpleLazyList<CustomAttributeDefMD>(ts.Get(Table.CustomAttribute).Rows, rid2 => new CustomAttributeDefMD(this, rid2));
 			listFieldMarshalMD = new SimpleLazyList<FieldMarshalMD>(ts.Get(Table.FieldMarshal).Rows, rid2 => new FieldMarshalMD(this, rid2));
 			listDeclSecurityMD = new SimpleLazyList<DeclSecurityMD>(ts.Get(Table.DeclSecurity).Rows, rid2 => new DeclSecurityMD(this, rid2));
 			listClassLayoutMD = new SimpleLazyList<ClassLayoutMD>(ts.Get(Table.ClassLayout).Rows, rid2 => new ClassLayoutMD(this, rid2));
@@ -578,12 +578,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="CustomAttribute"/>
+		/// Resolves a <see cref="CustomAttributeDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="CustomAttribute"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public CustomAttribute ResolveCustomAttribute(uint rid) {
-			return listCustomAttributeMD[rid - 1];
+		/// <returns>A <see cref="CustomAttributeDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
+		public CustomAttributeDef ResolveCustomAttribute(uint rid) {
+			return listCustomAttributeDefMD[rid - 1];
 		}
 
 		/// <summary>

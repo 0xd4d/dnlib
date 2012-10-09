@@ -5,7 +5,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the CustomAttribute table
 	/// </summary>
-	public abstract class CustomAttribute : IMDTokenProvider {
+	public abstract class CustomAttributeDef : IMDTokenProvider {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -41,7 +41,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A CustomAttribute row created by the user and not present in the original .NET file
 	/// </summary>
-	public class CustomAttributeUser : CustomAttribute {
+	public class CustomAttributeDefUser : CustomAttributeDef {
 		IHasCustomAttribute parent;
 		ICustomAttributeType type;
 		byte[] value;
@@ -67,14 +67,14 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public CustomAttributeUser() {
+		public CustomAttributeDefUser() {
 		}
 	}
 
 	/// <summary>
 	/// Created from a row in the CustomAttribute table
 	/// </summary>
-	sealed class CustomAttributeMD : CustomAttribute {
+	sealed class CustomAttributeDefMD : CustomAttributeDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
@@ -109,7 +109,7 @@ namespace dot10.DotNet {
 		/// <param name="rid">Row ID</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public CustomAttributeMD(ModuleDefMD readerModule, uint rid) {
+		public CustomAttributeDefMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
