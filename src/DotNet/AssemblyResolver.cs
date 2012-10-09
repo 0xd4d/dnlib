@@ -213,7 +213,9 @@ namespace dot10.DotNet {
 			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out resolvedAssembly))
 				return resolvedAssembly;
 
-			var moduleContext = defaultModuleContext ?? sourceModule.Context;
+			var moduleContext = defaultModuleContext;
+			if (moduleContext == null && sourceModule != null)
+				moduleContext = sourceModule.Context;
 
 			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, true), moduleContext) ??
 					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, true), moduleContext) ??
