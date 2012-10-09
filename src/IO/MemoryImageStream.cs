@@ -58,6 +58,16 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public IImageStream Create(FileOffset offset, long length) {
+			if ((long)offset < 0 || length < 0)
+				return MemoryImageStream.CreateEmpty();
+
+			int offs = (int)Math.Min((long)Length, (long)offset);
+			int len = (int)Math.Min((long)Length - offs, length);
+			return new MemoryImageStream((FileOffset)((long)fileOffset + (long)offset), data, dataOffset + offs, len);
+		}
+
+		/// <inheritdoc/>
 		public byte[] ReadBytes(int size) {
 			if (position + size < position || position + size > dataEnd)
 				throw new IOException("Trying to read too much");

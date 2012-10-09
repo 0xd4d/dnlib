@@ -63,6 +63,16 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public unsafe IImageStream Create(FileOffset offset, long length) {
+			if ((long)offset < 0 || length < 0)
+				return MemoryImageStream.CreateEmpty();
+
+			long offs = Math.Min(Length, (long)offset);
+			long len = Math.Min(Length - offs, length);
+			return new UnmanagedMemoryImageStream((FileOffset)((long)fileOffset + (long)offset), startAddr + (long)offs, len);
+		}
+
+		/// <inheritdoc/>
 		public unsafe byte[] ReadBytes(int size) {
 			if (currentAddr + size < currentAddr || currentAddr + size > endAddr)
 				throw new IOException("Trying to read too much");

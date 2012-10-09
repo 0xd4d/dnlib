@@ -10,5 +10,25 @@ namespace dot10.IO {
 		/// Returns the file offset of the stream
 		/// </summary>
 		FileOffset FileOffset { get; }
+
+		/// <summary>
+		/// Creates a sub stream that can access parts of this stream
+		/// </summary>
+		/// <param name="offset">File offset relative to the start of this stream</param>
+		/// <param name="length">Length</param>
+		/// <returns>A new stream</returns>
+		IImageStream Create(FileOffset offset, long length);
+	}
+
+	static partial class IOExtensions {
+		/// <summary>
+		/// Creates a stream that can access all data starting from <paramref name="offset"/>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="offset">Offset relative to the beginning of the stream</param>
+		/// <returns>A new stream</returns>
+		public static IImageStream Create(this IImageStream self, FileOffset offset) {
+			return self.Create(offset, long.MaxValue);
+		}
 	}
 }
