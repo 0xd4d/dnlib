@@ -201,6 +201,22 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if it's an enum
+		/// </summary>
+		public bool IsEnum {
+			get {
+				var extends = Extends;
+				if (extends == null)
+					return false;
+				if (extends.Namespace != "System")
+					return false;
+				if (extends.Name != "Enum")
+					return false;
+				return extends.DefinitionAssembly.IsCorLib();
+			}
+		}
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
@@ -500,6 +516,21 @@ namespace dot10.DotNet {
 		/// </summary>
 		public IEnumerable<TypeDef> GetTypes() {
 			return AllTypesHelper.Types(NestedTypes);
+		}
+
+		/// <summary>
+		/// Gets an enum's underlying type or <c>null</c> if none. Should only be called
+		/// if this is an enum.
+		/// </summary>
+		public TypeSig GetEnumUnderlyingType() {
+			foreach (var field in Fields) {
+				if (!field.IsLiteral && !field.IsStatic) {
+					var fieldSig = field.FieldSig;
+					if (fieldSig != null)
+						return fieldSig.Type;
+				}
+			}
+			return null;
 		}
 
 		/// <summary>
