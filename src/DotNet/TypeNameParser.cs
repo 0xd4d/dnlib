@@ -37,7 +37,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Helps <see cref="TypeNameParser"/> create types
 	/// </summary>
-	public interface ITypeNameParserHelper {
+	public interface IAssemblyRefFinder {
 		/// <summary>
 		/// Finds a <see cref="TypeRef"/>'s <see cref="AssemblyRef"/> when the original assembly
 		/// info is missing from the full type name.
@@ -45,14 +45,6 @@ namespace dot10.DotNet {
 		/// <param name="nonNestedTypeRef">A non-nested <see cref="TypeRef"/></param>
 		/// <returns><paramref name="nonNestedTypeRef"/>'s <see cref="AssemblyRef"/> or <c>null</c></returns>
 		AssemblyRef FindAssemblyRef(TypeRef nonNestedTypeRef);
-
-		/// <summary>
-		/// Checks whether <paramref name="typeRef"/> is a value type
-		/// </summary>
-		/// <param name="typeRef">The type</param>
-		/// <returns><c>true</c> if <paramref name="typeRef"/> is a value type, <c>false</c> if
-		/// <paramref name="typeRef"/> is a reference type.</returns>
-		bool IsValueType(TypeRef typeRef);
 	}
 
 	/// <summary>
@@ -63,32 +55,61 @@ namespace dot10.DotNet {
 		protected ModuleDef ownerModule;
 		/// <summary>Text reader</summary>
 		protected StringReader reader;
-		ITypeNameParserHelper typeNameParserHelper;
+		IAssemblyRefFinder typeNameParserHelper;
 		RecursionCounter recursionCounter;
 
 		/// <summary>
-		/// Parses a Reflection type name and creates a <see cref="IType"/>
+		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
-		/// <returns>A new <see cref="IType"/> instance</returns>
+		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static IType ParseReflection(ModuleDef ownerModule, string typeFullName, ITypeNameParserHelper typeNameParserHelper) {
+		public static ITypeDefOrRef ParseReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
 			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper))
 				return parser.Parse();
 		}
 
 		/// <summary>
-		/// Parses a Reflection type name and creates a <see cref="IType"/>
+		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
-		/// <returns>A new <see cref="IType"/> instance or <c>null</c> if parsing failed</returns>
-		public static IType ParseReflectionNoThrow(ModuleDef ownerModule, string typeFullName, ITypeNameParserHelper typeNameParserHelper) {
+		/// <returns>A new <see cref="ITypeDefOrRef"/> instance or <c>null</c> if parsing failed</returns>
+		public static ITypeDefOrRef ParseReflectionNoThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
 			try {
 				return ParseReflection(ownerModule, typeFullName, typeNameParserHelper);
+			}
+			catch (TypeNameParserException) {
+				return null;
+			}
+		}
+
+		/// <summary>
+		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="typeFullName">Full name of type</param>
+		/// <param name="typeNameParserHelper">Helper class</param>
+		/// <returns>A new <see cref="TypeSig"/> instance</returns>
+		/// <exception cref="TypeNameParserException">If parsing failed</exception>
+		public static TypeSig ParseAsTypeSigReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
+			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper))
+				return parser.ParseAsTypeSig();
+		}
+
+		/// <summary>
+		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="typeFullName">Full name of type</param>
+		/// <param name="typeNameParserHelper">Helper class</param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if parsing failed</returns>
+		public static TypeSig ParseAsTypeSigReflectionNoThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
+			try {
+				return ParseAsTypeSigReflection(ownerModule, typeFullName, typeNameParserHelper);
 			}
 			catch (TypeNameParserException) {
 				return null;
@@ -101,9 +122,9 @@ namespace dot10.DotNet {
 		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
-		protected TypeNameParser(ModuleDef ownerModule, string typeFullName, ITypeNameParserHelper typeNameParserHelper) {
+		protected TypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
 			this.ownerModule = ownerModule;
-			this.reader = new StringReader(typeFullName);
+			this.reader = new StringReader(typeFullName ?? string.Empty);
 			this.typeNameParserHelper = typeNameParserHelper;
 		}
 
@@ -112,7 +133,16 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="IType"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		internal abstract IType Parse();
+		internal ITypeDefOrRef Parse() {
+			return ownerModule.UpdateRowId(ParseAsTypeSig().ToTypeDefOrRef());
+		}
+
+		/// <summary>
+		/// Parses a type name and creates a <see cref="TypeSig"/>
+		/// </summary>
+		/// <returns>A new <see cref="TypeSig"/> instance</returns>
+		/// <exception cref="TypeNameParserException">If parsing failed</exception>
+		internal abstract TypeSig ParseAsTypeSig();
 
 		/// <summary>
 		/// Increment recursion counter
@@ -205,8 +235,6 @@ namespace dot10.DotNet {
 		}
 
 		internal TypeSig CreateTypeSig(IList<TSpec> tspecs, TypeSig currentSig) {
-			if (tspecs.Count == 0)
-				return currentSig;
 			foreach (var tspec in tspecs) {
 				switch (tspec.etype) {
 				case ElementType.SZArray:
@@ -280,10 +308,7 @@ namespace dot10.DotNet {
 			}
 		}
 
-		internal TypeSig ToTypeSig(IType type) {
-			var tsig = type as TypeSig;
-			if (tsig != null)
-				return tsig;
+		internal TypeSig ToTypeSig(ITypeDefOrRef type) {
 			var td = type as TypeDef;
 			if (td != null)
 				return ToTypeSig(td, td.IsValueType);
@@ -315,9 +340,10 @@ namespace dot10.DotNet {
 		internal bool IsValueType(TypeRef typeRef) {
 			if (typeRef == null)
 				return false;
-			if (typeNameParserHelper == null)
+			var td = typeRef.Resolve();
+			if (td == null)
 				return false;	// Assume it's a reference type
-			return typeNameParserHelper.IsValueType(typeRef);
+			return td.IsValueType;
 		}
 
 		internal static void Verify(bool b, string msg) {
@@ -400,7 +426,7 @@ namespace dot10.DotNet {
 		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
-		public ReflectionTypeNameParser(ModuleDef ownerModule, string typeFullName, ITypeNameParserHelper typeNameParserHelper)
+		public ReflectionTypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper)
 			: base(ownerModule, typeFullName, typeNameParserHelper) {
 		}
 
@@ -420,7 +446,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		internal override IType Parse() {
+		internal override TypeSig ParseAsTypeSig() {
 			try {
 				var type = ReadType();
 				SkipWhite();
@@ -435,9 +461,9 @@ namespace dot10.DotNet {
 			}
 		}
 
-		IType ReadType() {
+		TypeSig ReadType() {
 			RecursionIncrement();
-			IType result;
+			TypeSig result;
 
 			SkipWhite();
 			if (reader.Peek() == '!') {
@@ -450,15 +476,37 @@ namespace dot10.DotNet {
 				TypeRef typeRef = ReadTypeRefAndNestedNoAssembly('+');
 				var tspecs = ReadTSpecs();
 				var nonNestedTypeRef = TypeRef.GetNonNestedTypeRef(typeRef);
-				nonNestedTypeRef.ResolutionScope = ReadOptionalAssemblyRef() ?? FindAssemblyRef(nonNestedTypeRef);
-				if (tspecs.Count == 0)
-					result = typeRef;
-				else
-					result = CreateTypeSig(tspecs, ToTypeSig(typeRef));
+				var asmRef = ReadOptionalAssemblyRef() ?? FindAssemblyRef(nonNestedTypeRef);
+				nonNestedTypeRef.ResolutionScope = asmRef;
+
+				// Make sure the CorLib types are used whenever possible
+				result = null;
+				if (typeRef == nonNestedTypeRef) {
+					var corLibSig = ownerModule.CorLibTypes.GetCorLibTypeSig(typeRef.Namespace, typeRef.Name, typeRef.DefinitionAssembly);
+					if (corLibSig != null)
+						result = corLibSig;
+				}
+				if (result == null) {
+					var typeDef = Resolve(asmRef, typeRef);
+					result = ToTypeSig(typeDef != null ? (ITypeDefOrRef)typeDef : typeRef);
+				}
+
+				if (tspecs.Count != 0)
+					result = CreateTypeSig(tspecs, result);
 			}
 
 			RecursionDecrement();
 			return result;
+		}
+
+		TypeDef Resolve(AssemblyRef asmRef, TypeRef typeRef) {
+			var asm = ownerModule.Assembly;
+			if (asm == null)
+				return null;
+			if (asmRef.FullName != asm.GetFullNameWithPublicKey() && asmRef.FullName != asm.GetFullNameWithPublicKeyToken())
+				return null;
+			var td = typeRef.Resolve();
+			return td != null && td.OwnerModule == ownerModule ? td : null;
 		}
 
 		AssemblyRef ReadOptionalAssemblyRef() {
@@ -487,7 +535,7 @@ namespace dot10.DotNet {
 							if (reader.Peek() != '[')
 								break;
 							reader.Read();
-							ginstSpec.args.Add(ToTypeSig(ReadType()));
+							ginstSpec.args.Add(ReadType());
 							SkipWhite();
 							Verify(reader.Read() == ']', "Expected ']'");
 							SkipWhite();
