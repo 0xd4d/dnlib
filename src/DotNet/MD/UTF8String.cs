@@ -191,10 +191,6 @@ namespace dot10.DotNet.MD {
 		/// <exception cref="ArgumentException">If <paramref name="data"/> contains a nul byte</exception>
 		public UTF8String(byte[] data) {
 			this.data = data;
-#if DEBUG
-			if (data != null && Array.IndexOf(data, 0) >= 0)
-				throw new ArgumentException("No nul bytes are allowed");
-#endif
 		}
 
 		/// <summary>
