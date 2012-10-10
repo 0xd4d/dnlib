@@ -53,8 +53,7 @@ namespace dot10.DotNet {
 	public abstract class TypeNameParser : IDisposable {
 		/// <summary>Owner module</summary>
 		protected ModuleDef ownerModule;
-		/// <summary>Text reader</summary>
-		protected StringReader reader;
+		StringReader reader;
 		IAssemblyRefFinder typeNameParserHelper;
 		RecursionCounter recursionCounter;
 
@@ -226,9 +225,9 @@ namespace dot10.DotNet {
 		}
 
 		internal GenericSig ReadGenericSig() {
-			Verify(reader.Read() == '!', "Expected '!'");
-			if (reader.Peek() == '!') {
-				reader.Read();
+			Verify(ReadChar() == '!', "Expected '!'");
+			if (PeekChar() == '!') {
+				ReadChar();
 				return new GenericMVar(ReadUInt32());
 			}
 			return new GenericVar(ReadUInt32());
@@ -276,9 +275,9 @@ namespace dot10.DotNet {
 			var typeRef = ReadTypeRefNoAssembly();
 			while (true) {
 				SkipWhite();
-				if (reader.Peek() != nestedChar)
+				if (PeekChar() != nestedChar)
 					break;
-				reader.Read();
+				ReadChar();
 				var newTypeRef = ReadTypeRefNoAssembly();
 				newTypeRef.ResolutionScope = typeRef;
 				typeRef = newTypeRef;
@@ -353,12 +352,12 @@ namespace dot10.DotNet {
 
 		internal void SkipWhite() {
 			while (true) {
-				int next = reader.Peek();
+				int next = PeekChar();
 				if (next == -1)
 					break;
 				if (!char.IsWhiteSpace((char)next))
 					break;
-				reader.Read();
+				ReadChar();
 			}
 		}
 
@@ -367,10 +366,10 @@ namespace dot10.DotNet {
 			bool readInt = false;
 			uint val = 0;
 			while (true) {
-				int c = reader.Peek();
+				int c = PeekChar();
 				if (c == -1 || !(c >= '0' && c <= '9'))
 					break;
-				reader.Read();
+				ReadChar();
 				uint newVal = val * 10 + (uint)(c - '0');
 				Verify(newVal >= val, "Integer overflow");
 				val = newVal;
@@ -384,9 +383,9 @@ namespace dot10.DotNet {
 			SkipWhite();
 
 			bool isSigned = false;
-			if (reader.Peek() == '-') {
+			if (PeekChar() == '-') {
 				isSigned = true;
-				reader.Read();
+				ReadChar();
 			}
 
 			uint val = ReadUInt32();
@@ -408,6 +407,20 @@ namespace dot10.DotNet {
 				sb.Append((char)c);
 			Verify(sb.Length > 0, "Expected an id");
 			return sb.ToString();
+		}
+
+		/// <summary>
+		/// Peeks the next char. -1 if no more chars.
+		/// </summary>
+		protected int PeekChar() {
+			return reader.Peek();
+		}
+
+		/// <summary>
+		/// Gets the next char or -1 if no more chars
+		/// </summary>
+		protected int ReadChar() {
+			return reader.Read();
 		}
 
 		/// <summary>
@@ -448,9 +461,9 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		internal override TypeSig ParseAsTypeSig() {
 			try {
-				var type = ReadType();
+				var type = ReadType(true);
 				SkipWhite();
-				Verify(reader.Peek() == -1, "Extra input after type name");
+				Verify(PeekChar() == -1, "Extra input after type name");
 				return type;
 			}
 			catch (TypeNameParserException) {
@@ -461,12 +474,12 @@ namespace dot10.DotNet {
 			}
 		}
 
-		TypeSig ReadType() {
+		TypeSig ReadType(bool readAssemblyReference) {
 			RecursionIncrement();
 			TypeSig result;
 
 			SkipWhite();
-			if (reader.Peek() == '!') {
+			if (PeekChar() == '!') {
 				var currentSig = ReadGenericSig();
 				var tspecs = ReadTSpecs();
 				ReadOptionalAssemblyRef();
@@ -476,7 +489,11 @@ namespace dot10.DotNet {
 				TypeRef typeRef = ReadTypeRefAndNestedNoAssembly('+');
 				var tspecs = ReadTSpecs();
 				var nonNestedTypeRef = TypeRef.GetNonNestedTypeRef(typeRef);
-				var asmRef = ReadOptionalAssemblyRef() ?? FindAssemblyRef(nonNestedTypeRef);
+				AssemblyRef asmRef;
+				if (readAssemblyReference)
+					asmRef = ReadOptionalAssemblyRef() ?? FindAssemblyRef(nonNestedTypeRef);
+				else
+					asmRef = FindAssemblyRef(nonNestedTypeRef);
 				nonNestedTypeRef.ResolutionScope = asmRef;
 
 				// Make sure the CorLib types are used whenever possible
@@ -511,8 +528,8 @@ namespace dot10.DotNet {
 
 		AssemblyRef ReadOptionalAssemblyRef() {
 			SkipWhite();
-			if (reader.Peek() == ',') {
-				reader.Read();
+			if (PeekChar() == ',') {
+				ReadChar();
 				return ReadAssemblyRef();
 			}
 			return null;
@@ -522,61 +539,41 @@ namespace dot10.DotNet {
 			var tspecs = new List<TSpec>();
 			while (true) {
 				SkipWhite();
-				switch (reader.Peek()) {
+				switch (PeekChar()) {
 				case '[':	// SZArray, Array, or GenericInst
-					reader.Read();
+					ReadChar();
 					SkipWhite();
-					if (reader.Peek() == '[') {
-						// Generic args
-
-						var ginstSpec = new GenericInstSpec();
-						while (true) {
-							SkipWhite();
-							if (reader.Peek() != '[')
-								break;
-							reader.Read();
-							ginstSpec.args.Add(ReadType());
-							SkipWhite();
-							Verify(reader.Read() == ']', "Expected ']'");
-							SkipWhite();
-							if (reader.Peek() != ',')
-								break;
-							reader.Read();
-						}
-
-						Verify(reader.Read() == ']', "Expected ']'");
-						tspecs.Add(ginstSpec);
-					}
-					else if (reader.Peek() == ']') {
+					var peeked = PeekChar();
+					if (peeked == ']') {
 						// SZ array
-						Verify(reader.Read() == ']', "Expected ']'");
+						Verify(ReadChar() == ']', "Expected ']'");
 						tspecs.Add(SZArraySpec.Instance);
 					}
-					else {
+					else if (peeked == '*' || peeked == ',' || peeked == '-' || char.IsDigit((char)peeked)) {
 						// Array
 
 						var arraySpec = new ArraySpec();
 						arraySpec.rank = 0;
 						while (true) {
 							SkipWhite();
-							int c = reader.Peek();
+							int c = PeekChar();
 							if (c == '*')
-								reader.Read();
+								ReadChar();
 							else if (c == ',' || c == ']') {
 							}
 							else if (c == '-' || char.IsDigit((char)c)) {
 								int lower = ReadInt32();
 								uint? size;
 								SkipWhite();
-								Verify(reader.Read() == '.', "Expected '.'");
-								Verify(reader.Read() == '.', "Expected '.'");
-								if (reader.Peek() == '.') {
-									reader.Read();
+								Verify(ReadChar() == '.', "Expected '.'");
+								Verify(ReadChar() == '.', "Expected '.'");
+								if (PeekChar() == '.') {
+									ReadChar();
 									size = null;
 								}
 								else {
 									SkipWhite();
-									if (reader.Peek() == '-') {
+									if (PeekChar() == '-') {
 										int upper = ReadInt32();
 										Verify(upper >= lower, "upper < lower");
 										size = (uint)(upper - lower + 1);
@@ -599,32 +596,53 @@ namespace dot10.DotNet {
 
 							arraySpec.rank++;
 							SkipWhite();
-							if (reader.Peek() != ',')
+							if (PeekChar() != ',')
 								break;
-							reader.Read();
+							ReadChar();
 						}
 
-						Verify(reader.Read() == ']', "Expected ']'");
+						Verify(ReadChar() == ']', "Expected ']'");
 						tspecs.Add(arraySpec);
+					}
+					else {
+						// Generic args
+
+						var ginstSpec = new GenericInstSpec();
+						while (true) {
+							SkipWhite();
+							peeked = PeekChar();
+							bool needSeperators = peeked == '[';
+							if (peeked == ']')
+								break;
+							Verify(!needSeperators || ReadChar() == '[', "Expected '['");
+							ginstSpec.args.Add(ReadType(needSeperators));
+							SkipWhite();
+							Verify(!needSeperators || ReadChar() == ']', "Expected ']'");
+							SkipWhite();
+							if (PeekChar() != ',')
+								break;
+							ReadChar();
+						}
+
+						Verify(ReadChar() == ']', "Expected ']'");
+						tspecs.Add(ginstSpec);
 					}
 					break;
 
 				case '&':	// ByRef
-					reader.Read();
+					ReadChar();
 					tspecs.Add(ByRefSpec.Instance);
 					break;
 
 				case '*':	// Ptr
-					reader.Read();
+					ReadChar();
 					tspecs.Add(PtrSpec.Instance);
 					break;
 
 				default:
-					goto done;
+					return tspecs;
 				}
 			}
-done:
-			return tspecs;
 		}
 
 		AssemblyRef ReadAssemblyRef() {
@@ -634,25 +652,25 @@ done:
 
 			asmRef.Name = new UTF8String(ReadId());
 			SkipWhite();
-			if (reader.Peek() != ',')
+			if (PeekChar() != ',')
 				return asmRef;
-			reader.Read();
+			ReadChar();
 
 			while (true) {
 				SkipWhite();
-				int c = reader.Peek();
+				int c = PeekChar();
 				if (c == -1 || c == ']')
 					break;
 				if (c == ',') {
-					reader.Read();
+					ReadChar();
 					continue;
 				}
 
 				string key = ReadId();
 				SkipWhite();
-				if (reader.Peek() != '=')
+				if (PeekChar() != '=')
 					continue;
-				reader.Read();
+				ReadChar();
 				string value = ReadId();
 
 				switch (key.ToUpperInvariant()) {
@@ -687,13 +705,13 @@ done:
 		}
 
 		internal override int GetIdChar() {
-			int c = reader.Peek();
+			int c = PeekChar();
 			if (c == -1 || char.IsWhiteSpace((char)c))
 				return -1;
 			switch (c) {
 			case '\\':
-				reader.Read();
-				return reader.Read();
+				ReadChar();
+				return ReadChar();
 
 			case ',':
 			case '+':
@@ -705,7 +723,7 @@ done:
 				return -1;
 
 			default:
-				return reader.Read();
+				return ReadChar();
 			}
 		}
 	}
