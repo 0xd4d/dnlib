@@ -177,6 +177,7 @@ namespace dot10.DotNet {
 				throw;
 			}
 		}
+
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
 		/// </summary>
