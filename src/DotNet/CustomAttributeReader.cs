@@ -22,15 +22,25 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public AssemblyRef FindAssemblyRef(TypeRef nonNestedTypeRef) {
-			var asm = module.Assembly;
-			if (asm == null)
-				return null;
-			var type = asm.Find(nonNestedTypeRef);
-			if (type != null)
-				return module.UpdateRowId(new AssemblyRefUser(asm));
+			var modAsm = module.Assembly;
+			if (modAsm != null) {
+				var type = modAsm.Find(nonNestedTypeRef);
+				if (type != null)
+					return module.UpdateRowId(new AssemblyRefUser(modAsm));
+			}
+			else if (module.Find(nonNestedTypeRef) != null)
+				return AssemblyRef.CurrentAssembly;
 
-			// Assume it's in corlib without actually verifying it
-			return module.CorLibTypes.AssemblyRef;
+			var corLibAsm = module.Context.AssemblyResolver.Resolve(module.CorLibTypes.AssemblyRef, module);
+			if (corLibAsm != null) {
+				var type = corLibAsm.Find(nonNestedTypeRef);
+				if (type != null)
+					return module.CorLibTypes.AssemblyRef;
+			}
+
+			if (modAsm != null)
+				return module.UpdateRowId(new AssemblyRefUser(modAsm));
+			return AssemblyRef.CurrentAssembly;
 		}
 	}
 
