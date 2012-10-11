@@ -68,6 +68,7 @@ namespace dot10.DotNet {
 		IImageStream reader;
 		ICustomAttributeType ctor;
 		GenericArguments genericArguments;
+		bool verifyReadAllBytes;
 
 		/// <summary>
 		/// Reads a custom attribute
@@ -124,6 +125,7 @@ namespace dot10.DotNet {
 			this.reader = readerModule.BlobStream.CreateStream(offset);
 			this.ctor = ctor;
 			this.genericArguments = null;
+			this.verifyReadAllBytes = false;
 		}
 
 		CustomAttributeReader(ModuleDef ownerModule, IImageStream reader, ICustomAttributeType ctor) {
@@ -131,6 +133,7 @@ namespace dot10.DotNet {
 			this.reader = reader;
 			this.ctor = ctor;
 			this.genericArguments = null;
+			this.verifyReadAllBytes = false;
 		}
 
 		byte[] GetRawBlob() {
@@ -166,6 +169,11 @@ namespace dot10.DotNet {
 			var namedArgs = new List<CANamedArgument>(numNamedArgs);
 			for (int i = 0; i < numNamedArgs; i++)
 				namedArgs.Add(ReadNamedArgument());
+
+			// verifyReadAllBytes will be set when we guess the underlying type of an enum.
+			// To make sure we guessed right, verify that we read all bytes.
+			if (verifyReadAllBytes && reader.Position != reader.Length)
+				throw new CABlobParsingException("Not all CA blob bytes were read");
 
 			return new CustomAttribute(ctor, ctorArgs, namedArgs);
 		}
@@ -280,8 +288,6 @@ namespace dot10.DotNet {
 
 			// It's ET.Class if it's eg. a ctor System.Type arg type
 			case (SerializationType)ElementType.Class:
-				if (argType == null)
-					break;
 				var tdr = argType as TypeDefOrRefSig;
 				if (tdr == null)
 					break;
@@ -315,7 +321,13 @@ namespace dot10.DotNet {
 				TypeSig realArgType;
 				return ReadValue((SerializationType)underlyingType.ElementType, underlyingType, out realArgType);
 			}
-			throw new CABlobParsingException("Not an enum");
+
+			// We couldn't resolve the type ref. It should be an enum, but we don't know for sure.
+			// Most enums use Int32 as the underlying type. Assume that's true also in this case.
+			// Since we're guessing, verify that we've read all CA blob bytes. If we haven't, then
+			// we probably guessed wrong.
+			verifyReadAllBytes = true;
+			return reader.ReadInt32();
 		}
 
 		TypeSig ReadType() {
