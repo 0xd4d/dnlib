@@ -473,7 +473,7 @@ namespace dot10.DotNet {
 			case SerializationType.R8:		result = ownerModule.CorLibTypes.Double; break;
 			case SerializationType.String:	result = ownerModule.CorLibTypes.String; break;
 			case SerializationType.SZArray: result = new SZArraySig(ReadFieldOrPropType()); break;
-			case SerializationType.Type:	result = new ClassSig(ownerModule.UpdateRowId(new TypeRefUser(ownerModule, "System", "Type", ownerModule.CorLibTypes.AssemblyRef))); break;
+			case SerializationType.Type:	result = new ClassSig(ownerModule.CorLibTypes.GetTypeRef("System", "Type")); break;
 			case SerializationType.TaggedObject: result = ownerModule.CorLibTypes.Object; break;
 			case SerializationType.Enum:	result = ReadType(); break;
 			default: throw new CABlobParsingException("Invalid type");
