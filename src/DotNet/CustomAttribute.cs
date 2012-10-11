@@ -5,7 +5,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A custom attribute
 	/// </summary>
-	public class CustomAttribute {
+	public sealed class CustomAttribute {
 		ICustomAttributeType ctor;
 		byte[] rawData;
 		List<CAArgument> arguments;
@@ -221,7 +221,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A custom attribute constructor argument
 	/// </summary>
-	public class CAArgument {
+	public sealed class CAArgument {
 		TypeSig type;
 		object value;
 
@@ -274,7 +274,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A custom attribute field/property argument
 	/// </summary>
-	public class CANamedArgument {
+	public sealed class CANamedArgument {
 		bool isField;
 		TypeSig type;
 		UTF8String name;
