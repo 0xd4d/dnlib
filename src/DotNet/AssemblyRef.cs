@@ -8,6 +8,13 @@ namespace dot10.DotNet {
 	/// </summary>
 	public abstract class AssemblyRef : IHasCustomAttribute, IImplementation, IResolutionScope, IAssembly {
 		/// <summary>
+		/// An assembly ref that can be used to indicate that it references the current assembly
+		/// when the current assembly is not known (eg. a type string without any assembly info
+		/// when it references a type in the current assembly).
+		/// </summary>
+		public static readonly AssemblyRef CurrentAssembly = new AssemblyRefUser("<<<CURRENT_ASSEMBLY>>>");
+
+		/// <summary>
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;

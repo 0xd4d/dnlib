@@ -333,7 +333,7 @@ namespace dot10.DotNet {
 				return asmRef;
 			if (ownerModule.Assembly != null)
 				return ownerModule.UpdateRowId(ownerModule.Assembly.ToAssemblyRef());
-			return ownerModule.UpdateRowId(new AssemblyRefUser("<<<UNKNOWN>>>"));
+			return AssemblyRef.CurrentAssembly;
 		}
 
 		internal bool IsValueType(TypeRef typeRef) {
