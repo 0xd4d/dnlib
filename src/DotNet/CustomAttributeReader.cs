@@ -502,8 +502,6 @@ namespace dot10.DotNet {
 			uint len;
 			if (!reader.ReadCompressedUInt32(out len))
 				throw new CABlobParsingException("Could not read compressed UInt32");
-			if (len > (uint)int.MaxValue)
-				throw new CABlobParsingException("Too long string");
 			if (len == 0)
 				return UTF8String.Empty;
 			return new UTF8String(reader.ReadBytes((int)len));
