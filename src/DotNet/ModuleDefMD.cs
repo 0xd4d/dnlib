@@ -1397,9 +1397,7 @@ namespace dot10.DotNet {
 			var caRow = TablesStream.ReadCustomAttributeRow(caRid);
 			if (caRow == null)
 				return null;
-			var ctor = ResolveCustomAttributeType(caRow.Type);
-			var value = caRow.Value;
-			return CustomAttributeReader.Read(this, ctor, value);
+			return CustomAttributeReader.Read(this, ResolveCustomAttributeType(caRow.Type), caRow.Value);
 		}
 	}
 }
