@@ -2,7 +2,7 @@
 	/// <summary>
 	/// See CorSerializationType/CorHdr.h
 	/// </summary>
-	public enum SerializationType : byte {
+	enum SerializationType : byte {
 		/// <summary></summary>
 		Undefined	= 0,
 		/// <summary>System.Boolean</summary>
