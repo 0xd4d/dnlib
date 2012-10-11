@@ -91,6 +91,146 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeDefOrRefSig"/>
+		/// </summary>
+		public bool IsTypeDefOrRef {
+			get { return this is TypeDefOrRefSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="CorLibTypeSig"/>
+		/// </summary>
+		public bool IsCorLibType {
+			get { return this is CorLibTypeSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="ClassSig"/>
+		/// </summary>
+		public bool IsClassSig {
+			get { return this is ClassSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="ValueTypeSig"/>
+		/// </summary>
+		public bool IsValueTypeSig {
+			get { return this is ValueTypeSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="GenericSig"/>
+		/// </summary>
+		public bool IsGenericParameter {
+			get { return this is GenericSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="GenericVar"/>
+		/// </summary>
+		public bool IsGenericTypeParameter {
+			get { return this is GenericVar; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="GenericMVar"/>
+		/// </summary>
+		public bool IsGenericMethodParameter {
+			get { return this is GenericMVar; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="SentinelSig"/>
+		/// </summary>
+		public bool IsSentinel {
+			get { return this is SentinelSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="FnPtrSig"/>
+		/// </summary>
+		public bool IsFunctionPointer {
+			get { return this is FnPtrSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="GenericInstSig"/>
+		/// </summary>
+		public bool IsGenericInstanceType {
+			get { return this is GenericInstSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="PtrSig"/>
+		/// </summary>
+		public bool IsPointer {
+			get { return this is PtrSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="ByRefSig"/>
+		/// </summary>
+		public bool IsByRef {
+			get { return this is ByRefSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="ArraySig"/>
+		/// </summary>
+		public bool IsArray {
+			get { return this is ArraySig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="SZArraySig"/>
+		/// </summary>
+		public bool IsSZArray {
+			get { return this is SZArraySig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="ModifierSig"/>
+		/// </summary>
+		public bool IsModifier {
+			get { return this is ModifierSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="CModReqdSig"/>
+		/// </summary>
+		public bool IsRequiredModifier {
+			get { return this is CModReqdSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="CModOptSig"/>
+		/// </summary>
+		public bool IsOptionalModifier {
+			get { return this is CModOptSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="PinnedSig"/>
+		/// </summary>
+		public bool IsPinned {
+			get { return this is PinnedSig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="ValueArraySig"/>
+		/// </summary>
+		public bool IsValueArray {
+			get { return this is ValueArraySig; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="ModuleSig"/>
+		/// </summary>
+		public bool IsModuleSig {
+			get { return this is ModuleSig; }
+		}
+
+		/// <summary>
 		/// Removes all C optional/required modifiers
 		/// </summary>
 		/// <param name="a">A <see cref="TypeSig"/> instance</param>
