@@ -168,7 +168,8 @@ namespace dot10.DotNet {
 			for (int i = 0; i < methodSig.Params.Count; i++)
 				ctorArgs.Add(ReadFixedArg(FixTypeSig(methodSig.Params[i])));
 
-			int numNamedArgs = reader.ReadUInt16();
+			// Some tools don't write the next ushort if there are no named arguments.
+			int numNamedArgs = reader.Position == reader.Length ? 0 : reader.ReadUInt16();
 			var namedArgs = new List<CANamedArgument>(numNamedArgs);
 			for (int i = 0; i < numNamedArgs; i++)
 				namedArgs.Add(ReadNamedArgument());
