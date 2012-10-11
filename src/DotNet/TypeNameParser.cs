@@ -65,7 +65,7 @@ namespace dot10.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static ITypeDefOrRef ParseReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
+		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
 			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper))
 				return parser.Parse();
 		}
@@ -77,9 +77,9 @@ namespace dot10.DotNet {
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance or <c>null</c> if parsing failed</returns>
-		public static ITypeDefOrRef ParseReflectionNoThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
+		public static ITypeDefOrRef ParseReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
 			try {
-				return ParseReflection(ownerModule, typeFullName, typeNameParserHelper);
+				return ParseReflectionThrow(ownerModule, typeFullName, typeNameParserHelper);
 			}
 			catch (TypeNameParserException) {
 				return null;
@@ -94,7 +94,7 @@ namespace dot10.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static TypeSig ParseAsTypeSigReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
+		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
 			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper))
 				return parser.ParseAsTypeSig();
 		}
@@ -106,9 +106,9 @@ namespace dot10.DotNet {
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if parsing failed</returns>
-		public static TypeSig ParseAsTypeSigReflectionNoThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
+		public static TypeSig ParseAsTypeSigReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
 			try {
-				return ParseAsTypeSigReflection(ownerModule, typeFullName, typeNameParserHelper);
+				return ParseAsTypeSigReflectionThrow(ownerModule, typeFullName, typeNameParserHelper);
 			}
 			catch (TypeNameParserException) {
 				return null;
