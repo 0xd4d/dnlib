@@ -99,6 +99,14 @@ namespace dot10.DotNet {
 		/// Gets the assembly reference to the core library
 		/// </summary>
 		AssemblyRef AssemblyRef { get; }
+
+		/// <summary>
+		/// Gets a <see cref="TypeRef"/> that references a type in the assembly
+		/// </summary>
+		/// <param name="namespace">Namespace of type (eg. "System")</param>
+		/// <param name="name">Name of type</param>
+		/// <returns>A <see cref="TypeRef"/> instance. This instance may be a cached instance.</returns>
+		TypeRef GetTypeRef(string @namespace, string name);
 	}
 
 	static partial class Extensions {

@@ -114,7 +114,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		AssemblyRef ICorLibTypes.AssemblyRef {
+		public AssemblyRef AssemblyRef {
 			get { return corLibAssemblyRef; }
 		}
 
@@ -165,6 +165,11 @@ namespace dot10.DotNet {
 
 		TypeRef CreateCorLibTypeRef(string name) {
 			return module.UpdateRowId(new TypeRefUser(module, "System", name, corLibAssemblyRef));
+		}
+
+		/// <inheritdoc/>
+		public TypeRef GetTypeRef(string @namespace, string name) {
+			return module.UpdateRowId(new TypeRefUser(module, @namespace, name, corLibAssemblyRef));
 		}
 	}
 }
