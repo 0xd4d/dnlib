@@ -1386,5 +1386,20 @@ namespace dot10.DotNet {
 			}
 			return imageStream;
 		}
+
+		/// <summary>
+		/// Reads a <see cref="CustomAttribute"/>
+		/// </summary>
+		/// <param name="caRid">Custom attribute rid</param>
+		/// <returns>A new <see cref="CustomAttribute"/> instance or <c>null</c> if
+		/// <paramref name="caRid"/> is invalid</returns>
+		public CustomAttribute ReadCustomAttribute(uint caRid) {
+			var caRow = TablesStream.ReadCustomAttributeRow(caRid);
+			if (caRow == null)
+				return null;
+			var ctor = ResolveCustomAttributeType(caRow.Type);
+			var value = caRow.Value;
+			return CustomAttributeReader.Read(this, ctor, value);
+		}
 	}
 }
