@@ -6,7 +6,7 @@ namespace dot10.DotNet.MD {
 	/// Info about one MD table
 	/// </summary>
 	[DebuggerDisplay("{rowSize} {name}")]
-	public class TableInfo {
+	public sealed class TableInfo {
 		Table table;
 		int rowSize;
 		IList<ColumnInfo> columns;

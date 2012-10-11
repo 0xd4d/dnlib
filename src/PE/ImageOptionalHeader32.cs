@@ -7,7 +7,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Represents the IMAGE_OPTIONAL_HEADER (32-bit) PE section
 	/// </summary>
-	public class ImageOptionalHeader32 : FileSection, IImageOptionalHeader {
+	public sealed class ImageOptionalHeader32 : FileSection, IImageOptionalHeader {
 		ushort magic;
 		byte majorLinkerVersion;
 		byte minorLinkerVersion;

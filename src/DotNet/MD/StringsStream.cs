@@ -4,7 +4,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Represents the #Strings stream
 	/// </summary>
-	public class StringsStream : DotNetStream {
+	public sealed class StringsStream : DotNetStream {
 		/// <inheritdoc/>
 		public StringsStream() {
 		}

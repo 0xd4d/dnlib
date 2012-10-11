@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	/// <typeparam name="T">A <see cref="ICodedToken"/> type</typeparam>
 	[DebuggerDisplay("Count = {Length}")]
-	class SimpleLazyList<T> where T : class, IMDTokenProvider {
+	sealed class SimpleLazyList<T> where T : class, IMDTokenProvider {
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 		T[] elements;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]

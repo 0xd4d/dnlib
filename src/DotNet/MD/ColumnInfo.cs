@@ -8,7 +8,7 @@ namespace dot10.DotNet.MD {
 	/// Info about one column in a MD table
 	/// </summary>
 	[DebuggerDisplay("{offset} {size} {name}")]
-	public class ColumnInfo {
+	public sealed class ColumnInfo {
 		byte offset;
 		ColumnSize columnSize;
 		byte size;

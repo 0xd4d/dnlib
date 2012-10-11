@@ -21,7 +21,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// A <see cref="RidList"/> where the rids are contiguous
 	/// </summary>
-	class ContiguousRidList : RidList {
+	sealed class ContiguousRidList : RidList {
 		/// <summary>
 		/// The empty <see cref="RidList"/>
 		/// </summary>
@@ -66,7 +66,7 @@ namespace dot10.DotNet.MD {
 	/// A <see cref="RidList"/> where the returned rids aren't necessarily contiguous.
 	/// This should be used if eg. the pointer tables are present.
 	/// </summary>
-	class RandomRidList : RidList {
+	sealed class RandomRidList : RidList {
 		readonly IList<uint> indexToRid;
 
 		/// <inheritdoc/>

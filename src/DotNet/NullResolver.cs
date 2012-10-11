@@ -2,7 +2,7 @@
 	/// <summary>
 	/// A resolver that always fails
 	/// </summary>
-	public class NullResolver : IAssemblyResolver, IResolver {
+	public sealed class NullResolver : IAssemblyResolver, IResolver {
 		/// <summary>
 		/// The one and only instance of this type
 		/// </summary>

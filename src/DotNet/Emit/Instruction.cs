@@ -5,7 +5,7 @@ namespace dot10.DotNet.Emit {
 	/// <summary>
 	/// A CIL instruction (opcode + operand)
 	/// </summary>
-	public class Instruction {
+	public sealed class Instruction {
 		/// <summary>
 		/// The opcode
 		/// </summary>

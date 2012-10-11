@@ -6,7 +6,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Represents the IMAGE_NT_HEADERS PE section
 	/// </summary>
-	public class ImageNTHeaders : FileSection {
+	public sealed class ImageNTHeaders : FileSection {
 		uint signature;
 		ImageFileHeader imageFileHeader;
 		IImageOptionalHeader imageOptionalHeader;

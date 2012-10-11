@@ -9,7 +9,7 @@ namespace dot10.DotNet.MD {
 	/// A metadata stream header
 	/// </summary>
 	[DebuggerDisplay("O:{offset} L:{streamSize} {name}")]
-	public class StreamHeader : FileSection {
+	public sealed class StreamHeader : FileSection {
 		uint offset;
 		uint streamSize;
 		string name;

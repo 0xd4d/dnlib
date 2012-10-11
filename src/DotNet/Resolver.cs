@@ -4,7 +4,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Resolves types, methods, fields
 	/// </summary>
-	public class Resolver : IResolver {
+	public sealed class Resolver : IResolver {
 		IAssemblyResolver assemblyResolver;
 
 		/// <summary>

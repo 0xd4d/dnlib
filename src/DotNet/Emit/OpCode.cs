@@ -2,7 +2,7 @@
 	/// <summary>
 	/// A CIL opcode
 	/// </summary>
-	public class OpCode {
+	public sealed class OpCode {
 		/// <summary>
 		/// The opcode name
 		/// </summary>

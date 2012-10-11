@@ -6,7 +6,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Used when a #~ stream is present in the metadata
 	/// </summary>
-	class CompressedMetaData : MetaData {
+	sealed class CompressedMetaData : MetaData {
 		/// <inheritdoc/>
 		public CompressedMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
 			: base(peImage, cor20Header, mdHeader) {

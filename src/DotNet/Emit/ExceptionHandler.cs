@@ -2,7 +2,7 @@
 	/// <summary>
 	/// A CIL method exception handler
 	/// </summary>
-	public class ExceptionHandler {
+	public sealed class ExceptionHandler {
 		/// <summary>
 		/// First instruction of try block
 		/// </summary>

@@ -9,7 +9,7 @@ namespace dot10.PE {
 	/// Represents the IMAGE_SECTION_HEADER PE section
 	/// </summary>
 	[DebuggerDisplay("RVA:{virtualAddress} VS:{virtualSize} FO:{pointerToRawData} FS:{sizeOfRawData} {displayName}")]
-	public class ImageSectionHeader : FileSection {
+	public sealed class ImageSectionHeader : FileSection {
 		string displayName;
 		byte[] name;
 		uint virtualSize;

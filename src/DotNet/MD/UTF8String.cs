@@ -10,7 +10,7 @@ namespace dot10.DotNet.MD {
 	/// <remarks>When comparing strings, a byte compare is performed. The reason is that this
 	/// is what the CLR does when comparing strings in the #Strings stream.</remarks>
 	[DebuggerDisplay("{String}")]
-	public class UTF8String : IEquatable<UTF8String>, IComparable<UTF8String> {
+	public sealed class UTF8String : IEquatable<UTF8String>, IComparable<UTF8String> {
 		/// <summary>
 		/// An empty <see cref="UTF8String"/>
 		/// </summary>

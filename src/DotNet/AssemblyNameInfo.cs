@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Stores assembly name information
 	/// </summary>
-	public class AssemblyNameInfo {
+	public sealed class AssemblyNameInfo {
 		AssemblyHashAlgorithm hashAlgId;
 		Version version;
 		AssemblyFlags flags;

@@ -5,7 +5,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Represents the #US stream
 	/// </summary>
-	public class USStream : DotNetStream {
+	public sealed class USStream : DotNetStream {
 		/// <inheritdoc/>
 		public USStream() {
 		}

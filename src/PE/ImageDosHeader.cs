@@ -6,7 +6,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Represents the IMAGE_DOS_HEADER PE section
 	/// </summary>
-	public class ImageDosHeader : FileSection {
+	public sealed class ImageDosHeader : FileSection {
 		uint ntHeadersOffset;
 
 		/// <summary>

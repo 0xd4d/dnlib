@@ -26,7 +26,7 @@ namespace dot10.PE {
 	/// <summary>
 	/// Represents the IMAGE_FILE_HEADER PE section
 	/// </summary>
-	public class ImageFileHeader : FileSection {
+	public sealed class ImageFileHeader : FileSection {
 		Machine machine;
 		ushort numberOfSections;
 		uint timeDateStamp;

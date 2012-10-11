@@ -4,7 +4,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Represents the #Blob stream
 	/// </summary>
-	public class BlobStream : DotNetStream {
+	public sealed class BlobStream : DotNetStream {
 		static readonly byte[] noData = new byte[0];
 
 		/// <inheritdoc/>

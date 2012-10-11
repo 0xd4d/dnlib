@@ -55,7 +55,7 @@ namespace dot10.DotNet {
 		}
 	}
 
-	class GenericArguments {
+	sealed class GenericArguments {
 		GenericArgumentsStack typeArgsStack = new GenericArgumentsStack(true);
 		GenericArgumentsStack methodArgsStack = new GenericArgumentsStack(false);
 

@@ -5,7 +5,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Represents the #GUID stream
 	/// </summary>
-	public class GuidStream : DotNetStream {
+	public sealed class GuidStream : DotNetStream {
 		/// <inheritdoc/>
 		public GuidStream() {
 		}

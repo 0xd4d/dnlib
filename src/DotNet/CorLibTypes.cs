@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace dot10.DotNet {
-	class CorLibTypes : ICorLibTypes {
+	sealed class CorLibTypes : ICorLibTypes {
 		ModuleDef module;
 		CorLibTypeSig typeVoid;
 		CorLibTypeSig typeBoolean;

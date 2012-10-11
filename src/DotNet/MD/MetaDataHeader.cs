@@ -26,7 +26,7 @@ namespace dot10.DotNet.MD {
 	/// Represents the .NET metadata header
 	/// </summary>
 	/// <remarks><c>IMAGE_COR20_HEADER.MetaData</c> points to this header</remarks>
-	class MetaDataHeader : FileSection {
+	sealed class MetaDataHeader : FileSection {
 		uint signature;
 		ushort majorVersion;
 		ushort minorVersion;

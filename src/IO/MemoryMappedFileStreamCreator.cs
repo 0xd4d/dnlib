@@ -13,7 +13,7 @@ namespace dot10.IO {
 	/// <see cref="UnmanagedMemoryStreamCreator.Dispose()"/> to free any resources
 	/// used by the class when it's no longer needed.</remarks>
 	[DebuggerDisplay("mmap: A:{data} L:{dataLength} {theFileName}")]
-	class MemoryMappedFileStreamCreator : UnmanagedMemoryStreamCreator {
+	sealed class MemoryMappedFileStreamCreator : UnmanagedMemoryStreamCreator {
 		const uint GENERIC_READ = 0x80000000;
 		const uint FILE_SHARE_READ = 0x00000001;
 		const uint OPEN_EXISTING = 3;
