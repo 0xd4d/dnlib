@@ -116,7 +116,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column TypeDef.Extends
 		/// </summary>
-		public abstract ITypeDefOrRef Extends { get; set; }
+		public abstract ITypeDefOrRef BaseType { get; set; }
 
 		/// <summary>
 		/// From column TypeDef.FieldList
@@ -189,14 +189,14 @@ namespace dot10.DotNet {
 		/// </summary>
 		public bool IsValueType {
 			get {
-				var extends = Extends;
-				if (extends == null)
+				var baseType = BaseType;
+				if (baseType == null)
 					return false;
-				if (extends.Namespace != "System")
+				if (baseType.Namespace != "System")
 					return false;
-				if (extends.Name != "ValueType" && extends.Name != "Enum")
+				if (baseType.Name != "ValueType" && baseType.Name != "Enum")
 					return false;
-				return extends.DefinitionAssembly.IsCorLib();
+				return baseType.DefinitionAssembly.IsCorLib();
 			}
 		}
 
@@ -205,14 +205,14 @@ namespace dot10.DotNet {
 		/// </summary>
 		public bool IsEnum {
 			get {
-				var extends = Extends;
-				if (extends == null)
+				var baseType = BaseType;
+				if (baseType == null)
 					return false;
-				if (extends.Namespace != "System")
+				if (baseType.Namespace != "System")
 					return false;
-				if (extends.Name != "Enum")
+				if (baseType.Name != "Enum")
 					return false;
-				return extends.DefinitionAssembly.IsCorLib();
+				return baseType.DefinitionAssembly.IsCorLib();
 			}
 		}
 
@@ -784,7 +784,7 @@ namespace dot10.DotNet {
 		TypeAttributes flags;
 		UTF8String name;
 		UTF8String @namespace;
-		ITypeDefOrRef extends;
+		ITypeDefOrRef baseType;
 		LazyList<FieldDef> fields;
 		LazyList<MethodDef> methods;
 		IList<GenericParam> genericParams = new List<GenericParam>();
@@ -816,9 +816,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ITypeDefOrRef Extends {
-			get { return extends; }
-			set { extends = value; }
+		public override ITypeDefOrRef BaseType {
+			get { return baseType; }
+			set { baseType = value; }
 		}
 
 		/// <inheritdoc/>
@@ -900,9 +900,9 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(UTF8String name, ITypeDefOrRef extends)
-			: this(null, name, extends) {
+		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
+		public TypeDefUser(UTF8String name, ITypeDefOrRef baseType)
+			: this(null, name, baseType) {
 		}
 
 		/// <summary>
@@ -910,8 +910,8 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(UTF8String @namespace, UTF8String name, ITypeDefOrRef extends) {
+		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
+		public TypeDefUser(UTF8String @namespace, UTF8String name, ITypeDefOrRef baseType) {
 			this.fields = new LazyList<FieldDef>(this);
 			this.methods = new LazyList<MethodDef>(this);
 			this.nestedTypes = new LazyList<TypeDef>(this);
@@ -919,7 +919,7 @@ namespace dot10.DotNet {
 			this.properties = new LazyList<PropertyDef>(this);
 			this.@namespace = @namespace;
 			this.name = name;
-			this.extends = extends;
+			this.baseType = baseType;
 		}
 
 		/// <summary>
@@ -943,9 +943,9 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(string name, ITypeDefOrRef extends)
-			: this(null, name, extends) {
+		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
+		public TypeDefUser(string name, ITypeDefOrRef baseType)
+			: this(null, name, baseType) {
 		}
 
 		/// <summary>
@@ -953,9 +953,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		/// <param name="extends">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(string @namespace, string name, ITypeDefOrRef extends)
-			: this(new UTF8String(@namespace), new UTF8String(name), extends) {
+		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
+		public TypeDefUser(string @namespace, string name, ITypeDefOrRef baseType)
+			: this(new UTF8String(@namespace), new UTF8String(name), baseType) {
 		}
 	}
 
@@ -971,7 +971,7 @@ namespace dot10.DotNet {
 		UserValue<TypeAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> @namespace;
-		UserValue<ITypeDefOrRef> extends;
+		UserValue<ITypeDefOrRef> baseType;
 		LazyList<FieldDef> fields;
 		LazyList<MethodDef> methods;
 		LazyList<GenericParam> genericParams;
@@ -1003,9 +1003,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ITypeDefOrRef Extends {
-			get { return extends.Value; }
-			set { extends.Value = value; }
+		public override ITypeDefOrRef BaseType {
+			get { return baseType.Value; }
+			set { baseType.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -1148,7 +1148,7 @@ namespace dot10.DotNet {
 				InitializeRawRow();
 				return readerModule.StringsStream.Read(rawRow.Namespace);
 			};
-			extends.ReadOriginalValue = () => {
+			baseType.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Extends);
 			};
