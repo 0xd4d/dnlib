@@ -68,6 +68,7 @@ namespace dot10.DotNet {
 		IImageStream reader;
 		ICustomAttributeType ctor;
 		GenericArguments genericArguments;
+		RecursionCounter recursionCounter;
 		bool verifyReadAllBytes;
 
 		/// <summary>
@@ -125,6 +126,7 @@ namespace dot10.DotNet {
 			this.reader = readerModule.BlobStream.CreateStream(offset);
 			this.ctor = ctor;
 			this.genericArguments = null;
+			this.recursionCounter = new RecursionCounter();
 			this.verifyReadAllBytes = false;
 		}
 
@@ -133,6 +135,7 @@ namespace dot10.DotNet {
 			this.reader = reader;
 			this.ctor = ctor;
 			this.genericArguments = null;
+			this.recursionCounter = new RecursionCounter();
 			this.verifyReadAllBytes = false;
 		}
 
@@ -189,13 +192,20 @@ namespace dot10.DotNet {
 		}
 
 		CAArgument ReadFixedArg(TypeSig argType) {
+			if (!recursionCounter.Increment())
+				throw new CABlobParsingException("Too much recursion");
 			if (argType == null)
 				throw new CABlobParsingException("null argType");
+			CAArgument result;
+
 			var arrayType = argType as SZArraySig;
 			if (arrayType != null)
-				return ReadArrayArgument(arrayType);
+				result = ReadArrayArgument(arrayType);
+			else
+				result = ReadElem(argType);
 
-			return ReadElem(argType);
+			recursionCounter.Decrement();
+			return result;
 		}
 
 		CAArgument ReadElem(TypeSig argType) {
@@ -216,65 +226,83 @@ namespace dot10.DotNet {
 		}
 
 		object ReadValue(SerializationType etype, TypeSig argType, out TypeSig realArgType) {
+			if (!recursionCounter.Increment())
+				throw new CABlobParsingException("Too much recursion");
+
+			object result;
 			switch (etype) {
 			case SerializationType.Boolean:
 				realArgType = ownerModule.CorLibTypes.Boolean;
-				return reader.ReadByte() != 0;
+				result = reader.ReadByte() != 0;
+				break;
 
 			case SerializationType.Char:
 				realArgType = ownerModule.CorLibTypes.Char;
-				return reader.ReadChar();
+				result = reader.ReadChar();
+				break;
 
 			case SerializationType.I1:
 				realArgType = ownerModule.CorLibTypes.SByte;
-				return reader.ReadSByte();
+				result = reader.ReadSByte();
+				break;
 
 			case SerializationType.U1:
 				realArgType = ownerModule.CorLibTypes.Byte;
-				return reader.ReadByte();
+				result = reader.ReadByte();
+				break;
 
 			case SerializationType.I2:
 				realArgType = ownerModule.CorLibTypes.Int16;
-				return reader.ReadInt16();
+				result = reader.ReadInt16();
+				break;
 
 			case SerializationType.U2:
 				realArgType = ownerModule.CorLibTypes.UInt16;
-				return reader.ReadUInt16();
+				result = reader.ReadUInt16();
+				break;
 
 			case SerializationType.I4:
 				realArgType = ownerModule.CorLibTypes.Int32;
-				return reader.ReadInt32();
+				result = reader.ReadInt32();
+				break;
 
 			case SerializationType.U4:
 				realArgType = ownerModule.CorLibTypes.UInt32;
-				return reader.ReadUInt32();
+				result = reader.ReadUInt32();
+				break;
 
 			case SerializationType.I8:
 				realArgType = ownerModule.CorLibTypes.Int64;
-				return reader.ReadInt64();
+				result = reader.ReadInt64();
+				break;
 
 			case SerializationType.U8:
 				realArgType = ownerModule.CorLibTypes.UInt64;
-				return reader.ReadUInt64();
+				result = reader.ReadUInt64();
+				break;
 
 			case SerializationType.R4:
 				realArgType = ownerModule.CorLibTypes.Single;
-				return reader.ReadSingle();
+				result = reader.ReadSingle();
+				break;
 
 			case SerializationType.R8:
 				realArgType = ownerModule.CorLibTypes.Double;
-				return reader.ReadDouble();
+				result = reader.ReadDouble();
+				break;
 
 			case SerializationType.String:
 				realArgType = ownerModule.CorLibTypes.String;
-				return ReadUTF8String();
+				result = ReadUTF8String();
+				break;
 
 			// It's ET.ValueType if it's eg. a ctor enum arg type
 			case (SerializationType)ElementType.ValueType:
 				if (argType == null)
-					break;
+					throw new CABlobParsingException("Invalid element type");
 				realArgType = argType;
-				return ReadEnumValue(GetEnumUnderlyingType(argType));
+				result = ReadEnumValue(GetEnumUnderlyingType(argType));
+				break;
 
 			// It's ET.Object if it's a ctor object arg type
 			case (SerializationType)ElementType.Object:
@@ -282,36 +310,48 @@ namespace dot10.DotNet {
 				realArgType = ReadFieldOrPropType();
 				var arraySig = realArgType as SZArraySig;
 				if (arraySig != null)
-					return ReadArrayArgument(arraySig);
-				TypeSig tmpType;
-				return ReadValue((SerializationType)realArgType.ElementType, realArgType, out tmpType);
+					result = ReadArrayArgument(arraySig);
+				else {
+					TypeSig tmpType;
+					result = ReadValue((SerializationType)realArgType.ElementType, realArgType, out tmpType);
+				}
+				break;
 
 			// It's ET.Class if it's eg. a ctor System.Type arg type
 			case (SerializationType)ElementType.Class:
 				var tdr = argType as TypeDefOrRefSig;
-				if (tdr == null)
-					break;
-				if (!tdr.DefinitionAssembly.IsCorLib())
-					break;
-				if (tdr.Namespace != "System")
-					break;
-				if (tdr.Name == "Type")
-					return ReadValue(SerializationType.Type, tdr, out realArgType);
-				if (tdr.Name == "String")
-					return ReadValue(SerializationType.String, tdr, out realArgType);
-				if (tdr.Name == "Object")
-					return ReadValue(SerializationType.TaggedObject, tdr, out realArgType);
-				break;
+				if (tdr != null && tdr.DefinitionAssembly.IsCorLib() && tdr.Namespace == "System") {
+					if (tdr.Name == "Type") {
+						result = ReadValue(SerializationType.Type, tdr, out realArgType);
+						break;
+					}
+					if (tdr.Name == "String") {
+						result = ReadValue(SerializationType.String, tdr, out realArgType);
+						break;
+					}
+					if (tdr.Name == "Object") {
+						result = ReadValue(SerializationType.TaggedObject, tdr, out realArgType);
+						break;
+					}
+				}
+				throw new CABlobParsingException("Invalid element type");
 
 			case SerializationType.Type:
 				realArgType = argType;
-				return ReadType();
+				result = ReadType();
+				break;
 
 			case SerializationType.Enum:
 				realArgType = ReadType();
-				return ReadEnumValue(GetEnumUnderlyingType(realArgType));
+				result = ReadEnumValue(GetEnumUnderlyingType(realArgType));
+				break;
+
+			default:
+				throw new CABlobParsingException("Invalid element type");
 			}
-			throw new CABlobParsingException("Invalid element type");
+
+			recursionCounter.Decrement();
+			return result;
 		}
 
 		object ReadEnumValue(TypeSig underlyingType) {
@@ -379,19 +419,23 @@ namespace dot10.DotNet {
 		}
 
 		CAArgument ReadArrayArgument(SZArraySig arrayType) {
+			if (!recursionCounter.Increment())
+				throw new CABlobParsingException("Too much recursion");
 			var arg = new CAArgument(arrayType);
 
 			int arrayCount = reader.ReadInt32();
-			if (arrayCount == -1)	// -1 if it's null
-				return arg;
-			if (arrayCount < 0)
+			if (arrayCount == -1) {	// -1 if it's null
+			}
+			else if (arrayCount < 0)
 				throw new CABlobParsingException("Array is too big");
+			else {
+				var array = new List<CAArgument>(arrayCount);
+				arg.Value = array;
+				for (int i = 0; i < arrayCount; i++)
+					array.Add(ReadFixedArg(FixTypeSig(arrayType.Next)));
+			}
 
-			var array = new List<CAArgument>(arrayCount);
-			arg.Value = array;
-			for (int i = 0; i < arrayCount; i++)
-				array.Add(ReadFixedArg(FixTypeSig(arrayType.Next)));
-
+			recursionCounter.Decrement();
 			return arg;
 		}
 
@@ -411,26 +455,31 @@ namespace dot10.DotNet {
 		}
 
 		TypeSig ReadFieldOrPropType() {
+			if (!recursionCounter.Increment())
+				throw new CABlobParsingException("Too much recursion");
+			TypeSig result;
 			switch ((SerializationType)reader.ReadByte()) {
-			case SerializationType.Boolean: return ownerModule.CorLibTypes.Boolean;
-			case SerializationType.Char:	return ownerModule.CorLibTypes.Char;
-			case SerializationType.I1:		return ownerModule.CorLibTypes.SByte;
-			case SerializationType.U1:		return ownerModule.CorLibTypes.Byte;
-			case SerializationType.I2:		return ownerModule.CorLibTypes.Int16;
-			case SerializationType.U2:		return ownerModule.CorLibTypes.UInt16;
-			case SerializationType.I4:		return ownerModule.CorLibTypes.Int32;
-			case SerializationType.U4:		return ownerModule.CorLibTypes.UInt32;
-			case SerializationType.I8:		return ownerModule.CorLibTypes.Int64;
-			case SerializationType.U8:		return ownerModule.CorLibTypes.UInt64;
-			case SerializationType.R4:		return ownerModule.CorLibTypes.Single;
-			case SerializationType.R8:		return ownerModule.CorLibTypes.Double;
-			case SerializationType.String:	return ownerModule.CorLibTypes.String;
-			case SerializationType.SZArray: return new SZArraySig(ReadFieldOrPropType());
-			case SerializationType.Type:	return new ClassSig(ownerModule.UpdateRowId(new TypeRefUser(ownerModule, "System", "Type", ownerModule.CorLibTypes.AssemblyRef)));
-			case SerializationType.TaggedObject: return ownerModule.CorLibTypes.Object;
-			case SerializationType.Enum:	return ReadType();
+			case SerializationType.Boolean: result = ownerModule.CorLibTypes.Boolean; break;
+			case SerializationType.Char:	result = ownerModule.CorLibTypes.Char; break;
+			case SerializationType.I1:		result = ownerModule.CorLibTypes.SByte; break;
+			case SerializationType.U1:		result = ownerModule.CorLibTypes.Byte; break;
+			case SerializationType.I2:		result = ownerModule.CorLibTypes.Int16; break;
+			case SerializationType.U2:		result = ownerModule.CorLibTypes.UInt16; break;
+			case SerializationType.I4:		result = ownerModule.CorLibTypes.Int32; break;
+			case SerializationType.U4:		result = ownerModule.CorLibTypes.UInt32; break;
+			case SerializationType.I8:		result = ownerModule.CorLibTypes.Int64; break;
+			case SerializationType.U8:		result = ownerModule.CorLibTypes.UInt64; break;
+			case SerializationType.R4:		result = ownerModule.CorLibTypes.Single; break;
+			case SerializationType.R8:		result = ownerModule.CorLibTypes.Double; break;
+			case SerializationType.String:	result = ownerModule.CorLibTypes.String; break;
+			case SerializationType.SZArray: result = new SZArraySig(ReadFieldOrPropType()); break;
+			case SerializationType.Type:	result = new ClassSig(ownerModule.UpdateRowId(new TypeRefUser(ownerModule, "System", "Type", ownerModule.CorLibTypes.AssemblyRef))); break;
+			case SerializationType.TaggedObject: result = ownerModule.CorLibTypes.Object; break;
+			case SerializationType.Enum:	result = ReadType(); break;
 			default: throw new CABlobParsingException("Invalid type");
 			}
+			recursionCounter.Decrement();
+			return result;
 		}
 
 		UTF8String ReadUTF8String() {
