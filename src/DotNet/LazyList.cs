@@ -43,7 +43,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	/// <typeparam name="TValue">Type to store in list</typeparam>
 	[DebuggerDisplay("Count = {Count}")]
-	class LazyList<TValue> : ILazyList<TValue> where TValue : class {
+	public class LazyList<TValue> : ILazyList<TValue> where TValue : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		object context;
 
@@ -185,7 +185,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public LazyList()
+		internal LazyList()
 			: this(null) {
 		}
 
@@ -193,7 +193,7 @@ namespace dot10.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="listener">List listener</param>
-		public LazyList(IListListener<TValue> listener) {
+		internal LazyList(IListListener<TValue> listener) {
 			this.listener = listener;
 			this.list = new List<Element>();
 		}
@@ -204,7 +204,7 @@ namespace dot10.DotNet {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public LazyList(int length, object context, MFunc<object, uint, TValue> readOriginalValue)
+		internal LazyList(int length, object context, MFunc<object, uint, TValue> readOriginalValue)
 			: this(length, null, context, readOriginalValue) {
 		}
 
@@ -215,7 +215,7 @@ namespace dot10.DotNet {
 		/// <param name="listener">List listener</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public LazyList(int length, IListListener<TValue> listener, object context, MFunc<object, uint, TValue> readOriginalValue) {
+		internal LazyList(int length, IListListener<TValue> listener, object context, MFunc<object, uint, TValue> readOriginalValue) {
 			this.listener = listener;
 			this.context = context;
 			this.readOriginalValue = readOriginalValue;
