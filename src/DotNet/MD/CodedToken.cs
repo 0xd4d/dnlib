@@ -149,6 +149,8 @@ namespace dot10.DotNet.MD {
 				codedToken = uint.MaxValue;
 				return false;
 			}
+			// This shift can never overflow a uint since bits < 8 (it's at most 5), and
+			// ToRid() returns an integer <= 0x00FFFFFF.
 			codedToken = (MDToken.ToRID(token) << bits) | (uint)index;
 			return true;
 		}
