@@ -182,7 +182,7 @@ namespace dot10.DotNet {
 		}
 
 		TypeSig FixTypeSig(TypeSig type) {
-			return TypeSig.RemoveModifiers(SubstituteGenericParameter(TypeSig.RemoveModifiers(type)));
+			return SubstituteGenericParameter(type.RemoveModifiers()).RemoveModifiers();
 		}
 
 		TypeSig SubstituteGenericParameter(TypeSig type) {
@@ -393,7 +393,7 @@ namespace dot10.DotNet {
 				return null;
 			if (!td.IsEnum)
 				throw new CABlobParsingException("Not an enum");
-			return TypeSig.RemoveModifiers(td.GetEnumUnderlyingType());
+			return td.GetEnumUnderlyingType().RemoveModifiers();
 		}
 
 		/// <summary>

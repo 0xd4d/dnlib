@@ -907,7 +907,7 @@ namespace dot10.DotNet {
 			var ts = parent as TypeSpec;
 			if (ts == null)
 				return null;
-			return TypeSig.RemoveModifiers(ts.TypeSig) as GenericInstSig;
+			return ts.TypeSig.RemoveModifiers() as GenericInstSig;
 		}
 
 		/// <summary>
@@ -3344,7 +3344,7 @@ exit:
 				if (!b.IsPointer)
 					result = false;
 				else if (IsFnPtrElementType(b)) {
-					a = TypeSig.RemoveModifiers(a.Next);
+					a = a.Next.RemoveModifiers();
 					result = a != null && a.ElementType == ElementType.FnPtr;
 				}
 				else
@@ -3355,7 +3355,7 @@ exit:
 				if (!b.IsByRef)
 					result = false;
 				else if (IsFnPtrElementType(b)) {
-					a = TypeSig.RemoveModifiers(a.Next);
+					a = a.Next.RemoveModifiers();
 					result = a != null && a.ElementType == ElementType.FnPtr;
 				}
 				else
@@ -3366,7 +3366,7 @@ exit:
 				if (!b.IsArray || !b.IsSZArray())
 					result = false;
 				else if (IsFnPtrElementType(b)) {
-					a = TypeSig.RemoveModifiers(a.Next);
+					a = a.Next.RemoveModifiers();
 					result = a != null && a.ElementType == ElementType.FnPtr;
 				}
 				else
@@ -3384,7 +3384,7 @@ exit:
 					ArraySig ara = a as ArraySig;
 					result = ara.Rank == b.GetArrayRank() &&
 						(IsFnPtrElementType(b) ?
-								(a = TypeSig.RemoveModifiers(a.Next)) != null && a.ElementType == ElementType.FnPtr :
+								(a = a.Next.RemoveModifiers()) != null && a.ElementType == ElementType.FnPtr :
 								Equals(a.Next, b.GetElementType()));
 				}
 				break;

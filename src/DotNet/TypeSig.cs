@@ -230,12 +230,19 @@ namespace dot10.DotNet {
 			get { return this is ModuleSig; }
 		}
 
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullName;
+		}
+	}
+
+	static partial class Extensions {
 		/// <summary>
 		/// Removes all C optional/required modifiers
 		/// </summary>
 		/// <param name="a">A <see cref="TypeSig"/> instance</param>
 		/// <returns>Input after all modifiers</returns>
-		public static TypeSig RemoveModifiers(TypeSig a) {
+		public static TypeSig RemoveModifiers(this TypeSig a) {
 			if (a == null)
 				return null;
 			while (true) {
@@ -244,11 +251,6 @@ namespace dot10.DotNet {
 					return a;
 				a = a.Next;
 			}
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
 		}
 	}
 
