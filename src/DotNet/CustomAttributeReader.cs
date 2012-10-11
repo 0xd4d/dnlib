@@ -219,9 +219,8 @@ namespace dot10.DotNet {
 
 			// One example when this is true is when prop/field type is object and
 			// value type is string[]
-			var argument = value as CAArgument;
-			if (argument != null)
-				return argument;
+			if (value is CAArgument)
+				return (CAArgument)value;
 
 			return new CAArgument(realArgType, value);
 		}

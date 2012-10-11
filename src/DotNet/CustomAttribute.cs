@@ -221,7 +221,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A custom attribute constructor argument
 	/// </summary>
-	public sealed class CAArgument {
+	public struct CAArgument {
 		TypeSig type;
 		object value;
 
@@ -242,17 +242,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public CAArgument() {
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="type">Argument type</param>
 		public CAArgument(TypeSig type) {
 			this.type = type;
+			this.value = null;
 		}
 
 		/// <summary>
