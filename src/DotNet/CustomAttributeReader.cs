@@ -44,6 +44,9 @@ namespace dot10.DotNet {
 		}
 	}
 
+	/// <summary>
+	/// Thrown by CustomAttributeReader when it fails to parse a custom attribute blob
+	/// </summary>
 	[Serializable]
 	class CABlobParsingException : Exception {
 		/// <summary>
