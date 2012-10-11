@@ -332,8 +332,8 @@ namespace dot10.DotNet {
 
 		TypeSig ReadType() {
 			var name = ReadUTF8String();
-			var parserHelper = new CAAssemblyRefFinder(ownerModule);
-			var type = TypeNameParser.ParseAsTypeSigReflectionNoThrow(ownerModule, UTF8String.ToSystemStringOrEmpty(name), parserHelper);
+			var asmRefFinder = new CAAssemblyRefFinder(ownerModule);
+			var type = TypeNameParser.ParseAsTypeSigReflectionNoThrow(ownerModule, UTF8String.ToSystemStringOrEmpty(name), asmRefFinder);
 			if (type == null)
 				throw new CABlobParsingException("Could not parse type");
 			return type;
