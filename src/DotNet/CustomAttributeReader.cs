@@ -335,7 +335,10 @@ namespace dot10.DotNet {
 						break;
 					}
 				}
-				throw new CABlobParsingException("Invalid element type");
+
+				// Assume it's an enum that couldn't be resolved
+				realArgType = argType;
+				return ReadEnumValue(null);
 
 			case SerializationType.Type:
 				realArgType = argType;
