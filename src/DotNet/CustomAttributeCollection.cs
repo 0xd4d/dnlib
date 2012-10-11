@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		internal CustomAttributeCollection() {
+		public CustomAttributeCollection() {
 		}
 
 		/// <summary>
