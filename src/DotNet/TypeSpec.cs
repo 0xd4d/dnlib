@@ -87,6 +87,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract TypeSig TypeSig { get; set; }
 
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -98,11 +103,17 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class TypeSpecUser : TypeSpec {
 		TypeSig typeSig;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override TypeSig TypeSig {
 			get { return typeSig; }
 			set { typeSig = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -130,11 +141,23 @@ namespace dot10.DotNet {
 		RawTypeSpecRow rawRow;
 
 		UserValue<TypeSig> typeSig;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override TypeSig TypeSig {
 			get { return typeSig.Value; }
 			set { typeSig.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeSpec, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

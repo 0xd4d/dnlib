@@ -71,6 +71,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract byte[] HashValue { get; set; }
 
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
 		/// <inheritdoc/>
 		public string FullName {
 			get { return Utils.GetAssemblyNameString(Name, Version, Locale, PublicKeyOrToken); }
@@ -244,6 +249,12 @@ namespace dot10.DotNet {
 		UTF8String name;
 		UTF8String locale;
 		byte[] hashValue;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
+		}
 
 		/// <inheritdoc/>
 		public override Version Version {
@@ -445,12 +456,24 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawAssemblyRefRow rawRow;
 
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<Version> version;
 		UserValue<AssemblyFlags> flags;
 		UserValue<PublicKeyBase> publicKeyOrToken;
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> locale;
 		UserValue<byte[]> hashValue;
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.AssemblyRef, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
+		}
 
 		/// <inheritdoc/>
 		public override Version Version {

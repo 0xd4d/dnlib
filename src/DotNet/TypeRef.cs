@@ -108,6 +108,11 @@ namespace dot10.DotNet {
 		public abstract UTF8String Namespace { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
 		/// </summary>
 		public bool IsNested {
@@ -173,6 +178,7 @@ namespace dot10.DotNet {
 		IResolutionScope resolutionScope;
 		UTF8String name;
 		UTF8String @namespace;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override IResolutionScope ResolutionScope {
@@ -190,6 +196,11 @@ namespace dot10.DotNet {
 		public override UTF8String Namespace {
 			get { return @namespace; }
 			set { @namespace = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -270,6 +281,7 @@ namespace dot10.DotNet {
 		UserValue<IResolutionScope> resolutionScope;
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> @namespace;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override IResolutionScope ResolutionScope {
@@ -287,6 +299,17 @@ namespace dot10.DotNet {
 		public override UTF8String Namespace {
 			get { return @namespace.Value; }
 			set { @namespace.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeRef, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

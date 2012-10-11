@@ -43,6 +43,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// From column Field.Flags
 		/// </summary>
 		public abstract FieldAttributes Flags { get; set; }
@@ -307,6 +312,7 @@ namespace dot10.DotNet {
 	/// A Field row created by the user and not present in the original .NET file
 	/// </summary>
 	public class FieldDefUser : FieldDef {
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		FieldAttributes flags;
 		UTF8String name;
 		CallingConventionSig signature;
@@ -316,6 +322,11 @@ namespace dot10.DotNet {
 		ImplMap implMap;
 		Constant constant;
 		TypeDef declaringType;
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
+		}
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {
@@ -443,6 +454,7 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawFieldRow rawRow;
 
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<FieldAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> signature;
@@ -452,6 +464,17 @@ namespace dot10.DotNet {
 		UserValue<ImplMap> implMap;
 		UserValue<Constant> constant;
 		UserValue<TypeDef> declaringType;
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Field, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
+		}
 
 		/// <inheritdoc/>
 		public override FieldAttributes Flags {

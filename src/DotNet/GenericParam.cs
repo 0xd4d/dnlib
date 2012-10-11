@@ -61,6 +61,11 @@ namespace dot10.DotNet {
 		public abstract IList<GenericParamConstraint> GenericParamConstraints { get; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets variance (non, contra, co)
 		/// </summary>
 		public GenericParamAttributes Variance {
@@ -94,6 +99,7 @@ namespace dot10.DotNet {
 		UTF8String name;
 		ITypeDefOrRef kind;
 		IList<GenericParamConstraint> genericParamConstraints = new List<GenericParamConstraint>();
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override ushort Number {
@@ -128,6 +134,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<GenericParamConstraint> GenericParamConstraints {
 			get { return genericParamConstraints; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -196,6 +207,7 @@ namespace dot10.DotNet {
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> kind;
 		LazyList<GenericParamConstraint> genericParamConstraints;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override ushort Number {
@@ -225,6 +237,17 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Kind {
 			get { return kind.Value; }
 			set { kind.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParam, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <inheritdoc/>

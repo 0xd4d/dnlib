@@ -99,6 +99,11 @@ namespace dot10.DotNet {
 		public abstract IList<ModuleDef> Modules { get; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets the manifest (main) module. This is always the first module in <see cref="Modules"/>.
 		/// </summary>
 		public ModuleDef ManifestModule {
@@ -572,6 +577,7 @@ namespace dot10.DotNet {
 		UTF8String locale;
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		LazyList<ModuleDef> modules;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
@@ -627,6 +633,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<ModuleDef> Modules {
 			get { return modules; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -757,6 +768,7 @@ namespace dot10.DotNet {
 		UserValue<UTF8String> locale;
 		LazyList<DeclSecurity> declSecurities;
 		LazyList<ModuleDef> modules;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgId {
@@ -833,6 +845,17 @@ namespace dot10.DotNet {
 					});
 				}
 				return modules;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
 			}
 		}
 

@@ -110,6 +110,11 @@ namespace dot10.DotNet {
 		public abstract MethodBody MethodBody { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
 		public TypeDef DeclaringType {
@@ -573,6 +578,7 @@ namespace dot10.DotNet {
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		ImplMap implMap;
 		MethodBody methodBody;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -633,6 +639,11 @@ namespace dot10.DotNet {
 		public override MethodBody MethodBody {
 			get { return methodBody; }
 			set { methodBody = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <inheritdoc/>
@@ -768,6 +779,7 @@ namespace dot10.DotNet {
 		LazyList<DeclSecurity> declSecurities;
 		UserValue<ImplMap> implMap;
 		UserValue<MethodBody> methodBody;
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
@@ -846,6 +858,17 @@ namespace dot10.DotNet {
 		public override MethodBody MethodBody {
 			get { return methodBody.Value; }
 			set { methodBody.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Method, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <inheritdoc/>

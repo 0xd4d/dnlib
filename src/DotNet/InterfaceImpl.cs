@@ -38,6 +38,11 @@ namespace dot10.DotNet {
 		/// From column InterfaceImpl.Interface
 		/// </summary>
 		public abstract ITypeDefOrRef Interface { get; set; }
+
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
 	}
 
 	/// <summary>
@@ -46,6 +51,7 @@ namespace dot10.DotNet {
 	public class InterfaceImplUser : InterfaceImpl {
 		TypeDef @class;
 		ITypeDefOrRef @interface;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override TypeDef Class {
@@ -57,6 +63,11 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Interface {
 			get { return @interface; }
 			set { @interface = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -87,6 +98,7 @@ namespace dot10.DotNet {
 
 		UserValue<TypeDef> @class;
 		UserValue<ITypeDefOrRef> @interface;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override TypeDef Class {
@@ -98,6 +110,17 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Interface {
 			get { return @interface.Value; }
 			set { @interface.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.InterfaceImpl, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

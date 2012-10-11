@@ -33,6 +33,11 @@ namespace dot10.DotNet {
 		public abstract CallingConventionSig Signature { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets the method sig
 		/// </summary>
 		public MethodSig MethodSig {
@@ -54,11 +59,17 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class StandAloneSigUser : StandAloneSig {
 		CallingConventionSig signature;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override CallingConventionSig Signature {
 			get { return signature; }
 			set { signature = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -94,11 +105,23 @@ namespace dot10.DotNet {
 		RawStandAloneSigRow rawRow;
 
 		UserValue<CallingConventionSig> signature;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override CallingConventionSig Signature {
 			get { return signature.Value; }
 			set { signature.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.StandAloneSig, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

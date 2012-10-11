@@ -47,6 +47,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract UTF8String Name { get; set; }
 
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
 		/// <inheritdoc/>
 		public ModuleDef OwnerModule {
 			get { return ownerModule; }
@@ -91,11 +96,17 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class ModuleRefUser : ModuleRef {
 		UTF8String name;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override UTF8String Name {
 			get { return name; }
 			set { name = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -136,11 +147,23 @@ namespace dot10.DotNet {
 		RawModuleRefRow rawRow;
 
 		UserValue<UTF8String> name;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override UTF8String Name {
 			get { return name.Value; }
 			set { name.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ModuleRef, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

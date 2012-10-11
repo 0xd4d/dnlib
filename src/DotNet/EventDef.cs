@@ -48,6 +48,11 @@ namespace dot10.DotNet {
 		public abstract ITypeDefOrRef Type { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
 		public TypeDef DeclaringType {
@@ -115,6 +120,7 @@ namespace dot10.DotNet {
 		EventAttributes flags;
 		UTF8String name;
 		ITypeDefOrRef type;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -133,6 +139,11 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Type {
 			get { return type; }
 			set { type = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <inheritdoc/>
@@ -216,6 +227,7 @@ namespace dot10.DotNet {
 		UserValue<EventAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> type;
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
@@ -234,6 +246,17 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Type {
 			get { return type.Value; }
 			set { type.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Event, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <inheritdoc/>

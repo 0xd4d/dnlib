@@ -36,6 +36,11 @@ namespace dot10.DotNet {
 		/// From column GenericParamConstraint.Constraint
 		/// </summary>
 		public abstract ITypeDefOrRef Constraint { get; set; }
+
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
 	}
 
 	/// <summary>
@@ -44,6 +49,7 @@ namespace dot10.DotNet {
 	public class GenericParamConstraintUser : GenericParamConstraint {
 		GenericParam owner;
 		ITypeDefOrRef constraint;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override GenericParam Owner {
@@ -55,6 +61,11 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Constraint {
 			get { return constraint; }
 			set { constraint = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -93,6 +104,7 @@ namespace dot10.DotNet {
 
 		UserValue<GenericParam> owner;
 		UserValue<ITypeDefOrRef> constraint;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override GenericParam Owner {
@@ -104,6 +116,17 @@ namespace dot10.DotNet {
 		public override ITypeDefOrRef Constraint {
 			get { return constraint.Value; }
 			set { constraint.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParamConstraint, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

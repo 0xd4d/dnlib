@@ -152,6 +152,11 @@ namespace dot10.DotNet {
 		/// The coded token tag
 		/// </summary>
 		int HasCustomAttributeTag { get; }
+
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		CustomAttributeCollection CustomAttributes { get; }
 	}
 
 	/// <summary>

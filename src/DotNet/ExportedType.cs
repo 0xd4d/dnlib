@@ -37,6 +37,11 @@ namespace dot10.DotNet {
 			get { return 2; }
 		}
 
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
 		/// <inheritdoc/>
 		public string Name {
 			get { return FullNameCreator.Name(this, false); }
@@ -416,11 +421,17 @@ namespace dot10.DotNet {
 	/// An ExportedType row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ExportedTypeUser : ExportedType {
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		TypeAttributes flags;
 		uint typeDefId;
 		UTF8String typeName;
 		UTF8String typeNamespace;
 		IImplementation implementation;
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
+		}
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -501,11 +512,23 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawExportedTypeRow rawRow;
 
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<TypeAttributes> flags;
 		UserValue<uint> typeDefId;
 		UserValue<UTF8String> typeName;
 		UserValue<UTF8String> typeNamespace;
 		UserValue<IImplementation> implementation;
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ExportedType, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
+		}
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {

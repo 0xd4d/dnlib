@@ -43,6 +43,11 @@ namespace dot10.DotNet {
 		/// From column DeclSecurity.PermissionSet
 		/// </summary>
 		public abstract byte[] PermissionSet { get; set; }
+
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
 	}
 
 	/// <summary>
@@ -52,6 +57,7 @@ namespace dot10.DotNet {
 		DeclSecurityAction action;
 		IHasDeclSecurity parent;
 		byte[] permissionSet;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override DeclSecurityAction Action {
@@ -69,6 +75,11 @@ namespace dot10.DotNet {
 		public override byte[] PermissionSet {
 			get { return permissionSet; }
 			set { permissionSet = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -112,6 +123,7 @@ namespace dot10.DotNet {
 		UserValue<DeclSecurityAction> action;
 		UserValue<IHasDeclSecurity> parent;
 		UserValue<byte[]> permissionSet;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override DeclSecurityAction Action {
@@ -129,6 +141,17 @@ namespace dot10.DotNet {
 		public override byte[] PermissionSet {
 			get { return permissionSet.Value; }
 			set { permissionSet.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.DeclSecurity, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

@@ -56,6 +56,11 @@ namespace dot10.DotNet {
 		public abstract Constant Constant { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets the property sig
 		/// </summary>
 		public PropertySig PropertySig {
@@ -145,6 +150,7 @@ namespace dot10.DotNet {
 		UTF8String name;
 		CallingConventionSig type;
 		Constant constant;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -169,6 +175,11 @@ namespace dot10.DotNet {
 		public override Constant Constant {
 			get { return constant; }
 			set { constant = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <inheritdoc/>
@@ -253,6 +264,7 @@ namespace dot10.DotNet {
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> type;
 		UserValue<Constant> constant;
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
@@ -277,6 +289,17 @@ namespace dot10.DotNet {
 		public override Constant Constant {
 			get { return constant.Value; }
 			set { constant.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Property, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <inheritdoc/>

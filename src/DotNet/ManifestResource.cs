@@ -50,6 +50,11 @@ namespace dot10.DotNet {
 		public abstract IImplementation Implementation { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public ManifestResourceAttributes Visibility {
@@ -80,6 +85,7 @@ namespace dot10.DotNet {
 		ManifestResourceAttributes flags;
 		UTF8String name;
 		IImplementation implementation;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override uint Offset {
@@ -103,6 +109,11 @@ namespace dot10.DotNet {
 		public override IImplementation Implementation {
 			get { return implementation; }
 			set { implementation = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -188,6 +199,7 @@ namespace dot10.DotNet {
 		UserValue<ManifestResourceAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<IImplementation> implementation;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override uint Offset {
@@ -211,6 +223,17 @@ namespace dot10.DotNet {
 		public override IImplementation Implementation {
 			get { return implementation.Value; }
 			set { implementation.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ManifestResource, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

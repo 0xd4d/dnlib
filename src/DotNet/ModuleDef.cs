@@ -77,6 +77,11 @@ namespace dot10.DotNet {
 		public abstract Guid? EncBaseId { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets the module's assembly
 		/// </summary>
 		public abstract AssemblyDef Assembly { get; internal set; }
@@ -440,6 +445,7 @@ namespace dot10.DotNet {
 		Guid? mvid;
 		Guid? encId;
 		Guid? encBaseId;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		AssemblyDef assembly;
 		LazyList<TypeDef> types;
 		List<ExportedType> exportedTypes = new List<ExportedType>();
@@ -474,6 +480,11 @@ namespace dot10.DotNet {
 		public override Guid? EncBaseId {
 			get { return encBaseId; }
 			set { encBaseId = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <inheritdoc/>
@@ -572,6 +583,7 @@ namespace dot10.DotNet {
 		UserValue<Guid?> mvid;
 		UserValue<Guid?> encId;
 		UserValue<Guid?> encBaseId;
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<AssemblyDef> assembly;
 		/// <summary></summary>
 		protected IList<TypeDef> types;
@@ -603,6 +615,17 @@ namespace dot10.DotNet {
 		public override Guid? EncId {
 			get { return encId.Value; }
 			set { encId.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Module, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <inheritdoc/>

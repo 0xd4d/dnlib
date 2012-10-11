@@ -48,6 +48,11 @@ namespace dot10.DotNet {
 		public abstract byte[] HashValue { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets the <see cref="FileAttributes.ContainsMetaData"/> bit
 		/// </summary>
 		public bool ContainsMetaData {
@@ -91,6 +96,7 @@ namespace dot10.DotNet {
 		FileAttributes flags;
 		UTF8String name;
 		byte[] hashValue;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override FileAttributes Flags {
@@ -108,6 +114,11 @@ namespace dot10.DotNet {
 		public override byte[] HashValue {
 			get { return hashValue; }
 			set { hashValue = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -151,6 +162,7 @@ namespace dot10.DotNet {
 		UserValue<FileAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<byte[]> hashValue;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override FileAttributes Flags {
@@ -168,6 +180,17 @@ namespace dot10.DotNet {
 		public override byte[] HashValue {
 			get { return hashValue.Value; }
 			set { hashValue.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.File, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

@@ -59,6 +59,11 @@ namespace dot10.DotNet {
 		public abstract CallingConventionSig Signature { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// <c>true</c> if this is a method reference (<see cref="MethodSig"/> != <c>null</c>)
 		/// </summary>
 		public bool IsMethodRef {
@@ -208,6 +213,7 @@ namespace dot10.DotNet {
 		IMemberRefParent @class;
 		UTF8String name;
 		CallingConventionSig signature;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override IMemberRefParent Class {
@@ -225,6 +231,11 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Signature {
 			get { return signature; }
 			set { signature = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -357,6 +368,7 @@ namespace dot10.DotNet {
 		UserValue<IMemberRefParent> @class;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> signature;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override IMemberRefParent Class {
@@ -374,6 +386,17 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Signature {
 			get { return signature.Value; }
 			set { signature.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MemberRef, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>

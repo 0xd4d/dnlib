@@ -185,6 +185,11 @@ namespace dot10.DotNet {
 		public abstract IList<PropertyDef> Properties { get; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// <c>true</c> if it's a value type
 		/// </summary>
 		public bool IsValueType {
@@ -795,6 +800,7 @@ namespace dot10.DotNet {
 		LazyList<EventDef> events;
 		LazyList<PropertyDef> properties;
 		LazyList<TypeDef> nestedTypes;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		ModuleDef ownerModule;
 
 		/// <inheritdoc/>
@@ -871,6 +877,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override IList<TypeDef> NestedTypes {
 			get { return nestedTypes; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <inheritdoc/>
@@ -982,6 +993,7 @@ namespace dot10.DotNet {
 		LazyList<EventDef> events;
 		LazyList<PropertyDef> properties;
 		LazyList<TypeDef> nestedTypes;
+		CustomAttributeCollection customAttributeCollection;
 		UserValue<ModuleDef> ownerModule;
 
 		/// <inheritdoc/>
@@ -1107,6 +1119,17 @@ namespace dot10.DotNet {
 					nestedTypes = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveTypeDef(((RidList)list2)[index]));
 				}
 				return nestedTypes;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeDef, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
 			}
 		}
 

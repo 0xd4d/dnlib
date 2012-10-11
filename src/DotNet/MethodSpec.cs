@@ -38,6 +38,11 @@ namespace dot10.DotNet {
 		public abstract CallingConventionSig Instantiation { get; set; }
 
 		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
 		/// Gets/sets the generic instance method sig
 		/// </summary>
 		public GenericInstMethodSig GenericInstMethodSig {
@@ -77,6 +82,7 @@ namespace dot10.DotNet {
 	public class MethodSpecUser : MethodSpec {
 		IMethodDefOrRef method;
 		CallingConventionSig instantiation;
+		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override IMethodDefOrRef Method {
@@ -88,6 +94,11 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Instantiation {
 			get { return instantiation; }
 			set { instantiation = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get { return customAttributeCollection; }
 		}
 
 		/// <summary>
@@ -126,6 +137,7 @@ namespace dot10.DotNet {
 
 		UserValue<IMethodDefOrRef> method;
 		UserValue<CallingConventionSig> instantiation;
+		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override IMethodDefOrRef Method {
@@ -137,6 +149,17 @@ namespace dot10.DotNet {
 		public override CallingConventionSig Instantiation {
 			get { return instantiation.Value; }
 			set { instantiation.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributeCollection == null) {
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MethodSpec, rid);
+					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+				}
+				return customAttributeCollection;
+			}
 		}
 
 		/// <summary>
