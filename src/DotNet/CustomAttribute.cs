@@ -20,6 +20,23 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the full name of the attribute type
+		/// </summary>
+		public string TypeFullName {
+			get {
+				var mrCtor = ctor as MemberRef;
+				if (mrCtor != null)
+					return mrCtor.GetDeclaringTypeFullName() ?? string.Empty;
+
+				var mdCtor = ctor as MethodDef;
+				if (mdCtor != null && mdCtor.DeclaringType != null)
+					return mdCtor.DeclaringType.FullName;
+
+				return string.Empty;
+			}
+		}
+
+		/// <summary>
 		/// <c>true</c> if the raw custom attribute blob hasn't been parsed
 		/// </summary>
 		public bool IsRawBlob {
@@ -197,13 +214,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			var mrCtor = ctor as MemberRef;
-			if (mrCtor != null)
-				return string.Format("{0}", mrCtor.Class);
-			var mdCtor = ctor as MethodDef;
-			if (mdCtor != null)
-				return string.Format("{0}", mdCtor.DeclaringType);
-			return "???";
+			return TypeFullName;
 		}
 	}
 
