@@ -563,11 +563,11 @@ namespace dot10.DotNet {
 
 			var methodSig = memberRef.MethodSig;
 			if (methodSig != null)
-				return ResolveMethod(memberRef.Name, methodSig, options);
+				return FindMethod(memberRef.Name, methodSig, options);
 
 			var fieldSig = memberRef.FieldSig;
 			if (fieldSig != null)
-				return ResolveField(memberRef.Name, fieldSig, options);
+				return FindField(memberRef.Name, fieldSig, options);
 
 			return null;
 		}
@@ -578,8 +578,8 @@ namespace dot10.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef ResolveMethod(UTF8String name, MethodSig sig) {
-			return ResolveMethod(name, sig, 0);
+		public MethodDef FindMethod(UTF8String name, MethodSig sig) {
+			return FindMethod(name, sig, 0);
 		}
 
 		/// <summary>
@@ -589,7 +589,7 @@ namespace dot10.DotNet {
 		/// <param name="sig">Method signature</param>
 		/// <param name="options">Method signature comparison options</param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef ResolveMethod(UTF8String name, MethodSig sig, SigComparerOptions options) {
+		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
 			var comparer = new SigComparer(options);
@@ -611,8 +611,8 @@ namespace dot10.DotNet {
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef ResolveField(UTF8String name, FieldSig sig) {
-			return ResolveField(name, sig, 0);
+		public FieldDef FindField(UTF8String name, FieldSig sig) {
+			return FindField(name, sig, 0);
 		}
 
 		/// <summary>
@@ -622,7 +622,7 @@ namespace dot10.DotNet {
 		/// <param name="sig">Field signature</param>
 		/// <param name="options">Field signature comparison options</param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef ResolveField(UTF8String name, FieldSig sig, SigComparerOptions options) {
+		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
 			var comparer = new SigComparer(options);
@@ -1322,7 +1322,7 @@ namespace dot10.DotNet {
 			}
 			if (td == null)
 				return null;
-			return td.ResolveMethod(mr.Name, mr.MethodSig);
+			return td.FindMethod(mr.Name, mr.MethodSig);
 		}
 	}
 }
