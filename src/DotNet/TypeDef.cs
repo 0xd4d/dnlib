@@ -1035,7 +1035,7 @@ namespace dot10.DotNet {
 		LazyList<TypeDef> nestedTypes;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<ModuleDef> ownerModule;
-		Dictionary<uint, List<MethodOverride>> methodRidToMethodOverrides;
+		Dictionary<uint, List<MethodOverride>> methodRidToOverrides;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -1243,19 +1243,19 @@ namespace dot10.DotNet {
 			if (method == null)
 				return new List<MethodOverride>();
 
-			if (methodRidToMethodOverrides == null)
+			if (methodRidToOverrides == null)
 				InitializeMethodOverrides();
 
 			List<MethodOverride> overrides;
-			if (methodRidToMethodOverrides.TryGetValue(method.Rid, out overrides))
+			if (methodRidToOverrides.TryGetValue(method.Rid, out overrides))
 				return overrides;
 			return new List<MethodOverride>();
 		}
 
 		void InitializeMethodOverrides() {
-			if (methodRidToMethodOverrides != null)
+			if (methodRidToOverrides != null)
 				return;
-			methodRidToMethodOverrides = new Dictionary<uint, List<MethodOverride>>();
+			methodRidToOverrides = new Dictionary<uint, List<MethodOverride>>();
 
 			var ridList = readerModule.MetaData.GetMethodImplRidList(rid);
 			for (uint i = 0; i < ridList.Length; i++) {
@@ -1276,8 +1276,8 @@ namespace dot10.DotNet {
 					continue;
 
 				List<MethodOverride> overrides;
-				if (!methodRidToMethodOverrides.TryGetValue(method.Rid, out overrides))
-					methodRidToMethodOverrides[method.Rid] = overrides = new List<MethodOverride>();
+				if (!methodRidToOverrides.TryGetValue(method.Rid, out overrides))
+					methodRidToOverrides[method.Rid] = overrides = new List<MethodOverride>();
 				overrides.Add(new MethodOverride(methodBody, methodDecl));
 			}
 		}
