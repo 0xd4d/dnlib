@@ -1324,5 +1324,93 @@ namespace dot10.DotNet {
 				return null;
 			return td.FindMethod(mr.Name, mr.MethodSig);
 		}
+
+		internal void InitializeProperty(PropertyDefMD prop, out MethodDef getMethod, out MethodDef setMethod, out List<MethodDef> otherMethods) {
+			getMethod = null;
+			setMethod = null;
+			otherMethods = new List<MethodDef>();
+			if (prop == null)
+				return;
+
+			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, prop.Rid);
+			for (uint i = 0; i < ridList.Length; i++) {
+				var rawRow = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i]);
+				if (rawRow == null)
+					continue;	// Should never happen
+
+				var method = readerModule.ResolveMethod(rawRow.Method);
+				if (method == null || method.DeclaringType != prop.DeclaringType)
+					continue;
+
+				// It's documented to be flags, but ignore those with more than one bit set
+				switch ((MethodSemanticsAttributes)rawRow.Semantic) {
+				case MethodSemanticsAttributes.Setter:
+					if (setMethod == null)
+						setMethod = method;
+					break;
+
+				case MethodSemanticsAttributes.Getter:
+					if (getMethod == null)
+						getMethod = method;
+					break;
+
+				case MethodSemanticsAttributes.Other:
+					if (!otherMethods.Contains(method))
+						otherMethods.Add(method);
+					break;
+
+				default:
+					// Ignore anything else
+					break;
+				}
+			}
+		}
+
+		internal void InitializeEvent(EventDefMD evt, out MethodDef addMethod, out MethodDef invokeMethod, out MethodDef removeMethod, out List<MethodDef> otherMethods) {
+			addMethod = null;
+			invokeMethod = null;
+			removeMethod = null;
+			otherMethods = new List<MethodDef>();
+			if (evt == null)
+				return;
+
+			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, evt.Rid);
+			for (uint i = 0; i < ridList.Length; i++) {
+				var rawRow = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i]);
+				if (rawRow == null)
+					continue;	// Should never happen
+
+				var method = readerModule.ResolveMethod(rawRow.Method);
+				if (method == null || method.DeclaringType != evt.DeclaringType)
+					continue;
+
+				// It's documented to be flags, but ignore those with more than one bit set
+				switch ((MethodSemanticsAttributes)rawRow.Semantic) {
+				case MethodSemanticsAttributes.AddOn:
+					if (addMethod == null)
+						addMethod = method;
+					break;
+
+				case MethodSemanticsAttributes.RemoveOn:
+					if (removeMethod == null)
+						removeMethod = method;
+					break;
+
+				case MethodSemanticsAttributes.Fire:
+					if (invokeMethod == null)
+						invokeMethod = method;
+					break;
+
+				case MethodSemanticsAttributes.Other:
+					if (!otherMethods.Contains(method))
+						otherMethods.Add(method);
+					break;
+
+				default:
+					// Ignore anything else
+					break;
+				}
+			}
+		}
 	}
 }

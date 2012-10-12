@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
@@ -59,6 +60,21 @@ namespace dot10.DotNet {
 		/// Gets all custom attributes
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
+		/// Gets/sets the getter method
+		/// </summary>
+		public abstract MethodDef GetMethod { get; set; }
+
+		/// <summary>
+		/// Gets/sets the setter method
+		/// </summary>
+		public abstract MethodDef SetMethod { get; set; }
+
+		/// <summary>
+		/// Gets the other methods
+		/// </summary>
+		public abstract IList<MethodDef> OtherMethods { get; }
 
 		/// <summary>
 		/// Gets/sets the property sig
@@ -151,6 +167,9 @@ namespace dot10.DotNet {
 		CallingConventionSig type;
 		Constant constant;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		MethodDef getMethod;
+		MethodDef setMethod;
+		IList<MethodDef> otherMethods = new List<MethodDef>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -180,6 +199,23 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override CustomAttributeCollection CustomAttributes {
 			get { return customAttributeCollection; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef GetMethod {
+			get { return getMethod; }
+			set { getMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef SetMethod {
+			get { return setMethod; }
+			set { setMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<MethodDef> OtherMethods {
+			get { return otherMethods; }
 		}
 
 		/// <inheritdoc/>
@@ -265,6 +301,9 @@ namespace dot10.DotNet {
 		UserValue<CallingConventionSig> type;
 		UserValue<Constant> constant;
 		CustomAttributeCollection customAttributeCollection;
+		MethodDef getMethod;
+		MethodDef setMethod;
+		List<MethodDef> otherMethods;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
@@ -300,6 +339,23 @@ namespace dot10.DotNet {
 				}
 				return customAttributeCollection;
 			}
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef GetMethod {
+			get { InitializePropertyMethods(); return getMethod; }
+			set { InitializePropertyMethods(); getMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef SetMethod {
+			get { InitializePropertyMethods(); return setMethod; }
+			set { InitializePropertyMethods(); setMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<MethodDef> OtherMethods {
+			get { InitializePropertyMethods(); return otherMethods; }
 		}
 
 		/// <inheritdoc/>
@@ -352,6 +408,17 @@ namespace dot10.DotNet {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadPropertyRow(rid);
+		}
+
+		void InitializePropertyMethods() {
+			if (otherMethods != null)
+				return;
+			var dt = DeclaringType as TypeDefMD;
+			if (dt == null) {
+				otherMethods = new List<MethodDef>();
+				return;
+			}
+			dt.InitializeProperty(this, out getMethod, out setMethod, out otherMethods);
 		}
 	}
 }

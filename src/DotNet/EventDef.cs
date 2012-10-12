@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
@@ -51,6 +52,26 @@ namespace dot10.DotNet {
 		/// Gets all custom attributes
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
+		/// Gets/sets the adder method
+		/// </summary>
+		public abstract MethodDef AddMethod { get; set; }
+
+		/// <summary>
+		/// Gets/sets the invoker method
+		/// </summary>
+		public abstract MethodDef InvokeMethod { get; set; }
+
+		/// <summary>
+		/// Gets/sets the remover method
+		/// </summary>
+		public abstract MethodDef RemoveMethod { get; set; }
+
+		/// <summary>
+		/// Gets the other methods
+		/// </summary>
+		public abstract IList<MethodDef> OtherMethods { get; }
 
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
@@ -121,6 +142,10 @@ namespace dot10.DotNet {
 		UTF8String name;
 		ITypeDefOrRef type;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		MethodDef addMethod;
+		MethodDef invokeMethod;
+		MethodDef removeMethod;
+		IList<MethodDef> otherMethods = new List<MethodDef>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -144,6 +169,29 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override CustomAttributeCollection CustomAttributes {
 			get { return customAttributeCollection; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef AddMethod {
+			get { return addMethod; }
+			set { addMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef InvokeMethod {
+			get { return invokeMethod; }
+			set { invokeMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef RemoveMethod {
+			get { return removeMethod; }
+			set { removeMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<MethodDef> OtherMethods {
+			get { return otherMethods; }
 		}
 
 		/// <inheritdoc/>
@@ -228,6 +276,10 @@ namespace dot10.DotNet {
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> type;
 		CustomAttributeCollection customAttributeCollection;
+		MethodDef addMethod;
+		MethodDef invokeMethod;
+		MethodDef removeMethod;
+		List<MethodDef> otherMethods;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
@@ -257,6 +309,29 @@ namespace dot10.DotNet {
 				}
 				return customAttributeCollection;
 			}
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef AddMethod {
+			get { InitializeEventMethods(); return addMethod; }
+			set { InitializeEventMethods(); addMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef InvokeMethod {
+			get { InitializeEventMethods(); return invokeMethod; }
+			set { InitializeEventMethods(); invokeMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override MethodDef RemoveMethod {
+			get { InitializeEventMethods(); return removeMethod; }
+			set { InitializeEventMethods(); removeMethod = value; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<MethodDef> OtherMethods {
+			get { InitializeEventMethods(); return otherMethods; }
 		}
 
 		/// <inheritdoc/>
@@ -306,6 +381,17 @@ namespace dot10.DotNet {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadEventRow(rid);
+		}
+
+		void InitializeEventMethods() {
+			if (otherMethods != null)
+				return;
+			var dt = DeclaringType as TypeDefMD;
+			if (dt == null) {
+				otherMethods = new List<MethodDef>();
+				return;
+			}
+			dt.InitializeEvent(this, out addMethod, out invokeMethod, out removeMethod, out otherMethods);
 		}
 	}
 }
