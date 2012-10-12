@@ -540,24 +540,47 @@ namespace dot10.DotNet {
 
 		/// <summary>
 		/// Resolves a method or a field. The <see cref="MemberRef.Class"/> (owner type) is
-		/// ignored when resolving the method/field.
+		/// ignored when resolving the method/field. Private scope methods/fields are not returned.
 		/// </summary>
 		/// <param name="memberRef">A method/field reference</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
 		/// if it couldn't be resolved.</returns>
 		public IMemberForwarded Resolve(MemberRef memberRef) {
+			return Resolve(memberRef, false);
+		}
+
+		/// <summary>
+		/// Resolves a method or a field. The <see cref="MemberRef.Class"/> (owner type) is
+		/// ignored when resolving the method/field.
+		/// </summary>
+		/// <param name="memberRef">A method/field reference</param>
+		/// <param name="allowPrivateScope"><c>true</c> if this method can return private scope
+		/// methods/fields, <c>false</c> if private scope methods/fields are not referencable.</param>
+		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
+		/// if it couldn't be resolved.</returns>
+		public IMemberForwarded Resolve(MemberRef memberRef, bool allowPrivateScope) {
 			if (memberRef == null)
 				return null;
 
 			var methodSig = memberRef.MethodSig;
 			if (methodSig != null)
-				return ResolveMethod(memberRef.Name, methodSig);
+				return ResolveMethod(memberRef.Name, methodSig, allowPrivateScope);
 
 			var fieldSig = memberRef.FieldSig;
 			if (fieldSig != null)
-				return ResolveField(memberRef.Name, fieldSig);
+				return ResolveField(memberRef.Name, fieldSig, allowPrivateScope);
 
 			return null;
+		}
+
+		/// <summary>
+		/// Resolves a method. Private scope methods are not returned.
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <param name="sig">Method signature</param>
+		/// <returns>The first method that matches or <c>null</c> if none found</returns>
+		public MethodDef ResolveMethod(UTF8String name, MethodSig sig) {
+			return ResolveMethod(name, sig, false);
 		}
 
 		/// <summary>
@@ -565,12 +588,16 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
+		/// <param name="allowPrivateScope"><c>true</c> if this method can return private scope
+		/// methods, <c>false</c> if private scope methods are not referencable.</param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef ResolveMethod(UTF8String name, MethodSig sig) {
+		public MethodDef ResolveMethod(UTF8String name, MethodSig sig, bool allowPrivateScope) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
 			var comparer = new SigComparer(0);
 			foreach (var method in Methods) {
+				if (!allowPrivateScope && method.IsPrivateScope)
+					continue;
 				if (!UTF8String.Equals(method.Name, name))
 					continue;
 				if (comparer.Equals(method.MethodSig, sig))
@@ -580,16 +607,30 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a field
+		/// Resolves a field. Private scope fields are not returned.
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
 		public FieldDef ResolveField(UTF8String name, FieldSig sig) {
+			return ResolveField(name, sig, false);
+		}
+
+		/// <summary>
+		/// Resolves a field
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <param name="sig">Field signature</param>
+		/// <param name="allowPrivateScope"><c>true</c> if this method can return private scope
+		/// fields, <c>false</c> if private scope fields are not referencable.</param>
+		/// <returns>The first field that matches or <c>null</c> if none found</returns>
+		public FieldDef ResolveField(UTF8String name, FieldSig sig, bool allowPrivateScope) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
 			var comparer = new SigComparer(0);
 			foreach (var field in Fields) {
+				if (!allowPrivateScope && field.IsPrivateScope)
+					continue;
 				if (!UTF8String.Equals(field.Name, name))
 					continue;
 				if (comparer.Equals(field.FieldSig, sig))
