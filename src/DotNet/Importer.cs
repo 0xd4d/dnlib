@@ -384,30 +384,22 @@ namespace dot10.DotNet {
 				return null;
 
 			IType result;
+			TypeDef td;
+			TypeRef tr;
+			TypeSpec ts;
+			TypeSig sig;
 
-			var td = type as TypeDef;
-			if (td != null) {
+			if ((td = type as TypeDef) != null)
 				result = Import(td);
-				goto exit;
-			}
-			var tr = type as TypeRef;
-			if (tr != null) {
+			else if ((tr = type as TypeRef) != null)
 				result = Import(tr);
-				goto exit;
-			}
-			var ts = type as TypeSpec;
-			if (ts != null) {
+			else if ((ts = type as TypeSpec) != null)
 				result = Import(ts);
-				goto exit;
-			}
-			var sig = type as TypeSig;
-			if (sig != null) {
+			else if ((sig = type as TypeSig) != null)
 				result = Import(sig);
-				goto exit;
-			}
+			else
+				result = null;
 
-			result = null;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -707,21 +699,18 @@ exit:
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
+
 			IField result;
+			FieldDef fd;
+			MemberRef mr;
 
-			var fd = field as FieldDef;
-			if (fd != null) {
+			if ((fd = field as FieldDef) != null)
 				result = Import(fd);
-				goto exit;
-			}
-			var mr = field as MemberRef;
-			if (mr != null) {
+			else if ((mr = field as MemberRef) != null)
 				result = Import(mr);
-				goto exit;
-			}
+			else
+				result = null;
 
-			result = null;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -736,26 +725,21 @@ exit:
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
+
 			IMethod result;
+			MethodDef md;
+			MethodSpec ms;
+			MemberRef mr;
 
-			var md = method as MethodDef;
-			if (md != null) {
+			if ((md = method as MethodDef) != null)
 				result = Import(md);
-				goto exit;
-			}
-			var ms = method as MethodSpec;
-			if (ms != null) {
+			else if ((ms = method as MethodSpec) != null)
 				result = Import(ms);
-				goto exit;
-			}
-			var mr = method as MemberRef;
-			if (mr != null) {
+			else if ((mr = method as MemberRef) != null)
 				result = Import(mr);
-				goto exit;
-			}
+			else
+				result = null;
 
-			result = null;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
