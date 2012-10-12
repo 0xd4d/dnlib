@@ -528,6 +528,18 @@ namespace dot10.DotNet {
 		CaseInsensitiveAll = CaseInsensitiveTypeNamespaces | CaseInsensitiveTypeNames |
 						CaseInsensitiveMethodFieldNames | CaseInsensitivePropertyNames |
 						CaseInsensitiveEventNames,
+
+		/// <summary>
+		/// A field that is <see cref="FieldAttributes.PrivateScope"/> can compare equal to
+		/// a <see cref="MemberRef"/>
+		/// </summary>
+		PrivateScopeFieldIsComparable = 0x10000,
+
+		/// <summary>
+		/// A method that is <see cref="MethodAttributes.PrivateScope"/> can compare equal to
+		/// a <see cref="MemberRef"/>
+		/// </summary>
+		PrivateScopeMethodIsComparable = 0x20000,
 	}
 
 	/// <summary>
@@ -764,6 +776,32 @@ namespace dot10.DotNet {
 					options |= SigComparerOptions.CaseInsensitiveEventNames;
 				else
 					options &= ~SigComparerOptions.CaseInsensitiveEventNames;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.PrivateScopeFieldIsComparable"/> bit
+		/// </summary>
+		public bool PrivateScopeFieldIsComparable {
+			get { return (options & SigComparerOptions.PrivateScopeFieldIsComparable) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.PrivateScopeFieldIsComparable;
+				else
+					options &= ~SigComparerOptions.PrivateScopeFieldIsComparable;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.PrivateScopeMethodIsComparable"/> bit
+		/// </summary>
+		public bool PrivateScopeMethodIsComparable {
+			get { return (options & SigComparerOptions.PrivateScopeMethodIsComparable) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.PrivateScopeMethodIsComparable;
+				else
+					options &= ~SigComparerOptions.PrivateScopeMethodIsComparable;
 			}
 		}
 
@@ -2559,10 +2597,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			//TODO: If a.IsPrivateScope, then you should probably always return false since Method
-			//		tokens must be used to call the method.
-
-			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
+			bool result = (PrivateScopeMethodIsComparable || !a.IsPrivateScope) &&
+					Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
@@ -2892,10 +2928,8 @@ exit:
 			if (!recursionCounter.Increment())
 				return false;
 
-			//TODO: If a.IsPrivateScope, then you should probably always return false since Field
-			//		tokens must be used to access the field
-
-			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
+			bool result = (PrivateScopeFieldIsComparable || !a.IsPrivateScope) &&
+					Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
