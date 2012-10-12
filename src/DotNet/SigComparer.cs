@@ -847,6 +847,12 @@ namespace dot10.DotNet {
 					GetHashCode_TypeName("IntPtr");
 		}
 
+		bool Equals_Names(bool caseInsensitive, UTF8String a, UTF8String b) {
+			if (caseInsensitive)
+				return UTF8String.ToSystemStringOrEmpty(a).Equals(UTF8String.ToSystemStringOrEmpty(b), StringComparison.OrdinalIgnoreCase);
+			return UTF8String.Equals(a, b);
+		}
+
 		bool Equals_Names(bool caseInsensitive, string a, string b) {
 			if (caseInsensitive)
 				return (a ?? string.Empty).Equals(b ?? string.Empty, StringComparison.OrdinalIgnoreCase);
@@ -860,7 +866,7 @@ namespace dot10.DotNet {
 		}
 
 		bool Equals_TypeNamespaces(UTF8String a, UTF8String b) {
-			return Equals_Names(CaseInsensitiveTypeNamespaces, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+			return Equals_Names(CaseInsensitiveTypeNamespaces, a, b);
 		}
 
 		bool Equals_TypeNamespaces(UTF8String a, string b) {
@@ -876,7 +882,7 @@ namespace dot10.DotNet {
 		}
 
 		bool Equals_TypeNames(UTF8String a, UTF8String b) {
-			return Equals_Names(CaseInsensitiveTypeNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+			return Equals_Names(CaseInsensitiveTypeNames, a, b);
 		}
 
 		bool Equals_TypeNames(UTF8String a, string b) {
@@ -892,7 +898,7 @@ namespace dot10.DotNet {
 		}
 
 		bool Equals_MethodFieldNames(UTF8String a, UTF8String b) {
-			return Equals_Names(CaseInsensitiveMethodFieldNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+			return Equals_Names(CaseInsensitiveMethodFieldNames, a, b);
 		}
 
 		bool Equals_MethodFieldNames(UTF8String a, string b) {
@@ -908,7 +914,7 @@ namespace dot10.DotNet {
 		}
 
 		bool Equals_PropertyNames(UTF8String a, UTF8String b) {
-			return Equals_Names(CaseInsensitivePropertyNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+			return Equals_Names(CaseInsensitivePropertyNames, a, b);
 		}
 
 		bool Equals_PropertyNames(UTF8String a, string b) {
@@ -924,7 +930,7 @@ namespace dot10.DotNet {
 		}
 
 		bool Equals_EventNames(UTF8String a, UTF8String b) {
-			return Equals_Names(CaseInsensitiveEventNames, UTF8String.ToSystemStringOrEmpty(a), UTF8String.ToSystemStringOrEmpty(b));
+			return Equals_Names(CaseInsensitiveEventNames, a, b);
 		}
 
 		bool Equals_EventNames(UTF8String a, string b) {
