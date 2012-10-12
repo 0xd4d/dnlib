@@ -540,6 +540,12 @@ namespace dot10.DotNet {
 		/// a <see cref="MemberRef"/>
 		/// </summary>
 		PrivateScopeMethodIsComparable = 0x20000,
+
+		/// <summary>
+		/// Raw (bit by bit) comparison of signatures. This matches what the CLR does when it
+		/// compares signatures. This means that metadata tokens will be compared.
+		/// </summary>
+		RawSignatureCompare = 0x40000,
 	}
 
 	/// <summary>
@@ -802,6 +808,19 @@ namespace dot10.DotNet {
 					options |= SigComparerOptions.PrivateScopeMethodIsComparable;
 				else
 					options &= ~SigComparerOptions.PrivateScopeMethodIsComparable;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.RawSignatureCompare"/> bit
+		/// </summary>
+		public bool RawSignatureCompare {
+			get { return (options & SigComparerOptions.RawSignatureCompare) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.RawSignatureCompare;
+				else
+					options &= ~SigComparerOptions.RawSignatureCompare;
 			}
 		}
 
@@ -1952,7 +1971,10 @@ exit:
 
 				case ElementType.ValueType:
 				case ElementType.Class:
-					result = Equals((IType)(a as ClassOrValueTypeSig).TypeDefOrRef, (IType)(b as ClassOrValueTypeSig).TypeDefOrRef);
+					if (RawSignatureCompare)
+						result = TokenEquals((a as ClassOrValueTypeSig).TypeDefOrRef, (b as ClassOrValueTypeSig).TypeDefOrRef);
+					else
+						result = Equals((IType)(a as ClassOrValueTypeSig).TypeDefOrRef, (IType)(b as ClassOrValueTypeSig).TypeDefOrRef);
 					break;
 
 				case ElementType.Var:
@@ -1963,8 +1985,16 @@ exit:
 				case ElementType.GenericInst:
 					var gia = (GenericInstSig)a;
 					var gib = (GenericInstSig)b;
-					result = Equals(gia.GenericType, gib.GenericType) &&
-							Equals(gia.GenericArguments, gib.GenericArguments);
+					if (RawSignatureCompare) {
+						var gt1 = gia.GenericType;
+						var gt2 = gib.GenericType;
+						result = TokenEquals(gt1 == null ? null : gt1.TypeDefOrRef, gt2 == null ? null : gt2.TypeDefOrRef) &&
+								Equals(gia.GenericArguments, gib.GenericArguments);
+					}
+					else {
+						result = Equals(gia.GenericType, gib.GenericType) &&
+								Equals(gia.GenericArguments, gib.GenericArguments);
+					}
 					break;
 
 				case ElementType.FnPtr:
@@ -1973,7 +2003,12 @@ exit:
 
 				case ElementType.CModReqd:
 				case ElementType.CModOpt:
-					result = Equals((IType)(a as ModifierSig).Modifier, (IType)(b as ModifierSig).Modifier) && Equals(a.Next, b.Next);
+					if (RawSignatureCompare)
+						result = TokenEquals((a as ModifierSig).Modifier, (b as ModifierSig).Modifier) &&
+								Equals(a.Next, b.Next);
+					else
+						result = Equals((IType)(a as ModifierSig).Modifier, (IType)(b as ModifierSig).Modifier) &&
+								Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.ValueArray:
@@ -1995,6 +2030,14 @@ exit:
 
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		static bool TokenEquals(ITypeDefOrRef a, ITypeDefOrRef b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			return a.MDToken == b.MDToken;
 		}
 
 		/// <summary>
