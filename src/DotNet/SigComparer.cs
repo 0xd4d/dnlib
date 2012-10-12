@@ -1944,7 +1944,6 @@ exit:
 
 				case ElementType.Array:
 					ArraySig ara = a as ArraySig, arb = b as ArraySig;
-					//TODO: Should Sizes and LowerBounds be compared at all?
 					result = ara.Rank == arb.Rank &&
 							Equals(ara.Sizes, arb.Sizes) &&
 							Equals(ara.LowerBounds, arb.LowerBounds) &&
