@@ -83,5 +83,16 @@ namespace dot10.DotNet {
 				declaringType.IsGenericTypeDefinition &&
 				t == declaringType;
 		}
+
+		/// <summary>
+		/// Checks whether <paramref name="type"/> is a type definition and not a type spec
+		/// (eg. pointer or generic type instantiation)
+		/// </summary>
+		/// <param name="type">this</param>
+		public static bool IsTypeDef(this Type type) {
+			return type != null &&
+				!type.HasElementType &&
+				(!type.IsGenericType || type.IsGenericTypeDefinition);
+		}
 	}
 }
