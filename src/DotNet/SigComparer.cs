@@ -980,35 +980,25 @@ namespace dot10.DotNet {
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
+
 			bool result;
+			TypeDef tda, tdb;
+			TypeRef tra, trb;
+			TypeSpec tsa, tsb;
+			TypeSig sa, sb;
+			ExportedType eta, etb;
 
-			TypeDef tda = a as TypeDef, tdb = b as TypeDef;
-			if (tda != null && tdb != null) {
+			if ((tda = a as TypeDef) != null & (tdb = b as TypeDef) != null)
 				result = Equals(tda, tdb);
-				goto exit;
-			}
-			TypeRef tra = a as TypeRef, trb = b as TypeRef;
-			if (tra != null && trb != null) {
+			else if ((tra = a as TypeRef) != null & (trb = b as TypeRef) != null)
 				result = Equals(tra, trb);
-				goto exit;
-			}
-			TypeSpec tsa = a as TypeSpec, tsb = b as TypeSpec;
-			if (tsa != null && tsb != null) {
+			else if ((tsa = a as TypeSpec) != null & (tsb = b as TypeSpec) != null)
 				result = Equals(tsa, tsb);
-				goto exit;
-			}
-			TypeSig sa = a as TypeSig, sb = b as TypeSig;
-			if (sa != null && sb != null) {
+			else if ((sa = a as TypeSig) != null & (sb = b as TypeSig) != null)
 				result = Equals(sa, sb);
-				goto exit;
-			}
-			ExportedType eta = a as ExportedType, etb = b as ExportedType;
-			if (eta != null && etb != null) {
+			else if ((eta = a as ExportedType) != null & (etb = b as ExportedType) != null)
 				result = Equals(eta, etb);
-				goto exit;
-			}
-
-			if (tda != null && trb != null)
+			else if (tda != null && trb != null)
 				result = Equals(tda, trb);		// TypeDef vs TypeRef
 			else if (tra != null && tdb != null)
 				result = Equals(tdb, tra);		// TypeDef vs TypeRef
@@ -1051,7 +1041,6 @@ namespace dot10.DotNet {
 			else
 				result = false;	// Should never be reached
 
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1066,35 +1055,27 @@ exit:
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
-			int hash;
 
-			var td = a as TypeDef;
-			if (td != null) {
+			int hash;
+			TypeDef td;
+			TypeRef tr;
+			TypeSpec ts;
+			TypeSig sig;
+			ExportedType et;
+
+			if ((td = a as TypeDef) != null)
 				hash = GetHashCode(td);
-				goto exit;
-			}
-			var tr = a as TypeRef;
-			if (tr != null) {
+			else if ((tr = a as TypeRef) != null)
 				hash = GetHashCode(tr);
-				goto exit;
-			}
-			var ts = a as TypeSpec;
-			if (ts != null) {
+			else if ((ts = a as TypeSpec) != null)
 				hash = GetHashCode(ts);
-				goto exit;
-			}
-			var sig = a as TypeSig;
-			if (sig != null) {
+			else if ((sig = a as TypeSig) != null)
 				hash = GetHashCode(sig);
-				goto exit;
-			}
-			var et = a as ExportedType;
-			if (et != null) {
+			else if ((et = a as ExportedType) != null)
 				hash = GetHashCode(et);
-				goto exit;
-			}
-			hash = 0;	// Should never be reached
-exit:
+			else
+				hash = 0;	// Should never be reached
+
 			recursionCounter.Decrement();
 			return hash;
 		}
@@ -1122,38 +1103,36 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result = false;
+
+			bool result;
+			IModule bMod;
+			AssemblyRef bAsm;
+			TypeRef dtb;
+			var scope = b.ResolutionScope;
 
 			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b.Namespace))
-				goto exit;
-
-			var scope = b.ResolutionScope;
-			var dtb = scope as TypeRef;
-			if (dtb != null) {	// nested type
+				result = false;
+			else if ((dtb = scope as TypeRef) != null)	// nested type
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
-				goto exit;
+			else if (a.DeclaringType != null) {
+				// a is nested, b isn't
+				result = false;
 			}
-			if (a.DeclaringType != null)
-				goto exit;	// a is nested, b isn't
-
-			if (DontCompareTypeScope) {
+			else if (DontCompareTypeScope)
 				result = true;
-				goto exit;
-			}
-			var bMod = scope as IModule;
-			if (bMod != null) {	// 'b' is defined in the same assembly as 'a'
+			else if ((bMod = scope as IModule) != null) {	// 'b' is defined in the same assembly as 'a'
 				result = Equals((IModule)a.OwnerModule, (IModule)bMod) &&
 						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
-				goto exit;
 			}
-			var bAsm = scope as AssemblyRef;
-			if (bAsm != null) {
+			else if ((bAsm = scope as AssemblyRef) != null) {
 				var aMod = a.OwnerModule;
 				result = aMod != null && Equals(aMod.Assembly, bAsm);
-				goto exit;
 			}
-			//TODO: Handle the case where scope == null
-exit:
+			else {
+				result = false;
+				//TODO: Handle the case where scope == null
+			}
+
 			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
 			recursionCounter.Decrement();
@@ -1183,37 +1162,34 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result = false;
+
+			bool result;
+			ExportedType dtb;
+			FileDef bFile;
+			AssemblyRef bAsm;
+			var scope = b.Implementation;
 
 			if (!Equals_TypeNames(a.Name, b.TypeName) || !Equals_TypeNamespaces(a.Namespace, b.TypeNamespace))
-				goto exit;
-
-			var scope = b.Implementation;
-			var dtb = scope as ExportedType;
-			if (dtb != null) {	// nested type
+				result = false;
+			else if ((dtb = scope as ExportedType) != null) {	// nested type
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
-				goto exit;
 			}
-			if (a.DeclaringType != null)
-				goto exit;	// a is nested, b isn't
-
-			if (DontCompareTypeScope) {
+			else if (a.DeclaringType != null) {
+				result = false;	// a is nested, b isn't
+			}
+			else if (DontCompareTypeScope)
 				result = true;
-				goto exit;
-			}
-			var bFile = scope as FileDef;
-			if (bFile != null) {
+			else if ((bFile = scope as FileDef) != null) {
 				result = Equals(a.OwnerModule, bFile) &&
 						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
-				goto exit;
 			}
-			var bAsm = scope as AssemblyRef;
-			if (bAsm != null) {
+			else if ((bAsm = scope as AssemblyRef) != null) {
 				var aMod = a.OwnerModule;
 				result = aMod != null && Equals(aMod.Assembly, bAsm);
-				goto exit;
 			}
-exit:
+			else
+				result = false;
+
 			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
 			recursionCounter.Decrement();
@@ -1663,52 +1639,40 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result;
 
-			TypeRef ea = ra as TypeRef, eb = rb as TypeRef;
-			if (ea != null || eb != null) {	// if one of them is a TypeRef, the other one must be too
+			bool result;
+			TypeRef ea, eb;
+			IModule ma, mb;
+			AssemblyRef aa, ab;
+			ModuleRef modRef;
+			ModuleDef modDef;
+
+			// if one of them is a TypeRef, the other one must be too
+			if ((ea = ra as TypeRef) != null | (eb = rb as TypeRef) != null)
 				result = Equals(ea, eb);
-				goto exit;
-			}
-			if (DontCompareTypeScope) {
+			else if (DontCompareTypeScope)
 				result = true;
-				goto exit;
-			}
-			IModule ma = ra as IModule, mb = rb as IModule;
-			if (ma != null && mb != null) {	// only compare if both are modules
+			// only compare if both are modules
+			else if ((ma = ra as IModule) != null & (mb = rb as IModule) != null)
 				result = Equals(ma, mb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly);
-				goto exit;
-			}
-			AssemblyRef aa = ra as AssemblyRef, ab = rb as AssemblyRef;
-			if (aa != null && ab != null) {	// only compare if both are assemblies
+			// only compare if both are assemblies
+			else if ((aa = ra as AssemblyRef) != null & (ab = rb as AssemblyRef) != null)
 				result = Equals((IAssembly)aa, (IAssembly)ab);
-				goto exit;
-			}
-			ModuleRef modRef = rb as ModuleRef;
-			if (aa != null && modRef != null) {
+			else if (aa != null && (modRef = rb as ModuleRef) != null) {
 				var bMod = b.OwnerModule;
 				result = bMod != null && Equals(aa, bMod.Assembly);
-				goto exit;
 			}
-			modRef = ra as ModuleRef;
-			if (ab != null && modRef != null) {
+			else if (ab != null && (modRef = ra as ModuleRef) != null) {
 				var aMod = a.OwnerModule;
 				result = aMod != null && Equals(ab, aMod.Assembly);
-				goto exit;
 			}
-			ModuleDef modDef = rb as ModuleDef;
-			if (aa != null && modDef != null) {
+			else if (aa != null && (modDef = rb as ModuleDef) != null)
 				result = Equals(aa, modDef.Assembly);
-				goto exit;
-			}
-			modDef = ra as ModuleDef;
-			if (ab != null && modDef != null) {
+			else if (ab != null && (modDef = ra as ModuleDef) != null)
 				result = Equals(ab, modDef.Assembly);
-				goto exit;
-			}
+			else
+				result = false;
 
-			result = false;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1732,38 +1696,30 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
+
 			bool result;
+			ExportedType ea, eb;
+			FileDef fa, fb;
+			AssemblyRef aa, ab;
 
-			ExportedType ea = ia as ExportedType, eb = ib as ExportedType;
-			if (ea != null || eb != null) {	// if one of them is a ExportedType, the other one must be too
+			// if one of them is an ExportedType, the other one must be too
+			if ((ea = ia as ExportedType) != null | (eb = ib as ExportedType) != null)
 				result = Equals(ea, eb);
-				goto exit;
-			}
-			if (DontCompareTypeScope) {
+			else if (DontCompareTypeScope)
 				result = true;
-				goto exit;
-			}
-			FileDef fa = ia as FileDef, fb = ib as FileDef;
-			if (fa != null && fb != null) {	// only compare if both are files
+			// only compare if both are files
+			else if ((fa = ia as FileDef) != null & (fb = ib as FileDef) != null)
 				result = Equals(fa, fb);
-				goto exit;
-			}
-			AssemblyRef aa = ia as AssemblyRef, ab = ib as AssemblyRef;
-			if (aa != null && ab != null) {	// only compare if both are assemblies
+			// only compare if both are assemblies
+			else if ((aa = ia as AssemblyRef) != null & (ab = ib as AssemblyRef) != null)
 				result = Equals((IAssembly)aa, (IAssembly)ab);
-				goto exit;
-			}
-			if (fa != null && ab != null) {
+			else if (fa != null && ab != null)
 				result = Equals(a.DefinitionAssembly, ab);
-				goto exit;
-			}
-			if (fb != null && aa != null) {
+			else if (fb != null && aa != null)
 				result = Equals(b.DefinitionAssembly, aa);
-				goto exit;
-			}
+			else
+				result = false;
 
-			result = false;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1787,37 +1743,28 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
+
 			bool result;
+			TypeRef ea;
+			ExportedType eb;
+			IModule ma;
+			FileDef fb;
+			AssemblyRef aa, ab;
 
-			var ea = ra as TypeRef;
-			var eb = ib as ExportedType;
-			if (ea != null || eb != null) {	// If one is a nested type, the other one must be too
+			// If one is a nested type, the other one must be too
+			if ((ea = ra as TypeRef) != null | (eb = ib as ExportedType) != null)
 				result = Equals(ea, eb);
-				goto exit;
-			}
-			var ma = ra as IModule;
-			var fb = ib as FileDef;
-			if (ma != null && fb != null) {
+			else if ((ma = ra as IModule) != null & (fb = ib as FileDef) != null)
 				result = Equals(ma, fb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly);
-				goto exit;
-			}
-			var aa = ra as AssemblyRef;
-			var ab = ib as AssemblyRef;
-			if (aa != null && ab != null) {
+			else if ((aa = ra as AssemblyRef) != null & (ab = ib as AssemblyRef) != null)
 				result = Equals(aa, ab);
-				goto exit;
-			}
-			if (ma != null && ab != null) {
+			else if (ma != null && ab != null)
 				result = Equals(a.DefinitionAssembly, ab);
-				goto exit;
-			}
-			if (fb != null && aa != null) {
+			else if (fb != null && aa != null)
 				result = Equals(b.DefinitionAssembly, aa);
-				goto exit;
-			}
+			else
+				result = false;
 
-			result = false;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -2551,33 +2498,25 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result;
 
-			MethodDef mda = a as MethodDef, mdb = b as MethodDef;
-			if (mda != null && mdb != null) {
+			bool result;
+			MethodDef mda, mdb;
+			MemberRef mra, mrb;
+			MethodSpec msa, msb;
+
+			if ((mda = a as MethodDef) != null & (mdb = b as MethodDef) != null)
 				result = Equals(mda, mdb);
-				goto exit;
-			}
-			MemberRef mra = a as MemberRef, mrb = b as MemberRef;
-			if (mra != null && mrb != null) {
+			else if ((mra = a as MemberRef) != null & (mrb = b as MemberRef) != null)
 				result = Equals(mra, mrb);
-				goto exit;
-			}
-			MethodSpec msa = a as MethodSpec, msb = b as MethodSpec;
-			if (msa != null && msb != null) {
+			else if ((msa = a as MethodSpec) != null && (msb = b as MethodSpec) != null)
 				result = Equals(msa, msb);
-				goto exit;
-			}
-			if (mda != null && mrb != null) {
+			else if (mda != null && mrb != null)
 				result = Equals(mda, mrb);
-				goto exit;
-			}
-			if (mra != null && mdb != null) {
+			else if (mra != null && mdb != null)
 				result = Equals(mdb, mra);
-				goto exit;
-			}
-			result = false;
-exit:
+			else
+				result = false;
+
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -2592,25 +2531,21 @@ exit:
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
-			int hash;
 
-			MethodDef mda = a as MethodDef;
-			if (mda != null) {
+			int hash;
+			MethodDef mda;
+			MemberRef mra;
+			MethodSpec msa;
+
+			if ((mda = a as MethodDef) != null)
 				hash = GetHashCode(mda);
-				goto exit;
-			}
-			MemberRef mra = a as MemberRef;
-			if (mra != null) {
+			else if ((mra = a as MemberRef) != null)
 				hash = GetHashCode(mra);
-				goto exit;
-			}
-			MethodSpec msa = a as MethodSpec;
-			if (msa != null) {
+			else if ((msa = a as MethodSpec) != null)
 				hash = GetHashCode(msa);
-				goto exit;
-			}
-			hash = 0;
-exit:
+			else
+				hash = 0;
+
 			recursionCounter.Decrement();
 			return hash;
 		}
@@ -2809,38 +2744,29 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result;
 
-			ITypeDefOrRef ita = a as ITypeDefOrRef, itb = b as ITypeDefOrRef;
-			if (ita != null && itb != null) {
+			bool result;
+			ITypeDefOrRef ita, itb;
+			ModuleRef moda, modb;
+			MethodDef ma, mb;
+			TypeDef td;
+
+			if ((ita = a as ITypeDefOrRef) != null && (itb = b as ITypeDefOrRef) != null)
 				result = Equals((IType)ita, (IType)itb);
-				goto exit;
-			}
-			ModuleRef moda = a as ModuleRef, modb = b as ModuleRef;
-			if (moda != null && modb != null) {
+			else if ((moda = a as ModuleRef) != null & (modb = b as ModuleRef) != null) {
 				ModuleDef omoda = moda.OwnerModule, omodb = modb.OwnerModule;
 				result = Equals((IModule)moda, (IModule)modb) &&
 						Equals(omoda == null ? null : omoda.Assembly, omodb == null ? null : omodb.Assembly);
-				goto exit;
 			}
-			MethodDef ma = a as MethodDef, mb = b as MethodDef;
-			if (ma != null && mb != null) {
+			else if ((ma = a as MethodDef) != null && (mb = b as MethodDef) != null)
 				result = Equals(ma, mb);
-				goto exit;
-			}
-			var td = a as TypeDef;
-			if (td != null && modb != null) {
+			else if (modb != null && (td = a as TypeDef) != null)
 				result = EqualsGlobal(td, modb);
-				goto exit;
-			}
-			td = b as TypeDef;
-			if (td != null && moda != null) {
+			else if (moda != null && (td = b as TypeDef) != null)
 				result = EqualsGlobal(td, moda);
-				goto exit;
-			}
+			else
+				result = false;
 
-			result = false;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -2855,25 +2781,22 @@ exit:
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
-			int hash;
 
-			ITypeDefOrRef ita = a as ITypeDefOrRef;
-			if (ita != null) {
+			int hash;
+			ITypeDefOrRef ita;
+			MethodDef ma;
+
+			if ((ita = a as ITypeDefOrRef) != null)
 				hash = GetHashCode((IType)ita);
-				goto exit;
-			}
-			if (a is ModuleRef) {
+			else if (a is ModuleRef)
 				hash = GetHashCodeGlobalType();
-				goto exit;
-			}
-			MethodDef ma = a as MethodDef;
-			if (ma != null) {
+			else if ((ma = a as MethodDef) != null) {
 				// Only use the declaring type so we get the same hash code when hashing a MethodBase.
 				hash = GetHashCode(ma.DeclaringType);
-				goto exit;
 			}
-			hash = 0;
-exit:
+			else
+				hash = 0;
+
 			recursionCounter.Decrement();
 			return hash;
 		}
@@ -2891,29 +2814,22 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
+
 			bool result;
+			FieldDef fa, fb;
+			MemberRef ma, mb;
 
-			FieldDef fa = a as FieldDef, fb = b as FieldDef;
-			if (fa != null && fb != null) {
+			if ((fa = a as FieldDef) != null & (fb = b as FieldDef) != null)
 				result = Equals(fa, fb);
-				goto exit;
-			}
-			MemberRef ma = a as MemberRef, mb = b as MemberRef;
-			if (ma != null && mb != null) {
+			else if ((ma = a as MemberRef) != null & (mb = b as MemberRef) != null)
 				result = Equals(ma, mb);
-				goto exit;
-			}
-			if (fa != null && mb != null) {
+			else if (fa != null && mb != null)
 				result = Equals(fa, mb);
-				goto exit;
-			}
-			if (fb != null && ma != null) {
+			else if (fb != null && ma != null)
 				result = Equals(fb, ma);
-				goto exit;
-			}
+			else
+				result = false;
 
-			result = false;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -2928,20 +2844,18 @@ exit:
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
-			int hash;
 
-			FieldDef fa = a as FieldDef;
-			if (fa != null) {
+			int hash;
+			FieldDef fa;
+			MemberRef ma;
+
+			if ((fa = a as FieldDef) != null)
 				hash = GetHashCode(fa);
-				goto exit;
-			}
-			MemberRef ma = a as MemberRef;
-			if (ma != null) {
+			else if ((ma = a as MemberRef) != null)
 				hash = GetHashCode(ma);
-				goto exit;
-			}
-			hash = 0;
-exit:
+			else
+				hash = 0;
+
 			recursionCounter.Decrement();
 			return hash;
 		}
@@ -3155,35 +3069,27 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result;
 
-			var td = a as TypeDef;
-			if (td != null) {
+			bool result;
+			TypeDef td;
+			TypeRef tr;
+			TypeSpec ts;
+			TypeSig sig;
+			ExportedType et;
+
+			if ((td = a as TypeDef) != null)
 				result = Equals(td, b);
-				goto exit;
-			}
-			var tr = a as TypeRef;
-			if (tr != null) {
+			else if ((tr = a as TypeRef) != null)
 				result = Equals(tr, b);
-				goto exit;
-			}
-			var ts = a as TypeSpec;
-			if (ts != null) {
+			else if ((ts = a as TypeSpec) != null)
 				result = Equals(ts, b);
-				goto exit;
-			}
-			var sig = a as TypeSig;
-			if (sig != null) {
+			else if ((sig = a as TypeSig) != null)
 				result = Equals(sig, b);
-				goto exit;
-			}
-			var et = a as ExportedType;
-			if (et != null) {
+			else if ((et = a as ExportedType) != null)
 				result = Equals(et, b);
-				goto exit;
-			}
-			result = false;
-exit:
+			else
+				result = false;
+
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -3258,39 +3164,34 @@ exit:
 				return false;	// Must use a ModuleRef to reference the global type, so always fail
 			if (!recursionCounter.Increment())
 				return false;
-			bool result = false;
+
+			bool result;
+			TypeRef dta;
+			IModule aMod;
+			AssemblyRef aAsm;
+			var scope = a.ResolutionScope;
 
 			if (b.HasElementType)
-				goto exit;
-			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b))
-				goto exit;
-
-			var scope = a.ResolutionScope;
-			var dta = scope as TypeRef;
-			if (dta != null) {	// nested type
+				result = false;
+			else if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b))
+				result = false;
+			else if ((dta = scope as TypeRef) != null)	// nested type
 				result = Equals(dta, b.DeclaringType);	// Compare enclosing types
-				goto exit;
-			}
-			if (b.IsNested)
-				goto exit;	// b is nested, a isn't
-
-			if (DontCompareTypeScope) {
+			else if (b.IsNested)
+				result = false;	// b is nested, a isn't
+			else if (DontCompareTypeScope)
 				result = true;
-				goto exit;
-			}
-			var aMod = scope as IModule;
-			if (aMod != null) {	// 'a' is defined in the same assembly as 'b'
+			else if ((aMod = scope as IModule) != null) {	// 'a' is defined in the same assembly as 'b'
 				result = Equals(aMod, b.Module) &&
 						Equals(a.DefinitionAssembly, b.Assembly);
-				goto exit;
 			}
-			var aAsm = scope as AssemblyRef;
-			if (aAsm != null) {
+			else if ((aAsm = scope as AssemblyRef) != null)
 				result = Equals(aAsm, b.Assembly);
-				goto exit;
+			else {
+				result = false;
+				//TODO: Handle the case where scope == null
 			}
-			//TODO: Handle the case where scope == null
-exit:
+
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -3549,38 +3450,32 @@ exit:
 				return false;	// Must use a ModuleRef to reference the global type, so always fail
 			if (!recursionCounter.Increment())
 				return false;
-			bool result = false;
+
+			bool result;
+			ExportedType dta;
+			FileDef aFile;
+			AssemblyRef aAsm;
+			var scope = a.Implementation;
 
 			if (b.HasElementType)
-				goto exit;
-			if (!Equals_TypeNames(a.TypeName, b.Name) || !Equals_TypeNamespaces(a.TypeNamespace, b))
-				goto exit;
-
-			var scope = a.Implementation;
-			var dta = scope as ExportedType;
-			if (dta != null) {	// nested type
+				result = false;
+			else if (!Equals_TypeNames(a.TypeName, b.Name) || !Equals_TypeNamespaces(a.TypeNamespace, b))
+				result = false;
+			else if ((dta = scope as ExportedType) != null)	// nested type
 				result = Equals(dta, b.DeclaringType);	// Compare enclosing types
-				goto exit;
-			}
-			if (b.IsNested)
-				goto exit;	// b is nested, a isn't
-
-			if (DontCompareTypeScope) {
+			else if (b.IsNested)
+				result = false;	// b is nested, a isn't
+			else if (DontCompareTypeScope)
 				result = true;
-				goto exit;
-			}
-			var aFile = scope as FileDef;
-			if (aFile != null) {
+			else if ((aFile = scope as FileDef) != null) {
 				result = Equals(aFile, b.Module) &&
 						Equals(a.DefinitionAssembly, b.Assembly);
-				goto exit;
 			}
-			var aAsm = scope as AssemblyRef;
-			if (aAsm != null) {
+			else if ((aAsm = scope as AssemblyRef) != null)
 				result = Equals(aAsm, b.Assembly);
-				goto exit;
-			}
-exit:
+			else
+				result = false;
+
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -3887,25 +3782,21 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result;
 
-			var md = a as MethodDef;
-			if (md != null) {
+			bool result;
+			MethodDef md;
+			MemberRef mr;
+			MethodSpec ms;
+
+			if ((md = a as MethodDef) != null)
 				result = DeclaringTypeEquals(md, b);
-				goto exit;
-			}
-			var mr = a as MemberRef;
-			if (mr != null) {
+			else if ((mr = a as MemberRef) != null)
 				result = DeclaringTypeEquals(mr, b);
-				goto exit;
-			}
-			var ms = a as MethodSpec;
-			if (ms != null) {
+			else if ((ms = a as MethodSpec) != null)
 				result = DeclaringTypeEquals(ms, b);
-				goto exit;
-			}
-			result = false;
-exit:
+			else
+				result = false;
+
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -3966,25 +3857,21 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result;
 
-			var md = a as MethodDef;
-			if (md != null) {
+			bool result;
+			MethodDef md;
+			MemberRef mr;
+			MethodSpec ms;
+
+			if ((md = a as MethodDef) != null)
 				result = Equals(md, b);
-				goto exit;
-			}
-			var mr = a as MemberRef;
-			if (mr != null) {
+			else if ((mr = a as MemberRef) != null)
 				result = Equals(mr, b);
-				goto exit;
-			}
-			var ms = a as MethodSpec;
-			if (ms != null) {
+			else if ((ms = a as MethodSpec) != null)
 				result = Equals(ms, b);
-				goto exit;
-			}
-			result = false;
-exit:
+			else
+				result = false;
+
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -4143,34 +4030,28 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
-			bool result;
 
-			ITypeDefOrRef ita = a as ITypeDefOrRef;
-			if (ita != null) {
+			bool result;
+			ITypeDefOrRef ita;
+			ModuleRef moda;
+			MethodDef ma;
+			TypeDef td;
+
+			if ((ita = a as ITypeDefOrRef) != null)
 				result = Equals((IType)ita, b);
-				goto exit;
-			}
-			ModuleRef moda = a as ModuleRef;
-			if (moda != null) {
+			else if ((moda = a as ModuleRef) != null) {
 				ModuleDef omoda = moda.OwnerModule;
 				result = b == null &&	// b == null => it's the global type
 						Equals(moda, bModule) &&
 						Equals(omoda == null ? null : omoda.Assembly, bModule.Assembly);
-				goto exit;
 			}
-			MethodDef ma = a as MethodDef;
-			if (ma != null) {
+			else if ((ma = a as MethodDef) != null)
 				result = Equals(ma.DeclaringType, b);
-				goto exit;
-			}
-			var td = a as TypeDef;
-			if (td != null && b == null) {
+			else if (b == null && (td = a as TypeDef) != null)
 				result = td.IsGlobalModuleType;
-				goto exit;
-			}
+			else
+				result = false;
 
-			result = false;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -4516,21 +4397,18 @@ exit:
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
+
 			bool result;
+			FieldDef fa;
+			MemberRef ma;
 
-			FieldDef fa = a as FieldDef;
-			if (fa != null) {
+			if ((fa = a as FieldDef) != null)
 				result = Equals(fa, b);
-				goto exit;
-			}
-			MemberRef ma = a as MemberRef;
-			if (ma != null) {
+			else if ((ma = a as MemberRef) != null)
 				result = Equals(ma, b);
-				goto exit;
-			}
+			else
+				result = false;
 
-			result = false;
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
