@@ -3171,7 +3171,7 @@ namespace dot10.DotNet {
 			AssemblyRef aAsm;
 			var scope = a.ResolutionScope;
 
-			if (b.HasElementType)
+			if (!b.IsTypeDef())
 				result = false;
 			else if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b))
 				result = false;
@@ -3457,7 +3457,7 @@ namespace dot10.DotNet {
 			AssemblyRef aAsm;
 			var scope = a.Implementation;
 
-			if (b.HasElementType)
+			if (!b.IsTypeDef())
 				result = false;
 			else if (!Equals_TypeNames(a.TypeName, b.Name) || !Equals_TypeNamespaces(a.TypeNamespace, b))
 				result = false;
