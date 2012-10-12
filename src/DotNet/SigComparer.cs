@@ -4644,5 +4644,10 @@ namespace dot10.DotNet {
 			recursionCounter.Decrement();
 			return hash;
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("{0} - {1}", recursionCounter, options);
+		}
 	}
 }
