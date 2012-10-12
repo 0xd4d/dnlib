@@ -1035,6 +1035,7 @@ namespace dot10.DotNet {
 		LazyList<TypeDef> nestedTypes;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<ModuleDef> ownerModule;
+		Dictionary<uint, List<MethodOverride>> methodRidToMethodOverrides;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Flags {
@@ -1231,6 +1232,97 @@ namespace dot10.DotNet {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadTypeDefRow(rid);
+		}
+
+		/// <summary>
+		/// Gets all methods <paramref name="method"/> overrides
+		/// </summary>
+		/// <param name="method">The method</param>
+		/// <returns>A list (possibly empty) of all methods <paramref name="method"/> overrides</returns>
+		internal List<MethodOverride> GetMethodOverrides(MethodDefMD method) {
+			if (method == null)
+				return new List<MethodOverride>();
+
+			if (methodRidToMethodOverrides == null)
+				InitializeMethodOverrides();
+
+			List<MethodOverride> overrides;
+			if (methodRidToMethodOverrides.TryGetValue(method.Rid, out overrides))
+				return overrides;
+			return new List<MethodOverride>();
+		}
+
+		void InitializeMethodOverrides() {
+			if (methodRidToMethodOverrides != null)
+				return;
+			methodRidToMethodOverrides = new Dictionary<uint, List<MethodOverride>>();
+
+			var ridList = readerModule.MetaData.GetMethodImplRidList(rid);
+			for (uint i = 0; i < ridList.Length; i++) {
+				var methodImpl = readerModule.ResolveMethodImpl(ridList[i]);
+				if (methodImpl == null)
+					continue;	// Should never happen since rid should be valid
+
+				var methodBody = methodImpl.MethodBody;
+				var methodDecl = methodImpl.MethodDeclaration;
+				if (methodBody == null || methodDecl == null)
+					continue;	// Should only happen if some obfuscator added invalid metadata
+
+				// Find the real method. This is usually methodBody since it's usually a
+				// MethodDef. The CLR only allows method bodies in the current type, and
+				// so shall we.
+				var method = FindMethodImplMethod(methodBody);
+				if (method == null || method.DeclaringType != this)
+					continue;
+
+				List<MethodOverride> overrides;
+				if (!methodRidToMethodOverrides.TryGetValue(method.Rid, out overrides))
+					methodRidToMethodOverrides[method.Rid] = overrides = new List<MethodOverride>();
+				overrides.Add(new MethodOverride(methodBody, methodDecl));
+			}
+		}
+
+		MethodDef FindMethodImplMethod(IMethodDefOrRef mdr) {
+			// Check common case first
+			var md = mdr as MethodDef;
+			if (md != null)
+				return md;
+
+			// Must be a member ref
+			var mr = mdr as MemberRef;
+			if (mr == null)
+				return null;
+
+			// If Class is MethodDef, then it should be a vararg method
+			var parent = mr.Class;
+			md = parent as MethodDef;
+			if (md != null)
+				return md;
+
+			// If it's a TypeSpec, it must be a generic instance type
+			for (int i = 0; i < 10; i++) {
+				var ts = parent as TypeSpec;
+				if (ts == null)
+					break;
+
+				var gis = ts.TypeSig as GenericInstSig;
+				if (gis == null || gis.GenericType == null)
+					return null;
+				parent = gis.GenericType.TypeDefOrRef;
+			}
+
+			var td = parent as TypeDef;
+			if (td == null) {
+				// If it's a TypeRef, resolve it as if it is a reference to a type in the
+				// current module, even if its ResolutionScope happens to be some other
+				// assembly/module (that's what the CLR does)
+				var tr = parent as TypeRef;
+				if (tr != null && OwnerModule != null)
+					td = OwnerModule.Find(tr);
+			}
+			if (td == null)
+				return null;
+			return td.ResolveMethod(mr.Name, mr.MethodSig);
 		}
 	}
 }

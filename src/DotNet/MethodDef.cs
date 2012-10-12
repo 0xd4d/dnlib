@@ -115,6 +115,11 @@ namespace dot10.DotNet {
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
 		/// <summary>
+		/// Gets the methods this method implements
+		/// </summary>
+		public abstract IList<MethodOverride> Overrides { get; }
+
+		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
 		public TypeDef DeclaringType {
@@ -579,6 +584,7 @@ namespace dot10.DotNet {
 		ImplMap implMap;
 		MethodBody methodBody;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		IList<MethodOverride> overrides = new List<MethodOverride>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -644,6 +650,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override CustomAttributeCollection CustomAttributes {
 			get { return customAttributeCollection; }
+		}
+
+		/// <inheritdoc/>
+		public override IList<MethodOverride> Overrides {
+			get { return overrides; }
 		}
 
 		/// <inheritdoc/>
@@ -780,6 +791,7 @@ namespace dot10.DotNet {
 		UserValue<ImplMap> implMap;
 		UserValue<MethodBody> methodBody;
 		CustomAttributeCollection customAttributeCollection;
+		IList<MethodOverride> overrides;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
@@ -868,6 +880,18 @@ namespace dot10.DotNet {
 					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 				}
 				return customAttributeCollection;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IList<MethodOverride> Overrides {
+			get {
+				if (overrides != null)
+					return overrides;
+				var dt = DeclaringType as TypeDefMD;
+				if (dt == null)
+					return overrides = new List<MethodOverride>();
+				return overrides = dt.GetMethodOverrides(this);
 			}
 		}
 
