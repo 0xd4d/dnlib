@@ -158,9 +158,6 @@ namespace dot10.DotNet {
 		}
 
 		CustomAttribute Read() {
-			if (reader.ReadUInt16() != 1)
-				throw new CABlobParsingException("Invalid CA blob prolog");
-
 			var methodSig = ctor == null ? null : ctor.Signature as MethodSig;
 			if (methodSig == null)
 				throw new CABlobParsingException("ctor is null or not a method");
@@ -176,6 +173,10 @@ namespace dot10.DotNet {
 					}
 				}
 			}
+
+			bool isEmpty = methodSig.Params.Count == 0 && reader.Position == reader.Length;
+			if (!isEmpty && reader.ReadUInt16() != 1)
+				throw new CABlobParsingException("Invalid CA blob prolog");
 
 			var ctorArgs = new List<CAArgument>(methodSig.Params.Count);
 			for (int i = 0; i < methodSig.Params.Count; i++)
