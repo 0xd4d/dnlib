@@ -573,7 +573,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a method. Private scope methods are not returned.
+		/// Finds a method. Private scope methods are not returned.
 		/// </summary>
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
@@ -583,7 +583,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a method
+		/// Finds a method
 		/// </summary>
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
@@ -606,7 +606,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a field. Private scope fields are not returned.
+		/// Finds a field. Private scope fields are not returned.
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
@@ -616,7 +616,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a field
+		/// Finds a field
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
