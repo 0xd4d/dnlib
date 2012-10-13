@@ -1325,6 +1325,13 @@ namespace dot10.DotNet {
 			return td.FindMethod(mr.Name, mr.MethodSig);
 		}
 
+		/// <summary>
+		/// Initializes a property's special methods
+		/// </summary>
+		/// <param name="prop">The property</param>
+		/// <param name="getMethod">Updated with the getter method or <c>null</c> if none</param>
+		/// <param name="setMethod">Updated with the setter method or <c>null</c> if none</param>
+		/// <param name="otherMethods">Updated with a list of all other methods</param>
 		internal void InitializeProperty(PropertyDefMD prop, out MethodDef getMethod, out MethodDef setMethod, out List<MethodDef> otherMethods) {
 			getMethod = null;
 			setMethod = null;
@@ -1366,6 +1373,14 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Initializes an event's special methods
+		/// </summary>
+		/// <param name="evt">The event</param>
+		/// <param name="addMethod">Updated with the addOn method or <c>null</c> if none</param>
+		/// <param name="invokeMethod">Updated with the fire method or <c>null</c> if none</param>
+		/// <param name="removeMethod">Updated with the removeOn method or <c>null</c> if none</param>
+		/// <param name="otherMethods">Updated with a list of all other methods</param>
 		internal void InitializeEvent(EventDefMD evt, out MethodDef addMethod, out MethodDef invokeMethod, out MethodDef removeMethod, out List<MethodDef> otherMethods) {
 			addMethod = null;
 			invokeMethod = null;
