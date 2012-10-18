@@ -3,9 +3,9 @@ using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
 	class MDTable<T> {
-		Table table;
-		Dictionary<T, uint> cachedDict;
-		List<T> cached;
+		readonly Table table;
+		readonly Dictionary<T, uint> cachedDict;
+		readonly List<T> cached;
 
 		/// <summary>
 		/// Gets the table type
@@ -36,7 +36,7 @@ namespace dot10.DotNet.Writer {
 		/// Adds a row. If the row already exists, returns a rid to the existing one, else
 		/// it's created and a new rid is returned.
 		/// </summary>
-		/// <param name="row">The row. It's now owned by us and can NOT be modified by the caller.</param>
+		/// <param name="row">The row. It's now owned by us and must NOT be modified by the caller.</param>
 		/// <returns>The RID (row ID) of the row</returns>
 		public uint Add(T row) {
 			uint rid;
@@ -48,7 +48,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Creates a new row even if this row already exists.
 		/// </summary>
-		/// <param name="row">The row. It's now owned by us and can NOT be modified by the caller.</param>
+		/// <param name="row">The row. It's now owned by us and must NOT be modified by the caller.</param>
 		/// <returns>The RID (row ID) of the row</returns>
 		public uint Create(T row) {
 			uint rid = (uint)cached.Count + 1;
