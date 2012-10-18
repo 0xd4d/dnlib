@@ -6,18 +6,26 @@ using dot10.PE;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
-	abstract class HeapBase : IChunk {
-		FileOffset offset;
-		RVA rva;
-
+	interface IHeap : IChunk {
 		/// <summary>
 		/// Gets the name of the heap
 		/// </summary>
-		public abstract string Name { get; }
+		string Name { get; }
 
 		/// <summary>
 		/// Checks whether the heap is empty
 		/// </summary>
+		bool IsEmpty { get; }
+	}
+
+	abstract class HeapBase : IHeap {
+		FileOffset offset;
+		RVA rva;
+
+		/// <inheritdoc/>
+		public abstract string Name { get; }
+
+		/// <inheritdoc/>
 		public bool IsEmpty {
 			get { return GetLength() <= 1; }
 		}
