@@ -4,6 +4,26 @@ using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
+	/// <summary>
+	/// Compares byte arrays
+	/// </summary>
+	public class ByteArrayEqualityComparer : IEqualityComparer<byte[]> {
+		/// <summary>
+		/// Default instance
+		/// </summary>
+		public static readonly ByteArrayEqualityComparer Instance = new ByteArrayEqualityComparer();
+
+		/// <inheritdoc/>
+		public bool Equals(byte[] x, byte[] y) {
+			return Utils.Equals(x, y);
+		}
+
+		/// <inheritdoc/>
+		public int GetHashCode(byte[] obj) {
+			return Utils.GetHashCode(obj);
+		}
+	}
+
 	static class Utils {
 		/// <summary>
 		/// Returns an assembly name string
