@@ -8,6 +8,11 @@ namespace dot10.DotNet.Writer {
 		UniqueChunkList<IChunk> constants;
 		MethodBodyChunks methodBodies;
 		ChunkList<IChunk> netResources;
+		TablesHeap tablesHeap;
+		StringsHeap stringsHeap;
+		USHeap usHeap;
+		GuidHeap guidHeap;
+		BlobHeap blobHeap;
 
 		/// <summary>
 		/// Constructor
@@ -21,6 +26,11 @@ namespace dot10.DotNet.Writer {
 			this.constants = constants;
 			this.methodBodies = methodBodies;
 			this.netResources = netResources;
+			this.tablesHeap = new TablesHeap();
+			this.stringsHeap = new StringsHeap();
+			this.usHeap = new USHeap();
+			this.guidHeap = new GuidHeap();
+			this.blobHeap = new BlobHeap();
 		}
 
 		/// <inheritdoc/>
