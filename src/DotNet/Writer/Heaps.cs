@@ -6,6 +6,9 @@ using dot10.PE;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// .NET Heap interface
+	/// </summary>
 	interface IHeap : IChunk {
 		/// <summary>
 		/// Gets the name of the heap
@@ -18,6 +21,9 @@ namespace dot10.DotNet.Writer {
 		bool IsEmpty { get; }
 	}
 
+	/// <summary>
+	/// Base class of most heaps
+	/// </summary>
 	abstract class HeapBase : IHeap {
 		FileOffset offset;
 		RVA rva;
@@ -43,6 +49,9 @@ namespace dot10.DotNet.Writer {
 		public abstract void WriteTo(BinaryWriter writer);
 	}
 
+	/// <summary>
+	/// #Strings heap
+	/// </summary>
 	sealed class StringsHeap : HeapBase {
 		Dictionary<UTF8String, uint> cachedDict = new Dictionary<UTF8String, uint>(UTF8StringEqualityComparer.Instance);
 		List<UTF8String> cached = new List<UTF8String>();
@@ -90,6 +99,9 @@ namespace dot10.DotNet.Writer {
 		}
 	}
 
+	/// <summary>
+	/// #US heap
+	/// </summary>
 	sealed class USHeap : HeapBase {
 		Dictionary<string, uint> cachedDict = new Dictionary<string, uint>(StringComparer.Ordinal);
 		List<string> cached = new List<string>();
@@ -141,6 +153,9 @@ namespace dot10.DotNet.Writer {
 		}
 	}
 
+	/// <summary>
+	/// #Blob heap
+	/// </summary>
 	sealed class BlobHeap : HeapBase {
 		Dictionary<byte[], uint> cachedDict = new Dictionary<byte[], uint>(ByteArrayEqualityComparer.Instance);
 		List<byte[]> cached = new List<byte[]>();
@@ -185,6 +200,9 @@ namespace dot10.DotNet.Writer {
 		}
 	}
 
+	/// <summary>
+	/// #GUID heap
+	/// </summary>
 	sealed class GuidHeap : HeapBase {
 		List<Guid> guids = new List<Guid>();
 

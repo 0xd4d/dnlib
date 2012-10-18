@@ -3,6 +3,9 @@ using dot10.IO;
 using dot10.PE;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Method body chunk
+	/// </summary>
 	class MethodBody : IChunk {
 		const uint EXTRA_SECTIONS_ALIGNMENT = 4;
 

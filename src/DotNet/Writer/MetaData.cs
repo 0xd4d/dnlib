@@ -3,6 +3,9 @@ using dot10.IO;
 using dot10.PE;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// .NET meta data
+	/// </summary>
 	class MetaData : IChunk {
 		ModuleDef module;
 		UniqueChunkList<IChunk> constants;

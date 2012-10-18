@@ -5,6 +5,10 @@ using dot10.IO;
 using dot10.PE;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Re-uses existing chunks to save space
+	/// </summary>
+	/// <typeparam name="T">Chunk type</typeparam>
 	class UniqueChunkList<T> : ChunkListBase<T> where T : class, IChunk {
 		Dictionary<Elem, Elem> dict = new Dictionary<Elem, Elem>();
 

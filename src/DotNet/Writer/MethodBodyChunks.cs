@@ -5,6 +5,9 @@ using dot10.IO;
 using dot10.PE;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Stores all method body chunks
+	/// </summary>
 	class MethodBodyChunks : IChunk {
 		const uint FAT_BODY_ALIGNMENT = 4;
 		Dictionary<MethodBody, MethodBody> tinyMethodsDict;

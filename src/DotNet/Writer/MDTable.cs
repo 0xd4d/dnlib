@@ -2,6 +2,10 @@
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Creates rows in a table. Rows can optionally be shared to create a compact table.
+	/// </summary>
+	/// <typeparam name="T">The raw row type</typeparam>
 	class MDTable<T> {
 		readonly Table table;
 		readonly Dictionary<T, uint> cachedDict;

@@ -4,6 +4,9 @@ using dot10.PE;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Options to <see cref="ImageCor20Header"/>
+	/// </summary>
 	struct Cor20HeaderOptions {
 		/// <summary>
 		/// Default major runtime version
@@ -51,6 +54,9 @@ namespace dot10.DotNet.Writer {
 		}
 	}
 
+	/// <summary>
+	/// .NET header
+	/// </summary>
 	class ImageCor20Header : IChunk {
 		FileOffset offset;
 		Cor20HeaderOptions options;

@@ -4,6 +4,9 @@ using dot10.PE;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Contains all .NET tables
+	/// </summary>
 	class TablesHeap : IHeap {
 		string name;
 

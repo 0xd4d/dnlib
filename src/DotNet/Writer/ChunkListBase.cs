@@ -4,6 +4,10 @@ using dot10.IO;
 using dot10.PE;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Base class of chunk list types
+	/// </summary>
+	/// <typeparam name="T">Chunk type</typeparam>
 	abstract class ChunkListBase<T> : IChunk where T : IChunk {
 		protected List<Elem> chunks;
 		RVA rva;

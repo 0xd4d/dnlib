@@ -3,6 +3,9 @@ using dot10.IO;
 using dot10.PE;
 
 namespace dot10.DotNet.Writer {
+	/// <summary>
+	/// Import address table chunk
+	/// </summary>
 	class ImportAddressTable : IChunk {
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
