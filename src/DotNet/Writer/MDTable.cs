@@ -1,9 +1,18 @@
 ﻿using System.Collections.Generic;
+using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
 	class MDTable<T> {
+		Table table;
 		Dictionary<T, uint> cachedDict;
 		List<T> cached;
+
+		/// <summary>
+		/// Gets the table type
+		/// </summary>
+		public Table Table {
+			get { return table; }
+		}
 
 		/// <summary>
 		/// <c>true</c> if the table is empty
@@ -15,10 +24,12 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="table">The table type</param>
 		/// <param name="equalityComparer">Equality comparer</param>
-		public MDTable(IEqualityComparer<T> equalityComparer) {
-			cachedDict = new Dictionary<T, uint>(equalityComparer);
-			cached = new List<T>();
+		public MDTable(Table table, IEqualityComparer<T> equalityComparer) {
+			this.table = table;
+			this.cachedDict = new Dictionary<T, uint>(equalityComparer);
+			this.cached = new List<T>();
 		}
 
 		/// <summary>
