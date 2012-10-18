@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using dot10.DotNet.MD;
 
@@ -316,6 +317,44 @@ namespace dot10.DotNet {
 		/// <param name="alignment">Alignment</param>
 		public static int AlignUp(int v, uint alignment) {
 			return (int)AlignUp((uint)v, alignment);
+		}
+
+		/// <summary>
+		/// Gets length of compressed integer
+		/// </summary>
+		/// <param name="value">Integer</param>
+		/// <returns>Size of compressed integer in bytes (1, 2 or 4 bytes)</returns>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be compressed (too big)</exception>
+		public static int GetCompressedUInt32Length(uint value) {
+			if (value <= 0x7F)
+				return 1;
+			if (value <= 0x3FFF)
+				return 2;
+			if (value <= 0x1FFFFFFF)
+				return 4;
+			throw new ArgumentOutOfRangeException("value can't be compressed");
+		}
+
+		/// <summary>
+		/// Write a compressed UInt32
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="value">Value</param>
+		public static void WriteCompressedUInt32(this BinaryWriter writer, uint value) {
+			if (value <= 0x7F)
+				writer.Write((byte)value);
+			else if (value <= 0x3FFF) {
+				writer.Write((byte)((value >> 8) | 0x80));
+				writer.Write((byte)value);
+			}
+			else if (value <= 0x1FFFFFFF) {
+				writer.Write((byte)((value >> 24) | 0xC0));
+				writer.Write((byte)(value >> 16));
+				writer.Write((byte)(value >> 8));
+				writer.Write((byte)value);
+			}
+			else
+				throw new ArgumentOutOfRangeException("value can't be compressed");
 		}
 	}
 }
