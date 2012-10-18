@@ -46,7 +46,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Add a string to the #Strings heap
+		/// Adds a string to the #Strings heap
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #Strings heap</returns>
@@ -93,7 +93,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Add a string to the #Strings heap
+		/// Adds a string to the #US heap
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #US heap</returns>
@@ -144,7 +144,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Add a string to the #Strings heap
+		/// Adds data to the #Blob heap
 		/// </summary>
 		/// <param name="data">The data</param>
 		/// <returns>The offset of the data in the #Blob heap</returns>
@@ -186,7 +186,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Add a guid to the #GUID heap
+		/// Adds a guid to the #GUID heap
 		/// </summary>
 		/// <param name="guid">The guid</param>
 		/// <returns>The index of the guid in the #GUID heap</returns>
