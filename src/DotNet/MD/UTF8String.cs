@@ -1,8 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
 namespace dot10.DotNet.MD {
+	/// <summary>
+	/// Compares <see cref="UTF8String"/>s
+	/// </summary>
+	public sealed class UTF8StringEqualityComparer : IEqualityComparer<UTF8String> {
+		/// <summary>
+		/// The default instance
+		/// </summary>
+		public static readonly UTF8StringEqualityComparer Instance = new UTF8StringEqualityComparer();
+
+		/// <inheritdoc/>
+		public bool Equals(UTF8String x, UTF8String y) {
+			return UTF8String.Equals(x, y);
+		}
+
+		/// <inheritdoc/>
+		public int GetHashCode(UTF8String obj) {
+			return UTF8String.GetHashCode(obj);
+		}
+	}
+
 	/// <summary>
 	/// A UTF-8 encoded string where the original data is kept in memory to avoid conversions
 	/// when the data is not really valid UTF-8 encoded data
