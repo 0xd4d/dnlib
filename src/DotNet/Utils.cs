@@ -340,6 +340,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="writer">Writer</param>
 		/// <param name="value">Value</param>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be compressed (too big)</exception>
 		public static void WriteCompressedUInt32(this BinaryWriter writer, uint value) {
 			if (value <= 0x7F)
 				writer.Write((byte)value);
