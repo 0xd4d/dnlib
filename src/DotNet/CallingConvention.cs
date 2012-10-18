@@ -10,23 +10,23 @@ namespace dot10.DotNet {
 	public enum CallingConvention : byte {
 		/// <summary>The managed calling convention</summary>
 		Default			= 0x0,
-		/// <summary></summary>
+		/// <summary/>
 		C				= 0x1,
-		/// <summary></summary>
+		/// <summary/>
 		StdCall			= 0x2,
-		/// <summary></summary>
+		/// <summary/>
 		ThisCall		= 0x3,
-		/// <summary></summary>
+		/// <summary/>
 		FastCall		= 0x4,
-		/// <summary></summary>
+		/// <summary/>
 		VarArg			= 0x5,
-		/// <summary></summary>
+		/// <summary/>
 		Field			= 0x6,
-		/// <summary></summary>
+		/// <summary/>
 		LocalSig		= 0x7,
-		/// <summary></summary>
+		/// <summary/>
 		Property		= 0x8,
-		/// <summary></summary>
+		/// <summary/>
 		Unmanaged		= 0x9,
 		/// <summary>generic method instantiation</summary>
 		GenericInst		= 0xA,

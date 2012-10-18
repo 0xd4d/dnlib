@@ -585,11 +585,11 @@ namespace dot10.DotNet {
 		UserValue<Guid?> encBaseId;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<AssemblyDef> assembly;
-		/// <summary></summary>
+		/// <summary/>
 		protected IList<TypeDef> types;
-		/// <summary></summary>
+		/// <summary/>
 		protected IList<ExportedType> exportedTypes;
-		/// <summary></summary>
+		/// <summary/>
 		internal ILazyList<Resource> resources;
 		string location;
 

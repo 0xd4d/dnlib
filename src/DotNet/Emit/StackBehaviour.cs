@@ -3,65 +3,65 @@
 	/// CIL opcode stack behavior
 	/// </summary>
 	public enum StackBehaviour : byte {
-		/// <summary></summary>
+		/// <summary/>
 		Pop0,
-		/// <summary></summary>
+		/// <summary/>
 		Pop1,
-		/// <summary></summary>
+		/// <summary/>
 		Pop1_pop1,
-		/// <summary></summary>
+		/// <summary/>
 		Popi,
-		/// <summary></summary>
+		/// <summary/>
 		Popi_pop1,
-		/// <summary></summary>
+		/// <summary/>
 		Popi_popi,
-		/// <summary></summary>
+		/// <summary/>
 		Popi_popi8,
-		/// <summary></summary>
+		/// <summary/>
 		Popi_popi_popi,
-		/// <summary></summary>
+		/// <summary/>
 		Popi_popr4,
-		/// <summary></summary>
+		/// <summary/>
 		Popi_popr8,
-		/// <summary></summary>
+		/// <summary/>
 		Popref,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_pop1,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_popi,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_popi_popi,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_popi_popi8,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_popi_popr4,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_popi_popr8,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_popi_popref,
-		/// <summary></summary>
+		/// <summary/>
 		Push0,
-		/// <summary></summary>
+		/// <summary/>
 		Push1,
-		/// <summary></summary>
+		/// <summary/>
 		Push1_push1,
-		/// <summary></summary>
+		/// <summary/>
 		Pushi,
-		/// <summary></summary>
+		/// <summary/>
 		Pushi8,
-		/// <summary></summary>
+		/// <summary/>
 		Pushr4,
-		/// <summary></summary>
+		/// <summary/>
 		Pushr8,
-		/// <summary></summary>
+		/// <summary/>
 		Pushref,
-		/// <summary></summary>
+		/// <summary/>
 		Varpop,
-		/// <summary></summary>
+		/// <summary/>
 		Varpush,
-		/// <summary></summary>
+		/// <summary/>
 		Popref_popi_pop1,
-		/// <summary></summary>
+		/// <summary/>
 		PopAll = 0xFF,
 	}
 }

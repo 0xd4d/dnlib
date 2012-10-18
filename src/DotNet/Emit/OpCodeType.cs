@@ -3,17 +3,17 @@
 	/// CIL opcode type
 	/// </summary>
 	public enum OpCodeType : byte {
-		/// <summary></summary>
+		/// <summary/>
 		Annotation,
-		/// <summary></summary>
+		/// <summary/>
 		Macro,
-		/// <summary></summary>
+		/// <summary/>
 		Nternal,
-		/// <summary></summary>
+		/// <summary/>
 		Objmodel,
-		/// <summary></summary>
+		/// <summary/>
 		Prefix,
-		/// <summary></summary>
+		/// <summary/>
 		Primitive,
 	}
 }

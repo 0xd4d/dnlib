@@ -22,7 +22,7 @@ namespace dot10.DotNet.Emit {
 		InlinePhi,
 		/// <summary>64-bit real</summary>
 		InlineR,
-		/// <summary></summary>
+		/// <summary/>
 		NOT_USED_8,
 		/// <summary>4-byte method sig token (<see cref="Table.StandAloneSig"/>)</summary>
 		InlineSig,

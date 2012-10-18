@@ -16,9 +16,9 @@ namespace dot10.DotNet.MD {
 		BigGUID = 2,
 		/// <summary>#Blob stream is big and requires 4 byte offsets</summary>
 		BigBlob = 4,
-		/// <summary></summary>
+		/// <summary/>
 		Padding = 8,
-		/// <summary></summary>
+		/// <summary/>
 		DeltaOnly = 0x20,
 		/// <summary>Extra data follows the row counts</summary>
 		ExtraData = 0x40,

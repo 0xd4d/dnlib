@@ -3,7 +3,7 @@
 	/// See CorHdr.h/CorElementType
 	/// </summary>
 	public enum ElementType : byte {
-		/// <summary></summary>
+		/// <summary/>
 		End			= 0x00,
 		/// <summary>System.Void</summary>
 		Void		= 0x01,

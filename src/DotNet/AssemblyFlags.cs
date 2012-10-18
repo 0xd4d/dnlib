@@ -46,9 +46,9 @@ namespace dot10.DotNet {
 		/// <summary>The assembly can be retargeted (at runtime) to an assembly from a different publisher.</summary>
 		Retargetable				= 0x0100,
 
-		/// <summary></summary>
+		/// <summary/>
 		ContentType_Default			= 0x0000,
-		/// <summary></summary>
+		/// <summary/>
 		ContentType_WindowsRuntime	= 0x0200,
 		/// <summary>Bits describing ContentType</summary>
 		ContentType_Mask			= 0x0E00,

@@ -3,7 +3,7 @@
 	/// See CorSerializationType/CorHdr.h
 	/// </summary>
 	enum SerializationType : byte {
-		/// <summary></summary>
+		/// <summary/>
 		Undefined	= 0,
 		/// <summary>System.Boolean</summary>
 		Boolean		= ElementType.Boolean,

@@ -3,23 +3,23 @@
 	/// CIL opcode flow control
 	/// </summary>
 	public enum FlowControl {
-		/// <summary></summary>
+		/// <summary/>
 		Branch,
-		/// <summary></summary>
+		/// <summary/>
 		Break,
-		/// <summary></summary>
+		/// <summary/>
 		Call,
-		/// <summary></summary>
+		/// <summary/>
 		Cond_Branch,
-		/// <summary></summary>
+		/// <summary/>
 		Meta,
-		/// <summary></summary>
+		/// <summary/>
 		Next,
-		/// <summary></summary>
+		/// <summary/>
 		Phi,
-		/// <summary></summary>
+		/// <summary/>
 		Return,
-		/// <summary></summary>
+		/// <summary/>
 		Throw,
 	}
 }

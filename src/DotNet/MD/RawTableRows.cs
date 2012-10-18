@@ -3,15 +3,15 @@
 	/// Raw contents of an uncompressed Module table row
 	/// </summary>
 	public sealed class RawModuleRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Generation;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Mvid;
-		/// <summary></summary>
+		/// <summary/>
 		public uint EncId;
-		/// <summary></summary>
+		/// <summary/>
 		public uint EncBaseId;
 
 		/// <summary>Default constructor</summary>
@@ -32,11 +32,11 @@
 	/// Raw contents of an uncompressed TypeRef table row
 	/// </summary>
 	public sealed class RawTypeRefRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint ResolutionScope;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Namespace;
 
 		/// <summary>Default constructor</summary>
@@ -55,17 +55,17 @@
 	/// Raw contents of an uncompressed TypeDef table row
 	/// </summary>
 	public sealed class RawTypeDefRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Namespace;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Extends;
-		/// <summary></summary>
+		/// <summary/>
 		public uint FieldList;
-		/// <summary></summary>
+		/// <summary/>
 		public uint MethodList;
 
 		/// <summary>Default constructor</summary>
@@ -87,7 +87,7 @@
 	/// Raw contents of an uncompressed FieldPtr table row
 	/// </summary>
 	public sealed class RawFieldPtrRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Field;
 
 		/// <summary>Default constructor</summary>
@@ -104,11 +104,11 @@
 	/// Raw contents of an uncompressed Field table row
 	/// </summary>
 	public sealed class RawFieldRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Signature;
 
 		/// <summary>Default constructor</summary>
@@ -127,7 +127,7 @@
 	/// Raw contents of an uncompressed MethodPtr table row
 	/// </summary>
 	public sealed class RawMethodPtrRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Method;
 
 		/// <summary>Default constructor</summary>
@@ -144,17 +144,17 @@
 	/// Raw contents of an uncompressed Method table row
 	/// </summary>
 	public sealed class RawMethodRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint RVA;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort ImplFlags;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Signature;
-		/// <summary></summary>
+		/// <summary/>
 		public uint ParamList;
 
 		/// <summary>Default constructor</summary>
@@ -176,7 +176,7 @@
 	/// Raw contents of an uncompressed ParamPtr table row
 	/// </summary>
 	public sealed class RawParamPtrRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Param;
 
 		/// <summary>Default constructor</summary>
@@ -193,11 +193,11 @@
 	/// Raw contents of an uncompressed Param table row
 	/// </summary>
 	public sealed class RawParamRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Sequence;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
 
 		/// <summary>Default constructor</summary>
@@ -216,9 +216,9 @@
 	/// Raw contents of an uncompressed InterfaceImpl table row
 	/// </summary>
 	public sealed class RawInterfaceImplRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Class;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Interface;
 
 		/// <summary>Default constructor</summary>
@@ -236,11 +236,11 @@
 	/// Raw contents of an uncompressed MemberRef table row
 	/// </summary>
 	public sealed class RawMemberRefRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Class;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Signature;
 
 		/// <summary>Default constructor</summary>
@@ -259,13 +259,13 @@
 	/// Raw contents of an uncompressed Constant table row
 	/// </summary>
 	public sealed class RawConstantRow {
-		/// <summary></summary>
+		/// <summary/>
 		public byte Type;
-		/// <summary></summary>
+		/// <summary/>
 		public byte Padding;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Parent;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Value;
 
 		/// <summary>Default constructor</summary>
@@ -285,11 +285,11 @@
 	/// Raw contents of an uncompressed CustomAttribute table row
 	/// </summary>
 	public sealed class RawCustomAttributeRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Parent;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Type;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Value;
 
 		/// <summary>Default constructor</summary>
@@ -308,9 +308,9 @@
 	/// Raw contents of an uncompressed FieldMarshal table row
 	/// </summary>
 	public sealed class RawFieldMarshalRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Parent;
-		/// <summary></summary>
+		/// <summary/>
 		public uint NativeType;
 
 		/// <summary>Default constructor</summary>
@@ -328,11 +328,11 @@
 	/// Raw contents of an uncompressed DeclSecurity table row
 	/// </summary>
 	public sealed class RawDeclSecurityRow {
-		/// <summary></summary>
+		/// <summary/>
 		public short Action;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Parent;
-		/// <summary></summary>
+		/// <summary/>
 		public uint PermissionSet;
 
 		/// <summary>Default constructor</summary>
@@ -351,11 +351,11 @@
 	/// Raw contents of an uncompressed ClassLayout table row
 	/// </summary>
 	public sealed class RawClassLayoutRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort PackingSize;
-		/// <summary></summary>
+		/// <summary/>
 		public uint ClassSize;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Parent;
 
 		/// <summary>Default constructor</summary>
@@ -374,9 +374,9 @@
 	/// Raw contents of an uncompressed FieldLayout table row
 	/// </summary>
 	public sealed class RawFieldLayoutRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint OffSet;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Field;
 
 		/// <summary>Default constructor</summary>
@@ -394,7 +394,7 @@
 	/// Raw contents of an uncompressed StandAloneSig table row
 	/// </summary>
 	public sealed class RawStandAloneSigRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Signature;
 
 		/// <summary>Default constructor</summary>
@@ -411,9 +411,9 @@
 	/// Raw contents of an uncompressed EventMap table row
 	/// </summary>
 	public sealed class RawEventMapRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Parent;
-		/// <summary></summary>
+		/// <summary/>
 		public uint EventList;
 
 		/// <summary>Default constructor</summary>
@@ -431,7 +431,7 @@
 	/// Raw contents of an uncompressed EventPtr table row
 	/// </summary>
 	public sealed class RawEventPtrRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Event;
 
 		/// <summary>Default constructor</summary>
@@ -448,11 +448,11 @@
 	/// Raw contents of an uncompressed Event table row
 	/// </summary>
 	public sealed class RawEventRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort EventFlags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint EventType;
 
 		/// <summary>Default constructor</summary>
@@ -471,9 +471,9 @@
 	/// Raw contents of an uncompressed PropertyMap table row
 	/// </summary>
 	public sealed class RawPropertyMapRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Parent;
-		/// <summary></summary>
+		/// <summary/>
 		public uint PropertyList;
 
 		/// <summary>Default constructor</summary>
@@ -491,7 +491,7 @@
 	/// Raw contents of an uncompressed PropertyPtr table row
 	/// </summary>
 	public sealed class RawPropertyPtrRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Property;
 
 		/// <summary>Default constructor</summary>
@@ -508,11 +508,11 @@
 	/// Raw contents of an uncompressed Property table row
 	/// </summary>
 	public sealed class RawPropertyRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort PropFlags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Type;
 
 		/// <summary>Default constructor</summary>
@@ -531,11 +531,11 @@
 	/// Raw contents of an uncompressed MethodSemantics table row
 	/// </summary>
 	public sealed class RawMethodSemanticsRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Semantic;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Method;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Association;
 
 		/// <summary>Default constructor</summary>
@@ -554,11 +554,11 @@
 	/// Raw contents of an uncompressed MethodImpl table row
 	/// </summary>
 	public sealed class RawMethodImplRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Class;
-		/// <summary></summary>
+		/// <summary/>
 		public uint MethodBody;
-		/// <summary></summary>
+		/// <summary/>
 		public uint MethodDeclaration;
 
 		/// <summary>Default constructor</summary>
@@ -577,7 +577,7 @@
 	/// Raw contents of an uncompressed ModuleRef table row
 	/// </summary>
 	public sealed class RawModuleRefRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
 
 		/// <summary>Default constructor</summary>
@@ -594,7 +594,7 @@
 	/// Raw contents of an uncompressed TypeSpec table row
 	/// </summary>
 	public sealed class RawTypeSpecRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Signature;
 
 		/// <summary>Default constructor</summary>
@@ -611,13 +611,13 @@
 	/// Raw contents of an uncompressed ImplMap table row
 	/// </summary>
 	public sealed class RawImplMapRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort MappingFlags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint MemberForwarded;
-		/// <summary></summary>
+		/// <summary/>
 		public uint ImportName;
-		/// <summary></summary>
+		/// <summary/>
 		public uint ImportScope;
 
 		/// <summary>Default constructor</summary>
@@ -637,9 +637,9 @@
 	/// Raw contents of an uncompressed FieldRVA table row
 	/// </summary>
 	public sealed class RawFieldRVARow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint RVA;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Field;
 
 		/// <summary>Default constructor</summary>
@@ -657,9 +657,9 @@
 	/// Raw contents of an uncompressed ENCLog table row
 	/// </summary>
 	public sealed class RawENCLogRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Token;
-		/// <summary></summary>
+		/// <summary/>
 		public uint FuncCode;
 
 		/// <summary>Default constructor</summary>
@@ -677,7 +677,7 @@
 	/// Raw contents of an uncompressed ENCMap table row
 	/// </summary>
 	public sealed class RawENCMapRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Token;
 
 		/// <summary>Default constructor</summary>
@@ -694,23 +694,23 @@
 	/// Raw contents of an uncompressed Assembly table row
 	/// </summary>
 	public sealed class RawAssemblyRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint HashAlgId;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort MajorVersion;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort MinorVersion;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort BuildNumber;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort RevisionNumber;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint PublicKey;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Locale;
 
 		/// <summary>Default constructor</summary>
@@ -735,7 +735,7 @@
 	/// Raw contents of an uncompressed AssemblyProcessor table row
 	/// </summary>
 	public sealed class RawAssemblyProcessorRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Processor;
 
 		/// <summary>Default constructor</summary>
@@ -752,11 +752,11 @@
 	/// Raw contents of an uncompressed AssemblyOS table row
 	/// </summary>
 	public sealed class RawAssemblyOSRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint OSPlatformId;
-		/// <summary></summary>
+		/// <summary/>
 		public uint OSMajorVersion;
-		/// <summary></summary>
+		/// <summary/>
 		public uint OSMinorVersion;
 
 		/// <summary>Default constructor</summary>
@@ -775,23 +775,23 @@
 	/// Raw contents of an uncompressed AssemblyRef table row
 	/// </summary>
 	public sealed class RawAssemblyRefRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort MajorVersion;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort MinorVersion;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort BuildNumber;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort RevisionNumber;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint PublicKeyOrToken;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Locale;
-		/// <summary></summary>
+		/// <summary/>
 		public uint HashValue;
 
 		/// <summary>Default constructor</summary>
@@ -816,9 +816,9 @@
 	/// Raw contents of an uncompressed AssemblyRefProcessor table row
 	/// </summary>
 	public sealed class RawAssemblyRefProcessorRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Processor;
-		/// <summary></summary>
+		/// <summary/>
 		public uint AssemblyRef;
 
 		/// <summary>Default constructor</summary>
@@ -836,13 +836,13 @@
 	/// Raw contents of an uncompressed AssemblyRefOS table row
 	/// </summary>
 	public sealed class RawAssemblyRefOSRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint OSPlatformId;
-		/// <summary></summary>
+		/// <summary/>
 		public uint OSMajorVersion;
-		/// <summary></summary>
+		/// <summary/>
 		public uint OSMinorVersion;
-		/// <summary></summary>
+		/// <summary/>
 		public uint AssemblyRef;
 
 		/// <summary>Default constructor</summary>
@@ -862,11 +862,11 @@
 	/// Raw contents of an uncompressed File table row
 	/// </summary>
 	public sealed class RawFileRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint HashValue;
 
 		/// <summary>Default constructor</summary>
@@ -885,15 +885,15 @@
 	/// Raw contents of an uncompressed ExportedType table row
 	/// </summary>
 	public sealed class RawExportedTypeRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint TypeDefId;
-		/// <summary></summary>
+		/// <summary/>
 		public uint TypeName;
-		/// <summary></summary>
+		/// <summary/>
 		public uint TypeNamespace;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Implementation;
 
 		/// <summary>Default constructor</summary>
@@ -914,13 +914,13 @@
 	/// Raw contents of an uncompressed ManifestResource table row
 	/// </summary>
 	public sealed class RawManifestResourceRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Offset;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Implementation;
 
 		/// <summary>Default constructor</summary>
@@ -940,9 +940,9 @@
 	/// Raw contents of an uncompressed NestedClass table row
 	/// </summary>
 	public sealed class RawNestedClassRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint NestedClass;
-		/// <summary></summary>
+		/// <summary/>
 		public uint EnclosingClass;
 
 		/// <summary>Default constructor</summary>
@@ -960,15 +960,15 @@
 	/// Raw contents of an uncompressed GenericParam table row
 	/// </summary>
 	public sealed class RawGenericParamRow {
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Number;
-		/// <summary></summary>
+		/// <summary/>
 		public ushort Flags;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Owner;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Name;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Kind;
 
 		/// <summary>Default constructor</summary>
@@ -997,9 +997,9 @@
 	/// Raw contents of an uncompressed MethodSpec table row
 	/// </summary>
 	public sealed class RawMethodSpecRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Method;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Instantiation;
 
 		/// <summary>Default constructor</summary>
@@ -1017,9 +1017,9 @@
 	/// Raw contents of an uncompressed GenericParamConstraint table row
 	/// </summary>
 	public sealed class RawGenericParamConstraintRow {
-		/// <summary></summary>
+		/// <summary/>
 		public uint Owner;
-		/// <summary></summary>
+		/// <summary/>
 		public uint Constraint;
 
 		/// <summary>Default constructor</summary>

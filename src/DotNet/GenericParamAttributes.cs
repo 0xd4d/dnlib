@@ -8,18 +8,18 @@ namespace dot10.DotNet {
 	/// </summary>
 	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
 	public enum GenericParamAttributes : ushort {
-		/// <summary></summary>
+		/// <summary/>
 		VarianceMask			= 0x0003,
-		/// <summary></summary>
+		/// <summary/>
 		NonVariant				= 0x0000,
-		/// <summary></summary>
+		/// <summary/>
 		Covariant				= 0x0001,
-		/// <summary></summary>
+		/// <summary/>
 		Contravariant			= 0x0002,
 
-		/// <summary></summary>
+		/// <summary/>
 		SpecialConstraintMask	= 0x001C,
-		/// <summary></summary>
+		/// <summary/>
 		NoSpecialConstraint		= 0x0000,
 		/// <summary>type argument must be a reference type</summary>
 		ReferenceTypeConstraint = 0x0004,

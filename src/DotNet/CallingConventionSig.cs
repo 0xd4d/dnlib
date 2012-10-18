@@ -230,13 +230,13 @@ namespace dot10.DotNet {
 	/// Method sig base class
 	/// </summary>
 	public abstract class MethodBaseSig : CallingConventionSig {
-		/// <summary></summary>
+		/// <summary/>
 		protected TypeSig retType;
-		/// <summary></summary>
+		/// <summary/>
 		protected IList<TypeSig> parameters;
-		/// <summary></summary>
+		/// <summary/>
 		protected uint genParamCount;
-		/// <summary></summary>
+		/// <summary/>
 		protected IList<TypeSig> paramsAfterSentinel;
 
 		/// <summary>

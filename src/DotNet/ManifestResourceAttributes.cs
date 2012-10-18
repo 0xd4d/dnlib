@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
 	public enum ManifestResourceAttributes : uint {
-		/// <summary></summary>
+		/// <summary/>
 		VisibilityMask	= 0x0007,
 		/// <summary>The Resource is exported from the Assembly.</summary>
 		Public			= 0x0001,

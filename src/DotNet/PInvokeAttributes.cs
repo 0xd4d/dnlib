@@ -13,47 +13,47 @@ namespace dot10.DotNet {
 
 		/// <summary>Use this mask to retrieve the CharSet information.</summary>
 		CharSetMask			= 0x0006,
-		/// <summary></summary>
+		/// <summary/>
 		CharSetNotSpec		= 0x0000,
-		/// <summary></summary>
+		/// <summary/>
 		CharSetAnsi			= 0x0002,
-		/// <summary></summary>
+		/// <summary/>
 		CharSetUnicode		= 0x0004,
-		/// <summary></summary>
+		/// <summary/>
 		CharSetAuto			= 0x0006,
 
-		/// <summary></summary>
+		/// <summary/>
 		BestFitUseAssem		= 0x0000,
-		/// <summary></summary>
+		/// <summary/>
 		BestFitEnabled		= 0x0010,
-		/// <summary></summary>
+		/// <summary/>
 		BestFitDisabled		= 0x0020,
-		/// <summary></summary>
+		/// <summary/>
 		BestFitMask			= 0x0030,
 
-		/// <summary></summary>
+		/// <summary/>
 		ThrowOnUnmappableCharUseAssem	= 0x0000,
-		/// <summary></summary>
+		/// <summary/>
 		ThrowOnUnmappableCharEnabled	= 0x1000,
-		/// <summary></summary>
+		/// <summary/>
 		ThrowOnUnmappableCharDisabled	= 0x2000,
-		/// <summary></summary>
+		/// <summary/>
 		ThrowOnUnmappableCharMask		= 0x3000,
 
 		/// <summary>Information about target function. Not relevant for fields.</summary>
 		SupportsLastError	= 0x0040,
 
-		/// <summary></summary>
+		/// <summary/>
 		CallConvMask		= 0x0700,
 		/// <summary>Pinvoke will use native callconv appropriate to target windows platform.</summary>
 		CallConvWinapi		= 0x0100,
-		/// <summary></summary>
+		/// <summary/>
 		CallConvCdecl		= 0x0200,
-		/// <summary></summary>
+		/// <summary/>
 		CallConvStdcall		= 0x0300,
 		/// <summary>In M9, pinvoke will raise exception.</summary>
 		CallConvThiscall	= 0x0400,
-		/// <summary></summary>
+		/// <summary/>
 		CallConvFastcall	= 0x0500,
 	}
 
