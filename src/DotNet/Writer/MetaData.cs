@@ -8,7 +8,7 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	class MetaData : IChunk {
 		ModuleDef module;
-		UniqueChunkList<IChunk> constants;
+		UniqueChunkList<ByteArrayChunk> constants;
 		MethodBodyChunks methodBodies;
 		ChunkList<IChunk> netResources;
 		TablesHeap tablesHeap;
@@ -24,7 +24,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="constants">Constants list</param>
 		/// <param name="methodBodies">Method bodies list</param>
 		/// <param name="netResources">.NET resources list</param>
-		public MetaData(ModuleDef module, UniqueChunkList<IChunk> constants, MethodBodyChunks methodBodies, ChunkList<IChunk> netResources) {
+		public MetaData(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, ChunkList<IChunk> netResources) {
 			this.module = module;
 			this.constants = constants;
 			this.methodBodies = methodBodies;

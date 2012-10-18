@@ -31,7 +31,7 @@ namespace dot10.DotNet.Writer {
 		ImportAddressTable importAddressTable;
 		ImageCor20Header imageCor20Header;
 		StrongNameSignature strongNameSignature;
-		UniqueChunkList<IChunk> constants;
+		UniqueChunkList<ByteArrayChunk> constants;
 		MethodBodyChunks methodBodies;
 		ChunkList<IChunk> netResources;
 		MetaData metaData;
@@ -106,7 +106,7 @@ namespace dot10.DotNet.Writer {
 				strongNameSignature = new StrongNameSignature(0x80);	//TODO: Fix size
 
 			imageCor20Header = new ImageCor20Header(new Cor20HeaderOptions(ComImageFlags.ILOnly));
-			constants = new UniqueChunkList<IChunk>();
+			constants = new UniqueChunkList<ByteArrayChunk>();
 			methodBodies = new MethodBodyChunks(shareBodies);
 			netResources = new ChunkList<IChunk>();
 			metaData = new MetaData(module, constants, methodBodies, netResources);
