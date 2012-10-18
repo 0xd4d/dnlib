@@ -22,6 +22,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the number of rows in this table
+		/// </summary>
+		public int Rows {
+			get { return cached.Count; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="table">The table type</param>
