@@ -22,23 +22,31 @@ namespace dot10.DotNet.Writer {
 				this.chunk = chunk;
 				this.alignment = alignment;
 			}
+		}
 
-			/// <inheritdoc/>
-			public override int GetHashCode() {
-				int hash = 0;
-				if (chunk != null)
-					hash += chunk.GetHashCode();
-				hash += (int)alignment;
-				return hash;
+		/// <summary>
+		/// Equality comparer for <see cref="Elem"/>
+		/// </summary>
+		protected class ElemEqualityComparer : IEqualityComparer<Elem> {
+			IEqualityComparer<T> chunkComparer;
+
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			/// <param name="chunkComparer">Compares the chunk type</param>
+			public ElemEqualityComparer(IEqualityComparer<T> chunkComparer) {
+				this.chunkComparer = chunkComparer;
 			}
 
 			/// <inheritdoc/>
-			public override bool Equals(object obj) {
-				if (!(obj is Elem))
-					return false;
-				var other = (Elem)obj;
-				return alignment == other.alignment &&
-					chunk.Equals(other.chunk);
+			public bool Equals(Elem x, Elem y) {
+				return x.alignment == y.alignment &&
+					chunkComparer.Equals(x.chunk, y.chunk);
+			}
+
+			/// <inheritdoc/>
+			public int GetHashCode(Elem obj) {
+				return (int)obj.alignment + chunkComparer.GetHashCode(obj.chunk);
 			}
 		}
 
