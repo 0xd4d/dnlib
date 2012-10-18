@@ -114,6 +114,7 @@
     <Compile Include="DotNet\MD\ComImageFlags.cs" />
     <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
+    <Compile Include="DotNet\Writer\TablesHeap.cs" />
     <Compile Include="DotNet\MethodOverride.cs" />
     <Compile Include="DotNet\ModuleContext.cs" />
     <Compile Include="DotNet\NullResolver.cs" />
