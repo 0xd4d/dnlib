@@ -43,7 +43,7 @@ namespace dot10.DotNet.Writer {
 
 	partial class Extensions {
 		/// <summary>
-		/// Write all data to <paramref name="writer"/> and verify that all bytes were written
+		/// Writes all data to <paramref name="writer"/> and verifies that all bytes were written
 		/// </summary>
 		/// <param name="chunk">this</param>
 		/// <param name="writer">Destination</param>
