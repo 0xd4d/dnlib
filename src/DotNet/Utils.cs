@@ -279,5 +279,23 @@ namespace dot10.DotNet {
 				s = string.Empty;
 			return s;
 		}
+
+		/// <summary>
+		/// Align up
+		/// </summary>
+		/// <param name="v">Value</param>
+		/// <param name="alignment">Alignment</param>
+		public static uint AlignUp(uint v, uint alignment) {
+			return (v + alignment - 1) & ~(alignment - 1);
+		}
+
+		/// <summary>
+		/// Align up
+		/// </summary>
+		/// <param name="v">Value</param>
+		/// <param name="alignment">Alignment</param>
+		public static int AlignUp(int v, uint alignment) {
+			return (int)AlignUp((uint)v, alignment);
+		}
 	}
 }
