@@ -10,13 +10,22 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	/// <typeparam name="T">Chunk type</typeparam>
 	class UniqueChunkList<T> : ChunkListBase<T> where T : class, IChunk {
-		Dictionary<Elem, Elem> dict = new Dictionary<Elem, Elem>();
+		Dictionary<Elem, Elem> dict;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public UniqueChunkList() {
-			chunks = new List<Elem>();
+		public UniqueChunkList()
+			: this(EqualityComparer<T>.Default) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="chunkComparer">Compares the chunk type</param>
+		public UniqueChunkList(IEqualityComparer<T> chunkComparer) {
+			this.chunks = new List<Elem>();
+			this.dict = new Dictionary<Elem, Elem>(new ElemEqualityComparer(chunkComparer));
 		}
 
 		/// <inheritdoc/>
