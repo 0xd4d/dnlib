@@ -9,6 +9,18 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	class TablesHeap : IHeap {
 		string name;
+		FileOffset offset;
+		RVA rva;
+
+		/// <inheritdoc/>
+		public FileOffset FileOffset {
+			get { return offset; }
+		}
+
+		/// <inheritdoc/>
+		public RVA RVA {
+			get { return rva; }
+		}
 
 		public readonly MDTable<RawModuleRow> ModuleTable = new MDTable<RawModuleRow>(Table.Module, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawTypeRefRow> TypeRefTable = new MDTable<RawTypeRefRow>(Table.TypeRef, RawRowEqualityComparer.Instance);
@@ -78,6 +90,8 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
+			this.offset = offset;
+			this.rva = rva;
 			throw new System.NotImplementedException();	//TODO:
 		}
 

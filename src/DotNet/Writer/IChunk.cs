@@ -8,6 +8,16 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	interface IChunk {
 		/// <summary>
+		/// Gets the file offset. This is valid only after <see cref="SetOffset"/> has been called.
+		/// </summary>
+		FileOffset FileOffset { get; }
+
+		/// <summary>
+		/// Gets the RVA. This is valid only after <see cref="SetOffset"/> has been called.
+		/// </summary>
+		RVA RVA { get; }
+
+		/// <summary>
 		/// Called when the file offset and RVA is known
 		/// </summary>
 		/// <param name="offset">File offset of this chunk</param>

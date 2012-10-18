@@ -13,7 +13,18 @@ namespace dot10.DotNet.Writer {
 		readonly byte[] code;
 		readonly byte[] extraSections;
 		uint length;
+		FileOffset offset;
 		RVA rva;
+
+		/// <inheritdoc/>
+		public FileOffset FileOffset {
+			get { return offset; }
+		}
+
+		/// <inheritdoc/>
+		public RVA RVA {
+			get { return rva; }
+		}
 
 		/// <summary>
 		/// <c>true</c> if it's a fat body
@@ -57,6 +68,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
+			this.offset = offset;
 			this.rva = rva;
 			if (HasExtraSections) {
 				RVA rva2 = rva + (uint)code.Length;

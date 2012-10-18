@@ -21,6 +21,16 @@ namespace dot10.DotNet.Writer {
 		bool setOffsetCalled;
 		bool alignFatBodies;
 
+		/// <inheritdoc/>
+		public FileOffset FileOffset {
+			get { return offset; }
+		}
+
+		/// <inheritdoc/>
+		public RVA RVA {
+			get { return rva; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>

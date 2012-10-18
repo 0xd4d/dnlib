@@ -10,9 +10,10 @@ namespace dot10.DotNet.Writer {
 	/// <typeparam name="T">Chunk type</typeparam>
 	abstract class ChunkListBase<T> : IChunk where T : IChunk {
 		protected List<Elem> chunks;
-		RVA rva;
 		uint length;
 		protected bool setOffsetCalled;
+		FileOffset offset;
+		RVA rva;
 
 		protected struct Elem {
 			public readonly T chunk;
@@ -51,8 +52,19 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		public FileOffset FileOffset {
+			get { return offset; }
+		}
+
+		/// <inheritdoc/>
+		public RVA RVA {
+			get { return rva; }
+		}
+
+		/// <inheritdoc/>
 		public virtual void SetOffset(FileOffset offset, RVA rva) {
 			setOffsetCalled = true;
+			this.offset = offset;
 			this.rva = rva;
 			length = 0;
 			foreach (var elem in chunks) {

@@ -29,6 +29,16 @@ namespace dot10.DotNet.Writer {
 		RVA rva;
 
 		/// <inheritdoc/>
+		public FileOffset FileOffset {
+			get { return offset; }
+		}
+
+		/// <inheritdoc/>
+		public RVA RVA {
+			get { return rva; }
+		}
+
+		/// <inheritdoc/>
 		public abstract string Name { get; }
 
 		/// <inheritdoc/>

@@ -16,6 +16,18 @@ namespace dot10.DotNet.Writer {
 		USHeap usHeap;
 		GuidHeap guidHeap;
 		BlobHeap blobHeap;
+		FileOffset offset;
+		RVA rva;
+
+		/// <inheritdoc/>
+		public FileOffset FileOffset {
+			get { return offset; }
+		}
+
+		/// <inheritdoc/>
+		public RVA RVA {
+			get { return rva; }
+		}
 
 		/// <summary>
 		/// Constructor
@@ -38,6 +50,8 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
+			this.offset = offset;
+			this.rva = rva;
 			throw new System.NotImplementedException();
 		}
 

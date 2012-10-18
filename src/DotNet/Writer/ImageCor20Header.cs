@@ -59,7 +59,18 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	class ImageCor20Header : IChunk {
 		FileOffset offset;
+		RVA rva;
 		Cor20HeaderOptions options;
+
+		/// <inheritdoc/>
+		public FileOffset FileOffset {
+			get { return offset; }
+		}
+
+		/// <inheritdoc/>
+		public RVA RVA {
+			get { return rva; }
+		}
 
 		/// <summary>
 		/// Constructor
@@ -72,6 +83,7 @@ namespace dot10.DotNet.Writer {
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
+			this.rva = rva;
 		}
 
 		/// <inheritdoc/>
