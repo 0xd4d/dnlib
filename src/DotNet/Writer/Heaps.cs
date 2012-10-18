@@ -194,10 +194,12 @@ namespace dot10.DotNet.Writer {
 			if (guid == null)
 				return 0;
 
-			for (int i = 0; i < guids.Count; i++) {
-				if (guids[i] == guid.Value)
-					return (uint)i + 1;
-			}
+			// The number of GUIDs will almost always be 1 so there's no need for a dictionary.
+			// The only table that contains GUIDs is the Module table, and it has three GUID
+			// columns. Only one of them (Mvid) is normally set and the others are null.
+			int index = guids.IndexOf(guid.Value);
+			if (index >= 0)
+				return (uint)index + 1;
 
 			guids.Add(guid.Value);
 			return (uint)guids.Count;
@@ -205,7 +207,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public override uint GetLength() {
-			return (uint)guids.Count * 16 + 1;
+			return (uint)guids.Count * 16;
 		}
 
 		/// <inheritdoc/>
