@@ -26,7 +26,8 @@ namespace dot10.IO {
 		byte[] ReadBytes(int size);
 
 		/// <summary>
-		/// Reads bytes until byte <paramref name="b"/> is found
+		/// Reads bytes until byte <paramref name="b"/> is found. <see cref="Position"/> is
+		/// incremented by the number of bytes read (size of return value).
 		/// </summary>
 		/// <param name="b">The terminating byte</param>
 		/// <returns>All the bytes (not including <paramref name="b"/>) or <c>null</c> if
