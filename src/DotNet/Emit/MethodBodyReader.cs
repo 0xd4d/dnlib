@@ -254,6 +254,7 @@ namespace dot10.DotNet.Emit {
 			bool initLocals = flags == 2 || (flags & 0x10) != 0;
 			var cilBody = new CilBody(initLocals, instructions, exceptionHandlers, locals);
 			cilBody.MaxStack = maxStack;
+			cilBody.LocalVarSigTok = localVarSigTok;
 			instructions = null;
 			exceptionHandlers = null;
 			locals = null;
