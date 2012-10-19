@@ -113,8 +113,13 @@
     <Compile Include="DotNet\CallingConventionSig.cs" />
     <Compile Include="DotNet\MD\ComImageFlags.cs" />
     <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
+    <Compile Include="DotNet\Writer\BlobHeap.cs" />
     <Compile Include="DotNet\Writer\ByteArrayChunk.cs" />
+    <Compile Include="DotNet\Writer\GuidHeap.cs" />
+    <Compile Include="DotNet\Writer\HeapBase.cs" />
+    <Compile Include="DotNet\Writer\IHeap.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
+    <Compile Include="DotNet\Writer\StringsHeap.cs" />
     <Compile Include="DotNet\Writer\TablesHeap.cs" />
     <Compile Include="DotNet\MethodOverride.cs" />
     <Compile Include="DotNet\ModuleContext.cs" />
@@ -197,7 +202,6 @@
     <Compile Include="DotNet\Writer\ChunkListBase.cs" />
     <Compile Include="DotNet\Writer\DebugDirectory.cs" />
     <Compile Include="DotNet\Writer\Extensions.cs" />
-    <Compile Include="DotNet\Writer\Heaps.cs" />
     <Compile Include="DotNet\Writer\IChunk.cs" />
     <Compile Include="DotNet\Writer\ImageCor20Header.cs" />
     <Compile Include="DotNet\Writer\ImportAddressTable.cs" />
@@ -210,6 +214,7 @@
     <Compile Include="DotNet\Writer\PESection.cs" />
     <Compile Include="DotNet\Writer\StrongNameSignature.cs" />
     <Compile Include="DotNet\Writer\UniqueChunkList.cs" />
+    <Compile Include="DotNet\Writer\USHeap.cs" />
     <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="IO\FileOffset.cs" />
     <Compile Include="IO\FileSection.cs" />
