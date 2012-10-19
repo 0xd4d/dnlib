@@ -13,6 +13,7 @@ namespace dot10.DotNet.Emit {
 	public sealed class CilBody : MethodBody {
 		bool initLocals;
 		ushort maxStack;
+		uint localVarSigTok;
 		IList<Instruction> instructions;
 		IList<ExceptionHandler> exceptionHandlers;
 		LocalList localList;
@@ -31,6 +32,14 @@ namespace dot10.DotNet.Emit {
 		public ushort MaxStack {
 			get { return maxStack; }
 			set { maxStack = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the locals metadata token
+		/// </summary>
+		public uint LocalVarSigTok {
+			get { return localVarSigTok; }
+			set { localVarSigTok = value; }
 		}
 
 		/// <summary>
