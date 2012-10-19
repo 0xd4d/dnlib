@@ -357,7 +357,7 @@ namespace dot10.DotNet {
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.ImportName);
+				return readerModule.StringsStream.ReadNoNull(rawRow.ImportName);
 			};
 			scope.ReadOriginalValue = () => {
 				InitializeRawRow();

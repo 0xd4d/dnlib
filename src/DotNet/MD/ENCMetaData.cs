@@ -214,8 +214,7 @@ namespace dot10.DotNet.MD {
 				var row = tablesStream.ReadTypeDefRow(rid);
 				if (row == null)
 					continue;	// Should never happen since rid is valid
-				var name = stringsStream.Read(row.Name);
-				if ((object)name != null && name == DeletedName)
+				if (stringsStream.ReadNoNull(row.Name) == DeletedName)
 					continue;	// ignore this deleted row
 				list.Add(rid);
 			}
@@ -231,8 +230,7 @@ namespace dot10.DotNet.MD {
 				var row = tablesStream.ReadExportedTypeRow(rid);
 				if (row == null)
 					continue;	// Should never happen since rid is valid
-				var name = stringsStream.Read(row.TypeName);
-				if ((object)name != null && name == DeletedName)
+				if (stringsStream.ReadNoNull(row.TypeName) == DeletedName)
 					continue;	// ignore this deleted row
 				list.Add(rid);
 			}
@@ -317,8 +315,7 @@ namespace dot10.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.Flags & (uint)FieldAttributes.RTSpecialName) != 0) {
-						var name = stringsStream.Read(row.Name);
-						if ((object)name != null && name == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
 							continue;	// ignore this deleted row
 					}
 				}
@@ -346,8 +343,7 @@ namespace dot10.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.Flags & (uint)MethodAttributes.RTSpecialName) != 0) {
-						var name = stringsStream.Read(row.Name);
-						if ((object)name != null && name == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
 							continue;	// ignore this deleted row
 					}
 				}
@@ -392,8 +388,7 @@ namespace dot10.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.EventFlags & (uint)EventAttributes.RTSpecialName) != 0) {
-						var name = stringsStream.Read(row.Name);
-						if ((object)name != null && name == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
 							continue;	// ignore this deleted row
 					}
 				}
@@ -421,8 +416,7 @@ namespace dot10.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.PropFlags & (uint)PropertyAttributes.RTSpecialName) != 0) {
-						var name = stringsStream.Read(row.Name);
-						if ((object)name != null && name == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
 							continue;	// ignore this deleted row
 					}
 				}

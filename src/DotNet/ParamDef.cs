@@ -337,7 +337,7 @@ namespace dot10.DotNet {
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.Name);
+				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			fieldMarshal.ReadOriginalValue = () => {
 				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Param, rid));

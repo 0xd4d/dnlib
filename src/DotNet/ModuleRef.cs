@@ -189,7 +189,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.Name);
+				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 		}
 

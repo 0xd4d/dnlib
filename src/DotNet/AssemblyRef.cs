@@ -567,11 +567,11 @@ namespace dot10.DotNet {
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.Name);
+				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			locale.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.Locale);
+				return readerModule.StringsStream.ReadNoNull(rawRow.Locale);
 			};
 			hashValue.ReadOriginalValue = () => {
 				InitializeRawRow();

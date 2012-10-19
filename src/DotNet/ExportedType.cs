@@ -591,11 +591,11 @@ namespace dot10.DotNet {
 			};
 			typeName.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.TypeName);
+				return readerModule.StringsStream.ReadNoNull(rawRow.TypeName);
 			};
 			typeNamespace.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.TypeNamespace);
+				return readerModule.StringsStream.ReadNoNull(rawRow.TypeNamespace);
 			};
 			implementation.ReadOriginalValue = () => {
 				InitializeRawRow();

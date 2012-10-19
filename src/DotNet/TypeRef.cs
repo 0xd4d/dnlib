@@ -339,11 +339,11 @@ namespace dot10.DotNet {
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.Name);
+				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			@namespace.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.StringsStream.Read(rawRow.Namespace);
+				return readerModule.StringsStream.ReadNoNull(rawRow.Namespace);
 			};
 		}
 
