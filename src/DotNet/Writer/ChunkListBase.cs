@@ -88,9 +88,10 @@ namespace dot10.DotNet.Writer {
 		public void WriteTo(BinaryWriter writer) {
 			RVA rva2 = rva;
 			foreach (var elem in chunks) {
-				writer.WriteZeros((int)rva2.AlignUp(elem.alignment) - (int)rva2);
+				int padding = (int)rva2.AlignUp(elem.alignment) - (int)rva2;
+				writer.WriteZeros(padding);
 				elem.chunk.VerifyWriteTo(writer);
-				rva2 += elem.chunk.GetLength();
+				rva2 += (uint)padding + elem.chunk.GetLength();
 			}
 		}
 	}
