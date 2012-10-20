@@ -4,7 +4,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Contains all possible coded token classes
 	/// </summary>
-	sealed class CodedToken {
+	public sealed class CodedToken {
 		/// <summary>TypeDefOrRef coded token</summary>
 		public static readonly CodedToken TypeDefOrRef = new CodedToken(2, new Table[3] {
 			Table.TypeDef, Table.TypeRef, Table.TypeSpec,
