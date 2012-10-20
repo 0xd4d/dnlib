@@ -370,7 +370,7 @@ namespace dot10.DotNet {
 			// way a UInt32 is compressed.
 			uint sign = (uint)value >> 31;
 			if (-0x40 <= value && value <= 0x3F) {
-				uint v = ((uint)((value & 0x3F) << 1) | sign);
+				uint v = (uint)((value & 0x3F) << 1) | sign;
 				writer.Write((byte)v);
 			}
 			else if (-0x2000 <= value && value <= 0x1FFF) {
