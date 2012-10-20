@@ -22,6 +22,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Checks whether a custom attribute is present
+		/// </summary>
+		/// <param name="fullName">Full name of custom attribute type</param>
+		/// <returns><c>true</c> if the custom attribute type is present, <c>false</c> otherwise</returns>
+		public bool IsDefined(string fullName) {
+			return Find(fullName) != null;
+		}
+
+		/// <summary>
 		/// Finds a custom attribute
 		/// </summary>
 		/// <param name="fullName">Full name of custom attribute type</param>
