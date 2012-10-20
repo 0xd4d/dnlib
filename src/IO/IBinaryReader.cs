@@ -196,7 +196,7 @@ namespace dot10.IO {
 				if ((b & 1) != 0)
 					val = -0x40 | (b >> 1);
 				else
-					val = b;
+					val = (b >> 1);
 				return true;
 			}
 
