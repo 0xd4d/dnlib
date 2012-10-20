@@ -77,6 +77,7 @@ namespace dot10.DotNet.Writer {
 			Rows<EventDef> eventDefInfos = new Rows<EventDef>();
 			Rows<PropertyDef> propertyDefInfos = new Rows<PropertyDef>();
 			Rows<MemberRef> memberRefInfos = new Rows<MemberRef>();
+			Rows<FileDef> fileDefInfos = new Rows<FileDef>();
 
 			class Rows<T> where T : IMDTokenProvider {
 				Dictionary<T, uint> dict = new Dictionary<T, uint>();
@@ -214,6 +215,8 @@ namespace dot10.DotNet.Writer {
 				//TODO: Write assembly cust attr
 				//TODO: Write assembly decl security
 				//TODO: Sort the tables that must be sorted
+
+				AddResources(metaData.module.Resources);
 			}
 
 			static bool IsEmpty<T>(IList<T> list) where T : class {
@@ -711,6 +714,79 @@ namespace dot10.DotNet.Writer {
 					return 0;	//TODO: Warn user
 
 				return 0;	//TODO:
+			}
+
+			void AddResources(IList<Resource> resources) {
+				if (resources == null)
+					return;
+				foreach (var resource in resources)
+					AddResource(resource);
+			}
+
+			void AddResource(Resource resource) {
+				var er = resource as EmbeddedResource;
+				if (er != null) {
+					AddEmbeddedResource(er);
+					return;
+				}
+
+				var alr = resource as AssemblyLinkedResource;
+				if (alr != null) {
+					AddAssemblyLinkedResource(alr);
+					return;
+				}
+
+				var lr = resource as LinkedResource;
+				if (lr != null) {
+					AddLinkedResource(lr);
+					return;
+				}
+
+				//TODO: Warn user
+			}
+
+			void AddEmbeddedResource(EmbeddedResource er) {
+				if (er == null)
+					return;
+				var row = new RawManifestResourceRow(metaData.netResources.NextOffset,
+							(uint)er.Flags,
+							metaData.stringsHeap.Add(er.Name),
+							0);
+				metaData.tablesHeap.ManifestResourceTable.Create(row);
+				metaData.netResources.Add(er.Data);
+			}
+
+			void AddAssemblyLinkedResource(AssemblyLinkedResource alr) {
+				if (alr == null)
+					return;
+				var row = new RawManifestResourceRow(0,
+							(uint)alr.Flags,
+							metaData.stringsHeap.Add(alr.Name),
+							AddAssemblyRef(alr.Assembly));
+				metaData.tablesHeap.ManifestResourceTable.Create(row);
+			}
+
+			void AddLinkedResource(LinkedResource lr) {
+				if (lr == null)
+					return;
+				var row = new RawManifestResourceRow(0,
+							(uint)lr.Flags,
+							metaData.stringsHeap.Add(lr.Name),
+							AddFile(lr.File));
+				metaData.tablesHeap.ManifestResourceTable.Create(row);
+			}
+
+			uint AddFile(FileDef file) {
+				if (file == null)
+					return 0;	//TODO: Warn user
+				uint rid;
+				if (fileDefInfos.TryGetRid(file, out rid))
+					return rid;
+				var row = new RawFileRow((uint)file.Flags,
+							metaData.stringsHeap.Add(file.Name),
+							metaData.blobHeap.Add(file.HashValue));	//TODO: Re-calculate the hash value if possible
+				fileDefInfos.Add(file, rid);
+				return rid;
 			}
 
 			uint GetSignature(TypeSig ts) {
