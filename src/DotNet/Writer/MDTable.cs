@@ -33,6 +33,14 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the value with rid <paramref name="rid"/>
+		/// </summary>
+		/// <param name="rid">The row ID</param>
+		public T this[uint rid] {
+			get { return cached[(int)rid - 1]; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="table">The table type</param>
