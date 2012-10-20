@@ -201,7 +201,7 @@ namespace dot10.DotNet {
 			get { return asmRef; }
 			set {
 				if (value == null)
-					throw new ArgumentNullException("asmRef");
+					throw new ArgumentNullException("value");
 				asmRef = value;
 			}
 		}
@@ -238,25 +238,36 @@ namespace dot10.DotNet {
 	/// A resource that is stored in a file on disk
 	/// </summary>
 	public sealed class LinkedResource : Resource {
-		UTF8String fileName;
+		FileDef file;
+
+		/// <summary>
+		/// Gets/sets the file
+		/// </summary>
+		public FileDef File {
+			get { return file; }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+				file = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets/sets the file name
 		/// </summary>
 		public UTF8String FileName {
-			get { return fileName; }
-			set { fileName = value; }
+			get { return file == null ? UTF8String.Empty : file.Name; }
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name of resource</param>
-		/// <param name="fileName">File name</param>
+		/// <param name="file">The file</param>
 		/// <param name="flags">Resource flags</param>
-		public LinkedResource(UTF8String name, UTF8String fileName, ManifestResourceAttributes flags)
+		public LinkedResource(UTF8String name, FileDef file, ManifestResourceAttributes flags)
 			: base(name, flags) {
-			this.fileName = fileName;
+			this.file = file;
 		}
 
 		/// <summary>
@@ -266,12 +277,12 @@ namespace dot10.DotNet {
 		/// <param name="fileName">File name</param>
 		/// <param name="flags">Resource flags</param>
 		public LinkedResource(string name, string fileName, ManifestResourceAttributes flags)
-			: this(new UTF8String(name), new UTF8String(fileName), flags) {
+			: this(new UTF8String(name), new FileDefUser(new UTF8String(fileName), FileAttributes.ContainsNoMetaData, null), flags) {
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("{0} - file: {1}", UTF8String.ToSystemStringOrEmpty(Name), UTF8String.ToSystemStringOrEmpty(fileName));
+			return string.Format("{0} - file: {1}", UTF8String.ToSystemStringOrEmpty(Name), UTF8String.ToSystemStringOrEmpty(FileName));
 		}
 	}
 }

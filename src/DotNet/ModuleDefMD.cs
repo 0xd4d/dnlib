@@ -1330,7 +1330,7 @@ namespace dot10.DotNet {
 				return new EmbeddedResource(mr.Name, CreateResourceStream(mr.Offset), mr.Flags);
 			var file = mr.Implementation as FileDef;
 			if (file != null)
-				return new LinkedResource(mr.Name, file.Name, mr.Flags);
+				return new LinkedResource(mr.Name, file, mr.Flags);
 			var asmRef = mr.Implementation as AssemblyRef;
 			if (asmRef != null)
 				return new AssemblyLinkedResource(mr.Name, asmRef, mr.Flags);
