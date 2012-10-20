@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using dot10.IO;
 using dot10.PE;
 using dot10.DotNet.MD;
@@ -75,9 +76,7 @@ namespace dot10.DotNet.Writer {
 			Rows<MethodDef> methodDefInfos = new Rows<MethodDef>();
 			Rows<EventDef> eventDefInfos = new Rows<EventDef>();
 			Rows<PropertyDef> propertyDefInfos = new Rows<PropertyDef>();
-			List<RawGenericParamRow> genericParams = new List<RawGenericParamRow>();
-			List<RawEventMapRow> eventMaps = new List<RawEventMapRow>();
-			List<RawPropertyMapRow> propertyMaps = new List<RawPropertyMapRow>();
+			Rows<MemberRef> memberRefInfos = new Rows<MemberRef>();
 
 			class Rows<T> where T : IMDTokenProvider {
 				Dictionary<T, uint> dict = new Dictionary<T, uint>();
@@ -125,11 +124,13 @@ namespace dot10.DotNet.Writer {
 						continue;
 					uint typeRid = typeDefInfos.Rid(type);
 					var typeRow = metaData.tablesHeap.TypeDefTable[typeRid];
-					foreach (var gp in type.GenericParams)
-						AddGenericParam(new MDToken(Table.TypeDef, typeRid), gp);
+					AddGenericParams(new MDToken(Table.TypeDef, typeRid), type.GenericParams);
 					typeRow.Extends = AddTypeDefOrRef(type.BaseType);	//TODO: null is allowed here if <Module> or iface so don't warn user
 					typeRow.FieldList = fieldListRid;
 					typeRow.MethodList = methodListRid;
+					AddDeclSecurities(new MDToken(Table.TypeDef, typeRid), type.DeclSecurities);
+					AddInterfaceImpls(typeRid, type.InterfaceImpls);
+					AddClassLayout(typeRid, type.ClassLayout);
 
 					foreach (var field in type.Fields) {
 						if (field == null)
@@ -139,7 +140,11 @@ namespace dot10.DotNet.Writer {
 									metaData.stringsHeap.Add(field.Name),
 									GetSignature(field.Signature));
 						fieldDefInfos.Add(field, rid);
-						//TODO:
+						AddFieldLayout(rid, field.FieldLayout);
+						AddFieldMarshal(new MDToken(Table.Field, rid), field.FieldMarshal);
+						AddFieldRVA(rid, field.FieldRVA);
+						AddImplMap(new MDToken(Table.Field, rid), field.ImplMap);
+						AddConstant(new MDToken(Table.Field, rid), field.Constant);
 					}
 
 					foreach (var method in type.Methods) {
@@ -153,11 +158,13 @@ namespace dot10.DotNet.Writer {
 									GetSignature(method.Signature),
 									0);
 						methodDefInfos.Add(method, rid);
-						//TODO:
+						AddGenericParams(new MDToken(Table.Method, rid), method.GenericParams);
+						AddDeclSecurities(new MDToken(Table.Method, rid), method.DeclSecurities);
+						AddImplMap(new MDToken(Table.Method, rid), method.ImplMap);
 					}
 
 					if (!IsEmpty(type.Events)) {
-						eventMaps.Add(new RawEventMapRow(typeRid, eventListRid));
+						metaData.tablesHeap.EventMapTable.Create(new RawEventMapRow(typeRid, eventListRid));
 						foreach (var evt in type.Events) {
 							if (evt == null)
 								continue;
@@ -166,12 +173,11 @@ namespace dot10.DotNet.Writer {
 										metaData.stringsHeap.Add(evt.Name),
 										AddTypeDefOrRef(evt.Type));
 							eventDefInfos.Add(evt, rid);
-							//TODO: MethodSemantics
 						}
 					}
 
 					if (!IsEmpty(type.Properties)) {
-						propertyMaps.Add(new RawPropertyMapRow(typeRid, propertyListRid));
+						metaData.tablesHeap.PropertyMapTable.Create(new RawPropertyMapRow(typeRid, propertyListRid));
 						foreach (var prop in type.Properties) {
 							if (prop == null)
 								continue;
@@ -180,27 +186,34 @@ namespace dot10.DotNet.Writer {
 										metaData.stringsHeap.Add(prop.Name),
 										GetSignature(prop.Type));
 							propertyDefInfos.Add(prop, rid);
-							//TODO: MethodSemantics
+							AddConstant(new MDToken(Table.Property, rid), prop.Constant);
 						}
 					}
 				}
 
 				//TODO: Write all params
 
-				var asm = metaData.module.Assembly;
-				if (asm != null) {
-					//TODO: Write assembly
-				}
+				AddAssembly(metaData.module.Assembly);
 
 				foreach (var type in sortedTypes) {
+					AddNestedType(type, type.DeclaringType);
+
+					// Second method pass
 					foreach (var method in type.Methods) {
 						//TODO:
+						uint rid = methodDefInfos.Rid(method);
+						AddMethodImpls(rid, method.Overrides);
 					}
+					foreach (var evt in type.Events)
+						AddMethodSemantics(evt);
+					foreach (var prop in type.Properties)
+						AddMethodSemantics(prop);
 				}
 
 				//TODO: Write module cust attr
 				//TODO: Write assembly cust attr
 				//TODO: Write assembly decl security
+				//TODO: Sort the tables that must be sorted
 			}
 
 			static bool IsEmpty<T>(IList<T> list) where T : class {
@@ -211,6 +224,18 @@ namespace dot10.DotNet.Writer {
 						return false;
 				}
 				return true;
+			}
+
+			void AddNestedType(TypeDef nestedType, TypeDef declaringType) {
+				if (nestedType == null || declaringType == null)
+					return;
+				uint nestedRid, dtRid;
+				if (!typeDefInfos.TryGetRid(nestedType, out nestedRid))
+					return;	//TODO: Warn user
+				if (!typeDefInfos.TryGetRid(declaringType, out dtRid))
+					return;	//TODO: Warn user
+				var row = new RawNestedClassRow(nestedRid, dtRid);
+				metaData.tablesHeap.NestedClassTable.Add(row);
 			}
 
 			uint AddModule(ModuleDef module) {
@@ -243,20 +268,6 @@ namespace dot10.DotNet.Writer {
 				return rid;
 			}
 
-			void AddGenericParam(MDToken owner, GenericParam gp) {
-				if (gp == null)
-					return;	//TODO: Warn user
-				uint encodedOwner;
-				if (!CodedToken.TypeOrMethodDef.Encode(owner, out encodedOwner))
-					throw new ModuleWriterException("Can't encode GenericParam owner token");
-				var row = new RawGenericParamRow(gp.Number,
-								(ushort)gp.Flags,
-								encodedOwner,
-								metaData.stringsHeap.Add(gp.Name),
-								gp.Kind == null ? 0 : AddTypeDefOrRef(gp.Kind));
-				genericParams.Add(row);
-			}
-
 			uint GetTypeDefRid(TypeDef td) {
 				uint rid;
 				if (typeDefInfos.TryGetRid(td, out rid))
@@ -271,7 +282,7 @@ namespace dot10.DotNet.Writer {
 				if (td != null) {
 					var token = new MDToken(Table.TypeDef, GetTypeDefRid(td));
 					if (!CodedToken.TypeDefOrRef.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a TypeDefOrRef token");
+						throw new ModuleWriterException("Can't encode a TypeDefOrRef token");	//TODO: Instead of throwing here and elsewhere, warn user
 					return encodedToken;
 				}
 
@@ -394,10 +405,312 @@ namespace dot10.DotNet.Writer {
 				return rid;
 			}
 
+			void AddAssembly(AssemblyDef asm) {
+				if (asm == null)
+					return;
+				var version = Utils.CreateVersionWithNoUndefinedValues(asm.Version);
+				var row = new RawAssemblyRow((uint)asm.HashAlgId,
+								(ushort)version.Major,
+								(ushort)version.Minor,
+								(ushort)version.Build,
+								(ushort)version.Revision,
+								(uint)asm.Flags,
+								metaData.blobHeap.Add(GetPublicKeyOrTokenData(asm.PublicKeyOrToken)),
+								metaData.stringsHeap.Add(asm.Name),
+								metaData.stringsHeap.Add(asm.Locale));
+				metaData.tablesHeap.AssemblyTable.Add(row);
+			}
+
 			static byte[] GetPublicKeyOrTokenData(PublicKeyBase pkb) {
 				if (pkb == null)
 					return null;
 				return pkb.Data;
+			}
+
+			void AddGenericParams(MDToken token, IList<GenericParam> gps) {
+				if (gps == null)
+					return;
+				foreach (var gp in gps)
+					AddGenericParam(token, gp);
+			}
+
+			void AddGenericParam(MDToken owner, GenericParam gp) {
+				if (gp == null)
+					return;	//TODO: Warn user
+				uint encodedOwner;
+				if (!CodedToken.TypeOrMethodDef.Encode(owner, out encodedOwner))
+					throw new ModuleWriterException("Can't encode GenericParam owner token");
+				var row = new RawGenericParamRow(gp.Number,
+								(ushort)gp.Flags,
+								encodedOwner,
+								metaData.stringsHeap.Add(gp.Name),
+								gp.Kind == null ? 0 : AddTypeDefOrRef(gp.Kind));
+				uint rid = metaData.tablesHeap.GenericParamTable.Create(row);
+				AddGenericParamConstraints(rid, gp.GenericParamConstraints);
+			}
+
+			void AddGenericParamConstraints(uint gpRid, IList<GenericParamConstraint> constraints) {
+				if (constraints == null)
+					return;
+				foreach (var gpc in constraints)
+					AddGenericParamConstraint(gpRid, gpc);
+			}
+
+			void AddGenericParamConstraint(uint gpRid, GenericParamConstraint gpc) {
+				if (gpc == null)
+					return;
+				var row = new RawGenericParamConstraintRow(gpRid, AddTypeDefOrRef(gpc.Constraint));
+				metaData.tablesHeap.GenericParamConstraintTable.Add(row);
+			}
+
+			void AddInterfaceImpls(uint typeDefRid, IList<InterfaceImpl> ifaces) {
+				foreach (var iface in ifaces) {
+					if (iface == null)
+						continue;
+					var row = new RawInterfaceImplRow(typeDefRid,
+								AddTypeDefOrRef(iface.Interface));
+					uint rid = metaData.tablesHeap.InterfaceImplTable.Create(row);
+					//TODO: Write custom attrs
+				}
+			}
+
+			void AddFieldLayout(uint fieldRid, FieldLayout fieldLayout) {
+				if (fieldLayout == null)
+					return;
+				var row = new RawFieldLayoutRow(fieldLayout.Offset, fieldRid);
+				metaData.tablesHeap.FieldLayoutTable.Add(row);
+			}
+
+			void AddFieldMarshal(MDToken parent, FieldMarshal fieldMarshal) {
+				if (fieldMarshal == null)
+					return;
+				uint encodedParent;
+				if (!CodedToken.HasFieldMarshal.Encode(parent, out encodedParent))
+					throw new ModuleWriterException("Can't encode a HasFieldMarshal token");
+				var row = new RawFieldMarshalRow(encodedParent,
+							metaData.blobHeap.Add(fieldMarshal.NativeType));
+				metaData.tablesHeap.FieldMarshalTable.Add(row);
+			}
+
+			void AddFieldRVA(uint fieldRid, FieldRVA fieldRVA) {
+				if (fieldRVA == null)
+					return;
+				var row = new RawFieldRVARow((uint)fieldRVA.RVA, fieldRid);
+				metaData.tablesHeap.FieldRVATable.Add(row);
+			}
+
+			void AddImplMap(MDToken parent, ImplMap implMap) {
+				if (implMap == null)
+					return;
+				uint encodedParent;
+				if (!CodedToken.MemberForwarded.Encode(parent, out encodedParent))
+					throw new ModuleWriterException("Can't encode a MemberForwarded token");
+				var row = new RawImplMapRow((ushort)implMap.Flags,
+							encodedParent,
+							metaData.stringsHeap.Add(implMap.Name),
+							AddModuleRef(implMap.Scope));
+				metaData.tablesHeap.ImplMapTable.Add(row);
+			}
+
+			void AddConstant(MDToken parent, Constant constant) {
+				if (constant == null)
+					return;
+				uint encodedParent;
+				if (!CodedToken.HasConstant.Encode(parent, out encodedParent))
+					throw new ModuleWriterException("Can't encode a HasConstant token");
+				var row = new RawConstantRow((byte)constant.Type, 0,
+							encodedParent,
+							metaData.blobHeap.Add(GetConstantValueAsByteArray(constant.Type, constant.Value)));
+				metaData.tablesHeap.ConstantTable.Add(row);
+			}
+
+			static readonly byte[] constantClassByteArray = new byte[4];
+			static readonly byte[] constantDefaultByteArray = new byte[8];
+			byte[] GetConstantValueAsByteArray(ElementType etype, object o) {
+				if (o == null) {
+					if (etype == ElementType.Class)
+						return constantClassByteArray;
+					return constantDefaultByteArray;	//TODO: Warn user
+				}
+
+				switch (Type.GetTypeCode(o.GetType())) {
+				case TypeCode.Boolean:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((bool)o);
+
+				case TypeCode.Char:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((char)o);
+
+				case TypeCode.SByte:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((sbyte)o);
+
+				case TypeCode.Byte:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((byte)o);
+
+				case TypeCode.Int16:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((short)o);
+
+				case TypeCode.UInt16:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((ushort)o);
+
+				case TypeCode.Int32:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((int)o);
+
+				case TypeCode.UInt32:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((uint)o);
+
+				case TypeCode.Int64:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((long)o);
+
+				case TypeCode.UInt64:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((ulong)o);
+
+				case TypeCode.Single:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((float)o);
+
+				case TypeCode.Double:
+					//TODO: if etype is not same type, warn user
+					return BitConverter.GetBytes((double)o);
+
+				case TypeCode.String:
+					//TODO: if etype is not same type, warn user
+					return Encoding.Unicode.GetBytes((string)o);
+
+				default:
+					return constantDefaultByteArray;	//TODO: warn user
+				}
+			}
+
+			void AddDeclSecurities(MDToken parent, IList<DeclSecurity> declSecurities) {
+				if (declSecurities == null)
+					return;
+				uint encodedParent;
+				if (!CodedToken.HasDeclSecurity.Encode(parent, out encodedParent))
+					throw new ModuleWriterException("Can't encode a HasDeclSecurity token");
+				foreach (var decl in declSecurities) {
+					if (decl == null)
+						continue;
+					var row = new RawDeclSecurityRow((short)decl.Action,
+								encodedParent,
+								metaData.blobHeap.Add(decl.PermissionSet));
+					metaData.tablesHeap.DeclSecurityTable.Create(row);
+				}
+			}
+
+			void AddMethodSemantics(EventDef evt) {
+				if (evt == null)
+					return;	//TODO: Warn user
+				uint rid;
+				if (!eventDefInfos.TryGetRid(evt, out rid))
+					return;	//TODO: Warn user
+				var token = new MDToken(Table.Event, rid);
+				AddMethodSemantics(token, evt.AddMethod, MethodSemanticsAttributes.AddOn);
+				AddMethodSemantics(token, evt.RemoveMethod, MethodSemanticsAttributes.RemoveOn);
+				AddMethodSemantics(token, evt.InvokeMethod, MethodSemanticsAttributes.Fire);
+				AddMethodSemantics(token, evt.OtherMethods);
+			}
+
+			void AddMethodSemantics(PropertyDef prop) {
+				if (prop == null)
+					return;	//TODO: Warn user
+				uint rid;
+				if (!propertyDefInfos.TryGetRid(prop, out rid))
+					return;	//TODO: Warn user
+				var token = new MDToken(Table.Property, rid);
+				AddMethodSemantics(token, prop.GetMethod, MethodSemanticsAttributes.Getter);
+				AddMethodSemantics(token, prop.SetMethod, MethodSemanticsAttributes.Setter);
+				AddMethodSemantics(token, prop.OtherMethods);
+			}
+
+			void AddMethodSemantics(MDToken owner, IList<MethodDef> otherMethods) {
+				if (otherMethods == null)
+					return;
+				foreach (var method in otherMethods)
+					AddMethodSemantics(owner, method, MethodSemanticsAttributes.Other);
+			}
+
+			void AddMethodSemantics(MDToken owner, MethodDef method, MethodSemanticsAttributes flags) {
+				uint methodRid;
+				if (!methodDefInfos.TryGetRid(method, out methodRid))
+					return;	//TODO: Warn user
+				uint encodedOwner;
+				if (!CodedToken.HasSemantic.Encode(owner, out encodedOwner))
+					throw new ModuleWriterException("Can't encode a HasSemantic token");
+				var row = new RawMethodSemanticsRow((ushort)flags, methodRid, encodedOwner);
+				metaData.tablesHeap.MethodSemanticsTable.Add(row);
+			}
+
+			void AddMethodImpls(uint rid, IList<MethodOverride> overrides) {
+				if (overrides == null)
+					return;
+				foreach (var ovr in overrides) {
+					var row = new RawMethodImplRow(rid,
+								AddMethodDefOrRef(ovr.MethodBody),
+								AddMethodDefOrRef(ovr.MethodDeclaration));
+					metaData.tablesHeap.MethodImplTable.Add(row);
+				}
+			}
+
+			void AddClassLayout(uint typeRid, ClassLayout classLayout) {
+				if (classLayout == null)
+					return;
+				var row = new RawClassLayoutRow(classLayout.PackingSize, classLayout.ClassSize, typeRid);
+				metaData.tablesHeap.ClassLayoutTable.Add(row);
+			}
+
+			uint AddMethodDefOrRef(IMethodDefOrRef mdr) {
+				uint encodedToken;
+
+				var md = mdr as MethodDef;
+				if (md != null) {
+					uint rid;
+					if (!methodDefInfos.TryGetRid(md, out rid)) {
+						//TODO: method is not in this module. warn user.
+					}
+					if (!CodedToken.MethodDefOrRef.Encode(new MDToken(Table.Method, rid), out encodedToken))
+						throw new ModuleWriterException("Can't encode a MethodDefOrRef token");
+					return encodedToken;
+				}
+
+				var mr = mdr as MemberRef;
+				if (mr != null) {
+					if (!CodedToken.MethodDefOrRef.Encode(new MDToken(Table.MemberRef, AddMemberRef(mr)), out encodedToken))
+						throw new ModuleWriterException("Can't encode a MethodDefOrRef token");
+					return encodedToken;
+				}
+
+				return 0;	//TODO: Warn user
+			}
+
+			uint AddMemberRef(MemberRef mr) {
+				if (mr == null)
+					return 0;	//TODO: Warn user
+				uint rid;
+				if (memberRefInfos.TryGetRid(mr, out rid))
+					return rid;
+				var row = new RawMemberRefRow(AddMemberRefParent(mr.Class),
+								metaData.stringsHeap.Add(mr.Name),
+								GetSignature(mr.Signature));
+				rid = metaData.tablesHeap.MemberRefTable.Add(row);
+				memberRefInfos.Add(mr, rid);
+				return rid;
+			}
+
+			uint AddMemberRefParent(IMemberRefParent parent) {
+				if (parent == null)
+					return 0;	//TODO: Warn user
+
+				return 0;	//TODO:
 			}
 
 			uint GetSignature(TypeSig ts) {
