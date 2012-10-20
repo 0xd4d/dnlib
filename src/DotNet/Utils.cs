@@ -332,11 +332,11 @@ namespace dot10.DotNet {
 				return 2;
 			if (value <= 0x1FFFFFFF)
 				return 4;
-			throw new ArgumentOutOfRangeException("value can't be compressed");
+			throw new ArgumentOutOfRangeException("UInt32 value can't be compressed");
 		}
 
 		/// <summary>
-		/// Write a compressed UInt32
+		/// Writes a compressed <see cref="UInt32"/>
 		/// </summary>
 		/// <param name="writer">Writer</param>
 		/// <param name="value">Value</param>
@@ -355,7 +355,38 @@ namespace dot10.DotNet {
 				writer.Write((byte)value);
 			}
 			else
-				throw new ArgumentOutOfRangeException("value can't be compressed");
+				throw new ArgumentOutOfRangeException("UInt32 value can't be compressed");
+		}
+
+		/// <summary>
+		/// Writes a compressed <see cref="Int32"/>
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="value">Value</param>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be compressed (too big/small)</exception>
+		public static void WriteCompressedInt32(this BinaryWriter writer, int value) {
+			// This is almost identical to compressing a UInt32, except that we first
+			// recode value so the sign bit is in bit 0. Then we compress it the same
+			// way a UInt32 is compressed.
+			uint sign = (uint)value >> 31;
+			if (-0x40 <= value && value <= 0x3F) {
+				uint v = ((uint)((value & 0x3F) << 1) | sign);
+				writer.Write((byte)v);
+			}
+			else if (-0x2000 <= value && value <= 0x1FFF) {
+				uint v = ((uint)(value & 0x1FFF) << 1) | sign;
+				writer.Write((byte)((v >> 8) | 0x80));
+				writer.Write((byte)v);
+			}
+			else if (-0x10000000 <= value && value <= 0x0FFFFFFF) {
+				uint v = ((uint)(value & 0x0FFFFFFF) << 1) | sign;
+				writer.Write((byte)((v >> 24) | 0xC0));
+				writer.Write((byte)(v >> 16));
+				writer.Write((byte)(v >> 8));
+				writer.Write((byte)v);
+			}
+			else
+				throw new ArgumentOutOfRangeException("Int32 value can't be compressed");
 		}
 	}
 }
