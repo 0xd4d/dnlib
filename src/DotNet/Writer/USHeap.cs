@@ -20,7 +20,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Populate strings from an existing <see cref="USStream"/> (eg. to preserve
+		/// Populates strings from an existing <see cref="USStream"/> (eg. to preserve
 		/// string tokens)
 		/// </summary>
 		/// <param name="usStream">The #US stream with the original content</param>
