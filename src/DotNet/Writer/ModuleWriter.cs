@@ -33,7 +33,7 @@ namespace dot10.DotNet.Writer {
 		StrongNameSignature strongNameSignature;
 		UniqueChunkList<ByteArrayChunk> constants;
 		MethodBodyChunks methodBodies;
-		ChunkList<IChunk> netResources;
+		NetResources netResources;
 		MetaData metaData;
 		DebugDirectory debugDirectory;
 		ImportDirectory importDirectory;
@@ -108,7 +108,7 @@ namespace dot10.DotNet.Writer {
 			imageCor20Header = new ImageCor20Header(new Cor20HeaderOptions(ComImageFlags.ILOnly));
 			constants = new UniqueChunkList<ByteArrayChunk>();
 			methodBodies = new MethodBodyChunks(shareBodies);
-			netResources = new ChunkList<IChunk>();
+			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
 			metaData = new MetaData(module, constants, methodBodies, netResources);
 			debugDirectory = new DebugDirectory();
 		}
