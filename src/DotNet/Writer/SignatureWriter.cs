@@ -68,6 +68,28 @@ namespace dot10.DotNet.Writer {
 			return outStream.ToArray();
 		}
 
+		uint WriteCompressedUInt32(uint value) {
+			if (value >= 0x1FFFFFFF) {
+				helper.Error("UInt32 value is too big and can't be compressed");
+				value = 0x1FFFFFFF;
+			}
+			writer.WriteCompressedUInt32(value);
+			return value;
+		}
+
+		int WriteCompressedInt32(int value) {
+			if (value < -0x10000000) {
+				helper.Error("Int32 value is too small and can't be compressed.");
+				value = -0x10000000;
+			}
+			else if (value > 0x0FFFFFFF) {
+				helper.Error("Int32 value is too big and can't be compressed.");
+				value = 0x0FFFFFFF;
+			}
+			writer.WriteCompressedInt32(value);
+			return value;
+		}
+
 		void Write(TypeSig typeSig) {
 			if (typeSig == null) {
 				helper.Error("TypeSig is null");
@@ -80,6 +102,7 @@ namespace dot10.DotNet.Writer {
 
 			writer.Write((byte)typeSig.ElementType);
 
+			uint count;
 			switch (typeSig.ElementType) {
 			case ElementType.Void:
 			case ElementType.Boolean:
@@ -116,34 +139,34 @@ namespace dot10.DotNet.Writer {
 
 			case ElementType.Var:
 			case ElementType.MVar:
-				writer.WriteCompressedUInt32(((GenericSig)typeSig).Number);
+				WriteCompressedUInt32(((GenericSig)typeSig).Number);
 				break;
 
 			case ElementType.Array:
 				var ary = (ArraySig)typeSig;
 				Write(ary.Next);
-				writer.WriteCompressedUInt32(ary.Rank);
+				WriteCompressedUInt32(ary.Rank);
 				if (ary.Rank == 0)
 					break;
-				writer.WriteCompressedUInt32((uint)ary.Sizes.Count);
-				foreach (var size in ary.Sizes)
-					writer.WriteCompressedUInt32(size);
-				writer.WriteCompressedUInt32((uint)ary.LowerBounds.Count);
-				foreach (var lb in ary.LowerBounds)
-					writer.WriteCompressedInt32(lb);
+				count = WriteCompressedUInt32((uint)ary.Sizes.Count);
+				for (uint i = 0; i < count; i++)
+					WriteCompressedUInt32(ary.Sizes[(int)i]);
+				count = WriteCompressedUInt32((uint)ary.LowerBounds.Count);
+				for (uint i = 0; i < count; i++)
+					WriteCompressedInt32(ary.LowerBounds[(int)i]);
 				break;
 
 			case ElementType.GenericInst:
 				var gis = (GenericInstSig)typeSig;
 				Write(gis.GenericType);
-				writer.WriteCompressedUInt32((uint)gis.GenericArguments.Count);
-				foreach (var ga in gis.GenericArguments)
-					Write(ga);
+				count = WriteCompressedUInt32((uint)gis.GenericArguments.Count);
+				for (uint i = 0; i < count; i++)
+					Write(gis.GenericArguments[(int)i]);
 				break;
 
 			case ElementType.ValueArray:
 				Write(typeSig.Next);
-				writer.WriteCompressedUInt32((typeSig as ValueArraySig).Size);
+				WriteCompressedUInt32((typeSig as ValueArraySig).Size);
 				break;
 
 			case ElementType.FnPtr:
@@ -157,7 +180,7 @@ namespace dot10.DotNet.Writer {
 				break;
 
 			case ElementType.Module:
-				writer.WriteCompressedUInt32((typeSig as ModuleSig).Index);
+				WriteCompressedUInt32((typeSig as ModuleSig).Index);
 				Write(typeSig.Next);
 				break;
 
@@ -175,7 +198,7 @@ namespace dot10.DotNet.Writer {
 		void Write(ITypeDefOrRef tdr) {
 			if (tdr == null) {
 				helper.Error("TypeDefOrRef is null");
-				writer.WriteCompressedUInt32(0);
+				WriteCompressedUInt32(0);
 				return;
 			}
 
@@ -184,7 +207,7 @@ namespace dot10.DotNet.Writer {
 				helper.Error("Encoded token is too big");
 				encodedToken = 0;
 			}
-			writer.WriteCompressedUInt32(encodedToken);
+			WriteCompressedUInt32(encodedToken);
 		}
 
 		void Write(CallingConventionSig sig) {
@@ -230,19 +253,21 @@ namespace dot10.DotNet.Writer {
 
 			writer.Write((byte)sig.GetCallingConvention());
 			if (sig.Generic)
-				writer.WriteCompressedUInt32(sig.GenParamCount);
+				WriteCompressedUInt32(sig.GenParamCount);
 
 			uint numParams = (uint)sig.Params.Count;
 			if (sig.ParamsAfterSentinel != null)
 				numParams += (uint)sig.ParamsAfterSentinel.Count;
 
-			writer.WriteCompressedUInt32(numParams);
+			uint count = WriteCompressedUInt32(numParams);
 			Write(sig.RetType);
-			Write(sig.Params);
+			for (uint i = 0; i < count && i < (uint)sig.Params.Count; i++)
+				Write(sig.Params[(int)i]);
 
 			if (sig.ParamsAfterSentinel != null && sig.ParamsAfterSentinel.Count > 0) {
 				writer.Write((byte)ElementType.Sentinel);
-				Write(sig.ParamsAfterSentinel);
+				for (uint i = 0, j = (uint)sig.Params.Count; i < (uint)sig.ParamsAfterSentinel.Count && j < count; i++, j++)
+					Write(sig.ParamsAfterSentinel[(int)i]);
 			}
 
 			recursionCounter.Decrement();
@@ -275,8 +300,9 @@ namespace dot10.DotNet.Writer {
 			}
 
 			writer.Write((byte)sig.GetCallingConvention());
-			writer.WriteCompressedUInt32((uint)sig.Locals.Count);
-			Write(sig.Locals);
+			uint count = WriteCompressedUInt32((uint)sig.Locals.Count);
+			for (uint i = 0; i < count; i++)
+				Write(sig.Locals[(int)i]);
 
 			recursionCounter.Decrement();
 		}
@@ -292,15 +318,11 @@ namespace dot10.DotNet.Writer {
 			}
 
 			writer.Write((byte)sig.GetCallingConvention());
-			writer.WriteCompressedUInt32((uint)sig.GenericArguments.Count);
-			Write(sig.GenericArguments);
+			uint count = WriteCompressedUInt32((uint)sig.GenericArguments.Count);
+			for (uint i = 0; i < count; i++)
+				Write(sig.GenericArguments[(int)i]);
 
 			recursionCounter.Decrement();
-		}
-
-		void Write(IList<TypeSig> sigs) {
-			foreach (var sig in sigs)
-				Write(sig);
 		}
 
 		/// <inheritdoc/>
