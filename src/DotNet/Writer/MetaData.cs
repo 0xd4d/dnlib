@@ -63,7 +63,7 @@ namespace dot10.DotNet.Writer {
 			void Create();
 		}
 
-		class NormalTablesCreator : ITablesCreator {
+		class NormalTablesCreator : ITablesCreator, ISignatureWriterHelper {
 			MetaData metaData;
 			List<TypeDef> sortedTypes;
 			Rows<ModuleDef> moduleDefInfos = new Rows<ModuleDef>();
@@ -793,14 +793,16 @@ namespace dot10.DotNet.Writer {
 				if (ts == null)
 					return 0;	//TODO: Warn user
 
-				return 0;	//TODO:
+				var blob = SignatureWriter.Write(this, ts);
+				return metaData.blobHeap.Add(blob);
 			}
 
 			uint GetSignature(CallingConventionSig sig) {
 				if (sig == null)
 					return 0;	//TODO: Warn user
 
-				return 0;	//TODO:
+				var blob = SignatureWriter.Write(this, sig);
+				return metaData.blobHeap.Add(blob);
 			}
 
 			/// <summary>
@@ -811,6 +813,15 @@ namespace dot10.DotNet.Writer {
 				// All nested types must be after their enclosing type. This is exactly
 				// what module.GetTypes() does.
 				return new List<TypeDef>(metaData.module.GetTypes());
+			}
+
+			/// <inheritdoc/>
+			uint ISignatureWriterHelper.ToEncodedToken(ITypeDefOrRef typeDefOrRef) {
+				return AddTypeDefOrRef(typeDefOrRef);
+			}
+
+			void ISignatureWriterHelper.Error(string message) {
+				//TODO: Log error.
 			}
 		}
 
