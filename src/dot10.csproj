@@ -115,6 +115,7 @@
     <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
     <Compile Include="DotNet\Writer\BlobHeap.cs" />
     <Compile Include="DotNet\Writer\ByteArrayChunk.cs" />
+    <Compile Include="DotNet\Writer\CustomAttributeWriter.cs" />
     <Compile Include="DotNet\Writer\GuidHeap.cs" />
     <Compile Include="DotNet\Writer\HeapBase.cs" />
     <Compile Include="DotNet\Writer\IHeap.cs" />
