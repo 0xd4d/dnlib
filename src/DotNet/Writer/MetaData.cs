@@ -76,8 +76,12 @@ namespace dot10.DotNet.Writer {
 			Rows<MethodDef> methodDefInfos = new Rows<MethodDef>();
 			Rows<EventDef> eventDefInfos = new Rows<EventDef>();
 			Rows<PropertyDef> propertyDefInfos = new Rows<PropertyDef>();
+			Rows<ParamDef> paramDefInfos = new Rows<ParamDef>();
 			Rows<MemberRef> memberRefInfos = new Rows<MemberRef>();
 			Rows<FileDef> fileDefInfos = new Rows<FileDef>();
+			Rows<StandAloneSig> standAloneSigInfos = new Rows<StandAloneSig>();
+			Rows<ExportedType> exportedTypeInfos = new Rows<ExportedType>();
+			Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
 
 			class Rows<T> where T : IMDTokenProvider {
 				Dictionary<T, uint> dict = new Dictionary<T, uint>();
@@ -123,7 +127,7 @@ namespace dot10.DotNet.Writer {
 				foreach (var type in sortedTypes) {
 					if (type == null)
 						continue;
-					uint typeRid = typeDefInfos.Rid(type);
+					uint typeRid = GetTypeDefRid(type);
 					var typeRow = metaData.tablesHeap.TypeDefTable[typeRid];
 					AddGenericParams(new MDToken(Table.TypeDef, typeRid), type.GenericParams);
 					typeRow.Extends = AddTypeDefOrRef(type.BaseType);	//TODO: null is allowed here if <Module> or iface so don't warn user
@@ -202,7 +206,7 @@ namespace dot10.DotNet.Writer {
 					// Second method pass
 					foreach (var method in type.Methods) {
 						//TODO:
-						uint rid = methodDefInfos.Rid(method);
+						uint rid = GetMethodRid(method);
 						AddMethodImpls(rid, method.Overrides);
 					}
 					foreach (var evt in type.Events)
@@ -229,14 +233,212 @@ namespace dot10.DotNet.Writer {
 				return true;
 			}
 
+			MDToken GetToken(object o) {
+				var tp = o as IMDTokenProvider;
+				if (tp != null)
+					return new MDToken(tp.MDToken.Table, AddMDTokenProvider(tp));
+
+				var s = o as string;
+				if (s != null)
+					return new MDToken((Table)0x70, metaData.usHeap.Add(s));
+
+				return new MDToken((Table)0xFF, 0x00FFFFFF);
+			}
+
+			uint AddMDTokenProvider(IMDTokenProvider tp) {
+				if (tp != null) {
+					switch (tp.MDToken.Table) {
+					case Table.Module:
+						return AddModule((ModuleDef)tp);
+
+					case Table.TypeRef:
+						return AddTypeRef((TypeRef)tp);
+
+					case Table.TypeDef:
+						return GetTypeDefRid((TypeDef)tp);
+
+					case Table.Field:
+						return GetFieldRid((FieldDef)tp);
+
+					case Table.Method:
+						return GetMethodRid((MethodDef)tp);
+
+					case Table.Param:
+						return GetParamRid((ParamDef)tp);
+
+					case Table.MemberRef:
+						return AddMemberRef((MemberRef)tp);
+
+					case Table.StandAloneSig:
+						return AddStandAloneSig((StandAloneSig)tp);
+
+					case Table.Event:
+						return GetEventRid((EventDef)tp);
+
+					case Table.Property:
+						return GetPropertyRid((PropertyDef)tp);
+
+					case Table.ModuleRef:
+						return AddModuleRef((ModuleRef)tp);
+
+					case Table.TypeSpec:
+						return AddTypeSpec((TypeSpec)tp);
+
+					case Table.Assembly:
+						return AddAssembly((AssemblyDef)tp);
+
+					case Table.AssemblyRef:
+						return AddAssemblyRef((AssemblyRef)tp);
+
+					case Table.File:
+						return AddFile((FileDef)tp);
+
+					case Table.ExportedType:
+						return AddExportedType((ExportedType)tp);
+
+					case Table.MethodSpec:
+						return AddMethodSpec((MethodSpec)tp);
+
+					case Table.FieldPtr:
+					case Table.MethodPtr:
+					case Table.ParamPtr:
+					case Table.InterfaceImpl:
+					case Table.Constant:
+					case Table.CustomAttribute:
+					case Table.FieldMarshal:
+					case Table.DeclSecurity:
+					case Table.ClassLayout:
+					case Table.FieldLayout:
+					case Table.EventMap:
+					case Table.EventPtr:
+					case Table.PropertyMap:
+					case Table.PropertyPtr:
+					case Table.MethodSemantics:
+					case Table.MethodImpl:
+					case Table.ImplMap:
+					case Table.FieldRVA:
+					case Table.ENCLog:
+					case Table.ENCMap:
+					case Table.AssemblyProcessor:
+					case Table.AssemblyOS:
+					case Table.AssemblyRefProcessor:
+					case Table.AssemblyRefOS:
+					case Table.ManifestResource:
+					case Table.NestedClass:
+					case Table.GenericParam:
+					case Table.GenericParamConstraint:
+					default:
+						break;
+					}
+				}
+
+				return 0;	//TODO: Warn user
+			}
+
+			uint AddTypeDefOrRef(ITypeDefOrRef tdr) {
+				if (tdr == null)
+					return 0;	//TODO: Warn user
+
+				var token = new MDToken(tdr.MDToken.Table, AddMDTokenProvider(tdr));
+				uint encodedToken;
+				if (!CodedToken.TypeDefOrRef.Encode(token, out encodedToken))
+					throw new ModuleWriterException("Can't encode a TypeDefOrRef token");	//TODO: Instead of throwing here and elsewhere, warn user
+				return encodedToken;
+			}
+
+			uint AddResolutionScope(IResolutionScope rs) {
+				if (rs == null)
+					return 0;	//TODO: Warn user
+
+				var token = new MDToken(rs.MDToken.Table, AddMDTokenProvider(rs));
+				uint encodedToken;
+				if (!CodedToken.ResolutionScope.Encode(token, out encodedToken))
+					throw new ModuleWriterException("Can't encode a ResolutionScope token");
+				return encodedToken;
+			}
+
+			uint AddMethodDefOrRef(IMethodDefOrRef mdr) {
+				if (mdr == null)
+					return 0;	//TODO: Warn user
+
+				var token = new MDToken(mdr.MDToken.Table, AddMDTokenProvider(mdr));
+				uint encodedToken;
+				if (!CodedToken.MethodDefOrRef.Encode(token, out encodedToken))
+					throw new ModuleWriterException("Can't encode a MethodDefOrRef token");
+				return encodedToken;
+			}
+
+			uint AddMemberRefParent(IMemberRefParent parent) {
+				if (parent == null)
+					return 0;	//TODO: Warn user
+
+				var token = new MDToken(parent.MDToken.Table, AddMDTokenProvider(parent));
+				uint encodedToken;
+				if (!CodedToken.MemberRefParent.Encode(token, out encodedToken))
+					throw new ModuleWriterException("Can't encode a MemberRefParent token");
+				return encodedToken;
+			}
+
+			uint AddImplementation(IImplementation impl) {
+				if (impl == null)
+					return 0;	//TODO: Warn user
+
+				var token = new MDToken(impl.MDToken.Table, AddMDTokenProvider(impl));
+				uint encodedToken;
+				if (!CodedToken.Implementation.Encode(token, out encodedToken))
+					throw new ModuleWriterException("Can't encode a Implementation token");
+				return encodedToken;
+			}
+
+			uint GetTypeDefRid(TypeDef td) {
+				uint rid;
+				if (typeDefInfos.TryGetRid(td, out rid))
+					return rid;
+				return 0;	//TODO: Warn user
+			}
+
+			uint GetFieldRid(FieldDef fd) {
+				uint rid;
+				if (fieldDefInfos.TryGetRid(fd, out rid))
+					return rid;
+				return 0;	//TODO: Warn user
+			}
+
+			uint GetMethodRid(MethodDef md) {
+				uint rid;
+				if (methodDefInfos.TryGetRid(md, out rid))
+					return rid;
+				return 0;	//TODO: Warn user
+			}
+
+			uint GetParamRid(ParamDef pd) {
+				uint rid;
+				if (paramDefInfos.TryGetRid(pd, out rid))
+					return rid;
+				return 0;	//TODO: Warn user
+			}
+
+			uint GetEventRid(EventDef ed) {
+				uint rid;
+				if (eventDefInfos.TryGetRid(ed, out rid))
+					return rid;
+				return 0;	//TODO: Warn user
+			}
+
+			uint GetPropertyRid(PropertyDef pd) {
+				uint rid;
+				if (propertyDefInfos.TryGetRid(pd, out rid))
+					return rid;
+				return 0;	//TODO: Warn user
+			}
+
 			void AddNestedType(TypeDef nestedType, TypeDef declaringType) {
 				if (nestedType == null || declaringType == null)
 					return;
-				uint nestedRid, dtRid;
-				if (!typeDefInfos.TryGetRid(nestedType, out nestedRid))
-					return;	//TODO: Warn user
-				if (!typeDefInfos.TryGetRid(declaringType, out dtRid))
-					return;	//TODO: Warn user
+				uint nestedRid = GetTypeDefRid(nestedType);
+				uint dtRid = GetTypeDefRid(declaringType);
+				if (nestedRid == 0 || dtRid == 0)
+					return;
 				var row = new RawNestedClassRow(nestedRid, dtRid);
 				metaData.tablesHeap.NestedClassTable.Add(row);
 			}
@@ -244,6 +446,9 @@ namespace dot10.DotNet.Writer {
 			uint AddModule(ModuleDef module) {
 				if (module == null)
 					return 0;	//TODO: Warn user
+				if (module != metaData.module) {
+					//TODO: Warn user
+				}
 				var row = new RawModuleRow(module.Generation,
 									metaData.stringsHeap.Add(module.Name),
 									metaData.guidHeap.Add(module.Mvid),
@@ -271,43 +476,6 @@ namespace dot10.DotNet.Writer {
 				return rid;
 			}
 
-			uint GetTypeDefRid(TypeDef td) {
-				uint rid;
-				if (typeDefInfos.TryGetRid(td, out rid))
-					return rid;
-				return 0;	//TODO: Warn user
-			}
-
-			uint AddTypeDefOrRef(ITypeDefOrRef tdr) {
-				uint encodedToken;
-
-				var td = tdr as TypeDef;
-				if (td != null) {
-					var token = new MDToken(Table.TypeDef, GetTypeDefRid(td));
-					if (!CodedToken.TypeDefOrRef.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a TypeDefOrRef token");	//TODO: Instead of throwing here and elsewhere, warn user
-					return encodedToken;
-				}
-
-				var tr = tdr as TypeRef;
-				if (tr != null) {
-					var token = new MDToken(Table.TypeRef, AddTypeRef(tr));
-					if (!CodedToken.TypeDefOrRef.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a TypeDefOrRef token");
-					return encodedToken;
-				}
-
-				var ts = tdr as TypeSpec;
-				if (ts != null) {
-					var token = new MDToken(Table.TypeSpec, AddTypeSpec(ts));
-					if (!CodedToken.TypeDefOrRef.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a TypeDefOrRef token");
-					return encodedToken;
-				}
-
-				return 0;	//TODO: Warn user
-			}
-
 			uint AddTypeRef(TypeRef tr) {
 				if (tr == null)
 					return 0;	//TODO: Warn user
@@ -321,45 +489,6 @@ namespace dot10.DotNet.Writer {
 				rid = metaData.tablesHeap.TypeRefTable.Add(row);
 				typeRefInfos.SetRid(tr, rid);
 				return rid;
-			}
-
-			uint AddResolutionScope(IResolutionScope rs) {
-				uint encodedToken;
-
-				var asmRef = rs as AssemblyRef;
-				if (asmRef != null) {
-					var token = new MDToken(Table.AssemblyRef, AddAssemblyRef(asmRef));
-					if (!CodedToken.ResolutionScope.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a ResolutionScope token");
-					return encodedToken;
-				}
-
-				var tr = rs as TypeRef;
-				if (tr != null) {
-					var token = new MDToken(Table.TypeRef, AddTypeRef(tr));
-					if (!CodedToken.ResolutionScope.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a ResolutionScope token");
-					return encodedToken;
-				}
-
-				var modRef = rs as ModuleRef;
-				if (modRef != null) {
-					var token = new MDToken(Table.ModuleRef, AddModuleRef(modRef));
-					if (!CodedToken.ResolutionScope.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a ResolutionScope token");
-					return encodedToken;
-				}
-
-				//TODO: Error if mod is not metaData.module
-				var mod = rs as ModuleDef;
-				if (mod != null) {
-					var token = new MDToken(Table.Module, AddModule(mod));
-					if (!CodedToken.ResolutionScope.Encode(token, out encodedToken))
-						throw new ModuleWriterException("Can't encode a ResolutionScope token");
-					return encodedToken;
-				}
-
-				return 0;	//TODO: Warn user
 			}
 
 			uint AddTypeSpec(TypeSpec ts) {
@@ -408,9 +537,9 @@ namespace dot10.DotNet.Writer {
 				return rid;
 			}
 
-			void AddAssembly(AssemblyDef asm) {
+			uint AddAssembly(AssemblyDef asm) {
 				if (asm == null)
-					return;
+					return 0;	//TODO: Warn user
 				var version = Utils.CreateVersionWithNoUndefinedValues(asm.Version);
 				var row = new RawAssemblyRow((uint)asm.HashAlgId,
 								(ushort)version.Major,
@@ -421,7 +550,7 @@ namespace dot10.DotNet.Writer {
 								metaData.blobHeap.Add(GetPublicKeyOrTokenData(asm.PublicKeyOrToken)),
 								metaData.stringsHeap.Add(asm.Name),
 								metaData.stringsHeap.Add(asm.Locale));
-				metaData.tablesHeap.AssemblyTable.Add(row);
+				return metaData.tablesHeap.AssemblyTable.Add(row);
 			}
 
 			static byte[] GetPublicKeyOrTokenData(PublicKeyBase pkb) {
@@ -613,9 +742,9 @@ namespace dot10.DotNet.Writer {
 			void AddMethodSemantics(EventDef evt) {
 				if (evt == null)
 					return;	//TODO: Warn user
-				uint rid;
-				if (!eventDefInfos.TryGetRid(evt, out rid))
-					return;	//TODO: Warn user
+				uint rid = GetEventRid(evt);
+				if (rid == 0)
+					return;
 				var token = new MDToken(Table.Event, rid);
 				AddMethodSemantics(token, evt.AddMethod, MethodSemanticsAttributes.AddOn);
 				AddMethodSemantics(token, evt.RemoveMethod, MethodSemanticsAttributes.RemoveOn);
@@ -626,9 +755,9 @@ namespace dot10.DotNet.Writer {
 			void AddMethodSemantics(PropertyDef prop) {
 				if (prop == null)
 					return;	//TODO: Warn user
-				uint rid;
-				if (!propertyDefInfos.TryGetRid(prop, out rid))
-					return;	//TODO: Warn user
+				uint rid = GetPropertyRid(prop);
+				if (rid == 0)
+					return;
 				var token = new MDToken(Table.Property, rid);
 				AddMethodSemantics(token, prop.GetMethod, MethodSemanticsAttributes.Getter);
 				AddMethodSemantics(token, prop.SetMethod, MethodSemanticsAttributes.Setter);
@@ -643,9 +772,9 @@ namespace dot10.DotNet.Writer {
 			}
 
 			void AddMethodSemantics(MDToken owner, MethodDef method, MethodSemanticsAttributes flags) {
-				uint methodRid;
-				if (!methodDefInfos.TryGetRid(method, out methodRid))
-					return;	//TODO: Warn user
+				uint methodRid = GetMethodRid(method);
+				if (methodRid == 0)
+					return;
 				uint encodedOwner;
 				if (!CodedToken.HasSemantic.Encode(owner, out encodedOwner))
 					throw new ModuleWriterException("Can't encode a HasSemantic token");
@@ -671,30 +800,6 @@ namespace dot10.DotNet.Writer {
 				metaData.tablesHeap.ClassLayoutTable.Add(row);
 			}
 
-			uint AddMethodDefOrRef(IMethodDefOrRef mdr) {
-				uint encodedToken;
-
-				var md = mdr as MethodDef;
-				if (md != null) {
-					uint rid;
-					if (!methodDefInfos.TryGetRid(md, out rid)) {
-						//TODO: method is not in this module. warn user.
-					}
-					if (!CodedToken.MethodDefOrRef.Encode(new MDToken(Table.Method, rid), out encodedToken))
-						throw new ModuleWriterException("Can't encode a MethodDefOrRef token");
-					return encodedToken;
-				}
-
-				var mr = mdr as MemberRef;
-				if (mr != null) {
-					if (!CodedToken.MethodDefOrRef.Encode(new MDToken(Table.MemberRef, AddMemberRef(mr)), out encodedToken))
-						throw new ModuleWriterException("Can't encode a MethodDefOrRef token");
-					return encodedToken;
-				}
-
-				return 0;	//TODO: Warn user
-			}
-
 			uint AddMemberRef(MemberRef mr) {
 				if (mr == null)
 					return 0;	//TODO: Warn user
@@ -707,13 +812,6 @@ namespace dot10.DotNet.Writer {
 				rid = metaData.tablesHeap.MemberRefTable.Add(row);
 				memberRefInfos.Add(mr, rid);
 				return rid;
-			}
-
-			uint AddMemberRefParent(IMemberRefParent parent) {
-				if (parent == null)
-					return 0;	//TODO: Warn user
-
-				return 0;	//TODO:
 			}
 
 			void AddResources(IList<Resource> resources) {
@@ -745,35 +843,38 @@ namespace dot10.DotNet.Writer {
 				//TODO: Warn user
 			}
 
-			void AddEmbeddedResource(EmbeddedResource er) {
+			uint AddEmbeddedResource(EmbeddedResource er) {
 				if (er == null)
-					return;
+					return 0;	//TODO: Warn user
 				var row = new RawManifestResourceRow(metaData.netResources.NextOffset,
 							(uint)er.Flags,
 							metaData.stringsHeap.Add(er.Name),
 							0);
-				metaData.tablesHeap.ManifestResourceTable.Create(row);
+				uint rid = metaData.tablesHeap.ManifestResourceTable.Create(row);
 				metaData.netResources.Add(er.Data);
+				return rid;
 			}
 
-			void AddAssemblyLinkedResource(AssemblyLinkedResource alr) {
+			uint AddAssemblyLinkedResource(AssemblyLinkedResource alr) {
 				if (alr == null)
-					return;
+					return 0;	//TODO: Warn user
 				var row = new RawManifestResourceRow(0,
 							(uint)alr.Flags,
 							metaData.stringsHeap.Add(alr.Name),
 							AddAssemblyRef(alr.Assembly));
-				metaData.tablesHeap.ManifestResourceTable.Create(row);
+				uint rid = metaData.tablesHeap.ManifestResourceTable.Create(row);
+				return rid;
 			}
 
-			void AddLinkedResource(LinkedResource lr) {
+			uint AddLinkedResource(LinkedResource lr) {
 				if (lr == null)
-					return;
+					return 0;	//TODO: Warn user
 				var row = new RawManifestResourceRow(0,
 							(uint)lr.Flags,
 							metaData.stringsHeap.Add(lr.Name),
 							AddFile(lr.File));
-				metaData.tablesHeap.ManifestResourceTable.Create(row);
+				uint rid = metaData.tablesHeap.ManifestResourceTable.Create(row);
+				return rid;
 			}
 
 			uint AddFile(FileDef file) {
@@ -786,6 +887,48 @@ namespace dot10.DotNet.Writer {
 							metaData.stringsHeap.Add(file.Name),
 							metaData.blobHeap.Add(file.HashValue));	//TODO: Re-calculate the hash value if possible
 				fileDefInfos.Add(file, rid);
+				return rid;
+			}
+
+			uint AddStandAloneSig(StandAloneSig sas) {
+				if (sas == null)
+					return 0;	//TODO: Warn user
+				uint rid;
+				if (standAloneSigInfos.TryGetRid(sas, out rid))
+					return rid;
+				var row = new RawStandAloneSigRow(GetSignature(sas.Signature));
+				rid = metaData.tablesHeap.StandAloneSigTable.Add(row);
+				standAloneSigInfos.Add(sas, rid);
+				return rid;
+			}
+
+			uint AddExportedType(ExportedType et) {
+				if (et == null)
+					return 0;	//TODO: Warn user
+				uint rid;
+				if (exportedTypeInfos.TryGetRid(et, out rid))
+					return rid;
+				exportedTypeInfos.Add(et, 0);	// Prevent inf recursion
+				var row = new RawExportedTypeRow((uint)et.Flags,
+							et.TypeDefId,
+							metaData.stringsHeap.Add(et.TypeName),
+							metaData.stringsHeap.Add(et.TypeNamespace),
+							AddImplementation(et));
+				rid = metaData.tablesHeap.ExportedTypeTable.Add(row);
+				exportedTypeInfos.SetRid(et, rid);
+				return rid;
+			}
+
+			uint AddMethodSpec(MethodSpec ms) {
+				if (ms == null)
+					return 0;	//TODO: Warn user
+				uint rid;
+				if (methodSpecInfos.TryGetRid(ms, out rid))
+					return rid;
+				var row = new RawMethodSpecRow(AddMethodDefOrRef(ms.Method),
+							GetSignature(ms.Instantiation));
+				rid = metaData.tablesHeap.MethodSpecTable.Add(row);
+				methodSpecInfos.Add(ms, rid);
 				return rid;
 			}
 
