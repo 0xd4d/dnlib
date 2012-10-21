@@ -3,13 +3,72 @@ using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
-	struct FullNameCreator {
+	/// <summary>
+	/// Helps <see cref="FullNameCreator"/> create a name
+	/// </summary>
+	public interface IFullNameCreatorHelper {
+		/// <summary>
+		/// Checks whether the assembly name should be included when printing
+		/// the full type name. The assembly name isn't required in custom attributes
+		/// when the type already exists in the same module as the CA, or if the type
+		/// exists in mscorlib.
+		/// </summary>
+		/// <param name="type">The type (<c>TypeDef</c>, <c>TypeRef</c> or <c>ExportedType</c>)
+		/// or <c>null</c></param>
+		/// <returns><c>true</c> if the assembly name must be included, <c>false</c> otherwise</returns>
+		bool NeedAssemblyName(IType type);
+	}
+
+	/// <summary>
+	/// Creates type names, method names, etc.
+	/// </summary>
+	public struct FullNameCreator {
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
 		StringBuilder sb;
 		bool isReflection;
+		IFullNameCreatorHelper helper;
 		GenericArguments genericArguments;
 		RecursionCounter recursionCounter;
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="IType"/>
+		/// </summary>
+		/// <param name="type">The <c>IType</c></param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(IType type) {
+			return AssemblyQualifiedName(type, null);
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="IType"/>
+		/// </summary>
+		/// <param name="type">The <c>IType</c></param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(IType type, IFullNameCreatorHelper helper) {
+			var td = type as TypeDef;
+			if (td != null)
+				return AssemblyQualifiedName(td, helper);
+
+			var tr = type as TypeRef;
+			if (tr != null)
+				return AssemblyQualifiedName(tr, helper);
+
+			var ts = type as TypeSpec;
+			if (ts != null)
+				return AssemblyQualifiedName(ts, helper);
+
+			var sig = type as TypeSig;
+			if (sig != null)
+				return AssemblyQualifiedName(sig, helper);
+
+			var et = type as ExportedType;
+			if (et != null)
+				return AssemblyQualifiedName(et, helper);
+
+			return string.Empty;
+		}
 
 		/// <summary>
 		/// Returns the full name of a property
@@ -31,7 +90,7 @@ namespace dot10.DotNet {
 		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
 		/// <returns>Property full name</returns>
 		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs) {
-			var fnc = new FullNameCreator(false);
+			var fnc = new FullNameCreator(false, null);
 			if (typeGenArgs != null) {
 				if (fnc.genericArguments == null)
 					fnc.genericArguments = new GenericArguments();
@@ -62,7 +121,7 @@ namespace dot10.DotNet {
 		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
 		/// <returns>Property full name</returns>
 		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs) {
-			var fnc = new FullNameCreator(false);
+			var fnc = new FullNameCreator(false, null);
 			if (typeGenArgs != null) {
 				if (fnc.genericArguments == null)
 					fnc.genericArguments = new GenericArguments();
@@ -116,7 +175,7 @@ namespace dot10.DotNet {
 		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
 		/// <returns>Field full name</returns>
 		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
-			var fnc = new FullNameCreator(false);
+			var fnc = new FullNameCreator(false, null);
 			if (typeGenArgs != null) {
 				if (fnc.genericArguments == null)
 					fnc.genericArguments = new GenericArguments();
@@ -196,7 +255,7 @@ namespace dot10.DotNet {
 		/// <param name="methodGenArgs">Method generic arguments or <c>null</c> if none</param>
 		/// <returns>Method full name</returns>
 		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
-			var fnc = new FullNameCreator(false);
+			var fnc = new FullNameCreator(false, null);
 			if ((typeGenArgs != null || methodGenArgs != null) && fnc.genericArguments == null)
 				fnc.genericArguments = new GenericArguments();
 			if (typeGenArgs != null)
@@ -214,7 +273,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The namespace</returns>
 		public static string Namespace(TypeRef typeRef, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateNamespace(typeRef);
 			return fnc.Result;
 		}
@@ -226,7 +285,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The name</returns>
 		public static string Name(TypeRef typeRef, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateName(typeRef);
 			return fnc.Result;
 		}
@@ -238,7 +297,18 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The full name</returns>
 		public static string FullName(TypeRef typeRef, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			return FullName(typeRef, isReflection, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a <see cref="TypeRef"/>
+		/// </summary>
+		/// <param name="typeRef">The <c>TypeRef</c></param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The full name</returns>
+		public static string FullName(TypeRef typeRef, bool isReflection, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(isReflection, helper);
 			fnc.CreateFullName(typeRef);
 			return fnc.Result;
 		}
@@ -249,7 +319,17 @@ namespace dot10.DotNet {
 		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <returns>The assembly qualified full name</returns>
 		public static string AssemblyQualifiedName(TypeRef typeRef) {
-			var fnc = new FullNameCreator(true);
+			return AssemblyQualifiedName(typeRef, null);
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeRef"/>
+		/// </summary>
+		/// <param name="typeRef">The <c>TypeRef</c></param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeRef typeRef, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(true, helper);
 			fnc.CreateAssemblyQualifiedName(typeRef);
 			return fnc.Result;
 		}
@@ -279,7 +359,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The namespace</returns>
 		public static string Namespace(TypeDef typeDef, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateNamespace(typeDef);
 			return fnc.Result;
 		}
@@ -291,7 +371,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The name</returns>
 		public static string Name(TypeDef typeDef, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateName(typeDef);
 			return fnc.Result;
 		}
@@ -303,7 +383,18 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The full name</returns>
 		public static string FullName(TypeDef typeDef, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			return FullName(typeDef, isReflection, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="typeDef">The <c>TypeDef</c></param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The full name</returns>
+		public static string FullName(TypeDef typeDef, bool isReflection, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(isReflection, helper);
 			fnc.CreateFullName(typeDef);
 			return fnc.Result;
 		}
@@ -314,7 +405,17 @@ namespace dot10.DotNet {
 		/// <param name="typeDef">The <c>TypeDef</c></param>
 		/// <returns>The assembly qualified full name</returns>
 		public static string AssemblyQualifiedName(TypeDef typeDef) {
-			var fnc = new FullNameCreator(true);
+			return AssemblyQualifiedName(typeDef, null);
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="typeDef">The <c>TypeDef</c></param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeDef typeDef, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(true, helper);
 			fnc.CreateAssemblyQualifiedName(typeDef);
 			return fnc.Result;
 		}
@@ -344,7 +445,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The namespace</returns>
 		public static string Namespace(TypeSpec typeSpec, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateNamespace(typeSpec);
 			return fnc.Result;
 		}
@@ -356,7 +457,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The name</returns>
 		public static string Name(TypeSpec typeSpec, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateName(typeSpec);
 			return fnc.Result;
 		}
@@ -368,7 +469,18 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The full name</returns>
 		public static string FullName(TypeSpec typeSpec, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			return FullName(typeSpec, isReflection, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a <see cref="TypeSpec"/>
+		/// </summary>
+		/// <param name="typeSpec">The <c>TypeSpec</c></param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The full name</returns>
+		public static string FullName(TypeSpec typeSpec, bool isReflection, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(isReflection, helper);
 			fnc.CreateFullName(typeSpec);
 			return fnc.Result;
 		}
@@ -379,7 +491,17 @@ namespace dot10.DotNet {
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <returns>The assembly qualified full name</returns>
 		public static string AssemblyQualifiedName(TypeSpec typeSpec) {
-			var fnc = new FullNameCreator(true);
+			return AssemblyQualifiedName(typeSpec, null);
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeSpec"/>
+		/// </summary>
+		/// <param name="typeSpec">The <c>TypeSpec</c></param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeSpec typeSpec, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(true, helper);
 			fnc.CreateAssemblyQualifiedName(typeSpec);
 			return fnc.Result;
 		}
@@ -409,7 +531,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The namespace</returns>
 		public static string Namespace(TypeSig typeSig, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateNamespace(typeSig);
 			return fnc.Result;
 		}
@@ -421,7 +543,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The name</returns>
 		public static string Name(TypeSig typeSig, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateName(typeSig);
 			return fnc.Result;
 		}
@@ -433,7 +555,18 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The full name</returns>
 		public static string FullName(TypeSig typeSig, bool isReflection) {
-			return FullName(typeSig, isReflection, null, null);
+			return FullName(typeSig, isReflection, null, null, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="typeSig">The type sig</param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The full name</returns>
+		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper) {
+			return FullName(typeSig, isReflection, helper, null, null);
 		}
 
 		/// <summary>
@@ -445,7 +578,20 @@ namespace dot10.DotNet {
 		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
 		/// <returns>The full name</returns>
 		public static string FullName(TypeSig typeSig, bool isReflection, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
-			var fnc = new FullNameCreator(isReflection);
+			return FullName(typeSig, isReflection, null, typeGenArgs, methodGenArgs);
+		}
+
+		/// <summary>
+		/// Returns the full name of a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="typeSig">The type sig</param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <param name="helper">Helps print the name</param>
+		/// <param name="typeGenArgs">Type generic args or <c>null</c> if none</param>
+		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
+		/// <returns>The full name</returns>
+		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
+			var fnc = new FullNameCreator(isReflection, helper);
 			if (fnc.genericArguments == null && (typeGenArgs != null || methodGenArgs != null))
 				fnc.genericArguments = new GenericArguments();
 			if (typeGenArgs != null)
@@ -462,7 +608,17 @@ namespace dot10.DotNet {
 		/// <param name="typeSig">The <c>TypeSig</c></param>
 		/// <returns>The assembly qualified full name</returns>
 		public static string AssemblyQualifiedName(TypeSig typeSig) {
-			var fnc = new FullNameCreator(true);
+			return AssemblyQualifiedName(typeSig, null);
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="typeSig">The <c>TypeSig</c></param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(TypeSig typeSig, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(true, helper);
 			fnc.CreateAssemblyQualifiedName(typeSig);
 			return fnc.Result;
 		}
@@ -492,7 +648,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The namespace</returns>
 		public static string Namespace(ExportedType exportedType, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateNamespace(exportedType);
 			return fnc.Result;
 		}
@@ -504,7 +660,7 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The name</returns>
 		public static string Name(ExportedType exportedType, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			var fnc = new FullNameCreator(isReflection, null);
 			fnc.CreateName(exportedType);
 			return fnc.Result;
 		}
@@ -516,7 +672,18 @@ namespace dot10.DotNet {
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <returns>The full name</returns>
 		public static string FullName(ExportedType exportedType, bool isReflection) {
-			var fnc = new FullNameCreator(isReflection);
+			return FullName(exportedType, isReflection, null);
+		}
+
+		/// <summary>
+		/// Returns the full name of a <see cref="ExportedType"/>
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <param name="isReflection">Set if output should be compatible with reflection</param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The full name</returns>
+		public static string FullName(ExportedType exportedType, bool isReflection, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(isReflection, helper);
 			fnc.CreateFullName(exportedType);
 			return fnc.Result;
 		}
@@ -527,7 +694,17 @@ namespace dot10.DotNet {
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <returns>The assembly qualified full name</returns>
 		public static string AssemblyQualifiedName(ExportedType exportedType) {
-			var fnc = new FullNameCreator(true);
+			return AssemblyQualifiedName(exportedType, null);
+		}
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="ExportedType"/>
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <param name="helper">Helps print the name</param>
+		/// <returns>The assembly qualified full name</returns>
+		public static string AssemblyQualifiedName(ExportedType exportedType, IFullNameCreatorHelper helper) {
+			var fnc = new FullNameCreator(true, helper);
 			fnc.CreateAssemblyQualifiedName(exportedType);
 			return fnc.Result;
 		}
@@ -554,11 +731,42 @@ namespace dot10.DotNet {
 			get { return sb == null ? null : sb.ToString(); }
 		}
 
-		FullNameCreator(bool isReflection) {
+		FullNameCreator(bool isReflection, IFullNameCreatorHelper helper) {
 			this.sb = new StringBuilder();
 			this.isReflection = isReflection;
+			this.helper = helper;
 			this.genericArguments = null;
 			this.recursionCounter = new RecursionCounter();
+		}
+
+		bool NeedAssemblyName(IType type) {
+			if (helper == null)
+				return true;
+			return helper.NeedAssemblyName(GetDefinitionType(type));
+		}
+
+		IType GetDefinitionType(IType type) {
+			if (!recursionCounter.Increment())
+				return type;
+
+			TypeSpec ts = type as TypeSpec;
+			if (ts != null)
+				type = ts.TypeSig;
+
+			TypeSig sig = type as TypeSig;
+			if (sig != null) {
+				TypeDefOrRefSig tdr;
+				GenericInstSig gis;
+				if ((tdr = sig as TypeDefOrRefSig) != null)
+					type = GetDefinitionType(tdr.TypeDefOrRef);
+				else if ((gis = sig as GenericInstSig) != null)
+					type = GetDefinitionType(gis.GenericType);
+				else
+					type = GetDefinitionType(sig.Next);
+			}
+
+			recursionCounter.Decrement();
+			return type;
 		}
 
 		void CreateFullName(ITypeDefOrRef typeDefOrRef) {
@@ -616,7 +824,8 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeRef);
-			AddAssemblyName(GetDefinitionAssembly(typeRef));
+			if (NeedAssemblyName(typeRef))
+				AddAssemblyName(GetDefinitionAssembly(typeRef));
 
 			recursionCounter.Decrement();
 		}
@@ -671,7 +880,8 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeDef);
-			AddAssemblyName(GetDefinitionAssembly(typeDef));
+			if (NeedAssemblyName(typeDef))
+				AddAssemblyName(GetDefinitionAssembly(typeDef));
 
 			recursionCounter.Decrement();
 		}
@@ -759,7 +969,8 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeSig);
-			AddAssemblyName(GetDefinitionAssembly(typeSig));
+			if (NeedAssemblyName(typeSig))
+				AddAssemblyName(GetDefinitionAssembly(typeSig));
 
 			recursionCounter.Decrement();
 		}
@@ -934,15 +1145,22 @@ namespace dot10.DotNet {
 							if (i != 0)
 								sb.Append(',');
 							var genArg = typeGenArgs[i];
-							sb.Append('[');
+
+							bool mustWriteAssembly = NeedAssemblyName(genArg);
+							if (mustWriteAssembly)
+								sb.Append('[');
+
 							CreateFullName(genArg);
-							sb.Append(", ");
-							var asm = GetDefinitionAssembly(genArg);
-							if (asm == null)
-								sb.Append(NULLVALUE);
-							else
-								sb.Append(EscapeAssemblyName(GetAssemblyName(asm)));
-							sb.Append(']');
+
+							if (mustWriteAssembly) {
+								sb.Append(", ");
+								var asm = GetDefinitionAssembly(genArg);
+								if (asm == null)
+									sb.Append(NULLVALUE);
+								else
+									sb.Append(EscapeAssemblyName(GetAssemblyName(asm)));
+								sb.Append(']');
+							}
 						}
 						sb.Append(']');
 					}
@@ -1005,7 +1223,8 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(exportedType);
-			AddAssemblyName(GetDefinitionAssembly(exportedType));
+			if (NeedAssemblyName(exportedType))
+				AddAssemblyName(GetDefinitionAssembly(exportedType));
 
 			recursionCounter.Decrement();
 		}
