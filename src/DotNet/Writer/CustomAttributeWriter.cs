@@ -27,7 +27,7 @@ namespace dot10.DotNet.Writer {
 		GenericArguments genericArguments;
 
 		/// <summary>
-		/// Write a custom attribute
+		/// Writes a custom attribute
 		/// </summary>
 		/// <param name="helper">Helper class</param>
 		/// <param name="ca">The custom attribute</param>
