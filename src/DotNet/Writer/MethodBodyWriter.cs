@@ -182,6 +182,8 @@ namespace dot10.DotNet.Writer {
 				var eh = exceptionHandlers[i];
 				uint offs1, offs2;
 
+				writer.Write((uint)eh.HandlerType);
+
 				offs1 = GetOffset2(eh.TryStart);
 				offs2 = GetOffset2(eh.TryEnd);
 				if (offs2 <= offs1)
@@ -217,6 +219,8 @@ namespace dot10.DotNet.Writer {
 			for (int i = 0; i < numExceptionHandlers; i++) {
 				var eh = exceptionHandlers[i];
 				uint offs1, offs2;
+
+				writer.Write((ushort)eh.HandlerType);
 
 				offs1 = GetOffset2(eh.TryStart);
 				offs2 = GetOffset2(eh.TryEnd);
