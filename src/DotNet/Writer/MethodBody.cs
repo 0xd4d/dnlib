@@ -61,7 +61,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="code">Code</param>
 		/// <param name="extraSections">Extra sections or <c>null</c></param>
 		public MethodBody(byte[] code, byte[] extraSections) {
-			this.isTiny = (code[0] & 3) != 2;
+			this.isTiny = (code[0] & 3) == 2;
 			this.code = code;
 			this.extraSections = extraSections;
 		}
