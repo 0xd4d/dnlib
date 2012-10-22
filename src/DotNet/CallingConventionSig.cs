@@ -847,6 +847,16 @@ namespace dot10.DotNet {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = new List<TypeSig>(locals);
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="locals">All locals (this instance now owns it)</param>
+		/// <param name="dummy">Dummy</param>
+		internal LocalSig(IList<TypeSig> locals, bool dummy) {
+			this.callingConvention = CallingConvention.LocalSig;
+			this.locals = locals;
+		}
 	}
 
 	/// <summary>
