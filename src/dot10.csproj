@@ -119,6 +119,7 @@
     <Compile Include="DotNet\Writer\GuidHeap.cs" />
     <Compile Include="DotNet\Writer\HeapBase.cs" />
     <Compile Include="DotNet\Writer\IHeap.cs" />
+    <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
     <Compile Include="DotNet\Writer\ModuleWriterException.cs" />
     <Compile Include="DotNet\Writer\NetResources.cs" />
