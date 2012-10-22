@@ -83,7 +83,7 @@ namespace dot10.DotNet.Writer {
 		/// <returns>The code and any exception handlers</returns>
 		public byte[] GetFullMethodBody() {
 			int padding = Utils.AlignUp(code.Length, 4) - code.Length;
-			var bytes = new byte[code.Length + padding + (extraSections == null ? 0 : extraSections.Length)];
+			var bytes = new byte[code.Length + (extraSections == null ? 0 : padding + extraSections.Length)];
 			Array.Copy(code, 0, bytes, 0, code.Length);
 			if (extraSections != null)
 				Array.Copy(extraSections, 0, bytes, code.Length + padding, extraSections.Length);
