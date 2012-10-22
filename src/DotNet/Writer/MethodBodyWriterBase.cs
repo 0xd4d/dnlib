@@ -153,12 +153,12 @@ namespace dot10.DotNet.Writer {
 				writer.Write((byte)code);
 			}
 			else if (code == Code.UNKNOWN1)
-				writer.Write((byte)0);
+				writer.Write((byte)Code.Nop);
 			else if (code == Code.UNKNOWN2)
-				writer.Write((ushort)0);
+				writer.Write((ushort)(((ushort)Code.Nop << 8) | Code.Nop));
 			else {
 				Error("Unknown instruction");
-				writer.Write((byte)0);
+				writer.Write((byte)Code.Nop);
 			}
 		}
 
