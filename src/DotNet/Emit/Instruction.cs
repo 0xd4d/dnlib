@@ -288,6 +288,130 @@ namespace dot10.DotNet.Emit {
 			}
 		}
 
+		static bool IsSystemVoid(TypeSig type) {
+			return type != null && type.ElementType == ElementType.Void;
+		}
+
+		/// <summary>
+		/// Calculates stack usage
+		/// </summary>
+		/// <param name="pushes">Updated with number of stack pushes</param>
+		/// <param name="pops">Updated with number of stack pops or <c>-1</c> if the stack should
+		/// be cleared.</param>
+		public void CalculateStackUsage(out int pushes, out int pops) {
+			CalculateStackUsage(false, out pushes, out pops);
+		}
+
+		/// <summary>
+		/// Calculates stack usage
+		/// </summary>
+		/// <param name="methodHasReturnValue"><c>true</c> if method has a return value</param>
+		/// <param name="pushes">Updated with number of stack pushes</param>
+		/// <param name="pops">Updated with number of stack pops or <c>-1</c> if the stack should
+		/// be cleared.</param>
+		public void CalculateStackUsage(bool methodHasReturnValue, out int pushes, out int pops) {
+			if (OpCode.FlowControl == FlowControl.Call)
+				CalculateStackUsageCall(out pushes, out pops);
+			else
+				CalculateStackUsageNonCall(methodHasReturnValue, out pushes, out pops);
+		}
+
+		void CalculateStackUsageCall(out int pushes, out int pops) {
+			pushes = 0;
+			pops = 0;
+
+			var method = Operand as IMethod;
+			if (method == null)
+				return;
+			var sig = method.Signature as MethodSig;
+			if (sig == null)
+				return;
+			bool implicitThis = sig.HasThis && !sig.ExplicitThis;
+			if (!IsSystemVoid(sig.RetType) || (OpCode.Code == Code.Newobj && sig.HasThis))
+				pushes++;
+
+			pops += sig.Params.Count;
+			if (implicitThis && OpCode.Code != Code.Newobj)
+				pops++;
+			if (OpCode.Code == Code.Calli)
+				pops++;
+		}
+
+		void CalculateStackUsageNonCall(bool hasReturnValue, out int pushes, out int pops) {
+			StackBehaviour stackBehavior;
+
+			pushes = 0;
+			pops = 0;
+
+			stackBehavior = OpCode.StackBehaviourPush;
+			switch (stackBehavior) {
+			case StackBehaviour.Push0:
+				break;
+
+			case StackBehaviour.Push1:
+			case StackBehaviour.Pushi:
+			case StackBehaviour.Pushi8:
+			case StackBehaviour.Pushr4:
+			case StackBehaviour.Pushr8:
+			case StackBehaviour.Pushref:
+				pushes++;
+				break;
+
+			case StackBehaviour.Push1_push1:
+				pushes += 2;
+				break;
+
+			case StackBehaviour.Varpush:	// only call, calli, callvirt which are handled elsewhere
+			default:
+				break;
+			}
+
+			stackBehavior = OpCode.StackBehaviourPop;
+			switch (stackBehavior) {
+			case StackBehaviour.Pop0:
+				break;
+
+			case StackBehaviour.Pop1:
+			case StackBehaviour.Popi:
+			case StackBehaviour.Popref:
+				pops++;
+				break;
+
+			case StackBehaviour.Pop1_pop1:
+			case StackBehaviour.Popi_pop1:
+			case StackBehaviour.Popi_popi:
+			case StackBehaviour.Popi_popi8:
+			case StackBehaviour.Popi_popr4:
+			case StackBehaviour.Popi_popr8:
+			case StackBehaviour.Popref_pop1:
+			case StackBehaviour.Popref_popi:
+				pops += 2;
+				break;
+
+			case StackBehaviour.Popi_popi_popi:
+			case StackBehaviour.Popref_popi_popi:
+			case StackBehaviour.Popref_popi_popi8:
+			case StackBehaviour.Popref_popi_popr4:
+			case StackBehaviour.Popref_popi_popr8:
+			case StackBehaviour.Popref_popi_popref:
+			case StackBehaviour.Popref_popi_pop1:
+				pops += 3;
+				break;
+
+			case StackBehaviour.PopAll:
+				pops = -1;
+				break;
+
+			case StackBehaviour.Varpop:	// call, calli, callvirt, newobj (all handled elsewhere), and ret
+				if (hasReturnValue)
+					pops++;
+				break;
+
+			default:
+				break;
+			}
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return InstructionPrinter.ToString(this);
