@@ -63,7 +63,7 @@ namespace dot10.DotNet.Writer {
 			void Create();
 		}
 
-		class NormalTablesCreator : ITablesCreator, ISignatureWriterHelper {
+		class NormalTablesCreator : ITablesCreator, ISignatureWriterHelper, ITokenCreator {
 			MetaData metaData;
 			List<TypeDef> sortedTypes;
 			Rows<ModuleDef> moduleDefInfos = new Rows<ModuleDef>();
@@ -233,7 +233,7 @@ namespace dot10.DotNet.Writer {
 				return true;
 			}
 
-			MDToken GetToken(object o) {
+			public MDToken GetToken(object o) {
 				var tp = o as IMDTokenProvider;
 				if (tp != null)
 					return new MDToken(tp.MDToken.Table, AddMDTokenProvider(tp));
@@ -242,6 +242,7 @@ namespace dot10.DotNet.Writer {
 				if (s != null)
 					return new MDToken((Table)0x70, metaData.usHeap.Add(s));
 
+				//TODO: Warn user
 				return new MDToken((Table)0xFF, 0x00FFFFFF);
 			}
 
@@ -964,6 +965,10 @@ namespace dot10.DotNet.Writer {
 			}
 
 			void ISignatureWriterHelper.Error(string message) {
+				//TODO: Log error.
+			}
+
+			void ITokenCreator.Error(string message) {
 				//TODO: Log error.
 			}
 		}
