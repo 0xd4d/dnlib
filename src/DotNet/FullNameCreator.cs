@@ -16,7 +16,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type (<c>TypeDef</c>, <c>TypeRef</c> or <c>ExportedType</c>)
 		/// or <c>null</c></param>
 		/// <returns><c>true</c> if the assembly name must be included, <c>false</c> otherwise</returns>
-		bool NeedAssemblyName(IType type);
+		bool MustUseAssemblyName(IType type);
 	}
 
 	/// <summary>
@@ -739,10 +739,10 @@ namespace dot10.DotNet {
 			this.recursionCounter = new RecursionCounter();
 		}
 
-		bool NeedAssemblyName(IType type) {
+		bool MustUseAssemblyName(IType type) {
 			if (helper == null)
 				return true;
-			return helper.NeedAssemblyName(GetDefinitionType(type));
+			return helper.MustUseAssemblyName(GetDefinitionType(type));
 		}
 
 		IType GetDefinitionType(IType type) {
@@ -824,7 +824,7 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeRef);
-			if (NeedAssemblyName(typeRef))
+			if (MustUseAssemblyName(typeRef))
 				AddAssemblyName(GetDefinitionAssembly(typeRef));
 
 			recursionCounter.Decrement();
@@ -880,7 +880,7 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeDef);
-			if (NeedAssemblyName(typeDef))
+			if (MustUseAssemblyName(typeDef))
 				AddAssemblyName(GetDefinitionAssembly(typeDef));
 
 			recursionCounter.Decrement();
@@ -969,7 +969,7 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(typeSig);
-			if (NeedAssemblyName(typeSig))
+			if (MustUseAssemblyName(typeSig))
 				AddAssemblyName(GetDefinitionAssembly(typeSig));
 
 			recursionCounter.Decrement();
@@ -1146,7 +1146,7 @@ namespace dot10.DotNet {
 								sb.Append(',');
 							var genArg = typeGenArgs[i];
 
-							bool mustWriteAssembly = NeedAssemblyName(genArg);
+							bool mustWriteAssembly = MustUseAssemblyName(genArg);
 							if (mustWriteAssembly)
 								sb.Append('[');
 
@@ -1223,7 +1223,7 @@ namespace dot10.DotNet {
 			}
 
 			CreateFullName(exportedType);
-			if (NeedAssemblyName(exportedType))
+			if (MustUseAssemblyName(exportedType))
 				AddAssemblyName(GetDefinitionAssembly(exportedType));
 
 			recursionCounter.Decrement();
