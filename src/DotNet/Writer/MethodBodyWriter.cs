@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using dot10.DotNet.Emit;
 using dot10.DotNet.MD;
@@ -14,6 +15,15 @@ namespace dot10.DotNet.Writer {
 		/// <param name="o">A token type or a string or a signature</param>
 		/// <returns>The token</returns>
 		MDToken GetToken(object o);
+
+		/// <summary>
+		/// Gets a <c>StandAloneSig</c> token
+		/// </summary>
+		/// <param name="locals">All locals</param>
+		/// <param name="origToken">The original token or <c>0</c> if none</param>
+		/// <returns>A <c>StandAloneSig</c> token or <c>0</c> if <paramref name="locals"/> is
+		/// empty.</returns>
+		MDToken GetToken(IList<TypeSig> locals, uint origToken);
 
 		/// <summary>
 		/// Called when an error is detected (eg. a null pointer). The error can be
@@ -112,14 +122,19 @@ namespace dot10.DotNet.Writer {
 			if (cilBody.InitLocals)
 				flags |= 0x10;
 
-			uint localVarSigTok = 0;	//TODO:
-
 			var writer = new BinaryWriter(new MemoryStream(code));
 			writer.Write(flags);
 			writer.Write((ushort)maxStack);
 			writer.Write(codeSize);
-			writer.Write(localVarSigTok);
+			writer.Write(helper.GetToken(GetLocals(), cilBody.LocalVarSigTok).Raw);
 			WriteInstructions(writer);
+		}
+
+		IList<TypeSig> GetLocals() {
+			var localsSig = new TypeSig[cilBody.LocalList.Length];
+			for (int i = 0; i < cilBody.LocalList.Length; i++)
+				localsSig[i] = cilBody.LocalList[i].Type;
+			return localsSig;
 		}
 
 		void WriteTinyHeader() {

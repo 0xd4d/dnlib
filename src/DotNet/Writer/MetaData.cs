@@ -233,6 +233,7 @@ namespace dot10.DotNet.Writer {
 				return true;
 			}
 
+			/// <inheritdoc/>
 			public MDToken GetToken(object o) {
 				var tp = o as IMDTokenProvider;
 				if (tp != null)
@@ -244,6 +245,16 @@ namespace dot10.DotNet.Writer {
 
 				//TODO: Warn user
 				return new MDToken((Table)0xFF, 0x00FFFFFF);
+			}
+
+			/// <inheritdoc/>
+			public MDToken GetToken(IList<TypeSig> locals, uint origToken) {
+				if (locals == null || locals.Count == 0)
+					return new MDToken((Table)0, 0);
+
+				var row = new RawStandAloneSigRow(GetSignature(new LocalSig(locals, false)));
+				uint rid = metaData.tablesHeap.StandAloneSigTable.Add(row);
+				return new MDToken(Table.StandAloneSig, rid);
 			}
 
 			uint AddMDTokenProvider(IMDTokenProvider tp) {
