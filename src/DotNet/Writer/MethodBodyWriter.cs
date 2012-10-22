@@ -109,8 +109,6 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void WriteFatHeader() {
-			code = new byte[12 + codeSize];
-
 			if (maxStack > ushort.MaxValue) {
 				Error("MaxStack is too big");
 				maxStack = ushort.MaxValue;
@@ -122,6 +120,7 @@ namespace dot10.DotNet.Writer {
 			if (cilBody.InitLocals)
 				flags |= 0x10;
 
+			code = new byte[12 + codeSize];
 			var writer = new BinaryWriter(new MemoryStream(code));
 			writer.Write(flags);
 			writer.Write((ushort)maxStack);
