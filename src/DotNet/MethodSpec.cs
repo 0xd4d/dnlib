@@ -42,6 +42,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
+		/// <inheritdoc/>
+		CallingConventionSig IMethod.Signature {
+			get { return Method == null ? null : Method.Signature; }
+		}
+
 		/// <summary>
 		/// Gets/sets the generic instance method sig
 		/// </summary>

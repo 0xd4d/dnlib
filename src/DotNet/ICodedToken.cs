@@ -105,6 +105,10 @@ namespace dot10.DotNet {
 	/// Implemented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)
 	/// </summary>
 	public interface IMethod : ITokenOperand, IFullName {
+		/// <summary>
+		/// Method signature
+		/// </summary>
+		CallingConventionSig Signature { get; }
 	}
 
 	/// <summary>
@@ -252,16 +256,6 @@ namespace dot10.DotNet {
 		/// The coded token tag
 		/// </summary>
 		int CustomAttributeTypeTag { get; }
-
-		/// <summary>
-		/// Name of method
-		/// </summary>
-		UTF8String Name { get; }
-
-		/// <summary>
-		/// Method signature
-		/// </summary>
-		CallingConventionSig Signature { get; }
 	}
 
 	/// <summary>

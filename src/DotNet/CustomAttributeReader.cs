@@ -158,7 +158,7 @@ namespace dot10.DotNet {
 		}
 
 		CustomAttribute Read() {
-			var methodSig = ctor == null ? null : ctor.Signature as MethodSig;
+			var methodSig = ctor == null ? null : ((IMethodDefOrRef)ctor).Signature as MethodSig;
 			if (methodSig == null)
 				throw new CABlobParsingException("ctor is null or not a method");
 
