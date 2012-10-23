@@ -574,6 +574,20 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the <see cref="MethodBody"/>
+		/// </summary>
+		/// <param name="md">Method</param>
+		/// <returns>The <see cref="MethodBody"/> or <c>null</c> if <paramref name="md"/> is
+		/// <c>null</c> or not a method defined in this module.</returns>
+		public MethodBody GetMethodBody(MethodDef md) {
+			if (md == null)
+				return null;
+			MethodBody mb;
+			methodToBody.TryGetValue(md, out mb);
+			return mb;
+		}
+
+		/// <summary>
 		/// Called when an error is detected
 		/// </summary>
 		/// <param name="message">Error message</param>
