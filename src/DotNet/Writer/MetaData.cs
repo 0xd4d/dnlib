@@ -543,8 +543,10 @@ namespace dot10.DotNet.Writer {
 
 			var token = new MDToken(tdr.MDToken.Table, AddMDTokenProvider(tdr));
 			uint encodedToken;
-			if (!CodedToken.TypeDefOrRef.Encode(token, out encodedToken))
-				throw new ModuleWriterException("Can't encode a TypeDefOrRef token");	//TODO: Instead of throwing here and elsewhere, warn user
+			if (!CodedToken.TypeDefOrRef.Encode(token, out encodedToken)) {
+				Error("Can't encode TypeDefOrRef token {0:X8}", token.Raw);
+				encodedToken = 0;
+			}
 			return encodedToken;
 		}
 
@@ -561,8 +563,10 @@ namespace dot10.DotNet.Writer {
 
 			var token = new MDToken(rs.MDToken.Table, AddMDTokenProvider(rs));
 			uint encodedToken;
-			if (!CodedToken.ResolutionScope.Encode(token, out encodedToken))
-				throw new ModuleWriterException("Can't encode a ResolutionScope token");
+			if (!CodedToken.ResolutionScope.Encode(token, out encodedToken)) {
+				Error("Can't encode ResolutionScope token {0:X8}", token.Raw);
+				encodedToken = 0;
+			}
 			return encodedToken;
 		}
 
@@ -579,8 +583,10 @@ namespace dot10.DotNet.Writer {
 
 			var token = new MDToken(mdr.MDToken.Table, AddMDTokenProvider(mdr));
 			uint encodedToken;
-			if (!CodedToken.MethodDefOrRef.Encode(token, out encodedToken))
-				throw new ModuleWriterException("Can't encode a MethodDefOrRef token");
+			if (!CodedToken.MethodDefOrRef.Encode(token, out encodedToken)) {
+				Error("Can't encode MethodDefOrRef token {0:X8}", token.Raw);
+				encodedToken = 0;
+			}
 			return encodedToken;
 		}
 
@@ -597,8 +603,10 @@ namespace dot10.DotNet.Writer {
 
 			var token = new MDToken(parent.MDToken.Table, AddMDTokenProvider(parent));
 			uint encodedToken;
-			if (!CodedToken.MemberRefParent.Encode(token, out encodedToken))
-				throw new ModuleWriterException("Can't encode a MemberRefParent token");
+			if (!CodedToken.MemberRefParent.Encode(token, out encodedToken)) {
+				Error("Can't encode MemberRefParent token {0:X8}", token.Raw);
+				encodedToken = 0;
+			}
 			return encodedToken;
 		}
 
@@ -615,8 +623,10 @@ namespace dot10.DotNet.Writer {
 
 			var token = new MDToken(impl.MDToken.Table, AddMDTokenProvider(impl));
 			uint encodedToken;
-			if (!CodedToken.Implementation.Encode(token, out encodedToken))
-				throw new ModuleWriterException("Can't encode a Implementation token");
+			if (!CodedToken.Implementation.Encode(token, out encodedToken)) {
+				Error("Can't encode Implementation token {0:X8}", token.Raw);
+				encodedToken = 0;
+			}
 			return encodedToken;
 		}
 
@@ -633,8 +643,10 @@ namespace dot10.DotNet.Writer {
 
 			var token = new MDToken(cat.MDToken.Table, AddMDTokenProvider(cat));
 			uint encodedToken;
-			if (!CodedToken.CustomAttributeType.Encode(token, out encodedToken))
-				throw new ModuleWriterException("Can't encode a CustomAttributeType token");
+			if (!CodedToken.CustomAttributeType.Encode(token, out encodedToken)) {
+				Error("Can't encode CustomAttributeType token {0:X8}", token.Raw);
+				encodedToken = 0;
+			}
 			return encodedToken;
 		}
 
@@ -781,8 +793,10 @@ namespace dot10.DotNet.Writer {
 				return;
 			}
 			uint encodedOwner;
-			if (!CodedToken.TypeOrMethodDef.Encode(owner, out encodedOwner))
-				throw new ModuleWriterException("Can't encode GenericParam owner token");
+			if (!CodedToken.TypeOrMethodDef.Encode(owner, out encodedOwner)) {
+				Error("Can't encode TypeOrMethodDef token {0:X8}", owner.Raw);
+				encodedOwner = 0;
+			}
 			var row = new RawGenericParamRow(gp.Number,
 							(ushort)gp.Flags,
 							encodedOwner,
@@ -854,8 +868,10 @@ namespace dot10.DotNet.Writer {
 				return;
 			var fieldMarshal = hfm.FieldMarshal;
 			uint encodedParent;
-			if (!CodedToken.HasFieldMarshal.Encode(parent, out encodedParent))
-				throw new ModuleWriterException("Can't encode a HasFieldMarshal token");
+			if (!CodedToken.HasFieldMarshal.Encode(parent, out encodedParent)) {
+				Error("Can't encode HasFieldMarshal token {0:X8}", parent.Raw);
+				encodedParent = 0;
+			}
 			var row = new RawFieldMarshalRow(encodedParent,
 						blobHeap.Add(fieldMarshal.NativeType));
 			fieldMarshalInfos.Add(encodedParent, hfm, row);
@@ -884,8 +900,10 @@ namespace dot10.DotNet.Writer {
 				return;
 			var implMap = mf.ImplMap;
 			uint encodedParent;
-			if (!CodedToken.MemberForwarded.Encode(parent, out encodedParent))
-				throw new ModuleWriterException("Can't encode a MemberForwarded token");
+			if (!CodedToken.MemberForwarded.Encode(parent, out encodedParent)) {
+				Error("Can't encode MemberForwarded token {0:X8}", parent.Raw);
+				encodedParent = 0;
+			}
 			var row = new RawImplMapRow((ushort)implMap.Flags,
 						encodedParent,
 						stringsHeap.Add(implMap.Name),
@@ -903,8 +921,10 @@ namespace dot10.DotNet.Writer {
 				return;
 			var constant = hc.Constant;
 			uint encodedParent;
-			if (!CodedToken.HasConstant.Encode(parent, out encodedParent))
-				throw new ModuleWriterException("Can't encode a HasConstant token");
+			if (!CodedToken.HasConstant.Encode(parent, out encodedParent)) {
+				Error("Can't encode HasConstant token {0:X8}", parent.Raw);
+				encodedParent = 0;
+			}
 			var row = new RawConstantRow((byte)constant.Type, 0,
 						encodedParent,
 						blobHeap.Add(GetConstantValueAsByteArray(constant.Type, constant.Value)));
@@ -995,8 +1015,10 @@ namespace dot10.DotNet.Writer {
 			if (declSecurities == null)
 				return;
 			uint encodedParent;
-			if (!CodedToken.HasDeclSecurity.Encode(parent, out encodedParent))
-				throw new ModuleWriterException("Can't encode a HasDeclSecurity token");
+			if (!CodedToken.HasDeclSecurity.Encode(parent, out encodedParent)) {
+				Error("Can't encode HasDeclSecurity token {0:X8}", parent.Raw);
+				encodedParent = 0;
+			}
 			foreach (var decl in declSecurities) {
 				if (decl == null)
 					continue;
@@ -1056,8 +1078,10 @@ namespace dot10.DotNet.Writer {
 			if (methodRid == 0)
 				return;
 			uint encodedOwner;
-			if (!CodedToken.HasSemantic.Encode(owner, out encodedOwner))
-				throw new ModuleWriterException("Can't encode a HasSemantic token");
+			if (!CodedToken.HasSemantic.Encode(owner, out encodedOwner)) {
+				Error("Can't encode HasSemantic token {0:X8}", owner.Raw);
+				encodedOwner = 0;
+			}
 			var row = new RawMethodSemanticsRow((ushort)flags, methodRid, encodedOwner);
 			methodSemanticsInfos.Add(encodedOwner, method, row);
 		}
@@ -1259,8 +1283,10 @@ namespace dot10.DotNet.Writer {
 
 		void AddCustomAttribute(MDToken token, CustomAttribute ca) {
 			uint encodedToken;
-			if (!CodedToken.HasCustomAttribute.Encode(token, out encodedToken))
-				throw new ModuleWriterException("Can't encode a HasCustomAttribute token");
+			if (!CodedToken.HasCustomAttribute.Encode(token, out encodedToken)) {
+				Error("Can't encode HasCustomAttribute token {0:X8}", token.Raw);
+				encodedToken = 0;
+			}
 			var caBlob = CustomAttributeWriter.Write(this, ca);
 			var row = new RawCustomAttributeRow(encodedToken,
 						AddCustomAttributeType(ca.Ctor),
