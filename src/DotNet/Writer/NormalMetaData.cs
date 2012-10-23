@@ -121,7 +121,11 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (typeDefInfos.TryGetRid(td, out rid))
 				return rid;
-			return 0;	//TODO: Warn user
+			if (td == null)
+				Error("TypeDef is null");
+			else
+				Error("TypeDef {0} ({1:X8}) is not defined in this module", td, td.MDToken.Raw);
+			return 0;
 		}
 
 		/// <inheritdoc/>
@@ -129,7 +133,11 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (fieldDefInfos.TryGetRid(fd, out rid))
 				return rid;
-			return 0;	//TODO: Warn user
+			if (fd == null)
+				Error("Field is null");
+			else
+				Error("Field {0} ({1:X8}) is not defined in this module", fd, fd.MDToken.Raw);
+			return 0;
 		}
 
 		/// <inheritdoc/>
@@ -137,7 +145,11 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (methodDefInfos.TryGetRid(md, out rid))
 				return rid;
-			return 0;	//TODO: Warn user
+			if (md == null)
+				Error("Method is null");
+			else
+				Error("Method {0} ({1:X8}) is not defined in this module", md, md.MDToken.Raw);
+			return 0;
 		}
 
 		/// <inheritdoc/>
@@ -145,7 +157,11 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (paramDefInfos.TryGetRid(pd, out rid))
 				return rid;
-			return 0;	//TODO: Warn user
+			if (pd == null)
+				Error("Param is null");
+			else
+				Error("Param {0} ({1:X8}) is not defined in this module", pd, pd.MDToken.Raw);
+			return 0;
 		}
 
 		/// <inheritdoc/>
@@ -153,7 +169,11 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (eventDefInfos.TryGetRid(ed, out rid))
 				return rid;
-			return 0;	//TODO: Warn user
+			if (ed == null)
+				Error("Event is null");
+			else
+				Error("Event {0} ({1:X8}) is not defined in this module", ed, ed.MDToken.Raw);
+			return 0;
 		}
 
 		/// <inheritdoc/>
@@ -161,16 +181,25 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (propertyDefInfos.TryGetRid(pd, out rid))
 				return rid;
-			return 0;	//TODO: Warn user
+			if (pd == null)
+				Error("Property is null");
+			else
+				Error("Property {0} ({1:X8}) is not defined in this module", pd, pd.MDToken.Raw);
+			return 0;
 		}
 
 		/// <inheritdoc/>
 		protected override uint AddTypeRef(TypeRef tr) {
-			if (tr == null)
-				return 0;	//TODO: Warn user
+			if (tr == null) {
+				Error("TypeRef is null");
+				return 0;
+			}
 			uint rid;
-			if (typeRefInfos.TryGetRid(tr, out rid))
-				return rid;	//TODO: If rid == 0, warn user
+			if (typeRefInfos.TryGetRid(tr, out rid)) {
+				if (rid == 0)
+					Error("TypeRef {0} ({1:X8}) has an infinite ResolutionScope loop", tr, tr.MDToken.Raw);
+				return rid;
+			}
 			typeRefInfos.Add(tr, 0);	// Prevent inf recursion
 			var row = new RawTypeRefRow(AddResolutionScope(tr.ResolutionScope),
 						stringsHeap.Add(tr.Name),
@@ -183,11 +212,16 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override uint AddTypeSpec(TypeSpec ts) {
-			if (ts == null)
-				return 0;	//TODO: Warn user
+			if (ts == null) {
+				Error("TypeSpec is null");
+				return 0;
+			}
 			uint rid;
-			if (typeSpecInfos.TryGetRid(ts, out rid))
-				return rid;	//TODO: If rid == 0, warn user
+			if (typeSpecInfos.TryGetRid(ts, out rid)) {
+				if (rid == 0)
+					Error("TypeSpec {0} ({1:X8}) has an infinite TypeSig loop", ts, ts.MDToken.Raw);
+				return rid;
+			}
 			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
 			var row = new RawTypeSpecRow(GetSignature(ts.TypeSig));
 			rid = tablesHeap.TypeSpecTable.Add(row);
@@ -198,8 +232,10 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override uint AddMemberRef(MemberRef mr) {
-			if (mr == null)
-				return 0;	//TODO: Warn user
+			if (mr == null) {
+				Error("MemberRef is null");
+				return 0;
+			}
 			uint rid;
 			if (memberRefInfos.TryGetRid(mr, out rid))
 				return rid;
@@ -214,8 +250,10 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override uint AddStandAloneSig(StandAloneSig sas) {
-			if (sas == null)
-				return 0;	//TODO: Warn user
+			if (sas == null) {
+				Error("StandAloneSig is null");
+				return 0;
+			}
 			uint rid;
 			if (standAloneSigInfos.TryGetRid(sas, out rid))
 				return rid;
@@ -228,8 +266,10 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override uint AddMethodSpec(MethodSpec ms) {
-			if (ms == null)
-				return 0;	//TODO: Warn user
+			if (ms == null) {
+				Error("MethodSpec is null");
+				return 0;
+			}
 			uint rid;
 			if (methodSpecInfos.TryGetRid(ms, out rid))
 				return rid;

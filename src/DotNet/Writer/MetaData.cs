@@ -233,6 +233,15 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Called when an error is detected
+		/// </summary>
+		/// <param name="message">Error message</param>
+		/// <param name="args">Optional message arguments</param>
+		protected void Error(string message, params object[] args) {
+			//TODO:
+		}
+
+		/// <summary>
 		/// Creates the .NET metadata tables
 		/// </summary>
 		public void CreateTables() {
@@ -409,7 +418,10 @@ namespace dot10.DotNet.Writer {
 			if (s != null)
 				return new MDToken((Table)0x70, usHeap.Add(s));
 
-			//TODO: Warn user
+			if (o == null)
+				Error("Instruction operand is null");
+			else
+				Error("Invalid instruction operand");
 			return new MDToken((Table)0xFF, 0x00FFFFFF);
 		}
 
@@ -511,7 +523,11 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 
-			return 0;	//TODO: Warn user
+			if (tp == null)
+				Error("IMDTokenProvider is null");
+			else
+				Error("Invalid IMDTokenProvider");
+			return 0;
 		}
 
 		/// <summary>
@@ -520,8 +536,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="tdr">Value</param>
 		/// <returns>Its encoded token</returns>
 		protected uint AddTypeDefOrRef(ITypeDefOrRef tdr) {
-			if (tdr == null)
-				return 0;	//TODO: Warn user
+			if (tdr == null) {
+				Error("TypeDefOrRef is null");
+				return 0;
+			}
 
 			var token = new MDToken(tdr.MDToken.Table, AddMDTokenProvider(tdr));
 			uint encodedToken;
@@ -536,8 +554,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="rs">Value</param>
 		/// <returns>Its encoded token</returns>
 		protected uint AddResolutionScope(IResolutionScope rs) {
-			if (rs == null)
-				return 0;	//TODO: Warn user
+			if (rs == null) {
+				Error("ResolutionScope is null");
+				return 0;
+			}
 
 			var token = new MDToken(rs.MDToken.Table, AddMDTokenProvider(rs));
 			uint encodedToken;
@@ -552,8 +572,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="mdr">Value</param>
 		/// <returns>Its encoded token</returns>
 		protected uint AddMethodDefOrRef(IMethodDefOrRef mdr) {
-			if (mdr == null)
-				return 0;	//TODO: Warn user
+			if (mdr == null) {
+				Error("MethodDefOrRef is null");
+				return 0;
+			}
 
 			var token = new MDToken(mdr.MDToken.Table, AddMDTokenProvider(mdr));
 			uint encodedToken;
@@ -568,8 +590,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="parent">Value</param>
 		/// <returns>Its encoded token</returns>
 		protected uint AddMemberRefParent(IMemberRefParent parent) {
-			if (parent == null)
-				return 0;	//TODO: Warn user
+			if (parent == null) {
+				Error("MemberRefParent is null");
+				return 0;
+			}
 
 			var token = new MDToken(parent.MDToken.Table, AddMDTokenProvider(parent));
 			uint encodedToken;
@@ -584,8 +608,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="impl">Value</param>
 		/// <returns>Its encoded token</returns>
 		protected uint AddImplementation(IImplementation impl) {
-			if (impl == null)
-				return 0;	//TODO: Warn user
+			if (impl == null) {
+				Error("Implementation is null");
+				return 0;
+			}
 
 			var token = new MDToken(impl.MDToken.Table, AddMDTokenProvider(impl));
 			uint encodedToken;
@@ -600,8 +626,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="cat">Value</param>
 		/// <returns>Its encoded token</returns>
 		protected uint AddCustomAttributeType(ICustomAttributeType cat) {
-			if (cat == null)
-				return 0;	//TODO: Warn user
+			if (cat == null) {
+				Error("CustomAttributeType is null");
+				return 0;
+			}
 
 			var token = new MDToken(cat.MDToken.Table, AddMDTokenProvider(cat));
 			uint encodedToken;
@@ -632,11 +660,12 @@ namespace dot10.DotNet.Writer {
 		/// <param name="module">Module</param>
 		/// <returns>Its new rid</returns>
 		protected uint AddModule(ModuleDef module) {
-			if (module == null)
-				return 0;	//TODO: Warn user
-			if (this.module != module) {
-				//TODO: Warn user
+			if (module == null) {
+				Error("Module is null");
+				return 0;
 			}
+			if (this.module != module)
+				Error("Module {0} must be referenced with a ModuleRef, not a ModuleDef", module);
 			var row = new RawModuleRow(module.Generation,
 								stringsHeap.Add(module.Name),
 								guidHeap.Add(module.Mvid),
@@ -654,8 +683,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="modRef">Module ref</param>
 		/// <returns>Its new rid</returns>
 		protected uint AddModuleRef(ModuleRef modRef) {
-			if (modRef == null)
-				return 0;	//TODO: Warn user
+			if (modRef == null) {
+				Error("ModuleRef is null");
+				return 0;
+			}
 			uint rid;
 			if (moduleRefInfos.TryGetRid(modRef, out rid))
 				return rid;
@@ -672,8 +703,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="asmRef">Assembly ref</param>
 		/// <returns>Its new rid</returns>
 		protected uint AddAssemblyRef(AssemblyRef asmRef) {
-			if (asmRef == null)
-				return 0;	//TODO: Warn user
+			if (asmRef == null) {
+				Error("AssemblyRef is null");
+				return 0;
+			}
 			uint rid;
 			if (assemblyRefInfos.TryGetRid(asmRef, out rid))
 				return rid;
@@ -699,8 +732,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="asm">Assembly</param>
 		/// <returns>Its new rid</returns>
 		protected uint AddAssembly(AssemblyDef asm) {
-			if (asm == null)
-				return 0;	//TODO: Warn user
+			if (asm == null) {
+				Error("Assembly is null");
+				return 0;
+			}
 			var version = Utils.CreateVersionWithNoUndefinedValues(asm.Version);
 			var row = new RawAssemblyRow((uint)asm.HashAlgId,
 							(ushort)version.Major,
@@ -741,8 +776,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="owner">New token of owner</param>
 		/// <param name="gp">Generic paramater</param>
 		protected void AddGenericParam(MDToken owner, GenericParam gp) {
-			if (gp == null)
-				return;	//TODO: Warn user
+			if (gp == null) {
+				Error("GenericParam is null");
+				return;
+			}
 			uint encodedOwner;
 			if (!CodedToken.TypeOrMethodDef.Encode(owner, out encodedOwner))
 				throw new ModuleWriterException("Can't encode GenericParam owner token");
@@ -772,8 +809,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="gpRid">New rid of owner generic param</param>
 		/// <param name="gpc">Generic paramter constraint</param>
 		protected void AddGenericParamConstraint(uint gpRid, GenericParamConstraint gpc) {
-			if (gpc == null)
+			if (gpc == null) {
+				Error("GenericParamConstraint is null");
 				return;
+			}
 			var row = new RawGenericParamConstraintRow(gpRid, AddTypeDefOrRef(gpc.Constraint));
 			tablesHeap.GenericParamConstraintTable.Add(row);
 		}
@@ -878,65 +917,73 @@ namespace dot10.DotNet.Writer {
 			if (o == null) {
 				if (etype == ElementType.Class)
 					return constantClassByteArray;
-				return constantDefaultByteArray;	//TODO: Warn user
+				Error("Constant is null");
+				return constantDefaultByteArray;
 			}
 
-			switch (Type.GetTypeCode(o.GetType())) {
+			var typeCode = Type.GetTypeCode(o.GetType());
+			switch (typeCode) {
 			case TypeCode.Boolean:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.Boolean);
 				return BitConverter.GetBytes((bool)o);
 
 			case TypeCode.Char:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.Char);
 				return BitConverter.GetBytes((char)o);
 
 			case TypeCode.SByte:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.I1);
 				return BitConverter.GetBytes((sbyte)o);
 
 			case TypeCode.Byte:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.U1);
 				return BitConverter.GetBytes((byte)o);
 
 			case TypeCode.Int16:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.I2);
 				return BitConverter.GetBytes((short)o);
 
 			case TypeCode.UInt16:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.U2);
 				return BitConverter.GetBytes((ushort)o);
 
 			case TypeCode.Int32:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.I4);
 				return BitConverter.GetBytes((int)o);
 
 			case TypeCode.UInt32:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.U4);
 				return BitConverter.GetBytes((uint)o);
 
 			case TypeCode.Int64:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.I8);
 				return BitConverter.GetBytes((long)o);
 
 			case TypeCode.UInt64:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.U8);
 				return BitConverter.GetBytes((ulong)o);
 
 			case TypeCode.Single:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.R4);
 				return BitConverter.GetBytes((float)o);
 
 			case TypeCode.Double:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.R8);
 				return BitConverter.GetBytes((double)o);
 
 			case TypeCode.String:
-				//TODO: if etype is not same type, warn user
+				VerifyConstantType(etype, ElementType.String);
 				return Encoding.Unicode.GetBytes((string)o);
 
 			default:
-				return constantDefaultByteArray;	//TODO: warn user
+				Error("Invalid constant type: {0}", typeCode);
+				return constantDefaultByteArray;
 			}
+		}
+
+		void VerifyConstantType(ElementType realType, ElementType expectedType) {
+			if (realType != expectedType)
+				Error("Constant value's type is the wrong type");
 		}
 
 		/// <summary>
@@ -965,8 +1012,10 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="evt">Event</param>
 		protected void AddMethodSemantics(EventDef evt) {
-			if (evt == null)
-				return;	//TODO: Warn user
+			if (evt == null) {
+				Error("Event is null");
+				return;
+			}
 			uint rid = GetEventRid(evt);
 			if (rid == 0)
 				return;
@@ -982,8 +1031,10 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="prop">Property</param>
 		protected void AddMethodSemantics(PropertyDef prop) {
-			if (prop == null)
-				return;	//TODO: Warn user
+			if (prop == null) {
+				Error("Property is null");
+				return;
+			}
 			uint rid = GetPropertyRid(prop);
 			if (rid == 0)
 				return;
@@ -1062,12 +1113,17 @@ namespace dot10.DotNet.Writer {
 				return;
 			}
 
-			//TODO: Warn user
+			if (resource == null)
+				Error("Resource is null");
+			else
+				Error("Invalid resource type: {0}", resource.GetType());
 		}
 
 		uint AddEmbeddedResource(EmbeddedResource er) {
-			if (er == null)
-				return 0;	//TODO: Warn user
+			if (er == null) {
+				Error("EmbeddedResource is null");
+				return 0;
+			}
 			var row = new RawManifestResourceRow(netResources.NextOffset,
 						(uint)er.Flags,
 						stringsHeap.Add(er.Name),
@@ -1080,8 +1136,10 @@ namespace dot10.DotNet.Writer {
 		}
 
 		uint AddAssemblyLinkedResource(AssemblyLinkedResource alr) {
-			if (alr == null)
-				return 0;	//TODO: Warn user
+			if (alr == null) {
+				Error("AssemblyLinkedResource is null");
+				return 0;
+			}
 			var row = new RawManifestResourceRow(0,
 						(uint)alr.Flags,
 						stringsHeap.Add(alr.Name),
@@ -1093,8 +1151,10 @@ namespace dot10.DotNet.Writer {
 		}
 
 		uint AddLinkedResource(LinkedResource lr) {
-			if (lr == null)
-				return 0;	//TODO: Warn user
+			if (lr == null) {
+				Error("LinkedResource is null");
+				return 0;
+			}
 			var row = new RawManifestResourceRow(0,
 						(uint)lr.Flags,
 						stringsHeap.Add(lr.Name),
@@ -1111,8 +1171,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="file">File</param>
 		/// <returns>Its new rid</returns>
 		protected uint AddFile(FileDef file) {
-			if (file == null)
-				return 0;	//TODO: Warn user
+			if (file == null) {
+				Error("FileDef is null");
+				return 0;
+			}
 			uint rid;
 			if (fileDefInfos.TryGetRid(file, out rid))
 				return rid;
@@ -1130,8 +1192,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="et">Exported type</param>
 		/// <returns>Its new rid</returns>
 		protected uint AddExportedType(ExportedType et) {
-			if (et == null)
-				return 0;	//TODO: Warn user
+			if (et == null) {
+				Error("ExportedType is null");
+				return 0;
+			}
 			uint rid;
 			if (exportedTypeInfos.TryGetRid(et, out rid))
 				return rid;
@@ -1153,8 +1217,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="ts">Type sig</param>
 		/// <returns>#Blob offset</returns>
 		protected uint GetSignature(TypeSig ts) {
-			if (ts == null)
-				return 0;	//TODO: Warn user
+			if (ts == null) {
+				Error("TypeSig is null");
+				return 0;
+			}
 
 			var blob = SignatureWriter.Write(this, ts);
 			return blobHeap.Add(blob);
@@ -1166,8 +1232,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="sig">Signature</param>
 		/// <returns>#Blob offset</returns>
 		protected uint GetSignature(CallingConventionSig sig) {
-			if (sig == null)
-				return 0;	//TODO: Warn user
+			if (sig == null) {
+				Error("CallingConventionSig is null");
+				return 0;
+			}
 
 			var blob = SignatureWriter.Write(this, sig);
 			return blobHeap.Add(blob);
@@ -1207,17 +1275,17 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		void ISignatureWriterHelper.Error(string message) {
-			//TODO: Log error.
+			Error(message);
 		}
 
 		/// <inheritdoc/>
 		void ITokenCreator.Error(string message) {
-			//TODO: Log error.
+			Error(message);
 		}
 
 		/// <inheritdoc/>
 		void ICustomAttributeWriterHelper.Error(string message) {
-			//TODO: Log error.
+			Error(message);
 		}
 
 		/// <inheritdoc/>
