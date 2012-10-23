@@ -1848,7 +1848,7 @@ namespace dot10.DotNet.Writer {
 		/// Allocates <c>Field</c>, <c>Method</c>, <c>Property</c>, <c>Event</c>, <c>Param</c>:
 		/// rid and raw row, but doesn't initialize the raw row.
 		/// Initializes <c>TypeDef</c> columns: <c>FieldList</c>, <c>MethodList</c>.
-		/// Initialized <c>Method</c> column: <c>ParamList</c>.
+		/// Initializes <c>Method</c> column: <c>ParamList</c>.
 		/// Initializes <see cref="MetaData.eventMapInfos"/> and <see cref="MetaData.propertyMapInfos"/>.
 		/// </summary>
 		protected abstract void AllocateMemberDefRids();
