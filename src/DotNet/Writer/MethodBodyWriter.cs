@@ -126,7 +126,8 @@ namespace dot10.DotNet.Writer {
 			writer.Write((ushort)maxStack);
 			writer.Write(codeSize);
 			writer.Write(helper.GetToken(GetLocals(), cilBody.LocalVarSigTok).Raw);
-			WriteInstructions(writer);
+			if (WriteInstructions(writer) != codeSize)
+				Error("Didn't write all code bytes");
 		}
 
 		IList<TypeSig> GetLocals() {
@@ -140,7 +141,8 @@ namespace dot10.DotNet.Writer {
 			code = new byte[1 + codeSize];
 			var writer = new BinaryWriter(new MemoryStream(code));
 			writer.Write((byte)((codeSize << 2) | 2));
-			WriteInstructions(writer);
+			if (WriteInstructions(writer) != codeSize)
+				Error("Didn't write all code bytes");
 		}
 
 		void WriteExceptionHandlers() {
