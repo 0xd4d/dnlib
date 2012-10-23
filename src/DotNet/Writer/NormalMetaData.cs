@@ -82,7 +82,7 @@ namespace dot10.DotNet.Writer {
 						if (pd == null)
 							continue;
 						uint pdRid = paramListRid++;
-						if (pdRid != tablesHeap.ParamTable.Add(new RawParamRow()))
+						if (pdRid != tablesHeap.ParamTable.Create(new RawParamRow()))
 							throw new ModuleWriterException("Invalid param rid");
 						paramDefInfos.Add(pd, pdRid);
 					}

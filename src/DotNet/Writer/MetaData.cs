@@ -82,25 +82,39 @@ namespace dot10.DotNet.Writer {
 		internal SortedRows<TypeDef, RawNestedClassRow> nestedClassInfos = new SortedRows<TypeDef, RawNestedClassRow>();
 		internal SortedRows<GenericParam, RawGenericParamRow> genericParamInfos = new SortedRows<GenericParam, RawGenericParamRow>();
 		internal SortedRows<GenericParamConstraint, RawGenericParamConstraintRow> genericParamConstraintInfos = new SortedRows<GenericParamConstraint, RawGenericParamConstraintRow>();
+		internal Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
 
-		internal class SortedRows<T, TRow>
-			where T : class
-			where TRow : class {
+		internal class SortedRows<T, TRow> where T : class where TRow : class {
 			public List<Info> infos = new List<Info>();
+			Dictionary<T, uint> toRid = new Dictionary<T, uint>();
+			bool isSorted;
 
 			public struct Info {
-				public uint owner;
 				public T data;
 				public TRow row;
-				public Info(uint owner, T data, TRow row) {
-					this.owner = owner;
+				public Info(T data, TRow row) {
 					this.data = data;
 					this.row = row;
 				}
 			}
 
-			public void Add(uint owner, T data, TRow row) {
-				infos.Add(new Info(owner, data, row));
+			public void Add(T data, TRow row) {
+				if (isSorted)
+					throw new ModuleWriterException(string.Format("Adding a row after it's been sorted. Table: {0}", row.GetType()));
+				infos.Add(new Info(data, row));
+				toRid[data] = (uint)toRid.Count + 1;
+			}
+
+			public void Sort(Comparison<SortedRows<T, TRow>.Info> comparison) {
+				infos.Sort(comparison);
+				toRid.Clear();
+				for (int i = 0; i < infos.Count; i++)
+					toRid[infos[i].data] = (uint)i + 1;
+				isSorted = true;
+			}
+
+			public uint Rid(T data) {
+				return toRid[data];
 			}
 		}
 
@@ -266,24 +280,45 @@ namespace dot10.DotNet.Writer {
 			AddModule(module);
 			AllocateTypeDefRids();
 			AllocateMemberDefRids();
+			InitializeTypeDefsAndMemberDefs();
+			AddAssembly(module.Assembly);
+			SortTables();
+			InitializeGenericParamConstraintTable();
+			WriteTypeDefAndMemberDefCustomAttributes();
+			WriteMethodBodies();
+			AddResources(module.Resources);
+			InitializeCustomAttributeTable();
+		}
 
+		/// <summary>
+		/// Initializes all <c>TypeDef</c>, <c>Field</c>, <c>Method</c>, <c>Event</c>,
+		/// <c>Property</c> and <c>Param</c> rows. Other tables that are related to these six
+		/// tables are also updated. No custom attributes are written yet, though. Method bodies
+		/// aren't written either.
+		/// </summary>
+		void InitializeTypeDefsAndMemberDefs() {
 			foreach (var type in allTypeDefs) {
-				if (type == null)
+				if (type == null) {
+					Error("TypeDef is null");
 					continue;
+				}
 				uint typeRid = GetTypeDefRid(type);
 				var typeRow = tablesHeap.TypeDefTable[typeRid];
 				typeRow.Flags = (uint)type.Flags;
 				typeRow.Name = stringsHeap.Add(type.Name);
 				typeRow.Namespace = stringsHeap.Add(type.Namespace);
-				typeRow.Extends = AddTypeDefOrRef(type.BaseType);	//TODO: null is allowed here if <Module> or iface so don't warn user
+				typeRow.Extends = type.BaseType == null ? 0 : AddTypeDefOrRef(type.BaseType);
 				AddGenericParams(new MDToken(Table.TypeDef, typeRid), type.GenericParams);
 				AddDeclSecurities(new MDToken(Table.TypeDef, typeRid), type.DeclSecurities);
 				AddInterfaceImpls(typeRid, type.InterfaceImpls);
 				AddClassLayout(type);
+				AddNestedType(type, type.DeclaringType);
 
 				foreach (var field in type.Fields) {
-					if (field == null)
+					if (field == null) {
+						Error("Field is null");
 						continue;
+					}
 					uint rid = GetFieldRid(field);
 					var row = tablesHeap.FieldTable[rid];
 					row.Flags = (ushort)field.Flags;
@@ -297,8 +332,10 @@ namespace dot10.DotNet.Writer {
 				}
 
 				foreach (var method in type.Methods) {
-					if (method == null)
+					if (method == null) {
+						Error("Method is null");
 						continue;
+					}
 					uint rid = GetMethodRid(method);
 					var row = tablesHeap.MethodTable[rid];
 					row.ImplFlags = (ushort)method.ImplFlags;
@@ -308,46 +345,64 @@ namespace dot10.DotNet.Writer {
 					AddGenericParams(new MDToken(Table.Method, rid), method.GenericParams);
 					AddDeclSecurities(new MDToken(Table.Method, rid), method.DeclSecurities);
 					AddImplMap(new MDToken(Table.Method, rid), method);
+					AddMethodImpls(method, method.Overrides);
+					foreach (var pd in method.ParamList) {
+						if (pd == null) {
+							Error("Param is null");
+							continue;
+						}
+						uint pdRid = GetParamRid(pd);
+						var pdRow = tablesHeap.ParamTable[pdRid];
+						pdRow.Flags = (ushort)pd.Flags;
+						pdRow.Sequence = pd.Sequence;
+						pdRow.Name = stringsHeap.Add(pd.Name);
+						AddConstant(new MDToken(Table.Param, pdRid), pd);
+						AddFieldMarshal(new MDToken(Table.Param, pdRid), pd);
+					}
 				}
 
 				if (!IsEmpty(type.Events)) {
 					foreach (var evt in type.Events) {
-						if (evt == null)
+						if (evt == null) {
+							Error("Event is null");
 							continue;
+						}
 						uint rid = GetEventRid(evt);
 						var row = tablesHeap.EventTable[rid];
 						row.EventFlags = (ushort)evt.Flags;
 						row.Name = stringsHeap.Add(evt.Name);
 						row.EventType = AddTypeDefOrRef(evt.Type);
+						AddMethodSemantics(evt);
 					}
 				}
 
 				if (!IsEmpty(type.Properties)) {
 					foreach (var prop in type.Properties) {
-						if (prop == null)
+						if (prop == null) {
+							Error("Property is null");
 							continue;
+						}
 						uint rid = GetPropertyRid(prop);
 						var row = tablesHeap.PropertyTable[rid];
 						row.PropFlags = (ushort)prop.Flags;
 						row.Name = stringsHeap.Add(prop.Name);
 						row.Type = GetSignature(prop.Type);
 						AddConstant(new MDToken(Table.Property, rid), prop);
+						AddMethodSemantics(prop);
 					}
 				}
 			}
+		}
 
-			//TODO: Sort more tables
-
-			//TODO: Write all params
-
-			AddAssembly(module.Assembly);
-
-			// Second pass now that we know their rids
+		/// <summary>
+		/// Writes <c>TypeDef</c>, <c>Field</c>, <c>Method</c>, <c>Event</c>,
+		/// <c>Property</c> and <c>Param</c> custom attributes.
+		/// </summary>
+		void WriteTypeDefAndMemberDefCustomAttributes() {
 			foreach (var type in allTypeDefs) {
 				if (type == null)
 					continue;
 				AddCustomAttributes(Table.TypeDef, GetTypeDefRid(type), type);
-				AddNestedType(type, type.DeclaringType);
 
 				foreach (var field in type.Fields) {
 					if (field == null)
@@ -359,37 +414,123 @@ namespace dot10.DotNet.Writer {
 					if (method == null)
 						continue;
 					AddCustomAttributes(Table.Method, GetMethodRid(method), method);
-					AddMethodImpls(method, method.Overrides);
-
-					//TODO:
-					var cilBody = method.CilBody;
-					if (cilBody != null) {
-						var writer = new MethodBodyWriter(this, cilBody);
-						writer.Write();
-						var code = writer.Code;
-						var ehs = writer.ExtraSections;
+					foreach (var pd in method.ParamList) {
+						if (pd == null)
+							continue;
+						AddCustomAttributes(Table.Param, GetParamRid(pd), pd);
 					}
 				}
 				foreach (var evt in type.Events) {
 					if (evt == null)
 						continue;
 					AddCustomAttributes(Table.Event, GetEventRid(evt), evt);
-					AddMethodSemantics(evt);
 				}
 				foreach (var prop in type.Properties) {
 					if (prop == null)
 						continue;
 					AddCustomAttributes(Table.Property, GetPropertyRid(prop), prop);
-					AddMethodSemantics(prop);
 				}
 			}
+		}
 
-			//TODO: Write module cust attr
-			//TODO: Write assembly cust attr
-			//TODO: Write assembly decl security
-			//TODO: Sort the tables that must be sorted
+		/// <summary>
+		/// Sorts all unsorted tables except <c>GenericParamConstraint</c> and <c>CustomAttribute</c>
+		/// </summary>
+		void SortTables() {
+			classLayoutInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
+			hasConstantInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
+			declSecurityInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
+			fieldLayoutInfos.Sort((a, b)	=> a.row.Field.CompareTo(b.row.Field));
+			fieldMarshalInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
+			fieldRVAInfos.Sort((a, b)		=> a.row.Field.CompareTo(b.row.Field));
+			implMapInfos.Sort((a, b)		=> a.row.MemberForwarded.CompareTo(b.row.MemberForwarded));
+			methodImplInfos.Sort((a, b)		=> a.row.Class.CompareTo(b.row.Class));
+			methodSemanticsInfos.Sort((a, b)=> a.row.Association.CompareTo(b.row.Association));
+			nestedClassInfos.Sort((a, b)	=> a.row.NestedClass.CompareTo(b.row.NestedClass));
+			genericParamInfos.Sort((a, b) => {
+				if (a.row.Owner != b.row.Owner)
+					return a.row.Owner.CompareTo(b.row.Owner);
+				return a.row.Number.CompareTo(b.row.Number);
+			});
+			interfaceImplInfos.Sort((a, b) => {
+				if (a.row.Class != b.row.Class)
+					return a.row.Class.CompareTo(b.row.Class);
+				return a.row.Interface.CompareTo(b.row.Interface);
+			});
 
-			AddResources(module.Resources);
+			foreach (var info in classLayoutInfos.infos) tablesHeap.ClassLayoutTable.Create(info.row);
+			foreach (var info in hasConstantInfos.infos) tablesHeap.ConstantTable.Create(info.row);
+			foreach (var info in declSecurityInfos.infos) tablesHeap.DeclSecurityTable.Create(info.row);
+			foreach (var info in fieldLayoutInfos.infos) tablesHeap.FieldLayoutTable.Create(info.row);
+			foreach (var info in fieldMarshalInfos.infos) tablesHeap.FieldMarshalTable.Create(info.row);
+			foreach (var info in fieldRVAInfos.infos) tablesHeap.FieldRVATable.Create(info.row);
+			foreach (var info in genericParamInfos.infos) tablesHeap.GenericParamTable.Create(info.row);
+			foreach (var info in implMapInfos.infos) tablesHeap.ImplMapTable.Create(info.row);
+			foreach (var info in interfaceImplInfos.infos) tablesHeap.InterfaceImplTable.Create(info.row);
+			foreach (var info in methodImplInfos.infos) tablesHeap.MethodImplTable.Create(info.row);
+			foreach (var info in methodSemanticsInfos.infos) tablesHeap.MethodSemanticsTable.Create(info.row);
+			foreach (var info in nestedClassInfos.infos) tablesHeap.NestedClassTable.Create(info.row);
+
+			foreach (var info in interfaceImplInfos.infos)
+				AddCustomAttributes(Table.InterfaceImpl, interfaceImplInfos.Rid(info.data), info.data);
+			foreach (var info in declSecurityInfos.infos)
+				AddCustomAttributes(Table.DeclSecurity, declSecurityInfos.Rid(info.data), info.data);
+			foreach (var info in genericParamInfos.infos)
+				AddCustomAttributes(Table.GenericParam, genericParamInfos.Rid(info.data), info.data);
+		}
+
+		/// <summary>
+		/// Initializes the <c>GenericParamConstraint</c> table
+		/// </summary>
+		void InitializeGenericParamConstraintTable() {
+			foreach (var type in allTypeDefs) {
+				if (type == null)
+					continue;
+				AddGenericParamConstraints(type.GenericParams);
+				foreach (var method in type.Methods) {
+					if (method == null)
+						continue;
+					AddGenericParamConstraints(method.GenericParams);
+				}
+			}
+			genericParamConstraintInfos.Sort((a, b) => a.row.Owner.CompareTo(b.row.Owner));
+			foreach (var info in genericParamConstraintInfos.infos)
+				tablesHeap.GenericParamConstraintTable.Create(info.row);
+			foreach (var info in genericParamConstraintInfos.infos)
+				AddCustomAttributes(Table.GenericParamConstraint, genericParamConstraintInfos.Rid(info.data), info.data);
+		}
+
+		/// <summary>
+		/// Inserts all custom attribute rows in the table and sorts it
+		/// </summary>
+		void InitializeCustomAttributeTable() {
+			customAttributeInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
+			foreach (var info in customAttributeInfos.infos)
+				tablesHeap.CustomAttributeTable.Create(info.row);
+		}
+
+		/// <summary>
+		/// Writes all method bodies
+		/// </summary>
+		void WriteMethodBodies() {
+			foreach (var type in allTypeDefs) {
+				if (type == null)
+					continue;
+
+				foreach (var method in type.Methods) {
+					if (method == null)
+						continue;
+
+					if (method.CilBody != null) {
+						var writer = new MethodBodyWriter(this, method.CilBody);
+						writer.Write();
+						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections));
+						methodToBody[method] = mb;
+					}
+					else if (method.MethodBody != null)
+						Error("Unsupported method body");
+				}
+			}
 		}
 
 		/// <summary>
@@ -663,7 +804,7 @@ namespace dot10.DotNet.Writer {
 			if (nestedRid == 0 || dtRid == 0)
 				return;
 			var row = new RawNestedClassRow(nestedRid, dtRid);
-			nestedClassInfos.Add(nestedRid, declaringType, row);
+			nestedClassInfos.Add(declaringType, row);
 		}
 
 		/// <summary>
@@ -683,7 +824,7 @@ namespace dot10.DotNet.Writer {
 								guidHeap.Add(module.Mvid),
 								guidHeap.Add(module.EncId),
 								guidHeap.Add(module.EncBaseId));
-			uint rid = tablesHeap.ModuleTable.Create(row);
+			uint rid = tablesHeap.ModuleTable.Add(row);
 			moduleDefInfos.Add(module, rid);
 			AddCustomAttributes(Table.Module, rid, module);
 			return rid;
@@ -760,6 +901,7 @@ namespace dot10.DotNet.Writer {
 							stringsHeap.Add(asm.Locale));
 			uint rid = tablesHeap.AssemblyTable.Add(row);
 			assemblyInfos.Add(asm, rid);
+			AddDeclSecurities(new MDToken(Table.Assembly, rid), asm.DeclSecurities);
 			AddCustomAttributes(Table.Assembly, rid, asm);
 			return rid;
 		}
@@ -802,7 +944,18 @@ namespace dot10.DotNet.Writer {
 							encodedOwner,
 							stringsHeap.Add(gp.Name),
 							gp.Kind == null ? 0 : AddTypeDefOrRef(gp.Kind));
-			genericParamInfos.Add(owner.Raw, gp, row);
+			genericParamInfos.Add(gp, row);
+		}
+
+		void AddGenericParamConstraints(IList<GenericParam> gps) {
+			if (gps == null)
+				return;
+			foreach (var gp in gps) {
+				if (gp == null)
+					continue;
+				uint rid = genericParamInfos.Rid(gp);
+				AddGenericParamConstraints(rid, gp.GenericParamConstraints);
+			}
 		}
 
 		/// <summary>
@@ -828,7 +981,7 @@ namespace dot10.DotNet.Writer {
 				return;
 			}
 			var row = new RawGenericParamConstraintRow(gpRid, AddTypeDefOrRef(gpc.Constraint));
-			tablesHeap.GenericParamConstraintTable.Add(row);
+			tablesHeap.GenericParamConstraintTable.Create(row);
 		}
 
 		/// <summary>
@@ -842,7 +995,7 @@ namespace dot10.DotNet.Writer {
 					continue;
 				var row = new RawInterfaceImplRow(typeDefRid,
 							AddTypeDefOrRef(iface.Interface));
-				interfaceImplInfos.Add(typeDefRid, iface, row);
+				interfaceImplInfos.Add(iface, row);
 			}
 		}
 
@@ -855,7 +1008,7 @@ namespace dot10.DotNet.Writer {
 				return;
 			var rid = GetFieldRid(field);
 			var row = new RawFieldLayoutRow(field.FieldLayout.Offset, rid);
-			fieldLayoutInfos.Add(rid, field, row);
+			fieldLayoutInfos.Add(field, row);
 		}
 
 		/// <summary>
@@ -874,7 +1027,7 @@ namespace dot10.DotNet.Writer {
 			}
 			var row = new RawFieldMarshalRow(encodedParent,
 						blobHeap.Add(fieldMarshal.NativeType));
-			fieldMarshalInfos.Add(encodedParent, hfm, row);
+			fieldMarshalInfos.Add(hfm, row);
 		}
 
 		/// <summary>
@@ -887,7 +1040,7 @@ namespace dot10.DotNet.Writer {
 			uint rid = GetFieldRid(field);
 			var fieldRVA = field.FieldRVA;
 			var row = new RawFieldRVARow((uint)fieldRVA.RVA, rid);
-			fieldRVAInfos.Add(rid, field, row);
+			fieldRVAInfos.Add(field, row);
 		}
 
 		/// <summary>
@@ -908,7 +1061,7 @@ namespace dot10.DotNet.Writer {
 						encodedParent,
 						stringsHeap.Add(implMap.Name),
 						AddModuleRef(implMap.Scope));
-			implMapInfos.Add(encodedParent, mf, row);
+			implMapInfos.Add(mf, row);
 		}
 
 		/// <summary>
@@ -928,7 +1081,7 @@ namespace dot10.DotNet.Writer {
 			var row = new RawConstantRow((byte)constant.Type, 0,
 						encodedParent,
 						blobHeap.Add(GetConstantValueAsByteArray(constant.Type, constant.Value)));
-			hasConstantInfos.Add(encodedParent, hc, row);
+			hasConstantInfos.Add(hc, row);
 		}
 
 		static readonly byte[] constantClassByteArray = new byte[4];
@@ -1025,7 +1178,7 @@ namespace dot10.DotNet.Writer {
 				var row = new RawDeclSecurityRow((short)decl.Action,
 							encodedParent,
 							blobHeap.Add(decl.PermissionSet));
-				declSecurityInfos.Add(encodedParent, decl, row);
+				declSecurityInfos.Add(decl, row);
 			}
 		}
 
@@ -1083,7 +1236,7 @@ namespace dot10.DotNet.Writer {
 				encodedOwner = 0;
 			}
 			var row = new RawMethodSemanticsRow((ushort)flags, methodRid, encodedOwner);
-			methodSemanticsInfos.Add(encodedOwner, method, row);
+			methodSemanticsInfos.Add(method, row);
 		}
 
 		void AddMethodImpls(MethodDef method, IList<MethodOverride> overrides) {
@@ -1094,7 +1247,7 @@ namespace dot10.DotNet.Writer {
 				var row = new RawMethodImplRow(rid,
 							AddMethodDefOrRef(ovr.MethodBody),
 							AddMethodDefOrRef(ovr.MethodDeclaration));
-				methodImplInfos.Add(rid, method, row);
+				methodImplInfos.Add(method, row);
 			}
 		}
 
@@ -1108,7 +1261,7 @@ namespace dot10.DotNet.Writer {
 			var rid = GetTypeDefRid(type);
 			var classLayout = type.ClassLayout;
 			var row = new RawClassLayoutRow(classLayout.PackingSize, classLayout.ClassSize, rid);
-			classLayoutInfos.Add(rid, type, row);
+			classLayoutInfos.Add(type, row);
 		}
 
 		void AddResources(IList<Resource> resources) {
@@ -1152,7 +1305,7 @@ namespace dot10.DotNet.Writer {
 						(uint)er.Flags,
 						stringsHeap.Add(er.Name),
 						0);
-			uint rid = tablesHeap.ManifestResourceTable.Create(row);
+			uint rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(er, rid);
 			netResources.Add(er.Data);
 			//TODO: Add custom attributes
@@ -1168,7 +1321,7 @@ namespace dot10.DotNet.Writer {
 						(uint)alr.Flags,
 						stringsHeap.Add(alr.Name),
 						AddAssemblyRef(alr.Assembly));
-			uint rid = tablesHeap.ManifestResourceTable.Create(row);
+			uint rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(alr, rid);
 			//TODO: Add custom attributes
 			return rid;
@@ -1183,7 +1336,7 @@ namespace dot10.DotNet.Writer {
 						(uint)lr.Flags,
 						stringsHeap.Add(lr.Name),
 						AddFile(lr.File));
-			uint rid = tablesHeap.ManifestResourceTable.Create(row);
+			uint rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(lr, rid);
 			//TODO: Add custom attributes
 			return rid;
@@ -1291,7 +1444,7 @@ namespace dot10.DotNet.Writer {
 			var row = new RawCustomAttributeRow(encodedToken,
 						AddCustomAttributeType(ca.Ctor),
 						blobHeap.Add(caBlob));
-			customAttributeInfos.Add(encodedToken, ca, row);
+			customAttributeInfos.Add(ca, row);
 		}
 
 		/// <inheritdoc/>
@@ -1387,35 +1540,35 @@ namespace dot10.DotNet.Writer {
 		protected abstract uint GetPropertyRid(PropertyDef pd);
 
 		/// <summary>
-		/// Adds a <see cref="TypeRef"/>
+		/// Adds a <see cref="TypeRef"/>. Its custom attributes are also added.
 		/// </summary>
 		/// <param name="tr">Type reference</param>
 		/// <returns>Its new rid</returns>
 		protected abstract uint AddTypeRef(TypeRef tr);
 
 		/// <summary>
-		/// Adds a <see cref="TypeSpec"/>
+		/// Adds a <see cref="TypeSpec"/>. Its custom attributes are also added.
 		/// </summary>
 		/// <param name="ts">Type spec</param>
 		/// <returns>Its new rid</returns>
 		protected abstract uint AddTypeSpec(TypeSpec ts);
 
 		/// <summary>
-		/// Adds a <see cref="MemberRef"/>
+		/// Adds a <see cref="MemberRef"/>. Its custom attributes are also added.
 		/// </summary>
 		/// <param name="mr">Member ref</param>
 		/// <returns>Its new rid</returns>
 		protected abstract uint AddMemberRef(MemberRef mr);
 
 		/// <summary>
-		/// Adds a <see cref="StandAloneSig"/>
+		/// Adds a <see cref="StandAloneSig"/>. Its custom attributes are also added.
 		/// </summary>
 		/// <param name="sas">Stand alone sig</param>
 		/// <returns>Its new rid</returns>
 		protected abstract uint AddStandAloneSig(StandAloneSig sas);
 
 		/// <summary>
-		/// Adds a <see cref="MethodSpec"/>
+		/// Adds a <see cref="MethodSpec"/>. Its custom attributes are also added.
 		/// </summary>
 		/// <param name="ms">Method spec</param>
 		/// <returns>Its new rid</returns>
