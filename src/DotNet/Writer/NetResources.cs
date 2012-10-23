@@ -5,7 +5,10 @@ using dot10.IO;
 using dot10.PE;
 
 namespace dot10.DotNet.Writer {
-	sealed class NetResources : IChunk {
+	/// <summary>
+	/// .NET resources
+	/// </summary>
+	public sealed class NetResources : IChunk {
 		List<ByteArrayChunk> resources = new List<ByteArrayChunk>();
 		uint alignment;
 		uint length;

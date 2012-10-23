@@ -2,7 +2,7 @@
 	/// <summary>
 	/// .NET Heap interface
 	/// </summary>
-	interface IHeap : IChunk {
+	public interface IHeap : IChunk {
 		/// <summary>
 		/// Gets the name of the heap
 		/// </summary>

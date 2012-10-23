@@ -8,17 +8,29 @@ namespace dot10.DotNet.Writer {
 	/// Base class of chunk list types
 	/// </summary>
 	/// <typeparam name="T">Chunk type</typeparam>
-	abstract class ChunkListBase<T> : IChunk where T : IChunk {
+	public abstract class ChunkListBase<T> : IChunk where T : IChunk {
+		/// <summary>All chunks</summary>
 		protected List<Elem> chunks;
 		uint length;
+		/// <summary><c>true</c> if <see cref="SetOffset"/> has been called</summary>
 		protected bool setOffsetCalled;
 		FileOffset offset;
 		RVA rva;
 
+		/// <summary>
+		/// Helper struct
+		/// </summary>
 		protected struct Elem {
+			/// <summary>Data</summary>
 			public readonly T chunk;
+			/// <summary>Alignment</summary>
 			public readonly uint alignment;
 
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			/// <param name="chunk">Chunk</param>
+			/// <param name="alignment">Alignment</param>
 			public Elem(T chunk, uint alignment) {
 				this.chunk = chunk;
 				this.alignment = alignment;

@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Stores a byte array
 	/// </summary>
-	class ByteArrayChunk : IChunk {
+	public class ByteArrayChunk : IChunk {
 		byte[] array;
 		FileOffset offset;
 		RVA rva;

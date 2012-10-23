@@ -5,7 +5,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Contains a list of <see cref="IChunk"/>s
 	/// </summary>
-	class ChunkList<T> : ChunkListBase<T> where T : IChunk {
+	public class ChunkList<T> : ChunkListBase<T> where T : IChunk {
 		/// <summary>
 		/// Default constructor
 		/// </summary>

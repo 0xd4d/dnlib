@@ -5,7 +5,7 @@ namespace dot10.DotNet.Writer {
 	/// Thrown when the module writer encounters an unrecoverable error
 	/// </summary>
 	[Serializable]
-	class ModuleWriterException : Exception {
+	public class ModuleWriterException : Exception {
 		/// <summary>
 		/// Default constructor
 		/// </summary>

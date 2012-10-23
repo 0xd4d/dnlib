@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Base class of most heaps
 	/// </summary>
-	abstract class HeapBase : IHeap {
+	public abstract class HeapBase : IHeap {
 		FileOffset offset;
 		RVA rva;
 

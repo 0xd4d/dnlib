@@ -7,7 +7,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Options to <see cref="ImageCor20Header"/>
 	/// </summary>
-	struct Cor20HeaderOptions {
+	public struct Cor20HeaderOptions {
 		/// <summary>
 		/// Default major runtime version
 		/// </summary>
@@ -57,7 +57,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// .NET header
 	/// </summary>
-	class ImageCor20Header : IChunk {
+	public class ImageCor20Header : IChunk {
 		FileOffset offset;
 		RVA rva;
 		Cor20HeaderOptions options;

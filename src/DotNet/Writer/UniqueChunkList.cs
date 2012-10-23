@@ -9,7 +9,7 @@ namespace dot10.DotNet.Writer {
 	/// Re-uses existing chunks to save space
 	/// </summary>
 	/// <typeparam name="T">Chunk type</typeparam>
-	class UniqueChunkList<T> : ChunkListBase<T> where T : class, IChunk {
+	public class UniqueChunkList<T> : ChunkListBase<T> where T : class, IChunk {
 		Dictionary<Elem, Elem> dict;
 
 		/// <summary>

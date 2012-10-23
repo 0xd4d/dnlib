@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Debug directory chunk
 	/// </summary>
-	class DebugDirectory : IChunk {
+	public class DebugDirectory : IChunk {
 		FileOffset offset;
 		RVA rva;
 

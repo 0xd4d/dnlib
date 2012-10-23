@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Method body chunk
 	/// </summary>
-	class MethodBody : IChunk {
+	public class MethodBody : IChunk {
 		const uint EXTRA_SECTIONS_ALIGNMENT = 4;
 
 		readonly bool isTiny;

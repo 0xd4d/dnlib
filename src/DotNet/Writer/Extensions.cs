@@ -5,7 +5,7 @@ namespace dot10.DotNet.Writer {
 	/// Extension methods
 	/// </summary>
 	public static partial class Extensions {
-		internal static void WriteZeros(this BinaryWriter writer, int count) {
+		public static void WriteZeros(this BinaryWriter writer, int count) {
 			if (count <= 0x20) {
 				for (int i = 0; i < count; i++)
 					writer.Write((byte)0);

@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Import directory chunk
 	/// </summary>
-	class ImportDirectory : IChunk {
+	public class ImportDirectory : IChunk {
 		FileOffset offset;
 		RVA rva;
 

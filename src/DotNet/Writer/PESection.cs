@@ -2,7 +2,7 @@
 	/// <summary>
 	/// A PE section
 	/// </summary>
-	class PESection : ChunkList<IChunk> {
+	public class PESection : ChunkList<IChunk> {
 		string name;
 		uint characteristics;
 

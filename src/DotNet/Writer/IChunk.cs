@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Data that gets written to the file
 	/// </summary>
-	interface IChunk {
+	public interface IChunk {
 		/// <summary>
 		/// Gets the file offset. This is valid only after <see cref="SetOffset"/> has been called.
 		/// </summary>
@@ -48,7 +48,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="chunk">this</param>
 		/// <param name="writer">Destination</param>
 		/// <exception cref="IOException">Not all bytes were written</exception>
-		internal static void VerifyWriteTo(this IChunk chunk, BinaryWriter writer) {
+		public static void VerifyWriteTo(this IChunk chunk, BinaryWriter writer) {
 			long pos = writer.BaseStream.Position;
 			chunk.WriteTo(writer);
 			if (writer.BaseStream.Position - pos != chunk.GetLength())

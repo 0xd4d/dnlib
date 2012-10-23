@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Stores the instruction that jumps to _CorExeMain/_CorDllMain
 	/// </summary>
-	class NativeEntryPoint : IChunk {
+	public class NativeEntryPoint : IChunk {
 		FileOffset offset;
 		RVA rva;
 
