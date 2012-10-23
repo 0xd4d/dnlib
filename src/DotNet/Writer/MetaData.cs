@@ -83,6 +83,7 @@ namespace dot10.DotNet.Writer {
 		internal SortedRows<GenericParam, RawGenericParamRow> genericParamInfos = new SortedRows<GenericParam, RawGenericParamRow>();
 		internal SortedRows<GenericParamConstraint, RawGenericParamConstraintRow> genericParamConstraintInfos = new SortedRows<GenericParamConstraint, RawGenericParamConstraintRow>();
 		internal Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
+		internal Dictionary<EmbeddedResource, ByteArrayChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, ByteArrayChunk>();
 
 		internal class SortedRows<T, TRow> where T : class where TRow : class {
 			public List<Info> infos = new List<Info>();
@@ -585,6 +586,20 @@ namespace dot10.DotNet.Writer {
 			MethodBody mb;
 			methodToBody.TryGetValue(md, out mb);
 			return mb;
+		}
+
+		/// <summary>
+		/// Gets the <see cref="ByteArrayChunk"/> where the resource data will be stored
+		/// </summary>
+		/// <param name="er">Embedded resource</param>
+		/// <returns>A <see cref="ByteArrayChunk"/> instance or <c>null</c> if <paramref name="er"/>
+		/// is invalid</returns>
+		public ByteArrayChunk GetChunk(EmbeddedResource er) {
+			if (er == null)
+				return null;
+			ByteArrayChunk chunk;
+			embeddedResourceToByteArray.TryGetValue(er, out chunk);
+			return chunk;
 		}
 
 		/// <summary>
@@ -1648,7 +1663,7 @@ namespace dot10.DotNet.Writer {
 						0);
 			uint rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(er, rid);
-			netResources.Add(er.Data);
+			embeddedResourceToByteArray[er] = netResources.Add(er.Data);
 			//TODO: Add custom attributes
 			return rid;
 		}
