@@ -125,6 +125,8 @@
     <Compile Include="DotNet\Writer\MethodBodyWriterBase.cs" />
     <Compile Include="DotNet\Writer\ModuleWriterException.cs" />
     <Compile Include="DotNet\Writer\NetResources.cs" />
+    <Compile Include="DotNet\Writer\NormalMetaData.cs" />
+    <Compile Include="DotNet\Writer\PreserveTokensMetaData.cs" />
     <Compile Include="DotNet\Writer\SignatureWriter.cs" />
     <Compile Include="DotNet\Writer\StringsHeap.cs" />
     <Compile Include="DotNet\Writer\TablesHeap.cs" />

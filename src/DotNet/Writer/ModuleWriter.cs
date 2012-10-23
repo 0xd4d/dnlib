@@ -80,6 +80,8 @@ namespace dot10.DotNet.Writer {
 		/// <param name="dest">Destination stream</param>
 		public void Write(Stream dest) {
 			Initialize();
+
+			metaData.CreateTables();
 			//TODO:
 		}
 
@@ -109,7 +111,8 @@ namespace dot10.DotNet.Writer {
 			constants = new UniqueChunkList<ByteArrayChunk>();
 			methodBodies = new MethodBodyChunks(shareBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
-			metaData = new MetaData(module, constants, methodBodies, netResources);
+			var mdOptions = MetaDataOptions.PreserveStringsOffsets | MetaDataOptions.PreserveUSOffsets | MetaDataOptions.PreserveBlobOffsets;
+			metaData = MetaData.Create(module, constants, methodBodies, netResources, mdOptions);
 			debugDirectory = new DebugDirectory();
 		}
 
