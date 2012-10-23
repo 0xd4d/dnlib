@@ -5,6 +5,11 @@ namespace dot10.DotNet.Writer {
 	/// Extension methods
 	/// </summary>
 	public static partial class Extensions {
+		/// <summary>
+		/// Write zeros
+		/// </summary>
+		/// <param name="writer">this</param>
+		/// <param name="count">Number of zeros</param>
 		public static void WriteZeros(this BinaryWriter writer, int count) {
 			if (count <= 0x20) {
 				for (int i = 0; i < count; i++)
