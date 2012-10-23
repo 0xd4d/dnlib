@@ -161,19 +161,19 @@ namespace dot10.DotNet.MD {
 			else if (ColumnSize.TypeDefOrRef <= columnSize && columnSize <= ColumnSize.TypeOrMethodDef) {
 				CodedToken info;
 				switch (columnSize) {
-				case ColumnSize.TypeDefOrRef: info = CodedToken.TypeDefOrRef; break;
-				case ColumnSize.HasConstant: info = CodedToken.HasConstant; break;
-				case ColumnSize.HasCustomAttribute: info = CodedToken.HasCustomAttribute; break;
-				case ColumnSize.HasFieldMarshal: info = CodedToken.HasFieldMarshal; break;
-				case ColumnSize.HasDeclSecurity: info = CodedToken.HasDeclSecurity; break;
-				case ColumnSize.MemberRefParent: info = CodedToken.MemberRefParent; break;
-				case ColumnSize.HasSemantic: info = CodedToken.HasSemantic; break;
-				case ColumnSize.MethodDefOrRef: info = CodedToken.MethodDefOrRef; break;
-				case ColumnSize.MemberForwarded: info = CodedToken.MemberForwarded; break;
-				case ColumnSize.Implementation: info = CodedToken.Implementation; break;
-				case ColumnSize.CustomAttributeType: info = CodedToken.CustomAttributeType; break;
-				case ColumnSize.ResolutionScope: info = CodedToken.ResolutionScope; break;
-				case ColumnSize.TypeOrMethodDef: info = CodedToken.TypeOrMethodDef; break;
+				case ColumnSize.TypeDefOrRef:		info = CodedToken.TypeDefOrRef; break;
+				case ColumnSize.HasConstant:		info = CodedToken.HasConstant; break;
+				case ColumnSize.HasCustomAttribute:	info = CodedToken.HasCustomAttribute; break;
+				case ColumnSize.HasFieldMarshal:	info = CodedToken.HasFieldMarshal; break;
+				case ColumnSize.HasDeclSecurity:	info = CodedToken.HasDeclSecurity; break;
+				case ColumnSize.MemberRefParent:	info = CodedToken.MemberRefParent; break;
+				case ColumnSize.HasSemantic:		info = CodedToken.HasSemantic; break;
+				case ColumnSize.MethodDefOrRef:		info = CodedToken.MethodDefOrRef; break;
+				case ColumnSize.MemberForwarded:	info = CodedToken.MemberForwarded; break;
+				case ColumnSize.Implementation:		info = CodedToken.Implementation; break;
+				case ColumnSize.CustomAttributeType:info = CodedToken.CustomAttributeType; break;
+				case ColumnSize.ResolutionScope:	info = CodedToken.ResolutionScope; break;
+				case ColumnSize.TypeOrMethodDef:	info = CodedToken.TypeOrMethodDef; break;
 				default: throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));
 				}
 				uint maxRows = 0;
