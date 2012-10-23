@@ -20,6 +20,61 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		public override uint GetRid(TypeRef tr) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(TypeDef td) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(FieldDef fd) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(MethodDef md) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(ParamDef pd) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(MemberRef mr) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(StandAloneSig sas) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(EventDef ed) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(PropertyDef pd) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(TypeSpec ts) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(MethodSpec ms) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
 		protected override IEnumerable<TypeDef> GetAllTypeDefs() {
 			throw new NotImplementedException();	//TODO:
 		}
@@ -31,36 +86,6 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void AllocateMemberDefRids() {
-			throw new NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override uint GetTypeDefRid(TypeDef td) {
-			throw new NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override uint GetFieldRid(FieldDef fd) {
-			throw new NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override uint GetMethodRid(MethodDef md) {
-			throw new NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override uint GetParamRid(ParamDef pd) {
-			throw new NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override uint GetEventRid(EventDef ed) {
-			throw new NotImplementedException();	//TODO:
-		}
-
-		/// <inheritdoc/>
-		protected override uint GetPropertyRid(PropertyDef pd) {
 			throw new NotImplementedException();	//TODO:
 		}
 

@@ -56,7 +56,7 @@ namespace dot10.DotNet.Writer {
 			foreach (var type in allTypeDefs) {
 				if (type == null)
 					continue;
-				uint typeRid = GetTypeDefRid(type);
+				uint typeRid = GetRid(type);
 				var typeRow = tablesHeap.TypeDefTable[typeRid];
 				typeRow.FieldList = fieldListRid;
 				typeRow.MethodList = methodListRid;
@@ -117,7 +117,14 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint GetTypeDefRid(TypeDef td) {
+		public override uint GetRid(TypeRef tr) {
+			uint rid;
+			typeRefInfos.TryGetRid(tr, out rid);
+			return rid;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(TypeDef td) {
 			uint rid;
 			if (typeDefInfos.TryGetRid(td, out rid))
 				return rid;
@@ -129,7 +136,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint GetFieldRid(FieldDef fd) {
+		public override uint GetRid(FieldDef fd) {
 			uint rid;
 			if (fieldDefInfos.TryGetRid(fd, out rid))
 				return rid;
@@ -141,7 +148,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint GetMethodRid(MethodDef md) {
+		public override uint GetRid(MethodDef md) {
 			uint rid;
 			if (methodDefInfos.TryGetRid(md, out rid))
 				return rid;
@@ -153,7 +160,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint GetParamRid(ParamDef pd) {
+		public override uint GetRid(ParamDef pd) {
 			uint rid;
 			if (paramDefInfos.TryGetRid(pd, out rid))
 				return rid;
@@ -165,7 +172,21 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint GetEventRid(EventDef ed) {
+		public override uint GetRid(MemberRef mr) {
+			uint rid;
+			memberRefInfos.TryGetRid(mr, out rid);
+			return rid;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(StandAloneSig sas) {
+			uint rid;
+			standAloneSigInfos.TryGetRid(sas, out rid);
+			return rid;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(EventDef ed) {
 			uint rid;
 			if (eventDefInfos.TryGetRid(ed, out rid))
 				return rid;
@@ -177,7 +198,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint GetPropertyRid(PropertyDef pd) {
+		public override uint GetRid(PropertyDef pd) {
 			uint rid;
 			if (propertyDefInfos.TryGetRid(pd, out rid))
 				return rid;
@@ -186,6 +207,20 @@ namespace dot10.DotNet.Writer {
 			else
 				Error("Property {0} ({1:X8}) is not defined in this module", pd, pd.MDToken.Raw);
 			return 0;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(TypeSpec ts) {
+			uint rid;
+			typeSpecInfos.TryGetRid(ts, out rid);
+			return rid;
+		}
+
+		/// <inheritdoc/>
+		public override uint GetRid(MethodSpec ms) {
+			uint rid;
+			methodSpecInfos.TryGetRid(ms, out rid);
+			return rid;
 		}
 
 		/// <inheritdoc/>

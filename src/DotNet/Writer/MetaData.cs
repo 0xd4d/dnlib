@@ -116,6 +116,14 @@ namespace dot10.DotNet.Writer {
 			public uint Rid(T data) {
 				return toRid[data];
 			}
+
+			public bool TryGetRid(T data, out uint rid) {
+				if (data == null) {
+					rid = 0;
+					return false;
+				}
+				return toRid.TryGetValue(data, out rid);
+			}
 		}
 
 		internal class Rows<T> where T : class {
@@ -247,6 +255,325 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="module">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(ModuleDef module) {
+			uint rid;
+			moduleDefInfos.TryGetRid(module, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="tr">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(TypeRef tr);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="td">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(TypeDef td);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="fd">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(FieldDef fd);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="md">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(MethodDef md);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="pd">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(ParamDef pd);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="ii">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(InterfaceImpl ii) {
+			uint rid;
+			interfaceImplInfos.TryGetRid(ii, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="mr">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(MemberRef mr);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="hc">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetConstantRid(IHasConstant hc) {
+			uint rid;
+			hasConstantInfos.TryGetRid(hc, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="ca">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetCustomAttributeRid(CustomAttribute ca) {
+			uint rid;
+			customAttributeInfos.TryGetRid(ca, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="hfm">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetFieldMarshalRid(IHasFieldMarshal hfm) {
+			uint rid;
+			fieldMarshalInfos.TryGetRid(hfm, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="ds">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(DeclSecurity ds) {
+			uint rid;
+			declSecurityInfos.TryGetRid(ds, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="td">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetClassLayoutRid(TypeDef td) {
+			uint rid;
+			classLayoutInfos.TryGetRid(td, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="fd">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetFieldLayoutRid(FieldDef fd) {
+			uint rid;
+			fieldLayoutInfos.TryGetRid(fd, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="sas">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(StandAloneSig sas);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="td">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetEventMapRid(TypeDef td) {
+			uint rid;
+			eventMapInfos.TryGetRid(td, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="ed">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(EventDef ed);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="td">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetPropertyMapRid(TypeDef td) {
+			uint rid;
+			propertyMapInfos.TryGetRid(td, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="pd">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(PropertyDef pd);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="md">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetMethodSemanticsRid(MethodDef md) {
+			uint rid;
+			methodSemanticsInfos.TryGetRid(md, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="mr">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(ModuleRef mr) {
+			uint rid;
+			moduleRefInfos.TryGetRid(mr, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="ts">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(TypeSpec ts);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="mf">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetImplMapRid(IMemberForwarded mf) {
+			uint rid;
+			implMapInfos.TryGetRid(mf, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="fd">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetFieldRVARid(FieldDef fd) {
+			uint rid;
+			fieldRVAInfos.TryGetRid(fd, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="asm">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(AssemblyDef asm) {
+			uint rid;
+			assemblyInfos.TryGetRid(asm, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="asmRef">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(AssemblyRef asmRef) {
+			uint rid;
+			assemblyRefInfos.TryGetRid(asmRef, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="fd">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(FileDef fd) {
+			uint rid;
+			fileDefInfos.TryGetRid(fd, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="et">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(ExportedType et) {
+			uint rid;
+			exportedTypeInfos.TryGetRid(et, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="resource">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetManifestResourceRid(Resource resource) {
+			uint rid;
+			manifestResourceInfos.TryGetRid(resource, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="td">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetNestedClassRid(TypeDef td) {
+			uint rid;
+			nestedClassInfos.TryGetRid(td, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="gp">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(GenericParam gp) {
+			uint rid;
+			genericParamInfos.TryGetRid(gp, out rid);
+			return rid;
+		}
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="ms">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public abstract uint GetRid(MethodSpec ms);
+
+		/// <summary>
+		/// Gets the new rid
+		/// </summary>
+		/// <param name="gpc">Value</param>
+		/// <returns>Its new rid or <c>0</c></returns>
+		public uint GetRid(GenericParamConstraint gpc) {
+			uint rid;
+			genericParamConstraintInfos.TryGetRid(gpc, out rid);
+			return rid;
+		}
+
+		/// <summary>
 		/// Called when an error is detected
 		/// </summary>
 		/// <param name="message">Error message</param>
@@ -302,7 +629,7 @@ namespace dot10.DotNet.Writer {
 					Error("TypeDef is null");
 					continue;
 				}
-				uint typeRid = GetTypeDefRid(type);
+				uint typeRid = GetRid(type);
 				var typeRow = tablesHeap.TypeDefTable[typeRid];
 				typeRow.Flags = (uint)type.Flags;
 				typeRow.Name = stringsHeap.Add(type.Name);
@@ -319,7 +646,7 @@ namespace dot10.DotNet.Writer {
 						Error("Field is null");
 						continue;
 					}
-					uint rid = GetFieldRid(field);
+					uint rid = GetRid(field);
 					var row = tablesHeap.FieldTable[rid];
 					row.Flags = (ushort)field.Flags;
 					row.Name = stringsHeap.Add(field.Name);
@@ -336,7 +663,7 @@ namespace dot10.DotNet.Writer {
 						Error("Method is null");
 						continue;
 					}
-					uint rid = GetMethodRid(method);
+					uint rid = GetRid(method);
 					var row = tablesHeap.MethodTable[rid];
 					row.ImplFlags = (ushort)method.ImplFlags;
 					row.Flags = (ushort)method.Flags;
@@ -351,7 +678,7 @@ namespace dot10.DotNet.Writer {
 							Error("Param is null");
 							continue;
 						}
-						uint pdRid = GetParamRid(pd);
+						uint pdRid = GetRid(pd);
 						var pdRow = tablesHeap.ParamTable[pdRid];
 						pdRow.Flags = (ushort)pd.Flags;
 						pdRow.Sequence = pd.Sequence;
@@ -367,7 +694,7 @@ namespace dot10.DotNet.Writer {
 							Error("Event is null");
 							continue;
 						}
-						uint rid = GetEventRid(evt);
+						uint rid = GetRid(evt);
 						var row = tablesHeap.EventTable[rid];
 						row.EventFlags = (ushort)evt.Flags;
 						row.Name = stringsHeap.Add(evt.Name);
@@ -382,7 +709,7 @@ namespace dot10.DotNet.Writer {
 							Error("Property is null");
 							continue;
 						}
-						uint rid = GetPropertyRid(prop);
+						uint rid = GetRid(prop);
 						var row = tablesHeap.PropertyTable[rid];
 						row.PropFlags = (ushort)prop.Flags;
 						row.Name = stringsHeap.Add(prop.Name);
@@ -402,33 +729,33 @@ namespace dot10.DotNet.Writer {
 			foreach (var type in allTypeDefs) {
 				if (type == null)
 					continue;
-				AddCustomAttributes(Table.TypeDef, GetTypeDefRid(type), type);
+				AddCustomAttributes(Table.TypeDef, GetRid(type), type);
 
 				foreach (var field in type.Fields) {
 					if (field == null)
 						continue;
-					AddCustomAttributes(Table.Field, GetFieldRid(field), field);
+					AddCustomAttributes(Table.Field, GetRid(field), field);
 				}
 
 				foreach (var method in type.Methods) {
 					if (method == null)
 						continue;
-					AddCustomAttributes(Table.Method, GetMethodRid(method), method);
+					AddCustomAttributes(Table.Method, GetRid(method), method);
 					foreach (var pd in method.ParamList) {
 						if (pd == null)
 							continue;
-						AddCustomAttributes(Table.Param, GetParamRid(pd), pd);
+						AddCustomAttributes(Table.Param, GetRid(pd), pd);
 					}
 				}
 				foreach (var evt in type.Events) {
 					if (evt == null)
 						continue;
-					AddCustomAttributes(Table.Event, GetEventRid(evt), evt);
+					AddCustomAttributes(Table.Event, GetRid(evt), evt);
 				}
 				foreach (var prop in type.Properties) {
 					if (prop == null)
 						continue;
-					AddCustomAttributes(Table.Property, GetPropertyRid(prop), prop);
+					AddCustomAttributes(Table.Property, GetRid(prop), prop);
 				}
 			}
 		}
@@ -587,16 +914,16 @@ namespace dot10.DotNet.Writer {
 					return AddTypeRef((TypeRef)tp);
 
 				case Table.TypeDef:
-					return GetTypeDefRid((TypeDef)tp);
+					return GetRid((TypeDef)tp);
 
 				case Table.Field:
-					return GetFieldRid((FieldDef)tp);
+					return GetRid((FieldDef)tp);
 
 				case Table.Method:
-					return GetMethodRid((MethodDef)tp);
+					return GetRid((MethodDef)tp);
 
 				case Table.Param:
-					return GetParamRid((ParamDef)tp);
+					return GetRid((ParamDef)tp);
 
 				case Table.MemberRef:
 					return AddMemberRef((MemberRef)tp);
@@ -605,10 +932,10 @@ namespace dot10.DotNet.Writer {
 					return AddStandAloneSig((StandAloneSig)tp);
 
 				case Table.Event:
-					return GetEventRid((EventDef)tp);
+					return GetRid((EventDef)tp);
 
 				case Table.Property:
-					return GetPropertyRid((PropertyDef)tp);
+					return GetRid((PropertyDef)tp);
 
 				case Table.ModuleRef:
 					return AddModuleRef((ModuleRef)tp);
@@ -799,8 +1126,8 @@ namespace dot10.DotNet.Writer {
 		protected void AddNestedType(TypeDef nestedType, TypeDef declaringType) {
 			if (nestedType == null || declaringType == null)
 				return;
-			uint nestedRid = GetTypeDefRid(nestedType);
-			uint dtRid = GetTypeDefRid(declaringType);
+			uint nestedRid = GetRid(nestedType);
+			uint dtRid = GetRid(declaringType);
 			if (nestedRid == 0 || dtRid == 0)
 				return;
 			var row = new RawNestedClassRow(nestedRid, dtRid);
@@ -1006,7 +1333,7 @@ namespace dot10.DotNet.Writer {
 		protected void AddFieldLayout(FieldDef field) {
 			if (field == null || field.FieldLayout == null)
 				return;
-			var rid = GetFieldRid(field);
+			var rid = GetRid(field);
 			var row = new RawFieldLayoutRow(field.FieldLayout.Offset, rid);
 			fieldLayoutInfos.Add(field, row);
 		}
@@ -1037,7 +1364,7 @@ namespace dot10.DotNet.Writer {
 		protected void AddFieldRVA(FieldDef field) {
 			if (field == null || field.FieldRVA == null)
 				return;
-			uint rid = GetFieldRid(field);
+			uint rid = GetRid(field);
 			var fieldRVA = field.FieldRVA;
 			var row = new RawFieldRVARow((uint)fieldRVA.RVA, rid);
 			fieldRVAInfos.Add(field, row);
@@ -1191,7 +1518,7 @@ namespace dot10.DotNet.Writer {
 				Error("Event is null");
 				return;
 			}
-			uint rid = GetEventRid(evt);
+			uint rid = GetRid(evt);
 			if (rid == 0)
 				return;
 			var token = new MDToken(Table.Event, rid);
@@ -1210,7 +1537,7 @@ namespace dot10.DotNet.Writer {
 				Error("Property is null");
 				return;
 			}
-			uint rid = GetPropertyRid(prop);
+			uint rid = GetRid(prop);
 			if (rid == 0)
 				return;
 			var token = new MDToken(Table.Property, rid);
@@ -1227,7 +1554,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void AddMethodSemantics(MDToken owner, MethodDef method, MethodSemanticsAttributes flags) {
-			uint methodRid = GetMethodRid(method);
+			uint methodRid = GetRid(method);
 			if (methodRid == 0)
 				return;
 			uint encodedOwner;
@@ -1242,7 +1569,7 @@ namespace dot10.DotNet.Writer {
 		void AddMethodImpls(MethodDef method, IList<MethodOverride> overrides) {
 			if (overrides == null)
 				return;
-			uint rid = GetMethodRid(method);
+			uint rid = GetRid(method);
 			foreach (var ovr in overrides) {
 				var row = new RawMethodImplRow(rid,
 							AddMethodDefOrRef(ovr.MethodBody),
@@ -1258,7 +1585,7 @@ namespace dot10.DotNet.Writer {
 		protected void AddClassLayout(TypeDef type) {
 			if (type == null || type.ClassLayout == null)
 				return;
-			var rid = GetTypeDefRid(type);
+			var rid = GetRid(type);
 			var classLayout = type.ClassLayout;
 			var row = new RawClassLayoutRow(classLayout.PackingSize, classLayout.ClassSize, rid);
 			classLayoutInfos.Add(type, row);
@@ -1496,48 +1823,6 @@ namespace dot10.DotNet.Writer {
 		/// Initializes <see cref="MetaData.eventMapInfos"/> and <see cref="MetaData.propertyMapInfos"/>.
 		/// </summary>
 		protected abstract void AllocateMemberDefRids();
-
-		/// <summary>
-		/// Gets the new <see cref="TypeDef"/> rid
-		/// </summary>
-		/// <param name="td">Type</param>
-		/// <returns>Its new rid</returns>
-		protected abstract uint GetTypeDefRid(TypeDef td);
-
-		/// <summary>
-		/// Gets the new <see cref="FieldDef"/> rid
-		/// </summary>
-		/// <param name="fd">Type</param>
-		/// <returns>Its new rid</returns>
-		protected abstract uint GetFieldRid(FieldDef fd);
-
-		/// <summary>
-		/// Gets the new <see cref="MethodDef"/> rid
-		/// </summary>
-		/// <param name="md">Method</param>
-		/// <returns>Its new rid</returns>
-		protected abstract uint GetMethodRid(MethodDef md);
-
-		/// <summary>
-		/// Gets the new <see cref="ParamDef"/> rid
-		/// </summary>
-		/// <param name="pd">Parameter</param>
-		/// <returns>Its new rid</returns>
-		protected abstract uint GetParamRid(ParamDef pd);
-
-		/// <summary>
-		/// Gets the new <see cref="EventDef"/> rid
-		/// </summary>
-		/// <param name="ed">Event</param>
-		/// <returns>Its new rid</returns>
-		protected abstract uint GetEventRid(EventDef ed);
-
-		/// <summary>
-		/// Gets the new <see cref="PropertyDef"/> rid
-		/// </summary>
-		/// <param name="pd">Property</param>
-		/// <returns>Its new rid</returns>
-		protected abstract uint GetPropertyRid(PropertyDef pd);
 
 		/// <summary>
 		/// Adds a <see cref="TypeRef"/>. Its custom attributes are also added.
