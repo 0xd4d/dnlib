@@ -6,10 +6,11 @@ namespace dot10.DotNet.Writer {
 	/// Creates rows in a table. Rows can optionally be shared to create a compact table.
 	/// </summary>
 	/// <typeparam name="T">The raw row type</typeparam>
-	class MDTable<T> {
+	public class MDTable<T> {
 		readonly Table table;
 		readonly Dictionary<T, uint> cachedDict;
 		readonly List<T> cached;
+		bool isSorted;
 
 		/// <summary>
 		/// Gets the table type
@@ -30,6 +31,14 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		public int Rows {
 			get { return cached.Count; }
+		}
+
+		/// <summary>
+		/// Gets/sets a value indicating whether it's sorted
+		/// </summary>
+		public bool IsSorted {
+			get { return isSorted; }
+			set { isSorted = value; }
 		}
 
 		/// <summary>
