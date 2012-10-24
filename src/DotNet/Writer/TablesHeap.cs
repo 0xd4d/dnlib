@@ -104,5 +104,10 @@ namespace dot10.DotNet.Writer {
 		public void WriteTo(BinaryWriter writer) {
 			throw new System.NotImplementedException();	//TODO:
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return Name;
+		}
 	}
 }

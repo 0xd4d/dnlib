@@ -39,5 +39,10 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public abstract void WriteTo(BinaryWriter writer);
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return Name;
+		}
 	}
 }
