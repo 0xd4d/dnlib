@@ -5,6 +5,33 @@ using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
+	/// <see cref="TablesHeap"/> options
+	/// </summary>
+	public class TablesHeapOptions {
+		/// <summary>
+		/// Should be 0
+		/// </summary>
+		public uint? Reserved1;
+
+		/// <summary>
+		/// Major version number. Default is 2. Valid versions are v1.0 (no generics),
+		/// v1.1 (generics are supported), or v2.0 (recommended).
+		/// </summary>
+		public byte? MajorVersion;
+
+		/// <summary>
+		/// Minor version number. Default is 0.
+		/// </summary>
+		public byte? MinorVersion;
+
+		/// <summary>
+		/// <c>true</c> if the Edit N' Continue stream header should be used (#-) instead of
+		/// the normal compressed stream (#~).
+		/// </summary>
+		public bool? UseENC;
+	}
+
+	/// <summary>
 	/// Contains all .NET tables
 	/// </summary>
 	class TablesHeap : IHeap {
@@ -84,8 +111,16 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public TablesHeap() {
-			this.name = "#~";
+		public TablesHeap()
+			: this(null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="options">Options</param>
+		public TablesHeap(TablesHeapOptions options) {
+			this.options = options ?? new TablesHeapOptions();
 		}
 
 		/// <inheritdoc/>

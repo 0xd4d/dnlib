@@ -114,7 +114,8 @@ namespace dot10.DotNet.Writer {
 			constants = new UniqueChunkList<ByteArrayChunk>();
 			methodBodies = new MethodBodyChunks(shareBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
-			var mdOptions = MetaDataOptions.PreserveStringsOffsets | MetaDataOptions.PreserveUSOffsets | MetaDataOptions.PreserveBlobOffsets;
+			var mdOptions = new MetaDataOptions();
+			mdOptions.Flags = MetaDataFlags.PreserveStringsOffsets | MetaDataFlags.PreserveUSOffsets | MetaDataFlags.PreserveBlobOffsets;
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, mdOptions);
 			debugDirectory = new DebugDirectory();
 		}

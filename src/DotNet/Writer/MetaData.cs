@@ -8,10 +8,10 @@ using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
-	/// <see cref="MetaData"/> options
+	/// <see cref="MetaData"/> flags
 	/// </summary>
 	[Flags]
-	public enum MetaDataOptions {
+	public enum MetaDataFlags {
 		/// <summary>
 		/// Preserves all rids in the following tables: <c>TypeRef</c>, <c>TypeDef</c>,
 		/// <c>Field</c>, <c>Method</c>, <c>Param</c>, <c>MemberRef</c>, <c>StandAloneSig</c>,
@@ -42,13 +42,72 @@ namespace dot10.DotNet.Writer {
 	}
 
 	/// <summary>
+	/// <see cref="MetaData"/> options
+	/// </summary>
+	public class MetaDataOptions {
+		/// <summary>
+		/// <see cref="MetaDataHeader"/> options
+		/// </summary>
+		public MetaDataHeaderOptions MetaDataHeaderOptions;
+
+		/// <summary>
+		/// <see cref="TablesHeap"/> options
+		/// </summary>
+		public TablesHeapOptions TablesHeapOptions;
+
+		/// <summary>
+		/// Various options
+		/// </summary>
+		public MetaDataFlags Flags;
+
+		/// <summary>
+		/// Any additional heaps that should be added to the heaps list
+		/// </summary>
+		public IEnumerable<IHeap> OtherHeaps;
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public MetaDataOptions() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="flags">Flags</param>
+		public MetaDataOptions(MetaDataFlags flags) {
+			this.Flags = flags;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="mdhOptions">Meta data header options</param>
+		public MetaDataOptions(MetaDataHeaderOptions mdhOptions) {
+			this.MetaDataHeaderOptions = mdhOptions;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="mdhOptions">Meta data header options</param>
+		/// <param name="flags">Flags</param>
+		public MetaDataOptions(MetaDataHeaderOptions mdhOptions, MetaDataFlags flags) {
+			this.Flags = flags;
+			this.MetaDataHeaderOptions = mdhOptions;
+		}
+	}
+
+	/// <summary>
 	/// .NET meta data
 	/// </summary>
 	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper {
+		MetaDataOptions options;
 		internal ModuleDef module;
 		internal UniqueChunkList<ByteArrayChunk> constants;
 		internal MethodBodyChunks methodBodies;
 		internal NetResources netResources;
+		internal MetaDataHeader metaDataHeader;
 		internal TablesHeap tablesHeap;
 		internal StringsHeap stringsHeap;
 		internal USHeap usHeap;
@@ -160,7 +219,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="netResources">.NET resources list</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
 		public static MetaData Create(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources) {
-			return Create(module, constants, methodBodies, netResources, 0);
+			return Create(module, constants, methodBodies, netResources, null);
 		}
 
 		/// <summary>
@@ -173,7 +232,9 @@ namespace dot10.DotNet.Writer {
 		/// <param name="options">Options</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
 		public static MetaData Create(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options) {
-			if ((options & MetaDataOptions.PreserveTokens) != 0 && module is ModuleDefMD)
+			if (options == null)
+				options = new MetaDataOptions();
+			if ((options.Flags & MetaDataFlags.PreserveTokens) != 0 && module is ModuleDefMD)
 				return new PreserveTokensMetaData(module, constants, methodBodies, netResources, options);
 			return new NormalMetaData(module, constants, methodBodies, netResources, options);
 		}
@@ -189,48 +250,48 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataOptions.PreserveTokens"/> bit
+		/// Gets the <see cref="MetaDataFlags.PreserveTokens"/> bit
 		/// </summary>
 		public bool PreserveTokens {
-			get { return (options & MetaDataOptions.PreserveTokens) != 0; }
+			get { return (options.Flags & MetaDataFlags.PreserveTokens) != 0; }
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataOptions.PreserveStringsOffsets"/> bit
+		/// Gets/sets the <see cref="MetaDataFlags.PreserveStringsOffsets"/> bit
 		/// </summary>
 		public bool PreserveStringsOffsets {
-			get { return (options & MetaDataOptions.PreserveStringsOffsets) != 0; }
+			get { return (options.Flags & MetaDataFlags.PreserveStringsOffsets) != 0; }
 			set {
 				if (value)
-					options |= MetaDataOptions.PreserveStringsOffsets;
+					options.Flags |= MetaDataFlags.PreserveStringsOffsets;
 				else
-					options &= ~MetaDataOptions.PreserveStringsOffsets;
+					options.Flags &= ~MetaDataFlags.PreserveStringsOffsets;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataOptions.PreserveUSOffsets"/> bit
+		/// Gets/sets the <see cref="MetaDataFlags.PreserveUSOffsets"/> bit
 		/// </summary>
 		public bool PreserveUSOffsets {
-			get { return (options & MetaDataOptions.PreserveUSOffsets) != 0; }
+			get { return (options.Flags & MetaDataFlags.PreserveUSOffsets) != 0; }
 			set {
 				if (value)
-					options |= MetaDataOptions.PreserveUSOffsets;
+					options.Flags |= MetaDataFlags.PreserveUSOffsets;
 				else
-					options &= ~MetaDataOptions.PreserveUSOffsets;
+					options.Flags &= ~MetaDataFlags.PreserveUSOffsets;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataOptions.PreserveBlobOffsets"/> bit
+		/// Gets/sets the <see cref="MetaDataFlags.PreserveBlobOffsets"/> bit
 		/// </summary>
 		public bool PreserveBlobOffsets {
-			get { return (options & MetaDataOptions.PreserveBlobOffsets) != 0; }
+			get { return (options.Flags & MetaDataFlags.PreserveBlobOffsets) != 0; }
 			set {
 				if (value)
-					options |= MetaDataOptions.PreserveBlobOffsets;
+					options.Flags |= MetaDataFlags.PreserveBlobOffsets;
 				else
-					options &= ~MetaDataOptions.PreserveBlobOffsets;
+					options.Flags &= ~MetaDataFlags.PreserveBlobOffsets;
 			}
 		}
 
@@ -247,8 +308,9 @@ namespace dot10.DotNet.Writer {
 			this.constants = constants;
 			this.methodBodies = methodBodies;
 			this.netResources = netResources;
-			this.options = options;
-			this.tablesHeap = new TablesHeap();
+			this.options = options ?? new MetaDataOptions();
+			this.metaDataHeader = new MetaDataHeader(this.options.MetaDataHeaderOptions);
+			this.tablesHeap = new TablesHeap(this.options.TablesHeapOptions);
 			this.stringsHeap = new StringsHeap();
 			this.usHeap = new USHeap();
 			this.guidHeap = new GuidHeap();
@@ -637,6 +699,7 @@ namespace dot10.DotNet.Writer {
 			AllocateTypeDefRids();
 			AllocateMemberDefRids();
 			InitializeTypeDefsAndMemberDefs();
+			//TODO: Add ExportedTypes
 			AddAssembly(module.Assembly);
 			SortTables();
 			InitializeGenericParamConstraintTable();
