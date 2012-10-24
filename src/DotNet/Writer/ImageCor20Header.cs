@@ -58,6 +58,7 @@ namespace dot10.DotNet.Writer {
 	/// .NET header
 	/// </summary>
 	public class ImageCor20Header : IChunk {
+		long startOffset;
 		FileOffset offset;
 		RVA rva;
 		Cor20HeaderOptions options;
@@ -93,6 +94,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
+			startOffset = writer.BaseStream.Position;
 			writer.Write(0x48);	// cb
 			writer.Write(options.MajorRuntimeVersion);
 			writer.Write(options.MinorRuntimeVersion);
@@ -112,6 +114,27 @@ namespace dot10.DotNet.Writer {
 			writer.Write(0);	// Export address table jumps size
 			writer.Write(0);	// Managed native header RVA
 			writer.Write(0);	// Managed native header size
+		}
+
+		/// <summary>
+		/// Update pointers to various structures in the PE file
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="metaData">Meta data</param>
+		/// <param name="netResources">.NET resources</param>
+		/// <param name="strongNameSig">Strong name sig or <c>null</c> if none</param>
+		public void UpdateFields(BinaryWriter writer, MetaData metaData, NetResources netResources, StrongNameSignature strongNameSig) {
+			writer.BaseStream.Position = startOffset + 8;
+			writer.Write((uint)metaData.RVA);
+			writer.Write(metaData.GetLength());
+
+			writer.BaseStream.Position = startOffset + 0x18;
+			writer.Write(netResources.GetLength() == 0 ? 0 : (uint)netResources.RVA);
+			writer.Write(netResources.GetLength());
+			if (strongNameSig != null) {
+				writer.Write(strongNameSig.GetLength() == 0 ? 0 : (uint)strongNameSig.RVA);
+				writer.Write(strongNameSig.GetLength());
+			}
 		}
 	}
 }

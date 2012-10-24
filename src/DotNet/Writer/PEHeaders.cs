@@ -138,6 +138,11 @@ namespace dot10.DotNet.Writer {
 		uint sectionAlignment;
 		uint fileAlignment;
 		static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+		long startOffset;
+		long sizeOfCodeOffset;
+		long sizeOfImageOffset;
+		long sectionsOffset;
+		long dataDirectoryOffset;
 
 		// Copied from Partition II.25.2.1
 		static readonly byte[] dosHeader = new byte[0x80] {
@@ -226,6 +231,8 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
+			startOffset = writer.BaseStream.Position;
+
 			// DOS header
 			writer.Write(dosHeader);
 
@@ -246,6 +253,7 @@ namespace dot10.DotNet.Writer {
 				writer.Write((ushort)0x010B);
 				writer.Write(options.MajorLinkerVersion ?? 11);
 				writer.Write(options.MinorLinkerVersion ?? 0);
+				sizeOfCodeOffset = writer.BaseStream.Position;
 				writer.Write(0);	// SizeOfCode
 				writer.Write(0);	// SizeOfInitializedData
 				writer.Write(0);	// SizeOfUninitializedData
@@ -260,8 +268,9 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.MajorImageVersion ?? 0);
 				writer.Write(options.MinorImageVersion ?? 0);
 				writer.Write(options.MajorSubsystemVersion ?? 4);
-				writer.Write(options.MinorSubsystemVersion ?? 4);
+				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
+				sizeOfImageOffset = writer.BaseStream.Position;
 				writer.Write(0);	// SizeOfImage
 				writer.Write(0);	// SizeOfHeaders
 				writer.Write(0);	// CheckSum
@@ -278,6 +287,7 @@ namespace dot10.DotNet.Writer {
 				writer.Write((ushort)0x020B);
 				writer.Write(options.MajorLinkerVersion ?? 11);
 				writer.Write(options.MinorLinkerVersion ?? 0);
+				sizeOfCodeOffset = writer.BaseStream.Position;
 				writer.Write(0);	// SizeOfCode
 				writer.Write(0);	// SizeOfInitializedData
 				writer.Write(0);	// SizeOfUninitializedData
@@ -291,8 +301,9 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.MajorImageVersion ?? 0);
 				writer.Write(options.MinorImageVersion ?? 0);
 				writer.Write(options.MajorSubsystemVersion ?? 4);
-				writer.Write(options.MinorSubsystemVersion ?? 4);
+				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
+				sizeOfImageOffset = writer.BaseStream.Position;
 				writer.Write(0);	// SizeOfImage
 				writer.Write(0);	// SizeOfHeaders
 				writer.Write(0);	// CheckSum
@@ -306,6 +317,7 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.NumberOfRvaAndSizes ?? 0x00000010);
 			}
 
+			dataDirectoryOffset = writer.BaseStream.Position;
 			writer.Write(0UL);	// Export table
 			writer.Write(0UL);	// Import table
 			writer.Write(0UL);	// Resource table
@@ -324,6 +336,7 @@ namespace dot10.DotNet.Writer {
 			writer.Write(0UL);	// Reserved
 
 			// Sections
+			sectionsOffset = writer.BaseStream.Position;
 			foreach (var section in sections) {
 				writer.Write(Encoding.UTF8.GetBytes(section.Name + "\0\0\0\0\0\0\0\0"), 0, 8);
 				writer.Write(0);	// VirtualSize
@@ -336,6 +349,101 @@ namespace dot10.DotNet.Writer {
 				writer.Write((ushort)0);	// NumberOfLinenumbers
 				writer.Write(section.Characteristics);
 			}
+		}
+
+		/// <summary>
+		/// Updates the section fields in the optional header
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="entryPoint">Entry point</param>
+		public void UpdateSectionFields(BinaryWriter writer, RVA entryPoint) {
+			uint sizeOfHeaders = Utils.AlignUp(length, fileAlignment);
+
+			writer.BaseStream.Position = sectionsOffset + 8;
+			uint sizeOfImage = Utils.AlignUp(sizeOfHeaders, sectionAlignment);
+			uint baseOfData = 0, baseOfCode = 0;
+			uint sizeOfCode = 0, sizeOfInitdData = 0, sizeOfUninitdData = 0;
+			foreach (var section in sections) {
+				uint vs = section.GetLength();
+				uint alignedVs = Utils.AlignUp(vs, sectionAlignment);
+				uint rva = sizeOfImage;
+				uint rawSize = Utils.AlignUp(section.GetLength(), fileAlignment);
+				uint dataOffset = (uint)section.FileOffset;
+				sizeOfImage += alignedVs;
+
+				writer.Write(vs);			// VirtualSize
+				writer.Write(rva);			// VirtualAddress
+				writer.Write(rawSize);		// SizeOfRawData
+				writer.Write(dataOffset);	// PointerToRawData
+				writer.BaseStream.Position += 0x18;
+
+				if (baseOfCode == 0 && section.IsCode)
+					baseOfCode = rva;
+				if (baseOfData == 0 && (section.IsInitializedData || section.IsUninitializedData))
+					baseOfData = rva;
+				if (section.IsCode)
+					sizeOfCode += alignedVs;
+				if (section.IsInitializedData)
+					sizeOfInitdData += alignedVs;
+				if (section.IsUninitializedData)
+					sizeOfUninitdData += alignedVs;
+			}
+
+			writer.BaseStream.Position = sizeOfCodeOffset;
+			writer.Write(sizeOfCode);
+			writer.Write(sizeOfInitdData);
+			writer.Write(sizeOfUninitdData);
+			writer.Write((uint)entryPoint);
+			writer.Write(baseOfCode);
+			if (Use32BitOptionalHeader())
+				writer.Write(baseOfData);
+
+			writer.BaseStream.Position = sizeOfImageOffset;
+			writer.Write(sizeOfImage);
+			writer.Write(sizeOfHeaders);
+		}
+
+		/// <summary>
+		/// Update a data directory
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="index">Data directory index (eg. 14 for .NET directory)</param>
+		/// <param name="rva">RVA</param>
+		/// <param name="length">Size</param>
+		public void WriteDataDirectory(BinaryWriter writer, int index, RVA rva, uint length) {
+			if ((uint)index >= 16)
+				throw new ModuleWriterException(string.Format("Invalid data directory index: {0}", index));
+			writer.BaseStream.Position = dataDirectoryOffset + index * 8;
+			writer.Write((uint)rva);
+			writer.Write(length);
+		}
+
+		/// <summary>
+		/// Calculates the PE checksum and writes it to the checksum field
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="length">Length of PE file</param>
+		public void WriteCheckSum(BinaryWriter writer, long length) {
+			writer.BaseStream.Position = startOffset;
+			long checkSumOffset = (long)sizeOfImageOffset + 8;
+			uint checkSum = CalculateCheckSum(new BinaryReader(writer.BaseStream), length, checkSumOffset);
+			writer.BaseStream.Position = sizeOfImageOffset + 8;
+			writer.Write(checkSum);
+		}
+
+		static uint CalculateCheckSum(BinaryReader reader, long length, long checkSumOffset) {
+			uint checkSum = 0;
+			for (long i = 0; i < length; i += 2) {
+				if (i == checkSumOffset) {
+					reader.ReadUInt32();
+					i += 2;
+					continue;
+				}
+				checkSum += reader.ReadUInt16();
+				checkSum = (ushort)(checkSum + (checkSum >> 16));
+			}
+			ulong cks = (ulong)checkSum + (ulong)length;
+			return (uint)cks + (uint)(cks >> 32);
 		}
 
 		Machine GetMachine() {

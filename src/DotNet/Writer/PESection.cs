@@ -23,6 +23,27 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// <c>true</c> if this is a code section
+		/// </summary>
+		public bool IsCode {
+			get { return (characteristics & 0x20) != 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is an initialized data section
+		/// </summary>
+		public bool IsInitializedData {
+			get { return (characteristics & 0x40) != 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is an uninitialized data section
+		/// </summary>
+		public bool IsUninitializedData {
+			get { return (characteristics & 0x80) != 0; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Section name</param>

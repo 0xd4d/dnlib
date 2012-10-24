@@ -692,6 +692,18 @@ namespace dot10.DotNet.Writer {
 			Create();
 		}
 
+		/// <summary>
+		/// Updates each <c>Method</c> row's <c>RVA</c> column if it has any code
+		/// </summary>
+		public void UpdateMethodRvas() {
+			foreach (var kv in methodToBody) {
+				var method = kv.Key;
+				var body = kv.Value;
+				var row = tablesHeap.MethodTable[GetRid(method)];
+				row.RVA = (uint)body.RVA;
+			}
+		}
+
 		void Create() {
 			allTypeDefs = new List<TypeDef>(GetAllTypeDefs());
 			AddModule(module);
@@ -1976,6 +1988,10 @@ namespace dot10.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 
+			tablesHeap.BigStrings = stringsHeap.IsBig;
+			tablesHeap.BigBlob = blobHeap.IsBig;
+			tablesHeap.BigGuid = guidHeap.IsBig;
+
 			metaDataHeader.Heaps = GetHeaps();
 
 			metaDataHeader.SetOffset(offset, rva);
@@ -1992,10 +2008,6 @@ namespace dot10.DotNet.Writer {
 				rva += len;
 			}
 			length = rva - this.rva;
-
-			tablesHeap.BigStrings = stringsHeap.IsBig;
-			tablesHeap.BigBlob = blobHeap.IsBig;
-			tablesHeap.BigGuid = guidHeap.IsBig;
 		}
 
 		IList<IHeap> GetHeaps() {

@@ -153,20 +153,21 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
+			long startOffset = writer.BaseStream.Position;
 			writer.Write(options.Signature ?? MetaDataHeaderOptions.DEFAULT_SIGNATURE);
 			writer.Write(options.MajorVersion ?? 1);
 			writer.Write(options.MinorVersion ?? 1);
 			writer.Write(options.Reserved1 ?? 0);
 			var s = GetVersionString();
-			writer.Write(s.Length);
+			writer.Write(Utils.AlignUp(s.Length, 4));
 			writer.Write(s);
 			writer.WriteZeros(Utils.AlignUp(s.Length, 4) - s.Length);
 			writer.Write((byte)(options.StorageFlags ?? 0));
 			writer.Write(options.Reserved2 ?? 0);
 			writer.Write((ushort)heaps.Count);
 			foreach (var heap in heaps) {
-				writer.Write(0);	// Offset
-				writer.Write(0);	// Size
+				writer.Write((uint)(heap.FileOffset - offset));
+				writer.Write(heap.GetLength());
 				writer.Write(s = GetAsciizName(heap.Name));
 				if (s.Length > 32)
 					throw new ModuleWriterException(string.Format("Heap name '{0}' is > 32 bytes", heap.Name));

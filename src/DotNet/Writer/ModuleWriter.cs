@@ -53,7 +53,7 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="fileName">File name. The file will be truncated if it exists.</param>
 		public void Write(string fileName) {
-			using (var dest = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite)) {
+			using (var dest = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
 				dest.SetLength(0);
 				try {
 					Write(dest);
@@ -114,8 +114,7 @@ namespace dot10.DotNet.Writer {
 			constants = new UniqueChunkList<ByteArrayChunk>();
 			methodBodies = new MethodBodyChunks(shareBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
-			var mdOptions = new MetaDataOptions();
-			mdOptions.Flags = MetaDataFlags.PreserveStringsOffsets | MetaDataFlags.PreserveUSOffsets | MetaDataFlags.PreserveBlobOffsets;
+			var mdOptions = new MetaDataOptions();	//TODO: Use the options the user wants
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, mdOptions);
 			debugDirectory = new DebugDirectory();
 		}
@@ -151,6 +150,7 @@ namespace dot10.DotNet.Writer {
 				offset = offset.AlignUp(peHeaders.FileAlignment);
 				rva = rva.AlignUp(peHeaders.SectionAlignment);
 			}
+			metaData.UpdateMethodRvas();
 
 			offset = 0;
 			foreach (var chunk in chunks) {
@@ -160,6 +160,12 @@ namespace dot10.DotNet.Writer {
 				writer.WriteZeros((int)(newOffset - offset));
 				offset = newOffset;
 			}
+
+			peHeaders.UpdateSectionFields(writer, nativeEntryPoint == null ? 0 : nativeEntryPoint.RVA);
+			peHeaders.WriteDataDirectory(writer, 14, imageCor20Header.RVA, imageCor20Header.GetLength());
+			imageCor20Header.UpdateFields(writer, metaData, netResources, strongNameSignature);
+			//TODO: Strong name sign the assembly
+			peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);	//TODO: Option to disable this
 		}
 	}
 }
