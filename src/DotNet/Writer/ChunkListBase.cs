@@ -87,7 +87,7 @@ namespace dot10.DotNet.Writer {
 				uint chunkLen = elem.chunk.GetLength();
 				offset += chunkLen;
 				rva += chunkLen;
-				length += chunkLen;
+				length += padding + chunkLen;
 			}
 		}
 

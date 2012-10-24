@@ -173,7 +173,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="options">Options</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
 		public static MetaData Create(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options) {
-			if ((options & MetaDataOptions.PreserveTokens) != 0)
+			if ((options & MetaDataOptions.PreserveTokens) != 0 && module is ModuleDefMD)
 				return new PreserveTokensMetaData(module, constants, methodBodies, netResources, options);
 			return new NormalMetaData(module, constants, methodBodies, netResources, options);
 		}
@@ -1269,7 +1269,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Adds generic paramters
+		/// Adds generic parameters
 		/// </summary>
 		/// <param name="token">New token of owner</param>
 		/// <param name="gps">All generic params</param>
@@ -1892,17 +1892,17 @@ namespace dot10.DotNet.Writer {
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
-			throw new System.NotImplementedException();
+			//TODO:
 		}
 
 		/// <inheritdoc/>
 		public uint GetLength() {
-			throw new System.NotImplementedException();
+			return 0;	//TODO:
 		}
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			throw new System.NotImplementedException();
+			//TODO:
 		}
 	}
 }

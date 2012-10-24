@@ -89,7 +89,8 @@ namespace dot10.DotNet.Writer {
 		public void WriteTo(BinaryWriter writer) {
 			writer.Write(code);
 			if (HasExtraSections) {
-				writer.WriteZeros((int)rva.AlignUp(EXTRA_SECTIONS_ALIGNMENT) - (int)rva);
+				RVA rva2 = rva + (uint)code.Length;
+				writer.WriteZeros((int)rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT) - (int)rva2);
 				writer.Write(extraSections);
 			}
 		}

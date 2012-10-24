@@ -28,6 +28,7 @@ namespace dot10.DotNet.Writer {
 		PESection rsrcSection;
 		PESection relocSection;
 
+		PEHeaders peHeaders;
 		ImportAddressTable importAddressTable;
 		ImageCor20Header imageCor20Header;
 		StrongNameSignature strongNameSignature;
@@ -82,7 +83,7 @@ namespace dot10.DotNet.Writer {
 			Initialize();
 
 			metaData.CreateTables();
-			//TODO:
+			WriteFile(dest);
 		}
 
 		void Initialize() {
@@ -98,6 +99,8 @@ namespace dot10.DotNet.Writer {
 			bool isSn = false;	//TODO:
 			bool is64bit = false;	//TODO:
 			bool shareBodies = true;	//TODO:
+
+			peHeaders = new PEHeaders();
 
 			if (!is64bit) {
 				importAddressTable = new ImportAddressTable();
@@ -127,6 +130,35 @@ namespace dot10.DotNet.Writer {
 			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			textSection.Add(importDirectory, DEFAULT_IMPORTDIRECTORY_ALIGNMENT);
 			textSection.Add(nativeEntryPoint, DEFAULT_NATIVEEP_ALIGNMENT);
+		}
+
+		void WriteFile(Stream dest) {
+			var chunks = new List<IChunk>();
+			chunks.Add(peHeaders);
+			foreach (var section in sections)
+				chunks.Add(section);
+
+			var writer = new BinaryWriter(dest);
+			peHeaders.PESections = sections;
+			FileOffset offset = 0;
+			RVA rva = 0;
+			foreach (var chunk in chunks) {
+				chunk.SetOffset(offset, rva);
+				uint len = chunk.GetLength();
+				offset += len;
+				rva += len;
+				offset = offset.AlignUp(peHeaders.FileAlignment);
+				rva = rva.AlignUp(peHeaders.SectionAlignment);
+			}
+
+			offset = 0;
+			foreach (var chunk in chunks) {
+				chunk.VerifyWriteTo(writer);
+				offset += chunk.GetLength();
+				var newOffset = offset.AlignUp(peHeaders.FileAlignment);
+				writer.WriteZeros((int)(newOffset - offset));
+				offset = newOffset;
+			}
 		}
 	}
 }

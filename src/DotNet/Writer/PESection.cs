@@ -1,10 +1,26 @@
-﻿namespace dot10.DotNet.Writer {
+﻿using dot10.PE;
+
+namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// A PE section
 	/// </summary>
 	public class PESection : ChunkList<IChunk> {
 		string name;
 		uint characteristics;
+
+		/// <summary>
+		/// Gets the name
+		/// </summary>
+		public string Name {
+			get { return name; }
+		}
+
+		/// <summary>
+		/// Gets the Characteristics
+		/// </summary>
+		public uint Characteristics {
+			get { return characteristics; }
+		}
 
 		/// <summary>
 		/// Constructor

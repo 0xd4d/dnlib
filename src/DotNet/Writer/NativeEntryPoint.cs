@@ -24,17 +24,17 @@ namespace dot10.DotNet.Writer {
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
-			throw new System.NotImplementedException();
+			//TODO:
 		}
 
 		/// <inheritdoc/>
 		public uint GetLength() {
-			throw new System.NotImplementedException();
+			return 0;	//TODO:
 		}
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			throw new System.NotImplementedException();
+			//TODO:
 		}
 	}
 }
