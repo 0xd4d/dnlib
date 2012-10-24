@@ -25,17 +25,29 @@ namespace dot10.DotNet.Writer {
 		/// Gets/sets a value indicating whether it's sorted
 		/// </summary>
 		bool IsSorted { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="TableInfo"/>
+		/// </summary>
+		TableInfo TableInfo { get; set; }
+
+		/// <summary>
+		/// Called when the table can't be modified any more
+		/// </summary>
+		void SetReadOnly();
 	}
 
 	/// <summary>
 	/// Creates rows in a table. Rows can optionally be shared to create a compact table.
 	/// </summary>
 	/// <typeparam name="T">The raw row type</typeparam>
-	public class MDTable<T> : IMDTable {
+	public class MDTable<T> : IMDTable, IEnumerable<T> {
 		readonly Table table;
 		readonly Dictionary<T, uint> cachedDict;
 		readonly List<T> cached;
+		TableInfo tableInfo;
 		bool isSorted;
+		bool isReadOnly;
 
 		/// <inheritdoc/>
 		public Table Table {
@@ -58,6 +70,12 @@ namespace dot10.DotNet.Writer {
 			set { isSorted = value; }
 		}
 
+		/// <inheritdoc/>
+		public TableInfo TableInfo {
+			get { return tableInfo; }
+			set { tableInfo = value; }
+		}
+
 		/// <summary>
 		/// Gets the value with rid <paramref name="rid"/>
 		/// </summary>
@@ -77,6 +95,11 @@ namespace dot10.DotNet.Writer {
 			this.cached = new List<T>();
 		}
 
+		/// <inheritdoc/>
+		public void SetReadOnly() {
+			isReadOnly = true;
+		}
+
 		/// <summary>
 		/// Adds a row. If the row already exists, returns a rid to the existing one, else
 		/// it's created and a new rid is returned.
@@ -84,6 +107,8 @@ namespace dot10.DotNet.Writer {
 		/// <param name="row">The row. It's now owned by us and must NOT be modified by the caller.</param>
 		/// <returns>The RID (row ID) of the row</returns>
 		public uint Add(T row) {
+			if (isReadOnly)
+				throw new ModuleWriterException(string.Format("Trying to modify table {0} after it's been set to read-only", table));
 			uint rid;
 			if (cachedDict.TryGetValue(row, out rid))
 				return rid;
@@ -96,11 +121,23 @@ namespace dot10.DotNet.Writer {
 		/// <param name="row">The row. It's now owned by us and must NOT be modified by the caller.</param>
 		/// <returns>The RID (row ID) of the row</returns>
 		public uint Create(T row) {
+			if (isReadOnly)
+				throw new ModuleWriterException(string.Format("Trying to modify table {0} after it's been set to read-only", table));
 			uint rid = (uint)cached.Count + 1;
 			if (!cachedDict.ContainsKey(row))
 				cachedDict[row] = rid;
 			cached.Add(row);
 			return rid;
+		}
+
+		/// <inheritdoc/>
+		public IEnumerator<T> GetEnumerator() {
+			return cached.GetEnumerator();
+		}
+
+		/// <inheritdoc/>
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+			return GetEnumerator();
 		}
 	}
 }
