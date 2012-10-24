@@ -3,39 +3,56 @@ using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
+	/// MD table interface
+	/// </summary>
+	public interface IMDTable {
+		/// <summary>
+		/// Gets the table type
+		/// </summary>
+		Table Table { get; }
+
+		/// <summary>
+		/// <c>true</c> if the table is empty
+		/// </summary>
+		bool IsEmpty { get; }
+
+		/// <summary>
+		/// Gets the number of rows in this table
+		/// </summary>
+		int Rows { get; }
+
+		/// <summary>
+		/// Gets/sets a value indicating whether it's sorted
+		/// </summary>
+		bool IsSorted { get; set; }
+	}
+
+	/// <summary>
 	/// Creates rows in a table. Rows can optionally be shared to create a compact table.
 	/// </summary>
 	/// <typeparam name="T">The raw row type</typeparam>
-	public class MDTable<T> {
+	public class MDTable<T> : IMDTable {
 		readonly Table table;
 		readonly Dictionary<T, uint> cachedDict;
 		readonly List<T> cached;
 		bool isSorted;
 
-		/// <summary>
-		/// Gets the table type
-		/// </summary>
+		/// <inheritdoc/>
 		public Table Table {
 			get { return table; }
 		}
 
-		/// <summary>
-		/// <c>true</c> if the table is empty
-		/// </summary>
+		/// <inheritdoc/>
 		public bool IsEmpty {
 			get { return cached.Count == 0; }
 		}
 
-		/// <summary>
-		/// Gets the number of rows in this table
-		/// </summary>
+		/// <inheritdoc/>
 		public int Rows {
 			get { return cached.Count; }
 		}
 
-		/// <summary>
-		/// Gets/sets a value indicating whether it's sorted
-		/// </summary>
+		/// <inheritdoc/>
 		public bool IsSorted {
 			get { return isSorted; }
 			set { isSorted = value; }
