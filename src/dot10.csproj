@@ -114,6 +114,7 @@
     <Compile Include="DotNet\MD\ComImageFlags.cs" />
     <Compile Include="DotNet\MD\MDStreamFlags.cs" />
     <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
+    <Compile Include="DotNet\MD\StorageFlags.cs" />
     <Compile Include="DotNet\Writer\BlobHeap.cs" />
     <Compile Include="DotNet\Writer\ByteArrayChunk.cs" />
     <Compile Include="DotNet\Writer\CustomAttributeWriter.cs" />
