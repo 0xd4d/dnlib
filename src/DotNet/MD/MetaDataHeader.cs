@@ -130,7 +130,7 @@ namespace dot10.DotNet.MD {
 			this.offset2ndPart = (uint)(reader.Position - startOffset);
 			this.flags = (StorageFlags)reader.ReadByte();
 			if (verify && this.flags != 0)
-				throw new BadImageFormatException(string.Format("Storage flags != 0 ({0:X2})", this.flags));
+				throw new BadImageFormatException(string.Format("Storage flags != 0 ({0})", this.flags));
 			this.reserved2 = reader.ReadByte();
 			this.streams = reader.ReadUInt16();
 			this.streamHeaders = new StreamHeader[streams];
