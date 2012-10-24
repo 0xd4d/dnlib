@@ -118,12 +118,12 @@ namespace dot10.PE {
 		/// <summary>
 		/// Returns the Subsystem field
 		/// </summary>
-		ushort Subsystem { get; }
+		Subsystem Subsystem { get; }
 
 		/// <summary>
 		/// Returns the DllCharacteristics field
 		/// </summary>
-		ushort DllCharacteristics { get; }
+		DllCharacteristics DllCharacteristics { get; }
 
 		/// <summary>
 		/// Returns the SizeOfStackReserve field

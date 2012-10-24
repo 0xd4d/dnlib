@@ -4,26 +4,6 @@ using dot10.IO;
 
 namespace dot10.PE {
 	/// <summary>
-	/// IMAGE_FILE_HEADER.Machine enum
-	/// </summary>
-	public enum Machine : ushort {
-		/// <summary>
-		/// x86
-		/// </summary>
-		I386 = 0x014C,
-
-		/// <summary>
-		/// IA-64
-		/// </summary>
-		IA64 = 0x0200,
-
-		/// <summary>
-		/// x64
-		/// </summary>
-		AMD64 = 0x8664,
-	}
-
-	/// <summary>
 	/// Represents the IMAGE_FILE_HEADER PE section
 	/// </summary>
 	public sealed class ImageFileHeader : FileSection {
@@ -33,7 +13,7 @@ namespace dot10.PE {
 		uint pointerToSymbolTable;
 		uint numberOfSymbols;
 		ushort sizeOfOptionalHeader;
-		ushort characteristics;
+		Characteristics characteristics;
 
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.Machine field
@@ -80,7 +60,7 @@ namespace dot10.PE {
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.Characteristics field
 		/// </summary>
-		public ushort Characteristics {
+		public Characteristics Characteristics {
 			get { return characteristics; }
 		}
 
@@ -98,7 +78,7 @@ namespace dot10.PE {
 			this.pointerToSymbolTable = reader.ReadUInt32();
 			this.numberOfSymbols = reader.ReadUInt32();
 			this.sizeOfOptionalHeader = reader.ReadUInt16();
-			this.characteristics = reader.ReadUInt16();
+			this.characteristics = (Characteristics)reader.ReadUInt16();
 			SetEndoffset(reader);
 			if (verify && this.sizeOfOptionalHeader == 0)
 				throw new BadImageFormatException("Invalid SizeOfOptionalHeader");

@@ -237,6 +237,8 @@
     <Compile Include="IO\MemoryStreamCreator.cs" />
     <Compile Include="IO\UnmanagedMemoryImageStream.cs" />
     <Compile Include="IO\UnmanagedMemoryStreamCreator.cs" />
+    <Compile Include="PE\DllCharacteristics.cs" />
+    <Compile Include="PE\Characteristics.cs" />
     <Compile Include="PE\IImageOptionalHeader.cs" />
     <Compile Include="PE\ImageDataDirectory.cs" />
     <Compile Include="PE\ImageDosHeader.cs" />
@@ -247,10 +249,12 @@
     <Compile Include="PE\ImageSectionHeader.cs" />
     <Compile Include="PE\IPEImage.cs" />
     <Compile Include="PE\IPEType.cs" />
+    <Compile Include="PE\Machine.cs" />
     <Compile Include="PE\PEExtensions.cs" />
     <Compile Include="PE\PEImage.cs" />
     <Compile Include="PE\PEInfo.cs" />
     <Compile Include="PE\RVA.cs" />
+    <Compile Include="PE\Subsystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

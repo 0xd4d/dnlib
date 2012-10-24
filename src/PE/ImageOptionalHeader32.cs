@@ -30,8 +30,8 @@ namespace dot10.PE {
 		uint sizeOfImage;
 		uint sizeOfHeaders;
 		uint checkSum;
-		ushort subsystem;
-		ushort dllCharacteristics;
+		Subsystem subsystem;
+		DllCharacteristics dllCharacteristics;
 		uint sizeOfStackReserve;
 		uint sizeOfStackCommit;
 		uint sizeOfHeapReserve;
@@ -197,14 +197,14 @@ namespace dot10.PE {
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.Subsystem field
 		/// </summary>
-		public ushort Subsystem {
+		public Subsystem Subsystem {
 			get { return subsystem; }
 		}
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.DllCharacteristics field
 		/// </summary>
-		public ushort DllCharacteristics {
+		public DllCharacteristics DllCharacteristics {
 			get { return dllCharacteristics; }
 		}
 
@@ -292,8 +292,8 @@ namespace dot10.PE {
 			this.sizeOfImage = reader.ReadUInt32();
 			this.sizeOfHeaders = reader.ReadUInt32();
 			this.checkSum = reader.ReadUInt32();
-			this.subsystem = reader.ReadUInt16();
-			this.dllCharacteristics = reader.ReadUInt16();
+			this.subsystem = (Subsystem)reader.ReadUInt16();
+			this.dllCharacteristics = (DllCharacteristics)reader.ReadUInt16();
 			this.sizeOfStackReserve = reader.ReadUInt32();
 			this.sizeOfStackCommit = reader.ReadUInt32();
 			this.sizeOfHeapReserve = reader.ReadUInt32();
