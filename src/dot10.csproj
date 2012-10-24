@@ -123,6 +123,7 @@
     <Compile Include="DotNet\Writer\IHeap.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
+    <Compile Include="DotNet\Writer\MetaDataHeader.cs" />
     <Compile Include="DotNet\Writer\MethodBodyWriter.cs" />
     <Compile Include="DotNet\Writer\MethodBodyWriterBase.cs" />
     <Compile Include="DotNet\Writer\ModuleWriterException.cs" />
