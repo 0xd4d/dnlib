@@ -102,6 +102,9 @@ namespace dot10.DotNet.Writer {
 	/// .NET meta data
 	/// </summary>
 	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper {
+		uint length;
+		FileOffset offset;
+		RVA rva;
 		MetaDataOptions options;
 		internal ModuleDef module;
 		internal UniqueChunkList<ByteArrayChunk> constants;
@@ -113,10 +116,6 @@ namespace dot10.DotNet.Writer {
 		internal USHeap usHeap;
 		internal GuidHeap guidHeap;
 		internal BlobHeap blobHeap;
-		FileOffset offset;
-		RVA rva;
-		MetaDataOptions options;
-
 		internal List<TypeDef> allTypeDefs;
 		internal Rows<ModuleDef> moduleDefInfos = new Rows<ModuleDef>();
 		internal SortedRows<InterfaceImpl, RawInterfaceImplRow> interfaceImplInfos = new SortedRows<InterfaceImpl, RawInterfaceImplRow>();
@@ -1970,21 +1969,64 @@ namespace dot10.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected abstract uint AddMethodSpec(MethodSpec ms);
 
+		const uint HEAP_ALIGNMENT = 4;
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
-			//TODO:
+
+			metaDataHeader.Heaps = GetHeaps();
+
+			metaDataHeader.SetOffset(offset, rva);
+			uint len = metaDataHeader.GetLength();
+			offset += len;
+			rva += len;
+
+			foreach (var heap in metaDataHeader.Heaps) {
+				offset = offset.AlignUp(HEAP_ALIGNMENT);
+				rva = rva.AlignUp(HEAP_ALIGNMENT);
+				heap.SetOffset(offset, rva);
+				len = heap.GetLength();
+				offset += len;
+				rva += len;
+			}
+			length = rva - this.rva;
+		}
+
+		IList<IHeap> GetHeaps() {
+			var heaps = new List<IHeap>();
+			heaps.Add(tablesHeap);
+			if (!stringsHeap.IsEmpty)
+				heaps.Add(stringsHeap);
+			if (!usHeap.IsEmpty)
+				heaps.Add(usHeap);
+			if (!guidHeap.IsEmpty)
+				heaps.Add(guidHeap);
+			if (!blobHeap.IsEmpty)
+				heaps.Add(blobHeap);
+			if (options.OtherHeaps != null)
+				heaps.AddRange(options.OtherHeaps);
+			return heaps;
 		}
 
 		/// <inheritdoc/>
 		public uint GetLength() {
-			return 0;	//TODO:
+			return length;
 		}
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			//TODO:
+			var rva2 = rva;
+			metaDataHeader.VerifyWriteTo(writer);
+			rva2 += metaDataHeader.GetLength();
+
+			foreach (var heap in metaDataHeader.Heaps) {
+				writer.WriteZeros((int)(rva2.AlignUp(HEAP_ALIGNMENT) - rva2));
+				rva2 = rva2.AlignUp(HEAP_ALIGNMENT);
+				heap.VerifyWriteTo(writer);
+				rva2 += heap.GetLength();
+			}
 		}
 	}
 }
