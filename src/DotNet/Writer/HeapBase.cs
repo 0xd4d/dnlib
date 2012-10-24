@@ -28,6 +28,13 @@ namespace dot10.DotNet.Writer {
 			get { return GetLength() <= 1; }
 		}
 
+		/// <summary>
+		/// <c>true</c> if offsets require 4 bytes instead of 2 bytes.
+		/// </summary>
+		public bool IsBig {
+			get { return GetLength() > 0xFFFF; }
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
