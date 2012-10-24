@@ -67,5 +67,19 @@ namespace dot10.DotNet.MD {
 			default: throw new InvalidOperationException("Invalid column size");
 			}
 		}
+
+		/// <summary>
+		/// Writes a column
+		/// </summary>
+		/// <param name="writer">The writer position on this column</param>
+		/// <param name="value">The column value</param>
+		public void Write(BinaryWriter writer, uint value) {
+			switch (size) {
+			case 1: writer.Write((byte)value); break;
+			case 2: writer.Write((ushort)value); break;
+			case 4: writer.Write(value); break;
+			default: throw new InvalidOperationException("Invalid column size");
+			}
+		}
 	}
 }
