@@ -34,8 +34,9 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Contains all .NET tables
 	/// </summary>
-	class TablesHeap : IHeap {
-		string name;
+	public sealed class TablesHeap : IHeap {
+		uint length;
+		TablesHeapOptions options;
 		FileOffset offset;
 		RVA rva;
 
@@ -49,6 +50,7 @@ namespace dot10.DotNet.Writer {
 			get { return rva; }
 		}
 
+#pragma warning disable 1591	// XML doc comment
 		public readonly MDTable<RawModuleRow> ModuleTable = new MDTable<RawModuleRow>(Table.Module, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawTypeRefRow> TypeRefTable = new MDTable<RawTypeRefRow>(Table.TypeRef, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawTypeDefRow> TypeDefTable = new MDTable<RawTypeDefRow>(Table.TypeDef, RawRowEqualityComparer.Instance);
@@ -94,17 +96,39 @@ namespace dot10.DotNet.Writer {
 		public readonly MDTable<RawGenericParamRow> GenericParamTable = new MDTable<RawGenericParamRow>(Table.GenericParam, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawMethodSpecRow> MethodSpecTable = new MDTable<RawMethodSpecRow>(Table.MethodSpec, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawGenericParamConstraintRow> GenericParamConstraintTable = new MDTable<RawGenericParamConstraintRow>(Table.GenericParamConstraint, RawRowEqualityComparer.Instance);
+#pragma warning restore
 
-		/// <summary>
-		/// Gets/sets the name (#~ or #-)
-		/// </summary>
+		/// <inheritdoc/>
 		public string Name {
-			get { return name; }
-			set { name = value; }
+			get { return IsENC ? "#-" : "#~"; }
 		}
 
 		/// <inheritdoc/>
 		public bool IsEmpty {
+			get { return false; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if the Edit 'N Continue name will be used (#-)
+		/// </summary>
+		public bool IsENC {
+			get {
+				if (options.UseENC ?? false)
+					return true;
+				return HasDeletedRows ||
+						!FieldPtrTable.IsEmpty ||
+						!MethodPtrTable.IsEmpty ||
+						!ParamPtrTable.IsEmpty ||
+						!EventPtrTable.IsEmpty ||
+						!PropertyPtrTable.IsEmpty;
+			}
+		}
+
+		/// <summary>
+		/// <c>true</c> if any rows have been deleted (eg. a deleted TypeDef, Method, Field, etc.
+		/// Its name has been renamed to _Deleted).
+		/// </summary>
+		public bool HasDeletedRows {
 			get { return false; }
 		}
 
@@ -127,17 +151,27 @@ namespace dot10.DotNet.Writer {
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
-			throw new System.NotImplementedException();	//TODO:
+			//TODO:
 		}
 
 		/// <inheritdoc/>
 		public uint GetLength() {
-			throw new System.NotImplementedException();	//TODO:
+			if (length == 0)
+				CalculateLength();
+			return length;
+		}
+
+		void CalculateLength() {
+			//TODO:
+			length = 24;
 		}
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			throw new System.NotImplementedException();	//TODO:
+			//TODO:
+
+			//TODO: Throw if <= v1.0 and generic tables are not empty
+			//TODO: Use HasDeletedRows to set the Deleted flag
 		}
 
 		/// <inheritdoc/>
