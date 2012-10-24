@@ -1992,6 +1992,10 @@ namespace dot10.DotNet.Writer {
 				rva += len;
 			}
 			length = rva - this.rva;
+
+			tablesHeap.BigStrings = stringsHeap.IsBig;
+			tablesHeap.BigBlob = blobHeap.IsBig;
+			tablesHeap.BigGuid = guidHeap.IsBig;
 		}
 
 		IList<IHeap> GetHeaps() {
