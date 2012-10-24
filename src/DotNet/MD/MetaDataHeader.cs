@@ -143,18 +143,18 @@ namespace dot10.DotNet.MD {
 			long endPos = reader.Position + maxLength;
 			if (endPos < reader.Position || endPos > reader.Length)
 				throw new BadImageFormatException("Invalid MD version string");
-			var sb = new StringBuilder(50);
+			byte[] utf8Bytes = new byte[maxLength];
 			uint i;
 			for (i = 0; i < maxLength; i++) {
 				byte b = reader.ReadByte();
 				if (b == 0)
 					break;
-				sb.Append((char)b);
+				utf8Bytes[i] = b;
 			}
 			if (verify && i == maxLength)
 				throw new BadImageFormatException("Invalid MD version string");
 			reader.Position = endPos;
-			return sb.ToString();
+			return Encoding.UTF8.GetString(utf8Bytes, 0, (int)i);
 		}
 	}
 }
