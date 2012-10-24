@@ -35,12 +35,12 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetLength() {
+		public override uint GetRawLength() {
 			return (uint)guids.Count * 16;
 		}
 
 		/// <inheritdoc/>
-		public override void WriteTo(BinaryWriter writer) {
+		public override void WriteToImpl(BinaryWriter writer) {
 			foreach (var guid in guids)
 				writer.Write(guid.ToByteArray());
 		}

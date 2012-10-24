@@ -82,17 +82,17 @@ namespace dot10.DotNet.Writer {
 
 			cached.Add(s);
 			cachedDict[s] = offset = nextOffset;
-			nextOffset += (uint)(Utils.GetCompressedUInt32Length((uint)s.Length) + s.Length * 2 + 1);
+			nextOffset += (uint)(Utils.GetCompressedUInt32Length((uint)s.Length * 2 + 1) + s.Length * 2 + 1);
 			return offset;
 		}
 
 		/// <inheritdoc/>
-		public override uint GetLength() {
+		public override uint GetRawLength() {
 			return nextOffset;
 		}
 
 		/// <inheritdoc/>
-		public override void WriteTo(BinaryWriter writer) {
+		public override void WriteToImpl(BinaryWriter writer) {
 			if (originalData != null)
 				writer.Write(originalData);
 			else

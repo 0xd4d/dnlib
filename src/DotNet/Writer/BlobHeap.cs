@@ -78,12 +78,12 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetLength() {
+		public override uint GetRawLength() {
 			return nextOffset;
 		}
 
 		/// <inheritdoc/>
-		public override void WriteTo(BinaryWriter writer) {
+		public override void WriteToImpl(BinaryWriter writer) {
 			if (originalData != null)
 				writer.Write(originalData);
 			else

@@ -7,6 +7,7 @@ namespace dot10.DotNet.Writer {
 	/// Base class of most heaps
 	/// </summary>
 	public abstract class HeapBase : IHeap {
+		const uint ALIGNMENT = 4;
 		FileOffset offset;
 		RVA rva;
 
@@ -25,7 +26,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public bool IsEmpty {
-			get { return GetLength() <= 1; }
+			get { return GetRawLength() <= 1; }
 		}
 
 		/// <summary>
@@ -42,10 +43,21 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public abstract uint GetLength();
+		public uint GetLength() {
+			return Utils.AlignUp(GetRawLength(), ALIGNMENT);
+		}
 
 		/// <inheritdoc/>
-		public abstract void WriteTo(BinaryWriter writer);
+		public abstract uint GetRawLength();
+
+		/// <inheritdoc/>
+		public void WriteTo(BinaryWriter writer) {
+			WriteToImpl(writer);
+			writer.WriteZeros((int)(Utils.AlignUp(GetRawLength(), ALIGNMENT) - GetRawLength()));
+		}
+
+		/// <inheritdoc/>
+		public abstract void WriteToImpl(BinaryWriter writer);
 
 		/// <inheritdoc/>
 		public override string ToString() {
