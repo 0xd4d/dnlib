@@ -814,6 +814,23 @@ namespace dot10.DotNet.Writer {
 				return a.row.Interface.CompareTo(b.row.Interface);
 			});
 
+			tablesHeap.ClassLayoutTable.IsSorted = true;
+			tablesHeap.ConstantTable.IsSorted = true;
+			tablesHeap.DeclSecurityTable.IsSorted = true;
+			tablesHeap.FieldLayoutTable.IsSorted = true;
+			tablesHeap.FieldMarshalTable.IsSorted = true;
+			tablesHeap.FieldRVATable.IsSorted = true;
+			tablesHeap.GenericParamTable.IsSorted = true;
+			tablesHeap.ImplMapTable.IsSorted = true;
+			tablesHeap.InterfaceImplTable.IsSorted = true;
+			tablesHeap.MethodImplTable.IsSorted = true;
+			tablesHeap.MethodSemanticsTable.IsSorted = true;
+			tablesHeap.NestedClassTable.IsSorted = true;
+
+			// These two are also sorted
+			tablesHeap.EventMapTable.IsSorted = true;
+			tablesHeap.PropertyMapTable.IsSorted = true;
+
 			foreach (var info in classLayoutInfos.infos) tablesHeap.ClassLayoutTable.Create(info.row);
 			foreach (var info in hasConstantInfos.infos) tablesHeap.ConstantTable.Create(info.row);
 			foreach (var info in declSecurityInfos.infos) tablesHeap.DeclSecurityTable.Create(info.row);
@@ -850,6 +867,7 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 			genericParamConstraintInfos.Sort((a, b) => a.row.Owner.CompareTo(b.row.Owner));
+			tablesHeap.GenericParamConstraintTable.IsSorted = true;
 			foreach (var info in genericParamConstraintInfos.infos)
 				tablesHeap.GenericParamConstraintTable.Create(info.row);
 			foreach (var info in genericParamConstraintInfos.infos)
@@ -861,6 +879,7 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		void InitializeCustomAttributeTable() {
 			customAttributeInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
+			tablesHeap.CustomAttributeTable.IsSorted = true;
 			foreach (var info in customAttributeInfos.infos)
 				tablesHeap.CustomAttributeTable.Create(info.row);
 		}
