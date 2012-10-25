@@ -414,7 +414,7 @@ namespace dot10.DotNet.Writer {
 			if ((uint)index >= 16)
 				throw new ModuleWriterException(string.Format("Invalid data directory index: {0}", index));
 			writer.BaseStream.Position = dataDirectoryOffset + index * 8;
-			writer.Write((uint)rva);
+			writer.Write(length == 0 ? 0 : (uint)rva);
 			writer.Write(length);
 		}
 
@@ -427,7 +427,7 @@ namespace dot10.DotNet.Writer {
 			writer.BaseStream.Position = startOffset;
 			long checkSumOffset = (long)sizeOfImageOffset + 8;
 			uint checkSum = CalculateCheckSum(new BinaryReader(writer.BaseStream), length, checkSumOffset);
-			writer.BaseStream.Position = sizeOfImageOffset + 8;
+			writer.BaseStream.Position = checkSumOffset;
 			writer.Write(checkSum);
 		}
 
