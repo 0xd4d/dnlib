@@ -176,6 +176,11 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		public ImportAddressTable ImportAddressTable { get; set; }
 
+		/// <summary>
+		/// Gets/sets the Win32 resources
+		/// </summary>
+		public Win32Resources Win32Resources { get; set; }
+
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
 			get { return offset; }
@@ -353,7 +358,7 @@ namespace dot10.DotNet.Writer {
 
 			WriteDataDirectory(writer, null);	// Export table
 			WriteDataDirectory(writer, ImportAddressTable);
-			WriteDataDirectory(writer, null);	// Resource table
+			WriteDataDirectory(writer, Win32Resources);
 			WriteDataDirectory(writer, null);	// Exception table
 			WriteDataDirectory(writer, null);	// Certificate table
 			WriteDataDirectory(writer, null);	// Base relocation table

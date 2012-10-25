@@ -20,6 +20,7 @@ namespace dot10.DotNet.Writer {
 		const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_IMPORTDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_NATIVEEP_ALIGNMENT = 1;
+		const uint DEFAULT_RESOURCE_ALIGNMENT = 4;
 
 		readonly ModuleDef module;
 
@@ -39,6 +40,7 @@ namespace dot10.DotNet.Writer {
 		DebugDirectory debugDirectory;
 		ImportDirectory importDirectory;
 		NativeEntryPoint nativeEntryPoint;
+		Win32Resources win32Resources;
 
 		/// <summary>
 		/// Constructor
@@ -89,7 +91,7 @@ namespace dot10.DotNet.Writer {
 		void Initialize() {
 			sections = new List<PESection>();
 			sections.Add(textSection = new PESection(".text", 0x60000020));
-			sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));
+			sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));	//TODO: Only add if Win32 resources are present
 			sections.Add(relocSection = new PESection(".reloc", 0x42000040));	//TODO: Only add if 32-bit
 			CreateChunks();
 			AddChunksToSections();
@@ -117,6 +119,7 @@ namespace dot10.DotNet.Writer {
 			var mdOptions = new MetaDataOptions();	//TODO: Use the options the user wants
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, mdOptions);
 			debugDirectory = new DebugDirectory();
+			win32Resources = new Win32Resources();	//TODO: Only add if Win32 resources are present
 		}
 
 		void AddChunksToSections() {
@@ -130,6 +133,8 @@ namespace dot10.DotNet.Writer {
 			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			textSection.Add(importDirectory, DEFAULT_IMPORTDIRECTORY_ALIGNMENT);
 			textSection.Add(nativeEntryPoint, DEFAULT_NATIVEEP_ALIGNMENT);
+			if (win32Resources != null)
+				rsrcSection.Add(win32Resources, DEFAULT_RESOURCE_ALIGNMENT);
 		}
 
 		void WriteFile(Stream dest) {
@@ -154,6 +159,7 @@ namespace dot10.DotNet.Writer {
 			peHeaders.NativeEntryPoint = nativeEntryPoint;
 			peHeaders.ImageCor20Header = imageCor20Header;
 			peHeaders.ImportAddressTable = importAddressTable;
+			peHeaders.Win32Resources = win32Resources;
 			imageCor20Header.MetaData = metaData;
 			imageCor20Header.NetResources = netResources;
 			imageCor20Header.StrongNameSignature = strongNameSignature;
