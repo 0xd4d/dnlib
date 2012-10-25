@@ -58,10 +58,29 @@ namespace dot10.DotNet.Writer {
 	/// .NET header
 	/// </summary>
 	public class ImageCor20Header : IChunk {
-		long startOffset;
 		FileOffset offset;
 		RVA rva;
 		Cor20HeaderOptions options;
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaData"/>
+		/// </summary>
+		public MetaData MetaData { get; set; }
+
+		/// <summary>
+		/// Gets/sets the .NET resources
+		/// </summary>
+		public NetResources NetResources { get; set; }
+
+		/// <summary>
+		/// Gets/sets the strong name signature
+		/// </summary>
+		public StrongNameSignature StrongNameSignature { get; set; }
+
+		/// <summary>
+		/// Gets/sets the entry point token (a <c>Method</c> or <c>File</c> token)
+		/// </summary>
+		public uint EntryPointToken { get; set; }
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
@@ -94,46 +113,31 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			startOffset = writer.BaseStream.Position;
 			writer.Write(0x48);	// cb
 			writer.Write(options.MajorRuntimeVersion);
 			writer.Write(options.MinorRuntimeVersion);
-			writer.Write(0);	// MD RVA
-			writer.Write(0);	// MD size
+			WriteDataDirectory(writer, MetaData);
 			writer.Write((uint)options.Flags);
-			writer.Write(0);	// Entry point token
-			writer.Write(0);	// Resources RVA
-			writer.Write(0);	// Resources size
-			writer.Write(0);	// Strong name signature RVA
-			writer.Write(0);	// Strong name signature size
-			writer.Write(0);	// Code manager table RVA
-			writer.Write(0);	// Code manager table size
-			writer.Write(0);	// Vtable fixups RVA
-			writer.Write(0);	// Vtable fixups size
-			writer.Write(0);	// Export address table jumps RVA
-			writer.Write(0);	// Export address table jumps size
-			writer.Write(0);	// Managed native header RVA
-			writer.Write(0);	// Managed native header size
+			writer.Write(EntryPointToken);
+			WriteDataDirectory(writer, NetResources);
+			WriteDataDirectory(writer, StrongNameSignature);
+			WriteDataDirectory(writer, null);	// Code manager table
+			WriteDataDirectory(writer, null);	// Vtable fixups
+			WriteDataDirectory(writer, null);	// Export address table jumps
+			WriteDataDirectory(writer, null);	// Managed native header
 		}
 
 		/// <summary>
-		/// Update pointers to various structures in the PE file
+		/// Update a data directory
 		/// </summary>
 		/// <param name="writer">Writer</param>
-		/// <param name="metaData">Meta data</param>
-		/// <param name="netResources">.NET resources</param>
-		/// <param name="strongNameSig">Strong name sig or <c>null</c> if none</param>
-		public void UpdateFields(BinaryWriter writer, MetaData metaData, NetResources netResources, StrongNameSignature strongNameSig) {
-			writer.BaseStream.Position = startOffset + 8;
-			writer.Write((uint)metaData.RVA);
-			writer.Write(metaData.GetLength());
-
-			writer.BaseStream.Position = startOffset + 0x18;
-			writer.Write(netResources.GetLength() == 0 ? 0 : (uint)netResources.RVA);
-			writer.Write(netResources.GetLength());
-			if (strongNameSig != null) {
-				writer.Write(strongNameSig.GetLength() == 0 ? 0 : (uint)strongNameSig.RVA);
-				writer.Write(strongNameSig.GetLength());
+		/// <param name="chunk">The data</param>
+		public void WriteDataDirectory(BinaryWriter writer, IChunk chunk) {
+			if (chunk == null || chunk.GetLength() == 0)
+				writer.Write(0UL);
+			else {
+				writer.Write((uint)chunk.RVA);
+				writer.Write(chunk.GetLength());
 			}
 		}
 	}

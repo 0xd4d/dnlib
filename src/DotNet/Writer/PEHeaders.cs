@@ -139,10 +139,7 @@ namespace dot10.DotNet.Writer {
 		uint fileAlignment;
 		static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		long startOffset;
-		long sizeOfCodeOffset;
-		long sizeOfImageOffset;
-		long sectionsOffset;
-		long dataDirectoryOffset;
+		long checkSumOffset;
 
 		// Copied from Partition II.25.2.1
 		static readonly byte[] dosHeader = new byte[0x80] {
@@ -163,6 +160,21 @@ namespace dot10.DotNet.Writer {
 			0x6D, 0x6F, 0x64, 0x65, 0x2E, 0x0D, 0x0D, 0x0A,
 			0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		};
+
+		/// <summary>
+		/// Gets/sets the native entry point
+		/// </summary>
+		public NativeEntryPoint NativeEntryPoint { get; set; }
+
+		/// <summary>
+		/// Gets/sets the COR20 header
+		/// </summary>
+		public ImageCor20Header ImageCor20Header { get; set; }
+
+		/// <summary>
+		/// Gets/sets the IAT
+		/// </summary>
+		public ImportAddressTable ImportAddressTable { get; set; }
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
@@ -248,18 +260,41 @@ namespace dot10.DotNet.Writer {
 			writer.Write((ushort)(Use32BitOptionalHeader() ? 0xE0U : 0xF0));
 			writer.Write((ushort)(options.Characteristics ?? GetDefaultCharacteristics()));
 
+			// Calculate various sizes needed in the optional header
+			uint sizeOfHeaders = Utils.AlignUp(length, fileAlignment);
+			uint sizeOfImage = Utils.AlignUp(sizeOfHeaders, sectionAlignment);
+			uint baseOfData = 0, baseOfCode = 0;
+			uint sizeOfCode = 0, sizeOfInitdData = 0, sizeOfUninitdData = 0;
+			foreach (var section in sections) {
+				uint sectAlignedVs = Utils.AlignUp(section.GetLength(), sectionAlignment);
+				uint fileAlignedVs = Utils.AlignUp(section.GetLength(), fileAlignment);
+
+				if (baseOfCode == 0 && section.IsCode)
+					baseOfCode = sizeOfImage;
+				if (baseOfData == 0 && (section.IsInitializedData || section.IsUninitializedData))
+					baseOfData = sizeOfImage;
+				if (section.IsCode)
+					sizeOfCode += fileAlignedVs;
+				if (section.IsInitializedData)
+					sizeOfInitdData += fileAlignedVs;
+				if (section.IsUninitializedData)
+					sizeOfUninitdData += fileAlignedVs;
+
+				sizeOfImage += sectAlignedVs;
+			}
+
 			// Image optional header
+			uint ep = NativeEntryPoint == null ? 0 : (uint)NativeEntryPoint.RVA;
 			if (Use32BitOptionalHeader()) {
 				writer.Write((ushort)0x010B);
 				writer.Write(options.MajorLinkerVersion ?? 11);
 				writer.Write(options.MinorLinkerVersion ?? 0);
-				sizeOfCodeOffset = writer.BaseStream.Position;
-				writer.Write(0);	// SizeOfCode
-				writer.Write(0);	// SizeOfInitializedData
-				writer.Write(0);	// SizeOfUninitializedData
-				writer.Write(0);	// AddressOfEntryPoint
-				writer.Write(0);	// BaseOfCode
-				writer.Write(0);	// BaseOfData
+				writer.Write(sizeOfCode);
+				writer.Write(sizeOfInitdData);
+				writer.Write(sizeOfUninitdData);
+				writer.Write(ep);
+				writer.Write(baseOfCode);
+				writer.Write(baseOfData);
 				writer.Write((uint)(options.ImageBase ?? 0x00400000));
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
@@ -270,9 +305,9 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.MajorSubsystemVersion ?? 4);
 				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
-				sizeOfImageOffset = writer.BaseStream.Position;
-				writer.Write(0);	// SizeOfImage
-				writer.Write(0);	// SizeOfHeaders
+				writer.Write(sizeOfImage);
+				writer.Write(sizeOfHeaders);
+				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? Subsystem.WindowsGui));
 				writer.Write((ushort)(options.DllCharacteristics ?? DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase));
@@ -287,12 +322,11 @@ namespace dot10.DotNet.Writer {
 				writer.Write((ushort)0x020B);
 				writer.Write(options.MajorLinkerVersion ?? 11);
 				writer.Write(options.MinorLinkerVersion ?? 0);
-				sizeOfCodeOffset = writer.BaseStream.Position;
-				writer.Write(0);	// SizeOfCode
-				writer.Write(0);	// SizeOfInitializedData
-				writer.Write(0);	// SizeOfUninitializedData
-				writer.Write(0);	// AddressOfEntryPoint
-				writer.Write(0);	// BaseOfCode
+				writer.Write(sizeOfCode);
+				writer.Write(sizeOfInitdData);
+				writer.Write(sizeOfUninitdData);
+				writer.Write(ep);
+				writer.Write(baseOfCode);
 				writer.Write(options.ImageBase ?? 0x0000000140000000);
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
@@ -303,9 +337,9 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.MajorSubsystemVersion ?? 4);
 				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
-				sizeOfImageOffset = writer.BaseStream.Position;
-				writer.Write(0);	// SizeOfImage
-				writer.Write(0);	// SizeOfHeaders
+				writer.Write(sizeOfImage);
+				writer.Write(sizeOfHeaders);
+				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? Subsystem.WindowsGui));
 				writer.Write((ushort)(options.DllCharacteristics ?? DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase));
@@ -317,105 +351,58 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.NumberOfRvaAndSizes ?? 0x00000010);
 			}
 
-			dataDirectoryOffset = writer.BaseStream.Position;
-			writer.Write(0UL);	// Export table
-			writer.Write(0UL);	// Import table
-			writer.Write(0UL);	// Resource table
-			writer.Write(0UL);	// Exception table
-			writer.Write(0UL);	// Certificate table
-			writer.Write(0UL);	// Base relocation table
-			writer.Write(0UL);	// Debugging information
-			writer.Write(0UL);	// Architecture-specific data
-			writer.Write(0UL);	// Global pointer register RVA
-			writer.Write(0UL);	// Thread local storage
-			writer.Write(0UL);	// Load configuration table
-			writer.Write(0UL);	// Bound import table
-			writer.Write(0UL);	// Import address table
-			writer.Write(0UL);	// Delay import descriptor
-			writer.Write(0UL);	// The CLR header
-			writer.Write(0UL);	// Reserved
+			WriteDataDirectory(writer, null);	// Export table
+			WriteDataDirectory(writer, ImportAddressTable);
+			WriteDataDirectory(writer, null);	// Resource table
+			WriteDataDirectory(writer, null);	// Exception table
+			WriteDataDirectory(writer, null);	// Certificate table
+			WriteDataDirectory(writer, null);	// Base relocation table
+			WriteDataDirectory(writer, null);	// Debugging information
+			WriteDataDirectory(writer, null);	// Architecture-specific data
+			WriteDataDirectory(writer, null);	// Global pointer register RVA
+			WriteDataDirectory(writer, null);	// Thread local storage
+			WriteDataDirectory(writer, null);	// Load configuration table
+			WriteDataDirectory(writer, null);	// Bound import table
+			WriteDataDirectory(writer, null);	// Import address table
+			WriteDataDirectory(writer, null);	// Delay import descriptor
+			WriteDataDirectory(writer, ImageCor20Header);
+			WriteDataDirectory(writer, null);	// Reserved
 
 			// Sections
-			sectionsOffset = writer.BaseStream.Position;
-			foreach (var section in sections) {
-				writer.Write(Encoding.UTF8.GetBytes(section.Name + "\0\0\0\0\0\0\0\0"), 0, 8);
-				writer.Write(0);	// VirtualSize
-				writer.Write(0);	// VirtualAddress
-				writer.Write(0);	// SizeOfRawData
-				writer.Write(0);	// PointerToRawData
-				writer.Write(0);	// PointerToRelocations
-				writer.Write(0);	// PointerToLinenumbers
-				writer.Write((ushort)0);	// NumberOfRelocations
-				writer.Write((ushort)0);	// NumberOfLinenumbers
-				writer.Write(section.Characteristics);
-			}
-		}
-
-		/// <summary>
-		/// Updates the section fields in the optional header
-		/// </summary>
-		/// <param name="writer">Writer</param>
-		/// <param name="entryPoint">Entry point</param>
-		public void UpdateSectionFields(BinaryWriter writer, RVA entryPoint) {
-			uint sizeOfHeaders = Utils.AlignUp(length, fileAlignment);
-
-			writer.BaseStream.Position = sectionsOffset + 8;
-			uint sizeOfImage = Utils.AlignUp(sizeOfHeaders, sectionAlignment);
-			uint baseOfData = 0, baseOfCode = 0;
-			uint sizeOfCode = 0, sizeOfInitdData = 0, sizeOfUninitdData = 0;
+			uint rva = Utils.AlignUp(sizeOfHeaders, sectionAlignment);
 			foreach (var section in sections) {
 				uint vs = section.GetLength();
 				uint alignedVs = Utils.AlignUp(vs, sectionAlignment);
-				uint rva = sizeOfImage;
 				uint rawSize = Utils.AlignUp(section.GetLength(), fileAlignment);
 				uint dataOffset = (uint)section.FileOffset;
-				sizeOfImage += alignedVs;
 
+				writer.Write(Encoding.UTF8.GetBytes(section.Name + "\0\0\0\0\0\0\0\0"), 0, 8);
 				writer.Write(vs);			// VirtualSize
 				writer.Write(rva);			// VirtualAddress
 				writer.Write(rawSize);		// SizeOfRawData
 				writer.Write(dataOffset);	// PointerToRawData
-				writer.BaseStream.Position += 0x18;
+				writer.Write(0);			// PointerToRelocations
+				writer.Write(0);			// PointerToLinenumbers
+				writer.Write((ushort)0);	// NumberOfRelocations
+				writer.Write((ushort)0);	// NumberOfLinenumbers
+				writer.Write(section.Characteristics);
 
-				if (baseOfCode == 0 && section.IsCode)
-					baseOfCode = rva;
-				if (baseOfData == 0 && (section.IsInitializedData || section.IsUninitializedData))
-					baseOfData = rva;
-				if (section.IsCode)
-					sizeOfCode += alignedVs;
-				if (section.IsInitializedData)
-					sizeOfInitdData += alignedVs;
-				if (section.IsUninitializedData)
-					sizeOfUninitdData += alignedVs;
+				rva += alignedVs;
 			}
-
-			writer.BaseStream.Position = sizeOfCodeOffset;
-			writer.Write(sizeOfCode);
-			writer.Write(sizeOfInitdData);
-			writer.Write(sizeOfUninitdData);
-			writer.Write((uint)entryPoint);
-			writer.Write(baseOfCode);
-			if (Use32BitOptionalHeader())
-				writer.Write(baseOfData);
-
-			writer.BaseStream.Position = sizeOfImageOffset;
-			writer.Write(sizeOfImage);
-			writer.Write(sizeOfHeaders);
 		}
 
 		/// <summary>
 		/// Update a data directory
 		/// </summary>
 		/// <param name="writer">Writer</param>
-		/// <param name="index">Data directory index (eg. 14 for .NET directory)</param>
-		/// <param name="rva">RVA</param>
-		/// <param name="length">Size</param>
-		public void WriteDataDirectory(BinaryWriter writer, int index, RVA rva, uint length) {
-			if ((uint)index >= 16)
-				throw new ModuleWriterException(string.Format("Invalid data directory index: {0}", index));
-			writer.BaseStream.Position = dataDirectoryOffset + index * 8;
-			writer.Write(length == 0 ? 0 : (uint)rva);
-			writer.Write(length);
+		/// <param name="chunk">The data</param>
+		public void WriteDataDirectory(BinaryWriter writer, IChunk chunk) {
+			if (chunk == null || chunk.GetLength() == 0)
+				writer.Write(0UL);
+			else {
+				writer.Write((uint)chunk.RVA);
+				writer.Write(chunk.GetLength());
+			}
 		}
 
 		/// <summary>
@@ -425,7 +412,6 @@ namespace dot10.DotNet.Writer {
 		/// <param name="length">Length of PE file</param>
 		public void WriteCheckSum(BinaryWriter writer, long length) {
 			writer.BaseStream.Position = startOffset;
-			long checkSumOffset = (long)sizeOfImageOffset + 8;
 			uint checkSum = CalculateCheckSum(new BinaryReader(writer.BaseStream), length, checkSumOffset);
 			writer.BaseStream.Position = checkSumOffset;
 			writer.Write(checkSum);

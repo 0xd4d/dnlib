@@ -695,7 +695,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Updates each <c>Method</c> row's <c>RVA</c> column if it has any code
 		/// </summary>
-		public void UpdateMethodRvas() {
+		void UpdateMethodRvas() {
 			foreach (var kv in methodToBody) {
 				var method = kv.Key;
 				var body = kv.Value;
@@ -2039,6 +2039,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
+			UpdateMethodRvas();
 			var rva2 = rva;
 			metaDataHeader.VerifyWriteTo(writer);
 			rva2 += metaDataHeader.GetLength();

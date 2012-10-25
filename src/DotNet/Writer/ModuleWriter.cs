@@ -150,7 +150,13 @@ namespace dot10.DotNet.Writer {
 				offset = offset.AlignUp(peHeaders.FileAlignment);
 				rva = rva.AlignUp(peHeaders.SectionAlignment);
 			}
-			metaData.UpdateMethodRvas();
+
+			peHeaders.NativeEntryPoint = nativeEntryPoint;
+			peHeaders.ImageCor20Header = imageCor20Header;
+			peHeaders.ImportAddressTable = importAddressTable;
+			imageCor20Header.MetaData = metaData;
+			imageCor20Header.NetResources = netResources;
+			imageCor20Header.StrongNameSignature = strongNameSignature;
 
 			offset = 0;
 			foreach (var chunk in chunks) {
@@ -161,9 +167,6 @@ namespace dot10.DotNet.Writer {
 				offset = newOffset;
 			}
 
-			peHeaders.UpdateSectionFields(writer, nativeEntryPoint == null ? 0 : nativeEntryPoint.RVA);
-			peHeaders.WriteDataDirectory(writer, 14, imageCor20Header.RVA, imageCor20Header.GetLength());
-			imageCor20Header.UpdateFields(writer, metaData, netResources, strongNameSignature);
 			//TODO: Strong name sign the assembly
 			peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);	//TODO: Option to disable this
 		}
