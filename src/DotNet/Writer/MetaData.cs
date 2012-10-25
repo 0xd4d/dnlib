@@ -1676,6 +1676,8 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void AddMethodSemantics(MDToken owner, MethodDef method, MethodSemanticsAttributes flags) {
+			if (method == null)
+				return;
 			uint methodRid = GetRid(method);
 			if (methodRid == 0)
 				return;
@@ -1691,7 +1693,11 @@ namespace dot10.DotNet.Writer {
 		void AddMethodImpls(MethodDef method, IList<MethodOverride> overrides) {
 			if (overrides == null)
 				return;
-			uint rid = GetRid(method);
+			if (method.DeclaringType == null) {
+				Error("Method declaring type == null");
+				return;
+			}
+			uint rid = GetRid(method.DeclaringType);
 			foreach (var ovr in overrides) {
 				var row = new RawMethodImplRow(rid,
 							AddMethodDefOrRef(ovr.MethodBody),
