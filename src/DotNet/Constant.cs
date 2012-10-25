@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
@@ -195,8 +196,83 @@ namespace dot10.DotNet {
 			};
 			value.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return null;	//TODO:
+				return GetValue((ElementType)rawRow.Type, readerModule.BlobStream.ReadNoNull(rawRow.Value));
 			};
+		}
+
+		static object GetValue(ElementType etype, byte[] data) {
+			switch (etype) {
+			case ElementType.Boolean:
+				if (data == null || data.Length < 1)
+					return false;
+				return BitConverter.ToBoolean(data, 0);
+
+			case ElementType.Char:
+				if (data == null || data.Length < 2)
+					return (char)0;
+				return BitConverter.ToChar(data, 0);
+
+			case ElementType.I1:
+				if (data == null || data.Length < 1)
+					return (sbyte)0;
+				return (sbyte)data[0];
+
+			case ElementType.U1:
+				if (data == null || data.Length < 1)
+					return (byte)0;
+				return data[0];
+
+			case ElementType.I2:
+				if (data == null || data.Length < 2)
+					return (short)0;
+				return BitConverter.ToInt16(data, 0);
+
+			case ElementType.U2:
+				if (data == null || data.Length < 2)
+					return (ushort)0;
+				return BitConverter.ToUInt16(data, 0);
+
+			case ElementType.I4:
+				if (data == null || data.Length < 4)
+					return (int)0;
+				return BitConverter.ToInt32(data, 0);
+
+			case ElementType.U4:
+				if (data == null || data.Length < 4)
+					return (uint)0;
+				return BitConverter.ToUInt32(data, 0);
+
+			case ElementType.I8:
+				if (data == null || data.Length < 8)
+					return (long)0;
+				return BitConverter.ToInt64(data, 0);
+
+			case ElementType.U8:
+				if (data == null || data.Length < 8)
+					return (ulong)0;
+				return BitConverter.ToUInt64(data, 0);
+
+			case ElementType.R4:
+				if (data == null || data.Length < 4)
+					return (float)0;
+				return BitConverter.ToSingle(data, 0);
+
+			case ElementType.R8:
+				if (data == null || data.Length < 8)
+					return (double)0;
+				return BitConverter.ToDouble(data, 0);
+
+			case ElementType.String:
+				if (data == null)
+					return string.Empty;
+				return Encoding.Unicode.GetString(data, 0, data.Length / 2 * 2);
+
+			case ElementType.Class:
+				return null;
+
+			default:
+				return null;
+			}
 		}
 
 		void InitializeRawRow() {
