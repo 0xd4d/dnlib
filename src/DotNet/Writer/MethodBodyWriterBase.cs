@@ -116,7 +116,7 @@ namespace dot10.DotNet.Writer {
 					continue;
 				WriteInstruction(writer, instr);
 			}
-			return ToInstructionOffset(writer) - firstInstructionOffset;
+			return ToInstructionOffset(writer);
 		}
 
 		/// <summary>
