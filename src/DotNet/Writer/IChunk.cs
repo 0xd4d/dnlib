@@ -18,7 +18,7 @@ namespace dot10.DotNet.Writer {
 		RVA RVA { get; }
 
 		/// <summary>
-		/// Called when the file offset and RVA is known
+		/// Called when the file offset and RVA are known
 		/// </summary>
 		/// <param name="offset">File offset of this chunk</param>
 		/// <param name="rva">RVA of this chunk</param>
