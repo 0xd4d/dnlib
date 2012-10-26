@@ -260,8 +260,7 @@ namespace dot10.DotNet.Writer {
 			}
 
 			var dnTableSizes = new DotNetTableSizes();
-			int maxPresentTables;
-			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion, out maxPresentTables);
+			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion);
 			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, GetRowCounts());
 			for (int i = 0; i < Tables.Length; i++)
 				Tables[i].TableInfo = tableInfos[i];

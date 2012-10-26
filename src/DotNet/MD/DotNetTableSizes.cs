@@ -88,6 +88,17 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="majorVersion">Major table version</param>
 		/// <param name="minorVersion">Minor table version</param>
+		/// <returns>All table infos (not completely initialized)</returns>
+		public TableInfo[] CreateTables(byte majorVersion, byte minorVersion) {
+			int maxPresentTables;
+			return CreateTables(majorVersion, minorVersion, out maxPresentTables);
+		}
+
+		/// <summary>
+		/// Creates the table infos
+		/// </summary>
+		/// <param name="majorVersion">Major table version</param>
+		/// <param name="minorVersion">Minor table version</param>
 		/// <param name="maxPresentTables">Initialized to max present tables (eg. 42 or 45)</param>
 		/// <returns>All table infos (not completely initialized)</returns>
 		public TableInfo[] CreateTables(byte majorVersion, byte minorVersion, out int maxPresentTables) {
