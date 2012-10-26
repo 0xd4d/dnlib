@@ -155,5 +155,10 @@ namespace dot10.DotNet.MD {
 		public override int GetHashCode() {
 			return (int)token;
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return string.Format("{0}", token);
+		}
 	}
 }
