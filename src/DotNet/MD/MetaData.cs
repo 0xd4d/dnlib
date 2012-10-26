@@ -65,6 +65,21 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		public ushort MajorVersion {
+			get { return mdHeader.MajorVersion; }
+		}
+
+		/// <inheritdoc/>
+		public ushort MinorVersion {
+			get { return mdHeader.MinorVersion; }
+		}
+
+		/// <inheritdoc/>
+		public string VersionString {
+			get { return mdHeader.VersionString; }
+		}
+
+		/// <inheritdoc/>
 		public IPEImage PEImage {
 			get { return peImage; }
 		}

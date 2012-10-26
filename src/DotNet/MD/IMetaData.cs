@@ -12,6 +12,21 @@ namespace dot10.DotNet.MD {
 		ImageCor20Header ImageCor20Header { get; }
 
 		/// <summary>
+		/// Gets the major version number found in the MetaData header
+		/// </summary>
+		ushort MajorVersion { get; }
+
+		/// <summary>
+		/// Gets the minor version number found in the MetaData header
+		/// </summary>
+		ushort MinorVersion { get; }
+
+		/// <summary>
+		/// Gets the version string found in the MetaData header
+		/// </summary>
+		string VersionString { get; }
+
+		/// <summary>
 		/// Gets the <see cref="IPEImage"/>
 		/// </summary>
 		IPEImage PEImage { get; }
