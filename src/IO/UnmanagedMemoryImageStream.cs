@@ -74,8 +74,11 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public unsafe byte[] ReadBytes(int size) {
-			if (currentAddr + size < currentAddr || currentAddr + size > endAddr)
+			if (currentAddr + size < currentAddr || currentAddr + size > endAddr) {
+				if (size == 0)
+					return new byte[0];
 				throw new IOException("Trying to read too much");
+			}
 			var newData = new byte[size];
 			Marshal.Copy(new IntPtr(currentAddr), newData, 0, size);
 			currentAddr += size;

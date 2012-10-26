@@ -69,8 +69,11 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public byte[] ReadBytes(int size) {
-			if (position + size < position || position + size > dataEnd)
+			if (position + size < position || position + size > dataEnd) {
+				if (size == 0)
+					return new byte[0];
 				throw new IOException("Trying to read too much");
+			}
 			var newData = new byte[size];
 			Array.Copy(data, position, newData, 0, size);
 			position += size;
