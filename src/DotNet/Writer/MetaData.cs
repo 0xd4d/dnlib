@@ -2034,6 +2034,9 @@ namespace dot10.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 
+			stringsHeap.SetReadOnly();
+			blobHeap.SetReadOnly();
+			guidHeap.SetReadOnly();
 			tablesHeap.BigStrings = stringsHeap.IsBig;
 			tablesHeap.BigBlob = blobHeap.IsBig;
 			tablesHeap.BigGuid = guidHeap.IsBig;

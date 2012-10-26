@@ -25,6 +25,8 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="stringsStream">The #Strings stream with the original content</param>
 		public void Populate(StringsStream stringsStream) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (originalData != null)
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
@@ -63,6 +65,8 @@ namespace dot10.DotNet.Writer {
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #Strings heap</returns>
 		public uint Add(UTF8String s) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (UTF8String.IsNullOrEmpty(s))
 				return 0;
 

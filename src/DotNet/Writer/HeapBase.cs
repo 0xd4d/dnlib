@@ -11,6 +11,11 @@ namespace dot10.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 
+		/// <summary>
+		/// <c>true</c> if <see cref="SetReadOnly"/> has been called
+		/// </summary>
+		protected bool isReadOnly;
+
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
 			get { return offset; }
@@ -34,6 +39,13 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		public bool IsBig {
 			get { return GetLength() > 0xFFFF; }
+		}
+
+		/// <summary>
+		/// Called when the heap should be set to read-only mode
+		/// </summary>
+		public void SetReadOnly() {
+			isReadOnly = true;
 		}
 
 		/// <inheritdoc/>

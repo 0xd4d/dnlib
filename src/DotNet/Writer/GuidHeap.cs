@@ -20,6 +20,8 @@ namespace dot10.DotNet.Writer {
 		/// <param name="guid">The guid</param>
 		/// <returns>The index of the guid in the #GUID heap</returns>
 		public uint Add(Guid? guid) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #GUID when it's read-only");
 			if (guid == null)
 				return 0;
 

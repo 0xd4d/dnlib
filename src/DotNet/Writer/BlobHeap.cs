@@ -25,6 +25,8 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="blobStream">The #Blob stream with the original content</param>
 		public void Populate(BlobStream blobStream) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
 			if (originalData != null)
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
@@ -64,6 +66,8 @@ namespace dot10.DotNet.Writer {
 		/// <param name="data">The data</param>
 		/// <returns>The offset of the data in the #Blob heap</returns>
 		public uint Add(byte[] data) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
 			if (data == null || data.Length == 0)
 				return 0;
 
