@@ -73,8 +73,8 @@ namespace dot10.DotNet.Writer {
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #US heap</returns>
 		public uint Add(string s) {
-			if (string.IsNullOrEmpty(s))
-				return 0;
+			if (s == null)
+				s = string.Empty;
 
 			uint offset;
 			if (cachedDict.TryGetValue(s, out offset))
