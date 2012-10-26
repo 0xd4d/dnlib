@@ -110,6 +110,11 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		public override MDToken GetToken(IList<TypeSig> locals, uint origToken) {
+			throw new NotImplementedException();	//TODO:
+		}
+
+		/// <inheritdoc/>
 		protected override uint AddMethodSpec(MethodSpec ms) {
 			throw new NotImplementedException();	//TODO:
 		}

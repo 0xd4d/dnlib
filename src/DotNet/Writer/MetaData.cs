@@ -1016,7 +1016,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public MDToken GetToken(IList<TypeSig> locals, uint origToken) {
+		public virtual MDToken GetToken(IList<TypeSig> locals, uint origToken) {
 			if (locals == null || locals.Count == 0)
 				return new MDToken((Table)0, 0);
 
