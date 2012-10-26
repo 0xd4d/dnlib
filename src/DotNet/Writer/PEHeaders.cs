@@ -11,6 +11,21 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	public sealed class PEHeadersOptions {
 		/// <summary>
+		/// Default subsystem value
+		/// </summary>
+		public const Subsystem DEFAULT_SUBSYSTEM = dot10.PE.Subsystem.WindowsGui;
+
+		/// <summary>
+		/// Default major linker version
+		/// </summary>
+		public const byte DEFAULT_MAJOR_LINKER_VERSION = 11;
+
+		/// <summary>
+		/// Default minor linker version
+		/// </summary>
+		public const byte DEFAULT_MINOR_LINKER_VERSION = 11;
+
+		/// <summary>
 		/// IMAGE_FILE_HEADER.Machine value
 		/// </summary>
 		public Machine? Machine;
@@ -325,8 +340,8 @@ namespace dot10.DotNet.Writer {
 			uint ep = StartupStub == null ? 0 : (uint)StartupStub.EntryPointRVA;
 			if (Use32BitOptionalHeader()) {
 				writer.Write((ushort)0x010B);
-				writer.Write(options.MajorLinkerVersion ?? 11);
-				writer.Write(options.MinorLinkerVersion ?? 0);
+				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
+				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
 				writer.Write(sizeOfCode);
 				writer.Write(sizeOfInitdData);
 				writer.Write(sizeOfUninitdData);
@@ -347,7 +362,7 @@ namespace dot10.DotNet.Writer {
 				writer.Write(sizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
-				writer.Write((ushort)(options.Subsystem ?? Subsystem.WindowsGui));
+				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
 				writer.Write((ushort)(options.DllCharacteristics ?? DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase));
 				writer.Write((uint)(options.SizeOfStackReserve ?? 0x00100000));
 				writer.Write((uint)(options.SizeOfStackCommit ?? 0x00001000));
@@ -358,8 +373,8 @@ namespace dot10.DotNet.Writer {
 			}
 			else {
 				writer.Write((ushort)0x020B);
-				writer.Write(options.MajorLinkerVersion ?? 11);
-				writer.Write(options.MinorLinkerVersion ?? 0);
+				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
+				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
 				writer.Write(sizeOfCode);
 				writer.Write(sizeOfInitdData);
 				writer.Write(sizeOfUninitdData);
@@ -379,7 +394,7 @@ namespace dot10.DotNet.Writer {
 				writer.Write(sizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
-				writer.Write((ushort)(options.Subsystem ?? Subsystem.WindowsGui));
+				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
 				writer.Write((ushort)(options.DllCharacteristics ?? DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase));
 				writer.Write(options.SizeOfStackReserve ?? 0x0000000000400000);
 				writer.Write(options.SizeOfStackCommit ?? 0x0000000000004000);
