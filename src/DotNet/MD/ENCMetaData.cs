@@ -17,7 +17,7 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Sorts a table by key column
 		/// </summary>
-		class SortedTable {
+		sealed class SortedTable {
 			RowInfo[] rows;
 
 			/// <summary>

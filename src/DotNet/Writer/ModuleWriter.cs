@@ -8,7 +8,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Writes a .NET PE file
 	/// </summary>
-	public class ModuleWriter {
+	public sealed class ModuleWriter {
 		//TODO: These should not be constants
 		const uint DEFAULT_FILE_ALIGNMENT = 0x200;
 		const uint DEFAULT_SECTION_ALIGNMENT = 0x2000;

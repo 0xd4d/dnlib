@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares byte arrays
 	/// </summary>
-	public class ByteArrayEqualityComparer : IEqualityComparer<byte[]> {
+	public sealed class ByteArrayEqualityComparer : IEqualityComparer<byte[]> {
 		/// <summary>
 		/// Default instance
 		/// </summary>

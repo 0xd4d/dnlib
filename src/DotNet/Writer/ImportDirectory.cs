@@ -7,7 +7,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Import directory chunk
 	/// </summary>
-	public class ImportDirectory : IChunk {
+	public sealed class ImportDirectory : IChunk {
 		FileOffset offset;
 		RVA rva;
 		bool isExeFile;

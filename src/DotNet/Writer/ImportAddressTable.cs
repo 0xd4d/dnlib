@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Import address table chunk
 	/// </summary>
-	public class ImportAddressTable : IChunk {
+	public sealed class ImportAddressTable : IChunk {
 		FileOffset offset;
 		RVA rva;
 

@@ -6,7 +6,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Equality comparer for all raw rows
 	/// </summary>
-	public class RawRowEqualityComparer : IEqualityComparer<RawModuleRow>,
+	public sealed class RawRowEqualityComparer : IEqualityComparer<RawModuleRow>,
 		IEqualityComparer<RawTypeRefRow>, IEqualityComparer<RawTypeDefRow>,
 		IEqualityComparer<RawFieldPtrRow>, IEqualityComparer<RawFieldRow>,
 		IEqualityComparer<RawMethodPtrRow>, IEqualityComparer<RawMethodRow>,

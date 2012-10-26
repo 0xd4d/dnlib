@@ -44,7 +44,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// <see cref="MetaData"/> options
 	/// </summary>
-	public class MetaDataOptions {
+	public sealed class MetaDataOptions {
 		/// <summary>
 		/// <see cref="MetaDataHeader"/> options
 		/// </summary>
@@ -144,7 +144,7 @@ namespace dot10.DotNet.Writer {
 		internal Dictionary<EmbeddedResource, ByteArrayChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, ByteArrayChunk>();
 		Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
 
-		internal class SortedRows<T, TRow> where T : class where TRow : class {
+		internal sealed class SortedRows<T, TRow> where T : class where TRow : class {
 			public List<Info> infos = new List<Info>();
 			Dictionary<T, uint> toRid = new Dictionary<T, uint>();
 			bool isSorted;
@@ -186,7 +186,7 @@ namespace dot10.DotNet.Writer {
 			}
 		}
 
-		internal class Rows<T> where T : class {
+		internal sealed class Rows<T> where T : class {
 			Dictionary<T, uint> dict = new Dictionary<T, uint>();
 
 			public bool TryGetRid(T value, out uint rid) {

@@ -36,7 +36,7 @@ namespace dot10.PE {
 		IPEType peType;
 		PEInfo peInfo;
 
-		class FilePEType : IPEType {
+		sealed class FilePEType : IPEType {
 			/// <inheritdoc/>
 			public RVA ToRVA(PEInfo peInfo, FileOffset offset) {
 				return peInfo.ToRVA(offset);
@@ -48,7 +48,7 @@ namespace dot10.PE {
 			}
 		}
 
-		class MemoryPEType : IPEType {
+		sealed class MemoryPEType : IPEType {
 			/// <inheritdoc/>
 			public RVA ToRVA(PEInfo peInfo, FileOffset offset) {
 				return (RVA)offset;

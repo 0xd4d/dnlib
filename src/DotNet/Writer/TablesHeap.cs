@@ -8,7 +8,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// <see cref="TablesHeap"/> options
 	/// </summary>
-	public class TablesHeapOptions {
+	public sealed class TablesHeapOptions {
 		/// <summary>
 		/// Should be 0
 		/// </summary>

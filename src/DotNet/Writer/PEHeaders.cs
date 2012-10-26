@@ -9,7 +9,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// <see cref="PEHeaders"/> options
 	/// </summary>
-	public class PEHeadersOptions {
+	public sealed class PEHeadersOptions {
 		/// <summary>
 		/// IMAGE_FILE_HEADER.Machine value
 		/// </summary>
@@ -130,7 +130,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// DOS and PE headers
 	/// </summary>
-	public class PEHeaders : IChunk {
+	public sealed class PEHeaders : IChunk {
 		IList<PESection> sections;
 		PEHeadersOptions options;
 		FileOffset offset;

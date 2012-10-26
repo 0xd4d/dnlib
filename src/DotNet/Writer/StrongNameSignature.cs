@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Strong name signature chunk
 	/// </summary>
-	public class StrongNameSignature : IChunk {
+	public sealed class StrongNameSignature : IChunk {
 		FileOffset offset;
 		RVA rva;
 		int size;

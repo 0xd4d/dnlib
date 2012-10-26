@@ -7,7 +7,7 @@ namespace dot10.DotNet.MD {
 	/// <summary>
 	/// Represents the IMAGE_COR20_HEADER structure
 	/// </summary>
-	public class ImageCor20Header : FileSection {
+	public sealed class ImageCor20Header : FileSection {
 		uint cb;
 		ushort majorRuntimeVersion;
 		ushort minorRuntimeVersion;

@@ -9,7 +9,7 @@ namespace dot10.DotNet {
 	/// Searches for a type according to custom attribute search rules: first try the
 	/// current assembly, and if that fails, try mscorlib
 	/// </summary>
-	class CAAssemblyRefFinder : IAssemblyRefFinder {
+	sealed class CAAssemblyRefFinder : IAssemblyRefFinder {
 		ModuleDef module;
 
 		/// <summary>

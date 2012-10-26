@@ -9,7 +9,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// <see cref="MetaDataHeader"/> options
 	/// </summary>
-	public class MetaDataHeaderOptions {
+	public sealed class MetaDataHeaderOptions {
 		/// <summary>
 		/// MS CLR 1.0 version string (.NET 1.0)
 		/// </summary>

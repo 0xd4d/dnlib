@@ -57,7 +57,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// .NET header
 	/// </summary>
-	public class ImageCor20Header : IChunk {
+	public sealed class ImageCor20Header : IChunk {
 		FileOffset offset;
 		RVA rva;
 		Cor20HeaderOptions options;

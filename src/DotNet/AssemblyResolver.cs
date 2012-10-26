@@ -26,7 +26,7 @@ namespace dot10.DotNet {
 		bool findExactMatch;
 		bool enableTypeDefCache;
 
-		class GacInfo {
+		sealed class GacInfo {
 			public string path;
 			public string prefix;
 			public IList<string> subDirs;

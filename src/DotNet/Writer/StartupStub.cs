@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Stores the instruction that jumps to _CorExeMain/_CorDllMain
 	/// </summary>
-	public class StartupStub : IChunk {
+	public sealed class StartupStub : IChunk {
 		FileOffset offset;
 		RVA rva;
 		uint length;

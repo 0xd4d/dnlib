@@ -113,7 +113,7 @@ namespace dot10.DotNet {
 		/// Stores data and keeps track of the original index and whether the data has been
 		/// initialized or not.
 		/// </summary>
-		class LazyElement : Element {
+		sealed class LazyElement : Element {
 			internal uint origIndex;
 			LazyList<TValue> lazyList;
 

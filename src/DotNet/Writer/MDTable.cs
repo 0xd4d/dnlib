@@ -41,7 +41,7 @@ namespace dot10.DotNet.Writer {
 	/// Creates rows in a table. Rows can optionally be shared to create a compact table.
 	/// </summary>
 	/// <typeparam name="T">The raw row type</typeparam>
-	public class MDTable<T> : IMDTable, IEnumerable<T> {
+	public sealed class MDTable<T> : IMDTable, IEnumerable<T> {
 		readonly Table table;
 		readonly Dictionary<T, uint> cachedDict;
 		readonly List<T> cached;

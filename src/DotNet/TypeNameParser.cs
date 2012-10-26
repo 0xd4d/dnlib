@@ -185,14 +185,14 @@ namespace dot10.DotNet {
 			}
 		}
 
-		internal class SZArraySpec : TSpec {
+		internal sealed class SZArraySpec : TSpec {
 			public static readonly SZArraySpec Instance = new SZArraySpec();
 			SZArraySpec()
 				: base(ElementType.SZArray) {
 			}
 		}
 
-		internal class ArraySpec : TSpec {
+		internal sealed class ArraySpec : TSpec {
 			public uint rank;
 			public readonly IList<uint> sizes = new List<uint>();
 			public readonly IList<int> lowerBounds = new List<int>();
@@ -202,7 +202,7 @@ namespace dot10.DotNet {
 			}
 		}
 
-		internal class GenericInstSpec : TSpec {
+		internal sealed class GenericInstSpec : TSpec {
 			public readonly List<TypeSig> args = new List<TypeSig>();
 
 			public GenericInstSpec()
@@ -210,14 +210,14 @@ namespace dot10.DotNet {
 			}
 		}
 
-		internal class ByRefSpec : TSpec {
+		internal sealed class ByRefSpec : TSpec {
 			public static readonly ByRefSpec Instance = new ByRefSpec();
 			ByRefSpec()
 				: base(ElementType.ByRef) {
 			}
 		}
 
-		internal class PtrSpec : TSpec {
+		internal sealed class PtrSpec : TSpec {
 			public static readonly PtrSpec Instance = new PtrSpec();
 			PtrSpec()
 				: base(ElementType.Ptr) {

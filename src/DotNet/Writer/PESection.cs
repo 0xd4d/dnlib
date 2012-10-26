@@ -4,7 +4,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// A PE section
 	/// </summary>
-	public class PESection : ChunkList<IChunk> {
+	public sealed class PESection : ChunkList<IChunk> {
 		string name;
 		uint characteristics;
 

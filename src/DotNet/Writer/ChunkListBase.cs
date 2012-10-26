@@ -40,7 +40,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Equality comparer for <see cref="Elem"/>
 		/// </summary>
-		protected class ElemEqualityComparer : IEqualityComparer<Elem> {
+		protected sealed class ElemEqualityComparer : IEqualityComparer<Elem> {
 			IEqualityComparer<T> chunkComparer;
 
 			/// <summary>
