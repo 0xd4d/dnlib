@@ -21,7 +21,8 @@ namespace dot10.DotNet.Writer {
 		public uint? TimeDateStamp;
 
 		/// <summary>
-		/// IMAGE_FILE_HEADER.Characteristics value
+		/// IMAGE_FILE_HEADER.Characteristics value. <see cref="dot10.PE.Characteristics.Dll"/> bit
+		/// is ignored and set/cleared depending on whether it's a EXE or a DLL file.
 		/// </summary>
 		public Characteristics? Characteristics;
 
@@ -137,9 +138,11 @@ namespace dot10.DotNet.Writer {
 		uint length;
 		uint sectionAlignment;
 		uint fileAlignment;
+		ulong imageBase;
 		static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		long startOffset;
 		long checkSumOffset;
+		bool isExeFile;
 
 		// Copied from Partition II.25.2.1
 		static readonly byte[] dosHeader = new byte[0x80] {
@@ -164,7 +167,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the native entry point
 		/// </summary>
-		public NativeEntryPoint NativeEntryPoint { get; set; }
+		public StartupStub StartupStub { get; set; }
 
 		/// <summary>
 		/// Gets/sets the COR20 header
@@ -177,9 +180,34 @@ namespace dot10.DotNet.Writer {
 		public ImportAddressTable ImportAddressTable { get; set; }
 
 		/// <summary>
+		/// Gets/sets the <see cref="ImportDirectory"/>
+		/// </summary>
+		public ImportDirectory ImportDirectory { get; set; }
+
+		/// <summary>
 		/// Gets/sets the Win32 resources
 		/// </summary>
 		public Win32Resources Win32Resources { get; set; }
+
+		/// <summary>
+		/// Gets/sets the relocation directory
+		/// </summary>
+		public RelocDirectory RelocDirectory { get; set; }
+
+		/// <summary>
+		/// Gets the image base
+		/// </summary>
+		public ulong ImageBase {
+			get { return imageBase; }
+		}
+
+		/// <summary>
+		/// Gets/sets a value indicating whether this is a EXE or a DLL file
+		/// </summary>
+		public bool IsExeFile {
+			get { return isExeFile; }
+			set { isExeFile = value; }
+		}
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
@@ -239,6 +267,11 @@ namespace dot10.DotNet.Writer {
 			length += 4 + 0x14;
 			length += Use32BitOptionalHeader() ? 0xE0U : 0xF0;
 			length += (uint)sections.Count * 0x28;
+
+			if (Use32BitOptionalHeader())
+				imageBase = options.ImageBase ?? 0x00400000;
+			else
+				imageBase = options.ImageBase ?? 0x0000000140000000;
 		}
 
 		/// <inheritdoc/>
@@ -263,7 +296,7 @@ namespace dot10.DotNet.Writer {
 			writer.Write(0);
 			writer.Write(0);
 			writer.Write((ushort)(Use32BitOptionalHeader() ? 0xE0U : 0xF0));
-			writer.Write((ushort)(options.Characteristics ?? GetDefaultCharacteristics()));
+			writer.Write((ushort)GetCharacteristics());
 
 			// Calculate various sizes needed in the optional header
 			uint sizeOfHeaders = Utils.AlignUp(length, fileAlignment);
@@ -289,7 +322,7 @@ namespace dot10.DotNet.Writer {
 			}
 
 			// Image optional header
-			uint ep = NativeEntryPoint == null ? 0 : (uint)NativeEntryPoint.RVA;
+			uint ep = StartupStub == null ? 0 : (uint)StartupStub.EntryPointRVA;
 			if (Use32BitOptionalHeader()) {
 				writer.Write((ushort)0x010B);
 				writer.Write(options.MajorLinkerVersion ?? 11);
@@ -300,7 +333,7 @@ namespace dot10.DotNet.Writer {
 				writer.Write(ep);
 				writer.Write(baseOfCode);
 				writer.Write(baseOfData);
-				writer.Write((uint)(options.ImageBase ?? 0x00400000));
+				writer.Write((uint)imageBase);
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
 				writer.Write(options.MajorOperatingSystemVersion ?? 4);
@@ -332,7 +365,7 @@ namespace dot10.DotNet.Writer {
 				writer.Write(sizeOfUninitdData);
 				writer.Write(ep);
 				writer.Write(baseOfCode);
-				writer.Write(options.ImageBase ?? 0x0000000140000000);
+				writer.Write(imageBase);
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
 				writer.Write(options.MajorOperatingSystemVersion ?? 4);
@@ -357,18 +390,18 @@ namespace dot10.DotNet.Writer {
 			}
 
 			WriteDataDirectory(writer, null);	// Export table
-			WriteDataDirectory(writer, ImportAddressTable);
+			WriteDataDirectory(writer, ImportDirectory);
 			WriteDataDirectory(writer, Win32Resources);
 			WriteDataDirectory(writer, null);	// Exception table
 			WriteDataDirectory(writer, null);	// Certificate table
-			WriteDataDirectory(writer, null);	// Base relocation table
+			WriteDataDirectory(writer, RelocDirectory);
 			WriteDataDirectory(writer, null);	// Debugging information
 			WriteDataDirectory(writer, null);	// Architecture-specific data
 			WriteDataDirectory(writer, null);	// Global pointer register RVA
 			WriteDataDirectory(writer, null);	// Thread local storage
 			WriteDataDirectory(writer, null);	// Load configuration table
 			WriteDataDirectory(writer, null);	// Bound import table
-			WriteDataDirectory(writer, null);	// Import address table
+			WriteDataDirectory(writer, ImportAddressTable);
 			WriteDataDirectory(writer, null);	// Delay import descriptor
 			WriteDataDirectory(writer, ImageCor20Header);
 			WriteDataDirectory(writer, null);	// Reserved
@@ -443,6 +476,15 @@ namespace dot10.DotNet.Writer {
 
 		bool Use32BitOptionalHeader() {
 			return GetMachine() == Machine.I386;
+		}
+
+		Characteristics GetCharacteristics() {
+			var chr = options.Characteristics ?? GetDefaultCharacteristics();
+			if (IsExeFile)
+				chr &= ~Characteristics.Dll;
+			else
+				chr |= Characteristics.Dll;
+			return chr;
 		}
 
 		Characteristics GetDefaultCharacteristics() {

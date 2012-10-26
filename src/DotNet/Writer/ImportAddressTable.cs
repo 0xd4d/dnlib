@@ -10,6 +10,11 @@ namespace dot10.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 
+		/// <summary>
+		/// Gets/sets the <see cref="ImportDirectory"/>
+		/// </summary>
+		public ImportDirectory ImportDirectory { get; set; }
+
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
 			get { return offset; }
@@ -28,12 +33,13 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public uint GetLength() {
-			return 0;	//TODO:
+			return 8;
 		}
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			//TODO:
+			writer.Write((uint)ImportDirectory.CorXxxMainRVA);
+			writer.Write(0);
 		}
 	}
 }

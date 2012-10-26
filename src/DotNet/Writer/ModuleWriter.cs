@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using dot10.DotNet.MD;
+using dot10.PE;
+using dot10.IO;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
@@ -19,8 +21,9 @@ namespace dot10.DotNet.Writer {
 		const uint DEFAULT_METADATA_ALIGNMENT = 4;
 		const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_IMPORTDIRECTORY_ALIGNMENT = 4;
-		const uint DEFAULT_NATIVEEP_ALIGNMENT = 1;
+		const uint DEFAULT_STARTUPSTUB_ALIGNMENT = 1;
 		const uint DEFAULT_RESOURCE_ALIGNMENT = 4;
+		const uint DEFAULT_RELOC_ALIGNMENT = 4;
 
 		readonly ModuleDef module;
 
@@ -39,8 +42,9 @@ namespace dot10.DotNet.Writer {
 		MetaData metaData;
 		DebugDirectory debugDirectory;
 		ImportDirectory importDirectory;
-		NativeEntryPoint nativeEntryPoint;
+		StartupStub startupStub;
 		Win32Resources win32Resources;
+		RelocDirectory relocDirectory;
 
 		/// <summary>
 		/// Constructor
@@ -89,9 +93,12 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void Initialize() {
+			bool hasWin32Resources = false;	//TODO:
+
 			sections = new List<PESection>();
 			sections.Add(textSection = new PESection(".text", 0x60000020));
-			sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));	//TODO: Only add if Win32 resources are present
+			if (hasWin32Resources)
+				sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));
 			sections.Add(relocSection = new PESection(".reloc", 0x42000040));	//TODO: Only add if 32-bit
 			CreateChunks();
 			AddChunksToSections();
@@ -101,13 +108,16 @@ namespace dot10.DotNet.Writer {
 			bool isSn = false;	//TODO:
 			bool is64bit = false;	//TODO:
 			bool shareBodies = true;	//TODO:
+			bool isExe = false;	//TODO:
+			bool hasWin32Resources = false;	//TODO:
 
 			peHeaders = new PEHeaders();
 
 			if (!is64bit) {
 				importAddressTable = new ImportAddressTable();
 				importDirectory = new ImportDirectory();
-				nativeEntryPoint = new NativeEntryPoint();
+				startupStub = new StartupStub();
+				relocDirectory = new RelocDirectory();
 			}
 			if (isSn)
 				strongNameSignature = new StrongNameSignature(0x80);	//TODO: Fix size
@@ -119,7 +129,11 @@ namespace dot10.DotNet.Writer {
 			var mdOptions = new MetaDataOptions();	//TODO: Use the options the user wants
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, mdOptions);
 			debugDirectory = new DebugDirectory();
-			win32Resources = new Win32Resources();	//TODO: Only add if Win32 resources are present
+			if (hasWin32Resources)
+				win32Resources = new Win32Resources();
+
+			importDirectory.IsExeFile = isExe;
+			peHeaders.IsExeFile = isExe;
 		}
 
 		void AddChunksToSections() {
@@ -132,9 +146,11 @@ namespace dot10.DotNet.Writer {
 			textSection.Add(metaData, DEFAULT_METADATA_ALIGNMENT);
 			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			textSection.Add(importDirectory, DEFAULT_IMPORTDIRECTORY_ALIGNMENT);
-			textSection.Add(nativeEntryPoint, DEFAULT_NATIVEEP_ALIGNMENT);
+			textSection.Add(startupStub, DEFAULT_STARTUPSTUB_ALIGNMENT);
 			if (win32Resources != null)
 				rsrcSection.Add(win32Resources, DEFAULT_RESOURCE_ALIGNMENT);
+			if (relocSection != null)
+				relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}
 
 		void WriteFile(Stream dest) {
@@ -156,10 +172,19 @@ namespace dot10.DotNet.Writer {
 				rva = rva.AlignUp(peHeaders.SectionAlignment);
 			}
 
-			peHeaders.NativeEntryPoint = nativeEntryPoint;
+			if (importAddressTable != null) {
+				importAddressTable.ImportDirectory = importDirectory;
+				importDirectory.ImportAddressTable = importAddressTable;
+				startupStub.ImportDirectory = importDirectory;
+				startupStub.PEHeaders = peHeaders;
+				relocDirectory.StartupStub = startupStub;
+			}
+			peHeaders.StartupStub = startupStub;
 			peHeaders.ImageCor20Header = imageCor20Header;
 			peHeaders.ImportAddressTable = importAddressTable;
+			peHeaders.ImportDirectory = importDirectory;
 			peHeaders.Win32Resources = win32Resources;
+			peHeaders.RelocDirectory = relocDirectory;
 			imageCor20Header.MetaData = metaData;
 			imageCor20Header.NetResources = netResources;
 			imageCor20Header.StrongNameSignature = strongNameSignature;

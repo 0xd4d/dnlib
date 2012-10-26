@@ -132,6 +132,7 @@
     <Compile Include="DotNet\Writer\NormalMetaData.cs" />
     <Compile Include="DotNet\Writer\PEHeaders.cs" />
     <Compile Include="DotNet\Writer\PreserveTokensMetaData.cs" />
+    <Compile Include="DotNet\Writer\RelocDirectory.cs" />
     <Compile Include="DotNet\Writer\SignatureWriter.cs" />
     <Compile Include="DotNet\Writer\StringsHeap.cs" />
     <Compile Include="DotNet\Writer\TablesHeap.cs" />
@@ -224,7 +225,7 @@
     <Compile Include="DotNet\Writer\MethodBody.cs" />
     <Compile Include="DotNet\Writer\MethodBodyChunks.cs" />
     <Compile Include="DotNet\Writer\ModuleWriter.cs" />
-    <Compile Include="DotNet\Writer\NativeEntryPoint.cs" />
+    <Compile Include="DotNet\Writer\StartupStub.cs" />
     <Compile Include="DotNet\Writer\PESection.cs" />
     <Compile Include="DotNet\Writer\StrongNameSignature.cs" />
     <Compile Include="DotNet\Writer\UniqueChunkList.cs" />
