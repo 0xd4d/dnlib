@@ -1399,5 +1399,21 @@ namespace dot10.DotNet {
 				return null;
 			return CustomAttributeReader.Read(this, ResolveCustomAttributeType(caRow.Type), caRow.Value);
 		}
+
+		/// <summary>
+		/// Reads data somewhere in the address space of the image
+		/// </summary>
+		/// <param name="rva">RVA of data</param>
+		/// <param name="size">Size of data</param>
+		/// <returns>All the data or <c>null</c> if <paramref name="rva"/> or <paramref name="size"/>
+		/// is invalid</returns>
+		public byte[] ReadDataAt(RVA rva, int size) {
+			var peImage = MetaData.PEImage;
+			using (var reader = peImage.CreateStream(rva, size)) {
+				if (reader.Length < size)
+					return null;
+				return reader.ReadBytes(size);
+			}
+		}
 	}
 }
