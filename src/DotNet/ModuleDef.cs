@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.IO;
 using dot10.DotNet.MD;
+using dot10.PE;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -172,6 +173,162 @@ namespace dot10.DotNet {
 		/// </summary>
 		public TypeDef GlobalType {
 			get { return Types.Count == 0 ? null : Types[0]; }
+		}
+
+		/// <summary>
+		/// Module kind
+		/// </summary>
+		public ModuleKind Kind { get; set; }
+
+		/// <summary>
+		/// Gets/sets the runtime version which is stored in the MetaData header.
+		/// See <see cref="MDHeaderRuntimeVersion"/>.
+		/// </summary>
+		public string RuntimeVersion { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 string
+		/// </summary>
+		public bool IsClr10 {
+			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_10; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.1 string
+		/// </summary>
+		public bool IsClr11 {
+			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_11; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 or v1.1 string
+		/// </summary>
+		public bool IsClr1x {
+			get { return IsClr10 || IsClr11; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v2.0 string
+		/// </summary>
+		public bool IsClr20 {
+			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_20; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v4.0 string
+		/// </summary>
+		public bool IsClr40 {
+			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_40; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the ECMA 2002 string
+		/// </summary>
+		public bool IsEcma2002 {
+			get { return RuntimeVersion == MDHeaderRuntimeVersion.ECMA_2002; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the ECMA 2005 string
+		/// </summary>
+		public bool IsEcma2005 {
+			get { return RuntimeVersion == MDHeaderRuntimeVersion.ECMA_2005; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="Machine"/> (from PE header)
+		/// </summary>
+		public Machine Machine { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="dot10.PE.Machine.I386"/>
+		/// </summary>
+		public bool IsI386 {
+			get { return Machine == Machine.I386; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="dot10.PE.Machine.IA64"/>
+		/// </summary>
+		public bool IsIA64 {
+			get { return Machine == Machine.IA64; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="dot10.PE.Machine.AMD64"/>
+		/// </summary>
+		public bool IsAMD64 {
+			get { return Machine == Machine.AMD64; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="Cor20HeaderFlags"/> (from .NET header)
+		/// </summary>
+		public ComImageFlags Cor20HeaderFlags { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="ComImageFlags.ILOnly"/> bit
+		/// </summary>
+		public bool IsILOnly {
+			get { return (Cor20HeaderFlags & ComImageFlags.ILOnly) != 0; }
+			set {
+				if (value)
+					Cor20HeaderFlags |= ComImageFlags.ILOnly;
+				else
+					Cor20HeaderFlags &= ~ComImageFlags.ILOnly;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ComImageFlags._32BitRequired"/> bit
+		/// </summary>
+		public bool Is32BitRequired {
+			get { return (Cor20HeaderFlags & ComImageFlags._32BitRequired) != 0; }
+			set {
+				if (value)
+					Cor20HeaderFlags |= ComImageFlags._32BitRequired;
+				else
+					Cor20HeaderFlags &= ~ComImageFlags._32BitRequired;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ComImageFlags.StrongNameSigned"/> bit
+		/// </summary>
+		public bool IsStrongNameSigned {
+			get { return (Cor20HeaderFlags & ComImageFlags.StrongNameSigned) != 0; }
+			set {
+				if (value)
+					Cor20HeaderFlags |= ComImageFlags.StrongNameSigned;
+				else
+					Cor20HeaderFlags &= ~ComImageFlags.StrongNameSigned;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ComImageFlags.NativeEntryPoint"/> bit
+		/// </summary>
+		public bool HasNativeEntryPoint {
+			get { return (Cor20HeaderFlags & ComImageFlags.NativeEntryPoint) != 0; }
+			set {
+				if (value)
+					Cor20HeaderFlags |= ComImageFlags.NativeEntryPoint;
+				else
+					Cor20HeaderFlags &= ~ComImageFlags.NativeEntryPoint;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ComImageFlags._32BitPreferred"/> bit
+		/// </summary>
+		public bool Is32BitPreferred {
+			get { return (Cor20HeaderFlags & ComImageFlags._32BitPreferred) != 0; }
+			set {
+				if (value)
+					Cor20HeaderFlags |= ComImageFlags._32BitPreferred;
+				else
+					Cor20HeaderFlags &= ~ComImageFlags._32BitPreferred;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -554,6 +711,10 @@ namespace dot10.DotNet {
 		/// <param name="name">Module name</param>
 		/// <param name="mvid">Module version ID</param>
 		public ModuleDefUser(UTF8String name, Guid? mvid) {
+			this.Kind = ModuleKind.Windows;
+			this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
+			this.Machine = Machine.I386;
+			this.Cor20HeaderFlags = ComImageFlags.ILOnly;
 			this.corLibTypes = new CorLibTypes(this);
 			this.types = new LazyList<TypeDef>(this);
 			this.name = name;
@@ -680,6 +841,10 @@ namespace dot10.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			if (rid != 1) {
+				this.Kind = ModuleKind.Windows;
+				this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
+				this.Machine = Machine.I386;
+				this.Cor20HeaderFlags = ComImageFlags.ILOnly;
 				this.types = new LazyList<TypeDef>(this);
 				this.exportedTypes = new List<ExportedType>();
 				this.resources = new LazyList<Resource>();

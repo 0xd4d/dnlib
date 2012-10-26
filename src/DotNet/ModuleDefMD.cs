@@ -299,6 +299,29 @@ namespace dot10.DotNet {
 			this.dnFile = dnFile;
 			this.context = context;
 			Initialize();
+
+			this.Kind = GetKind();
+			this.RuntimeVersion = MetaData.VersionString;
+			this.Machine = MetaData.PEImage.ImageNTHeaders.FileHeader.Machine;
+			this.Cor20HeaderFlags = MetaData.ImageCor20Header.Flags;
+		}
+
+		ModuleKind GetKind() {
+			if (TablesStream.Get(Table.Assembly).Rows < 1)
+				return ModuleKind.Netmodule;
+
+			var peImage = MetaData.PEImage;
+			if ((peImage.ImageNTHeaders.FileHeader.Characteristics & Characteristics.Dll) != 0)
+				return ModuleKind.Dll;
+
+			switch (peImage.ImageNTHeaders.OptionalHeader.Subsystem) {
+			default:
+			case Subsystem.WindowsGui:
+				return ModuleKind.Windows;
+
+			case Subsystem.WindowsCui:
+				return ModuleKind.Console;
+			}
 		}
 
 		void Initialize() {
