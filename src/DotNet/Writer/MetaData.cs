@@ -1430,7 +1430,7 @@ namespace dot10.DotNet.Writer {
 				return;
 			}
 			var row = new RawGenericParamConstraintRow(gpRid, AddTypeDefOrRef(gpc.Constraint));
-			tablesHeap.GenericParamConstraintTable.Create(row);
+			genericParamConstraintInfos.Add(gpc, row);
 		}
 
 		/// <summary>
