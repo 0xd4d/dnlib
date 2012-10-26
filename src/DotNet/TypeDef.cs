@@ -816,6 +816,27 @@ namespace dot10.DotNet {
 			return null;
 		}
 
+		internal static bool GetClassSize(TypeDef td, out uint size) {
+			size = 0;
+			if (td == null)
+				return false;
+			if (!td.IsSequentialLayout && !td.IsExplicitLayout)
+				return false;
+			if (!td.IsValueType)
+				return false;	// Not supported by us
+
+			var classLayout = td.ClassLayout;
+			if (classLayout == null)
+				return false;
+			if (classLayout.ClassSize != 0) {
+				size = classLayout.ClassSize;
+				return true;
+			}
+
+			// Not supported by us
+			return false;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
