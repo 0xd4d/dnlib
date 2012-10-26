@@ -7,7 +7,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Options to <see cref="ImageCor20Header"/>
 	/// </summary>
-	public struct Cor20HeaderOptions {
+	public sealed class Cor20HeaderOptions {
 		/// <summary>
 		/// Default major runtime version
 		/// </summary>
@@ -21,24 +21,30 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Major runtime version
 		/// </summary>
-		public ushort MajorRuntimeVersion;
+		public ushort? MajorRuntimeVersion;
 
 		/// <summary>
 		/// Minor runtime version
 		/// </summary>
-		public ushort MinorRuntimeVersion;
+		public ushort? MinorRuntimeVersion;
 
 		/// <summary>
 		/// Flags
 		/// </summary>
-		public ComImageFlags Flags;
+		public ComImageFlags? Flags;
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public Cor20HeaderOptions() {
+		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="flags">Flags</param>
-		public Cor20HeaderOptions(ComImageFlags flags)
-			: this(DEFAULT_MAJOR_RT_VER, DEFAULT_MINOR_RT_VER, flags) {
+		public Cor20HeaderOptions(ComImageFlags flags) {
+			this.Flags = flags;
 		}
 
 		/// <summary>
@@ -114,10 +120,10 @@ namespace dot10.DotNet.Writer {
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			writer.Write(0x48);	// cb
-			writer.Write(options.MajorRuntimeVersion);
-			writer.Write(options.MinorRuntimeVersion);
+			writer.Write(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);
+			writer.Write(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
 			WriteDataDirectory(writer, MetaData);
-			writer.Write((uint)options.Flags);
+			writer.Write((uint)(options.Flags ?? ComImageFlags.ILOnly));
 			writer.Write(EntryPointToken);
 			WriteDataDirectory(writer, NetResources);
 			WriteDataDirectory(writer, StrongNameSignature);

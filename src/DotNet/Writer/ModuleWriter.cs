@@ -6,12 +6,111 @@ using dot10.IO;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
+	/// <see cref="ModuleWriter"/> options
+	/// </summary>
+	public sealed class ModuleWriterOptions {
+		MetaDataOptions metaDataOptions;
+		Cor20HeaderOptions cor20HeaderOptions;
+		PEHeadersOptions peHeadersOptions;
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaData"/> options. This is never <c>null</c>.
+		/// </summary>
+		public MetaDataOptions MetaDataOptions {
+			get { return metaDataOptions ?? (metaDataOptions = new MetaDataOptions()); }
+			set { metaDataOptions = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
+		/// </summary>
+		public Cor20HeaderOptions Cor20HeaderOptions {
+			get { return cor20HeaderOptions ?? (cor20HeaderOptions = new Cor20HeaderOptions()); }
+			set { cor20HeaderOptions = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
+		/// </summary>
+		public PEHeadersOptions PEHeadersOptions {
+			get { return peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions()); }
+			set { peHeadersOptions = value; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a 64-bit module, <c>false</c> if it's a 32-bit or AnyCPU module.
+		/// </summary>
+		public bool Is64Bit {
+			get {
+				if (!PEHeadersOptions.Machine.HasValue)
+					return false;
+				return PEHeadersOptions.Machine == Machine.IA64 ||
+					PEHeadersOptions.Machine == Machine.AMD64;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the module kind
+		/// </summary>
+		public ModuleKind ModuleKind { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if it should be written as an EXE file, <c>false</c> if it should be
+		/// written as a DLL file.
+		/// </summary>
+		public bool IsExeFile {
+			get {
+				return ModuleKind != ModuleKind.Dll &&
+					ModuleKind != ModuleKind.Netmodule;
+			}
+		}
+
+		/// <summary>
+		/// <c>true</c> if method bodies can be shared (two or more method bodies can share the
+		/// same RVA), <c>false</c> if method bodies can't be shared. Don't enable it if there
+		/// must be a 1:1 relationship with method bodies and their RVAs.
+		/// </summary>
+		public bool ShareMethodBodies { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if the PE header CheckSum field should be updated, <c>false</c> if the
+		/// CheckSum field should be cleared.
+		/// </summary>
+		public bool AddCheckSum { get; set; }
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public ModuleWriterOptions() {
+			ShareMethodBodies = true;
+			ModuleKind = ModuleKind.Windows;
+		}
+
+		/// <summary>
+		/// Initialize some fields from a module
+		/// </summary>
+		/// <param name="module">The module</param>
+		public ModuleWriterOptions(ModuleDef module) {
+			ShareMethodBodies = true;
+			ModuleKind = module.Kind;
+			PEHeadersOptions.Machine = module.Machine;
+			if (module.Kind == ModuleKind.Windows)
+				PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
+			else
+				PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
+			Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
+			MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
+
+			var modDefMD = module as ModuleDefMD;
+			if (modDefMD != null)
+				AddCheckSum = modDefMD.MetaData.PEImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
+		}
+	}
+
+	/// <summary>
 	/// Writes a .NET PE file
 	/// </summary>
 	public sealed class ModuleWriter {
-		//TODO: These should not be constants
-		const uint DEFAULT_FILE_ALIGNMENT = 0x200;
-		const uint DEFAULT_SECTION_ALIGNMENT = 0x2000;
 		const uint DEFAULT_IAT_ALIGNMENT = 4;
 		const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
 		const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
@@ -26,6 +125,7 @@ namespace dot10.DotNet.Writer {
 		const uint DEFAULT_RELOC_ALIGNMENT = 4;
 
 		readonly ModuleDef module;
+		ModuleWriterOptions options;
 
 		List<PESection> sections;
 		PESection textSection;
@@ -47,11 +147,29 @@ namespace dot10.DotNet.Writer {
 		RelocDirectory relocDirectory;
 
 		/// <summary>
+		/// Gets/sets the writer options
+		/// </summary>
+		public ModuleWriterOptions Options {
+			get { return options ?? (options = new ModuleWriterOptions(module)); }
+			set { options = value; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>
-		public ModuleWriter(ModuleDef module) {
+		public ModuleWriter(ModuleDef module)
+			: this(module, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">The module</param>
+		/// <param name="options">Options or <c>null</c></param>
+		public ModuleWriter(ModuleDef module, ModuleWriterOptions options) {
 			this.module = module;
+			this.options = options;
 		}
 
 		/// <summary>
@@ -99,21 +217,19 @@ namespace dot10.DotNet.Writer {
 			sections.Add(textSection = new PESection(".text", 0x60000020));
 			if (hasWin32Resources)
 				sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));
-			sections.Add(relocSection = new PESection(".reloc", 0x42000040));	//TODO: Only add if 32-bit
+			if (!Options.Is64Bit)
+				sections.Add(relocSection = new PESection(".reloc", 0x42000040));
 			CreateChunks();
 			AddChunksToSections();
 		}
 
 		void CreateChunks() {
 			bool isSn = false;	//TODO:
-			bool is64bit = false;	//TODO:
-			bool shareBodies = true;	//TODO:
-			bool isExe = false;	//TODO:
 			bool hasWin32Resources = false;	//TODO:
 
-			peHeaders = new PEHeaders();
+			peHeaders = new PEHeaders(Options.PEHeadersOptions);
 
-			if (!is64bit) {
+			if (!Options.Is64Bit) {
 				importAddressTable = new ImportAddressTable();
 				importDirectory = new ImportDirectory();
 				startupStub = new StartupStub();
@@ -122,18 +238,17 @@ namespace dot10.DotNet.Writer {
 			if (isSn)
 				strongNameSignature = new StrongNameSignature(0x80);	//TODO: Fix size
 
-			imageCor20Header = new ImageCor20Header(new Cor20HeaderOptions(ComImageFlags.ILOnly));
+			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
 			constants = new UniqueChunkList<ByteArrayChunk>();
-			methodBodies = new MethodBodyChunks(shareBodies);
+			methodBodies = new MethodBodyChunks(Options.ShareMethodBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
-			var mdOptions = new MetaDataOptions();	//TODO: Use the options the user wants
-			metaData = MetaData.Create(module, constants, methodBodies, netResources, mdOptions);
+			metaData = MetaData.Create(module, constants, methodBodies, netResources, Options.MetaDataOptions);
 			debugDirectory = new DebugDirectory();
 			if (hasWin32Resources)
 				win32Resources = new Win32Resources();
 
-			importDirectory.IsExeFile = isExe;
-			peHeaders.IsExeFile = isExe;
+			importDirectory.IsExeFile = Options.IsExeFile;
+			peHeaders.IsExeFile = Options.IsExeFile;
 		}
 
 		void AddChunksToSections() {
@@ -199,7 +314,8 @@ namespace dot10.DotNet.Writer {
 			}
 
 			//TODO: Strong name sign the assembly
-			peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);	//TODO: Option to disable this
+			if (Options.AddCheckSum)
+				peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);
 		}
 	}
 }

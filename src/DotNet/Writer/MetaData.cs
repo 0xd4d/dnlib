@@ -45,15 +45,24 @@ namespace dot10.DotNet.Writer {
 	/// <see cref="MetaData"/> options
 	/// </summary>
 	public sealed class MetaDataOptions {
-		/// <summary>
-		/// <see cref="MetaDataHeader"/> options
-		/// </summary>
-		public MetaDataHeaderOptions MetaDataHeaderOptions;
+		MetaDataHeaderOptions metaDataHeaderOptions;
+		TablesHeapOptions tablesHeapOptions;
 
 		/// <summary>
-		/// <see cref="TablesHeap"/> options
+		/// Gets/sets the <see cref="MetaDataHeader"/> options. This is never <c>null</c>.
 		/// </summary>
-		public TablesHeapOptions TablesHeapOptions;
+		public MetaDataHeaderOptions MetaDataHeaderOptions {
+			get { return metaDataHeaderOptions ?? (metaDataHeaderOptions = new MetaDataHeaderOptions()); }
+			set { metaDataHeaderOptions = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="TablesHeap"/> options. This is never <c>null</c>.
+		/// </summary>
+		public TablesHeapOptions TablesHeapOptions {
+			get { return tablesHeapOptions ?? (tablesHeapOptions = new TablesHeapOptions()); }
+			set { tablesHeapOptions = value; }
+		}
 
 		/// <summary>
 		/// Various options
@@ -84,7 +93,7 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="mdhOptions">Meta data header options</param>
 		public MetaDataOptions(MetaDataHeaderOptions mdhOptions) {
-			this.MetaDataHeaderOptions = mdhOptions;
+			this.metaDataHeaderOptions = mdhOptions;
 		}
 
 		/// <summary>
@@ -94,7 +103,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="flags">Flags</param>
 		public MetaDataOptions(MetaDataHeaderOptions mdhOptions, MetaDataFlags flags) {
 			this.Flags = flags;
-			this.MetaDataHeaderOptions = mdhOptions;
+			this.metaDataHeaderOptions = mdhOptions;
 		}
 	}
 
