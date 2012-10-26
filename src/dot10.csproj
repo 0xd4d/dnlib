@@ -113,6 +113,7 @@
     <Compile Include="DotNet\CallingConventionSig.cs" />
     <Compile Include="DotNet\MD\ComImageFlags.cs" />
     <Compile Include="DotNet\MD\DotNetTableSizes.cs" />
+    <Compile Include="DotNet\MD\MDHeaderRuntimeVersion.cs" />
     <Compile Include="DotNet\MD\MDStreamFlags.cs" />
     <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
     <Compile Include="DotNet\MD\StorageFlags.cs" />
