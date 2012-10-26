@@ -1408,6 +1408,8 @@ namespace dot10.DotNet {
 		/// <returns>All the data or <c>null</c> if <paramref name="rva"/> or <paramref name="size"/>
 		/// is invalid</returns>
 		public byte[] ReadDataAt(RVA rva, int size) {
+			if (size < 0)
+				return null;
 			var peImage = MetaData.PEImage;
 			using (var reader = peImage.CreateStream(rva, size)) {
 				if (reader.Length < size)
