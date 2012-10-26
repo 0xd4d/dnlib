@@ -1,5 +1,6 @@
 ﻿using System;
 using dot10.DotNet.MD;
+using dot10.PE;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -73,7 +74,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the field RVA
 		/// </summary>
-		public abstract FieldRVA FieldRVA { get; set; }
+		public abstract RVA RVA { get; set; }
+
+		/// <summary>
+		/// Gets/sets the initial value
+		/// </summary>
+		public abstract byte[] InitialValue { get; set; }
 
 		/// <inheritdoc/>
 		public abstract ImplMap ImplMap { get; set; }
@@ -302,6 +308,48 @@ namespace dot10.DotNet {
 			get { return FullNameCreator.FieldFullName(FullNameCreator.FullName(DeclaringType, false), Name, FieldSig); }
 		}
 
+		/// <summary>
+		/// Gets the size of this field in bytes or <c>0</c> if unknown.
+		/// </summary>
+		public uint GetFieldSize() {
+			uint size;
+			if (!GetFieldSize(out size))
+				return 0;
+			return size;
+		}
+
+		/// <summary>
+		/// Gets the size of this field in bytes or <c>0</c> if unknown.
+		/// </summary>
+		/// <param name="size">Updated with size</param>
+		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
+		public bool GetFieldSize(out uint size) {
+			size = 0;
+			var fieldSig = this.FieldSig;
+			if (fieldSig == null)
+				return false;
+			return GetClassSize(fieldSig.Type, out size);
+		}
+
+		static bool GetClassSize(TypeSig ts, out uint size) {
+			size = 0;
+			if (ts == null)
+				return false;
+			var tdrs = ts as TypeDefOrRefSig;
+			if (tdrs == null)
+				return false;
+
+			var td = tdrs.TypeDef;
+			if (td != null)
+				return TypeDef.GetClassSize(td, out size);
+
+			var tr = tdrs.TypeRef;
+			if (tr != null)
+				return TypeDef.GetClassSize(tr.Resolve(), out size);
+
+			return false;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -318,7 +366,8 @@ namespace dot10.DotNet {
 		CallingConventionSig signature;
 		FieldLayout fieldLayout;
 		FieldMarshal fieldMarshal;
-		FieldRVA fieldRVA;
+		RVA rva;
+		byte[] initialValue;
 		ImplMap implMap;
 		Constant constant;
 		TypeDef declaringType;
@@ -359,9 +408,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldRVA FieldRVA {
-			get { return fieldRVA; }
-			set { fieldRVA = value; }
+		public override RVA RVA {
+			get { return rva; }
+			set { rva = value; }
+		}
+
+		/// <inheritdoc/>
+		public override byte[] InitialValue {
+			get { return initialValue; }
+			set { initialValue = value; }
 		}
 
 		/// <inheritdoc/>
@@ -460,7 +515,8 @@ namespace dot10.DotNet {
 		UserValue<CallingConventionSig> signature;
 		UserValue<FieldLayout> fieldLayout;
 		UserValue<FieldMarshal> fieldMarshal;
-		UserValue<FieldRVA> fieldRVA;
+		UserValue<RVA> rva;
+		UserValue<byte[]> initialValue;
 		UserValue<ImplMap> implMap;
 		UserValue<Constant> constant;
 		UserValue<TypeDef> declaringType;
@@ -507,9 +563,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldRVA FieldRVA {
-			get { return fieldRVA.Value; }
-			set { fieldRVA.Value = value; }
+		public override RVA RVA {
+			get { return rva.Value; }
+			set { rva.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override byte[] InitialValue {
+			get { return initialValue.Value; }
+			set { initialValue.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -568,8 +630,16 @@ namespace dot10.DotNet {
 			fieldMarshal.ReadOriginalValue = () => {
 				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Field, rid));
 			};
-			fieldRVA.ReadOriginalValue = () => {
-				return readerModule.ResolveFieldRVA(readerModule.MetaData.GetFieldRVARid(rid));
+			rva.ReadOriginalValue = () => {
+				RVA rva2;
+				GetFieldRVA(out rva2);
+				return rva2;
+			};
+			initialValue.ReadOriginalValue = () => {
+				RVA rva2;
+				if (!GetFieldRVA(out rva2))
+					return null;
+				return ReadInitialValue(rva2);
 			};
 			implMap.ReadOriginalValue = () => {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Field, rid));
@@ -586,6 +656,30 @@ namespace dot10.DotNet {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadFieldRow(rid);
+		}
+
+		bool GetFieldRVA(out RVA rva) {
+			InitializeRawRow();
+			if (((FieldAttributes)rawRow.Flags & FieldAttributes.HasFieldRVA) == 0) {
+				rva = 0;
+				return false;
+			}
+			var row = readerModule.TablesStream.ReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(rid));
+			if (row == null) {
+				rva = 0;
+				return false;
+			}
+			rva = (RVA)row.RVA;
+			return true;
+		}
+
+		byte[] ReadInitialValue(RVA rva) {
+			uint size;
+			if (!GetFieldSize(out size))
+				return null;
+			if (size >= int.MaxValue)
+				return null;
+			return readerModule.ReadDataAt(rva, (int)size);
 		}
 	}
 }

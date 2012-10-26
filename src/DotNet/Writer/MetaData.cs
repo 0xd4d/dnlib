@@ -142,6 +142,7 @@ namespace dot10.DotNet.Writer {
 		internal SortedRows<GenericParamConstraint, RawGenericParamConstraintRow> genericParamConstraintInfos = new SortedRows<GenericParamConstraint, RawGenericParamConstraintRow>();
 		internal Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
 		internal Dictionary<EmbeddedResource, ByteArrayChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, ByteArrayChunk>();
+		Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
 
 		internal class SortedRows<T, TRow> where T : class where TRow : class {
 			public List<Info> infos = new List<Info>();
@@ -664,6 +665,20 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the <see cref="ByteArrayChunk"/> where the initial value is stored
+		/// </summary>
+		/// <param name="fd">Field</param>
+		/// <returns>A <see cref="ByteArrayChunk"/> instance or <c>null</c> if <paramref name="fd"/>
+		/// is invalid</returns>
+		public ByteArrayChunk GetInitialValueChunk(FieldDef fd) {
+			if (fd == null)
+				return null;
+			ByteArrayChunk chunk;
+			fieldToInitialValue.TryGetValue(fd, out chunk);
+			return chunk;
+		}
+
+		/// <summary>
 		/// Called when an error is detected
 		/// </summary>
 		/// <param name="message">Error message</param>
@@ -701,6 +716,18 @@ namespace dot10.DotNet.Writer {
 				var body = kv.Value;
 				var row = tablesHeap.MethodTable[GetRid(method)];
 				row.RVA = (uint)body.RVA;
+			}
+		}
+
+		/// <summary>
+		/// Updates the <c>FieldRVA</c> rows
+		/// </summary>
+		void UpdateFieldRVAs() {
+			foreach (var kv in fieldToInitialValue) {
+				var field = kv.Key;
+				var iv = kv.Value;
+				var row = tablesHeap.FieldRVATable[fieldRVAInfos.Rid(field)];
+				row.RVA = (uint)iv.RVA;
 			}
 		}
 
@@ -1484,12 +1511,25 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="field">The field</param>
 		protected void AddFieldRVA(FieldDef field) {
-			if (field == null || field.FieldRVA == null)
+			if (field == null || field.InitialValue == null)
 				return;
+			var ivBytes = field.InitialValue;
+			if (!VerifyFieldSize(field, ivBytes.Length))
+				Error("Field {0} ({1:X8}) initial value size != size of field type", field, field.MDToken.Raw);
 			uint rid = GetRid(field);
-			var fieldRVA = field.FieldRVA;
-			var row = new RawFieldRVARow((uint)fieldRVA.RVA, rid);
+			var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriter.DEFAULT_CONSTANTS_ALIGNMENT);
+			fieldToInitialValue[field] = iv;
+			var row = new RawFieldRVARow(0, rid);
 			fieldRVAInfos.Add(field, row);
+		}
+
+		static bool VerifyFieldSize(FieldDef field, int size) {
+			if (field == null)
+				return false;
+			var sig = field.FieldSig;
+			if (sig == null)
+				return false;
+			return field.GetFieldSize() == size;
 		}
 
 		/// <summary>
@@ -2040,6 +2080,7 @@ namespace dot10.DotNet.Writer {
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			UpdateMethodRvas();
+			UpdateFieldRVAs();
 			var rva2 = rva;
 			metaDataHeader.VerifyWriteTo(writer);
 			rva2 += metaDataHeader.GetLength();
