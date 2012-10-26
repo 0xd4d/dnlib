@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using dot10.DotNet.MD;
+using dot10.DotNet.Writer;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -527,6 +528,40 @@ namespace dot10.DotNet {
 					return type;
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Writes the assembly to a file on disk. If the file exists, it will be truncated.
+		/// </summary>
+		/// <param name="filename">Filename</param>
+		public void Write(string filename) {
+			Write(filename, null);
+		}
+
+		/// <summary>
+		/// Writes the assembly to a file on disk. If the file exists, it will be truncated.
+		/// </summary>
+		/// <param name="filename">Filename</param>
+		/// <param name="options">Writer options</param>
+		public void Write(string filename, ModuleWriterOptions options) {
+			ManifestModule.Write(filename, options);
+		}
+
+		/// <summary>
+		/// Writes the assembly to a stream.
+		/// </summary>
+		/// <param name="dest">Destination stream</param>
+		public void Write(Stream dest) {
+			Write(dest, null);
+		}
+
+		/// <summary>
+		/// Writes the assembly to a stream.
+		/// </summary>
+		/// <param name="dest">Destination stream</param>
+		/// <param name="options">Writer options</param>
+		public void Write(Stream dest, ModuleWriterOptions options) {
+			ManifestModule.Write(dest, options);
 		}
 
 		void IListListener<ModuleDef>.OnAdd(int index, ModuleDef module, bool isLazyAdd) {

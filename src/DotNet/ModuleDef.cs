@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.IO;
 using dot10.DotNet.MD;
+using dot10.DotNet.Writer;
 using dot10.PE;
 
 namespace dot10.DotNet {
@@ -529,6 +530,42 @@ namespace dot10.DotNet {
 		/// <returns>The imported member ref or <c>null</c> if <paramref name="memberRef"/> is invalid</returns>
 		public MemberRef Import(MemberRef memberRef) {
 			return new Importer(this).Import(memberRef);
+		}
+
+		/// <summary>
+		/// Writes the module to a file on disk. If the file exists, it will be truncated.
+		/// </summary>
+		/// <param name="filename">Filename</param>
+		public void Write(string filename) {
+			Write(filename, null);
+		}
+
+		/// <summary>
+		/// Writes the module to a file on disk. If the file exists, it will be truncated.
+		/// </summary>
+		/// <param name="filename">Filename</param>
+		/// <param name="options">Writer options</param>
+		public void Write(string filename, ModuleWriterOptions options) {
+			var writer = new ModuleWriter(this, options ?? new ModuleWriterOptions(this));
+			writer.Write(filename);
+		}
+
+		/// <summary>
+		/// Writes the module to a stream.
+		/// </summary>
+		/// <param name="dest">Destination stream</param>
+		public void Write(Stream dest) {
+			Write(dest, null);
+		}
+
+		/// <summary>
+		/// Writes the module to a stream.
+		/// </summary>
+		/// <param name="dest">Destination stream</param>
+		/// <param name="options">Writer options</param>
+		public void Write(Stream dest, ModuleWriterOptions options) {
+			var writer = new ModuleWriter(this, options ?? new ModuleWriterOptions(this));
+			writer.Write(dest);
 		}
 
 		/// <inheritdoc/>
