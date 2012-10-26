@@ -292,12 +292,12 @@ namespace dot10.DotNet.Writer {
 			writer.Write(GetLog2Rid());
 			writer.Write(GetValidMask());
 			writer.Write(GetSortedMask());
-			if (options.ExtraData.HasValue)
-				writer.Write(options.ExtraData.Value);
 			foreach (var mdt in Tables) {
 				if (!mdt.IsEmpty)
 					writer.Write(mdt.Rows);
 			}
+			if (options.ExtraData.HasValue)
+				writer.Write(options.ExtraData.Value);
 
 			WriteModuleTable(writer);
 			WriteTypeRefTable(writer);
