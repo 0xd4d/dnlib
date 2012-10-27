@@ -34,6 +34,11 @@ namespace dot10.DotNet.Writer {
 		public ComImageFlags? Flags;
 
 		/// <summary>
+		/// Entry point or <c>null</c>. Either a Method/File token or an RVA.
+		/// </summary>
+		public uint? EntryPoint;
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public Cor20HeaderOptions() {
@@ -83,11 +88,6 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		public StrongNameSignature StrongNameSignature { get; set; }
 
-		/// <summary>
-		/// Gets/sets the entry point token (a <c>Method</c> or <c>File</c> token)
-		/// </summary>
-		public uint EntryPointToken { get; set; }
-
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
 			get { return offset; }
@@ -124,7 +124,7 @@ namespace dot10.DotNet.Writer {
 			writer.Write(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
 			WriteDataDirectory(writer, MetaData);
 			writer.Write((uint)(options.Flags ?? ComImageFlags.ILOnly));
-			writer.Write(EntryPointToken);
+			writer.Write(options.EntryPoint ?? 0);
 			WriteDataDirectory(writer, NetResources);
 			WriteDataDirectory(writer, StrongNameSignature);
 			WriteDataDirectory(writer, null);	// Code manager table

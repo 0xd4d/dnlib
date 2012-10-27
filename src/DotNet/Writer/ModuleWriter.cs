@@ -287,6 +287,8 @@ namespace dot10.DotNet.Writer {
 				rva = rva.AlignUp(peHeaders.SectionAlignment);
 			}
 
+			Options.Cor20HeaderOptions.EntryPoint = GetEntryPoint();
+
 			if (importAddressTable != null) {
 				importAddressTable.ImportDirectory = importDirectory;
 				importDirectory.ImportAddressTable = importAddressTable;
@@ -316,6 +318,22 @@ namespace dot10.DotNet.Writer {
 			//TODO: Strong name sign the assembly
 			if (Options.AddCheckSum)
 				peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);
+		}
+
+		uint GetEntryPoint() {
+			var methodEntryPoint = module.EntryPoint as MethodDef;
+			if (methodEntryPoint != null)
+				return new MDToken(Table.Method, metaData.GetRid(methodEntryPoint)).Raw;
+
+			var fileEntryPoint = module.EntryPoint as FileDef;
+			if (fileEntryPoint != null)
+				return new MDToken(Table.File, metaData.GetRid(fileEntryPoint)).Raw;
+
+			uint nativeEntryPoint = (uint)module.NativeEntryPoint;
+			if (nativeEntryPoint != 0)
+				return nativeEntryPoint;
+
+			return 0;
 		}
 	}
 }

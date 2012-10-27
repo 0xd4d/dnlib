@@ -747,6 +747,7 @@ namespace dot10.DotNet.Writer {
 			AllocateMemberDefRids();
 			InitializeTypeDefsAndMemberDefs();
 			//TODO: Add ExportedTypes
+			InitializeEntryPoint();
 			AddAssembly(module.Assembly);
 			SortTables();
 			InitializeGenericParamConstraintTable();
@@ -897,6 +898,16 @@ namespace dot10.DotNet.Writer {
 					AddCustomAttributes(Table.Property, GetRid(prop), prop);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Adds the entry point. It's only needed if it's a <see cref="FileDef"/> since if it's
+		/// a <see cref="MethodDef"/>, it will have already been added.
+		/// </summary>
+		void InitializeEntryPoint() {
+			var epFile = module.EntryPoint as FileDef;
+			if (epFile != null)
+				AddFile(epFile);
 		}
 
 		/// <summary>
