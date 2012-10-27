@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Method table
 	/// </summary>
-	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef {
+	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>

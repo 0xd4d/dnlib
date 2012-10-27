@@ -5,7 +5,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the File table
 	/// </summary>
-	public abstract class FileDef : IHasCustomAttribute, IImplementation {
+	public abstract class FileDef : IHasCustomAttribute, IImplementation, IManagedEntryPoint {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>

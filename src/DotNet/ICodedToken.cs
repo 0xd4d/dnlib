@@ -76,6 +76,13 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
+	/// Implemented by <see cref="MethodDef"/> and <see cref="FileDef"/>, which are the only
+	/// valid managed entry point tokens.
+	/// </summary>
+	public interface IManagedEntryPoint : ICodedToken {
+	}
+
+	/// <summary>
 	/// Interface to access a module def/ref
 	/// </summary>
 	public interface IModule {
