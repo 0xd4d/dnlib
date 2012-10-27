@@ -23,7 +23,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Default minor linker version
 		/// </summary>
-		public const byte DEFAULT_MINOR_LINKER_VERSION = 11;
+		public const byte DEFAULT_MINOR_LINKER_VERSION = 0;
 
 		/// <summary>
 		/// IMAGE_FILE_HEADER.Machine value
