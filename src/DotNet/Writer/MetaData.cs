@@ -1984,12 +1984,16 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) {
-			//TODO: If type is in this asm, return false. If there's no type with
-			//		this name in this assembly and it exists in mscorlib, return false.
-			//		else return true. When comparing assemblies, compare the full
-			//		asm name when comparing this assembly, but only part of it
-			//		when checking whether it's in mscorlib.
-			return true;
+			var td = type as TypeDef;
+			if (td != null)
+				return td.OwnerModule != module;
+
+			var tr = type as TypeRef;
+			if (tr == null)
+				return true;
+			if (!tr.DefinitionAssembly.IsCorLib())
+				return true;
+			return module.Find(tr) != null;
 		}
 
 		/// <summary>
