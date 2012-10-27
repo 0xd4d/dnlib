@@ -1440,5 +1440,25 @@ namespace dot10.DotNet {
 				return reader.ReadBytes(size);
 			}
 		}
+
+		/// <summary>
+		/// Gets the native entry point or 0 if none
+		/// </summary>
+		public RVA GetNativeEntryPoint() {
+			var cor20Header = MetaData.ImageCor20Header;
+			if ((cor20Header.Flags & ComImageFlags.NativeEntryPoint) == 0)
+				return 0;
+			return (RVA)cor20Header.EntryPointToken_or_RVA;
+		}
+
+		/// <summary>
+		/// Gets the managed entry point (a Method or a File) or null if none
+		/// </summary>
+		public IManagedEntryPoint GetManagedEntryPoint() {
+			var cor20Header = MetaData.ImageCor20Header;
+			if ((cor20Header.Flags & ComImageFlags.NativeEntryPoint) != 0)
+				return null;
+			return ResolveToken(cor20Header.EntryPointToken_or_RVA) as IManagedEntryPoint;
+		}
 	}
 }

@@ -99,6 +99,32 @@ namespace dot10.DotNet {
 		public abstract IList<ExportedType> ExportedTypes { get; }
 
 		/// <summary>
+		/// Gets/sets the native entry point. Only one of <see cref="NativeEntryPoint"/> and
+		/// <see cref="EntryPoint"/> can be set. You write to one and the other one gets cleared.
+		/// </summary>
+		public abstract RVA NativeEntryPoint { get; set; }
+
+		/// <summary>
+		/// Gets/sets the managed entry point. Only one of <see cref="NativeEntryPoint"/> and
+		/// <see cref="EntryPoint"/> can be set. You write to one and the other one gets cleared.
+		/// </summary>
+		public abstract IManagedEntryPoint EntryPoint { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="NativeEntryPoint"/> is non-zero
+		/// </summary>
+		public bool IsNativeEntryPointValid {
+			get { return NativeEntryPoint != 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="EntryPoint"/> is non-null
+		/// </summary>
+		public bool IsEntryPointValid {
+			get { return EntryPoint != null; }
+		}
+
+		/// <summary>
 		/// Gets a list of all <see cref="Resource"/>s
 		/// </summary>
 		public IList<Resource> Resources {
@@ -644,6 +670,8 @@ namespace dot10.DotNet {
 		LazyList<TypeDef> types;
 		List<ExportedType> exportedTypes = new List<ExportedType>();
 		ILazyList<Resource> resources = new LazyList<Resource>();
+		RVA nativeEntryPoint;
+		IManagedEntryPoint managedEntryPoint;
 		string location = string.Empty;
 
 		/// <inheritdoc/>
@@ -700,6 +728,24 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		internal override ILazyList<Resource> Resources2 {
 			get { return resources; }
+		}
+
+		/// <inheritdoc/>
+		public override RVA NativeEntryPoint {
+			get { return nativeEntryPoint; }
+			set {
+				nativeEntryPoint = value;
+				managedEntryPoint = null;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IManagedEntryPoint EntryPoint {
+			get { return managedEntryPoint; }
+			set {
+				nativeEntryPoint = 0;
+				managedEntryPoint = value;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -789,6 +835,8 @@ namespace dot10.DotNet {
 		protected IList<ExportedType> exportedTypes;
 		/// <summary/>
 		internal ILazyList<Resource> resources;
+		UserValue<RVA> nativeEntryPoint;
+		UserValue<IManagedEntryPoint> managedEntryPoint;
 		string location;
 
 		/// <inheritdoc/>
@@ -854,6 +902,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public override RVA NativeEntryPoint {
+			get { return nativeEntryPoint.Value; }
+			set {
+				nativeEntryPoint.Value = value;
+				managedEntryPoint.Value = null;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override IManagedEntryPoint EntryPoint {
+			get { return managedEntryPoint.Value; }
+			set {
+				nativeEntryPoint.Value = 0;
+				managedEntryPoint.Value = value;
+			}
+		}
+
+		/// <inheritdoc/>
 		public override string Location {
 			get { return location; }
 			set { location = value ?? string.Empty; }
@@ -916,6 +982,12 @@ namespace dot10.DotNet {
 				if (rid != 1)
 					return null;
 				return readerModule.ResolveAssembly(1);
+			};
+			nativeEntryPoint.ReadOriginalValue = () => {
+				return readerModule.GetNativeEntryPoint();
+			};
+			managedEntryPoint.ReadOriginalValue = () => {
+				return readerModule.GetManagedEntryPoint();
 			};
 		}
 
