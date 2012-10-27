@@ -81,33 +81,22 @@ namespace dot10.DotNet {
 		static ElementType GetElementType(object value) {
 			if (value == null)
 				return ElementType.Class;
-			if (value is bool)
-				return ElementType.Boolean;
-			if (value is char)
-				return ElementType.Char;
-			if (value is sbyte)
-				return ElementType.I1;
-			if (value is byte)
-				return ElementType.U1;
-			if (value is short)
-				return ElementType.I2;
-			if (value is ushort)
-				return ElementType.U2;
-			if (value is int)
-				return ElementType.I4;
-			if (value is uint)
-				return ElementType.U4;
-			if (value is long)
-				return ElementType.I8;
-			if (value is ulong)
-				return ElementType.U8;
-			if (value is float)
-				return ElementType.R4;
-			if (value is double)
-				return ElementType.R8;
-			if (value is string)
-				return ElementType.String;
-			return ElementType.Void;
+			switch (System.Type.GetTypeCode(value.GetType())) {
+			case TypeCode.Boolean:	return ElementType.Boolean;
+			case TypeCode.Char:		return ElementType.Char;
+			case TypeCode.SByte:	return ElementType.I1;
+			case TypeCode.Byte:		return ElementType.U1;
+			case TypeCode.Int16:	return ElementType.I2;
+			case TypeCode.UInt16:	return ElementType.U2;
+			case TypeCode.Int32:	return ElementType.I4;
+			case TypeCode.UInt32:	return ElementType.U4;
+			case TypeCode.Int64:	return ElementType.I8;
+			case TypeCode.UInt64:	return ElementType.U8;
+			case TypeCode.Single:	return ElementType.R4;
+			case TypeCode.Double:	return ElementType.R8;
+			case TypeCode.String:	return ElementType.String;
+			default: return ElementType.Void;
+			}
 		}
 	}
 
