@@ -31,11 +31,6 @@ namespace dot10.DotNet {
 		/// From column ClassLayout.ClassSize
 		/// </summary>
 		public abstract uint ClassSize { get; set; }
-
-		/// <summary>
-		/// From column ClassLayout.Parent
-		/// </summary>
-		public abstract TypeDef Parent { get; set; }
 	}
 
 	/// <summary>
@@ -44,7 +39,6 @@ namespace dot10.DotNet {
 	public class ClassLayoutUser : ClassLayout {
 		ushort packingSize;
 		uint classSize;
-		TypeDef parent;
 
 		/// <inheritdoc/>
 		public override ushort PackingSize {
@@ -58,12 +52,6 @@ namespace dot10.DotNet {
 			set { classSize = value; }
 		}
 
-		/// <inheritdoc/>
-		public override TypeDef Parent {
-			get { return parent; }
-			set { parent = value; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -73,13 +61,11 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="parent">Parent</param>
 		/// <param name="packingSize">PackingSize</param>
 		/// <param name="classSize">ClassSize</param>
-		public ClassLayoutUser(TypeDef parent, ushort packingSize, uint classSize) {
+		public ClassLayoutUser(ushort packingSize, uint classSize) {
 			this.packingSize = packingSize;
 			this.classSize = classSize;
-			this.parent = parent;
 		}
 	}
 
@@ -94,7 +80,6 @@ namespace dot10.DotNet {
 
 		UserValue<ushort> packingSize;
 		UserValue<uint> classSize;
-		UserValue<TypeDef> parent;
 
 		/// <inheritdoc/>
 		public override ushort PackingSize {
@@ -106,12 +91,6 @@ namespace dot10.DotNet {
 		public override uint ClassSize {
 			get { return classSize.Value; }
 			set { classSize.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override TypeDef Parent {
-			get { return parent.Value; }
-			set { parent.Value = value; }
 		}
 
 		/// <summary>
@@ -141,10 +120,6 @@ namespace dot10.DotNet {
 			classSize.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return rawRow.ClassSize;
-			};
-			parent.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveTypeDef(rawRow.Parent);
 			};
 		}
 

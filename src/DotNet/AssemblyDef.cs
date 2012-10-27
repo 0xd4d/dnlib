@@ -795,6 +795,7 @@ namespace dot10.DotNet {
 		ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawAssemblyRow rawRow;
+
 		UserValue<AssemblyHashAlgorithm> hashAlgId;
 		UserValue<Version> version;
 		UserValue<AssemblyFlags> flags;

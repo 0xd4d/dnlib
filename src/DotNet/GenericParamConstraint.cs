@@ -28,11 +28,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// From column GenericParamConstraint.Owner
-		/// </summary>
-		public abstract GenericParam Owner { get; set; }
-
-		/// <summary>
 		/// From column GenericParamConstraint.Constraint
 		/// </summary>
 		public abstract ITypeDefOrRef Constraint { get; set; }
@@ -47,15 +42,8 @@ namespace dot10.DotNet {
 	/// A GenericParamConstraintAssembly row created by the user and not present in the original .NET file
 	/// </summary>
 	public class GenericParamConstraintUser : GenericParamConstraint {
-		GenericParam owner;
 		ITypeDefOrRef constraint;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		public override GenericParam Owner {
-			get { return owner; }
-			set { owner = value; }
-		}
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Constraint {
@@ -81,16 +69,6 @@ namespace dot10.DotNet {
 		public GenericParamConstraintUser(ITypeDefOrRef constraint) {
 			this.constraint = constraint;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="owner">The owner</param>
-		/// <param name="constraint">The constraint</param>
-		public GenericParamConstraintUser(GenericParam owner, ITypeDefOrRef constraint) {
-			this.owner = owner;
-			this.constraint = constraint;
-		}
 	}
 
 	/// <summary>
@@ -102,15 +80,8 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawGenericParamConstraintRow rawRow;
 
-		UserValue<GenericParam> owner;
 		UserValue<ITypeDefOrRef> constraint;
 		CustomAttributeCollection customAttributeCollection;
-
-		/// <inheritdoc/>
-		public override GenericParam Owner {
-			get { return owner.Value; }
-			set { owner.Value = value; }
-		}
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Constraint {
@@ -149,10 +120,6 @@ namespace dot10.DotNet {
 		}
 
 		void Initialize() {
-			owner.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveGenericParam(rawRow.Owner);
-			};
 			constraint.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Constraint);

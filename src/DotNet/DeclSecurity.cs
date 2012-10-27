@@ -35,11 +35,6 @@ namespace dot10.DotNet {
 		public abstract DeclSecurityAction Action { get; set; }
 
 		/// <summary>
-		/// From column DeclSecurity.Parent
-		/// </summary>
-		public abstract IHasDeclSecurity Parent { get; set; }
-
-		/// <summary>
 		/// From column DeclSecurity.PermissionSet
 		/// </summary>
 		public abstract byte[] PermissionSet { get; set; }
@@ -55,7 +50,6 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class DeclSecurityUser : DeclSecurity {
 		DeclSecurityAction action;
-		IHasDeclSecurity parent;
 		byte[] permissionSet;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
@@ -63,12 +57,6 @@ namespace dot10.DotNet {
 		public override DeclSecurityAction Action {
 			get { return action; }
 			set { action = value; }
-		}
-
-		/// <inheritdoc/>
-		public override IHasDeclSecurity Parent {
-			get { return parent; }
-			set { parent = value; }
 		}
 
 		/// <inheritdoc/>
@@ -97,18 +85,6 @@ namespace dot10.DotNet {
 			this.action = action;
 			this.permissionSet = permissionSet;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="action">The security action</param>
-		/// <param name="permissionSet">The permission set</param>
-		/// <param name="parent">Parent</param>
-		public DeclSecurityUser(DeclSecurityAction action, byte[] permissionSet, IHasDeclSecurity parent) {
-			this.action = action;
-			this.permissionSet = permissionSet;
-			this.parent = parent;
-		}
 	}
 
 	/// <summary>
@@ -121,7 +97,6 @@ namespace dot10.DotNet {
 		RawDeclSecurityRow rawRow;
 
 		UserValue<DeclSecurityAction> action;
-		UserValue<IHasDeclSecurity> parent;
 		UserValue<byte[]> permissionSet;
 		CustomAttributeCollection customAttributeCollection;
 
@@ -129,12 +104,6 @@ namespace dot10.DotNet {
 		public override DeclSecurityAction Action {
 			get { return action.Value; }
 			set { action.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override IHasDeclSecurity Parent {
-			get { return parent.Value; }
-			set { parent.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -177,10 +146,6 @@ namespace dot10.DotNet {
 			action.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return (DeclSecurityAction)rawRow.Action;
-			};
-			parent.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveHasDeclSecurity(rawRow.Parent);
 			};
 			permissionSet.ReadOriginalValue = () => {
 				InitializeRawRow();

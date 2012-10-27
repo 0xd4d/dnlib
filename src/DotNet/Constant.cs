@@ -29,11 +29,6 @@ namespace dot10.DotNet {
 		public abstract ElementType Type { get; set; }
 
 		/// <summary>
-		/// From column Constant.Parent
-		/// </summary>
-		public abstract IHasConstant Parent { get; set; }
-
-		/// <summary>
 		/// From column Constant.Value
 		/// </summary>
 		public abstract object Value { get; set; }
@@ -44,19 +39,12 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class ConstantUser : Constant {
 		ElementType type;
-		IHasConstant parent;
 		object value;
 
 		/// <inheritdoc/>
 		public override ElementType Type {
 			get { return type; }
 			set { type = value; }
-		}
-
-		/// <inheritdoc/>
-		public override IHasConstant Parent {
-			get { return parent; }
-			set { parent = value; }
 		}
 
 		/// <inheritdoc/>
@@ -74,31 +62,19 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="parent">Parent</param>
-		public ConstantUser(IHasConstant parent) {
-			this.parent = parent;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="parent">Parent</param>
 		/// <param name="value">Value</param>
-		public ConstantUser(IHasConstant parent, object value) {
+		public ConstantUser(object value) {
 			this.type = GetElementType(value);
-			this.parent = parent;
 			this.value = value == null ? 0 : value;
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="parent">Parent</param>
 		/// <param name="value">Value</param>
 		/// <param name="type">Type</param>
-		public ConstantUser(IHasConstant parent, object value, ElementType type) {
+		public ConstantUser(object value, ElementType type) {
 			this.type = type;
-			this.parent = parent;
 			this.value = value;
 		}
 
@@ -145,19 +121,12 @@ namespace dot10.DotNet {
 		RawConstantRow rawRow;
 
 		UserValue<ElementType> type;
-		UserValue<IHasConstant> parent;
 		UserValue<object> value;
 
 		/// <inheritdoc/>
 		public override ElementType Type {
 			get { return type.Value; }
 			set { type.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override IHasConstant Parent {
-			get { return parent.Value; }
-			set { parent.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -189,10 +158,6 @@ namespace dot10.DotNet {
 			type.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return (ElementType)rawRow.Type;
-			};
-			parent.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveHasConstant(rawRow.Parent);
 			};
 			value.ReadOriginalValue = () => {
 				InitializeRawRow();

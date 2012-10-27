@@ -1241,8 +1241,8 @@ namespace dot10.DotNet {
 				return readerModule.ResolveClassLayout(readerModule.MetaData.GetClassLayoutRid(rid));
 			};
 			declaringType.ReadOriginalValue = () => {
-				var nestedClass = readerModule.ResolveNestedClass(readerModule.MetaData.GetNestedClassRid(rid));
-				return nestedClass == null ? null : nestedClass.EnclosingType;
+				var row = readerModule.TablesStream.ReadNestedClassRow(readerModule.MetaData.GetNestedClassRid(rid));
+				return row == null ? null : readerModule.ResolveTypeDef(row.EnclosingClass);
 			};
 			ownerModule.ReadOriginalValue = () => {
 				return DeclaringType != null ? null : readerModule;
@@ -1280,12 +1280,12 @@ namespace dot10.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodImplRidList(rid);
 			for (uint i = 0; i < ridList.Length; i++) {
-				var methodImpl = readerModule.ResolveMethodImpl(ridList[i]);
+				var methodImpl = readerModule.TablesStream.ReadMethodImplRow(ridList[i]);
 				if (methodImpl == null)
 					continue;	// Should never happen since rid should be valid
 
-				var methodBody = methodImpl.MethodBody;
-				var methodDecl = methodImpl.MethodDeclaration;
+				var methodBody = readerModule.ResolveMethodDefOrRef(methodImpl.MethodBody);
+				var methodDecl = readerModule.ResolveMethodDefOrRef(methodImpl.MethodDeclaration);
 				if (methodBody == null || methodDecl == null)
 					continue;	// Should only happen if some obfuscator added invalid metadata
 

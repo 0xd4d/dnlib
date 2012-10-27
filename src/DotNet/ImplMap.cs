@@ -30,11 +30,6 @@ namespace dot10.DotNet {
 		public abstract PInvokeAttributes Flags { get; set; }
 
 		/// <summary>
-		/// From column ImplMap.MemberForwarded
-		/// </summary>
-		public abstract IMemberForwarded MemberForwarded { get; set; }
-
-		/// <summary>
 		/// From column ImplMap.ImportName
 		/// </summary>
 		public abstract UTF8String Name { get; set; }
@@ -213,7 +208,6 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class ImplMapUser : ImplMap {
 		PInvokeAttributes flags;
-		IMemberForwarded memberForwarded;
 		UTF8String name;
 		ModuleRef scope;
 
@@ -223,14 +217,6 @@ namespace dot10.DotNet {
 		public override PInvokeAttributes Flags {
 			get { return flags; }
 			set { flags = value; }
-		}
-
-		/// <summary>
-		/// From column ImplMap.MemberForwarded
-		/// </summary>
-		public override IMemberForwarded MemberForwarded {
-			get { return memberForwarded; }
-			set { memberForwarded = value; }
 		}
 
 		/// <summary>
@@ -260,12 +246,10 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="scope">Scope</param>
 		/// <param name="name">Name</param>
-		/// <param name="memberForwarded">MemberForwarded</param>
 		/// <param name="flags">Flags</param>
-		public ImplMapUser(ModuleRef scope, UTF8String name, IMemberForwarded memberForwarded, PInvokeAttributes flags) {
+		public ImplMapUser(ModuleRef scope, UTF8String name, PInvokeAttributes flags) {
 			this.scope = scope;
 			this.name = name;
-			this.memberForwarded = memberForwarded;
 			this.flags = flags;
 		}
 
@@ -274,10 +258,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="scope">Scope</param>
 		/// <param name="name">Name</param>
-		/// <param name="memberForwarded">MemberForwarded</param>
 		/// <param name="flags">Flags</param>
-		public ImplMapUser(ModuleRef scope, string name, IMemberForwarded memberForwarded, PInvokeAttributes flags)
-			: this(scope, new UTF8String(name), memberForwarded, flags) {
+		public ImplMapUser(ModuleRef scope, string name, PInvokeAttributes flags)
+			: this(scope, new UTF8String(name), flags) {
 		}
 	}
 
@@ -291,7 +274,6 @@ namespace dot10.DotNet {
 		RawImplMapRow rawRow;
 
 		UserValue<PInvokeAttributes> flags;
-		UserValue<IMemberForwarded> memberForwarded;
 		UserValue<UTF8String> name;
 		UserValue<ModuleRef> scope;
 
@@ -301,14 +283,6 @@ namespace dot10.DotNet {
 		public override PInvokeAttributes Flags {
 			get { return flags.Value; }
 			set { flags.Value = value; }
-		}
-
-		/// <summary>
-		/// From column ImplMap.MemberForwarded
-		/// </summary>
-		public override IMemberForwarded MemberForwarded {
-			get { return memberForwarded.Value; }
-			set { memberForwarded.Value = value; }
 		}
 
 		/// <summary>
@@ -350,10 +324,6 @@ namespace dot10.DotNet {
 			flags.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return (PInvokeAttributes)rawRow.MappingFlags;
-			};
-			memberForwarded.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveMemberForwarded(rawRow.MemberForwarded);
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();

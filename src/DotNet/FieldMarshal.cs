@@ -23,11 +23,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// From column FieldMarshal.Parent
-		/// </summary>
-		public abstract IHasFieldMarshal Field { get; set; }
-
-		/// <summary>
 		/// From column FieldMarshal.NativeType
 		/// </summary>
 		public abstract byte[] NativeType { get; set; }
@@ -37,14 +32,7 @@ namespace dot10.DotNet {
 	/// A FieldMarshal row created by the user and not present in the original .NET file
 	/// </summary>
 	public class FieldMarshalUser : FieldMarshal {
-		IHasFieldMarshal field;
 		byte[] nativeType;
-
-		/// <inheritdoc/>
-		public override IHasFieldMarshal Field {
-			get { return field; }
-			set { field = value; }
-		}
 
 		/// <inheritdoc/>
 		public override byte[] NativeType {
@@ -67,15 +55,7 @@ namespace dot10.DotNet {
 		ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawFieldMarshalRow rawRow;
-
-		UserValue<IHasFieldMarshal> field;
 		UserValue<byte[]> nativeType;
-
-		/// <inheritdoc/>
-		public override IHasFieldMarshal Field {
-			get { return field.Value; }
-			set { field.Value = value; }
-		}
 
 		/// <inheritdoc/>
 		public override byte[] NativeType {
@@ -103,10 +83,6 @@ namespace dot10.DotNet {
 		}
 
 		void Initialize() {
-			field.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveHasFieldMarshal(rawRow.Parent);
-			};
 			nativeType.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.BlobStream.Read(rawRow.NativeType);

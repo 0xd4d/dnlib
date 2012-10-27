@@ -30,11 +30,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// From column InterfaceImpl.Class
-		/// </summary>
-		public abstract TypeDef Class { get; set; }
-
-		/// <summary>
 		/// From column InterfaceImpl.Interface
 		/// </summary>
 		public abstract ITypeDefOrRef Interface { get; set; }
@@ -49,15 +44,8 @@ namespace dot10.DotNet {
 	/// An InterfaceImpl row created by the user and not present in the original .NET file
 	/// </summary>
 	public class InterfaceImplUser : InterfaceImpl {
-		TypeDef @class;
 		ITypeDefOrRef @interface;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		public override TypeDef Class {
-			get { return @class; }
-			set { @class = value; }
-		}
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Interface {
@@ -79,10 +67,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="class">The type</param>
-		/// <param name="interface">The interface <paramref name="class"/> implements</param>
-		public InterfaceImplUser(TypeDef @class, ITypeDefOrRef @interface) {
-			this.@class = @class;
+		/// <param name="interface">The interface the type implements</param>
+		public InterfaceImplUser(ITypeDefOrRef @interface) {
 			this.@interface = @interface;
 		}
 	}
@@ -96,15 +82,8 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawInterfaceImplRow rawRow;
 
-		UserValue<TypeDef> @class;
 		UserValue<ITypeDefOrRef> @interface;
 		CustomAttributeCollection customAttributeCollection;
-
-		/// <inheritdoc/>
-		public override TypeDef Class {
-			get { return @class.Value; }
-			set { @class.Value = value; }
-		}
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Interface {
@@ -143,10 +122,6 @@ namespace dot10.DotNet {
 		}
 
 		void Initialize() {
-			@class.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveTypeDef(rawRow.Class);
-			};
 			@interface.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Interface);

@@ -20,45 +20,26 @@ namespace dot10.DotNet {
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
 		SimpleLazyList<TypeRefMD> listTypeRefMD;
 		SimpleLazyList<TypeDefMD> listTypeDefMD;
-		SimpleLazyList<FieldPtrMD> listFieldPtrMD;
 		SimpleLazyList<FieldDefMD> listFieldDefMD;
-		SimpleLazyList<MethodPtrMD> listMethodPtrMD;
 		SimpleLazyList<MethodDefMD> listMethodDefMD;
-		SimpleLazyList<ParamPtrMD> listParamPtrMD;
 		SimpleLazyList<ParamDefMD> listParamDefMD;
 		SimpleLazyList<InterfaceImplMD> listInterfaceImplMD;
 		SimpleLazyList<MemberRefMD> listMemberRefMD;
 		SimpleLazyList<ConstantMD> listConstantMD;
-		SimpleLazyList<CustomAttributeDefMD> listCustomAttributeDefMD;
 		SimpleLazyList<FieldMarshalMD> listFieldMarshalMD;
 		SimpleLazyList<DeclSecurityMD> listDeclSecurityMD;
 		SimpleLazyList<ClassLayoutMD> listClassLayoutMD;
-		SimpleLazyList<FieldLayoutMD> listFieldLayoutMD;
 		SimpleLazyList<StandAloneSigMD> listStandAloneSigMD;
-		SimpleLazyList<EventMapMD> listEventMapMD;
-		SimpleLazyList<EventPtrMD> listEventPtrMD;
 		SimpleLazyList<EventDefMD> listEventDefMD;
-		SimpleLazyList<PropertyMapMD> listPropertyMapMD;
-		SimpleLazyList<PropertyPtrMD> listPropertyPtrMD;
 		SimpleLazyList<PropertyDefMD> listPropertyDefMD;
-		SimpleLazyList<MethodSemanticsMD> listMethodSemanticsMD;
-		SimpleLazyList<MethodImplMD> listMethodImplMD;
 		SimpleLazyList<ModuleRefMD> listModuleRefMD;
 		SimpleLazyList<TypeSpecMD> listTypeSpecMD;
 		SimpleLazyList<ImplMapMD> listImplMapMD;
-		SimpleLazyList<FieldRVAMD> listFieldRVAMD;
-		SimpleLazyList<ENCLogMD> listENCLogMD;
-		SimpleLazyList<ENCMapMD> listENCMapMD;
 		SimpleLazyList<AssemblyDefMD> listAssemblyDefMD;
-		SimpleLazyList<AssemblyProcessorMD> listAssemblyProcessorMD;
-		SimpleLazyList<AssemblyOSMD> listAssemblyOSMD;
 		SimpleLazyList<AssemblyRefMD> listAssemblyRefMD;
-		SimpleLazyList<AssemblyRefProcessorMD> listAssemblyRefProcessorMD;
-		SimpleLazyList<AssemblyRefOSMD> listAssemblyRefOSMD;
 		SimpleLazyList<FileDefMD> listFileDefMD;
 		SimpleLazyList<ExportedTypeMD> listExportedTypeMD;
 		SimpleLazyList<ManifestResourceMD> listManifestResourceMD;
-		SimpleLazyList<NestedClassMD> listNestedClassMD;
 		SimpleLazyList<GenericParamMD> listGenericParamMD;
 		SimpleLazyList<MethodSpecMD> listMethodSpecMD;
 		SimpleLazyList<GenericParamConstraintMD> listGenericParamConstraintMD;
@@ -335,44 +316,25 @@ namespace dot10.DotNet {
 			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.Get(Table.Module).Rows, rid2 => rid2 == rid ? this : new ModuleDefMD2(this, rid2));
 			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.Get(Table.TypeRef).Rows, rid2 => new TypeRefMD(this, rid2));
 			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.Get(Table.TypeDef).Rows, rid2 => new TypeDefMD(this, rid2));
-			listFieldPtrMD = new SimpleLazyList<FieldPtrMD>(ts.Get(Table.FieldPtr).Rows, rid2 => new FieldPtrMD(this, rid2));
 			listFieldDefMD = new SimpleLazyList<FieldDefMD>(ts.Get(Table.Field).Rows, rid2 => new FieldDefMD(this, rid2));
-			listMethodPtrMD = new SimpleLazyList<MethodPtrMD>(ts.Get(Table.MethodPtr).Rows, rid2 => new MethodPtrMD(this, rid2));
 			listMethodDefMD = new SimpleLazyList<MethodDefMD>(ts.Get(Table.Method).Rows, rid2 => new MethodDefMD(this, rid2));
-			listParamPtrMD = new SimpleLazyList<ParamPtrMD>(ts.Get(Table.ParamPtr).Rows, rid2 => new ParamPtrMD(this, rid2));
 			listParamDefMD = new SimpleLazyList<ParamDefMD>(ts.Get(Table.Param).Rows, rid2 => new ParamDefMD(this, rid2));
 			listInterfaceImplMD = new SimpleLazyList<InterfaceImplMD>(ts.Get(Table.InterfaceImpl).Rows, rid2 => new InterfaceImplMD(this, rid2));
 			listMemberRefMD = new SimpleLazyList<MemberRefMD>(ts.Get(Table.MemberRef).Rows, rid2 => new MemberRefMD(this, rid2));
 			listConstantMD = new SimpleLazyList<ConstantMD>(ts.Get(Table.Constant).Rows, rid2 => new ConstantMD(this, rid2));
-			listCustomAttributeDefMD = new SimpleLazyList<CustomAttributeDefMD>(ts.Get(Table.CustomAttribute).Rows, rid2 => new CustomAttributeDefMD(this, rid2));
 			listFieldMarshalMD = new SimpleLazyList<FieldMarshalMD>(ts.Get(Table.FieldMarshal).Rows, rid2 => new FieldMarshalMD(this, rid2));
 			listDeclSecurityMD = new SimpleLazyList<DeclSecurityMD>(ts.Get(Table.DeclSecurity).Rows, rid2 => new DeclSecurityMD(this, rid2));
 			listClassLayoutMD = new SimpleLazyList<ClassLayoutMD>(ts.Get(Table.ClassLayout).Rows, rid2 => new ClassLayoutMD(this, rid2));
-			listFieldLayoutMD = new SimpleLazyList<FieldLayoutMD>(ts.Get(Table.FieldLayout).Rows, rid2 => new FieldLayoutMD(this, rid2));
 			listStandAloneSigMD = new SimpleLazyList<StandAloneSigMD>(ts.Get(Table.StandAloneSig).Rows, rid2 => new StandAloneSigMD(this, rid2));
-			listEventMapMD = new SimpleLazyList<EventMapMD>(ts.Get(Table.EventMap).Rows, rid2 => new EventMapMD(this, rid2));
-			listEventPtrMD = new SimpleLazyList<EventPtrMD>(ts.Get(Table.EventPtr).Rows, rid2 => new EventPtrMD(this, rid2));
 			listEventDefMD = new SimpleLazyList<EventDefMD>(ts.Get(Table.Event).Rows, rid2 => new EventDefMD(this, rid2));
-			listPropertyMapMD = new SimpleLazyList<PropertyMapMD>(ts.Get(Table.PropertyMap).Rows, rid2 => new PropertyMapMD(this, rid2));
-			listPropertyPtrMD = new SimpleLazyList<PropertyPtrMD>(ts.Get(Table.PropertyPtr).Rows, rid2 => new PropertyPtrMD(this, rid2));
 			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.Get(Table.Property).Rows, rid2 => new PropertyDefMD(this, rid2));
-			listMethodSemanticsMD = new SimpleLazyList<MethodSemanticsMD>(ts.Get(Table.MethodSemantics).Rows, rid2 => new MethodSemanticsMD(this, rid2));
-			listMethodImplMD = new SimpleLazyList<MethodImplMD>(ts.Get(Table.MethodImpl).Rows, rid2 => new MethodImplMD(this, rid2));
 			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.Get(Table.ModuleRef).Rows, rid2 => new ModuleRefMD(this, rid2));
 			listTypeSpecMD = new SimpleLazyList<TypeSpecMD>(ts.Get(Table.TypeSpec).Rows, rid2 => new TypeSpecMD(this, rid2));
 			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.Get(Table.ImplMap).Rows, rid2 => new ImplMapMD(this, rid2));
-			listFieldRVAMD = new SimpleLazyList<FieldRVAMD>(ts.Get(Table.FieldRVA).Rows, rid2 => new FieldRVAMD(this, rid2));
-			listENCLogMD = new SimpleLazyList<ENCLogMD>(ts.Get(Table.ENCLog).Rows, rid2 => new ENCLogMD(this, rid2));
-			listENCMapMD = new SimpleLazyList<ENCMapMD>(ts.Get(Table.ENCMap).Rows, rid2 => new ENCMapMD(this, rid2));
 			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.Get(Table.Assembly).Rows, rid2 => new AssemblyDefMD(this, rid2));
-			listAssemblyProcessorMD = new SimpleLazyList<AssemblyProcessorMD>(ts.Get(Table.AssemblyProcessor).Rows, rid2 => new AssemblyProcessorMD(this, rid2));
-			listAssemblyOSMD = new SimpleLazyList<AssemblyOSMD>(ts.Get(Table.AssemblyOS).Rows, rid2 => new AssemblyOSMD(this, rid2));
-			listAssemblyRefProcessorMD = new SimpleLazyList<AssemblyRefProcessorMD>(ts.Get(Table.AssemblyRefProcessor).Rows, rid2 => new AssemblyRefProcessorMD(this, rid2));
-			listAssemblyRefOSMD = new SimpleLazyList<AssemblyRefOSMD>(ts.Get(Table.AssemblyRefOS).Rows, rid2 => new AssemblyRefOSMD(this, rid2));
 			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.Get(Table.File).Rows, rid2 => new FileDefMD(this, rid2));
 			listExportedTypeMD = new SimpleLazyList<ExportedTypeMD>(ts.Get(Table.ExportedType).Rows, rid2 => new ExportedTypeMD(this, rid2));
 			listManifestResourceMD = new SimpleLazyList<ManifestResourceMD>(ts.Get(Table.ManifestResource).Rows, rid2 => new ManifestResourceMD(this, rid2));
-			listNestedClassMD = new SimpleLazyList<NestedClassMD>(ts.Get(Table.NestedClass).Rows, rid2 => new NestedClassMD(this, rid2));
 			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.Get(Table.GenericParam).Rows, rid2 => new GenericParamMD(this, rid2));
 			listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, rid2 => new MethodSpecMD(this, rid2));
 			listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
@@ -447,45 +409,26 @@ namespace dot10.DotNet {
 			case Table.Module: return ResolveModule(rid);
 			case Table.TypeRef: return ResolveTypeRef(rid);
 			case Table.TypeDef: return ResolveTypeDef(rid);
-			case Table.FieldPtr: return ResolveFieldPtr(rid);
 			case Table.Field: return ResolveField(rid);
-			case Table.MethodPtr: return ResolveMethodPtr(rid);
 			case Table.Method: return ResolveMethod(rid);
-			case Table.ParamPtr: return ResolveParamPtr(rid);
 			case Table.Param: return ResolveParam(rid);
 			case Table.InterfaceImpl: return ResolveInterfaceImpl(rid);
 			case Table.MemberRef: return ResolveMemberRef(rid);
 			case Table.Constant: return ResolveConstant(rid);
-			case Table.CustomAttribute: return ResolveCustomAttribute(rid);
 			case Table.FieldMarshal: return ResolveFieldMarshal(rid);
 			case Table.DeclSecurity: return ResolveDeclSecurity(rid);
 			case Table.ClassLayout: return ResolveClassLayout(rid);
-			case Table.FieldLayout: return ResolveFieldLayout(rid);
 			case Table.StandAloneSig: return ResolveStandAloneSig(rid);
-			case Table.EventMap: return ResolveEventMap(rid);
-			case Table.EventPtr: return ResolveEventPtr(rid);
 			case Table.Event: return ResolveEvent(rid);
-			case Table.PropertyMap: return ResolvePropertyMap(rid);
-			case Table.PropertyPtr: return ResolvePropertyPtr(rid);
 			case Table.Property: return ResolveProperty(rid);
-			case Table.MethodSemantics: return ResolveMethodSemantics(rid);
-			case Table.MethodImpl: return ResolveMethodImpl(rid);
 			case Table.ModuleRef: return ResolveModuleRef(rid);
 			case Table.TypeSpec: return ResolveTypeSpec(rid);
 			case Table.ImplMap: return ResolveImplMap(rid);
-			case Table.FieldRVA: return ResolveFieldRVA(rid);
-			case Table.ENCLog: return ResolveENCLog(rid);
-			case Table.ENCMap: return ResolveENCMap(rid);
 			case Table.Assembly: return ResolveAssembly(rid);
-			case Table.AssemblyProcessor: return ResolveAssemblyProcessor(rid);
-			case Table.AssemblyOS: return ResolveAssemblyOS(rid);
 			case Table.AssemblyRef: return ResolveAssemblyRef(rid);
-			case Table.AssemblyRefProcessor: return ResolveAssemblyRefProcessor(rid);
-			case Table.AssemblyRefOS: return ResolveAssemblyRefOS(rid);
 			case Table.File: return ResolveFile(rid);
 			case Table.ExportedType: return ResolveExportedType(rid);
 			case Table.ManifestResource: return ResolveManifestResource(rid);
-			case Table.NestedClass: return ResolveNestedClass(rid);
 			case Table.GenericParam: return ResolveGenericParam(rid);
 			case Table.MethodSpec: return ResolveMethodSpec(rid);
 			case Table.GenericParamConstraint: return ResolveGenericParamConstraint(rid);
@@ -521,15 +464,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="FieldPtr"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public FieldPtr ResolveFieldPtr(uint rid) {
-			return listFieldPtrMD[rid - 1];
-		}
-
-		/// <summary>
 		/// Resolves a <see cref="FieldDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
@@ -539,30 +473,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="MethodPtr"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public MethodPtr ResolveMethodPtr(uint rid) {
-			return listMethodPtrMD[rid - 1];
-		}
-
-		/// <summary>
 		/// Resolves a <see cref="MethodDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MethodDef ResolveMethod(uint rid) {
 			return listMethodDefMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves a <see cref="ParamPtr"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ParamPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public ParamPtr ResolveParamPtr(uint rid) {
-			return listParamPtrMD[rid - 1];
 		}
 
 		/// <summary>
@@ -602,15 +518,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="CustomAttributeDef"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="CustomAttributeDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public CustomAttributeDef ResolveCustomAttribute(uint rid) {
-			return listCustomAttributeDefMD[rid - 1];
-		}
-
-		/// <summary>
 		/// Resolves a <see cref="FieldMarshal"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
@@ -638,39 +545,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="FieldLayout"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldLayout"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public FieldLayout ResolveFieldLayout(uint rid) {
-			return listFieldLayoutMD[rid - 1];
-		}
-
-		/// <summary>
 		/// Resolves a <see cref="StandAloneSig"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="StandAloneSig"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public StandAloneSig ResolveStandAloneSig(uint rid) {
 			return listStandAloneSigMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves an <see cref="EventMap"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="EventMap"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public EventMap ResolveEventMap(uint rid) {
-			return listEventMapMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves an <see cref="EventPtr"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="EventPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public EventPtr ResolveEventPtr(uint rid) {
-			return listEventPtrMD[rid - 1];
 		}
 
 		/// <summary>
@@ -683,48 +563,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="PropertyMap"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="PropertyMap"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public PropertyMap ResolvePropertyMap(uint rid) {
-			return listPropertyMapMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves a <see cref="PropertyPtr"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="PropertyPtr"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public PropertyPtr ResolvePropertyPtr(uint rid) {
-			return listPropertyPtrMD[rid - 1];
-		}
-
-		/// <summary>
 		/// Resolves a <see cref="PropertyDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="PropertyDef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public PropertyDef ResolveProperty(uint rid) {
 			return listPropertyDefMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves a <see cref="MethodSemantics"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodSemantics"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public MethodSemantics ResolveMethodSemantics(uint rid) {
-			return listMethodSemanticsMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves a <see cref="MethodImpl"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="MethodImpl"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public MethodImpl ResolveMethodImpl(uint rid) {
-			return listMethodImplMD[rid - 1];
 		}
 
 		/// <summary>
@@ -755,33 +599,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a <see cref="FieldRVA"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldRVA"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public FieldRVA ResolveFieldRVA(uint rid) {
-			return listFieldRVAMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves an <see cref="ENCLog"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ENCLog"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public ENCLog ResolveENCLog(uint rid) {
-			return listENCLogMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves an <see cref="ENCMap"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="ENCMap"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public ENCMap ResolveENCMap(uint rid) {
-			return listENCMapMD[rid - 1];
-		}
-
-		/// <summary>
 		/// Resolves an <see cref="AssemblyDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
@@ -791,48 +608,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves an <see cref="AssemblyProcessor"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyProcessor"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public AssemblyProcessor ResolveAssemblyProcessor(uint rid) {
-			return listAssemblyProcessorMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves an <see cref="AssemblyOS"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyOS"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public AssemblyOS ResolveAssemblyOS(uint rid) {
-			return listAssemblyOSMD[rid - 1];
-		}
-
-		/// <summary>
 		/// Resolves an <see cref="AssemblyRef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="AssemblyRef"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public AssemblyRef ResolveAssemblyRef(uint rid) {
 			return listAssemblyRefMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves an <see cref="AssemblyRefProcessor"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyRefProcessor"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public AssemblyRefProcessor ResolveAssemblyRefProcessor(uint rid) {
-			return listAssemblyRefProcessorMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves an <see cref="AssemblyRefOS"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="AssemblyRefOS"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public AssemblyRefOS ResolveAssemblyRefOS(uint rid) {
-			return listAssemblyRefOSMD[rid - 1];
 		}
 
 		/// <summary>
@@ -860,15 +641,6 @@ namespace dot10.DotNet {
 		/// <returns>A <see cref="ManifestResource"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public ManifestResource ResolveManifestResource(uint rid) {
 			return listManifestResourceMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves a <see cref="NestedClass"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="NestedClass"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public NestedClass ResolveNestedClass(uint rid) {
-			return listNestedClassMD[rid - 1];
 		}
 
 		/// <summary>

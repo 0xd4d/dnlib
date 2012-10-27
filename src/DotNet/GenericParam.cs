@@ -41,11 +41,6 @@ namespace dot10.DotNet {
 		public abstract GenericParamAttributes Flags { get; set; }
 
 		/// <summary>
-		/// From column GenericParam.Owner
-		/// </summary>
-		public abstract ITypeOrMethodDef Owner { get; set; }
-
-		/// <summary>
 		/// From column GenericParam.Name
 		/// </summary>
 		public abstract UTF8String Name { get; set; }
@@ -83,7 +78,8 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			if (Owner is TypeDef)
+			bool isOwnerTypeDef = true;	//TODO:
+			if (isOwnerTypeDef)
 				return string.Format("!{0}", Number);
 			return string.Format("!!{0}", Number);
 		}
@@ -95,7 +91,6 @@ namespace dot10.DotNet {
 	public class GenericParamUser : GenericParam {
 		ushort number;
 		GenericParamAttributes flags;
-		ITypeOrMethodDef owner;
 		UTF8String name;
 		ITypeDefOrRef kind;
 		IList<GenericParamConstraint> genericParamConstraints = new List<GenericParamConstraint>();
@@ -111,12 +106,6 @@ namespace dot10.DotNet {
 		public override GenericParamAttributes Flags {
 			get { return flags; }
 			set { flags = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeOrMethodDef Owner {
-			get { return owner; }
-			set { owner = value; }
 		}
 
 		/// <inheritdoc/>
@@ -150,31 +139,27 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="owner">Owner type/method</param>
 		/// <param name="number">The generic param number</param>
-		public GenericParamUser(ITypeOrMethodDef owner, ushort number)
-			: this(owner, number, 0) {
+		public GenericParamUser(ushort number)
+			: this(number, 0) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="owner">Owner type/method</param>
 		/// <param name="number">The generic param number</param>
 		/// <param name="flags">Flags</param>
-		public GenericParamUser(ITypeOrMethodDef owner, ushort number, GenericParamAttributes flags)
-			: this(owner, number, flags, UTF8String.Empty) {
+		public GenericParamUser(ushort number, GenericParamAttributes flags)
+			: this(number, flags, UTF8String.Empty) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="owner">Owner type/method</param>
 		/// <param name="number">The generic param number</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="name">Name</param>
-		public GenericParamUser(ITypeOrMethodDef owner, ushort number, GenericParamAttributes flags, UTF8String name) {
-			this.owner = owner;
+		public GenericParamUser(ushort number, GenericParamAttributes flags, UTF8String name) {
 			this.number = number;
 			this.flags = flags;
 			this.name = name;
@@ -183,12 +168,11 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="owner">Owner type/method</param>
 		/// <param name="number">The generic param number</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="name">Name</param>
-		public GenericParamUser(ITypeOrMethodDef owner, ushort number, GenericParamAttributes flags, string name)
-			: this(owner, number, flags, new UTF8String(name)) {
+		public GenericParamUser(ushort number, GenericParamAttributes flags, string name)
+			: this(number, flags, new UTF8String(name)) {
 		}
 	}
 
@@ -203,7 +187,6 @@ namespace dot10.DotNet {
 
 		UserValue<ushort> number;
 		UserValue<GenericParamAttributes> flags;
-		UserValue<ITypeOrMethodDef> owner;
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> kind;
 		LazyList<GenericParamConstraint> genericParamConstraints;
@@ -219,12 +202,6 @@ namespace dot10.DotNet {
 		public override GenericParamAttributes Flags {
 			get { return flags.Value; }
 			set { flags.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeOrMethodDef Owner {
-			get { return owner.Value; }
-			set { owner.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -288,10 +265,6 @@ namespace dot10.DotNet {
 			flags.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return (GenericParamAttributes)rawRow.Flags;
-			};
-			owner.ReadOriginalValue = () => {
-				InitializeRawRow();
-				return readerModule.ResolveTypeOrMethodDef(rawRow.Owner);
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow();

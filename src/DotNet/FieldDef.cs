@@ -64,9 +64,9 @@ namespace dot10.DotNet {
 		public abstract CallingConventionSig Signature { get; set; }
 
 		/// <summary>
-		/// Gets/sets the field layout
+		/// Gets/sets the field layout offset
 		/// </summary>
-		public abstract FieldLayout FieldLayout { get; set; }
+		public abstract uint? FieldOffset { get; set; }
 
 		/// <inheritdoc/>
 		public abstract FieldMarshal FieldMarshal { get; set; }
@@ -364,7 +364,7 @@ namespace dot10.DotNet {
 		FieldAttributes flags;
 		UTF8String name;
 		CallingConventionSig signature;
-		FieldLayout fieldLayout;
+		uint? fieldOffset;
 		FieldMarshal fieldMarshal;
 		RVA rva;
 		byte[] initialValue;
@@ -396,9 +396,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldLayout FieldLayout {
-			get { return fieldLayout; }
-			set { fieldLayout = value; }
+		public override uint? FieldOffset {
+			get { return fieldOffset; }
+			set { fieldOffset = value; }
 		}
 
 		/// <inheritdoc/>
@@ -513,7 +513,7 @@ namespace dot10.DotNet {
 		UserValue<FieldAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> signature;
-		UserValue<FieldLayout> fieldLayout;
+		UserValue<uint?> fieldOffset;
 		UserValue<FieldMarshal> fieldMarshal;
 		UserValue<RVA> rva;
 		UserValue<byte[]> initialValue;
@@ -551,9 +551,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldLayout FieldLayout {
-			get { return fieldLayout.Value; }
-			set { fieldLayout.Value = value; }
+		public override uint? FieldOffset {
+			get { return fieldOffset.Value; }
+			set { fieldOffset.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -624,8 +624,9 @@ namespace dot10.DotNet {
 				InitializeRawRow();
 				return readerModule.ReadSignature(rawRow.Signature);
 			};
-			fieldLayout.ReadOriginalValue = () => {
-				return readerModule.ResolveFieldLayout(readerModule.MetaData.GetFieldLayoutRid(rid));
+			fieldOffset.ReadOriginalValue = () => {
+				var row = readerModule.TablesStream.ReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(rid));
+				return row == null ? null : new uint?(row.OffSet);
 			};
 			fieldMarshal.ReadOriginalValue = () => {
 				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Field, rid));

@@ -1500,10 +1500,10 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="field">Owner field</param>
 		protected void AddFieldLayout(FieldDef field) {
-			if (field == null || field.FieldLayout == null)
+			if (field == null || field.FieldOffset == null)
 				return;
 			var rid = GetRid(field);
-			var row = new RawFieldLayoutRow(field.FieldLayout.Offset, rid);
+			var row = new RawFieldLayoutRow(field.FieldOffset.Value, rid);
 			fieldLayoutInfos.Add(field, row);
 		}
 
