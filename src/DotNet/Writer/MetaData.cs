@@ -39,6 +39,12 @@ namespace dot10.DotNet.Writer {
 		/// #Blob heap.
 		/// </summary>
 		PreserveBlobOffsets = 8,
+
+		/// <summary>
+		/// Preserves most tokens and also all offsets in #Strings, #US and #Blob heaps.
+		/// </summary>
+		PreserveTokensAndHeapOffsets = PreserveTokens | PreserveStringsOffsets |
+					PreserveUSOffsets | PreserveBlobOffsets,
 	}
 
 	/// <summary>
