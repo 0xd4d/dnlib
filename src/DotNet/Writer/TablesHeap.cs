@@ -35,6 +35,13 @@ namespace dot10.DotNet.Writer {
 		/// Extra data to write
 		/// </summary>
 		public uint? ExtraData;
+
+		/// <summary>
+		/// <c>true</c> if there are deleted <see cref="TypeDef"/>s, <see cref="ExportedType"/>s,
+		/// <see cref="FieldDef"/>s, <see cref="MethodDef"/>s, <see cref="EventDef"/>s and/or
+		/// <see cref="PropertyDef"/>s.
+		/// </summary>
+		public bool? HasDeletedRows;
 	}
 
 	/// <summary>
@@ -47,6 +54,7 @@ namespace dot10.DotNet.Writer {
 		bool bigStrings;
 		bool bigGuid;
 		bool bigBlob;
+		bool hasDeletedRows;
 		TablesHeapOptions options;
 		FileOffset offset;
 		RVA rva;
@@ -131,7 +139,7 @@ namespace dot10.DotNet.Writer {
 			get {
 				if (options.UseENC ?? false)
 					return true;
-				return HasDeletedRows ||
+				return hasDeletedRows ||
 						!FieldPtrTable.IsEmpty ||
 						!MethodPtrTable.IsEmpty ||
 						!ParamPtrTable.IsEmpty ||
@@ -145,7 +153,8 @@ namespace dot10.DotNet.Writer {
 		/// Its name has been renamed to _Deleted).
 		/// </summary>
 		public bool HasDeletedRows {
-			get { return false; }
+			get { return hasDeletedRows; }
+			set { hasDeletedRows = value; }
 		}
 
 		/// <summary>
@@ -185,6 +194,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="options">Options</param>
 		public TablesHeap(TablesHeapOptions options) {
 			this.options = options ?? new TablesHeapOptions();
+			this.hasDeletedRows = this.options.HasDeletedRows ?? false;
 			this.Tables = new IMDTable[] {
 				ModuleTable,
 				TypeRefTable,
@@ -790,7 +800,7 @@ namespace dot10.DotNet.Writer {
 				flags |= MDStreamFlags.BigBlob;
 			if (options.ExtraData.HasValue)
 				flags |= MDStreamFlags.ExtraData;
-			if (HasDeletedRows)
+			if (hasDeletedRows)
 				flags |= MDStreamFlags.HasDelete;
 			return flags;
 		}
