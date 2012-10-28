@@ -761,6 +761,7 @@ namespace dot10.DotNet.Writer {
 			WriteMethodBodies();
 			AddResources(module.Resources);
 			InitializeCustomAttributeTable();
+			EverythingInitialized();
 		}
 
 		/// <summary>
@@ -1321,12 +1322,15 @@ namespace dot10.DotNet.Writer {
 			}
 			if (this.module != module)
 				Error("Module {0} must be referenced with a ModuleRef, not a ModuleDef", module);
+			uint rid;
+			if (moduleDefInfos.TryGetRid(module, out rid))
+				return rid;
 			var row = new RawModuleRow(module.Generation,
 								stringsHeap.Add(module.Name),
 								guidHeap.Add(module.Mvid),
 								guidHeap.Add(module.EncId),
 								guidHeap.Add(module.EncBaseId));
-			uint rid = tablesHeap.ModuleTable.Add(row);
+			rid = tablesHeap.ModuleTable.Add(row);
 			moduleDefInfos.Add(module, rid);
 			AddCustomAttributes(Table.Module, rid, module);
 			return rid;
@@ -1391,6 +1395,9 @@ namespace dot10.DotNet.Writer {
 				Error("Assembly is null");
 				return 0;
 			}
+			uint rid;
+			if (assemblyInfos.TryGetRid(asm, out rid))
+				return rid;
 			var version = Utils.CreateVersionWithNoUndefinedValues(asm.Version);
 			var row = new RawAssemblyRow((uint)asm.HashAlgId,
 							(ushort)version.Major,
@@ -1401,7 +1408,7 @@ namespace dot10.DotNet.Writer {
 							blobHeap.Add(GetPublicKeyOrTokenData(asm.PublicKeyOrToken)),
 							stringsHeap.Add(asm.Name),
 							stringsHeap.Add(asm.Locale));
-			uint rid = tablesHeap.AssemblyTable.Add(row);
+			rid = tablesHeap.AssemblyTable.Add(row);
 			assemblyInfos.Add(asm, rid);
 			AddDeclSecurities(new MDToken(Table.Assembly, rid), asm.DeclSecurities);
 			AddCustomAttributes(Table.Assembly, rid, asm);
@@ -1822,11 +1829,14 @@ namespace dot10.DotNet.Writer {
 				Error("EmbeddedResource is null");
 				return 0;
 			}
+			uint rid;
+			if (manifestResourceInfos.TryGetRid(er, out rid))
+				return rid;
 			var row = new RawManifestResourceRow(netResources.NextOffset,
 						(uint)er.Flags,
 						stringsHeap.Add(er.Name),
 						0);
-			uint rid = tablesHeap.ManifestResourceTable.Add(row);
+			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(er, rid);
 			embeddedResourceToByteArray[er] = netResources.Add(er.Data);
 			//TODO: Add custom attributes
@@ -1838,11 +1848,14 @@ namespace dot10.DotNet.Writer {
 				Error("AssemblyLinkedResource is null");
 				return 0;
 			}
+			uint rid;
+			if (manifestResourceInfos.TryGetRid(alr, out rid))
+				return rid;
 			var row = new RawManifestResourceRow(0,
 						(uint)alr.Flags,
 						stringsHeap.Add(alr.Name),
 						AddAssemblyRef(alr.Assembly));
-			uint rid = tablesHeap.ManifestResourceTable.Add(row);
+			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(alr, rid);
 			//TODO: Add custom attributes
 			return rid;
@@ -1853,11 +1866,14 @@ namespace dot10.DotNet.Writer {
 				Error("LinkedResource is null");
 				return 0;
 			}
+			uint rid;
+			if (manifestResourceInfos.TryGetRid(lr, out rid))
+				return rid;
 			var row = new RawManifestResourceRow(0,
 						(uint)lr.Flags,
 						stringsHeap.Add(lr.Name),
 						AddFile(lr.File));
-			uint rid = tablesHeap.ManifestResourceTable.Add(row);
+			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(lr, rid);
 			//TODO: Add custom attributes
 			return rid;
@@ -2056,6 +2072,14 @@ namespace dot10.DotNet.Writer {
 		/// <param name="ms">Method spec</param>
 		/// <returns>Its new rid</returns>
 		protected abstract uint AddMethodSpec(MethodSpec ms);
+
+		/// <summary>
+		/// Called after everything has been initialized. The sub class can initialize more
+		/// rows if necessary or do nothing. After this method has been called, nothing else
+		/// can be added.
+		/// </summary>
+		protected virtual void EverythingInitialized() {
+		}
 
 		const uint HEAP_ALIGNMENT = 4;
 
