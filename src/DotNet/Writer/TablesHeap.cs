@@ -144,7 +144,23 @@ namespace dot10.DotNet.Writer {
 						!MethodPtrTable.IsEmpty ||
 						!ParamPtrTable.IsEmpty ||
 						!EventPtrTable.IsEmpty ||
-						!PropertyPtrTable.IsEmpty;
+						!PropertyPtrTable.IsEmpty ||
+						!InterfaceImplTable.IsSorted ||
+						!ConstantTable.IsSorted ||
+						!CustomAttributeTable.IsSorted ||
+						!FieldMarshalTable.IsSorted ||
+						!DeclSecurityTable.IsSorted ||
+						!ClassLayoutTable.IsSorted ||
+						!FieldLayoutTable.IsSorted ||
+						!EventMapTable.IsSorted ||
+						!PropertyMapTable.IsSorted ||
+						!MethodSemanticsTable.IsSorted ||
+						!MethodImplTable.IsSorted ||
+						!ImplMapTable.IsSorted ||
+						!FieldRVATable.IsSorted ||
+						!NestedClassTable.IsSorted ||
+						!GenericParamTable.IsSorted ||
+						!GenericParamConstraintTable.IsSorted;
 			}
 		}
 
