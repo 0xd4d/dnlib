@@ -20,6 +20,7 @@ namespace dot10.DotNet.Writer {
 		MemberDefDict<PropertyDef> propertyDefInfos = new MemberDefDict<PropertyDef>();
 		Rows<TypeSpec> typeSpecInfos = new Rows<TypeSpec>();
 		Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
+		Dictionary<uint, uint> localsTokenToSignature = new Dictionary<uint, uint>();
 
 		[DebuggerDisplay("{Rid} -> {NewRid} {Def}")]
 		sealed class MemberDefInfo<T> where T : IMDTokenProvider {
@@ -769,7 +770,35 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public override MDToken GetToken(IList<TypeSig> locals, uint origToken) {
-			return base.GetToken(locals, origToken);	//TODO:
+			if (!IsValidStandAloneSigToken(origToken))
+				return base.GetToken(locals, origToken);
+
+			uint sig = GetSignature(new LocalSig(locals, false));
+			uint otherSig;
+			if (localsTokenToSignature.TryGetValue(origToken, out otherSig)) {
+				if (sig == otherSig)
+					return new MDToken(origToken);
+				Error("Could not preserve StandAloneSig token {0:X8}", origToken);
+				return base.GetToken(locals, origToken);
+			}
+
+			uint rid = MDToken.ToRID(origToken);
+			var sas = mod.ResolveStandAloneSig(rid);
+			if (standAloneSigInfos.Exists(sas)) {
+				Error("StandAloneSig {0:X8} already exists", origToken);
+				return base.GetToken(locals, origToken);
+			}
+
+			AddStandAloneSig(sas);
+			localsTokenToSignature.Add(origToken, sig);
+			return new MDToken(origToken);
+		}
+
+		bool IsValidStandAloneSigToken(uint token) {
+			if (MDToken.ToTable(token) != Table.StandAloneSig)
+				return false;
+			uint rid = MDToken.ToRID(token);
+			return mod.TablesStream.Get(Table.StandAloneSig).IsValidRID(rid);
 		}
 
 		/// <inheritdoc/>

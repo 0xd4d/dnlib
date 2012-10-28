@@ -212,6 +212,10 @@ namespace dot10.DotNet.Writer {
 				return dict.TryGetValue(value, out rid);
 			}
 
+			public bool Exists(T value) {
+				return dict.ContainsKey(value);
+			}
+
 			public void Add(T value, uint rid) {
 				dict.Add(value, rid);
 			}
