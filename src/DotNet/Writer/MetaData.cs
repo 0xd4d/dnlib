@@ -1629,11 +1629,11 @@ namespace dot10.DotNet.Writer {
 
 			case TypeCode.SByte:
 				VerifyConstantType(etype, ElementType.I1);
-				return BitConverter.GetBytes((sbyte)o);
+				return new byte[1] { (byte)(sbyte)o };
 
 			case TypeCode.Byte:
 				VerifyConstantType(etype, ElementType.U1);
-				return BitConverter.GetBytes((byte)o);
+				return new byte[1] { (byte)o };
 
 			case TypeCode.Int16:
 				VerifyConstantType(etype, ElementType.I2);
