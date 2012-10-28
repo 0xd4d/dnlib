@@ -1900,6 +1900,7 @@ namespace dot10.DotNet.Writer {
 			var row = new RawFileRow((uint)file.Flags,
 						stringsHeap.Add(file.Name),
 						blobHeap.Add(file.HashValue));	//TODO: Re-calculate the hash value if possible
+			rid = tablesHeap.FileTable.Add(row);
 			fileDefInfos.Add(file, rid);
 			AddCustomAttributes(Table.File, rid, file);
 			return rid;
