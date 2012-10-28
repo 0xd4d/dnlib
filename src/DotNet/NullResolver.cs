@@ -17,6 +17,11 @@
 		}
 
 		/// <inheritdoc/>
+		public bool AddToCache(AssemblyDef asm) {
+			return true;
+		}
+
+		/// <inheritdoc/>
 		public TypeDef Resolve(TypeRef typeRef) {
 			return null;
 		}
