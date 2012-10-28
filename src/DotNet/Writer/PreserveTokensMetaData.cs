@@ -39,6 +39,7 @@ namespace dot10.DotNet.Writer {
 			Dictionary<T, MemberDefInfo<T>> defToInfo = new Dictionary<T, MemberDefInfo<T>>();
 			List<MemberDefInfo<T>> defs = new List<MemberDefInfo<T>>();
 			List<MemberDefInfo<T>> sortedDefs;
+			Dictionary<T, int> collectionPosition = new Dictionary<T, int>();
 
 			public int Count {
 				get { return defs.Count; }
@@ -104,6 +105,14 @@ namespace dot10.DotNet.Writer {
 						return false;
 				}
 				return true;
+			}
+
+			public void SetCollectionPosition(T def, int position) {
+				collectionPosition.Add(def, position);
+			}
+
+			public int GetCollectionPosition(T def) {
+				return collectionPosition[def];
 			}
 		}
 
@@ -269,6 +278,12 @@ namespace dot10.DotNet.Writer {
 			}
 		}
 
+		/// <summary>
+		/// Reserves rows in <c>TypeRef</c>, <c>MemberRef</c>, <c>StandAloneSig</c>,
+		/// <c>TypeSpec</c> and <c>MethodSpec</c> where we will store the original rows
+		/// to make sure they get the same rid. Any user created rows will be stored at
+		/// the end of each table.
+		/// </summary>
 		void CreateEmptyTableRows() {
 			uint rows;
 
@@ -293,6 +308,12 @@ namespace dot10.DotNet.Writer {
 				tablesHeap.MethodSpecTable.Create(new RawMethodSpecRow());
 		}
 
+		/// <summary>
+		/// Adds any non-referenced rows that haven't been added yet but are present in
+		/// the original file. If there are any non-referenced rows, it's usually a sign
+		/// that an obfuscator has encrypted one or more methods or that it has added
+		/// some rows it uses to decrypt something.
+		/// </summary>
 		void InitializeUninitializedTableRows() {
 			uint rows;
 
@@ -321,6 +342,7 @@ namespace dot10.DotNet.Writer {
 		protected override void AllocateMemberDefRids() {
 			CreateEmptyTableRows();
 			FindMemberDefs();
+			InitializeCollectionPositions();
 
 			for (int i = 0; i < fieldDefInfos.Count; i++) {
 				var info = fieldDefInfos.Get(i);
@@ -421,6 +443,47 @@ namespace dot10.DotNet.Writer {
 			propertyDefInfos.FindDefs(allTypeDefs, rid => mod.ResolveProperty(rid), type => type.Properties);
 		}
 
+		void InitializeCollectionPositions() {
+			foreach (var type in allTypeDefs) {
+				int pos;
+
+				pos = 0;
+				foreach (var field in type.Fields) {
+					if (field == null)
+						continue;
+					fieldDefInfos.SetCollectionPosition(field, pos++);
+				}
+
+				pos = 0;
+				foreach (var method in type.Methods) {
+					if (method == null)
+						continue;
+					methodDefInfos.SetCollectionPosition(method, pos++);
+
+					int pos2 = 0;
+					foreach (var param in method.ParamList) {
+						if (param == null)
+							continue;
+						paramDefInfos.SetCollectionPosition(param, pos2++);
+					}
+				}
+
+				pos = 0;
+				foreach (var evt in type.Events) {
+					if (evt == null)
+						continue;
+					eventDefInfos.SetCollectionPosition(evt, pos++);
+				}
+
+				pos = 0;
+				foreach (var prop in type.Properties) {
+					if (prop == null)
+						continue;
+					propertyDefInfos.SetCollectionPosition(prop, pos++);
+				}
+			}
+		}
+
 		static IEnumerable<ParamDef> FindParamDefs(TypeDef type) {
 			foreach (var method in type.Methods) {
 				foreach (var paramDef in method.ParamList)
@@ -432,9 +495,11 @@ namespace dot10.DotNet.Writer {
 			fieldDefInfos.Sort((a, b) => {
 				var dta = a.Def.DeclaringType == null ? 0 : typeToRid[a.Def.DeclaringType];
 				var dtb = b.Def.DeclaringType == null ? 0 : typeToRid[b.Def.DeclaringType];
-				if (dta != 0 && dtb != 0 && dta != dtb)
+				if (dta == 0 || dtb == 0)
+					return a.Rid.CompareTo(b.Rid);
+				if (dta != dtb)
 					return dta.CompareTo(dtb);
-				return a.Rid.CompareTo(b.Rid);
+				return fieldDefInfos.GetCollectionPosition(a.Def).CompareTo(fieldDefInfos.GetCollectionPosition(b.Def));
 			});
 		}
 
@@ -442,20 +507,24 @@ namespace dot10.DotNet.Writer {
 			methodDefInfos.Sort((a, b) => {
 				var dta = a.Def.DeclaringType == null ? 0 : typeToRid[a.Def.DeclaringType];
 				var dtb = b.Def.DeclaringType == null ? 0 : typeToRid[b.Def.DeclaringType];
-				if (dta != 0 && dtb != 0 && dta != dtb)
+				if (dta == 0 || dtb == 0)
+					return a.Rid.CompareTo(b.Rid);
+				if (dta != dtb)
 					return dta.CompareTo(dtb);
-				return a.Rid.CompareTo(b.Rid);
+				return methodDefInfos.GetCollectionPosition(a.Def).CompareTo(methodDefInfos.GetCollectionPosition(b.Def));
 			});
 		}
 
 		void SortParameters(Dictionary<ParamDef, MethodDef> toMethod) {
 			paramDefInfos.Sort((a, b) => {
 				MethodDef method;
-				var dta = toMethod.TryGetValue(a.Def, out method) ? methodDefInfos.Rid(method) : 0;
-				var dtb = toMethod.TryGetValue(b.Def, out method) ? methodDefInfos.Rid(method) : 0;
-				if (dta != 0 && dtb != 0 && dta != dtb)
-					return dta.CompareTo(dtb);
-				return a.Rid.CompareTo(b.Rid);
+				var dma = toMethod.TryGetValue(a.Def, out method) ? methodDefInfos.Rid(method) : 0;
+				var dmb = toMethod.TryGetValue(b.Def, out method) ? methodDefInfos.Rid(method) : 0;
+				if (dma == 0 || dmb == 0)
+					return a.Rid.CompareTo(b.Rid);
+				if (dma != dmb)
+					return dma.CompareTo(dmb);
+				return paramDefInfos.GetCollectionPosition(a.Def).CompareTo(paramDefInfos.GetCollectionPosition(b.Def));
 			});
 		}
 
@@ -463,9 +532,11 @@ namespace dot10.DotNet.Writer {
 			eventDefInfos.Sort((a, b) => {
 				var dta = a.Def.DeclaringType == null ? 0 : typeToRid[a.Def.DeclaringType];
 				var dtb = b.Def.DeclaringType == null ? 0 : typeToRid[b.Def.DeclaringType];
-				if (dta != 0 && dtb != 0 && dta != dtb)
+				if (dta == 0 || dtb == 0)
+					return a.Rid.CompareTo(b.Rid);
+				if (dta != dtb)
 					return dta.CompareTo(dtb);
-				return a.Rid.CompareTo(b.Rid);
+				return eventDefInfos.GetCollectionPosition(a.Def).CompareTo(eventDefInfos.GetCollectionPosition(b.Def));
 			});
 		}
 
@@ -473,9 +544,11 @@ namespace dot10.DotNet.Writer {
 			propertyDefInfos.Sort((a, b) => {
 				var dta = a.Def.DeclaringType == null ? 0 : typeToRid[a.Def.DeclaringType];
 				var dtb = b.Def.DeclaringType == null ? 0 : typeToRid[b.Def.DeclaringType];
-				if (dta != 0 && dtb != 0 && dta != dtb)
+				if (dta == 0 || dtb == 0)
+					return a.Rid.CompareTo(b.Rid);
+				if (dta != dtb)
 					return dta.CompareTo(dtb);
-				return a.Rid.CompareTo(b.Rid);
+				return propertyDefInfos.GetCollectionPosition(a.Def).CompareTo(propertyDefInfos.GetCollectionPosition(b.Def));
 			});
 		}
 
@@ -491,6 +564,21 @@ namespace dot10.DotNet.Writer {
 					throw new ModuleWriterException("row.FieldList has already been initialized");
 				row.FieldList = (uint)i + 1;
 			}
+
+			uint rid = 1;
+			for (int i = 0; i < allTypeDefs.Count; i++) {
+				var row = tablesHeap.TypeDefTable[(uint)i + 1];
+				if (row.FieldList == 0)
+					row.FieldList = rid;
+				else {
+					if (rid != row.FieldList)
+						throw new ModuleWriterException("Invalid field list rid");
+					foreach (var field in allTypeDefs[i].Fields) {
+						if (field != null)
+							rid++;
+					}
+				}
+			}
 		}
 
 		void InitializeMethodList() {
@@ -504,6 +592,21 @@ namespace dot10.DotNet.Writer {
 				if (row.MethodList != 0)
 					throw new ModuleWriterException("row.MethodList has already been initialized");
 				row.MethodList = (uint)i + 1;
+			}
+
+			uint rid = 1;
+			for (int i = 0; i < allTypeDefs.Count; i++) {
+				var row = tablesHeap.TypeDefTable[(uint)i + 1];
+				if (row.MethodList == 0)
+					row.MethodList = rid;
+				else {
+					if (rid != row.MethodList)
+						throw new ModuleWriterException("Invalid method list rid");
+					foreach (var method in allTypeDefs[i].Methods) {
+						if (method != null)
+							rid++;
+					}
+				}
 			}
 		}
 
@@ -521,6 +624,21 @@ namespace dot10.DotNet.Writer {
 					throw new ModuleWriterException("row.ParamList has already been initialized");
 				row.ParamList = (uint)i + 1;
 			}
+
+			uint rid = 1;
+			for (int i = 0; i < methodDefInfos.Count; i++) {
+				var row = tablesHeap.MethodTable[(uint)i + 1];
+				if (row.ParamList == 0)
+					row.ParamList = rid;
+				else {
+					if (rid != row.ParamList)
+						throw new ModuleWriterException("Invalid param list rid");
+					foreach (var param in methodDefInfos.Get(i).Def.ParamList) {
+						if (param != null)
+							rid++;
+					}
+				}
+			}
 		}
 
 		void InitializeEventMap() {
@@ -532,7 +650,8 @@ namespace dot10.DotNet.Writer {
 				if (type == info.Def.DeclaringType)
 					continue;
 				type = info.Def.DeclaringType;
-				uint eventMapRid = tablesHeap.EventMapTable.Create(new RawEventMapRow(typeToRid[type], info.NewRid));
+				var row = new RawEventMapRow(typeToRid[type], info.NewRid);
+				uint eventMapRid = tablesHeap.EventMapTable.Create(row);
 				eventMapInfos.Add(type, eventMapRid);
 			}
 		}
@@ -546,7 +665,8 @@ namespace dot10.DotNet.Writer {
 				if (type == info.Def.DeclaringType)
 					continue;
 				type = info.Def.DeclaringType;
-				uint propertyMapRid = tablesHeap.PropertyMapTable.Create(new RawPropertyMapRow(typeToRid[type], info.NewRid));
+				var row = new RawPropertyMapRow(typeToRid[type], info.NewRid);
+				uint propertyMapRid = tablesHeap.PropertyMapTable.Create(row);
 				propertyMapInfos.Add(type, propertyMapRid);
 			}
 		}
@@ -589,9 +709,9 @@ namespace dot10.DotNet.Writer {
 					Error("TypeSpec {0} ({1:X8}) has an infinite TypeSig loop", ts, ts.MDToken.Raw);
 				return rid;
 			}
+			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
 
 			bool isOld = mod.ResolveTypeSpec(ts.Rid) == ts;
-			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
 			var row = isOld ? tablesHeap.TypeSpecTable[ts.Rid] : new RawTypeSpecRow();
 			row.Signature = GetSignature(ts.TypeSig);
 
