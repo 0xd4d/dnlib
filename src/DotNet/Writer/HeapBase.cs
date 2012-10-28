@@ -68,8 +68,11 @@ namespace dot10.DotNet.Writer {
 			writer.WriteZeros((int)(Utils.AlignUp(GetRawLength(), ALIGNMENT) - GetRawLength()));
 		}
 
-		/// <inheritdoc/>
-		public abstract void WriteToImpl(BinaryWriter writer);
+		/// <summary>
+		/// Writes all data to <paramref name="writer"/> at its current location.
+		/// </summary>
+		/// <param name="writer">Destination</param>
+		protected abstract void WriteToImpl(BinaryWriter writer);
 
 		/// <inheritdoc/>
 		public override string ToString() {

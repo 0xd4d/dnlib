@@ -92,7 +92,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override void WriteToImpl(BinaryWriter writer) {
+		protected override void WriteToImpl(BinaryWriter writer) {
 			if (originalData != null)
 				writer.Write(originalData);
 			else

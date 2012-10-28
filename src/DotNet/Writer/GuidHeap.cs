@@ -42,7 +42,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override void WriteToImpl(BinaryWriter writer) {
+		protected override void WriteToImpl(BinaryWriter writer) {
 			foreach (var guid in guids)
 				writer.Write(guid.ToByteArray());
 		}
