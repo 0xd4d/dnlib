@@ -747,6 +747,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void Create() {
+			Initialize();
 			allTypeDefs = new List<TypeDef>(GetAllTypeDefs());
 			AddModule(module);
 			AllocateTypeDefRids();
@@ -2016,6 +2017,12 @@ namespace dot10.DotNet.Writer {
 			if (!tr.DefinitionAssembly.IsCorLib())
 				return true;
 			return module.Find(tr) != null;
+		}
+
+		/// <summary>
+		/// Called before any other methods
+		/// </summary>
+		protected virtual void Initialize() {
 		}
 
 		/// <summary>

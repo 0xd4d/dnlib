@@ -245,6 +245,11 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		protected override void Initialize() {
+			CreateEmptyTableRows();
+		}
+
+		/// <inheritdoc/>
 		protected override IEnumerable<TypeDef> GetAllTypeDefs() {
 			var types = new List<TypeDef>();
 			uint rid;
@@ -340,7 +345,6 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void AllocateMemberDefRids() {
-			CreateEmptyTableRows();
 			FindMemberDefs();
 			InitializeCollectionPositions();
 
