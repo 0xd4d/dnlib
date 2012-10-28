@@ -2019,6 +2019,8 @@ namespace dot10.DotNet.Writer {
 			var tr = type as TypeRef;
 			if (tr == null)
 				return true;
+			if (tr.ResolutionScope == AssemblyRef.CurrentAssembly)
+				return false;
 			if (!tr.DefinitionAssembly.IsCorLib())
 				return true;
 			return module.Find(tr) != null;
