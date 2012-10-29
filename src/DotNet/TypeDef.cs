@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the TypeDef table
 	/// </summary>
-	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef>, IListListener<EventDef>, IListListener<PropertyDef>, IMemberRefResolver {
+	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef>, IListListener<EventDef>, IListListener<PropertyDef>, IListListener<GenericParam>, IMemberRefResolver {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -787,6 +787,35 @@ namespace dot10.DotNet {
 				method.DeclaringType = null;
 		}
 
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnAdd(int index, GenericParam value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.Owner != this)
+					throw new InvalidOperationException("Added generic param's Owner != this");
+#endif
+				return;
+			}
+			if (value.Owner != null)
+				throw new InvalidOperationException("Generic param is already owned by another type/method. Set Owner to null first.");
+			value.Owner = this;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnRemove(int index, GenericParam value) {
+			value.Owner = null;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnClear() {
+			foreach (var gp in GenericParams)
+				gp.Owner = null;
+		}
+
 		/// <summary>
 		/// Gets all fields named <paramref name="name"/>
 		/// </summary>
@@ -853,7 +882,7 @@ namespace dot10.DotNet {
 		ITypeDefOrRef baseType;
 		LazyList<FieldDef> fields;
 		LazyList<MethodDef> methods;
-		IList<GenericParam> genericParams = new List<GenericParam>();
+		LazyList<GenericParam> genericParams;
 		IList<InterfaceImpl> interfaceImpls = new List<InterfaceImpl>();
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		ClassLayout classLayout;
@@ -986,6 +1015,7 @@ namespace dot10.DotNet {
 		public TypeDefUser(UTF8String @namespace, UTF8String name, ITypeDefOrRef baseType) {
 			this.fields = new LazyList<FieldDef>(this);
 			this.methods = new LazyList<MethodDef>(this);
+			this.genericParams = new LazyList<GenericParam>(this);
 			this.nestedTypes = new LazyList<TypeDef>(this);
 			this.events = new LazyList<EventDef>(this);
 			this.properties = new LazyList<PropertyDef>(this);

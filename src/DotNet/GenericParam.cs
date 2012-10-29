@@ -31,6 +31,27 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the owner type/method
+		/// </summary>
+		public abstract ITypeOrMethodDef Owner { get; internal set; }
+
+		/// <summary>
+		/// Gets the declaring type or <c>null</c> if none or if <see cref="Owner"/> is
+		/// not a <see cref="TypeDef"/>
+		/// </summary>
+		public TypeDef DeclaringType {
+			get { return Owner as TypeDef; }
+		}
+
+		/// <summary>
+		/// Gets the declaring method or <c>null</c> if none or if <see cref="Owner"/> is
+		/// not a <see cref="MethodDef"/>
+		/// </summary>
+		public MethodDef DeclaringMethod {
+			get { return Owner as MethodDef; }
+		}
+
+		/// <summary>
 		/// From column GenericParam.Number
 		/// </summary>
 		public abstract ushort Number { get; set; }
@@ -78,10 +99,11 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			bool isOwnerTypeDef = true;	//TODO:
-			if (isOwnerTypeDef)
+			if (Owner is TypeDef)
 				return string.Format("!{0}", Number);
-			return string.Format("!!{0}", Number);
+			if (Owner is MethodDef)
+				return string.Format("!!{0}", Number);
+			return string.Format("??{0}", Number);
 		}
 	}
 
@@ -89,12 +111,19 @@ namespace dot10.DotNet {
 	/// A GenericParam row created by the user and not present in the original .NET file
 	/// </summary>
 	public class GenericParamUser : GenericParam {
+		ITypeOrMethodDef owner;
 		ushort number;
 		GenericParamAttributes flags;
 		UTF8String name;
 		ITypeDefOrRef kind;
 		IList<GenericParamConstraint> genericParamConstraints = new List<GenericParamConstraint>();
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+
+		/// <inheritdoc/>
+		public override ITypeOrMethodDef Owner {
+			get { return owner; }
+			internal set { owner = value; }
+		}
 
 		/// <inheritdoc/>
 		public override ushort Number {
@@ -185,12 +214,19 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawGenericParamRow rawRow;
 
+		UserValue<ITypeOrMethodDef> owner;
 		UserValue<ushort> number;
 		UserValue<GenericParamAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> kind;
 		LazyList<GenericParamConstraint> genericParamConstraints;
 		CustomAttributeCollection customAttributeCollection;
+
+		/// <inheritdoc/>
+		public override ITypeOrMethodDef Owner {
+			get { return owner.Value; }
+			internal set { owner.Value = value; }
+		}
 
 		/// <inheritdoc/>
 		public override ushort Number {
@@ -258,6 +294,9 @@ namespace dot10.DotNet {
 		}
 
 		void Initialize() {
+			owner.ReadOriginalValue = () => {
+				return readerModule.GetOwner(this);
+			};
 			number.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return rawRow.Number;

@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Method table
 	/// </summary>
-	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint {
+	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -564,6 +564,35 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnAdd(int index, GenericParam value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.Owner != this)
+					throw new InvalidOperationException("Added generic param's Owner != this");
+#endif
+				return;
+			}
+			if (value.Owner != null)
+				throw new InvalidOperationException("Generic param is already owned by another type/method. Set Owner to null first.");
+			value.Owner = this;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnRemove(int index, GenericParam value) {
+			value.Owner = null;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnClear() {
+			foreach (var gp in GenericParams)
+				gp.Owner = null;
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
 		}
@@ -579,7 +608,7 @@ namespace dot10.DotNet {
 		UTF8String name;
 		CallingConventionSig signature;
 		IList<ParamDef> parameters = new List<ParamDef>();
-		IList<GenericParam> genericParams = new List<GenericParam>();
+		LazyList<GenericParam> genericParams;
 		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
 		ImplMap implMap;
 		MethodBody methodBody;
@@ -719,6 +748,7 @@ namespace dot10.DotNet {
 			this.signature = methodSig;
 			this.implFlags = implFlags;
 			this.flags = flags;
+			this.genericParams = new LazyList<GenericParam>(this);
 			this.parameterList = new ParameterList(this);
 		}
 

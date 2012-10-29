@@ -56,6 +56,7 @@ namespace dot10.DotNet.MD {
 		uint[] methodRidToTypeDefRid;
 		uint[] eventRidToTypeDefRid;
 		uint[] propertyRidToTypeDefRid;
+		uint[] gpRidToOwnerRid;
 		Dictionary<uint, RandomRidList> typeDefRidToNestedClasses;
 		RandomRidList nonNestedTypes;
 
@@ -494,6 +495,53 @@ namespace dot10.DotNet.MD {
 					if (propertyRidToTypeDefRid[ridIndex] != 0)
 						continue;
 					propertyRidToTypeDefRid[ridIndex] = ownerRid;
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public uint GetOwnerOfGenericParam(uint gpRid) {
+			// Don't use GenericParam.Owner column. If the GP table is sorted, it's
+			// possible to have two blocks of GPs with the same owner. Only one of the
+			// blocks is the "real" generic params for the owner. Of course, rarely
+			// if ever will this occur, but could happen if some obfuscator has
+			// added it.
+
+			if (gpRidToOwnerRid == null)
+				InitializeInverseGenericParamOwnerRidList();
+			uint index = gpRid - 1;
+			if (index >= gpRidToOwnerRid.LongLength)
+				return 0;
+			return gpRidToOwnerRid[index];
+		}
+
+		void InitializeInverseGenericParamOwnerRidList() {
+			if (gpRidToOwnerRid != null)
+				return;
+			var gpTable = tablesStream.Get(Table.GenericParam);
+			gpRidToOwnerRid = new uint[gpTable.Rows];
+
+			var ownerCol = gpTable.TableInfo.Columns[2];
+			var ownersDict = new Dictionary<uint, bool>();
+			for (uint rid = 1; rid <= gpTable.Rows; rid++) {
+				uint owner;
+				if (!tablesStream.ReadColumn(gpTable.Table, rid, ownerCol, out owner))
+					continue;
+				ownersDict[owner] = true;
+			}
+
+			var owners = new List<uint>(ownersDict.Keys);
+			owners.Sort();
+			for (int i = 0; i < owners.Count; i++) {
+				uint ownerToken;
+				if (!CodedToken.TypeOrMethodDef.Decode(owners[i], out ownerToken))
+					continue;
+				var ridList = GetGenericParamRidList(MDToken.ToTable(ownerToken), MDToken.ToRID(ownerToken));
+				for (uint j = 0; j < ridList.Length; j++) {
+					uint ridIndex = ridList[j] - 1;
+					if (gpRidToOwnerRid[ridIndex] != 0)
+						continue;
+					gpRidToOwnerRid[ridIndex] = owners[i];
 				}
 			}
 		}

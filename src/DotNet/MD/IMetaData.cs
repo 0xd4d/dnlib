@@ -264,6 +264,14 @@ namespace dot10.DotNet.MD {
 		uint GetOwnerTypeOfProperty(uint propertyRid);
 
 		/// <summary>
+		/// Returns the owner <c>TypeOrMethodDef</c> rid
+		/// </summary>
+		/// <param name="gpRid">A <c>GenericParam</c> rid</param>
+		/// <returns>The owner <c>TypeOrMethodDef</c> rid or 0 if <paramref name="gpRid"/> is
+		/// invalid or if it has no owner.</returns>
+		uint GetOwnerOfGenericParam(uint gpRid);
+
+		/// <summary>
 		/// Gets a list of all nested classes owned by <paramref name="typeDefRid"/>
 		/// </summary>
 		/// <param name="typeDefRid">A <c>TypeDef</c> rid</param>

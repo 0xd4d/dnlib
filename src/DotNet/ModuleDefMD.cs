@@ -1016,6 +1016,10 @@ namespace dot10.DotNet {
 			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.Rid));
 		}
 
+		internal ITypeOrMethodDef GetOwner(GenericParam gp) {
+			return ResolveTypeOrMethodDef(MetaData.GetOwnerOfGenericParam(gp.Rid));
+		}
+
 		/// <summary>
 		/// Reads a module
 		/// </summary>
