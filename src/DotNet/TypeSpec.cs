@@ -92,6 +92,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
+		/// <summary>
+		/// Gets/sets the extra data that was found after the signature
+		/// </summary>
+		public abstract byte[] ExtraData { get; set; }
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -103,12 +108,19 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class TypeSpecUser : TypeSpec {
 		TypeSig typeSig;
+		byte[] extraData;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override TypeSig TypeSig {
 			get { return typeSig; }
 			set { typeSig = value; }
+		}
+
+		/// <inheritdoc/>
+		public override byte[] ExtraData {
+			get { return extraData; }
+			set { extraData = value; }
 		}
 
 		/// <inheritdoc/>
@@ -141,12 +153,25 @@ namespace dot10.DotNet {
 		RawTypeSpecRow rawRow;
 
 		UserValue<TypeSig> typeSig;
+		byte[] extraData;
 		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public override TypeSig TypeSig {
 			get { return typeSig.Value; }
 			set { typeSig.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override byte[] ExtraData {
+			get {
+				var dummy = typeSig.Value;	// Make sure extraData + typeSig get initialized
+				return extraData;
+			}
+			set {
+				var dummy = typeSig.Value;	// Make sure extraData + typeSig get initialized
+				extraData = value;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -182,7 +207,7 @@ namespace dot10.DotNet {
 		void Initialize() {
 			typeSig.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.ReadTypeSignature(rawRow.Signature);
+				return readerModule.ReadTypeSignature(rawRow.Signature, out extraData);
 			};
 		}
 

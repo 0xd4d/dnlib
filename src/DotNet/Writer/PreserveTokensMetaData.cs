@@ -718,7 +718,7 @@ namespace dot10.DotNet.Writer {
 
 			bool isOld = mod.ResolveTypeSpec(ts.Rid) == ts;
 			var row = isOld ? tablesHeap.TypeSpecTable[ts.Rid] : new RawTypeSpecRow();
-			row.Signature = GetSignature(ts.TypeSig);
+			row.Signature = GetSignature(ts.TypeSig, ts.ExtraData);
 
 			rid = isOld ? ts.Rid : tablesHeap.TypeSpecTable.Add(row);
 			typeSpecInfos.SetRid(ts, rid);

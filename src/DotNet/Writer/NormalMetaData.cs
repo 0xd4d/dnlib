@@ -258,7 +258,7 @@ namespace dot10.DotNet.Writer {
 				return rid;
 			}
 			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
-			var row = new RawTypeSpecRow(GetSignature(ts.TypeSig));
+			var row = new RawTypeSpecRow(GetSignature(ts.TypeSig, ts.ExtraData));
 			rid = tablesHeap.TypeSpecTable.Add(row);
 			typeSpecInfos.SetRid(ts, rid);
 			AddCustomAttributes(Table.TypeSpec, rid, ts);

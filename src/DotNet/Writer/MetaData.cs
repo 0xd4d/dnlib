@@ -41,10 +41,17 @@ namespace dot10.DotNet.Writer {
 		PreserveBlobOffsets = 8,
 
 		/// <summary>
-		/// Preserves most tokens and also all offsets in #Strings, #US and #Blob heaps.
+		/// Preserves the extra data that is present after the original signature in the #Blob
+		/// heap. This extra data shouldn't be present but might be present if an obfuscator
+		/// has added this extra data and is eg. using it to decrypt stuff.
 		/// </summary>
-		PreserveTokensAndHeapOffsets = PreserveTokens | PreserveStringsOffsets |
-					PreserveUSOffsets | PreserveBlobOffsets,
+		PreserveExtraSignatureData = 0x10,
+
+		/// <summary>
+		/// Preserves as much as possible
+		/// </summary>
+		PreserveAll = PreserveTokens | PreserveStringsOffsets | PreserveUSOffsets |
+					PreserveBlobOffsets | PreserveExtraSignatureData,
 	}
 
 	/// <summary>
@@ -1935,14 +1942,11 @@ namespace dot10.DotNet.Writer {
 		/// Gets a #Blob offset of a type signature
 		/// </summary>
 		/// <param name="ts">Type sig</param>
+		/// <param name="extraData">Extra data to append the signature</param>
 		/// <returns>#Blob offset</returns>
-		protected uint GetSignature(TypeSig ts) {
-			if (ts == null) {
-				Error("TypeSig is null");
-				return 0;
-			}
-
-			var blob = SignatureWriter.Write(this, ts);
+		protected uint GetSignature(TypeSig ts, byte[] extraData) {
+			var blob = ts == null ? null : SignatureWriter.Write(this, ts);
+			AppendExtraData(ref blob, extraData);
 			return blobHeap.Add(blob);
 		}
 
@@ -1958,7 +1962,16 @@ namespace dot10.DotNet.Writer {
 			}
 
 			var blob = SignatureWriter.Write(this, sig);
+			AppendExtraData(ref blob, sig.ExtraData);
 			return blobHeap.Add(blob);
+		}
+
+		void AppendExtraData(ref byte[] blob, byte[] extraData) {
+			if (extraData != null && extraData.Length > 0) {
+				int blen = blob == null ? 0 : blob.Length;
+				Array.Resize(ref blob, blen + extraData.Length);
+				Array.Copy(extraData, 0, blob, blen, extraData.Length);
+			}
 		}
 
 		/// <summary>

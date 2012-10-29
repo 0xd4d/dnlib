@@ -947,6 +947,18 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="extraData">If there's any extra data after the signature, it's saved
+		/// here, else this will be <c>null</c></param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		public TypeSig ReadTypeSignature(uint sig, out byte[] extraData) {
+			return SignatureReader.ReadTypeSig(this, sig, out extraData);
+		}
+
+		/// <summary>
 		/// Reads a CIL method body
 		/// </summary>
 		/// <param name="parameters">Method parameters</param>

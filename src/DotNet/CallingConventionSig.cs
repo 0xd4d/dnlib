@@ -22,6 +22,16 @@ namespace dot10.DotNet {
 		/// </summary>
 		protected CallingConvention callingConvention;
 
+		byte[] extraData;
+
+		/// <summary>
+		/// Gets/sets the extra data found after the signature
+		/// </summary>
+		public byte[] ExtraData {
+			get { return extraData; }
+			set { extraData = value; }
+		}
+
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="CallingConvention.Default"/> is set
 		/// </summary>

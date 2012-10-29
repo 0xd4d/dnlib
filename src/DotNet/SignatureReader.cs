@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using dot10.IO;
 using dot10.DotNet.MD;
 
@@ -47,6 +48,36 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="extraData">If there's any extra data after the signature, it's saved
+		/// here, else this will be <c>null</c></param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig, out byte[] extraData) {
+			try {
+				using (var reader = new SignatureReader(readerModule, sig)) {
+					TypeSig ts;
+					try {
+						ts = reader.ReadType();
+					}
+					catch (IOException) {
+						reader.reader.Position = 0;
+						ts = null;
+					}
+					extraData = reader.GetExtraData();
+					return ts;
+				}
+			}
+			catch {
+				extraData = null;
+				return null;
+			}
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="readerModule">Reader module</param>
@@ -55,6 +86,12 @@ namespace dot10.DotNet {
 			this.readerModule = readerModule;
 			this.reader = readerModule.BlobStream.CreateStream(sig);
 			this.recursionCounter = new RecursionCounter();
+		}
+
+		byte[] GetExtraData() {
+			if (reader.Position >= reader.Length)
+				return null;
+			return reader.ReadBytes((int)(reader.Length - reader.Position));
 		}
 
 		/// <summary>
@@ -99,6 +136,9 @@ namespace dot10.DotNet {
 				result = null;
 				break;
 			}
+
+			if (result != null)
+				result.ExtraData = GetExtraData();
 
 			recursionCounter.Decrement();
 			return result;
