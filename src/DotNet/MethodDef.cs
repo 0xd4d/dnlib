@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Method table
 	/// </summary>
-	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam> {
+	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -590,6 +590,35 @@ namespace dot10.DotNet {
 		void IListListener<GenericParam>.OnClear() {
 			foreach (var gp in GenericParams)
 				gp.Owner = null;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<ParamDef>.OnAdd(int index, ParamDef value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.DeclaringMethod != this)
+					throw new InvalidOperationException("Added param's DeclaringMethod != this");
+#endif
+				return;
+			}
+			if (value.DeclaringMethod != null)
+				throw new InvalidOperationException("Param is already owned by another method. Set DeclaringMethod to null first.");
+			value.DeclaringMethod = this;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<ParamDef>.OnRemove(int index, ParamDef value) {
+			value.DeclaringMethod = null;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<ParamDef>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<ParamDef>.OnClear() {
+			foreach (var pd in ParamList)
+				pd.DeclaringMethod = null;
 		}
 
 		/// <inheritdoc/>

@@ -40,6 +40,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the declaring method
+		/// </summary>
+		public abstract MethodDef DeclaringMethod { get; internal set; }
+
+		/// <summary>
 		/// From column Param.Flags
 		/// </summary>
 		public abstract ParamAttributes Flags { get; set; }
@@ -145,12 +150,19 @@ namespace dot10.DotNet {
 	/// A Param row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ParamDefUser : ParamDef {
+		MethodDef declaringMethod;
 		ParamAttributes flags;
 		ushort sequence;
 		UTF8String name;
 		FieldMarshal fieldMarshal;
 		Constant constant;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+
+		/// <inheritdoc/>
+		public override MethodDef DeclaringMethod {
+			get { return declaringMethod; }
+			internal set { declaringMethod = value; }
+		}
 
 		/// <inheritdoc/>
 		public override ParamAttributes Flags {
@@ -259,12 +271,19 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawParamRow rawRow;
 
+		UserValue<MethodDef> declaringMethod;
 		UserValue<ParamAttributes> flags;
 		UserValue<ushort> sequence;
 		UserValue<UTF8String> name;
 		UserValue<FieldMarshal> fieldMarshal;
 		UserValue<Constant> constant;
 		CustomAttributeCollection customAttributeCollection;
+
+		/// <inheritdoc/>
+		public override MethodDef DeclaringMethod {
+			get { return declaringMethod.Value; }
+			internal set { declaringMethod.Value = value; }
+		}
 
 		/// <inheritdoc/>
 		public override ParamAttributes Flags {
@@ -327,6 +346,9 @@ namespace dot10.DotNet {
 		}
 
 		void Initialize() {
+			declaringMethod.ReadOriginalValue = () => {
+				return readerModule.GetOwner(this);
+			};
 			flags.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return (ParamAttributes)rawRow.Flags;

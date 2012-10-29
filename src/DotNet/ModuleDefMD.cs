@@ -1021,7 +1021,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="gp">The generic param</param>
 		/// <returns>The owner type/method or <c>null</c> if none</returns>
-		internal ITypeOrMethodDef GetOwner(GenericParam gp) {
+		internal ITypeOrMethodDef GetOwner(GenericParamMD gp) {
 			return ResolveTypeOrMethodDef(MetaData.GetOwnerOfGenericParam(gp.Rid));
 		}
 
@@ -1030,8 +1030,17 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="gpc">The generic param constraint</param>
 		/// <returns>The owner generic param or <c>null</c> if none</returns>
-		internal GenericParam GetOwner(GenericParamConstraint gpc) {
+		internal GenericParam GetOwner(GenericParamConstraintMD gpc) {
 			return ResolveGenericParam(MetaData.GetOwnerOfGenericParamConstraint(gpc.Rid));
+		}
+
+		/// <summary>
+		/// Returns the owner method of a param
+		/// </summary>
+		/// <param name="pd">The param</param>
+		/// <returns>The owner method or <c>null</c> if none</returns>
+		internal MethodDef GetOwner(ParamDefMD pd) {
+			return ResolveMethod(MetaData.GetOwnerOfParam(pd.Rid));
 		}
 
 		/// <summary>

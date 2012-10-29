@@ -379,17 +379,9 @@ namespace dot10.DotNet.Writer {
 					throw new ModuleWriterException("Invalid property rid");
 			}
 
-			// ParamDef has currently no DeclaringMethod property but we need it. Use this dict.
-			var toMethod = new Dictionary<ParamDef, MethodDef>();
-			for (int i = 0; i < methodDefInfos.Count; i++) {
-				var info = methodDefInfos.Get(i);
-				foreach (var param in info.Def.ParamList)
-					toMethod.Add(param, info.Def);
-			}
-
 			SortFields();
 			SortMethods();
-			SortParameters(toMethod);
+			SortParameters();
 			SortEvents();
 			SortProperties();
 
@@ -435,7 +427,7 @@ namespace dot10.DotNet.Writer {
 
 			InitializeFieldList();
 			InitializeMethodList();
-			InitializeParamList(toMethod);
+			InitializeParamList();
 			InitializeEventMap();
 			InitializePropertyMap();
 		}
@@ -520,11 +512,10 @@ namespace dot10.DotNet.Writer {
 			});
 		}
 
-		void SortParameters(Dictionary<ParamDef, MethodDef> toMethod) {
+		void SortParameters() {
 			paramDefInfos.Sort((a, b) => {
-				MethodDef method;
-				var dma = toMethod.TryGetValue(a.Def, out method) ? methodDefInfos.Rid(method) : 0;
-				var dmb = toMethod.TryGetValue(b.Def, out method) ? methodDefInfos.Rid(method) : 0;
+				var dma = a.Def.DeclaringMethod == null ? 0 : methodDefInfos.Rid(a.Def.DeclaringMethod);
+				var dmb = b.Def.DeclaringMethod == null ? 0 : methodDefInfos.Rid(b.Def.DeclaringMethod);
 				if (dma == 0 || dmb == 0)
 					return a.Rid.CompareTo(b.Rid);
 				if (dma != dmb)
@@ -615,15 +606,13 @@ namespace dot10.DotNet.Writer {
 			}
 		}
 
-		void InitializeParamList(Dictionary<ParamDef, MethodDef> toMethod) {
+		void InitializeParamList() {
 			MethodDef method = null;
 			for (int i = 0; i < paramDefInfos.Count; i++) {
 				var info = paramDefInfos.GetSorted(i);
-				MethodDef declaringMethod;
-				toMethod.TryGetValue(info.Def, out declaringMethod);
-				if (declaringMethod == method)
+				if (info.Def.DeclaringMethod == method)
 					continue;
-				method = declaringMethod;
+				method = info.Def.DeclaringMethod;
 				var row = tablesHeap.MethodTable[methodDefInfos.Rid(method)];
 				if (row.ParamList != 0)
 					throw new ModuleWriterException("row.ParamList has already been initialized");

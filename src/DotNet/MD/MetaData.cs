@@ -58,6 +58,7 @@ namespace dot10.DotNet.MD {
 		uint[] propertyRidToTypeDefRid;
 		uint[] gpRidToOwnerRid;
 		uint[] gpcRidToOwnerRid;
+		uint[] paramRidToOwnerRid;
 		Dictionary<uint, RandomRidList> typeDefRidToNestedClasses;
 		RandomRidList nonNestedTypes;
 
@@ -585,6 +586,33 @@ namespace dot10.DotNet.MD {
 					if (gpcRidToOwnerRid[ridIndex] != 0)
 						continue;
 					gpcRidToOwnerRid[ridIndex] = ownerToken;
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public uint GetOwnerOfParam(uint paramRid) {
+			if (paramRidToOwnerRid == null)
+				InitializeInverseParamOwnerRidList();
+			uint index = paramRid - 1;
+			if (index >= paramRidToOwnerRid.LongLength)
+				return 0;
+			return paramRidToOwnerRid[index];
+		}
+
+		void InitializeInverseParamOwnerRidList() {
+			if (paramRidToOwnerRid != null)
+				return;
+
+			paramRidToOwnerRid = new uint[tablesStream.Get(Table.Param).Rows];
+			var table = tablesStream.Get(Table.Method);
+			for (uint rid = 1; rid <= table.Rows; rid++) {
+				var ridList = GetParamRidList(rid);
+				for (uint j = 0; j < ridList.Length; j++) {
+					uint ridIndex = ridList[j] - 1;
+					if (paramRidToOwnerRid[ridIndex] != 0)
+						continue;
+					paramRidToOwnerRid[ridIndex] = rid;
 				}
 			}
 		}
