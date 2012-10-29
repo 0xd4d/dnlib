@@ -44,8 +44,19 @@ namespace dot10.DotNet {
 			this.parameters = new List<Parameter>();
 			this.methodSigIndexBase = -1;
 			this.hiddenThisParameter = new Parameter(this, 0, -1);
-			//TODO: Update hiddenThisParameter.TypeSig
+			UpdateThisParameterType();
 			UpdateParameterTypes();
+		}
+
+		void UpdateThisParameterType() {
+			var declaringType = method.DeclaringType;
+			if (declaringType == null)
+				return;
+
+			if (declaringType.IsValueType)
+				hiddenThisParameter.Type = new ByRefSig(new ValueTypeSig(declaringType));
+			else
+				hiddenThisParameter.Type = new ClassSig(declaringType);
 		}
 
 		/// <summary>
