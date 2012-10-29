@@ -760,13 +760,14 @@ namespace dot10.DotNet.Writer {
 		void Create() {
 			Initialize();
 			allTypeDefs = new List<TypeDef>(GetAllTypeDefs());
-			AddModule(module);
 			AllocateTypeDefRids();
 			AllocateMemberDefRids();
+			AddModule(module);
 			InitializeTypeDefsAndMemberDefs();
 			//TODO: Add ExportedTypes
 			InitializeEntryPoint();
-			AddAssembly(module.Assembly);
+			if (module.Assembly != null)
+				AddAssembly(module.Assembly);
 			SortTables();
 			InitializeGenericParamConstraintTable();
 			WriteTypeDefAndMemberDefCustomAttributes();
@@ -1866,7 +1867,7 @@ namespace dot10.DotNet.Writer {
 			var row = new RawManifestResourceRow(0,
 						(uint)alr.Flags,
 						stringsHeap.Add(alr.Name),
-						AddAssemblyRef(alr.Assembly));
+						AddImplementation(alr.Assembly));
 			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(alr, rid);
 			//TODO: Add custom attributes
@@ -1884,7 +1885,7 @@ namespace dot10.DotNet.Writer {
 			var row = new RawManifestResourceRow(0,
 						(uint)lr.Flags,
 						stringsHeap.Add(lr.Name),
-						AddFile(lr.File));
+						AddImplementation(lr.File));
 			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(lr, rid);
 			//TODO: Add custom attributes
@@ -1991,6 +1992,10 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void AddCustomAttribute(MDToken token, CustomAttribute ca) {
+			if (ca == null) {
+				Error("Custom attribute is null");
+				return;
+			}
 			uint encodedToken;
 			if (!CodedToken.HasCustomAttribute.Encode(token, out encodedToken)) {
 				Error("Can't encode HasCustomAttribute token {0:X8}", token.Raw);
