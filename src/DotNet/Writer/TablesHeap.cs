@@ -145,22 +145,22 @@ namespace dot10.DotNet.Writer {
 						!ParamPtrTable.IsEmpty ||
 						!EventPtrTable.IsEmpty ||
 						!PropertyPtrTable.IsEmpty ||
-						!InterfaceImplTable.IsSorted ||
-						!ConstantTable.IsSorted ||
-						!CustomAttributeTable.IsSorted ||
-						!FieldMarshalTable.IsSorted ||
-						!DeclSecurityTable.IsSorted ||
-						!ClassLayoutTable.IsSorted ||
-						!FieldLayoutTable.IsSorted ||
-						!EventMapTable.IsSorted ||
-						!PropertyMapTable.IsSorted ||
-						!MethodSemanticsTable.IsSorted ||
-						!MethodImplTable.IsSorted ||
-						!ImplMapTable.IsSorted ||
-						!FieldRVATable.IsSorted ||
-						!NestedClassTable.IsSorted ||
-						!GenericParamTable.IsSorted ||
-						!GenericParamConstraintTable.IsSorted;
+						!(InterfaceImplTable.IsEmpty || InterfaceImplTable.IsSorted) ||
+						!(ConstantTable.IsEmpty || ConstantTable.IsSorted) ||
+						!(CustomAttributeTable.IsEmpty || CustomAttributeTable.IsSorted) ||
+						!(FieldMarshalTable.IsEmpty || FieldMarshalTable.IsSorted) ||
+						!(DeclSecurityTable.IsEmpty || DeclSecurityTable.IsSorted) ||
+						!(ClassLayoutTable.IsEmpty || ClassLayoutTable.IsSorted) ||
+						!(FieldLayoutTable.IsEmpty || FieldLayoutTable.IsSorted) ||
+						!(EventMapTable.IsEmpty || EventMapTable.IsSorted) ||
+						!(PropertyMapTable.IsEmpty || PropertyMapTable.IsSorted) ||
+						!(MethodSemanticsTable.IsEmpty || MethodSemanticsTable.IsSorted) ||
+						!(MethodImplTable.IsEmpty || MethodImplTable.IsSorted) ||
+						!(ImplMapTable.IsEmpty || ImplMapTable.IsSorted) ||
+						!(FieldRVATable.IsEmpty || FieldRVATable.IsSorted) ||
+						!(NestedClassTable.IsEmpty || NestedClassTable.IsSorted) ||
+						!(GenericParamTable.IsEmpty || GenericParamTable.IsSorted) ||
+						!(GenericParamConstraintTable.IsEmpty || GenericParamConstraintTable.IsSorted);
 			}
 		}
 
