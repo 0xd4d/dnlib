@@ -81,7 +81,7 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Initialize MD tables
+		/// Initializes MD tables
 		/// </summary>
 		/// <param name="peImage">The PEImage</param>
 		public void Initialize(IPEImage peImage) {
