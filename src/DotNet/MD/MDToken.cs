@@ -96,12 +96,30 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
+		/// Returns the <c>rid</c> (row ID)
+		/// </summary>
+		/// <param name="token">A raw metadata token</param>
+		/// <returns>A <c>rid</c></returns>
+		public static uint ToRID(int token) {
+			return ToRID((uint)token);
+		}
+
+		/// <summary>
 		/// Returns the <c>table</c>
 		/// </summary>
 		/// <param name="token">A raw metadata token</param>
 		/// <returns>A metadata table index</returns>
 		public static Table ToTable(uint token) {
 			return (Table)(token >> TABLE_SHIFT);
+		}
+
+		/// <summary>
+		/// Returns the <c>table</c>
+		/// </summary>
+		/// <param name="token">A raw metadata token</param>
+		/// <returns>A metadata table index</returns>
+		public static Table ToTable(int token) {
+			return ToTable((uint)token);
 		}
 
 		/// <summary>Overloaded operator</summary>
