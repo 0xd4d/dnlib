@@ -28,6 +28,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the owner generic param
+		/// </summary>
+		public abstract GenericParam Owner { get; internal set; }
+
+		/// <summary>
 		/// From column GenericParamConstraint.Constraint
 		/// </summary>
 		public abstract ITypeDefOrRef Constraint { get; set; }
@@ -42,8 +47,15 @@ namespace dot10.DotNet {
 	/// A GenericParamConstraintAssembly row created by the user and not present in the original .NET file
 	/// </summary>
 	public class GenericParamConstraintUser : GenericParamConstraint {
+		GenericParam owner;
 		ITypeDefOrRef constraint;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+
+		/// <inheritdoc/>
+		public override GenericParam Owner {
+			get { return owner; }
+			internal set { owner = value; }
+		}
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Constraint {
@@ -80,8 +92,15 @@ namespace dot10.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
 		RawGenericParamConstraintRow rawRow;
 
+		UserValue<GenericParam> owner;
 		UserValue<ITypeDefOrRef> constraint;
 		CustomAttributeCollection customAttributeCollection;
+
+		/// <inheritdoc/>
+		public override GenericParam Owner {
+			get { return owner.Value; }
+			internal set { owner.Value = value; }
+		}
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Constraint {
@@ -120,6 +139,9 @@ namespace dot10.DotNet {
 		}
 
 		void Initialize() {
+			owner.ReadOriginalValue = () => {
+				return readerModule.GetOwner(this);
+			};
 			constraint.ReadOriginalValue = () => {
 				InitializeRawRow();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Constraint);

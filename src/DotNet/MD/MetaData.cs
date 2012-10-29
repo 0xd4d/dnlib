@@ -57,6 +57,7 @@ namespace dot10.DotNet.MD {
 		uint[] eventRidToTypeDefRid;
 		uint[] propertyRidToTypeDefRid;
 		uint[] gpRidToOwnerRid;
+		uint[] gpcRidToOwnerRid;
 		Dictionary<uint, RandomRidList> typeDefRidToNestedClasses;
 		RandomRidList nonNestedTypes;
 
@@ -542,6 +543,48 @@ namespace dot10.DotNet.MD {
 					if (gpRidToOwnerRid[ridIndex] != 0)
 						continue;
 					gpRidToOwnerRid[ridIndex] = owners[i];
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public uint GetOwnerOfGenericParamConstraint(uint gpcRid) {
+			// Don't use GenericParamConstraint.Owner column for the same reason
+			// as described in GetOwnerOfGenericParam().
+
+			if (gpcRidToOwnerRid == null)
+				InitializeInverseGenericParamConstraintOwnerRidList();
+			uint index = gpcRid - 1;
+			if (index >= gpcRidToOwnerRid.LongLength)
+				return 0;
+			return gpcRidToOwnerRid[index];
+		}
+
+		void InitializeInverseGenericParamConstraintOwnerRidList() {
+			if (gpcRidToOwnerRid != null)
+				return;
+			var gpcTable = tablesStream.Get(Table.GenericParamConstraint);
+			gpcRidToOwnerRid = new uint[gpcTable.Rows];
+
+			var ownerCol = gpcTable.TableInfo.Columns[0];
+			var ownersDict = new Dictionary<uint, bool>();
+			for (uint rid = 1; rid <= gpcTable.Rows; rid++) {
+				uint owner;
+				if (!tablesStream.ReadColumn(gpcTable.Table, rid, ownerCol, out owner))
+					continue;
+				ownersDict[owner] = true;
+			}
+
+			var owners = new List<uint>(ownersDict.Keys);
+			owners.Sort();
+			for (int i = 0; i < owners.Count; i++) {
+				uint ownerToken = owners[i];
+				var ridList = GetGenericParamConstraintRidList(ownerToken);
+				for (uint j = 0; j < ridList.Length; j++) {
+					uint ridIndex = ridList[j] - 1;
+					if (gpcRidToOwnerRid[ridIndex] != 0)
+						continue;
+					gpcRidToOwnerRid[ridIndex] = ownerToken;
 				}
 			}
 		}

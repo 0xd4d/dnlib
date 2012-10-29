@@ -1016,8 +1016,22 @@ namespace dot10.DotNet {
 			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.Rid));
 		}
 
+		/// <summary>
+		/// Returns the owner type/method of a generic param
+		/// </summary>
+		/// <param name="gp">The generic param</param>
+		/// <returns>The owner type/method or <c>null</c> if none</returns>
 		internal ITypeOrMethodDef GetOwner(GenericParam gp) {
 			return ResolveTypeOrMethodDef(MetaData.GetOwnerOfGenericParam(gp.Rid));
+		}
+
+		/// <summary>
+		/// Returns the owner generic param of a generic param constraint
+		/// </summary>
+		/// <param name="gpc">The generic param constraint</param>
+		/// <returns>The owner generic param or <c>null</c> if none</returns>
+		internal GenericParam GetOwner(GenericParamConstraint gpc) {
+			return ResolveGenericParam(MetaData.GetOwnerOfGenericParamConstraint(gpc.Rid));
 		}
 
 		/// <summary>

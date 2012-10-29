@@ -272,6 +272,14 @@ namespace dot10.DotNet.MD {
 		uint GetOwnerOfGenericParam(uint gpRid);
 
 		/// <summary>
+		/// Returns the owner <c>GenericParam</c> rid
+		/// </summary>
+		/// <param name="gpcRid">A <c>GenericParamConstraint</c> rid</param>
+		/// <returns>The owner <c>GenericParam</c> rid or 0 if <paramref name="gpcRid"/> is
+		/// invalid or if it has no owner.</returns>
+		uint GetOwnerOfGenericParamConstraint(uint gpcRid);
+
+		/// <summary>
 		/// Gets a list of all nested classes owned by <paramref name="typeDefRid"/>
 		/// </summary>
 		/// <param name="typeDefRid">A <c>TypeDef</c> rid</param>

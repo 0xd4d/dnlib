@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the GenericParam table
 	/// </summary>
 	[DebuggerDisplay("{Name.String}")]
-	public abstract class GenericParam : IHasCustomAttribute {
+	public abstract class GenericParam : IHasCustomAttribute, IListListener<GenericParamConstraint> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -98,6 +98,35 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		void IListListener<GenericParamConstraint>.OnAdd(int index, GenericParamConstraint value, bool isLazyAdd) {
+			if (isLazyAdd) {
+#if DEBUG
+				if (value.Owner != this)
+					throw new InvalidOperationException("Added generic param constraint's Owner != this");
+#endif
+				return;
+			}
+			if (value.Owner != null)
+				throw new InvalidOperationException("Generic param constraint is already owned by another generic param. Set Owner to null first.");
+			value.Owner = this;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParamConstraint>.OnRemove(int index, GenericParamConstraint value) {
+			value.Owner = null;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParamConstraint>.OnResize(int index) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParamConstraint>.OnClear() {
+			foreach (var gpc in GenericParamConstraints)
+				gpc.Owner = null;
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
 			if (Owner is TypeDef)
 				return string.Format("!{0}", Number);
@@ -116,7 +145,7 @@ namespace dot10.DotNet {
 		GenericParamAttributes flags;
 		UTF8String name;
 		ITypeDefOrRef kind;
-		IList<GenericParamConstraint> genericParamConstraints = new List<GenericParamConstraint>();
+		LazyList<GenericParamConstraint> genericParamConstraints;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
@@ -189,6 +218,7 @@ namespace dot10.DotNet {
 		/// <param name="flags">Flags</param>
 		/// <param name="name">Name</param>
 		public GenericParamUser(ushort number, GenericParamAttributes flags, UTF8String name) {
+			this.genericParamConstraints = new LazyList<GenericParamConstraint>(this);
 			this.number = number;
 			this.flags = flags;
 			this.name = name;
