@@ -48,6 +48,11 @@ namespace dot10.DotNet {
 			set { if (Method != null) Method.MethodSig = value; }
 		}
 
+		/// <inheritdoc/>
+		public ITypeDefOrRef DeclaringType {
+			get { return Method == null ? null : Method.DeclaringType; }
+		}
+
 		/// <summary>
 		/// Gets/sets the generic instance method sig
 		/// </summary>

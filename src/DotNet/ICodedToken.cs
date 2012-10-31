@@ -173,6 +173,11 @@ namespace dot10.DotNet {
 		/// Method signature
 		/// </summary>
 		MethodSig MethodSig { get; set; }
+
+		/// <summary>
+		/// Gets the declaring type
+		/// </summary>
+		ITypeDefOrRef DeclaringType { get; }
 	}
 
 	/// <summary>

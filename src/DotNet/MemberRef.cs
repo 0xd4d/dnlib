@@ -63,6 +63,32 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
+		/// <inheritdoc/>
+		public ITypeDefOrRef DeclaringType {
+			get {
+				var owner = Class;
+
+				var tdr = owner as ITypeDefOrRef;
+				if (tdr != null)
+					return tdr;
+
+				var method = owner as MethodDef;
+				if (method != null)
+					return method.DeclaringType;
+
+				var mr = owner as ModuleRef;
+				if (mr != null) {
+					//TODO: Use the correct namespace + name of the global type in the referenced module
+					var tr = new TypeRefUser(ownerModule, "", "<Module>", mr);
+					if (ownerModule != null)
+						return ownerModule.UpdateRowId(tr);
+					return tr;
+				}
+
+				return null;
+			}
+		}
+
 		/// <summary>
 		/// <c>true</c> if this is a method reference (<see cref="MethodSig"/> != <c>null</c>)
 		/// </summary>

@@ -133,6 +133,11 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		ITypeDefOrRef IMethod.DeclaringType {
+			get { return DeclaringType; }
+		}
+
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/>
 		/// </summary>
