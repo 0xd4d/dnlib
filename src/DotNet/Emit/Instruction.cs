@@ -412,6 +412,54 @@ namespace dot10.DotNet.Emit {
 			}
 		}
 
+		/// <summary>
+		/// Checks whether this is one of the <c>ldc.i4</c> instructions
+		/// </summary>
+		public bool IsLdcI4() {
+			switch (OpCode.Code) {
+			case Code.Ldc_I4_M1:
+			case Code.Ldc_I4_0:
+			case Code.Ldc_I4_1:
+			case Code.Ldc_I4_2:
+			case Code.Ldc_I4_3:
+			case Code.Ldc_I4_4:
+			case Code.Ldc_I4_5:
+			case Code.Ldc_I4_6:
+			case Code.Ldc_I4_7:
+			case Code.Ldc_I4_8:
+			case Code.Ldc_I4_S:
+			case Code.Ldc_I4:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Returns a <c>ldc.i4</c> instruction's operand
+		/// </summary>
+		/// <returns>The integer value</returns>
+		/// <exception cref="InvalidOperationException"><see cref="OpCode"/> isn't one of the
+		/// <c>ldc.i4</c> opcodes</exception>
+		public int GetLdcI4Value() {
+			switch (OpCode.Code) {
+			case Code.Ldc_I4_M1:return -1;
+			case Code.Ldc_I4_0:	return 0;
+			case Code.Ldc_I4_1:	return 1;
+			case Code.Ldc_I4_2:	return 2;
+			case Code.Ldc_I4_3:	return 3;
+			case Code.Ldc_I4_4:	return 4;
+			case Code.Ldc_I4_5:	return 5;
+			case Code.Ldc_I4_6:	return 6;
+			case Code.Ldc_I4_7:	return 7;
+			case Code.Ldc_I4_8:	return 8;
+			case Code.Ldc_I4_S:	return (sbyte)Operand;
+			case Code.Ldc_I4:	return (int)Operand;
+			default:
+				throw new InvalidOperationException(string.Format("Not a ldc.i4 instruction: {0}", this));
+			}
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return InstructionPrinter.ToString(this);
