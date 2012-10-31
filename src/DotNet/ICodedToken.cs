@@ -73,6 +73,59 @@ namespace dot10.DotNet {
 			// Always create a new one, even if it happens to be an AssemblyRef
 			return new AssemblyRefUser(asm.Name, asm.Version, asm.PublicKeyOrToken, asm.Locale);
 		}
+
+		/// <summary>
+		/// Converts <paramref name="type"/> to a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>A <see cref="TypeSig"/> instance or <c>null</c> if <paramref name="type"/>
+		/// is invalid</returns>
+		public static TypeSig ToTypeSig(this ITypeDefOrRef type) {
+			return ToTypeSig(type, true);
+		}
+
+		/// <summary>
+		/// Converts <paramref name="type"/> to a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <param name="checkValueType"><c>true</c> if we should try to figure out whether
+		/// <paramref name="type"/> is a <see cref="ValueType"/></param>
+		/// <returns>A <see cref="TypeSig"/> instance or <c>null</c> if <paramref name="type"/>
+		/// is invalid</returns>
+		public static TypeSig ToTypeSig(this ITypeDefOrRef type, bool checkValueType) {
+			if (type == null)
+				return null;
+
+			var ownerModule = type.OwnerModule;
+			if (ownerModule != null) {
+				var corLibType = ownerModule.CorLibTypes.GetCorLibTypeSig(type);
+				if (corLibType != null)
+					return corLibType;
+			}
+
+			var td = type as TypeDef;
+			if (td != null)
+				return CreateClassOrValueType(type, checkValueType ? td.IsValueType : false);
+
+			var tr = type as TypeRef;
+			if (tr != null) {
+				if (checkValueType)
+					td = tr.Resolve();
+				return CreateClassOrValueType(type, td == null ? false : td.IsValueType);
+			}
+
+			var ts = type as TypeSpec;
+			if (ts != null)
+				return ts.TypeSig;
+
+			return null;
+		}
+
+		static TypeSig CreateClassOrValueType(ITypeDefOrRef type, bool isValueType) {
+			if (isValueType)
+				return new ValueTypeSig(type);
+			return new ClassSig(type);
+		}
 	}
 
 	/// <summary>
