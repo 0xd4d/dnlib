@@ -293,6 +293,29 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Updates <paramref name="stack"/> with the new stack size
+		/// </summary>
+		/// <param name="stack">Current stack size</param>
+		public void UpdateStack(ref int stack) {
+			UpdateStack(ref stack, false);
+		}
+
+		/// <summary>
+		/// Updates <paramref name="stack"/> with the new stack size
+		/// </summary>
+		/// <param name="stack">Current stack size</param>
+		/// <param name="methodHasReturnValue"><c>true</c> if the method has a return value,
+		/// <c>false</c> otherwise</param>
+		public void UpdateStack(ref int stack, bool methodHasReturnValue) {
+			int pushes, pops;
+			CalculateStackUsage(methodHasReturnValue, out pushes, out pops);
+			if (pops == -1)
+				stack = 0;
+			else
+				stack += pushes - pops;
+		}
+
+		/// <summary>
 		/// Calculates stack usage
 		/// </summary>
 		/// <param name="pushes">Updated with number of stack pushes</param>
@@ -413,6 +436,70 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Checks whether it's one of the <c>leave</c> instructions
+		/// </summary>
+		public bool IsLeave() {
+			return OpCode == OpCodes.Leave || OpCode == OpCodes.Leave_S;
+		}
+
+		/// <summary>
+		/// Checks whether it's one of the <c>br</c> instructions
+		/// </summary>
+		public bool IsBr() {
+			return OpCode == OpCodes.Br || OpCode == OpCodes.Br_S;
+		}
+
+		/// <summary>
+		/// Checks whether it's one of the <c>brfalse</c> instructions
+		/// </summary>
+		public bool IsBrfalse() {
+			return OpCode == OpCodes.Brfalse || OpCode == OpCodes.Brfalse_S;
+		}
+
+		/// <summary>
+		/// Checks whether it's one of the <c>brtrue</c> instructions
+		/// </summary>
+		public bool IsBrtrue() {
+			return OpCode == OpCodes.Brtrue || OpCode == OpCodes.Brtrue_S;
+		}
+
+		/// <summary>
+		/// Checks whether it's one of the conditional branch instructions (bcc, brtrue, brfalse)
+		/// </summary>
+		public bool IsConditionalBranch() {
+			switch (OpCode.Code) {
+			case Code.Bge:
+			case Code.Bge_S:
+			case Code.Bge_Un:
+			case Code.Bge_Un_S:
+			case Code.Blt:
+			case Code.Blt_S:
+			case Code.Blt_Un:
+			case Code.Blt_Un_S:
+			case Code.Bgt:
+			case Code.Bgt_S:
+			case Code.Bgt_Un:
+			case Code.Bgt_Un_S:
+			case Code.Ble:
+			case Code.Ble_S:
+			case Code.Ble_Un:
+			case Code.Ble_Un_S:
+			case Code.Brfalse:
+			case Code.Brfalse_S:
+			case Code.Brtrue:
+			case Code.Brtrue_S:
+			case Code.Beq:
+			case Code.Beq_S:
+			case Code.Bne_Un:
+			case Code.Bne_Un_S:
+				return true;
+
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
 		/// Checks whether this is one of the <c>ldc.i4</c> instructions
 		/// </summary>
 		public bool IsLdcI4() {
@@ -497,6 +584,23 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Checks whether it's one of the <c>stloc</c> instructions
+		/// </summary>
+		public bool IsStloc() {
+			switch (OpCode.Code) {
+			case Code.Stloc:
+			case Code.Stloc_0:
+			case Code.Stloc_1:
+			case Code.Stloc_2:
+			case Code.Stloc_3:
+			case Code.Stloc_S:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
 		/// Returns the local if it's a <c>ldloc</c> or <c>stloc</c> instruction. It does not
 		/// return the local if it's a <c>ldloca</c> instruction.
 		/// </summary>
@@ -533,6 +637,17 @@ namespace dot10.DotNet.Emit {
 			if (index < locals.Count)
 				return locals[index];
 			return null;
+		}
+
+		/// <summary>
+		/// Clone this instance
+		/// </summary>
+		public Instruction Clone() {
+			return new Instruction {
+				Offset = Offset,
+				OpCode = OpCode,
+				Operand = Operand,
+			};
 		}
 
 		/// <inheritdoc/>
