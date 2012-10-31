@@ -106,6 +106,10 @@ namespace dot10.DotNet {
 	/// Implemented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
 	/// </summary>
 	public interface IField : IFullName {
+		/// <summary>
+		/// Gets/sets the field signature
+		/// </summary>
+		FieldSig FieldSig { get; set; }
 	}
 
 	/// <summary>
