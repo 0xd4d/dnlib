@@ -6,7 +6,7 @@ namespace dot10.DotNet.Emit {
 	/// Stores a collection of <see cref="Local"/>
 	/// </summary>
 	[DebuggerDisplay("Count = {Length}")]
-	public sealed class LocalList : IListListener<Local> {
+	public sealed class LocalList : IListListener<Local>, IList<Local> {
 		LazyList<Local> locals;
 
 		/// <summary>
@@ -29,6 +29,7 @@ namespace dot10.DotNet.Emit {
 		/// <param name="index">The local index</param>
 		public Local this[int index] {
 			get { return locals[index]; }
+			set { locals[index] = value; }
 		}
 
 		/// <summary>
@@ -78,6 +79,62 @@ namespace dot10.DotNet.Emit {
 			foreach (var local in locals)
 				local.Number = -1;
 		}
+
+		/// <inheritdoc/>
+		public int IndexOf(Local item) {
+			return locals.IndexOf(item);
+		}
+
+		/// <inheritdoc/>
+		public void Insert(int index, Local item) {
+			locals.Insert(index, item);
+		}
+
+		/// <inheritdoc/>
+		public void RemoveAt(int index) {
+			locals.RemoveAt(index);
+		}
+
+		void ICollection<Local>.Add(Local item) {
+			locals.Add(item);
+		}
+
+		/// <inheritdoc/>
+		public void Clear() {
+			locals.Clear();
+		}
+
+		/// <inheritdoc/>
+		public bool Contains(Local item) {
+			return locals.Contains(item);
+		}
+
+		/// <inheritdoc/>
+		public void CopyTo(Local[] array, int arrayIndex) {
+			locals.CopyTo(array, arrayIndex);
+		}
+
+		int ICollection<Local>.Count {
+			get { return locals.Count; }
+		}
+
+		bool ICollection<Local>.IsReadOnly {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
+		public bool Remove(Local item) {
+			return locals.Remove(item);
+		}
+
+		/// <inheritdoc/>
+		public IEnumerator<Local> GetEnumerator() {
+			return locals.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+			return ((IEnumerable<Local>)this).GetEnumerator();
+		}
 	}
 
 	/// <summary>
@@ -102,6 +159,13 @@ namespace dot10.DotNet.Emit {
 		public int Number {
 			get { return number; }
 			internal set { number = value; }
+		}
+
+		/// <summary>
+		/// Local index. <see cref="Number"/>
+		/// </summary>
+		public int Index {
+			get { return Number; }
 		}
 
 		/// <summary>

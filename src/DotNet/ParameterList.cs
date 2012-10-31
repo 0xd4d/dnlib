@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using dot10.DotNet.MD;
 
@@ -7,7 +8,7 @@ namespace dot10.DotNet {
 	/// A list of all method parameters
 	/// </summary>
 	[DebuggerDisplay("Count = {Length}")]
-	public sealed class ParameterList {
+	public sealed class ParameterList : IList<Parameter> {
 		MethodDef method;
 		List<Parameter> parameters;
 		Parameter hiddenThisParameter;
@@ -33,6 +34,7 @@ namespace dot10.DotNet {
 		/// <param name="index">The parameter index</param>
 		public Parameter this[int index] {
 			get { return parameters[index]; }
+			set { throw new NotSupportedException(); }
 		}
 
 		/// <summary>
@@ -110,6 +112,55 @@ namespace dot10.DotNet {
 					return paramDef;
 			}
 			return null;
+		}
+
+		/// <inheritdoc/>
+		public int IndexOf(Parameter item) {
+			return parameters.IndexOf(item);
+		}
+
+		void IList<Parameter>.Insert(int index, Parameter item) {
+			throw new NotSupportedException();
+		}
+
+		void IList<Parameter>.RemoveAt(int index) {
+			throw new NotSupportedException();
+		}
+
+		void ICollection<Parameter>.Add(Parameter item) {
+			throw new NotSupportedException();
+		}
+
+		void ICollection<Parameter>.Clear() {
+			throw new NotSupportedException();
+		}
+
+		bool ICollection<Parameter>.Contains(Parameter item) {
+			return parameters.Contains(item);
+		}
+
+		void ICollection<Parameter>.CopyTo(Parameter[] array, int arrayIndex) {
+			parameters.CopyTo(array, arrayIndex);
+		}
+
+		int ICollection<Parameter>.Count {
+			get { return parameters.Count; }
+		}
+
+		bool ICollection<Parameter>.IsReadOnly {
+			get { return true; }
+		}
+
+		bool ICollection<Parameter>.Remove(Parameter item) {
+			throw new NotSupportedException();
+		}
+
+		IEnumerator<Parameter> IEnumerable<Parameter>.GetEnumerator() {
+			return parameters.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+			return ((IEnumerable<Parameter>)this).GetEnumerator();
 		}
 	}
 
