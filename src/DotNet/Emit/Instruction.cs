@@ -460,6 +460,81 @@ namespace dot10.DotNet.Emit {
 			}
 		}
 
+		/// <summary>
+		/// Checks whether it's one of the <c>ldarg</c> instructions, but does <c>not</c> check
+		/// whether it's one of the <c>ldarga</c> instructions.
+		/// </summary>
+		public bool IsLdarg() {
+			switch (OpCode.Code) {
+			case Code.Ldarg:
+			case Code.Ldarg_S:
+			case Code.Ldarg_0:
+			case Code.Ldarg_1:
+			case Code.Ldarg_2:
+			case Code.Ldarg_3:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Checks whether it's one of the <c>ldloc</c> instructions, but does <c>not</c> check
+		/// whether it's one of the <c>ldloca</c> instructions.
+		/// </summary>
+		public bool IsLdloc() {
+			switch (OpCode.Code) {
+			case Code.Ldloc:
+			case Code.Ldloc_0:
+			case Code.Ldloc_1:
+			case Code.Ldloc_2:
+			case Code.Ldloc_3:
+			case Code.Ldloc_S:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Returns the local if it's a <c>ldloc</c> or <c>stloc</c> instruction. It does not
+		/// return the local if it's a <c>ldloca</c> instruction.
+		/// </summary>
+		/// <param name="locals">The locals</param>
+		/// <returns>The local or <c>null</c> if it's not a <c>ldloc</c> or <c>stloc</c>
+		/// instruction or if the local doesn't exist.</returns>
+		public Local GetLocal(IList<Local> locals) {
+			int index;
+			switch (OpCode.Code) {
+			case Code.Ldloc:
+			case Code.Ldloc_S:
+			case Code.Stloc:
+			case Code.Stloc_S:
+				return Operand as Local;
+
+			case Code.Ldloc_0:
+			case Code.Ldloc_1:
+			case Code.Ldloc_2:
+			case Code.Ldloc_3:
+				index = OpCode.Code - Code.Ldloc_0;
+				break;
+
+			case Code.Stloc_0:
+			case Code.Stloc_1:
+			case Code.Stloc_2:
+			case Code.Stloc_3:
+				index = OpCode.Code - Code.Stloc_0;
+				break;
+
+			default:
+				return null;
+			}
+
+			if (index < locals.Count)
+				return locals[index];
+			return null;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return InstructionPrinter.ToString(this);
