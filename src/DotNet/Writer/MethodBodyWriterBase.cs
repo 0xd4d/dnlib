@@ -54,6 +54,8 @@ namespace dot10.DotNet.Writer {
 		/// Gets max stack value
 		/// </summary>
 		protected uint GetMaxStack() {
+			if (instructions.Count == 0)
+				return 0;
 			uint maxStack;
 			if (!MaxStackCalculator.GetMaxStack(instructions, exceptionHandlers, out maxStack)) {
 				Error("Error calculating max stack value");
