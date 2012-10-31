@@ -182,6 +182,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the parameter index. <see cref="Number"/>
+		/// </summary>
+		public int Index {
+			get { return Number; }
+		}
+
+		/// <summary>
 		/// Gets the index of the parameter in the method signature. It's -1 if it's the hidden
 		/// 'this' parameter.
 		/// </summary>
