@@ -323,7 +323,7 @@ namespace dot10.DotNet.Emit {
 			var method = Operand as IMethod;
 			if (method == null)
 				return;
-			var sig = method.Signature as MethodSig;
+			var sig = method.MethodSig;
 			if (sig == null)
 				return;
 			bool implicitThis = sig.HasThis && !sig.ExplicitThis;

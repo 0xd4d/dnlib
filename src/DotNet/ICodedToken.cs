@@ -119,7 +119,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Method signature
 		/// </summary>
-		CallingConventionSig Signature { get; }
+		MethodSig MethodSig { get; set; }
 	}
 
 	/// <summary>
