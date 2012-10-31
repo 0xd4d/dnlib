@@ -126,6 +126,17 @@ namespace dot10.DotNet {
 				return new ValueTypeSig(type);
 			return new ClassSig(type);
 		}
+
+		/// <summary>
+		/// Returns a <see cref="GenericInstSig"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>A <see cref="GenericInstSig"/> or <c>null</c> if it's not a
+		/// <see cref="GenericInstSig"/></returns>
+		public static GenericInstSig ToGenericInstSig(this ITypeDefOrRef type) {
+			var ts = type as TypeSpec;
+			return ts == null ? null : ts.TypeSig as GenericInstSig;
+		}
 	}
 
 	/// <summary>
