@@ -249,6 +249,29 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Creates a <c>ldci4</c> instruction
+		/// </summary>
+		/// <param name="value">Operand value</param>
+		/// <returns>A new <see cref="Instruction"/> instance</returns>
+		public static Instruction CreateLdcI4(int value) {
+			switch (value) {
+			case -1: return Instruction.Create(OpCodes.Ldc_I4_M1);
+			case 0: return Instruction.Create(OpCodes.Ldc_I4_0);
+			case 1: return Instruction.Create(OpCodes.Ldc_I4_1);
+			case 2: return Instruction.Create(OpCodes.Ldc_I4_2);
+			case 3: return Instruction.Create(OpCodes.Ldc_I4_3);
+			case 4: return Instruction.Create(OpCodes.Ldc_I4_4);
+			case 5: return Instruction.Create(OpCodes.Ldc_I4_5);
+			case 6: return Instruction.Create(OpCodes.Ldc_I4_6);
+			case 7: return Instruction.Create(OpCodes.Ldc_I4_7);
+			case 8: return Instruction.Create(OpCodes.Ldc_I4_8);
+			}
+			if (sbyte.MinValue <= value && value <= sbyte.MaxValue)
+				return new Instruction(OpCodes.Ldc_I4_S, (sbyte)value);
+			return new Instruction(OpCodes.Ldc_I4, value);
+		}
+
+		/// <summary>
 		/// Gets the size in bytes of the instruction
 		/// </summary>
 		/// <returns></returns>
@@ -636,6 +659,42 @@ namespace dot10.DotNet.Emit {
 
 			if (index < locals.Count)
 				return locals[index];
+			return null;
+		}
+
+		/// <summary>
+		/// Gets the index of the instruction's parameter operand or <c>-1</c> if the parameter
+		/// is missing or if it's not an instruction with a parameter operand.
+		/// </summary>
+		public int GetParameterIndex() {
+			switch (OpCode.Code) {
+			case Code.Ldarg_0: return 0;
+			case Code.Ldarg_1: return 1;
+			case Code.Ldarg_2: return 2;
+			case Code.Ldarg_3: return 3;
+
+			case Code.Ldarga:
+			case Code.Ldarga_S:
+			case Code.Ldarg:
+			case Code.Ldarg_S:
+				var parameter = Operand as Parameter;
+				if (parameter != null)
+					return parameter.Number;
+				break;
+			}
+
+			return -1;
+		}
+
+		/// <summary>
+		/// Returns a method parameter
+		/// </summary>
+		/// <param name="parameters">All parameters</param>
+		/// <returns>A parameter or <c>null</c> if it doesn't exist</returns>
+		public Parameter GetParameter(IList<Parameter> parameters) {
+			int index = GetParameterIndex();
+			if ((uint)index <= (uint)parameters.Count)
+				return parameters[index];
 			return null;
 		}
 
