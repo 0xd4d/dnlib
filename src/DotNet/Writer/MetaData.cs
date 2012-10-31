@@ -1037,8 +1037,11 @@ namespace dot10.DotNet.Writer {
 					if (method == null)
 						continue;
 
-					if (method.CilBody != null) {
-						var writer = new MethodBodyWriter(this, method.CilBody);
+					var cilBody = method.CilBody;
+					if (cilBody != null) {
+						if (cilBody.Instructions.Count == 0 && cilBody.LocalList.Length == 0)
+							continue;
+						var writer = new MethodBodyWriter(this, cilBody);
 						writer.Write();
 						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections));
 						methodToBody[method] = mb;
