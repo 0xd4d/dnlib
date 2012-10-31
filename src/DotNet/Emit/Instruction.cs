@@ -177,6 +177,16 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Creates a new instruction with a type operand
+		/// </summary>
+		/// <param name="opCode">The opcode</param>
+		/// <param name="type">The type</param>
+		/// <returns>A new <see cref="Instruction"/> instance</returns>
+		public static Instruction Create(OpCode opCode, CorLibTypeSig type) {
+			return Create(opCode, type.TypeDefOrRef);
+		}
+
+		/// <summary>
 		/// Creates a new instruction with a field operand
 		/// </summary>
 		/// <param name="opCode">The opcode</param>
