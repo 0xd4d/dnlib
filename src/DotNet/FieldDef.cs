@@ -101,6 +101,11 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		ITypeDefOrRef IField.DeclaringType {
+			get { return DeclaringType; }
+		}
+
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/>
 		/// </summary>
