@@ -138,11 +138,46 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Interface to access a module def/ref
 	/// </summary>
-	public interface IModule {
+	public interface IModule : IScope {
 		/// <summary>
 		/// Gets the module name
 		/// </summary>
 		UTF8String Name { get; }
+	}
+
+	/// <summary>
+	/// Type of scope
+	/// </summary>
+	public enum ScopeType {
+		/// <summary>
+		/// It's an <see cref="dot10.DotNet.AssemblyRef"/> instance
+		/// </summary>
+		AssemblyRef,
+
+		/// <summary>
+		/// It's a <see cref="dot10.DotNet.ModuleRef"/> instance
+		/// </summary>
+		ModuleRef,
+
+		/// <summary>
+		/// It's a <see cref="dot10.DotNet.ModuleDef"/> instance
+		/// </summary>
+		ModuleDef,
+	}
+
+	/// <summary>
+	/// Implemented by modules and assemblies
+	/// </summary>
+	public interface IScope {
+		/// <summary>
+		/// Gets the scope type
+		/// </summary>
+		ScopeType ScopeType { get; }
+
+		/// <summary>
+		/// Gets the scope name
+		/// </summary>
+		string ScopeName { get; }
 	}
 
 	/// <summary>

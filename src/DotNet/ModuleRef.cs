@@ -42,6 +42,16 @@ namespace dot10.DotNet {
 			get { return 1; }
 		}
 
+		/// <inheritdoc/>
+		public ScopeType ScopeType {
+			get { return ScopeType.ModuleRef; }
+		}
+
+		/// <inheritdoc/>
+		public string ScopeName {
+			get { return FullName; }
+		}
+
 		/// <summary>
 		/// From column ModuleRef.Name
 		/// </summary>

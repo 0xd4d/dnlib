@@ -53,6 +53,16 @@ namespace dot10.DotNet {
 			get { return 0; }
 		}
 
+		/// <inheritdoc/>
+		public ScopeType ScopeType {
+			get { return ScopeType.ModuleDef; }
+		}
+
+		/// <inheritdoc/>
+		public string ScopeName {
+			get { return FullName; }
+		}
+
 		/// <summary>
 		/// Gets/sets Module.Generation column
 		/// </summary>

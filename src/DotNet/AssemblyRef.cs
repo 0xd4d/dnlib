@@ -6,7 +6,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the AssemblyRef table
 	/// </summary>
-	public abstract class AssemblyRef : IHasCustomAttribute, IImplementation, IResolutionScope, IAssembly {
+	public abstract class AssemblyRef : IHasCustomAttribute, IImplementation, IResolutionScope, IAssembly, IScope {
 		/// <summary>
 		/// An assembly ref that can be used to indicate that it references the current assembly
 		/// when the current assembly is not known (eg. a type string without any assembly info
@@ -43,6 +43,16 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public int ResolutionScopeTag {
 			get { return 2; }
+		}
+
+		/// <inheritdoc/>
+		public ScopeType ScopeType {
+			get { return ScopeType.AssemblyRef; }
+		}
+
+		/// <inheritdoc/>
+		public string ScopeName {
+			get { return FullName; }
 		}
 
 		/// <summary>
