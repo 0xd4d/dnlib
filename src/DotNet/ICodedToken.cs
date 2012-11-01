@@ -244,7 +244,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by tables that can be a token in the <c>ldtoken</c> instruction
 	/// </summary>
-	public interface ITokenOperand {
+	public interface ITokenOperand : ICodedToken {
 	}
 
 	/// <summary>
