@@ -744,7 +744,10 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		protected internal override TypeDef DeclaringType2 {
 			get { return declaringType; }
-			set { declaringType = value; }
+			set {
+				declaringType = value;
+				parameterList.UpdateThisParameterType();
+			}
 		}
 
 		/// <summary>
@@ -983,7 +986,10 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		protected internal override TypeDef DeclaringType2 {
 			get { return declaringType.Value; }
-			set { declaringType.Value = value; }
+			set {
+				declaringType.Value = value;
+				parameterList.UpdateThisParameterType();
+			}
 		}
 
 		/// <summary>
