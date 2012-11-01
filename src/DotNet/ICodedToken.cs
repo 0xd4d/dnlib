@@ -204,7 +204,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
 	/// </summary>
-	public interface IField : IMDTokenProvider, IFullName {
+	public interface IField : ICodedToken, IFullName {
 		/// <summary>
 		/// Gets/sets the field signature
 		/// </summary>
@@ -224,7 +224,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)
 	/// </summary>
-	public interface IMethod : IMDTokenProvider, ITokenOperand, IFullName {
+	public interface IMethod : ICodedToken, ITokenOperand, IFullName {
 		/// <summary>
 		/// Method signature
 		/// </summary>
