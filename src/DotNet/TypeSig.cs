@@ -262,6 +262,18 @@ namespace dot10.DotNet {
 				a = a.Next;
 			}
 		}
+
+		/// <summary>
+		/// Removes pinned signature
+		/// </summary>
+		/// <param name="a">The type</param>
+		/// <returns>Input after pinned signature</returns>
+		public static TypeSig RemovePinned(this TypeSig a) {
+			var pinned = a as PinnedSig;
+			if (pinned == null)
+				return a;
+			return pinned.Next;
+		}
 	}
 
 	/// <summary>
