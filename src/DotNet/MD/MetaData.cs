@@ -112,6 +112,11 @@ namespace dot10.DotNet.MD {
 			get { return tablesStream; }
 		}
 
+		/// <inheritdoc/>
+		public IList<DotNetStream> AllStreams {
+			get { return allStreams; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>

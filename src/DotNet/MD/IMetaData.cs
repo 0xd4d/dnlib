@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using dot10.PE;
 
 namespace dot10.DotNet.MD {
@@ -55,6 +56,11 @@ namespace dot10.DotNet.MD {
 		/// Returns the #~ or #- tables stream
 		/// </summary>
 		TablesStream TablesStream { get; }
+
+		/// <summary>
+		/// Gets all streams
+		/// </summary>
+		IList<DotNetStream> AllStreams { get; }
 
 		/// <summary>
 		/// Gets a list of all the valid <c>TypeDef</c> rids. It's usually every rid in the
