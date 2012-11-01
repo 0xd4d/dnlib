@@ -13,6 +13,7 @@ namespace dot10.DotNet.MD {
 		/// Reader that can access the whole stream
 		/// </summary>
 		protected IImageStream imageStream;
+
 		/// <summary>
 		/// <c>null</c> if it wasn't present in the file
 		/// </summary>
@@ -23,6 +24,20 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		public IImageStream ImageStream {
 			get { return imageStream; }
+		}
+
+		/// <summary>
+		/// Gets the stream header
+		/// </summary>
+		public StreamHeader StreamHeader {
+			get { return streamHeader; }
+		}
+
+		/// <summary>
+		/// Gets the name of the stream
+		/// </summary>
+		public string Name {
+			get { return streamHeader.Name; }
 		}
 
 		/// <summary>
