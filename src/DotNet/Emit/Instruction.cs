@@ -709,6 +709,25 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Returns an argument type
+		/// </summary>
+		/// <param name="methodSig">Method signature</param>
+		/// <param name="declaringType">Declaring type (only needed if it's an instance method)</param>
+		/// <returns>The type or <c>null</c> if it doesn't exist</returns>
+		public TypeSig GetArgumentType(MethodSig methodSig, ITypeDefOrRef declaringType) {
+			if (methodSig == null)
+				return null;
+			int index = GetParameterIndex();
+			if (index == 0 && methodSig.ImplicitThis)
+				return declaringType.ToTypeSig();	//TODO: Should be ByRef if value type
+			if (methodSig.ImplicitThis)
+				index--;
+			if ((uint)index >= (uint)methodSig.Params.Count)
+				return null;
+			return methodSig.Params[index];
+		}
+
+		/// <summary>
 		/// Clone this instance
 		/// </summary>
 		public Instruction Clone() {
