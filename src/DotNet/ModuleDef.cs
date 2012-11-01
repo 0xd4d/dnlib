@@ -681,6 +681,38 @@ namespace dot10.DotNet {
 			return TypeDefFinder.Find(typeRef);
 		}
 
+		/// <summary>
+		/// Finds a <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="typeRef">The type</param>
+		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if it wasn't found</returns>
+		public TypeDef Find(ITypeDefOrRef typeRef) {
+			var td = typeRef as TypeDef;
+			if (td != null)
+				return td.OwnerModule == this ? td : null;
+
+			var tr = typeRef as TypeRef;
+			if (tr != null)
+				return Find(tr);
+
+			var ts = typeRef as TypeSpec;
+			if (ts == null)
+				return null;
+			var sig = ts.TypeSig as TypeDefOrRefSig;
+			if (sig == null)
+				return null;
+
+			td = sig.TypeDef;
+			if (td != null)
+				return td.OwnerModule == this ? td : null;
+
+			tr = sig.TypeRef;
+			if (tr != null)
+				return Find(tr);
+
+			return null;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
