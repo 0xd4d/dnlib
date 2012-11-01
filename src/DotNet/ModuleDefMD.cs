@@ -1271,5 +1271,27 @@ namespace dot10.DotNet {
 				return null;
 			return ResolveToken(cor20Header.EntryPointToken_or_RVA) as IManagedEntryPoint;
 		}
+
+		/// <summary>
+		/// Gets all <see cref="AssemblyRef"/>s
+		/// </summary>
+		public IEnumerable<AssemblyRef> GetAssemblyRefs() {
+			for (uint rid = 1; ; rid++) {
+				var asmRef = ResolveAssemblyRef(rid);
+				if (asmRef != null)
+					yield return asmRef;
+			}
+		}
+
+		/// <summary>
+		/// Gets all <see cref="ModuleRef"/>s
+		/// </summary>
+		public IEnumerable<ModuleRef> GetModuleRefs() {
+			for (uint rid = 1; ; rid++) {
+				var modRef = ResolveModuleRef(rid);
+				if (modRef != null)
+					yield return modRef;
+			}
+		}
 	}
 }
