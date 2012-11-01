@@ -16,6 +16,13 @@ namespace dot10.DotNet {
 		int methodSigIndexBase;
 
 		/// <summary>
+		/// Gets the owner method
+		/// </summary>
+		public MethodDef Method {
+			get { return method; }
+		}
+
+		/// <summary>
 		/// Gets the number of parameters, including a possible hidden 'this' parameter
 		/// </summary>
 		public int Length {
@@ -228,6 +235,13 @@ namespace dot10.DotNet {
 				typeSig = value;
 				parameterList.TypeUpdated(this);
 			}
+		}
+
+		/// <summary>
+		/// Gets the owner method
+		/// </summary>
+		public MethodDef Method {
+			get { return parameterList.Method; }
 		}
 
 		/// <summary>
