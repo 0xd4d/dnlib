@@ -152,6 +152,27 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="GenericParam"/> in <see cref="GenericParams"/>
+		/// </summary>
+		public bool HasGenericParameters {
+			get { return GenericParams.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it has a <see cref="CilBody"/>
+		/// </summary>
+		public bool HasCilBody {
+			get { return CilBody != null; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="MethodOverride"/> in <see cref="Overrides"/>
+		/// </summary>
+		public bool HasOverrides {
+			get { return Overrides.Count > 0; }
+		}
+
+		/// <summary>
 		/// Gets the full name
 		/// </summary>
 		public string FullName {

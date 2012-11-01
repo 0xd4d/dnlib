@@ -146,6 +146,27 @@ namespace dot10.DotNet {
 		/// </summary>
 		internal abstract ILazyList<Resource> Resources2 { get; }
 
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="TypeDef"/> in <see cref="Types"/>
+		/// </summary>
+		public bool HasTypes {
+			get { return Types.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="ExportedType"/> in <see cref="ExportedTypes"/>
+		/// </summary>
+		public bool HasExportedTypes {
+			get { return ExportedTypes.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="Resource"/> in <see cref="Resources"/>
+		/// </summary>
+		public bool HasResources {
+			get { return Resources.Count > 0; }
+		}
+
 		/// <inheritdoc/>
 		public string FullName {
 			get { return UTF8String.ToSystemStringOrEmpty(Name); }
