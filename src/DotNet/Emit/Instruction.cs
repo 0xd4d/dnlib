@@ -382,7 +382,7 @@ namespace dot10.DotNet.Emit {
 			var sig = method.MethodSig;
 			if (sig == null)
 				return;
-			bool implicitThis = sig.HasThis && !sig.ExplicitThis;
+			bool implicitThis = sig.ImplicitThis;
 			if (!IsSystemVoid(sig.RetType) || (OpCode.Code == Code.Newobj && sig.HasThis))
 				pushes++;
 

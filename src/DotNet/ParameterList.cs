@@ -84,7 +84,7 @@ namespace dot10.DotNet {
 			if (method.MethodSig == null)
 				newIndex = -1;
 			else
-				newIndex = method.MethodSig.HasThis && !method.MethodSig.ExplicitThis ? 1 : 0;
+				newIndex = method.MethodSig.ImplicitThis ? 1 : 0;
 			if (methodSigIndexBase == newIndex)
 				return false;
 			methodSigIndexBase = newIndex;

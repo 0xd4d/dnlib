@@ -169,6 +169,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if there's an implicit <c>this</c> parameter
+		/// </summary>
+		public bool ImplicitThis {
+			get { return HasThis && !ExplicitThis; }
+		}
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		protected CallingConventionSig() {
