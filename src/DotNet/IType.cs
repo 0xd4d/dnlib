@@ -41,6 +41,24 @@
 		IAssembly DefinitionAssembly { get; }
 
 		/// <summary>
+		/// Gets the scope, which is different from <see cref="DefinitionAssembly"/> since it
+		/// can differentiate between modules within the same assembly.
+		/// </summary>
+		IScope Scope { get; }
+
+		/// <summary>
+		/// Gets the type whose scope is returned by <see cref="Scope"/> and whose assembly
+		/// is returned by <see cref="DefinitionAssembly"/>. This is always a
+		/// <see cref="TypeDef"/>, <see cref="TypeRef"/> or <c>null</c>. It can also be a
+		/// nested <see cref="TypeRef"/>.
+		/// For example, if this type is a System.String&amp;, then this value is a System.String.
+		/// If it's a generic instance type (eg. List&lt;int&gt;), then the generic type is
+		/// returned (eg. List&lt;T&gt;). In other words, the first <see cref="TypeDef"/> or
+		/// <see cref="TypeRef"/> that is found (without searching generic arguments) is returned.
+		/// </summary>
+		ITypeDefOrRef ScopeType { get; }
+
+		/// <summary>
 		/// Gets the owner module.
 		/// </summary>
 		ModuleDef OwnerModule { get; }

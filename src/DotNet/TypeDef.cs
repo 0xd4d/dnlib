@@ -89,6 +89,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public IScope Scope {
+			get { return OwnerModule; }
+		}
+
+		/// <inheritdoc/>
+		public ITypeDefOrRef ScopeType {
+			get { return this; }
+		}
+
+		/// <inheritdoc/>
 		public ModuleDef OwnerModule {
 			get { return FullNameCreator.OwnerModule(this); }
 		}

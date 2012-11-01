@@ -344,6 +344,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the scope
+		/// </summary>
+		/// <param name="typeRef">The <c>TypeRef</c></param>
+		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
+		public static IScope Scope(TypeRef typeRef) {
+			return new FullNameCreator().GetScope(typeRef);
+		}
+
+		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>
@@ -516,6 +525,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the scope type
+		/// </summary>
+		/// <param name="typeSpec">The <c>TypeSpec</c></param>
+		/// <returns>The scope type or <c>null</c> if none found</returns>
+		public static ITypeDefOrRef ScopeType(TypeSpec typeSpec) {
+			return new FullNameCreator().GetScopeType(typeSpec);
+		}
+
+		/// <summary>
+		/// Gets the scope
+		/// </summary>
+		/// <param name="typeSpec">The <c>TypeSpec</c></param>
+		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
+		public static IScope Scope(TypeSpec typeSpec) {
+			return new FullNameCreator().GetScope(typeSpec);
+		}
+
+		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
 		/// </summary>
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
@@ -633,6 +660,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the scope
+		/// </summary>
+		/// <param name="typeSig">The <c>TypeSig</c></param>
+		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
+		public static IScope Scope(TypeSig typeSig) {
+			return new FullNameCreator().GetScope(typeSig);
+		}
+
+		/// <summary>
+		/// Gets the scope type
+		/// </summary>
+		/// <param name="typeSig">The <c>TypeSig</c></param>
+		/// <returns>The scope type or <c>null</c> if none found</returns>
+		public static ITypeDefOrRef ScopeType(TypeSig typeSig) {
+			return new FullNameCreator().GetScopeType(typeSig);
+		}
+
+		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
 		/// </summary>
 		/// <param name="typeSig">The <c>TypeSig</c></param>
@@ -716,6 +761,24 @@ namespace dot10.DotNet {
 		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
 		public static IAssembly DefinitionAssembly(ExportedType exportedType) {
 			return new FullNameCreator().GetDefinitionAssembly(exportedType);
+		}
+
+		/// <summary>
+		/// Gets the scope type
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <returns>The scope type or <c>null</c> if none found</returns>
+		public static ITypeDefOrRef ScopeType(ExportedType exportedType) {
+			return new FullNameCreator().GetScopeType(exportedType);
+		}
+
+		/// <summary>
+		/// Gets the scope
+		/// </summary>
+		/// <param name="exportedType">The <c>ExportedType</c></param>
+		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
+		public static IScope Scope(ExportedType exportedType) {
+			return new FullNameCreator().GetScope(exportedType);
 		}
 
 		/// <summary>
@@ -1345,25 +1408,67 @@ namespace dot10.DotNet {
 		}
 
 		IAssembly GetDefinitionAssembly(ITypeDefOrRef typeDefOrRef) {
-			if (typeDefOrRef is TypeRef)
-				return GetDefinitionAssembly((TypeRef)typeDefOrRef);
-			else if (typeDefOrRef is TypeDef)
-				return GetDefinitionAssembly((TypeDef)typeDefOrRef);
-			else if (typeDefOrRef is TypeSpec)
-				return GetDefinitionAssembly((TypeSpec)typeDefOrRef);
-			else
-				return null;
+			var tr = typeDefOrRef as TypeRef;
+			if (tr != null)
+				return GetDefinitionAssembly(tr);
+
+			var td = typeDefOrRef as TypeDef;
+			if (td != null)
+				return GetDefinitionAssembly(td);
+
+			var ts = typeDefOrRef as TypeSpec;
+			if (ts != null)
+				return GetDefinitionAssembly(ts);
+
+			return null;
+		}
+
+		IScope GetScope(ITypeDefOrRef typeDefOrRef) {
+			var tr = typeDefOrRef as TypeRef;
+			if (tr != null)
+				return GetScope(tr);
+
+			var td = typeDefOrRef as TypeDef;
+			if (td != null)
+				return td.Scope;
+
+			var ts = typeDefOrRef as TypeSpec;
+			if (ts != null)
+				return GetScope(ts);
+
+			return null;
+		}
+
+		ITypeDefOrRef GetScopeType(ITypeDefOrRef typeDefOrRef) {
+			var tr = typeDefOrRef as TypeRef;
+			if (tr != null)
+				return tr;
+
+			var td = typeDefOrRef as TypeDef;
+			if (td != null)
+				return td;
+
+			var ts = typeDefOrRef as TypeSpec;
+			if (ts != null)
+				return GetScopeType(ts);
+
+			return null;
 		}
 
 		ModuleDef GetOwnerModule(ITypeDefOrRef typeDefOrRef) {
-			if (typeDefOrRef is TypeRef)
-				return GetOwnerModule((TypeRef)typeDefOrRef);
-			else if (typeDefOrRef is TypeDef)
-				return GetOwnerModule((TypeDef)typeDefOrRef);
-			else if (typeDefOrRef is TypeSpec)
-				return GetOwnerModule((TypeSpec)typeDefOrRef);
-			else
-				return null;
+			var tr = typeDefOrRef as TypeRef;
+			if (tr != null)
+				return GetOwnerModule(tr);
+
+			var td = typeDefOrRef as TypeDef;
+			if (td != null)
+				return GetOwnerModule(td);
+
+			var ts = typeDefOrRef as TypeSpec;
+			if (ts != null)
+				return GetOwnerModule(ts);
+
+			return null;
 		}
 
 		IAssembly GetDefinitionAssembly(TypeRef typeRef) {
@@ -1386,6 +1491,35 @@ namespace dot10.DotNet {
 			}
 			else if (scope is ModuleDef)
 				result = ((ModuleDef)scope).Assembly;
+			else
+				result = null;	// Should never be reached
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		IScope GetScope(TypeRef typeRef) {
+			if (typeRef == null)
+				return null;
+			if (!recursionCounter.Increment())
+				return null;
+			IScope result;
+			TypeRef tr;
+			AssemblyRef asmRef;
+			ModuleRef modRef;
+			ModuleDef modDef;
+
+			var scope = typeRef.ResolutionScope;
+			if (scope == null)
+				result = null;	//TODO: Check ownerModule's ExportedType table
+			else if ((tr = scope as TypeRef) != null)
+				result = GetScope(tr);
+			else if ((asmRef = scope as AssemblyRef) != null)
+				result = asmRef;
+			else if ((modRef = scope as ModuleRef) != null)
+				result = modRef;
+			else if ((modDef = scope as ModuleDef) != null)
+				result = modDef;
 			else
 				result = null;	// Should never be reached
 
@@ -1425,6 +1559,18 @@ namespace dot10.DotNet {
 			if (typeSpec == null)
 				return null;
 			return GetDefinitionAssembly(typeSpec.TypeSig);
+		}
+
+		IScope GetScope(TypeSpec typeSpec) {
+			if (typeSpec == null)
+				return null;
+			return GetScope(typeSpec.TypeSig);
+		}
+
+		ITypeDefOrRef GetScopeType(TypeSpec typeSpec) {
+			if (typeSpec == null)
+				return null;
+			return GetScopeType(typeSpec.TypeSig);
 		}
 
 		ModuleDef GetOwnerModule(TypeSpec typeSpec) {
@@ -1491,14 +1637,152 @@ namespace dot10.DotNet {
 
 			case ElementType.Var:
 			case ElementType.MVar:
-				result = null;
-				break;
-
 			case ElementType.FnPtr:
 			case ElementType.Sentinel:
+			case ElementType.End:
+			case ElementType.R:
+			case ElementType.Internal:
+			default:
 				result = null;
 				break;
+			}
 
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		ITypeDefOrRef GetScopeType(TypeSig typeSig) {
+			if (typeSig == null)
+				return null;
+			if (!recursionCounter.Increment())
+				return null;
+			ITypeDefOrRef result;
+
+			if (genericArguments != null)
+				typeSig = genericArguments.Resolve(typeSig);
+
+			switch (typeSig.ElementType) {
+			case ElementType.Void:
+			case ElementType.Boolean:
+			case ElementType.Char:
+			case ElementType.I1:
+			case ElementType.U1:
+			case ElementType.I2:
+			case ElementType.U2:
+			case ElementType.I4:
+			case ElementType.U4:
+			case ElementType.I8:
+			case ElementType.U8:
+			case ElementType.R4:
+			case ElementType.R8:
+			case ElementType.String:
+			case ElementType.TypedByRef:
+			case ElementType.I:
+			case ElementType.U:
+			case ElementType.Object:
+			case ElementType.ValueType:
+			case ElementType.Class:
+				result = GetScopeType(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				break;
+
+			case ElementType.Ptr:
+			case ElementType.ByRef:
+			case ElementType.Array:
+			case ElementType.SZArray:
+			case ElementType.CModReqd:
+			case ElementType.CModOpt:
+			case ElementType.Pinned:
+			case ElementType.ValueArray:
+			case ElementType.Module:
+				result = GetScopeType(((NonLeafSig)typeSig).Next);
+				break;
+
+			case ElementType.GenericInst:
+				var genericInstSig = (GenericInstSig)typeSig;
+				var genericType = genericInstSig.GenericType;
+				if (genericArguments == null)
+					genericArguments = new GenericArguments();
+				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
+				result = GetScopeType(genericType == null ? null : genericType.TypeDefOrRef);
+				genericArguments.PopTypeArgs();
+				break;
+
+			case ElementType.Var:
+			case ElementType.MVar:
+			case ElementType.FnPtr:
+			case ElementType.Sentinel:
+			case ElementType.End:
+			case ElementType.R:
+			case ElementType.Internal:
+			default:
+				result = null;
+				break;
+			}
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		IScope GetScope(TypeSig typeSig) {
+			if (typeSig == null)
+				return null;
+			if (!recursionCounter.Increment())
+				return null;
+			IScope result;
+
+			if (genericArguments != null)
+				typeSig = genericArguments.Resolve(typeSig);
+
+			switch (typeSig.ElementType) {
+			case ElementType.Void:
+			case ElementType.Boolean:
+			case ElementType.Char:
+			case ElementType.I1:
+			case ElementType.U1:
+			case ElementType.I2:
+			case ElementType.U2:
+			case ElementType.I4:
+			case ElementType.U4:
+			case ElementType.I8:
+			case ElementType.U8:
+			case ElementType.R4:
+			case ElementType.R8:
+			case ElementType.String:
+			case ElementType.TypedByRef:
+			case ElementType.I:
+			case ElementType.U:
+			case ElementType.Object:
+			case ElementType.ValueType:
+			case ElementType.Class:
+				result = GetScope(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				break;
+
+			case ElementType.Ptr:
+			case ElementType.ByRef:
+			case ElementType.Array:
+			case ElementType.SZArray:
+			case ElementType.CModReqd:
+			case ElementType.CModOpt:
+			case ElementType.Pinned:
+			case ElementType.ValueArray:
+			case ElementType.Module:
+				result = GetScope(((NonLeafSig)typeSig).Next);
+				break;
+
+			case ElementType.GenericInst:
+				var genericInstSig = (GenericInstSig)typeSig;
+				var genericType = genericInstSig.GenericType;
+				if (genericArguments == null)
+					genericArguments = new GenericArguments();
+				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
+				result = GetScope(genericType == null ? null : genericType.TypeDefOrRef);
+				genericArguments.PopTypeArgs();
+				break;
+
+			case ElementType.Var:
+			case ElementType.MVar:
+			case ElementType.FnPtr:
+			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
@@ -1569,14 +1853,8 @@ namespace dot10.DotNet {
 
 			case ElementType.Var:
 			case ElementType.MVar:
-				result = null;
-				break;
-
 			case ElementType.FnPtr:
 			case ElementType.Sentinel:
-				result = null;
-				break;
-
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
@@ -1595,15 +1873,51 @@ namespace dot10.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 			IAssembly result;
+			ExportedType et;
+			AssemblyRef asmRef;
 
 			var scope = exportedType.Implementation;
-			if (scope is ExportedType)
-				result = GetDefinitionAssembly((ExportedType)scope);
-			else if (scope is AssemblyRef)
-				result = (AssemblyRef)scope;
+			if ((et = scope as ExportedType) != null)
+				result = GetDefinitionAssembly(et);
+			else if ((asmRef = scope as AssemblyRef) != null)
+				result = asmRef;
 			else if (scope is FileDef) {
 				var ownerModule = GetOwnerModule(exportedType);
 				result = ownerModule == null ? null : ownerModule.Assembly;
+			}
+			else
+				result = null;
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		ITypeDefOrRef GetScopeType(ExportedType exportedType) {
+			return null;
+		}
+
+		IScope GetScope(ExportedType exportedType) {
+			if (exportedType == null)
+				return null;
+			if (!recursionCounter.Increment())
+				return null;
+			IScope result;
+			ExportedType et;
+			AssemblyRef asmRef;
+			FileDef file;
+
+			var scope = exportedType.Implementation;
+			if ((et = scope as ExportedType) != null)
+				result = GetScope(et);
+			else if ((asmRef = scope as AssemblyRef) != null)
+				result = asmRef;
+			else if ((file = scope as FileDef) != null) {
+				var ownerModule = GetOwnerModule(exportedType);
+				//TODO: Not all modules' names are equal to the name in FileDef.Name
+				var modRef = new ModuleRefUser(ownerModule, file.Name);
+				if (ownerModule != null)
+					ownerModule.UpdateRowId(modRef);
+				result = modRef;
 			}
 			else
 				result = null;
