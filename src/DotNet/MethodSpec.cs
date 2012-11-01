@@ -49,6 +49,12 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public UTF8String Name {
+			get { return Method == null ? null : Method.Name; }
+			set { if (Method != null)Method.Name = value; }
+		}
+
+		/// <inheritdoc/>
 		public ITypeDefOrRef DeclaringType {
 			get { return Method == null ? null : Method.DeclaringType; }
 		}
