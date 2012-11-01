@@ -60,6 +60,24 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsMethod {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsType {
+			get { return true; }
+		}
+
+		/// <inheritdoc/>
+		int IGenericParameterProvider.NumberOfGenericParameters {
+			get {
+				var type = this.RemovePinnedAndModifiers() as GenericInstSig;
+				return type == null ? 0 : type.GenericArguments.Count;
+			}
+		}
+
+		/// <inheritdoc/>
 		public string Name {
 			get { return FullNameCreator.Name(this, false); }
 		}
@@ -287,6 +305,18 @@ namespace dot10.DotNet {
 			if (pinned == null)
 				return a;
 			return pinned.Next;
+		}
+
+		/// <summary>
+		/// Removes all modifiers and pinned sig
+		/// </summary>
+		/// <param name="a">The type</param>
+		/// <returns>Inputer after modifiers and pinned signature</returns>
+		public static TypeSig RemovePinnedAndModifiers(this TypeSig a) {
+			a = a.RemoveModifiers();
+			a = a.RemovePinned();
+			a = a.RemoveModifiers();
+			return a;
 		}
 	}
 

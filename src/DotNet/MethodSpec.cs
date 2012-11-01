@@ -67,6 +67,24 @@ namespace dot10.DotNet {
 			set { Instantiation = value; }
 		}
 
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsMethod {
+			get { return true; }
+		}
+
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsType {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
+		int IGenericParameterProvider.NumberOfGenericParameters {
+			get {
+				var sig = GenericInstMethodSig;
+				return sig == null ? 0 : sig.GenericArguments.Count;
+			}
+		}
+
 		/// <summary>
 		/// Gets the full name
 		/// </summary>

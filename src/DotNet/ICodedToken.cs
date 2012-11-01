@@ -202,6 +202,26 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
+	/// Implemented by types and methods
+	/// </summary>
+	public interface IGenericParameterProvider : ICodedToken {
+		/// <summary>
+		/// <c>true</c> if this is a method
+		/// </summary>
+		bool IsMethod { get; }
+
+		/// <summary>
+		/// <c>true</c> if this is a type
+		/// </summary>
+		bool IsType { get; }
+
+		/// <summary>
+		/// Gets the number of generic parameters / arguments
+		/// </summary>
+		int NumberOfGenericParameters { get; }
+	}
+
+	/// <summary>
 	/// Implemented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
 	/// </summary>
 	public interface IField : ICodedToken, IFullName {
@@ -224,7 +244,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)
 	/// </summary>
-	public interface IMethod : ICodedToken, ITokenOperand, IFullName {
+	public interface IMethod : ICodedToken, ITokenOperand, IFullName, IGenericParameterProvider {
 		/// <summary>
 		/// Method signature
 		/// </summary>

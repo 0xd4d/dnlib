@@ -97,6 +97,21 @@ namespace dot10.DotNet {
 			get { return ownerModule; }
 		}
 
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsMethod {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsType {
+			get { return true; }
+		}
+
+		/// <inheritdoc/>
+		int IGenericParameterProvider.NumberOfGenericParameters {
+			get { return 0; }
+		}
+
 		/// <summary>
 		/// From column ExportedType.Flags
 		/// </summary>

@@ -52,6 +52,21 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsMethod {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsType {
+			get { return true; }
+		}
+
+		/// <inheritdoc/>
+		int IGenericParameterProvider.NumberOfGenericParameters {
+			get { return GenericParams.Count; }
+		}
+
+		/// <inheritdoc/>
 		string IType.Name {
 			get { return FullNameCreator.Name(this, false); }
 		}

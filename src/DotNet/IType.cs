@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Interface to get the full name of a type
 	/// </summary>
-	public interface IType : IFullName, ICodedToken {
+	public interface IType : IFullName, ICodedToken, IGenericParameterProvider {
 		/// <summary>
 		/// Returns the name of this type
 		/// </summary>

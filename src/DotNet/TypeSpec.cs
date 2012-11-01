@@ -38,6 +38,21 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsMethod {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsType {
+			get { return true; }
+		}
+
+		/// <inheritdoc/>
+		int IGenericParameterProvider.NumberOfGenericParameters {
+			get { return TypeSig == null ? 0 : ((IGenericParameterProvider)TypeSig).NumberOfGenericParameters; }
+		}
+
+		/// <inheritdoc/>
 		public string Name {
 			get { return FullNameCreator.Name(this, false); }
 		}

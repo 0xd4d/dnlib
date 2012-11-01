@@ -197,6 +197,24 @@ namespace dot10.DotNet {
 			get { return parameterList; }
 		}
 
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsMethod {
+			get { return true; }
+		}
+
+		/// <inheritdoc/>
+		bool IGenericParameterProvider.IsType {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
+		int IGenericParameterProvider.NumberOfGenericParameters {
+			get {
+				var sig = MethodSig;
+				return sig == null ? 0 : (int)sig.GenParamCount;
+			}
+		}
+
 		/// <summary>
 		/// Gets/sets the method access
 		/// </summary>
