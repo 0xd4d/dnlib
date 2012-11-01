@@ -54,7 +54,7 @@ namespace dot10.DotNet {
 		/// mscorlib or System.Runtime)
 		/// </summary>
 		/// <param name="asm">The assembly</param>
-		internal static bool IsCorLib(this IAssembly asm) {
+		public static bool IsCorLib(this IAssembly asm) {
 			string asmName;
 			return asm != null &&
 				UTF8String.IsNullOrEmpty(asm.Locale) &&
