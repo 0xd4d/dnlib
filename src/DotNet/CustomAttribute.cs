@@ -20,6 +20,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the attribute type
+		/// </summary>
+		public ITypeDefOrRef AttributeType {
+			get {
+				var methodRef = ctor as IMethod;
+				return methodRef == null ? null : methodRef.DeclaringType;
+			}
+		}
+
+		/// <summary>
 		/// Gets the full name of the attribute type
 		/// </summary>
 		public string TypeFullName {
