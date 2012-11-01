@@ -59,7 +59,10 @@ namespace dot10.DotNet {
 			UpdateParameterTypes();
 		}
 
-		void UpdateThisParameterType() {
+		/// <summary>
+		/// Should be called when the method's declaring type has changed
+		/// </summary>
+		public void UpdateThisParameterType() {
 			var declaringType = method.DeclaringType;
 			if (declaringType == null)
 				return;
@@ -73,7 +76,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Should be called when the method sig has changed
 		/// </summary>
-		internal void UpdateParameterTypes() {
+		public void UpdateParameterTypes() {
 			if (method.MethodSig == null) {
 				parameters.Clear();
 				return;
