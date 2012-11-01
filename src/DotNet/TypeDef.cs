@@ -203,6 +203,48 @@ namespace dot10.DotNet {
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
 		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="FieldDef"/> in <see cref="Fields"/>
+		/// </summary>
+		public bool HasFields {
+			get { return Fields.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="MethodDef"/> in <see cref="Methods"/>
+		/// </summary>
+		public bool HasMethods {
+			get { return Methods.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="GenericParam"/> in <see cref="GenericParams"/>
+		/// </summary>
+		public bool HasGenericParameters {
+			get { return GenericParams.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="EventDef"/> in <see cref="Events"/>
+		/// </summary>
+		public bool HasEvents {
+			get { return Events.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="PropertyDef"/> in <see cref="Properties"/>
+		/// </summary>
+		public bool HasProperties {
+			get { return Properties.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="TypeDef"/> in <see cref="NestedTypes"/>
+		/// </summary>
+		public bool HasNestedTypes {
+			get { return NestedTypes.Count > 0; }
+		}
+
+		/// <summary>
 		/// <c>true</c> if it's a value type
 		/// </summary>
 		public bool IsValueType {
