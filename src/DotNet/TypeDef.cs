@@ -7,6 +7,9 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the TypeDef table
 	/// </summary>
 	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef>, IListListener<EventDef>, IListListener<PropertyDef>, IListListener<GenericParam>, IMemberRefResolver {
+		static readonly UTF8String classConstructorName = new UTF8String(".cctor");
+		static readonly UTF8String constructorName = new UTF8String(".ctor");
+
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -616,6 +619,90 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Finds a method by name
+		/// </summary>
+		/// <param name="name">Name of method</param>
+		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if not found</returns>
+		public MethodDef FindMethod(string name) {
+			return FindMethod(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds a method by name
+		/// </summary>
+		/// <param name="name">Name of method</param>
+		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if not found</returns>
+		public MethodDef FindMethod(UTF8String name) {
+			foreach (var method in Methods) {
+				if (UTF8String.Equals(method.Name, name))
+					return method;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds all methods by name
+		/// </summary>
+		/// <param name="name">Name of method</param>
+		/// <returns>All methods with that name</returns>
+		public IEnumerable<MethodDef> FindMethods(string name) {
+			return FindMethods(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds all methods by name
+		/// </summary>
+		/// <param name="name">Name of method</param>
+		/// <returns>All methods with that name</returns>
+		public IEnumerable<MethodDef> FindMethods(UTF8String name) {
+			foreach (var method in Methods) {
+				if (UTF8String.Equals(method.Name, name))
+					yield return method;
+			}
+		}
+
+		/// <summary>
+		/// Finds the class constructor (aka type initializer). It's the method named .cctor
+		/// </summary>
+		/// <returns>The class constructor or <c>null</c> if none found</returns>
+		public MethodDef FindClassConstructor() {
+			foreach (var method in Methods) {
+				//TODO: Should we check for SpecialName and RTSpecialName?
+				if (UTF8String.Equals(method.Name, classConstructorName))
+					return method;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds all instance constructors (not class constructors)
+		/// </summary>
+		/// <returns>All instance constructors</returns>
+		public IEnumerable<MethodDef> FindConstructors() {
+			foreach (var method in Methods) {
+				//TODO: Should we check for SpecialName and RTSpecialName?
+				if (UTF8String.Equals(method.Name, constructorName))
+					yield return method;
+			}
+		}
+
+		/// <summary>
+		/// Finds the default instance constructor (the one with no arguments)
+		/// </summary>
+		/// <returns>The default instance constructor or <c>null</c> if none</returns>
+		public MethodDef FindDefaultConstructor() {
+			foreach (var method in Methods) {
+				//TODO: Should we check for SpecialName and RTSpecialName?
+				if (!UTF8String.Equals(method.Name, constructorName))
+					continue;
+				var sig = method.MethodSig;
+				if (sig != null && sig.Params.Count == 0)
+					return method;
+			}
+			return null;
+		}
+
+		/// <summary>
 		/// Finds a field. Private scope fields are not returned.
 		/// </summary>
 		/// <param name="name">Field name</param>
@@ -646,6 +733,237 @@ namespace dot10.DotNet {
 					return field;
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Finds a field by name
+		/// </summary>
+		/// <param name="name">Name of field</param>
+		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if not found</returns>
+		public FieldDef FindField(string name) {
+			return FindField(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds a field by name
+		/// </summary>
+		/// <param name="name">Name of field</param>
+		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if not found</returns>
+		public FieldDef FindField(UTF8String name) {
+			foreach (var field in Fields) {
+				if (UTF8String.Equals(field.Name, name))
+					return field;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds all fields by name
+		/// </summary>
+		/// <param name="name">Name of field</param>
+		/// <returns>All fields with that name</returns>
+		public IEnumerable<FieldDef> FindFields(string name) {
+			return FindFields(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds all fields by name
+		/// </summary>
+		/// <param name="name">Name of field</param>
+		/// <returns>All fields with that name</returns>
+		public IEnumerable<FieldDef> FindFields(UTF8String name) {
+			foreach (var field in Fields) {
+				if (UTF8String.Equals(field.Name, name))
+					yield return field;
+			}
+		}
+
+		/// <summary>
+		/// Finds an event
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <param name="type">Type of event</param>
+		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
+		public EventDef FindEvent(string name, IType type) {
+			return FindEvent(new UTF8String(name), type, 0);
+		}
+
+		/// <summary>
+		/// Finds an event
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <param name="type">Type of event</param>
+		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
+		public EventDef FindEvent(UTF8String name, IType type) {
+			return FindEvent(name, type, 0);
+		}
+
+		/// <summary>
+		/// Finds an event
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <param name="type">Type of event</param>
+		/// <param name="options">Event type comparison options</param>
+		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
+		public EventDef FindEvent(string name, IType type, SigComparerOptions options) {
+			return FindEvent(new UTF8String(name), type, options);
+		}
+
+		/// <summary>
+		/// Finds an event
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <param name="type">Type of event</param>
+		/// <param name="options">Event type comparison options</param>
+		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
+		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options) {
+			if (UTF8String.IsNull(name) || type == null)
+				return null;
+			var comparer = new SigComparer(options);
+			foreach (var @event in Events) {
+				if (!UTF8String.Equals(@event.Name, name))
+					continue;
+				if (comparer.Equals(@event.Type, type))
+					return @event;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a event by name
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
+		public EventDef FindEvent(string name) {
+			return FindEvent(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds a event by name
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
+		public EventDef FindEvent(UTF8String name) {
+			foreach (var @event in Events) {
+				if (UTF8String.Equals(@event.Name, name))
+					return @event;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds all events by name
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <returns>All events with that name</returns>
+		public IEnumerable<EventDef> FindEvents(string name) {
+			return FindEvents(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds all events by name
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <returns>All events with that name</returns>
+		public IEnumerable<EventDef> FindEvents(UTF8String name) {
+			foreach (var @event in Events) {
+				if (UTF8String.Equals(@event.Name, name))
+					yield return @event;
+			}
+		}
+
+		/// <summary>
+		/// Finds a property
+		/// </summary>
+		/// <param name="name">Name of property</param>
+		/// <param name="propSig">Property signature</param>
+		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
+		public PropertyDef FindProperty(string name, CallingConventionSig propSig) {
+			return FindProperty(new UTF8String(name), propSig, 0);
+		}
+
+		/// <summary>
+		/// Finds a property
+		/// </summary>
+		/// <param name="name">Name of property</param>
+		/// <param name="propSig">Property signature</param>
+		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
+		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig) {
+			return FindProperty(name, propSig, 0);
+		}
+
+		/// <summary>
+		/// Finds a property
+		/// </summary>
+		/// <param name="name">Name of property</param>
+		/// <param name="propSig">Property signature</param>
+		/// <param name="options">Property type comparison options</param>
+		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
+		public PropertyDef FindProperty(string name, CallingConventionSig propSig, SigComparerOptions options) {
+			return FindProperty(new UTF8String(name), propSig, options);
+		}
+
+		/// <summary>
+		/// Finds a property
+		/// </summary>
+		/// <param name="name">Name of property</param>
+		/// <param name="propSig">Property signature</param>
+		/// <param name="options">Property signature comparison options</param>
+		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
+		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options) {
+			if (UTF8String.IsNull(name) || propSig == null)
+				return null;
+			var comparer = new SigComparer(options);
+			foreach (var prop in Properties) {
+				if (!UTF8String.Equals(prop.Name, name))
+					continue;
+				if (comparer.Equals(prop.Type, propSig))
+					return prop;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a prop by name
+		/// </summary>
+		/// <param name="name">Name of prop</param>
+		/// <returns>The <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
+		public PropertyDef FindProperty(string name) {
+			return FindProperty(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds a prop by name
+		/// </summary>
+		/// <param name="name">Name of prop</param>
+		/// <returns>The <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
+		public PropertyDef FindProperty(UTF8String name) {
+			foreach (var prop in Properties) {
+				if (UTF8String.Equals(prop.Name, name))
+					return prop;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds all props by name
+		/// </summary>
+		/// <param name="name">Name of prop</param>
+		/// <returns>All props with that name</returns>
+		public IEnumerable<PropertyDef> FindPropertys(string name) {
+			return FindPropertys(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds all props by name
+		/// </summary>
+		/// <param name="name">Name of prop</param>
+		/// <returns>All props with that name</returns>
+		public IEnumerable<PropertyDef> FindPropertys(UTF8String name) {
+			foreach (var prop in Properties) {
+				if (UTF8String.Equals(prop.Name, name))
+					yield return prop;
+			}
 		}
 
 		/// <inheritdoc/>
