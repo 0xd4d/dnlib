@@ -289,7 +289,7 @@ namespace dot10.DotNet {
 
 		ModuleKind GetKind() {
 			if (TablesStream.Get(Table.Assembly).Rows < 1)
-				return ModuleKind.Netmodule;
+				return ModuleKind.NetModule;
 
 			var peImage = MetaData.PEImage;
 			if ((peImage.ImageNTHeaders.FileHeader.Characteristics & Characteristics.Dll) != 0)

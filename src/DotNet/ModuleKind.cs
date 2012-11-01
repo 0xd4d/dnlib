@@ -21,6 +21,6 @@
 		/// <summary>
 		/// Netmodule (it has no assembly manifest)
 		/// </summary>
-		Netmodule,
+		NetModule,
 	}
 }

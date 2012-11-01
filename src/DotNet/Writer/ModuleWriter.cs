@@ -61,7 +61,7 @@ namespace dot10.DotNet.Writer {
 		public bool IsExeFile {
 			get {
 				return ModuleKind != ModuleKind.Dll &&
-					ModuleKind != ModuleKind.Netmodule;
+					ModuleKind != ModuleKind.NetModule;
 			}
 		}
 
