@@ -217,7 +217,10 @@ namespace dot10.DotNet {
 		void Initialize() {
 			typeSig.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return readerModule.ReadTypeSignature(rawRow.Signature, out extraData);
+				var sig = readerModule.ReadTypeSignature(rawRow.Signature, out extraData);
+				if (sig != null)
+					sig.Rid = rid;
+				return sig;
 			};
 		}
 

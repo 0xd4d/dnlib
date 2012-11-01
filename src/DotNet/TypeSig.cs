@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using dot10.DotNet.MD;
 
 /*
 All TypeSig classes:
@@ -34,6 +35,8 @@ namespace dot10.DotNet {
 	/// Type sig base class
 	/// </summary>
 	public abstract class TypeSig : IType {
+		uint rid;
+
 		/// <summary>
 		/// Returns the wrapped element type. Can only be <c>null</c> if it was an invalid sig or
 		/// if it's a <see cref="LeafSig"/>
@@ -44,6 +47,17 @@ namespace dot10.DotNet {
 		/// Gets the element type
 		/// </summary>
 		public abstract ElementType ElementType { get; }
+
+		/// <inheritdoc/>
+		public MDToken MDToken {
+			get { return new MDToken(Table.TypeSpec, rid); }
+		}
+
+		/// <inheritdoc/>
+		public uint Rid {
+			get { return rid; }
+			set { rid = value; }
+		}
 
 		/// <inheritdoc/>
 		public string Name {
