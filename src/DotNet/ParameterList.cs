@@ -12,6 +12,7 @@ namespace dot10.DotNet {
 		MethodDef method;
 		List<Parameter> parameters;
 		Parameter hiddenThisParameter;
+		Parameter returnParameter;
 		int methodSigIndexBase;
 
 		/// <summary>
@@ -38,6 +39,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the method return parameter
+		/// </summary>
+		public Parameter ReturnParameter {
+			get { return returnParameter; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="method">The method with all parameters</param>
@@ -46,6 +54,7 @@ namespace dot10.DotNet {
 			this.parameters = new List<Parameter>();
 			this.methodSigIndexBase = -1;
 			this.hiddenThisParameter = new Parameter(this, 0, -1);
+			this.returnParameter = new Parameter(this, -1, -2);
 			UpdateThisParameterType();
 			UpdateParameterTypes();
 		}
@@ -71,6 +80,7 @@ namespace dot10.DotNet {
 			}
 			if (UpdateThisParameter())
 				parameters.Clear();
+			returnParameter.Type = method.MethodSig.RetType;
 			var methodSigParams = method.MethodSig.Params;
 			ResizeParameters(methodSigParams.Count + methodSigIndexBase);
 			if (methodSigIndexBase > 0)
@@ -112,6 +122,15 @@ namespace dot10.DotNet {
 					return paramDef;
 			}
 			return null;
+		}
+
+		internal void TypeUpdated(Parameter param) {
+			int index = param.MethodSigIndex;
+			// -1 = hidden 'this' param, -2 = ret type, >= 0 => Params index
+			if (index == -2)
+				method.MethodSig.RetType = param.Type;
+			else if (index >= 0)
+				method.MethodSig.Params[index] = param.Type;
 		}
 
 		/// <inheritdoc/>
@@ -176,6 +195,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the parameter index. If the method has a hidden 'this' parameter, that parameter
 		/// has index 0 and the remaining parameters in the method signature start from index 1.
+		/// The method return parameter has index <c>-1</c>.
 		/// </summary>
 		public int Number {
 			get { return paramIndex; }
@@ -189,8 +209,8 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the index of the parameter in the method signature. It's -1 if it's the hidden
-		/// 'this' parameter.
+		/// Gets the index of the parameter in the method signature. It's <c>-1</c> if it's the
+		/// hidden 'this' parameter, and <c>-2</c> if it's the method return parameter.
 		/// </summary>
 		public int MethodSigIndex {
 			get { return methodSigIndex; }
@@ -201,7 +221,10 @@ namespace dot10.DotNet {
 		/// </summary>
 		public TypeSig Type {
 			get { return typeSig; }
-			internal set { typeSig = value; }
+			set {
+				typeSig = value;
+				parameterList.TypeUpdated(this);
+			}
 		}
 
 		/// <summary>
