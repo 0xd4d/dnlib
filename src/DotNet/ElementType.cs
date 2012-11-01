@@ -78,4 +78,37 @@
 		/// <summary>Pinned type (locals only)</summary>
 		Pinned		= 0x45,
 	}
+
+	public static partial class Extensions {
+		/// <summary>
+		/// Returns the size of the element type in bytes or <c>-1</c> if it's unknown
+		/// </summary>
+		/// <param name="etype">Element type</param>
+		public static int GetPrimitiveSize(this ElementType etype) {
+			switch (etype) {
+			case ElementType.Boolean:
+			case ElementType.I1:
+			case ElementType.U1:
+				return 1;
+
+			case ElementType.Char:
+			case ElementType.I2:
+			case ElementType.U2:
+				return 2;
+
+			case ElementType.I4:
+			case ElementType.U4:
+			case ElementType.R4:
+				return 4;
+
+			case ElementType.I8:
+			case ElementType.U8:
+			case ElementType.R8:
+				return 8;
+
+			default:
+				return -1;
+			}
+		}
+	}
 }
