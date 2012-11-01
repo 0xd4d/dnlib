@@ -122,6 +122,20 @@ namespace dot10.DotNet.MD {
 			return ToTable((uint)token);
 		}
 
+		/// <summary>
+		/// Gets the token as a raw 32-bit signed integer
+		/// </summary>
+		public int ToInt32() {
+			return (int)token;
+		}
+
+		/// <summary>
+		/// Gets the token as a raw 32-bit unsigned integer
+		/// </summary>
+		public uint ToUInt32() {
+			return token;
+		}
+
 		/// <summary>Overloaded operator</summary>
 		public static bool operator ==(MDToken left, MDToken right) {
 			return left.CompareTo(right) == 0;
