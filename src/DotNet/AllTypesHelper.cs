@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 
 namespace dot10.DotNet {
-	struct AllTypesHelper {
+	/// <summary>
+	/// Returns types without getting stuck in an infinite loop
+	/// </summary>
+	public struct AllTypesHelper {
 		Dictionary<TypeDef, bool> visited;
 		RecursionCounter recursionCounter;
 
