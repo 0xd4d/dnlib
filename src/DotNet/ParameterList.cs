@@ -60,8 +60,8 @@ namespace dot10.DotNet {
 			this.method = method;
 			this.parameters = new List<Parameter>();
 			this.methodSigIndexBase = -1;
-			this.hiddenThisParameter = new Parameter(this, 0, -1);
-			this.returnParameter = new Parameter(this, -1, -2);
+			this.hiddenThisParameter = new Parameter(this, 0, Parameter.HIDDEN_THIS_METHOD_SIG_INDEX);
+			this.returnParameter = new Parameter(this, -1, Parameter.RETURN_TYPE_METHOD_SIG_INDEX);
 			UpdateThisParameterType();
 			UpdateParameterTypes();
 		}
@@ -125,10 +125,16 @@ namespace dot10.DotNet {
 		}
 
 		internal ParamDef FindParamDef(Parameter param) {
-			if (param.MethodSigIndex < 0)
+			int seq;
+			if (param.MethodSigIndex == Parameter.RETURN_TYPE_METHOD_SIG_INDEX)
+				seq = 0;
+			else if (param.MethodSigIndex >= 0)
+				seq = param.MethodSigIndex + 1;
+			else
 				return null;
+
 			foreach (var paramDef in method.ParamList) {
-				if (paramDef != null && paramDef.Sequence + 1 == param.MethodSigIndex)
+				if (paramDef != null && paramDef.Sequence == seq)
 					return paramDef;
 			}
 			return null;
@@ -136,8 +142,7 @@ namespace dot10.DotNet {
 
 		internal void TypeUpdated(Parameter param) {
 			int index = param.MethodSigIndex;
-			// -1 = hidden 'this' param, -2 = ret type, >= 0 => Params index
-			if (index == -2)
+			if (index == Parameter.RETURN_TYPE_METHOD_SIG_INDEX)
 				method.MethodSig.RetType = param.Type;
 			else if (index >= 0)
 				method.MethodSig.Params[index] = param.Type;
@@ -203,6 +208,16 @@ namespace dot10.DotNet {
 		int methodSigIndex;
 
 		/// <summary>
+		/// The hidden 'this' parameter's <see cref="MethodSigIndex"/>
+		/// </summary>
+		public const int HIDDEN_THIS_METHOD_SIG_INDEX = -2;
+
+		/// <summary>
+		/// The return type parameter's <see cref="MethodSigIndex"/>
+		/// </summary>
+		public const int RETURN_TYPE_METHOD_SIG_INDEX = -1;
+
+		/// <summary>
 		/// Gets the parameter index. If the method has a hidden 'this' parameter, that parameter
 		/// has index 0 and the remaining parameters in the method signature start from index 1.
 		/// The method return parameter has index <c>-1</c>.
@@ -219,11 +234,33 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the index of the parameter in the method signature. It's <c>-1</c> if it's the
-		/// hidden 'this' parameter, and <c>-2</c> if it's the method return parameter.
+		/// Gets the index of the parameter in the method signature. See also
+		/// <see cref="HIDDEN_THIS_METHOD_SIG_INDEX"/> and <see cref="RETURN_TYPE_METHOD_SIG_INDEX"/>
 		/// </summary>
 		public int MethodSigIndex {
 			get { return methodSigIndex; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's a normal visible method parameter, i.e., it's not the hidden
+		/// 'this' parameter and it's not the method return type parameter.
+		/// </summary>
+		public bool IsNormalMethodParameter {
+			get { return methodSigIndex >= 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's the hidden 'this' parameter
+		/// </summary>
+		public bool IsHiddenThisParameter {
+			get { return methodSigIndex == HIDDEN_THIS_METHOD_SIG_INDEX; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it's the method return type parameter
+		/// </summary>
+		public bool IsReturnTypeParameter {
+			get { return methodSigIndex == RETURN_TYPE_METHOD_SIG_INDEX; }
 		}
 
 		/// <summary>
