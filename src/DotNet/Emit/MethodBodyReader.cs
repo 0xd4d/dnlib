@@ -206,16 +206,16 @@ namespace dot10.DotNet.Emit {
 			reader.Position--;
 			int num = (int)((reader.ReadUInt32() >> 8) / 24);
 			for (int i = 0; i < num; i++) {
-				var eh = new ExceptionHandler((ExceptionClause)reader.ReadUInt32());
+				var eh = new ExceptionHandler((ExceptionHandlerType)reader.ReadUInt32());
 				uint offs = reader.ReadUInt32();
 				eh.TryStart = GetInstruction(offs);
 				eh.TryEnd = GetInstruction(offs + reader.ReadUInt32());
 				offs = reader.ReadUInt32();
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + reader.ReadUInt32());
-				if (eh.HandlerType == ExceptionClause.Catch)
+				if (eh.HandlerType == ExceptionHandlerType.Catch)
 					eh.CatchType = module.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
-				else if (eh.HandlerType == ExceptionClause.Filter)
+				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					eh.FilterStart = GetInstruction(reader.ReadUInt32());
 				else
 					reader.ReadUInt32();
@@ -227,16 +227,16 @@ namespace dot10.DotNet.Emit {
 			int num = reader.ReadByte() / 12;
 			reader.Position += 2;
 			for (int i = 0; i < num; i++) {
-				var eh = new ExceptionHandler((ExceptionClause)reader.ReadUInt16());
+				var eh = new ExceptionHandler((ExceptionHandlerType)reader.ReadUInt16());
 				uint offs = reader.ReadUInt16();
 				eh.TryStart = GetInstruction(offs);
 				eh.TryEnd = GetInstruction(offs + reader.ReadByte());
 				offs = reader.ReadUInt16();
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + reader.ReadByte());
-				if (eh.HandlerType == ExceptionClause.Catch)
+				if (eh.HandlerType == ExceptionHandlerType.Catch)
 					eh.CatchType = module.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
-				else if (eh.HandlerType == ExceptionClause.Filter)
+				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					eh.FilterStart = GetInstruction(reader.ReadUInt32());
 				else
 					reader.ReadUInt32();

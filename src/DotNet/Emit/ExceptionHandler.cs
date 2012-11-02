@@ -32,14 +32,14 @@
 		public Instruction HandlerEnd;
 
 		/// <summary>
-		/// The catch type if <see cref="HandlerType"/> is <see cref="ExceptionClause.Catch"/>
+		/// The catch type if <see cref="HandlerType"/> is <see cref="ExceptionHandlerType.Catch"/>
 		/// </summary>
 		public ITypeDefOrRef CatchType;
 
 		/// <summary>
 		/// Type of exception handler clause
 		/// </summary>
-		public ExceptionClause HandlerType;
+		public ExceptionHandlerType HandlerType;
 
 		/// <summary>
 		/// Default constructor
@@ -51,7 +51,7 @@
 		/// Constructor
 		/// </summary>
 		/// <param name="handlerType">Exception clause type</param>
-		public ExceptionHandler(ExceptionClause handlerType) {
+		public ExceptionHandler(ExceptionHandlerType handlerType) {
 			this.HandlerType = handlerType;
 		}
 	}

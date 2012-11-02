@@ -214,9 +214,9 @@ namespace dot10.DotNet.Writer {
 				writer.Write(offs1);
 				writer.Write(offs2 - offs1);
 
-				if (eh.HandlerType == ExceptionClause.Catch)
+				if (eh.HandlerType == ExceptionHandlerType.Catch)
 					writer.Write(helper.GetToken(eh.CatchType).Raw);
-				else if (eh.HandlerType == ExceptionClause.Filter)
+				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					writer.Write(GetOffset2(eh.FilterStart));
 				else
 					writer.Write(0);
@@ -252,9 +252,9 @@ namespace dot10.DotNet.Writer {
 				writer.Write((ushort)offs1);
 				writer.Write((byte)(offs2 - offs1));
 
-				if (eh.HandlerType == ExceptionClause.Catch)
+				if (eh.HandlerType == ExceptionHandlerType.Catch)
 					writer.Write(helper.GetToken(eh.CatchType).Raw);
-				else if (eh.HandlerType == ExceptionClause.Filter)
+				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					writer.Write(GetOffset2(eh.FilterStart));
 				else
 					writer.Write(0);

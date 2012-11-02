@@ -466,7 +466,7 @@ namespace dot10.DotNet.Emit {
 			if (handlerEnd <= handlerStart)
 				return false;
 
-			if (eh.HandlerType == ExceptionClause.Filter) {
+			if (eh.HandlerType == ExceptionHandlerType.Filter) {
 				if (eh.FilterStart == null)
 					return false;
 				if (eh.FilterStart.Offset >= handlerStart)

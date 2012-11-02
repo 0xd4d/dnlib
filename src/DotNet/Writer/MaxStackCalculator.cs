@@ -52,7 +52,7 @@ namespace dot10.DotNet.Writer {
 				if (eh.FilterStart != null)
 					stackHeights[eh.FilterStart] = 1;
 				if (eh.HandlerStart != null) {
-					bool pushed = eh.HandlerType == ExceptionClause.Catch || eh.HandlerType == ExceptionClause.Filter;
+					bool pushed = eh.HandlerType == ExceptionHandlerType.Catch || eh.HandlerType == ExceptionHandlerType.Filter;
 					stackHeights[eh.HandlerStart] = pushed ? 1 : 0;
 				}
 			}

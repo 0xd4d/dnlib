@@ -5,7 +5,7 @@ namespace dot10.DotNet.Emit {
 	/// Type of exception handler. See CorHdr.h/CorExceptionFlag
 	/// </summary>
 	[Flags]
-	public enum ExceptionClause {
+	public enum ExceptionHandlerType {
 		/// <summary/>
 		Catch		= 0x0000,
 		/// <summary/>
