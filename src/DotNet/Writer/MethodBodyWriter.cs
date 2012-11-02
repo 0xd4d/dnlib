@@ -131,8 +131,8 @@ namespace dot10.DotNet.Writer {
 		}
 
 		IList<TypeSig> GetLocals() {
-			var localsSig = new TypeSig[cilBody.LocalList.Length];
-			for (int i = 0; i < cilBody.LocalList.Length; i++)
+			var localsSig = new TypeSig[cilBody.LocalList.Count];
+			for (int i = 0; i < cilBody.LocalList.Count; i++)
 				localsSig[i] = cilBody.LocalList[i].Type;
 			return localsSig;
 		}

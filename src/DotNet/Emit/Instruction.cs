@@ -689,7 +689,7 @@ namespace dot10.DotNet.Emit {
 			case Code.Ldarg_S:
 				var parameter = Operand as Parameter;
 				if (parameter != null)
-					return parameter.Number;
+					return parameter.Index;
 				break;
 			}
 

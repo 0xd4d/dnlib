@@ -11,7 +11,7 @@
 		/// <summary>
 		/// Gets the 0-based position
 		/// </summary>
-		int Number { get; }
+		int Index { get; }
 
 		/// <summary>
 		/// Gets/sets the variable name

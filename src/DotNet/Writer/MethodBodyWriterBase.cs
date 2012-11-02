@@ -336,8 +336,8 @@ namespace dot10.DotNet.Writer {
 				Error("Operand is not a local/arg");
 				writer.Write((ushort)0);
 			}
-			else if (ushort.MinValue <= variable.Number && variable.Number <= ushort.MaxValue)
-				writer.Write((ushort)variable.Number);
+			else if (ushort.MinValue <= variable.Index && variable.Index <= ushort.MaxValue)
+				writer.Write((ushort)variable.Index);
 			else {
 				Error("Local/arg index doesn't fit in a UInt16");
 				writer.Write((ushort)0);
@@ -400,8 +400,8 @@ namespace dot10.DotNet.Writer {
 				Error("Operand is not a local/arg");
 				writer.Write((byte)0);
 			}
-			else if (byte.MinValue <= variable.Number && variable.Number <= byte.MaxValue)
-				writer.Write((byte)variable.Number);
+			else if (byte.MinValue <= variable.Index && variable.Index <= byte.MaxValue)
+				writer.Write((byte)variable.Index);
 			else {
 				Error("Local/arg index doesn't fit in a Byte");
 				writer.Write((byte)0);

@@ -5,14 +5,14 @@ namespace dot10.DotNet.Emit {
 	/// <summary>
 	/// Stores a collection of <see cref="Local"/>
 	/// </summary>
-	[DebuggerDisplay("Count = {Length}")]
+	[DebuggerDisplay("Count = {Count}")]
 	public sealed class LocalList : IListListener<Local>, IList<Local> {
 		LazyList<Local> locals;
 
 		/// <summary>
 		/// Gets the number of locals
 		/// </summary>
-		public int Length {
+		public int Count {
 			get { return locals.Count; }
 		}
 
@@ -65,19 +65,19 @@ namespace dot10.DotNet.Emit {
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnRemove(int index, Local value) {
-			value.Number = -1;
+			value.Index = -1;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnResize(int index) {
 			for (int i = index; i < locals.Count; i++)
-				locals[i].Number = i;
+				locals[i].Index = i;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnClear() {
 			foreach (var local in locals)
-				local.Number = -1;
+				local.Index = -1;
 		}
 
 		/// <inheritdoc/>
@@ -142,7 +142,7 @@ namespace dot10.DotNet.Emit {
 	/// </summary>
 	public sealed class Local : IVariable {
 		TypeSig typeSig;
-		int number;
+		int index;
 		string name;
 
 		/// <summary>
@@ -156,16 +156,9 @@ namespace dot10.DotNet.Emit {
 		/// <summary>
 		/// Local index
 		/// </summary>
-		public int Number {
-			get { return number; }
-			internal set { number = value; }
-		}
-
-		/// <summary>
-		/// Local index. <see cref="Number"/>
-		/// </summary>
 		public int Index {
-			get { return Number; }
+			get { return index; }
+			internal set { index = value; }
 		}
 
 		/// <summary>
@@ -187,7 +180,7 @@ namespace dot10.DotNet.Emit {
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (string.IsNullOrEmpty(Name))
-				return string.Format("V_{0}", Number);
+				return string.Format("V_{0}", Index);
 			return Name;
 		}
 	}

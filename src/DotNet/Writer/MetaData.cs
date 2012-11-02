@@ -1039,7 +1039,7 @@ namespace dot10.DotNet.Writer {
 
 					var cilBody = method.CilBody;
 					if (cilBody != null) {
-						if (cilBody.Instructions.Count == 0 && cilBody.LocalList.Length == 0)
+						if (cilBody.Instructions.Count == 0 && cilBody.LocalList.Count == 0)
 							continue;
 						var writer = new MethodBodyWriter(this, cilBody);
 						writer.Write();

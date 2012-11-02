@@ -7,7 +7,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// A list of all method parameters
 	/// </summary>
-	[DebuggerDisplay("Count = {Length}")]
+	[DebuggerDisplay("Count = {Count}")]
 	public sealed class ParameterList : IList<Parameter> {
 		MethodDef method;
 		List<Parameter> parameters;
@@ -25,7 +25,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the number of parameters, including a possible hidden 'this' parameter
 		/// </summary>
-		public int Length {
+		public int Count {
 			get { return parameters.Count; }
 		}
 
@@ -222,15 +222,8 @@ namespace dot10.DotNet {
 		/// has index 0 and the remaining parameters in the method signature start from index 1.
 		/// The method return parameter has index <c>-1</c>.
 		/// </summary>
-		public int Number {
-			get { return paramIndex; }
-		}
-
-		/// <summary>
-		/// Gets the parameter index. <see cref="Number"/>
-		/// </summary>
 		public int Index {
-			get { return Number; }
+			get { return paramIndex; }
 		}
 
 		/// <summary>
@@ -313,7 +306,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (string.IsNullOrEmpty(Name))
-				return string.Format("A_{0}", Number);
+				return string.Format("A_{0}", Index);
 			return Name;
 		}
 	}
