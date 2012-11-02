@@ -1278,8 +1278,9 @@ namespace dot10.DotNet {
 		public IEnumerable<AssemblyRef> GetAssemblyRefs() {
 			for (uint rid = 1; ; rid++) {
 				var asmRef = ResolveAssemblyRef(rid);
-				if (asmRef != null)
-					yield return asmRef;
+				if (asmRef == null)
+					break;
+				yield return asmRef;
 			}
 		}
 
@@ -1289,8 +1290,9 @@ namespace dot10.DotNet {
 		public IEnumerable<ModuleRef> GetModuleRefs() {
 			for (uint rid = 1; ; rid++) {
 				var modRef = ResolveModuleRef(rid);
-				if (modRef != null)
-					yield return modRef;
+				if (modRef == null)
+					break;
+				yield return modRef;
 			}
 		}
 	}
