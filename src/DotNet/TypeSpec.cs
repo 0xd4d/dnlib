@@ -53,7 +53,20 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public string Name {
+		UTF8String IMemberRef.Name {
+			get {
+				var mr = ScopeType;
+				return mr == null ? null : mr.Name;
+			}
+			set {
+				var mr = ScopeType;
+				if (mr != null)
+					mr.Name = value;
+			}
+		}
+
+		/// <inheritdoc/>
+		public string TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}
 

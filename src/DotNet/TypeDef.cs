@@ -67,7 +67,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		string IType.Name {
+		string IType.TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}
 
@@ -269,7 +269,7 @@ namespace dot10.DotNet {
 					return false;
 				if (baseType.Namespace != "System")
 					return false;
-				if (baseType.Name != "ValueType" && baseType.Name != "Enum")
+				if (baseType.TypeName != "ValueType" && baseType.TypeName != "Enum")
 					return false;
 				return baseType.DefinitionAssembly.IsCorLib();
 			}
@@ -285,7 +285,7 @@ namespace dot10.DotNet {
 					return false;
 				if (baseType.Namespace != "System")
 					return false;
-				if (baseType.Name != "Enum")
+				if (baseType.TypeName != "Enum")
 					return false;
 				return baseType.DefinitionAssembly.IsCorLib();
 			}

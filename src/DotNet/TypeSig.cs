@@ -78,7 +78,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public string Name {
+		public string TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}
 

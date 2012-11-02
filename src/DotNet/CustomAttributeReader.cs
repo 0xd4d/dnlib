@@ -335,15 +335,15 @@ namespace dot10.DotNet {
 			case (SerializationType)ElementType.Class:
 				var tdr = argType as TypeDefOrRefSig;
 				if (tdr != null && tdr.DefinitionAssembly.IsCorLib() && tdr.Namespace == "System") {
-					if (tdr.Name == "Type") {
+					if (tdr.TypeName == "Type") {
 						result = ReadValue(SerializationType.Type, tdr, out realArgType);
 						break;
 					}
-					if (tdr.Name == "String") {
+					if (tdr.TypeName == "String") {
 						result = ReadValue(SerializationType.String, tdr, out realArgType);
 						break;
 					}
-					if (tdr.Name == "Object") {
+					if (tdr.TypeName == "Object") {
 						result = ReadValue(SerializationType.TaggedObject, tdr, out realArgType);
 						break;
 					}

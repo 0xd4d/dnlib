@@ -202,6 +202,16 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
+	/// Implemented by types, fields, methods, properties, events
+	/// </summary>
+	public interface IMemberRef {
+		/// <summary>
+		/// Gets/sets the name
+		/// </summary>
+		UTF8String Name { get; set; }
+	}
+
+	/// <summary>
 	/// Implemented by types and methods
 	/// </summary>
 	public interface IGenericParameterProvider : ICodedToken {
@@ -224,16 +234,11 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
 	/// </summary>
-	public interface IField : ICodedToken, IFullName {
+	public interface IField : ICodedToken, IFullName, IMemberRef {
 		/// <summary>
 		/// Gets/sets the field signature
 		/// </summary>
 		FieldSig FieldSig { get; set; }
-
-		/// <summary>
-		/// Gets/sets the field name
-		/// </summary>
-		UTF8String Name { get; set; }
 
 		/// <summary>
 		/// Gets the declaring type
@@ -244,16 +249,11 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)
 	/// </summary>
-	public interface IMethod : ICodedToken, ITokenOperand, IFullName, IGenericParameterProvider {
+	public interface IMethod : ICodedToken, ITokenOperand, IFullName, IGenericParameterProvider, IMemberRef {
 		/// <summary>
 		/// Method signature
 		/// </summary>
 		MethodSig MethodSig { get; set; }
-
-		/// <summary>
-		/// Gets/sets the method name
-		/// </summary>
-		UTF8String Name { get; set; }
 
 		/// <summary>
 		/// Gets the declaring type
@@ -276,7 +276,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// TypeDefOrRef coded token interface
 	/// </summary>
-	public interface ITypeDefOrRef : ICodedToken, IHasCustomAttribute, IMemberRefParent, IType, ITokenOperand {
+	public interface ITypeDefOrRef : ICodedToken, IHasCustomAttribute, IMemberRefParent, IType, ITokenOperand, IMemberRef {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>

@@ -43,7 +43,7 @@ namespace dot10.DotNet {
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
 		/// <inheritdoc/>
-		public string Name {
+		string IType.TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}
 

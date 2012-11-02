@@ -6,7 +6,7 @@
 		/// <summary>
 		/// Returns the name of this type
 		/// </summary>
-		string Name { get; }
+		string TypeName { get; }
 
 		/// <summary>
 		/// Returns the reflection name of this type

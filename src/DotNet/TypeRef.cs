@@ -63,7 +63,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		string IType.Name {
+		string IType.TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}
 

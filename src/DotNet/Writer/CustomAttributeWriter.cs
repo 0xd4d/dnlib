@@ -702,7 +702,7 @@ namespace dot10.DotNet.Writer {
 				return false;
 			if (tdr is TypeSpec)
 				return false;
-			return tdr.Name == name && tdr.Namespace == "System";
+			return tdr.TypeName == name && tdr.Namespace == "System";
 		}
 
 		static MethodSig GetMethodSig(ICustomAttributeType ctor) {
