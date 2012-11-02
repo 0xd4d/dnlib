@@ -3,7 +3,15 @@ using System.Text;
 using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Emit {
-	static class InstructionPrinter {
+	/// <summary>
+	/// Converts instructions to strings
+	/// </summary>
+	public static class InstructionPrinter {
+		/// <summary>
+		/// Converts an instruction to a string
+		/// </summary>
+		/// <param name="instr">The instruction</param>
+		/// <returns>The result</returns>
 		public static string ToString(Instruction instr) {
 			if (instr == null)
 				return string.Empty;
@@ -12,11 +20,43 @@ namespace dot10.DotNet.Emit {
 
 			sb.Append(string.Format("IL_{0:X4}: ", instr.Offset));
 			sb.Append(instr.OpCode.Name);
+			AddOperandString(sb, instr, " ");
 
+			return sb.ToString();
+		}
+
+		/// <summary>
+		/// Gets the instruction's operand as a string
+		/// </summary>
+		/// <param name="instr">The instruction</param>
+		/// <returns>The operand as a string</returns>
+		public static string GetOperandString(Instruction instr) {
+			var sb = new StringBuilder();
+			AddOperandString(sb, instr, string.Empty);
+			return sb.ToString();
+		}
+
+		/// <summary>
+		/// Add an instruction's operand to <paramref name="sb"/>
+		/// </summary>
+		/// <param name="sb">Place result here</param>
+		/// <param name="instr">The instruction</param>
+		public static void AddOperandString(StringBuilder sb, Instruction instr) {
+			AddOperandString(sb, instr, string.Empty);
+		}
+
+		/// <summary>
+		/// Add an instruction's operand to <paramref name="sb"/>
+		/// </summary>
+		/// <param name="sb">Place result here</param>
+		/// <param name="instr">The instruction</param>
+		/// <param name="extra">A string that will be added before the operand, if there's
+		/// an operand.</param>
+		public static void AddOperandString(StringBuilder sb, Instruction instr, string extra) {
 			switch (instr.OpCode.OperandType) {
 			case OperandType.InlineBrTarget:
 			case OperandType.ShortInlineBrTarget:
-				sb.Append(' ');
+				sb.Append(extra);
 				AddInstructionTarget(sb, instr.Operand as Instruction);
 				break;
 
@@ -24,7 +64,7 @@ namespace dot10.DotNet.Emit {
 			case OperandType.InlineMethod:
 			case OperandType.InlineTok:
 			case OperandType.InlineType:
-				sb.Append(' ');
+				sb.Append(extra);
 				if (instr.Operand is IFullName)
 					sb.Append((instr.Operand as IFullName).FullName);
 				else if (instr.Operand != null)
@@ -42,12 +82,12 @@ namespace dot10.DotNet.Emit {
 				break;
 
 			case OperandType.InlineSig:
-				sb.Append(' ');
+				sb.Append(extra);
 				sb.Append(FullNameCreator.MethodFullName(null, (UTF8String)null, instr.Operand as MethodSig));
 				break;
 
 			case OperandType.InlineString:
-				sb.Append(' ');
+				sb.Append(extra);
 				EscapeString(sb, instr.Operand as string, true);
 				break;
 
@@ -68,7 +108,7 @@ namespace dot10.DotNet.Emit {
 
 			case OperandType.InlineVar:
 			case OperandType.ShortInlineVar:
-				sb.Append(' ');
+				sb.Append(extra);
 				if (instr.Operand == null)
 					sb.Append("null");
 				else
@@ -80,8 +120,6 @@ namespace dot10.DotNet.Emit {
 			default:
 				break;
 			}
-
-			return sb.ToString();
 		}
 
 		static void AddInstructionTarget(StringBuilder sb, Instruction targetInstr) {
