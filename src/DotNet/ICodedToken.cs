@@ -135,7 +135,7 @@ namespace dot10.DotNet {
 		/// <see cref="GenericInstSig"/></returns>
 		public static GenericInstSig ToGenericInstSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
-			return ts == null ? null : ts.TypeSig as GenericInstSig;
+			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as GenericInstSig;
 		}
 	}
 
