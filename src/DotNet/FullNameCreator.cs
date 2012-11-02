@@ -1622,7 +1622,7 @@ namespace dot10.DotNet {
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
 			case ElementType.Module:
-				result = GetDefinitionAssembly(((NonLeafSig)typeSig).Next);
+				result = GetDefinitionAssembly(typeSig.Next);
 				break;
 
 			case ElementType.GenericInst:
@@ -1694,7 +1694,7 @@ namespace dot10.DotNet {
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
 			case ElementType.Module:
-				result = GetScopeType(((NonLeafSig)typeSig).Next);
+				result = GetScopeType(typeSig.Next);
 				break;
 
 			case ElementType.GenericInst:
@@ -1766,7 +1766,7 @@ namespace dot10.DotNet {
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
 			case ElementType.Module:
-				result = GetScope(((NonLeafSig)typeSig).Next);
+				result = GetScope(typeSig.Next);
 				break;
 
 			case ElementType.GenericInst:
@@ -1838,7 +1838,7 @@ namespace dot10.DotNet {
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
 			case ElementType.Module:
-				result = GetOwnerModule(((NonLeafSig)typeSig).Next);
+				result = GetOwnerModule(typeSig.Next);
 				break;
 
 			case ElementType.GenericInst:
