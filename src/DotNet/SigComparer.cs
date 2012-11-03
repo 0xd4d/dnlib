@@ -167,7 +167,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Compares methods
 	/// </summary>
-	public sealed class MethodEqualityComparer : IEqualityComparer<IMethod>, IEqualityComparer<MethodDef>, IEqualityComparer<MemberRef>, IEqualityComparer<MethodSpec> {
+	public sealed class MethodEqualityComparer : IEqualityComparer<IMethod>, IEqualityComparer<IMethodDefOrRef>, IEqualityComparer<MethodDef>, IEqualityComparer<MemberRef>, IEqualityComparer<MethodSpec> {
 		readonly SigComparerOptions options;
 
 		/// <summary>
@@ -205,6 +205,16 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public int GetHashCode(IMethod obj) {
+			return new SigComparer { Options = options }.GetHashCode(obj);
+		}
+
+		/// <inheritdoc/>
+		public bool Equals(IMethodDefOrRef x, IMethodDefOrRef y) {
+			return new SigComparer { Options = options }.Equals(x, y);
+		}
+
+		/// <inheritdoc/>
+		public int GetHashCode(IMethodDefOrRef obj) {
 			return new SigComparer { Options = options }.GetHashCode(obj);
 		}
 
