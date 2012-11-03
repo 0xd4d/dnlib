@@ -315,7 +315,7 @@ namespace dot10.DotNet {
 				if (!reader.ReadCompressedUInt32(out rank))
 					break;
 				if (rank == 0) {
-					result = new ArraySig(nextType, rank, new List<uint>(), new List<int>());
+					result = new ArraySig(nextType, rank);
 					break;
 				}
 				if (!reader.ReadCompressedUInt32(out num))

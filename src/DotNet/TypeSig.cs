@@ -844,6 +844,31 @@ namespace dot10.DotNet {
 		/// <param name="rank">Array rank</param>
 		/// <param name="sizes">Sizes list. <c>This instance will be the owner of this list.</c></param>
 		/// <param name="lowerBounds">Lower bounds list. <c>This instance will be the owner of this list.</c></param>
+		public ArraySig(TypeSig arrayType, uint rank, IEnumerable<uint> sizes, IEnumerable<int> lowerBounds)
+			: base(arrayType) {
+			this.rank = rank;
+			this.sizes = new List<uint>(sizes);
+			this.lowerBounds = new List<int>(lowerBounds);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arrayType">Array type</param>
+		/// <param name="rank">Array rank</param>
+		/// <param name="sizes">Sizes list. <c>This instance will be the owner of this list.</c></param>
+		/// <param name="lowerBounds">Lower bounds list. <c>This instance will be the owner of this list.</c></param>
+		public ArraySig(TypeSig arrayType, int rank, IEnumerable<uint> sizes, IEnumerable<int> lowerBounds)
+			: this(arrayType, (uint)rank, sizes, lowerBounds) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="arrayType">Array type</param>
+		/// <param name="rank">Array rank</param>
+		/// <param name="sizes">Sizes list. <c>This instance will be the owner of this list.</c></param>
+		/// <param name="lowerBounds">Lower bounds list. <c>This instance will be the owner of this list.</c></param>
 		internal ArraySig(TypeSig arrayType, uint rank, IList<uint> sizes, IList<int> lowerBounds)
 			: base(arrayType) {
 			this.rank = rank;
