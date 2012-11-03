@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace dot10.IO {
 	/// <summary>
@@ -229,6 +230,68 @@ namespace dot10.IO {
 
 			val = 0;
 			return false;
+		}
+
+		/// <summary>
+		/// Reads a 7-bit encoded integer
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>The decoded integer</returns>
+		public static uint Read7BitEncodedUInt32(this IBinaryReader reader) {
+			uint val = 0;
+			int bits = 0;
+			for (int i = 0; i < 5; i++) {
+				byte b = reader.ReadByte();
+				val |= (uint)(b & 0x7F) << bits;
+				if ((b & 0x80) == 0)
+					return val;
+				bits += 7;
+			}
+			throw new IOException("Invalid encoded int32");
+		}
+
+		/// <summary>
+		/// Reads a 7-bit encoded integer
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>The decoded integer</returns>
+		public static int Read7BitEncodedInt32(this IBinaryReader reader) {
+			return (int)reader.Read7BitEncodedUInt32();
+		}
+
+		/// <summary>
+		/// Reads a UTF-8 string
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>The string</returns>
+		public static string ReadString(this IBinaryReader reader) {
+			return reader.ReadString(Encoding.UTF8);
+		}
+
+		/// <summary>
+		/// Reads a string
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="encoding">Encoding</param>
+		/// <returns>The string</returns>
+		public static string ReadString(this IBinaryReader reader, Encoding encoding) {
+			int len = reader.Read7BitEncodedInt32();
+			return encoding.GetString(reader.ReadBytes(len));
+		}
+
+		/// <summary>
+		/// Reads a decimal
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>The decimal</returns>
+		public static decimal ReadDecimal(this IBinaryReader reader) {
+			var bits = new int[4] {
+				reader.ReadInt32(),	// lo
+				reader.ReadInt32(),	// mid
+				reader.ReadInt32(),	// hi
+				reader.ReadInt32(),	// flags
+			};
+			return new decimal(bits);
 		}
 	}
 }
