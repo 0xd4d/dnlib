@@ -8,7 +8,7 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the GenericParam table
 	/// </summary>
 	[DebuggerDisplay("{Name.String}")]
-	public abstract class GenericParam : IHasCustomAttribute, IListListener<GenericParamConstraint> {
+	public abstract class GenericParam : IHasCustomAttribute, IMemberRef, IListListener<GenericParamConstraint> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -80,6 +80,11 @@ namespace dot10.DotNet {
 		/// Gets all custom attributes
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
+
+		/// <inheritdoc/>
+		public string FullName {
+			get { return UTF8String.ToSystemStringOrEmpty(Name); }
+		}
 
 		/// <summary>
 		/// Gets/sets variance (non, contra, co)
