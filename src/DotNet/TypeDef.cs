@@ -292,6 +292,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if this is a nested type (it has a declaring type)
+		/// </summary>
+		public bool IsNested {
+			get { return DeclaringType != null; }
+		}
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
