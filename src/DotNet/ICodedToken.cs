@@ -204,7 +204,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by types, fields, methods, properties, events
 	/// </summary>
-	public interface IMemberRef {
+	public interface IMemberRef : IFullName {
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
