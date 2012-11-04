@@ -112,6 +112,8 @@
     <Compile Include="DotNet\Writer\GuidHeap.cs" />
     <Compile Include="DotNet\Writer\HeapBase.cs" />
     <Compile Include="DotNet\Writer\IHeap.cs" />
+    <Compile Include="DotNet\Writer\IMetaDataListener.cs" />
+    <Compile Include="DotNet\Writer\IModuleWriterListener.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
     <Compile Include="DotNet\Writer\MetaDataHeader.cs" />

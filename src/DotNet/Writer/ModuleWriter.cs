@@ -12,6 +12,15 @@ namespace dot10.DotNet.Writer {
 		MetaDataOptions metaDataOptions;
 		Cor20HeaderOptions cor20HeaderOptions;
 		PEHeadersOptions peHeadersOptions;
+		IModuleWriterListener listener;
+
+		/// <summary>
+		/// Gets/sets the listener
+		/// </summary>
+		public IModuleWriterListener Listener {
+			get { return listener; }
+			set { listener = value; }
+		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MetaData"/> options. This is never <c>null</c>.
@@ -90,27 +99,37 @@ namespace dot10.DotNet.Writer {
 		/// Initialize some fields from a module
 		/// </summary>
 		/// <param name="module">The module</param>
-		public ModuleWriterOptions(ModuleDef module) {
-			ShareMethodBodies = true;
-			ModuleKind = module.Kind;
-			PEHeadersOptions.Machine = module.Machine;
+		public ModuleWriterOptions(ModuleDef module)
+			: this(module, null) {
+		}
+
+		/// <summary>
+		/// Initialize some fields from a module
+		/// </summary>
+		/// <param name="module">The module</param>
+		/// <param name="listener">Module writer listener</param>
+		public ModuleWriterOptions(ModuleDef module, IModuleWriterListener listener) {
+			this.listener = listener;
+			this.ShareMethodBodies = true;
+			this.ModuleKind = module.Kind;
+			this.PEHeadersOptions.Machine = module.Machine;
 			if (module.Kind == ModuleKind.Windows)
-				PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
+				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
 			else
-				PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
-			Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
-			MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
+				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
+			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
+			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
 
 			var modDefMD = module as ModuleDefMD;
 			if (modDefMD != null)
-				AddCheckSum = modDefMD.MetaData.PEImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
+				this.AddCheckSum = modDefMD.MetaData.PEImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
 		}
 	}
 
 	/// <summary>
 	/// Writes a .NET PE file
 	/// </summary>
-	public sealed class ModuleWriter {
+	public sealed class ModuleWriter : IMetaDataListener {
 		const uint DEFAULT_IAT_ALIGNMENT = 4;
 		const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
 		const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
@@ -126,6 +145,8 @@ namespace dot10.DotNet.Writer {
 
 		readonly ModuleDef module;
 		ModuleWriterOptions options;
+		Stream destStream;
+		IModuleWriterListener listener;
 
 		List<PESection> sections;
 		PESection textSection;
@@ -147,11 +168,144 @@ namespace dot10.DotNet.Writer {
 		RelocDirectory relocDirectory;
 
 		/// <summary>
-		/// Gets/sets the writer options
+		/// Gets the module
+		/// </summary>
+		public ModuleDef Module {
+			get { return module; }
+		}
+
+		/// <summary>
+		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
 		public ModuleWriterOptions Options {
 			get { return options ?? (options = new ModuleWriterOptions(module)); }
 			set { options = value; }
+		}
+
+		/// <summary>
+		/// Gets the destination stream
+		/// </summary>
+		public Stream DestinationStream {
+			get { return destStream; }
+		}
+
+		/// <summary>
+		/// Gets all <see cref="PESection"/>s
+		/// </summary>
+		public List<PESection> Sections {
+			get { return sections; }
+		}
+
+		/// <summary>
+		/// Gets the <c>.text</c> section
+		/// </summary>
+		public PESection TextSection {
+			get { return textSection; }
+		}
+
+		/// <summary>
+		/// Gets the <c>.rsrc</c> section or <c>null</c> if there's none
+		/// </summary>
+		public PESection RsrcSection {
+			get { return rsrcSection; }
+		}
+
+		/// <summary>
+		/// Gets the <c>.reloc</c> section or <c>null</c> if there's none
+		/// </summary>
+		public PESection RelocSection {
+			get { return relocSection; }
+		}
+
+		/// <summary>
+		/// Gets the PE headers
+		/// </summary>
+		public PEHeaders PEHeaders {
+			get { return peHeaders; }
+		}
+
+		/// <summary>
+		/// Gets the IAT or <c>null</c> if there's none
+		/// </summary>
+		public ImportAddressTable ImportAddressTable {
+			get { return importAddressTable; }
+		}
+
+		/// <summary>
+		/// Gets the .NET header
+		/// </summary>
+		public ImageCor20Header ImageCor20Header {
+			get { return imageCor20Header; }
+		}
+
+		/// <summary>
+		/// Gets the strong name signature or <c>null</c> if there's none
+		/// </summary>
+		public StrongNameSignature StrongNameSignature {
+			get { return strongNameSignature; }
+		}
+
+		/// <summary>
+		/// Gets the constants
+		/// </summary>
+		public UniqueChunkList<ByteArrayChunk> Constants {
+			get { return constants; }
+		}
+
+		/// <summary>
+		/// Gets the method bodies
+		/// </summary>
+		public MethodBodyChunks MethodBodies {
+			get { return methodBodies; }
+		}
+
+		/// <summary>
+		/// Gets the .NET resources
+		/// </summary>
+		public NetResources NetResources {
+			get { return netResources; }
+		}
+
+		/// <summary>
+		/// Gets the .NET metadata
+		/// </summary>
+		public MetaData MetaData {
+			get { return metaData; }
+		}
+
+		/// <summary>
+		/// Gets the debug directory
+		/// </summary>
+		public DebugDirectory DebugDirectory {
+			get { return debugDirectory; }
+		}
+
+		/// <summary>
+		/// Gets the import directory or <c>null</c> if there's none
+		/// </summary>
+		public ImportDirectory ImportDirectory {
+			get { return importDirectory; }
+		}
+
+		/// <summary>
+		/// Gets the startup stub or <c>null</c> if there's none
+		/// </summary>
+		public StartupStub StartupStub {
+			get { return startupStub; }
+		}
+
+		/// <summary>
+		/// Gets the Win32 resources or <c>null</c> if there's none
+		/// </summary>
+		public Win32Resources Win32Resources {
+			get { return win32Resources; }
+		}
+
+		/// <summary>
+		/// Gets the reloc directory or <c>null</c> if there's none
+		/// </summary>
+		public RelocDirectory RelocDirectory {
+			get { return relocDirectory; }
 		}
 
 		/// <summary>
@@ -204,13 +358,30 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		public void Write(Stream dest) {
+			listener = Options.Listener ?? DummyModuleWriterListener.Instance;
+			destStream = dest;
+
+			listener.OnWriterEvent(this, ModuleWriterEvent.Begin);
 			Initialize();
 
 			metaData.CreateTables();
-			WriteFile(dest);
+
+			WriteFile();
+			listener.OnWriterEvent(this, ModuleWriterEvent.End);
 		}
 
 		void Initialize() {
+			CreateSections();
+			listener.OnWriterEvent(this, ModuleWriterEvent.PESectionsCreated);
+
+			CreateChunks();
+			listener.OnWriterEvent(this, ModuleWriterEvent.ChunksCreated);
+
+			AddChunksToSections();
+			listener.OnWriterEvent(this, ModuleWriterEvent.ChunksAddedToSections);
+		}
+
+		void CreateSections() {
 			bool hasWin32Resources = false;	//TODO:
 
 			sections = new List<PESection>();
@@ -219,8 +390,6 @@ namespace dot10.DotNet.Writer {
 				sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));
 			if (!Options.Is64Bit)
 				sections.Add(relocSection = new PESection(".reloc", 0x42000040));
-			CreateChunks();
-			AddChunksToSections();
 		}
 
 		void CreateChunks() {
@@ -243,6 +412,7 @@ namespace dot10.DotNet.Writer {
 			methodBodies = new MethodBodyChunks(Options.ShareMethodBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, Options.MetaDataOptions);
+			metaData.Listener = this;
 			debugDirectory = new DebugDirectory();
 			if (hasWin32Resources)
 				win32Resources = new Win32Resources();
@@ -262,19 +432,36 @@ namespace dot10.DotNet.Writer {
 			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			textSection.Add(importDirectory, DEFAULT_IMPORTDIRECTORY_ALIGNMENT);
 			textSection.Add(startupStub, DEFAULT_STARTUPSTUB_ALIGNMENT);
-			if (win32Resources != null)
-				rsrcSection.Add(win32Resources, DEFAULT_RESOURCE_ALIGNMENT);
-			if (relocSection != null)
-				relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
+			rsrcSection.Add(win32Resources, DEFAULT_RESOURCE_ALIGNMENT);
+			relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}
 
-		void WriteFile(Stream dest) {
+		void WriteFile() {
 			var chunks = new List<IChunk>();
 			chunks.Add(peHeaders);
 			foreach (var section in sections)
 				chunks.Add(section);
 
-			var writer = new BinaryWriter(dest);
+			listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
+			CalculateRvasAndFileOffsets(chunks);
+			listener.OnWriterEvent(this, ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
+
+			InitializeChunkProperties();
+
+			listener.OnWriterEvent(this, ModuleWriterEvent.BeginWriteChunks);
+			var writer = new BinaryWriter(destStream);
+			WriteChunks(writer, chunks);
+			listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
+
+			//TODO: Strong name sign the assembly
+
+			listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
+			if (Options.AddCheckSum)
+				peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);
+			listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePEChecksum);
+		}
+
+		void CalculateRvasAndFileOffsets(List<IChunk> chunks) {
 			peHeaders.PESections = sections;
 			FileOffset offset = 0;
 			RVA rva = 0;
@@ -286,7 +473,9 @@ namespace dot10.DotNet.Writer {
 				offset = offset.AlignUp(peHeaders.FileAlignment);
 				rva = rva.AlignUp(peHeaders.SectionAlignment);
 			}
+		}
 
+		void InitializeChunkProperties() {
 			Options.Cor20HeaderOptions.EntryPoint = GetEntryPoint();
 
 			if (importAddressTable != null) {
@@ -305,8 +494,10 @@ namespace dot10.DotNet.Writer {
 			imageCor20Header.MetaData = metaData;
 			imageCor20Header.NetResources = netResources;
 			imageCor20Header.StrongNameSignature = strongNameSignature;
+		}
 
-			offset = 0;
+		void WriteChunks(BinaryWriter writer, List<IChunk> chunks) {
+			FileOffset offset = 0;
 			foreach (var chunk in chunks) {
 				chunk.VerifyWriteTo(writer);
 				offset += chunk.GetLength();
@@ -314,10 +505,6 @@ namespace dot10.DotNet.Writer {
 				writer.WriteZeros((int)(newOffset - offset));
 				offset = newOffset;
 			}
-
-			//TODO: Strong name sign the assembly
-			if (Options.AddCheckSum)
-				peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);
 		}
 
 		uint GetEntryPoint() {
@@ -334,6 +521,54 @@ namespace dot10.DotNet.Writer {
 				return nativeEntryPoint;
 
 			return 0;
+		}
+
+		/// <inheritdoc/>
+		void IMetaDataListener.OnMetaDataEvent(MetaData metaData, MetaDataEvent evt) {
+			switch (evt) {
+			case MetaDataEvent.BeginCreateTables:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginCreateTables);
+				break;
+
+			case MetaDataEvent.MemberDefRidsAllocated:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefRidsAllocated);
+				break;
+
+			case MetaDataEvent.MemberDefsInitialized:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefsInitialized);
+				break;
+
+			case MetaDataEvent.MostTablesSorted:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDMostTablesSorted);
+				break;
+
+			case MetaDataEvent.MemberDefCustomAttributesWritten:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefCustomAttributesWritten);
+				break;
+
+			case MetaDataEvent.BeginWriteMethodBodies:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginWriteMethodBodies);
+				break;
+
+			case MetaDataEvent.EndWriteMethodBodies:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDEndWriteMethodBodies);
+				break;
+
+			case MetaDataEvent.ResourcesAdded:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDResourcesAdded);
+				break;
+
+			case MetaDataEvent.OnAllTablesSorted:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDOnAllTablesSorted);
+				break;
+
+			case MetaDataEvent.EndCreateTables:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDEndCreateTables);
+				break;
+
+			default:
+				break;
+			}
 		}
 	}
 }

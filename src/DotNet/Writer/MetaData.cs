@@ -128,6 +128,7 @@ namespace dot10.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 		MetaDataOptions options;
+		IMetaDataListener listener;
 		internal ModuleDef module;
 		internal UniqueChunkList<ByteArrayChunk> constants;
 		internal MethodBodyChunks methodBodies;
@@ -165,6 +166,14 @@ namespace dot10.DotNet.Writer {
 		internal Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
 		internal Dictionary<EmbeddedResource, ByteArrayChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, ByteArrayChunk>();
 		Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
+
+		/// <summary>
+		/// Gets/sets the listener
+		/// </summary>
+		public IMetaDataListener Listener {
+			get { return listener ?? (listener = DummyMetaDataListener.Instance); }
+			set { listener = value; }
+		}
 
 		internal sealed class SortedRows<T, TRow> where T : class where TRow : class {
 			public List<Info> infos = new List<Info>();
@@ -720,6 +729,8 @@ namespace dot10.DotNet.Writer {
 			if (module.Types.Count == 0 || module.Types[0] == null)
 				throw new ModuleWriterException("Missing <Module> type");
 
+			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginCreateTables);
+
 			var moduleDefMD = module as ModuleDefMD;
 			if (moduleDefMD != null) {
 				if (PreserveStringsOffsets)
@@ -762,19 +773,35 @@ namespace dot10.DotNet.Writer {
 			allTypeDefs = new List<TypeDef>(GetAllTypeDefs());
 			AllocateTypeDefRids();
 			AllocateMemberDefRids();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefRidsAllocated);
+
 			AddModule(module);
 			InitializeTypeDefsAndMemberDefs();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefsInitialized);
+
 			//TODO: Add ExportedTypes
 			InitializeEntryPoint();
 			if (module.Assembly != null)
 				AddAssembly(module.Assembly);
 			SortTables();
 			InitializeGenericParamConstraintTable();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.MostTablesSorted);
+
 			WriteTypeDefAndMemberDefCustomAttributes();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefCustomAttributesWritten);
+
+			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginWriteMethodBodies);
 			WriteMethodBodies();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.EndWriteMethodBodies);
+
 			AddResources(module.Resources);
+			Listener.OnMetaDataEvent(this, MetaDataEvent.ResourcesAdded);
+
 			InitializeCustomAttributeTable();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.OnAllTablesSorted);
+
 			EverythingInitialized();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.EndCreateTables);
 		}
 
 		/// <summary>
