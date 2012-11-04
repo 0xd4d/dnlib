@@ -174,6 +174,17 @@
 			return new PublicKeyToken(data);
 		}
 
+		/// <summary>
+		/// Gets the raw public key / public key token byte array
+		/// </summary>
+		/// <param name="pkb">The instance or <c>null</c></param>
+		/// <returns>Raw public key / public key token data or <c>null</c></returns>
+		public static byte[] GetRawData(PublicKeyBase pkb) {
+			if (pkb == null)
+				return null;
+			return pkb.Data;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (IsNullOrEmpty)

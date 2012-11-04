@@ -1418,7 +1418,7 @@ namespace dot10.DotNet.Writer {
 							(ushort)version.Build,
 							(ushort)version.Revision,
 							(uint)asmRef.Flags,
-							blobHeap.Add(GetPublicKeyOrTokenData(asmRef.PublicKeyOrToken)),
+							blobHeap.Add(PublicKeyBase.GetRawData(asmRef.PublicKeyOrToken)),
 							stringsHeap.Add(asmRef.Name),
 							stringsHeap.Add(asmRef.Locale),
 							blobHeap.Add(asmRef.HashValue));
@@ -1448,7 +1448,7 @@ namespace dot10.DotNet.Writer {
 							(ushort)version.Build,
 							(ushort)version.Revision,
 							(uint)asm.Flags,
-							blobHeap.Add(GetPublicKeyOrTokenData(asm.PublicKeyOrToken)),
+							blobHeap.Add(PublicKeyBase.GetRawData(asm.PublicKeyOrToken)),
 							stringsHeap.Add(asm.Name),
 							stringsHeap.Add(asm.Locale));
 			rid = tablesHeap.AssemblyTable.Add(row);
@@ -1456,12 +1456,6 @@ namespace dot10.DotNet.Writer {
 			AddDeclSecurities(new MDToken(Table.Assembly, rid), asm.DeclSecurities);
 			AddCustomAttributes(Table.Assembly, rid, asm);
 			return rid;
-		}
-
-		static byte[] GetPublicKeyOrTokenData(PublicKeyBase pkb) {
-			if (pkb == null)
-				return null;
-			return pkb.Data;
 		}
 
 		/// <summary>
