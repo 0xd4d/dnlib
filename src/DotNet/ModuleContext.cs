@@ -33,7 +33,7 @@
 		/// </summary>
 		/// <param name="assemblyResolver">Assembly resolver or <c>null</c></param>
 		public ModuleContext(IAssemblyResolver assemblyResolver)
-			: this(assemblyResolver, null) {
+			: this(assemblyResolver, new Resolver(assemblyResolver)) {
 		}
 
 		/// <summary>
