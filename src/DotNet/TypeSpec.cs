@@ -66,6 +66,14 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public bool IsValueType {
+			get {
+				var sig = TypeSig;
+				return sig != null && sig.IsValueType;
+			}
+		}
+
+		/// <inheritdoc/>
 		public string TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}

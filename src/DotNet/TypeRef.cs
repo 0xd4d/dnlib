@@ -144,6 +144,14 @@ namespace dot10.DotNet {
 			get { return DeclaringType != null; }
 		}
 
+		/// <inheritdoc/>
+		public bool IsValueType {
+			get {
+				var td = Resolve();
+				return td != null && td.IsValueType;
+			}
+		}
+
 		/// <summary>
 		/// Gets the declaring type, if any
 		/// </summary>

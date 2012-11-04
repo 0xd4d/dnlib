@@ -78,6 +78,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public bool IsValueType {
+			get {
+				return this.RemovePinnedAndModifiers() is ValueTypeSig;
+			}
+		}
+
+		/// <inheritdoc/>
 		public string TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}

@@ -337,12 +337,7 @@ namespace dot10.DotNet {
 		}
 
 		internal bool IsValueType(TypeRef typeRef) {
-			if (typeRef == null)
-				return false;
-			var td = typeRef.Resolve();
-			if (td == null)
-				return false;	// Assume it's a reference type
-			return td.IsValueType;
+			return typeRef != null && typeRef.IsValueType;
 		}
 
 		internal static void Verify(bool b, string msg) {

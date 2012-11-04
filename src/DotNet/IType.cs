@@ -4,6 +4,11 @@
 	/// </summary>
 	public interface IType : IFullName, ICodedToken, IGenericParameterProvider {
 		/// <summary>
+		/// <c>true</c> if it's a value type
+		/// </summary>
+		bool IsValueType { get; }
+
+		/// <summary>
 		/// Returns the name of this type
 		/// </summary>
 		string TypeName { get; }

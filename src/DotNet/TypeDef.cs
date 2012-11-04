@@ -259,9 +259,7 @@ namespace dot10.DotNet {
 			get { return NestedTypes.Count > 0; }
 		}
 
-		/// <summary>
-		/// <c>true</c> if it's a value type
-		/// </summary>
+		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
 				var baseType = BaseType;
