@@ -137,6 +137,45 @@ namespace dot10.IO {
 		}
 
 		/// <summary>
+		/// Reads a UTF-8 <see cref="string"/> from the current position and increments
+		/// <see cref="IBinaryReader.Position"/> by the length of the string.
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>The string</returns>
+		public static string ReadString(this IBinaryReader reader) {
+			return reader.ReadString(Encoding.UTF8);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="string"/> from the current position and increments
+		/// <see cref="IBinaryReader.Position"/> by the length of the string.
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="encoding">Encoding</param>
+		/// <returns>The string</returns>
+		public static string ReadString(this IBinaryReader reader, Encoding encoding) {
+			int len = reader.Read7BitEncodedInt32();
+			return encoding.GetString(reader.ReadBytes(len));
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Decimal"/> from the current position and increments
+		/// <see cref="IBinaryReader.Position"/> by 16
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>The decmial</returns>
+		/// <exception cref="IOException">An I/O error occurs</exception>
+		public static decimal ReadDecimal(this IBinaryReader reader) {
+			var bits = new int[4] {
+				reader.ReadInt32(),	// lo
+				reader.ReadInt32(),	// mid
+				reader.ReadInt32(),	// hi
+				reader.ReadInt32(),	// flags
+			};
+			return new decimal(bits);
+		}
+
+		/// <summary>
 		/// Reads a compressed <see cref="uint"/> from the current position in <paramref name="reader"/>
 		/// </summary>
 		/// <remarks>Max value it can return is <c>0x1FFFFFFF</c></remarks>
@@ -257,41 +296,6 @@ namespace dot10.IO {
 		/// <returns>The decoded integer</returns>
 		public static int Read7BitEncodedInt32(this IBinaryReader reader) {
 			return (int)reader.Read7BitEncodedUInt32();
-		}
-
-		/// <summary>
-		/// Reads a UTF-8 string
-		/// </summary>
-		/// <param name="reader">this</param>
-		/// <returns>The string</returns>
-		public static string ReadString(this IBinaryReader reader) {
-			return reader.ReadString(Encoding.UTF8);
-		}
-
-		/// <summary>
-		/// Reads a string
-		/// </summary>
-		/// <param name="reader">this</param>
-		/// <param name="encoding">Encoding</param>
-		/// <returns>The string</returns>
-		public static string ReadString(this IBinaryReader reader, Encoding encoding) {
-			int len = reader.Read7BitEncodedInt32();
-			return encoding.GetString(reader.ReadBytes(len));
-		}
-
-		/// <summary>
-		/// Reads a decimal
-		/// </summary>
-		/// <param name="reader">this</param>
-		/// <returns>The decimal</returns>
-		public static decimal ReadDecimal(this IBinaryReader reader) {
-			var bits = new int[4] {
-				reader.ReadInt32(),	// lo
-				reader.ReadInt32(),	// mid
-				reader.ReadInt32(),	// hi
-				reader.ReadInt32(),	// flags
-			};
-			return new decimal(bits);
 		}
 	}
 }
