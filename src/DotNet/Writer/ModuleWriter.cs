@@ -432,8 +432,10 @@ namespace dot10.DotNet.Writer {
 			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			textSection.Add(importDirectory, DEFAULT_IMPORTDIRECTORY_ALIGNMENT);
 			textSection.Add(startupStub, DEFAULT_STARTUPSTUB_ALIGNMENT);
-			rsrcSection.Add(win32Resources, DEFAULT_RESOURCE_ALIGNMENT);
-			relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
+			if (rsrcSection != null)
+				rsrcSection.Add(win32Resources, DEFAULT_RESOURCE_ALIGNMENT);
+			if (relocSection != null)
+				relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}
 
 		void WriteFile() {
