@@ -12,6 +12,7 @@ namespace dot10.DotNet {
 		MethodDef method;
 		List<Parameter> parameters;
 		Parameter hiddenThisParameter;
+		ParamDef hiddenThisParamDef;
 		Parameter returnParameter;
 		int methodSigIndexBase;
 
@@ -126,12 +127,12 @@ namespace dot10.DotNet {
 
 		internal ParamDef FindParamDef(Parameter param) {
 			int seq;
-			if (param.MethodSigIndex == Parameter.RETURN_TYPE_METHOD_SIG_INDEX)
+			if (param.IsReturnTypeParameter)
 				seq = 0;
-			else if (param.MethodSigIndex >= 0)
+			else if (param.IsNormalMethodParameter)
 				seq = param.MethodSigIndex + 1;
 			else
-				return null;
+				return hiddenThisParamDef;
 
 			foreach (var paramDef in method.ParamList) {
 				if (paramDef != null && paramDef.Sequence == seq)
@@ -146,6 +147,29 @@ namespace dot10.DotNet {
 				method.MethodSig.RetType = param.Type;
 			else if (index >= 0)
 				method.MethodSig.Params[index] = param.Type;
+		}
+
+		internal void CreateParamDef(Parameter param) {
+			var paramDef = FindParamDef(param);
+			if (paramDef != null)
+				return;
+			if (param.IsHiddenThisParameter) {
+				hiddenThisParamDef = UpdateRowId(new ParamDefUser(UTF8String.Empty, ushort.MaxValue, 0));
+				return;
+			}
+			int seq = param.IsReturnTypeParameter ? 0 : param.MethodSigIndex + 1;
+			paramDef = UpdateRowId(new ParamDefUser(UTF8String.Empty, (ushort)seq, 0));
+			method.ParamList.Add(paramDef);
+		}
+
+		ParamDef UpdateRowId(ParamDef pd) {
+			var dt = method.DeclaringType;
+			if (dt == null)
+				return pd;
+			var ownerModule = dt.OwnerModule;
+			if (ownerModule == null)
+				return pd;
+			return ownerModule.UpdateRowId(pd);
 		}
 
 		/// <inheritdoc/>
@@ -282,13 +306,20 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if it has a <see cref="dot10.DotNet.ParamDef"/>
+		/// </summary>
+		public bool HasParamDef {
+			get { return ParamDef != null; }
+		}
+
+		/// <summary>
 		/// Gets the name from <see cref="ParamDef"/>. If <see cref="ParamDef"/> is <c>null</c>,
 		/// an empty string is returned.
 		/// </summary>
 		public string Name {
 			get {
 				var paramDef = ParamDef;
-				return paramDef == null || UTF8String.IsNullOrEmpty(paramDef.Name) ? string.Empty : paramDef.Name.String;
+				return paramDef == null ? string.Empty : UTF8String.ToSystemStringOrEmpty(paramDef.Name);
 			}
 			set {
 				var paramDef = ParamDef;
@@ -301,6 +332,13 @@ namespace dot10.DotNet {
 			this.parameterList = parameterList;
 			this.paramIndex = paramIndex;
 			this.methodSigIndex = methodSigIndex;
+		}
+
+		/// <summary>
+		/// Creates a <see cref="dot10.DotNet.ParamDef"/> if it doesn't already exist
+		/// </summary>
+		public void CreateParamDef() {
+			parameterList.CreateParamDef(this);
 		}
 
 		/// <inheritdoc/>
