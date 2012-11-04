@@ -726,10 +726,10 @@ namespace dot10.DotNet.Writer {
 		/// Creates the .NET metadata tables
 		/// </summary>
 		public void CreateTables() {
+			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginCreateTables);
+
 			if (module.Types.Count == 0 || module.Types[0] == null)
 				throw new ModuleWriterException("Missing <Module> type");
-
-			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginCreateTables);
 
 			var moduleDefMD = module as ModuleDefMD;
 			if (moduleDefMD != null) {
@@ -759,7 +759,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Updates the <c>FieldRVA</c> rows
 		/// </summary>
-		void UpdateFieldRVAs() {
+		void UpdateFieldRvas() {
 			foreach (var kv in fieldToInitialValue) {
 				var field = kv.Key;
 				var iv = kv.Value;
@@ -783,6 +783,7 @@ namespace dot10.DotNet.Writer {
 			InitializeEntryPoint();
 			if (module.Assembly != null)
 				AddAssembly(module.Assembly);
+
 			SortTables();
 			InitializeGenericParamConstraintTable();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.MostTablesSorted);
@@ -2193,7 +2194,7 @@ namespace dot10.DotNet.Writer {
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			UpdateMethodRvas();
-			UpdateFieldRVAs();
+			UpdateFieldRvas();
 			var rva2 = rva;
 			metaDataHeader.VerifyWriteTo(writer);
 			rva2 += metaDataHeader.GetLength();
