@@ -39,6 +39,7 @@ namespace dot10.DotNet.Writer {
 	public sealed class MethodBodyWriter : MethodBodyWriterBase {
 		ITokenCreator helper;
 		CilBody cilBody;
+		bool keepMaxStack;
 		uint codeSize;
 		uint maxStack;
 		byte[] code;
@@ -67,9 +68,21 @@ namespace dot10.DotNet.Writer {
 		/// <param name="helper">Helps this instance</param>
 		/// <param name="cilBody">The CIL method body</param>
 		public MethodBodyWriter(ITokenCreator helper, CilBody cilBody)
+			: this(helper, cilBody, false) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="helper">Helps this instance</param>
+		/// <param name="cilBody">The CIL method body</param>
+		/// <param name="keepMaxStack">Keep the original max stack value that has been initialized
+		/// in <paramref name="cilBody"/></param>
+		public MethodBodyWriter(ITokenCreator helper, CilBody cilBody, bool keepMaxStack)
 			: base(cilBody.Instructions, cilBody.ExceptionHandlers) {
 			this.helper = helper;
 			this.cilBody = cilBody;
+			this.keepMaxStack = keepMaxStack;
 		}
 
 		/// <summary>
@@ -77,7 +90,7 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		public void Write() {
 			codeSize = InitializeInstructionOffsets();
-			maxStack = GetMaxStack();
+			maxStack = keepMaxStack ? cilBody.MaxStack : GetMaxStack();
 			if (NeedFatHeader())
 				WriteFatHeader();
 			else

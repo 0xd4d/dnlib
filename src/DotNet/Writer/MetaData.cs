@@ -48,6 +48,12 @@ namespace dot10.DotNet.Writer {
 		PreserveExtraSignatureData = 0x10,
 
 		/// <summary>
+		/// The original method body's max stack field should be used and a new one should not
+		/// be calculated.
+		/// </summary>
+		KeepOldMaxStack = 0x20,
+
+		/// <summary>
 		/// Preserves as much as possible
 		/// </summary>
 		PreserveAll = PreserveTokens | PreserveStringsOffsets | PreserveUSOffsets |
@@ -327,6 +333,19 @@ namespace dot10.DotNet.Writer {
 					options.Flags |= MetaDataFlags.PreserveBlobOffsets;
 				else
 					options.Flags &= ~MetaDataFlags.PreserveBlobOffsets;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaDataFlags.KeepOldMaxStack"/> bit
+		/// </summary>
+		public bool KeepOldMaxStack {
+			get { return (options.Flags & MetaDataFlags.KeepOldMaxStack) != 0; }
+			set {
+				if (value)
+					options.Flags |= MetaDataFlags.KeepOldMaxStack;
+				else
+					options.Flags &= ~MetaDataFlags.KeepOldMaxStack;
 			}
 		}
 
@@ -1057,6 +1076,7 @@ namespace dot10.DotNet.Writer {
 		/// Writes all method bodies
 		/// </summary>
 		void WriteMethodBodies() {
+			bool keepMaxStack = KeepOldMaxStack;
 			foreach (var type in allTypeDefs) {
 				if (type == null)
 					continue;
@@ -1069,7 +1089,7 @@ namespace dot10.DotNet.Writer {
 					if (cilBody != null) {
 						if (cilBody.Instructions.Count == 0 && cilBody.LocalList.Count == 0)
 							continue;
-						var writer = new MethodBodyWriter(this, cilBody);
+						var writer = new MethodBodyWriter(this, cilBody, keepMaxStack);
 						writer.Write();
 						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections));
 						methodToBody[method] = mb;
