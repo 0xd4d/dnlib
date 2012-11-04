@@ -193,9 +193,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Called by <see cref="DeclaringType"/>
+		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
+		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
+		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		protected abstract TypeDef DeclaringType2 { get; set; }
+		public abstract TypeDef DeclaringType2 { get; set; }
 
 		/// <summary>
 		/// Gets all the nested types
@@ -1039,12 +1041,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Field is already owned by another type. Set DeclaringType to null first.");
-			value.DeclaringType = this;
+			value.DeclaringType2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<FieldDef>.OnRemove(int index, FieldDef value) {
-			value.DeclaringType = null;
+			value.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1054,7 +1056,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<FieldDef>.OnClear() {
 			foreach (var field in Fields)
-				field.DeclaringType = null;
+				field.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1068,12 +1070,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Method is already owned by another type. Set DeclaringType to null first.");
-			value.DeclaringType = this;
+			value.DeclaringType2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnRemove(int index, MethodDef value) {
-			value.DeclaringType = null;
+			value.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1083,7 +1085,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnClear() {
 			foreach (var method in Methods)
-				method.DeclaringType = null;
+				method.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1130,12 +1132,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Event is already owned by another type. Set DeclaringType to null first.");
-			value.DeclaringType = this;
+			value.DeclaringType2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<EventDef>.OnRemove(int index, EventDef value) {
-			value.DeclaringType = null;
+			value.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1144,8 +1146,8 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<EventDef>.OnClear() {
-			foreach (var method in Methods)
-				method.DeclaringType = null;
+			foreach (var @event in Events)
+				@event.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1159,12 +1161,12 @@ namespace dot10.DotNet {
 			}
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Property is already owned by another type. Set DeclaringType to null first.");
-			value.DeclaringType = this;
+			value.DeclaringType2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<PropertyDef>.OnRemove(int index, PropertyDef value) {
-			value.DeclaringType = null;
+			value.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1173,8 +1175,8 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<PropertyDef>.OnClear() {
-			foreach (var method in Methods)
-				method.DeclaringType = null;
+			foreach (var prop in Properties)
+				prop.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -1339,7 +1341,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeDef DeclaringType2 {
+		public override TypeDef DeclaringType2 {
 			get { return declaringType; }
 			set { declaringType = value; }
 		}
@@ -1564,7 +1566,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeDef DeclaringType2 {
+		public override TypeDef DeclaringType2 {
 			get { return declaringType.Value; }
 			set { declaringType.Value = value; }
 		}

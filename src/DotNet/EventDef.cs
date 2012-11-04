@@ -88,9 +88,11 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Called by <see cref="DeclaringType"/>
+		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
+		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
+		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		protected internal abstract TypeDef DeclaringType2 { get; set; }
+		public abstract TypeDef DeclaringType2 { get; set; }
 
 		/// <summary>
 		/// Gets the full name of the event
@@ -195,7 +197,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected internal override TypeDef DeclaringType2 {
+		public override TypeDef DeclaringType2 {
 			get { return declaringType; }
 			set { declaringType = value; }
 		}
@@ -335,7 +337,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected internal override TypeDef DeclaringType2 {
+		public override TypeDef DeclaringType2 {
 			get { return declaringType.Value; }
 			set { declaringType.Value = value; }
 		}
