@@ -338,8 +338,16 @@ namespace dot10.DotNet {
 
 		static bool GetClassSize(TypeSig ts, out uint size) {
 			size = 0;
+			ts = ts.RemovePinnedAndModifiers();
 			if (ts == null)
 				return false;
+
+			int size2 = ts.ElementType.GetPrimitiveSize();
+			if (size2 >= 0) {
+				size = (uint)size2;
+				return true;
+			}
+
 			var tdrs = ts as TypeDefOrRefSig;
 			if (tdrs == null)
 				return false;
