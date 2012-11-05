@@ -1531,7 +1531,7 @@ namespace dot10.DotNet {
 			get {
 				if (genericParams == null) {
 					var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, rid);
-					genericParams = new LazyList<GenericParam>((int)list.Length, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
+					genericParams = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
 				}
 				return genericParams;
 			}

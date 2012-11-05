@@ -303,7 +303,7 @@ namespace dot10.DotNet {
 			get {
 				if (genericParamConstraints == null) {
 					var list = readerModule.MetaData.GetGenericParamConstraintRidList(rid);
-					genericParamConstraints = new LazyList<GenericParamConstraint>((int)list.Length, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index]));
+					genericParamConstraints = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index]));
 				}
 				return genericParamConstraints;
 			}
