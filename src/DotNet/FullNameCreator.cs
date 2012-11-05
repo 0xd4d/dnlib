@@ -1709,6 +1709,9 @@ namespace dot10.DotNet {
 
 			case ElementType.Var:
 			case ElementType.MVar:
+				result = new TypeSpecUser(typeSig);
+				break;
+
 			case ElementType.FnPtr:
 			case ElementType.Sentinel:
 			case ElementType.End:
