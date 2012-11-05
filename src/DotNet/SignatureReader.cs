@@ -23,6 +23,8 @@ namespace dot10.DotNet {
 		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
 				using (var reader = new SignatureReader(readerModule, sig)) {
+					if (reader.reader.Length == 0)
+						return null;
 					var csig = reader.ReadSig();
 					if (csig != null)
 						csig.ExtraData = reader.GetExtraData();
