@@ -402,6 +402,7 @@ namespace dot10.DotNet.Writer {
 			}
 
 			if (!paramDefInfos.WasSorted()) {
+				// NOTE: peverify does not support the ParamPtr table. It's a bug.
 				for (int i = 0; i < paramDefInfos.Count; i++) {
 					var info = paramDefInfos.GetSorted(i);
 					if ((uint)i + 1 != tablesHeap.ParamPtrTable.Add(new RawParamPtrRow(info.Rid)))
