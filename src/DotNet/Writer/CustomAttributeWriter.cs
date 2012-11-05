@@ -60,7 +60,7 @@ namespace dot10.DotNet.Writer {
 			// Check whether it's raw first. If it is, we don't care whether the ctor is
 			// invalid. Just use the raw data.
 			if (ca.IsRawBlob) {
-				if (ca.Arguments.Count > 0 || ca.NamedArguments.Count > 0)
+				if ((ca.Arguments != null && ca.Arguments.Count > 0) || (ca.NamedArguments != null && ca.NamedArguments.Count > 0))
 					helper.Error("Raw custom attribute contains arguments and/or named arguments");
 				writer.Write(ca.RawData);
 				return;
