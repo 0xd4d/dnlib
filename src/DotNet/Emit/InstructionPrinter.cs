@@ -68,7 +68,7 @@ namespace dot10.DotNet.Emit {
 				if (instr.Operand is IFullName)
 					sb.Append((instr.Operand as IFullName).FullName);
 				else if (instr.Operand != null)
-					sb.Append("<<<UNKNOWN>>>");
+					sb.Append(instr.Operand.ToString());
 				else
 					sb.Append("null");
 				break;
