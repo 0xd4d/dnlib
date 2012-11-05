@@ -117,7 +117,7 @@ namespace dot10.DotNet.Writer {
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
 			else
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
-			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
+			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags & ~ComImageFlags.StrongNameSigned;
 			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
 
 			var modDefMD = module as ModuleDefMD;
