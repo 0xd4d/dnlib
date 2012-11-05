@@ -817,6 +817,7 @@ namespace dot10.DotNet.Writer {
 			AddResources(module.Resources);
 			Listener.OnMetaDataEvent(this, MetaDataEvent.ResourcesAdded);
 
+			BeforeSortingCustomAttributes();
 			InitializeCustomAttributeTable();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.OnAllTablesSorted);
 
@@ -2149,6 +2150,13 @@ namespace dot10.DotNet.Writer {
 		/// <param name="ms">Method spec</param>
 		/// <returns>Its new rid</returns>
 		protected abstract uint AddMethodSpec(MethodSpec ms);
+
+		/// <summary>
+		/// Called before sorting the <c>CustomAttribute</c> table. This is the last time anything
+		/// can be inserted into this table.
+		/// </summary>
+		protected virtual void BeforeSortingCustomAttributes() {
+		}
 
 		/// <summary>
 		/// Called after everything has been initialized. The sub class can initialize more

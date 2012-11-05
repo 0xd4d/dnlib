@@ -813,7 +813,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override void EverythingInitialized() {
+		protected override void BeforeSortingCustomAttributes() {
 			InitializeUninitializedTableRows();
 		}
 	}
