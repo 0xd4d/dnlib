@@ -109,7 +109,7 @@ namespace dot10.DotNet.MD {
 				throw new BadImageFormatException(string.Format("Unknown MetaData header version: {0}.{1}", majorVersion, minorVersion));
 			this.reserved1 = reader.ReadUInt32();
 			this.stringLength = reader.ReadUInt32();
-			this.versionString = ReadString(reader, stringLength, verify);
+			this.versionString = ReadString(reader, stringLength);
 			this.offset2ndPart = (uint)(reader.Position - startOffset);
 			this.flags = (StorageFlags)reader.ReadByte();
 			if (verify && this.flags != 0)
@@ -122,7 +122,7 @@ namespace dot10.DotNet.MD {
 			SetEndoffset(reader);
 		}
 
-		static string ReadString(IImageStream reader, uint maxLength, bool verify) {
+		static string ReadString(IImageStream reader, uint maxLength) {
 			long endPos = reader.Position + maxLength;
 			if (endPos < reader.Position || endPos > reader.Length)
 				throw new BadImageFormatException("Invalid MD version string");
@@ -134,8 +134,6 @@ namespace dot10.DotNet.MD {
 					break;
 				utf8Bytes[i] = b;
 			}
-			if (verify && i == maxLength)
-				throw new BadImageFormatException("Invalid MD version string");
 			reader.Position = endPos;
 			return Encoding.UTF8.GetString(utf8Bytes, 0, (int)i);
 		}
