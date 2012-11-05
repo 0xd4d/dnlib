@@ -458,7 +458,7 @@ namespace dot10.DotNet.Writer {
 					methodDefInfos.SetCollectionPosition(method, pos++);
 
 					int pos2 = 0;
-					foreach (var param in method.ParamList) {
+					foreach (var param in Sort(method.ParamList)) {
 						if (param == null)
 							continue;
 						paramDefInfos.SetCollectionPosition(param, pos2++);

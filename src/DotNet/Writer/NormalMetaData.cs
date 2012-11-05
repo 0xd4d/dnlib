@@ -78,7 +78,7 @@ namespace dot10.DotNet.Writer {
 					if (rid != tablesHeap.MethodTable.Create(row))
 						throw new ModuleWriterException("Invalid method rid");
 					methodDefInfos.Add(method, rid);
-					foreach (var pd in method.ParamList) {
+					foreach (var pd in Sort(method.ParamList)) {
 						if (pd == null)
 							continue;
 						uint pdRid = paramListRid++;

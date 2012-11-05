@@ -2226,5 +2226,22 @@ namespace dot10.DotNet.Writer {
 				rva2 += heap.GetLength();
 			}
 		}
+
+		/// <summary>
+		/// Sorts the <see cref="ParamDef"/>s
+		/// </summary>
+		/// <param name="pds">All <see cref="ParamDef"/>s</param>
+		/// <returns>A sorted <see cref="ParamDef"/> list</returns>
+		protected static List<ParamDef> Sort(IEnumerable<ParamDef> pds) {
+			var sorted = new List<ParamDef>(pds);
+			sorted.Sort((a, b) => {
+				if (a == null)
+					return -1;
+				if (b == null)
+					return 1;
+				return a.Sequence.CompareTo(b.Sequence);
+			});
+			return sorted;
+		}
 	}
 }
