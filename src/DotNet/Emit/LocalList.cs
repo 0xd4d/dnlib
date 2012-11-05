@@ -60,7 +60,11 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<Local>.OnAdd(int index, Local value, bool isLazyAdd) {
+		void IListListener<Local>.OnLazyAdd(int index, ref Local value) {
+		}
+
+		/// <inheritdoc/>
+		void IListListener<Local>.OnAdd(int index, Local value) {
 		}
 
 		/// <inheritdoc/>

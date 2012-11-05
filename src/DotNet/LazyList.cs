@@ -10,12 +10,19 @@ namespace dot10.DotNet {
 	/// <typeparam name="TListValue">List value</typeparam>
 	interface IListListener<TListValue> {
 		/// <summary>
+		/// Called before a new value is lazily added to the list.
+		/// </summary>
+		/// <param name="index">Index where the value will be added</param>
+		/// <param name="value">Value that will be added to the list. It can be modified by
+		/// the callee.</param>
+		void OnLazyAdd(int index, ref TListValue value);
+
+		/// <summary>
 		/// Called before a new value is added to the list.
 		/// </summary>
 		/// <param name="index">Index where the value will be added</param>
 		/// <param name="value">Value that will be added to the list</param>
-		/// <param name="isLazyAdd"><c>true</c> if it was lazily added to the list.</param>
-		void OnAdd(int index, TListValue value, bool isLazyAdd);
+		void OnAdd(int index, TListValue value);
 
 		/// <summary>
 		/// Called before a value is removed from the list. If all elements are removed,
@@ -175,7 +182,7 @@ namespace dot10.DotNet {
 			set {
 				if (listener != null) {
 					listener.OnRemove(index, list[index].GetValue(index));
-					listener.OnAdd(index, value, false);
+					listener.OnAdd(index, value);
 				}
 				list[index].SetValue(index, value);
 				id++;
@@ -231,7 +238,7 @@ namespace dot10.DotNet {
 		TValue ReadOriginalValue(int index, uint origIndex) {
 			var newValue = readOriginalValue(context, origIndex);
 			if (listener != null)
-				listener.OnAdd(index, newValue, true);
+				listener.OnLazyAdd(index, ref newValue);
 			return newValue;
 		}
 
@@ -247,7 +254,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public void Insert(int index, TValue item) {
 			if (listener != null)
-				listener.OnAdd(index, item, false);
+				listener.OnAdd(index, item);
 			list.Insert(index, new Element(item));
 			if (listener != null)
 				listener.OnResize(index);
@@ -268,7 +275,7 @@ namespace dot10.DotNet {
 		public void Add(TValue item) {
 			int index = list.Count;
 			if (listener != null)
-				listener.OnAdd(index, item, false);
+				listener.OnAdd(index, item);
 			list.Add(new Element(item));
 			if (listener != null)
 				listener.OnResize(index);

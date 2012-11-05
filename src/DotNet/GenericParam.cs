@@ -103,14 +103,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<GenericParamConstraint>.OnAdd(int index, GenericParamConstraint value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref GenericParamConstraint value) {
 #if DEBUG
-				if (value.Owner != this)
-					throw new InvalidOperationException("Added generic param constraint's Owner != this");
+			if (value.Owner != this)
+				throw new InvalidOperationException("Added generic param constraint's Owner != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParamConstraint>.OnAdd(int index, GenericParamConstraint value) {
 			if (value.Owner != null)
 				throw new InvalidOperationException("Generic param constraint is already owned by another generic param. Set Owner to null first.");
 			value.Owner = this;
@@ -356,6 +357,15 @@ namespace dot10.DotNet {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadGenericParamRow(rid);
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref GenericParamConstraint value) {
+			if (value.Owner != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadGenericParamConstraint(value.Rid);
+				value.Owner = this;
+			}
 		}
 	}
 }

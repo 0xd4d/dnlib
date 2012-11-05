@@ -1031,14 +1031,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<FieldDef>.OnAdd(int index, FieldDef value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref FieldDef value) {
 #if DEBUG
-				if (value.DeclaringType != this)
-					throw new InvalidOperationException("Added field's DeclaringType != this");
+			if (value.DeclaringType != this)
+				throw new InvalidOperationException("Added field's DeclaringType != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<FieldDef>.OnAdd(int index, FieldDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Field is already owned by another type. Set DeclaringType to null first.");
 			value.DeclaringType2 = this;
@@ -1060,14 +1061,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<MethodDef>.OnAdd(int index, MethodDef value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref MethodDef value) {
 #if DEBUG
-				if (value.DeclaringType != this)
-					throw new InvalidOperationException("Added method's DeclaringType != this");
+			if (value.DeclaringType != this)
+				throw new InvalidOperationException("Added method's DeclaringType != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<MethodDef>.OnAdd(int index, MethodDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Method is already owned by another type. Set DeclaringType to null first.");
 			value.DeclaringType2 = this;
@@ -1089,16 +1091,17 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<TypeDef>.OnAdd(int index, TypeDef value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		void IListListener<TypeDef>.OnLazyAdd(int index, ref TypeDef value) {
 #if DEBUG
-				if (value.OwnerModule2 != null)
-					throw new InvalidOperationException("Added nested type's OwnerModule != null");
-				if (value.DeclaringType != this)
-					throw new InvalidOperationException("Added nested type's DeclaringType != this");
+			if (value.OwnerModule2 != null)
+				throw new InvalidOperationException("Added nested type's OwnerModule != null");
+			if (value.DeclaringType != this)
+				throw new InvalidOperationException("Added nested type's DeclaringType != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<TypeDef>.OnAdd(int index, TypeDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Nested type is already owned by another type. Set DeclaringType to null first.");
 			if (value.OwnerModule != null)
@@ -1122,14 +1125,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<EventDef>.OnAdd(int index, EventDef value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref EventDef value) {
 #if DEBUG
-				if (value.DeclaringType != this)
-					throw new InvalidOperationException("Added method's DeclaringType != this");
+			if (value.DeclaringType != this)
+				throw new InvalidOperationException("Added event's DeclaringType != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<EventDef>.OnAdd(int index, EventDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Event is already owned by another type. Set DeclaringType to null first.");
 			value.DeclaringType2 = this;
@@ -1151,14 +1155,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<PropertyDef>.OnAdd(int index, PropertyDef value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref PropertyDef value) {
 #if DEBUG
-				if (value.DeclaringType != this)
-					throw new InvalidOperationException("Added method's DeclaringType != this");
+			if (value.DeclaringType != this)
+				throw new InvalidOperationException("Added property's DeclaringType != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<PropertyDef>.OnAdd(int index, PropertyDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Property is already owned by another type. Set DeclaringType to null first.");
 			value.DeclaringType2 = this;
@@ -1180,14 +1185,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<GenericParam>.OnAdd(int index, GenericParam value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref GenericParam value) {
 #if DEBUG
-				if (value.Owner != this)
-					throw new InvalidOperationException("Added generic param's Owner != this");
+			if (value.Owner != this)
+				throw new InvalidOperationException("Added generic param's Owner != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnAdd(int index, GenericParam value) {
 			if (value.Owner != null)
 				throw new InvalidOperationException("Generic param is already owned by another type/method. Set Owner to null first.");
 			value.Owner = this;
@@ -1868,6 +1874,51 @@ namespace dot10.DotNet {
 					// Ignore anything else
 					break;
 				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref FieldDef value) {
+			if (value.DeclaringType != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadField(value.Rid);
+				value.DeclaringType2 = this;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref MethodDef value) {
+			if (value.DeclaringType != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadMethod(value.Rid);
+				value.DeclaringType2 = this;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref EventDef value) {
+			if (value.DeclaringType != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadEvent(value.Rid);
+				value.DeclaringType2 = this;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref PropertyDef value) {
+			if (value.DeclaringType != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadProperty(value.Rid);
+				value.DeclaringType2 = this;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref GenericParam value) {
+			if (value.Owner != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadGenericParam(value.Rid);
+				value.Owner = this;
 			}
 		}
 	}

@@ -626,15 +626,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<TypeDef>.OnAdd(int index, TypeDef value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		void IListListener<TypeDef>.OnLazyAdd(int index, ref TypeDef value) {
 #if DEBUG
-				if (value.DeclaringType != null)
-					throw new InvalidOperationException("Added nested type's DeclaringType != null");
+			if (value.DeclaringType != null)
+				throw new InvalidOperationException("Added type's DeclaringType != null");
 #endif
-				value.OwnerModule2 = this;
-				return;
-			}
+			value.OwnerModule2 = this;
+		}
+
+		/// <inheritdoc/>
+		void IListListener<TypeDef>.OnAdd(int index, TypeDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Nested type is already owned by another type. Set DeclaringType to null first.");
 			if (value.OwnerModule != null)

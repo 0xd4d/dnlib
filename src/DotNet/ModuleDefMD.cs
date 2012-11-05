@@ -1295,5 +1295,68 @@ namespace dot10.DotNet {
 				yield return modRef;
 			}
 		}
+
+		/// <summary>
+		/// Reads a new <see cref="FieldDefMD"/> instance. This one is not cached.
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>A new <see cref="FieldDefMD"/> instance</returns>
+		internal FieldDefMD ReadField(uint rid) {
+			return new FieldDefMD(this, rid);
+		}
+
+		/// <summary>
+		/// Reads a new <see cref="MethodDefMD"/> instance. This one is not cached.
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>A new <see cref="MethodDefMD"/> instance</returns>
+		internal MethodDefMD ReadMethod(uint rid) {
+			return new MethodDefMD(this, rid);
+		}
+
+		/// <summary>
+		/// Reads a new <see cref="EventDefMD"/> instance. This one is not cached.
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>A new <see cref="EventDefMD"/> instance</returns>
+		internal EventDefMD ReadEvent(uint rid) {
+			return new EventDefMD(this, rid);
+		}
+
+		/// <summary>
+		/// Reads a new <see cref="PropertyDefMD"/> instance. This one is not cached.
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>A new <see cref="PropertyDefMD"/> instance</returns>
+		internal PropertyDefMD ReadProperty(uint rid) {
+			return new PropertyDefMD(this, rid);
+		}
+
+		/// <summary>
+		/// Reads a new <see cref="ParamDefMD"/> instance. This one is not cached.
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>A new <see cref="ParamDefMD"/> instance</returns>
+		internal ParamDefMD ReadParam(uint rid) {
+			return new ParamDefMD(this, rid);
+		}
+
+		/// <summary>
+		/// Reads a new <see cref="GenericParamMD"/> instance. This one is not cached.
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>A new <see cref="GenericParamMD"/> instance</returns>
+		internal GenericParamMD ReadGenericParam(uint rid) {
+			return new GenericParamMD(this, rid);
+		}
+
+		/// <summary>
+		/// Reads a new <see cref="GenericParamConstraintMD"/> instance. This one is not cached.
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>A new <see cref="GenericParamConstraintMD"/> instance</returns>
+		internal GenericParamConstraintMD ReadGenericParamConstraint(uint rid) {
+			return new GenericParamConstraintMD(this, rid);
+		}
 	}
 }

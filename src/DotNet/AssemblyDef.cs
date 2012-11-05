@@ -564,29 +564,36 @@ namespace dot10.DotNet {
 			ManifestModule.Write(dest, options);
 		}
 
-		void IListListener<ModuleDef>.OnAdd(int index, ModuleDef module, bool isLazyAdd) {
+		/// <inheritdoc/>
+		void IListListener<ModuleDef>.OnLazyAdd(int index, ref ModuleDef module) {
 			if (module == null)
 				return;
-			if (isLazyAdd) {
 #if DEBUG
-				if (module.Assembly == null)
-					throw new InvalidOperationException("Module.Assembly == null");
+			if (module.Assembly == null)
+				throw new InvalidOperationException("Module.Assembly == null");
 #endif
+		}
+
+		/// <inheritdoc/>
+		void IListListener<ModuleDef>.OnAdd(int index, ModuleDef module) {
+			if (module == null)
 				return;
-			}
 			if (module.Assembly != null)
 				throw new InvalidOperationException("Module already has an assembly. Remove it from that assembly before adding it to this assembly.");
 			module.Assembly = this;
 		}
 
+		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnRemove(int index, ModuleDef module) {
 			if (module != null)
 				module.Assembly = null;
 		}
 
+		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnResize(int index) {
 		}
 
+		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnClear() {
 			foreach (var module in Modules) {
 				if (module != null)

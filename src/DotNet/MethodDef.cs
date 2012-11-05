@@ -610,14 +610,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<GenericParam>.OnAdd(int index, GenericParam value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref GenericParam value) {
 #if DEBUG
-				if (value.Owner != this)
-					throw new InvalidOperationException("Added generic param's Owner != this");
+			if (value.Owner != this)
+				throw new InvalidOperationException("Added generic param's Owner != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<GenericParam>.OnAdd(int index, GenericParam value) {
 			if (value.Owner != null)
 				throw new InvalidOperationException("Generic param is already owned by another type/method. Set Owner to null first.");
 			value.Owner = this;
@@ -639,14 +640,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<ParamDef>.OnAdd(int index, ParamDef value, bool isLazyAdd) {
-			if (isLazyAdd) {
+		public virtual void OnLazyAdd(int index, ref ParamDef value) {
 #if DEBUG
-				if (value.DeclaringMethod != this)
-					throw new InvalidOperationException("Added param's DeclaringMethod != this");
+			if (value.DeclaringMethod != this)
+				throw new InvalidOperationException("Added param's DeclaringMethod != this");
 #endif
-				return;
-			}
+		}
+
+		/// <inheritdoc/>
+		void IListListener<ParamDef>.OnAdd(int index, ParamDef value) {
 			if (value.DeclaringMethod != null)
 				throw new InvalidOperationException("Param is already owned by another method. Set DeclaringMethod to null first.");
 			value.DeclaringMethod = this;
@@ -1076,6 +1078,24 @@ namespace dot10.DotNet {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadMethodRow(rid);
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref GenericParam value) {
+			if (value.Owner != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadGenericParam(value.Rid);
+				value.Owner = this;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override void OnLazyAdd(int index, ref ParamDef value) {
+			if (value.DeclaringMethod != this) {
+				// More than one owner... This module has invalid metadata.
+				value = readerModule.ReadParam(value.Rid);
+				value.DeclaringMethod = this;
+			}
 		}
 	}
 }
