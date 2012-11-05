@@ -955,4 +955,78 @@ namespace dot10.DotNet {
 			this.genericArgs = new List<TypeSig>(args);
 		}
 	}
+
+	public static partial class Extensions {
+		/// <summary>
+		/// Gets the field type
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>Field type or <c>null</c> if none</returns>
+		public static TypeSig GetFieldType(this FieldSig sig) {
+			return sig == null ? null : sig.Type;
+		}
+
+		/// <summary>
+		/// Gets the return type
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>Return type or <c>null</c> if none</returns>
+		public static TypeSig GetRetType(this MethodBaseSig sig) {
+			return sig == null ? null : sig.RetType;
+		}
+
+		/// <summary>
+		/// Gets the parameters
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>The parameters</returns>
+		public static IList<TypeSig> GetParams(this MethodBaseSig sig) {
+			return sig == null ? new List<TypeSig>() : sig.Params;
+		}
+
+		/// <summary>
+		/// Gets the parameter count
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>Parameter count</returns>
+		public static int GetParamCount(this MethodBaseSig sig) {
+			return sig == null ? 0 : sig.Params.Count;
+		}
+
+		/// <summary>
+		/// Gets the generic parameter count
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>Generic parameter count</returns>
+		public static uint GetGenParamCount(this MethodBaseSig sig) {
+			return sig == null ? 0 : sig.GenParamCount;
+		}
+
+		/// <summary>
+		/// Gets the parameters after the sentinel
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>Parameters after sentinel or <c>null</c> if none</returns>
+		public static IList<TypeSig> GetParamsAfterSentinel(this MethodBaseSig sig) {
+			return sig == null ? null : sig.ParamsAfterSentinel;
+		}
+
+		/// <summary>
+		/// Gets the locals
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>All locals</returns>
+		public static IList<TypeSig> GetLocals(this LocalSig sig) {
+			return sig == null ? new List<TypeSig>() : sig.Locals;
+		}
+
+		/// <summary>
+		/// Gets the generic arguments
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>All generic arguments</returns>
+		public static IList<TypeSig> GetGenericArguments(this GenericInstMethodSig sig) {
+			return sig == null ? new List<TypeSig>() : sig.GenericArguments;
+		}
+	}
 }

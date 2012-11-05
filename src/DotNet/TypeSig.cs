@@ -334,6 +334,15 @@ namespace dot10.DotNet {
 			a = a.RemoveModifiers();
 			return a;
 		}
+
+		/// <summary>
+		/// Gets the element type
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>The element type</returns>
+		public static ElementType GetElementType(this TypeSig a) {
+			return a == null ? ElementType.End : a.ElementType;
+		}
 	}
 
 	/// <summary>
