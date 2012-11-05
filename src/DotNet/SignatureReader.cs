@@ -22,8 +22,12 @@ namespace dot10.DotNet {
 		/// <paramref name="sig"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) {
 			try {
-				using (var reader = new SignatureReader(readerModule, sig))
-					return reader.ReadSig();
+				using (var reader = new SignatureReader(readerModule, sig)) {
+					var csig = reader.ReadSig();
+					if (csig != null)
+						csig.ExtraData = reader.GetExtraData();
+					return csig;
+				}
 			}
 			catch {
 				return null;
@@ -136,9 +140,6 @@ namespace dot10.DotNet {
 				result = null;
 				break;
 			}
-
-			if (result != null)
-				result.ExtraData = GetExtraData();
 
 			recursionCounter.Decrement();
 			return result;
