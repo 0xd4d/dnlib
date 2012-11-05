@@ -80,7 +80,16 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
-				return this.RemovePinnedAndModifiers() is ValueTypeSig;
+				var t = this.RemovePinnedAndModifiers();
+				if (t == null)
+					return false;
+				if (t.ElementType == ElementType.GenericInst) {
+					var gis = (GenericInstSig)t;
+					t = gis.GenericType;
+					if (t == null)
+						return false;
+				}
+				return t.ElementType.IsValueType();
 			}
 		}
 
