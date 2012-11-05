@@ -121,8 +121,11 @@ namespace dot10.DotNet.Writer {
 			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
 
 			var modDefMD = module as ModuleDefMD;
-			if (modDefMD != null)
-				this.AddCheckSum = modDefMD.MetaData.PEImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
+			if (modDefMD != null) {
+				var peImage = modDefMD.MetaData.PEImage;
+				this.PEHeadersOptions.TimeDateStamp = peImage.ImageNTHeaders.FileHeader.TimeDateStamp;
+				this.AddCheckSum = peImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
+			}
 		}
 	}
 
