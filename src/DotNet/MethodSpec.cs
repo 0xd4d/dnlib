@@ -50,8 +50,8 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public UTF8String Name {
-			get { return Method == null ? null : Method.Name; }
-			set { if (Method != null)Method.Name = value; }
+			get { return Method == null ? UTF8String.Empty : Method.Name; }
+			set { if (Method != null) Method.Name = value; }
 		}
 
 		/// <inheritdoc/>

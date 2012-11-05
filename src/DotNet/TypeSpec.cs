@@ -56,7 +56,7 @@ namespace dot10.DotNet {
 		UTF8String IMemberRef.Name {
 			get {
 				var mr = ScopeType;
-				return mr == null ? null : mr.Name;
+				return mr == null ? UTF8String.Empty : mr.Name;
 			}
 			set {
 				var mr = ScopeType;
