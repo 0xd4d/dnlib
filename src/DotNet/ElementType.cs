@@ -110,5 +110,61 @@
 				return -1;
 			}
 		}
+
+		/// <summary>
+		/// Checks whether it's a value type
+		/// </summary>
+		/// <param name="etype">this</param>
+		/// <returns><c>true</c> if it's a value type, <c>false</c> if it's not a value type or
+		/// if we couldn't determine whether it's a value type. Eg., it could be a generic
+		/// instance type.</returns>
+		public static bool IsValueType(this ElementType etype) {
+			switch (etype) {
+			case ElementType.Void:
+			case ElementType.Boolean:
+			case ElementType.Char:
+			case ElementType.I1:
+			case ElementType.U1:
+			case ElementType.I2:
+			case ElementType.U2:
+			case ElementType.I4:
+			case ElementType.U4:
+			case ElementType.I8:
+			case ElementType.U8:
+			case ElementType.R4:
+			case ElementType.R8:
+			case ElementType.ValueType:
+			case ElementType.TypedByRef:
+			case ElementType.ValueArray:
+			case ElementType.I:
+			case ElementType.U:
+			case ElementType.R:
+				return true;
+
+			case ElementType.GenericInst:
+				// We don't have enough info to determine whether this is a value type
+				return false;
+
+			case ElementType.End:
+			case ElementType.String:
+			case ElementType.Ptr:
+			case ElementType.ByRef:
+			case ElementType.Class:
+			case ElementType.Var:
+			case ElementType.Array:
+			case ElementType.FnPtr:
+			case ElementType.Object:
+			case ElementType.SZArray:
+			case ElementType.MVar:
+			case ElementType.CModReqd:
+			case ElementType.CModOpt:
+			case ElementType.Internal:
+			case ElementType.Module:
+			case ElementType.Sentinel:
+			case ElementType.Pinned:
+			default:
+				return false;
+			}
+		}
 	}
 }
