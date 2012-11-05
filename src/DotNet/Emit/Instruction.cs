@@ -703,7 +703,7 @@ namespace dot10.DotNet.Emit {
 		/// <returns>A parameter or <c>null</c> if it doesn't exist</returns>
 		public Parameter GetParameter(IList<Parameter> parameters) {
 			int index = GetParameterIndex();
-			if ((uint)index <= (uint)parameters.Count)
+			if ((uint)index < (uint)parameters.Count)
 				return parameters[index];
 			return null;
 		}
