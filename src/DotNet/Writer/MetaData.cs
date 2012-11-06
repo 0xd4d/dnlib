@@ -2268,6 +2268,9 @@ namespace dot10.DotNet.Writer {
 				rva += len;
 			}
 			length = rva - this.rva;
+
+			UpdateMethodRvas();
+			UpdateFieldRvas();
 		}
 
 		IList<IHeap> GetHeaps() {
@@ -2293,8 +2296,6 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			UpdateMethodRvas();
-			UpdateFieldRvas();
 			var rva2 = rva;
 			metaDataHeader.VerifyWriteTo(writer);
 			rva2 += metaDataHeader.GetLength();
