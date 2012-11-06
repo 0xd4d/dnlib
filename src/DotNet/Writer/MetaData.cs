@@ -54,6 +54,26 @@ namespace dot10.DotNet.Writer {
 		KeepOldMaxStack = 0x20,
 
 		/// <summary>
+		/// Always create the #GUID heap even if it's empty
+		/// </summary>
+		AlwaysCreateGuidHeap = 0x40,
+
+		/// <summary>
+		/// Always create the #Strings heap even if it's empty
+		/// </summary>
+		AlwaysCreateStringsHeap = 0x80,
+
+		/// <summary>
+		/// Always create the #US heap even if it's empty
+		/// </summary>
+		AlwaysCreateUSHeap = 0x100,
+
+		/// <summary>
+		/// Always create the #Blob heap even if it's empty
+		/// </summary>
+		AlwaysCreateBlobHeap = 0x200,
+
+		/// <summary>
 		/// Preserves as much as possible
 		/// </summary>
 		PreserveAll = PreserveTokens | PreserveStringsOffsets | PreserveUSOffsets |
@@ -346,6 +366,58 @@ namespace dot10.DotNet.Writer {
 					options.Flags |= MetaDataFlags.KeepOldMaxStack;
 				else
 					options.Flags &= ~MetaDataFlags.KeepOldMaxStack;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateGuidHeap"/> bit
+		/// </summary>
+		public bool AlwaysCreateGuidHeap {
+			get { return (options.Flags & MetaDataFlags.AlwaysCreateGuidHeap) != 0; }
+			set {
+				if (value)
+					options.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
+				else
+					options.Flags &= ~MetaDataFlags.AlwaysCreateGuidHeap;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateStringsHeap"/> bit
+		/// </summary>
+		public bool AlwaysCreateStringsHeap {
+			get { return (options.Flags & MetaDataFlags.AlwaysCreateStringsHeap) != 0; }
+			set {
+				if (value)
+					options.Flags |= MetaDataFlags.AlwaysCreateStringsHeap;
+				else
+					options.Flags &= ~MetaDataFlags.AlwaysCreateStringsHeap;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateUSHeap"/> bit
+		/// </summary>
+		public bool AlwaysCreateUSHeap {
+			get { return (options.Flags & MetaDataFlags.AlwaysCreateUSHeap) != 0; }
+			set {
+				if (value)
+					options.Flags |= MetaDataFlags.AlwaysCreateUSHeap;
+				else
+					options.Flags &= ~MetaDataFlags.AlwaysCreateUSHeap;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateBlobHeap"/> bit
+		/// </summary>
+		public bool AlwaysCreateBlobHeap {
+			get { return (options.Flags & MetaDataFlags.AlwaysCreateBlobHeap) != 0; }
+			set {
+				if (value)
+					options.Flags |= MetaDataFlags.AlwaysCreateBlobHeap;
+				else
+					options.Flags &= ~MetaDataFlags.AlwaysCreateBlobHeap;
 			}
 		}
 
@@ -2201,13 +2273,13 @@ namespace dot10.DotNet.Writer {
 		IList<IHeap> GetHeaps() {
 			var heaps = new List<IHeap>();
 			heaps.Add(tablesHeap);
-			if (!stringsHeap.IsEmpty)
+			if (!stringsHeap.IsEmpty || AlwaysCreateStringsHeap)
 				heaps.Add(stringsHeap);
-			if (!usHeap.IsEmpty)
+			if (!usHeap.IsEmpty || AlwaysCreateUSHeap)
 				heaps.Add(usHeap);
-			if (!guidHeap.IsEmpty)
+			if (!guidHeap.IsEmpty || AlwaysCreateGuidHeap)
 				heaps.Add(guidHeap);
-			if (!blobHeap.IsEmpty)
+			if (!blobHeap.IsEmpty || AlwaysCreateBlobHeap)
 				heaps.Add(blobHeap);
 			if (options.OtherHeaps != null)
 				heaps.AddRange(options.OtherHeaps);

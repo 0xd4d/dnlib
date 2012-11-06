@@ -120,6 +120,9 @@ namespace dot10.DotNet.Writer {
 			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags & ~ComImageFlags.StrongNameSigned;
 			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
 
+			// Some tools crash if #GUID is missing so always create it by default
+			this.MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
+
 			var modDefMD = module as ModuleDefMD;
 			if (modDefMD != null) {
 				var peImage = modDefMD.MetaData.PEImage;
