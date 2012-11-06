@@ -15,6 +15,26 @@ namespace dot10.IO {
 		int position;
 
 		/// <summary>
+		/// Creates a new <see cref="MemoryImageStream"/> instance
+		/// </summary>
+		/// <param name="data">Data</param>
+		/// <returns>A new <see cref="MemoryImageStream"/> instance</returns>
+		public static MemoryImageStream Create(byte[] data) {
+			return new MemoryImageStream(0, data, 0, data.Length);
+		}
+
+		/// <summary>
+		/// Creates a new <see cref="MemoryImageStream"/> instance
+		/// </summary>
+		/// <param name="data">Data</param>
+		/// <param name="offset">Start offset in <paramref name="data"/></param>
+		/// <param name="len">Length of data</param>
+		/// <returns>A new <see cref="MemoryImageStream"/> instance</returns>
+		public static MemoryImageStream Create(byte[] data, int offset, int len) {
+			return new MemoryImageStream(0, data, offset, len);
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="fileOffset">File offset of data</param>
