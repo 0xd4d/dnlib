@@ -65,7 +65,8 @@ namespace dot10.DotNet.MD {
 					if (tableRows > maxRows)
 						maxRows = tableRows;
 				}
-				ulong finalRows = (ulong)maxRows << info.Bits;
+				// Can't overflow since maxRows <= 0x00FFFFFF and info.Bits < 8
+				uint finalRows = maxRows << info.Bits;
 				return finalRows > 0xFFFF ? 4 : 2;
 			}
 			else {
