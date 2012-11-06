@@ -9,10 +9,18 @@ namespace dot10.DotNet.MD {
 	/// </summary>
 	[DebuggerDisplay("{offset} {size} {name}")]
 	public sealed class ColumnInfo {
+		readonly byte index;
 		byte offset;
-		ColumnSize columnSize;
+		readonly ColumnSize columnSize;
 		byte size;
-		string name;
+		readonly string name;
+
+		/// <summary>
+		/// Gets the column index
+		/// </summary>
+		public int Index {
+			get { return index; }
+		}
 
 		/// <summary>
 		/// Returns the column offset within the table row
@@ -47,9 +55,11 @@ namespace dot10.DotNet.MD {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="index">Column index</param>
 		/// <param name="name">The column name</param>
 		/// <param name="columnSize">Column size</param>
-		public ColumnInfo(string name, ColumnSize columnSize) {
+		public ColumnInfo(byte index, string name, ColumnSize columnSize) {
+			this.index = index;
 			this.name = name;
 			this.columnSize = columnSize;
 		}
