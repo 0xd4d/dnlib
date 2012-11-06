@@ -1,8 +1,27 @@
 ﻿namespace dot10.DotNet.MD {
 	/// <summary>
+	/// A raw table row
+	/// </summary>
+	public interface IRawRow {
+		/// <summary>
+		/// Reads a column
+		/// </summary>
+		/// <param name="index">Column index</param>
+		/// <returns>Column value</returns>
+		uint Read(int index);
+
+		/// <summary>
+		/// Writes a column
+		/// </summary>
+		/// <param name="index">Column index</param>
+		/// <param name="value">New value</param>
+		void Write(int index, uint value);
+	}
+
+	/// <summary>
 	/// Raw contents of an uncompressed Module table row
 	/// </summary>
-	public sealed class RawModuleRow {
+	public sealed class RawModuleRow : IRawRow {
 		/// <summary/>
 		public ushort Generation;
 		/// <summary/>
@@ -26,12 +45,36 @@
 			this.EncId = EncId;
 			this.EncBaseId = EncBaseId;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Generation;
+			case 1: return Name;
+			case 2: return Mvid;
+			case 3: return EncId;
+			case 4: return EncBaseId;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Generation = (ushort)value; break;
+			case 1: Name = value; break;
+			case 2: Mvid = value; break;
+			case 3: EncId = value; break;
+			case 4: EncBaseId = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed TypeRef table row
 	/// </summary>
-	public sealed class RawTypeRefRow {
+	public sealed class RawTypeRefRow : IRawRow {
 		/// <summary/>
 		public uint ResolutionScope;
 		/// <summary/>
@@ -49,12 +92,32 @@
 			this.Name = Name;
 			this.Namespace = Namespace;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return ResolutionScope;
+			case 1: return Name;
+			case 2: return Namespace;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: ResolutionScope = value; break;
+			case 1: Name = value; break;
+			case 2: Namespace = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed TypeDef table row
 	/// </summary>
-	public sealed class RawTypeDefRow {
+	public sealed class RawTypeDefRow : IRawRow {
 		/// <summary/>
 		public uint Flags;
 		/// <summary/>
@@ -81,12 +144,38 @@
 			this.FieldList = FieldList;
 			this.MethodList = MethodList;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Flags;
+			case 1: return Name;
+			case 2: return Namespace;
+			case 3: return Extends;
+			case 4: return FieldList;
+			case 5: return MethodList;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Flags = value; break;
+			case 1: Name = value; break;
+			case 2: Namespace = value; break;
+			case 3: Extends = value; break;
+			case 4: FieldList = value; break;
+			case 5: MethodList = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed FieldPtr table row
 	/// </summary>
-	public sealed class RawFieldPtrRow {
+	public sealed class RawFieldPtrRow : IRawRow {
 		/// <summary/>
 		public uint Field;
 
@@ -98,12 +187,28 @@
 		public RawFieldPtrRow(uint Field) {
 			this.Field = Field;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Field;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Field = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed Field table row
 	/// </summary>
-	public sealed class RawFieldRow {
+	public sealed class RawFieldRow : IRawRow {
 		/// <summary/>
 		public ushort Flags;
 		/// <summary/>
@@ -121,12 +226,32 @@
 			this.Name = Name;
 			this.Signature = Signature;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Flags;
+			case 1: return Name;
+			case 2: return Signature;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Flags = (ushort)value; break;
+			case 1: Name = value; break;
+			case 2: Signature = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed MethodPtr table row
 	/// </summary>
-	public sealed class RawMethodPtrRow {
+	public sealed class RawMethodPtrRow : IRawRow {
 		/// <summary/>
 		public uint Method;
 
@@ -138,12 +263,28 @@
 		public RawMethodPtrRow(uint Method) {
 			this.Method = Method;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Method;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Method = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed Method table row
 	/// </summary>
-	public sealed class RawMethodRow {
+	public sealed class RawMethodRow : IRawRow {
 		/// <summary/>
 		public uint RVA;
 		/// <summary/>
@@ -170,12 +311,38 @@
 			this.Signature = Signature;
 			this.ParamList = ParamList;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return RVA;
+			case 1: return ImplFlags;
+			case 2: return Flags;
+			case 3: return Name;
+			case 4: return Signature;
+			case 5: return ParamList;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: RVA = value; break;
+			case 1: ImplFlags = (ushort)value; break;
+			case 2: Flags = (ushort)value; break;
+			case 3: Name = value; break;
+			case 4: Signature = value; break;
+			case 5: ParamList = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ParamPtr table row
 	/// </summary>
-	public sealed class RawParamPtrRow {
+	public sealed class RawParamPtrRow : IRawRow {
 		/// <summary/>
 		public uint Param;
 
@@ -187,12 +354,28 @@
 		public RawParamPtrRow(uint Param) {
 			this.Param = Param;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Param;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Param = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed Param table row
 	/// </summary>
-	public sealed class RawParamRow {
+	public sealed class RawParamRow : IRawRow {
 		/// <summary/>
 		public ushort Flags;
 		/// <summary/>
@@ -210,12 +393,32 @@
 			this.Sequence = Sequence;
 			this.Name = Name;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Flags;
+			case 1: return Sequence;
+			case 2: return Name;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Flags = (ushort)value; break;
+			case 1: Sequence = (ushort)value; break;
+			case 2: Name = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed InterfaceImpl table row
 	/// </summary>
-	public sealed class RawInterfaceImplRow {
+	public sealed class RawInterfaceImplRow : IRawRow {
 		/// <summary/>
 		public uint Class;
 		/// <summary/>
@@ -230,12 +433,30 @@
 			this.Class = Class;
 			this.Interface = Interface;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Class;
+			case 1: return Interface;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Class = value; break;
+			case 1: Interface = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed MemberRef table row
 	/// </summary>
-	public sealed class RawMemberRefRow {
+	public sealed class RawMemberRefRow : IRawRow {
 		/// <summary/>
 		public uint Class;
 		/// <summary/>
@@ -253,12 +474,32 @@
 			this.Name = Name;
 			this.Signature = Signature;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Class;
+			case 1: return Name;
+			case 2: return Signature;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Class = value; break;
+			case 1: Name = value; break;
+			case 2: Signature = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed Constant table row
 	/// </summary>
-	public sealed class RawConstantRow {
+	public sealed class RawConstantRow : IRawRow {
 		/// <summary/>
 		public byte Type;
 		/// <summary/>
@@ -279,12 +520,32 @@
 			this.Parent = Parent;
 			this.Value = Value;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Type;
+			case 1: return Parent;
+			case 2: return Value;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Type = (byte)value; break;
+			case 1: Parent = value; break;
+			case 2: Value = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed CustomAttribute table row
 	/// </summary>
-	public sealed class RawCustomAttributeRow {
+	public sealed class RawCustomAttributeRow : IRawRow {
 		/// <summary/>
 		public uint Parent;
 		/// <summary/>
@@ -302,12 +563,32 @@
 			this.Type = Type;
 			this.Value = Value;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Parent;
+			case 1: return Type;
+			case 2: return Value;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Parent = value; break;
+			case 1: Type = value; break;
+			case 2: Value = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed FieldMarshal table row
 	/// </summary>
-	public sealed class RawFieldMarshalRow {
+	public sealed class RawFieldMarshalRow : IRawRow {
 		/// <summary/>
 		public uint Parent;
 		/// <summary/>
@@ -322,12 +603,30 @@
 			this.Parent = Parent;
 			this.NativeType = NativeType;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Parent;
+			case 1: return NativeType;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Parent = value; break;
+			case 1: NativeType = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed DeclSecurity table row
 	/// </summary>
-	public sealed class RawDeclSecurityRow {
+	public sealed class RawDeclSecurityRow : IRawRow {
 		/// <summary/>
 		public short Action;
 		/// <summary/>
@@ -345,12 +644,32 @@
 			this.Parent = Parent;
 			this.PermissionSet = PermissionSet;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return (uint)(int)Action;
+			case 1: return Parent;
+			case 2: return PermissionSet;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Action = (short)value; break;
+			case 1: Parent = value; break;
+			case 2: PermissionSet = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ClassLayout table row
 	/// </summary>
-	public sealed class RawClassLayoutRow {
+	public sealed class RawClassLayoutRow : IRawRow {
 		/// <summary/>
 		public ushort PackingSize;
 		/// <summary/>
@@ -368,12 +687,32 @@
 			this.ClassSize = ClassSize;
 			this.Parent = Parent;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return PackingSize;
+			case 1: return ClassSize;
+			case 2: return Parent;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: PackingSize = (ushort)value; break;
+			case 1: ClassSize = value; break;
+			case 2: Parent = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed FieldLayout table row
 	/// </summary>
-	public sealed class RawFieldLayoutRow {
+	public sealed class RawFieldLayoutRow : IRawRow {
 		/// <summary/>
 		public uint OffSet;
 		/// <summary/>
@@ -388,12 +727,30 @@
 			this.OffSet = OffSet;
 			this.Field = Field;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return OffSet;
+			case 1: return Field;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: OffSet = value; break;
+			case 1: Field = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed StandAloneSig table row
 	/// </summary>
-	public sealed class RawStandAloneSigRow {
+	public sealed class RawStandAloneSigRow : IRawRow {
 		/// <summary/>
 		public uint Signature;
 
@@ -405,12 +762,28 @@
 		public RawStandAloneSigRow(uint Signature) {
 			this.Signature = Signature;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Signature;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Signature = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed EventMap table row
 	/// </summary>
-	public sealed class RawEventMapRow {
+	public sealed class RawEventMapRow : IRawRow {
 		/// <summary/>
 		public uint Parent;
 		/// <summary/>
@@ -425,12 +798,30 @@
 			this.Parent = Parent;
 			this.EventList = EventList;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Parent;
+			case 1: return EventList;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Parent = value; break;
+			case 1: EventList = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed EventPtr table row
 	/// </summary>
-	public sealed class RawEventPtrRow {
+	public sealed class RawEventPtrRow : IRawRow {
 		/// <summary/>
 		public uint Event;
 
@@ -442,12 +833,28 @@
 		public RawEventPtrRow(uint Event) {
 			this.Event = Event;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Event;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Event = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed Event table row
 	/// </summary>
-	public sealed class RawEventRow {
+	public sealed class RawEventRow : IRawRow {
 		/// <summary/>
 		public ushort EventFlags;
 		/// <summary/>
@@ -465,12 +872,32 @@
 			this.Name = Name;
 			this.EventType = EventType;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return EventFlags;
+			case 1: return Name;
+			case 2: return EventType;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: EventFlags = (ushort)value; break;
+			case 1: Name = value; break;
+			case 2: EventType = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed PropertyMap table row
 	/// </summary>
-	public sealed class RawPropertyMapRow {
+	public sealed class RawPropertyMapRow : IRawRow {
 		/// <summary/>
 		public uint Parent;
 		/// <summary/>
@@ -485,12 +912,30 @@
 			this.Parent = Parent;
 			this.PropertyList = PropertyList;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Parent;
+			case 1: return PropertyList;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Parent = value; break;
+			case 1: PropertyList = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed PropertyPtr table row
 	/// </summary>
-	public sealed class RawPropertyPtrRow {
+	public sealed class RawPropertyPtrRow : IRawRow {
 		/// <summary/>
 		public uint Property;
 
@@ -502,12 +947,28 @@
 		public RawPropertyPtrRow(uint Property) {
 			this.Property = Property;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Property;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Property = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed Property table row
 	/// </summary>
-	public sealed class RawPropertyRow {
+	public sealed class RawPropertyRow : IRawRow {
 		/// <summary/>
 		public ushort PropFlags;
 		/// <summary/>
@@ -525,12 +986,32 @@
 			this.Name = Name;
 			this.Type = Type;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return PropFlags;
+			case 1: return Name;
+			case 2: return Type;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: PropFlags = (ushort)value; break;
+			case 1: Name = value; break;
+			case 2: Type = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed MethodSemantics table row
 	/// </summary>
-	public sealed class RawMethodSemanticsRow {
+	public sealed class RawMethodSemanticsRow : IRawRow {
 		/// <summary/>
 		public ushort Semantic;
 		/// <summary/>
@@ -548,12 +1029,32 @@
 			this.Method = Method;
 			this.Association = Association;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Semantic;
+			case 1: return Method;
+			case 2: return Association;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Semantic = (ushort)value; break;
+			case 1: Method = value; break;
+			case 2: Association = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed MethodImpl table row
 	/// </summary>
-	public sealed class RawMethodImplRow {
+	public sealed class RawMethodImplRow : IRawRow {
 		/// <summary/>
 		public uint Class;
 		/// <summary/>
@@ -571,12 +1072,32 @@
 			this.MethodBody = MethodBody;
 			this.MethodDeclaration = MethodDeclaration;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Class;
+			case 1: return MethodBody;
+			case 2: return MethodDeclaration;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Class = value; break;
+			case 1: MethodBody = value; break;
+			case 2: MethodDeclaration = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ModuleRef table row
 	/// </summary>
-	public sealed class RawModuleRefRow {
+	public sealed class RawModuleRefRow : IRawRow {
 		/// <summary/>
 		public uint Name;
 
@@ -588,12 +1109,28 @@
 		public RawModuleRefRow(uint Name) {
 			this.Name = Name;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Name;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Name = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed TypeSpec table row
 	/// </summary>
-	public sealed class RawTypeSpecRow {
+	public sealed class RawTypeSpecRow : IRawRow {
 		/// <summary/>
 		public uint Signature;
 
@@ -605,12 +1142,28 @@
 		public RawTypeSpecRow(uint Signature) {
 			this.Signature = Signature;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Signature;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Signature = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ImplMap table row
 	/// </summary>
-	public sealed class RawImplMapRow {
+	public sealed class RawImplMapRow : IRawRow {
 		/// <summary/>
 		public ushort MappingFlags;
 		/// <summary/>
@@ -631,12 +1184,34 @@
 			this.ImportName = ImportName;
 			this.ImportScope = ImportScope;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return MappingFlags;
+			case 1: return MemberForwarded;
+			case 2: return ImportName;
+			case 3: return ImportScope;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: MappingFlags = (ushort)value; break;
+			case 1: MemberForwarded = value; break;
+			case 2: ImportName = value; break;
+			case 3: ImportScope = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed FieldRVA table row
 	/// </summary>
-	public sealed class RawFieldRVARow {
+	public sealed class RawFieldRVARow : IRawRow {
 		/// <summary/>
 		public uint RVA;
 		/// <summary/>
@@ -651,12 +1226,30 @@
 			this.RVA = RVA;
 			this.Field = Field;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return RVA;
+			case 1: return Field;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: RVA = value; break;
+			case 1: Field = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ENCLog table row
 	/// </summary>
-	public sealed class RawENCLogRow {
+	public sealed class RawENCLogRow : IRawRow {
 		/// <summary/>
 		public uint Token;
 		/// <summary/>
@@ -671,12 +1264,30 @@
 			this.Token = Token;
 			this.FuncCode = FuncCode;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Token;
+			case 1: return FuncCode;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Token = value; break;
+			case 1: FuncCode = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ENCMap table row
 	/// </summary>
-	public sealed class RawENCMapRow {
+	public sealed class RawENCMapRow : IRawRow {
 		/// <summary/>
 		public uint Token;
 
@@ -688,12 +1299,28 @@
 		public RawENCMapRow(uint Token) {
 			this.Token = Token;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Token;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Token = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed Assembly table row
 	/// </summary>
-	public sealed class RawAssemblyRow {
+	public sealed class RawAssemblyRow : IRawRow {
 		/// <summary/>
 		public uint HashAlgId;
 		/// <summary/>
@@ -729,12 +1356,44 @@
 			this.Name = Name;
 			this.Locale = Locale;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return HashAlgId;
+			case 1: return MajorVersion;
+			case 2: return MinorVersion;
+			case 3: return BuildNumber;
+			case 4: return RevisionNumber;
+			case 5: return Flags;
+			case 6: return PublicKey;
+			case 7: return Name;
+			case 8: return Locale;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: HashAlgId = value; break;
+			case 1: MajorVersion = (ushort)value; break;
+			case 2: MinorVersion = (ushort)value; break;
+			case 3: BuildNumber = (ushort)value; break;
+			case 4: RevisionNumber = (ushort)value; break;
+			case 5: Flags = value; break;
+			case 6: PublicKey = value; break;
+			case 7: Name = value; break;
+			case 8: Locale = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed AssemblyProcessor table row
 	/// </summary>
-	public sealed class RawAssemblyProcessorRow {
+	public sealed class RawAssemblyProcessorRow : IRawRow {
 		/// <summary/>
 		public uint Processor;
 
@@ -746,12 +1405,28 @@
 		public RawAssemblyProcessorRow(uint Processor) {
 			this.Processor = Processor;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Processor;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Processor = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed AssemblyOS table row
 	/// </summary>
-	public sealed class RawAssemblyOSRow {
+	public sealed class RawAssemblyOSRow : IRawRow {
 		/// <summary/>
 		public uint OSPlatformId;
 		/// <summary/>
@@ -769,12 +1444,32 @@
 			this.OSMajorVersion = OSMajorVersion;
 			this.OSMinorVersion = OSMinorVersion;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return OSPlatformId;
+			case 1: return OSMajorVersion;
+			case 2: return OSMinorVersion;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: OSPlatformId = value; break;
+			case 1: OSMajorVersion = value; break;
+			case 2: OSMinorVersion = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed AssemblyRef table row
 	/// </summary>
-	public sealed class RawAssemblyRefRow {
+	public sealed class RawAssemblyRefRow : IRawRow {
 		/// <summary/>
 		public ushort MajorVersion;
 		/// <summary/>
@@ -810,12 +1505,44 @@
 			this.Locale = Locale;
 			this.HashValue = HashValue;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return MajorVersion;
+			case 1: return MinorVersion;
+			case 2: return BuildNumber;
+			case 3: return RevisionNumber;
+			case 4: return Flags;
+			case 5: return PublicKeyOrToken;
+			case 6: return Name;
+			case 7: return Locale;
+			case 8: return HashValue;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: MajorVersion = (ushort)value; break;
+			case 1: MinorVersion = (ushort)value; break;
+			case 2: BuildNumber = (ushort)value; break;
+			case 3: RevisionNumber = (ushort)value; break;
+			case 4: Flags = value; break;
+			case 5: PublicKeyOrToken = value; break;
+			case 6: Name = value; break;
+			case 7: Locale = value; break;
+			case 8: HashValue = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed AssemblyRefProcessor table row
 	/// </summary>
-	public sealed class RawAssemblyRefProcessorRow {
+	public sealed class RawAssemblyRefProcessorRow : IRawRow {
 		/// <summary/>
 		public uint Processor;
 		/// <summary/>
@@ -830,12 +1557,30 @@
 			this.Processor = Processor;
 			this.AssemblyRef = AssemblyRef;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Processor;
+			case 1: return AssemblyRef;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Processor = value; break;
+			case 1: AssemblyRef = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed AssemblyRefOS table row
 	/// </summary>
-	public sealed class RawAssemblyRefOSRow {
+	public sealed class RawAssemblyRefOSRow : IRawRow {
 		/// <summary/>
 		public uint OSPlatformId;
 		/// <summary/>
@@ -856,12 +1601,34 @@
 			this.OSMinorVersion = OSMinorVersion;
 			this.AssemblyRef = AssemblyRef;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return OSPlatformId;
+			case 1: return OSMajorVersion;
+			case 2: return OSMinorVersion;
+			case 3: return AssemblyRef;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: OSPlatformId = value; break;
+			case 1: OSMajorVersion = value; break;
+			case 2: OSMinorVersion = value; break;
+			case 3: AssemblyRef = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed File table row
 	/// </summary>
-	public sealed class RawFileRow {
+	public sealed class RawFileRow : IRawRow {
 		/// <summary/>
 		public uint Flags;
 		/// <summary/>
@@ -879,12 +1646,32 @@
 			this.Name = Name;
 			this.HashValue = HashValue;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Flags;
+			case 1: return Name;
+			case 2: return HashValue;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Flags = value; break;
+			case 1: Name = value; break;
+			case 2: HashValue = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ExportedType table row
 	/// </summary>
-	public sealed class RawExportedTypeRow {
+	public sealed class RawExportedTypeRow : IRawRow {
 		/// <summary/>
 		public uint Flags;
 		/// <summary/>
@@ -908,12 +1695,36 @@
 			this.TypeNamespace = TypeNamespace;
 			this.Implementation = Implementation;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Flags;
+			case 1: return TypeDefId;
+			case 2: return TypeName;
+			case 3: return TypeNamespace;
+			case 4: return Implementation;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Flags = value; break;
+			case 1: TypeDefId = value; break;
+			case 2: TypeName = value; break;
+			case 3: TypeNamespace = value; break;
+			case 4: Implementation = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed ManifestResource table row
 	/// </summary>
-	public sealed class RawManifestResourceRow {
+	public sealed class RawManifestResourceRow : IRawRow {
 		/// <summary/>
 		public uint Offset;
 		/// <summary/>
@@ -934,12 +1745,34 @@
 			this.Name = Name;
 			this.Implementation = Implementation;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Offset;
+			case 1: return Flags;
+			case 2: return Name;
+			case 3: return Implementation;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Offset = value; break;
+			case 1: Flags = value; break;
+			case 2: Name = value; break;
+			case 3: Implementation = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed NestedClass table row
 	/// </summary>
-	public sealed class RawNestedClassRow {
+	public sealed class RawNestedClassRow : IRawRow {
 		/// <summary/>
 		public uint NestedClass;
 		/// <summary/>
@@ -954,12 +1787,30 @@
 			this.NestedClass = NestedClass;
 			this.EnclosingClass = EnclosingClass;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return NestedClass;
+			case 1: return EnclosingClass;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: NestedClass = value; break;
+			case 1: EnclosingClass = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed GenericParam table row
 	/// </summary>
-	public sealed class RawGenericParamRow {
+	public sealed class RawGenericParamRow : IRawRow {
 		/// <summary/>
 		public ushort Number;
 		/// <summary/>
@@ -991,12 +1842,36 @@
 			this.Owner = Owner;
 			this.Name = Name;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Number;
+			case 1: return Flags;
+			case 2: return Owner;
+			case 3: return Name;
+			case 4: return Kind;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Number = (ushort)value; break;
+			case 1: Flags = (ushort)value; break;
+			case 2: Owner = value; break;
+			case 3: Name = value; break;
+			case 4: Kind = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed MethodSpec table row
 	/// </summary>
-	public sealed class RawMethodSpecRow {
+	public sealed class RawMethodSpecRow : IRawRow {
 		/// <summary/>
 		public uint Method;
 		/// <summary/>
@@ -1011,12 +1886,30 @@
 			this.Method = Method;
 			this.Instantiation = Instantiation;
 		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Method;
+			case 1: return Instantiation;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Method = value; break;
+			case 1: Instantiation = value; break;
+			default: break;
+			}
+		}
 	}
 
 	/// <summary>
 	/// Raw contents of an uncompressed GenericParamConstraint table row
 	/// </summary>
-	public sealed class RawGenericParamConstraintRow {
+	public sealed class RawGenericParamConstraintRow : IRawRow {
 		/// <summary/>
 		public uint Owner;
 		/// <summary/>
@@ -1030,6 +1923,24 @@
 		public RawGenericParamConstraintRow(uint Owner, uint Constraint) {
 			this.Owner = Owner;
 			this.Constraint = Constraint;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Owner;
+			case 1: return Constraint;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Owner = value; break;
+			case 1: Constraint = value; break;
+			default: break;
+			}
 		}
 	}
 }
