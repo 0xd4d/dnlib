@@ -105,7 +105,7 @@ namespace dot10.DotNet {
 		public abstract ImplMap ImplMap { get; set; }
 
 		/// <summary>
-		/// Gets/sets the method body. See also <see cref="CilBody"/>
+		/// Gets/sets the method body. See also <see cref="Body"/>
 		/// </summary>
 		public abstract MethodBody MethodBody { get; set; }
 
@@ -148,7 +148,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the CIL method body
 		/// </summary>
-		public CilBody CilBody {
+		public CilBody Body {
 			get { return MethodBody as CilBody; }
 			set { MethodBody = value; }
 		}
@@ -161,10 +161,10 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// <c>true</c> if it has a <see cref="CilBody"/>
+		/// <c>true</c> if it has a <see cref="Body"/>
 		/// </summary>
-		public bool HasCilBody {
-			get { return CilBody != null; }
+		public bool HasBody {
+			get { return Body != null; }
 		}
 
 		/// <summary>

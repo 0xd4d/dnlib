@@ -1159,7 +1159,7 @@ namespace dot10.DotNet.Writer {
 					if (method == null)
 						continue;
 
-					var cilBody = method.CilBody;
+					var cilBody = method.Body;
 					if (cilBody != null) {
 						if (cilBody.Instructions.Count == 0 && cilBody.LocalList.Count == 0)
 							continue;
