@@ -31,6 +31,15 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the index of the first parameter that is present in the method signature.
+		/// If this is a static method, the value is 0, else it's an instance method so the
+		/// index is 1 since the first parameter is the hidden 'this' parameter.
+		/// </summary>
+		public int MethodSigIndexBase {
+			get { return methodSigIndexBase == 1 ? 1 : 0; }
+		}
+
+		/// <summary>
 		/// Gets the parameters
 		/// </summary>
 		public IList<Parameter> Parameters {
