@@ -14,6 +14,7 @@ namespace dot10.DotNet {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
 		IMethodDecrypter methodDecrypter;
+		IStringDecrypter stringDecrypter;
 
 		UserValue<string> location;
 		RandomRidList moduleRidList;
@@ -51,6 +52,14 @@ namespace dot10.DotNet {
 		public IMethodDecrypter MethodDecrypter {
 			get { return methodDecrypter; }
 			set { methodDecrypter = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the string decrypter
+		/// </summary>
+		public IStringDecrypter StringDecrypter {
+			get { return stringDecrypter; }
+			set { stringDecrypter = value; }
 		}
 
 		/// <summary>
@@ -1383,6 +1392,20 @@ namespace dot10.DotNet {
 			if (((MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL)
 				return null;
 			return ReadCilBody(method.Parameters, (RVA)row.RVA);
+		}
+
+		/// <summary>
+		/// Reads a string from the #US heap
+		/// </summary>
+		/// <param name="token">String token</param>
+		/// <returns>A non-null string</returns>
+		public string ReadUserString(uint token) {
+			if (stringDecrypter != null) {
+				var s = stringDecrypter.ReadUserString(token);
+				if (s != null)
+					return s;
+			}
+			return USStream.ReadNoNull(token & 0x00FFFFFF);
 		}
 	}
 }

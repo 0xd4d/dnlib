@@ -171,7 +171,7 @@ namespace dot10.DotNet.Emit {
 
 		/// <inheritdoc/>
 		protected override string ReadInlineString(Instruction instr) {
-			return module.USStream.ReadNoNull(reader.ReadUInt32() & 0x00FFFFFF);
+			return module.ReadUserString(reader.ReadUInt32());
 		}
 
 		/// <inheritdoc/>

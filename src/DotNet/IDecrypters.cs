@@ -25,4 +25,16 @@ namespace dot10.DotNet {
 		/// <returns>The method's <see cref="MethodBody"/></returns>
 		MethodBody GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters);
 	}
+
+	/// <summary>
+	/// Interface to decrypt strings
+	/// </summary>
+	public interface IStringDecrypter {
+		/// <summary>
+		/// Reads a string
+		/// </summary>
+		/// <param name="token">String token</param>
+		/// <returns>A string or <c>null</c> if we should read it from the #US heap</returns>
+		string ReadUserString(uint token);
+	}
 }
