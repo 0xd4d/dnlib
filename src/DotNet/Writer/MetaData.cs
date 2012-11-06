@@ -886,8 +886,9 @@ namespace dot10.DotNet.Writer {
 			WriteMethodBodies();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.EndWriteMethodBodies);
 
+			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginAddResources);
 			AddResources(module.Resources);
-			Listener.OnMetaDataEvent(this, MetaDataEvent.ResourcesAdded);
+			Listener.OnMetaDataEvent(this, MetaDataEvent.EndAddResources);
 
 			BeforeSortingCustomAttributes();
 			InitializeCustomAttributeTable();

@@ -70,9 +70,14 @@
 		EndWriteMethodBodies,
 
 		/// <summary>
+		/// All resources are about to be added to the .NET resources table
+		/// </summary>
+		BeginAddResources,
+
+		/// <summary>
 		/// All resources have been added to the .NET resources table
 		/// </summary>
-		ResourcesAdded,
+		EndAddResources,
 
 		/// <summary>
 		/// All tables are now sorted, including the <c>CustomAttribute</c> table.

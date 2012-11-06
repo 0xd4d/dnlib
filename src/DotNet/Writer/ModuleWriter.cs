@@ -562,8 +562,12 @@ namespace dot10.DotNet.Writer {
 				listener.OnWriterEvent(this, ModuleWriterEvent.MDEndWriteMethodBodies);
 				break;
 
-			case MetaDataEvent.ResourcesAdded:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDResourcesAdded);
+			case MetaDataEvent.BeginAddResources:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginAddResources);
+				break;
+
+			case MetaDataEvent.EndAddResources:
+				listener.OnWriterEvent(this, ModuleWriterEvent.MDEndAddResources);
 				break;
 
 			case MetaDataEvent.OnAllTablesSorted:

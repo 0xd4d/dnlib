@@ -97,10 +97,16 @@
 		MDEndWriteMethodBodies,
 
 		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.ResourcesAdded"/>.
+		/// Original event: <see cref="MetaDataEvent.BeginAddResources"/>.
+		/// All resources are about to be added to the .NET resources table
+		/// </summary>
+		MDBeginAddResources,
+
+		/// <summary>
+		/// Original event: <see cref="MetaDataEvent.EndAddResources"/>.
 		/// All resources have been added to the .NET resources table
 		/// </summary>
-		MDResourcesAdded,
+		MDEndAddResources,
 
 		/// <summary>
 		/// Original event: <see cref="MetaDataEvent.OnAllTablesSorted"/>.
