@@ -282,7 +282,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets the debug directory
+		/// Gets the debug directory or <c>null</c> if there's none
 		/// </summary>
 		public DebugDirectory DebugDirectory {
 			get { return debugDirectory; }
@@ -403,6 +403,7 @@ namespace dot10.DotNet.Writer {
 		void CreateChunks() {
 			bool isSn = false;	//TODO:
 			bool hasWin32Resources = false;	//TODO:
+			bool hasDebugDirectory = false;	//TODO:
 
 			peHeaders = new PEHeaders(Options.PEHeadersOptions);
 
@@ -421,7 +422,8 @@ namespace dot10.DotNet.Writer {
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, Options.MetaDataOptions);
 			metaData.Listener = this;
-			debugDirectory = new DebugDirectory();
+			if (hasDebugDirectory)
+				debugDirectory = new DebugDirectory();
 			if (hasWin32Resources)
 				win32Resources = new Win32Resources();
 
