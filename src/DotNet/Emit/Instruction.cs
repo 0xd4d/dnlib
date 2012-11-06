@@ -617,6 +617,19 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Checks whether it's one of the <c>starg</c> instructions
+		/// </summary>
+		public bool IsStarg() {
+			switch (OpCode.Code) {
+			case Code.Starg:
+			case Code.Starg_S:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
 		/// Checks whether it's one of the <c>stloc</c> instructions
 		/// </summary>
 		public bool IsStloc() {
