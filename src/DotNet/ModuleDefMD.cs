@@ -1376,13 +1376,13 @@ namespace dot10.DotNet {
 		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
 		internal MethodBody ReadMethodBody(MethodDefMD method, RawMethodRow row) {
 			if (methodDecrypter != null && methodDecrypter.HasMethodBody(method.Rid))
-				return methodDecrypter.GetMethodBody(method.Rid, (RVA)row.RVA, method.Parameters.Parameters);
+				return methodDecrypter.GetMethodBody(method.Rid, (RVA)row.RVA, method.Parameters);
 
 			if (row.RVA == 0)
 				return null;
 			if (((MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL)
 				return null;
-			return ReadCilBody(method.Parameters.Parameters, (RVA)row.RVA);
+			return ReadCilBody(method.Parameters, (RVA)row.RVA);
 		}
 	}
 }

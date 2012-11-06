@@ -40,13 +40,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the parameters
-		/// </summary>
-		public IList<Parameter> Parameters {
-			get { return parameters; }
-		}
-
-		/// <summary>
 		/// Gets the N'th parameter
 		/// </summary>
 		/// <param name="index">The parameter index</param>

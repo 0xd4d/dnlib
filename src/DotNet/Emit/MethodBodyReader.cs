@@ -22,7 +22,7 @@ namespace dot10.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
 		public static CilBody Create(ModuleDefMD module, IBinaryReader reader, MethodDef method) {
-			return Create(module, reader, method.Parameters.Parameters);
+			return Create(module, reader, method.Parameters);
 		}
 
 		/// <summary>
@@ -50,7 +50,7 @@ namespace dot10.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
 		public MethodBodyReader(ModuleDefMD module, IBinaryReader reader, MethodDef method)
-			: this(module, reader, method.Parameters.Parameters) {
+			: this(module, reader, method.Parameters) {
 		}
 
 		/// <summary>
