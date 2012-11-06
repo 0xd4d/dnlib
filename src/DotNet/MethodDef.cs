@@ -1060,14 +1060,8 @@ namespace dot10.DotNet {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, rid));
 			};
 			methodBody.ReadOriginalValue = () => {
-				// Use RVA and ImplFlags from the original row, not the current values the
-				// user may have modified.
 				InitializeRawRow();
-				if (rawRow.RVA == 0)
-					return null;
-				if (((MethodImplAttributes)rawRow.ImplFlags & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL)
-					return null;
-				return readerModule.ReadCilBody(Parameters.Parameters, (RVA)rawRow.RVA);
+				return readerModule.ReadMethodBody(this, rawRow);
 			};
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);

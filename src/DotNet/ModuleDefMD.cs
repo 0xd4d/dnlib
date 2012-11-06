@@ -13,6 +13,7 @@ namespace dot10.DotNet {
 	public sealed class ModuleDefMD : ModuleDefMD2 {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
+		IMethodDecrypter methodDecrypter;
 
 		UserValue<string> location;
 		RandomRidList moduleRidList;
@@ -43,6 +44,14 @@ namespace dot10.DotNet {
 		SimpleLazyList<GenericParamMD> listGenericParamMD;
 		SimpleLazyList<MethodSpecMD> listMethodSpecMD;
 		SimpleLazyList<GenericParamConstraintMD> listGenericParamConstraintMD;
+
+		/// <summary>
+		/// Gets/sets the method decrypter
+		/// </summary>
+		public IMethodDecrypter MethodDecrypter {
+			get { return methodDecrypter; }
+			set { methodDecrypter = value; }
+		}
 
 		/// <summary>
 		/// Returns the .NET file
@@ -1357,6 +1366,23 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="GenericParamConstraintMD"/> instance</returns>
 		internal GenericParamConstraintMD ReadGenericParamConstraint(uint rid) {
 			return new GenericParamConstraintMD(this, rid);
+		}
+
+		/// <summary>
+		/// Reads a method body
+		/// </summary>
+		/// <param name="method">Method</param>
+		/// <param name="row">Method's row</param>
+		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
+		internal MethodBody ReadMethodBody(MethodDefMD method, RawMethodRow row) {
+			if (methodDecrypter != null && methodDecrypter.HasMethodBody(method.Rid))
+				return methodDecrypter.GetMethodBody(method.Rid, (RVA)row.RVA, method.Parameters.Parameters);
+
+			if (row.RVA == 0)
+				return null;
+			if (((MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL)
+				return null;
+			return ReadCilBody(method.Parameters.Parameters, (RVA)row.RVA);
 		}
 	}
 }
