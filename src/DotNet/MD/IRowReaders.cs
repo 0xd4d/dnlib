@@ -18,13 +18,14 @@
 	/// <summary>
 	/// Reads table rows
 	/// </summary>
-	public interface IRowReader<T> where T : class {
+	/// <typeparam name="TRow">Raw row</typeparam>
+	public interface IRowReader<TRow> where TRow : class, IRawRow {
 		/// <summary>
 		/// Reads a table row
 		/// </summary>
 		/// <param name="rid">Row id</param>
 		/// <returns>The table row or <c>null</c> if its row should be read from the original
 		/// table</returns>
-		T ReadRow(uint rid);
+		TRow ReadRow(uint rid);
 	}
 }
