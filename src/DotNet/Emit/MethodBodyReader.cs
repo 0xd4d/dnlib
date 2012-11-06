@@ -7,12 +7,13 @@ namespace dot10.DotNet.Emit {
 	/// <summary>
 	/// Reads a .NET method body (header, locals, instructions, exception handlers)
 	/// </summary>
-	sealed class MethodBodyReader : MethodBodyReaderBase {
+	public sealed class MethodBodyReader : MethodBodyReaderBase {
 		readonly ModuleDefMD module;
 		ushort flags;
 		ushort maxStack;
 		uint codeSize;
 		uint localVarSigTok;
+		IBinaryReader exceptionsReader;
 
 		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
@@ -33,8 +34,34 @@ namespace dot10.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="parameters">Method parameters</param>
 		public static CilBody Create(ModuleDefMD module, IBinaryReader reader, IList<Parameter> parameters) {
+			return Create(module, reader, null, parameters);
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
+		/// a valid CIL method body.
+		/// </summary>
+		/// <param name="module">The reader module</param>
+		/// <param name="code">All code</param>
+		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
+		/// <paramref name="code"/></param>
+		/// <param name="parameters">Method parameters</param>
+		public static CilBody Create(ModuleDefMD module, byte[] code, byte[] exceptions, IList<Parameter> parameters) {
+			return Create(module, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters);
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="codeReader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="module">The reader module</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		public static CilBody Create(ModuleDefMD module, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters) {
 			try {
-				var mbReader = new MethodBodyReader(module, reader, parameters);
+				var mbReader = new MethodBodyReader(module, codeReader, ehReader, parameters);
 				mbReader.Read();
 				return mbReader.CreateCilBody();
 			}
@@ -50,7 +77,7 @@ namespace dot10.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
 		public MethodBodyReader(ModuleDefMD module, IBinaryReader reader, MethodDef method)
-			: this(module, reader, method.Parameters) {
+			: this(module, reader, null, method.Parameters) {
 		}
 
 		/// <summary>
@@ -60,8 +87,21 @@ namespace dot10.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="parameters">Method parameters</param>
 		public MethodBodyReader(ModuleDefMD module, IBinaryReader reader, IList<Parameter> parameters)
-			: base(reader, parameters) {
+			: this(module, reader, null, parameters) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">The reader module</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		public MethodBodyReader(ModuleDefMD module, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters)
+			: base(codeReader, parameters) {
 			this.module = module;
+			this.exceptionsReader = ehReader;
 		}
 
 		/// <summary>
@@ -190,56 +230,62 @@ namespace dot10.DotNet.Emit {
 		void ReadExceptionHandlers() {
 			if ((flags & 8) == 0)
 				return;
-			reader.Position = (reader.Position + 3) & ~3;
+			IBinaryReader ehReader;
+			if (exceptionsReader != null)
+				ehReader = exceptionsReader;
+			else {
+				ehReader = reader;
+				ehReader.Position = (ehReader.Position + 3) & ~3;
+			}
 			// Only read the first one. Any others aren't used.
 			//TODO: Verify this
-			byte b = reader.ReadByte();
+			byte b = ehReader.ReadByte();
 			if ((b & 0x3F) != 1)
 				return;	// Not exception handler clauses
 			if ((b & 0x40) != 0)
-				ReadFatExceptionHandlers();
+				ReadFatExceptionHandlers(ehReader);
 			else
-				ReadSmallExceptionHandlers();
+				ReadSmallExceptionHandlers(ehReader);
 		}
 
-		void ReadFatExceptionHandlers() {
-			reader.Position--;
-			int num = (int)((reader.ReadUInt32() >> 8) / 24);
+		void ReadFatExceptionHandlers(IBinaryReader ehReader) {
+			ehReader.Position--;
+			int num = (int)((ehReader.ReadUInt32() >> 8) / 24);
 			for (int i = 0; i < num; i++) {
-				var eh = new ExceptionHandler((ExceptionHandlerType)reader.ReadUInt32());
-				uint offs = reader.ReadUInt32();
+				var eh = new ExceptionHandler((ExceptionHandlerType)ehReader.ReadUInt32());
+				uint offs = ehReader.ReadUInt32();
 				eh.TryStart = GetInstruction(offs);
-				eh.TryEnd = GetInstruction(offs + reader.ReadUInt32());
-				offs = reader.ReadUInt32();
+				eh.TryEnd = GetInstruction(offs + ehReader.ReadUInt32());
+				offs = ehReader.ReadUInt32();
 				eh.HandlerStart = GetInstruction(offs);
-				eh.HandlerEnd = GetInstruction(offs + reader.ReadUInt32());
+				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadUInt32());
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					eh.CatchType = module.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
+					eh.CatchType = module.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
-					eh.FilterStart = GetInstruction(reader.ReadUInt32());
+					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else
-					reader.ReadUInt32();
+					ehReader.ReadUInt32();
 				Add(eh);
 			}
 		}
 
-		void ReadSmallExceptionHandlers() {
-			int num = reader.ReadByte() / 12;
-			reader.Position += 2;
+		void ReadSmallExceptionHandlers(IBinaryReader ehReader) {
+			int num = ehReader.ReadByte() / 12;
+			ehReader.Position += 2;
 			for (int i = 0; i < num; i++) {
-				var eh = new ExceptionHandler((ExceptionHandlerType)reader.ReadUInt16());
-				uint offs = reader.ReadUInt16();
+				var eh = new ExceptionHandler((ExceptionHandlerType)ehReader.ReadUInt16());
+				uint offs = ehReader.ReadUInt16();
 				eh.TryStart = GetInstruction(offs);
-				eh.TryEnd = GetInstruction(offs + reader.ReadByte());
-				offs = reader.ReadUInt16();
+				eh.TryEnd = GetInstruction(offs + ehReader.ReadByte());
+				offs = ehReader.ReadUInt16();
 				eh.HandlerStart = GetInstruction(offs);
-				eh.HandlerEnd = GetInstruction(offs + reader.ReadByte());
+				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadByte());
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					eh.CatchType = module.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
+					eh.CatchType = module.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
-					eh.FilterStart = GetInstruction(reader.ReadUInt32());
+					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else
-					reader.ReadUInt32();
+					ehReader.ReadUInt32();
 				Add(eh);
 			}
 		}
