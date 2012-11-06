@@ -133,7 +133,7 @@ namespace dot10.DotNet.Writer {
 
 			// We'll resurrect every single type, field, method, param, event and property,
 			// so make sure that whatever was deleted stays deleted.
-			if (mod.MetaData.TablesStream.HasDelete)
+			if (mod.MetaData.TablesStream.Name == "#-" && mod.MetaData.TablesStream.HasDelete)
 				tablesHeap.HasDeletedRows = true;
 		}
 
