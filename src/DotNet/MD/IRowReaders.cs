@@ -16,7 +16,7 @@
 	}
 
 	/// <summary>
-	/// Reads <c>Method</c> table rows
+	/// Reads table rows
 	/// </summary>
 	public interface IRowReader<T> where T : class {
 		/// <summary>
