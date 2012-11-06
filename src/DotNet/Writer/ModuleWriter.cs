@@ -96,7 +96,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Initializes some fields from a module
+		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>
 		public ModuleWriterOptions(ModuleDef module)
@@ -104,7 +104,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Initializes some fields from a module
+		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>
 		/// <param name="listener">Module writer listener</param>
