@@ -343,6 +343,33 @@ namespace dot10.DotNet {
 		public static ElementType GetElementType(this TypeSig a) {
 			return a == null ? ElementType.End : a.ElementType;
 		}
+
+		/// <summary>
+		/// Gets the full name of the type
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>Full name of the type</returns>
+		public static string GetFullName(this TypeSig a) {
+			return a == null ? string.Empty : a.FullName;
+		}
+
+		/// <summary>
+		/// Gets the name of the type
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>Name of the type</returns>
+		public static string GetName(this TypeSig a) {
+			return a == null ? string.Empty : a.TypeName;
+		}
+
+		/// <summary>
+		/// Gets the namespace of the type
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>Namespace of the type</returns>
+		public static string GetNamespace(this TypeSig a) {
+			return a == null ? string.Empty : a.Namespace;
+		}
 	}
 
 	/// <summary>

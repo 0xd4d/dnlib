@@ -1028,5 +1028,15 @@ namespace dot10.DotNet {
 		public static IList<TypeSig> GetGenericArguments(this GenericInstMethodSig sig) {
 			return sig == null ? new List<TypeSig>() : sig.GenericArguments;
 		}
+
+		/// <summary>
+		/// Gets the <see cref="CallingConventionSig.IsDefault"/> property
+		/// </summary>
+		/// <param name="sig">this</param>
+		/// <returns>The type's <see cref="CallingConventionSig.IsDefault"/> property or
+		/// <c>false</c> if input is<c>null</c></returns>
+		public static bool GetIsDefault(this CallingConventionSig sig) {
+			return sig == null ? false : sig.IsDefault;
+		}
 	}
 }
