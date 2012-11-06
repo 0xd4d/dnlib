@@ -118,6 +118,11 @@
 			var table = Get(Table.Method);
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
+			if (methodRowReader != null) {
+				var row = methodRowReader.ReadRow(rid);
+				if (row != null)
+					return row;
+			}
 			var reader = table.ImageStream;
 			var tableInfo = table.TableInfo;
 			var columns = tableInfo.Columns;
@@ -835,6 +840,8 @@
 				value = 0;
 				return false;
 			}
+			if (columnReader != null && columnReader.ReadColumn(tbl, rid, column, out value))
+				return true;
 			var reader = tbl.ImageStream;
 			reader.Position = (rid - 1) * tbl.TableInfo.RowSize + column.Offset;
 			value = column.Read(reader);

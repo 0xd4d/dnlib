@@ -19,6 +19,25 @@ namespace dot10.DotNet.MD {
 		uint extraData;
 		MDTable[] mdTables;
 
+		IColumnReader columnReader;
+		IRowReader<RawMethodRow> methodRowReader;
+
+		/// <summary>
+		/// Gets/sets the column reader
+		/// </summary>
+		public IColumnReader ColumnReader {
+			get { return columnReader; }
+			set { columnReader = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <c>Method</c> table reader
+		/// </summary>
+		public IRowReader<RawMethodRow> MethodRowReader {
+			get { return methodRowReader; }
+			set { methodRowReader = value; }
+		}
+
 		/// <summary>
 		/// Gets <see cref="MDStreamFlags"/>
 		/// </summary>
