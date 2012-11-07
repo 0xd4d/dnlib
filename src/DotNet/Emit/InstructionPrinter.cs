@@ -78,7 +78,7 @@ namespace dot10.DotNet.Emit {
 			case OperandType.InlineR:
 			case OperandType.ShortInlineI:
 			case OperandType.ShortInlineR:
-				sb.Append(string.Format(" {0}", instr.Operand));
+				sb.Append(string.Format("{0}{1}", extra, instr.Operand));
 				break;
 
 			case OperandType.InlineSig:
