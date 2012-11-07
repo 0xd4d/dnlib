@@ -427,7 +427,8 @@ namespace dot10.DotNet.Writer {
 			if (hasWin32Resources)
 				win32Resources = new Win32Resources();
 
-			importDirectory.IsExeFile = Options.IsExeFile;
+			if (importDirectory != null)
+				importDirectory.IsExeFile = Options.IsExeFile;
 			peHeaders.IsExeFile = Options.IsExeFile;
 		}
 
