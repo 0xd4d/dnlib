@@ -9,6 +9,7 @@ namespace dot10.DotNet.Emit {
 	/// </summary>
 	public sealed class MethodBodyReader : MethodBodyReaderBase {
 		readonly ModuleDefMD module;
+		bool hasReadHeader;
 		ushort flags;
 		ushort maxStack;
 		uint codeSize;
@@ -71,6 +72,33 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
+		/// a valid CIL method body.
+		/// </summary>
+		/// <param name="module">The reader module</param>
+		/// <param name="code">All code</param>
+		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
+		/// <paramref name="code"/></param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="flags">Method header flags, eg. 2 if tiny method</param>
+		/// <param name="maxStack">Max stack</param>
+		/// <param name="codeSize">Code size</param>
+		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
+		public static CilBody Create(ModuleDefMD module, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
+			try {
+				var codeReader = MemoryImageStream.Create(code);
+				var ehReader = exceptions == null ? null : MemoryImageStream.Create(exceptions);
+				var mbReader = new MethodBodyReader(module, codeReader, ehReader, parameters);
+				mbReader.SetHeader(flags, maxStack, codeSize, localVarSigTok);
+				mbReader.Read();
+				return mbReader.CreateCilBody();
+			}
+			catch (InvalidMethodException) {
+				return new CilBody();
+			}
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The reader module</param>
@@ -105,6 +133,21 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Initializes the method header
+		/// </summary>
+		/// <param name="flags">Header flags, eg. 2 if it's a tiny method</param>
+		/// <param name="maxStack">Max stack</param>
+		/// <param name="codeSize">Code size</param>
+		/// <param name="localVarSigTok">Local variable signature token</param>
+		void SetHeader(ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
+			hasReadHeader = true;
+			this.flags = flags;
+			this.maxStack = maxStack;
+			this.codeSize = codeSize;
+			this.localVarSigTok = localVarSigTok;
+		}
+
+		/// <summary>
 		/// Reads the method body header, locals, all instructions, and the exception handlers (if any)
 		/// </summary>
 		/// <exception cref="InvalidMethodException">If it's an invalid method body. It's not thrown
@@ -133,6 +176,10 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <exception cref="InvalidMethodException">If the header is invalid</exception>
 		void ReadHeader() {
+			if (hasReadHeader)
+				return;
+			hasReadHeader = true;
+
 			byte b = reader.ReadByte();
 			switch (b & 7) {
 			case 2:
