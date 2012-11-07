@@ -50,8 +50,7 @@ namespace dot10.DotNet.Writer {
 		public ByteArrayChunk Add(IImageStream stream) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			stream.Position = 0;
-			var rawData = stream.ReadBytes((int)stream.Length);
+			var rawData = stream.ReadAllBytes();
 			length = Utils.AlignUp(length + 4 + (uint)rawData.Length, alignment);
 			var data = new ByteArrayChunk(rawData);
 			resources.Add(data);

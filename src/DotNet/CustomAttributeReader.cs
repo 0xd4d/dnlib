@@ -153,8 +153,7 @@ namespace dot10.DotNet {
 		}
 
 		byte[] GetRawBlob() {
-			reader.Position = 0;
-			return reader.ReadBytes((int)reader.Length);
+			return reader.ReadAllBytes();
 		}
 
 		CustomAttribute Read() {

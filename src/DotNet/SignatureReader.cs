@@ -97,7 +97,7 @@ namespace dot10.DotNet {
 		byte[] GetExtraData() {
 			if (reader.Position >= reader.Length)
 				return null;
-			return reader.ReadBytes((int)(reader.Length - reader.Position));
+			return reader.ReadRemainingBytes();
 		}
 
 		/// <summary>

@@ -117,6 +117,27 @@ namespace dot10.IO {
 
 	public static partial class IOExtensions {
 		/// <summary>
+		/// Reads all remaining bytes
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>All remaining bytes</returns>
+		public static byte[] ReadRemainingBytes(this IBinaryReader reader) {
+			if (reader.Position >= reader.Length)
+				return new byte[0];
+			return reader.ReadBytes((int)(reader.Length - reader.Position));
+		}
+
+		/// <summary>
+		/// Reads all bytes
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>All bytes</returns>
+		public static byte[] ReadAllBytes(this IBinaryReader reader) {
+			reader.Position = 0;
+			return reader.ReadBytes((int)reader.Length);
+		}
+
+		/// <summary>
 		/// Reads a <see cref="Boolean"/> from the current position and increments <see cref="IBinaryReader.Position"/> by 1
 		/// </summary>
 		/// <param name="self">this</param>
