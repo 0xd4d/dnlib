@@ -1046,7 +1046,7 @@ namespace dot10.DotNet.Writer {
 		/// a <see cref="MethodDef"/>, it will have already been added.
 		/// </summary>
 		void InitializeEntryPoint() {
-			var epFile = module.EntryPoint as FileDef;
+			var epFile = module.ManagedEntryPoint as FileDef;
 			if (epFile != null)
 				AddFile(epFile);
 		}

@@ -110,21 +110,36 @@ namespace dot10.DotNet {
 
 		/// <summary>
 		/// Gets/sets the native entry point. Only one of <see cref="NativeEntryPoint"/> and
-		/// <see cref="EntryPoint"/> can be set. You write to one and the other one gets cleared.
+		/// <see cref="ManagedEntryPoint"/> can be set. You write to one and the other one gets cleared.
 		/// </summary>
 		public abstract RVA NativeEntryPoint { get; set; }
 
 		/// <summary>
 		/// Gets/sets the managed entry point. Only one of <see cref="NativeEntryPoint"/> and
-		/// <see cref="EntryPoint"/> can be set. You write to one and the other one gets cleared.
+		/// <see cref="ManagedEntryPoint"/> can be set. You write to one and the other one gets cleared.
 		/// </summary>
-		public abstract IManagedEntryPoint EntryPoint { get; set; }
+		public abstract IManagedEntryPoint ManagedEntryPoint { get; set; }
+
+		/// <summary>
+		/// Gets/sets the entry point method
+		/// </summary>
+		public MethodDef EntryPoint {
+			get { return ManagedEntryPoint as MethodDef; }
+			set { ManagedEntryPoint = value; }
+		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="NativeEntryPoint"/> is non-zero
 		/// </summary>
 		public bool IsNativeEntryPointValid {
 			get { return NativeEntryPoint != 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ManagedEntryPoint"/> is non-null
+		/// </summary>
+		public bool IsManagedEntryPointValid {
+			get { return ManagedEntryPoint != null; }
 		}
 
 		/// <summary>
@@ -804,7 +819,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IManagedEntryPoint EntryPoint {
+		public override IManagedEntryPoint ManagedEntryPoint {
 			get { return managedEntryPoint; }
 			set {
 				nativeEntryPoint = 0;
@@ -975,7 +990,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IManagedEntryPoint EntryPoint {
+		public override IManagedEntryPoint ManagedEntryPoint {
 			get { return managedEntryPoint.Value; }
 			set {
 				nativeEntryPoint.Value = 0;

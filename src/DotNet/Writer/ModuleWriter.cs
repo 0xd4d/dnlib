@@ -521,11 +521,11 @@ namespace dot10.DotNet.Writer {
 		}
 
 		uint GetEntryPoint() {
-			var methodEntryPoint = module.EntryPoint as MethodDef;
+			var methodEntryPoint = module.ManagedEntryPoint as MethodDef;
 			if (methodEntryPoint != null)
 				return new MDToken(Table.Method, metaData.GetRid(methodEntryPoint)).Raw;
 
-			var fileEntryPoint = module.EntryPoint as FileDef;
+			var fileEntryPoint = module.ManagedEntryPoint as FileDef;
 			if (fileEntryPoint != null)
 				return new MDToken(Table.File, metaData.GetRid(fileEntryPoint)).Raw;
 
