@@ -370,6 +370,17 @@ namespace dot10.DotNet {
 		public static string GetNamespace(this TypeSig a) {
 			return a == null ? string.Empty : a.Namespace;
 		}
+
+		/// <summary>
+		/// Returns the <see cref="TypeDef"/> if it is a <see cref="TypeDefOrRefSig"/>.
+		/// Nothing is resolved.
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if none found</returns>
+		public static TypeDef TryGetTypeDef(this TypeSig a) {
+			var tdr = a.RemovePinnedAndModifiers() as TypeDefOrRefSig;
+			return tdr == null ? null : tdr.TypeDef;
+		}
 	}
 
 	/// <summary>
