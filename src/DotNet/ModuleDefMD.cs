@@ -1315,6 +1315,18 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets all <see cref="MemberRef"/>s
+		/// </summary>
+		public IEnumerable<MemberRef> GetMemberRefs() {
+			for (uint rid = 1; ; rid++) {
+				var mr = ResolveMemberRef(rid);
+				if (mr == null)
+					break;
+				yield return mr;
+			}
+		}
+
+		/// <summary>
 		/// Reads a new <see cref="FieldDefMD"/> instance. This one is not cached.
 		/// </summary>
 		/// <param name="rid">Row ID</param>
