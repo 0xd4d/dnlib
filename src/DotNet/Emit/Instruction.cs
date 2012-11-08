@@ -193,7 +193,7 @@ namespace dot10.DotNet.Emit {
 		/// <param name="field">The field</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, IField field) {
-			if (opCode.OperandType != OperandType.InlineField)
+			if (opCode.OperandType != OperandType.InlineField && opCode.OperandType != OperandType.InlineTok)
 				throw new ArgumentException("Opcode does not have a field operand", "opCode");
 			return new Instruction(opCode, field);
 		}
@@ -205,7 +205,7 @@ namespace dot10.DotNet.Emit {
 		/// <param name="method">The method</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, IMethod method) {
-			if (opCode.OperandType != OperandType.InlineMethod)
+			if (opCode.OperandType != OperandType.InlineMethod && opCode.OperandType != OperandType.InlineTok)
 				throw new ArgumentException("Opcode does not have a method operand", "opCode");
 			return new Instruction(opCode, method);
 		}
