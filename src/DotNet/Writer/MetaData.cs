@@ -2048,7 +2048,7 @@ namespace dot10.DotNet.Writer {
 				return rid;
 			exportedTypeInfos.Add(et, 0);	// Prevent inf recursion
 			var row = new RawExportedTypeRow((uint)et.Flags,
-						et.TypeDefId,
+						et.TypeDefId,	//TODO: Should be updated with the new rid
 						stringsHeap.Add(et.TypeName),
 						stringsHeap.Add(et.TypeNamespace),
 						AddImplementation(et));
@@ -2065,7 +2065,13 @@ namespace dot10.DotNet.Writer {
 		/// <param name="extraData">Extra data to append the signature</param>
 		/// <returns>#Blob offset</returns>
 		protected uint GetSignature(TypeSig ts, byte[] extraData) {
-			var blob = ts == null ? null : SignatureWriter.Write(this, ts);
+			byte[] blob;
+			if (ts == null) {
+				Error("TypeSig is null");
+				blob = null;
+			}
+			else
+				blob = SignatureWriter.Write(this, ts);
 			AppendExtraData(ref blob, extraData);
 			return blobHeap.Add(blob);
 		}
