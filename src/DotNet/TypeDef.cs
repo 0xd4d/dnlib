@@ -261,6 +261,13 @@ namespace dot10.DotNet {
 			get { return NestedTypes.Count > 0; }
 		}
 
+		/// <summary>
+		/// <c>true</c> if there's at least one <see cref="InterfaceImpl"/> in <see cref="InterfaceImpls"/>
+		/// </summary>
+		public bool HasInterfaces {
+			get { return InterfaceImpls.Count > 0; }
+		}
+
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
