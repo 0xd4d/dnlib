@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using dot10.IO;
 using dot10.DotNet.MD;
 
@@ -171,6 +172,14 @@ namespace dot10.DotNet {
 		/// <param name="flags">Resource flags</param>
 		public EmbeddedResource(string name, IImageStream dataStream, ManifestResourceAttributes flags)
 			: this(new UTF8String(name), dataStream, flags) {
+		}
+
+		/// <summary>
+		/// Gets the resource data as a <see cref="Stream"/>
+		/// </summary>
+		/// <returns>A stream</returns>
+		public Stream GetResourceStream() {
+			return Data.Create(0).CreateStream();
 		}
 
 		/// <inheritdoc/>
