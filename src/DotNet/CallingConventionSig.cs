@@ -597,6 +597,36 @@ namespace dot10.DotNet {
 			this.retType = retType;
 			this.parameters = new List<TypeSig>(argTypes);
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention</param>
+		/// <param name="genParamCount">Number of generic parameters</param>
+		/// <param name="retType">Return type</param>
+		/// <param name="argTypes">Argument types</param>
+		public MethodSig(CallingConvention callingConvention, uint genParamCount, TypeSig retType, IList<TypeSig> argTypes) {
+			this.callingConvention = callingConvention;
+			this.genParamCount = genParamCount;
+			this.retType = retType;
+			this.parameters = new List<TypeSig>(argTypes);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention</param>
+		/// <param name="genParamCount">Number of generic parameters</param>
+		/// <param name="retType">Return type</param>
+		/// <param name="argTypes">Argument types</param>
+		/// <param name="paramsAfterSentinel">Parameters after sentinel</param>
+		public MethodSig(CallingConvention callingConvention, uint genParamCount, TypeSig retType, IList<TypeSig> argTypes, IList<TypeSig> paramsAfterSentinel) {
+			this.callingConvention = callingConvention;
+			this.genParamCount = genParamCount;
+			this.retType = retType;
+			this.parameters = new List<TypeSig>(argTypes);
+			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : new List<TypeSig>(paramsAfterSentinel);
+		}
 	}
 
 	/// <summary>
@@ -783,6 +813,22 @@ namespace dot10.DotNet {
 			this.callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
 			this.parameters = new List<TypeSig>(argTypes);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="callingConvention">Calling convention</param>
+		/// <param name="genParamCount">Number of generic parameters</param>
+		/// <param name="retType">Return type</param>
+		/// <param name="argTypes">Argument types</param>
+		/// <param name="paramsAfterSentinel">Parameters after sentinel</param>
+		internal PropertySig(CallingConvention callingConvention, uint genParamCount, TypeSig retType, IList<TypeSig> argTypes, IList<TypeSig> paramsAfterSentinel) {
+			this.callingConvention = callingConvention;
+			this.genParamCount = genParamCount;
+			this.retType = retType;
+			this.parameters = new List<TypeSig>(argTypes);
+			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : new List<TypeSig>(paramsAfterSentinel);
 		}
 	}
 
