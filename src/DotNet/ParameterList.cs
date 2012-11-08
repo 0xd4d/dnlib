@@ -244,6 +244,13 @@ namespace dot10.DotNet {
 		public const int RETURN_TYPE_METHOD_SIG_INDEX = -1;
 
 		/// <summary>
+		/// <c>true</c> if this <see cref="Parameter"/> is inserted in a <see cref="ParameterList"/>
+		/// </summary>
+		public bool IsInserted {
+			get { return parameterList != null; }
+		}
+
+		/// <summary>
 		/// Gets the parameter index. If the method has a hidden 'this' parameter, that parameter
 		/// has index 0 and the remaining parameters in the method signature start from index 1.
 		/// The method return parameter has index <c>-1</c>.
@@ -289,7 +296,8 @@ namespace dot10.DotNet {
 			get { return typeSig; }
 			set {
 				typeSig = value;
-				parameterList.TypeUpdated(this);
+				if (parameterList != null)
+					parameterList.TypeUpdated(this);
 			}
 		}
 
@@ -297,14 +305,14 @@ namespace dot10.DotNet {
 		/// Gets the owner method
 		/// </summary>
 		public MethodDef Method {
-			get { return parameterList.Method; }
+			get { return parameterList == null ? null : parameterList.Method; }
 		}
 
 		/// <summary>
 		/// Gets the <see cref="dot10.DotNet.ParamDef"/> or <c>null</c> if not present
 		/// </summary>
 		public ParamDef ParamDef {
-			get { return parameterList.FindParamDef(this); }
+			get { return parameterList == null ? null : parameterList.FindParamDef(this); }
 		}
 
 		/// <summary>
@@ -330,6 +338,48 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="paramIndex">Parameter index</param>
+		public Parameter(int paramIndex) {
+			this.paramIndex = paramIndex;
+			this.methodSigIndex = paramIndex;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="paramIndex">Parameter index</param>
+		/// <param name="type">Parameter type</param>
+		public Parameter(int paramIndex, TypeSig type) {
+			this.paramIndex = paramIndex;
+			this.methodSigIndex = paramIndex;
+			this.typeSig = type;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="paramIndex">Parameter index (0 is hidden this param if it exists)</param>
+		/// <param name="methodSigIndex">Index in method signature</param>
+		public Parameter(int paramIndex, int methodSigIndex) {
+			this.paramIndex = paramIndex;
+			this.methodSigIndex = methodSigIndex;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="paramIndex">Parameter index (0 is hidden this param if it exists)</param>
+		/// <param name="methodSigIndex">Index in method signature</param>
+		/// <param name="type">Parameter type</param>
+		public Parameter(int paramIndex, int methodSigIndex, TypeSig type) {
+			this.paramIndex = paramIndex;
+			this.methodSigIndex = methodSigIndex;
+			this.typeSig = type;
+		}
+
 		internal Parameter(ParameterList parameterList, int paramIndex, int methodSigIndex) {
 			this.parameterList = parameterList;
 			this.paramIndex = paramIndex;
@@ -340,7 +390,8 @@ namespace dot10.DotNet {
 		/// Creates a <see cref="dot10.DotNet.ParamDef"/> if it doesn't already exist
 		/// </summary>
 		public void CreateParamDef() {
-			parameterList.CreateParamDef(this);
+			if (parameterList != null)
+				parameterList.CreateParamDef(this);
 		}
 
 		/// <inheritdoc/>
