@@ -197,6 +197,19 @@ namespace dot10.IO {
 		}
 
 		/// <summary>
+		/// Reads chars
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="length">Number of <see cref="char"/>s to read</param>
+		/// <returns>All the chars</returns>
+		public static char[] ReadChars(this IBinaryReader reader, int length) {
+			var chars = new char[length];
+			for (int i = 0; i < length; i++)
+				chars[i] = (char)reader.ReadUInt16();
+			return chars;
+		}
+
+		/// <summary>
 		/// Reads a compressed <see cref="uint"/> from the current position in <paramref name="reader"/>
 		/// </summary>
 		/// <remarks>Max value it can return is <c>0x1FFFFFFF</c></remarks>
@@ -290,6 +303,30 @@ namespace dot10.IO {
 
 			val = 0;
 			return false;
+		}
+
+		/// <summary>
+		/// Reads a compressed <see cref="uint"/> from the current position in <paramref name="reader"/>
+		/// </summary>
+		/// <param name="reader">The reader</param>
+		/// <returns>The value</returns>
+		public static uint ReadCompressedUInt32(this IBinaryReader reader) {
+			uint val;
+			if (!reader.ReadCompressedUInt32(out val))
+				throw new IOException("Could not read a compressed UInt32");
+			return val;
+		}
+
+		/// <summary>
+		/// Reads a compressed <see cref="int"/> from the current position in <paramref name="reader"/>
+		/// </summary>
+		/// <param name="reader">The reader</param>
+		/// <returns>The value</returns>
+		public static int ReadCompressedInt32(this IBinaryReader reader) {
+			int val;
+			if (!reader.ReadCompressedInt32(out val))
+				throw new IOException("Could not read a compressed Int32");
+			return val;
 		}
 
 		/// <summary>
