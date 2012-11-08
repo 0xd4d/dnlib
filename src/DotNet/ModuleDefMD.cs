@@ -1327,6 +1327,25 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Finds an assembly reference by name. If there's more than one, pick the one with
+		/// the greatest version number.
+		/// </summary>
+		/// <param name="simpleName">Simple name of assembly (eg. "mscorlib")</param>
+		/// <returns>The found <see cref="AssemblyRef"/> or <c>null</c> if there's no such
+		/// assembly reference.</returns>
+		public AssemblyRef GetAssemblyRef(string simpleName) {
+			var simpleName2 = new UTF8String(simpleName);
+			AssemblyRef found = null;
+			foreach (var asmRef in GetAssemblyRefs()) {
+				if (asmRef.Name != simpleName2)
+					continue;
+				if (found == null || found.Version == null || (asmRef.Version != null && asmRef.Version > found.Version))
+					found = asmRef;
+			}
+			return found;
+		}
+
+		/// <summary>
 		/// Reads a new <see cref="FieldDefMD"/> instance. This one is not cached.
 		/// </summary>
 		/// <param name="rid">Row ID</param>
