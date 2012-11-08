@@ -92,8 +92,7 @@ namespace dot10.DotNet {
 		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs) {
 			var fnc = new FullNameCreator(false, null);
 			if (typeGenArgs != null) {
-				if (fnc.genericArguments == null)
-					fnc.genericArguments = new GenericArguments();
+				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
 
@@ -123,8 +122,7 @@ namespace dot10.DotNet {
 		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs) {
 			var fnc = new FullNameCreator(false, null);
 			if (typeGenArgs != null) {
-				if (fnc.genericArguments == null)
-					fnc.genericArguments = new GenericArguments();
+				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
 
@@ -177,8 +175,7 @@ namespace dot10.DotNet {
 		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
 			var fnc = new FullNameCreator(false, null);
 			if (typeGenArgs != null) {
-				if (fnc.genericArguments == null)
-					fnc.genericArguments = new GenericArguments();
+				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
 
@@ -256,7 +253,7 @@ namespace dot10.DotNet {
 		/// <returns>Method full name</returns>
 		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
 			var fnc = new FullNameCreator(false, null);
-			if ((typeGenArgs != null || methodGenArgs != null) && fnc.genericArguments == null)
+			if (typeGenArgs != null || methodGenArgs != null)
 				fnc.genericArguments = new GenericArguments();
 			if (typeGenArgs != null)
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
@@ -619,7 +616,7 @@ namespace dot10.DotNet {
 		/// <returns>The full name</returns>
 		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
 			var fnc = new FullNameCreator(isReflection, helper);
-			if (fnc.genericArguments == null && (typeGenArgs != null || methodGenArgs != null))
+			if (typeGenArgs != null || methodGenArgs != null)
 				fnc.genericArguments = new GenericArguments();
 			if (typeGenArgs != null)
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
@@ -1050,6 +1047,15 @@ namespace dot10.DotNet {
 			CreateTypeSigName(typeSig, TYPESIG_NAME);
 		}
 
+		TypeSig ReplaceGenericArg(TypeSig typeSig) {
+			if (genericArguments == null)
+				return typeSig;
+			var newTypeSig = genericArguments.Resolve(typeSig);
+			if (newTypeSig != typeSig)
+				genericArguments = null;
+			return newTypeSig;
+		}
+
 		const int TYPESIG_NAMESPACE = 1;
 		const int TYPESIG_NAME = 2;
 		void CreateTypeSigName(TypeSig typeSig, int flags) {
@@ -1062,8 +1068,8 @@ namespace dot10.DotNet {
 				return;
 			}
 
-			if (genericArguments != null)
-				typeSig = genericArguments.Resolve(typeSig);
+			var old = genericArguments;
+			typeSig = ReplaceGenericArg(typeSig);
 
 			bool createNamespace = (flags & TYPESIG_NAMESPACE) != 0;
 			bool createName = (flags & TYPESIG_NAME) != 0;
@@ -1196,11 +1202,7 @@ namespace dot10.DotNet {
 			case ElementType.GenericInst:
 				var genericInstSig = (GenericInstSig)typeSig;
 				var typeGenArgs = genericInstSig.GenericArguments;
-				if (genericArguments == null)
-					genericArguments = new GenericArguments();
-				genericArguments.PushTypeArgs(typeGenArgs);
 				CreateTypeSigName(genericInstSig.GenericType, flags);
-				genericArguments.PopTypeArgs();
 				if (createNamespace && createName) {
 					if (isReflection) {
 						sb.Append('[');
@@ -1272,6 +1274,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
+			genericArguments = old;
 			recursionCounter.Decrement();
 		}
 
@@ -1586,8 +1589,8 @@ namespace dot10.DotNet {
 				return null;
 			IAssembly result;
 
-			if (genericArguments != null)
-				typeSig = genericArguments.Resolve(typeSig);
+			var old = genericArguments;
+			typeSig = ReplaceGenericArg(typeSig);
 
 			switch (typeSig.ElementType) {
 			case ElementType.Void:
@@ -1628,11 +1631,7 @@ namespace dot10.DotNet {
 			case ElementType.GenericInst:
 				var genericInstSig = (GenericInstSig)typeSig;
 				var genericType = genericInstSig.GenericType;
-				if (genericArguments == null)
-					genericArguments = new GenericArguments();
-				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
 				result = GetDefinitionAssembly(genericType == null ? null : genericType.TypeDefOrRef);
-				genericArguments.PopTypeArgs();
 				break;
 
 			case ElementType.Var:
@@ -1647,6 +1646,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
+			genericArguments = old;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1658,8 +1658,8 @@ namespace dot10.DotNet {
 				return null;
 			ITypeDefOrRef result;
 
-			if (genericArguments != null)
-				typeSig = genericArguments.Resolve(typeSig);
+			var old = genericArguments;
+			typeSig = ReplaceGenericArg(typeSig);
 
 			switch (typeSig.ElementType) {
 			case ElementType.Void:
@@ -1700,11 +1700,7 @@ namespace dot10.DotNet {
 			case ElementType.GenericInst:
 				var genericInstSig = (GenericInstSig)typeSig;
 				var genericType = genericInstSig.GenericType;
-				if (genericArguments == null)
-					genericArguments = new GenericArguments();
-				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
 				result = GetScopeType(genericType == null ? null : genericType.TypeDefOrRef);
-				genericArguments.PopTypeArgs();
 				break;
 
 			case ElementType.Var:
@@ -1722,6 +1718,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
+			genericArguments = old;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1733,8 +1730,8 @@ namespace dot10.DotNet {
 				return null;
 			IScope result;
 
-			if (genericArguments != null)
-				typeSig = genericArguments.Resolve(typeSig);
+			var old = genericArguments;
+			typeSig = ReplaceGenericArg(typeSig);
 
 			switch (typeSig.ElementType) {
 			case ElementType.Void:
@@ -1775,11 +1772,7 @@ namespace dot10.DotNet {
 			case ElementType.GenericInst:
 				var genericInstSig = (GenericInstSig)typeSig;
 				var genericType = genericInstSig.GenericType;
-				if (genericArguments == null)
-					genericArguments = new GenericArguments();
-				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
 				result = GetScope(genericType == null ? null : genericType.TypeDefOrRef);
-				genericArguments.PopTypeArgs();
 				break;
 
 			case ElementType.Var:
@@ -1794,6 +1787,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
+			genericArguments = old;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1805,8 +1799,8 @@ namespace dot10.DotNet {
 				return null;
 			ModuleDef result;
 
-			if (genericArguments != null)
-				typeSig = genericArguments.Resolve(typeSig);
+			var old = genericArguments;
+			typeSig = ReplaceGenericArg(typeSig);
 
 			switch (typeSig.ElementType) {
 			case ElementType.Void:
@@ -1847,11 +1841,7 @@ namespace dot10.DotNet {
 			case ElementType.GenericInst:
 				var genericInstSig = (GenericInstSig)typeSig;
 				var genericType = genericInstSig.GenericType;
-				if (genericArguments == null)
-					genericArguments = new GenericArguments();
-				genericArguments.PushTypeArgs(genericInstSig.GenericArguments);
 				result = GetOwnerModule(genericType == null ? null : genericType.TypeDefOrRef);
-				genericArguments.PopTypeArgs();
 				break;
 
 			case ElementType.Var:
@@ -1866,6 +1856,7 @@ namespace dot10.DotNet {
 				break;
 			}
 
+			genericArguments = old;
 			recursionCounter.Decrement();
 			return result;
 		}
