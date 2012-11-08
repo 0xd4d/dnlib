@@ -182,6 +182,14 @@ namespace dot10.DotNet {
 			return Data.Create(0).CreateStream();
 		}
 
+		/// <summary>
+		/// Gets the resource data as a byte array
+		/// </summary>
+		/// <returns>The resource data</returns>
+		public byte[] GetResourceData() {
+			return Data.ReadAllBytes();
+		}
+
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
 			if (!disposing)
