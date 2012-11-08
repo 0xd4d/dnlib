@@ -6,13 +6,56 @@ using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
+	/// <see cref="Importer"/> options
+	/// </summary>
+	[Flags]
+	public enum ImporterOptions {
+		/// <summary>
+		/// Use <see cref="TypeDef"/>s whenever possible if the <see cref="TypeDef"/> is located
+		/// in this module.
+		/// </summary>
+		TryToUseTypeDefs = 1,
+
+		/// <summary>
+		/// Don't set this flag. For internal use only.
+		/// </summary>
+		FixSignature = 0x80,
+	}
+
+	/// <summary>
 	/// Imports <see cref="Type"/>s, <see cref="ConstructorInfo"/>s, <see cref="MethodInfo"/>s
 	/// and <see cref="FieldInfo"/>s as references
 	/// </summary>
 	public struct Importer {
 		ModuleDef ownerModule;
 		RecursionCounter recursionCounter;
-		bool fixSignature;
+		ImporterOptions options;
+
+		/// <summary>
+		/// Gets/sets the <see cref="ImporterOptions.TryToUseTypeDefs"/> bit
+		/// </summary>
+		public bool TryToUseTypeDefs {
+			get { return (options & ImporterOptions.TryToUseTypeDefs) != 0; }
+			set {
+				if (value)
+					options |= ImporterOptions.TryToUseTypeDefs;
+				else
+					options &= ~ImporterOptions.TryToUseTypeDefs;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ImporterOptions.FixSignature"/> bit
+		/// </summary>
+		bool FixSignature {
+			get { return (options & ImporterOptions.FixSignature) != 0; }
+			set {
+				if (value)
+					options |= ImporterOptions.FixSignature;
+				else
+					options &= ~ImporterOptions.FixSignature;
+			}
+		}
 
 		/// <summary>
 		/// Constructor
@@ -21,7 +64,18 @@ namespace dot10.DotNet {
 		public Importer(ModuleDef ownerModule) {
 			this.ownerModule = ownerModule;
 			this.recursionCounter = new RecursionCounter();
-			this.fixSignature = false;
+			this.options = 0;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">The module that will own all references</param>
+		/// <param name="options">Importer options</param>
+		public Importer(ModuleDef ownerModule, ImporterOptions options) {
+			this.ownerModule = ownerModule;
+			this.recursionCounter = new RecursionCounter();
+			this.options = options;
 		}
 
 		/// <summary>
@@ -83,11 +137,11 @@ namespace dot10.DotNet {
 			case ElementType.MVar:		return new GenericMVar((uint)type.GenericParameterPosition);
 
 			case ElementType.I:
-				fixSignature = true;	// FnPtr is mapped to System.IntPtr
+				FixSignature = true;	// FnPtr is mapped to System.IntPtr
 				return ownerModule.CorLibTypes.IntPtr;
 
 			case ElementType.Array:
-				fixSignature = true;	// We don't know sizes and lower bounds
+				FixSignature = true;	// We don't know sizes and lower bounds
 				return new ArraySig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst), (uint)type.GetArrayRank());
 
 			case ElementType.GenericInst:
@@ -112,10 +166,55 @@ namespace dot10.DotNet {
 			}
 		}
 
-		TypeRef CreateTypeRef(Type type) {
+		ITypeDefOrRef TryResolve(TypeRef tr) {
+			if (!IsThisModule(tr))
+				return tr;
+			var td = tr.Resolve();
+			if (td == null || td.OwnerModule != ownerModule)
+				return tr;
+			return td;
+		}
+
+		bool IsThisModule(TypeRef tr) {
+			var scopeType = tr.ScopeType as TypeRef;
+			if (scopeType == null)
+				return false;
+
+			if (ownerModule == scopeType.ResolutionScope)
+				return true;
+
+			var modRef = scopeType.ResolutionScope as ModuleRef;
+			if (modRef != null) {
+				return ownerModule.Name == modRef.Name &&
+					Equals(ownerModule.Assembly, scopeType.DefinitionAssembly);
+			}
+
+			var asmRef = scopeType.ResolutionScope as AssemblyRef;
+			return Equals(ownerModule.Assembly, asmRef);
+		}
+
+		static bool Equals(IAssembly a, IAssembly b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			return Utils.Equals(a.Version, b.Version) &&
+				PublicKeyBase.TokenEquals(a.PublicKeyOrToken, b.PublicKeyOrToken) &&
+				UTF8String.Equals(a.Name, b.Name) &&
+				UTF8String.CaseInsensitiveEquals(a.Locale, b.Locale);
+		}
+
+		ITypeDefOrRef CreateTypeRef(Type type) {
+			var tr = CreateTypeRef2(type);
+			if (tr == null || !TryToUseTypeDefs)
+				return tr;
+			return TryResolve(tr);
+		}
+
+		TypeRef CreateTypeRef2(Type type) {
 			if (!type.IsNested)
 				return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace ?? string.Empty, type.Name ?? string.Empty, CreateScopeReference(type)));
-			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, string.Empty, type.Name ?? string.Empty, CreateTypeRef(type.DeclaringType)));
+			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, string.Empty, type.Name ?? string.Empty, CreateTypeRef2(type.DeclaringType)));
 		}
 
 		IResolutionScope CreateScopeReference(Type type) {
@@ -152,7 +251,7 @@ namespace dot10.DotNet {
 			if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers))
 				return ImportAsTypeSig(type, treatAsGenericInst);
 
-			fixSignature = true;	// Order of modifiers is unknown
+			FixSignature = true;	// Order of modifiers is unknown
 			var ts = ImportAsTypeSig(type, treatAsGenericInst);
 
 			// We don't know the original order of the modifiers.
@@ -197,7 +296,7 @@ namespace dot10.DotNet {
 		/// <returns>The imported method or <c>null</c> if <paramref name="methodBase"/> is invalid
 		/// or if we failed to import the method</returns>
 		public IMethod Import(MethodBase methodBase, bool forceFixSignature) {
-			fixSignature = false;
+			FixSignature = false;
 			if (methodBase == null)
 				return null;
 
@@ -210,7 +309,7 @@ namespace dot10.DotNet {
 				var method = Import(methodBase.Module.ResolveMethod(methodBase.MetadataToken)) as IMethodDefOrRef;
 				var gim = CreateGenericInstMethodSig(methodBase);
 				var methodSpec = ownerModule.UpdateRowId(new MethodSpecUser(method, gim));
-				if (fixSignature && !forceFixSignature) {
+				if (FixSignature && !forceFixSignature) {
 					//TODO:
 				}
 				return methodSpec;
@@ -241,7 +340,7 @@ namespace dot10.DotNet {
 
 				var methodSig = CreateMethodSig(origMethod);
 				var methodRef = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, methodBase.Name, methodSig, parent));
-				if (fixSignature && !forceFixSignature) {
+				if (FixSignature && !forceFixSignature) {
 					//TODO:
 				}
 				return methodRef;
@@ -292,7 +391,7 @@ namespace dot10.DotNet {
 
 			case CallingConventions.Any:
 			default:
-				fixSignature = true;
+				FixSignature = true;
 				cc |= CallingConvention.Default;
 				break;
 			}
@@ -336,7 +435,7 @@ namespace dot10.DotNet {
 		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
 		/// or if we failed to import the field</returns>
 		public MemberRef Import(FieldInfo fieldInfo, bool forceFixSignature) {
-			fixSignature = false;
+			FixSignature = false;
 			if (fieldInfo == null)
 				return null;
 
@@ -366,7 +465,7 @@ namespace dot10.DotNet {
 
 			var fieldSig = new FieldSig(ImportAsTypeSig(origField.FieldType));
 			var fieldRef = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, fieldInfo.Name, fieldSig, parent));
-			if (fixSignature && !forceFixSignature) {
+			if (FixSignature && !forceFixSignature) {
 				//TODO:
 			}
 			return fieldRef;
@@ -409,7 +508,15 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeRef Import(TypeDef type) {
+		public ITypeDefOrRef Import(TypeDef type) {
+			if (type == null)
+				return null;
+			if (TryToUseTypeDefs && type.OwnerModule == ownerModule)
+				return type;
+			return Import2(type);
+		}
+
+		TypeRef Import2(TypeDef type) {
 			if (type == null)
 				return null;
 			if (!recursionCounter.Increment())
@@ -417,7 +524,7 @@ namespace dot10.DotNet {
 			TypeRef result;
 
 			if (type.DeclaringType != null)
-				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import(type.DeclaringType)));
+				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import2(type.DeclaringType)));
 			else
 				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule)));
 
@@ -446,7 +553,14 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeRef Import(TypeRef type) {
+		public ITypeDefOrRef Import(TypeRef type) {
+			var newType = Import2(type);
+			if (TryToUseTypeDefs)
+				return TryResolve(newType);
+			return newType;
+		}
+
+		TypeRef Import2(TypeRef type) {
 			if (type == null)
 				return null;
 			if (!recursionCounter.Increment())
@@ -455,7 +569,7 @@ namespace dot10.DotNet {
 
 			var declaringType = type.DeclaringType;
 			if (declaringType != null)
-				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import(declaringType)));
+				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import2(declaringType)));
 			else
 				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule)));
 
@@ -529,7 +643,10 @@ namespace dot10.DotNet {
 
 			case ElementType.GenericInst:
 				var gis = (GenericInstSig)type;
-				result = new GenericInstSig(Import(gis.GenericType) as ClassOrValueTypeSig, gis.GenericArguments);
+				var genArgs = new List<TypeSig>(gis.GenericArguments.Count);
+				foreach (var ga in gis.GenericArguments)
+					genArgs.Add(Import(ga));
+				result = new GenericInstSig(Import(gis.GenericType) as ClassOrValueTypeSig, genArgs);
 				break;
 
 			case ElementType.End:

@@ -519,7 +519,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeRef Import(TypeDef type) {
+		public ITypeDefOrRef Import(TypeDef type) {
 			return new Importer(this).Import(type);
 		}
 
@@ -528,7 +528,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeRef Import(TypeRef type) {
+		public ITypeDefOrRef Import(TypeRef type) {
 			return new Importer(this).Import(type);
 		}
 
