@@ -320,7 +320,10 @@ namespace dot10.DotNet {
 		/// Returns the full name of this field
 		/// </summary>
 		public string FullName {
-			get { return FullNameCreator.FieldFullName(FullNameCreator.FullName(DeclaringType, false), Name, FieldSig); }
+			get {
+				var dt = DeclaringType;
+				return FullNameCreator.FieldFullName(dt == null ? null : dt.FullName, Name, FieldSig);
+			}
 		}
 
 		/// <summary>
