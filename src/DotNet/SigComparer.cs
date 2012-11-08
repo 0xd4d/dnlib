@@ -1842,6 +1842,8 @@ namespace dot10.DotNet {
 				return true;
 			if (a == null || b == null)
 				return false;
+			if (!recursionCounter.Increment())
+				return false;
 
 			bool result = Equals((IModule)a, (IModule)b) && Equals(a.Assembly, b.Assembly);
 
