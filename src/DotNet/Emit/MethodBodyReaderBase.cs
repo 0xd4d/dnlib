@@ -55,7 +55,15 @@ namespace dot10.DotNet.Emit {
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		/// <param name="parameters">Method parameters</param>
+		protected MethodBodyReaderBase(IBinaryReader reader)
+			: this(reader, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="reader">The reader</param>
+		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
 		protected MethodBodyReaderBase(IBinaryReader reader, IList<Parameter> parameters) {
 			this.reader = reader;
 			this.parameters = parameters;
@@ -147,6 +155,20 @@ namespace dot10.DotNet.Emit {
 					lo = i + 1;
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Finds an instruction and throws if it's not present
+		/// </summary>
+		/// <param name="offset">Offset of instruction</param>
+		/// <returns>The instruction</returns>
+		/// <exception cref="InvalidOperationException">There's no instruction at
+		/// <paramref name="offset"/></exception>
+		protected Instruction GetInstructionThrow(uint offset) {
+			var instr = GetInstruction(offset);
+			if (instr != null)
+				return instr;
+			throw new InvalidOperationException(string.Format("There's no instruction @ {0:X4}", offset));
 		}
 
 		/// <summary>
