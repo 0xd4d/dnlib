@@ -91,7 +91,7 @@ namespace dot10.DotNet.Emit {
 			instructions = new List<Instruction>(numInstrs);
 			currentOffset = 0;
 			for (int i = 0; i < numInstrs && reader.Position < codeEndOffs; i++)
-				instructions[i] = ReadOneInstruction();
+				instructions.Add(ReadOneInstruction());
 			FixBranches();
 		}
 
