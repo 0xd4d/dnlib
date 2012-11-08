@@ -355,7 +355,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Implemented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
 	/// </summary>
-	public interface IField : ICodedToken, IFullName, IMemberRef {
+	public interface IField : ICodedToken, ITokenOperand, IFullName, IMemberRef {
 		/// <summary>
 		/// Gets/sets the field signature
 		/// </summary>
