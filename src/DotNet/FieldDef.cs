@@ -121,6 +121,14 @@ namespace dot10.DotNet {
 			set { Signature = value; }
 		}
 
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get {
+				var dt = DeclaringType;
+				return dt == null ? null : dt.OwnerModule;
+			}
+		}
+
 		/// <summary>
 		/// Gets/sets the field access
 		/// </summary>

@@ -323,9 +323,19 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
+	/// Implemented by all member refs and types
+	/// </summary>
+	public interface IOwnerModule {
+		/// <summary>
+		/// Gets the owner module
+		/// </summary>
+		ModuleDef OwnerModule { get; }
+	}
+
+	/// <summary>
 	/// Implemented by types, fields, methods, properties, events
 	/// </summary>
-	public interface IMemberRef : IFullName {
+	public interface IMemberRef : IFullName, IOwnerModule {
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>

@@ -2,7 +2,7 @@
 	/// <summary>
 	/// Interface to get the full name of a type
 	/// </summary>
-	public interface IType : IFullName, ICodedToken, IGenericParameterProvider {
+	public interface IType : IFullName, IOwnerModule, ICodedToken, IGenericParameterProvider {
 		/// <summary>
 		/// <c>true</c> if it's a value type
 		/// </summary>
@@ -62,10 +62,5 @@
 		/// <see cref="TypeRef"/> that is found (without searching generic arguments) is returned.
 		/// </summary>
 		ITypeDefOrRef ScopeType { get; }
-
-		/// <summary>
-		/// Gets the owner module.
-		/// </summary>
-		ModuleDef OwnerModule { get; }
 	}
 }

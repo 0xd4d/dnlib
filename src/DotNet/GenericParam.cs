@@ -82,6 +82,14 @@ namespace dot10.DotNet {
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
 		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get {
+				var dt = Owner as IMemberRef;
+				return dt == null ? null : dt.OwnerModule;
+			}
+		}
+
+		/// <inheritdoc/>
 		public string FullName {
 			get { return UTF8String.ToSystemStringOrEmpty(Name); }
 		}

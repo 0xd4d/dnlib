@@ -85,6 +85,14 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get {
+				var m = Method;
+				return m == null ? null : m.OwnerModule;
+			}
+		}
+
 		/// <summary>
 		/// Gets the full name
 		/// </summary>

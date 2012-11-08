@@ -105,6 +105,14 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract TypeDef DeclaringType2 { get; set; }
 
+		/// <inheritdoc/>
+		public ModuleDef OwnerModule {
+			get {
+				var dt = DeclaringType;
+				return dt == null ? null : dt.OwnerModule;
+			}
+		}
+
 		/// <summary>
 		/// Gets the full name of the property
 		/// </summary>
