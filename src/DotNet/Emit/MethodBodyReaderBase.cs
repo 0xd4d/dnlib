@@ -523,5 +523,33 @@ namespace dot10.DotNet.Emit {
 				return 0;
 			return instructions[instructions.Count - 1].Offset;
 		}
+
+		/// <summary>
+		/// Restores a <see cref="MethodDef"/>'s body with the parsed method instructions
+		/// and exception handlers
+		/// </summary>
+		/// <param name="method">The method that gets updated with the instructions, locals, and
+		/// exception handlers.</param>
+		protected void RestoreMethod(MethodDef method) {
+			var body = method.Body;
+
+			body.LocalList.Clear();
+			if (locals != null) {
+				foreach (var local in locals)
+					body.LocalList.Add(local);
+			}
+
+			body.Instructions.Clear();
+			if (instructions != null) {
+				foreach (var instr in instructions)
+					body.Instructions.Add(instr);
+			}
+
+			body.ExceptionHandlers.Clear();
+			if (exceptionHandlers != null) {
+				foreach (var eh in exceptionHandlers)
+					body.ExceptionHandlers.Add(eh);
+			}
+		}
 	}
 }
