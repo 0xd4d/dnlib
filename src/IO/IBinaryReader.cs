@@ -27,6 +27,16 @@ namespace dot10.IO {
 		byte[] ReadBytes(int size);
 
 		/// <summary>
+		/// Reads <paramref name="length"/> bytes to <paramref name="buffer"/>
+		/// </summary>
+		/// <param name="buffer">Buffer</param>
+		/// <param name="offset">Offset in buffer where to place all read bytes</param>
+		/// <param name="length">Number of bytes to read</param>
+		/// <returns>Number of bytes read, and can be less than <paramref name="length"/> if
+		/// there's no more bytes to read.</returns>
+		int Read(byte[] buffer, int offset, int length);
+
+		/// <summary>
 		/// Reads bytes until byte <paramref name="b"/> is found. <see cref="Position"/> is
 		/// incremented by the number of bytes read (size of return value).
 		/// </summary>
@@ -378,6 +388,15 @@ namespace dot10.IO {
 		/// <returns>The decoded integer</returns>
 		public static int Read7BitEncodedInt32(this IBinaryReader reader) {
 			return (int)reader.Read7BitEncodedUInt32();
+		}
+
+		/// <summary>
+		/// Creates a <see cref="Stream"/> using <paramref name="reader"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <returns>A new <see cref="Stream"/> instance</returns>
+		public static Stream CreateStream(this IBinaryReader reader) {
+			return new BinaryReaderStream(reader);
 		}
 	}
 }

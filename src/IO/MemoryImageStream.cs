@@ -101,6 +101,14 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public int Read(byte[] buffer, int offset, int length) {
+			length = Math.Min(length, (int)Length - Math.Min((int)Length, (int)Position));
+			Array.Copy(data, position, buffer, offset, length);
+			position += length;
+			return length;
+		}
+
+		/// <inheritdoc/>
 		public byte[] ReadBytesUntilByte(byte b) {
 			int pos = GetPositionOf(b);
 			if (pos < 0)

@@ -86,6 +86,15 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
+		public int Read(byte[] buffer, int offset, int length) {
+			long lenLeft = Math.Min(length, Length - Math.Min(Length, Position));
+			length = length < lenLeft ? length : (int)lenLeft;
+			Marshal.Copy(new IntPtr(currentAddr), buffer, offset, length);
+			currentAddr += length;
+			return length;
+		}
+
+		/// <inheritdoc/>
 		public byte[] ReadBytesUntilByte(byte b) {
 			byte* pos = GetPositionOf(b);
 			if (pos == null)
