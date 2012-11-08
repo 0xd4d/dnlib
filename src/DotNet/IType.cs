@@ -63,4 +63,28 @@
 		/// </summary>
 		ITypeDefOrRef ScopeType { get; }
 	}
+
+	public static partial class Extensions {
+		/// <summary>
+		/// Returns <see cref="IType.ScopeType"/>, but if it's a nested <see cref="TypeRef"/>,
+		/// return the non-nested <see cref="TypeRef"/>
+		/// </summary>
+		/// <param name="type">this</param>
+		/// <returns>The scope type</returns>
+		public static ITypeDefOrRef GetNonNestedTypeRefScope(this IType type) {
+			if (type == null)
+				return null;
+			var scopeType = type.ScopeType;
+			var tr = scopeType as TypeRef;
+			if (tr == null)
+				return scopeType;
+			for (int i = 0; i < 100; i++) {
+				var dt = tr.ResolutionScope as TypeRef;
+				if (dt == null)
+					return tr;
+				tr = dt;
+			}
+			return tr;
+		}
+	}
 }

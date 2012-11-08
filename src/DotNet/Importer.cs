@@ -176,7 +176,7 @@ namespace dot10.DotNet {
 		}
 
 		bool IsThisModule(TypeRef tr) {
-			var scopeType = tr.ScopeType as TypeRef;
+			var scopeType = tr.ScopeType.GetNonNestedTypeRefScope() as TypeRef;
 			if (scopeType == null)
 				return false;
 
