@@ -237,6 +237,13 @@ namespace dot10.DotNet {
 			this.type = type;
 		}
 
+		/// <summary>
+		/// Clone this
+		/// </summary>
+		public FieldSig Clone() {
+			return new FieldSig(callingConvention, type);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullNameCreator.FullName(type == null ? null : type, false);
@@ -627,6 +634,13 @@ namespace dot10.DotNet {
 			this.parameters = new List<TypeSig>(argTypes);
 			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : new List<TypeSig>(paramsAfterSentinel);
 		}
+
+		/// <summary>
+		/// Clone this
+		/// </summary>
+		public MethodSig Clone() {
+			return new MethodSig(callingConvention, genParamCount, retType, parameters, paramsAfterSentinel);
+		}
 	}
 
 	/// <summary>
@@ -830,6 +844,13 @@ namespace dot10.DotNet {
 			this.parameters = new List<TypeSig>(argTypes);
 			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : new List<TypeSig>(paramsAfterSentinel);
 		}
+
+		/// <summary>
+		/// Clone this
+		/// </summary>
+		public PropertySig Clone() {
+			return new PropertySig(callingConvention, genParamCount, retType, parameters, paramsAfterSentinel);
+		}
 	}
 
 	/// <summary>
@@ -920,6 +941,13 @@ namespace dot10.DotNet {
 			this.callingConvention = CallingConvention.LocalSig;
 			this.locals = locals;
 		}
+
+		/// <summary>
+		/// Clone this
+		/// </summary>
+		public LocalSig Clone() {
+			return new LocalSig(locals);
+		}
 	}
 
 	/// <summary>
@@ -999,6 +1027,13 @@ namespace dot10.DotNet {
 		public GenericInstMethodSig(IList<TypeSig> args) {
 			this.callingConvention = CallingConvention.GenericInst;
 			this.genericArgs = new List<TypeSig>(args);
+		}
+
+		/// <summary>
+		/// Clone this
+		/// </summary>
+		public GenericInstMethodSig Clone() {
+			return new GenericInstMethodSig(genericArgs);
 		}
 	}
 
