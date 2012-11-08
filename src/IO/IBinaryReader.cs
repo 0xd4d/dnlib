@@ -154,7 +154,31 @@ namespace dot10.IO {
 		/// <returns>The char</returns>
 		/// <exception cref="IOException">An I/O error occurs</exception>
 		public static char ReadChar(this IBinaryReader self) {
-			return (char)self.ReadUInt16();
+			return self.ReadChar(Encoding.UTF8);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Char"/> from the current position and increments <see cref="IBinaryReader.Position"/> by 2
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="encoding">Encoding</param>
+		/// <returns>The char</returns>
+		/// <exception cref="IOException">An I/O error occurs</exception>
+		public static char ReadChar(this IBinaryReader self, Encoding encoding) {
+			// This is slow but this method should rarely be called...
+			var decoder = encoding.GetDecoder();
+			bool twoBytes = encoding is UnicodeEncoding;
+			byte[] bytes = new byte[2];
+			char[] chars = new char[1];
+			while (true) {
+				bytes[0] = self.ReadByte();
+				if (twoBytes)
+					bytes[1] = self.ReadByte();
+				int x = decoder.GetChars(bytes, 0, twoBytes ? 2 : 1, chars, 0);
+				if (x != 0)
+					break;
+			}
+			return chars[0];
 		}
 
 		/// <summary>
@@ -205,7 +229,7 @@ namespace dot10.IO {
 		public static char[] ReadChars(this IBinaryReader reader, int length) {
 			var chars = new char[length];
 			for (int i = 0; i < length; i++)
-				chars[i] = (char)reader.ReadUInt16();
+				chars[i] = reader.ReadChar();
 			return chars;
 		}
 
