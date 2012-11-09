@@ -2,7 +2,7 @@
 using System.IO;
 using dot10.IO;
 
-namespace dot10.Win32Resources {
+namespace dot10.W32Resources {
 	/// <summary>
 	/// A resource blob
 	/// </summary>

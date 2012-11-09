@@ -1,4 +1,4 @@
-﻿namespace dot10.Win32Resources {
+﻿namespace dot10.W32Resources {
 	/// <summary>
 	/// Base class of <see cref="ResourceDirectory"/> and <see cref="ResourceData"/>
 	/// </summary>

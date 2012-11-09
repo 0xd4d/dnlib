@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace dot10.Win32Resources {
+namespace dot10.W32Resources {
 	/// <summary>
 	/// A Win32 resource name. It can be either an integer or a string.
 	/// </summary>

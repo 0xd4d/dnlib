@@ -4,7 +4,7 @@ using dot10.Utils;
 using dot10.IO;
 using dot10.PE;
 
-namespace dot10.Win32Resources {
+namespace dot10.W32Resources {
 	/// <summary>
 	/// A Win32 resource directory (see IMAGE_RESOURCE_DIRECTORY in the Windows SDK)
 	/// </summary>
