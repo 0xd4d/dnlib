@@ -96,7 +96,15 @@ namespace dot10.PE {
 		/// <inheritdoc/>
 		public Win32Resources Win32Resources {
 			get { return win32Resources.Value; }
-			set { win32Resources.Value = value; }
+			set {
+				if (win32Resources.IsValueInitialized) {
+					if (win32Resources.Value == value)
+						return;
+					if (win32Resources.Value != null)
+						win32Resources.Value.Dispose();
+				}
+				win32Resources.Value = value;
+			}
 		}
 
 		/// <summary>
@@ -285,10 +293,13 @@ namespace dot10.PE {
 
 		/// <inheritdoc/>
 		public void Dispose() {
+			if (win32Resources.IsValueInitialized && win32Resources.Value != null)
+				win32Resources.Value.Dispose();
 			if (imageStream != null)
 				imageStream.Dispose();
 			if (imageStreamCreator != null)
 				imageStreamCreator.Dispose();
+			win32Resources.Value = null;
 			imageStream = null;
 			imageStreamCreator = null;
 			peType = null;
