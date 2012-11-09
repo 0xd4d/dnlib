@@ -7,14 +7,25 @@ namespace dot10.IO {
 	/// but must use a <see cref="Stream"/>
 	/// </summary>
 	sealed class BinaryReaderStream : Stream {
-		readonly IBinaryReader reader;
+		IBinaryReader reader;
+		bool ownsReader;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="reader">Reader. This instance does <c>NOT</c> own this reader.</param>
+		public BinaryReaderStream(IBinaryReader reader)
+			: this(reader, false) {
+		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">Reader</param>
-		public BinaryReaderStream(IBinaryReader reader) {
+		/// <param name="ownsReader"><c>true</c> if this instance owns <paramref name="reader"/></param>
+		public BinaryReaderStream(IBinaryReader reader, bool ownsReader) {
 			this.reader = reader;
+			this.ownsReader = ownsReader;
 		}
 
 		/// <inheritdoc/>
@@ -80,6 +91,16 @@ namespace dot10.IO {
 		/// <inheritdoc/>
 		public override void Write(byte[] buffer, int offset, int count) {
 			throw new NotImplementedException();
+		}
+
+		/// <inheritdoc/>
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (ownsReader && reader != null)
+					reader.Dispose();
+				reader = null;
+			}
+			base.Dispose(disposing);
 		}
 	}
 }

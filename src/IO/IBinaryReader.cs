@@ -391,12 +391,25 @@ namespace dot10.IO {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="Stream"/> using <paramref name="reader"/>
+		/// Creates a <see cref="Stream"/> using <paramref name="reader"/>. The created
+		/// <see cref="Stream"/> doesn't own <paramref name="reader"/>, so it's not
+		/// <c>Dispose()</c>'d.
 		/// </summary>
 		/// <param name="reader">this</param>
 		/// <returns>A new <see cref="Stream"/> instance</returns>
 		public static Stream CreateStream(this IBinaryReader reader) {
 			return new BinaryReaderStream(reader);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="Stream"/> using <paramref name="reader"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="ownsReader"><c>true</c> if the created <see cref="Stream"/> owns
+		/// <paramref name="reader"/></param>
+		/// <returns>A new <see cref="Stream"/> instance</returns>
+		public static Stream CreateStream(this IBinaryReader reader, bool ownsReader) {
+			return new BinaryReaderStream(reader, ownsReader);
 		}
 
 		/// <summary>
