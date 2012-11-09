@@ -72,7 +72,7 @@ namespace dot10.W32Resources {
 		}
 
 		/// <summary>
-		/// Gets the data as a <see cref="Stream"/>. It shares the file offsets with <see cref="Data"/>
+		/// Gets the data as a <see cref="Stream"/>. It shares the file position with <see cref="Data"/>
 		/// </summary>
 		public Stream ToDataStream() {
 			return Data.CreateStream();
