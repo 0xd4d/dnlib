@@ -162,12 +162,12 @@ namespace dot10.DotNet.MD {
 
 		/// <summary>Overloaded operator</summary>
 		public static bool operator ==(UTF8String left, string right) {
-			return CompareTo(left, new UTF8String(right)) == 0;
+			return ToSystemString(left) == right;
 		}
 
 		/// <summary>Overloaded operator</summary>
 		public static bool operator ==(string left, UTF8String right) {
-			return CompareTo(new UTF8String(left), right) == 0;
+			return left == ToSystemString(right);
 		}
 
 		/// <summary>Overloaded operator</summary>
@@ -177,12 +177,12 @@ namespace dot10.DotNet.MD {
 
 		/// <summary>Overloaded operator</summary>
 		public static bool operator !=(UTF8String left, string right) {
-			return CompareTo(left, new UTF8String(right)) != 0;
+			return ToSystemString(left) != right;
 		}
 
 		/// <summary>Overloaded operator</summary>
 		public static bool operator !=(string left, UTF8String right) {
-			return CompareTo(new UTF8String(left), right) != 0;
+			return left != ToSystemString(right);
 		}
 
 		/// <summary>Overloaded operator</summary>
