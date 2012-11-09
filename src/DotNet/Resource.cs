@@ -197,6 +197,7 @@ namespace dot10.DotNet {
 			if (dataStream != null)
 				dataStream.Dispose();
 			dataStream = null;
+			base.Dispose(disposing);
 		}
 
 		/// <inheritdoc/>
