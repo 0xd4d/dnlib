@@ -25,6 +25,8 @@ namespace dot10.W32Resources {
 		/// </summary>
 		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
+			if (!disposing)
+				return;
 			var root = Root;
 			if (root != null)
 				root.Dispose();

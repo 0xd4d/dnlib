@@ -149,6 +149,8 @@ namespace dot10.W32Resources {
 		/// </summary>
 		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
+			if (!disposing)
+				return;
 			directories.DisposeAll();
 			data.DisposeAll();
 			directories = null;
@@ -206,7 +208,7 @@ namespace dot10.W32Resources {
 		/// <param name="depth">Starts from 0. If it's big enough, we'll stop reading more data.</param>
 		/// <param name="name">Name</param>
 		/// <param name="resources">Resources</param>
-		/// <param name="reader">Reader position at the start of this resource directory</param>
+		/// <param name="reader">Reader positioned at the start of this resource directory</param>
 		public ResourceDirectoryPE(uint depth, ResourceName name, Win32ResourcesPE resources, IBinaryReader reader)
 			: base(name) {
 			this.resources = resources;
@@ -255,12 +257,12 @@ namespace dot10.W32Resources {
 					dirInfos.Add(new EntryInfo(name, dataOrDirectory & 0x7FFFFFFF));
 			}
 
-			directories = new LazyList<ResourceDirectory>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory(i));
-			data = new LazyList<ResourceData>(dataInfos.Count, null, (ctx, i) => ReadResourceData(i));
+			directories = new LazyList<ResourceDirectory>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory((int)i));
+			data = new LazyList<ResourceData>(dataInfos.Count, null, (ctx, i) => ReadResourceData((int)i));
 		}
 
-		ResourceDirectory ReadResourceDirectory(uint i) {
-			var info = dirInfos[(int)i];
+		ResourceDirectory ReadResourceDirectory(int i) {
+			var info = dirInfos[i];
 			var reader = resources.ResourceReader;
 			var oldPos = reader.Position;
 			reader.Position = info.offset;
@@ -271,8 +273,8 @@ namespace dot10.W32Resources {
 			return dir;
 		}
 
-		ResourceData ReadResourceData(uint i) {
-			var info = dataInfos[(int)i];
+		ResourceData ReadResourceData(int i) {
+			var info = dataInfos[i];
 			var reader = resources.ResourceReader;
 			var oldPos = reader.Position;
 			reader.Position = info.offset;
