@@ -17,6 +17,8 @@ namespace dot10.W32Resources {
 		public IBinaryReader Data {
 			get { return reader; }
 			set {
+				if (reader == value)
+					return;
 				if (reader != null)
 					reader.Dispose();
 				reader = value;

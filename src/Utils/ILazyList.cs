@@ -22,7 +22,7 @@ namespace dot10.Utils {
 
 	public static partial class Extensions {
 		/// <summary>
-		/// Dispose of all initialized elements
+		/// Disposes all initialized elements
 		/// </summary>
 		/// <typeparam name="TValue">Element type</typeparam>
 		/// <param name="list">this</param>

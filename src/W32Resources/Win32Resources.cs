@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using dot10.Utils;
 using dot10.IO;
 using dot10.PE;
@@ -141,29 +140,6 @@ namespace dot10.W32Resources {
 				rsrcReader.Position = oldPos;
 				return dir;
 			};
-		}
-
-		/// <summary>
-		/// Reads a string
-		/// </summary>
-		/// <param name="reader">Reader</param>
-		/// <param name="offset">Offset of string</param>
-		/// <returns>The string or <c>null</c> if we could not read it</returns>
-		public static string ReadString(IBinaryReader reader, uint offset) {
-			reader.Position = offset;
-			if (!reader.CanRead(2))
-				return null;
-			int size = reader.ReadUInt16();
-			int sizeInBytes = size * 2;
-			if (!reader.CanRead(sizeInBytes))
-				return null;
-			var stringData = reader.ReadBytes(sizeInBytes);
-			try {
-				return Encoding.Unicode.GetString(stringData);
-			}
-			catch {
-				return null;
-			}
 		}
 
 		/// <summary>

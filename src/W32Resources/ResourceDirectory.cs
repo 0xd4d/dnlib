@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using dot10.Utils;
 using dot10.IO;
 using dot10.PE;
@@ -183,13 +184,26 @@ namespace dot10.W32Resources {
 		/// </summary>
 		const uint MAX_DIR_DEPTH = 10;
 
+		/// <summary>Owner</summary>
 		readonly Win32ResourcesPE resources;
+		/// <summary>Directory depth. When creating more <see cref="ResourceDirectoryPE"/>'s,
+		/// the instances get this value + 1</summary>
 		uint depth;
+
+		/// <summary>
+		/// Info about all <see cref="ResourceData"/>'s we haven't created yet
+		/// </summary>
 		List<EntryInfo> dataInfos;
+
+		/// <summary>
+		/// Info about all <see cref="ResourceDirectory"/>'s we haven't created yet
+		/// </summary>
 		List<EntryInfo> dirInfos;
 
 		struct EntryInfo {
 			public ResourceName name;
+
+			/// <summary>Offset of resource directory / data</summary>
 			public uint offset;
 
 			public EntryInfo(ResourceName name, uint offset) {
@@ -216,6 +230,11 @@ namespace dot10.W32Resources {
 			Initialize(reader);
 		}
 
+		/// <summary>
+		/// Reads the directory header and initializes <see cref="ResourceDirectory.directories"/> and
+		/// <see cref="ResourceDirectory.data"/>.
+		/// </summary>
+		/// <param name="reader"></param>
 		void Initialize(IBinaryReader reader) {
 			if (depth > MAX_DIR_DEPTH || !reader.CanRead(16)) {
 				InitializeDefault();
@@ -228,6 +247,7 @@ namespace dot10.W32Resources {
 			minorVersion = reader.ReadUInt16();
 			ushort numNamed = reader.ReadUInt16();
 			ushort numIds = reader.ReadUInt16();
+
 			int total = numNamed + numIds;
 			if (!reader.CanRead(total * 8)) {
 				InitializeDefault();
@@ -242,12 +262,8 @@ namespace dot10.W32Resources {
 				uint nameOrId = reader.ReadUInt32();
 				uint dataOrDirectory = reader.ReadUInt32();
 				ResourceName name;
-				if ((nameOrId & 0x80000000) != 0) {
-					var s = Win32ResourcesPE.ReadString(reader, nameOrId & 0x7FFFFFFF);
-					if (s == null)
-						break;
-					name = new ResourceName(s);
-				}
+				if ((nameOrId & 0x80000000) != 0)
+					name = new ResourceName(ReadString(reader, nameOrId & 0x7FFFFFFF) ?? string.Empty);
 				else
 					name = new ResourceName((int)nameOrId);
 
@@ -259,6 +275,29 @@ namespace dot10.W32Resources {
 
 			directories = new LazyList<ResourceDirectory>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory((int)i));
 			data = new LazyList<ResourceData>(dataInfos.Count, null, (ctx, i) => ReadResourceData((int)i));
+		}
+
+		/// <summary>
+		/// Reads a string
+		/// </summary>
+		/// <param name="reader">Reader</param>
+		/// <param name="offset">Offset of string</param>
+		/// <returns>The string or <c>null</c> if we could not read it</returns>
+		static string ReadString(IBinaryReader reader, uint offset) {
+			reader.Position = offset;
+			if (!reader.CanRead(2))
+				return null;
+			int size = reader.ReadUInt16();
+			int sizeInBytes = size * 2;
+			if (!reader.CanRead(sizeInBytes))
+				return null;
+			var stringData = reader.ReadBytes(sizeInBytes);
+			try {
+				return Encoding.Unicode.GetString(stringData);
+			}
+			catch {
+				return null;
+			}
 		}
 
 		ResourceDirectory ReadResourceDirectory(int i) {
