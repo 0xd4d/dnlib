@@ -1,13 +1,12 @@
 ﻿using System.Diagnostics;
-using dot10.Utils;
 
-namespace dot10.DotNet {
+namespace dot10.Utils {
 	/// <summary>
 	/// A readonly list that gets initialized lazily
 	/// </summary>
 	/// <typeparam name="T">A <see cref="ICodedToken"/> type</typeparam>
 	[DebuggerDisplay("Count = {Length}")]
-	sealed class SimpleLazyList<T> where T : class, IMDTokenProvider {
+	sealed class SimpleLazyList<T> where T : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 		T[] elements;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]

@@ -149,7 +149,6 @@
     <Compile Include="DotNet\PInvokeAttributes.cs" />
     <Compile Include="DotNet\PropertyAttributes.cs" />
     <Compile Include="DotNet\SignatureReader.cs" />
-    <Compile Include="DotNet\SimpleLazyList.cs" />
     <Compile Include="DotNet\ManifestResource.cs" />
     <Compile Include="DotNet\ManifestResourceAttributes.cs" />
     <Compile Include="DotNet\MemberRef.cs" />
@@ -251,6 +250,7 @@
     <Compile Include="Utils\ILazyList.cs" />
     <Compile Include="Utils\LazyList.cs" />
     <Compile Include="Utils\MFunc.cs" />
+    <Compile Include="Utils\SimpleLazyList.cs" />
     <Compile Include="Utils\UserValue.cs" />
     <Compile Include="W32Resources\ResourceData.cs" />
     <Compile Include="W32Resources\ResourceDirectory.cs" />
