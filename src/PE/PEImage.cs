@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using dot10.Utils;
+using dot10.W32Resources;
 using dot10.IO;
 
 namespace dot10.PE {
@@ -35,6 +37,7 @@ namespace dot10.PE {
 		IImageStreamCreator imageStreamCreator;
 		IPEType peType;
 		PEInfo peInfo;
+		UserValue<Win32Resources> win32Resources;
 
 		sealed class FilePEType : IPEType {
 			/// <inheritdoc/>
@@ -90,6 +93,12 @@ namespace dot10.PE {
 			get { return peInfo.ImageSectionHeaders; }
 		}
 
+		/// <inheritdoc/>
+		public Win32Resources Win32Resources {
+			get { return win32Resources.Value; }
+			set { win32Resources.Value = value; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -102,11 +111,21 @@ namespace dot10.PE {
 				this.peType = ConvertImageLayout(imageLayout);
 				ResetReader();
 				this.peInfo = new PEInfo(imageStream, verify);
+				Initialize();
 			}
 			catch {
 				Dispose();
 				throw;
 			}
+		}
+
+		void Initialize() {
+			win32Resources.ReadOriginalValue = () => {
+				var dataDir = peInfo.ImageNTHeaders.OptionalHeader.DataDirectories[0];
+				if (dataDir.VirtualAddress == 0 || dataDir.Size == 0)
+					return null;
+				return new Win32ResourcesPE(this);
+			};
 		}
 
 		static IPEType ConvertImageLayout(ImageLayout imageLayout) {

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using dot10.IO;
+using dot10.W32Resources;
 
 namespace dot10.PE {
 	/// <summary>
@@ -58,6 +59,11 @@ namespace dot10.PE {
 		/// Returns the section headers
 		/// </summary>
 		IList<ImageSectionHeader> ImageSectionHeaders { get; }
+
+		/// <summary>
+		/// Gets/sets the Win32 resources. This is <c>null</c> if there are no Win32 resources.
+		/// </summary>
+		Win32Resources Win32Resources { get; set; }
 
 		/// <summary>
 		/// Creates a stream to access part of the PE image from <paramref name="offset"/>
