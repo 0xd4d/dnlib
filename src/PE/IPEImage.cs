@@ -5,9 +5,28 @@ using dot10.IO;
 
 namespace dot10.PE {
 	/// <summary>
+	/// Converts <see cref="RVA"/>s to/from <see cref="FileOffset"/>s
+	/// </summary>
+	public interface IRvaFileOffsetConverter {
+		/// <summary>
+		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>
+		/// </summary>
+		/// <param name="offset">The file offset to convert</param>
+		/// <returns>The RVA</returns>
+		RVA ToRVA(FileOffset offset);
+
+		/// <summary>
+		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>
+		/// </summary>
+		/// <param name="rva">The RVA to convert</param>
+		/// <returns>The file offset</returns>
+		FileOffset ToFileOffset(RVA rva);
+	}
+
+	/// <summary>
 	/// Interface to access a PE image
 	/// </summary>
-	public interface IPEImage : IDisposable {
+	public interface IPEImage : IRvaFileOffsetConverter, IDisposable {
 		/// <summary>
 		/// <c>true</c> if image layout is the same as the raw PE image layout, <c>false</c>
 		/// if it's the same layout as a PE image loaded by the OS PE loader.
@@ -39,20 +58,6 @@ namespace dot10.PE {
 		/// Returns the section headers
 		/// </summary>
 		IList<ImageSectionHeader> ImageSectionHeaders { get; }
-
-		/// <summary>
-		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>
-		/// </summary>
-		/// <param name="offset">The file offset to convert</param>
-		/// <returns>The RVA</returns>
-		RVA ToRVA(FileOffset offset);
-
-		/// <summary>
-		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>
-		/// </summary>
-		/// <param name="rva">The RVA to convert</param>
-		/// <returns>The file offset</returns>
-		FileOffset ToFileOffset(RVA rva);
 
 		/// <summary>
 		/// Creates a stream to access part of the PE image from <paramref name="offset"/>
