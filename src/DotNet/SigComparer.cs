@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>

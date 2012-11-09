@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using dot10.PE;
-using dot10.DotNet.MD;
 using dot10.DotNet.Emit;
 
 namespace dot10.DotNet {

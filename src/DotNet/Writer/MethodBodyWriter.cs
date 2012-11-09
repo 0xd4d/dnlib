@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using dot10.DotNet.Emit;
-using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>

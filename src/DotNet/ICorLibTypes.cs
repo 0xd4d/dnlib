@@ -1,6 +1,4 @@
-﻿using dot10.DotNet.MD;
-
-namespace dot10.DotNet {
+﻿namespace dot10.DotNet {
 	/// <summary>
 	/// Access to .NET core library's simple types
 	/// </summary>

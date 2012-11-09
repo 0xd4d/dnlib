@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace dot10.DotNet.MD {
+namespace dot10.DotNet {
 	/// <summary>
 	/// Compares <see cref="UTF8String"/>s
 	/// </summary>

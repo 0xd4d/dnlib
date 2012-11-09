@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>

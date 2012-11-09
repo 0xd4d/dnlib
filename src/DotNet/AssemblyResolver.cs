@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
-using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
