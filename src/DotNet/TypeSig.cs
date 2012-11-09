@@ -492,6 +492,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Returns the <see cref="TypeRef"/> if it is a <see cref="TypeDefOrRefSig"/>.
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>A <see cref="TypeRef"/> or <c>null</c> if none found</returns>
+		public static TypeRef TryGetTypeRef(this TypeSig a) {
+			var tdr = a.RemovePinnedAndModifiers() as TypeDefOrRefSig;
+			return tdr == null ? null : tdr.TypeRef;
+		}
+
+		/// <summary>
 		/// Returns the <see cref="TypeDef"/> if it is a <see cref="TypeDefOrRefSig"/>.
 		/// Nothing is resolved.
 		/// </summary>
@@ -500,6 +510,16 @@ namespace dot10.DotNet {
 		public static TypeDef TryGetTypeDef(this TypeSig a) {
 			var tdr = a.RemovePinnedAndModifiers() as TypeDefOrRefSig;
 			return tdr == null ? null : tdr.TypeDef;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="TypeSpec"/> if it is a <see cref="TypeDefOrRefSig"/>.
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>A <see cref="TypeSpec"/> or <c>null</c> if none found</returns>
+		public static TypeSpec TryGetTypeSpec(this TypeSig a) {
+			var tdr = a.RemovePinnedAndModifiers() as TypeDefOrRefSig;
+			return tdr == null ? null : tdr.TypeSpec;
 		}
 	}
 
