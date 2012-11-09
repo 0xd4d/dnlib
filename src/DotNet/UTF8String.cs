@@ -258,17 +258,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			if (data == null)
-				return 0;
-			uint val = 0;
-			int last = data.Length - 1;
-			int count = Math.Min(30, last + 1) / 2 + 1;
-			for (int i = 0; i < count; i++) {
-				val ^= data[i];
-				val ^= (uint)(data[last - i] << 8);
-				val = (val << 5) | (val >> 27);
-			}
-			return (int)val;
+			return UTF8String.GetHashCode(this);
 		}
 
 		/// <inheritdoc/>
