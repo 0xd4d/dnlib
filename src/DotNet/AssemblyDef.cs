@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using dot10.Utils;
 using dot10.DotNet.MD;
 using dot10.DotNet.Writer;
 

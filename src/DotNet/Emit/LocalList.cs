@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using dot10.Utils;
 
 namespace dot10.DotNet.Emit {
 	/// <summary>

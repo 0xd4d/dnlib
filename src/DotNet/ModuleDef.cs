@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.IO;
+using dot10.Utils;
 using dot10.DotNet.MD;
 using dot10.DotNet.Writer;
 using dot10.PE;

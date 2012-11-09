@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using dot10.PE;
+using dot10.Utils;
+using dot10.IO;
 using dot10.DotNet.MD;
 using dot10.DotNet.Emit;
-using dot10.IO;
 
 namespace dot10.DotNet {
 	/// <summary>

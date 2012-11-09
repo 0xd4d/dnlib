@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace dot10.DotNet {
+namespace dot10.Utils {
 	/// <summary>
 	/// Interface to access a lazily initialized list
 	/// </summary>

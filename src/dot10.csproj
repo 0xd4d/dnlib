@@ -67,7 +67,6 @@
     <Compile Include="DotNet\Emit\InvalidMethodException.cs" />
     <Compile Include="DotNet\GenericArguments.cs" />
     <Compile Include="DotNet\IAssemblyResolver.cs" />
-    <Compile Include="DotNet\ILazyList.cs" />
     <Compile Include="DotNet\IDecrypters.cs" />
     <Compile Include="DotNet\Importer.cs" />
     <Compile Include="DotNet\IResolver.cs" />
@@ -143,11 +142,9 @@
     <Compile Include="DotNet\TypeDefFinder.cs" />
     <Compile Include="DotNet\TypeNameParser.cs" />
     <Compile Include="DotNet\TypeSig.cs" />
-    <Compile Include="DotNet\LazyList.cs" />
     <Compile Include="DotNet\MethodAttributes.cs" />
     <Compile Include="DotNet\MethodImplAttributes.cs" />
     <Compile Include="DotNet\MethodSemanticsAttributes.cs" />
-    <Compile Include="DotNet\MFunc.cs" />
     <Compile Include="DotNet\ParameterList.cs" />
     <Compile Include="DotNet\PInvokeAttributes.cs" />
     <Compile Include="DotNet\PropertyAttributes.cs" />
@@ -251,6 +248,9 @@
     <Compile Include="PE\RVA.cs" />
     <Compile Include="PE\Subsystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\ILazyList.cs" />
+    <Compile Include="Utils\LazyList.cs" />
+    <Compile Include="Utils\MFunc.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace dot10.DotNet {
+namespace dot10.Utils {
 	/// <summary>
 	/// Gets notified of list events
 	/// </summary>
