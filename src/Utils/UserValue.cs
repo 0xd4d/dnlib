@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace dot10.DotNet.MD {
-	delegate T MFunc<T>();
-
+namespace dot10.Utils {
 	/// <summary>
 	/// Lazily returns the original value if the user hasn't overwritten the value
 	/// </summary>
