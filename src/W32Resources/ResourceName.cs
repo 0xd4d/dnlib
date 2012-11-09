@@ -88,7 +88,7 @@ namespace dot10.W32Resources {
 		public int CompareTo(ResourceName other) {
 			if (HasId != other.HasId) {
 				// Sort names before ids
-				return HasId ? -1 : 1;
+				return HasName ? -1 : 1;
 			}
 			if (HasId)
 				return id.CompareTo(other.id);
