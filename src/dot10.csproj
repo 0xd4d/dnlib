@@ -252,6 +252,11 @@
     <Compile Include="Utils\LazyList.cs" />
     <Compile Include="Utils\MFunc.cs" />
     <Compile Include="Utils\UserValue.cs" />
+    <Compile Include="Win32Resources\ResourceData.cs" />
+    <Compile Include="Win32Resources\ResourceDirectory.cs" />
+    <Compile Include="Win32Resources\ResourceDirectoryEntry.cs" />
+    <Compile Include="Win32Resources\ResourceName.cs" />
+    <Compile Include="Win32Resources\Win32Resources.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
