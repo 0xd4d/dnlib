@@ -4,7 +4,7 @@ namespace dot10.Utils {
 	/// <summary>
 	/// A readonly list that gets initialized lazily
 	/// </summary>
-	/// <typeparam name="T">A <see cref="ICodedToken"/> type</typeparam>
+	/// <typeparam name="T">Any class/value type</typeparam>
 	[DebuggerDisplay("Count = {Length}")]
 	sealed class SimpleLazyList<T> where T : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
