@@ -179,7 +179,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>A stream</returns>
 		public Stream GetResourceStream() {
-			return Data.Create(0).CreateStream();
+			return Data.Clone().CreateStream();
 		}
 
 		/// <summary>

@@ -34,7 +34,7 @@ namespace dot10.DotNet.Writer {
 			if (blobStream == null || blobStream.ImageStream.Length == 0)
 				return;
 
-			using (var reader = blobStream.ImageStream.Create(0)) {
+			using (var reader = blobStream.ImageStream.Clone()) {
 				originalData = reader.ReadAllBytes();
 				nextOffset = (uint)originalData.Length;
 				Populate(reader);

@@ -32,7 +32,7 @@ namespace dot10.DotNet.Writer {
 			if (usStream == null || usStream.ImageStream.Length == 0)
 				return;
 
-			using (var reader = usStream.ImageStream.Create(0)) {
+			using (var reader = usStream.ImageStream.Clone()) {
 				originalData = reader.ReadAllBytes();
 				nextOffset = (uint)originalData.Length;
 				Populate(reader);

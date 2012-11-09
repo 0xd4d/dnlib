@@ -96,7 +96,7 @@ namespace dot10.W32Resources {
 		/// reader.</param>
 		public Win32ResourcesPE(IRvaFileOffsetConverter rvaConverter, IImageStream dataReader, IBinaryReader rsrcReader) {
 			if (dataReader == rsrcReader)
-				rsrcReader = dataReader.Create(0);	// Must not be the same readers
+				rsrcReader = dataReader.Clone();	// Must not be the same readers
 			this.rvaConverter = rvaConverter;
 			this.dataReader = dataReader;
 			this.rsrcReader = rsrcReader;

@@ -34,7 +34,7 @@ namespace dot10.DotNet.Writer {
 			if (stringsStream == null || stringsStream.ImageStream.Length == 0)
 				return;
 
-			using (var reader = stringsStream.ImageStream.Create(0)) {
+			using (var reader = stringsStream.ImageStream.Clone()) {
 				originalData = reader.ReadAllBytes();
 				nextOffset = (uint)originalData.Length;
 				Populate(reader);
