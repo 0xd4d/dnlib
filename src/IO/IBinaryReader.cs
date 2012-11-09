@@ -398,5 +398,23 @@ namespace dot10.IO {
 		public static Stream CreateStream(this IBinaryReader reader) {
 			return new BinaryReaderStream(reader);
 		}
+
+		/// <summary>
+		/// Checks whether we can read <paramref name="size"/> bytes
+		/// </summary>
+		/// <param name="reader">Reader</param>
+		/// <param name="size">Size in bytes</param>
+		public static bool CanRead(this IBinaryReader reader, int size) {
+			return (reader.Position + size <= reader.Length && reader.Position + size >= reader.Position) || size == 0;
+		}
+
+		/// <summary>
+		/// Checks whether we can read <paramref name="size"/> bytes
+		/// </summary>
+		/// <param name="reader">Reader</param>
+		/// <param name="size">Size in bytes</param>
+		public static bool CanRead(this IBinaryReader reader, uint size) {
+			return (reader.Position + size <= reader.Length && reader.Position + size >= reader.Position) || size == 0;
+		}
 	}
 }

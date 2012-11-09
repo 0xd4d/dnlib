@@ -215,7 +215,7 @@ namespace dot10.W32Resources {
 		}
 
 		void Initialize(IBinaryReader reader) {
-			if (depth > MAX_DIR_DEPTH || !Win32ResourcesPE.CanRead(reader, 16)) {
+			if (depth > MAX_DIR_DEPTH || !reader.CanRead(16)) {
 				InitializeDefault();
 				return;
 			}
@@ -227,7 +227,7 @@ namespace dot10.W32Resources {
 			ushort numNamed = reader.ReadUInt16();
 			ushort numIds = reader.ReadUInt16();
 			int total = numNamed + numIds;
-			if (!Win32ResourcesPE.CanRead(reader, total * 8)) {
+			if (!reader.CanRead(total * 8)) {
 				InitializeDefault();
 				return;
 			}
@@ -278,7 +278,7 @@ namespace dot10.W32Resources {
 			reader.Position = info.offset;
 
 			ResourceData data;
-			if (Win32ResourcesPE.CanRead(reader, 16)) {
+			if (reader.CanRead(16)) {
 				RVA rva = (RVA)reader.ReadUInt32();
 				uint size = reader.ReadUInt32();
 				uint codePage = reader.ReadUInt32();

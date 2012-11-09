@@ -142,24 +142,6 @@ namespace dot10.W32Resources {
 		}
 
 		/// <summary>
-		/// Checks whether we can read <paramref name="size"/> bytes
-		/// </summary>
-		/// <param name="reader">Reader</param>
-		/// <param name="size">Size in bytes</param>
-		public static bool CanRead(IBinaryReader reader, int size) {
-			return size >= 0 && CanRead(reader, (uint)size);
-		}
-
-		/// <summary>
-		/// Checks whether we can read <paramref name="size"/> bytes
-		/// </summary>
-		/// <param name="reader">Reader</param>
-		/// <param name="size">Size in bytes</param>
-		public static bool CanRead(IBinaryReader reader, uint size) {
-			return reader.Position + size <= reader.Length;
-		}
-
-		/// <summary>
 		/// Reads a string
 		/// </summary>
 		/// <param name="reader">Reader</param>
@@ -167,11 +149,11 @@ namespace dot10.W32Resources {
 		/// <returns>The string or <c>null</c> if we could not read it</returns>
 		public static string ReadString(IBinaryReader reader, uint offset) {
 			reader.Position = offset;
-			if (!CanRead(reader, 2))
+			if (!reader.CanRead(2))
 				return null;
 			int size = reader.ReadUInt16();
 			int sizeInBytes = size * 2;
-			if (!CanRead(reader, sizeInBytes))
+			if (!reader.CanRead(sizeInBytes))
 				return null;
 			var stringData = reader.ReadBytes(sizeInBytes);
 			try {
