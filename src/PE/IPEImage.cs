@@ -116,5 +116,16 @@ namespace dot10.PE {
 		public static IImageStream CreateStream(this IPEImage self, RVA rva, long length) {
 			return self.CreateStream(self.ToFileOffset(rva), length);
 		}
+
+		/// <summary>
+		/// Reads all bytes from the PE image. This may fail if the PE image has been loaded
+		/// by the OS loader since there may be memory holes.
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns>All bytes of the PE image</returns>
+		public static byte[] GetImageAsByteArray(this IPEImage self) {
+			using (var reader = self.CreateFullStream())
+				return reader.ReadAllBytes();
+		}
 	}
 }
