@@ -121,7 +121,7 @@ namespace dot10.PE {
 
 		void Initialize() {
 			win32Resources.ReadOriginalValue = () => {
-				var dataDir = peInfo.ImageNTHeaders.OptionalHeader.DataDirectories[0];
+				var dataDir = peInfo.ImageNTHeaders.OptionalHeader.DataDirectories[2];
 				if (dataDir.VirtualAddress == 0 || dataDir.Size == 0)
 					return null;
 				return new Win32ResourcesPE(this);
