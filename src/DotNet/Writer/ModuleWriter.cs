@@ -3,6 +3,7 @@ using System.IO;
 using dot10.DotNet.MD;
 using dot10.PE;
 using dot10.IO;
+using dot10.W32Resources;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
@@ -13,6 +14,7 @@ namespace dot10.DotNet.Writer {
 		Cor20HeaderOptions cor20HeaderOptions;
 		PEHeadersOptions peHeadersOptions;
 		IModuleWriterListener listener;
+		Win32Resources win32Resources;
 
 		/// <summary>
 		/// Gets/sets the listener
@@ -44,6 +46,15 @@ namespace dot10.DotNet.Writer {
 		public PEHeadersOptions PEHeadersOptions {
 			get { return peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions()); }
 			set { peHeadersOptions = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the Win32 resources. If this is <c>null</c>, use the module's
+		/// Win32 resources if any.
+		/// </summary>
+		public Win32Resources Win32Resources {
+			get { return win32Resources; }
+			set { win32Resources = value; }
 		}
 
 		/// <summary>
@@ -172,7 +183,7 @@ namespace dot10.DotNet.Writer {
 		DebugDirectory debugDirectory;
 		ImportDirectory importDirectory;
 		StartupStub startupStub;
-		Win32Resources win32Resources;
+		Win32ResourcesChunk win32Resources;
 		RelocDirectory relocDirectory;
 
 		/// <summary>
@@ -305,7 +316,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Gets the Win32 resources or <c>null</c> if there's none
 		/// </summary>
-		public Win32Resources Win32Resources {
+		public Win32ResourcesChunk Win32Resources {
 			get { return win32Resources; }
 		}
 
@@ -389,12 +400,14 @@ namespace dot10.DotNet.Writer {
 			listener.OnWriterEvent(this, ModuleWriterEvent.ChunksAddedToSections);
 		}
 
-		void CreateSections() {
-			bool hasWin32Resources = false;	//TODO:
+		Win32Resources GetWin32Resources() {
+			return module.Win32Resources ?? Options.Win32Resources;
+		}
 
+		void CreateSections() {
 			sections = new List<PESection>();
 			sections.Add(textSection = new PESection(".text", 0x60000020));
-			if (hasWin32Resources)
+			if (GetWin32Resources() != null)
 				sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));
 			if (!Options.Is64Bit)
 				sections.Add(relocSection = new PESection(".reloc", 0x42000040));
@@ -402,7 +415,6 @@ namespace dot10.DotNet.Writer {
 
 		void CreateChunks() {
 			bool isSn = false;	//TODO:
-			bool hasWin32Resources = false;	//TODO:
 			bool hasDebugDirectory = false;	//TODO:
 
 			peHeaders = new PEHeaders(Options.PEHeadersOptions);
@@ -424,8 +436,10 @@ namespace dot10.DotNet.Writer {
 			metaData.Listener = this;
 			if (hasDebugDirectory)
 				debugDirectory = new DebugDirectory();
-			if (hasWin32Resources)
-				win32Resources = new Win32Resources();
+
+			var w32Resources = GetWin32Resources();
+			if (w32Resources != null)
+				win32Resources = new Win32ResourcesChunk(w32Resources);
 
 			if (importDirectory != null)
 				importDirectory.IsExeFile = Options.IsExeFile;

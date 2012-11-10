@@ -202,7 +202,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the Win32 resources
 		/// </summary>
-		public Win32Resources Win32Resources { get; set; }
+		public Win32ResourcesChunk Win32Resources { get; set; }
 
 		/// <summary>
 		/// Gets/sets the relocation directory
