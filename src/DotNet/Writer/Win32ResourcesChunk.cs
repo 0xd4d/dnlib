@@ -8,7 +8,7 @@ using dot10.W32Resources;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
-	/// Win32 resources
+	/// Writes Win32 resources
 	/// </summary>
 	public sealed class Win32ResourcesChunk : IChunk {
 		readonly Win32Resources win32Resources;
