@@ -7,6 +7,7 @@ using dot10.Utils;
 using dot10.DotNet.MD;
 using dot10.DotNet.Writer;
 using dot10.PE;
+using dot10.W32Resources;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -248,6 +249,11 @@ namespace dot10.DotNet {
 		public TypeDef GlobalType {
 			get { return Types.Count == 0 ? null : Types[0]; }
 		}
+
+		/// <summary>
+		/// Gets/sets the Win32 resources
+		/// </summary>
+		public abstract Win32Resources Win32Resources { get; set; }
 
 		/// <summary>
 		/// Module kind
@@ -752,6 +758,7 @@ namespace dot10.DotNet {
 		ILazyList<Resource> resources = new LazyList<Resource>();
 		RVA nativeEntryPoint;
 		IManagedEntryPoint managedEntryPoint;
+		Win32Resources win32Resources;
 		string location = string.Empty;
 
 		/// <inheritdoc/>
@@ -832,6 +839,12 @@ namespace dot10.DotNet {
 		public override string Location {
 			get { return location; }
 			set { location = value ?? string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override Win32Resources Win32Resources {
+			get { return win32Resources; }
+			set { win32Resources = value; }
 		}
 
 		/// <summary>
@@ -917,6 +930,7 @@ namespace dot10.DotNet {
 		internal ILazyList<Resource> resources;
 		UserValue<RVA> nativeEntryPoint;
 		UserValue<IManagedEntryPoint> managedEntryPoint;
+		Win32Resources win32Resources;
 		string location;
 
 		/// <inheritdoc/>
@@ -1003,6 +1017,12 @@ namespace dot10.DotNet {
 		public override string Location {
 			get { return location; }
 			set { location = value ?? string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override Win32Resources Win32Resources {
+			get { return win32Resources; }
+			set { win32Resources = value; }
 		}
 
 		/// <summary>

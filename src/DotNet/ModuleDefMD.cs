@@ -6,6 +6,7 @@ using dot10.Utils;
 using dot10.IO;
 using dot10.DotNet.MD;
 using dot10.DotNet.Emit;
+using dot10.W32Resources;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -18,6 +19,7 @@ namespace dot10.DotNet {
 		IStringDecrypter stringDecrypter;
 
 		UserValue<string> location;
+		UserValue<Win32Resources> win32Resources;
 		RandomRidList moduleRidList;
 
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
@@ -149,6 +151,12 @@ namespace dot10.DotNet {
 		public override string Location {
 			get { return location.Value; }
 			set { location.Value = value ?? string.Empty; }
+		}
+
+		/// <inheritdoc/>
+		public override Win32Resources Win32Resources {
+			get { return win32Resources.Value; }
+			set { win32Resources.Value = value; }
 		}
 
 		/// <summary>
@@ -360,6 +368,9 @@ namespace dot10.DotNet {
 
 			location.ReadOriginalValue = () => {
 				return dnFile.MetaData.PEImage.FileName ?? string.Empty;
+			};
+			win32Resources.ReadOriginalValue = () => {
+				return dnFile.MetaData.PEImage.Win32Resources;
 			};
 
 			for (int i = 0; i < 64; i++) {
