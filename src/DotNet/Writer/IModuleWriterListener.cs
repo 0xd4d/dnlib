@@ -144,6 +144,18 @@
 		EndWriteChunks,
 
 		/// <summary>
+		/// This event occurs before the strong name signature is calculated. This event
+		/// occurs even if the assembly isn't strong name signed.
+		/// </summary>
+		BeginStrongNameSign,
+
+		/// <summary>
+		/// This event occurs after the strong name signature has been calculated. This event
+		/// occurs even if the assembly isn't strong name signed.
+		/// </summary>
+		EndStrongNameSign,
+
+		/// <summary>
 		/// This event occurs before the checksum in the PE header is updated. This event
 		/// occurs even if the checksum isn't updated.
 		/// </summary>

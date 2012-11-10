@@ -482,7 +482,9 @@ namespace dot10.DotNet.Writer {
 			WriteChunks(writer, chunks);
 			listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
 
+			listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
 			//TODO: Strong name sign the assembly
+			listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
 
 			listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
 			if (Options.AddCheckSum)
