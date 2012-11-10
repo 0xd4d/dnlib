@@ -159,7 +159,7 @@ namespace dot10.DotNet.Writer {
 		const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_IMPORTDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_STARTUPSTUB_ALIGNMENT = 1;
-		internal const uint DEFAULT_WIN32_RESOURCE_ALIGNMENT = 8;
+		internal const uint DEFAULT_WIN32_RESOURCES_ALIGNMENT = 8;
 		const uint DEFAULT_RELOC_ALIGNMENT = 4;
 
 		readonly ModuleDef module;
@@ -460,7 +460,7 @@ namespace dot10.DotNet.Writer {
 			textSection.Add(importDirectory, DEFAULT_IMPORTDIRECTORY_ALIGNMENT);
 			textSection.Add(startupStub, DEFAULT_STARTUPSTUB_ALIGNMENT);
 			if (rsrcSection != null)
-				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCE_ALIGNMENT);
+				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 			if (relocSection != null)
 				relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}

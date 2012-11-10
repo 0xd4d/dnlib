@@ -289,7 +289,6 @@ namespace dot10.DotNet.Writer {
 			return rva;
 		}
 
-		// None of these can be > ModuleWriter.DEFAULT_WIN32_RESOURCE_ALIGNMENT
 		const uint RESOURCE_DIR_ALIGNMENT = 4;
 		const uint RESOURCE_DATA_HEADER_ALIGNMENT = 4;
 		const uint RESOURCE_STRING_ALIGNMENT = 2;
@@ -319,8 +318,8 @@ namespace dot10.DotNet.Writer {
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_ALIGNMENT);
 			if (((uint)offset & (maxAlignment - 1)) != 0)
 				throw new ModuleWriterException(string.Format("Win32 resources section isn't {0}-byte aligned", maxAlignment));
-			if (maxAlignment > ModuleWriter.DEFAULT_WIN32_RESOURCE_ALIGNMENT)
-				throw new ModuleWriterException("maxAlignment > DEFAULT_WIN32_RESOURCE_ALIGNMENT");
+			if (maxAlignment > ModuleWriter.DEFAULT_WIN32_RESOURCES_ALIGNMENT)
+				throw new ModuleWriterException("maxAlignment > DEFAULT_WIN32_RESOURCES_ALIGNMENT");
 
 			foreach (var dir in dirList) {
 				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DIR_ALIGNMENT);
@@ -388,7 +387,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public uint GetLength() {
-			return Utils.AlignUp(length, ModuleWriter.DEFAULT_WIN32_RESOURCE_ALIGNMENT);
+			return Utils.AlignUp(length, ModuleWriter.DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 		}
 
 		/// <inheritdoc/>
@@ -452,7 +451,7 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 
-			writer.WriteZeros((int)(Utils.AlignUp(length, ModuleWriter.DEFAULT_WIN32_RESOURCE_ALIGNMENT) - length));
+			writer.WriteZeros((int)(Utils.AlignUp(length, ModuleWriter.DEFAULT_WIN32_RESOURCES_ALIGNMENT) - length));
 		}
 
 		uint WriteTo(BinaryWriter writer, ResourceDirectory dir) {
