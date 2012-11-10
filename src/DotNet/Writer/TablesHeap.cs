@@ -270,7 +270,7 @@ namespace dot10.DotNet.Writer {
 		public uint GetLength() {
 			if (length == 0)
 				CalculateLength();
-			return length;
+			return Utils.AlignUp(length, HeapBase.ALIGNMENT);
 		}
 
 		void CalculateLength() {
@@ -369,6 +369,7 @@ namespace dot10.DotNet.Writer {
 			WriteGenericParamTable(writer);
 			WriteMethodSpecTable(writer);
 			WriteGenericParamConstraintTable(writer);
+			writer.WriteZeros((int)(Utils.AlignUp(length, HeapBase.ALIGNMENT) - length));
 		}
 
 		void WriteModuleTable(BinaryWriter writer) {

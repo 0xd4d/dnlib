@@ -7,7 +7,7 @@ namespace dot10.DotNet.Writer {
 	/// Base class of most heaps
 	/// </summary>
 	public abstract class HeapBase : IHeap {
-		const uint ALIGNMENT = 4;
+		internal const uint ALIGNMENT = 4;
 		FileOffset offset;
 		RVA rva;
 
