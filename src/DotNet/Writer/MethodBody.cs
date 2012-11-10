@@ -66,6 +66,19 @@ namespace dot10.DotNet.Writer {
 			this.extraSections = extraSections;
 		}
 
+		/// <summary>
+		/// Gets the approximate size of the method body (code + exception handlers)
+		/// </summary>
+		public int GetSizeOfMethodBody() {
+			int len = code.Length;
+			if (extraSections != null) {
+				len = Utils.AlignUp(len, EXTRA_SECTIONS_ALIGNMENT);
+				len += extraSections.Length;
+				len = Utils.AlignUp(len, EXTRA_SECTIONS_ALIGNMENT);
+			}
+			return len;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;

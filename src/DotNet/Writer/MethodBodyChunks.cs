@@ -20,6 +20,7 @@ namespace dot10.DotNet.Writer {
 		uint length;
 		bool setOffsetCalled;
 		bool alignFatBodies;
+		uint savedBytes;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
@@ -29,6 +30,13 @@ namespace dot10.DotNet.Writer {
 		/// <inheritdoc/>
 		public RVA RVA {
 			get { return rva; }
+		}
+
+		/// <summary>
+		/// Gets the number of bytes saved by re-using method bodies
+		/// </summary>
+		public uint SavedBytes {
+			get { return savedBytes; }
 		}
 
 		/// <summary>
@@ -57,8 +65,10 @@ namespace dot10.DotNet.Writer {
 			if (shareBodies) {
 				var dict = methodBody.IsFat ? fatMethodsDict : tinyMethodsDict;
 				MethodBody cached;
-				if (dict.TryGetValue(methodBody, out cached))
+				if (dict.TryGetValue(methodBody, out cached)) {
+					savedBytes += (uint)methodBody.GetSizeOfMethodBody();
 					return cached;
+				}
 				dict[methodBody] = methodBody;
 			}
 			var list = methodBody.IsFat ? fatMethods : tinyMethods;
