@@ -250,7 +250,7 @@ namespace dot10.DotNet {
 
 			case SerializationType.Char:
 				realArgType = ownerModule.CorLibTypes.Char;
-				result = reader.ReadChar();
+				result = (char)reader.ReadUInt16();
 				break;
 
 			case SerializationType.I1:

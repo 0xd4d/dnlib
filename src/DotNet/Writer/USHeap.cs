@@ -57,7 +57,7 @@ namespace dot10.DotNet.Writer {
 				if (stringLen > chars.Length)
 					Array.Resize(ref chars, stringLen);
 				for (int i = 0; i < stringLen; i++)
-					chars[i] = reader.ReadChar();
+					chars[i] = (char)reader.ReadUInt16();
 				if ((len & 1) != 0)
 					reader.ReadByte();
 				var s = new string(chars, 0, stringLen);
