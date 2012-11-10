@@ -212,7 +212,7 @@
     <Compile Include="DotNet\Writer\TablesHeap.cs" />
     <Compile Include="DotNet\Writer\UniqueChunkList.cs" />
     <Compile Include="DotNet\Writer\USHeap.cs" />
-    <Compile Include="DotNet\Writer\Win32Resources.cs" />
+    <Compile Include="DotNet\Writer\Win32ResourcesChunk.cs" />
     <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="IO\BinaryReaderStream.cs" />
     <Compile Include="IO\FileOffset.cs" />

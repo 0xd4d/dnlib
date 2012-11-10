@@ -6,7 +6,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Win32 resources
 	/// </summary>
-	public sealed class Win32Resources : IChunk {
+	public sealed class Win32ResourcesChunk : IChunk {
 		FileOffset offset;
 		RVA rva;
 
