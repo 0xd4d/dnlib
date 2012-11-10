@@ -42,11 +42,258 @@ namespace dot10.DotNet.Writer {
 			this.win32Resources = win32Resources;
 		}
 
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> and <see cref="RVA"/> of a
+		/// <see cref="ResourceDirectoryEntry"/>. <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dirEntry">A <see cref="ResourceDirectoryEntry"/></param>
+		/// <param name="fileOffset">Updated with the file offset</param>
+		/// <param name="rva">Updated with the RVA</param>
+		/// <returns><c>true</c> if <paramref name="dirEntry"/> is valid and
+		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
+		/// if <paramref name="dirEntry"/> is not part of the Win32 resources.</returns>
+		public bool GetFileOffsetAndRvaOf(ResourceDirectoryEntry dirEntry, out FileOffset fileOffset, out RVA rva) {
+			var dir = dirEntry as ResourceDirectory;
+			if (dir != null)
+				return GetFileOffsetAndRvaOf(dir, out fileOffset, out rva);
+
+			var dataHeader = dirEntry as ResourceData;
+			if (dataHeader != null)
+				return GetFileOffsetAndRvaOf(dataHeader, out fileOffset, out rva);
+
+			fileOffset = 0;
+			rva = 0;
+			return false;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> of a <see cref="ResourceDirectoryEntry"/>.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dirEntry">A <see cref="ResourceDirectoryEntry"/></param>
+		/// <returns>The file offset or 0 if <paramref name="dirEntry"/> is invalid</returns>
+		public FileOffset GetFileOffset(ResourceDirectoryEntry dirEntry) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(dirEntry, out fileOffset, out rva);
+			return fileOffset;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="RVA"/> of a <see cref="ResourceDirectoryEntry"/>.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dirEntry">A <see cref="ResourceDirectoryEntry"/></param>
+		/// <returns>The RVA or 0 if <paramref name="dirEntry"/> is invalid</returns>
+		public RVA GetRVA(ResourceDirectoryEntry dirEntry) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(dirEntry, out fileOffset, out rva);
+			return rva;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> and <see cref="RVA"/> of a
+		/// <see cref="ResourceDirectory"/>. <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dir">A <see cref="ResourceDirectory"/></param>
+		/// <param name="fileOffset">Updated with the file offset</param>
+		/// <param name="rva">Updated with the RVA</param>
+		/// <returns><c>true</c> if <paramref name="dir"/> is valid and
+		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
+		/// if <paramref name="dir"/> is not part of the Win32 resources.</returns>
+		public bool GetFileOffsetAndRvaOf(ResourceDirectory dir, out FileOffset fileOffset, out RVA rva) {
+			uint offs;
+			if (dir == null || !dirDict.TryGetValue(dir, out offs)) {
+				fileOffset = 0;
+				rva = 0;
+				return false;
+			}
+
+			fileOffset = offset + offs;
+			rva = this.rva + offs;
+			return true;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> of a <see cref="ResourceDirectory"/>.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dir">A <see cref="ResourceDirectory"/></param>
+		/// <returns>The file offset or 0 if <paramref name="dir"/> is invalid</returns>
+		public FileOffset GetFileOffset(ResourceDirectory dir) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(dir, out fileOffset, out rva);
+			return fileOffset;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="RVA"/> of a <see cref="ResourceDirectory"/>.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dir">A <see cref="ResourceDirectory"/></param>
+		/// <returns>The RVA or 0 if <paramref name="dir"/> is invalid</returns>
+		public RVA GetRVA(ResourceDirectory dir) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(dir, out fileOffset, out rva);
+			return rva;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> and <see cref="RVA"/> of a
+		/// <see cref="ResourceData"/>. <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dataHeader">A <see cref="ResourceData"/></param>
+		/// <param name="fileOffset">Updated with the file offset</param>
+		/// <param name="rva">Updated with the RVA</param>
+		/// <returns><c>true</c> if <paramref name="dataHeader"/> is valid and
+		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
+		/// if <paramref name="dataHeader"/> is not part of the Win32 resources.</returns>
+		public bool GetFileOffsetAndRvaOf(ResourceData dataHeader, out FileOffset fileOffset, out RVA rva) {
+			uint offs;
+			if (dataHeader == null || !dataHeaderDict.TryGetValue(dataHeader, out offs)) {
+				fileOffset = 0;
+				rva = 0;
+				return false;
+			}
+
+			fileOffset = offset + offs;
+			rva = this.rva + offs;
+			return true;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> of a <see cref="ResourceData"/>.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dataHeader">A <see cref="ResourceData"/></param>
+		/// <returns>The file offset or 0 if <paramref name="dataHeader"/> is invalid</returns>
+		public FileOffset GetFileOffset(ResourceData dataHeader) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(dataHeader, out fileOffset, out rva);
+			return fileOffset;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="RVA"/> of a <see cref="ResourceData"/>.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="dataHeader">A <see cref="ResourceData"/></param>
+		/// <returns>The RVA or 0 if <paramref name="dataHeader"/> is invalid</returns>
+		public RVA GetRVA(ResourceData dataHeader) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(dataHeader, out fileOffset, out rva);
+			return rva;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> and <see cref="RVA"/> of the raw data
+		/// owned by a <see cref="ResourceData"/>. <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="data">A <see cref="ResourceData"/>'s <see cref="IBinaryReader"/></param>
+		/// <param name="fileOffset">Updated with the file offset</param>
+		/// <param name="rva">Updated with the RVA</param>
+		/// <returns><c>true</c> if <paramref name="data"/> is valid and
+		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
+		/// if <paramref name="data"/> is not part of the Win32 resources.</returns>
+		public bool GetFileOffsetAndRvaOf(IBinaryReader data, out FileOffset fileOffset, out RVA rva) {
+			uint offs;
+			if (data == null || !dataDict.TryGetValue(data, out offs)) {
+				fileOffset = 0;
+				rva = 0;
+				return false;
+			}
+
+			fileOffset = offset + offs;
+			rva = this.rva + offs;
+			return true;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> of the raw data owned by a
+		/// <see cref="ResourceData"/>. <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="data">A <see cref="ResourceData"/>'s <see cref="IBinaryReader"/></param>
+		/// <returns>The file offset or 0 if <paramref name="data"/> is invalid</returns>
+		public FileOffset GetFileOffset(IBinaryReader data) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(data, out fileOffset, out rva);
+			return fileOffset;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="RVA"/> of the raw data owned by a <see cref="ResourceData"/>.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="data">A <see cref="ResourceData"/>'s <see cref="IBinaryReader"/></param>
+		/// <returns>The RVA or 0 if <paramref name="data"/> is invalid</returns>
+		public RVA GetRVA(IBinaryReader data) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(data, out fileOffset, out rva);
+			return rva;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> and <see cref="RVA"/> of a
+		/// <see cref="ResourceDirectoryEntry"/>'s name. <see cref="SetOffset"/> must have been
+		/// called.
+		/// </summary>
+		/// <param name="name">The name of a <see cref="ResourceDirectoryEntry"/></param>
+		/// <param name="fileOffset">Updated with the file offset</param>
+		/// <param name="rva">Updated with the RVA</param>
+		/// <returns><c>true</c> if <paramref name="name"/> is valid and
+		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
+		/// if <paramref name="name"/> is not part of the Win32 resources.</returns>
+		public bool GetFileOffsetAndRvaOf(string name, out FileOffset fileOffset, out RVA rva) {
+			uint offs;
+			if (name == null || !stringsDict.TryGetValue(name, out offs)) {
+				fileOffset = 0;
+				rva = 0;
+				return false;
+			}
+
+			fileOffset = offset + offs;
+			rva = this.rva + offs;
+			return true;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="FileOffset"/> of a <see cref="ResourceDirectoryEntry"/>'s name.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="name">The name of a <see cref="ResourceDirectoryEntry"/></param>
+		/// <returns>The file offset or 0 if <paramref name="name"/> is invalid</returns>
+		public FileOffset GetFileOffset(string name) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(name, out fileOffset, out rva);
+			return fileOffset;
+		}
+
+		/// <summary>
+		/// Returns the <see cref="RVA"/> of a <see cref="ResourceDirectoryEntry"/>'s name.
+		/// <see cref="SetOffset"/> must have been called.
+		/// </summary>
+		/// <param name="name">The name of a <see cref="ResourceDirectoryEntry"/></param>
+		/// <returns>The RVA or 0 if <paramref name="name"/> is invalid</returns>
+		public RVA GetRVA(string name) {
+			FileOffset fileOffset;
+			RVA rva;
+			GetFileOffsetAndRvaOf(name, out fileOffset, out rva);
+			return rva;
+		}
+
 		// None of these can be > ModuleWriter.DEFAULT_RESOURCE_ALIGNMENT
 		const uint RESOURCE_DIR_ALIGNMENT = 4;
 		const uint RESOURCE_DATA_HEADER_ALIGNMENT = 4;
-		const uint RESOURCE_DATA_ALIGNMENT = 4;
 		const uint RESOURCE_STRING_ALIGNMENT = 2;
+		const uint RESOURCE_DATA_ALIGNMENT = 4;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -68,8 +315,8 @@ namespace dot10.DotNet.Writer {
 			uint maxAlignment = 1;
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_DIR_ALIGNMENT);
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_HEADER_ALIGNMENT);
-			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_ALIGNMENT);
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_STRING_ALIGNMENT);
+			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_ALIGNMENT);
 			if (((uint)offset & (maxAlignment - 1)) != 0)
 				throw new ModuleWriterException(string.Format("Win32 resources section isn't {0}-byte aligned", maxAlignment));
 
