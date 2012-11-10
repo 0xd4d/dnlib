@@ -212,7 +212,7 @@ namespace dot10.DotNet.Writer {
 
 			List<ResourceDirectoryEntry> named;
 			List<ResourceDirectoryEntry> ids;
-			GetNumNamedAndIds(dir, out named, out ids);
+			GetNamedAndIds(dir, out named, out ids);
 			if (named.Count > ushort.MaxValue || ids.Count > ushort.MaxValue)
 				throw new ModuleWriterException("Too many named/id Win32 resource entries");
 			writer.Write((ushort)named.Count);
@@ -241,7 +241,7 @@ namespace dot10.DotNet.Writer {
 			return 0x80000000 | dirDict[(ResourceDirectory)e];
 		}
 
-		void GetNumNamedAndIds(ResourceDirectory dir, out List<ResourceDirectoryEntry> named, out List<ResourceDirectoryEntry> ids) {
+		static void GetNamedAndIds(ResourceDirectory dir, out List<ResourceDirectoryEntry> named, out List<ResourceDirectoryEntry> ids) {
 			named = new List<ResourceDirectoryEntry>();
 			ids = new List<ResourceDirectoryEntry>();
 			foreach (var d in dir.Directories) {
