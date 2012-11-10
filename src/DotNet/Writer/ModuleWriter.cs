@@ -128,7 +128,7 @@ namespace dot10.DotNet.Writer {
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
 			else
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
-			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags & ~ComImageFlags.StrongNameSigned;
+			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
 
 			// Some tools crash if #GUID is missing so always create it by default
@@ -414,8 +414,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void CreateChunks() {
-			bool isSn = false;	//TODO:
-			bool hasDebugDirectory = false;	//TODO:
+			bool hasDebugDirectory = false;
 
 			peHeaders = new PEHeaders(Options.PEHeadersOptions);
 
@@ -425,8 +424,11 @@ namespace dot10.DotNet.Writer {
 				startupStub = new StartupStub();
 				relocDirectory = new RelocDirectory();
 			}
-			if (isSn)
-				strongNameSignature = new StrongNameSignature(0x80);	//TODO: Fix size
+
+			if (module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey)) {
+				int len = module.Assembly.PublicKey.Data.Length - 0x20;
+				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
+			}
 
 			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
 			constants = new UniqueChunkList<ByteArrayChunk>();
