@@ -93,6 +93,7 @@
     <Compile Include="DotNet\ICodedToken.cs" />
     <Compile Include="DotNet\ICorLibTypes.cs" />
     <Compile Include="DotNet\IDecrypters.cs" />
+    <Compile Include="DotNet\ILogger.cs" />
     <Compile Include="DotNet\ImplMap.cs" />
     <Compile Include="DotNet\Importer.cs" />
     <Compile Include="DotNet\InterfaceImpl.cs" />

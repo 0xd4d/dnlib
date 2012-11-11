@@ -155,6 +155,7 @@ namespace dot10.DotNet.Writer {
 		RVA rva;
 		MetaDataOptions options;
 		IMetaDataListener listener;
+		ILogger logger;
 		internal ModuleDef module;
 		internal UniqueChunkList<ByteArrayChunk> constants;
 		internal MethodBodyChunks methodBodies;
@@ -199,6 +200,14 @@ namespace dot10.DotNet.Writer {
 		public IMetaDataListener Listener {
 			get { return listener ?? (listener = DummyMetaDataListener.Instance); }
 			set { listener = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the logger
+		/// </summary>
+		public ILogger Logger {
+			get { return logger; }
+			set { logger = value; }
 		}
 
 		internal sealed class SortedRows<T, TRow> where T : class where TRow : class {
@@ -810,7 +819,8 @@ namespace dot10.DotNet.Writer {
 		/// <param name="message">Error message</param>
 		/// <param name="args">Optional message arguments</param>
 		protected void Error(string message, params object[] args) {
-			//TODO:
+			var l = logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
+			l.Log(this, LoggerEvent.Error, message, args);
 		}
 
 		/// <summary>

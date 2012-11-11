@@ -14,6 +14,8 @@ namespace dot10.DotNet.Writer {
 		Cor20HeaderOptions cor20HeaderOptions;
 		PEHeadersOptions peHeadersOptions;
 		IModuleWriterListener listener;
+		ILogger logger;
+		ILogger metaDataLogger;
 		Win32Resources win32Resources;
 
 		/// <summary>
@@ -22,6 +24,25 @@ namespace dot10.DotNet.Writer {
 		public IModuleWriterListener Listener {
 			get { return listener; }
 			set { listener = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the logger. If this is <c>null</c>, any errors result in a
+		/// <see cref="ModuleWriterException"/> being thrown. To disable this behavior, either
+		/// create your own logger or use <see cref="DummyLogger.NoThrowInstance"/>.
+		/// </summary>
+		public ILogger Logger {
+			get { return logger; }
+			set { logger = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaData"/> writer logger. If this is <c>null</c>, use
+		/// <see cref="Logger"/>.
+		/// </summary>
+		public ILogger MetaDataLogger {
+			get { return metaDataLogger; }
+			set { metaDataLogger = value; }
 		}
 
 		/// <summary>
@@ -148,7 +169,7 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// Writes a .NET PE file
 	/// </summary>
-	public sealed class ModuleWriter : IMetaDataListener {
+	public sealed class ModuleWriter : IMetaDataListener, ILogger {
 		const uint DEFAULT_IAT_ALIGNMENT = 4;
 		const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
 		const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
@@ -434,8 +455,11 @@ namespace dot10.DotNet.Writer {
 			constants = new UniqueChunkList<ByteArrayChunk>();
 			methodBodies = new MethodBodyChunks(Options.ShareMethodBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
+
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, Options.MetaDataOptions);
+			metaData.Logger = Options.MetaDataLogger ?? this;
 			metaData.Listener = this;
+
 			if (hasDebugDirectory)
 				debugDirectory = new DebugDirectory();
 
@@ -445,6 +469,7 @@ namespace dot10.DotNet.Writer {
 
 			if (importDirectory != null)
 				importDirectory.IsExeFile = Options.IsExeFile;
+
 			peHeaders.IsExeFile = Options.IsExeFile;
 		}
 
@@ -604,6 +629,20 @@ namespace dot10.DotNet.Writer {
 			default:
 				break;
 			}
+		}
+
+		ILogger GetLogger() {
+			return Options.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
+		}
+
+		/// <inheritdoc/>
+		void ILogger.Log(object sender, LoggerEvent loggerEvent, string format, params object[] args) {
+			GetLogger().Log(this, loggerEvent, format, args);
+		}
+
+		/// <inheritdoc/>
+		bool ILogger.IgnoresEvent(LoggerEvent loggerEvent) {
+			return GetLogger().IgnoresEvent(loggerEvent);
 		}
 	}
 }
