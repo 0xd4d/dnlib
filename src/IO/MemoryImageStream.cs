@@ -65,7 +65,7 @@ namespace dot10.IO {
 			set {
 				long newPos = dataOffset + value;
 				if (newPos < dataOffset || newPos > int.MaxValue)
-					throw new ArgumentOutOfRangeException("value", "Can't seek to a negative offset or an offset > 0x7FFFFFFF");
+					newPos = int.MaxValue;
 				position = (int)newPos;
 			}
 		}

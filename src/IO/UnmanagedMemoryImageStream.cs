@@ -53,10 +53,10 @@ namespace dot10.IO {
 			set {
 				unsafe {
 					if (IntPtr.Size == 4 && (ulong)value > int.MaxValue)
-						throw new ArgumentOutOfRangeException("value", "Can't seek to a negative offset or an offset > 0x7FFFFFFF");
+						value = int.MaxValue;
 					byte* newAddr = startAddr + value;
 					if (newAddr < startAddr)
-						throw new ArgumentOutOfRangeException("value", "Invalid offset");
+						newAddr = endAddr;
 					currentAddr = newAddr;
 				}
 			}
