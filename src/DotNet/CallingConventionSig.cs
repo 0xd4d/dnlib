@@ -308,6 +308,17 @@ namespace dot10.DotNet {
 	/// A method signature
 	/// </summary>
 	public sealed class MethodSig : MethodBaseSig {
+		uint origToken;
+
+		/// <summary>
+		/// Gets/sets the original token. It's set when reading calli instruction operands
+		/// and it's a hint to the module writer if it tries to re-use the same token.
+		/// </summary>
+		public uint OriginalToken {
+			get { return origToken; }
+			set { origToken = value; }
+		}
+
 		/// <summary>
 		/// Creates a static MethodSig
 		/// </summary>

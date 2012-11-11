@@ -253,7 +253,10 @@ namespace dot10.DotNet.Emit {
 			var standAloneSig = module.ResolveStandAloneSig(MDToken.ToRID(token));
 			if (standAloneSig == null)
 				return null;
-			return standAloneSig.MethodSig;
+			var sig = standAloneSig.MethodSig;
+			if (sig != null)
+				sig.OriginalToken = token;
+			return sig;
 		}
 
 		/// <inheritdoc/>
