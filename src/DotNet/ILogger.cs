@@ -416,7 +416,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Dummy logger which ignores all messages, but can optionally throw on errors.
 	/// </summary>
-	public class DummyLogger : ILogger {
+	public sealed class DummyLogger : ILogger {
 		ConstructorInfo ctor;
 
 		/// <summary>
