@@ -69,12 +69,18 @@ namespace dot10.DotNet.Writer {
 				}
 				stack = WriteStack(instr, stack);
 
-				int pushes, pops;
-				instr.CalculateStackUsage(out pushes, out pops);
-				if (pops == -1)
-					stack = 0;
-				else
-					stack += pushes - pops;
+				if (instr.OpCode.Code == Code.Jmp) {
+					if (stack != 0)
+						errors++;
+				}
+				else {
+					int pushes, pops;
+					instr.CalculateStackUsage(out pushes, out pops);
+					if (pops == -1)
+						stack = 0;
+					else
+						stack += pushes - pops;
+				}
 				if (stack < 0) {
 					errors++;
 					stack = 0;
