@@ -322,7 +322,7 @@ namespace dot10.DotNet.Emit {
 		}
 
 		static bool IsSystemVoid(TypeSig type) {
-			return type != null && type.ElementType == ElementType.Void;
+			return type.RemovePinnedAndModifiers().GetElementType() == ElementType.Void;
 		}
 
 		/// <summary>
