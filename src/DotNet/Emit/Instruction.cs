@@ -376,10 +376,16 @@ namespace dot10.DotNet.Emit {
 			pushes = 0;
 			pops = 0;
 
-			var method = Operand as IMethod;
-			if (method == null)
+			// It doesn't push or pop anything. The stack should be empty when JMP is executed.
+			if (OpCode.Code == Code.Jmp)
 				return;
-			var sig = method.MethodSig;
+
+			MethodSig sig;
+			var method = Operand as IMethod;
+			if (method != null)
+				sig = method.MethodSig;
+			else
+				sig = Operand as MethodSig;	// calli instruction
 			if (sig == null)
 				return;
 			bool implicitThis = sig.ImplicitThis;
@@ -387,6 +393,8 @@ namespace dot10.DotNet.Emit {
 				pushes++;
 
 			pops += sig.Params.Count;
+			if (sig.ParamsAfterSentinel != null)
+				pops += sig.ParamsAfterSentinel.Count;
 			if (implicitThis && OpCode.Code != Code.Newobj)
 				pops++;
 			if (OpCode.Code == Code.Calli)
