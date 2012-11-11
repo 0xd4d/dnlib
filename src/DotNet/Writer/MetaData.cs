@@ -813,14 +813,26 @@ namespace dot10.DotNet.Writer {
 			return chunk;
 		}
 
+		ILogger GetLogger() {
+			return logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
+		}
+
 		/// <summary>
 		/// Called when an error is detected
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="args">Optional message arguments</param>
 		protected void Error(string message, params object[] args) {
-			var l = logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
-			l.Log(this, LoggerEvent.Error, message, args);
+			GetLogger().Log(this, LoggerEvent.Error, message, args);
+		}
+
+		/// <summary>
+		/// Called to warn of something
+		/// </summary>
+		/// <param name="message">Warning message</param>
+		/// <param name="args">Optional message arguments</param>
+		protected void Warning(string message, params object[] args) {
+			GetLogger().Log(this, LoggerEvent.Warning, message, args);
 		}
 
 		/// <summary>

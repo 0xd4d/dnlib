@@ -769,14 +769,14 @@ namespace dot10.DotNet.Writer {
 			if (localsTokenToSignature.TryGetValue(origToken, out otherSig)) {
 				if (sig == otherSig)
 					return new MDToken(origToken);
-				Error("Could not preserve StandAloneSig token {0:X8}", origToken);
+				Warning("Could not preserve StandAloneSig token {0:X8}", origToken);
 				return base.GetToken(locals, origToken);
 			}
 
 			uint rid = MDToken.ToRID(origToken);
 			var sas = mod.ResolveStandAloneSig(rid);
 			if (standAloneSigInfos.Exists(sas)) {
-				Error("StandAloneSig {0:X8} already exists", origToken);
+				Warning("StandAloneSig {0:X8} already exists", origToken);
 				return base.GetToken(locals, origToken);
 			}
 
