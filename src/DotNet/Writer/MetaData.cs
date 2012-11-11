@@ -1222,6 +1222,10 @@ namespace dot10.DotNet.Writer {
 			if (s != null)
 				return new MDToken((Table)0x70, usHeap.Add(s));
 
+			var methodSig = o as MethodSig;
+			if (methodSig != null)
+				return new MDToken(Table.StandAloneSig, AddStandAloneSig(methodSig, methodSig.OriginalToken));
+
 			if (o == null)
 				Error("Instruction operand is null");
 			else
@@ -1238,6 +1242,24 @@ namespace dot10.DotNet.Writer {
 			uint rid = tablesHeap.StandAloneSigTable.Add(row);
 			//TODO: Add custom attributes
 			return new MDToken(Table.StandAloneSig, rid);
+		}
+
+		/// <summary>
+		/// Adds a <see cref="StandAloneSig"/>
+		/// </summary>
+		/// <param name="methodSig">Method signature</param>
+		/// <param name="origToken">Original <c>StandAloneSig</c> token or 0 if none</param>
+		/// <returns>Its new rid</returns>
+		protected virtual uint AddStandAloneSig(MethodSig methodSig, uint origToken) {
+			if (methodSig == null) {
+				Error("MethodSig is null");
+				return 0;
+			}
+
+			var row = new RawStandAloneSigRow(GetSignature(methodSig));
+			uint rid = tablesHeap.StandAloneSigTable.Add(row);
+			//TODO: Add custom attributes
+			return rid;
 		}
 
 		uint AddMDTokenProvider(IMDTokenProvider tp) {

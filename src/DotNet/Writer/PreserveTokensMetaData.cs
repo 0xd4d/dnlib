@@ -21,7 +21,7 @@ namespace dot10.DotNet.Writer {
 		MemberDefDict<PropertyDef> propertyDefInfos = new MemberDefDict<PropertyDef>();
 		Rows<TypeSpec> typeSpecInfos = new Rows<TypeSpec>();
 		Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
-		Dictionary<uint, uint> localsTokenToSignature = new Dictionary<uint, uint>();
+		Dictionary<uint, uint> callConvTokenToSignature = new Dictionary<uint, uint>();
 
 		[DebuggerDisplay("{Rid} -> {NewRid} {Def}")]
 		sealed class MemberDefInfo<T> where T : IMDTokenProvider {
@@ -764,25 +764,43 @@ namespace dot10.DotNet.Writer {
 			if (!IsValidStandAloneSigToken(origToken))
 				return base.GetToken(locals, origToken);
 
-			uint sig = GetSignature(new LocalSig(locals, false));
-			uint otherSig;
-			if (localsTokenToSignature.TryGetValue(origToken, out otherSig)) {
-				if (sig == otherSig)
-					return new MDToken(origToken);
-				Warning("Could not preserve StandAloneSig token {0:X8}", origToken);
+			uint rid = AddStandAloneSig(new LocalSig(locals, false), origToken);
+			if (rid == 0)
 				return base.GetToken(locals, origToken);
+			return new MDToken(Table.StandAloneSig, rid);
+		}
+
+		/// <inheritdoc/>
+		protected override uint AddStandAloneSig(MethodSig methodSig, uint origToken) {
+			if (!IsValidStandAloneSigToken(origToken))
+				return base.AddStandAloneSig(methodSig, origToken);
+
+			uint rid = AddStandAloneSig(methodSig, origToken);
+			if (rid == 0)
+				return base.AddStandAloneSig(methodSig, origToken);
+			return rid;
+		}
+
+		uint AddStandAloneSig(CallingConventionSig callConvSig, uint origToken) {
+			uint sig = GetSignature(callConvSig);
+			uint otherSig;
+			if (callConvTokenToSignature.TryGetValue(origToken, out otherSig)) {
+				if (sig == otherSig)
+					return MDToken.ToRID(origToken);
+				Warning("Could not preserve StandAloneSig token {0:X8}", origToken);
+				return 0;
 			}
 
 			uint rid = MDToken.ToRID(origToken);
 			var sas = mod.ResolveStandAloneSig(rid);
 			if (standAloneSigInfos.Exists(sas)) {
 				Warning("StandAloneSig {0:X8} already exists", origToken);
-				return base.GetToken(locals, origToken);
+				return 0;
 			}
 
 			AddStandAloneSig(sas);
-			localsTokenToSignature.Add(origToken, sig);
-			return new MDToken(origToken);
+			callConvTokenToSignature.Add(origToken, sig);
+			return MDToken.ToRID(origToken);
 		}
 
 		bool IsValidStandAloneSigToken(uint token) {
