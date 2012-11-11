@@ -350,7 +350,7 @@ namespace dot10.DotNet {
 			return GetClassSize(fieldSig.Type, out size);
 		}
 
-		static bool GetClassSize(TypeSig ts, out uint size) {
+		bool GetClassSize(TypeSig ts, out uint size) {
 			size = 0;
 			ts = ts.RemovePinnedAndModifiers();
 			if (ts == null)
@@ -359,6 +359,18 @@ namespace dot10.DotNet {
 			int size2 = ts.ElementType.GetPrimitiveSize();
 			if (size2 >= 0) {
 				size = (uint)size2;
+				return true;
+			}
+
+			if (ts.ElementType == ElementType.Ptr || ts.ElementType == ElementType.FnPtr) {
+				size = 4;	// Assume 32-bit pointers if we can't get the owner module
+				var dt = DeclaringType;
+				if (dt == null)
+					return true;
+				var ownerModule = dt.OwnerModule as ModuleDefMD;
+				if (ownerModule == null)
+					return true;
+				size = (uint)ownerModule.GetPointerSize();
 				return true;
 			}
 

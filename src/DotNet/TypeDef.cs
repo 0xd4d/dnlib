@@ -1255,10 +1255,13 @@ namespace dot10.DotNet {
 			size = 0;
 			if (td == null)
 				return false;
-			if (!td.IsSequentialLayout && !td.IsExplicitLayout)
-				return false;
 			if (!td.IsValueType)
 				return false;	// Not supported by us
+			if (!td.IsSequentialLayout && !td.IsExplicitLayout) {
+				if (td.Fields.Count != 1)
+					return false;
+				return td.Fields[0].GetFieldSize(out size);
+			}
 
 			var classLayout = td.ClassLayout;
 			if (classLayout == null)
