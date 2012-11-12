@@ -309,6 +309,8 @@ namespace dot10.DotNet {
 			Initialize();
 
 			this.Kind = GetKind();
+			this.Characteristics = MetaData.PEImage.ImageNTHeaders.FileHeader.Characteristics;
+			this.DllCharacteristics = MetaData.PEImage.ImageNTHeaders.OptionalHeader.DllCharacteristics;
 			this.RuntimeVersion = MetaData.VersionString;
 			this.Machine = MetaData.PEImage.ImageNTHeaders.FileHeader.Machine;
 			this.Cor20HeaderFlags = MetaData.ImageCor20Header.Flags;

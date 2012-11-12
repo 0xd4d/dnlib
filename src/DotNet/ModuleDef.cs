@@ -14,6 +14,12 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the Module table
 	/// </summary>
 	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder {
+		/// <summary>Default characteristics</summary>
+		protected const Characteristics DefaultCharacteristics = Characteristics.ExecutableImage | Characteristics._32BitMachine;
+
+		/// <summary>Default DLL characteristics</summary>
+		protected const DllCharacteristics DefaultDllCharacteristics = DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase;
+
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -259,6 +265,16 @@ namespace dot10.DotNet {
 		/// Module kind
 		/// </summary>
 		public ModuleKind Kind { get; set; }
+
+		/// <summary>
+		/// Gets/sets the characteristics (from PE file header)
+		/// </summary>
+		public Characteristics Characteristics { get; set; }
+
+		/// <summary>
+		/// Gets/sets the DLL characteristics (from PE optional header)
+		/// </summary>
+		public DllCharacteristics DllCharacteristics { get; set; }
 
 		/// <summary>
 		/// Gets/sets the runtime version which is stored in the MetaData header.
@@ -900,6 +916,8 @@ namespace dot10.DotNet {
 		/// <param name="mvid">Module version ID</param>
 		public ModuleDefUser(UTF8String name, Guid? mvid) {
 			this.Kind = ModuleKind.Windows;
+			this.Characteristics = DefaultCharacteristics;
+			this.DllCharacteristics = DefaultDllCharacteristics;
 			this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 			this.Machine = Machine.I386;
 			this.Cor20HeaderFlags = ComImageFlags.ILOnly;
@@ -1057,6 +1075,8 @@ namespace dot10.DotNet {
 			this.readerModule = readerModule;
 			if (rid != 1) {
 				this.Kind = ModuleKind.Windows;
+				this.Characteristics = DefaultCharacteristics;
+				this.DllCharacteristics = DefaultDllCharacteristics;
 				this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 				this.Machine = Machine.I386;
 				this.Cor20HeaderFlags = ComImageFlags.ILOnly;

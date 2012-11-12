@@ -11,6 +11,11 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	public sealed class PEHeadersOptions {
 		/// <summary>
+		/// Default DLL characteristics
+		/// </summary>
+		public const DllCharacteristics DefaultDllCharacteristics = dot10.PE.DllCharacteristics.TerminalServerAware | dot10.PE.DllCharacteristics.NoSeh | dot10.PE.DllCharacteristics.NxCompat | dot10.PE.DllCharacteristics.DynamicBase;
+
+		/// <summary>
 		/// Default subsystem value
 		/// </summary>
 		public const Subsystem DEFAULT_SUBSYSTEM = dot10.PE.Subsystem.WindowsGui;
@@ -363,7 +368,7 @@ namespace dot10.DotNet.Writer {
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
-				writer.Write((ushort)(options.DllCharacteristics ?? DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase));
+				writer.Write((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
 				writer.Write((uint)(options.SizeOfStackReserve ?? 0x00100000));
 				writer.Write((uint)(options.SizeOfStackCommit ?? 0x00001000));
 				writer.Write((uint)(options.SizeOfHeapReserve ?? 0x00100000));
@@ -395,7 +400,7 @@ namespace dot10.DotNet.Writer {
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
-				writer.Write((ushort)(options.DllCharacteristics ?? DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase));
+				writer.Write((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
 				writer.Write(options.SizeOfStackReserve ?? 0x0000000000400000);
 				writer.Write(options.SizeOfStackCommit ?? 0x0000000000004000);
 				writer.Write(options.SizeOfHeapReserve ?? 0x0000000000100000);

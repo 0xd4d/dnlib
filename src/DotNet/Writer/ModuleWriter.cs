@@ -145,6 +145,8 @@ namespace dot10.DotNet.Writer {
 			this.ShareMethodBodies = true;
 			this.ModuleKind = module.Kind;
 			this.PEHeadersOptions.Machine = module.Machine;
+			this.PEHeadersOptions.Characteristics = module.Characteristics;
+			this.PEHeadersOptions.DllCharacteristics = module.DllCharacteristics;
 			if (module.Kind == ModuleKind.Windows)
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
 			else
@@ -163,6 +165,13 @@ namespace dot10.DotNet.Writer {
 				this.PEHeadersOptions.MinorLinkerVersion = peImage.ImageNTHeaders.OptionalHeader.MinorLinkerVersion;
 				this.AddCheckSum = peImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
 			}
+
+			if (Is64Bit) {
+				this.PEHeadersOptions.Characteristics &= ~Characteristics._32BitMachine;
+				this.PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
+			}
+			else
+				this.PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
 		}
 	}
 
