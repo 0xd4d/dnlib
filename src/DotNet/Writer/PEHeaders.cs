@@ -299,6 +299,11 @@ namespace dot10.DotNet.Writer {
 			return length;
 		}
 
+		IEnumerable<SectionSizeInfo> GetSectionSizeInfos() {
+			foreach (var section in PESections)
+				yield return new SectionSizeInfo(section.GetLength(), section.Characteristics);
+		}
+
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			startOffset = writer.BaseStream.Position;
@@ -318,28 +323,7 @@ namespace dot10.DotNet.Writer {
 			writer.Write((ushort)(Use32BitOptionalHeader() ? 0xE0U : 0xF0));
 			writer.Write((ushort)GetCharacteristics());
 
-			// Calculate various sizes needed in the optional header
-			uint sizeOfHeaders = Utils.AlignUp(length, fileAlignment);
-			uint sizeOfImage = Utils.AlignUp(sizeOfHeaders, sectionAlignment);
-			uint baseOfData = 0, baseOfCode = 0;
-			uint sizeOfCode = 0, sizeOfInitdData = 0, sizeOfUninitdData = 0;
-			foreach (var section in sections) {
-				uint sectAlignedVs = Utils.AlignUp(section.GetLength(), sectionAlignment);
-				uint fileAlignedVs = Utils.AlignUp(section.GetLength(), fileAlignment);
-
-				if (baseOfCode == 0 && section.IsCode)
-					baseOfCode = sizeOfImage;
-				if (baseOfData == 0 && (section.IsInitializedData || section.IsUninitializedData))
-					baseOfData = sizeOfImage;
-				if (section.IsCode)
-					sizeOfCode += fileAlignedVs;
-				if (section.IsInitializedData)
-					sizeOfInitdData += fileAlignedVs;
-				if (section.IsUninitializedData)
-					sizeOfUninitdData += fileAlignedVs;
-
-				sizeOfImage += sectAlignedVs;
-			}
+			var sectionSizes = new SectionSizes(fileAlignment, sectionAlignment, length, () => GetSectionSizeInfos());
 
 			// Image optional header
 			uint ep = StartupStub == null ? 0 : (uint)StartupStub.EntryPointRVA;
@@ -347,12 +331,12 @@ namespace dot10.DotNet.Writer {
 				writer.Write((ushort)0x010B);
 				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
 				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
-				writer.Write(sizeOfCode);
-				writer.Write(sizeOfInitdData);
-				writer.Write(sizeOfUninitdData);
+				writer.Write(sectionSizes.sizeOfCode);
+				writer.Write(sectionSizes.sizeOfInitdData);
+				writer.Write(sectionSizes.sizeOfUninitdData);
 				writer.Write(ep);
-				writer.Write(baseOfCode);
-				writer.Write(baseOfData);
+				writer.Write(sectionSizes.baseOfCode);
+				writer.Write(sectionSizes.baseOfData);
 				writer.Write((uint)imageBase);
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
@@ -363,8 +347,8 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.MajorSubsystemVersion ?? 4);
 				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
-				writer.Write(sizeOfImage);
-				writer.Write(sizeOfHeaders);
+				writer.Write(sectionSizes.sizeOfImage);
+				writer.Write(sectionSizes.sizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
@@ -380,11 +364,11 @@ namespace dot10.DotNet.Writer {
 				writer.Write((ushort)0x020B);
 				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
 				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
-				writer.Write(sizeOfCode);
-				writer.Write(sizeOfInitdData);
-				writer.Write(sizeOfUninitdData);
+				writer.Write(sectionSizes.sizeOfCode);
+				writer.Write(sectionSizes.sizeOfInitdData);
+				writer.Write(sectionSizes.sizeOfUninitdData);
 				writer.Write(ep);
-				writer.Write(baseOfCode);
+				writer.Write(sectionSizes.baseOfCode);
 				writer.Write(imageBase);
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
@@ -395,8 +379,8 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.MajorSubsystemVersion ?? 4);
 				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
-				writer.Write(sizeOfImage);
-				writer.Write(sizeOfHeaders);
+				writer.Write(sectionSizes.sizeOfImage);
+				writer.Write(sectionSizes.sizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));

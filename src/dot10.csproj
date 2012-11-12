@@ -207,6 +207,7 @@
     <Compile Include="DotNet\Writer\PESection.cs" />
     <Compile Include="DotNet\Writer\PreserveTokensMetaData.cs" />
     <Compile Include="DotNet\Writer\RelocDirectory.cs" />
+    <Compile Include="DotNet\Writer\SectionSizes.cs" />
     <Compile Include="DotNet\Writer\SignatureWriter.cs" />
     <Compile Include="DotNet\Writer\StartupStub.cs" />
     <Compile Include="DotNet\Writer\StringsHeap.cs" />
