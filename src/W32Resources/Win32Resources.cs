@@ -13,6 +13,45 @@ namespace dot10.W32Resources {
 		/// </summary>
 		public abstract ResourceDirectory Root { get; set; }
 
+		/// <summary>
+		/// Finds a <see cref="ResourceDirectory"/>
+		/// </summary>
+		/// <param name="type">Type</param>
+		/// <returns>The <see cref="ResourceDirectory"/> or <c>null</c> if none found</returns>
+		public ResourceDirectory Find(ResourceName type) {
+			var dir = Root;
+			if (dir == null)
+				return null;
+			return dir.FindDirectory(type);
+		}
+
+		/// <summary>
+		/// Finds a <see cref="ResourceDirectory"/>
+		/// </summary>
+		/// <param name="type">Type</param>
+		/// <param name="name">Name</param>
+		/// <returns>The <see cref="ResourceDirectory"/> or <c>null</c> if none found</returns>
+		public ResourceDirectory Find(ResourceName type, ResourceName name) {
+			var dir = Find(type);
+			if (dir == null)
+				return null;
+			return dir.FindDirectory(name);
+		}
+
+		/// <summary>
+		/// Finds a <see cref="ResourceData"/>
+		/// </summary>
+		/// <param name="type">Type</param>
+		/// <param name="name">Name</param>
+		/// <param name="langId">Language ID</param>
+		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
+		public ResourceData Find(ResourceName type, ResourceName name, ResourceName langId) {
+			var dir = Find(type, name);
+			if (dir == null)
+				return null;
+			return dir.FindData(langId);
+		}
+
 		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);
