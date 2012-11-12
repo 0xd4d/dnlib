@@ -433,6 +433,12 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// If <c>true</c>, use the original Field RVAs. If it has no RVA, assume it's a new
+		/// field value and create a new Field RVA.
+		/// </summary>
+		internal bool KeepFieldRVA { get; set; }
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Module</param>
@@ -1760,16 +1766,23 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="field">The field</param>
 		protected void AddFieldRVA(FieldDef field) {
-			if (field == null || field.InitialValue == null)
-				return;
-			var ivBytes = field.InitialValue;
-			if (!VerifyFieldSize(field, ivBytes.Length))
-				Error("Field {0} ({1:X8}) initial value size != size of field type", field, field.MDToken.Raw);
-			uint rid = GetRid(field);
-			var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT);
-			fieldToInitialValue[field] = iv;
-			var row = new RawFieldRVARow(0, rid);
-			fieldRVAInfos.Add(field, row);
+			if (field.RVA != 0 && KeepFieldRVA) {
+				uint rid = GetRid(field);
+				var row = new RawFieldRVARow((uint)field.RVA, rid);
+				fieldRVAInfos.Add(field, row);
+			}
+			else {
+				if (field == null || field.InitialValue == null)
+					return;
+				var ivBytes = field.InitialValue;
+				if (!VerifyFieldSize(field, ivBytes.Length))
+					Error("Field {0} ({1:X8}) initial value size != size of field type", field, field.MDToken.Raw);
+				uint rid = GetRid(field);
+				var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT);
+				fieldToInitialValue[field] = iv;
+				var row = new RawFieldRVARow(0, rid);
+				fieldRVAInfos.Add(field, row);
+			}
 		}
 
 		static bool VerifyFieldSize(FieldDef field, int size) {

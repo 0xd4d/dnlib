@@ -141,6 +141,11 @@ namespace dot10.DotNet.Writer {
 
 		void Write() {
 			Initialize();
+
+			// It's not safe to create new Field RVAs so re-use them all. The user can override
+			// this by setting field.RVA = 0 when creating a new field.InitialValue.
+			metaData.KeepFieldRVA = true;
+
 			metaData.CreateTables();
 			WriteFile();
 		}
