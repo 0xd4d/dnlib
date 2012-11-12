@@ -54,5 +54,19 @@ namespace dot10.DotNet.Writer {
 			if (writer.BaseStream.Position - pos != chunk.GetLength())
 				throw new IOException("Did not write all bytes");
 		}
+
+		/// <summary>
+		/// Update a data directory
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="chunk">The data</param>
+		internal static void WriteDataDirectory(this BinaryWriter writer, IChunk chunk) {
+			if (chunk == null || chunk.GetLength() == 0)
+				writer.Write(0UL);
+			else {
+				writer.Write((uint)chunk.RVA);
+				writer.Write(chunk.GetLength());
+			}
+		}
 	}
 }

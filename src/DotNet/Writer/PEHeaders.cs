@@ -393,41 +393,27 @@ namespace dot10.DotNet.Writer {
 				writer.Write(options.NumberOfRvaAndSizes ?? 0x00000010);
 			}
 
-			WriteDataDirectory(writer, null);	// Export table
-			WriteDataDirectory(writer, ImportDirectory);
-			WriteDataDirectory(writer, Win32Resources);
-			WriteDataDirectory(writer, null);	// Exception table
-			WriteDataDirectory(writer, null);	// Certificate table
-			WriteDataDirectory(writer, RelocDirectory);
-			WriteDataDirectory(writer, null);	// Debugging information
-			WriteDataDirectory(writer, null);	// Architecture-specific data
-			WriteDataDirectory(writer, null);	// Global pointer register RVA
-			WriteDataDirectory(writer, null);	// Thread local storage
-			WriteDataDirectory(writer, null);	// Load configuration table
-			WriteDataDirectory(writer, null);	// Bound import table
-			WriteDataDirectory(writer, ImportAddressTable);
-			WriteDataDirectory(writer, null);	// Delay import descriptor
-			WriteDataDirectory(writer, ImageCor20Header);
-			WriteDataDirectory(writer, null);	// Reserved
+			writer.WriteDataDirectory(null);	// Export table
+			writer.WriteDataDirectory(ImportDirectory);
+			writer.WriteDataDirectory(Win32Resources);
+			writer.WriteDataDirectory(null);	// Exception table
+			writer.WriteDataDirectory(null);	// Certificate table
+			writer.WriteDataDirectory(RelocDirectory);
+			writer.WriteDataDirectory(null);	// Debugging information
+			writer.WriteDataDirectory(null);	// Architecture-specific data
+			writer.WriteDataDirectory(null);	// Global pointer register RVA
+			writer.WriteDataDirectory(null);	// Thread local storage
+			writer.WriteDataDirectory(null);	// Load configuration table
+			writer.WriteDataDirectory(null);	// Bound import table
+			writer.WriteDataDirectory(ImportAddressTable);
+			writer.WriteDataDirectory(null);	// Delay import descriptor
+			writer.WriteDataDirectory(ImageCor20Header);
+			writer.WriteDataDirectory(null);	// Reserved
 
 			// Sections
 			uint rva = Utils.AlignUp(sectionSizes.sizeOfHeaders, sectionAlignment);
 			foreach (var section in sections)
 				rva += section.WriteHeaderTo(writer, fileAlignment, sectionAlignment, rva);
-		}
-
-		/// <summary>
-		/// Update a data directory
-		/// </summary>
-		/// <param name="writer">Writer</param>
-		/// <param name="chunk">The data</param>
-		public void WriteDataDirectory(BinaryWriter writer, IChunk chunk) {
-			if (chunk == null || chunk.GetLength() == 0)
-				writer.Write(0UL);
-			else {
-				writer.Write((uint)chunk.RVA);
-				writer.Write(chunk.GetLength());
-			}
 		}
 
 		/// <summary>
