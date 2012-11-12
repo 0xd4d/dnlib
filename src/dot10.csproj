@@ -203,6 +203,7 @@
     <Compile Include="DotNet\Writer\ModuleWriter.cs" />
     <Compile Include="DotNet\Writer\ModuleWriterBase.cs" />
     <Compile Include="DotNet\Writer\ModuleWriterException.cs" />
+    <Compile Include="DotNet\Writer\NativeModuleWriter.cs" />
     <Compile Include="DotNet\Writer\NetResources.cs" />
     <Compile Include="DotNet\Writer\NormalMetaData.cs" />
     <Compile Include="DotNet\Writer\PEHeaders.cs" />
