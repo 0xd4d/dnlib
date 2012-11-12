@@ -1,4 +1,6 @@
-﻿using dot10.PE;
+﻿using System.IO;
+using System.Text;
+using dot10.PE;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
@@ -51,6 +53,34 @@ namespace dot10.DotNet.Writer {
 		public PESection(string name, uint characteristics) {
 			this.name = name;
 			this.characteristics = characteristics;
+		}
+
+		/// <summary>
+		/// Writes the section header to <paramref name="writer"/> at its current position.
+		/// Returns aligned virtual size (aligned to <paramref name="sectionAlignment"/>)
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="fileAlignment">File alignment</param>
+		/// <param name="sectionAlignment">Section alignment</param>
+		/// <param name="rva">Current <see cref="RVA"/></param>
+		public uint WriteHeaderTo(BinaryWriter writer, uint fileAlignment, uint sectionAlignment, uint rva) {
+			uint vs = GetLength();
+			uint alignedVs = Utils.AlignUp(vs, sectionAlignment);
+			uint rawSize = Utils.AlignUp(GetLength(), fileAlignment);
+			uint dataOffset = (uint)FileOffset;
+
+			writer.Write(Encoding.UTF8.GetBytes(Name + "\0\0\0\0\0\0\0\0"), 0, 8);
+			writer.Write(vs);			// VirtualSize
+			writer.Write((uint)rva);	// VirtualAddress
+			writer.Write(rawSize);		// SizeOfRawData
+			writer.Write(dataOffset);	// PointerToRawData
+			writer.Write(0);			// PointerToRelocations
+			writer.Write(0);			// PointerToLinenumbers
+			writer.Write((ushort)0);	// NumberOfRelocations
+			writer.Write((ushort)0);	// NumberOfLinenumbers
+			writer.Write(Characteristics);
+
+			return alignedVs;
 		}
 	}
 }

@@ -411,26 +411,9 @@ namespace dot10.DotNet.Writer {
 			WriteDataDirectory(writer, null);	// Reserved
 
 			// Sections
-			uint rva = Utils.AlignUp(sizeOfHeaders, sectionAlignment);
-			foreach (var section in sections) {
-				uint vs = section.GetLength();
-				uint alignedVs = Utils.AlignUp(vs, sectionAlignment);
-				uint rawSize = Utils.AlignUp(section.GetLength(), fileAlignment);
-				uint dataOffset = (uint)section.FileOffset;
-
-				writer.Write(Encoding.UTF8.GetBytes(section.Name + "\0\0\0\0\0\0\0\0"), 0, 8);
-				writer.Write(vs);			// VirtualSize
-				writer.Write(rva);			// VirtualAddress
-				writer.Write(rawSize);		// SizeOfRawData
-				writer.Write(dataOffset);	// PointerToRawData
-				writer.Write(0);			// PointerToRelocations
-				writer.Write(0);			// PointerToLinenumbers
-				writer.Write((ushort)0);	// NumberOfRelocations
-				writer.Write((ushort)0);	// NumberOfLinenumbers
-				writer.Write(section.Characteristics);
-
-				rva += alignedVs;
-			}
+			uint rva = Utils.AlignUp(sectionSizes.sizeOfHeaders, sectionAlignment);
+			foreach (var section in sections)
+				rva += section.WriteHeaderTo(writer, fileAlignment, sectionAlignment, rva);
 		}
 
 		/// <summary>
