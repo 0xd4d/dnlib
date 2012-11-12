@@ -386,8 +386,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return Utils.AlignUp(length, ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT);
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		/// <inheritdoc/>

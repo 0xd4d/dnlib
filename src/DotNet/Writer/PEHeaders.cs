@@ -295,13 +295,18 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return length;
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		IEnumerable<SectionSizeInfo> GetSectionSizeInfos() {
 			foreach (var section in PESections)
-				yield return new SectionSizeInfo(section.GetLength(), section.Characteristics);
+				yield return new SectionSizeInfo(section.GetVirtualSize(), section.Characteristics);
 		}
 
 		/// <inheritdoc/>

@@ -2331,7 +2331,7 @@ namespace dot10.DotNet.Writer {
 			metaDataHeader.Heaps = GetHeaps();
 
 			metaDataHeader.SetOffset(offset, rva);
-			uint len = metaDataHeader.GetLength();
+			uint len = metaDataHeader.GetFileLength();
 			offset += len;
 			rva += len;
 
@@ -2339,7 +2339,7 @@ namespace dot10.DotNet.Writer {
 				offset = offset.AlignUp(HEAP_ALIGNMENT);
 				rva = rva.AlignUp(HEAP_ALIGNMENT);
 				heap.SetOffset(offset, rva);
-				len = heap.GetLength();
+				len = heap.GetFileLength();
 				offset += len;
 				rva += len;
 			}
@@ -2366,21 +2366,26 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return length;
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			var rva2 = rva;
 			metaDataHeader.VerifyWriteTo(writer);
-			rva2 += metaDataHeader.GetLength();
+			rva2 += metaDataHeader.GetFileLength();
 
 			foreach (var heap in metaDataHeader.Heaps) {
 				writer.WriteZeros((int)(rva2.AlignUp(HEAP_ALIGNMENT) - rva2));
 				rva2 = rva2.AlignUp(HEAP_ALIGNMENT);
 				heap.VerifyWriteTo(writer);
-				rva2 += heap.GetLength();
+				rva2 += heap.GetFileLength();
 			}
 		}
 

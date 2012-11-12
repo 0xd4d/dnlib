@@ -38,7 +38,7 @@ namespace dot10.DotNet.Writer {
 		/// <c>true</c> if offsets require 4 bytes instead of 2 bytes.
 		/// </summary>
 		public bool IsBig {
-			get { return GetLength() > 0xFFFF; }
+			get { return GetFileLength() > 0xFFFF; }
 		}
 
 		/// <summary>
@@ -55,8 +55,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return Utils.AlignUp(GetRawLength(), ALIGNMENT);
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		/// <inheritdoc/>

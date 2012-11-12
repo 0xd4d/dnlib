@@ -64,24 +64,29 @@ namespace dot10.DotNet.Writer {
 			this.rva = rva;
 			foreach (var resource in resources) {
 				resource.SetOffset(offset + 4, rva + 4);
-				uint len = 4 + resource.GetLength();
+				uint len = 4 + resource.GetFileLength();
 				offset = (offset + len).AlignUp(alignment);
 				rva = (rva + len).AlignUp(alignment);
 			}
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return length;
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			RVA rva2 = rva;
 			foreach (var resourceData in resources) {
-				writer.Write(resourceData.GetLength());
+				writer.Write(resourceData.GetFileLength());
 				resourceData.VerifyWriteTo(writer);
-				rva2 += 4 + resourceData.GetLength();
+				rva2 += 4 + resourceData.GetFileLength();
 				int padding = (int)rva2.AlignUp(alignment) - (int)rva2;
 				writer.WriteZeros(padding);
 				rva2 += (uint)padding;

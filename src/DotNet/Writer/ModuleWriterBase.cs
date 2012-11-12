@@ -269,9 +269,8 @@ namespace dot10.DotNet.Writer {
 		protected void CalculateRvasAndFileOffsets(List<IChunk> chunks, FileOffset offset, RVA rva, uint fileAlignment, uint sectionAlignment) {
 			foreach (var chunk in chunks) {
 				chunk.SetOffset(offset, rva);
-				uint len = chunk.GetLength();
-				offset += len;
-				rva += len;
+				offset += chunk.GetFileLength();
+				rva += chunk.GetVirtualSize();
 				offset = offset.AlignUp(fileAlignment);
 				rva = rva.AlignUp(sectionAlignment);
 			}
@@ -287,7 +286,7 @@ namespace dot10.DotNet.Writer {
 		protected void WriteChunks(BinaryWriter writer, List<IChunk> chunks, FileOffset offset, uint fileAlignment) {
 			foreach (var chunk in chunks) {
 				chunk.VerifyWriteTo(writer);
-				offset += chunk.GetLength();
+				offset += chunk.GetFileLength();
 				var newOffset = offset.AlignUp(fileAlignment);
 				writer.WriteZeros((int)(newOffset - offset));
 				offset = newOffset;

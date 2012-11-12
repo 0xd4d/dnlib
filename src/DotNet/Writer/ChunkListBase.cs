@@ -12,6 +12,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>All chunks</summary>
 		protected List<Elem> chunks;
 		uint length;
+		uint virtualSize;
 		/// <summary><c>true</c> if <see cref="SetOffset"/> has been called</summary>
 		protected bool setOffsetCalled;
 		FileOffset offset;
@@ -79,31 +80,40 @@ namespace dot10.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 			length = 0;
+			virtualSize = 0;
 			foreach (var elem in chunks) {
-				uint padding = (uint)rva.AlignUp(elem.alignment) - (uint)rva;
-				offset += padding;
-				rva += padding;
+				uint paddingF = (uint)offset.AlignUp(elem.alignment) - (uint)offset;
+				uint paddingV = (uint)rva.AlignUp(elem.alignment) - (uint)rva;
+				offset += paddingF;
+				rva += paddingV;
 				elem.chunk.SetOffset(offset, rva);
-				uint chunkLen = elem.chunk.GetLength();
-				offset += chunkLen;
-				rva += chunkLen;
-				length += padding + chunkLen;
+				uint chunkLenF = elem.chunk.GetFileLength();
+				uint chunkLenV = elem.chunk.GetVirtualSize();
+				offset += chunkLenF;
+				rva += chunkLenV;
+				length += paddingF + chunkLenF;
+				virtualSize += paddingV + chunkLenV;
 			}
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return length;
 		}
 
 		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return virtualSize;
+		}
+
+		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			RVA rva2 = rva;
+			FileOffset offset2 = offset;
 			foreach (var elem in chunks) {
-				int padding = (int)rva2.AlignUp(elem.alignment) - (int)rva2;
-				writer.WriteZeros(padding);
+				int paddingF = (int)offset2.AlignUp(elem.alignment) - (int)offset2;
+				writer.WriteZeros(paddingF);
 				elem.chunk.VerifyWriteTo(writer);
-				rva2 += (uint)padding + elem.chunk.GetLength();
+				offset2 += (uint)paddingF + elem.chunk.GetFileLength();
 			}
 		}
 	}

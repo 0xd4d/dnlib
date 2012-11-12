@@ -10,6 +10,7 @@ namespace dot10.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 		IBinaryReader data;
+		uint virtualSize;
 
 		/// <summary>
 		/// Gets the data
@@ -32,8 +33,18 @@ namespace dot10.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="data">The data</param>
-		public BinaryReaderChunk(IBinaryReader data) {
+		public BinaryReaderChunk(IBinaryReader data)
+			: this(data, (uint)data.Length) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="data">The data</param>
+		/// <param name="virtualSize">Virtual size of <paramref name="data"/></param>
+		public BinaryReaderChunk(IBinaryReader data, uint virtualSize) {
 			this.data = data;
+			this.virtualSize = virtualSize;
 		}
 
 		/// <inheritdoc/>
@@ -43,8 +54,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return (uint)data.Length;
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return virtualSize;
 		}
 
 		/// <inheritdoc/>

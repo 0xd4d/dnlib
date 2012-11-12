@@ -113,8 +113,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return 0x48;
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		/// <inheritdoc/>
@@ -139,11 +144,11 @@ namespace dot10.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="chunk">The data</param>
 		public void WriteDataDirectory(BinaryWriter writer, IChunk chunk) {
-			if (chunk == null || chunk.GetLength() == 0)
+			if (chunk == null || chunk.GetFileLength() == 0)
 				writer.Write(0UL);
 			else {
 				writer.Write((uint)chunk.RVA);
-				writer.Write(chunk.GetLength());
+				writer.Write(chunk.GetFileLength());
 			}
 		}
 	}

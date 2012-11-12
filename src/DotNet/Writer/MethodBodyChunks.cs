@@ -88,7 +88,7 @@ namespace dot10.DotNet.Writer {
 			var rva2 = rva;
 			foreach (var mb in tinyMethods) {
 				mb.SetOffset(offset, rva2);
-				uint len = mb.GetLength();
+				uint len = mb.GetFileLength();
 				rva2 += len;
 				offset += len;
 			}
@@ -100,7 +100,7 @@ namespace dot10.DotNet.Writer {
 					offset += padding;
 				}
 				mb.SetOffset(offset, rva2);
-				uint len = mb.GetLength();
+				uint len = mb.GetFileLength();
 				rva2 += len;
 				offset += len;
 			}
@@ -109,8 +109,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return length;
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		/// <inheritdoc/>
@@ -118,7 +123,7 @@ namespace dot10.DotNet.Writer {
 			var rva2 = rva;
 			foreach (var mb in tinyMethods) {
 				mb.VerifyWriteTo(writer);
-				rva2 += mb.GetLength();
+				rva2 += mb.GetFileLength();
 			}
 
 			foreach (var mb in fatMethods) {
@@ -128,7 +133,7 @@ namespace dot10.DotNet.Writer {
 					rva2 += (uint)padding;
 				}
 				mb.VerifyWriteTo(writer);
-				rva2 += mb.GetLength();
+				rva2 += mb.GetFileLength();
 			}
 		}
 	}

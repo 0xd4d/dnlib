@@ -64,9 +64,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="sectionAlignment">Section alignment</param>
 		/// <param name="rva">Current <see cref="RVA"/></param>
 		public uint WriteHeaderTo(BinaryWriter writer, uint fileAlignment, uint sectionAlignment, uint rva) {
-			uint vs = GetLength();
+			uint vs = GetVirtualSize();
+			uint fileLen = GetFileLength();
 			uint alignedVs = Utils.AlignUp(vs, sectionAlignment);
-			uint rawSize = Utils.AlignUp(GetLength(), fileAlignment);
+			uint rawSize = Utils.AlignUp(fileLen, fileAlignment);
 			uint dataOffset = (uint)FileOffset;
 
 			writer.Write(Encoding.UTF8.GetBytes(Name + "\0\0\0\0\0\0\0\0"), 0, 8);

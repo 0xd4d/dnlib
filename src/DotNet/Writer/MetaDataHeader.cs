@@ -117,8 +117,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetLength() {
+		public uint GetFileLength() {
 			return length;
+		}
+
+		/// <inheritdoc/>
+		public uint GetVirtualSize() {
+			return GetFileLength();
 		}
 
 		/// <inheritdoc/>
@@ -137,7 +142,7 @@ namespace dot10.DotNet.Writer {
 			writer.Write((ushort)heaps.Count);
 			foreach (var heap in heaps) {
 				writer.Write((uint)(heap.FileOffset - offset));
-				writer.Write(heap.GetLength());
+				writer.Write(heap.GetFileLength());
 				writer.Write(s = GetAsciizName(heap.Name));
 				if (s.Length > 32)
 					throw new ModuleWriterException(string.Format("Heap name '{0}' is > 32 bytes", heap.Name));
