@@ -1751,7 +1751,7 @@ namespace dot10.DotNet.Writer {
 			if (!VerifyFieldSize(field, ivBytes.Length))
 				Error("Field {0} ({1:X8}) initial value size != size of field type", field, field.MDToken.Raw);
 			uint rid = GetRid(field);
-			var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriter.DEFAULT_CONSTANTS_ALIGNMENT);
+			var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT);
 			fieldToInitialValue[field] = iv;
 			var row = new RawFieldRVARow(0, rid);
 			fieldRVAInfos.Add(field, row);

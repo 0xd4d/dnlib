@@ -9,49 +9,9 @@ namespace dot10.DotNet.Writer {
 	/// <summary>
 	/// <see cref="ModuleWriter"/> options
 	/// </summary>
-	public sealed class ModuleWriterOptions {
-		MetaDataOptions metaDataOptions;
+	public sealed class ModuleWriterOptions : ModuleWriterOptionsBase {
 		Cor20HeaderOptions cor20HeaderOptions;
 		PEHeadersOptions peHeadersOptions;
-		IModuleWriterListener listener;
-		ILogger logger;
-		ILogger metaDataLogger;
-		Win32Resources win32Resources;
-
-		/// <summary>
-		/// Gets/sets the listener
-		/// </summary>
-		public IModuleWriterListener Listener {
-			get { return listener; }
-			set { listener = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the logger. If this is <c>null</c>, any errors result in a
-		/// <see cref="ModuleWriterException"/> being thrown. To disable this behavior, either
-		/// create your own logger or use <see cref="DummyLogger.NoThrowInstance"/>.
-		/// </summary>
-		public ILogger Logger {
-			get { return logger; }
-			set { logger = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the <see cref="MetaData"/> writer logger. If this is <c>null</c>, use
-		/// <see cref="Logger"/>.
-		/// </summary>
-		public ILogger MetaDataLogger {
-			get { return metaDataLogger; }
-			set { metaDataLogger = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the <see cref="MetaData"/> options. This is never <c>null</c>.
-		/// </summary>
-		public MetaDataOptions MetaDataOptions {
-			get { return metaDataOptions ?? (metaDataOptions = new MetaDataOptions()); }
-			set { metaDataOptions = value; }
-		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
@@ -67,15 +27,6 @@ namespace dot10.DotNet.Writer {
 		public PEHeadersOptions PEHeadersOptions {
 			get { return peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions()); }
 			set { peHeadersOptions = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the Win32 resources. If this is <c>null</c>, use the module's
-		/// Win32 resources if any.
-		/// </summary>
-		public Win32Resources Win32Resources {
-			get { return win32Resources; }
-			set { win32Resources = value; }
 		}
 
 		/// <summary>
@@ -107,23 +58,9 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// <c>true</c> if method bodies can be shared (two or more method bodies can share the
-		/// same RVA), <c>false</c> if method bodies can't be shared. Don't enable it if there
-		/// must be a 1:1 relationship with method bodies and their RVAs.
-		/// </summary>
-		public bool ShareMethodBodies { get; set; }
-
-		/// <summary>
-		/// <c>true</c> if the PE header CheckSum field should be updated, <c>false</c> if the
-		/// CheckSum field should be cleared.
-		/// </summary>
-		public bool AddCheckSum { get; set; }
-
-		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public ModuleWriterOptions() {
-			ShareMethodBodies = true;
 			ModuleKind = ModuleKind.Windows;
 		}
 
@@ -140,9 +77,8 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="module">The module</param>
 		/// <param name="listener">Module writer listener</param>
-		public ModuleWriterOptions(ModuleDef module, IModuleWriterListener listener) {
-			this.listener = listener;
-			this.ShareMethodBodies = true;
+		public ModuleWriterOptions(ModuleDef module, IModuleWriterListener listener)
+			: base(module, listener) {
 			this.ModuleKind = module.Kind;
 			this.PEHeadersOptions.Machine = module.Machine;
 			this.PEHeadersOptions.Characteristics = module.Characteristics;
@@ -152,10 +88,6 @@ namespace dot10.DotNet.Writer {
 			else
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
 			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
-			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
-
-			// Some tools crash if #GUID is missing so always create it by default
-			this.MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
 
 			var modDefMD = module as ModuleDefMD;
 			if (modDefMD != null) {
@@ -176,26 +108,19 @@ namespace dot10.DotNet.Writer {
 	}
 
 	/// <summary>
-	/// Writes a .NET PE file
+	/// Writes a .NET PE file. See also <see cref="NativeModuleWriter"/>
 	/// </summary>
-	public sealed class ModuleWriter : IMetaDataListener, ILogger {
+	public sealed class ModuleWriter : ModuleWriterBase {
 		const uint DEFAULT_IAT_ALIGNMENT = 4;
 		const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
 		const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
-		internal const uint DEFAULT_CONSTANTS_ALIGNMENT = 8;
-		const uint DEFAULT_METHODBODIES_ALIGNMENT = 4;
-		const uint DEFAULT_NETRESOURCES_ALIGNMENT = 8;
-		const uint DEFAULT_METADATA_ALIGNMENT = 4;
 		const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_IMPORTDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_STARTUPSTUB_ALIGNMENT = 1;
-		internal const uint DEFAULT_WIN32_RESOURCES_ALIGNMENT = 8;
 		const uint DEFAULT_RELOC_ALIGNMENT = 4;
 
 		readonly ModuleDef module;
 		ModuleWriterOptions options;
-		Stream destStream;
-		IModuleWriterListener listener;
 
 		List<PESection> sections;
 		PESection textSection;
@@ -206,14 +131,9 @@ namespace dot10.DotNet.Writer {
 		ImportAddressTable importAddressTable;
 		ImageCor20Header imageCor20Header;
 		StrongNameSignature strongNameSignature;
-		UniqueChunkList<ByteArrayChunk> constants;
-		MethodBodyChunks methodBodies;
-		NetResources netResources;
-		MetaData metaData;
 		DebugDirectory debugDirectory;
 		ImportDirectory importDirectory;
 		StartupStub startupStub;
-		Win32ResourcesChunk win32Resources;
 		RelocDirectory relocDirectory;
 
 		/// <summary>
@@ -223,19 +143,17 @@ namespace dot10.DotNet.Writer {
 			get { return module; }
 		}
 
+		/// <inheritdoc/>
+		protected override ModuleWriterOptionsBase TheOptions {
+			get { return Options; }
+		}
+
 		/// <summary>
 		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
 		public ModuleWriterOptions Options {
 			get { return options ?? (options = new ModuleWriterOptions(module)); }
 			set { options = value; }
-		}
-
-		/// <summary>
-		/// Gets the destination stream
-		/// </summary>
-		public Stream DestinationStream {
-			get { return destStream; }
 		}
 
 		/// <summary>
@@ -295,34 +213,6 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets the constants
-		/// </summary>
-		public UniqueChunkList<ByteArrayChunk> Constants {
-			get { return constants; }
-		}
-
-		/// <summary>
-		/// Gets the method bodies
-		/// </summary>
-		public MethodBodyChunks MethodBodies {
-			get { return methodBodies; }
-		}
-
-		/// <summary>
-		/// Gets the .NET resources
-		/// </summary>
-		public NetResources NetResources {
-			get { return netResources; }
-		}
-
-		/// <summary>
-		/// Gets the .NET metadata
-		/// </summary>
-		public MetaData MetaData {
-			get { return metaData; }
-		}
-
-		/// <summary>
 		/// Gets the debug directory or <c>null</c> if there's none
 		/// </summary>
 		public DebugDirectory DebugDirectory {
@@ -341,13 +231,6 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		public StartupStub StartupStub {
 			get { return startupStub; }
-		}
-
-		/// <summary>
-		/// Gets the Win32 resources or <c>null</c> if there's none
-		/// </summary>
-		public Win32ResourcesChunk Win32Resources {
-			get { return win32Resources; }
 		}
 
 		/// <summary>
@@ -375,62 +258,26 @@ namespace dot10.DotNet.Writer {
 			this.options = options;
 		}
 
-		/// <summary>
-		/// Writes the module to a file
-		/// </summary>
-		/// <param name="fileName">File name. The file will be truncated if it exists.</param>
-		public void Write(string fileName) {
-			using (var dest = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
-				dest.SetLength(0);
-				try {
-					Write(dest);
-				}
-				catch {
-					// Writing failed. Delete the file since it's useless.
-					dest.Close();
-					DeleteFileNoThrow(fileName);
-					throw;
-				}
-			}
-		}
-
-		static void DeleteFileNoThrow(string fileName) {
-			try {
-				File.Delete(fileName);
-			}
-			catch {
-			}
-		}
-
-		/// <summary>
-		/// Writes the module to a <see cref="Stream"/>
-		/// </summary>
-		/// <param name="dest">Destination stream</param>
-		public void Write(Stream dest) {
-			listener = Options.Listener ?? DummyModuleWriterListener.Instance;
-			destStream = dest;
-
-			listener.OnWriterEvent(this, ModuleWriterEvent.Begin);
+		/// <inheritdoc/>
+		protected override void WriteImpl() {
 			Initialize();
-
 			metaData.CreateTables();
-
 			WriteFile();
-			listener.OnWriterEvent(this, ModuleWriterEvent.End);
 		}
 
 		void Initialize() {
 			CreateSections();
-			listener.OnWriterEvent(this, ModuleWriterEvent.PESectionsCreated);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.PESectionsCreated);
 
 			CreateChunks();
-			listener.OnWriterEvent(this, ModuleWriterEvent.ChunksCreated);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.ChunksCreated);
 
 			AddChunksToSections();
-			listener.OnWriterEvent(this, ModuleWriterEvent.ChunksAddedToSections);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.ChunksAddedToSections);
 		}
 
-		Win32Resources GetWin32Resources() {
+		/// <inheritdoc/>
+		protected override Win32Resources GetWin32Resources() {
 			return module.Win32Resources ?? Options.Win32Resources;
 		}
 
@@ -461,20 +308,10 @@ namespace dot10.DotNet.Writer {
 			}
 
 			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
-			constants = new UniqueChunkList<ByteArrayChunk>();
-			methodBodies = new MethodBodyChunks(Options.ShareMethodBodies);
-			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
-
-			metaData = MetaData.Create(module, constants, methodBodies, netResources, Options.MetaDataOptions);
-			metaData.Logger = Options.MetaDataLogger ?? this;
-			metaData.Listener = this;
+			CreateMetaDataChunks(module);
 
 			if (hasDebugDirectory)
 				debugDirectory = new DebugDirectory();
-
-			var w32Resources = GetWin32Resources();
-			if (w32Resources != null)
-				win32Resources = new Win32ResourcesChunk(w32Resources);
 
 			if (importDirectory != null)
 				importDirectory.IsExeFile = Options.IsExeFile;
@@ -505,39 +342,27 @@ namespace dot10.DotNet.Writer {
 			foreach (var section in sections)
 				chunks.Add(section);
 
-			listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
-			CalculateRvasAndFileOffsets(chunks);
-			listener.OnWriterEvent(this, ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
+			peHeaders.PESections = sections;
+			CalculateRvasAndFileOffsets(chunks, 0, 0, peHeaders.FileAlignment, peHeaders.SectionAlignment);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
 
 			InitializeChunkProperties();
 
-			listener.OnWriterEvent(this, ModuleWriterEvent.BeginWriteChunks);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWriteChunks);
 			var writer = new BinaryWriter(destStream);
-			WriteChunks(writer, chunks);
-			listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
+			WriteChunks(writer, chunks, 0, peHeaders.FileAlignment);
+			long imageLength = writer.BaseStream.Position - destStreamBaseOffset;
+			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
 
-			listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
 			//TODO: Strong name sign the assembly
-			listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
 
-			listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
 			if (Options.AddCheckSum)
-				peHeaders.WriteCheckSum(writer, writer.BaseStream.Length);
-			listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePEChecksum);
-		}
-
-		void CalculateRvasAndFileOffsets(List<IChunk> chunks) {
-			peHeaders.PESections = sections;
-			FileOffset offset = 0;
-			RVA rva = 0;
-			foreach (var chunk in chunks) {
-				chunk.SetOffset(offset, rva);
-				uint len = chunk.GetLength();
-				offset += len;
-				rva += len;
-				offset = offset.AlignUp(peHeaders.FileAlignment);
-				rva = rva.AlignUp(peHeaders.SectionAlignment);
-			}
+				peHeaders.WriteCheckSum(writer, imageLength);
+			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePEChecksum);
 		}
 
 		void InitializeChunkProperties() {
@@ -561,17 +386,6 @@ namespace dot10.DotNet.Writer {
 			imageCor20Header.StrongNameSignature = strongNameSignature;
 		}
 
-		void WriteChunks(BinaryWriter writer, List<IChunk> chunks) {
-			FileOffset offset = 0;
-			foreach (var chunk in chunks) {
-				chunk.VerifyWriteTo(writer);
-				offset += chunk.GetLength();
-				var newOffset = offset.AlignUp(peHeaders.FileAlignment);
-				writer.WriteZeros((int)(newOffset - offset));
-				offset = newOffset;
-			}
-		}
-
 		uint GetEntryPoint() {
 			var methodEntryPoint = module.ManagedEntryPoint as MethodDef;
 			if (methodEntryPoint != null)
@@ -586,72 +400,6 @@ namespace dot10.DotNet.Writer {
 				return nativeEntryPoint;
 
 			return 0;
-		}
-
-		/// <inheritdoc/>
-		void IMetaDataListener.OnMetaDataEvent(MetaData metaData, MetaDataEvent evt) {
-			switch (evt) {
-			case MetaDataEvent.BeginCreateTables:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginCreateTables);
-				break;
-
-			case MetaDataEvent.MemberDefRidsAllocated:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefRidsAllocated);
-				break;
-
-			case MetaDataEvent.MemberDefsInitialized:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefsInitialized);
-				break;
-
-			case MetaDataEvent.MostTablesSorted:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDMostTablesSorted);
-				break;
-
-			case MetaDataEvent.MemberDefCustomAttributesWritten:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefCustomAttributesWritten);
-				break;
-
-			case MetaDataEvent.BeginWriteMethodBodies:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginWriteMethodBodies);
-				break;
-
-			case MetaDataEvent.EndWriteMethodBodies:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDEndWriteMethodBodies);
-				break;
-
-			case MetaDataEvent.BeginAddResources:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginAddResources);
-				break;
-
-			case MetaDataEvent.EndAddResources:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDEndAddResources);
-				break;
-
-			case MetaDataEvent.OnAllTablesSorted:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDOnAllTablesSorted);
-				break;
-
-			case MetaDataEvent.EndCreateTables:
-				listener.OnWriterEvent(this, ModuleWriterEvent.MDEndCreateTables);
-				break;
-
-			default:
-				break;
-			}
-		}
-
-		ILogger GetLogger() {
-			return Options.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
-		}
-
-		/// <inheritdoc/>
-		void ILogger.Log(object sender, LoggerEvent loggerEvent, string format, params object[] args) {
-			GetLogger().Log(this, loggerEvent, format, args);
-		}
-
-		/// <inheritdoc/>
-		bool ILogger.IgnoresEvent(LoggerEvent loggerEvent) {
-			return GetLogger().IgnoresEvent(loggerEvent);
 		}
 	}
 }

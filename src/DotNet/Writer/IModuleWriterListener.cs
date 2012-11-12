@@ -8,7 +8,7 @@
 		/// </summary>
 		/// <param name="writer">The module writer</param>
 		/// <param name="evt">Type of writer event</param>
-		void OnWriterEvent(ModuleWriter writer, ModuleWriterEvent evt);
+		void OnWriterEvent(ModuleWriterBase writer, ModuleWriterEvent evt);
 	}
 
 	/// <summary>
@@ -21,12 +21,12 @@
 		public static readonly DummyModuleWriterListener Instance = new DummyModuleWriterListener();
 
 		/// <inheritdoc/>
-		public void OnWriterEvent(ModuleWriter writer, ModuleWriterEvent evt) {
+		public void OnWriterEvent(ModuleWriterBase writer, ModuleWriterEvent evt) {
 		}
 	}
 
 	/// <summary>
-	/// All <see cref="ModuleWriter"/> events
+	/// All <see cref="ModuleWriter"/> / <see cref="NativeModuleWriter"/> events
 	/// </summary>
 	public enum ModuleWriterEvent {
 		/// <summary>

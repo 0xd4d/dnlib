@@ -318,7 +318,7 @@ namespace dot10.DotNet.Writer {
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_ALIGNMENT);
 			if (((uint)offset & (maxAlignment - 1)) != 0)
 				throw new ModuleWriterException(string.Format("Win32 resources section isn't {0}-byte aligned", maxAlignment));
-			if (maxAlignment > ModuleWriter.DEFAULT_WIN32_RESOURCES_ALIGNMENT)
+			if (maxAlignment > ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT)
 				throw new ModuleWriterException("maxAlignment > DEFAULT_WIN32_RESOURCES_ALIGNMENT");
 
 			foreach (var dir in dirList) {
@@ -387,7 +387,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public uint GetLength() {
-			return Utils.AlignUp(length, ModuleWriter.DEFAULT_WIN32_RESOURCES_ALIGNMENT);
+			return Utils.AlignUp(length, ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 		}
 
 		/// <inheritdoc/>
