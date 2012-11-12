@@ -1,10 +1,40 @@
 ﻿using System.Collections.Generic;
+using dot10.PE;
 
 namespace dot10.DotNet.Emit {
 	/// <summary>
 	/// Method body base class
 	/// </summary>
 	public abstract class MethodBody {
+	}
+
+	/// <summary>
+	/// A native method body
+	/// </summary>
+	public sealed class NativeMethodBody : MethodBody {
+		RVA rva;
+
+		/// <summary>
+		/// Gets/sets the RVA of the native method body
+		/// </summary>
+		public RVA RVA {
+			get { return rva; }
+			set { rva = value; }
+		}
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public NativeMethodBody() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="rva">RVA of method body</param>
+		public NativeMethodBody(RVA rva) {
+			this.rva = rva;
+		}
 	}
 
 	/// <summary>

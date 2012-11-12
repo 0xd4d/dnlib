@@ -163,6 +163,14 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the native method body
+		/// </summary>
+		public NativeMethodBody NativeBody {
+			get { return MethodBody as NativeMethodBody; }
+			set { MethodBody = value; }
+		}
+
+		/// <summary>
 		/// <c>true</c> if there's at least one <see cref="GenericParam"/> in <see cref="GenericParams"/>
 		/// </summary>
 		public bool HasGenericParameters {

@@ -5,6 +5,7 @@ using System.Text;
 using dot10.IO;
 using dot10.PE;
 using dot10.DotNet.MD;
+using dot10.DotNet.Emit;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
@@ -191,6 +192,7 @@ namespace dot10.DotNet.Writer {
 		internal SortedRows<GenericParam, RawGenericParamRow> genericParamInfos = new SortedRows<GenericParam, RawGenericParamRow>();
 		internal SortedRows<GenericParamConstraint, RawGenericParamConstraintRow> genericParamConstraintInfos = new SortedRows<GenericParamConstraint, RawGenericParamConstraintRow>();
 		internal Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
+		internal Dictionary<MethodDef, NativeMethodBody> methodToNativeBody = new Dictionary<MethodDef, NativeMethodBody>();
 		internal Dictionary<EmbeddedResource, ByteArrayChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, ByteArrayChunk>();
 		Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
 
@@ -867,6 +869,12 @@ namespace dot10.DotNet.Writer {
 				var row = tablesHeap.MethodTable[GetRid(method)];
 				row.RVA = (uint)body.RVA;
 			}
+			foreach (var kv in methodToNativeBody) {
+				var method = kv.Key;
+				var body = kv.Value;
+				var row = tablesHeap.MethodTable[GetRid(method)];
+				row.RVA = (uint)body.RVA;
+			}
 		}
 
 		/// <summary>
@@ -1203,7 +1211,7 @@ namespace dot10.DotNet.Writer {
 					continue;
 
 				foreach (var method in type.Methods) {
-					if (method == null)
+					if (method == null || method.MethodBody == null)
 						continue;
 
 					var cilBody = method.Body;
@@ -1214,9 +1222,16 @@ namespace dot10.DotNet.Writer {
 						writer.Write();
 						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections));
 						methodToBody[method] = mb;
+						continue;
 					}
-					else if (method.MethodBody != null)
-						Error("Unsupported method body");
+
+					var nativeBody = method.NativeBody;
+					if (nativeBody != null) {
+						methodToNativeBody[method] = nativeBody;
+						continue;
+					}
+
+					Error("Unsupported method body");
 				}
 			}
 		}

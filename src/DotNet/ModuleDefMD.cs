@@ -1447,9 +1447,12 @@ namespace dot10.DotNet {
 
 			if (row.RVA == 0)
 				return null;
-			if (((MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL)
-				return null;
-			return ReadCilBody(method.Parameters, (RVA)row.RVA);
+			var codeType = ((MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask);
+			if (codeType == MethodImplAttributes.IL)
+				return ReadCilBody(method.Parameters, (RVA)row.RVA);
+			if (codeType == MethodImplAttributes.Native)
+				return new NativeMethodBody((RVA)row.RVA);
+			return null;
 		}
 
 		/// <summary>
