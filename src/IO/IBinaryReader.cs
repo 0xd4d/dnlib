@@ -429,5 +429,48 @@ namespace dot10.IO {
 		public static bool CanRead(this IBinaryReader reader, uint size) {
 			return (reader.Position + size <= reader.Length && reader.Position + size >= reader.Position) || size == 0;
 		}
+
+		/// <summary>
+		/// Writes <paramref name="reader"/>, starting at <paramref name="reader"/>'s current
+		/// position, to <paramref name="writer"/> starting at <paramref name="writer"/>'s
+		/// current position. Returns the number of bytes written.
+		/// </summary>
+		/// <param name="reader">Reader</param>
+		/// <param name="writer">Writer</param>
+		/// <returns>Number of bytes written</returns>
+		/// <exception cref="IOException">Could not write all bytes or data is too big</exception>
+		public static uint WriteTo(this IBinaryReader reader, BinaryWriter writer) {
+			if (reader.Position >= reader.Length)
+				return 0;
+			return reader.WriteTo(writer, new byte[0x2000]);
+		}
+
+		/// <summary>
+		/// Writes <paramref name="reader"/>, starting at <paramref name="reader"/>'s current
+		/// position, to <paramref name="writer"/> starting at <paramref name="writer"/>'s
+		/// current position. Returns the number of bytes written.
+		/// </summary>
+		/// <param name="reader">Reader</param>
+		/// <param name="writer">Writer</param>
+		/// <param name="dataBuffer">Temp buffer during writing</param>
+		/// <returns>Number of bytes written</returns>
+		/// <exception cref="IOException">Could not write all bytes or data is too big</exception>
+		public static uint WriteTo(this IBinaryReader reader, BinaryWriter writer, byte[] dataBuffer) {
+			if (reader.Position >= reader.Length)
+				return 0;
+			long longLenLeft = reader.Length - reader.Position;
+			if (longLenLeft > uint.MaxValue)
+				throw new IOException("Data is too big");
+			uint lenLeft = (uint)longLenLeft;
+			uint writtenBytes = lenLeft;
+			while (lenLeft > 0) {
+				int num = (int)Math.Min((uint)dataBuffer.Length, lenLeft);
+				lenLeft -= (uint)num;
+				if (num != reader.Read(dataBuffer, 0, num))
+					throw new IOException("Could not read all reader bytes");
+				writer.Write(dataBuffer, 0, num);
+			}
+			return writtenBytes;
+		}
 	}
 }
