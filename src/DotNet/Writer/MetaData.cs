@@ -892,6 +892,8 @@ namespace dot10.DotNet.Writer {
 			InitializeTypeDefsAndMemberDefs();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefsInitialized);
 
+			InitializeVTableFixups();
+
 			//TODO: Add ExportedTypes
 			InitializeEntryPoint();
 			if (module.Assembly != null)
@@ -1059,6 +1061,29 @@ namespace dot10.DotNet.Writer {
 					if (prop == null)
 						continue;
 					AddCustomAttributes(Table.Property, GetRid(prop), prop);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Adds the tokens of all methods in all vtables, if any
+		/// </summary>
+		void InitializeVTableFixups() {
+			var fixups = module.VTableFixups;
+			if (fixups == null || fixups.VTables.Count == 0)
+				return;
+
+			foreach (var vtable in fixups) {
+				if (vtable == null) {
+					Error("VTable is null");
+					continue;
+				}
+				foreach (var method in vtable) {
+					if (method == null) {
+						Error("VTable method is null");
+						continue;
+					}
+					AddMDTokenProvider(method);
 				}
 			}
 		}
