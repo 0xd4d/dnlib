@@ -358,5 +358,14 @@ namespace dot10.DotNet.Writer {
 		bool ILogger.IgnoresEvent(LoggerEvent loggerEvent) {
 			return GetLogger().IgnoresEvent(loggerEvent);
 		}
+
+		/// <summary>
+		/// Log an error message
+		/// </summary>
+		/// <param name="format">Format</param>
+		/// <param name="args">Format args</param>
+		protected void Error(string format, params object[] args) {
+			GetLogger().Log(this, LoggerEvent.Error, format, args);
+		}
 	}
 }
