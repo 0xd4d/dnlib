@@ -174,6 +174,7 @@
     <Compile Include="DotNet\TypeSpec.cs" />
     <Compile Include="DotNet\UTF8String.cs" />
     <Compile Include="DotNet\Utils.cs" />
+    <Compile Include="DotNet\VTableFixups.cs" />
     <Compile Include="DotNet\Writer\BlobHeap.cs" />
     <Compile Include="DotNet\Writer\ByteArrayChunk.cs" />
     <Compile Include="DotNet\Writer\ChunkList.cs" />

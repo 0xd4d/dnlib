@@ -20,6 +20,7 @@ namespace dot10.DotNet {
 
 		UserValue<string> location;
 		UserValue<Win32Resources> win32Resources;
+		UserValue<VTableFixups> vtableFixups;
 		RandomRidList moduleRidList;
 
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
@@ -157,6 +158,12 @@ namespace dot10.DotNet {
 		public override Win32Resources Win32Resources {
 			get { return win32Resources.Value; }
 			set { win32Resources.Value = value; }
+		}
+
+		/// <inheritdoc/>
+		public override VTableFixups VTableFixups {
+			get { return vtableFixups.Value; }
+			set { vtableFixups.Value = value; }
 		}
 
 		/// <summary>
@@ -373,6 +380,12 @@ namespace dot10.DotNet {
 			};
 			win32Resources.ReadOriginalValue = () => {
 				return dnFile.MetaData.PEImage.Win32Resources;
+			};
+			vtableFixups.ReadOriginalValue = () => {
+				var vtableFixupsInfo = dnFile.MetaData.ImageCor20Header.VTableFixups;
+				if (vtableFixupsInfo.VirtualAddress == 0 || vtableFixupsInfo.Size == 0)
+					return null;
+				return new VTableFixups(this);
 			};
 
 			for (int i = 0; i < 64; i++) {

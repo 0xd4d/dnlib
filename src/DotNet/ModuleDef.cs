@@ -170,6 +170,12 @@ namespace dot10.DotNet {
 		internal abstract ILazyList<Resource> Resources2 { get; }
 
 		/// <summary>
+		/// Gets/sets the <see cref="VTableFixups"/>. This is <c>null</c> if there are no
+		/// vtable fixups.
+		/// </summary>
+		public abstract VTableFixups VTableFixups { get; set; }
+
+		/// <summary>
 		/// <c>true</c> if there's at least one <see cref="TypeDef"/> in <see cref="Types"/>
 		/// </summary>
 		public bool HasTypes {
@@ -787,6 +793,7 @@ namespace dot10.DotNet {
 		RVA nativeEntryPoint;
 		IManagedEntryPoint managedEntryPoint;
 		Win32Resources win32Resources;
+		VTableFixups vtableFixups;
 		string location = string.Empty;
 
 		/// <inheritdoc/>
@@ -875,6 +882,12 @@ namespace dot10.DotNet {
 			set { win32Resources = value; }
 		}
 
+		/// <inheritdoc/>
+		public override VTableFixups VTableFixups {
+			get { return vtableFixups; }
+			set { vtableFixups = value; }
+		}
+
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -961,6 +974,7 @@ namespace dot10.DotNet {
 		UserValue<RVA> nativeEntryPoint;
 		UserValue<IManagedEntryPoint> managedEntryPoint;
 		Win32Resources win32Resources;
+		VTableFixups vtableFixups;
 		string location;
 
 		/// <inheritdoc/>
@@ -1053,6 +1067,12 @@ namespace dot10.DotNet {
 		public override Win32Resources Win32Resources {
 			get { return win32Resources; }
 			set { win32Resources = value; }
+		}
+
+		/// <inheritdoc/>
+		public override VTableFixups VTableFixups {
+			get { return vtableFixups; }
+			set { vtableFixups = value; }
 		}
 
 		/// <summary>
