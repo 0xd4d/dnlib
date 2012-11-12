@@ -423,24 +423,9 @@ namespace dot10.DotNet.Writer {
 		/// <param name="length">Length of PE file</param>
 		public void WriteCheckSum(BinaryWriter writer, long length) {
 			writer.BaseStream.Position = startOffset;
-			uint checkSum = CalculateCheckSum(new BinaryReader(writer.BaseStream), length, checkSumOffset);
+			uint checkSum = new BinaryReader(writer.BaseStream).CalculateCheckSum(length, checkSumOffset);
 			writer.BaseStream.Position = checkSumOffset;
 			writer.Write(checkSum);
-		}
-
-		static uint CalculateCheckSum(BinaryReader reader, long length, long checkSumOffset) {
-			uint checkSum = 0;
-			for (long i = 0; i < length; i += 2) {
-				if (i == checkSumOffset) {
-					reader.ReadUInt32();
-					i += 2;
-					continue;
-				}
-				checkSum += reader.ReadUInt16();
-				checkSum = (ushort)(checkSum + (checkSum >> 16));
-			}
-			ulong cks = (ulong)checkSum + (ulong)length;
-			return (uint)cks + (uint)(cks >> 32);
 		}
 
 		Machine GetMachine() {
