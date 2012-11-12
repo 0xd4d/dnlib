@@ -437,21 +437,11 @@ namespace dot10.DotNet.Writer {
 				if (dataDict[data] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource data offset");
 
-				if (data.Length > uint.MaxValue)
-					throw new ModuleWriterException("Win32 resource data is too big");
 				data.Position = 0;
-				uint lenLeft = (uint)data.Length;
-				offset += lenLeft;
-				while (lenLeft > 0) {
-					int num = (int)Math.Min((uint)dataBuffer.Length, lenLeft);
-					lenLeft -= (uint)num;
-					if (num != data.Read(dataBuffer, 0, num))
-						throw new ModuleWriterException("Could not read all Win32 resource data bytes");
-					writer.Write(dataBuffer, 0, num);
-				}
+				offset += data.WriteTo(writer, dataBuffer);
 			}
 
-			writer.WriteZeros((int)(Utils.AlignUp(length, ModuleWriter.DEFAULT_WIN32_RESOURCES_ALIGNMENT) - length));
+			writer.WriteZeros((int)(Utils.AlignUp(length, ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT) - length));
 		}
 
 		uint WriteTo(BinaryWriter writer, ResourceDirectory dir) {
