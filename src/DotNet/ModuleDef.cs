@@ -647,6 +647,18 @@ namespace dot10.DotNet {
 			writer.Write(dest);
 		}
 
+		/// <summary>
+		/// Finds a <see cref="ResourceData"/>
+		/// </summary>
+		/// <param name="type">Type</param>
+		/// <param name="name">Name</param>
+		/// <param name="langId">Language ID</param>
+		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
+		public ResourceData FindWin32ResourceData(ResourceName type, ResourceName name, ResourceName langId) {
+			var w32Resources = Win32Resources;
+			return w32Resources == null ? null : w32Resources.Find(type, name, langId);
+		}
+
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnLazyAdd(int index, ref TypeDef value) {
 #if DEBUG

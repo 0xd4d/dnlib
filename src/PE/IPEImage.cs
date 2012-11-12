@@ -127,5 +127,18 @@ namespace dot10.PE {
 			using (var reader = self.CreateFullStream())
 				return reader.ReadAllBytes();
 		}
+
+		/// <summary>
+		/// Finds a <see cref="ResourceData"/>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="type">Type</param>
+		/// <param name="name">Name</param>
+		/// <param name="langId">Language ID</param>
+		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
+		public static ResourceData FindWin32ResourceData(this IPEImage self, ResourceName type, ResourceName name, ResourceName langId) {
+			var w32Resources = self.Win32Resources;
+			return w32Resources == null ? null : w32Resources.Find(type, name, langId);
+		}
 	}
 }
