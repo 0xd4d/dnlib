@@ -82,48 +82,12 @@ namespace dot10.W32Resources {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <returns>A <see cref="ResourceDirectory"/> or <c>null</c> if it wasn't found</returns>
-		public ResourceDirectory FindDirectory(string name) {
-			return FindDirectory(new ResourceName(name));
-		}
-
-		/// <summary>
-		/// Finds a <see cref="ResourceDirectory"/> by id
-		/// </summary>
-		/// <param name="id">ID</param>
-		/// <returns>A <see cref="ResourceDirectory"/> or <c>null</c> if it wasn't found</returns>
-		public ResourceDirectory FindDirectory(int id) {
-			return FindDirectory(new ResourceName(id));
-		}
-
-		/// <summary>
-		/// Finds a <see cref="ResourceDirectory"/> by name
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <returns>A <see cref="ResourceDirectory"/> or <c>null</c> if it wasn't found</returns>
 		public ResourceDirectory FindDirectory(ResourceName name) {
 			foreach (var dir in directories) {
 				if (dir.Name == name)
 					return dir;
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Finds a <see cref="ResourceData"/> by name
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <returns>A <see cref="ResourceData"/> or <c>null</c> if it wasn't found</returns>
-		public ResourceData FindData(string name) {
-			return FindData(new ResourceName(name));
-		}
-
-		/// <summary>
-		/// Finds a <see cref="ResourceData"/> by id
-		/// </summary>
-		/// <param name="id">ID</param>
-		/// <returns>A <see cref="ResourceData"/> or <c>null</c> if it wasn't found</returns>
-		public ResourceData FindData(int id) {
-			return FindData(new ResourceName(id));
 		}
 
 		/// <summary>

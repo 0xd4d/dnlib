@@ -54,6 +54,16 @@ namespace dot10.W32Resources {
 			this.name = name;
 		}
 
+		/// <summary>Converts input to a <see cref="ResourceName"/></summary>
+		public static implicit operator ResourceName(int id) {
+			return new ResourceName(id);
+		}
+
+		/// <summary>Converts input to a <see cref="ResourceName"/></summary>
+		public static implicit operator ResourceName(string name) {
+			return new ResourceName(name);
+		}
+
 		/// <summary>Overloaded operator</summary>
 		public static bool operator <(ResourceName left, ResourceName right) {
 			return left.CompareTo(right) < 0;
