@@ -95,7 +95,6 @@ namespace dot10.DotNet.Writer {
 				this.PEHeadersOptions.TimeDateStamp = peImage.ImageNTHeaders.FileHeader.TimeDateStamp;
 				this.PEHeadersOptions.MajorLinkerVersion = peImage.ImageNTHeaders.OptionalHeader.MajorLinkerVersion;
 				this.PEHeadersOptions.MinorLinkerVersion = peImage.ImageNTHeaders.OptionalHeader.MinorLinkerVersion;
-				this.AddCheckSum = peImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
 			}
 
 			if (Is64Bit) {

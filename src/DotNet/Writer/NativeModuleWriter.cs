@@ -38,7 +38,6 @@ namespace dot10.DotNet.Writer {
 		/// <param name="listener">Module writer listener</param>
 		public NativeModuleWriterOptions(ModuleDefMD module, IModuleWriterListener listener)
 			: base(module, listener) {
-			this.AddCheckSum = module.MetaData.PEImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
 		}
 	}
 

@@ -99,6 +99,10 @@ namespace dot10.DotNet.Writer {
 
 			// Some tools crash if #GUID is missing so always create it by default
 			this.MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
+
+			var modDefMD = module as ModuleDefMD;
+			if (modDefMD != null)
+				this.AddCheckSum = modDefMD.MetaData.PEImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
 		}
 	}
 
