@@ -38,6 +38,10 @@ namespace dot10.DotNet.Writer {
 		/// <param name="listener">Module writer listener</param>
 		public NativeModuleWriterOptions(ModuleDefMD module, IModuleWriterListener listener)
 			: base(module, listener) {
+
+			// C++ .NET mixed mode assemblies call ModuleHandle.ResolveMethod(),
+			// so metadata tokens must be preserved.
+			MetaDataOptions.Flags |= MetaDataFlags.PreserveTokens;
 		}
 	}
 
