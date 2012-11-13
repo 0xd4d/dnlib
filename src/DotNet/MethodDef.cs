@@ -793,6 +793,8 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public MethodDefUser() {
+			this.parameters = new LazyList<ParamDef>(this);
+			this.genericParams = new LazyList<GenericParam>(this);
 			this.parameterList = new ParameterList(this);
 		}
 
