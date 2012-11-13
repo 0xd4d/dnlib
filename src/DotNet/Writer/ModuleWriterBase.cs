@@ -364,12 +364,21 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Log an error message
+		/// Logs an error message
 		/// </summary>
 		/// <param name="format">Format</param>
 		/// <param name="args">Format args</param>
 		protected void Error(string format, params object[] args) {
 			GetLogger().Log(this, LoggerEvent.Error, format, args);
+		}
+
+		/// <summary>
+		/// Logs a warning message
+		/// </summary>
+		/// <param name="format">Format</param>
+		/// <param name="args">Format args</param>
+		protected void Warning(string format, params object[] args) {
+			GetLogger().Log(this, LoggerEvent.Warning, format, args);
 		}
 	}
 }
