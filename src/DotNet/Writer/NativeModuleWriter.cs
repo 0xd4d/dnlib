@@ -46,15 +46,44 @@ namespace dot10.DotNet.Writer {
 	/// The original image will be re-used. See also <see cref="ModuleWriter"/>
 	/// </summary>
 	public sealed class NativeModuleWriter : ModuleWriterBase {
+		/// <summary>The original .NET module</summary>
 		readonly ModuleDefMD module;
+
+		/// <summary>All options</summary>
 		NativeModuleWriterOptions options;
+
+		/// <summary>
+		/// Any extra data found at the end of the original file. This is <c>null</c> if there's
+		/// no extra data or if <see cref="NativeModuleWriterOptions.KeepExtraPEData"/> is
+		/// <c>false</c>.
+		/// </summary>
 		BinaryReaderChunk extraData;
+
+		/// <summary>The original PE headers</summary>
 		BinaryReaderChunk headerSection;
+
+		/// <summary>The original PE sections and their data</summary>
 		List<OrigSection> origSections;
+
+		/// <summary>Original PE image</summary>
 		IPEImage peImage;
+
+		/// <summary>New sections we've added and their data</summary>
 		List<PESection> sections;
+
+		/// <summary>New .text section where we put some stuff, eg. .NET metadata</summary>
 		PESection textSection;
+
+		/// <summary>
+		/// New .rsrc section where we put the new Win32 resources. This is <c>null</c> if there
+		/// are no Win32 resources or if <see cref="NativeModuleWriterOptions.KeepWin32Resources"/>
+		/// is <c>true</c>
+		/// </summary>
 		PESection rsrcSection;
+
+		/// <summary>
+		/// Offset in <see cref="ModuleWriterBase.destStream"/> of the PE checksum field.
+		/// </summary>
 		long checkSumOffset;
 
 		class OrigSection : IDisposable {
