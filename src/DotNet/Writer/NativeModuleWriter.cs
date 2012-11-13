@@ -248,11 +248,11 @@ namespace dot10.DotNet.Writer {
 		/// Creates the PE header "section"
 		/// </summary>
 		void CreateHeaderSection() {
-			uint minHeaderLen = GetOffsetAfterLastSection() + (uint)sections.Count * 0x28;
-			uint maxHeaderLen = GetFirstRawDataFileOffset();
-			uint headerLen = minHeaderLen;
-			if (maxHeaderLen > headerLen)
-				headerLen = maxHeaderLen;
+			uint afterLastSectHeader = GetOffsetAfterLastSectionHeader() + (uint)sections.Count * 0x28;
+			uint firstRawOffset = Math.Min(GetFirstRawDataFileOffset(), peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
+			uint headerLen = afterLastSectHeader;
+			if (firstRawOffset > headerLen)
+				headerLen = firstRawOffset;
 			headerLen = Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 			if (headerLen < peImage.ImageNTHeaders.OptionalHeader.SectionAlignment) {
 				headerSection = new BinaryReaderChunk(peImage.CreateStream(0, headerLen));
@@ -263,7 +263,7 @@ namespace dot10.DotNet.Writer {
 			throw new ModuleWriterException("Could not create header");
 		}
 
-		uint GetOffsetAfterLastSection() {
+		uint GetOffsetAfterLastSectionHeader() {
 			var lastSect = peImage.ImageSectionHeaders[peImage.ImageSectionHeaders.Count - 1];
 			return (uint)lastSect.EndOffset;
 		}
