@@ -12,7 +12,7 @@ namespace dot10.PE {
 		/// <param name="length">Length of image</param>
 		/// <param name="checkSumOffset">Offset of checksum</param>
 		/// <returns>PE checksum</returns>
-		internal static uint CalculateCheckSum(this BinaryReader reader, long length, long checkSumOffset) {
+		internal static uint CalculatePECheckSum(this BinaryReader reader, long length, long checkSumOffset) {
 			uint checkSum = 0;
 			for (long i = 0; i < length; i += 2) {
 				if (i == checkSumOffset) {
