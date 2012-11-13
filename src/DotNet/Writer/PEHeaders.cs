@@ -438,7 +438,8 @@ namespace dot10.DotNet.Writer {
 		}
 
 		bool Use32BitOptionalHeader() {
-			return GetMachine() == Machine.I386;
+			var mach = GetMachine();
+			return mach != Machine.IA64 && mach != Machine.AMD64;
 		}
 
 		Characteristics GetCharacteristics() {
