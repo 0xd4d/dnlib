@@ -164,9 +164,9 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override void WriteImpl() {
+		protected override long WriteImpl() {
 			try {
-				Write();
+				return Write();
 			}
 			finally {
 				if (origSections != null) {
@@ -180,7 +180,7 @@ namespace dot10.DotNet.Writer {
 			}
 		}
 
-		void Write() {
+		long Write() {
 			Initialize();
 
 			// It's not safe to create new Field RVAs so re-use them all. The user can override
@@ -188,7 +188,7 @@ namespace dot10.DotNet.Writer {
 			metaData.KeepFieldRVA = true;
 
 			metaData.CreateTables();
-			WriteFile();
+			return WriteFile();
 		}
 
 		void Initialize() {
@@ -300,7 +300,7 @@ namespace dot10.DotNet.Writer {
 			return (uint)peImage.ToFileOffset((RVA)(rva - 1)) + 1;
 		}
 
-		void WriteFile() {
+		long WriteFile() {
 			var chunks = new List<IChunk>();
 			chunks.Add(headerSection);
 			foreach (var origSection in origSections)
@@ -337,6 +337,8 @@ namespace dot10.DotNet.Writer {
 				writer.Write(newCheckSum);
 			}
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePEChecksum);
+
+			return imageLength;
 		}
 
 		/// <summary>

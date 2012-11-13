@@ -258,10 +258,10 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override void WriteImpl() {
+		protected override long WriteImpl() {
 			Initialize();
 			metaData.CreateTables();
-			WriteFile();
+			return WriteFile();
 		}
 
 		void Initialize() {
@@ -335,7 +335,7 @@ namespace dot10.DotNet.Writer {
 				relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}
 
-		void WriteFile() {
+		long WriteFile() {
 			var chunks = new List<IChunk>();
 			chunks.Add(peHeaders);
 			foreach (var section in sections)
@@ -362,6 +362,8 @@ namespace dot10.DotNet.Writer {
 			if (Options.AddCheckSum)
 				peHeaders.WriteCheckSum(writer, imageLength);
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePEChecksum);
+
+			return imageLength;
 		}
 
 		void InitializeChunkProperties() {

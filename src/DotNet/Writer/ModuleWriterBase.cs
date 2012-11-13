@@ -228,7 +228,8 @@ namespace dot10.DotNet.Writer {
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
 			Listener.OnWriterEvent(this, ModuleWriterEvent.Begin);
-			WriteImpl();
+			var imageLength = WriteImpl();
+			destStream.Position = destStreamBaseOffset + imageLength;
 			Listener.OnWriterEvent(this, ModuleWriterEvent.End);
 		}
 
@@ -236,7 +237,8 @@ namespace dot10.DotNet.Writer {
 		/// Writes the module to <see cref="destStream"/>. <see cref="Listener"/> and
 		/// <see cref="destStream"/> have been initialized when this method is called.
 		/// </summary>
-		protected abstract void WriteImpl();
+		/// <returns>Number of bytes written</returns>
+		protected abstract long WriteImpl();
 
 		/// <summary>
 		/// Creates the .NET metadata chunks (constants, method bodies, .NET resources,
