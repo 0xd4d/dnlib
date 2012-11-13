@@ -12,73 +12,138 @@ namespace dot10.DotNet.Writer {
 	/// <see cref="MetaData"/> flags
 	/// </summary>
 	[Flags]
-	public enum MetaDataFlags {
+	public enum MetaDataFlags : uint {
+		/// <summary>
+		/// Preserves all rids in the <c>TypeRef</c> table
+		/// </summary>
+		PreserveTypeRefRids = 1,
+
+		/// <summary>
+		/// Preserves all rids in the <c>TypeDef</c> table
+		/// </summary>
+		PreserveTypeDefRids = 2,
+
+		/// <summary>
+		/// Preserves all rids in the <c>Field</c> table
+		/// </summary>
+		PreserveFieldRids = 4,
+
+		/// <summary>
+		/// Preserves all rids in the <c>Method</c> table
+		/// </summary>
+		PreserveMethodRids = 8,
+
+		/// <summary>
+		/// Preserves all rids in the <c>Param</c> table
+		/// </summary>
+		PreserveParamRids = 0x10,
+
+		/// <summary>
+		/// Preserves all rids in the <c>MemberRef</c> table
+		/// </summary>
+		PreserveMemberRefRids = 0x20,
+
+		/// <summary>
+		/// Preserves all rids in the <c>StandAloneSig</c> table
+		/// </summary>
+		PreserveStandAloneSigRids = 0x40,
+
+		/// <summary>
+		/// Preserves all rids in the <c>Event</c> table
+		/// </summary>
+		PreserveEventRids = 0x80,
+
+		/// <summary>
+		/// Preserves all rids in the <c>Property</c> table
+		/// </summary>
+		PreservePropertyRids = 0x100,
+
+		/// <summary>
+		/// Preserves all rids in the <c>TypeSpec</c> table
+		/// </summary>
+		PreserveTypeSpecRids = 0x200,
+
+		/// <summary>
+		/// Preserves all rids in the <c>MethodSpec</c> table
+		/// </summary>
+		PreserveMethodSpecRids = 0x400,
+
 		/// <summary>
 		/// Preserves all rids in the following tables: <c>TypeRef</c>, <c>TypeDef</c>,
 		/// <c>Field</c>, <c>Method</c>, <c>Param</c>, <c>MemberRef</c>, <c>StandAloneSig</c>,
 		/// <c>Event</c>, <c>Property</c>, <c>TypeSpec</c>, <c>MethodSpec</c>
 		/// </summary>
-		PreserveTokens = 1,
+		PreserveTokens = PreserveTypeRefRids |
+						PreserveTypeDefRids |
+						PreserveFieldRids |
+						PreserveMethodRids |
+						PreserveParamRids |
+						PreserveMemberRefRids |
+						PreserveStandAloneSigRids |
+						PreserveEventRids |
+						PreservePropertyRids |
+						PreserveTypeSpecRids |
+						PreserveMethodSpecRids,
 
 		/// <summary>
 		/// Preserves all offsets in the #Strings heap (the original #Strings heap will be saved
 		/// in the new file). Type names, field names, and other non-user strings are stored
 		/// in the #Strings heap.
 		/// </summary>
-		PreserveStringsOffsets = 2,
+		PreserveStringsOffsets = 0x800,
 
 		/// <summary>
 		/// Preserves all offsets in the #US heap (the original #US heap will be saved
 		/// in the new file). User strings (referenced by the ldstr instruction) are stored in
 		/// the #US heap.
 		/// </summary>
-		PreserveUSOffsets = 4,
+		PreserveUSOffsets = 0x1000,
 
 		/// <summary>
 		/// Preserves all offsets in the #Blob heap (the original #Blob heap will be saved
 		/// in the new file). Custom attributes, signatures and other blobs are stored in the
 		/// #Blob heap.
 		/// </summary>
-		PreserveBlobOffsets = 8,
+		PreserveBlobOffsets = 0x2000,
 
 		/// <summary>
 		/// Preserves the extra data that is present after the original signature in the #Blob
 		/// heap. This extra data shouldn't be present but might be present if an obfuscator
 		/// has added this extra data and is eg. using it to decrypt stuff.
 		/// </summary>
-		PreserveExtraSignatureData = 0x10,
-
-		/// <summary>
-		/// The original method body's max stack field should be used and a new one should not
-		/// be calculated.
-		/// </summary>
-		KeepOldMaxStack = 0x20,
-
-		/// <summary>
-		/// Always create the #GUID heap even if it's empty
-		/// </summary>
-		AlwaysCreateGuidHeap = 0x40,
-
-		/// <summary>
-		/// Always create the #Strings heap even if it's empty
-		/// </summary>
-		AlwaysCreateStringsHeap = 0x80,
-
-		/// <summary>
-		/// Always create the #US heap even if it's empty
-		/// </summary>
-		AlwaysCreateUSHeap = 0x100,
-
-		/// <summary>
-		/// Always create the #Blob heap even if it's empty
-		/// </summary>
-		AlwaysCreateBlobHeap = 0x200,
+		PreserveExtraSignatureData = 0x4000,
 
 		/// <summary>
 		/// Preserves as much as possible
 		/// </summary>
 		PreserveAll = PreserveTokens | PreserveStringsOffsets | PreserveUSOffsets |
 					PreserveBlobOffsets | PreserveExtraSignatureData,
+
+		/// <summary>
+		/// The original method body's max stack field should be used and a new one should not
+		/// be calculated.
+		/// </summary>
+		KeepOldMaxStack = 0x8000,
+
+		/// <summary>
+		/// Always create the #GUID heap even if it's empty
+		/// </summary>
+		AlwaysCreateGuidHeap = 0x10000,
+
+		/// <summary>
+		/// Always create the #Strings heap even if it's empty
+		/// </summary>
+		AlwaysCreateStringsHeap = 0x20000,
+
+		/// <summary>
+		/// Always create the #US heap even if it's empty
+		/// </summary>
+		AlwaysCreateUSHeap = 0x40000,
+
+		/// <summary>
+		/// Always create the #Blob heap even if it's empty
+		/// </summary>
+		AlwaysCreateBlobHeap = 0x80000,
 	}
 
 	/// <summary>
@@ -319,6 +384,83 @@ namespace dot10.DotNet.Writer {
 		/// <inheritdoc/>
 		public RVA RVA {
 			get { return rva; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveTypeRefRids"/> bit
+		/// </summary>
+		public bool PreserveTypeRefRids {
+			get { return (options.Flags & MetaDataFlags.PreserveTypeRefRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveTypeDefRids"/> bit
+		/// </summary>
+		public bool PreserveTypeDefRids {
+			get { return (options.Flags & MetaDataFlags.PreserveTypeDefRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveFieldRids"/> bit
+		/// </summary>
+		public bool PreserveFieldRids {
+			get { return (options.Flags & MetaDataFlags.PreserveFieldRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveMethodRids"/> bit
+		/// </summary>
+		public bool PreserveMethodRids {
+			get { return (options.Flags & MetaDataFlags.PreserveMethodRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveParamRids"/> bit
+		/// </summary>
+		public bool PreserveParamRids {
+			get { return (options.Flags & MetaDataFlags.PreserveParamRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveMemberRefRids"/> bit
+		/// </summary>
+		public bool PreserveMemberRefRids {
+			get { return (options.Flags & MetaDataFlags.PreserveMemberRefRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveStandAloneSigRids"/> bit
+		/// </summary>
+		public bool PreserveStandAloneSigRids {
+			get { return (options.Flags & MetaDataFlags.PreserveStandAloneSigRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveEventRids"/> bit
+		/// </summary>
+		public bool PreserveEventRids {
+			get { return (options.Flags & MetaDataFlags.PreserveEventRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreservePropertyRids"/> bit
+		/// </summary>
+		public bool PreservePropertyRids {
+			get { return (options.Flags & MetaDataFlags.PreservePropertyRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveTypeSpecRids"/> bit
+		/// </summary>
+		public bool PreserveTypeSpecRids {
+			get { return (options.Flags & MetaDataFlags.PreserveTypeSpecRids) != 0; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="MetaDataFlags.PreserveMethodSpecRids"/> bit
+		/// </summary>
+		public bool PreserveMethodSpecRids {
+			get { return (options.Flags & MetaDataFlags.PreserveMethodSpecRids) != 0; }
 		}
 
 		/// <summary>
@@ -850,7 +992,7 @@ namespace dot10.DotNet.Writer {
 			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginCreateTables);
 
 			if (module.Types.Count == 0 || module.Types[0] == null)
-				throw new ModuleWriterException("Missing <Module> type");
+				throw new ModuleWriterException("Missing global <Module> type");
 
 			var moduleDefMD = module as ModuleDefMD;
 			if (moduleDefMD != null) {
@@ -897,7 +1039,7 @@ namespace dot10.DotNet.Writer {
 
 		void Create() {
 			Initialize();
-			allTypeDefs = new List<TypeDef>(GetAllTypeDefs());
+			allTypeDefs = GetAllTypeDefs();
 			AllocateTypeDefRids();
 			AllocateMemberDefRids();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefRidsAllocated);
@@ -2275,7 +2417,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Gets all <see cref="TypeDef"/>s that should be saved in the meta data
 		/// </summary>
-		protected abstract IEnumerable<TypeDef> GetAllTypeDefs();
+		protected abstract List<TypeDef> GetAllTypeDefs();
 
 		/// <summary>
 		/// Initializes <c>TypeDef</c> rids and creates raw rows, but does not initialize

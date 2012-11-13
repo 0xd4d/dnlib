@@ -12,13 +12,13 @@ namespace dot10.DotNet.Writer {
 		ModuleDefMD mod;
 		Rows<TypeRef> typeRefInfos = new Rows<TypeRef>();
 		Dictionary<TypeDef, uint> typeToRid = new Dictionary<TypeDef, uint>();
-		MemberDefDict<FieldDef> fieldDefInfos = new MemberDefDict<FieldDef>();
-		MemberDefDict<MethodDef> methodDefInfos = new MemberDefDict<MethodDef>();
-		MemberDefDict<ParamDef> paramDefInfos = new MemberDefDict<ParamDef>();
+		MemberDefDict<FieldDef> fieldDefInfos;
+		MemberDefDict<MethodDef> methodDefInfos;
+		MemberDefDict<ParamDef> paramDefInfos;
 		Rows<MemberRef> memberRefInfos = new Rows<MemberRef>();
 		Rows<StandAloneSig> standAloneSigInfos = new Rows<StandAloneSig>();
-		MemberDefDict<EventDef> eventDefInfos = new MemberDefDict<EventDef>();
-		MemberDefDict<PropertyDef> propertyDefInfos = new MemberDefDict<PropertyDef>();
+		MemberDefDict<EventDef> eventDefInfos;
+		MemberDefDict<PropertyDef> propertyDefInfos;
 		Rows<TypeSpec> typeSpecInfos = new Rows<TypeSpec>();
 		Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
 		Dictionary<uint, uint> callConvTokenToSignature = new Dictionary<uint, uint>();
@@ -26,7 +26,16 @@ namespace dot10.DotNet.Writer {
 		[DebuggerDisplay("{Rid} -> {NewRid} {Def}")]
 		sealed class MemberDefInfo<T> where T : IMDTokenProvider {
 			public T Def;
+
+			/// <summary>
+			/// Its real rid
+			/// </summary>
 			public uint Rid;
+
+			/// <summary>
+			/// Its logical rid or real rid. If the ptr table exists (eg. MethodPtr), then it's
+			/// an index into it, else it's the real rid.
+			/// </summary>
 			public uint NewRid;
 
 			public MemberDefInfo(T def, uint rid) {
@@ -38,38 +47,51 @@ namespace dot10.DotNet.Writer {
 
 		[DebuggerDisplay("Count = {Count}")]
 		sealed class MemberDefDict<T> where T : IMDTokenProvider {
+			Type defMDType;
+			uint userRid = 0x01000000;
+			uint newRid = 1;
+			int numDefMDs;
+			int numDefUsers;
+			int tableSize;
+			bool wasSorted;
+			bool preserveRids;
+			bool enableRidToInfo;
 			Dictionary<T, MemberDefInfo<T>> defToInfo = new Dictionary<T, MemberDefInfo<T>>();
+			Dictionary<uint, MemberDefInfo<T>> ridToInfo;
 			List<MemberDefInfo<T>> defs = new List<MemberDefInfo<T>>();
 			List<MemberDefInfo<T>> sortedDefs;
-			Dictionary<T, int> collectionPosition = new Dictionary<T, int>();
+			Dictionary<T, int> collectionPositions = new Dictionary<T, int>();
 
+			/// <summary>
+			/// Gets total number of defs in the list. It does <c>not</c> necessarily return
+			/// the table size. Use <see cref="TableSize"/> for that.
+			/// </summary>
 			public int Count {
 				get { return defs.Count; }
 			}
 
-			public void FindDefs(IEnumerable<TypeDef> allTypeDefs, MFunc<uint, T> resolve, MFunc<TypeDef, IEnumerable<T>> getDefs) {
-				uint rid;
+			/// <summary>
+			/// Gets the number of rows that need to be created in the table
+			/// </summary>
+			public int TableSize {
+				get { return tableSize; }
+			}
 
-				for (rid = 1; ; rid++) {
-					var def = resolve(rid);
-					if (def == null)
-						break;
-					var info = new MemberDefInfo<T>(def, rid);
-					defToInfo[def] = info;
-					defs.Add(info);
-				}
+			/// <summary>
+			/// Returns <c>true</c> if the ptr table (eg. <c>MethodPtr</c>) is needed
+			/// </summary>
+			public bool NeedPtrTable {
+				get { return preserveRids && !wasSorted; }
+			}
 
-				foreach (var type in allTypeDefs) {
-					foreach (var def in getDefs(type)) {
-						if (def == null)
-							continue;
-						if (defToInfo.ContainsKey(def))
-							continue;
-						var info = new MemberDefInfo<T>(def, rid++);
-						defToInfo[def] = info;
-						defs.Add(info);
-					}
-				}
+			public MemberDefDict(Type defMDType, bool preserveRids)
+				: this(defMDType, preserveRids, false) {
+			}
+
+			public MemberDefDict(Type defMDType, bool preserveRids, bool enableRidToInfo) {
+				this.defMDType = defMDType;
+				this.preserveRids = preserveRids;
+				this.enableRidToInfo = enableRidToInfo;
 			}
 
 			public uint Rid(T def) {
@@ -86,11 +108,27 @@ namespace dot10.DotNet.Writer {
 				return true;
 			}
 
+			/// <summary>
+			/// Sorts the table
+			/// </summary>
+			/// <param name="comparer">Comparer</param>
 			public void Sort(Comparison<MemberDefInfo<T>> comparer) {
+				if (!preserveRids) {
+					// It's already sorted
+					sortedDefs = defs;
+					return;
+				}
+
 				sortedDefs = new List<MemberDefInfo<T>>(defs);
 				sortedDefs.Sort(comparer);
-				for (int i = 0; i < sortedDefs.Count; i++)
-					sortedDefs[i].NewRid = (uint)i + 1;
+				wasSorted = true;
+				for (int i = 0; i < sortedDefs.Count; i++) {
+					var def = sortedDefs[i];
+					uint newRid = (uint)i + 1;
+					def.NewRid = newRid;
+					if (def.Rid != newRid)
+						wasSorted = false;
+				}
 			}
 
 			public MemberDefInfo<T> Get(int i) {
@@ -101,20 +139,66 @@ namespace dot10.DotNet.Writer {
 				return sortedDefs[i];
 			}
 
-			public bool WasSorted() {
-				for (int i = 0; i < defs.Count; i++) {
-					if (defs[i] != sortedDefs[i])
-						return false;
-				}
-				return true;
+			public MemberDefInfo<T> GetByRid(uint rid) {
+				MemberDefInfo<T> info;
+				ridToInfo.TryGetValue(rid, out info);
+				return info;
 			}
 
-			public void SetCollectionPosition(T def, int position) {
-				collectionPosition.Add(def, position);
+			/// <summary>
+			/// Adds a def. <see cref="SortDefs()"/> must be called after adding the last def.
+			/// </summary>
+			/// <param name="def">The def</param>
+			/// <param name="collPos">Collection position</param>
+			public void Add(T def, int collPos) {
+				uint rid;
+				if (def.GetType() == defMDType) {
+					numDefMDs++;
+					rid = preserveRids ? def.Rid : newRid++;
+				}
+				else {
+					numDefUsers++;
+					rid = preserveRids ? userRid++ : newRid++;
+				}
+
+				var info = new MemberDefInfo<T>(def, rid);
+				defToInfo[def] = info;
+				defs.Add(info);
+				collectionPositions.Add(def, collPos);
+			}
+
+			/// <summary>
+			/// Must be called after <see cref="Add"/>'ing the last def
+			/// </summary>
+			public void SortDefs() {
+				// It's already sorted if we don't preserve rids
+				if (preserveRids) {
+					// Sort all def MDs before user defs
+					defs.Sort((a, b) => a.Rid.CompareTo(b.Rid));
+
+					// Fix user created defs' rids
+					uint newRid = numDefMDs == 0 ? 1 : defs[numDefMDs - 1].Rid + 1;
+					for (int i = numDefMDs; i < defs.Count; i++)
+						defs[i].Rid = newRid++;
+
+					// Now we know total table size
+					tableSize = (int)newRid - 1;
+				}
+				else
+					tableSize = defs.Count;
+
+				if (enableRidToInfo) {
+					ridToInfo = new Dictionary<uint, MemberDefInfo<T>>(defs.Count);
+					foreach (var info in defs)
+						ridToInfo.Add(info.Rid, info);
+				}
+
+				if ((uint)tableSize > 0x00FFFFFF)
+					throw new ModuleWriterException("Table is too big");
 			}
 
 			public int GetCollectionPosition(T def) {
-				return collectionPosition[def];
+				return collectionPositions[def];
 			}
 		}
 
@@ -131,11 +215,6 @@ namespace dot10.DotNet.Writer {
 			mod = module as ModuleDefMD;
 			if (mod == null)
 				throw new ModuleWriterException("Not a ModuleDefMD");
-
-			// We'll resurrect every single type, field, method, param, event and property,
-			// so make sure that whatever was deleted stays deleted.
-			if (mod.MetaData.TablesStream.Name == "#-" && mod.MetaData.TablesStream.HasDelete)
-				tablesHeap.HasDeletedRows = true;
 		}
 
 		/// <inheritdoc/>
@@ -248,32 +327,106 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void Initialize() {
+			fieldDefInfos = new MemberDefDict<FieldDef>(typeof(FieldDefMD), PreserveFieldRids);
+			methodDefInfos = new MemberDefDict<MethodDef>(typeof(MethodDefMD), PreserveMethodRids, true);
+			paramDefInfos = new MemberDefDict<ParamDef>(typeof(ParamDefMD), PreserveParamRids);
+			eventDefInfos = new MemberDefDict<EventDef>(typeof(EventDefMD), PreserveEventRids);
+			propertyDefInfos = new MemberDefDict<PropertyDef>(typeof(PropertyDefMD), PreservePropertyRids);
+
 			CreateEmptyTableRows();
 		}
 
 		/// <inheritdoc/>
-		protected override IEnumerable<TypeDef> GetAllTypeDefs() {
-			var types = new List<TypeDef>();
-			uint rid;
-
-			for (rid = 1; ; rid++) {
-				var type = mod.ResolveTypeDef(rid);
-				if (type == null)
-					break;
-				typeToRid[type] = rid;
-				types.Add(type);
+		protected override List<TypeDef> GetAllTypeDefs() {
+			if (!PreserveTypeDefRids) {
+				var types2 = new List<TypeDef>(module.GetTypes());
+				InitializeTypeToRid(types2);
+				return types2;
 			}
 
-			foreach (var type in mod.GetTypes()) {
+			var typeToIndex = new Dictionary<TypeDef, uint>();
+			var types = new List<TypeDef>();
+			uint index = 0;
+			const uint IS_TYPEDEFMD = 0x80000000;
+			const uint INDEX_BITS = 0x00FFFFFF;
+			foreach (var type in module.GetTypes()) {
+				if (type == null)
+					continue;
+				types.Add(type);
+				uint val = (uint)index++;
+				if (type.GetType() == typeof(TypeDefMD))
+					val |= IS_TYPEDEFMD;
+				typeToIndex[type] = val;
+			}
+
+			var globalType = types[0];
+			types.Sort((a, b) => {
+				if (a == b)
+					return 0;
+				// Make sure the global <Module> type is always sorted first, even if it's
+				// a TypeDefUser
+				if (a == globalType)
+					return -1;
+				if (b == globalType)
+					return 1;
+
+				// Sort all TypeDefMDs before all TypeDefUsers
+				uint ai = typeToIndex[a];
+				uint bi = typeToIndex[b];
+				bool amd = (ai & IS_TYPEDEFMD) != 0;
+				bool bmd = (bi & IS_TYPEDEFMD) != 0;
+				if (amd == bmd) {	// Both are TypeDefMDs or both are TypeDefUsers
+					// If TypeDefMDs, only compare rids since rids are preserved
+					if (amd)
+						return a.Rid.CompareTo(b.Rid);
+
+					// If TypeDefUsers, rids aren't preserved so compare by index
+					return (ai & INDEX_BITS).CompareTo(bi & INDEX_BITS);
+				}
+				if (amd)
+					return -1;
+				return 1;
+			});
+
+			// Some of the original types may have been removed. Create dummy types
+			// so TypeDef rids can be preserved.
+			var newTypes = new List<TypeDef>(types.Count);
+			uint prevRid = 1;
+			newTypes.Add(globalType);
+			for (int i = 1; i < types.Count; i++) {
+				var type = types[i];
+
+				// TypeDefUsers were sorted last so when we reach one, we can stop
+				if (type.GetType() != typeof(TypeDefMD)) {
+					while (i < types.Count)
+						newTypes.Add(types[i++]);
+					break;
+				}
+
+				newTypes.Add(type);
+				uint currRid = type.Rid;
+				int extraTypes = (int)(currRid - prevRid - 1);
+				if (extraTypes != 0) { // always >= 0 since currRid > prevRid
+					// At least one type has been removed. Create dummy types.
+					for (int j = 0; j < extraTypes; j++)
+						newTypes.Add(new TypeDefUser("dummy", Guid.NewGuid().ToString("B"), module.CorLibTypes.Object.TypeDefOrRef));
+				}
+				prevRid = currRid;
+			}
+
+			InitializeTypeToRid(newTypes);
+			return newTypes;
+		}
+
+		void InitializeTypeToRid(IEnumerable<TypeDef> types) {
+			uint rid = 1;
+			foreach (var type in types) {
 				if (type == null)
 					continue;
 				if (typeToRid.ContainsKey(type))
 					continue;
 				typeToRid[type] = rid++;
-				types.Add(type);
 			}
-
-			return types;
 		}
 
 		/// <inheritdoc/>
@@ -294,25 +447,35 @@ namespace dot10.DotNet.Writer {
 		void CreateEmptyTableRows() {
 			uint rows;
 
-			rows = mod.TablesStream.Get(Table.TypeRef).Rows;
-			for (uint i = 0; i < rows; i++)
-				tablesHeap.TypeRefTable.Create(new RawTypeRefRow());
+			if (PreserveTypeRefRids) {
+				rows = mod.TablesStream.Get(Table.TypeRef).Rows;
+				for (uint i = 0; i < rows; i++)
+					tablesHeap.TypeRefTable.Create(new RawTypeRefRow());
+			}
 
-			rows = mod.TablesStream.Get(Table.MemberRef).Rows;
-			for (uint i = 0; i < rows; i++)
-				tablesHeap.MemberRefTable.Create(new RawMemberRefRow());
+			if (PreserveMemberRefRids) {
+				rows = mod.TablesStream.Get(Table.MemberRef).Rows;
+				for (uint i = 0; i < rows; i++)
+					tablesHeap.MemberRefTable.Create(new RawMemberRefRow());
+			}
 
-			rows = mod.TablesStream.Get(Table.StandAloneSig).Rows;
-			for (uint i = 0; i < rows; i++)
-				tablesHeap.StandAloneSigTable.Create(new RawStandAloneSigRow());
+			if (PreserveStandAloneSigRids) {
+				rows = mod.TablesStream.Get(Table.StandAloneSig).Rows;
+				for (uint i = 0; i < rows; i++)
+					tablesHeap.StandAloneSigTable.Create(new RawStandAloneSigRow());
+			}
 
-			rows = mod.TablesStream.Get(Table.TypeSpec).Rows;
-			for (uint i = 0; i < rows; i++)
-				tablesHeap.TypeSpecTable.Create(new RawTypeSpecRow());
+			if (PreserveTypeSpecRids) {
+				rows = mod.TablesStream.Get(Table.TypeSpec).Rows;
+				for (uint i = 0; i < rows; i++)
+					tablesHeap.TypeSpecTable.Create(new RawTypeSpecRow());
+			}
 
-			rows = mod.TablesStream.Get(Table.MethodSpec).Rows;
-			for (uint i = 0; i < rows; i++)
-				tablesHeap.MethodSpecTable.Create(new RawMethodSpecRow());
+			if (PreserveMethodSpecRids) {
+				rows = mod.TablesStream.Get(Table.MethodSpec).Rows;
+				for (uint i = 0; i < rows; i++)
+					tablesHeap.MethodSpecTable.Create(new RawMethodSpecRow());
+			}
 		}
 
 		/// <summary>
@@ -324,59 +487,63 @@ namespace dot10.DotNet.Writer {
 		void InitializeUninitializedTableRows() {
 			uint rows;
 
-			rows = mod.TablesStream.Get(Table.TypeRef).Rows;
-			for (uint rid = 1; rid <= rows; rid++)
-				AddTypeRef(mod.ResolveTypeRef(rid));
+			if (PreserveTypeRefRids) {
+				rows = mod.TablesStream.Get(Table.TypeRef).Rows;
+				for (uint rid = 1; rid <= rows; rid++)
+					AddTypeRef(mod.ResolveTypeRef(rid));
+			}
 
-			rows = mod.TablesStream.Get(Table.MemberRef).Rows;
-			for (uint rid = 1; rid <= rows; rid++)
-				AddMemberRef(mod.ResolveMemberRef(rid));
+			if (PreserveMemberRefRids) {
+				rows = mod.TablesStream.Get(Table.MemberRef).Rows;
+				for (uint rid = 1; rid <= rows; rid++)
+					AddMemberRef(mod.ResolveMemberRef(rid));
+			}
 
-			rows = mod.TablesStream.Get(Table.StandAloneSig).Rows;
-			for (uint rid = 1; rid <= rows; rid++)
-				AddStandAloneSig(mod.ResolveStandAloneSig(rid));
+			if (PreserveStandAloneSigRids) {
+				rows = mod.TablesStream.Get(Table.StandAloneSig).Rows;
+				for (uint rid = 1; rid <= rows; rid++)
+					AddStandAloneSig(mod.ResolveStandAloneSig(rid));
+			}
 
-			rows = mod.TablesStream.Get(Table.TypeSpec).Rows;
-			for (uint rid = 1; rid <= rows; rid++)
-				AddTypeSpec(mod.ResolveTypeSpec(rid));
+			if (PreserveTypeSpecRids) {
+				rows = mod.TablesStream.Get(Table.TypeSpec).Rows;
+				for (uint rid = 1; rid <= rows; rid++)
+					AddTypeSpec(mod.ResolveTypeSpec(rid));
+			}
 
-			rows = mod.TablesStream.Get(Table.MethodSpec).Rows;
-			for (uint rid = 1; rid <= rows; rid++)
-				AddMethodSpec(mod.ResolveMethodSpec(rid));
+			if (PreserveMethodSpecRids) {
+				rows = mod.TablesStream.Get(Table.MethodSpec).Rows;
+				for (uint rid = 1; rid <= rows; rid++)
+					AddMethodSpec(mod.ResolveMethodSpec(rid));
+			}
 		}
 
 		/// <inheritdoc/>
 		protected override void AllocateMemberDefRids() {
 			FindMemberDefs();
-			InitializeCollectionPositions();
 
-			for (int i = 0; i < fieldDefInfos.Count; i++) {
-				var info = fieldDefInfos.Get(i);
-				if (info.Rid != tablesHeap.FieldTable.Create(new RawFieldRow()))
+			for (int i = 1; i <= fieldDefInfos.TableSize; i++) {
+				if ((uint)i != tablesHeap.FieldTable.Create(new RawFieldRow()))
 					throw new ModuleWriterException("Invalid field rid");
 			}
 
-			for (int i = 0; i < methodDefInfos.Count; i++) {
-				var info = methodDefInfos.Get(i);
-				if (info.Rid != tablesHeap.MethodTable.Create(new RawMethodRow()))
+			for (int i = 1; i <= methodDefInfos.TableSize; i++) {
+				if ((uint)i != tablesHeap.MethodTable.Create(new RawMethodRow()))
 					throw new ModuleWriterException("Invalid method rid");
 			}
 
-			for (int i = 0; i < paramDefInfos.Count; i++) {
-				var info = paramDefInfos.Get(i);
-				if (info.Rid != tablesHeap.ParamTable.Create(new RawParamRow()))
+			for (int i = 1; i <= paramDefInfos.TableSize; i++) {
+				if ((uint)i != tablesHeap.ParamTable.Create(new RawParamRow()))
 					throw new ModuleWriterException("Invalid param rid");
 			}
 
-			for (int i = 0; i < eventDefInfos.Count; i++) {
-				var info = eventDefInfos.Get(i);
-				if (info.Rid != tablesHeap.EventTable.Create(new RawEventRow()))
+			for (int i = 1; i <= eventDefInfos.TableSize; i++) {
+				if ((uint)i != tablesHeap.EventTable.Create(new RawEventRow()))
 					throw new ModuleWriterException("Invalid event rid");
 			}
 
-			for (int i = 0; i < propertyDefInfos.Count; i++) {
-				var info = propertyDefInfos.Get(i);
-				if (info.Rid != tablesHeap.PropertyTable.Create(new RawPropertyRow()))
+			for (int i = 1; i <= propertyDefInfos.TableSize; i++) {
+				if ((uint)i != tablesHeap.PropertyTable.Create(new RawPropertyRow()))
 					throw new ModuleWriterException("Invalid property rid");
 			}
 
@@ -386,7 +553,7 @@ namespace dot10.DotNet.Writer {
 			SortEvents();
 			SortProperties();
 
-			if (!fieldDefInfos.WasSorted()) {
+			if (fieldDefInfos.NeedPtrTable) {
 				for (int i = 0; i < fieldDefInfos.Count; i++) {
 					var info = fieldDefInfos.GetSorted(i);
 					if ((uint)i + 1 != tablesHeap.FieldPtrTable.Add(new RawFieldPtrRow(info.Rid)))
@@ -394,7 +561,7 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 
-			if (!methodDefInfos.WasSorted()) {
+			if (methodDefInfos.NeedPtrTable) {
 				for (int i = 0; i < methodDefInfos.Count; i++) {
 					var info = methodDefInfos.GetSorted(i);
 					if ((uint)i + 1 != tablesHeap.MethodPtrTable.Add(new RawMethodPtrRow(info.Rid)))
@@ -402,7 +569,7 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 
-			if (!paramDefInfos.WasSorted()) {
+			if (paramDefInfos.NeedPtrTable) {
 				// NOTE: peverify does not support the ParamPtr table. It's a bug.
 				for (int i = 0; i < paramDefInfos.Count; i++) {
 					var info = paramDefInfos.GetSorted(i);
@@ -411,7 +578,7 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 
-			if (!eventDefInfos.WasSorted()) {
+			if (eventDefInfos.NeedPtrTable) {
 				for (int i = 0; i < eventDefInfos.Count; i++) {
 					var info = eventDefInfos.GetSorted(i);
 					if ((uint)i + 1 != tablesHeap.EventPtrTable.Add(new RawEventPtrRow(info.Rid)))
@@ -419,7 +586,7 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 
-			if (!propertyDefInfos.WasSorted()) {
+			if (propertyDefInfos.NeedPtrTable) {
 				for (int i = 0; i < propertyDefInfos.Count; i++) {
 					var info = propertyDefInfos.GetSorted(i);
 					if ((uint)i + 1 != tablesHeap.PropertyPtrTable.Add(new RawPropertyPtrRow(info.Rid)))
@@ -427,67 +594,62 @@ namespace dot10.DotNet.Writer {
 				}
 			}
 
-			InitializeFieldList();
-			InitializeMethodList();
+			InitializeMethodAndFieldList();
 			InitializeParamList();
 			InitializeEventMap();
 			InitializePropertyMap();
 		}
 
 		void FindMemberDefs() {
-			fieldDefInfos.FindDefs(allTypeDefs, rid => mod.ResolveField(rid), type => type.Fields);
-			methodDefInfos.FindDefs(allTypeDefs, rid => mod.ResolveMethod(rid), type => type.Methods);
-			paramDefInfos.FindDefs(allTypeDefs, rid => mod.ResolveParam(rid), type => FindParamDefs(type));
-			eventDefInfos.FindDefs(allTypeDefs, rid => mod.ResolveEvent(rid), type => type.Events);
-			propertyDefInfos.FindDefs(allTypeDefs, rid => mod.ResolveProperty(rid), type => type.Properties);
-		}
-
-		void InitializeCollectionPositions() {
+			int pos;
 			foreach (var type in allTypeDefs) {
-				int pos;
+				if (type == null)
+					continue;
 
 				pos = 0;
 				foreach (var field in type.Fields) {
 					if (field == null)
 						continue;
-					fieldDefInfos.SetCollectionPosition(field, pos++);
+					fieldDefInfos.Add(field, pos++);
 				}
 
 				pos = 0;
 				foreach (var method in type.Methods) {
 					if (method == null)
 						continue;
-					methodDefInfos.SetCollectionPosition(method, pos++);
-
-					int pos2 = 0;
-					foreach (var param in Sort(method.ParamList)) {
-						if (param == null)
-							continue;
-						paramDefInfos.SetCollectionPosition(param, pos2++);
-					}
+					methodDefInfos.Add(method, pos++);
 				}
 
 				pos = 0;
 				foreach (var evt in type.Events) {
 					if (evt == null)
 						continue;
-					eventDefInfos.SetCollectionPosition(evt, pos++);
+					eventDefInfos.Add(evt, pos++);
 				}
 
 				pos = 0;
 				foreach (var prop in type.Properties) {
 					if (prop == null)
 						continue;
-					propertyDefInfos.SetCollectionPosition(prop, pos++);
+					propertyDefInfos.Add(prop, pos++);
 				}
 			}
-		}
 
-		static IEnumerable<ParamDef> FindParamDefs(TypeDef type) {
-			foreach (var method in type.Methods) {
-				foreach (var paramDef in method.ParamList)
-					yield return paramDef;
+			fieldDefInfos.SortDefs();
+			methodDefInfos.SortDefs();
+			eventDefInfos.SortDefs();
+			propertyDefInfos.SortDefs();
+
+			for (int i = 0; i < methodDefInfos.Count; i++) {
+				var method = methodDefInfos.Get(i).Def;
+				pos = 0;
+				foreach (var param in Sort(method.ParamList)) {
+					if (param == null)
+						continue;
+					paramDefInfos.Add(param, pos++);
+				}
 			}
+			paramDefInfos.SortDefs();
 		}
 
 		void SortFields() {
@@ -550,90 +712,25 @@ namespace dot10.DotNet.Writer {
 			});
 		}
 
-		void InitializeFieldList() {
-			TypeDef type = null;
-			for (int i = 0; i < fieldDefInfos.Count; i++) {
-				var info = fieldDefInfos.GetSorted(i);
-				if (info.Def.DeclaringType == type)
-					continue;
-				type = info.Def.DeclaringType;
-				var row = tablesHeap.TypeDefTable[typeToRid[type]];
-				if (row.FieldList != 0)
-					throw new ModuleWriterException("row.FieldList has already been initialized");
-				row.FieldList = (uint)i + 1;
-			}
-
-			uint rid = 1;
-			for (int i = 0; i < allTypeDefs.Count; i++) {
-				var row = tablesHeap.TypeDefTable[(uint)i + 1];
-				if (row.FieldList == 0)
-					row.FieldList = rid;
-				else {
-					if (rid != row.FieldList)
-						throw new ModuleWriterException("Invalid field list rid");
-					foreach (var field in allTypeDefs[i].Fields) {
-						if (field != null)
-							rid++;
-					}
-				}
-			}
-		}
-
-		void InitializeMethodList() {
-			TypeDef type = null;
-			for (int i = 0; i < methodDefInfos.Count; i++) {
-				var info = methodDefInfos.GetSorted(i);
-				if (info.Def.DeclaringType == type)
-					continue;
-				type = info.Def.DeclaringType;
-				var row = tablesHeap.TypeDefTable[typeToRid[type]];
-				if (row.MethodList != 0)
-					throw new ModuleWriterException("row.MethodList has already been initialized");
-				row.MethodList = (uint)i + 1;
-			}
-
-			uint rid = 1;
-			for (int i = 0; i < allTypeDefs.Count; i++) {
-				var row = tablesHeap.TypeDefTable[(uint)i + 1];
-				if (row.MethodList == 0)
-					row.MethodList = rid;
-				else {
-					if (rid != row.MethodList)
-						throw new ModuleWriterException("Invalid method list rid");
-					foreach (var method in allTypeDefs[i].Methods) {
-						if (method != null)
-							rid++;
-					}
-				}
+		void InitializeMethodAndFieldList() {
+			uint fieldList = 1, methodList = 1;
+			foreach (var type in allTypeDefs) {
+				var typeRow = tablesHeap.TypeDefTable[typeToRid[type]];
+				typeRow.FieldList = fieldList;
+				typeRow.MethodList = methodList;
+				fieldList += (uint)type.Fields.Count;
+				methodList += (uint)type.Methods.Count;
 			}
 		}
 
 		void InitializeParamList() {
-			MethodDef method = null;
-			for (int i = 0; i < paramDefInfos.Count; i++) {
-				var info = paramDefInfos.GetSorted(i);
-				if (info.Def.DeclaringMethod == method)
-					continue;
-				method = info.Def.DeclaringMethod;
-				var row = tablesHeap.MethodTable[methodDefInfos.Rid(method)];
-				if (row.ParamList != 0)
-					throw new ModuleWriterException("row.ParamList has already been initialized");
-				row.ParamList = (uint)i + 1;
-			}
-
-			uint rid = 1;
-			for (int i = 0; i < methodDefInfos.Count; i++) {
-				var row = tablesHeap.MethodTable[(uint)i + 1];
-				if (row.ParamList == 0)
-					row.ParamList = rid;
-				else {
-					if (rid != row.ParamList)
-						throw new ModuleWriterException("Invalid param list rid");
-					foreach (var param in methodDefInfos.Get(i).Def.ParamList) {
-						if (param != null)
-							rid++;
-					}
-				}
+			uint ridList = 1;
+			for (uint methodRid = 1; methodRid <= methodDefInfos.TableSize; methodRid++) {
+				var methodInfo = methodDefInfos.GetByRid(methodRid);
+				var row = tablesHeap.MethodTable[methodRid];
+				row.ParamList = ridList;
+				if (methodInfo != null)
+					ridList += (uint)methodInfo.Def.ParamList.Count;
 			}
 		}
 
@@ -681,7 +778,7 @@ namespace dot10.DotNet.Writer {
 			}
 			typeRefInfos.Add(tr, 0);	// Prevent inf recursion
 
-			bool isOld = mod.ResolveTypeRef(tr.Rid) == tr;
+			bool isOld = PreserveTypeRefRids && mod.ResolveTypeRef(tr.Rid) == tr;
 			var row = isOld ? tablesHeap.TypeRefTable[tr.Rid] : new RawTypeRefRow();
 			row.ResolutionScope = AddResolutionScope(tr.ResolutionScope);
 			row.Name = stringsHeap.Add(tr.Name);
@@ -707,7 +804,7 @@ namespace dot10.DotNet.Writer {
 			}
 			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
 
-			bool isOld = mod.ResolveTypeSpec(ts.Rid) == ts;
+			bool isOld = PreserveTypeSpecRids && mod.ResolveTypeSpec(ts.Rid) == ts;
 			var row = isOld ? tablesHeap.TypeSpecTable[ts.Rid] : new RawTypeSpecRow();
 			row.Signature = GetSignature(ts.TypeSig, ts.ExtraData);
 
@@ -727,7 +824,7 @@ namespace dot10.DotNet.Writer {
 			if (memberRefInfos.TryGetRid(mr, out rid))
 				return rid;
 
-			bool isOld = mod.ResolveMemberRef(mr.Rid) == mr;
+			bool isOld = PreserveMemberRefRids && mod.ResolveMemberRef(mr.Rid) == mr;
 			var row = isOld ? tablesHeap.MemberRefTable[mr.Rid] : new RawMemberRefRow();
 			row.Class = AddMemberRefParent(mr.Class);
 			row.Name = stringsHeap.Add(mr.Name);
@@ -749,7 +846,7 @@ namespace dot10.DotNet.Writer {
 			if (standAloneSigInfos.TryGetRid(sas, out rid))
 				return rid;
 
-			bool isOld = mod.ResolveStandAloneSig(sas.Rid) == sas;
+			bool isOld = PreserveStandAloneSigRids && mod.ResolveStandAloneSig(sas.Rid) == sas;
 			var row = isOld ? tablesHeap.StandAloneSigTable[sas.Rid] : new RawStandAloneSigRow();
 			row.Signature = GetSignature(sas.Signature);
 
@@ -761,7 +858,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public override MDToken GetToken(IList<TypeSig> locals, uint origToken) {
-			if (!IsValidStandAloneSigToken(origToken))
+			if (!PreserveStandAloneSigRids || !IsValidStandAloneSigToken(origToken))
 				return base.GetToken(locals, origToken);
 
 			uint rid = AddStandAloneSig(new LocalSig(locals, false), origToken);
@@ -772,7 +869,7 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override uint AddStandAloneSig(MethodSig methodSig, uint origToken) {
-			if (!IsValidStandAloneSigToken(origToken))
+			if (!PreserveStandAloneSigRids || !IsValidStandAloneSigToken(origToken))
 				return base.AddStandAloneSig(methodSig, origToken);
 
 			uint rid = AddStandAloneSig(methodSig, origToken);
@@ -820,7 +917,7 @@ namespace dot10.DotNet.Writer {
 			if (methodSpecInfos.TryGetRid(ms, out rid))
 				return rid;
 
-			bool isOld = mod.ResolveMethodSpec(ms.Rid) == ms;
+			bool isOld = PreserveMethodSpecRids && mod.ResolveMethodSpec(ms.Rid) == ms;
 			var row = isOld ? tablesHeap.MethodSpecTable[ms.Rid] : new RawMethodSpecRow();
 			row.Method = AddMethodDefOrRef(ms.Method);
 			row.Instantiation = GetSignature(ms.Instantiation);

@@ -32,10 +32,10 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override IEnumerable<TypeDef> GetAllTypeDefs() {
+		protected override List<TypeDef> GetAllTypeDefs() {
 			// All nested types must be after their enclosing type. This is exactly
 			// what module.GetTypes() does.
-			return module.GetTypes();
+			return new List<TypeDef>(module.GetTypes());
 		}
 
 		/// <inheritdoc/>

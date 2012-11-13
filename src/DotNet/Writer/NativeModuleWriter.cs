@@ -39,9 +39,11 @@ namespace dot10.DotNet.Writer {
 		public NativeModuleWriterOptions(ModuleDefMD module, IModuleWriterListener listener)
 			: base(module, listener) {
 
-			// C++ .NET mixed mode assemblies call ModuleHandle.ResolveMethod(),
-			// so metadata tokens must be preserved.
-			MetaDataOptions.Flags |= MetaDataFlags.PreserveTokens;
+			// C++ .NET mixed mode assemblies sometimes/often call Module.ResolveMethod(),
+			// so method metadata tokens must be preserved.
+			MetaDataOptions.Flags |= MetaDataFlags.PreserveMethodRids |
+								MetaDataFlags.PreserveMemberRefRids |
+								MetaDataFlags.PreserveMethodSpecRids;
 		}
 	}
 
