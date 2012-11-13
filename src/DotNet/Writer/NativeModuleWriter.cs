@@ -432,12 +432,19 @@ namespace dot10.DotNet.Writer {
 			// Update .NET header
 			writer.BaseStream.Position = cor20Offset + 8;
 			writer.WriteDataDirectory(metaData);
-			writer.Write((uint)module.Cor20HeaderFlags);
-			writer.Write(GetEntryPoint());
+			uint entryPoint;
+			writer.Write((uint)GetComImageFlags(GetEntryPoint(out entryPoint)));
+			writer.Write(entryPoint);
 			writer.WriteDataDirectory(netResources);
 			//TODO: Write new strong name signature if we resigned it
 
 			UpdateVTableFixups(writer);
+		}
+
+		ComImageFlags GetComImageFlags(bool isManagedEntryPoint) {
+			if (isManagedEntryPoint)
+				return module.Cor20HeaderFlags & ~ComImageFlags.NativeEntryPoint;
+			return module.Cor20HeaderFlags | ComImageFlags.NativeEntryPoint;
 		}
 
 		Subsystem GetSubsystem() {
@@ -520,14 +527,25 @@ namespace dot10.DotNet.Writer {
 			return 0;
 		}
 
-		uint GetEntryPoint() {
-			var ep = module.ManagedEntryPoint as MethodDef;
-			if (ep != null)
-				return new MDToken(Table.Method, metaData.GetRid(ep)).Raw;
+		/// <summary>
+		/// Gets the entry point
+		/// </summary>
+		/// <param name="ep">Updated with entry point (either a token or RVA of native method)</param>
+		/// <returns><c>true</c> if it's a managed entry point or there's no entry point,
+		/// <c>false</c> if it's a native entry point</returns>
+		bool GetEntryPoint(out uint ep) {
+			var epMethod = module.ManagedEntryPoint as MethodDef;
+			if (epMethod != null) {
+				ep = new MDToken(Table.Method, metaData.GetRid(epMethod)).Raw;
+				return true;
+			}
 			var file = module.ManagedEntryPoint as FileDef;
-			if (file != null)
-				return new MDToken(Table.File, metaData.GetRid(file)).Raw;
-			return (uint)module.NativeEntryPoint;
+			if (file != null) {
+				ep = new MDToken(Table.File, metaData.GetRid(file)).Raw;
+				return true;
+			}
+			ep = (uint)module.NativeEntryPoint;
+			return ep == 0;
 		}
 	}
 }
