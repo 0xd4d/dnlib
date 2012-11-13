@@ -86,7 +86,7 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		long checkSumOffset;
 
-		class OrigSection : IDisposable {
+		sealed class OrigSection : IDisposable {
 			public ImageSectionHeader peSection;
 			public BinaryReaderChunk chunk;
 
