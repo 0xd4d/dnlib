@@ -8,6 +8,8 @@ using dot10.DotNet.MD;
 using dot10.DotNet.Emit;
 using dot10.W32Resources;
 
+using DNW = dot10.DotNet.Writer;
+
 namespace dot10.DotNet {
 	/// <summary>
 	/// Created from a row in the Module table
@@ -1482,6 +1484,42 @@ namespace dot10.DotNet {
 			if ((MetaData.ImageCor20Header.Flags & ComImageFlags._32BitPreferred) != 0)
 				return 4;	// Assume 32-bit pointers
 			return 4;	// Assume 32-bit pointers
+		}
+
+		/// <summary>
+		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be truncated.
+		/// </summary>
+		/// <param name="filename">Filename</param>
+		public void NativeWrite(string filename) {
+			NativeWrite(filename, null);
+		}
+
+		/// <summary>
+		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be truncated.
+		/// </summary>
+		/// <param name="filename">Filename</param>
+		/// <param name="options">Writer options</param>
+		public void NativeWrite(string filename, DNW.NativeModuleWriterOptions options) {
+			var writer = new DNW.NativeModuleWriter(this, options ?? new DNW.NativeModuleWriterOptions(this));
+			writer.Write(filename);
+		}
+
+		/// <summary>
+		/// Writes the mixed-mode module to a stream.
+		/// </summary>
+		/// <param name="dest">Destination stream</param>
+		public void NativeWrite(Stream dest) {
+			NativeWrite(dest, null);
+		}
+
+		/// <summary>
+		/// Writes the mixed-mode module to a stream.
+		/// </summary>
+		/// <param name="dest">Destination stream</param>
+		/// <param name="options">Writer options</param>
+		public void NativeWrite(Stream dest, DNW.NativeModuleWriterOptions options) {
+			var writer = new DNW.NativeModuleWriter(this, options ?? new DNW.NativeModuleWriterOptions(this));
+			writer.Write(dest);
 		}
 	}
 }
