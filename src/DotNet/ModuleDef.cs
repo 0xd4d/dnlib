@@ -681,6 +681,46 @@ namespace dot10.DotNet {
 			return w32Resources == null ? null : w32Resources.Find(type, name, langId);
 		}
 
+		/// <summary>
+		/// Returns the size of a pointer. This isn't 100% foolproof.
+		/// </summary>
+		/// <returns>Size of a pointer (4 or 8)</returns>
+		public int GetPointerSize() {
+			var machine = Machine;
+			if (machine == Machine.AMD64 || machine == Machine.IA64)
+				return 8;
+			if (machine != Machine.I386)
+				return 4;
+
+			// Machine is I386 so it's either x86 or platform neutral
+
+			// If it's a 32-bit PE header, and ILOnly is cleared, it's always loaded as a
+			// 32-bit process.
+			if ((Cor20HeaderFlags & ComImageFlags.ILOnly) == 0)
+				return 4;
+
+			// 32-bit Preferred flag is new in .NET 4.5. See CorHdr.h in Windows SDK for more info
+			switch (Cor20HeaderFlags & (ComImageFlags._32BitRequired | ComImageFlags._32BitPreferred)) {
+			case 0:
+				// Machine and ILOnly flag should be checked
+				break;
+
+			case ComImageFlags._32BitPreferred:
+				// Illegal
+				break;
+
+			case ComImageFlags._32BitRequired:
+				// x86 image (32-bit process)
+				return 4;
+
+			case ComImageFlags._32BitRequired | ComImageFlags._32BitPreferred:
+				// Platform neutral but prefers to be 32-bit
+				return 4;	// Assume 32-bit pointers
+			}
+
+			return 4;	// Assume 32-bit pointers
+		}
+
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnLazyAdd(int index, ref TypeDef value) {
 #if DEBUG

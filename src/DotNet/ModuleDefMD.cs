@@ -1472,21 +1472,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Returns the size of a pointer. This isn't 100% foolproof.
-		/// </summary>
-		/// <returns>Size of a pointer (4 or 8)</returns>
-		public int GetPointerSize() {
-			var peImage = MetaData.PEImage;
-			if (peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader64)
-				return 8;
-			if ((MetaData.ImageCor20Header.Flags & ComImageFlags._32BitRequired) != 0)
-				return 4;
-			if ((MetaData.ImageCor20Header.Flags & ComImageFlags._32BitPreferred) != 0)
-				return 4;	// Assume 32-bit pointers
-			return 4;	// Assume 32-bit pointers
-		}
-
-		/// <summary>
 		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be truncated.
 		/// </summary>
 		/// <param name="filename">Filename</param>

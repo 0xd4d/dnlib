@@ -367,7 +367,7 @@ namespace dot10.DotNet {
 				var dt = DeclaringType;
 				if (dt == null)
 					return true;
-				var ownerModule = dt.OwnerModule as ModuleDefMD;
+				var ownerModule = dt.OwnerModule;
 				if (ownerModule == null)
 					return true;
 				size = (uint)ownerModule.GetPointerSize();
