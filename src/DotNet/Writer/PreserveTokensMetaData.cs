@@ -630,7 +630,7 @@ namespace dot10.DotNet.Writer {
 
 				var frow = tablesHeap.FieldTable[frid];
 				frow.Flags = (ushort)(FieldAttributes.Public | FieldAttributes.Static);
-				frow.Name = stringsHeap.Add(new UTF8String(string.Format("f{0:X6}", frid)));
+				frow.Name = stringsHeap.Add(string.Format("f{0:X6}", frid));
 				frow.Signature = fieldSig;
 				tablesHeap.FieldPtrTable.Create(new RawFieldPtrRow(frid));
 			}
@@ -666,7 +666,7 @@ namespace dot10.DotNet.Writer {
 				mrow.RVA = 0;
 				mrow.ImplFlags = (ushort)(MethodImplAttributes.IL | MethodImplAttributes.Managed);
 				mrow.Flags = (ushort)(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract);
-				mrow.Name = stringsHeap.Add(new UTF8String(string.Format("m{0:X6}", mrid)));
+				mrow.Name = stringsHeap.Add(string.Format("m{0:X6}", mrid));
 				mrow.Signature = methodSig;
 				mrow.ParamList = (uint)paramDefInfos.Count;
 				tablesHeap.MethodPtrTable.Create(new RawMethodPtrRow(mrid));
@@ -706,13 +706,13 @@ namespace dot10.DotNet.Writer {
 				var prow = tablesHeap.ParamTable[prid];
 				prow.Flags = 0;
 				prow.Sequence = 0;	// Return type parameter
-				prow.Name = stringsHeap.Add(new UTF8String(string.Format("p{0:X6}", prid)));
+				prow.Name = stringsHeap.Add(string.Format("p{0:X6}", prid));
 				uint ptrRid = tablesHeap.ParamPtrTable.Create(new RawParamPtrRow(prid));
 
 				var mrow = new RawMethodRow(0,
 					(ushort)(MethodImplAttributes.IL | MethodImplAttributes.Managed),
 					(ushort)(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
-					stringsHeap.Add(new UTF8String(string.Format("mp{0:X6}", prid))),
+					stringsHeap.Add(string.Format("mp{0:X6}", prid)),
 					methodSig,
 					ptrRid);
 				uint mrid = tablesHeap.MethodTable.Create(mrow);
@@ -750,7 +750,7 @@ namespace dot10.DotNet.Writer {
 
 				var frow = tablesHeap.EventTable[erid];
 				frow.EventFlags = 0;
-				frow.Name = stringsHeap.Add(new UTF8String(string.Format("E{0:X6}", erid)));
+				frow.Name = stringsHeap.Add(string.Format("E{0:X6}", erid));
 				frow.EventType = eventType;
 				tablesHeap.EventPtrTable.Create(new RawEventPtrRow(erid));
 			}
@@ -785,7 +785,7 @@ namespace dot10.DotNet.Writer {
 
 				var frow = tablesHeap.PropertyTable[prid];
 				frow.PropFlags = 0;
-				frow.Name = stringsHeap.Add(new UTF8String(string.Format("P{0:X6}", prid)));
+				frow.Name = stringsHeap.Add(string.Format("P{0:X6}", prid));
 				frow.Type = propertySig;
 				tablesHeap.PropertyPtrTable.Create(new RawPropertyPtrRow(prid));
 			}
@@ -811,8 +811,8 @@ namespace dot10.DotNet.Writer {
 			int numFields = tablesHeap.FieldPtrTable.Rows > 0 ? tablesHeap.FieldPtrTable.Rows : tablesHeap.FieldTable.Rows;
 			int numMethods = tablesHeap.MethodPtrTable.Rows > 0 ? tablesHeap.MethodPtrTable.Rows : tablesHeap.MethodTable.Rows;
 			var row = new RawTypeDefRow((uint)flags,
-						stringsHeap.Add(new UTF8String(Guid.NewGuid().ToString("B"))),
-						stringsHeap.Add(new UTF8String("dummy_ptr")),
+						stringsHeap.Add(Guid.NewGuid().ToString("B")),
+						stringsHeap.Add("dummy_ptr"),
 						AddTypeDefOrRef(module.CorLibTypes.Object.TypeDefOrRef),
 						(uint)numFields + 1,
 						(uint)numMethods + 1);
