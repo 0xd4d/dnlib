@@ -587,6 +587,7 @@ namespace dot10.DotNet.Writer {
 					if ((uint)i + 1 != tablesHeap.EventPtrTable.Add(new RawEventPtrRow(info.Rid)))
 						throw new ModuleWriterException("Invalid event ptr rid");
 				}
+				ReUseDeletedEventRows();
 			}
 
 			if (propertyDefInfos.NeedPtrTable) {
@@ -595,6 +596,7 @@ namespace dot10.DotNet.Writer {
 					if ((uint)i + 1 != tablesHeap.PropertyPtrTable.Add(new RawPropertyPtrRow(info.Rid)))
 						throw new ModuleWriterException("Invalid property ptr rid");
 				}
+				ReUseDeletedPropertyRows();
 			}
 
 			InitializeMethodAndFieldList();
@@ -609,7 +611,7 @@ namespace dot10.DotNet.Writer {
 		/// <c>FieldPtr</c> and <c>Field</c> tables must be the same size.
 		/// </summary>
 		void ReUseDeletedFieldRows() {
-			if (tablesHeap.FieldPtrTable.Rows == 0)
+			if (tablesHeap.FieldPtrTable.IsEmpty)
 				return;
 			if (fieldDefInfos.TableSize == tablesHeap.FieldPtrTable.Rows)
 				return;
@@ -643,7 +645,7 @@ namespace dot10.DotNet.Writer {
 		/// <c>MethodPtr</c> and <c>Method</c> tables must be the same size.
 		/// </summary>
 		void ReUseDeletedMethodRows() {
-			if (tablesHeap.MethodPtrTable.Rows == 0)
+			if (tablesHeap.MethodPtrTable.IsEmpty)
 				return;
 			if (methodDefInfos.TableSize == tablesHeap.MethodPtrTable.Rows)
 				return;
@@ -682,7 +684,7 @@ namespace dot10.DotNet.Writer {
 		/// this method will create more methods at the end of the <c>Method</c> table.
 		/// </summary>
 		void ReUseDeletedParamRows() {
-			if (tablesHeap.ParamPtrTable.Rows == 0)
+			if (tablesHeap.ParamPtrTable.IsEmpty)
 				return;
 			if (paramDefInfos.TableSize == tablesHeap.ParamPtrTable.Rows)
 				return;
@@ -720,6 +722,76 @@ namespace dot10.DotNet.Writer {
 
 			if (paramDefInfos.TableSize != tablesHeap.ParamPtrTable.Rows)
 				throw new ModuleWriterException("Didn't create all dummy params");
+		}
+
+		/// <summary>
+		/// Re-uses all <c>Event</c> rows which aren't owned by any type due to the events
+		/// having been deleted by the user. The reason we must do this is that the
+		/// <c>EventPtr</c> and <c>Event</c> tables must be the same size.
+		/// </summary>
+		void ReUseDeletedEventRows() {
+			if (tablesHeap.EventPtrTable.IsEmpty)
+				return;
+			if (eventDefInfos.TableSize == tablesHeap.EventPtrTable.Rows)
+				return;
+
+			var hasOwner = new bool[eventDefInfos.TableSize];
+			for (int i = 0; i < eventDefInfos.Count; i++)
+				hasOwner[(int)eventDefInfos.Get(i).Rid - 1] = true;
+
+			uint typeRid = CreateDummyPtrTableType();
+			tablesHeap.EventMapTable.Create(new RawEventMapRow(typeRid, (uint)tablesHeap.EventPtrTable.Rows + 1));
+
+			uint eventType = AddTypeDefOrRef(module.CorLibTypes.Object.TypeDefOrRef);
+			for (int i = 0; i < hasOwner.Length; i++) {
+				if (hasOwner[i])
+					continue;
+				uint erid = (uint)i + 1;
+
+				var frow = tablesHeap.EventTable[erid];
+				frow.EventFlags = 0;
+				frow.Name = stringsHeap.Add(new UTF8String(string.Format("E{0:X6}", erid)));
+				frow.EventType = eventType;
+				tablesHeap.EventPtrTable.Create(new RawEventPtrRow(erid));
+			}
+
+			if (eventDefInfos.TableSize != tablesHeap.EventPtrTable.Rows)
+				throw new ModuleWriterException("Didn't create all dummy events");
+		}
+
+		/// <summary>
+		/// Re-uses all <c>Property</c> rows which aren't owned by any type due to the properties
+		/// having been deleted by the user. The reason we must do this is that the
+		/// <c>PropertyPtr</c> and <c>Property</c> tables must be the same size.
+		/// </summary>
+		void ReUseDeletedPropertyRows() {
+			if (tablesHeap.PropertyPtrTable.IsEmpty)
+				return;
+			if (propertyDefInfos.TableSize == tablesHeap.PropertyPtrTable.Rows)
+				return;
+
+			var hasOwner = new bool[propertyDefInfos.TableSize];
+			for (int i = 0; i < propertyDefInfos.Count; i++)
+				hasOwner[(int)propertyDefInfos.Get(i).Rid - 1] = true;
+
+			uint typeRid = CreateDummyPtrTableType();
+			tablesHeap.PropertyMapTable.Create(new RawPropertyMapRow(typeRid, (uint)tablesHeap.PropertyPtrTable.Rows + 1));
+
+			uint propertySig = GetSignature(PropertySig.CreateStatic(module.CorLibTypes.Object));
+			for (int i = 0; i < hasOwner.Length; i++) {
+				if (hasOwner[i])
+					continue;
+				uint prid = (uint)i + 1;
+
+				var frow = tablesHeap.PropertyTable[prid];
+				frow.PropFlags = 0;
+				frow.Name = stringsHeap.Add(new UTF8String(string.Format("P{0:X6}", prid)));
+				frow.Type = propertySig;
+				tablesHeap.PropertyPtrTable.Create(new RawPropertyPtrRow(prid));
+			}
+
+			if (propertyDefInfos.TableSize != tablesHeap.PropertyPtrTable.Rows)
+				throw new ModuleWriterException("Didn't create all dummy properties");
 		}
 
 		/// <summary>
