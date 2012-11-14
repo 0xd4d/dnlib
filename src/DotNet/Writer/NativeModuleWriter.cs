@@ -354,6 +354,10 @@ namespace dot10.DotNet.Writer {
 				ch &= ~Characteristics._32BitMachine;
 			else
 				ch |= Characteristics._32BitMachine;
+			if (Options.IsExeFile)
+				ch &= ~Characteristics.Dll;
+			else
+				ch |= Characteristics.Dll;
 			return ch;
 		}
 
@@ -372,48 +376,81 @@ namespace dot10.DotNet.Writer {
 			uint sectionAlignment = peImage.ImageNTHeaders.OptionalHeader.SectionAlignment;
 
 			// Update PE file header
+			var peOptions = Options.PEHeadersOptions;
 			writer.BaseStream.Position = fileHeaderOffset;
-			writer.Write((ushort)module.Machine);
+			writer.Write((ushort)(peOptions.Machine ?? module.Machine));
 			writer.Write((ushort)(origSections.Count + sections.Count));
-			writer.BaseStream.Position += 14;
-			writer.Write((ushort)GetCharacteristics());
+			WriteUInt32(writer, peOptions.TimeDateStamp);
+			writer.BaseStream.Position += 10;
+			writer.Write((ushort)(peOptions.Characteristics ?? GetCharacteristics()));
 
 			// Update optional header
 			var sectionSizes = new SectionSizes(fileAlignment, sectionAlignment, headerSection.GetVirtualSize(), () => GetSectionSizeInfos());
 			writer.BaseStream.Position = optionalHeaderOffset;
 			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			if (is32BitOptionalHeader) {
-				writer.BaseStream.Position += 4;
+				writer.BaseStream.Position += 2;
+				WriteByte(writer, peOptions.MajorLinkerVersion);
+				WriteByte(writer, peOptions.MinorLinkerVersion);
 				writer.Write(sectionSizes.sizeOfCode);
 				writer.Write(sectionSizes.sizeOfInitdData);
 				writer.Write(sectionSizes.sizeOfUninitdData);
 				writer.BaseStream.Position += 4;	// EntryPoint
 				writer.Write(sectionSizes.baseOfCode);
 				writer.Write(sectionSizes.baseOfData);
-				writer.BaseStream.Position += 0x1C;
+				WriteUInt32(writer, peOptions.ImageBase);
+				writer.BaseStream.Position += 8;	// SectionAlignment, FileAlignment
+				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
+				WriteUInt16(writer, peOptions.MinorOperatingSystemVersion);
+				WriteUInt16(writer, peOptions.MajorImageVersion);
+				WriteUInt16(writer, peOptions.MinorImageVersion);
+				WriteUInt16(writer, peOptions.MajorSubsystemVersion);
+				WriteUInt16(writer, peOptions.MinorSubsystemVersion);
+				WriteUInt32(writer, peOptions.Win32VersionValue);
 				writer.Write(sectionSizes.sizeOfImage);
 				writer.Write(sectionSizes.sizeOfHeaders);
+				checkSumOffset = writer.BaseStream.Position;
+				writer.Write(0);	// CheckSum
+				WriteUInt16(writer, peOptions.Subsystem);
+				WriteUInt16(writer, peOptions.DllCharacteristics);
+				WriteUInt32(writer, peOptions.SizeOfStackReserve);
+				WriteUInt32(writer, peOptions.SizeOfStackCommit);
+				WriteUInt32(writer, peOptions.SizeOfHeapReserve);
+				WriteUInt32(writer, peOptions.SizeOfHeapCommit);
+				WriteUInt32(writer, peOptions.LoaderFlags);
+				WriteUInt32(writer, peOptions.NumberOfRvaAndSizes);
 			}
 			else {
-				writer.BaseStream.Position += 4;
+				writer.BaseStream.Position += 2;
+				WriteByte(writer, peOptions.MajorLinkerVersion);
+				WriteByte(writer, peOptions.MinorLinkerVersion);
 				writer.Write(sectionSizes.sizeOfCode);
 				writer.Write(sectionSizes.sizeOfInitdData);
 				writer.Write(sectionSizes.sizeOfUninitdData);
 				writer.BaseStream.Position += 4;	// EntryPoint
 				writer.Write(sectionSizes.baseOfCode);
-				writer.BaseStream.Position += 0x20;
+				WriteUInt64(writer, peOptions.ImageBase);
+				writer.BaseStream.Position += 8;	// SectionAlignment, FileAlignment
+				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
+				WriteUInt16(writer, peOptions.MinorOperatingSystemVersion);
+				WriteUInt16(writer, peOptions.MajorImageVersion);
+				WriteUInt16(writer, peOptions.MinorImageVersion);
+				WriteUInt16(writer, peOptions.MajorSubsystemVersion);
+				WriteUInt16(writer, peOptions.MinorSubsystemVersion);
+				WriteUInt32(writer, peOptions.Win32VersionValue);
 				writer.Write(sectionSizes.sizeOfImage);
 				writer.Write(sectionSizes.sizeOfHeaders);
+				checkSumOffset = writer.BaseStream.Position;
+				writer.Write(0);	// CheckSum
+				WriteUInt16(writer, peOptions.Subsystem ?? GetSubsystem());
+				WriteUInt16(writer, peOptions.DllCharacteristics ?? module.DllCharacteristics);
+				WriteUInt64(writer, peOptions.SizeOfStackReserve);
+				WriteUInt64(writer, peOptions.SizeOfStackCommit);
+				WriteUInt64(writer, peOptions.SizeOfHeapReserve);
+				WriteUInt64(writer, peOptions.SizeOfHeapCommit);
+				WriteUInt32(writer, peOptions.LoaderFlags);
+				WriteUInt32(writer, peOptions.NumberOfRvaAndSizes);
 			}
-			checkSumOffset = writer.BaseStream.Position;
-			writer.BaseStream.Position += 4;	// CheckSum
-			writer.Write((ushort)GetSubsystem());
-			writer.Write((ushort)module.DllCharacteristics);
-			if (is32BitOptionalHeader)
-				writer.BaseStream.Position += 0x14;
-			else
-				writer.BaseStream.Position += 0x24;
-			writer.Write(0x10);		// NumberOfRvaAndSizes
 
 			// Update Win32 resources data directory, if we wrote a new one
 			if (win32Resources != null) {
@@ -432,21 +469,75 @@ namespace dot10.DotNet.Writer {
 				section.WriteHeaderTo(writer, fileAlignment, sectionAlignment, (uint)section.RVA);
 
 			// Update .NET header
-			writer.BaseStream.Position = cor20Offset + 8;
+			writer.BaseStream.Position = cor20Offset + 4;
+			WriteUInt16(writer, Options.Cor20HeaderOptions.MajorRuntimeVersion);
+			WriteUInt16(writer, Options.Cor20HeaderOptions.MinorRuntimeVersion);
 			writer.WriteDataDirectory(metaData);
 			uint entryPoint;
 			writer.Write((uint)GetComImageFlags(GetEntryPoint(out entryPoint)));
-			writer.Write(entryPoint);
+			writer.Write(Options.Cor20HeaderOptions.EntryPoint ?? entryPoint);
 			writer.WriteDataDirectory(netResources);
 			//TODO: Write new strong name signature if we resigned it
 
 			UpdateVTableFixups(writer);
 		}
 
+		static void WriteByte(BinaryWriter writer, byte? value) {
+			if (value == null)
+				writer.BaseStream.Position++;
+			else
+				writer.Write(value.Value);
+		}
+
+		static void WriteUInt16(BinaryWriter writer, ushort? value) {
+			if (value == null)
+				writer.BaseStream.Position += 2;
+			else
+				writer.Write(value.Value);
+		}
+
+		static void WriteUInt16(BinaryWriter writer, Subsystem? value) {
+			if (value == null)
+				writer.BaseStream.Position += 2;
+			else
+				writer.Write((ushort)value.Value);
+		}
+
+		static void WriteUInt16(BinaryWriter writer, DllCharacteristics? value) {
+			if (value == null)
+				writer.BaseStream.Position += 2;
+			else
+				writer.Write((ushort)value.Value);
+		}
+
+		static void WriteUInt32(BinaryWriter writer, uint? value) {
+			if (value == null)
+				writer.BaseStream.Position += 4;
+			else
+				writer.Write(value.Value);
+		}
+
+		static void WriteUInt32(BinaryWriter writer, ulong? value) {
+			if (value == null)
+				writer.BaseStream.Position += 4;
+			else
+				writer.Write((uint)value.Value);
+		}
+
+		static void WriteUInt64(BinaryWriter writer, ulong? value) {
+			if (value == null)
+				writer.BaseStream.Position += 8;
+			else
+				writer.Write(value.Value);
+		}
+
 		ComImageFlags GetComImageFlags(bool isManagedEntryPoint) {
+			var flags = Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags;
+			if (Options.Cor20HeaderOptions.EntryPoint != null)
+				return flags;
 			if (isManagedEntryPoint)
-				return module.Cor20HeaderFlags & ~ComImageFlags.NativeEntryPoint;
-			return module.Cor20HeaderFlags | ComImageFlags.NativeEntryPoint;
+				return flags & ~ComImageFlags.NativeEntryPoint;
+			return flags | ComImageFlags.NativeEntryPoint;
 		}
 
 		Subsystem GetSubsystem() {
