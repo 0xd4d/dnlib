@@ -151,6 +151,7 @@ namespace dot10.DotNet.Writer {
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
 			else
 				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
+			this.PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
 			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 
 			// Some tools crash if #GUID is missing so always create it by default
