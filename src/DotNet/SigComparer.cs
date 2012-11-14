@@ -555,6 +555,13 @@ namespace dot10.DotNet {
 		/// compares signatures. This means that metadata tokens will be compared.
 		/// </summary>
 		RawSignatureCompare = 0x40000,
+
+		/// <summary>
+		/// Ignore required and optional modifiers when comparing <see cref="TypeSig"/>s.
+		/// They're already ignored when comparing eg. a <see cref="TypeSig"/> with a
+		/// <see cref="TypeRef"/>.
+		/// </summary>
+		IgnoreModifiers = 0x80000,
 	}
 
 	/// <summary>
@@ -830,6 +837,19 @@ namespace dot10.DotNet {
 					options |= SigComparerOptions.RawSignatureCompare;
 				else
 					options &= ~SigComparerOptions.RawSignatureCompare;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.IgnoreModifiers"/> bit
+		/// </summary>
+		public bool IgnoreModifiers {
+			get { return (options & SigComparerOptions.IgnoreModifiers) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.IgnoreModifiers;
+				else
+					options &= ~SigComparerOptions.IgnoreModifiers;
 			}
 		}
 
@@ -1880,6 +1900,10 @@ namespace dot10.DotNet {
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(TypeSig a, TypeSig b) {
+			if (IgnoreModifiers) {
+				a = a.RemoveModifiers();
+				b = b.RemoveModifiers();
+			}
 			if (a == b)
 				return true;
 			if (a == null || b == null)
