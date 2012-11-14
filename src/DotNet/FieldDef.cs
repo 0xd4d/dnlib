@@ -356,21 +356,9 @@ namespace dot10.DotNet {
 			if (ts == null)
 				return false;
 
-			int size2 = ts.ElementType.GetPrimitiveSize();
+			int size2 = ts.ElementType.GetPrimitiveSize(GetPointerSize());
 			if (size2 >= 0) {
 				size = (uint)size2;
-				return true;
-			}
-
-			if (ts.ElementType == ElementType.Ptr || ts.ElementType == ElementType.FnPtr) {
-				size = 4;	// Assume 32-bit pointers if we can't get the owner module
-				var dt = DeclaringType;
-				if (dt == null)
-					return true;
-				var ownerModule = dt.OwnerModule;
-				if (ownerModule == null)
-					return true;
-				size = (uint)ownerModule.GetPointerSize();
 				return true;
 			}
 
@@ -387,6 +375,16 @@ namespace dot10.DotNet {
 				return TypeDef.GetClassSize(tr.Resolve(), out size);
 
 			return false;
+		}
+
+		int GetPointerSize() {
+			var dt = DeclaringType;
+			if (dt == null)
+				return 4;
+			var ownerModule = dt.OwnerModule;
+			if (ownerModule == null)
+				return 4;
+			return ownerModule.GetPointerSize();
 		}
 
 		/// <inheritdoc/>
