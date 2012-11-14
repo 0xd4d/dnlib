@@ -41,9 +41,7 @@ namespace dot10.DotNet.Writer {
 
 			// C++ .NET mixed mode assemblies sometimes/often call Module.ResolveMethod(),
 			// so method metadata tokens must be preserved.
-			MetaDataOptions.Flags |= MetaDataFlags.PreserveMethodRids |
-								MetaDataFlags.PreserveMemberRefRids |
-								MetaDataFlags.PreserveMethodSpecRids;
+			MetaDataOptions.Flags |= MetaDataFlags.PreserveAllMethodRids;
 		}
 	}
 
