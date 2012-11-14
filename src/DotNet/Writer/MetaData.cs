@@ -81,7 +81,7 @@ namespace dot10.DotNet.Writer {
 		/// <c>Field</c>, <c>Method</c>, <c>Param</c>, <c>MemberRef</c>, <c>StandAloneSig</c>,
 		/// <c>Event</c>, <c>Property</c>, <c>TypeSpec</c>, <c>MethodSpec</c>
 		/// </summary>
-		PreserveTokens = PreserveTypeRefRids |
+		PreserveRids =	PreserveTypeRefRids |
 						PreserveTypeDefRids |
 						PreserveFieldRids |
 						PreserveMethodRids |
@@ -124,7 +124,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Preserves as much as possible
 		/// </summary>
-		PreserveAll = PreserveTokens | PreserveStringsOffsets | PreserveUSOffsets |
+		PreserveAll = PreserveRids | PreserveStringsOffsets | PreserveUSOffsets |
 					PreserveBlobOffsets | PreserveExtraSignatureData,
 
 		/// <summary>
@@ -379,7 +379,7 @@ namespace dot10.DotNet.Writer {
 		public static MetaData Create(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options) {
 			if (options == null)
 				options = new MetaDataOptions();
-			if ((options.Flags & MetaDataFlags.PreserveTokens) != 0 && module is ModuleDefMD)
+			if ((options.Flags & MetaDataFlags.PreserveRids) != 0 && module is ModuleDefMD)
 				return new PreserveTokensMetaData(module, constants, methodBodies, netResources, options);
 			return new NormalMetaData(module, constants, methodBodies, netResources, options);
 		}
@@ -469,13 +469,6 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		public bool PreserveMethodSpecRids {
 			get { return (options.Flags & MetaDataFlags.PreserveMethodSpecRids) != 0; }
-		}
-
-		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveTokens"/> bit
-		/// </summary>
-		public bool PreserveTokens {
-			get { return (options.Flags & MetaDataFlags.PreserveTokens) != 0; }
 		}
 
 		/// <summary>
