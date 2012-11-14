@@ -559,6 +559,7 @@ namespace dot10.DotNet.Writer {
 					if ((uint)i + 1 != tablesHeap.FieldPtrTable.Add(new RawFieldPtrRow(info.Rid)))
 						throw new ModuleWriterException("Invalid field ptr rid");
 				}
+				ReUseDeletedFieldRows();
 			}
 
 			if (methodDefInfos.NeedPtrTable) {
@@ -567,6 +568,7 @@ namespace dot10.DotNet.Writer {
 					if ((uint)i + 1 != tablesHeap.MethodPtrTable.Add(new RawMethodPtrRow(info.Rid)))
 						throw new ModuleWriterException("Invalid method ptr rid");
 				}
+				ReUseDeletedMethodRows();
 			}
 
 			if (paramDefInfos.NeedPtrTable) {
@@ -576,6 +578,7 @@ namespace dot10.DotNet.Writer {
 					if ((uint)i + 1 != tablesHeap.ParamPtrTable.Add(new RawParamPtrRow(info.Rid)))
 						throw new ModuleWriterException("Invalid param ptr rid");
 				}
+				ReUseDeletedParamRows();
 			}
 
 			if (eventDefInfos.NeedPtrTable) {
@@ -599,6 +602,154 @@ namespace dot10.DotNet.Writer {
 			InitializeEventMap();
 			InitializePropertyMap();
 		}
+
+		/// <summary>
+		/// Re-uses all <c>Field</c> rows which aren't owned by any type due to the fields
+		/// having been deleted by the user. The reason we must do this is that the
+		/// <c>FieldPtr</c> and <c>Field</c> tables must be the same size.
+		/// </summary>
+		void ReUseDeletedFieldRows() {
+			if (tablesHeap.FieldPtrTable.Rows == 0)
+				return;
+			if (fieldDefInfos.TableSize == tablesHeap.FieldPtrTable.Rows)
+				return;
+
+			var hasOwner = new bool[fieldDefInfos.TableSize];
+			for (int i = 0; i < fieldDefInfos.Count; i++)
+				hasOwner[(int)fieldDefInfos.Get(i).Rid - 1] = true;
+
+			CreateDummyPtrTableType();
+
+			uint fieldSig = GetSignature(new FieldSig(module.CorLibTypes.Byte));
+			for (int i = 0; i < hasOwner.Length; i++) {
+				if (hasOwner[i])
+					continue;
+				uint frid = (uint)i + 1;
+
+				var frow = tablesHeap.FieldTable[frid];
+				frow.Flags = (ushort)(FieldAttributes.Public | FieldAttributes.Static);
+				frow.Name = stringsHeap.Add(new UTF8String(string.Format("f{0:X6}", frid)));
+				frow.Signature = fieldSig;
+				tablesHeap.FieldPtrTable.Create(new RawFieldPtrRow(frid));
+			}
+
+			if (fieldDefInfos.TableSize != tablesHeap.FieldPtrTable.Rows)
+				throw new ModuleWriterException("Didn't create all dummy fields");
+		}
+
+		/// <summary>
+		/// Re-uses all <c>Method</c> rows which aren't owned by any type due to the methods
+		/// having been deleted by the user. The reason we must do this is that the
+		/// <c>MethodPtr</c> and <c>Method</c> tables must be the same size.
+		/// </summary>
+		void ReUseDeletedMethodRows() {
+			if (tablesHeap.MethodPtrTable.Rows == 0)
+				return;
+			if (methodDefInfos.TableSize == tablesHeap.MethodPtrTable.Rows)
+				return;
+
+			var hasOwner = new bool[methodDefInfos.TableSize];
+			for (int i = 0; i < methodDefInfos.Count; i++)
+				hasOwner[(int)methodDefInfos.Get(i).Rid - 1] = true;
+
+			CreateDummyPtrTableType();
+
+			uint methodSig = GetSignature(MethodSig.CreateInstance(module.CorLibTypes.Void));
+			for (int i = 0; i < hasOwner.Length; i++) {
+				if (hasOwner[i])
+					continue;
+				uint mrid = (uint)i + 1;
+
+				var mrow = tablesHeap.MethodTable[mrid];
+				mrow.RVA = 0;
+				mrow.ImplFlags = (ushort)(MethodImplAttributes.IL | MethodImplAttributes.Managed);
+				mrow.Flags = (ushort)(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract);
+				mrow.Name = stringsHeap.Add(new UTF8String(string.Format("m{0:X6}", mrid)));
+				mrow.Signature = methodSig;
+				mrow.ParamList = (uint)paramDefInfos.Count;
+				tablesHeap.MethodPtrTable.Create(new RawMethodPtrRow(mrid));
+			}
+
+			if (methodDefInfos.TableSize != tablesHeap.MethodPtrTable.Rows)
+				throw new ModuleWriterException("Didn't create all dummy methods");
+		}
+
+		/// <summary>
+		/// Re-uses all <c>Param</c> rows which aren't owned by any type due to the params
+		/// having been deleted by the user. The reason we must do this is that the
+		/// <c>ParamPtr</c> and <c>Param</c> tables must be the same size.
+		/// This method must be called after <see cref="ReUseDeletedMethodRows()"/> since
+		/// this method will create more methods at the end of the <c>Method</c> table.
+		/// </summary>
+		void ReUseDeletedParamRows() {
+			if (tablesHeap.ParamPtrTable.Rows == 0)
+				return;
+			if (paramDefInfos.TableSize == tablesHeap.ParamPtrTable.Rows)
+				return;
+
+			var hasOwner = new bool[paramDefInfos.TableSize];
+			for (int i = 0; i < paramDefInfos.Count; i++)
+				hasOwner[(int)paramDefInfos.Get(i).Rid - 1] = true;
+
+			CreateDummyPtrTableType();
+
+			// For each param, attach it to a new method. Another alternative would be to create
+			// one (or a few) methods with tons of parameters.
+			uint methodSig = GetSignature(MethodSig.CreateInstance(module.CorLibTypes.Void));
+			for (int i = 0; i < hasOwner.Length; i++) {
+				if (hasOwner[i])
+					continue;
+				uint prid = (uint)i + 1;
+
+				var prow = tablesHeap.ParamTable[prid];
+				prow.Flags = 0;
+				prow.Sequence = 0;	// Return type parameter
+				prow.Name = stringsHeap.Add(new UTF8String(string.Format("p{0:X6}", prid)));
+				uint ptrRid = tablesHeap.ParamPtrTable.Create(new RawParamPtrRow(prid));
+
+				var mrow = new RawMethodRow(0,
+					(ushort)(MethodImplAttributes.IL | MethodImplAttributes.Managed),
+					(ushort)(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
+					stringsHeap.Add(new UTF8String(string.Format("mp{0:X6}", prid))),
+					methodSig,
+					ptrRid);
+				uint mrid = tablesHeap.MethodTable.Create(mrow);
+				if (tablesHeap.MethodPtrTable.Rows > 0)
+					tablesHeap.MethodPtrTable.Create(new RawMethodPtrRow(mrid));
+			}
+
+			if (paramDefInfos.TableSize != tablesHeap.ParamPtrTable.Rows)
+				throw new ModuleWriterException("Didn't create all dummy params");
+		}
+
+		/// <summary>
+		/// Creates a dummy <c>TypeDef</c> at the end of the <c>TypeDef</c> table that will own
+		/// dummy methods and fields. These dummy methods and fields are only created if the size
+		/// of the ptr table is less than the size of the non-ptr table (eg. size MethodPtr table
+		/// is less than size Method table). The only reason the ptr table would be smaller than
+		/// the non-ptr table is when some field/method has been deleted and we must preserve
+		/// all method/field rids.
+		/// </summary>
+		uint CreateDummyPtrTableType() {
+			if (dummyPtrTableTypeRid != 0)
+				return dummyPtrTableTypeRid;
+
+			var flags = TypeAttributes.NotPublic | TypeAttributes.AutoLayout |
+				TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.AnsiClass;
+			int numFields = tablesHeap.FieldPtrTable.Rows > 0 ? tablesHeap.FieldPtrTable.Rows : tablesHeap.FieldTable.Rows;
+			int numMethods = tablesHeap.MethodPtrTable.Rows > 0 ? tablesHeap.MethodPtrTable.Rows : tablesHeap.MethodTable.Rows;
+			var row = new RawTypeDefRow((uint)flags,
+						stringsHeap.Add(new UTF8String(Guid.NewGuid().ToString("B"))),
+						stringsHeap.Add(new UTF8String("dummy_ptr")),
+						AddTypeDefOrRef(module.CorLibTypes.Object.TypeDefOrRef),
+						(uint)numFields + 1,
+						(uint)numMethods + 1);
+			dummyPtrTableTypeRid = tablesHeap.TypeDefTable.Create(row);
+			if (dummyPtrTableTypeRid == 1)
+				throw new ModuleWriterException("Dummy ptr type is the first type");
+			return dummyPtrTableTypeRid;
+		}
+		uint dummyPtrTableTypeRid;
 
 		void FindMemberDefs() {
 			int pos;
