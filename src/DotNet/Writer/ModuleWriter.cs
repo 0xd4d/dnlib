@@ -10,58 +10,10 @@ namespace dot10.DotNet.Writer {
 	/// <see cref="ModuleWriter"/> options
 	/// </summary>
 	public sealed class ModuleWriterOptions : ModuleWriterOptionsBase {
-		Cor20HeaderOptions cor20HeaderOptions;
-		PEHeadersOptions peHeadersOptions;
-
-		/// <summary>
-		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
-		/// </summary>
-		public Cor20HeaderOptions Cor20HeaderOptions {
-			get { return cor20HeaderOptions ?? (cor20HeaderOptions = new Cor20HeaderOptions()); }
-			set { cor20HeaderOptions = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
-		/// </summary>
-		public PEHeadersOptions PEHeadersOptions {
-			get { return peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions()); }
-			set { peHeadersOptions = value; }
-		}
-
-		/// <summary>
-		/// <c>true</c> if it's a 64-bit module, <c>false</c> if it's a 32-bit or AnyCPU module.
-		/// </summary>
-		public bool Is64Bit {
-			get {
-				if (!PEHeadersOptions.Machine.HasValue)
-					return false;
-				return PEHeadersOptions.Machine == Machine.IA64 ||
-					PEHeadersOptions.Machine == Machine.AMD64;
-			}
-		}
-
-		/// <summary>
-		/// Gets/sets the module kind
-		/// </summary>
-		public ModuleKind ModuleKind { get; set; }
-
-		/// <summary>
-		/// <c>true</c> if it should be written as an EXE file, <c>false</c> if it should be
-		/// written as a DLL file.
-		/// </summary>
-		public bool IsExeFile {
-			get {
-				return ModuleKind != ModuleKind.Dll &&
-					ModuleKind != ModuleKind.NetModule;
-			}
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public ModuleWriterOptions() {
-			ModuleKind = ModuleKind.Windows;
 		}
 
 		/// <summary>
@@ -79,30 +31,6 @@ namespace dot10.DotNet.Writer {
 		/// <param name="listener">Module writer listener</param>
 		public ModuleWriterOptions(ModuleDef module, IModuleWriterListener listener)
 			: base(module, listener) {
-			this.ModuleKind = module.Kind;
-			this.PEHeadersOptions.Machine = module.Machine;
-			this.PEHeadersOptions.Characteristics = module.Characteristics;
-			this.PEHeadersOptions.DllCharacteristics = module.DllCharacteristics;
-			if (module.Kind == ModuleKind.Windows)
-				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
-			else
-				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
-			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
-
-			var modDefMD = module as ModuleDefMD;
-			if (modDefMD != null) {
-				var peImage = modDefMD.MetaData.PEImage;
-				this.PEHeadersOptions.TimeDateStamp = peImage.ImageNTHeaders.FileHeader.TimeDateStamp;
-				this.PEHeadersOptions.MajorLinkerVersion = peImage.ImageNTHeaders.OptionalHeader.MajorLinkerVersion;
-				this.PEHeadersOptions.MinorLinkerVersion = peImage.ImageNTHeaders.OptionalHeader.MinorLinkerVersion;
-			}
-
-			if (Is64Bit) {
-				this.PEHeadersOptions.Characteristics &= ~Characteristics._32BitMachine;
-				this.PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
-			}
-			else
-				this.PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
 		}
 	}
 

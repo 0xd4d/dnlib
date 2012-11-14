@@ -10,6 +10,8 @@ namespace dot10.DotNet.Writer {
 	/// </summary>
 	public class ModuleWriterOptionsBase {
 		IModuleWriterListener listener;
+		PEHeadersOptions peHeadersOptions;
+		Cor20HeaderOptions cor20HeaderOptions;
 		MetaDataOptions metaDataOptions;
 		ILogger logger;
 		ILogger metaDataLogger;
@@ -43,6 +45,22 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
+		/// </summary>
+		public PEHeadersOptions PEHeadersOptions {
+			get { return peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions()); }
+			set { peHeadersOptions = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
+		/// </summary>
+		public Cor20HeaderOptions Cor20HeaderOptions {
+			get { return cor20HeaderOptions ?? (cor20HeaderOptions = new Cor20HeaderOptions()); }
+			set { cor20HeaderOptions = value; }
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="MetaData"/> options. This is never <c>null</c>.
 		/// </summary>
 		public MetaDataOptions MetaDataOptions {
@@ -73,10 +91,39 @@ namespace dot10.DotNet.Writer {
 		public bool AddCheckSum { get; set; }
 
 		/// <summary>
+		/// <c>true</c> if it's a 64-bit module, <c>false</c> if it's a 32-bit or AnyCPU module.
+		/// </summary>
+		public bool Is64Bit {
+			get {
+				if (!PEHeadersOptions.Machine.HasValue)
+					return false;
+				return PEHeadersOptions.Machine == Machine.IA64 ||
+					PEHeadersOptions.Machine == Machine.AMD64;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the module kind
+		/// </summary>
+		public ModuleKind ModuleKind { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if it should be written as an EXE file, <c>false</c> if it should be
+		/// written as a DLL file.
+		/// </summary>
+		public bool IsExeFile {
+			get {
+				return ModuleKind != ModuleKind.Dll &&
+					ModuleKind != ModuleKind.NetModule;
+			}
+		}
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		protected ModuleWriterOptionsBase() {
 			ShareMethodBodies = true;
+			ModuleKind = ModuleKind.Windows;
 		}
 
 		/// <summary>
@@ -96,13 +143,34 @@ namespace dot10.DotNet.Writer {
 			this.listener = listener;
 			this.ShareMethodBodies = true;
 			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
+			this.ModuleKind = module.Kind;
+			this.PEHeadersOptions.Machine = module.Machine;
+			this.PEHeadersOptions.Characteristics = module.Characteristics;
+			this.PEHeadersOptions.DllCharacteristics = module.DllCharacteristics;
+			if (module.Kind == ModuleKind.Windows)
+				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
+			else
+				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
+			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 
 			// Some tools crash if #GUID is missing so always create it by default
 			this.MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
 
 			var modDefMD = module as ModuleDefMD;
-			if (modDefMD != null)
+			if (modDefMD != null) {
+				var peImage = modDefMD.MetaData.PEImage;
+				this.PEHeadersOptions.TimeDateStamp = peImage.ImageNTHeaders.FileHeader.TimeDateStamp;
+				this.PEHeadersOptions.MajorLinkerVersion = peImage.ImageNTHeaders.OptionalHeader.MajorLinkerVersion;
+				this.PEHeadersOptions.MinorLinkerVersion = peImage.ImageNTHeaders.OptionalHeader.MinorLinkerVersion;
 				this.AddCheckSum = modDefMD.MetaData.PEImage.ImageNTHeaders.OptionalHeader.CheckSum != 0;
+			}
+
+			if (Is64Bit) {
+				this.PEHeadersOptions.Characteristics &= ~Characteristics._32BitMachine;
+				this.PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
+			}
+			else
+				this.PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
 		}
 	}
 
