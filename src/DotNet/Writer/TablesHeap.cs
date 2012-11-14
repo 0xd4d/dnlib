@@ -261,6 +261,12 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		public void SetReadOnly() {
+			foreach (var mdt in Tables)
+				mdt.SetReadOnly();
+		}
+
+		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
@@ -279,8 +285,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		void CalculateLength() {
-			foreach (var mdt in Tables)
-				mdt.SetReadOnly();
+			SetReadOnly();
 
 			majorVersion = options.MajorVersion ?? 2;
 			minorVersion = options.MinorVersion ?? 0;

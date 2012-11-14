@@ -12,5 +12,10 @@
 		/// Checks whether the heap is empty
 		/// </summary>
 		bool IsEmpty { get; }
+
+		/// <summary>
+		/// Called when the heap should be set to read-only mode
+		/// </summary>
+		void SetReadOnly();
 	}
 }

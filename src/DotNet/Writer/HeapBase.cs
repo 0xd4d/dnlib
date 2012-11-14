@@ -41,9 +41,7 @@ namespace dot10.DotNet.Writer {
 			get { return GetFileLength() > 0xFFFF; }
 		}
 
-		/// <summary>
-		/// Called when the heap should be set to read-only mode
-		/// </summary>
+		/// <inheritdoc/>
 		public void SetReadOnly() {
 			isReadOnly = true;
 		}

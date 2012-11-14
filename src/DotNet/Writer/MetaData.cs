@@ -2495,6 +2495,7 @@ namespace dot10.DotNet.Writer {
 			stringsHeap.SetReadOnly();
 			blobHeap.SetReadOnly();
 			guidHeap.SetReadOnly();
+			tablesHeap.SetReadOnly();
 			tablesHeap.BigStrings = stringsHeap.IsBig;
 			tablesHeap.BigBlob = blobHeap.IsBig;
 			tablesHeap.BigGuid = guidHeap.IsBig;
