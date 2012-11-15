@@ -72,9 +72,7 @@ namespace dot10.DotNet.Writer {
 		/// Preserves all method rids, i.e., <c>Method</c>, <c>MemberRef</c> and
 		/// <c>MethodSpec</c> rids.
 		/// </summary>
-		PreserveAllMethodRids = MetaDataFlags.PreserveMethodRids |
-						MetaDataFlags.PreserveMemberRefRids |
-						MetaDataFlags.PreserveMethodSpecRids,
+		PreserveAllMethodRids = PreserveMethodRids | PreserveMemberRefRids | PreserveMethodSpecRids,
 
 		/// <summary>
 		/// Preserves all rids in the following tables: <c>TypeRef</c>, <c>TypeDef</c>,
