@@ -565,6 +565,47 @@ namespace dot10.DotNet {
 			ManifestModule.Write(dest, options);
 		}
 
+		/// <summary>
+		/// Checks whether this assembly is a friend assembly of <paramref name="targetAsm"/>
+		/// </summary>
+		/// <param name="targetAsm">Target assembly</param>
+		public bool IsFriendAssemblyOf(AssemblyDef targetAsm) {
+			if (targetAsm == null)
+				return false;
+			if (this == targetAsm)
+				return true;
+
+			// Both must be unsigned or both must be signed according to the
+			// InternalsVisibleToAttribute documentation.
+			if (PublicKeyBase.IsNullOrEmpty2(PublicKey) != PublicKeyBase.IsNullOrEmpty2(targetAsm.PublicKey))
+				return false;
+
+			foreach (var ca in targetAsm.CustomAttributes.FindAll("System.Runtime.CompilerServices.InternalsVisibleToAttribute")) {
+				if (ca.Arguments.Count != 1)
+					continue;
+				var arg = ca.Arguments[0];
+				if (arg.Type.GetElementType() != ElementType.String)
+					continue;
+				var asmName = arg.Value as UTF8String;
+				if (UTF8String.IsNull(asmName))
+					continue;
+
+				var asmInfo = new AssemblyNameInfo(asmName.String);
+				if (asmInfo.Name != Name)
+					continue;
+				if (!PublicKeyBase.IsNullOrEmpty2(PublicKey)) {
+					if (!PublicKey.Equals(asmInfo.PublicKeyOrToken as PublicKey))
+						continue;
+				}
+				else if (!PublicKeyBase.IsNullOrEmpty2(asmInfo.PublicKeyOrToken))
+					continue;
+
+				return true;
+			}
+
+			return false;
+		}
+
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnLazyAdd(int index, ref ModuleDef module) {
 			if (module == null)
