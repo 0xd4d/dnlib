@@ -17,5 +17,18 @@
 		public PublicKeyToken(string hexString)
 			: base(hexString) {
 		}
+
+		/// <inheritdoc/>
+		public override bool Equals(object obj) {
+			var other = obj as PublicKeyToken;
+			if (other == null)
+				return false;
+			return Utils.Equals(data, other.data);
+		}
+
+		/// <inheritdoc/>
+		public override int GetHashCode() {
+			return Utils.GetHashCode(data);
+		}
 	}
 }
