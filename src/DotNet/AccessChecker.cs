@@ -22,20 +22,21 @@ namespace dot10.DotNet {
 
 			/// <summary>
 			/// Normal access to the type and its members. I.e., type must be public or
-			/// internal to access the type. Type + member must be public or internal to
-			/// access the member.
+			/// internal to access the type. Type + member must be public, internal or
+			/// protected (for sub classes) to access the member.
 			/// </summary>
 			Normal = 1,
 
 			/// <summary>
 			/// Full access to the type, even if the type is private. If clear, the type
-			/// must be public or internal.
+			/// must be public, internal or protected (for sub classes).
 			/// </summary>
 			FullTypeAccess = 2,
 
 			/// <summary>
 			/// Full access to the type's members (types, fields, methods), even if the
-			/// members are private. If clear, the members must be public or internal.
+			/// members are private. If clear, the members must be public, internal
+			/// or protected (for sub classes)
 			/// </summary>
 			FullMemberAccess = 4,
 
@@ -46,7 +47,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the user type
+		/// Gets/sets the user type which is accessing the target type, field or method
 		/// </summary>
 		public TypeDef UserType {
 			get { return userType; }
@@ -76,7 +77,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a method or a field
+		/// Checks whether it can access a method or a field
 		/// </summary>
 		/// <param name="op">Operand</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
@@ -114,7 +115,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a <see cref="TypeRef"/>
+		/// Checks whether it can access a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="tr">The type</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
@@ -126,7 +127,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a <see cref="TypeDef"/>
+		/// Checks whether it can access a <see cref="TypeDef"/>
 		/// </summary>
 		/// <param name="td">The type</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
@@ -138,6 +139,13 @@ namespace dot10.DotNet {
 			return (access.Value & CheckTypeAccess.Normal) != 0;
 		}
 
+		/// <summary>
+		/// Returns the access we have to <paramref name="td"/>. If <paramref name="td"/> is
+		/// enclosing this type, we have private access to it and all its members. If its
+		/// declaring type encloses us, we have private access to it, but only normal access
+		/// to its members. Else, we only have normal access to it and its members.
+		/// </summary>
+		/// <param name="td">The type</param>
 		CheckTypeAccess? GetTypeAccess(TypeDef td) {
 			if (td == null)
 				return null;
@@ -177,8 +185,7 @@ namespace dot10.DotNet {
 
 			// Normal visibility checks starting from type after common enclosing type
 			for (int i = commonIndex; i < tdEncTypes.Count; i++) {
-				var type = tdEncTypes[i];
-				if (!IsVisible(type))
+				if (!IsVisible(tdEncTypes[i]))
 					return CheckTypeAccess.None;
 			}
 			return CheckTypeAccess.Normal;
@@ -318,7 +325,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a <see cref="FieldDef"/>
+		/// Checks whether it can access a <see cref="FieldDef"/>
 		/// </summary>
 		/// <param name="fd">The field</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
@@ -379,7 +386,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a <see cref="MethodDef"/>
+		/// Checks whether it can access a <see cref="MethodDef"/>
 		/// </summary>
 		/// <param name="md">The method</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
@@ -440,17 +447,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a <see cref="MemberRef"/>
+		/// Checks whether it can access a <see cref="MemberRef"/>
 		/// </summary>
 		/// <param name="mr">The member reference</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
 		/// if we can't determine it (eg. we couldn't resolve a type or input was <c>null</c>)</returns>
 		public bool? CanAccess(MemberRef mr) {
 			if (mr == null)
-				return null;
-
-			var ownerModule = mr.OwnerModule;
-			if (ownerModule == null)
 				return null;
 
 			var parent = mr.Class;
@@ -521,7 +524,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a <see cref="TypeSpec"/>
+		/// Checks whether it can access a <see cref="TypeSpec"/>
 		/// </summary>
 		/// <param name="ts">The type spec</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
@@ -531,7 +534,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether it has access to a <see cref="MethodSpec"/>
+		/// Checks whether it can access a <see cref="MethodSpec"/>
 		/// </summary>
 		/// <param name="ms">The method spec</param>
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
