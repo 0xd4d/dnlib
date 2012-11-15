@@ -257,6 +257,104 @@ namespace dot10.DotNet {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as SZArraySig;
 		}
+
+		/// <summary>
+		/// Returns the base type of <paramref name="tdr"/>. Throws if we can't resolve
+		/// a <see cref="TypeRef"/>.
+		/// </summary>
+		/// <param name="tdr">The type</param>
+		/// <returns>The base type or <c>null</c> if there's no base type</returns>
+		public static ITypeDefOrRef GetBaseTypeThrow(this ITypeDefOrRef tdr) {
+			return tdr.GetBaseType(true);
+		}
+
+		/// <summary>
+		/// Returns the base type of <paramref name="tdr"/>
+		/// </summary>
+		/// <param name="tdr">The type</param>
+		/// <returns>The base type or <c>null</c> if there's no base type, or if
+		/// we couldn't resolve a <see cref="TypeRef"/></returns>
+		public static ITypeDefOrRef GetBaseType(this ITypeDefOrRef tdr) {
+			return tdr.GetBaseType(false);
+		}
+
+		/// <summary>
+		/// Returns the base type of <paramref name="tdr"/>
+		/// </summary>
+		/// <param name="tdr">The type</param>
+		/// <param name="throwOnResolveFailure"><c>true</c> if we should throw if we can't
+		/// resolve a <see cref="TypeRef"/>. <c>false</c> if we should ignore the error and
+		/// just return <c>null</c>.</param>
+		/// <returns>The base type or <c>null</c> if there's no base type, or if
+		/// <paramref name="throwOnResolveFailure"/> is <c>true</c> and we couldn't resolve
+		/// a <see cref="TypeRef"/></returns>
+		public static ITypeDefOrRef GetBaseType(this ITypeDefOrRef tdr, bool throwOnResolveFailure) {
+			var td = tdr as TypeDef;
+			if (td != null)
+				return td.BaseType;
+
+			var tr = tdr as TypeRef;
+			if (tr != null) {
+				td = throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve();
+				return td == null ? null : td.BaseType;
+			}
+
+			var ts = tdr as TypeSpec;
+			if (ts == null)
+				return null;
+
+			var git = ts.TypeSig.ToGenericInstSig();
+			if (git != null) {
+				var genType = git.GenericType;
+				tdr = genType == null ? null : genType.TypeDefOrRef;
+			}
+			else {
+				var sig = ts.TypeSig.ToTypeDefOrRefSig();
+				tdr = sig == null ? null : sig.TypeDefOrRef;
+			}
+
+			td = tdr as TypeDef;
+			if (td != null)
+				return td.BaseType;
+
+			tr = tdr as TypeRef;
+			if (tr != null) {
+				td = throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve();
+				return td == null ? null : td.BaseType;
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Gets the scope type, resolves it, and returns the <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="tdr">Type</param>
+		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if input was <c>null</c> or if we
+		/// couldn't resolve the reference.</returns>
+		public static TypeDef ResolveTypeDef(this ITypeDefOrRef tdr) {
+			var td = tdr as TypeDef;
+			if (td != null)
+				return td;
+
+			var tr = tdr as TypeRef;
+			if (tr != null)
+				return tr.Resolve();
+
+			if (tdr == null)
+				return null;
+			tdr = tdr.ScopeType;
+
+			td = tdr as TypeDef;
+			if (td != null)
+				return td;
+
+			tr = tdr as TypeRef;
+			if (tr != null)
+				return tr.Resolve();
+
+			return null;
+		}
 	}
 
 	/// <summary>
