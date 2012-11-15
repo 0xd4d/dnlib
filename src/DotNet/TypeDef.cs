@@ -902,7 +902,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Finds a event by name
+		/// Finds an event by name
 		/// </summary>
 		/// <param name="name">Name of event</param>
 		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
@@ -911,7 +911,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Finds a event by name
+		/// Finds an event by name
 		/// </summary>
 		/// <param name="name">Name of event</param>
 		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
@@ -1022,8 +1022,8 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of prop</param>
 		/// <returns>All props with that name</returns>
-		public IEnumerable<PropertyDef> FindPropertys(string name) {
-			return FindPropertys(new UTF8String(name));
+		public IEnumerable<PropertyDef> FindProperties(string name) {
+			return FindProperties(new UTF8String(name));
 		}
 
 		/// <summary>
@@ -1031,11 +1031,179 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of prop</param>
 		/// <returns>All props with that name</returns>
-		public IEnumerable<PropertyDef> FindPropertys(UTF8String name) {
+		public IEnumerable<PropertyDef> FindProperties(UTF8String name) {
 			foreach (var prop in Properties) {
 				if (UTF8String.Equals(prop.Name, name))
 					yield return prop;
 			}
+		}
+
+		/// <summary>
+		/// Finds a method by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <param name="sig">Method signature</param>
+		/// <returns>The method or <c>null</c> if it wasn't found</returns>
+		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig) {
+			var td = this;
+			while (td != null) {
+				var md = td.FindMethod(name, sig);
+				if (md != null)
+					return md;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a method by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <returns>The method or <c>null</c> if it wasn't found</returns>
+		public MethodDef FindMethodCheckBaseType(UTF8String name) {
+			var td = this;
+			while (td != null) {
+				var md = td.FindMethod(name);
+				if (md != null)
+					return md;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a method by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <returns>The method or <c>null</c> if it wasn't found</returns>
+		public MethodDef FindMethodCheckBaseType(string name) {
+			return FindMethodCheckBaseType(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds a field by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <param name="sig">Field signature</param>
+		/// <returns>The field or <c>null</c> if it wasn't found</returns>
+		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig) {
+			var td = this;
+			while (td != null) {
+				var fd = td.FindField(name, sig);
+				if (fd != null)
+					return fd;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a field by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <returns>The field or <c>null</c> if it wasn't found</returns>
+		public FieldDef FindFieldCheckBaseType(UTF8String name) {
+			var td = this;
+			while (td != null) {
+				var fd = td.FindField(name);
+				if (fd != null)
+					return fd;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a field by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <returns>The field or <c>null</c> if it wasn't found</returns>
+		public FieldDef FindFieldCheckBaseType(string name) {
+			return FindFieldCheckBaseType(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds an event by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Event name</param>
+		/// <param name="eventType">Event type</param>
+		/// <returns>The event or <c>null</c> if it wasn't found</returns>
+		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType) {
+			var td = this;
+			while (td != null) {
+				var ed = td.FindEvent(name, eventType);
+				if (ed != null)
+					return ed;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds an event by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Event name</param>
+		/// <returns>The event or <c>null</c> if it wasn't found</returns>
+		public EventDef FindEventCheckBaseType(UTF8String name) {
+			var td = this;
+			while (td != null) {
+				var ed = td.FindEvent(name);
+				if (ed != null)
+					return ed;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds an event by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Event name</param>
+		/// <returns>The event or <c>null</c> if it wasn't found</returns>
+		public EventDef FindEventCheckBaseType(string name) {
+			return FindEventCheckBaseType(new UTF8String(name));
+		}
+
+		/// <summary>
+		/// Finds a property by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Property name</param>
+		/// <param name="sig">Property signature</param>
+		/// <returns>The property or <c>null</c> if it wasn't found</returns>
+		public PropertyDef FindPropertyCheckBaseType(UTF8String name, FieldSig sig) {
+			var td = this;
+			while (td != null) {
+				var pd = td.FindProperty(name, sig);
+				if (pd != null)
+					return pd;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a property by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Property name</param>
+		/// <returns>The property or <c>null</c> if it wasn't found</returns>
+		public PropertyDef FindPropertyCheckBaseType(UTF8String name) {
+			var td = this;
+			while (td != null) {
+				var pd = td.FindProperty(name);
+				if (pd != null)
+					return pd;
+				td = td.BaseType.ResolveTypeDef();
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Finds a property by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Property name</param>
+		/// <returns>The property or <c>null</c> if it wasn't found</returns>
+		public PropertyDef FindPropertyCheckBaseType(string name) {
+			return FindPropertyCheckBaseType(new UTF8String(name));
 		}
 
 		/// <inheritdoc/>
