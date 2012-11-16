@@ -64,7 +64,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
-			get { return GenericParams.Count; }
+			get { return GenericParameters.Count; }
 		}
 
 		/// <inheritdoc/>
@@ -158,7 +158,7 @@ namespace dot10.DotNet {
 		public abstract IList<MethodDef> Methods { get; }
 
 		/// <inheritdoc/>
-		public abstract IList<GenericParam> GenericParams { get; }
+		public abstract IList<GenericParam> GenericParameters { get; }
 
 		/// <summary>
 		/// Gets the interfaces
@@ -235,10 +235,10 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// <c>true</c> if there's at least one <see cref="GenericParam"/> in <see cref="GenericParams"/>
+		/// <c>true</c> if there's at least one <see cref="GenericParam"/> in <see cref="GenericParameters"/>
 		/// </summary>
 		public bool HasGenericParameters {
-			get { return GenericParams.Count > 0; }
+			get { return GenericParameters.Count > 0; }
 		}
 
 		/// <summary>
@@ -1386,7 +1386,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnClear() {
-			foreach (var gp in GenericParams)
+			foreach (var gp in GenericParameters)
 				gp.Owner = null;
 		}
 
@@ -1505,7 +1505,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParam> GenericParams {
+		public override IList<GenericParam> GenericParameters {
 			get { return genericParams; }
 		}
 
@@ -1712,7 +1712,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParam> GenericParams {
+		public override IList<GenericParam> GenericParameters {
 			get {
 				if (genericParams == null) {
 					var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, rid);

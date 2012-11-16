@@ -658,7 +658,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the generic parameters
 		/// </summary>
-		IList<GenericParam> GenericParams { get; }
+		IList<GenericParam> GenericParameters { get; }
 	}
 
 	static partial class Extensions {

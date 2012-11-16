@@ -1095,7 +1095,7 @@ namespace dot10.DotNet.Writer {
 				typeRow.Name = stringsHeap.Add(type.Name);
 				typeRow.Namespace = stringsHeap.Add(type.Namespace);
 				typeRow.Extends = type.BaseType == null ? 0 : AddTypeDefOrRef(type.BaseType);
-				AddGenericParams(new MDToken(Table.TypeDef, typeRid), type.GenericParams);
+				AddGenericParams(new MDToken(Table.TypeDef, typeRid), type.GenericParameters);
 				AddDeclSecurities(new MDToken(Table.TypeDef, typeRid), type.DeclSecurities);
 				AddInterfaceImpls(typeRid, type.InterfaceImpls);
 				AddClassLayout(type);
@@ -1129,7 +1129,7 @@ namespace dot10.DotNet.Writer {
 					row.Flags = (ushort)method.Flags;
 					row.Name = stringsHeap.Add(method.Name);
 					row.Signature = GetSignature(method.Signature);
-					AddGenericParams(new MDToken(Table.Method, rid), method.GenericParams);
+					AddGenericParams(new MDToken(Table.Method, rid), method.GenericParameters);
 					AddDeclSecurities(new MDToken(Table.Method, rid), method.DeclSecurities);
 					AddImplMap(new MDToken(Table.Method, rid), method);
 					AddMethodImpls(method, method.Overrides);
@@ -1323,11 +1323,11 @@ namespace dot10.DotNet.Writer {
 			foreach (var type in allTypeDefs) {
 				if (type == null)
 					continue;
-				AddGenericParamConstraints(type.GenericParams);
+				AddGenericParamConstraints(type.GenericParameters);
 				foreach (var method in type.Methods) {
 					if (method == null)
 						continue;
-					AddGenericParamConstraints(method.GenericParams);
+					AddGenericParamConstraints(method.GenericParameters);
 				}
 			}
 			genericParamConstraintInfos.Sort((a, b) => a.row.Owner.CompareTo(b.row.Owner));
