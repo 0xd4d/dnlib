@@ -332,7 +332,7 @@ namespace dot10.DotNet.Writer {
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
 			if (Options.AddCheckSum) {
 				destStream.Position = destStreamBaseOffset;
-				var newCheckSum = new BinaryReader(destStream).CalculatePECheckSum(imageLength, checkSumOffset);
+				uint newCheckSum = new BinaryReader(destStream).CalculatePECheckSum(imageLength, checkSumOffset);
 				writer.BaseStream.Position = checkSumOffset;
 				writer.Write(newCheckSum);
 			}
