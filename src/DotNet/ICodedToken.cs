@@ -29,7 +29,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Assembly flags
 		/// </summary>
-		AssemblyFlags Flags { get; set; }
+		AssemblyAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// Public key or public key token
@@ -44,7 +44,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Locale, aka culture
 		/// </summary>
-		UTF8String Locale { get; set; }
+		UTF8String Culture { get; set; }
 	}
 
 	static partial class Extensions {
@@ -56,7 +56,7 @@ namespace dot10.DotNet {
 		public static bool IsCorLib(this IAssembly asm) {
 			string asmName;
 			return asm != null &&
-				UTF8String.IsNullOrEmpty(asm.Locale) &&
+				UTF8String.IsNullOrEmpty(asm.Culture) &&
 				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name)).Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase));
 		}
@@ -70,7 +70,7 @@ namespace dot10.DotNet {
 			if (asm == null)
 				return null;
 			// Always create a new one, even if it happens to be an AssemblyRef
-			return new AssemblyRefUser(asm.Name, asm.Version, asm.PublicKeyOrToken, asm.Locale);
+			return new AssemblyRefUser(asm.Name, asm.Version, asm.PublicKeyOrToken, asm.Culture);
 		}
 
 		/// <summary>

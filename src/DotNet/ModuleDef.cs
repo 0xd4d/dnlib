@@ -984,7 +984,7 @@ namespace dot10.DotNet {
 
 		TypeDef CreateModuleType() {
 			var type = UpdateRowId(new TypeDefUser(null, "<Module>", null));
-			type.Flags = TypeAttributes.NotPublic | TypeAttributes.AutoLayout | TypeAttributes.Class | TypeAttributes.AnsiClass;
+			type.Attributes = TypeAttributes.NotPublic | TypeAttributes.AutoLayout | TypeAttributes.Class | TypeAttributes.AnsiClass;
 			return type;
 		}
 	}

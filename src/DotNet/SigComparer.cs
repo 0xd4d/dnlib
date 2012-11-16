@@ -1887,7 +1887,7 @@ namespace dot10.DotNet {
 			bool result = UTF8String.CaseInsensitiveEquals(a.Name, b.Name) &&
 				(!CompareAssemblyPublicKeyToken || PublicKeyBase.TokenEquals(a.PublicKeyOrToken, b.PublicKeyOrToken)) &&
 				(!CompareAssemblyVersion || Utils.Equals(a.Version, b.Version)) &&
-				(!CompareAssemblyLocale || Utils.LocaleEquals(a.Locale, b.Locale));
+				(!CompareAssemblyLocale || Utils.LocaleEquals(a.Culture, b.Culture));
 
 			recursionCounter.Decrement();
 			return result;
@@ -3040,7 +3040,7 @@ namespace dot10.DotNet {
 				return false;
 
 			bool result = Equals_EventNames(a.Name, b.Name) &&
-					Equals((IType)a.Type, (IType)b.Type) &&
+					Equals((IType)a.EventType, (IType)b.EventType) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
@@ -3062,7 +3062,7 @@ namespace dot10.DotNet {
 				return 0;
 
 			int hash = GetHashCode_EventName(a.Name) +
-					GetHashCode((IType)a.Type);
+					GetHashCode((IType)a.EventType);
 			if (CompareEventDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
 
@@ -3800,7 +3800,7 @@ namespace dot10.DotNet {
 			bool result = UTF8String.ToSystemStringOrEmpty(a.Name).Equals(bAsmName.Name, StringComparison.OrdinalIgnoreCase) &&
 				(!CompareAssemblyPublicKeyToken || PublicKeyBase.TokenEquals(a.PublicKeyOrToken, new PublicKeyToken(bAsmName.GetPublicKeyToken()))) &&
 				(!CompareAssemblyVersion || Utils.Equals(a.Version, bAsmName.Version)) &&
-				(!CompareAssemblyLocale || Utils.LocaleEquals(a.Locale, bAsmName.CultureInfo.Name));
+				(!CompareAssemblyLocale || Utils.LocaleEquals(a.Culture, bAsmName.CultureInfo.Name));
 
 			recursionCounter.Decrement();
 			return result;
@@ -4656,7 +4656,7 @@ namespace dot10.DotNet {
 				return false;
 
 			bool result = Equals_EventNames(a.Name, b.Name) &&
-					Equals(a.Type, b.EventHandlerType, b.DeclaringType.MustTreatTypeAsGenericInstType(b.EventHandlerType)) &&
+					Equals(a.EventType, b.EventHandlerType, b.DeclaringType.MustTreatTypeAsGenericInstType(b.EventHandlerType)) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();

@@ -37,7 +37,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column Event.EventFlags
 		/// </summary>
-		public abstract EventAttributes Flags { get; set; }
+		public abstract EventAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column Event.Name
@@ -47,7 +47,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column Event.EventType
 		/// </summary>
-		public abstract ITypeDefOrRef Type { get; set; }
+		public abstract ITypeDefOrRef EventType { get; set; }
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -73,6 +73,13 @@ namespace dot10.DotNet {
 		/// Gets the other methods
 		/// </summary>
 		public abstract IList<MethodDef> OtherMethods { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="OtherMethods"/> is not empty
+		/// </summary>
+		public bool HasOtherMethods {
+			get { return OtherMethods.Count > 0; }
+		}
 
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
@@ -109,7 +116,7 @@ namespace dot10.DotNet {
 		public string FullName {
 			get {
 				var dt = DeclaringType;
-				return FullNameCreator.EventFullName(dt == null ? null : dt.FullName, Name, Type);
+				return FullNameCreator.EventFullName(dt == null ? null : dt.FullName, Name, EventType);
 			}
 		}
 
@@ -117,25 +124,25 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="EventAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return (Flags & EventAttributes.SpecialName) != 0; }
+			get { return (Attributes & EventAttributes.SpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= EventAttributes.SpecialName;
+					Attributes |= EventAttributes.SpecialName;
 				else
-					Flags &= ~EventAttributes.SpecialName;
+					Attributes &= ~EventAttributes.SpecialName;
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="EventAttributes.RTSpecialName"/> bit
 		/// </summary>
-		public bool IsRTSpecialName {
-			get { return (Flags & EventAttributes.RTSpecialName) != 0; }
+		public bool IsRuntimeSpecialName {
+			get { return (Attributes & EventAttributes.RTSpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= EventAttributes.RTSpecialName;
+					Attributes |= EventAttributes.RTSpecialName;
 				else
-					Flags &= ~EventAttributes.RTSpecialName;
+					Attributes &= ~EventAttributes.RTSpecialName;
 			}
 		}
 
@@ -160,7 +167,7 @@ namespace dot10.DotNet {
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
-		public override EventAttributes Flags {
+		public override EventAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -172,7 +179,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ITypeDefOrRef Type {
+		public override ITypeDefOrRef EventType {
 			get { return type; }
 			set { type = value; }
 		}
@@ -294,7 +301,7 @@ namespace dot10.DotNet {
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
-		public override EventAttributes Flags {
+		public override EventAttributes Attributes {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -306,7 +313,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ITypeDefOrRef Type {
+		public override ITypeDefOrRef EventType {
 			get { return type.Value; }
 			set { type.Value = value; }
 		}

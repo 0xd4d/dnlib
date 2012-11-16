@@ -10,7 +10,7 @@ namespace dot10.DotNet {
 	public sealed class AssemblyNameInfo {
 		AssemblyHashAlgorithm hashAlgId;
 		Version version;
-		AssemblyFlags flags;
+		AssemblyAttributes flags;
 		PublicKeyBase publicKeyOrToken;
 		UTF8String name;
 		UTF8String locale;
@@ -32,9 +32,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyFlags"/>
+		/// Gets/sets the <see cref="AssemblyAttributes"/>
 		/// </summary>
-		public AssemblyFlags Flags {
+		public AssemblyAttributes Flags {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -104,12 +104,12 @@ namespace dot10.DotNet {
 			if (asm == null)
 				return;
 			var asmDef = asm as AssemblyDef;
-			this.hashAlgId = asmDef == null ? 0 : asmDef.HashAlgId;
+			this.hashAlgId = asmDef == null ? 0 : asmDef.HashAlgorithm;
 			this.version = asm.Version ?? new Version(0, 0, 0, 0);
-			this.flags = asm.Flags;
+			this.flags = asm.Attributes;
 			this.publicKeyOrToken = asm.PublicKeyOrToken;
 			this.name = UTF8String.IsNullOrEmpty(asm.Name) ? UTF8String.Empty : asm.Name;
-			this.locale = UTF8String.IsNullOrEmpty(asm.Locale) ? UTF8String.Empty : asm.Locale;
+			this.locale = UTF8String.IsNullOrEmpty(asm.Culture) ? UTF8String.Empty : asm.Culture;
 		}
 
 		/// <summary>
@@ -121,7 +121,7 @@ namespace dot10.DotNet {
 				return;
 			this.hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
-			this.flags = (AssemblyFlags)asmName.Flags;
+			this.flags = (AssemblyAttributes)asmName.Flags;
 			this.publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			this.name = new UTF8String(asmName.Name ?? string.Empty);

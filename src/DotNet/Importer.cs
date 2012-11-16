@@ -200,7 +200,7 @@ namespace dot10.DotNet {
 			return Utils.Equals(a.Version, b.Version) &&
 				PublicKeyBase.TokenEquals(a.PublicKeyOrToken, b.PublicKeyOrToken) &&
 				UTF8String.Equals(a.Name, b.Name) &&
-				UTF8String.CaseInsensitiveEquals(a.Locale, b.Locale);
+				UTF8String.CaseInsensitiveEquals(a.Culture, b.Culture);
 		}
 
 		ITypeDefOrRef CreateTypeRef(Type type) {
@@ -544,7 +544,7 @@ namespace dot10.DotNet {
 			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
-			return ownerModule.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Locale));
+			return ownerModule.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture));
 		}
 
 		/// <summary>

@@ -688,9 +688,9 @@ namespace dot10.DotNet {
 
 				case "CULTURE":
 					if (value.Equals("neutral", StringComparison.OrdinalIgnoreCase))
-						asmRef.Locale = UTF8String.Empty;
+						asmRef.Culture = UTF8String.Empty;
 					else
-						asmRef.Locale = new UTF8String(value);
+						asmRef.Culture = new UTF8String(value);
 					break;
 				}
 			}

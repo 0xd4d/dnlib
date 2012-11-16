@@ -48,7 +48,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column Param.Flags
 		/// </summary>
-		public abstract ParamAttributes Flags { get; set; }
+		public abstract ParamAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column Param.Sequence
@@ -71,6 +71,27 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
+		/// <summary>
+		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
+		/// </summary>
+		public bool HasConstant {
+			get { return Constant != null; }
+		}
+
+		/// <summary>
+		/// Gets the constant element type or <see cref="dot10.DotNet.ElementType.End"/> if there's no constant
+		/// </summary>
+		public ElementType ElementType {
+			get { return Constant == null ? ElementType.End : Constant.Type; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="FieldMarshal"/> is not <c>null</c>
+		/// </summary>
+		public bool HasMarshalInfo {
+			get { return FieldMarshal != null; }
+		}
+
 		/// <inheritdoc/>
 		public string FullName {
 			get {
@@ -85,12 +106,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="ParamAttributes.In"/> bit
 		/// </summary>
 		public bool IsIn {
-			get { return (Flags & ParamAttributes.In) != 0; }
+			get { return (Attributes & ParamAttributes.In) != 0; }
 			set {
 				if (value)
-					Flags |= ParamAttributes.In;
+					Attributes |= ParamAttributes.In;
 				else
-					Flags &= ~ParamAttributes.In;
+					Attributes &= ~ParamAttributes.In;
 			}
 		}
 
@@ -98,12 +119,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="ParamAttributes.Out"/> bit
 		/// </summary>
 		public bool IsOut {
-			get { return (Flags & ParamAttributes.Out) != 0; }
+			get { return (Attributes & ParamAttributes.Out) != 0; }
 			set {
 				if (value)
-					Flags |= ParamAttributes.Out;
+					Attributes |= ParamAttributes.Out;
 				else
-					Flags &= ~ParamAttributes.Out;
+					Attributes &= ~ParamAttributes.Out;
 			}
 		}
 
@@ -111,12 +132,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="ParamAttributes.Optional"/> bit
 		/// </summary>
 		public bool IsOptional {
-			get { return (Flags & ParamAttributes.Optional) != 0; }
+			get { return (Attributes & ParamAttributes.Optional) != 0; }
 			set {
 				if (value)
-					Flags |= ParamAttributes.Optional;
+					Attributes |= ParamAttributes.Optional;
 				else
-					Flags &= ~ParamAttributes.Optional;
+					Attributes &= ~ParamAttributes.Optional;
 			}
 		}
 
@@ -124,12 +145,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="ParamAttributes.HasDefault"/> bit
 		/// </summary>
 		public bool HasDefault {
-			get { return (Flags & ParamAttributes.HasDefault) != 0; }
+			get { return (Attributes & ParamAttributes.HasDefault) != 0; }
 			set {
 				if (value)
-					Flags |= ParamAttributes.HasDefault;
+					Attributes |= ParamAttributes.HasDefault;
 				else
-					Flags &= ~ParamAttributes.HasDefault;
+					Attributes &= ~ParamAttributes.HasDefault;
 			}
 		}
 
@@ -137,12 +158,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="ParamAttributes.HasFieldMarshal"/> bit
 		/// </summary>
 		public bool HasFieldMarshal {
-			get { return (Flags & ParamAttributes.HasFieldMarshal) != 0; }
+			get { return (Attributes & ParamAttributes.HasFieldMarshal) != 0; }
 			set {
 				if (value)
-					Flags |= ParamAttributes.HasFieldMarshal;
+					Attributes |= ParamAttributes.HasFieldMarshal;
 				else
-					Flags &= ~ParamAttributes.HasFieldMarshal;
+					Attributes &= ~ParamAttributes.HasFieldMarshal;
 			}
 		}
 	}
@@ -166,7 +187,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ParamAttributes Flags {
+		public override ParamAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -287,7 +308,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ParamAttributes Flags {
+		public override ParamAttributes Attributes {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}

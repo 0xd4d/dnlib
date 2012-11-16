@@ -12,6 +12,8 @@ namespace dot10.DotNet {
 		MemberAccessMask	= 0x0007,
 		/// <summary>Member not referenceable.</summary>
 		PrivateScope		= 0x0000,
+		/// <summary>Member not referenceable.</summary>
+		CompilerControlled	= PrivateScope,
 		/// <summary>Accessible only by the parent type.</summary>
 		Private				= 0x0001,
 		/// <summary>Accessible by sub-types only in this Assembly.</summary>

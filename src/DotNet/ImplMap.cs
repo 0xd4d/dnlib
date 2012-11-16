@@ -28,7 +28,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column ImplMap.MappingFlags
 		/// </summary>
-		public abstract PInvokeAttributes Flags { get; set; }
+		public abstract PInvokeAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column ImplMap.ImportName
@@ -38,18 +38,18 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column ImplMap.ImportScope
 		/// </summary>
-		public abstract ModuleRef Scope { get; set; }
+		public abstract ModuleRef Module { get; set; }
 
 		/// <summary>
 		/// Gets/sets the <see cref="PInvokeAttributes.NoMangle"/> bit
 		/// </summary>
 		public bool IsNoMangle {
-			get { return (Flags & PInvokeAttributes.NoMangle) != 0; }
+			get { return (Attributes & PInvokeAttributes.NoMangle) != 0; }
 			set {
 				if (value)
-					Flags |= PInvokeAttributes.NoMangle;
+					Attributes |= PInvokeAttributes.NoMangle;
 				else
-					Flags &= ~PInvokeAttributes.NoMangle;
+					Attributes &= ~PInvokeAttributes.NoMangle;
 			}
 		}
 
@@ -57,106 +57,106 @@ namespace dot10.DotNet {
 		/// Gets/sets the char set
 		/// </summary>
 		public PInvokeAttributes CharSet {
-			get { return Flags & PInvokeAttributes.CharSetMask; }
-			set { Flags = (Flags & ~PInvokeAttributes.CharSetMask) | (value & PInvokeAttributes.CharSetMask); }
+			get { return Attributes & PInvokeAttributes.CharSetMask; }
+			set { Attributes = (Attributes & ~PInvokeAttributes.CharSetMask) | (value & PInvokeAttributes.CharSetMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetNotSpec"/> is set
 		/// </summary>
 		public bool IsCharSetNotSpec {
-			get { return (Flags & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetNotSpec; }
+			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetNotSpec; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetAnsi"/> is set
 		/// </summary>
 		public bool IsCharSetAnsi {
-			get { return (Flags & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAnsi; }
+			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAnsi; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetUnicode"/> is set
 		/// </summary>
 		public bool IsCharSetUnicode {
-			get { return (Flags & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetUnicode; }
+			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetUnicode; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetAuto"/> is set
 		/// </summary>
 		public bool IsCharSetAuto {
-			get { return (Flags & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAuto; }
+			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAuto; }
 		}
 
 		/// <summary>
 		/// Gets/sets best fit
 		/// </summary>
 		public PInvokeAttributes BestFit {
-			get { return Flags & PInvokeAttributes.BestFitMask; }
-			set { Flags = (Flags & ~PInvokeAttributes.BestFitMask) | (value & PInvokeAttributes.BestFitMask); }
+			get { return Attributes & PInvokeAttributes.BestFitMask; }
+			set { Attributes = (Attributes & ~PInvokeAttributes.BestFitMask) | (value & PInvokeAttributes.BestFitMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitUseAssem"/> is set
 		/// </summary>
 		public bool IsBestFitUseAssem {
-			get { return (Flags & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitUseAssem; }
+			get { return (Attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitUseAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitEnabled"/> is set
 		/// </summary>
 		public bool IsBestFitEnabled {
-			get { return (Flags & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitEnabled; }
+			get { return (Attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitEnabled; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitDisabled"/> is set
 		/// </summary>
 		public bool IsBestFitDisabled {
-			get { return (Flags & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitDisabled; }
+			get { return (Attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitDisabled; }
 		}
 
 		/// <summary>
 		/// Gets/sets throw on unmappable char
 		/// </summary>
 		public PInvokeAttributes ThrowOnUnmappableChar {
-			get { return Flags & PInvokeAttributes.ThrowOnUnmappableCharMask; }
-			set { Flags = (Flags & ~PInvokeAttributes.ThrowOnUnmappableCharMask) | (value & PInvokeAttributes.ThrowOnUnmappableCharMask); }
+			get { return Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask; }
+			set { Attributes = (Attributes & ~PInvokeAttributes.ThrowOnUnmappableCharMask) | (value & PInvokeAttributes.ThrowOnUnmappableCharMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharUseAssem"/> is set
 		/// </summary>
 		public bool IsThrowOnUnmappableCharUseAssem {
-			get { return (Flags & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharUseAssem; }
+			get { return (Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharUseAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharEnabled"/> is set
 		/// </summary>
 		public bool IsThrowOnUnmappableCharEnabled {
-			get { return (Flags & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharEnabled; }
+			get { return (Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharEnabled; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharDisabled"/> is set
 		/// </summary>
 		public bool IsThrowOnUnmappableCharDisabled {
-			get { return (Flags & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharDisabled; }
+			get { return (Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharDisabled; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="PInvokeAttributes.SupportsLastError"/> bit
 		/// </summary>
 		public bool SupportsLastError {
-			get { return (Flags & PInvokeAttributes.SupportsLastError) != 0; }
+			get { return (Attributes & PInvokeAttributes.SupportsLastError) != 0; }
 			set {
 				if (value)
-					Flags |= PInvokeAttributes.SupportsLastError;
+					Attributes |= PInvokeAttributes.SupportsLastError;
 				else
-					Flags &= ~PInvokeAttributes.SupportsLastError;
+					Attributes &= ~PInvokeAttributes.SupportsLastError;
 			}
 		}
 
@@ -164,43 +164,43 @@ namespace dot10.DotNet {
 		/// Gets/sets calling convention
 		/// </summary>
 		public PInvokeAttributes CallConv {
-			get { return Flags & PInvokeAttributes.CallConvMask; }
-			set { Flags = (Flags & ~PInvokeAttributes.CallConvMask) | (value & PInvokeAttributes.CallConvMask); }
+			get { return Attributes & PInvokeAttributes.CallConvMask; }
+			set { Attributes = (Attributes & ~PInvokeAttributes.CallConvMask) | (value & PInvokeAttributes.CallConvMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvWinapi"/> is set
 		/// </summary>
 		public bool IsCallConvWinapi {
-			get { return (Flags & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvWinapi; }
+			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvWinapi; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvCdecl"/> is set
 		/// </summary>
 		public bool IsCallConvCdecl {
-			get { return (Flags & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvCdecl; }
+			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvCdecl; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvStdcall"/> is set
 		/// </summary>
 		public bool IsCallConvStdcall {
-			get { return (Flags & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvStdcall; }
+			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvStdcall; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvThiscall"/> is set
 		/// </summary>
 		public bool IsCallConvThiscall {
-			get { return (Flags & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvThiscall; }
+			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvThiscall; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvFastcall"/> is set
 		/// </summary>
 		public bool IsCallConvFastcall {
-			get { return (Flags & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvFastcall; }
+			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvFastcall; }
 		}
 	}
 
@@ -215,7 +215,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column ImplMap.MappingFlags
 		/// </summary>
-		public override PInvokeAttributes Flags {
+		public override PInvokeAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -231,7 +231,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column ImplMap.ImportScope
 		/// </summary>
-		public override ModuleRef Scope {
+		public override ModuleRef Module {
 			get { return scope; }
 			set { scope = value; }
 		}
@@ -281,7 +281,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column ImplMap.MappingFlags
 		/// </summary>
-		public override PInvokeAttributes Flags {
+		public override PInvokeAttributes Attributes {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -297,7 +297,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column ImplMap.ImportScope
 		/// </summary>
-		public override ModuleRef Scope {
+		public override ModuleRef Module {
 			get { return scope.Value; }
 			set { scope.Value = value; }
 		}

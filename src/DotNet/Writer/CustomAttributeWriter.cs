@@ -59,24 +59,24 @@ namespace dot10.DotNet.Writer {
 			// Check whether it's raw first. If it is, we don't care whether the ctor is
 			// invalid. Just use the raw data.
 			if (ca.IsRawBlob) {
-				if ((ca.Arguments != null && ca.Arguments.Count > 0) || (ca.NamedArguments != null && ca.NamedArguments.Count > 0))
+				if ((ca.ConstructorArguments != null && ca.ConstructorArguments.Count > 0) || (ca.NamedArguments != null && ca.NamedArguments.Count > 0))
 					helper.Error("Raw custom attribute contains arguments and/or named arguments");
 				writer.Write(ca.RawData);
 				return;
 			}
 
-			if (ca.Ctor == null) {
+			if (ca.Constructor == null) {
 				helper.Error("Custom attribute ctor is null");
 				return;
 			}
 
-			var methodSig = GetMethodSig(ca.Ctor);
+			var methodSig = GetMethodSig(ca.Constructor);
 			if (methodSig == null) {
 				helper.Error("Custom attribute ctor's method signature is invalid");
 				return;
 			}
 
-			if (ca.Arguments.Count != methodSig.Params.Count)
+			if (ca.ConstructorArguments.Count != methodSig.Params.Count)
 				helper.Error("Custom attribute arguments count != method sig arguments count");
 			if (methodSig.ParamsAfterSentinel != null && methodSig.ParamsAfterSentinel.Count > 0)
 				helper.Error("Custom attribute ctor has parameters after the sentinel");
@@ -85,7 +85,7 @@ namespace dot10.DotNet.Writer {
 
 			// A generic custom attribute isn't allowed by most .NET languages (eg. C#) but
 			// the CLR probably supports it.
-			var mrCtor = ca.Ctor as MemberRef;
+			var mrCtor = ca.Constructor as MemberRef;
 			if (mrCtor != null) {
 				var owner = mrCtor.Class as TypeSpec;
 				if (owner != null) {
@@ -99,9 +99,9 @@ namespace dot10.DotNet.Writer {
 
 			writer.Write((ushort)1);
 
-			int numArgs = Math.Min(methodSig.Params.Count, ca.Arguments.Count);
+			int numArgs = Math.Min(methodSig.Params.Count, ca.ConstructorArguments.Count);
 			for (int i = 0; i < numArgs; i++)
-				WriteValue(FixTypeSig(methodSig.Params[i]), ca.Arguments[i]);
+				WriteValue(FixTypeSig(methodSig.Params[i]), ca.ConstructorArguments[i]);
 
 			int numNamedArgs = Math.Min((int)ushort.MaxValue, ca.NamedArguments.Count);
 			writer.Write((ushort)numNamedArgs);

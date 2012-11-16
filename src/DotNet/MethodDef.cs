@@ -10,6 +10,9 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the Method table
 	/// </summary>
 	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef> {
+		static readonly UTF8String staticConstructorName = new UTF8String(".cctor");
+		static readonly UTF8String instanceConstructorName = new UTF8String(".ctor");
+
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -74,12 +77,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column Method.ImplFlags
 		/// </summary>
-		public abstract MethodImplAttributes ImplFlags { get; set; }
+		public abstract MethodImplAttributes ImplAttributes { get; set; }
 
 		/// <summary>
 		/// From column Method.Flags
 		/// </summary>
-		public abstract MethodAttributes Flags { get; set; }
+		public abstract MethodAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column Method.Name
@@ -192,6 +195,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="ImplMap"/> is not <c>null</c>
+		/// </summary>
+		public bool HasImplMap {
+			get { return ImplMap != null; }
+		}
+
+		/// <summary>
 		/// Gets the full name
 		/// </summary>
 		public string FullName {
@@ -235,72 +245,111 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if the method has a hidden 'this' parameter
+		/// </summary>
+		public bool HasThis {
+			get { return MethodSig == null ? false : MethodSig.HasThis; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if the method has an explicit 'this' parameter
+		/// </summary>
+		public bool ExplicitThis {
+			get { return MethodSig == null ? false : MethodSig.ExplicitThis; }
+		}
+
+		/// <summary>
+		/// Gets the calling convention
+		/// </summary>
+		public CallingConvention CallingConvention {
+			get { return MethodSig == null ? 0 : MethodSig.CallingConvention & CallingConvention.Mask; }
+		}
+
+		/// <summary>
+		/// Gets/sets the method return type
+		/// </summary>
+		public TypeSig ReturnType {
+			get { return MethodSig == null ? null : MethodSig.RetType; }
+			set {
+				if (MethodSig != null)
+					MethodSig.RetType = value;
+			}
+		}
+
+		/// <summary>
 		/// Gets/sets the method access
 		/// </summary>
 		public MethodAttributes Access {
-			get { return Flags & MethodAttributes.MemberAccessMask; }
-			set { Flags = (Flags & ~MethodAttributes.MemberAccessMask) | (value & MethodAttributes.MemberAccessMask); }
+			get { return Attributes & MethodAttributes.MemberAccessMask; }
+			set { Attributes = (Attributes & ~MethodAttributes.MemberAccessMask) | (value & MethodAttributes.MemberAccessMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MethodAttributes.PrivateScope"/> is set
+		/// </summary>
+		public bool IsCompilerControlled {
+			get { return IsPrivateScope; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.PrivateScope"/> is set
 		/// </summary>
 		public bool IsPrivateScope {
-			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.PrivateScope; }
+			get { return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.PrivateScope; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Private"/> is set
 		/// </summary>
 		public bool IsPrivate {
-			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Private; }
+			get { return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.FamANDAssem"/> is set
 		/// </summary>
-		public bool IsFamANDAssem {
-			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem; }
+		public bool IsFamilyAndAssembly {
+			get { return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Assembly"/> is set
 		/// </summary>
 		public bool IsAssembly {
-			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly; }
+			get { return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Family"/> is set
 		/// </summary>
 		public bool IsFamily {
-			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Family; }
+			get { return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Family; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.FamORAssem"/> is set
 		/// </summary>
-		public bool IsFamORAssem {
-			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem; }
+		public bool IsFamilyOrAssembly {
+			get { return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Public"/> is set
 		/// </summary>
 		public bool IsPublic {
-			get { return (Flags & MethodAttributes.MemberAccessMask) == MethodAttributes.Public; }
+			get { return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.Static"/> bit
 		/// </summary>
 		public bool IsStatic {
-			get { return (Flags & MethodAttributes.Static) != 0; }
+			get { return (Attributes & MethodAttributes.Static) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.Static;
+					Attributes |= MethodAttributes.Static;
 				else
-					Flags &= ~MethodAttributes.Static;
+					Attributes &= ~MethodAttributes.Static;
 			}
 		}
 
@@ -308,12 +357,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.Final"/> bit
 		/// </summary>
 		public bool IsFinal {
-			get { return (Flags & MethodAttributes.Final) != 0; }
+			get { return (Attributes & MethodAttributes.Final) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.Final;
+					Attributes |= MethodAttributes.Final;
 				else
-					Flags &= ~MethodAttributes.Final;
+					Attributes &= ~MethodAttributes.Final;
 			}
 		}
 
@@ -321,12 +370,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.Virtual"/> bit
 		/// </summary>
 		public bool IsVirtual {
-			get { return (Flags & MethodAttributes.Virtual) != 0; }
+			get { return (Attributes & MethodAttributes.Virtual) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.Virtual;
+					Attributes |= MethodAttributes.Virtual;
 				else
-					Flags &= ~MethodAttributes.Virtual;
+					Attributes &= ~MethodAttributes.Virtual;
 			}
 		}
 
@@ -334,12 +383,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.HideBySig"/> bit
 		/// </summary>
 		public bool IsHideBySig {
-			get { return (Flags & MethodAttributes.HideBySig) != 0; }
+			get { return (Attributes & MethodAttributes.HideBySig) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.HideBySig;
+					Attributes |= MethodAttributes.HideBySig;
 				else
-					Flags &= ~MethodAttributes.HideBySig;
+					Attributes &= ~MethodAttributes.HideBySig;
 			}
 		}
 
@@ -347,12 +396,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.NewSlot"/> bit
 		/// </summary>
 		public bool IsNewSlot {
-			get { return (Flags & MethodAttributes.NewSlot) != 0; }
+			get { return (Attributes & MethodAttributes.NewSlot) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.NewSlot;
+					Attributes |= MethodAttributes.NewSlot;
 				else
-					Flags &= ~MethodAttributes.NewSlot;
+					Attributes &= ~MethodAttributes.NewSlot;
 			}
 		}
 
@@ -360,12 +409,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.ReuseSlot"/> bit
 		/// </summary>
 		public bool IsReuseSlot {
-			get { return (Flags & MethodAttributes.NewSlot) == 0; }
+			get { return (Attributes & MethodAttributes.NewSlot) == 0; }
 			set {
 				if (value)
-					Flags &= ~MethodAttributes.NewSlot;
+					Attributes &= ~MethodAttributes.NewSlot;
 				else
-					Flags |= MethodAttributes.NewSlot;
+					Attributes |= MethodAttributes.NewSlot;
 			}
 		}
 
@@ -373,12 +422,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.CheckAccessOnOverride"/> bit
 		/// </summary>
 		public bool IsCheckAccessOnOverride {
-			get { return (Flags & MethodAttributes.CheckAccessOnOverride) != 0; }
+			get { return (Attributes & MethodAttributes.CheckAccessOnOverride) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.CheckAccessOnOverride;
+					Attributes |= MethodAttributes.CheckAccessOnOverride;
 				else
-					Flags &= ~MethodAttributes.CheckAccessOnOverride;
+					Attributes &= ~MethodAttributes.CheckAccessOnOverride;
 			}
 		}
 
@@ -386,12 +435,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.Abstract"/> bit
 		/// </summary>
 		public bool IsAbstract {
-			get { return (Flags & MethodAttributes.Abstract) != 0; }
+			get { return (Attributes & MethodAttributes.Abstract) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.Abstract;
+					Attributes |= MethodAttributes.Abstract;
 				else
-					Flags &= ~MethodAttributes.Abstract;
+					Attributes &= ~MethodAttributes.Abstract;
 			}
 		}
 
@@ -399,12 +448,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return (Flags & MethodAttributes.SpecialName) != 0; }
+			get { return (Attributes & MethodAttributes.SpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.SpecialName;
+					Attributes |= MethodAttributes.SpecialName;
 				else
-					Flags &= ~MethodAttributes.SpecialName;
+					Attributes &= ~MethodAttributes.SpecialName;
 			}
 		}
 
@@ -412,12 +461,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.PinvokeImpl"/> bit
 		/// </summary>
 		public bool IsPinvokeImpl {
-			get { return (Flags & MethodAttributes.PinvokeImpl) != 0; }
+			get { return (Attributes & MethodAttributes.PinvokeImpl) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.PinvokeImpl;
+					Attributes |= MethodAttributes.PinvokeImpl;
 				else
-					Flags &= ~MethodAttributes.PinvokeImpl;
+					Attributes &= ~MethodAttributes.PinvokeImpl;
 			}
 		}
 
@@ -425,25 +474,25 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.UnmanagedExport"/> bit
 		/// </summary>
 		public bool IsUnmanagedExport {
-			get { return (Flags & MethodAttributes.UnmanagedExport) != 0; }
+			get { return (Attributes & MethodAttributes.UnmanagedExport) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.UnmanagedExport;
+					Attributes |= MethodAttributes.UnmanagedExport;
 				else
-					Flags &= ~MethodAttributes.UnmanagedExport;
+					Attributes &= ~MethodAttributes.UnmanagedExport;
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.RTSpecialName"/> bit
 		/// </summary>
-		public bool IsRTSpecialName {
-			get { return (Flags & MethodAttributes.RTSpecialName) != 0; }
+		public bool IsRuntimeSpecialName {
+			get { return (Attributes & MethodAttributes.RTSpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.RTSpecialName;
+					Attributes |= MethodAttributes.RTSpecialName;
 				else
-					Flags &= ~MethodAttributes.RTSpecialName;
+					Attributes &= ~MethodAttributes.RTSpecialName;
 			}
 		}
 
@@ -451,12 +500,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.HasSecurity"/> bit
 		/// </summary>
 		public bool HasSecurity {
-			get { return (Flags & MethodAttributes.HasSecurity) != 0; }
+			get { return (Attributes & MethodAttributes.HasSecurity) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.HasSecurity;
+					Attributes |= MethodAttributes.HasSecurity;
 				else
-					Flags &= ~MethodAttributes.HasSecurity;
+					Attributes &= ~MethodAttributes.HasSecurity;
 			}
 		}
 
@@ -464,12 +513,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodAttributes.RequireSecObject"/> bit
 		/// </summary>
 		public bool IsRequireSecObject {
-			get { return (Flags & MethodAttributes.RequireSecObject) != 0; }
+			get { return (Attributes & MethodAttributes.RequireSecObject) != 0; }
 			set {
 				if (value)
-					Flags |= MethodAttributes.RequireSecObject;
+					Attributes |= MethodAttributes.RequireSecObject;
 				else
-					Flags &= ~MethodAttributes.RequireSecObject;
+					Attributes &= ~MethodAttributes.RequireSecObject;
 			}
 		}
 
@@ -477,48 +526,48 @@ namespace dot10.DotNet {
 		/// Gets/sets the code type
 		/// </summary>
 		public MethodImplAttributes CodeType {
-			get { return ImplFlags & MethodImplAttributes.CodeTypeMask; }
-			set { ImplFlags = (ImplFlags & ~MethodImplAttributes.CodeTypeMask) | (value & MethodImplAttributes.CodeTypeMask); }
+			get { return ImplAttributes & MethodImplAttributes.CodeTypeMask; }
+			set { ImplAttributes = (ImplAttributes & ~MethodImplAttributes.CodeTypeMask) | (value & MethodImplAttributes.CodeTypeMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.IL"/> is set
 		/// </summary>
 		public bool IsIL {
-			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.IL; }
+			get { return (ImplAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.IL; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.Native"/> is set
 		/// </summary>
 		public bool IsNative {
-			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Native; }
+			get { return (ImplAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Native; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.OPTIL"/> is set
 		/// </summary>
 		public bool IsOPTIL {
-			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.OPTIL; }
+			get { return (ImplAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.OPTIL; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.Runtime"/> is set
 		/// </summary>
 		public bool IsRuntime {
-			get { return (ImplFlags & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Runtime; }
+			get { return (ImplAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Runtime; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.Unmanaged"/> bit
 		/// </summary>
 		public bool IsUnmanaged {
-			get { return (ImplFlags & MethodImplAttributes.Unmanaged) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.Unmanaged) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.Unmanaged;
+					ImplAttributes |= MethodImplAttributes.Unmanaged;
 				else
-					ImplFlags &= ~MethodImplAttributes.Unmanaged;
+					ImplAttributes &= ~MethodImplAttributes.Unmanaged;
 			}
 		}
 
@@ -526,12 +575,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.Managed"/> bit
 		/// </summary>
 		public bool IsManaged {
-			get { return (ImplFlags & MethodImplAttributes.Unmanaged) == 0; }
+			get { return (ImplAttributes & MethodImplAttributes.Unmanaged) == 0; }
 			set {
 				if (value)
-					ImplFlags &= ~MethodImplAttributes.Unmanaged;
+					ImplAttributes &= ~MethodImplAttributes.Unmanaged;
 				else
-					ImplFlags |= MethodImplAttributes.Unmanaged;
+					ImplAttributes |= MethodImplAttributes.Unmanaged;
 			}
 		}
 
@@ -539,12 +588,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.ForwardRef"/> bit
 		/// </summary>
 		public bool IsForwardRef {
-			get { return (ImplFlags & MethodImplAttributes.ForwardRef) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.ForwardRef) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.ForwardRef;
+					ImplAttributes |= MethodImplAttributes.ForwardRef;
 				else
-					ImplFlags &= ~MethodImplAttributes.ForwardRef;
+					ImplAttributes &= ~MethodImplAttributes.ForwardRef;
 			}
 		}
 
@@ -552,12 +601,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.PreserveSig"/> bit
 		/// </summary>
 		public bool IsPreserveSig {
-			get { return (ImplFlags & MethodImplAttributes.PreserveSig) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.PreserveSig) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.PreserveSig;
+					ImplAttributes |= MethodImplAttributes.PreserveSig;
 				else
-					ImplFlags &= ~MethodImplAttributes.PreserveSig;
+					ImplAttributes &= ~MethodImplAttributes.PreserveSig;
 			}
 		}
 
@@ -565,12 +614,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.InternalCall"/> bit
 		/// </summary>
 		public bool IsInternalCall {
-			get { return (ImplFlags & MethodImplAttributes.InternalCall) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.InternalCall) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.InternalCall;
+					ImplAttributes |= MethodImplAttributes.InternalCall;
 				else
-					ImplFlags &= ~MethodImplAttributes.InternalCall;
+					ImplAttributes &= ~MethodImplAttributes.InternalCall;
 			}
 		}
 
@@ -578,12 +627,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.Synchronized"/> bit
 		/// </summary>
 		public bool IsSynchronized {
-			get { return (ImplFlags & MethodImplAttributes.Synchronized) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.Synchronized) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.Synchronized;
+					ImplAttributes |= MethodImplAttributes.Synchronized;
 				else
-					ImplFlags &= ~MethodImplAttributes.Synchronized;
+					ImplAttributes &= ~MethodImplAttributes.Synchronized;
 			}
 		}
 
@@ -591,12 +640,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.NoInlining"/> bit
 		/// </summary>
 		public bool IsNoInlining {
-			get { return (ImplFlags & MethodImplAttributes.NoInlining) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.NoInlining) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.NoInlining;
+					ImplAttributes |= MethodImplAttributes.NoInlining;
 				else
-					ImplFlags &= ~MethodImplAttributes.NoInlining;
+					ImplAttributes &= ~MethodImplAttributes.NoInlining;
 			}
 		}
 
@@ -604,12 +653,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.AggressiveInlining"/> bit
 		/// </summary>
 		public bool IsAggressiveInlining {
-			get { return (ImplFlags & MethodImplAttributes.AggressiveInlining) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.AggressiveInlining) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.AggressiveInlining;
+					ImplAttributes |= MethodImplAttributes.AggressiveInlining;
 				else
-					ImplFlags &= ~MethodImplAttributes.AggressiveInlining;
+					ImplAttributes &= ~MethodImplAttributes.AggressiveInlining;
 			}
 		}
 
@@ -617,13 +666,34 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="MethodImplAttributes.NoOptimization"/> bit
 		/// </summary>
 		public bool IsNoOptimization {
-			get { return (ImplFlags & MethodImplAttributes.NoOptimization) != 0; }
+			get { return (ImplAttributes & MethodImplAttributes.NoOptimization) != 0; }
 			set {
 				if (value)
-					ImplFlags |= MethodImplAttributes.NoOptimization;
+					ImplAttributes |= MethodImplAttributes.NoOptimization;
 				else
-					ImplFlags &= ~MethodImplAttributes.NoOptimization;
+					ImplAttributes &= ~MethodImplAttributes.NoOptimization;
 			}
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is the static type constructor
+		/// </summary>
+		public bool IsStaticConstructor {
+			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, staticConstructorName); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is an instance constructor
+		/// </summary>
+		public bool IsInstanceConstructor {
+			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, instanceConstructorName); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is a static or an instance constructor
+		/// </summary>
+		public bool IsConstructor {
+			get { return IsStaticConstructor || IsInstanceConstructor; }
 		}
 
 		/// <inheritdoc/>
@@ -717,13 +787,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override MethodImplAttributes ImplFlags {
+		public override MethodImplAttributes ImplAttributes {
 			get { return implFlags; }
 			set { implFlags = value; }
 		}
 
 		/// <inheritdoc/>
-		public override MethodAttributes Flags {
+		public override MethodAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -931,13 +1001,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override MethodImplAttributes ImplFlags {
+		public override MethodImplAttributes ImplAttributes {
 			get { return implFlags.Value; }
 			set { implFlags.Value = value; }
 		}
 
 		/// <inheritdoc/>
-		public override MethodAttributes Flags {
+		public override MethodAttributes Attributes {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}

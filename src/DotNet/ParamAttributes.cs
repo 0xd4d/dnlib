@@ -13,8 +13,6 @@ namespace dot10.DotNet {
 		/// <summary>Param is optional</summary>
 		Optional			= 0x0010,
 
-		/// <summary>Reserved flags for Runtime use only.</summary>
-		ReservedMask		= 0xf000,
 		/// <summary>Param has default value.</summary>
 		HasDefault			= 0x1000,
 		/// <summary>Param has FieldMarshal.</summary>

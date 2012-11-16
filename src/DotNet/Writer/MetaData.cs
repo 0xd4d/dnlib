@@ -1091,7 +1091,7 @@ namespace dot10.DotNet.Writer {
 				}
 				uint typeRid = GetRid(type);
 				var typeRow = tablesHeap.TypeDefTable[typeRid];
-				typeRow.Flags = (uint)type.Flags;
+				typeRow.Flags = (uint)type.Attributes;
 				typeRow.Name = stringsHeap.Add(type.Name);
 				typeRow.Namespace = stringsHeap.Add(type.Namespace);
 				typeRow.Extends = type.BaseType == null ? 0 : AddTypeDefOrRef(type.BaseType);
@@ -1108,7 +1108,7 @@ namespace dot10.DotNet.Writer {
 					}
 					uint rid = GetRid(field);
 					var row = tablesHeap.FieldTable[rid];
-					row.Flags = (ushort)field.Flags;
+					row.Flags = (ushort)field.Attributes;
 					row.Name = stringsHeap.Add(field.Name);
 					row.Signature = GetSignature(field.Signature);
 					AddFieldLayout(field);
@@ -1125,8 +1125,8 @@ namespace dot10.DotNet.Writer {
 					}
 					uint rid = GetRid(method);
 					var row = tablesHeap.MethodTable[rid];
-					row.ImplFlags = (ushort)method.ImplFlags;
-					row.Flags = (ushort)method.Flags;
+					row.ImplFlags = (ushort)method.ImplAttributes;
+					row.Flags = (ushort)method.Attributes;
 					row.Name = stringsHeap.Add(method.Name);
 					row.Signature = GetSignature(method.Signature);
 					AddGenericParams(new MDToken(Table.Method, rid), method.GenericParameters);
@@ -1140,7 +1140,7 @@ namespace dot10.DotNet.Writer {
 						}
 						uint pdRid = GetRid(pd);
 						var pdRow = tablesHeap.ParamTable[pdRid];
-						pdRow.Flags = (ushort)pd.Flags;
+						pdRow.Flags = (ushort)pd.Attributes;
 						pdRow.Sequence = pd.Sequence;
 						pdRow.Name = stringsHeap.Add(pd.Name);
 						AddConstant(new MDToken(Table.Param, pdRid), pd);
@@ -1156,9 +1156,9 @@ namespace dot10.DotNet.Writer {
 						}
 						uint rid = GetRid(evt);
 						var row = tablesHeap.EventTable[rid];
-						row.EventFlags = (ushort)evt.Flags;
+						row.EventFlags = (ushort)evt.Attributes;
 						row.Name = stringsHeap.Add(evt.Name);
-						row.EventType = AddTypeDefOrRef(evt.Type);
+						row.EventType = AddTypeDefOrRef(evt.EventType);
 						AddMethodSemantics(evt);
 					}
 				}
@@ -1171,7 +1171,7 @@ namespace dot10.DotNet.Writer {
 						}
 						uint rid = GetRid(prop);
 						var row = tablesHeap.PropertyTable[rid];
-						row.PropFlags = (ushort)prop.Flags;
+						row.PropFlags = (ushort)prop.Attributes;
 						row.Name = stringsHeap.Add(prop.Name);
 						row.Type = GetSignature(prop.Type);
 						AddConstant(new MDToken(Table.Property, rid), prop);
@@ -1743,11 +1743,11 @@ namespace dot10.DotNet.Writer {
 							(ushort)version.Minor,
 							(ushort)version.Build,
 							(ushort)version.Revision,
-							(uint)asmRef.Flags,
+							(uint)asmRef.Attributes,
 							blobHeap.Add(PublicKeyBase.GetRawData(asmRef.PublicKeyOrToken)),
 							stringsHeap.Add(asmRef.Name),
-							stringsHeap.Add(asmRef.Locale),
-							blobHeap.Add(asmRef.HashValue));
+							stringsHeap.Add(asmRef.Culture),
+							blobHeap.Add(asmRef.Hash));
 			rid = tablesHeap.AssemblyRefTable.Add(row);
 			assemblyRefInfos.Add(asmRef, rid);
 			AddCustomAttributes(Table.AssemblyRef, rid, asmRef);
@@ -1768,15 +1768,15 @@ namespace dot10.DotNet.Writer {
 			if (assemblyInfos.TryGetRid(asm, out rid))
 				return rid;
 			var version = Utils.CreateVersionWithNoUndefinedValues(asm.Version);
-			var row = new RawAssemblyRow((uint)asm.HashAlgId,
+			var row = new RawAssemblyRow((uint)asm.HashAlgorithm,
 							(ushort)version.Major,
 							(ushort)version.Minor,
 							(ushort)version.Build,
 							(ushort)version.Revision,
-							(uint)asm.Flags,
+							(uint)asm.Attributes,
 							blobHeap.Add(PublicKeyBase.GetRawData(asm.PublicKeyOrToken)),
 							stringsHeap.Add(asm.Name),
-							stringsHeap.Add(asm.Locale));
+							stringsHeap.Add(asm.Culture));
 			rid = tablesHeap.AssemblyTable.Add(row);
 			assemblyInfos.Add(asm, rid);
 			AddDeclSecurities(new MDToken(Table.Assembly, rid), asm.DeclSecurities);
@@ -1949,10 +1949,10 @@ namespace dot10.DotNet.Writer {
 				Error("Can't encode MemberForwarded token {0:X8}", parent.Raw);
 				encodedParent = 0;
 			}
-			var row = new RawImplMapRow((ushort)implMap.Flags,
+			var row = new RawImplMapRow((ushort)implMap.Attributes,
 						encodedParent,
 						stringsHeap.Add(implMap.Name),
-						AddModuleRef(implMap.Scope));
+						AddModuleRef(implMap.Module));
 			implMapInfos.Add(mf, row);
 		}
 
@@ -2203,7 +2203,7 @@ namespace dot10.DotNet.Writer {
 			if (manifestResourceInfos.TryGetRid(er, out rid))
 				return rid;
 			var row = new RawManifestResourceRow(netResources.NextOffset,
-						(uint)er.Flags,
+						(uint)er.Attributes,
 						stringsHeap.Add(er.Name),
 						0);
 			rid = tablesHeap.ManifestResourceTable.Add(row);
@@ -2222,7 +2222,7 @@ namespace dot10.DotNet.Writer {
 			if (manifestResourceInfos.TryGetRid(alr, out rid))
 				return rid;
 			var row = new RawManifestResourceRow(0,
-						(uint)alr.Flags,
+						(uint)alr.Attributes,
 						stringsHeap.Add(alr.Name),
 						AddImplementation(alr.Assembly));
 			rid = tablesHeap.ManifestResourceTable.Add(row);
@@ -2240,7 +2240,7 @@ namespace dot10.DotNet.Writer {
 			if (manifestResourceInfos.TryGetRid(lr, out rid))
 				return rid;
 			var row = new RawManifestResourceRow(0,
-						(uint)lr.Flags,
+						(uint)lr.Attributes,
 						stringsHeap.Add(lr.Name),
 						AddImplementation(lr.File));
 			rid = tablesHeap.ManifestResourceTable.Add(row);
@@ -2285,7 +2285,7 @@ namespace dot10.DotNet.Writer {
 			if (exportedTypeInfos.TryGetRid(et, out rid))
 				return rid;
 			exportedTypeInfos.Add(et, 0);	// Prevent inf recursion
-			var row = new RawExportedTypeRow((uint)et.Flags,
+			var row = new RawExportedTypeRow((uint)et.Attributes,
 						et.TypeDefId,	//TODO: Should be updated with the new rid
 						stringsHeap.Add(et.TypeName),
 						stringsHeap.Add(et.TypeNamespace),
@@ -2366,7 +2366,7 @@ namespace dot10.DotNet.Writer {
 			}
 			var caBlob = CustomAttributeWriter.Write(this, ca);
 			var row = new RawCustomAttributeRow(encodedToken,
-						AddCustomAttributeType(ca.Ctor),
+						AddCustomAttributeType(ca.Constructor),
 						blobHeap.Add(caBlob));
 			customAttributeInfos.Add(ca, row);
 		}

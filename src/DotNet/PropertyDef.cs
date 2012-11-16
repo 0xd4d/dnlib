@@ -42,7 +42,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column Property.PropFlags
 		/// </summary>
-		public abstract PropertyAttributes Flags { get; set; }
+		public abstract PropertyAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column Property.Name
@@ -76,6 +76,27 @@ namespace dot10.DotNet {
 		/// Gets the other methods
 		/// </summary>
 		public abstract IList<MethodDef> OtherMethods { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="OtherMethods"/> is not empty
+		/// </summary>
+		public bool HasOtherMethods {
+			get { return OtherMethods.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
+		/// </summary>
+		public bool HasConstant {
+			get { return Constant != null; }
+		}
+
+		/// <summary>
+		/// Gets the constant element type or <see cref="dot10.DotNet.ElementType.End"/> if there's no constant
+		/// </summary>
+		public ElementType ElementType {
+			get { return Constant == null ? ElementType.End : Constant.Type; }
+		}
 
 		/// <summary>
 		/// Gets/sets the property sig
@@ -128,25 +149,25 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="PropertyAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return (Flags & PropertyAttributes.SpecialName) != 0; }
+			get { return (Attributes & PropertyAttributes.SpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= PropertyAttributes.SpecialName;
+					Attributes |= PropertyAttributes.SpecialName;
 				else
-					Flags &= ~PropertyAttributes.SpecialName;
+					Attributes &= ~PropertyAttributes.SpecialName;
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="PropertyAttributes.RTSpecialName"/> bit
 		/// </summary>
-		public bool IsRTSpecialName {
-			get { return (Flags & PropertyAttributes.RTSpecialName) != 0; }
+		public bool IsRuntimeSpecialName {
+			get { return (Attributes & PropertyAttributes.RTSpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= PropertyAttributes.RTSpecialName;
+					Attributes |= PropertyAttributes.RTSpecialName;
 				else
-					Flags &= ~PropertyAttributes.RTSpecialName;
+					Attributes &= ~PropertyAttributes.RTSpecialName;
 			}
 		}
 
@@ -154,12 +175,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="PropertyAttributes.HasDefault"/> bit
 		/// </summary>
 		public bool HasDefault {
-			get { return (Flags & PropertyAttributes.HasDefault) != 0; }
+			get { return (Attributes & PropertyAttributes.HasDefault) != 0; }
 			set {
 				if (value)
-					Flags |= PropertyAttributes.HasDefault;
+					Attributes |= PropertyAttributes.HasDefault;
 				else
-					Flags &= ~PropertyAttributes.HasDefault;
+					Attributes &= ~PropertyAttributes.HasDefault;
 			}
 		}
 
@@ -184,7 +205,7 @@ namespace dot10.DotNet {
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
-		public override PropertyAttributes Flags {
+		public override PropertyAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -318,7 +339,7 @@ namespace dot10.DotNet {
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
-		public override PropertyAttributes Flags {
+		public override PropertyAttributes Attributes {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}

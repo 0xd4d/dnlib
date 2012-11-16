@@ -13,7 +13,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the custom attribute constructor
 		/// </summary>
-		public ICustomAttributeType Ctor {
+		public ICustomAttributeType Constructor {
 			get { return ctor; }
 			set { ctor = value; }
 		}
@@ -62,8 +62,15 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets all constructor arguments
 		/// </summary>
-		public List<CAArgument> Arguments {
+		public List<CAArgument> ConstructorArguments {
 			get { return arguments; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ConstructorArguments"/> is not empty
+		/// </summary>
+		public bool HasConstructorArguments {
+			get { return arguments.Count > 0; }
 		}
 
 		/// <summary>
@@ -74,9 +81,16 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="NamedArguments"/> is not empty
+		/// </summary>
+		public bool HasNamedArguments {
+			get { return namedArguments.Count > 0; }
+		}
+
+		/// <summary>
 		/// Gets all <see cref="CANamedArgument"/>s that are field arguments
 		/// </summary>
-		public IEnumerable<CANamedArgument> FieldArguments {
+		public IEnumerable<CANamedArgument> Fields {
 			get {
 				foreach (var namedArg in namedArguments) {
 					if (namedArg.IsField)
@@ -88,7 +102,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets all <see cref="CANamedArgument"/>s that are property arguments
 		/// </summary>
-		public IEnumerable<CANamedArgument> PropertyArguments {
+		public IEnumerable<CANamedArgument> Properties {
 			get {
 				foreach (var namedArg in namedArguments) {
 					if (namedArg.IsProperty)

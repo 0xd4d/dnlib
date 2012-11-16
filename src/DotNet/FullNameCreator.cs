@@ -1337,7 +1337,7 @@ namespace dot10.DotNet {
 			var pk = assembly.PublicKeyOrToken;
 			if (pk is PublicKey)
 				pk = ((PublicKey)pk).Token;
-			return Utils.GetAssemblyNameString(new UTF8String(EscapeAssemblyName(assembly.Name)), assembly.Version, assembly.Locale, pk);
+			return Utils.GetAssemblyNameString(new UTF8String(EscapeAssemblyName(assembly.Name)), assembly.Version, assembly.Culture, pk);
 		}
 
 		static string EscapeAssemblyName(UTF8String asmSimplName) {
@@ -1383,7 +1383,7 @@ namespace dot10.DotNet {
 				var pkt = assembly.PublicKeyOrToken;
 				if (pkt is PublicKey)
 					pkt = ((PublicKey)pkt).Token;
-				sb.Append(Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Locale, pkt));
+				sb.Append(Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Culture, pkt));
 			}
 		}
 

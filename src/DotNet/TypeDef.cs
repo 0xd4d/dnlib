@@ -8,9 +8,6 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the TypeDef table
 	/// </summary>
 	public abstract class TypeDef : ITypeDefOrRef, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, ITypeOrMethodDef, IListListener<FieldDef>, IListListener<MethodDef>, IListListener<TypeDef>, IListListener<EventDef>, IListListener<PropertyDef>, IListListener<GenericParam>, IMemberRefResolver {
-		static readonly UTF8String classConstructorName = new UTF8String(".cctor");
-		static readonly UTF8String constructorName = new UTF8String(".ctor");
-
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -130,7 +127,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column TypeDef.Flags
 		/// </summary>
-		public abstract TypeAttributes Flags { get; set; }
+		public abstract TypeAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column TypeDef.Name
@@ -269,6 +266,35 @@ namespace dot10.DotNet {
 			get { return Interfaces.Count > 0; }
 		}
 
+		/// <summary>
+		/// <c>true</c> if <see cref="ClassLayout"/> is not <c>null</c>
+		/// </summary>
+		public bool HasClassLayout {
+			get { return ClassLayout != null; }
+		}
+
+		/// <summary>
+		/// gets/sets the packing size
+		/// </summary>
+		public ushort PackingSize {
+			get { return ClassLayout == null ? ushort.MaxValue : ClassLayout.PackingSize; }
+			set {
+				if (ClassLayout != null)
+					ClassLayout.PackingSize = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the class size
+		/// </summary>
+		public uint ClassSize {
+			get { return ClassLayout == null ? uint.MaxValue : ClassLayout.ClassSize; }
+			set {
+				if (ClassLayout != null)
+					ClassLayout.ClassSize = value;
+			}
+		}
+
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
@@ -310,105 +336,105 @@ namespace dot10.DotNet {
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
-			get { return Flags & TypeAttributes.VisibilityMask; }
-			set { Flags = (Flags & ~TypeAttributes.VisibilityMask) | (value & TypeAttributes.VisibilityMask); }
+			get { return Attributes & TypeAttributes.VisibilityMask; }
+			set { Attributes = (Attributes & ~TypeAttributes.VisibilityMask) | (value & TypeAttributes.VisibilityMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NotPublic"/> is set
 		/// </summary>
 		public bool IsNotPublic {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic; }
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.Public"/> is set
 		/// </summary>
 		public bool IsPublic {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.Public; }
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.Public; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedPublic"/> is set
 		/// </summary>
 		public bool IsNestedPublic {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPublic; }
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPublic; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedPrivate"/> is set
 		/// </summary>
 		public bool IsNestedPrivate {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPrivate; }
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPrivate; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedFamily"/> is set
 		/// </summary>
 		public bool IsNestedFamily {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamily; }
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamily; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedAssembly"/> is set
 		/// </summary>
 		public bool IsNestedAssembly {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedAssembly; }
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedAssembly; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedFamANDAssem"/> is set
 		/// </summary>
-		public bool IsNestedFamANDAssem {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamANDAssem; }
+		public bool IsNestedFamilyAndAssembly {
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamANDAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedFamORAssem"/> is set
 		/// </summary>
-		public bool IsNestedFamORAssem {
-			get { return (Flags & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamORAssem; }
+		public bool IsNestedFamilyOrAssembly {
+			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamORAssem; }
 		}
 
 		/// <summary>
 		/// Gets/sets the layout
 		/// </summary>
 		public TypeAttributes Layout {
-			get { return Flags & TypeAttributes.LayoutMask; }
-			set { Flags = (Flags & ~TypeAttributes.LayoutMask) | (value & TypeAttributes.LayoutMask); }
+			get { return Attributes & TypeAttributes.LayoutMask; }
+			set { Attributes = (Attributes & ~TypeAttributes.LayoutMask) | (value & TypeAttributes.LayoutMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.AutoLayout"/> is set
 		/// </summary>
 		public bool IsAutoLayout {
-			get { return (Flags & TypeAttributes.LayoutMask) == TypeAttributes.AutoLayout; }
+			get { return (Attributes & TypeAttributes.LayoutMask) == TypeAttributes.AutoLayout; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.SequentialLayout"/> is set
 		/// </summary>
 		public bool IsSequentialLayout {
-			get { return (Flags & TypeAttributes.LayoutMask) == TypeAttributes.SequentialLayout; }
+			get { return (Attributes & TypeAttributes.LayoutMask) == TypeAttributes.SequentialLayout; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.ExplicitLayout"/> is set
 		/// </summary>
 		public bool IsExplicitLayout {
-			get { return (Flags & TypeAttributes.LayoutMask) == TypeAttributes.ExplicitLayout; }
+			get { return (Attributes & TypeAttributes.LayoutMask) == TypeAttributes.ExplicitLayout; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="TypeAttributes.Interface"/> bit
 		/// </summary>
 		public bool IsInterface {
-			get { return (Flags & TypeAttributes.Interface) != 0; }
+			get { return (Attributes & TypeAttributes.Interface) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.Interface;
+					Attributes |= TypeAttributes.Interface;
 				else
-					Flags &= ~TypeAttributes.Interface;
+					Attributes &= ~TypeAttributes.Interface;
 			}
 		}
 
@@ -416,12 +442,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Class"/> bit
 		/// </summary>
 		public bool IsClass {
-			get { return (Flags & TypeAttributes.Interface) == 0; }
+			get { return (Attributes & TypeAttributes.Interface) == 0; }
 			set {
 				if (value)
-					Flags &= ~TypeAttributes.Interface;
+					Attributes &= ~TypeAttributes.Interface;
 				else
-					Flags |= TypeAttributes.Interface;
+					Attributes |= TypeAttributes.Interface;
 			}
 		}
 
@@ -429,12 +455,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Abstract"/> bit
 		/// </summary>
 		public bool IsAbstract {
-			get { return (Flags & TypeAttributes.Abstract) != 0; }
+			get { return (Attributes & TypeAttributes.Abstract) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.Abstract;
+					Attributes |= TypeAttributes.Abstract;
 				else
-					Flags &= ~TypeAttributes.Abstract;
+					Attributes &= ~TypeAttributes.Abstract;
 			}
 		}
 
@@ -442,12 +468,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Sealed"/> bit
 		/// </summary>
 		public bool IsSealed {
-			get { return (Flags & TypeAttributes.Sealed) != 0; }
+			get { return (Attributes & TypeAttributes.Sealed) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.Sealed;
+					Attributes |= TypeAttributes.Sealed;
 				else
-					Flags &= ~TypeAttributes.Sealed;
+					Attributes &= ~TypeAttributes.Sealed;
 			}
 		}
 
@@ -455,12 +481,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return (Flags & TypeAttributes.SpecialName) != 0; }
+			get { return (Attributes & TypeAttributes.SpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.SpecialName;
+					Attributes |= TypeAttributes.SpecialName;
 				else
-					Flags &= ~TypeAttributes.SpecialName;
+					Attributes &= ~TypeAttributes.SpecialName;
 			}
 		}
 
@@ -468,12 +494,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Import"/> bit
 		/// </summary>
 		public bool IsImport {
-			get { return (Flags & TypeAttributes.Import) != 0; }
+			get { return (Attributes & TypeAttributes.Import) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.Import;
+					Attributes |= TypeAttributes.Import;
 				else
-					Flags &= ~TypeAttributes.Import;
+					Attributes &= ~TypeAttributes.Import;
 			}
 		}
 
@@ -481,12 +507,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Serializable"/> bit
 		/// </summary>
 		public bool IsSerializable {
-			get { return (Flags & TypeAttributes.Serializable) != 0; }
+			get { return (Attributes & TypeAttributes.Serializable) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.Serializable;
+					Attributes |= TypeAttributes.Serializable;
 				else
-					Flags &= ~TypeAttributes.Serializable;
+					Attributes &= ~TypeAttributes.Serializable;
 			}
 		}
 
@@ -494,12 +520,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.WindowsRuntime"/> bit
 		/// </summary>
 		public bool IsWindowsRuntime {
-			get { return (Flags & TypeAttributes.WindowsRuntime) != 0; }
+			get { return (Attributes & TypeAttributes.WindowsRuntime) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.WindowsRuntime;
+					Attributes |= TypeAttributes.WindowsRuntime;
 				else
-					Flags &= ~TypeAttributes.WindowsRuntime;
+					Attributes &= ~TypeAttributes.WindowsRuntime;
 			}
 		}
 
@@ -507,48 +533,48 @@ namespace dot10.DotNet {
 		/// Gets/sets the string format
 		/// </summary>
 		public TypeAttributes StringFormat {
-			get { return Flags & TypeAttributes.StringFormatMask; }
-			set { Flags = (Flags & ~TypeAttributes.StringFormatMask) | (value & TypeAttributes.StringFormatMask); }
+			get { return Attributes & TypeAttributes.StringFormatMask; }
+			set { Attributes = (Attributes & ~TypeAttributes.StringFormatMask) | (value & TypeAttributes.StringFormatMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.AnsiClass"/> is set
 		/// </summary>
 		public bool IsAnsiClass {
-			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.AnsiClass; }
+			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.AnsiClass; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.UnicodeClass"/> is set
 		/// </summary>
 		public bool IsUnicodeClass {
-			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.UnicodeClass; }
+			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.UnicodeClass; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.AutoClass"/> is set
 		/// </summary>
 		public bool IsAutoClass {
-			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.AutoClass; }
+			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.AutoClass; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.CustomFormatClass"/> is set
 		/// </summary>
 		public bool IsCustomFormatClass {
-			get { return (Flags & TypeAttributes.StringFormatMask) == TypeAttributes.CustomFormatClass; }
+			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.CustomFormatClass; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="TypeAttributes.BeforeFieldInit"/> bit
 		/// </summary>
 		public bool IsBeforeFieldInit {
-			get { return (Flags & TypeAttributes.BeforeFieldInit) != 0; }
+			get { return (Attributes & TypeAttributes.BeforeFieldInit) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.BeforeFieldInit;
+					Attributes |= TypeAttributes.BeforeFieldInit;
 				else
-					Flags &= ~TypeAttributes.BeforeFieldInit;
+					Attributes &= ~TypeAttributes.BeforeFieldInit;
 			}
 		}
 
@@ -556,25 +582,25 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Forwarder"/> bit
 		/// </summary>
 		public bool IsForwarder {
-			get { return (Flags & TypeAttributes.Forwarder) != 0; }
+			get { return (Attributes & TypeAttributes.Forwarder) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.Forwarder;
+					Attributes |= TypeAttributes.Forwarder;
 				else
-					Flags &= ~TypeAttributes.Forwarder;
+					Attributes &= ~TypeAttributes.Forwarder;
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="TypeAttributes.RTSpecialName"/> bit
 		/// </summary>
-		public bool IsRTSpecialName {
-			get { return (Flags & TypeAttributes.RTSpecialName) != 0; }
+		public bool IsRuntimeSpecialName {
+			get { return (Attributes & TypeAttributes.RTSpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.RTSpecialName;
+					Attributes |= TypeAttributes.RTSpecialName;
 				else
-					Flags &= ~TypeAttributes.RTSpecialName;
+					Attributes &= ~TypeAttributes.RTSpecialName;
 			}
 		}
 
@@ -582,12 +608,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.HasSecurity"/> bit
 		/// </summary>
 		public bool HasSecurity {
-			get { return (Flags & TypeAttributes.HasSecurity) != 0; }
+			get { return (Attributes & TypeAttributes.HasSecurity) != 0; }
 			set {
 				if (value)
-					Flags |= TypeAttributes.HasSecurity;
+					Attributes |= TypeAttributes.HasSecurity;
 				else
-					Flags &= ~TypeAttributes.HasSecurity;
+					Attributes &= ~TypeAttributes.HasSecurity;
 			}
 		}
 
@@ -737,10 +763,9 @@ namespace dot10.DotNet {
 		/// Finds the class constructor (aka type initializer). It's the method named .cctor
 		/// </summary>
 		/// <returns>The class constructor or <c>null</c> if none found</returns>
-		public MethodDef FindClassConstructor() {
+		public MethodDef FindStaticConstructor() {
 			foreach (var method in Methods) {
-				//TODO: Should we check for SpecialName and RTSpecialName?
-				if (UTF8String.Equals(method.Name, classConstructorName))
+				if (method.IsStaticConstructor)
 					return method;
 			}
 			return null;
@@ -750,10 +775,20 @@ namespace dot10.DotNet {
 		/// Finds all instance constructors (not class constructors)
 		/// </summary>
 		/// <returns>All instance constructors</returns>
+		public IEnumerable<MethodDef> FindInstanceConstructors() {
+			foreach (var method in Methods) {
+				if (method.IsInstanceConstructor)
+					yield return method;
+			}
+		}
+
+		/// <summary>
+		/// Finds all static and instance constructors
+		/// </summary>
+		/// <returns>All static and instance constructors</returns>
 		public IEnumerable<MethodDef> FindConstructors() {
 			foreach (var method in Methods) {
-				//TODO: Should we check for SpecialName and RTSpecialName?
-				if (UTF8String.Equals(method.Name, constructorName))
+				if (method.IsConstructor)
 					yield return method;
 			}
 		}
@@ -764,8 +799,7 @@ namespace dot10.DotNet {
 		/// <returns>The default instance constructor or <c>null</c> if none</returns>
 		public MethodDef FindDefaultConstructor() {
 			foreach (var method in Methods) {
-				//TODO: Should we check for SpecialName and RTSpecialName?
-				if (!UTF8String.Equals(method.Name, constructorName))
+				if (!method.IsInstanceConstructor)
 					continue;
 				var sig = method.MethodSig;
 				if (sig != null && sig.Params.Count == 0)
@@ -895,7 +929,7 @@ namespace dot10.DotNet {
 			foreach (var @event in Events) {
 				if (!UTF8String.Equals(@event.Name, name))
 					continue;
-				if (comparer.Equals(@event.Type, type))
+				if (comparer.Equals(@event.EventType, type))
 					return @event;
 			}
 			return null;
@@ -1471,7 +1505,7 @@ namespace dot10.DotNet {
 		ModuleDef ownerModule;
 
 		/// <inheritdoc/>
-		public override TypeAttributes Flags {
+		public override TypeAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -1666,7 +1700,7 @@ namespace dot10.DotNet {
 		Dictionary<uint, List<MethodOverride>> methodRidToOverrides;
 
 		/// <inheritdoc/>
-		public override TypeAttributes Flags {
+		public override TypeAttributes Attributes {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}

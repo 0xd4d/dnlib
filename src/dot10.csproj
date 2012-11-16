@@ -41,7 +41,7 @@
     <Compile Include="DotNet\AccessChecker.cs" />
     <Compile Include="DotNet\AllTypesHelper.cs" />
     <Compile Include="DotNet\AssemblyDef.cs" />
-    <Compile Include="DotNet\AssemblyFlags.cs" />
+    <Compile Include="DotNet\AssemblyAttributes.cs" />
     <Compile Include="DotNet\AssemblyHash.cs" />
     <Compile Include="DotNet\AssemblyHashAlgorithm.cs" />
     <Compile Include="DotNet\AssemblyNameComparer.cs" />

@@ -4,6 +4,26 @@ using dot10.IO;
 
 namespace dot10.DotNet {
 	/// <summary>
+	/// Type of resource
+	/// </summary>
+	public enum ResourceType {
+		/// <summary>
+		/// It's a <see cref="EmbeddedResource"/>
+		/// </summary>
+		Embedded,
+
+		/// <summary>
+		/// It's a <see cref="AssemblyLinkedResource"/>
+		/// </summary>
+		AssemblyLinked,
+
+		/// <summary>
+		/// It's a <see cref="LinkedResource"/>
+		/// </summary>
+		Linked,
+	}
+
+	/// <summary>
 	/// Resource base class
 	/// </summary>
 	public abstract class Resource : IDisposable {
@@ -21,10 +41,15 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets/sets the flags
 		/// </summary>
-		public ManifestResourceAttributes Flags {
+		public ManifestResourceAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
+
+		/// <summary>
+		/// Gets the type of resource
+		/// </summary>
+		public abstract ResourceType ResourceType { get; }
 
 		/// <summary>
 		/// Gets/sets the visibility
@@ -77,6 +102,11 @@ namespace dot10.DotNet {
 	/// </summary>
 	public sealed class EmbeddedResource : Resource {
 		IImageStream dataStream;
+
+		/// <inheritdoc/>
+		public override ResourceType ResourceType {
+			get { return ResourceType.Embedded; }
+		}
 
 		/// <summary>
 		/// Gets/sets the resource data. It's never <c>null</c>.
@@ -211,6 +241,11 @@ namespace dot10.DotNet {
 	public sealed class AssemblyLinkedResource : Resource {
 		AssemblyRef asmRef;
 
+		/// <inheritdoc/>
+		public override ResourceType ResourceType {
+			get { return ResourceType.AssemblyLinked; }
+		}
+
 		/// <summary>
 		/// Gets/sets the assembly reference
 		/// </summary>
@@ -257,6 +292,11 @@ namespace dot10.DotNet {
 	public sealed class LinkedResource : Resource {
 		FileDef file;
 
+		/// <inheritdoc/>
+		public override ResourceType ResourceType {
+			get { return ResourceType.Linked; }
+		}
+
 		/// <summary>
 		/// Gets/sets the file
 		/// </summary>
@@ -267,6 +307,14 @@ namespace dot10.DotNet {
 					throw new ArgumentNullException("value");
 				file = value;
 			}
+		}
+
+		/// <summary>
+		/// Gets/sets the hash
+		/// </summary>
+		public byte[] Hash {
+			get { return file.HashValue; }
+			set { file.HashValue = value; }
 		}
 
 		/// <summary>

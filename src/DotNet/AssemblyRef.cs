@@ -66,7 +66,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column AssemblyRef.Flags
 		/// </summary>
-		public abstract AssemblyFlags Flags { get; set; }
+		public abstract AssemblyAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column AssemblyRef.PublicKeyOrToken
@@ -82,12 +82,12 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column AssemblyRef.Locale
 		/// </summary>
-		public abstract UTF8String Locale { get; set; }
+		public abstract UTF8String Culture { get; set; }
 
 		/// <summary>
 		/// From column AssemblyRef.HashValue
 		/// </summary>
-		public abstract byte[] HashValue { get; set; }
+		public abstract byte[] Hash { get; set; }
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -96,159 +96,159 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return Utils.GetAssemblyNameString(Name, Version, Locale, PublicKeyOrToken); }
+			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyOrToken); }
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyFlags.PublicKey"/> bit
+		/// Gets/sets the <see cref="AssemblyAttributes.PublicKey"/> bit
 		/// </summary>
 		public bool HasPublicKey {
-			get { return (Flags & AssemblyFlags.PublicKey) != 0; }
+			get { return (Attributes & AssemblyAttributes.PublicKey) != 0; }
 			set {
 				if (value)
-					Flags |= AssemblyFlags.PublicKey;
+					Attributes |= AssemblyAttributes.PublicKey;
 				else
-					Flags &= ~AssemblyFlags.PublicKey;
+					Attributes &= ~AssemblyAttributes.PublicKey;
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the processor architecture
 		/// </summary>
-		public AssemblyFlags ProcessorArchitecture {
-			get { return Flags & AssemblyFlags.PA_Mask; }
-			set { Flags = (Flags & ~AssemblyFlags.PA_Mask) | (value & AssemblyFlags.PA_Mask); }
+		public AssemblyAttributes ProcessorArchitecture {
+			get { return Attributes & AssemblyAttributes.PA_Mask; }
+			set { Attributes = (Attributes & ~AssemblyAttributes.PA_Mask) | (value & AssemblyAttributes.PA_Mask); }
 		}
 
 		/// <summary>
 		/// Gets/sets the processor architecture
 		/// </summary>
-		public AssemblyFlags ProcessorArchitectureFull {
-			get { return Flags & AssemblyFlags.PA_FullMask; }
-			set { Flags = (Flags & ~AssemblyFlags.PA_FullMask) | (value & AssemblyFlags.PA_FullMask); }
+		public AssemblyAttributes ProcessorArchitectureFull {
+			get { return Attributes & AssemblyAttributes.PA_FullMask; }
+			set { Attributes = (Attributes & ~AssemblyAttributes.PA_FullMask) | (value & AssemblyAttributes.PA_FullMask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if unspecified processor architecture
 		/// </summary>
 		public bool IsProcessorArchitectureNone {
-			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_None; }
+			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_None; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if neutral (PE32) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureMSIL {
-			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_MSIL; }
+			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_MSIL; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if x86 (PE32) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureX86 {
-			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_x86; }
+			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_x86; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if IA-64 (PE32+) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureIA64 {
-			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_IA64; }
+			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_IA64; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if x64 (PE32+) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureX64 {
-			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_AMD64; }
+			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_AMD64; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if ARM (PE32) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureARM {
-			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_ARM; }
+			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_ARM; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if eg. reference assembly (not runnable)
 		/// </summary>
 		public bool IsProcessorArchitectureNoPlatform {
-			get { return (Flags & AssemblyFlags.PA_Mask) == AssemblyFlags.PA_NoPlatform; }
+			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_NoPlatform; }
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyFlags.PA_Specified"/> bit
+		/// Gets/sets the <see cref="AssemblyAttributes.PA_Specified"/> bit
 		/// </summary>
 		public bool IsProcessorArchitectureSpecified {
-			get { return (Flags & AssemblyFlags.PA_Specified) != 0; }
+			get { return (Attributes & AssemblyAttributes.PA_Specified) != 0; }
 			set {
 				if (value)
-					Flags |= AssemblyFlags.PA_Specified;
+					Attributes |= AssemblyAttributes.PA_Specified;
 				else
-					Flags &= ~AssemblyFlags.PA_Specified;
+					Attributes &= ~AssemblyAttributes.PA_Specified;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyFlags.EnableJITcompileTracking"/> bit
+		/// Gets/sets the <see cref="AssemblyAttributes.EnableJITcompileTracking"/> bit
 		/// </summary>
 		public bool EnableJITcompileTracking {
-			get { return (Flags & AssemblyFlags.EnableJITcompileTracking) != 0; }
+			get { return (Attributes & AssemblyAttributes.EnableJITcompileTracking) != 0; }
 			set {
 				if (value)
-					Flags |= AssemblyFlags.EnableJITcompileTracking;
+					Attributes |= AssemblyAttributes.EnableJITcompileTracking;
 				else
-					Flags &= ~AssemblyFlags.EnableJITcompileTracking;
+					Attributes &= ~AssemblyAttributes.EnableJITcompileTracking;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyFlags.DisableJITcompileOptimizer"/> bit
+		/// Gets/sets the <see cref="AssemblyAttributes.DisableJITcompileOptimizer"/> bit
 		/// </summary>
 		public bool DisableJITcompileOptimizer {
-			get { return (Flags & AssemblyFlags.DisableJITcompileOptimizer) != 0; }
+			get { return (Attributes & AssemblyAttributes.DisableJITcompileOptimizer) != 0; }
 			set {
 				if (value)
-					Flags |= AssemblyFlags.DisableJITcompileOptimizer;
+					Attributes |= AssemblyAttributes.DisableJITcompileOptimizer;
 				else
-					Flags &= ~AssemblyFlags.DisableJITcompileOptimizer;
+					Attributes &= ~AssemblyAttributes.DisableJITcompileOptimizer;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyFlags.Retargetable"/> bit
+		/// Gets/sets the <see cref="AssemblyAttributes.Retargetable"/> bit
 		/// </summary>
 		public bool IsRetargetable {
-			get { return (Flags & AssemblyFlags.Retargetable) != 0; }
+			get { return (Attributes & AssemblyAttributes.Retargetable) != 0; }
 			set {
 				if (value)
-					Flags |= AssemblyFlags.Retargetable;
+					Attributes |= AssemblyAttributes.Retargetable;
 				else
-					Flags &= ~AssemblyFlags.Retargetable;
+					Attributes &= ~AssemblyAttributes.Retargetable;
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the content type
 		/// </summary>
-		public AssemblyFlags ContentType {
-			get { return Flags & AssemblyFlags.ContentType_Mask; }
-			set { Flags = (Flags & ~AssemblyFlags.ContentType_Mask) | (value & AssemblyFlags.ContentType_Mask); }
+		public AssemblyAttributes ContentType {
+			get { return Attributes & AssemblyAttributes.ContentType_Mask; }
+			set { Attributes = (Attributes & ~AssemblyAttributes.ContentType_Mask) | (value & AssemblyAttributes.ContentType_Mask); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if content type is <c>Default</c>
 		/// </summary>
 		public bool IsContentTypeDefault {
-			get { return (Flags & AssemblyFlags.ContentType_Mask) == AssemblyFlags.ContentType_Default; }
+			get { return (Attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_Default; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if content type is <c>WindowsRuntime</c>
 		/// </summary>
 		public bool IsContentTypeWindowsRuntime {
-			get { return (Flags & AssemblyFlags.ContentType_Mask) == AssemblyFlags.ContentType_WindowsRuntime; }
+			get { return (Attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime; }
 		}
 
 		/// <inheritdoc/>
@@ -262,7 +262,7 @@ namespace dot10.DotNet {
 	/// </summary>
 	public class AssemblyRefUser : AssemblyRef {
 		Version version;
-		AssemblyFlags flags;
+		AssemblyAttributes flags;
 		PublicKeyBase publicKeyOrToken;
 		UTF8String name;
 		UTF8String locale;
@@ -285,9 +285,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override AssemblyFlags Flags {
+		public override AssemblyAttributes Attributes {
 			get { return flags; }
-			set { flags = (value & ~AssemblyFlags.PublicKey) | (flags & AssemblyFlags.PublicKey); }
+			set { flags = (value & ~AssemblyAttributes.PublicKey) | (flags & AssemblyAttributes.PublicKey); }
 		}
 
 		/// <inheritdoc/>
@@ -297,9 +297,9 @@ namespace dot10.DotNet {
 				if (value == null)
 					throw new ArgumentNullException("value");
 				if (value is PublicKey)
-					flags |= AssemblyFlags.PublicKey;
+					flags |= AssemblyAttributes.PublicKey;
 				else
-					flags &= ~AssemblyFlags.PublicKey;
+					flags &= ~AssemblyAttributes.PublicKey;
 				publicKeyOrToken = value;
 			}
 		}
@@ -311,13 +311,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override UTF8String Locale {
+		public override UTF8String Culture {
 			get { return locale; }
 			set { locale = value; }
 		}
 
 		/// <inheritdoc/>
-		public override byte[] HashValue {
+		public override byte[] Hash {
 			get { return hashValue; }
 			set { hashValue = value; }
 		}
@@ -378,7 +378,7 @@ namespace dot10.DotNet {
 			this.version = version;
 			this.publicKeyOrToken = publicKey;
 			this.locale = locale;
-			this.flags = publicKey is PublicKey ? AssemblyFlags.PublicKey : AssemblyFlags.None;
+			this.flags = publicKey is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None;
 		}
 
 		/// <summary>
@@ -430,7 +430,7 @@ namespace dot10.DotNet {
 		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyRefUser(AssemblyName asmName)
 			: this(new AssemblyNameInfo(asmName)) {
-			this.flags = (AssemblyFlags)asmName.Flags;
+			this.flags = (AssemblyAttributes)asmName.Flags;
 		}
 
 		/// <summary>
@@ -446,7 +446,7 @@ namespace dot10.DotNet {
 			this.publicKeyOrToken = asmName.PublicKeyOrToken;
 			this.name = UTF8String.IsNullOrEmpty(asmName.Name) ? UTF8String.Empty : asmName.Name;
 			this.locale = asmName.Locale;
-			this.flags = publicKeyOrToken is PublicKey ? AssemblyFlags.PublicKey : AssemblyFlags.None;
+			this.flags = publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None;
 		}
 
 		/// <summary>
@@ -460,8 +460,8 @@ namespace dot10.DotNet {
 			this.version = assembly.Version ?? new Version(0, 0, 0, 0);
 			this.publicKeyOrToken = assembly.PublicKeyOrToken;
 			this.name = UTF8String.IsNullOrEmpty(assembly.Name) ? UTF8String.Empty : assembly.Name;
-			this.locale = assembly.Locale;
-			this.flags = publicKeyOrToken is PublicKey ? AssemblyFlags.PublicKey : AssemblyFlags.None;
+			this.locale = assembly.Culture;
+			this.flags = publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None;
 		}
 	}
 
@@ -476,7 +476,7 @@ namespace dot10.DotNet {
 
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<Version> version;
-		UserValue<AssemblyFlags> flags;
+		UserValue<AssemblyAttributes> flags;
 		UserValue<PublicKeyBase> publicKeyOrToken;
 		UserValue<UTF8String> name;
 		UserValue<UTF8String> locale;
@@ -504,9 +504,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override AssemblyFlags Flags {
+		public override AssemblyAttributes Attributes {
 			get { return flags.Value; }
-			set { flags.Value = (value & ~AssemblyFlags.PublicKey) | (flags.Value & AssemblyFlags.PublicKey); }
+			set { flags.Value = (value & ~AssemblyAttributes.PublicKey) | (flags.Value & AssemblyAttributes.PublicKey); }
 		}
 
 		/// <inheritdoc/>
@@ -516,9 +516,9 @@ namespace dot10.DotNet {
 				if (value == null)
 					throw new ArgumentNullException("value");
 				if (value is PublicKey)
-					flags.Value |= AssemblyFlags.PublicKey;
+					flags.Value |= AssemblyAttributes.PublicKey;
 				else
-					flags.Value &= ~AssemblyFlags.PublicKey;
+					flags.Value &= ~AssemblyAttributes.PublicKey;
 				publicKeyOrToken.Value = value;
 			}
 		}
@@ -530,13 +530,13 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override UTF8String Locale {
+		public override UTF8String Culture {
 			get { return locale.Value; }
 			set { locale.Value = value; }
 		}
 
 		/// <inheritdoc/>
-		public override byte[] HashValue {
+		public override byte[] Hash {
 			get { return hashValue.Value; }
 			set { hashValue.Value = value; }
 		}
@@ -567,12 +567,12 @@ namespace dot10.DotNet {
 			};
 			flags.ReadOriginalValue = () => {
 				InitializeRawRow();
-				return (AssemblyFlags)rawRow.Flags;
+				return (AssemblyAttributes)rawRow.Flags;
 			};
 			publicKeyOrToken.ReadOriginalValue = () => {
 				InitializeRawRow();
 				var pkData = readerModule.BlobStream.Read(rawRow.PublicKeyOrToken);
-				if ((rawRow.Flags & (uint)AssemblyFlags.PublicKey) != 0)
+				if ((rawRow.Flags & (uint)AssemblyAttributes.PublicKey) != 0)
 					return new PublicKey(pkData);
 				return new PublicKeyToken(pkData);
 			};

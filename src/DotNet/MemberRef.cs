@@ -125,6 +125,38 @@ namespace dot10.DotNet {
 			get { return ownerModule; }
 		}
 
+		/// <summary>
+		/// <c>true</c> if the method has a hidden 'this' parameter
+		/// </summary>
+		public bool HasThis {
+			get { return MethodSig == null ? false : MethodSig.HasThis; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if the method has an explicit 'this' parameter
+		/// </summary>
+		public bool ExplicitThis {
+			get { return MethodSig == null ? false : MethodSig.ExplicitThis; }
+		}
+
+		/// <summary>
+		/// Gets the calling convention
+		/// </summary>
+		public CallingConvention CallingConvention {
+			get { return MethodSig == null ? 0 : MethodSig.CallingConvention & CallingConvention.Mask; }
+		}
+
+		/// <summary>
+		/// Gets/sets the method return type
+		/// </summary>
+		public TypeSig ReturnType {
+			get { return MethodSig == null ? null : MethodSig.RetType; }
+			set {
+				if (MethodSig != null)
+					MethodSig.RetType = value;
+			}
+		}
+
 		/// <inheritdoc/>
 		bool IGenericParameterProvider.IsMethod {
 			get { return true; }

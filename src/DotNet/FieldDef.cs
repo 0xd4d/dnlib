@@ -52,7 +52,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column Field.Flags
 		/// </summary>
-		public abstract FieldAttributes Flags { get; set; }
+		public abstract FieldAttributes Attributes { get; set; }
 
 		/// <summary>
 		/// From column Field.Name
@@ -131,72 +131,119 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="FieldOffset"/> is not <c>null</c>
+		/// </summary>
+		public bool HasLayoutInfo {
+			get { return FieldOffset != null; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
+		/// </summary>
+		public bool HasConstant {
+			get { return Constant != null; }
+		}
+
+		/// <summary>
+		/// Gets the constant element type or <see cref="dot10.DotNet.ElementType.End"/> if there's no constant
+		/// </summary>
+		public ElementType ElementType {
+			get { return Constant == null ? ElementType.End : Constant.Type; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="FieldMarshal"/> is not <c>null</c>
+		/// </summary>
+		public bool HasMarshalInfo {
+			get { return FieldMarshal != null; }
+		}
+
+		/// <summary>
+		/// Gets/sets the field type
+		/// </summary>
+		public TypeSig FieldType {
+			get { return FieldSig.GetFieldType(); }
+			set {
+				var sig = FieldSig;
+				if (sig != null)
+					sig.Type = value;
+			}
+		}
+
+		/// <summary>
 		/// Gets/sets the field access
 		/// </summary>
 		public FieldAttributes Access {
-			get { return Flags & FieldAttributes.FieldAccessMask; }
-			set { Flags = (Flags & ~FieldAttributes.FieldAccessMask) | (value & FieldAttributes.FieldAccessMask); }
+			get { return Attributes & FieldAttributes.FieldAccessMask; }
+			set { Attributes = (Attributes & ~FieldAttributes.FieldAccessMask) | (value & FieldAttributes.FieldAccessMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="FieldAttributes.PrivateScope"/> is set
+		/// </summary>
+		public bool IsCompilerControlled {
+			get { return IsPrivateScope; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldAttributes.PrivateScope"/> is set
 		/// </summary>
 		public bool IsPrivateScope {
-			get { return (Flags & FieldAttributes.FieldAccessMask) == FieldAttributes.PrivateScope; }
+			get { return (Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.PrivateScope; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldAttributes.Private"/> is set
 		/// </summary>
 		public bool IsPrivate {
-			get { return (Flags & FieldAttributes.FieldAccessMask) == FieldAttributes.Private; }
+			get { return (Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.Private; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldAttributes.FamANDAssem"/> is set
 		/// </summary>
-		public bool IsFamANDAssem {
-			get { return (Flags & FieldAttributes.FieldAccessMask) == FieldAttributes.FamANDAssem; }
+		public bool IsFamilyAndAssembly {
+			get { return (Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.FamANDAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldAttributes.Assembly"/> is set
 		/// </summary>
 		public bool IsAssembly {
-			get { return (Flags & FieldAttributes.FieldAccessMask) == FieldAttributes.Assembly; }
+			get { return (Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.Assembly; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldAttributes.Family"/> is set
 		/// </summary>
 		public bool IsFamily {
-			get { return (Flags & FieldAttributes.FieldAccessMask) == FieldAttributes.Family; }
+			get { return (Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.Family; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldAttributes.FamORAssem"/> is set
 		/// </summary>
-		public bool IsFamORAssem {
-			get { return (Flags & FieldAttributes.FieldAccessMask) == FieldAttributes.FamORAssem; }
+		public bool IsFamilyOrAssembly {
+			get { return (Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.FamORAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldAttributes.Public"/> is set
 		/// </summary>
 		public bool IsPublic {
-			get { return (Flags & FieldAttributes.FieldAccessMask) == FieldAttributes.Public; }
+			get { return (Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.Public; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="FieldAttributes.Static"/> bit
 		/// </summary>
 		public bool IsStatic {
-			get { return (Flags & FieldAttributes.Static) != 0; }
+			get { return (Attributes & FieldAttributes.Static) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.Static;
+					Attributes |= FieldAttributes.Static;
 				else
-					Flags &= ~FieldAttributes.Static;
+					Attributes &= ~FieldAttributes.Static;
 			}
 		}
 
@@ -204,12 +251,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.InitOnly"/> bit
 		/// </summary>
 		public bool IsInitOnly {
-			get { return (Flags & FieldAttributes.InitOnly) != 0; }
+			get { return (Attributes & FieldAttributes.InitOnly) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.InitOnly;
+					Attributes |= FieldAttributes.InitOnly;
 				else
-					Flags &= ~FieldAttributes.InitOnly;
+					Attributes &= ~FieldAttributes.InitOnly;
 			}
 		}
 
@@ -217,12 +264,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.Literal"/> bit
 		/// </summary>
 		public bool IsLiteral {
-			get { return (Flags & FieldAttributes.Literal) != 0; }
+			get { return (Attributes & FieldAttributes.Literal) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.Literal;
+					Attributes |= FieldAttributes.Literal;
 				else
-					Flags &= ~FieldAttributes.Literal;
+					Attributes &= ~FieldAttributes.Literal;
 			}
 		}
 
@@ -230,12 +277,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.NotSerialized"/> bit
 		/// </summary>
 		public bool IsNotSerialized {
-			get { return (Flags & FieldAttributes.NotSerialized) != 0; }
+			get { return (Attributes & FieldAttributes.NotSerialized) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.NotSerialized;
+					Attributes |= FieldAttributes.NotSerialized;
 				else
-					Flags &= ~FieldAttributes.NotSerialized;
+					Attributes &= ~FieldAttributes.NotSerialized;
 			}
 		}
 
@@ -243,12 +290,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return (Flags & FieldAttributes.SpecialName) != 0; }
+			get { return (Attributes & FieldAttributes.SpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.SpecialName;
+					Attributes |= FieldAttributes.SpecialName;
 				else
-					Flags &= ~FieldAttributes.SpecialName;
+					Attributes &= ~FieldAttributes.SpecialName;
 			}
 		}
 
@@ -256,25 +303,25 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.PinvokeImpl"/> bit
 		/// </summary>
 		public bool IsPinvokeImpl {
-			get { return (Flags & FieldAttributes.PinvokeImpl) != 0; }
+			get { return (Attributes & FieldAttributes.PinvokeImpl) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.PinvokeImpl;
+					Attributes |= FieldAttributes.PinvokeImpl;
 				else
-					Flags &= ~FieldAttributes.PinvokeImpl;
+					Attributes &= ~FieldAttributes.PinvokeImpl;
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="FieldAttributes.RTSpecialName"/> bit
 		/// </summary>
-		public bool IsRTSpecialName {
-			get { return (Flags & FieldAttributes.RTSpecialName) != 0; }
+		public bool IsRuntimeSpecialName {
+			get { return (Attributes & FieldAttributes.RTSpecialName) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.RTSpecialName;
+					Attributes |= FieldAttributes.RTSpecialName;
 				else
-					Flags &= ~FieldAttributes.RTSpecialName;
+					Attributes &= ~FieldAttributes.RTSpecialName;
 			}
 		}
 
@@ -282,12 +329,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.HasFieldMarshal"/> bit
 		/// </summary>
 		public bool HasFieldMarshal {
-			get { return (Flags & FieldAttributes.HasFieldMarshal) != 0; }
+			get { return (Attributes & FieldAttributes.HasFieldMarshal) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.HasFieldMarshal;
+					Attributes |= FieldAttributes.HasFieldMarshal;
 				else
-					Flags &= ~FieldAttributes.HasFieldMarshal;
+					Attributes &= ~FieldAttributes.HasFieldMarshal;
 			}
 		}
 
@@ -295,12 +342,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.HasDefault"/> bit
 		/// </summary>
 		public bool HasDefault {
-			get { return (Flags & FieldAttributes.HasDefault) != 0; }
+			get { return (Attributes & FieldAttributes.HasDefault) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.HasDefault;
+					Attributes |= FieldAttributes.HasDefault;
 				else
-					Flags &= ~FieldAttributes.HasDefault;
+					Attributes &= ~FieldAttributes.HasDefault;
 			}
 		}
 
@@ -308,12 +355,12 @@ namespace dot10.DotNet {
 		/// Gets/sets the <see cref="FieldAttributes.HasFieldRVA"/> bit
 		/// </summary>
 		public bool HasFieldRVA {
-			get { return (Flags & FieldAttributes.HasFieldRVA) != 0; }
+			get { return (Attributes & FieldAttributes.HasFieldRVA) != 0; }
 			set {
 				if (value)
-					Flags |= FieldAttributes.HasFieldRVA;
+					Attributes |= FieldAttributes.HasFieldRVA;
 				else
-					Flags &= ~FieldAttributes.HasFieldRVA;
+					Attributes &= ~FieldAttributes.HasFieldRVA;
 			}
 		}
 
@@ -415,7 +462,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldAttributes Flags {
+		public override FieldAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -570,7 +617,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldAttributes Flags {
+		public override FieldAttributes Attributes {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
