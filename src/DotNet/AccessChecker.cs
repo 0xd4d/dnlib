@@ -10,7 +10,7 @@ namespace dot10.DotNet {
 		TypeDef userType;
 		List<TypeDef> userTypeEnclosingTypes;
 		bool enclosingTypesInitialized;
-		Dictionary<ITypeDefOrRef, bool> baseTypes;
+		Dictionary<IType, bool> baseTypes;
 		bool baseTypesInitialized;
 
 		[Flags]
@@ -133,7 +133,7 @@ namespace dot10.DotNet {
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
 		/// if we can't determine it (eg. we couldn't resolve a type or input was <c>null</c>)</returns>
 		public bool? CanAccess(TypeDef td) {
-			var access = GetTypeAccess(td);
+			var access = GetTypeAccess(td, null);
 			if (access == null)
 				return null;
 			return (access.Value & CheckTypeAccess.Normal) != 0;
@@ -146,19 +146,25 @@ namespace dot10.DotNet {
 		/// to its members. Else, we only have normal access to it and its members.
 		/// </summary>
 		/// <param name="td">The type</param>
-		CheckTypeAccess? GetTypeAccess(TypeDef td) {
+		/// <param name="git">Generic instance of <paramref name="td"/> or <c>null</c> if none</param>
+		CheckTypeAccess? GetTypeAccess(TypeDef td, GenericInstSig git) {
 			if (td == null)
 				return null;
 			if (userType == td)
 				return CheckTypeAccess.Full;
 
+			// If this is our nested type, we have private access to it itself, but normal
+			// access to its members.
+			if (td.DeclaringType == userType)
+				return CheckTypeAccess.Normal | CheckTypeAccess.FullTypeAccess;
+
 			// If we're not a nested type, td can't be our enclosing type
 			if (userType.DeclaringType == null)
-				return GetTypeAccess2(td);
+				return GetTypeAccess2(td, git);
 
 			// Can't be an enclosing type if they're not in the same module
 			if (userType.OwnerModule != td.OwnerModule)
-				return GetTypeAccess2(td);
+				return GetTypeAccess2(td, git);
 
 			var tdEncTypes = GetEnclosingTypes(td, true);
 			var ourEncTypes = InitializeOurEnclosingTypes();
@@ -176,26 +182,29 @@ namespace dot10.DotNet {
 
 			// If there are no common enclosing types, only check the visibility.
 			if (commonIndex == 0)
-				return GetTypeAccess2(td);
+				return GetTypeAccess2(td, git);
 
 			// If td's declaring type encloses this, then we have full access to td even if
 			// it's private, but only normal access to its members.
 			if (commonIndex + 1 == tdEncTypes.Count)
 				return CheckTypeAccess.Normal | CheckTypeAccess.FullTypeAccess;
 
-			// Normal visibility checks starting from type after common enclosing type
-			for (int i = commonIndex; i < tdEncTypes.Count; i++) {
-				if (!IsVisible(tdEncTypes[i]))
+			// Normal visibility checks starting from type after common enclosing type.
+			// Note that we have full access to it so we don't need to check its access,
+			// so start from the next one.
+			for (int i = commonIndex + 1; i < tdEncTypes.Count; i++) {
+				if (!IsVisible(tdEncTypes[i], null))
 					return CheckTypeAccess.None;
 			}
 			return CheckTypeAccess.Normal;
 		}
 
-		CheckTypeAccess GetTypeAccess2(TypeDef td) {
+		CheckTypeAccess GetTypeAccess2(TypeDef td, GenericInstSig git) {
 			while (td != null) {
-				if (!IsVisible(td))
+				if (userType != td.DeclaringType && !IsVisible(td, git))
 					return CheckTypeAccess.None;
 				td = td.DeclaringType;
+				git = null;
 			}
 			return CheckTypeAccess.Normal;
 		}
@@ -205,7 +214,8 @@ namespace dot10.DotNet {
 		/// have any common enclosing types.
 		/// </summary>
 		/// <param name="td">Type</param>
-		bool IsVisible(TypeDef td) {
+		/// <param name="git">Generic instance of <paramref name="td"/> or <c>null</c> if none</param>
+		bool IsVisible(TypeDef td, GenericInstSig git) {
 			if (td == null)
 				return false;
 			if (td == userType)
@@ -225,17 +235,17 @@ namespace dot10.DotNet {
 				return false;
 
 			case TypeAttributes.NestedFamily:
-				return IsSubClassOf(td);
+				return CheckFamily(td, git);
 
 			case TypeAttributes.NestedAssembly:
 				return IsSameAssemblyOrFriendAssembly(td.OwnerModule);
 
 			case TypeAttributes.NestedFamANDAssem:
-				return IsSubClassOf(td) &&
+				return CheckFamily(td, git) &&
 					IsSameAssemblyOrFriendAssembly(td.OwnerModule);
 
 			case TypeAttributes.NestedFamORAssem:
-				return IsSubClassOf(td) ||
+				return CheckFamily(td, git) ||
 					IsSameAssemblyOrFriendAssembly(td.OwnerModule);
 
 			default:
@@ -269,21 +279,37 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Checks whether <see cref="userType"/> is a sub class of <paramref name="td"/>
+		/// Checks whether <see cref="userType"/> has access to <paramref name="td"/>.
+		/// <paramref name="td"/> is Family, FamANDAssem, or FamORAssem.
 		/// </summary>
 		/// <param name="td">Type</param>
-		bool IsSubClassOf(TypeDef td) {
+		/// <param name="git">Generic instance of <paramref name="td"/> or <c>null</c> if none</param>
+		bool CheckFamily(TypeDef td, GenericInstSig git) {
 			if (td == null)
 				return false;
 			InitializeBaseTypes();
-			return baseTypes.ContainsKey(td);
+
+			if (baseTypes.ContainsKey(git == null ? (IType)td : git))
+				return true;
+
+			// td is Family, FamANDAssem, or FamORAssem. If we derive from its enclosing type,
+			// we have access to it.
+			var td2 = td.DeclaringType;
+			if (td2 != null && baseTypes.ContainsKey(td2))
+				return true;
+
+			// If one of our enclosing types derive from it, we also have access to it
+			if (userType.DeclaringType != null)
+				return new AccessChecker(userType.DeclaringType).CheckFamily(td, git);
+
+			return false;
 		}
 
 		void InitializeBaseTypes() {
 			if (baseTypesInitialized)
 				return;
 			if (baseTypes == null)
-				baseTypes = new Dictionary<ITypeDefOrRef, bool>(TypeEqualityComparer.Instance);
+				baseTypes = new Dictionary<IType, bool>(TypeEqualityComparer.Instance);
 			baseTypesInitialized = true;
 
 			ITypeDefOrRef baseType = userType;
@@ -295,7 +321,7 @@ namespace dot10.DotNet {
 
 		List<TypeDef> InitializeOurEnclosingTypes() {
 			if (!enclosingTypesInitialized) {
-				userTypeEnclosingTypes = GetEnclosingTypes(userType, false);
+				userTypeEnclosingTypes = GetEnclosingTypes(userType, true);
 				enclosingTypesInitialized = true;
 			}
 			return userTypeEnclosingTypes;
@@ -331,9 +357,13 @@ namespace dot10.DotNet {
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
 		/// if we can't determine it (eg. we couldn't resolve a type or input was <c>null</c>)</returns>
 		public bool? CanAccess(FieldDef fd) {
+			return CanAccess(fd, null);
+		}
+
+		bool? CanAccess(FieldDef fd, GenericInstSig git) {
 			if (fd == null)
 				return null;
-			var access = GetTypeAccess(fd.DeclaringType);
+			var access = GetTypeAccess(fd.DeclaringType, git);
 			if (access == null)
 				return null;
 			var acc = access.Value;
@@ -342,10 +372,10 @@ namespace dot10.DotNet {
 			if ((acc & CheckTypeAccess.FullMemberAccess) != 0)
 				return true;
 
-			return IsVisible(fd);
+			return IsVisible(fd, git);
 		}
 
-		bool IsVisible(FieldDef fd) {
+		bool IsVisible(FieldDef fd, GenericInstSig git) {
 			if (fd == null)
 				return false;
 			var fdDeclaringType = fd.DeclaringType;
@@ -364,17 +394,17 @@ namespace dot10.DotNet {
 				return false;
 
 			case FieldAttributes.FamANDAssem:
-				return IsSubClassOf(fdDeclaringType) &&
+				return CheckFamily(fdDeclaringType, git) &&
 					IsSameAssemblyOrFriendAssembly(fdDeclaringType.OwnerModule);
 
 			case FieldAttributes.Assembly:
 				return IsSameAssemblyOrFriendAssembly(fdDeclaringType.OwnerModule);
 
 			case FieldAttributes.Family:
-				return IsSubClassOf(fdDeclaringType);
+				return CheckFamily(fdDeclaringType, git);
 
 			case FieldAttributes.FamORAssem:
-				return IsSubClassOf(fdDeclaringType) ||
+				return CheckFamily(fdDeclaringType, git) ||
 					IsSameAssemblyOrFriendAssembly(fdDeclaringType.OwnerModule);
 
 			case FieldAttributes.Public:
@@ -392,9 +422,13 @@ namespace dot10.DotNet {
 		/// <returns><c>true</c> if it has access to it, <c>false</c> if not, and <c>null</c>
 		/// if we can't determine it (eg. we couldn't resolve a type or input was <c>null</c>)</returns>
 		public bool? CanAccess(MethodDef md) {
+			return CanAccess(md, (GenericInstSig)null);
+		}
+
+		bool? CanAccess(MethodDef md, GenericInstSig git) {
 			if (md == null)
 				return null;
-			var access = GetTypeAccess(md.DeclaringType);
+			var access = GetTypeAccess(md.DeclaringType, git);
 			if (access == null)
 				return null;
 			var acc = access.Value;
@@ -403,10 +437,10 @@ namespace dot10.DotNet {
 			if ((acc & CheckTypeAccess.FullMemberAccess) != 0)
 				return true;
 
-			return IsVisible(md);
+			return IsVisible(md, git);
 		}
 
-		bool IsVisible(MethodDef md) {
+		bool IsVisible(MethodDef md, GenericInstSig git) {
 			if (md == null)
 				return false;
 			var mdDeclaringType = md.DeclaringType;
@@ -425,17 +459,17 @@ namespace dot10.DotNet {
 				return false;
 
 			case MethodAttributes.FamANDAssem:
-				return IsSubClassOf(mdDeclaringType) &&
+				return CheckFamily(mdDeclaringType, git) &&
 					IsSameAssemblyOrFriendAssembly(mdDeclaringType.OwnerModule);
 
 			case MethodAttributes.Assembly:
 				return IsSameAssemblyOrFriendAssembly(mdDeclaringType.OwnerModule);
 
 			case MethodAttributes.Family:
-				return IsSubClassOf(mdDeclaringType);
+				return CheckFamily(mdDeclaringType, git);
 
 			case MethodAttributes.FamORAssem:
-				return IsSubClassOf(mdDeclaringType) ||
+				return CheckFamily(mdDeclaringType, git) ||
 					IsSameAssemblyOrFriendAssembly(mdDeclaringType.OwnerModule);
 
 			case MethodAttributes.Public:
@@ -468,7 +502,7 @@ namespace dot10.DotNet {
 
 			var ts = parent as TypeSpec;
 			if (ts != null)
-				return CanAccess(ts.ResolveTypeDef(), mr);
+				return CanAccess(ts.ResolveTypeDef(), ts.ToGenericInstSig(), mr);
 
 			var md = parent as MethodDef;
 			if (md != null)
@@ -482,20 +516,23 @@ namespace dot10.DotNet {
 		}
 
 		bool? CanAccess(TypeDef td, MemberRef mr) {
+			return CanAccess(td, null, mr);
+		}
+
+		bool? CanAccess(TypeDef td, GenericInstSig git, MemberRef mr) {
 			if (mr == null || td == null)
 				return null;
 
 			if (mr.MethodSig != null) {
 				var md = td.FindMethodCheckBaseType(mr.Name, mr.MethodSig);
-				// If method isn't found, assume it's accessible. It could be a method
-				// that is created by the CLR (eg. an array's Get()/Set()/Address() or .ctors)
+				// Assume that it's an array type if it's one of the methods below.
 				if (md == null)
-					return true;
-				return CanAccess(md);
+					return mr.Name == "Get" || mr.Name == "Set" || mr.Name == "Address" || mr.Name == ".ctor";
+				return CanAccess(md, git);
 			}
 
 			if (mr.FieldSig != null)
-				return CanAccess(td.FindFieldCheckBaseType(mr.Name, mr.FieldSig));
+				return CanAccess(td.FindFieldCheckBaseType(mr.Name, mr.FieldSig), git);
 
 			return null;
 		}
