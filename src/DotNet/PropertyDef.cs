@@ -77,6 +77,17 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<MethodDef> OtherMethods { get; }
 
+		/// <summary>
+		/// <c>true</c> if there are no methods attached to this property
+		/// </summary>
+		public bool IsEmpty {
+			get {
+				return GetMethod == null &&
+					SetMethod == null &&
+					OtherMethods.Count == 0;
+			}
+		}
+
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
 			get { return CustomAttributes.Count > 0; }

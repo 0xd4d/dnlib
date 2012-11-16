@@ -1245,6 +1245,66 @@ namespace dot10.DotNet {
 			return FindPropertyCheckBaseType(new UTF8String(name));
 		}
 
+		/// <summary>
+		/// Removes a method from this type. It also removes it from any properties and events.
+		/// </summary>
+		/// <param name="method">The method to remove</param>
+		public void Remove(MethodDef method) {
+			Remove(method, false);
+		}
+
+		/// <summary>
+		/// Removes a method from this type. It also removes it from any properties and events.
+		/// </summary>
+		/// <param name="method">The method to remove</param>
+		/// <param name="removeEmptyPropertiesEvents"><c>true</c> if we should remove all
+		/// empty properties and events.</param>
+		public void Remove(MethodDef method, bool removeEmptyPropertiesEvents) {
+			if (method == null)
+				return;
+
+			foreach (var prop in Properties) {
+				if (prop.GetMethod == method)
+					prop.GetMethod = null;
+				if (prop.SetMethod == method)
+					prop.SetMethod = null;
+				prop.OtherMethods.Remove(method);
+			}
+
+			foreach (var evt in Events) {
+				if (evt.AddMethod == method)
+					evt.AddMethod = null;
+				if (evt.RemoveMethod == method)
+					evt.RemoveMethod = null;
+				if (evt.InvokeMethod == method)
+					evt.InvokeMethod = null;
+				evt.OtherMethods.Remove(method);
+			}
+
+			if (removeEmptyPropertiesEvents) {
+				RemoveEmptyProperties();
+				RemoveEmptyEvents();
+			}
+
+			Methods.Remove(method);
+		}
+
+		void RemoveEmptyProperties() {
+			var props = Properties;
+			for (int i = props.Count - 1; i >= 0; i--) {
+				if (props[i].IsEmpty)
+					props.RemoveAt(i);
+			}
+		}
+
+		void RemoveEmptyEvents() {
+			var events = Events;
+			for (int i = events.Count - 1; i >= 0; i--) {
+				if (events[i].IsEmpty)
+					events.RemoveAt(i);
+			}
+		}
+
 		/// <inheritdoc/>
 		public virtual void OnLazyAdd(int index, ref FieldDef value) {
 #if DEBUG
