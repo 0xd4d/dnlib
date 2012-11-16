@@ -83,9 +83,27 @@ namespace dot10.DotNet.Writer {
 			if (cachedDict.TryGetValue(s, out offset))
 				return offset;
 
+			return AddToCache(s);
+		}
+
+		/// <summary>
+		/// Adds a string to the #Strings heap, but does not re-use an existing position
+		/// </summary>
+		/// <param name="s">The string</param>
+		/// <returns>The offset of the string in the #Strings heap</returns>
+		public uint Create(UTF8String s) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
+			if (UTF8String.IsNullOrEmpty(s))
+				s = UTF8String.Empty;
+			return AddToCache(s);
+		}
+
+		uint AddToCache(UTF8String s) {
 			if (Array.IndexOf(s.Data, 0) >= 0)
 				throw new ArgumentException("Strings in the #Strings heap can't contain 00h bytes");
 
+			uint offset;
 			cached.Add(s);
 			cachedDict[s] = offset = nextOffset;
 			nextOffset += (uint)s.Data.Length + 1;

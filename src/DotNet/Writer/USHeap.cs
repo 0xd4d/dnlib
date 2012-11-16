@@ -73,13 +73,30 @@ namespace dot10.DotNet.Writer {
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #US heap</returns>
 		public uint Add(string s) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #US when it's read-only");
 			if (s == null)
 				s = string.Empty;
 
 			uint offset;
 			if (cachedDict.TryGetValue(s, out offset))
 				return offset;
+			return AddToCache(s);
+		}
 
+		/// <summary>
+		/// Adds a string to the #US heap
+		/// </summary>
+		/// <param name="s">The string</param>
+		/// <returns>The offset of the string in the #US heap</returns>
+		public uint Create(string s) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #US when it's read-only");
+			return AddToCache(s ?? string.Empty);
+		}
+
+		uint AddToCache(string s) {
+			uint offset;
 			cached.Add(s);
 			cachedDict[s] = offset = nextOffset;
 			nextOffset += (uint)(Utils.GetCompressedUInt32Length((uint)s.Length * 2 + 1) + s.Length * 2 + 1);

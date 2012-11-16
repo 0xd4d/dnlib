@@ -74,7 +74,22 @@ namespace dot10.DotNet.Writer {
 			uint offset;
 			if (cachedDict.TryGetValue(data, out offset))
 				return offset;
+			return AddToCache(data);
+		}
 
+		/// <summary>
+		/// Adds data to the #Blob heap, but does not re-use an existing position
+		/// </summary>
+		/// <param name="data">The data</param>
+		/// <returns>The offset of the data in the #Blob heap</returns>
+		public uint Create(byte[] data) {
+			if (isReadOnly)
+				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
+			return AddToCache(data ?? new byte[0]);
+		}
+
+		uint AddToCache(byte[] data) {
+			uint offset;
 			cached.Add(data);
 			cachedDict[data] = offset = nextOffset;
 			nextOffset += (uint)(Utils.GetCompressedUInt32Length((uint)data.Length) + data.Length);
