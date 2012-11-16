@@ -138,6 +138,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
+		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
 		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
 		/// </summary>

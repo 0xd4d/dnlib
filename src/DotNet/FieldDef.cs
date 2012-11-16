@@ -88,6 +88,11 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public abstract Constant Constant { get; set; }
 
+		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>

@@ -145,6 +145,11 @@ namespace dot10.DotNet {
 		public abstract byte[] ExtraData { get; set; }
 
 		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
 		}

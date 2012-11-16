@@ -123,6 +123,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<MethodOverride> Overrides { get; }
 
+		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>

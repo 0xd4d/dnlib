@@ -95,6 +95,11 @@ namespace dot10.DotNet {
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
 		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
+		/// <inheritdoc/>
 		public string FullName {
 			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyOrToken); }
 		}

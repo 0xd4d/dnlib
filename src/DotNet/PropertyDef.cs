@@ -77,6 +77,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract IList<MethodDef> OtherMethods { get; }
 
+		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
 		/// <summary>
 		/// <c>true</c> if <see cref="OtherMethods"/> is not empty
 		/// </summary>

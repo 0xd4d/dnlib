@@ -539,6 +539,11 @@ namespace dot10.DotNet {
 		/// Gets all custom attributes
 		/// </summary>
 		CustomAttributeCollection CustomAttributes { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="CustomAttributes"/> is not empty
+		/// </summary>
+		bool HasCustomAttributes { get; }
 	}
 
 	/// <summary>

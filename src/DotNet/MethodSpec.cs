@@ -44,6 +44,11 @@ namespace dot10.DotNet {
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
 		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
+		/// <inheritdoc/>
 		MethodSig IMethod.MethodSig {
 			get { return Method == null ? null : Method.MethodSig; }
 			set { if (Method != null) Method.MethodSig = value; }

@@ -105,6 +105,11 @@ namespace dot10.DotNet {
 		/// </summary>
 		public abstract CustomAttributeCollection CustomAttributes { get; }
 
+		/// <inheritdoc/>
+		public bool HasCustomAttributes {
+			get { return CustomAttributes.Count > 0; }
+		}
+
 		/// <summary>
 		/// Gets the manifest (main) module. This is always the first module in <see cref="Modules"/>.
 		/// </summary>
