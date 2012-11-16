@@ -1097,7 +1097,7 @@ namespace dot10.DotNet.Writer {
 				typeRow.Extends = type.BaseType == null ? 0 : AddTypeDefOrRef(type.BaseType);
 				AddGenericParams(new MDToken(Table.TypeDef, typeRid), type.GenericParameters);
 				AddDeclSecurities(new MDToken(Table.TypeDef, typeRid), type.DeclSecurities);
-				AddInterfaceImpls(typeRid, type.InterfaceImpls);
+				AddInterfaceImpls(typeRid, type.Interfaces);
 				AddClassLayout(type);
 				AddNestedType(type, type.DeclaringType);
 

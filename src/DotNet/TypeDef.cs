@@ -163,7 +163,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the interfaces
 		/// </summary>
-		public abstract IList<InterfaceImpl> InterfaceImpls { get; }
+		public abstract IList<InterfaceImpl> Interfaces { get; }
 
 		/// <inheritdoc/>
 		public abstract IList<DeclSecurity> DeclSecurities { get; }
@@ -263,10 +263,10 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// <c>true</c> if there's at least one <see cref="InterfaceImpl"/> in <see cref="InterfaceImpls"/>
+		/// <c>true</c> if there's at least one <see cref="InterfaceImpl"/> in <see cref="Interfaces"/>
 		/// </summary>
 		public bool HasInterfaces {
-			get { return InterfaceImpls.Count > 0; }
+			get { return Interfaces.Count > 0; }
 		}
 
 		/// <inheritdoc/>
@@ -1510,7 +1510,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<InterfaceImpl> InterfaceImpls {
+		public override IList<InterfaceImpl> Interfaces {
 			get { return interfaceImpls; }
 		}
 
@@ -1723,7 +1723,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<InterfaceImpl> InterfaceImpls {
+		public override IList<InterfaceImpl> Interfaces {
 			get {
 				if (interfaceImpls == null) {
 					var list = readerModule.MetaData.GetInterfaceImplRidList(rid);
