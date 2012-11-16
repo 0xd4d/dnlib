@@ -1532,7 +1532,7 @@ namespace dot10.DotNet {
 		ModuleDef GetOwnerModule(TypeRef typeRef) {
 			if (typeRef == null)
 				return null;
-			return typeRef.OwnerModule;
+			return typeRef.Module;
 		}
 
 		IAssembly GetDefinitionAssembly(TypeDef typeDef) {
@@ -1548,7 +1548,7 @@ namespace dot10.DotNet {
 			for (int i = recursionCounter.Counter; i < RecursionCounter.MAX_RECURSION_COUNT; i++) {
 				var declaringType = typeDef.DeclaringType;
 				if (declaringType == null) {
-					result = typeDef.OwnerModule2;
+					result = typeDef.Module2;
 					break;
 				}
 				typeDef = declaringType;
@@ -1922,7 +1922,7 @@ namespace dot10.DotNet {
 		ModuleDef GetOwnerModule(ExportedType exportedType) {
 			if (exportedType == null)
 				return null;
-			return exportedType.OwnerModule;
+			return exportedType.Module;
 		}
 
 		void CreateFieldFullName(string declaringType, string name, FieldSig fieldSig) {

@@ -1156,11 +1156,11 @@ namespace dot10.DotNet {
 			else if (DontCompareTypeScope)
 				result = true;
 			else if ((bMod = scope as IModule) != null) {	// 'b' is defined in the same assembly as 'a'
-				result = Equals((IModule)a.OwnerModule, (IModule)bMod) &&
+				result = Equals((IModule)a.Module, (IModule)bMod) &&
 						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
 			}
 			else if ((bAsm = scope as AssemblyRef) != null) {
-				var aMod = a.OwnerModule;
+				var aMod = a.Module;
 				result = aMod != null && Equals(aMod.Assembly, bAsm);
 			}
 			else {
@@ -1215,11 +1215,11 @@ namespace dot10.DotNet {
 			else if (DontCompareTypeScope)
 				result = true;
 			else if ((bFile = scope as FileDef) != null) {
-				result = Equals(a.OwnerModule, bFile) &&
+				result = Equals(a.Module, bFile) &&
 						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
 			}
 			else if ((bAsm = scope as AssemblyRef) != null) {
-				var aMod = a.OwnerModule;
+				var aMod = a.Module;
 				result = aMod != null && Equals(aMod.Assembly, bAsm);
 			}
 			else
@@ -1595,7 +1595,7 @@ namespace dot10.DotNet {
 			bool result = Equals_TypeNames(a.Name, b.Name) &&
 					Equals_TypeNamespaces(a.Namespace, b.Namespace) &&
 					Equals(a.DeclaringType, b.DeclaringType) &&
-					(DontCompareTypeScope || Equals(a.OwnerModule, b.OwnerModule));
+					(DontCompareTypeScope || Equals(a.Module, b.Module));
 
 			recursionCounter.Decrement();
 			return result;
@@ -1694,11 +1694,11 @@ namespace dot10.DotNet {
 			else if ((aa = ra as AssemblyRef) != null & (ab = rb as AssemblyRef) != null)
 				result = Equals((IAssembly)aa, (IAssembly)ab);
 			else if (aa != null && (modRef = rb as ModuleRef) != null) {
-				var bMod = b.OwnerModule;
+				var bMod = b.Module;
 				result = bMod != null && Equals(aa, bMod.Assembly);
 			}
 			else if (ab != null && (modRef = ra as ModuleRef) != null) {
-				var aMod = a.OwnerModule;
+				var aMod = a.Module;
 				result = aMod != null && Equals(ab, aMod.Assembly);
 			}
 			else if (aa != null && (modDef = rb as ModuleDef) != null)
@@ -2795,7 +2795,7 @@ namespace dot10.DotNet {
 			if ((ita = a as ITypeDefOrRef) != null && (itb = b as ITypeDefOrRef) != null)
 				result = Equals((IType)ita, (IType)itb);
 			else if ((moda = a as ModuleRef) != null & (modb = b as ModuleRef) != null) {
-				ModuleDef omoda = moda.OwnerModule, omodb = modb.OwnerModule;
+				ModuleDef omoda = moda.Module, omodb = modb.Module;
 				result = Equals((IModule)moda, (IModule)modb) &&
 						Equals(omoda == null ? null : omoda.Assembly, omodb == null ? null : omodb.Assembly);
 			}
@@ -3080,8 +3080,8 @@ namespace dot10.DotNet {
 				return false;
 
 			bool result = a.IsGlobalModuleType &&
-				Equals((IModule)a.OwnerModule, (IModule)b) &&
-				Equals(a.DefinitionAssembly, b.OwnerModule == null ? null : b.OwnerModule.Assembly);
+				Equals((IModule)a.Module, (IModule)b) &&
+				Equals(a.DefinitionAssembly, b.Module == null ? null : b.Module.Assembly);
 
 			recursionCounter.Decrement();
 			return result;
@@ -3165,7 +3165,7 @@ namespace dot10.DotNet {
 					Equals_TypeNames(a.Name, b.Name) &&
 					Equals_TypeNamespaces(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
-					(DontCompareTypeScope || Equals(a.OwnerModule, b.Module));
+					(DontCompareTypeScope || Equals(a.Module, b.Module));
 
 			recursionCounter.Decrement();
 			return result;
@@ -4081,7 +4081,7 @@ namespace dot10.DotNet {
 			if ((ita = a as ITypeDefOrRef) != null)
 				result = Equals((IType)ita, b);
 			else if ((moda = a as ModuleRef) != null) {
-				ModuleDef omoda = moda.OwnerModule;
+				ModuleDef omoda = moda.Module;
 				result = b == null &&	// b == null => it's the global type
 						Equals(moda, bModule) &&
 						Equals(omoda == null ? null : omoda.Assembly, bModule.Assembly);

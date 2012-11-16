@@ -732,21 +732,21 @@ namespace dot10.DotNet {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Added type's DeclaringType != null");
 #endif
-			value.OwnerModule2 = this;
+			value.Module2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnAdd(int index, TypeDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Nested type is already owned by another type. Set DeclaringType to null first.");
-			if (value.OwnerModule != null)
+			if (value.Module != null)
 				throw new InvalidOperationException("Type is already owned by another module. Remove it from that module's type list.");
-			value.OwnerModule2 = this;
+			value.Module2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnRemove(int index, TypeDef value) {
-			value.OwnerModule2 = null;
+			value.Module2 = null;
 		}
 
 		/// <inheritdoc/>
@@ -756,7 +756,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnClear() {
 			foreach (var type in Types)
-				type.OwnerModule2 = null;
+				type.Module2 = null;
 		}
 
 		/// <summary>
@@ -791,7 +791,7 @@ namespace dot10.DotNet {
 		public TypeDef Find(ITypeDefOrRef typeRef) {
 			var td = typeRef as TypeDef;
 			if (td != null)
-				return td.OwnerModule == this ? td : null;
+				return td.Module == this ? td : null;
 
 			var tr = typeRef as TypeRef;
 			if (tr != null)
@@ -806,7 +806,7 @@ namespace dot10.DotNet {
 
 			td = sig.TypeDef;
 			if (td != null)
-				return td.OwnerModule == this ? td : null;
+				return td.Module == this ? td : null;
 
 			tr = sig.TypeRef;
 			if (tr != null)

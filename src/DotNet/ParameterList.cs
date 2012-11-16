@@ -167,10 +167,10 @@ namespace dot10.DotNet {
 			var dt = method.DeclaringType;
 			if (dt == null)
 				return pd;
-			var ownerModule = dt.OwnerModule;
-			if (ownerModule == null)
+			var module = dt.Module;
+			if (module == null)
 				return pd;
-			return ownerModule.UpdateRowId(pd);
+			return module.UpdateRowId(pd);
 		}
 
 		/// <inheritdoc/>

@@ -2395,7 +2395,7 @@ namespace dot10.DotNet.Writer {
 		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) {
 			var td = type as TypeDef;
 			if (td != null)
-				return td.OwnerModule != module;
+				return td.Module != module;
 
 			var tr = type as TypeRef;
 			if (tr == null)

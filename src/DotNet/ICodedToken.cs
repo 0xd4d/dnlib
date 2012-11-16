@@ -95,9 +95,9 @@ namespace dot10.DotNet {
 			if (type == null)
 				return null;
 
-			var ownerModule = type.OwnerModule;
-			if (ownerModule != null) {
-				var corLibType = ownerModule.CorLibTypes.GetCorLibTypeSig(type);
+			var module = type.Module;
+			if (module != null) {
+				var corLibType = module.CorLibTypes.GetCorLibTypeSig(type);
 				if (corLibType != null)
 					return corLibType;
 			}
@@ -426,7 +426,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the owner module
 		/// </summary>
-		ModuleDef OwnerModule { get; }
+		ModuleDef Module { get; }
 	}
 
 	/// <summary>
@@ -677,10 +677,10 @@ namespace dot10.DotNet {
 			var tdrSig = sig as TypeDefOrRefSig;
 			if (tdrSig != null)
 				return tdrSig.TypeDefOrRef;
-			var ownerModule = sig.OwnerModule;
-			if (ownerModule == null)
+			var module = sig.Module;
+			if (module == null)
 				return new TypeSpecUser(sig);
-			return ownerModule.UpdateRowId(new TypeSpecUser(sig));
+			return module.UpdateRowId(new TypeSpecUser(sig));
 		}
 	}
 }

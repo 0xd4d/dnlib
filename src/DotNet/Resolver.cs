@@ -24,7 +24,7 @@
 
 			var asmRef = nonNestedTypeRef.ResolutionScope as AssemblyRef;
 			if (asmRef != null) {
-				var asm = assemblyResolver.Resolve(asmRef, nonNestedTypeRef.OwnerModule);
+				var asm = assemblyResolver.Resolve(asmRef, nonNestedTypeRef.Module);
 				return asm == null ? null : asm.Find(typeRef);
 			}
 
@@ -34,13 +34,13 @@
 
 			var moduleRef = nonNestedTypeRef.ResolutionScope as ModuleRef;
 			if (moduleRef != null) {
-				if (nonNestedTypeRef.OwnerModule == null)
+				if (nonNestedTypeRef.Module == null)
 					return null;
-				if (new SigComparer().Equals(moduleRef, nonNestedTypeRef.OwnerModule))
-					return nonNestedTypeRef.OwnerModule.Find(typeRef);
-				if (nonNestedTypeRef.OwnerModule.Assembly == null)
+				if (new SigComparer().Equals(moduleRef, nonNestedTypeRef.Module))
+					return nonNestedTypeRef.Module.Find(typeRef);
+				if (nonNestedTypeRef.Module.Assembly == null)
 					return null;
-				var resolvedModule = nonNestedTypeRef.OwnerModule.Assembly.FindModule(moduleRef.Name);
+				var resolvedModule = nonNestedTypeRef.Module.Assembly.FindModule(moduleRef.Name);
 				return resolvedModule == null ? null : resolvedModule.Find(typeRef);
 			}
 
@@ -78,14 +78,14 @@
 			// assembly as the current module.
 			var moduleRef = parent as ModuleRef;
 			if (moduleRef != null) {
-				var ownerModule = memberRef.OwnerModule;
-				if (ownerModule == null)
+				var module = memberRef.Module;
+				if (module == null)
 					return null;
 				TypeDef globalType = null;
-				if (new SigComparer(0).Equals(ownerModule, moduleRef))
-					globalType = ownerModule.GlobalType;
-				if (globalType == null && ownerModule.Assembly != null) {
-					var moduleDef = ownerModule.Assembly.FindModule(moduleRef.Name);
+				if (new SigComparer(0).Equals(module, moduleRef))
+					globalType = module.GlobalType;
+				if (globalType == null && module.Assembly != null) {
+					var moduleDef = module.Assembly.FindModule(moduleRef.Name);
 					if (moduleDef != null)
 						globalType = moduleDef.GlobalType;
 				}

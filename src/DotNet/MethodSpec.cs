@@ -92,10 +92,10 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
+		public ModuleDef Module {
 			get {
 				var m = Method;
-				return m == null ? null : m.OwnerModule;
+				return m == null ? null : m.Module;
 			}
 		}
 

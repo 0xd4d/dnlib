@@ -144,7 +144,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
+		public ModuleDef Module {
 			get { return FullNameCreator.OwnerModule(this); }
 		}
 

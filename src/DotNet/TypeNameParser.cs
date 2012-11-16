@@ -517,7 +517,7 @@ namespace dot10.DotNet {
 			if (asmRef.FullName != asm.GetFullNameWithPublicKey() && asmRef.FullName != asm.GetFullNameWithPublicKeyToken())
 				return null;
 			var td = typeRef.Resolve();
-			return td != null && td.OwnerModule == ownerModule ? td : null;
+			return td != null && td.Module == ownerModule ? td : null;
 		}
 
 		AssemblyRef ReadOptionalAssemblyRef() {

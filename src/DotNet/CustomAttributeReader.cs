@@ -76,7 +76,7 @@ namespace dot10.DotNet {
 	/// Reads custom attributes from the #Blob stream
 	/// </summary>
 	public struct CustomAttributeReader : IDisposable {
-		ModuleDef ownerModule;
+		ModuleDef module;
 		IImageStream reader;
 		ICustomAttributeType ctor;
 		GenericArguments genericArguments;
@@ -109,16 +109,16 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Reads a custom attribute
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
+		/// <param name="module">Owner module</param>
 		/// <param name="stream">A stream positioned at the the first byte of the CA blob</param>
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance or <c>null</c> if one of the
 		/// args is <c>null</c> or if we failed to parse the CA blob</returns>
-		public static CustomAttribute Read(ModuleDef ownerModule, IImageStream stream, ICustomAttributeType ctor) {
+		public static CustomAttribute Read(ModuleDef module, IImageStream stream, ICustomAttributeType ctor) {
 			if (stream == null || ctor == null)
 				return null;
 			try {
-				using (var reader = new CustomAttributeReader(ownerModule, stream, ctor))
+				using (var reader = new CustomAttributeReader(module, stream, ctor))
 					return reader.Read();
 			}
 			catch (CABlobParsingException) {
@@ -134,7 +134,7 @@ namespace dot10.DotNet {
 		}
 
 		CustomAttributeReader(ModuleDefMD readerModule, ICustomAttributeType ctor, uint offset) {
-			this.ownerModule = readerModule;
+			this.module = readerModule;
 			this.reader = readerModule.BlobStream.CreateStream(offset);
 			this.ctor = ctor;
 			this.genericArguments = null;
@@ -142,8 +142,8 @@ namespace dot10.DotNet {
 			this.verifyReadAllBytes = false;
 		}
 
-		CustomAttributeReader(ModuleDef ownerModule, IImageStream reader, ICustomAttributeType ctor) {
-			this.ownerModule = ownerModule;
+		CustomAttributeReader(ModuleDef module, IImageStream reader, ICustomAttributeType ctor) {
+			this.module = module;
 			this.reader = reader;
 			this.ctor = ctor;
 			this.genericArguments = null;
@@ -244,67 +244,67 @@ namespace dot10.DotNet {
 			object result;
 			switch (etype) {
 			case SerializationType.Boolean:
-				realArgType = ownerModule.CorLibTypes.Boolean;
+				realArgType = module.CorLibTypes.Boolean;
 				result = reader.ReadByte() != 0;
 				break;
 
 			case SerializationType.Char:
-				realArgType = ownerModule.CorLibTypes.Char;
+				realArgType = module.CorLibTypes.Char;
 				result = (char)reader.ReadUInt16();
 				break;
 
 			case SerializationType.I1:
-				realArgType = ownerModule.CorLibTypes.SByte;
+				realArgType = module.CorLibTypes.SByte;
 				result = reader.ReadSByte();
 				break;
 
 			case SerializationType.U1:
-				realArgType = ownerModule.CorLibTypes.Byte;
+				realArgType = module.CorLibTypes.Byte;
 				result = reader.ReadByte();
 				break;
 
 			case SerializationType.I2:
-				realArgType = ownerModule.CorLibTypes.Int16;
+				realArgType = module.CorLibTypes.Int16;
 				result = reader.ReadInt16();
 				break;
 
 			case SerializationType.U2:
-				realArgType = ownerModule.CorLibTypes.UInt16;
+				realArgType = module.CorLibTypes.UInt16;
 				result = reader.ReadUInt16();
 				break;
 
 			case SerializationType.I4:
-				realArgType = ownerModule.CorLibTypes.Int32;
+				realArgType = module.CorLibTypes.Int32;
 				result = reader.ReadInt32();
 				break;
 
 			case SerializationType.U4:
-				realArgType = ownerModule.CorLibTypes.UInt32;
+				realArgType = module.CorLibTypes.UInt32;
 				result = reader.ReadUInt32();
 				break;
 
 			case SerializationType.I8:
-				realArgType = ownerModule.CorLibTypes.Int64;
+				realArgType = module.CorLibTypes.Int64;
 				result = reader.ReadInt64();
 				break;
 
 			case SerializationType.U8:
-				realArgType = ownerModule.CorLibTypes.UInt64;
+				realArgType = module.CorLibTypes.UInt64;
 				result = reader.ReadUInt64();
 				break;
 
 			case SerializationType.R4:
-				realArgType = ownerModule.CorLibTypes.Single;
+				realArgType = module.CorLibTypes.Single;
 				result = reader.ReadSingle();
 				break;
 
 			case SerializationType.R8:
-				realArgType = ownerModule.CorLibTypes.Double;
+				realArgType = module.CorLibTypes.Double;
 				result = reader.ReadDouble();
 				break;
 
 			case SerializationType.String:
-				realArgType = ownerModule.CorLibTypes.String;
+				realArgType = module.CorLibTypes.String;
 				result = ReadUTF8String();
 				break;
 
@@ -387,8 +387,8 @@ namespace dot10.DotNet {
 
 		TypeSig ReadType() {
 			var name = ReadUTF8String();
-			var asmRefFinder = new CAAssemblyRefFinder(ownerModule);
-			var type = TypeNameParser.ParseAsTypeSigReflection(ownerModule, UTF8String.ToSystemStringOrEmpty(name), asmRefFinder);
+			var asmRefFinder = new CAAssemblyRefFinder(module);
+			var type = TypeNameParser.ParseAsTypeSigReflection(module, UTF8String.ToSystemStringOrEmpty(name), asmRefFinder);
 			if (type == null)
 				throw new CABlobParsingException("Could not parse type");
 			return type;
@@ -474,22 +474,22 @@ namespace dot10.DotNet {
 				throw new CABlobParsingException("Too much recursion");
 			TypeSig result;
 			switch ((SerializationType)reader.ReadByte()) {
-			case SerializationType.Boolean: result = ownerModule.CorLibTypes.Boolean; break;
-			case SerializationType.Char:	result = ownerModule.CorLibTypes.Char; break;
-			case SerializationType.I1:		result = ownerModule.CorLibTypes.SByte; break;
-			case SerializationType.U1:		result = ownerModule.CorLibTypes.Byte; break;
-			case SerializationType.I2:		result = ownerModule.CorLibTypes.Int16; break;
-			case SerializationType.U2:		result = ownerModule.CorLibTypes.UInt16; break;
-			case SerializationType.I4:		result = ownerModule.CorLibTypes.Int32; break;
-			case SerializationType.U4:		result = ownerModule.CorLibTypes.UInt32; break;
-			case SerializationType.I8:		result = ownerModule.CorLibTypes.Int64; break;
-			case SerializationType.U8:		result = ownerModule.CorLibTypes.UInt64; break;
-			case SerializationType.R4:		result = ownerModule.CorLibTypes.Single; break;
-			case SerializationType.R8:		result = ownerModule.CorLibTypes.Double; break;
-			case SerializationType.String:	result = ownerModule.CorLibTypes.String; break;
+			case SerializationType.Boolean: result = module.CorLibTypes.Boolean; break;
+			case SerializationType.Char:	result = module.CorLibTypes.Char; break;
+			case SerializationType.I1:		result = module.CorLibTypes.SByte; break;
+			case SerializationType.U1:		result = module.CorLibTypes.Byte; break;
+			case SerializationType.I2:		result = module.CorLibTypes.Int16; break;
+			case SerializationType.U2:		result = module.CorLibTypes.UInt16; break;
+			case SerializationType.I4:		result = module.CorLibTypes.Int32; break;
+			case SerializationType.U4:		result = module.CorLibTypes.UInt32; break;
+			case SerializationType.I8:		result = module.CorLibTypes.Int64; break;
+			case SerializationType.U8:		result = module.CorLibTypes.UInt64; break;
+			case SerializationType.R4:		result = module.CorLibTypes.Single; break;
+			case SerializationType.R8:		result = module.CorLibTypes.Double; break;
+			case SerializationType.String:	result = module.CorLibTypes.String; break;
 			case SerializationType.SZArray: result = new SZArraySig(ReadFieldOrPropType()); break;
-			case SerializationType.Type:	result = new ClassSig(ownerModule.CorLibTypes.GetTypeRef("System", "Type")); break;
-			case SerializationType.TaggedObject: result = ownerModule.CorLibTypes.Object; break;
+			case SerializationType.Type:	result = new ClassSig(module.CorLibTypes.GetTypeRef("System", "Type")); break;
+			case SerializationType.TaggedObject: result = module.CorLibTypes.Object; break;
 			case SerializationType.Enum:	result = ReadType(); break;
 			default: throw new CABlobParsingException("Invalid type");
 			}

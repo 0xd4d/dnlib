@@ -15,7 +15,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// The owner module
 		/// </summary>
-		protected ModuleDef ownerModule;
+		protected ModuleDef module;
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -106,8 +106,8 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
-			get { return ownerModule; }
+		public ModuleDef Module {
+			get { return module; }
 		}
 
 		/// <inheritdoc/>
@@ -504,22 +504,22 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
-		public ExportedTypeUser(ModuleDef ownerModule) {
-			this.ownerModule = ownerModule;
+		/// <param name="module">Owner module</param>
+		public ExportedTypeUser(ModuleDef module) {
+			this.module = module;
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
+		/// <param name="module">Owner module</param>
 		/// <param name="typeDefId">TypeDef ID</param>
 		/// <param name="typeName">Type name</param>
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, UTF8String typeNamespace, UTF8String typeName, TypeAttributes flags, IImplementation implementation) {
-			this.ownerModule = ownerModule;
+		public ExportedTypeUser(ModuleDef module, uint typeDefId, UTF8String typeNamespace, UTF8String typeName, TypeAttributes flags, IImplementation implementation) {
+			this.module = module;
 			this.typeDefId = typeDefId;
 			this.typeName = typeName;
 			this.typeNamespace = typeNamespace;
@@ -530,14 +530,14 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Owner module</param>
+		/// <param name="module">Owner module</param>
 		/// <param name="typeDefId">TypeDef ID</param>
 		/// <param name="typeName">Type name</param>
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(ModuleDef ownerModule, uint typeDefId, string typeNamespace, string typeName, TypeAttributes flags, IImplementation implementation)
-			: this(ownerModule, typeDefId, new UTF8String(typeNamespace), new UTF8String(typeName), flags, implementation) {
+		public ExportedTypeUser(ModuleDef module, uint typeDefId, string typeNamespace, string typeName, TypeAttributes flags, IImplementation implementation)
+			: this(module, typeDefId, new UTF8String(typeNamespace), new UTF8String(typeName), flags, implementation) {
 		}
 	}
 
@@ -614,7 +614,7 @@ namespace dot10.DotNet {
 #endif
 			this.rid = rid;
 			this.readerModule = readerModule;
-			this.ownerModule = readerModule;
+			this.module = readerModule;
 			Initialize();
 		}
 

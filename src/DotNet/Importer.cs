@@ -26,7 +26,7 @@ namespace dot10.DotNet {
 	/// and <see cref="FieldInfo"/>s as references
 	/// </summary>
 	public struct Importer {
-		ModuleDef ownerModule;
+		ModuleDef module;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
 
@@ -59,9 +59,9 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">The module that will own all references</param>
-		public Importer(ModuleDef ownerModule) {
-			this.ownerModule = ownerModule;
+		/// <param name="module">The module that will own all references</param>
+		public Importer(ModuleDef module) {
+			this.module = module;
 			this.recursionCounter = new RecursionCounter();
 			this.options = 0;
 		}
@@ -69,10 +69,10 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">The module that will own all references</param>
+		/// <param name="module">The module that will own all references</param>
 		/// <param name="options">Importer options</param>
-		public Importer(ModuleDef ownerModule, ImporterOptions options) {
-			this.ownerModule = ownerModule;
+		public Importer(ModuleDef module, ImporterOptions options) {
+			this.module = module;
 			this.recursionCounter = new RecursionCounter();
 			this.options = options;
 		}
@@ -83,7 +83,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef Import(Type type) {
-			return ownerModule.UpdateRowId(ImportAsTypeSig(type).ToTypeDefOrRef());
+			return module.UpdateRowId(ImportAsTypeSig(type).ToTypeDefOrRef());
 		}
 
 		/// <summary>
@@ -94,7 +94,7 @@ namespace dot10.DotNet {
 		/// <param name="optionalModifiers">A list of all optional modifiers or <c>null</c></param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef Import(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers) {
-			return ownerModule.UpdateRowId(ImportAsTypeSig(type, requiredModifiers, optionalModifiers).ToTypeDefOrRef());
+			return module.UpdateRowId(ImportAsTypeSig(type, requiredModifiers, optionalModifiers).ToTypeDefOrRef());
 		}
 
 		/// <summary>
@@ -110,23 +110,23 @@ namespace dot10.DotNet {
 			if (type == null)
 				return null;
 			switch (treatAsGenericInst ? ElementType.GenericInst : type.GetElementType2()) {
-			case ElementType.Void:		return ownerModule.CorLibTypes.Void;
-			case ElementType.Boolean:	return ownerModule.CorLibTypes.Boolean;
-			case ElementType.Char:		return ownerModule.CorLibTypes.Char;
-			case ElementType.I1:		return ownerModule.CorLibTypes.SByte;
-			case ElementType.U1:		return ownerModule.CorLibTypes.Byte;
-			case ElementType.I2:		return ownerModule.CorLibTypes.Int16;
-			case ElementType.U2:		return ownerModule.CorLibTypes.UInt16;
-			case ElementType.I4:		return ownerModule.CorLibTypes.Int32;
-			case ElementType.U4:		return ownerModule.CorLibTypes.UInt32;
-			case ElementType.I8:		return ownerModule.CorLibTypes.Int64;
-			case ElementType.U8:		return ownerModule.CorLibTypes.UInt64;
-			case ElementType.R4:		return ownerModule.CorLibTypes.Single;
-			case ElementType.R8:		return ownerModule.CorLibTypes.Double;
-			case ElementType.String:	return ownerModule.CorLibTypes.String;
-			case ElementType.TypedByRef:return ownerModule.CorLibTypes.TypedReference;
-			case ElementType.U:			return ownerModule.CorLibTypes.UIntPtr;
-			case ElementType.Object:	return ownerModule.CorLibTypes.Object;
+			case ElementType.Void:		return module.CorLibTypes.Void;
+			case ElementType.Boolean:	return module.CorLibTypes.Boolean;
+			case ElementType.Char:		return module.CorLibTypes.Char;
+			case ElementType.I1:		return module.CorLibTypes.SByte;
+			case ElementType.U1:		return module.CorLibTypes.Byte;
+			case ElementType.I2:		return module.CorLibTypes.Int16;
+			case ElementType.U2:		return module.CorLibTypes.UInt16;
+			case ElementType.I4:		return module.CorLibTypes.Int32;
+			case ElementType.U4:		return module.CorLibTypes.UInt32;
+			case ElementType.I8:		return module.CorLibTypes.Int64;
+			case ElementType.U8:		return module.CorLibTypes.UInt64;
+			case ElementType.R4:		return module.CorLibTypes.Single;
+			case ElementType.R8:		return module.CorLibTypes.Double;
+			case ElementType.String:	return module.CorLibTypes.String;
+			case ElementType.TypedByRef:return module.CorLibTypes.TypedReference;
+			case ElementType.U:			return module.CorLibTypes.UIntPtr;
+			case ElementType.Object:	return module.CorLibTypes.Object;
 			case ElementType.Ptr:		return new PtrSig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst));
 			case ElementType.ByRef:		return new ByRefSig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst));
 			case ElementType.SZArray:	return new SZArraySig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst));
@@ -137,7 +137,7 @@ namespace dot10.DotNet {
 
 			case ElementType.I:
 				FixSignature = true;	// FnPtr is mapped to System.IntPtr
-				return ownerModule.CorLibTypes.IntPtr;
+				return module.CorLibTypes.IntPtr;
 
 			case ElementType.Array:
 				FixSignature = true;	// We don't know sizes and lower bounds
@@ -169,7 +169,7 @@ namespace dot10.DotNet {
 			if (!IsThisModule(tr))
 				return tr;
 			var td = tr.Resolve();
-			if (td == null || td.OwnerModule != ownerModule)
+			if (td == null || td.Module != module)
 				return tr;
 			return td;
 		}
@@ -179,17 +179,17 @@ namespace dot10.DotNet {
 			if (scopeType == null)
 				return false;
 
-			if (ownerModule == scopeType.ResolutionScope)
+			if (module == scopeType.ResolutionScope)
 				return true;
 
 			var modRef = scopeType.ResolutionScope as ModuleRef;
 			if (modRef != null) {
-				return ownerModule.Name == modRef.Name &&
-					Equals(ownerModule.Assembly, scopeType.DefinitionAssembly);
+				return module.Name == modRef.Name &&
+					Equals(module.Assembly, scopeType.DefinitionAssembly);
 			}
 
 			var asmRef = scopeType.ResolutionScope as AssemblyRef;
-			return Equals(ownerModule.Assembly, asmRef);
+			return Equals(module.Assembly, asmRef);
 		}
 
 		static bool Equals(IAssembly a, IAssembly b) {
@@ -212,25 +212,25 @@ namespace dot10.DotNet {
 
 		TypeRef CreateTypeRef2(Type type) {
 			if (!type.IsNested)
-				return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace ?? string.Empty, type.Name ?? string.Empty, CreateScopeReference(type)));
-			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, string.Empty, type.Name ?? string.Empty, CreateTypeRef2(type.DeclaringType)));
+				return module.UpdateRowId(new TypeRefUser(module, type.Namespace ?? string.Empty, type.Name ?? string.Empty, CreateScopeReference(type)));
+			return module.UpdateRowId(new TypeRefUser(module, string.Empty, type.Name ?? string.Empty, CreateTypeRef2(type.DeclaringType)));
 		}
 
 		IResolutionScope CreateScopeReference(Type type) {
 			if (type == null)
 				return null;
 			var asmName = type.Assembly.GetName();
-			if (ownerModule.Assembly != null) {
-				if (UTF8String.ToSystemStringOrEmpty(ownerModule.Assembly.Name).Equals(asmName.Name, StringComparison.OrdinalIgnoreCase)) {
-					if (UTF8String.ToSystemStringOrEmpty(ownerModule.Name).Equals(type.Module.ScopeName, StringComparison.OrdinalIgnoreCase))
-						return ownerModule;
-					return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, type.Module.ScopeName));
+			if (module.Assembly != null) {
+				if (UTF8String.ToSystemStringOrEmpty(module.Assembly.Name).Equals(asmName.Name, StringComparison.OrdinalIgnoreCase)) {
+					if (UTF8String.ToSystemStringOrEmpty(module.Name).Equals(type.Module.ScopeName, StringComparison.OrdinalIgnoreCase))
+						return module;
+					return module.UpdateRowId(new ModuleRefUser(module, type.Module.ScopeName));
 				}
 			}
 			var pkt = asmName.GetPublicKeyToken();
 			if (pkt == null || pkt.Length == 0)
 				pkt = null;
-			return ownerModule.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
+			return module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
 		}
 
 		/// <summary>
@@ -307,7 +307,7 @@ namespace dot10.DotNet {
 			if (isMethodSpec) {
 				var method = Import(methodBase.Module.ResolveMethod(methodBase.MetadataToken)) as IMethodDefOrRef;
 				var gim = CreateGenericInstMethodSig(methodBase);
-				var methodSpec = ownerModule.UpdateRowId(new MethodSpecUser(method, gim));
+				var methodSpec = module.UpdateRowId(new MethodSpecUser(method, gim));
 				if (FixSignature && !forceFixSignature) {
 					//TODO:
 				}
@@ -338,7 +338,7 @@ namespace dot10.DotNet {
 				}
 
 				var methodSig = CreateMethodSig(origMethod);
-				var methodRef = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, methodBase.Name, methodSig, parent));
+				var methodRef = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, methodSig, parent));
 				if (FixSignature && !forceFixSignature) {
 					//TODO:
 				}
@@ -353,7 +353,7 @@ namespace dot10.DotNet {
 			if (mi != null)
 				sig.RetType = ImportAsTypeSig(mi.ReturnParameter, mb.DeclaringType);
 			else
-				sig.RetType = ownerModule.CorLibTypes.Void;
+				sig.RetType = module.CorLibTypes.Void;
 
 			foreach (var p in mb.GetParameters())
 				sig.Params.Add(ImportAsTypeSig(p, mb.DeclaringType));
@@ -406,13 +406,13 @@ namespace dot10.DotNet {
 			return gim;
 		}
 
-		IMemberRefParent GetModuleParent(Module module) {
+		IMemberRefParent GetModuleParent(Module module2) {
 			// If we have no assembly, assume this is a netmodule in the same assembly as module
-			bool isSameAssembly = ownerModule.Assembly == null ||
-				UTF8String.ToSystemStringOrEmpty(ownerModule.Assembly.Name).Equals(module.Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase);
+			bool isSameAssembly = module.Assembly == null ||
+				UTF8String.ToSystemStringOrEmpty(module.Assembly.Name).Equals(module2.Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase);
 			if (!isSameAssembly)
 				return null;
-			return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, ownerModule.Name));
+			return module.UpdateRowId(new ModuleRefUser(module, module.Name));
 		}
 
 		/// <summary>
@@ -463,7 +463,7 @@ namespace dot10.DotNet {
 			}
 
 			var fieldSig = new FieldSig(ImportAsTypeSig(origField.FieldType));
-			var fieldRef = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, fieldInfo.Name, fieldSig, parent));
+			var fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
 			if (FixSignature && !forceFixSignature) {
 				//TODO:
 			}
@@ -510,7 +510,7 @@ namespace dot10.DotNet {
 		public ITypeDefOrRef Import(TypeDef type) {
 			if (type == null)
 				return null;
-			if (TryToUseTypeDefs && type.OwnerModule == ownerModule)
+			if (TryToUseTypeDefs && type.Module == module)
 				return type;
 			return Import2(type);
 		}
@@ -523,9 +523,9 @@ namespace dot10.DotNet {
 			TypeRef result;
 
 			if (type.DeclaringType != null)
-				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import2(type.DeclaringType)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(type.DeclaringType)));
 			else
-				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
 
 			recursionCounter.Decrement();
 			return result;
@@ -534,17 +534,17 @@ namespace dot10.DotNet {
 		IResolutionScope CreateScopeReference(IAssembly defAsm, ModuleDef defMod) {
 			if (defAsm == null)
 				return null;
-			if (defMod != null && defAsm != null && ownerModule.Assembly != null) {
-				if (UTF8String.CaseInsensitiveEquals(ownerModule.Assembly.Name, defAsm.Name)) {
-					if (UTF8String.CaseInsensitiveEquals(ownerModule.Name, defMod.Name))
-						return ownerModule;
-					return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, defMod.Name));
+			if (defMod != null && defAsm != null && module.Assembly != null) {
+				if (UTF8String.CaseInsensitiveEquals(module.Assembly.Name, defAsm.Name)) {
+					if (UTF8String.CaseInsensitiveEquals(module.Name, defMod.Name))
+						return module;
+					return module.UpdateRowId(new ModuleRefUser(module, defMod.Name));
 				}
 			}
 			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
-			return ownerModule.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture));
+			return module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture));
 		}
 
 		/// <summary>
@@ -568,9 +568,9 @@ namespace dot10.DotNet {
 
 			var declaringType = type.DeclaringType;
 			if (declaringType != null)
-				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, Import2(declaringType)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declaringType)));
 			else
-				result = ownerModule.UpdateRowId(new TypeRefUser(ownerModule, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.OwnerModule)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
 
 			recursionCounter.Decrement();
 			return result;
@@ -584,7 +584,7 @@ namespace dot10.DotNet {
 		public TypeSpec Import(TypeSpec type) {
 			if (type == null)
 				return null;
-			return ownerModule.UpdateRowId(new TypeSpecUser(Import(type.TypeSig)));
+			return module.UpdateRowId(new TypeSpecUser(Import(type.TypeSig)));
 		}
 
 		/// <summary>
@@ -600,24 +600,24 @@ namespace dot10.DotNet {
 
 			TypeSig result;
 			switch (type.ElementType) {
-			case ElementType.Void:		result = ownerModule.CorLibTypes.Void; break;
-			case ElementType.Boolean:	result = ownerModule.CorLibTypes.Boolean; break;
-			case ElementType.Char:		result = ownerModule.CorLibTypes.Char; break;
-			case ElementType.I1:		result = ownerModule.CorLibTypes.SByte; break;
-			case ElementType.U1:		result = ownerModule.CorLibTypes.Byte; break;
-			case ElementType.I2:		result = ownerModule.CorLibTypes.Int16; break;
-			case ElementType.U2:		result = ownerModule.CorLibTypes.UInt16; break;
-			case ElementType.I4:		result = ownerModule.CorLibTypes.Int32; break;
-			case ElementType.U4:		result = ownerModule.CorLibTypes.UInt32; break;
-			case ElementType.I8:		result = ownerModule.CorLibTypes.Int64; break;
-			case ElementType.U8:		result = ownerModule.CorLibTypes.UInt64; break;
-			case ElementType.R4:		result = ownerModule.CorLibTypes.Single; break;
-			case ElementType.R8:		result = ownerModule.CorLibTypes.Double; break;
-			case ElementType.String:	result = ownerModule.CorLibTypes.String; break;
-			case ElementType.TypedByRef:result = ownerModule.CorLibTypes.TypedReference; break;
-			case ElementType.I:			result = ownerModule.CorLibTypes.IntPtr; break;
-			case ElementType.U:			result = ownerModule.CorLibTypes.UIntPtr; break;
-			case ElementType.Object:	result = ownerModule.CorLibTypes.Object; break;
+			case ElementType.Void:		result = module.CorLibTypes.Void; break;
+			case ElementType.Boolean:	result = module.CorLibTypes.Boolean; break;
+			case ElementType.Char:		result = module.CorLibTypes.Char; break;
+			case ElementType.I1:		result = module.CorLibTypes.SByte; break;
+			case ElementType.U1:		result = module.CorLibTypes.Byte; break;
+			case ElementType.I2:		result = module.CorLibTypes.Int16; break;
+			case ElementType.U2:		result = module.CorLibTypes.UInt16; break;
+			case ElementType.I4:		result = module.CorLibTypes.Int32; break;
+			case ElementType.U4:		result = module.CorLibTypes.UInt32; break;
+			case ElementType.I8:		result = module.CorLibTypes.Int64; break;
+			case ElementType.U8:		result = module.CorLibTypes.UInt64; break;
+			case ElementType.R4:		result = module.CorLibTypes.Single; break;
+			case ElementType.R8:		result = module.CorLibTypes.Double; break;
+			case ElementType.String:	result = module.CorLibTypes.String; break;
+			case ElementType.TypedByRef:result = module.CorLibTypes.TypedReference; break;
+			case ElementType.I:			result = module.CorLibTypes.IntPtr; break;
+			case ElementType.U:			result = module.CorLibTypes.UIntPtr; break;
+			case ElementType.Object:	result = module.CorLibTypes.Object; break;
 			case ElementType.Ptr:		result = new PtrSig(Import(type.Next)); break;
 			case ElementType.ByRef:		result = new ByRefSig(Import(type.Next)); break;
 			case ElementType.ValueType: result = CreateClassOrValueType((type as ClassOrValueTypeSig).TypeDefOrRef, true); break;
@@ -665,7 +665,7 @@ namespace dot10.DotNet {
 		}
 
 		TypeSig CreateClassOrValueType(ITypeDefOrRef type, bool isValueType) {
-			var corLibType = ownerModule.CorLibTypes.GetCorLibTypeSig(type);
+			var corLibType = module.CorLibTypes.GetCorLibTypeSig(type);
 			if (corLibType != null)
 				return corLibType;
 
@@ -871,7 +871,7 @@ namespace dot10.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 
-			MemberRef result = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, field.Name));
+			MemberRef result = module.UpdateRowId(new MemberRefUser(module, field.Name));
 			result.Signature = Import(field.Signature);
 			result.Class = ImportParent(field.DeclaringType);
 
@@ -883,8 +883,8 @@ namespace dot10.DotNet {
 			if (type == null)
 				return null;
 			if (type.IsGlobalModuleType) {
-				var om = type.OwnerModule;
-				return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, om == null ? null : om.Name));
+				var om = type.Module;
+				return module.UpdateRowId(new ModuleRefUser(module, om == null ? null : om.Name));
 			}
 			return Import(type);
 		}
@@ -900,7 +900,7 @@ namespace dot10.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 
-			MemberRef result = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, method.Name));
+			MemberRef result = module.UpdateRowId(new MemberRefUser(module, method.Name));
 			result.Signature = Import(method.Signature);
 			result.Class = ImportParent(method.DeclaringType);
 
@@ -919,7 +919,7 @@ namespace dot10.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 
-			MethodSpec result = ownerModule.UpdateRowId(new MethodSpecUser((IMethodDefOrRef)Import(method.Method)));
+			MethodSpec result = module.UpdateRowId(new MethodSpecUser((IMethodDefOrRef)Import(method.Method)));
 			result.Instantiation = Import(method.Instantiation);
 
 			recursionCounter.Decrement();
@@ -937,7 +937,7 @@ namespace dot10.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 
-			MemberRef result = ownerModule.UpdateRowId(new MemberRefUser(ownerModule, memberRef.Name));
+			MemberRef result = module.UpdateRowId(new MemberRefUser(module, memberRef.Name));
 			result.Signature = Import(memberRef.Signature);
 			result.Class = Import(memberRef.Class);
 			if (result.Class == null)	// Will be null if memberRef.Class is null or a MethodDef
@@ -952,20 +952,20 @@ namespace dot10.DotNet {
 			if (tdr != null) {
 				var td = tdr as TypeDef;
 				if (td != null && td.IsGlobalModuleType) {
-					var om = td.OwnerModule;
-					return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, om == null ? null : om.Name));
+					var om = td.Module;
+					return module.UpdateRowId(new ModuleRefUser(module, om == null ? null : om.Name));
 				}
 				return Import(tdr);
 			}
 
 			var modRef = parent as ModuleRef;
 			if (modRef != null)
-				return ownerModule.UpdateRowId(new ModuleRefUser(ownerModule, modRef.Name));
+				return module.UpdateRowId(new ModuleRefUser(module, modRef.Name));
 
 			var method = parent as MethodDef;
 			if (method != null) {
 				var dt = method.DeclaringType;
-				return dt == null || dt.OwnerModule != ownerModule ? null : method;
+				return dt == null || dt.Module != module ? null : method;
 			}
 
 			return null;

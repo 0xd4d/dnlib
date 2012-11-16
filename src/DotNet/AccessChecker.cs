@@ -163,7 +163,7 @@ namespace dot10.DotNet {
 				return GetTypeAccess2(td, git);
 
 			// Can't be an enclosing type if they're not in the same module
-			if (userType.OwnerModule != td.OwnerModule)
+			if (userType.Module != td.Module)
 				return GetTypeAccess2(td, git);
 
 			var tdEncTypes = GetEnclosingTypes(td, true);
@@ -223,7 +223,7 @@ namespace dot10.DotNet {
 
 			switch (td.Visibility) {
 			case TypeAttributes.NotPublic:
-				return IsSameAssemblyOrFriendAssembly(td.OwnerModule);
+				return IsSameAssemblyOrFriendAssembly(td.Module);
 
 			case TypeAttributes.Public:
 				return true;
@@ -238,15 +238,15 @@ namespace dot10.DotNet {
 				return CheckFamily(td, git);
 
 			case TypeAttributes.NestedAssembly:
-				return IsSameAssemblyOrFriendAssembly(td.OwnerModule);
+				return IsSameAssemblyOrFriendAssembly(td.Module);
 
 			case TypeAttributes.NestedFamANDAssem:
 				return CheckFamily(td, git) &&
-					IsSameAssemblyOrFriendAssembly(td.OwnerModule);
+					IsSameAssemblyOrFriendAssembly(td.Module);
 
 			case TypeAttributes.NestedFamORAssem:
 				return CheckFamily(td, git) ||
-					IsSameAssemblyOrFriendAssembly(td.OwnerModule);
+					IsSameAssemblyOrFriendAssembly(td.Module);
 
 			default:
 				return false;
@@ -256,7 +256,7 @@ namespace dot10.DotNet {
 		bool IsSameAssemblyOrFriendAssembly(ModuleDef module) {
 			if (module == null)
 				return false;
-			var userModule = userType.OwnerModule;
+			var userModule = userType.Module;
 			if (userModule == null)
 				return false;
 			if (userModule == module)
@@ -388,24 +388,24 @@ namespace dot10.DotNet {
 			case FieldAttributes.PrivateScope:
 				// Private scope aka compiler controlled fields/methods can only be accessed
 				// by a Field/Method token. This means they must be in the same module.
-				return userType.OwnerModule == fdDeclaringType.OwnerModule;
+				return userType.Module == fdDeclaringType.Module;
 
 			case FieldAttributes.Private:
 				return false;
 
 			case FieldAttributes.FamANDAssem:
 				return CheckFamily(fdDeclaringType, git) &&
-					IsSameAssemblyOrFriendAssembly(fdDeclaringType.OwnerModule);
+					IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module);
 
 			case FieldAttributes.Assembly:
-				return IsSameAssemblyOrFriendAssembly(fdDeclaringType.OwnerModule);
+				return IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module);
 
 			case FieldAttributes.Family:
 				return CheckFamily(fdDeclaringType, git);
 
 			case FieldAttributes.FamORAssem:
 				return CheckFamily(fdDeclaringType, git) ||
-					IsSameAssemblyOrFriendAssembly(fdDeclaringType.OwnerModule);
+					IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module);
 
 			case FieldAttributes.Public:
 				return true;
@@ -453,24 +453,24 @@ namespace dot10.DotNet {
 			case MethodAttributes.PrivateScope:
 				// Private scope aka compiler controlled fields/methods can only be accessed
 				// by a Field/Method token. This means they must be in the same module.
-				return userType.OwnerModule == mdDeclaringType.OwnerModule;
+				return userType.Module == mdDeclaringType.Module;
 
 			case MethodAttributes.Private:
 				return false;
 
 			case MethodAttributes.FamANDAssem:
 				return CheckFamily(mdDeclaringType, git) &&
-					IsSameAssemblyOrFriendAssembly(mdDeclaringType.OwnerModule);
+					IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module);
 
 			case MethodAttributes.Assembly:
-				return IsSameAssemblyOrFriendAssembly(mdDeclaringType.OwnerModule);
+				return IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module);
 
 			case MethodAttributes.Family:
 				return CheckFamily(mdDeclaringType, git);
 
 			case MethodAttributes.FamORAssem:
 				return CheckFamily(mdDeclaringType, git) ||
-					IsSameAssemblyOrFriendAssembly(mdDeclaringType.OwnerModule);
+					IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module);
 
 			case MethodAttributes.Public:
 				return true;
@@ -544,13 +544,13 @@ namespace dot10.DotNet {
 		}
 
 		bool? CanAccess(ModuleRef mod, MemberRef mr) {
-			if (mr == null || mod == null || mod.OwnerModule == null)
+			if (mr == null || mod == null || mod.Module == null)
 				return null;
 
-			var userModule = userType.OwnerModule;
+			var userModule = userType.Module;
 			if (userModule == null)
 				return null;
-			if (!IsSameAssembly(userModule.Assembly, mod.OwnerModule.Assembly))
+			if (!IsSameAssembly(userModule.Assembly, mod.Module.Assembly))
 				return false;
 			if (userModule.Assembly == null)
 				return false;

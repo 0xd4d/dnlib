@@ -106,7 +106,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public IScope Scope {
-			get { return OwnerModule; }
+			get { return Module; }
 		}
 
 		/// <inheritdoc/>
@@ -115,14 +115,14 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
+		public ModuleDef Module {
 			get { return FullNameCreator.OwnerModule(this); }
 		}
 
 		/// <summary>
 		/// Gets/sets the owner module
 		/// </summary>
-		internal abstract ModuleDef OwnerModule2 { get; set; }
+		internal abstract ModuleDef Module2 { get; set; }
 
 		/// <summary>
 		/// From column TypeDef.Flags
@@ -186,7 +186,7 @@ namespace dot10.DotNet {
 					value.NestedTypes.Add(this);		// Will set DeclaringType2 = value
 
 				// Make sure this is clear. Will be set whenever it's inserted into ModulDef.Types
-				OwnerModule2 = null;
+				Module2 = null;
 			}
 		}
 
@@ -627,7 +627,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		public bool IsGlobalModuleType {
 			get {
-				var mod = OwnerModule;
+				var mod = Module;
 				return mod != null && mod.GlobalType == this;
 			}
 		}
@@ -1368,8 +1368,8 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnLazyAdd(int index, ref TypeDef value) {
 #if DEBUG
-			if (value.OwnerModule2 != null)
-				throw new InvalidOperationException("Added nested type's OwnerModule != null");
+			if (value.Module2 != null)
+				throw new InvalidOperationException("Added nested type's Module != null");
 			if (value.DeclaringType != this)
 				throw new InvalidOperationException("Added nested type's DeclaringType != this");
 #endif
@@ -1379,7 +1379,7 @@ namespace dot10.DotNet {
 		void IListListener<TypeDef>.OnAdd(int index, TypeDef value) {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Nested type is already owned by another type. Set DeclaringType to null first.");
-			if (value.OwnerModule != null)
+			if (value.Module != null)
 				throw new InvalidOperationException("Type is already owned by another module. Remove it from that module's type list.");
 			value.DeclaringType2 = this;
 		}
@@ -1567,7 +1567,7 @@ namespace dot10.DotNet {
 		LazyList<PropertyDef> properties;
 		LazyList<TypeDef> nestedTypes;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-		ModuleDef ownerModule;
+		ModuleDef module;
 
 		/// <inheritdoc/>
 		public override TypeAttributes Attributes {
@@ -1651,9 +1651,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		internal override ModuleDef OwnerModule2 {
-			get { return ownerModule; }
-			set { ownerModule = value; }
+		internal override ModuleDef Module2 {
+			get { return module; }
+			set { module = value; }
 		}
 
 		/// <summary>
@@ -1761,7 +1761,7 @@ namespace dot10.DotNet {
 		LazyList<PropertyDef> properties;
 		LazyList<TypeDef> nestedTypes;
 		CustomAttributeCollection customAttributeCollection;
-		UserValue<ModuleDef> ownerModule;
+		UserValue<ModuleDef> module;
 		Dictionary<uint, List<MethodOverride>> methodRidToOverrides;
 
 		/// <inheritdoc/>
@@ -1902,9 +1902,9 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		internal override ModuleDef OwnerModule2 {
-			get { return ownerModule.Value; }
-			set { ownerModule.Value = value; }
+		internal override ModuleDef Module2 {
+			get { return module.Value; }
+			set { module.Value = value; }
 		}
 
 		/// <summary>
@@ -1950,7 +1950,7 @@ namespace dot10.DotNet {
 				var row = readerModule.TablesStream.ReadNestedClassRow(readerModule.MetaData.GetNestedClassRid(rid));
 				return row == null ? null : readerModule.ResolveTypeDef(row.EnclosingClass);
 			};
-			ownerModule.ReadOriginalValue = () => {
+			module.ReadOriginalValue = () => {
 				return DeclaringType != null ? null : readerModule;
 			};
 		}
@@ -2044,8 +2044,8 @@ namespace dot10.DotNet {
 				// current module, even if its ResolutionScope happens to be some other
 				// assembly/module (that's what the CLR does)
 				var tr = parent as TypeRef;
-				if (tr != null && OwnerModule != null)
-					td = OwnerModule.Find(tr);
+				if (tr != null && Module != null)
+					td = Module.Find(tr);
 			}
 			if (td == null)
 				return null;

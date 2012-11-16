@@ -155,10 +155,10 @@ namespace dot10.DotNet {
 		public abstract TypeDef DeclaringType2 { get; set; }
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
+		public ModuleDef Module {
 			get {
 				var dt = DeclaringType;
-				return dt == null ? null : dt.OwnerModule;
+				return dt == null ? null : dt.Module;
 			}
 		}
 

@@ -128,10 +128,10 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
+		public ModuleDef Module {
 			get {
 				var dt = DeclaringType;
-				return dt == null ? null : dt.OwnerModule;
+				return dt == null ? null : dt.Module;
 			}
 		}
 
@@ -433,10 +433,10 @@ namespace dot10.DotNet {
 			var dt = DeclaringType;
 			if (dt == null)
 				return 4;
-			var ownerModule = dt.OwnerModule;
-			if (ownerModule == null)
+			var module = dt.Module;
+			if (module == null)
 				return 4;
-			return ownerModule.GetPointerSize();
+			return module.GetPointerSize();
 		}
 
 		/// <inheritdoc/>

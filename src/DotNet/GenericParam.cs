@@ -88,10 +88,10 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public ModuleDef OwnerModule {
+		public ModuleDef Module {
 			get {
 				var dt = Owner as IMemberRef;
-				return dt == null ? null : dt.OwnerModule;
+				return dt == null ? null : dt.Module;
 			}
 		}
 
