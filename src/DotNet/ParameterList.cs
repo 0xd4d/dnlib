@@ -395,8 +395,11 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			if (string.IsNullOrEmpty(Name))
-				return string.Format("A_{0}", Index);
+			if (string.IsNullOrEmpty(Name)) {
+				if (IsReturnTypeParameter)
+					return "RET_PARAM";
+				return string.Format("A_{0}", paramIndex);
+			}
 			return Name;
 		}
 	}
