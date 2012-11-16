@@ -258,7 +258,7 @@ namespace dot10.DotNet.Writer {
 			if (firstRawOffset > headerLen)
 				headerLen = firstRawOffset;
 			headerLen = Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
-			if (headerLen < peImage.ImageNTHeaders.OptionalHeader.SectionAlignment) {
+			if (headerLen <= peImage.ImageNTHeaders.OptionalHeader.SectionAlignment) {
 				headerSection = new BinaryReaderChunk(peImage.CreateStream(0, headerLen));
 				return;
 			}
