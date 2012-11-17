@@ -171,7 +171,7 @@ namespace dot10.DotNet.Emit {
 		/// <param name="type">The type</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, ITypeDefOrRef type) {
-			if (opCode.OperandType != OperandType.InlineType)
+			if (opCode.OperandType != OperandType.InlineType && opCode.OperandType != OperandType.InlineTok)
 				throw new ArgumentException("Opcode does not have a type operand", "opCode");
 			return new Instruction(opCode, type);
 		}
