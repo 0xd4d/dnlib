@@ -27,6 +27,20 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the code
+		/// </summary>
+		public byte[] Code {
+			get { return code; }
+		}
+
+		/// <summary>
+		/// Gets the extra sections (exception handlers) or <c>null</c>
+		/// </summary>
+		public byte[] ExtraSections {
+			get { return extraSections; }
+		}
+
+		/// <summary>
 		/// <c>true</c> if it's a fat body
 		/// </summary>
 		public bool IsFat {
