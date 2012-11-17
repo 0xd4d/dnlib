@@ -209,7 +209,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Returns the module writer options
 		/// </summary>
-		protected abstract ModuleWriterOptionsBase TheOptions { get; }
+		public abstract ModuleWriterOptionsBase TheOptions { get; }
 
 		/// <summary>
 		/// Gets/sets the module writer listener

@@ -71,7 +71,7 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override ModuleWriterOptionsBase TheOptions {
+		public override ModuleWriterOptionsBase TheOptions {
 			get { return Options; }
 		}
 
