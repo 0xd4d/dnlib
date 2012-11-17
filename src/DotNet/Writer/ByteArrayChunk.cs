@@ -22,6 +22,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the data
+		/// </summary>
+		public byte[] Data {
+			get { return array; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="array">The data (now owned by us and can't be modified by the caller)</param>
