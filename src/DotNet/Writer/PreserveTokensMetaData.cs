@@ -233,7 +233,7 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (typeToRid.TryGetValue(td, out rid))
 				return rid;
-			Error("TypeDef {0} ({1:X8}) is not defined in this module", td, td.MDToken.Raw);
+			Error("TypeDef {0} ({1:X8}) is not defined in this module ({2})", td, td.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -245,7 +245,7 @@ namespace dot10.DotNet.Writer {
 			if (fd == null)
 				Error("Field is null");
 			else
-				Error("Field {0} ({1:X8}) is not defined in this module", fd, fd.MDToken.Raw);
+				Error("Field {0} ({1:X8}) is not defined in this module ({2})", fd, fd.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -257,7 +257,7 @@ namespace dot10.DotNet.Writer {
 			if (md == null)
 				Error("Method is null");
 			else
-				Error("Method {0} ({1:X8}) is not defined in this module", md, md.MDToken.Raw);
+				Error("Method {0} ({1:X8}) is not defined in this module ({2})", md, md.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -269,7 +269,7 @@ namespace dot10.DotNet.Writer {
 			if (pd == null)
 				Error("Param is null");
 			else
-				Error("Param {0} ({1:X8}) is not defined in this module", pd, pd.MDToken.Raw);
+				Error("Param {0} ({1:X8}) is not defined in this module ({2})", pd, pd.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -295,7 +295,7 @@ namespace dot10.DotNet.Writer {
 			if (ed == null)
 				Error("Event is null");
 			else
-				Error("Event {0} ({1:X8}) is not defined in this module", ed, ed.MDToken.Raw);
+				Error("Event {0} ({1:X8}) is not defined in this module ({2})", ed, ed.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -307,7 +307,7 @@ namespace dot10.DotNet.Writer {
 			if (pd == null)
 				Error("Property is null");
 			else
-				Error("Property {0} ({1:X8}) is not defined in this module", pd, pd.MDToken.Raw);
+				Error("Property {0} ({1:X8}) is not defined in this module ({2})", pd, pd.MDToken.Raw, module);
 			return 0;
 		}
 
