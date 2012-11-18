@@ -530,7 +530,7 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <param name="method">The method that gets updated with the instructions, locals, and
 		/// exception handlers.</param>
-		protected void RestoreMethod(MethodDef method) {
+		public virtual void RestoreMethod(MethodDef method) {
 			var body = method.Body;
 
 			body.LocalList.Clear();
