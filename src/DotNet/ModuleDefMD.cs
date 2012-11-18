@@ -4,6 +4,7 @@ using System.IO;
 using dot10.PE;
 using dot10.Utils;
 using dot10.IO;
+using dot10.DotNet;
 using dot10.DotNet.MD;
 using dot10.DotNet.Emit;
 using dot10.W32Resources;
@@ -1505,6 +1506,117 @@ namespace dot10.DotNet {
 		public void NativeWrite(Stream dest, DNW.NativeModuleWriterOptions options) {
 			var writer = new DNW.NativeModuleWriter(this, options ?? new DNW.NativeModuleWriterOptions(this));
 			writer.Write(dest);
+		}
+
+		/// <summary>
+		/// Reads data from the #Blob. The following columns are returned:
+		/// Field.Signature
+		/// Method.Signature
+		/// MemberRef.Signature
+		/// Constant.Value
+		/// CustomAttribute.Value
+		/// FieldMarshal.NativeType
+		/// DeclSecurity.PermissionSet
+		/// StandAloneSig.Signature
+		/// Property.Type
+		/// TypeSpec.Signature
+		/// Assembly.PublicKey
+		/// AssemblyRef.PublicKeyOrToken
+		/// File.HashValue
+		/// MethodSpec.Instantiation
+		/// </summary>
+		/// <param name="token">A token</param>
+		/// <returns>The value in the #Blob or <c>null</c> if <paramref name="token"/> is invalid</returns>
+		public byte[] ReadBlob(uint token) {
+			uint rid = MDToken.ToRID(token);
+			switch (MDToken.ToTable(token)) {
+			case Table.Field:
+				var fieldRow = TablesStream.ReadFieldRow(rid);
+				if (fieldRow == null)
+					break;
+				return BlobStream.Read(fieldRow.Signature);
+
+			case Table.Method:
+				var methodRow = TablesStream.ReadMethodRow(rid);
+				if (methodRow == null)
+					break;
+				return BlobStream.Read(methodRow.Signature);
+
+			case Table.MemberRef:
+				var mrRow = TablesStream.ReadMemberRefRow(rid);
+				if (mrRow == null)
+					break;
+				return BlobStream.Read(mrRow.Signature);
+
+			case Table.Constant:
+				var constRow = TablesStream.ReadConstantRow(rid);
+				if (constRow == null)
+					break;
+				return BlobStream.Read(constRow.Value);
+
+			case Table.CustomAttribute:
+				var caRow = TablesStream.ReadCustomAttributeRow(rid);
+				if (caRow == null)
+					break;
+				return BlobStream.Read(caRow.Value);
+
+			case Table.FieldMarshal:
+				var fmRow = TablesStream.ReadFieldMarshalRow(rid);
+				if (fmRow == null)
+					break;
+				return BlobStream.Read(fmRow.NativeType);
+
+			case Table.DeclSecurity:
+				var dsRow = TablesStream.ReadDeclSecurityRow(rid);
+				if (dsRow == null)
+					break;
+				return BlobStream.Read(dsRow.PermissionSet);
+
+			case Table.StandAloneSig:
+				var sasRow = TablesStream.ReadStandAloneSigRow(rid);
+				if (sasRow == null)
+					break;
+				return BlobStream.Read(sasRow.Signature);
+
+			case Table.Property:
+				var propRow = TablesStream.ReadPropertyRow(rid);
+				if (propRow == null)
+					break;
+				return BlobStream.Read(propRow.Type);
+
+			case Table.TypeSpec:
+				var tsRow = TablesStream.ReadTypeSpecRow(rid);
+				if (tsRow == null)
+					break;
+				return BlobStream.Read(tsRow.Signature);
+
+			case Table.Assembly:
+				var asmRow = TablesStream.ReadAssemblyRow(rid);
+				if (asmRow == null)
+					break;
+				return BlobStream.Read(asmRow.PublicKey);
+
+			case Table.AssemblyRef:
+				// HashValue is also in the #Blob but the user has to read it some other way
+				var asmRefRow = TablesStream.ReadAssemblyRefRow(rid);
+				if (asmRefRow == null)
+					break;
+				return BlobStream.Read(asmRefRow.PublicKeyOrToken);
+
+			case Table.File:
+				var fileRow = TablesStream.ReadFileRow(rid);
+				if (fileRow == null)
+					break;
+				return BlobStream.Read(fileRow.HashValue);
+
+			case Table.MethodSpec:
+				var msRow = TablesStream.ReadMethodSpecRow(rid);
+				if (msRow == null)
+					break;
+				return BlobStream.Read(msRow.Instantiation);
+			}
+
+			return null;
 		}
 	}
 }
