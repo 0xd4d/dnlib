@@ -1208,14 +1208,14 @@ namespace dot10.DotNet {
 			if (mr == null)
 				return null;
 			if (mr.Implementation == null)
-				return new EmbeddedResource(mr.Name, CreateResourceStream(mr.Offset), mr.Flags);
+				return new EmbeddedResource(mr.Name, CreateResourceStream(mr.Offset), mr.Flags) { Rid = rid, Offset = mr.Offset };
 			var file = mr.Implementation as FileDef;
 			if (file != null)
-				return new LinkedResource(mr.Name, file, mr.Flags);
+				return new LinkedResource(mr.Name, file, mr.Flags) { Rid = rid, Offset = mr.Offset };
 			var asmRef = mr.Implementation as AssemblyRef;
 			if (asmRef != null)
-				return new AssemblyLinkedResource(mr.Name, asmRef, mr.Flags);
-			return new EmbeddedResource(mr.Name, MemoryImageStream.CreateEmpty(), mr.Flags);
+				return new AssemblyLinkedResource(mr.Name, asmRef, mr.Flags) { Rid = rid, Offset = mr.Offset };
+			return new EmbeddedResource(mr.Name, MemoryImageStream.CreateEmpty(), mr.Flags) { Rid = rid, Offset = mr.Offset };
 		}
 
 		/// <summary>

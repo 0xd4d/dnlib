@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using dot10.IO;
+using dot10.DotNet.MD;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -26,9 +27,30 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Resource base class
 	/// </summary>
-	public abstract class Resource : IDisposable {
+	public abstract class Resource : IDisposable, IMDTokenProvider {
+		uint rid;
+		uint? offset;
 		UTF8String name;
 		ManifestResourceAttributes flags;
+
+		/// <inheritdoc/>
+		public MDToken MDToken {
+			get { return new MDToken(Table.ManifestResource, rid); }
+		}
+
+		/// <inheritdoc/>
+		public uint Rid {
+			get { return rid; }
+			set { rid = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the offset of the resource
+		/// </summary>
+		public uint? Offset {
+			get { return offset; }
+			set { offset = value; }
+		}
 
 		/// <summary>
 		/// Gets/sets the name
