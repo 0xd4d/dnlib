@@ -562,6 +562,14 @@ namespace dot10.DotNet {
 		/// <see cref="TypeRef"/>.
 		/// </summary>
 		IgnoreModifiers = 0x80000,
+
+		/// <summary>
+		/// By default, all module and assembly compares when they're both the system library
+		/// (eg. mscorlib or System.Runtime.dll) return true, even if they're really different,
+		/// eg. mscorlib (.NET 2.0) vs mscorlib (Windows CE). If this flag is set, the system
+		/// library is compared just like any other module/assembly.
+		/// </summary>
+		MscorlibIsNotSpecial = 0x100000,
 	}
 
 	/// <summary>
@@ -850,6 +858,19 @@ namespace dot10.DotNet {
 					options |= SigComparerOptions.IgnoreModifiers;
 				else
 					options &= ~SigComparerOptions.IgnoreModifiers;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.MscorlibIsNotSpecial"/> bit
+		/// </summary>
+		public bool MscorlibIsNotSpecial {
+			get { return (options & SigComparerOptions.MscorlibIsNotSpecial) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.MscorlibIsNotSpecial;
+				else
+					options &= ~SigComparerOptions.MscorlibIsNotSpecial;
 			}
 		}
 
@@ -1846,8 +1867,31 @@ namespace dot10.DotNet {
 				return true;
 			if (a == null || b == null)
 				return false;
+			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
+				return true;
 
 			return UTF8String.CaseInsensitiveEquals(a.Name, b.Name);
+		}
+
+		static bool IsCorLib(ModuleDef a) {
+			return a != null && a.IsManifestModule && a.Assembly.IsCorLib();
+		}
+
+		static bool IsCorLib(IModule a) {
+			var mod = a as ModuleDef;
+			return mod != null && mod.IsManifestModule && mod.Assembly.IsCorLib();
+		}
+
+		static bool IsCorLib(Module a) {
+			return a != null && a.Assembly.ManifestModule == a && a.Assembly == typeof(void).Assembly;
+		}
+
+		static bool IsCorLib(IAssembly a) {
+			return a.IsCorLib();
+		}
+
+		static bool IsCorLib(Assembly a) {
+			return a == typeof(void).Assembly;
 		}
 
 		/// <summary>
@@ -1861,6 +1905,8 @@ namespace dot10.DotNet {
 				return true;
 			if (a == null || b == null)
 				return false;
+			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
+				return true;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -1881,6 +1927,8 @@ namespace dot10.DotNet {
 				return true;
 			if (a == null || b == null)
 				return false;
+			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
+				return true;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -3741,6 +3789,8 @@ namespace dot10.DotNet {
 				return true;	// both are null
 			if (a == null || b == null)
 				return false;
+			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
+				return true;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -3777,6 +3827,8 @@ namespace dot10.DotNet {
 				return true;
 			if (a == null || b == null)
 				return false;
+			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
+				return true;
 
 			// Use b.ScopeName and not b.Name since b.Name is just the file name w/o path
 			return UTF8String.ToSystemStringOrEmpty(a.Name).Equals(b.ScopeName, StringComparison.OrdinalIgnoreCase);
@@ -3793,6 +3845,8 @@ namespace dot10.DotNet {
 				return true;
 			if (a == null || b == null)
 				return false;
+			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
+				return true;
 			if (!recursionCounter.Increment())
 				return false;
 
