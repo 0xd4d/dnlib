@@ -102,16 +102,16 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="LocalList"/> is not empty
+		/// <c>true</c> if <see cref="Variables"/> is not empty
 		/// </summary>
-		public bool HasLocals {
+		public bool HasVariables {
 			get { return localList.Count > 0; }
 		}
 
 		/// <summary>
 		/// Gets the locals
 		/// </summary>
-		public LocalList LocalList {
+		public LocalList Variables {// Only called Variables for compat w/ older code. Locals is a better and more accurate name
 			get { return localList; }
 		}
 

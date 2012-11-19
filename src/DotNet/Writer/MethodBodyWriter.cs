@@ -116,7 +116,7 @@ namespace dot10.DotNet.Writer {
 			//TODO: If locals has cust attrs, we also need a fat header
 			return codeSize > 0x3F ||
 					exceptionHandlers.Count > 0 ||
-					cilBody.HasLocals ||
+					cilBody.HasVariables ||
 					maxStack > 8;
 		}
 
@@ -143,9 +143,9 @@ namespace dot10.DotNet.Writer {
 		}
 
 		IList<TypeSig> GetLocals() {
-			var localsSig = new TypeSig[cilBody.LocalList.Count];
-			for (int i = 0; i < cilBody.LocalList.Count; i++)
-				localsSig[i] = cilBody.LocalList[i].Type;
+			var localsSig = new TypeSig[cilBody.Variables.Count];
+			for (int i = 0; i < cilBody.Variables.Count; i++)
+				localsSig[i] = cilBody.Variables[i].Type;
 			return localsSig;
 		}
 

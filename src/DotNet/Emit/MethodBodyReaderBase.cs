@@ -533,10 +533,10 @@ namespace dot10.DotNet.Emit {
 		public virtual void RestoreMethod(MethodDef method) {
 			var body = method.Body;
 
-			body.LocalList.Clear();
+			body.Variables.Clear();
 			if (locals != null) {
 				foreach (var local in locals)
-					body.LocalList.Add(local);
+					body.Variables.Add(local);
 			}
 
 			body.Instructions.Clear();
