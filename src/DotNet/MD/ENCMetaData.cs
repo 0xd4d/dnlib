@@ -209,8 +209,9 @@ namespace dot10.DotNet.MD {
 		public override RidList GetTypeDefRidList() {
 			if (!hasDeletedRows)
 				return base.GetTypeDefRidList();
-			var list = new RandomRidList((int)tablesStream.Get(Table.TypeDef).Rows);
-			for (uint rid = 1; rid <= list.Length; rid++) {
+			uint rows = tablesStream.Get(Table.TypeDef).Rows;
+			var list = new RandomRidList((int)rows);
+			for (uint rid = 1; rid <= rows; rid++) {
 				var row = tablesStream.ReadTypeDefRow(rid);
 				if (row == null)
 					continue;	// Should never happen since rid is valid
@@ -225,8 +226,9 @@ namespace dot10.DotNet.MD {
 		public override RidList GetExportedTypeRidList() {
 			if (!hasDeletedRows)
 				return base.GetExportedTypeRidList();
-			var list = new RandomRidList((int)tablesStream.Get(Table.ExportedType).Rows);
-			for (uint rid = 1; rid <= list.Length; rid++) {
+			uint rows = tablesStream.Get(Table.ExportedType).Rows;
+			var list = new RandomRidList((int)rows);
+			for (uint rid = 1; rid <= rows; rid++) {
 				var row = tablesStream.ReadExportedTypeRow(rid);
 				if (row == null)
 					continue;	// Should never happen since rid is valid
