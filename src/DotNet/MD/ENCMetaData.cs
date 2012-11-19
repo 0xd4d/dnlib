@@ -469,7 +469,7 @@ namespace dot10.DotNet.MD {
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;
-				if (key2 > key && key2 != 0)
+				if (key2 > key)
 					ridHi = rid - 1;
 				else
 					ridLo = rid + 1;
