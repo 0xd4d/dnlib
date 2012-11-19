@@ -197,11 +197,11 @@ namespace dot10.DotNet.MD {
 			tablesStream.Initialize(peImage);
 
 			// The pointer tables are used iff row count != 0
-			hasFieldPtr = !tablesStream.Get(Table.FieldPtr).IsEmpty;
-			hasMethodPtr = !tablesStream.Get(Table.MethodPtr).IsEmpty;
-			hasParamPtr = !tablesStream.Get(Table.ParamPtr).IsEmpty;
-			hasEventPtr = !tablesStream.Get(Table.EventPtr).IsEmpty;
-			hasPropertyPtr = !tablesStream.Get(Table.PropertyPtr).IsEmpty;
+			hasFieldPtr = !tablesStream.FieldPtrTable.IsEmpty;
+			hasMethodPtr = !tablesStream.MethodPtrTable.IsEmpty;
+			hasParamPtr = !tablesStream.ParamPtrTable.IsEmpty;
+			hasEventPtr = !tablesStream.EventPtrTable.IsEmpty;
+			hasPropertyPtr = !tablesStream.PropertyPtrTable.IsEmpty;
 			hasDeletedRows = tablesStream.HasDelete;
 		}
 
@@ -209,7 +209,7 @@ namespace dot10.DotNet.MD {
 		public override RidList GetTypeDefRidList() {
 			if (!hasDeletedRows)
 				return base.GetTypeDefRidList();
-			uint rows = tablesStream.Get(Table.TypeDef).Rows;
+			uint rows = tablesStream.TypeDefTable.Rows;
 			var list = new RandomRidList((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
 				var row = tablesStream.ReadTypeDefRow(rid);
@@ -226,7 +226,7 @@ namespace dot10.DotNet.MD {
 		public override RidList GetExportedTypeRidList() {
 			if (!hasDeletedRows)
 				return base.GetExportedTypeRidList();
-			uint rows = tablesStream.Get(Table.ExportedType).Rows;
+			uint rows = tablesStream.ExportedTypeTable.Rows;
 			var list = new RandomRidList((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
 				var row = tablesStream.ReadExportedTypeRow(rid);
@@ -248,7 +248,7 @@ namespace dot10.DotNet.MD {
 			if (!hasFieldPtr)
 				return listRid;
 			uint listValue;
-			return tablesStream.ReadColumn(Table.FieldPtr, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.FieldPtrTable, listRid, 0, out listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -260,7 +260,7 @@ namespace dot10.DotNet.MD {
 			if (!hasMethodPtr)
 				return listRid;
 			uint listValue;
-			return tablesStream.ReadColumn(Table.MethodPtr, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.MethodPtrTable, listRid, 0, out listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -272,7 +272,7 @@ namespace dot10.DotNet.MD {
 			if (!hasParamPtr)
 				return listRid;
 			uint listValue;
-			return tablesStream.ReadColumn(Table.ParamPtr, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.ParamPtrTable, listRid, 0, out listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -284,7 +284,7 @@ namespace dot10.DotNet.MD {
 			if (!hasEventPtr)
 				return listRid;
 			uint listValue;
-			return tablesStream.ReadColumn(Table.EventPtr, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.EventPtrTable, listRid, 0, out listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -296,16 +296,16 @@ namespace dot10.DotNet.MD {
 			if (!hasPropertyPtr)
 				return listRid;
 			uint listValue;
-			return tablesStream.ReadColumn(Table.PropertyPtr, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.PropertyPtrTable, listRid, 0, out listValue) ? listValue : 0;
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetFieldRidList(uint typeDefRid) {
-			var list = GetRidList(Table.TypeDef, typeDefRid, 4, Table.Field);
+			var list = GetRidList(tablesStream.TypeDefTable, typeDefRid, 4, tablesStream.FieldTable);
 			if (list.Length == 0 || (!hasFieldPtr && !hasDeletedRows))
 				return list;
 
-			var destTable = tablesStream.Get(Table.Field);
+			var destTable = tablesStream.FieldTable;
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToFieldRid(list[i]);
@@ -329,11 +329,11 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetMethodRidList(uint typeDefRid) {
-			var list = GetRidList(Table.TypeDef, typeDefRid, 5, Table.Method);
+			var list = GetRidList(tablesStream.TypeDefTable, typeDefRid, 5, tablesStream.MethodTable);
 			if (list.Length == 0 || (!hasMethodPtr && !hasDeletedRows))
 				return list;
 
-			var destTable = tablesStream.Get(Table.Method);
+			var destTable = tablesStream.MethodTable;
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToMethodRid(list[i]);
@@ -357,11 +357,11 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetParamRidList(uint methodRid) {
-			var list = GetRidList(Table.Method, methodRid, 5, Table.Param);
+			var list = GetRidList(tablesStream.MethodTable, methodRid, 5, tablesStream.ParamTable);
 			if (list.Length == 0 || !hasParamPtr)
 				return list;
 
-			var destTable = tablesStream.Get(Table.Param);
+			var destTable = tablesStream.ParamTable;
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToParamRid(list[i]);
@@ -374,11 +374,11 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetEventRidList(uint eventMapRid) {
-			var list = GetRidList(Table.EventMap, eventMapRid, 1, Table.Event);
+			var list = GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
 			if (list.Length == 0 || (!hasEventPtr && !hasDeletedRows))
 				return list;
 
-			var destTable = tablesStream.Get(Table.Event);
+			var destTable = tablesStream.EventTable;
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToEventRid(list[i]);
@@ -402,11 +402,11 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetPropertyRidList(uint propertyMapRid) {
-			var list = GetRidList(Table.PropertyMap, propertyMapRid, 1, Table.Property);
+			var list = GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
 			if (list.Length == 0 || (!hasPropertyPtr && !hasDeletedRows))
 				return list;
 
-			var destTable = tablesStream.Get(Table.Property);
+			var destTable = tablesStream.PropertyTable;
 			var newList = new RandomRidList((int)list.Length);
 			for (uint i = 0; i < list.Length; i++) {
 				var rid = ToPropertyRid(list[i]);
@@ -436,15 +436,15 @@ namespace dot10.DotNet.MD {
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
-		RidList GetRidList(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
-			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
+		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
+			var column = tableSource.TableInfo.Columns[colIndex];
 			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
 				return ContiguousRidList.Empty;
 			uint nextListRid;
 			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
 
-			uint lastRid = tablesStream.Get(tableDest).Rows + 1;
+			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
 				return ContiguousRidList.Empty;
 			uint endRid = hasNext && nextListRid != 0 ? nextListRid : lastRid;
@@ -456,12 +456,11 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override uint BinarySearch(Table tableSource, int keyColIndex, uint key) {
-			var table = tablesStream.Get(tableSource);
-			if (table == null)
+		protected override uint BinarySearch(MDTable tableSource, int keyColIndex, uint key) {
+			if (tableSource == null)
 				return 0;
-			var keyColumn = table.TableInfo.Columns[keyColIndex];
-			uint ridLo = 1, ridHi = table.Rows;
+			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
+			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
 				uint key2;
@@ -475,7 +474,7 @@ namespace dot10.DotNet.MD {
 					ridLo = rid + 1;
 			}
 
-			if (tableSource == Table.GenericParam && !tablesStream.IsSorted(tableSource))
+			if (tableSource.Table == Table.GenericParam && !tablesStream.IsSorted(tableSource))
 				return LinearSearch(tableSource, keyColIndex, key);
 
 			return 0;
@@ -489,12 +488,11 @@ namespace dot10.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
-		uint LinearSearch(Table tableSource, int keyColIndex, uint key) {
-			var table = tablesStream.Get(tableSource);
-			if (table == null)
+		uint LinearSearch(MDTable tableSource, int keyColIndex, uint key) {
+			if (tableSource == null)
 				return 0;
-			var keyColumn = table.TableInfo.Columns[keyColIndex];
-			for (uint rid = 1; rid <= table.Rows; rid++) {
+			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
+			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
 				uint key2;
 				if (!tablesStream.ReadColumn(tableSource, rid, keyColumn, out key2))
 					break;	// Never happens since rid is valid
@@ -505,16 +503,14 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override RidList FindAllRowsUnsorted(Table tableSource, int keyColIndex, uint key) {
+		protected override RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) {
+			if (tableSource == null)
+				return ContiguousRidList.Empty;
 			if (tablesStream.IsSorted(tableSource))
 				return FindAllRows(tableSource, keyColIndex, key);
 			SortedTable sortedTable;
-			if (!sortedTables.TryGetValue(tableSource, out sortedTable)) {
-				var table = tablesStream.Get(tableSource);
-				if (table == null)
-					return ContiguousRidList.Empty;
-				sortedTables[tableSource] = sortedTable = new SortedTable(table, keyColIndex);
-			}
+			if (!sortedTables.TryGetValue(tableSource.Table, out sortedTable))
+				sortedTables[tableSource.Table] = sortedTable = new SortedTable(tableSource, keyColIndex);
 			return sortedTable.FindAllRows(key);
 		}
 	}

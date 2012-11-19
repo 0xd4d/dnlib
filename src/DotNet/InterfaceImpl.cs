@@ -119,7 +119,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.InterfaceImpl).IsInvalidRID(rid))
+			if (readerModule.TablesStream.InterfaceImplTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("InterfaceImpl rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

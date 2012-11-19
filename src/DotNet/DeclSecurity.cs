@@ -140,7 +140,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.DeclSecurity).IsInvalidRID(rid))
+			if (readerModule.TablesStream.DeclSecurityTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("DeclSecurity rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

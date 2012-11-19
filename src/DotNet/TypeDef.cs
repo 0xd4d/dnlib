@@ -1918,7 +1918,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.TypeDef).IsInvalidRID(rid))
+			if (readerModule.TablesStream.TypeDefTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("TypeDef rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

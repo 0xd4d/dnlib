@@ -210,7 +210,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.File).IsInvalidRID(rid))
+			if (readerModule.TablesStream.FileTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("File rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

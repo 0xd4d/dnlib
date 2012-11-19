@@ -335,7 +335,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.GenericParam).IsInvalidRID(rid))
+			if (readerModule.TablesStream.GenericParamTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("GenericParam rid {0} does not exist", rid));
 #endif
 			this.rid = rid;
@@ -360,7 +360,7 @@ namespace dot10.DotNet {
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			kind.ReadOriginalValue = () => {
-				if (readerModule.TablesStream.Get(Table.GenericParam).TableInfo.Columns.Count != 5)
+				if (readerModule.TablesStream.GenericParamTable.TableInfo.Columns.Count != 5)
 					return null;
 				InitializeRawRow();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Kind);

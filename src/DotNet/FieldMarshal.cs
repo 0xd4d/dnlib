@@ -75,7 +75,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.FieldMarshal).IsInvalidRID(rid))
+			if (readerModule.TablesStream.FieldMarshalTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("FieldMarshal rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

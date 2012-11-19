@@ -24,6 +24,54 @@ namespace dot10.DotNet.MD {
 		IColumnReader columnReader;
 		IRowReader<RawMethodRow> methodRowReader;
 
+#pragma warning disable 1591	// XML doc comment
+		public MDTable ModuleTable;
+		public MDTable TypeRefTable;
+		public MDTable TypeDefTable;
+		public MDTable FieldPtrTable;
+		public MDTable FieldTable;
+		public MDTable MethodPtrTable;
+		public MDTable MethodTable;
+		public MDTable ParamPtrTable;
+		public MDTable ParamTable;
+		public MDTable InterfaceImplTable;
+		public MDTable MemberRefTable;
+		public MDTable ConstantTable;
+		public MDTable CustomAttributeTable;
+		public MDTable FieldMarshalTable;
+		public MDTable DeclSecurityTable;
+		public MDTable ClassLayoutTable;
+		public MDTable FieldLayoutTable;
+		public MDTable StandAloneSigTable;
+		public MDTable EventMapTable;
+		public MDTable EventPtrTable;
+		public MDTable EventTable;
+		public MDTable PropertyMapTable;
+		public MDTable PropertyPtrTable;
+		public MDTable PropertyTable;
+		public MDTable MethodSemanticsTable;
+		public MDTable MethodImplTable;
+		public MDTable ModuleRefTable;
+		public MDTable TypeSpecTable;
+		public MDTable ImplMapTable;
+		public MDTable FieldRVATable;
+		public MDTable ENCLogTable;
+		public MDTable ENCMapTable;
+		public MDTable AssemblyTable;
+		public MDTable AssemblyProcessorTable;
+		public MDTable AssemblyOSTable;
+		public MDTable AssemblyRefTable;
+		public MDTable AssemblyRefProcessorTable;
+		public MDTable AssemblyRefOSTable;
+		public MDTable FileTable;
+		public MDTable ExportedTypeTable;
+		public MDTable ManifestResourceTable;
+		public MDTable NestedClassTable;
+		public MDTable GenericParamTable;
+		public MDTable MethodSpecTable;
+		public MDTable GenericParamConstraintTable;
+#pragma warning restore
+
 		/// <summary>
 		/// File offset of the header
 		/// </summary>
@@ -160,6 +208,56 @@ namespace dot10.DotNet.MD {
 					throw new BadImageFormatException("Too big MD table");
 				currentRva = newRva;
 			}
+
+			InitializeTables();
+		}
+
+		void InitializeTables() {
+			ModuleTable = mdTables[(int)Table.Module];
+			TypeRefTable = mdTables[(int)Table.TypeRef];
+			TypeDefTable = mdTables[(int)Table.TypeDef];
+			FieldPtrTable = mdTables[(int)Table.FieldPtr];
+			FieldTable = mdTables[(int)Table.Field];
+			MethodPtrTable = mdTables[(int)Table.MethodPtr];
+			MethodTable = mdTables[(int)Table.Method];
+			ParamPtrTable = mdTables[(int)Table.ParamPtr];
+			ParamTable = mdTables[(int)Table.Param];
+			InterfaceImplTable = mdTables[(int)Table.InterfaceImpl];
+			MemberRefTable = mdTables[(int)Table.MemberRef];
+			ConstantTable = mdTables[(int)Table.Constant];
+			CustomAttributeTable = mdTables[(int)Table.CustomAttribute];
+			FieldMarshalTable = mdTables[(int)Table.FieldMarshal];
+			DeclSecurityTable = mdTables[(int)Table.DeclSecurity];
+			ClassLayoutTable = mdTables[(int)Table.ClassLayout];
+			FieldLayoutTable = mdTables[(int)Table.FieldLayout];
+			StandAloneSigTable = mdTables[(int)Table.StandAloneSig];
+			EventMapTable = mdTables[(int)Table.EventMap];
+			EventPtrTable = mdTables[(int)Table.EventPtr];
+			EventTable = mdTables[(int)Table.Event];
+			PropertyMapTable = mdTables[(int)Table.PropertyMap];
+			PropertyPtrTable = mdTables[(int)Table.PropertyPtr];
+			PropertyTable = mdTables[(int)Table.Property];
+			MethodSemanticsTable = mdTables[(int)Table.MethodSemantics];
+			MethodImplTable = mdTables[(int)Table.MethodImpl];
+			ModuleRefTable = mdTables[(int)Table.ModuleRef];
+			TypeSpecTable = mdTables[(int)Table.TypeSpec];
+			ImplMapTable = mdTables[(int)Table.ImplMap];
+			FieldRVATable = mdTables[(int)Table.FieldRVA];
+			ENCLogTable = mdTables[(int)Table.ENCLog];
+			ENCMapTable = mdTables[(int)Table.ENCMap];
+			AssemblyTable = mdTables[(int)Table.Assembly];
+			AssemblyProcessorTable = mdTables[(int)Table.AssemblyProcessor];
+			AssemblyOSTable = mdTables[(int)Table.AssemblyOS];
+			AssemblyRefTable = mdTables[(int)Table.AssemblyRef];
+			AssemblyRefProcessorTable = mdTables[(int)Table.AssemblyRefProcessor];
+			AssemblyRefOSTable = mdTables[(int)Table.AssemblyRefOS];
+			FileTable = mdTables[(int)Table.File];
+			ExportedTypeTable = mdTables[(int)Table.ExportedType];
+			ManifestResourceTable = mdTables[(int)Table.ManifestResource];
+			NestedClassTable = mdTables[(int)Table.NestedClass];
+			GenericParamTable = mdTables[(int)Table.GenericParam];
+			MethodSpecTable = mdTables[(int)Table.MethodSpec];
+			GenericParamConstraintTable = mdTables[(int)Table.GenericParamConstraint];
 		}
 
 		/// <inheritdoc/>
@@ -201,8 +299,8 @@ namespace dot10.DotNet.MD {
 		/// Checks whether table <paramref name="table"/> is sorted
 		/// </summary>
 		/// <param name="table">The table</param>
-		public bool IsSorted(Table table) {
-			int index = (int)table;
+		public bool IsSorted(MDTable table) {
+			int index = (int)table.Table;
 			if ((uint)index >= 64)
 				return false;
 			return (sortedMask & (1UL << index)) != 0;

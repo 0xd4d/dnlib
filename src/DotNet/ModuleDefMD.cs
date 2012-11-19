@@ -144,7 +144,7 @@ namespace dot10.DotNet {
 		internal override ILazyList<Resource> Resources2 {
 			get {
 				if (resources == null) {
-					var table = TablesStream.Get(Table.ManifestResource);
+					var table = TablesStream.ManifestResourceTable;
 					resources = new LazyList<Resource>((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
 				}
 				return resources;
@@ -327,7 +327,7 @@ namespace dot10.DotNet {
 		}
 
 		ModuleKind GetKind() {
-			if (TablesStream.Get(Table.Assembly).Rows < 1)
+			if (TablesStream.AssemblyTable.Rows < 1)
 				return ModuleKind.NetModule;
 
 			var peImage = MetaData.PEImage;
@@ -349,34 +349,34 @@ namespace dot10.DotNet {
 
 			// FindCorLibAssemblyRef() needs this list initialized. Other code may need corLibTypes
 			// so initialize these two first.
-			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.Get(Table.AssemblyRef).Rows, rid2 => new AssemblyRefMD(this, rid2));
+			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.AssemblyRefTable.Rows, rid2 => new AssemblyRefMD(this, rid2));
 			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
 
-			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.Get(Table.Module).Rows, rid2 => rid2 == rid ? this : new ModuleDefMD2(this, rid2));
-			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.Get(Table.TypeRef).Rows, rid2 => new TypeRefMD(this, rid2));
-			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.Get(Table.TypeDef).Rows, rid2 => new TypeDefMD(this, rid2));
-			listFieldDefMD = new SimpleLazyList<FieldDefMD>(ts.Get(Table.Field).Rows, rid2 => new FieldDefMD(this, rid2));
-			listMethodDefMD = new SimpleLazyList<MethodDefMD>(ts.Get(Table.Method).Rows, rid2 => new MethodDefMD(this, rid2));
-			listParamDefMD = new SimpleLazyList<ParamDefMD>(ts.Get(Table.Param).Rows, rid2 => new ParamDefMD(this, rid2));
-			listInterfaceImplMD = new SimpleLazyList<InterfaceImplMD>(ts.Get(Table.InterfaceImpl).Rows, rid2 => new InterfaceImplMD(this, rid2));
-			listMemberRefMD = new SimpleLazyList<MemberRefMD>(ts.Get(Table.MemberRef).Rows, rid2 => new MemberRefMD(this, rid2));
-			listConstantMD = new SimpleLazyList<ConstantMD>(ts.Get(Table.Constant).Rows, rid2 => new ConstantMD(this, rid2));
-			listFieldMarshalMD = new SimpleLazyList<FieldMarshalMD>(ts.Get(Table.FieldMarshal).Rows, rid2 => new FieldMarshalMD(this, rid2));
-			listDeclSecurityMD = new SimpleLazyList<DeclSecurityMD>(ts.Get(Table.DeclSecurity).Rows, rid2 => new DeclSecurityMD(this, rid2));
-			listClassLayoutMD = new SimpleLazyList<ClassLayoutMD>(ts.Get(Table.ClassLayout).Rows, rid2 => new ClassLayoutMD(this, rid2));
-			listStandAloneSigMD = new SimpleLazyList<StandAloneSigMD>(ts.Get(Table.StandAloneSig).Rows, rid2 => new StandAloneSigMD(this, rid2));
-			listEventDefMD = new SimpleLazyList<EventDefMD>(ts.Get(Table.Event).Rows, rid2 => new EventDefMD(this, rid2));
-			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.Get(Table.Property).Rows, rid2 => new PropertyDefMD(this, rid2));
-			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.Get(Table.ModuleRef).Rows, rid2 => new ModuleRefMD(this, rid2));
-			listTypeSpecMD = new SimpleLazyList<TypeSpecMD>(ts.Get(Table.TypeSpec).Rows, rid2 => new TypeSpecMD(this, rid2));
-			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.Get(Table.ImplMap).Rows, rid2 => new ImplMapMD(this, rid2));
-			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.Get(Table.Assembly).Rows, rid2 => new AssemblyDefMD(this, rid2));
-			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.Get(Table.File).Rows, rid2 => new FileDefMD(this, rid2));
-			listExportedTypeMD = new SimpleLazyList<ExportedTypeMD>(ts.Get(Table.ExportedType).Rows, rid2 => new ExportedTypeMD(this, rid2));
-			listManifestResourceMD = new SimpleLazyList<ManifestResourceMD>(ts.Get(Table.ManifestResource).Rows, rid2 => new ManifestResourceMD(this, rid2));
-			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.Get(Table.GenericParam).Rows, rid2 => new GenericParamMD(this, rid2));
-			listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.Get(Table.MethodSpec).Rows, rid2 => new MethodSpecMD(this, rid2));
-			listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.Get(Table.GenericParamConstraint).Rows, rid2 => new GenericParamConstraintMD(this, rid2));
+			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == rid ? this : new ModuleDefMD2(this, rid2));
+			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.TypeRefTable.Rows, rid2 => new TypeRefMD(this, rid2));
+			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.TypeDefTable.Rows, rid2 => new TypeDefMD(this, rid2));
+			listFieldDefMD = new SimpleLazyList<FieldDefMD>(ts.FieldTable.Rows, rid2 => new FieldDefMD(this, rid2));
+			listMethodDefMD = new SimpleLazyList<MethodDefMD>(ts.MethodTable.Rows, rid2 => new MethodDefMD(this, rid2));
+			listParamDefMD = new SimpleLazyList<ParamDefMD>(ts.ParamTable.Rows, rid2 => new ParamDefMD(this, rid2));
+			listInterfaceImplMD = new SimpleLazyList<InterfaceImplMD>(ts.InterfaceImplTable.Rows, rid2 => new InterfaceImplMD(this, rid2));
+			listMemberRefMD = new SimpleLazyList<MemberRefMD>(ts.MemberRefTable.Rows, rid2 => new MemberRefMD(this, rid2));
+			listConstantMD = new SimpleLazyList<ConstantMD>(ts.ConstantTable.Rows, rid2 => new ConstantMD(this, rid2));
+			listFieldMarshalMD = new SimpleLazyList<FieldMarshalMD>(ts.FieldMarshalTable.Rows, rid2 => new FieldMarshalMD(this, rid2));
+			listDeclSecurityMD = new SimpleLazyList<DeclSecurityMD>(ts.DeclSecurityTable.Rows, rid2 => new DeclSecurityMD(this, rid2));
+			listClassLayoutMD = new SimpleLazyList<ClassLayoutMD>(ts.ClassLayoutTable.Rows, rid2 => new ClassLayoutMD(this, rid2));
+			listStandAloneSigMD = new SimpleLazyList<StandAloneSigMD>(ts.StandAloneSigTable.Rows, rid2 => new StandAloneSigMD(this, rid2));
+			listEventDefMD = new SimpleLazyList<EventDefMD>(ts.EventTable.Rows, rid2 => new EventDefMD(this, rid2));
+			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.PropertyTable.Rows, rid2 => new PropertyDefMD(this, rid2));
+			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.ModuleRefTable.Rows, rid2 => new ModuleRefMD(this, rid2));
+			listTypeSpecMD = new SimpleLazyList<TypeSpecMD>(ts.TypeSpecTable.Rows, rid2 => new TypeSpecMD(this, rid2));
+			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.ImplMapTable.Rows, rid2 => new ImplMapMD(this, rid2));
+			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.AssemblyTable.Rows, rid2 => new AssemblyDefMD(this, rid2));
+			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.FileTable.Rows, rid2 => new FileDefMD(this, rid2));
+			listExportedTypeMD = new SimpleLazyList<ExportedTypeMD>(ts.ExportedTypeTable.Rows, rid2 => new ExportedTypeMD(this, rid2));
+			listManifestResourceMD = new SimpleLazyList<ManifestResourceMD>(ts.ManifestResourceTable.Rows, rid2 => new ManifestResourceMD(this, rid2));
+			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.GenericParamTable.Rows, rid2 => new GenericParamMD(this, rid2));
+			listMethodSpecMD = new SimpleLazyList<MethodSpecMD>(ts.MethodSpecTable.Rows, rid2 => new MethodSpecMD(this, rid2));
+			listGenericParamConstraintMD = new SimpleLazyList<GenericParamConstraintMD>(ts.GenericParamConstraintTable.Rows, rid2 => new GenericParamConstraintMD(this, rid2));
 
 			location.ReadOriginalValue = () => {
 				return dnFile.MetaData.PEImage.FileName ?? string.Empty;
@@ -402,7 +402,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <returns>An existing <see cref="AssemblyRef"/> instance or <c>null</c> if it wasn't found</returns>
 		AssemblyRef FindCorLibAssemblyRef() {
-			var numAsmRefs = TablesStream.Get(Table.AssemblyRef).Rows;
+			var numAsmRefs = TablesStream.AssemblyRefTable.Rows;
 			AssemblyRef corLibAsmRef = null;
 			for (uint i = 1; i <= numAsmRefs; i++) {
 				var asmRef = ResolveAssemblyRef(i);
@@ -1137,7 +1137,7 @@ namespace dot10.DotNet {
 		void InitializeModuleList() {
 			if (moduleRidList != null)
 				return;
-			uint rows = TablesStream.Get(Table.File).Rows;
+			uint rows = TablesStream.FileTable.Rows;
 			moduleRidList = new RandomRidList((int)rows);
 
 			var baseDir = GetBaseDirectoryOfImage();

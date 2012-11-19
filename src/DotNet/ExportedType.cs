@@ -609,7 +609,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.ExportedType).IsInvalidRID(rid))
+			if (readerModule.TablesStream.ExportedTypeTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("ExportedType rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

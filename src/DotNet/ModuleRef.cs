@@ -193,7 +193,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.ModuleRef).IsInvalidRID(rid))
+			if (readerModule.TablesStream.ModuleRefTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("ModuleRef rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

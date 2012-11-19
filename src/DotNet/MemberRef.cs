@@ -492,7 +492,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.MemberRef).IsInvalidRID(rid))
+			if (readerModule.TablesStream.MemberRefTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("MemberRef rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

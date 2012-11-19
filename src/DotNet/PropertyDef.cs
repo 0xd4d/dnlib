@@ -423,7 +423,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.Property).IsInvalidRID(rid))
+			if (readerModule.TablesStream.PropertyTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Property rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

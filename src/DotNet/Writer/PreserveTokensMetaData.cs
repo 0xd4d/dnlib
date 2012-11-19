@@ -448,31 +448,31 @@ namespace dot10.DotNet.Writer {
 			uint rows;
 
 			if (PreserveTypeRefRids) {
-				rows = mod.TablesStream.Get(Table.TypeRef).Rows;
+				rows = mod.TablesStream.TypeRefTable.Rows;
 				for (uint i = 0; i < rows; i++)
 					tablesHeap.TypeRefTable.Create(new RawTypeRefRow());
 			}
 
 			if (PreserveMemberRefRids) {
-				rows = mod.TablesStream.Get(Table.MemberRef).Rows;
+				rows = mod.TablesStream.MemberRefTable.Rows;
 				for (uint i = 0; i < rows; i++)
 					tablesHeap.MemberRefTable.Create(new RawMemberRefRow());
 			}
 
 			if (PreserveStandAloneSigRids) {
-				rows = mod.TablesStream.Get(Table.StandAloneSig).Rows;
+				rows = mod.TablesStream.StandAloneSigTable.Rows;
 				for (uint i = 0; i < rows; i++)
 					tablesHeap.StandAloneSigTable.Create(new RawStandAloneSigRow());
 			}
 
 			if (PreserveTypeSpecRids) {
-				rows = mod.TablesStream.Get(Table.TypeSpec).Rows;
+				rows = mod.TablesStream.TypeSpecTable.Rows;
 				for (uint i = 0; i < rows; i++)
 					tablesHeap.TypeSpecTable.Create(new RawTypeSpecRow());
 			}
 
 			if (PreserveMethodSpecRids) {
-				rows = mod.TablesStream.Get(Table.MethodSpec).Rows;
+				rows = mod.TablesStream.MethodSpecTable.Rows;
 				for (uint i = 0; i < rows; i++)
 					tablesHeap.MethodSpecTable.Create(new RawMethodSpecRow());
 			}
@@ -488,31 +488,31 @@ namespace dot10.DotNet.Writer {
 			uint rows;
 
 			if (PreserveTypeRefRids) {
-				rows = mod.TablesStream.Get(Table.TypeRef).Rows;
+				rows = mod.TablesStream.TypeRefTable.Rows;
 				for (uint rid = 1; rid <= rows; rid++)
 					AddTypeRef(mod.ResolveTypeRef(rid));
 			}
 
 			if (PreserveMemberRefRids) {
-				rows = mod.TablesStream.Get(Table.MemberRef).Rows;
+				rows = mod.TablesStream.MemberRefTable.Rows;
 				for (uint rid = 1; rid <= rows; rid++)
 					AddMemberRef(mod.ResolveMemberRef(rid));
 			}
 
 			if (PreserveStandAloneSigRids) {
-				rows = mod.TablesStream.Get(Table.StandAloneSig).Rows;
+				rows = mod.TablesStream.StandAloneSigTable.Rows;
 				for (uint rid = 1; rid <= rows; rid++)
 					AddStandAloneSig(mod.ResolveStandAloneSig(rid));
 			}
 
 			if (PreserveTypeSpecRids) {
-				rows = mod.TablesStream.Get(Table.TypeSpec).Rows;
+				rows = mod.TablesStream.TypeSpecTable.Rows;
 				for (uint rid = 1; rid <= rows; rid++)
 					AddTypeSpec(mod.ResolveTypeSpec(rid));
 			}
 
 			if (PreserveMethodSpecRids) {
-				rows = mod.TablesStream.Get(Table.MethodSpec).Rows;
+				rows = mod.TablesStream.MethodSpecTable.Rows;
 				for (uint rid = 1; rid <= rows; rid++)
 					AddMethodSpec(mod.ResolveMethodSpec(rid));
 			}
@@ -1127,7 +1127,7 @@ namespace dot10.DotNet.Writer {
 			if (MDToken.ToTable(token) != Table.StandAloneSig)
 				return false;
 			uint rid = MDToken.ToRID(token);
-			return mod.TablesStream.Get(Table.StandAloneSig).IsValidRID(rid);
+			return mod.TablesStream.StandAloneSigTable.IsValidRID(rid);
 		}
 
 		/// <inheritdoc/>

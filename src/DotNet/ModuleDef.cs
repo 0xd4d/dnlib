@@ -1133,7 +1133,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (rid != 1 && readerModule.TablesStream.Get(Table.Module).IsInvalidRID(rid))
+			if (rid != 1 && readerModule.TablesStream.ModuleTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Module rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

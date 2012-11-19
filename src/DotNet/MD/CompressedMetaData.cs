@@ -90,27 +90,27 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetFieldRidList(uint typeDefRid) {
-			return GetRidList(Table.TypeDef, typeDefRid, 4, Table.Field);
+			return GetRidList(tablesStream.TypeDefTable, typeDefRid, 4, tablesStream.FieldTable);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetMethodRidList(uint typeDefRid) {
-			return GetRidList(Table.TypeDef, typeDefRid, 5, Table.Method);
+			return GetRidList(tablesStream.TypeDefTable, typeDefRid, 5, tablesStream.MethodTable);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetParamRidList(uint methodRid) {
-			return GetRidList(Table.Method, methodRid, 5, Table.Param);
+			return GetRidList(tablesStream.MethodTable, methodRid, 5, tablesStream.ParamTable);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetEventRidList(uint eventMapRid) {
-			return GetRidList(Table.EventMap, eventMapRid, 1, Table.Event);
+			return GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetPropertyRidList(uint propertyMapRid) {
-			return GetRidList(Table.PropertyMap, propertyMapRid, 1, Table.Property);
+			return GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
 		}
 
 		/// <summary>
@@ -121,15 +121,15 @@ namespace dot10.DotNet.MD {
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
-		RidList GetRidList(Table tableSource, uint tableSourceRid, int colIndex, Table tableDest) {
-			var column = tablesStream.Get(tableSource).TableInfo.Columns[colIndex];
+		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
+			var column = tableSource.TableInfo.Columns[colIndex];
 			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
 				return ContiguousRidList.Empty;
 			uint nextListRid;
 			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
 
-			uint lastRid = tablesStream.Get(tableDest).Rows + 1;
+			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
 				return ContiguousRidList.Empty;
 			uint endRid = hasNext ? nextListRid : lastRid;
@@ -141,12 +141,11 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override uint BinarySearch(Table tableSource, int keyColIndex, uint key) {
-			var table = tablesStream.Get(tableSource);
-			if (table == null)
+		protected override uint BinarySearch(MDTable tableSource, int keyColIndex, uint key) {
+			if (tableSource == null)
 				return 0;
-			var keyColumn = table.TableInfo.Columns[keyColIndex];
-			uint ridLo = 1, ridHi = table.Rows;
+			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
+			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
 				uint key2;

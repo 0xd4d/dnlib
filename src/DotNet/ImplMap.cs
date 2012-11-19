@@ -313,7 +313,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.ImplMap).IsInvalidRID(rid))
+			if (readerModule.TablesStream.ImplMapTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("ImplMap rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

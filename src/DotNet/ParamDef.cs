@@ -364,7 +364,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.Param).IsInvalidRID(rid))
+			if (readerModule.TablesStream.ParamTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Param rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

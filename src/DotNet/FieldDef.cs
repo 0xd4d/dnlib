@@ -692,7 +692,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.Field).IsInvalidRID(rid))
+			if (readerModule.TablesStream.FieldTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Field rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

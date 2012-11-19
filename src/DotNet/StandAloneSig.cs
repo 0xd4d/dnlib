@@ -141,7 +141,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.StandAloneSig).IsInvalidRID(rid))
+			if (readerModule.TablesStream.StandAloneSigTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("StandAloneSig rid {0} does not exist", rid));
 #endif
 			this.rid = rid;

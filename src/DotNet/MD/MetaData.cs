@@ -162,12 +162,12 @@ namespace dot10.DotNet.MD {
 
 		/// <inheritdoc/>
 		public virtual RidList GetTypeDefRidList() {
-			return new ContiguousRidList(1, tablesStream.Get(Table.TypeDef).Rows);
+			return new ContiguousRidList(1, tablesStream.TypeDefTable.Rows);
 		}
 
 		/// <inheritdoc/>
 		public virtual RidList GetExportedTypeRidList() {
-			return new ContiguousRidList(1, tablesStream.Get(Table.ExportedType).Rows);
+			return new ContiguousRidList(1, tablesStream.ExportedTypeTable.Rows);
 		}
 
 		/// <inheritdoc/>
@@ -193,7 +193,7 @@ namespace dot10.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
-		protected abstract uint BinarySearch(Table tableSource, int keyColIndex, uint key);
+		protected abstract uint BinarySearch(MDTable tableSource, int keyColIndex, uint key);
 
 		/// <summary>
 		/// Finds all rows owned by <paramref name="key"/> in table <paramref name="tableSource"/>
@@ -203,10 +203,9 @@ namespace dot10.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>A <see cref="ContiguousRidList"/> instance</returns>
-		protected RidList FindAllRows(Table tableSource, int keyColIndex, uint key) {
+		protected RidList FindAllRows(MDTable tableSource, int keyColIndex, uint key) {
 			uint startRid = BinarySearch(tableSource, keyColIndex, key);
-			var table = tablesStream.Get(tableSource);
-			if (table == null || table.IsInvalidRID(startRid))
+			if (tableSource == null || tableSource.IsInvalidRID(startRid))
 				return ContiguousRidList.Empty;
 			uint endRid = startRid + 1;
 			for (; startRid > 1; startRid--) {
@@ -216,7 +215,7 @@ namespace dot10.DotNet.MD {
 				if (key != key2)
 					break;
 			}
-			for (; endRid <= table.Rows; endRid++) {
+			for (; endRid <= tableSource.Rows; endRid++) {
 				uint key2;
 				if (!tablesStream.ReadColumn(tableSource, endRid, keyColIndex, out key2))
 					break;	// Should never happen since endRid is valid
@@ -235,16 +234,16 @@ namespace dot10.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>A <see cref="ContiguousRidList"/> instance</returns>
-		protected virtual RidList FindAllRowsUnsorted(Table tableSource, int keyColIndex, uint key) {
+		protected virtual RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) {
 			return FindAllRows(tableSource, keyColIndex, key);
 		}
 
 		/// <inheritdoc/>
 		public RidList GetInterfaceImplRidList(uint typeDefRid) {
-			var tbl = tablesStream.Get(Table.TypeDef);
+			var tbl = tablesStream.TypeDefTable;
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.InterfaceImpl, 0, typeDefRid);
+			return FindAllRowsUnsorted(tablesStream.InterfaceImplTable, 0, typeDefRid);
 		}
 
 		/// <inheritdoc/>
@@ -256,15 +255,15 @@ namespace dot10.DotNet.MD {
 			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
 			// Sorted or not, the CLR only searches this table as if it were sorted.
-			return FindAllRows(Table.GenericParam, 2, codedToken);
+			return FindAllRows(tablesStream.GenericParamTable, 2, codedToken);
 		}
 
 		/// <inheritdoc/>
 		public RidList GetGenericParamConstraintRidList(uint genericParamRid) {
-			var tbl = tablesStream.Get(Table.GenericParam);
+			var tbl = tablesStream.GenericParamTable;
 			if (tbl == null || tbl.IsInvalidRID(genericParamRid))
 				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.GenericParamConstraint, 0, genericParamRid);
+			return FindAllRowsUnsorted(tablesStream.GenericParamConstraintTable, 0, genericParamRid);
 		}
 
 		/// <inheritdoc/>
@@ -275,7 +274,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.CustomAttribute, 0, codedToken);
+			return FindAllRowsUnsorted(tablesStream.CustomAttributeTable, 0, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -286,7 +285,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasDeclSecurity.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.DeclSecurity, 1, codedToken);
+			return FindAllRowsUnsorted(tablesStream.DeclSecurityTable, 1, codedToken);
 		}
 
 		/// <inheritdoc/>
@@ -297,32 +296,32 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasSemantic.Encode(new MDToken(table, rid), out codedToken))
 				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.MethodSemantics, 2, codedToken);
+			return FindAllRowsUnsorted(tablesStream.MethodSemanticsTable, 2, codedToken);
 		}
 
 		/// <inheritdoc/>
 		public RidList GetMethodImplRidList(uint typeDefRid) {
-			var tbl = tablesStream.Get(Table.TypeDef);
+			var tbl = tablesStream.TypeDefTable;
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return ContiguousRidList.Empty;
-			return FindAllRowsUnsorted(Table.MethodImpl, 0, typeDefRid);
+			return FindAllRowsUnsorted(tablesStream.MethodImplTable, 0, typeDefRid);
 		}
 
 		/// <inheritdoc/>
 		public uint GetClassLayoutRid(uint typeDefRid) {
-			var tbl = tablesStream.Get(Table.TypeDef);
+			var tbl = tablesStream.TypeDefTable;
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.ClassLayout, 2, typeDefRid);
+			var list = FindAllRowsUnsorted(tablesStream.ClassLayoutTable, 2, typeDefRid);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetFieldLayoutRid(uint fieldRid) {
-			var tbl = tablesStream.Get(Table.Field);
+			var tbl = tablesStream.FieldTable;
 			if (tbl == null || tbl.IsInvalidRID(fieldRid))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.FieldLayout, 1, fieldRid);
+			var list = FindAllRowsUnsorted(tablesStream.FieldLayoutTable, 1, fieldRid);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
@@ -334,16 +333,16 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.FieldMarshal, 0, codedToken);
+			var list = FindAllRowsUnsorted(tablesStream.FieldMarshalTable, 0, codedToken);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetFieldRVARid(uint fieldRid) {
-			var tbl = tablesStream.Get(Table.Field);
+			var tbl = tablesStream.FieldTable;
 			if (tbl == null || tbl.IsInvalidRID(fieldRid))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.FieldRVA, 1, fieldRid);
+			var list = FindAllRowsUnsorted(tablesStream.FieldRVATable, 1, fieldRid);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
@@ -355,34 +354,34 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.ImplMap, 1, codedToken);
+			var list = FindAllRowsUnsorted(tablesStream.ImplMapTable, 1, codedToken);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetNestedClassRid(uint typeDefRid) {
-			var tbl = tablesStream.Get(Table.TypeDef);
+			var tbl = tablesStream.TypeDefTable;
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.NestedClass, 0, typeDefRid);
+			var list = FindAllRowsUnsorted(tablesStream.NestedClassTable, 0, typeDefRid);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetEventMapRid(uint typeDefRid) {
-			var tbl = tablesStream.Get(Table.TypeDef);
+			var tbl = tablesStream.TypeDefTable;
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.EventMap, 0, typeDefRid);
+			var list = FindAllRowsUnsorted(tablesStream.EventMapTable, 0, typeDefRid);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetPropertyMapRid(uint typeDefRid) {
-			var tbl = tablesStream.Get(Table.TypeDef);
+			var tbl = tablesStream.TypeDefTable;
 			if (tbl == null || tbl.IsInvalidRID(typeDefRid))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.PropertyMap, 0, typeDefRid);
+			var list = FindAllRowsUnsorted(tablesStream.PropertyMapTable, 0, typeDefRid);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
@@ -394,7 +393,7 @@ namespace dot10.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(Table.Constant, 1, codedToken);
+			var list = FindAllRowsUnsorted(tablesStream.ConstantTable, 1, codedToken);
 			return list.Length == 0 ? 0 : list[0];
 		}
 
@@ -411,7 +410,7 @@ namespace dot10.DotNet.MD {
 		void InitializeInverseFieldOwnerRidList() {
 			if (fieldRidToTypeDefRid != null)
 				return;
-			fieldRidToTypeDefRid = new uint[tablesStream.Get(Table.Field).Rows];
+			fieldRidToTypeDefRid = new uint[tablesStream.FieldTable.Rows];
 			var ownerList = GetTypeDefRidList();
 			for (uint i = 0; i < ownerList.Length; i++) {
 				var ownerRid = ownerList[i];
@@ -438,7 +437,7 @@ namespace dot10.DotNet.MD {
 		void InitializeInverseMethodOwnerRidList() {
 			if (methodRidToTypeDefRid != null)
 				return;
-			methodRidToTypeDefRid = new uint[tablesStream.Get(Table.Method).Rows];
+			methodRidToTypeDefRid = new uint[tablesStream.MethodTable.Rows];
 			var ownerList = GetTypeDefRidList();
 			for (uint i = 0; i < ownerList.Length; i++) {
 				var ownerRid = ownerList[i];
@@ -465,7 +464,7 @@ namespace dot10.DotNet.MD {
 		void InitializeInverseEventOwnerRidList() {
 			if (eventRidToTypeDefRid != null)
 				return;
-			eventRidToTypeDefRid = new uint[tablesStream.Get(Table.Event).Rows];
+			eventRidToTypeDefRid = new uint[tablesStream.EventTable.Rows];
 			var ownerList = GetTypeDefRidList();
 			for (uint i = 0; i < ownerList.Length; i++) {
 				var ownerRid = ownerList[i];
@@ -492,7 +491,7 @@ namespace dot10.DotNet.MD {
 		void InitializeInversePropertyOwnerRidList() {
 			if (propertyRidToTypeDefRid != null)
 				return;
-			propertyRidToTypeDefRid = new uint[tablesStream.Get(Table.Property).Rows];
+			propertyRidToTypeDefRid = new uint[tablesStream.PropertyTable.Rows];
 			var ownerList = GetTypeDefRidList();
 			for (uint i = 0; i < ownerList.Length; i++) {
 				var ownerRid = ownerList[i];
@@ -525,14 +524,14 @@ namespace dot10.DotNet.MD {
 		void InitializeInverseGenericParamOwnerRidList() {
 			if (gpRidToOwnerRid != null)
 				return;
-			var gpTable = tablesStream.Get(Table.GenericParam);
+			var gpTable = tablesStream.GenericParamTable;
 			gpRidToOwnerRid = new uint[gpTable.Rows];
 
 			var ownerCol = gpTable.TableInfo.Columns[2];
 			var ownersDict = new Dictionary<uint, bool>();
 			for (uint rid = 1; rid <= gpTable.Rows; rid++) {
 				uint owner;
-				if (!tablesStream.ReadColumn(gpTable.Table, rid, ownerCol, out owner))
+				if (!tablesStream.ReadColumn(gpTable, rid, ownerCol, out owner))
 					continue;
 				ownersDict[owner] = true;
 			}
@@ -569,14 +568,14 @@ namespace dot10.DotNet.MD {
 		void InitializeInverseGenericParamConstraintOwnerRidList() {
 			if (gpcRidToOwnerRid != null)
 				return;
-			var gpcTable = tablesStream.Get(Table.GenericParamConstraint);
+			var gpcTable = tablesStream.GenericParamConstraintTable;
 			gpcRidToOwnerRid = new uint[gpcTable.Rows];
 
 			var ownerCol = gpcTable.TableInfo.Columns[0];
 			var ownersDict = new Dictionary<uint, bool>();
 			for (uint rid = 1; rid <= gpcTable.Rows; rid++) {
 				uint owner;
-				if (!tablesStream.ReadColumn(gpcTable.Table, rid, ownerCol, out owner))
+				if (!tablesStream.ReadColumn(gpcTable, rid, ownerCol, out owner))
 					continue;
 				ownersDict[owner] = true;
 			}
@@ -609,8 +608,8 @@ namespace dot10.DotNet.MD {
 			if (paramRidToOwnerRid != null)
 				return;
 
-			paramRidToOwnerRid = new uint[tablesStream.Get(Table.Param).Rows];
-			var table = tablesStream.Get(Table.Method);
+			paramRidToOwnerRid = new uint[tablesStream.ParamTable.Rows];
+			var table = tablesStream.MethodTable;
 			for (uint rid = 1; rid <= table.Rows; rid++) {
 				var ridList = GetParamRidList(rid);
 				for (uint j = 0; j < ridList.Length; j++) {
@@ -633,8 +632,8 @@ namespace dot10.DotNet.MD {
 		}
 
 		void InitializeNestedClassesDictionary() {
-			var table = tablesStream.Get(Table.NestedClass);
-			var destTable = tablesStream.Get(Table.TypeDef);
+			var table = tablesStream.NestedClassTable;
+			var destTable = tablesStream.TypeDefTable;
 
 			Dictionary<uint, bool> validTypeDefRids = null;
 			var typeDefRidList = GetTypeDefRidList();

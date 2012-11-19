@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -960,7 +960,7 @@ namespace dot10.DotNet {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
-			if (readerModule.TablesStream.Get(Table.Assembly).IsInvalidRID(rid))
+			if (readerModule.TablesStream.AssemblyTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Assembly rid {0} does not exist", rid));
 #endif
 			this.rid = rid;
