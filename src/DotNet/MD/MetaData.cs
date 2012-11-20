@@ -88,6 +88,11 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		public MetaDataHeader MetaDataHeader {
+			get { return mdHeader; }
+		}
+
+		/// <inheritdoc/>
 		public StringsStream StringsStream {
 			get { return stringsStream; }
 		}

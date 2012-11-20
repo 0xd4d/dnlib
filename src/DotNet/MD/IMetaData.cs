@@ -33,6 +33,11 @@ namespace dot10.DotNet.MD {
 		IPEImage PEImage { get; }
 
 		/// <summary>
+		/// Gets the metadata header
+		/// </summary>
+		MetaDataHeader MetaDataHeader { get; }
+
+		/// <summary>
 		/// Returns the #Strings stream or a default empty one if it's not present
 		/// </summary>
 		StringsStream StringsStream { get; }

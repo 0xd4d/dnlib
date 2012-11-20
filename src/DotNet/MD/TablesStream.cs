@@ -18,8 +18,6 @@ namespace dot10.DotNet.MD {
 		ulong sortedMask;
 		uint extraData;
 		MDTable[] mdTables;
-		long fileOffset;
-		uint headerLength;
 
 		IColumnReader columnReader;
 		IRowReader<RawMethodRow> methodRowReader;
@@ -71,20 +69,6 @@ namespace dot10.DotNet.MD {
 		public MDTable MethodSpecTable;
 		public MDTable GenericParamConstraintTable;
 #pragma warning restore
-
-		/// <summary>
-		/// File offset of the header
-		/// </summary>
-		public long FileOffset {
-			get { return fileOffset; }
-		}
-
-		/// <summary>
-		/// Length of the header only
-		/// </summary>
-		public uint HeaderLength {
-			get { return headerLength; }
-		}
 
 		/// <summary>
 		/// Gets/sets the column reader
@@ -168,7 +152,6 @@ namespace dot10.DotNet.MD {
 		/// </summary>
 		/// <param name="peImage">The PEImage</param>
 		public void Initialize(IPEImage peImage) {
-			fileOffset = imageStream.Position;
 			reserved1 = imageStream.ReadUInt32();
 			majorVersion = imageStream.ReadByte();
 			minorVersion = imageStream.ReadByte();
@@ -195,7 +178,6 @@ namespace dot10.DotNet.MD {
 
 			if (HasExtraData)
 				extraData = imageStream.ReadUInt32();
-			headerLength = (uint)(imageStream.Position - fileOffset);
 
 			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes);
 
