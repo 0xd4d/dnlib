@@ -674,14 +674,14 @@ namespace dot10.DotNet {
 
 				case "PUBLICKEY":
 					if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
-						asmRef.PublicKeyOrToken = null;
+						asmRef.PublicKeyOrToken = new PublicKey();
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKey(Utils.ParseBytes(value));
 					break;
 
 				case "PUBLICKEYTOKEN":
 					if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
-						asmRef.PublicKeyOrToken = null;
+						asmRef.PublicKeyOrToken = new PublicKeyToken();
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKeyToken(Utils.ParseBytes(value));
 					break;
