@@ -22,6 +22,11 @@
 		}
 
 		/// <inheritdoc/>
+		public bool Remove(AssemblyDef asm) {
+			return false;
+		}
+
+		/// <inheritdoc/>
 		public TypeDef Resolve(TypeRef typeRef) {
 			return null;
 		}

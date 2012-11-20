@@ -184,6 +184,14 @@ namespace dot10.DotNet {
 			return true;
 		}
 
+		/// <inheritdoc/>
+		public bool Remove(AssemblyDef asm) {
+			if (asm == null)
+				return false;
+			var asmKey = GetAssemblyNameKey(new AssemblyNameInfo(asm));
+			return cachedAssemblies.Remove(asmKey);
+		}
+
 		static string GetAssemblyNameKey(AssemblyNameInfo asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
 			return asmName.FullNameToken.ToUpperInvariant();

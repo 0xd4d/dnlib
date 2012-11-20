@@ -23,6 +23,14 @@ namespace dot10.DotNet {
 		/// cached because some other assembly with the exact same full name has already been
 		/// cached or if <paramref name="asm"/> is <c>null</c>.</returns>
 		bool AddToCache(AssemblyDef asm);
+
+		/// <summary>
+		/// Removes the assembly from the cache
+		/// </summary>
+		/// <param name="asm">The assembly</param>
+		/// <returns><c>true</c> if it was removed, <c>false</c> if it wasn't removed since it
+		/// wasn't in the cache or if <paramref name="asm"/> was <c>null</c></returns>
+		bool Remove(AssemblyDef asm);
 	}
 
 	static partial class Extensions {
@@ -36,6 +44,18 @@ namespace dot10.DotNet {
 		/// already been cached or if <paramref name="module"/> or its assembly is <c>null</c>.</returns>
 		public static bool AddToCache(this IAssemblyResolver self, ModuleDef module) {
 			return module != null && self.AddToCache(module.Assembly);
+		}
+
+		/// <summary>
+		/// Removes a module's assembly from the cache
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="module">The module</param>
+		/// <returns><c>true</c> if its assembly was removed, <c>false</c> if it wasn't removed
+		/// since it wasn't in the cache, it has no assembly, or <paramref name="module"/> was
+		/// <c>null</c></returns>
+		public static bool Remove(this IAssemblyResolver self, ModuleDef module) {
+			return module != null && self.Remove(module.Assembly);
 		}
 
 		/// <summary>
