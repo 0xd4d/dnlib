@@ -74,11 +74,9 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public unsafe byte[] ReadBytes(int size) {
-			if (currentAddr + size < currentAddr || currentAddr + size > endAddr) {
-				if (size == 0)
-					return new byte[0];
-				throw new IOException("Trying to read too much");
-			}
+			if (size < 0)
+				throw new IOException("Invalid size");
+			size = (int)Math.Min(size, Length - Math.Min(Length, Position));
 			var newData = new byte[size];
 			Marshal.Copy(new IntPtr(currentAddr), newData, 0, size);
 			currentAddr += size;
@@ -87,8 +85,9 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public int Read(byte[] buffer, int offset, int length) {
-			long lenLeft = Math.Min(length, Length - Math.Min(Length, Position));
-			length = length < lenLeft ? length : (int)lenLeft;
+			if (length < 0)
+				throw new IOException("Invalid size");
+			length = (int)Math.Min(length, Length - Math.Min(Length, Position));
 			Marshal.Copy(new IntPtr(currentAddr), buffer, offset, length);
 			currentAddr += length;
 			return length;

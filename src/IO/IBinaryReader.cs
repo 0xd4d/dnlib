@@ -22,7 +22,8 @@ namespace dot10.IO {
 		/// and increments <see cref="Position"/> by <paramref name="size"/> bytes
 		/// </summary>
 		/// <param name="size">Number of bytes to read</param>
-		/// <returns>All bytes</returns>
+		/// <returns>All available bytes. This can be less than <paramref name="size"/> bytes
+		/// if there's not enough bytes left.</returns>
 		/// <exception cref="IOException">An I/O error occurs</exception>
 		byte[] ReadBytes(int size);
 

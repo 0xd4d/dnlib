@@ -89,11 +89,9 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public byte[] ReadBytes(int size) {
-			if (position + size < position || position + size > dataEnd) {
-				if (size == 0)
-					return new byte[0];
-				throw new IOException("Trying to read too much");
-			}
+			if (size < 0)
+				throw new IOException("Invalid size");
+			size = Math.Min(size, (int)Length - Math.Min((int)Length, (int)Position));
 			var newData = new byte[size];
 			Array.Copy(data, position, newData, 0, size);
 			position += size;
@@ -102,6 +100,8 @@ namespace dot10.IO {
 
 		/// <inheritdoc/>
 		public int Read(byte[] buffer, int offset, int length) {
+			if (length < 0)
+				throw new IOException("Invalid size");
 			length = Math.Min(length, (int)Length - Math.Min((int)Length, (int)Position));
 			Array.Copy(data, position, buffer, offset, length);
 			position += length;
