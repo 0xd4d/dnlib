@@ -21,9 +21,8 @@ namespace dot10.DotNet {
 			None = 0,
 
 			/// <summary>
-			/// Normal access to the type and its members. I.e., type must be public or
-			/// internal to access the type. Type + member must be public, internal or
-			/// protected (for sub classes) to access the member.
+			/// Normal access to the type and its members. Type + member must be public, internal
+			/// or protected (for sub classes) to access the member.
 			/// </summary>
 			Normal = 1,
 
@@ -143,7 +142,8 @@ namespace dot10.DotNet {
 		/// Returns the access we have to <paramref name="td"/>. If <paramref name="td"/> is
 		/// enclosing this type, we have private access to it and all its members. If its
 		/// declaring type encloses us, we have private access to it, but only normal access
-		/// to its members. Else, we only have normal access to it and its members.
+		/// to its members. Else, we only have normal access to it and its members. If we inherit
+		/// it, we have protected access to it and its members.
 		/// </summary>
 		/// <param name="td">The type</param>
 		/// <param name="git">Generic instance of <paramref name="td"/> or <c>null</c> if none</param>
@@ -525,8 +525,8 @@ namespace dot10.DotNet {
 
 			if (mr.MethodSig != null) {
 				var md = td.FindMethodCheckBaseType(mr.Name, mr.MethodSig);
-				// Assume that it's an array type if it's one of the methods below.
 				if (md == null) {
+					// Assume that it's an array type if it's one of these methods
 					if (mr.Name == "Get" || mr.Name == "Set" || mr.Name == "Address" || mr.Name == ".ctor")
 						return true;
 					return null;
