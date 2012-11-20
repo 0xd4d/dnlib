@@ -1202,20 +1202,31 @@ namespace dot10.DotNet {
 		/// Creates a <see cref="Resource"/> instance
 		/// </summary>
 		/// <param name="rid"><c>ManifestResource</c> rid</param>
-		/// <returns>A new <see cref="Resource"/> instance or <c>null</c> if <paramref name="rid"/>
-		/// is invalid.</returns>
+		/// <returns>A new <see cref="Resource"/> instance</returns>
 		Resource CreateResource(uint rid) {
+			var row = TablesStream.ReadManifestResourceRow(rid);
+			if (row == null)
+				return new EmbeddedResource(UTF8String.Empty, MemoryImageStream.CreateEmpty(), 0) { Rid = rid };
+
+			MDToken token;
+			if (!CodedToken.Implementation.Decode(row.Implementation, out token))
+				return new EmbeddedResource(UTF8String.Empty, MemoryImageStream.CreateEmpty(), 0) { Rid = rid };
+
 			var mr = ResolveManifestResource(rid);
 			if (mr == null)
-				return null;
-			if (mr.Implementation == null)
+				return new EmbeddedResource(UTF8String.Empty, MemoryImageStream.CreateEmpty(), 0) { Rid = rid };
+
+			if (token.Rid == 0)
 				return new EmbeddedResource(mr.Name, CreateResourceStream(mr.Offset), mr.Flags) { Rid = rid, Offset = mr.Offset };
+
 			var file = mr.Implementation as FileDef;
 			if (file != null)
 				return new LinkedResource(mr.Name, file, mr.Flags) { Rid = rid, Offset = mr.Offset };
+
 			var asmRef = mr.Implementation as AssemblyRef;
 			if (asmRef != null)
 				return new AssemblyLinkedResource(mr.Name, asmRef, mr.Flags) { Rid = rid, Offset = mr.Offset };
+
 			return new EmbeddedResource(mr.Name, MemoryImageStream.CreateEmpty(), mr.Flags) { Rid = rid, Offset = mr.Offset };
 		}
 
