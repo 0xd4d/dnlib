@@ -137,8 +137,12 @@ namespace dot10.DotNet {
 				}
 			}
 
-			if (resolvedAssembly == null)
+			if (resolvedAssembly == null) {
+				// Make sure we don't search for this assembly again. This speeds up callers who
+				// keep asking for this assembly when trying to resolve many different TypeRefs
+				cachedAssemblies[GetAssemblyNameKey(assembly)] = null;
 				return null;
+			}
 
 			var key1 = GetAssemblyNameKey(new AssemblyNameInfo(resolvedAssembly));
 			var key2 = GetAssemblyNameKey(assembly);
@@ -178,9 +182,9 @@ namespace dot10.DotNet {
 				return false;
 			var asmKey = GetAssemblyNameKey(new AssemblyNameInfo(asm));
 			AssemblyDef cachedAsm;
-			if (cachedAssemblies.TryGetValue(asmKey, out cachedAsm))
+			if (cachedAssemblies.TryGetValue(asmKey, out cachedAsm) && cachedAsm != null)
 				return asm == cachedAsm;
-			cachedAssemblies.Add(asmKey, asm);
+			cachedAssemblies[asmKey] = asm;
 			return true;
 		}
 
@@ -264,6 +268,8 @@ namespace dot10.DotNet {
 			AssemblyDef closest = null;
 			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 			foreach (var asm in cachedAssemblies.Values) {
+				if (asm == null)
+					continue;
 				if (asmComparer.CompareClosest(assembly, new AssemblyNameInfo(closest), new AssemblyNameInfo(asm)) == 1)
 					closest = asm;
 			}
