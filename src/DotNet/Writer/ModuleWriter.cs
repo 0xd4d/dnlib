@@ -233,7 +233,7 @@ namespace dot10.DotNet.Writer {
 				int len = module.Assembly.PublicKey.Data.Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
 			}
-			else if ((Options.Cor20HeaderOptions.Flags & ComImageFlags.StrongNameSigned) != 0)
+			else if (((Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags) & ComImageFlags.StrongNameSigned) != 0)
 				strongNameSignature = new StrongNameSignature(0x80);
 
 			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
