@@ -526,8 +526,11 @@ namespace dot10.DotNet {
 			if (mr.MethodSig != null) {
 				var md = td.FindMethodCheckBaseType(mr.Name, mr.MethodSig);
 				// Assume that it's an array type if it's one of the methods below.
-				if (md == null)
-					return mr.Name == "Get" || mr.Name == "Set" || mr.Name == "Address" || mr.Name == ".ctor";
+				if (md == null) {
+					if (mr.Name == "Get" || mr.Name == "Set" || mr.Name == "Address" || mr.Name == ".ctor")
+						return true;
+					return null;
+				}
 				return CanAccess(md, git);
 			}
 
