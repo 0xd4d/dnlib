@@ -8,7 +8,7 @@ namespace dot10.DotNet.MD {
 	/// .NET metadata stream
 	/// </summary>
 	[DebuggerDisplay("{imageStream.Length} {streamHeader.Name}")]
-	public class DotNetStream : IDisposable {
+	public class DotNetStream : IFileSection, IDisposable {
 		/// <summary>
 		/// Reader that can access the whole stream
 		/// </summary>
@@ -18,6 +18,16 @@ namespace dot10.DotNet.MD {
 		/// <c>null</c> if it wasn't present in the file
 		/// </summary>
 		StreamHeader streamHeader;
+
+		/// <inheritdoc/>
+		public FileOffset StartOffset {
+			get { return imageStream.FileOffset; }
+		}
+
+		/// <inheritdoc/>
+		public FileOffset EndOffset {
+			get { return imageStream.FileOffset + imageStream.Length; }
+		}
 
 		/// <summary>
 		/// Returns the internal image stream

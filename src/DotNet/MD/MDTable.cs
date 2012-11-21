@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using dot10.IO;
@@ -8,11 +9,21 @@ namespace dot10.DotNet.MD {
 	/// A MD table (eg. Method table)
 	/// </summary>
 	[DebuggerDisplay("DL:{imageStream.Length} R:{numRows} RS:{tableInfo.RowSize} C:{tableInfo.Columns.Count} {tableInfo.Name}")]
-	public sealed class MDTable : IDisposable {
+	public sealed class MDTable : IDisposable, IFileSection {
 		readonly Table table;
 		uint numRows;
 		TableInfo tableInfo;
 		IImageStream imageStream;
+
+		/// <inheritdoc/>
+		public FileOffset StartOffset {
+			get { return imageStream.FileOffset; }
+		}
+
+		/// <inheritdoc/>
+		public FileOffset EndOffset {
+			get { return imageStream.FileOffset + imageStream.Length; }
+		}
 
 		/// <summary>
 		/// Gets the table
@@ -22,10 +33,31 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
+		/// Gets the name of this table
+		/// </summary>
+		public string Name {
+			get { return tableInfo.Name; }
+		}
+
+		/// <summary>
 		/// Returns total number of rows
 		/// </summary>
 		public uint Rows {
 			get { return numRows; }
+		}
+
+		/// <summary>
+		/// Gets the total size in bytes of one row in this table
+		/// </summary>
+		public uint RowSize {
+			get { return (uint)tableInfo.RowSize; }
+		}
+
+		/// <summary>
+		/// Returns all the columns
+		/// </summary>
+		public IList<ColumnInfo> Columns {
+			get { return tableInfo.Columns; }
 		}
 
 		/// <summary>
