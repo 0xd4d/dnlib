@@ -173,6 +173,8 @@ namespace dot10.W32Resources {
 
 		void Initialize() {
 			root.ReadOriginalValue = () => {
+				if (rsrcReader == null)
+					return null;	// It's disposed
 				long oldPos = rsrcReader.Position;
 				rsrcReader.Position = 0;
 				var dir = new ResourceDirectoryPE(0, new ResourceName("root"), this, rsrcReader);
