@@ -207,7 +207,7 @@ namespace dot10.DotNet.MD {
 		/// <param name="tableSource">Table to search</param>
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
-		/// <returns>A <see cref="ContiguousRidList"/> instance</returns>
+		/// <returns>A <see cref="RidList"/> instance</returns>
 		protected RidList FindAllRows(MDTable tableSource, int keyColIndex, uint key) {
 			uint startRid = BinarySearch(tableSource, keyColIndex, key);
 			if (tableSource == null || tableSource.IsInvalidRID(startRid))
@@ -238,7 +238,7 @@ namespace dot10.DotNet.MD {
 		/// <param name="tableSource">Table to search</param>
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
-		/// <returns>A <see cref="ContiguousRidList"/> instance</returns>
+		/// <returns>A <see cref="RidList"/> instance</returns>
 		protected virtual RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) {
 			return FindAllRows(tableSource, keyColIndex, key);
 		}
@@ -532,6 +532,7 @@ namespace dot10.DotNet.MD {
 			var gpTable = tablesStream.GenericParamTable;
 			gpRidToOwnerRid = new uint[gpTable.Rows];
 
+			// Find all owners by reading the GenericParam.Owner column
 			var ownerCol = gpTable.TableInfo.Columns[2];
 			var ownersDict = new Dictionary<uint, bool>();
 			for (uint rid = 1; rid <= gpTable.Rows; rid++) {
@@ -541,6 +542,8 @@ namespace dot10.DotNet.MD {
 				ownersDict[owner] = true;
 			}
 
+			// Now that we have the owners, find all the generic params they own. An obfuscated
+			// module could have 2+ owners pointing to the same generic param row.
 			var owners = new List<uint>(ownersDict.Keys);
 			owners.Sort();
 			for (int i = 0; i < owners.Count; i++) {

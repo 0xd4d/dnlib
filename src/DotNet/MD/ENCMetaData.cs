@@ -215,6 +215,9 @@ namespace dot10.DotNet.MD {
 				var row = tablesStream.ReadTypeDefRow(rid);
 				if (row == null)
 					continue;	// Should never happen since rid is valid
+
+				// RTSpecialName is ignored by the CLR. It's only the name that indicates
+				// whether it's been deleted.
 				if (stringsStream.ReadNoNull(row.Name) == DeletedName)
 					continue;	// ignore this deleted row
 				list.Add(rid);
@@ -232,6 +235,9 @@ namespace dot10.DotNet.MD {
 				var row = tablesStream.ReadExportedTypeRow(rid);
 				if (row == null)
 					continue;	// Should never happen since rid is valid
+
+				// RTSpecialName is ignored by the CLR. It's only the name that indicates
+				// whether it's been deleted.
 				if (stringsStream.ReadNoNull(row.TypeName) == DeletedName)
 					continue;	// ignore this deleted row
 				list.Add(rid);
