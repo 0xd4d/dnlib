@@ -194,12 +194,16 @@ namespace dot10.DotNet.Emit {
 			case 3:
 				// Fat header. Can have locals and exception handlers
 				flags = (ushort)((reader.ReadByte() << 8) | b);
-				if ((flags >> 12) < 3)
-					throw new InvalidMethodException("Header size in dwords < 3");
+				uint headerSize = (uint)flags >> 12;
 				maxStack = reader.ReadUInt16();
 				codeSize = reader.ReadUInt32();
 				localVarSigTok = reader.ReadUInt32();
-				reader.Position += ((flags >> 12) - 3) * 4;
+
+				// The CLR allows the code to start inside the method header. But if it does,
+				// the CLR doesn't read any exceptions.
+				reader.Position += -12 + headerSize * 4;
+				if (headerSize < 3)
+					flags &= 0xFFF7;
 				break;
 
 			default:
