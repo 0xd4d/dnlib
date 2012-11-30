@@ -82,6 +82,18 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Sets new locals
+		/// </summary>
+		/// <param name="newLocals">A list of types of all locals or <c>null</c> if none</param>
+		protected void SetLocals(IList<Local> newLocals) {
+			locals.Clear();
+			if (newLocals == null)
+				return;
+			foreach (var local in newLocals)
+				locals.Add(new Local(local.Type));
+		}
+
+		/// <summary>
 		/// Reads all instructions
 		/// </summary>
 		/// <param name="numInstrs">Number of instructions to read</param>
