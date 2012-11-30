@@ -292,7 +292,6 @@ namespace dot10.DotNet.Emit {
 				ehReader.Position = (ehReader.Position + 3) & ~3;
 			}
 			// Only read the first one. Any others aren't used.
-			//TODO: Verify this
 			byte b = ehReader.ReadByte();
 			if ((b & 0x3F) != 1)
 				return;	// Not exception handler clauses
@@ -302,9 +301,14 @@ namespace dot10.DotNet.Emit {
 				ReadSmallExceptionHandlers(ehReader);
 		}
 
+		static ushort GetNumberOfExceptionHandlers(uint num) {
+			// The CLR truncates the count so num handlers is always <= FFFFh.
+			return (ushort)num;
+		}
+
 		void ReadFatExceptionHandlers(IBinaryReader ehReader) {
 			ehReader.Position--;
-			int num = (int)((ehReader.ReadUInt32() >> 8) / 24);
+			int num = GetNumberOfExceptionHandlers((ehReader.ReadUInt32() >> 8) / 24);
 			for (int i = 0; i < num; i++) {
 				var eh = new ExceptionHandler((ExceptionHandlerType)ehReader.ReadUInt32());
 				uint offs = ehReader.ReadUInt32();
@@ -324,7 +328,7 @@ namespace dot10.DotNet.Emit {
 		}
 
 		void ReadSmallExceptionHandlers(IBinaryReader ehReader) {
-			int num = ehReader.ReadByte() / 12;
+			int num = GetNumberOfExceptionHandlers((uint)ehReader.ReadByte() / 12);
 			ehReader.Position += 2;
 			for (int i = 0; i < num; i++) {
 				var eh = new ExceptionHandler((ExceptionHandlerType)ehReader.ReadUInt16());
