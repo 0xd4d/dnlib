@@ -996,7 +996,7 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (typeRefInfos.TryGetRid(tr, out rid)) {
 				if (rid == 0)
-					Error("TypeRef {0} ({1:X8}) has an infinite ResolutionScope loop", tr, tr.MDToken.Raw);
+					Error("TypeRef {0:X8} has an infinite ResolutionScope loop", tr.MDToken.Raw);
 				return rid;
 			}
 			typeRefInfos.Add(tr, 0);	// Prevent inf recursion
@@ -1022,7 +1022,7 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (typeSpecInfos.TryGetRid(ts, out rid)) {
 				if (rid == 0)
-					Error("TypeSpec {0} ({1:X8}) has an infinite TypeSig loop", ts, ts.MDToken.Raw);
+					Error("TypeSpec {0:X8} has an infinite TypeSig loop", ts.MDToken.Raw);
 				return rid;
 			}
 			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
