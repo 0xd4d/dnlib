@@ -15,7 +15,7 @@ namespace dot10.DotNet {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>
-	public sealed class ModuleDefMD : ModuleDefMD2 {
+	public sealed class ModuleDefMD : ModuleDefMD2, IInstructionOperandResolver {
 		/// <summary>The file that contains all .NET metadata</summary>
 		DotNetFile dnFile;
 		IMethodDecrypter methodDecrypter;

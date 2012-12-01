@@ -5,10 +5,29 @@ using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Emit {
 	/// <summary>
+	/// Resolves instruction operands
+	/// </summary>
+	public interface IInstructionOperandResolver {
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="token">The metadata token</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
+		IMDTokenProvider ResolveToken(uint token);
+
+		/// <summary>
+		/// Reads a string from the #US heap
+		/// </summary>
+		/// <param name="token">String token</param>
+		/// <returns>A string</returns>
+		string ReadUserString(uint token);
+	}
+
+	/// <summary>
 	/// Reads a .NET method body (header, locals, instructions, exception handlers)
 	/// </summary>
 	public sealed class MethodBodyReader : MethodBodyReaderBase {
-		readonly ModuleDefMD module;
+		readonly IInstructionOperandResolver opResolver;
 		bool hasReadHeader;
 		ushort flags;
 		ushort maxStack;
@@ -20,49 +39,49 @@ namespace dot10.DotNet.Emit {
 		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
 		/// point to the start of a valid CIL method body.
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
-		public static CilBody Create(ModuleDefMD module, IBinaryReader reader, MethodDef method) {
-			return Create(module, reader, method.Parameters);
+		public static CilBody Create(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method) {
+			return Create(opResolver, reader, method.Parameters);
 		}
 
 		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
 		/// point to the start of a valid CIL method body.
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="parameters">Method parameters</param>
-		public static CilBody Create(ModuleDefMD module, IBinaryReader reader, IList<Parameter> parameters) {
-			return Create(module, reader, null, parameters);
+		public static CilBody Create(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters) {
+			return Create(opResolver, reader, null, parameters);
 		}
 
 		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
 		/// a valid CIL method body.
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="code">All code</param>
 		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
 		/// <paramref name="code"/></param>
 		/// <param name="parameters">Method parameters</param>
-		public static CilBody Create(ModuleDefMD module, byte[] code, byte[] exceptions, IList<Parameter> parameters) {
-			return Create(module, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters);
+		public static CilBody Create(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters) {
+			return Create(opResolver, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters);
 		}
 
 		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="codeReader"/> doesn't
 		/// point to the start of a valid CIL method body.
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
 		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
 		/// <param name="parameters">Method parameters</param>
-		public static CilBody Create(ModuleDefMD module, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters) {
+		public static CilBody Create(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters) {
 			try {
-				var mbReader = new MethodBodyReader(module, codeReader, ehReader, parameters);
+				var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
 				mbReader.Read();
 				return mbReader.CreateCilBody();
 			}
@@ -75,7 +94,7 @@ namespace dot10.DotNet.Emit {
 		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
 		/// a valid CIL method body.
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="code">All code</param>
 		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
 		/// <paramref name="code"/></param>
@@ -84,11 +103,11 @@ namespace dot10.DotNet.Emit {
 		/// <param name="maxStack">Max stack</param>
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
-		public static CilBody Create(ModuleDefMD module, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
+		public static CilBody Create(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
 			try {
 				var codeReader = MemoryImageStream.Create(code);
 				var ehReader = exceptions == null ? null : MemoryImageStream.Create(exceptions);
-				var mbReader = new MethodBodyReader(module, codeReader, ehReader, parameters);
+				var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
 				mbReader.SetHeader(flags, maxStack, codeSize, localVarSigTok);
 				mbReader.Read();
 				return mbReader.CreateCilBody();
@@ -101,34 +120,34 @@ namespace dot10.DotNet.Emit {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
-		public MethodBodyReader(ModuleDefMD module, IBinaryReader reader, MethodDef method)
-			: this(module, reader, null, method.Parameters) {
+		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method)
+			: this(opResolver, reader, null, method.Parameters) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="parameters">Method parameters</param>
-		public MethodBodyReader(ModuleDefMD module, IBinaryReader reader, IList<Parameter> parameters)
-			: this(module, reader, null, parameters) {
+		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters)
+			: this(opResolver, reader, null, parameters) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="module">The reader module</param>
+		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
 		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
 		/// <param name="parameters">Method parameters</param>
-		public MethodBodyReader(ModuleDefMD module, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters)
+		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters)
 			: base(codeReader, parameters) {
-			this.module = module;
+			this.opResolver = opResolver;
 			this.exceptionsReader = ehReader;
 		}
 
@@ -219,11 +238,7 @@ namespace dot10.DotNet.Emit {
 		/// </summary>
 		/// <returns>All locals or <c>null</c> if there are none</returns>
 		IList<TypeSig> ReadLocals() {
-			if (localVarSigTok == 0)
-				return null;
-			if (MDToken.ToTable(localVarSigTok) != Table.StandAloneSig)
-				return null;
-			var standAloneSig = module.ResolveStandAloneSig(MDToken.ToRID(localVarSigTok));
+			var standAloneSig = opResolver.ResolveToken(localVarSigTok) as StandAloneSig;
 			if (standAloneSig == null)
 				return null;
 			var localSig = standAloneSig.LocalSig;
@@ -241,41 +256,38 @@ namespace dot10.DotNet.Emit {
 
 		/// <inheritdoc/>
 		protected override IField ReadInlineField(Instruction instr) {
-			return module.ResolveToken(reader.ReadUInt32()) as IField;
+			return opResolver.ResolveToken(reader.ReadUInt32()) as IField;
 		}
 
 		/// <inheritdoc/>
 		protected override IMethod ReadInlineMethod(Instruction instr) {
-			return module.ResolveToken(reader.ReadUInt32()) as IMethod;
+			return opResolver.ResolveToken(reader.ReadUInt32()) as IMethod;
 		}
 
 		/// <inheritdoc/>
 		protected override MethodSig ReadInlineSig(Instruction instr) {
-			uint token = reader.ReadUInt32();
-			if (MDToken.ToTable(token) != Table.StandAloneSig)
-				return null;
-			var standAloneSig = module.ResolveStandAloneSig(MDToken.ToRID(token));
+			var standAloneSig = opResolver.ResolveToken(reader.ReadUInt32()) as StandAloneSig;
 			if (standAloneSig == null)
 				return null;
 			var sig = standAloneSig.MethodSig;
 			if (sig != null)
-				sig.OriginalToken = token;
+				sig.OriginalToken = standAloneSig.MDToken.Raw;
 			return sig;
 		}
 
 		/// <inheritdoc/>
 		protected override string ReadInlineString(Instruction instr) {
-			return module.ReadUserString(reader.ReadUInt32());
+			return opResolver.ReadUserString(reader.ReadUInt32()) ?? string.Empty;
 		}
 
 		/// <inheritdoc/>
 		protected override ITokenOperand ReadInlineTok(Instruction instr) {
-			return module.ResolveToken(reader.ReadUInt32()) as ITokenOperand;
+			return opResolver.ResolveToken(reader.ReadUInt32()) as ITokenOperand;
 		}
 
 		/// <inheritdoc/>
 		protected override ITypeDefOrRef ReadInlineType(Instruction instr) {
-			return module.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
+			return opResolver.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
 		}
 
 		/// <summary>
@@ -318,7 +330,7 @@ namespace dot10.DotNet.Emit {
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadUInt32());
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					eh.CatchType = module.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
+					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else
@@ -339,7 +351,7 @@ namespace dot10.DotNet.Emit {
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadByte());
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					eh.CatchType = module.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
+					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else
