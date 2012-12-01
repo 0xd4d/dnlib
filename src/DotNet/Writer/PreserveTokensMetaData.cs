@@ -808,8 +808,8 @@ namespace dot10.DotNet.Writer {
 
 			var flags = TypeAttributes.NotPublic | TypeAttributes.AutoLayout |
 				TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.AnsiClass;
-			int numFields = tablesHeap.FieldPtrTable.Rows > 0 ? tablesHeap.FieldPtrTable.Rows : tablesHeap.FieldTable.Rows;
-			int numMethods = tablesHeap.MethodPtrTable.Rows > 0 ? tablesHeap.MethodPtrTable.Rows : tablesHeap.MethodTable.Rows;
+			int numFields = fieldDefInfos.NeedPtrTable ? fieldDefInfos.Count : fieldDefInfos.TableSize;
+			int numMethods = methodDefInfos.NeedPtrTable ? methodDefInfos.Count : methodDefInfos.TableSize;
 			var row = new RawTypeDefRow((uint)flags,
 						stringsHeap.Add(Guid.NewGuid().ToString("B")),
 						stringsHeap.Add("dummy_ptr"),
