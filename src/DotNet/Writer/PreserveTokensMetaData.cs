@@ -403,7 +403,6 @@ namespace dot10.DotNet.Writer {
 					break;
 				}
 
-				newTypes.Add(type);
 				uint currRid = type.Rid;
 				int extraTypes = (int)(currRid - prevRid - 1);
 				if (extraTypes != 0) { // always >= 0 since currRid > prevRid
@@ -411,6 +410,7 @@ namespace dot10.DotNet.Writer {
 					for (int j = 0; j < extraTypes; j++)
 						newTypes.Add(new TypeDefUser("dummy", Guid.NewGuid().ToString("B"), module.CorLibTypes.Object.TypeDefOrRef));
 				}
+				newTypes.Add(type);
 				prevRid = currRid;
 			}
 
