@@ -1118,7 +1118,16 @@ namespace dot10.DotNet.Writer {
 				return 0;
 			}
 
-			AddStandAloneSig(sas);
+			// Make sure it uses the updated sig
+			var oldSig = sas.Signature;
+			try {
+				sas.Signature = callConvSig;
+				AddStandAloneSig(sas);
+			}
+			finally {
+				sas.Signature = oldSig;
+			}
+
 			callConvTokenToSignature.Add(origToken, sig);
 			return MDToken.ToRID(origToken);
 		}
