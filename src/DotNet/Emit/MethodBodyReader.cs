@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using dot10.IO;
 using dot10.DotNet.MD;
 
@@ -80,14 +81,10 @@ namespace dot10.DotNet.Emit {
 		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
 		/// <param name="parameters">Method parameters</param>
 		public static CilBody Create(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters) {
-			try {
-				var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
-				mbReader.Read();
-				return mbReader.CreateCilBody();
-			}
-			catch (InvalidMethodException) {
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
+			if (!mbReader.Read())
 				return new CilBody();
-			}
+			return mbReader.CreateCilBody();
 		}
 
 		/// <summary>
@@ -104,17 +101,13 @@ namespace dot10.DotNet.Emit {
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
 		public static CilBody Create(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
-			try {
-				var codeReader = MemoryImageStream.Create(code);
-				var ehReader = exceptions == null ? null : MemoryImageStream.Create(exceptions);
-				var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
-				mbReader.SetHeader(flags, maxStack, codeSize, localVarSigTok);
-				mbReader.Read();
-				return mbReader.CreateCilBody();
-			}
-			catch (InvalidMethodException) {
+			var codeReader = MemoryImageStream.Create(code);
+			var ehReader = exceptions == null ? null : MemoryImageStream.Create(exceptions);
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
+			mbReader.SetHeader(flags, maxStack, codeSize, localVarSigTok);
+			if (!mbReader.Read())
 				return new CilBody();
-			}
+			return mbReader.CreateCilBody();
 		}
 
 		/// <summary>
@@ -169,34 +162,29 @@ namespace dot10.DotNet.Emit {
 		/// <summary>
 		/// Reads the method body header, locals, all instructions, and the exception handlers (if any)
 		/// </summary>
-		/// <exception cref="InvalidMethodException">If it's an invalid method body. It's not thrown
-		/// if an invalid instruction is found.</exception>
-		/// <exception cref="OutOfMemoryException">If we can't allocate enough memory</exception>
-		public void Read() {
+		public bool Read() {
 			try {
-				ReadHeader();
+				if (!ReadHeader())
+					return false;
 				SetLocals(ReadLocals());
 				ReadInstructions();
 				ReadExceptionHandlers();
-			}
-			catch (OutOfMemoryException) {
-				throw;
+				return true;
 			}
 			catch (InvalidMethodException) {
-				throw;
+				return false;
 			}
-			catch (Exception ex) {
-				throw new InvalidMethodException("Could not read method", ex);
+			catch (IOException) {
+				return false;
 			}
 		}
 
 		/// <summary>
 		/// Reads the method header
 		/// </summary>
-		/// <exception cref="InvalidMethodException">If the header is invalid</exception>
-		void ReadHeader() {
+		bool ReadHeader() {
 			if (hasReadHeader)
-				return;
+				return true;
 			hasReadHeader = true;
 
 			byte b = reader.ReadByte();
@@ -226,11 +214,13 @@ namespace dot10.DotNet.Emit {
 				break;
 
 			default:
-				throw new InvalidMethodException("It's not a tiny or a fat method header");
+				return false;
 			}
 
 			if (reader.Position + codeSize < reader.Position || reader.Position + codeSize > reader.Length)
-				throw new InvalidMethodException("Invalid code size");
+				return false;
+
+			return true;
 		}
 
 		/// <summary>
