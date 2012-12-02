@@ -43,22 +43,20 @@ namespace dot10.IO {
 		}
 
 		/// <inheritdoc/>
-		public long Length {
-			get { unsafe { return endAddr - startAddr; } }
+		public unsafe long Length {
+			get { return endAddr - startAddr; }
 		}
 
 		/// <inheritdoc/>
-		public long Position {
-			get { unsafe { return currentAddr - startAddr; } }
+		public unsafe long Position {
+			get { return currentAddr - startAddr; }
 			set {
-				unsafe {
-					if (IntPtr.Size == 4 && (ulong)value > int.MaxValue)
-						value = int.MaxValue;
-					byte* newAddr = startAddr + value;
-					if (newAddr < startAddr)
-						newAddr = endAddr;
-					currentAddr = newAddr;
-				}
+				if (IntPtr.Size == 4 && (ulong)value > int.MaxValue)
+					value = int.MaxValue;
+				byte* newAddr = startAddr + value;
+				if (newAddr < startAddr)
+					newAddr = endAddr;
+				currentAddr = newAddr;
 			}
 		}
 
