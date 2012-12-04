@@ -154,6 +154,19 @@ namespace dot10.DotNet.Writer {
 			this.PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
 			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 
+			if (module.Cor20HeaderRuntimeVersion != null) {
+				this.Cor20HeaderOptions.MajorRuntimeVersion = (ushort)(module.Cor20HeaderRuntimeVersion.Value >> 16);
+				this.Cor20HeaderOptions.MinorRuntimeVersion = (ushort)module.Cor20HeaderRuntimeVersion.Value;
+			}
+			else if (module.IsClr1x) {
+				this.Cor20HeaderOptions.MajorRuntimeVersion = 2;
+				this.Cor20HeaderOptions.MinorRuntimeVersion = 0;
+			}
+			else {
+				this.Cor20HeaderOptions.MajorRuntimeVersion = 2;
+				this.Cor20HeaderOptions.MinorRuntimeVersion = 5;
+			}
+
 			// Some tools crash if #GUID is missing so always create it by default
 			this.MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
 

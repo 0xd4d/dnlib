@@ -374,6 +374,15 @@ namespace dot10.DotNet {
 		public ComImageFlags Cor20HeaderFlags { get; set; }
 
 		/// <summary>
+		/// Gets/sets the runtime version number in the COR20 header. The major version is
+		/// in the high 16 bits. The minor version is in the low 16 bits. This is normally 2.5
+		/// (0x00020005), but if it's .NET 1.x, it should be 2.0 (0x00020000). If this is
+		/// <c>null</c>, the default value will be used when saving the module (2.0 if CLR 1.x,
+		/// and 2.5 if not CLR 1.x).
+		/// </summary>
+		public uint? Cor20HeaderRuntimeVersion { get; set; }
+
+		/// <summary>
 		/// Gets/sets the <see cref="ComImageFlags.ILOnly"/> bit
 		/// </summary>
 		public bool IsILOnly {
@@ -686,6 +695,12 @@ namespace dot10.DotNet {
 			return w32Resources == null ? null : w32Resources.Find(type, name, langId);
 		}
 
+		uint GetCor20RuntimeVersion() {
+			if (Cor20HeaderRuntimeVersion != null)
+				return Cor20HeaderRuntimeVersion.Value;
+			return IsClr1x ? 0x00020000U : 0x00020005;
+		}
+
 		/// <summary>
 		/// Returns the size of a pointer. This isn't 100% foolproof.
 		/// </summary>
@@ -698,6 +713,10 @@ namespace dot10.DotNet {
 				return 4;
 
 			// Machine is I386 so it's either x86 or platform neutral
+
+			// If the runtime version is < 2.5, then it's always loaded as a 32-bit process.
+			if (GetCor20RuntimeVersion() < 0x00020005)
+				return 4;
 
 			// If it's a 32-bit PE header, and ILOnly is cleared, it's always loaded as a
 			// 32-bit process.
@@ -979,6 +998,7 @@ namespace dot10.DotNet {
 			this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 			this.Machine = Machine.I386;
 			this.Cor20HeaderFlags = ComImageFlags.ILOnly;
+			this.Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
 			this.corLibTypes = new CorLibTypes(this);
 			this.types = new LazyList<TypeDef>(this);
 			this.name = name;
@@ -1145,6 +1165,7 @@ namespace dot10.DotNet {
 				this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 				this.Machine = Machine.I386;
 				this.Cor20HeaderFlags = ComImageFlags.ILOnly;
+				this.Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
 				this.types = new LazyList<TypeDef>(this);
 				this.exportedTypes = new List<ExportedType>();
 				this.resources = new LazyList<Resource>();
