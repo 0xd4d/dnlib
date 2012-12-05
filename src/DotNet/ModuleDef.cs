@@ -753,10 +753,21 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Returns the size of a pointer. This isn't 100% foolproof.
+		/// Returns the size of a pointer. Assumes it's 32-bit if pointer size is unknown or
+		/// if it can be 32-bit or 64-bit.
 		/// </summary>
 		/// <returns>Size of a pointer (4 or 8)</returns>
 		public int GetPointerSize() {
+			return GetPointerSize(4);
+		}
+
+		/// <summary>
+		/// Returns the size of a pointer
+		/// </summary>
+		/// <param name="defaultPointerSize">Default pointer size if it's not known or if it
+		/// can be 32-bit or 64-bit</param>
+		/// <returns>Size of a pointer (4 or 8)</returns>
+		public int GetPointerSize(int defaultPointerSize) {
 			var machine = Machine;
 			if (machine == Machine.AMD64 || machine == Machine.IA64)
 				return 8;
@@ -790,10 +801,10 @@ namespace dot10.DotNet {
 
 			case ComImageFlags._32BitRequired | ComImageFlags._32BitPreferred:
 				// Platform neutral but prefers to be 32-bit
-				return 4;	// Assume 32-bit pointers
+				return defaultPointerSize;
 			}
 
-			return 4;	// Assume 32-bit pointers
+			return defaultPointerSize;
 		}
 
 		/// <inheritdoc/>
