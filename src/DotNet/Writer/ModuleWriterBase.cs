@@ -141,30 +141,30 @@ namespace dot10.DotNet.Writer {
 		/// <param name="listener">Module writer listener</param>
 		protected ModuleWriterOptionsBase(ModuleDef module, IModuleWriterListener listener) {
 			this.listener = listener;
-			this.ShareMethodBodies = true;
-			this.MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
-			this.ModuleKind = module.Kind;
-			this.PEHeadersOptions.Machine = module.Machine;
-			this.PEHeadersOptions.Characteristics = module.Characteristics;
-			this.PEHeadersOptions.DllCharacteristics = module.DllCharacteristics;
+			ShareMethodBodies = true;
+			MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
+			ModuleKind = module.Kind;
+			PEHeadersOptions.Machine = module.Machine;
+			PEHeadersOptions.Characteristics = module.Characteristics;
+			PEHeadersOptions.DllCharacteristics = module.DllCharacteristics;
 			if (module.Kind == ModuleKind.Windows)
-				this.PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
+				PEHeadersOptions.Subsystem = Subsystem.WindowsGui;
 			else
-				this.PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
-			this.PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
-			this.Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
+				PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
+			PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
+			Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 
 			if (module.Cor20HeaderRuntimeVersion != null) {
-				this.Cor20HeaderOptions.MajorRuntimeVersion = (ushort)(module.Cor20HeaderRuntimeVersion.Value >> 16);
-				this.Cor20HeaderOptions.MinorRuntimeVersion = (ushort)module.Cor20HeaderRuntimeVersion.Value;
+				Cor20HeaderOptions.MajorRuntimeVersion = (ushort)(module.Cor20HeaderRuntimeVersion.Value >> 16);
+				Cor20HeaderOptions.MinorRuntimeVersion = (ushort)module.Cor20HeaderRuntimeVersion.Value;
 			}
 			else if (module.IsClr1x) {
-				this.Cor20HeaderOptions.MajorRuntimeVersion = 2;
-				this.Cor20HeaderOptions.MinorRuntimeVersion = 0;
+				Cor20HeaderOptions.MajorRuntimeVersion = 2;
+				Cor20HeaderOptions.MinorRuntimeVersion = 0;
 			}
 			else {
-				this.Cor20HeaderOptions.MajorRuntimeVersion = 2;
-				this.Cor20HeaderOptions.MinorRuntimeVersion = 5;
+				Cor20HeaderOptions.MajorRuntimeVersion = 2;
+				Cor20HeaderOptions.MinorRuntimeVersion = 5;
 			}
 
 			if (module.TablesHeaderVersion != null) {
@@ -183,24 +183,24 @@ namespace dot10.DotNet.Writer {
 			}
 
 			// Some tools crash if #GUID is missing so always create it by default
-			this.MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
+			MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
 
 			var modDefMD = module as ModuleDefMD;
 			if (modDefMD != null) {
 				var ntHeaders = modDefMD.MetaData.PEImage.ImageNTHeaders;
-				this.PEHeadersOptions.TimeDateStamp = ntHeaders.FileHeader.TimeDateStamp;
-				this.PEHeadersOptions.MajorLinkerVersion = ntHeaders.OptionalHeader.MajorLinkerVersion;
-				this.PEHeadersOptions.MinorLinkerVersion = ntHeaders.OptionalHeader.MinorLinkerVersion;
-				this.PEHeadersOptions.ImageBase = ntHeaders.OptionalHeader.ImageBase;
-				this.AddCheckSum = ntHeaders.OptionalHeader.CheckSum != 0;
+				PEHeadersOptions.TimeDateStamp = ntHeaders.FileHeader.TimeDateStamp;
+				PEHeadersOptions.MajorLinkerVersion = ntHeaders.OptionalHeader.MajorLinkerVersion;
+				PEHeadersOptions.MinorLinkerVersion = ntHeaders.OptionalHeader.MinorLinkerVersion;
+				PEHeadersOptions.ImageBase = ntHeaders.OptionalHeader.ImageBase;
+				AddCheckSum = ntHeaders.OptionalHeader.CheckSum != 0;
 			}
 
 			if (Is64Bit) {
-				this.PEHeadersOptions.Characteristics &= ~Characteristics._32BitMachine;
-				this.PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
+				PEHeadersOptions.Characteristics &= ~Characteristics._32BitMachine;
+				PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
 			}
 			else
-				this.PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
+				PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
 		}
 	}
 
