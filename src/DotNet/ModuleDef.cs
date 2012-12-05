@@ -294,37 +294,77 @@ namespace dot10.DotNet {
 		public string RuntimeVersion { get; set; }
 
 		/// <summary>
-		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 string
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 string (only the major
+		/// and minor version numbers are checked)
 		/// </summary>
 		public bool IsClr10 {
+			get { return (RuntimeVersion ?? string.Empty).StartsWith(MDHeaderRuntimeVersion.MS_CLR_10_PREFIX); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 string
+		/// </summary>
+		public bool IsClr10Exactly {
 			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_10; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.1 string (only the major
+		/// and minor version numbers are checked)
+		/// </summary>
+		public bool IsClr11 {
+			get { return (RuntimeVersion ?? string.Empty).StartsWith(MDHeaderRuntimeVersion.MS_CLR_11_PREFIX); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.1 string
 		/// </summary>
-		public bool IsClr11 {
+		public bool IsClr11Exactly {
 			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_11; }
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 or v1.1 string
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 or v1.1 string (only the
+		/// major and minor version numbers are checked)
 		/// </summary>
 		public bool IsClr1x {
 			get { return IsClr10 || IsClr11; }
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v2.0 string
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 or v1.1 string
+		/// </summary>
+		public bool IsClr1xExactly {
+			get { return IsClr10Exactly || IsClr11Exactly; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v2.0 string (only the major
+		/// and minor version numbers are checked)
 		/// </summary>
 		public bool IsClr20 {
+			get { return (RuntimeVersion ?? string.Empty).StartsWith(MDHeaderRuntimeVersion.MS_CLR_20_PREFIX); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v2.0 string
+		/// </summary>
+		public bool IsClr20Exactly {
 			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_20; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v4.0 string (only the major
+		/// and minor version numbers are checked)
+		/// </summary>
+		public bool IsClr40 {
+			get { return (RuntimeVersion ?? string.Empty).StartsWith(MDHeaderRuntimeVersion.MS_CLR_40_PREFIX); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v4.0 string
 		/// </summary>
-		public bool IsClr40 {
+		public bool IsClr40Exactly {
 			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_40; }
 		}
 

@@ -24,6 +24,26 @@
 		public const string MS_CLR_40 = "v4.0.30319";
 
 		/// <summary>
+		/// MS CLR 1.0 any version
+		/// </summary>
+		public const string MS_CLR_10_PREFIX = "v1.0";
+
+		/// <summary>
+		/// MS CLR 1.1 any version
+		/// </summary>
+		public const string MS_CLR_11_PREFIX = "v1.1";
+
+		/// <summary>
+		/// MS CLR 2.0 any version
+		/// </summary>
+		public const string MS_CLR_20_PREFIX = "v2.0";
+
+		/// <summary>
+		/// MS CLR 4.0 any version
+		/// </summary>
+		public const string MS_CLR_40_PREFIX = "v4.0";
+
+		/// <summary>
 		/// ECMA 2002 version string
 		/// </summary>
 		public const string ECMA_2002 = "Standard CLI 2002";
