@@ -87,10 +87,60 @@ namespace dot10.DotNet.MD {
 		}
 
 		/// <summary>
+		/// Gets the reserved field
+		/// </summary>
+		public uint Reserved1 {
+			get { return reserved1; }
+		}
+
+		/// <summary>
+		/// Gets the version. The major version is in the upper 8 bits, and the minor version
+		/// is in the lower 8 bits.
+		/// </summary>
+		public ushort Version {
+			get { return (ushort)((majorVersion << 8) | minorVersion); }
+		}
+
+		/// <summary>
 		/// Gets <see cref="MDStreamFlags"/>
 		/// </summary>
 		public MDStreamFlags Flags {
 			get { return flags; }
+		}
+
+		/// <summary>
+		/// Gets the reserved log2 rid field
+		/// </summary>
+		public byte Log2Rid {
+			get { return log2Rid; }
+		}
+
+		/// <summary>
+		/// Gets the valid mask
+		/// </summary>
+		public ulong ValidMask {
+			get { return validMask; }
+		}
+
+		/// <summary>
+		/// Gets the sorted mask
+		/// </summary>
+		public ulong SortedMask {
+			get { return sortedMask; }
+		}
+
+		/// <summary>
+		/// Gets the extra data
+		/// </summary>
+		public uint ExtraData {
+			get { return extraData; }
+		}
+
+		/// <summary>
+		/// Gets the MD tables
+		/// </summary>
+		public MDTable[] MDTables {
+			get { return mdTables; }
 		}
 
 		/// <summary>
