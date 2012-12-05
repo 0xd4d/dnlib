@@ -128,7 +128,6 @@ namespace dot10.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			long startOffset = writer.BaseStream.Position;
 			writer.Write(options.Signature ?? MetaDataHeaderOptions.DEFAULT_SIGNATURE);
 			writer.Write(options.MajorVersion ?? 1);
 			writer.Write(options.MinorVersion ?? 1);
