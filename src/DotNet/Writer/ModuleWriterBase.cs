@@ -167,6 +167,21 @@ namespace dot10.DotNet.Writer {
 				this.Cor20HeaderOptions.MinorRuntimeVersion = 5;
 			}
 
+			if (module.TablesHeaderVersion != null) {
+				MetaDataOptions.TablesHeapOptions.MajorVersion = (byte)(module.TablesHeaderVersion.Value >> 8);
+				MetaDataOptions.TablesHeapOptions.MinorVersion = (byte)module.TablesHeaderVersion.Value;
+			}
+			else if (module.IsClr1x) {
+				// Generics aren't supported
+				MetaDataOptions.TablesHeapOptions.MajorVersion = 1;
+				MetaDataOptions.TablesHeapOptions.MinorVersion = 0;
+			}
+			else {
+				// Generics are supported
+				MetaDataOptions.TablesHeapOptions.MajorVersion = 2;
+				MetaDataOptions.TablesHeapOptions.MinorVersion = 0;
+			}
+
 			// Some tools crash if #GUID is missing so always create it by default
 			this.MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
 

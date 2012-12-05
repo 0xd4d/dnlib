@@ -325,6 +325,7 @@ namespace dot10.DotNet {
 			this.Machine = MetaData.PEImage.ImageNTHeaders.FileHeader.Machine;
 			this.Cor20HeaderFlags = MetaData.ImageCor20Header.Flags;
 			this.Cor20HeaderRuntimeVersion = (uint)(MetaData.ImageCor20Header.MajorRuntimeVersion << 16) | MetaData.ImageCor20Header.MinorRuntimeVersion;
+			this.TablesHeaderVersion = MetaData.TablesStream.Version;
 		}
 
 		ModuleKind GetKind() {

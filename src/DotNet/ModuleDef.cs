@@ -423,6 +423,17 @@ namespace dot10.DotNet {
 		public uint? Cor20HeaderRuntimeVersion { get; set; }
 
 		/// <summary>
+		/// Gets the tables header version. The major version is in the upper 8 bits and the
+		/// minor version is in the lower 8 bits. .NET 1.0/1.1 use version 1.0 (0x0100) and
+		/// .NET 2.x and later use version 2.0 (0x0200). 1.0 has no support for generics,
+		/// 1.1 has support for generics (GenericParam rows have an extra Kind column),
+		/// and 2.0 has support for generics (GenericParam rows have the standard 4 columns).
+		/// No other version is supported. If this is <c>null</c>, the default version is
+		/// used (1.0 if .NET 1.x, else 2.0).
+		/// </summary>
+		public ushort? TablesHeaderVersion { get; set; }
+
+		/// <summary>
 		/// Gets/sets the <see cref="ComImageFlags.ILOnly"/> bit
 		/// </summary>
 		public bool IsILOnly {
@@ -1039,6 +1050,7 @@ namespace dot10.DotNet {
 			this.Machine = Machine.I386;
 			this.Cor20HeaderFlags = ComImageFlags.ILOnly;
 			this.Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
+			this.TablesHeaderVersion = 0x0200;				// .NET 2.0 or later should use 2.0
 			this.corLibTypes = new CorLibTypes(this);
 			this.types = new LazyList<TypeDef>(this);
 			this.name = name;
@@ -1206,6 +1218,7 @@ namespace dot10.DotNet {
 				this.Machine = Machine.I386;
 				this.Cor20HeaderFlags = ComImageFlags.ILOnly;
 				this.Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
+				this.TablesHeaderVersion = 0x0200;				// .NET 2.0 or later should use 2.0
 				this.types = new LazyList<TypeDef>(this);
 				this.exportedTypes = new List<ExportedType>();
 				this.resources = new LazyList<Resource>();
