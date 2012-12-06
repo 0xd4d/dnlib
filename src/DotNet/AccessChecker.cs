@@ -241,12 +241,12 @@ namespace dot10.DotNet {
 				return IsSameAssemblyOrFriendAssembly(td.Module);
 
 			case TypeAttributes.NestedFamANDAssem:
-				return CheckFamily(td, git) &&
-					IsSameAssemblyOrFriendAssembly(td.Module);
+				return IsSameAssemblyOrFriendAssembly(td.Module) &&
+					CheckFamily(td, git);
 
 			case TypeAttributes.NestedFamORAssem:
-				return CheckFamily(td, git) ||
-					IsSameAssemblyOrFriendAssembly(td.Module);
+				return IsSameAssemblyOrFriendAssembly(td.Module) ||
+					CheckFamily(td, git);
 
 			default:
 				return false;
@@ -394,8 +394,8 @@ namespace dot10.DotNet {
 				return false;
 
 			case FieldAttributes.FamANDAssem:
-				return CheckFamily(fdDeclaringType, git) &&
-					IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module);
+				return IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module) &&
+					CheckFamily(fdDeclaringType, git);
 
 			case FieldAttributes.Assembly:
 				return IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module);
@@ -404,8 +404,8 @@ namespace dot10.DotNet {
 				return CheckFamily(fdDeclaringType, git);
 
 			case FieldAttributes.FamORAssem:
-				return CheckFamily(fdDeclaringType, git) ||
-					IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module);
+				return IsSameAssemblyOrFriendAssembly(fdDeclaringType.Module) ||
+					CheckFamily(fdDeclaringType, git);
 
 			case FieldAttributes.Public:
 				return true;
@@ -459,8 +459,8 @@ namespace dot10.DotNet {
 				return false;
 
 			case MethodAttributes.FamANDAssem:
-				return CheckFamily(mdDeclaringType, git) &&
-					IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module);
+				return IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module) &&
+					CheckFamily(mdDeclaringType, git);
 
 			case MethodAttributes.Assembly:
 				return IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module);
@@ -469,8 +469,8 @@ namespace dot10.DotNet {
 				return CheckFamily(mdDeclaringType, git);
 
 			case MethodAttributes.FamORAssem:
-				return CheckFamily(mdDeclaringType, git) ||
-					IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module);
+				return IsSameAssemblyOrFriendAssembly(mdDeclaringType.Module) ||
+					CheckFamily(mdDeclaringType, git);
 
 			case MethodAttributes.Public:
 				return true;
