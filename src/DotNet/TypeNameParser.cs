@@ -290,7 +290,9 @@ namespace dot10.DotNet {
 		/// <returns>A new <see cref="TypeRef"/> instance</returns>
 		protected TypeRef ReadTypeRefNoAssembly() {
 			string ns, name;
-			GetNamespaceAndName(ReadId(), out ns, out name);
+			// White space is important here. Any white space before the comma/EOF must be
+			// parsed as part of the name.
+			GetNamespaceAndName(ReadId(false), out ns, out name);
 			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, ns, name));
 		}
 
@@ -394,10 +396,14 @@ namespace dot10.DotNet {
 		}
 
 		internal string ReadId() {
+			return ReadId(true);
+		}
+
+		internal string ReadId(bool ignoreWhiteSpace) {
 			SkipWhite();
 			var sb = new StringBuilder();
 			int c;
-			while ((c = GetIdChar()) != -1)
+			while ((c = GetIdChar(ignoreWhiteSpace)) != -1)
 				sb.Append((char)c);
 			Verify(sb.Length > 0, "Expected an id");
 			return sb.ToString();
@@ -420,7 +426,8 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Gets the next ID char or <c>-1</c> if no more ID chars
 		/// </summary>
-		internal abstract int GetIdChar();
+		/// <param name="ignoreWhiteSpace"><c>true</c> if white space should be ignored</param>
+		internal abstract int GetIdChar(bool ignoreWhiteSpace);
 	}
 
 	/// <summary>
@@ -698,9 +705,11 @@ namespace dot10.DotNet {
 			return asmRef;
 		}
 
-		internal override int GetIdChar() {
+		internal override int GetIdChar(bool ignoreWhiteSpace) {
 			int c = PeekChar();
-			if (c == -1 || char.IsWhiteSpace((char)c))
+			if (c == -1)
+				return -1;
+			if (ignoreWhiteSpace && char.IsWhiteSpace((char)c))
 				return -1;
 			switch (c) {
 			case '\\':
