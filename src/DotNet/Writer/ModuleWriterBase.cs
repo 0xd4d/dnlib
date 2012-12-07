@@ -3,6 +3,7 @@ using System.IO;
 using dot10.IO;
 using dot10.PE;
 using dot10.W32Resources;
+using dot10.DotNet.MD;
 
 namespace dot10.DotNet.Writer {
 	/// <summary>
@@ -153,6 +154,9 @@ namespace dot10.DotNet.Writer {
 				PEHeadersOptions.Subsystem = Subsystem.WindowsCui;
 			PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
 			Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
+
+			if (module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey))
+				Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
 			if (module.Cor20HeaderRuntimeVersion != null) {
 				Cor20HeaderOptions.MajorRuntimeVersion = (ushort)(module.Cor20HeaderRuntimeVersion.Value >> 16);
