@@ -10,7 +10,7 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the Method table
 	/// </summary>
 	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef> {
-		static readonly UTF8String staticConstructorName = new UTF8String(".cctor");
+		internal static readonly UTF8String staticConstructorName = new UTF8String(".cctor");
 		static readonly UTF8String instanceConstructorName = new UTF8String(".ctor");
 
 		/// <summary>

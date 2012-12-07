@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using dot10.Utils;
 using dot10.DotNet.MD;
+using dot10.DotNet.Emit;
 
 namespace dot10.DotNet {
 	/// <summary>
@@ -774,6 +775,32 @@ namespace dot10.DotNet {
 					return method;
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Finds the class constructor (aka type initializer). It's the method named .cctor.
+		/// If it doesn't exist, it is created, inserted into <see cref="Methods"/> and returned.
+		/// The created .cctor will have just one RET instruction.
+		/// </summary>
+		/// <returns>The class constructor</returns>
+		public MethodDef FindOrCreateStaticConstructor() {
+			var cctor = FindStaticConstructor();
+			if (cctor != null)
+				return cctor;
+
+			var implFlags = MethodImplAttributes.IL | MethodImplAttributes.Managed;
+			var flags = MethodAttributes.Private | MethodAttributes.Static |
+						MethodAttributes.HideBySig | MethodAttributes.ReuseSlot |
+						MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
+			cctor = Module.UpdateRowId(new MethodDefUser(MethodDef.staticConstructorName,
+						MethodSig.CreateStatic(Module.CorLibTypes.Void), implFlags, flags));
+			var body = new CilBody();
+			body.InitLocals = true;
+			body.MaxStack = 8;
+			body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+			cctor.Body = body;
+			Methods.Add(cctor);
+			return cctor;
 		}
 
 		/// <summary>
