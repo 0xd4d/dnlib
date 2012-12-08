@@ -485,37 +485,71 @@ namespace dot10.DotNet.Writer {
 		/// some rows it uses to decrypt something.
 		/// </summary>
 		void InitializeUninitializedTableRows() {
-			uint rows;
+			InitializeTypeRefTableRows();
+			InitializeMemberRefTableRows();
+			InitializeStandAloneSigTableRows();
+			InitializeTypeSpecTableRows();
+			InitializeMethodSpecTableRows();
+		}
 
-			if (PreserveTypeRefRids) {
-				rows = mod.TablesStream.TypeRefTable.Rows;
-				for (uint rid = 1; rid <= rows; rid++)
-					AddTypeRef(mod.ResolveTypeRef(rid));
-			}
+		bool initdTypeRef = false;
+		void InitializeTypeRefTableRows() {
+			if (!PreserveTypeRefRids || initdTypeRef)
+				return;
+			initdTypeRef = true;
 
-			if (PreserveMemberRefRids) {
-				rows = mod.TablesStream.MemberRefTable.Rows;
-				for (uint rid = 1; rid <= rows; rid++)
-					AddMemberRef(mod.ResolveMemberRef(rid));
-			}
+			uint rows = mod.TablesStream.TypeRefTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++)
+				AddTypeRef(mod.ResolveTypeRef(rid));
+			tablesHeap.TypeRefTable.ReAddRows();
+		}
 
-			if (PreserveStandAloneSigRids) {
-				rows = mod.TablesStream.StandAloneSigTable.Rows;
-				for (uint rid = 1; rid <= rows; rid++)
-					AddStandAloneSig(mod.ResolveStandAloneSig(rid));
-			}
+		bool initdMemberRef = false;
+		void InitializeMemberRefTableRows() {
+			if (!PreserveMemberRefRids || initdMemberRef)
+				return;
+			initdMemberRef = true;
 
-			if (PreserveTypeSpecRids) {
-				rows = mod.TablesStream.TypeSpecTable.Rows;
-				for (uint rid = 1; rid <= rows; rid++)
-					AddTypeSpec(mod.ResolveTypeSpec(rid));
-			}
+			uint rows = mod.TablesStream.MemberRefTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++)
+				AddMemberRef(mod.ResolveMemberRef(rid));
+			tablesHeap.MemberRefTable.ReAddRows();
+		}
 
-			if (PreserveMethodSpecRids) {
-				rows = mod.TablesStream.MethodSpecTable.Rows;
-				for (uint rid = 1; rid <= rows; rid++)
-					AddMethodSpec(mod.ResolveMethodSpec(rid));
-			}
+		bool initdStandAloneSig = false;
+		void InitializeStandAloneSigTableRows() {
+			if (!PreserveStandAloneSigRids || initdStandAloneSig)
+				return;
+			initdStandAloneSig = true;
+
+			uint rows = mod.TablesStream.StandAloneSigTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++)
+				AddStandAloneSig(mod.ResolveStandAloneSig(rid));
+			tablesHeap.StandAloneSigTable.ReAddRows();
+		}
+
+		bool initdTypeSpec = false;
+		void InitializeTypeSpecTableRows() {
+			if (!PreserveTypeSpecRids || initdTypeSpec)
+				return;
+			initdTypeSpec = true;
+
+			uint rows = mod.TablesStream.TypeSpecTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++)
+				AddTypeSpec(mod.ResolveTypeSpec(rid));
+			tablesHeap.TypeSpecTable.ReAddRows();
+		}
+
+		bool initdMethodSpec = false;
+		void InitializeMethodSpecTableRows() {
+			if (!PreserveMethodSpecRids || initdMethodSpec)
+				return;
+			initdMethodSpec = true;
+
+			uint rows = mod.TablesStream.MethodSpecTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++)
+				AddMethodSpec(mod.ResolveMethodSpec(rid));
+			tablesHeap.MethodSpecTable.ReAddRows();
 		}
 
 		/// <inheritdoc/>
@@ -603,6 +637,11 @@ namespace dot10.DotNet.Writer {
 			InitializeParamList();
 			InitializeEventMap();
 			InitializePropertyMap();
+
+			InitializeTypeRefTableRows();
+			InitializeTypeSpecTableRows();
+			InitializeMemberRefTableRows();
+			InitializeMethodSpecTableRows();
 		}
 
 		/// <summary>

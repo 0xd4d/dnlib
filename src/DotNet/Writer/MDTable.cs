@@ -130,6 +130,22 @@ namespace dot10.DotNet.Writer {
 			return rid;
 		}
 
+		/// <summary>
+		/// Re-adds all added rows. Should be called if rows have been modified after being
+		/// inserted.
+		/// </summary>
+		public void ReAddRows() {
+			if (isReadOnly)
+				throw new ModuleWriterException(string.Format("Trying to modify table {0} after it's been set to read-only", table));
+			cachedDict.Clear();
+			for (int i = 0; i < cached.Count; i++) {
+				uint rid = (uint)i + 1;
+				var row = cached[i];
+				if (!cachedDict.ContainsKey(row))
+					cachedDict[row] = rid;
+			}
+		}
+
 		/// <inheritdoc/>
 		public IEnumerator<T> GetEnumerator() {
 			return cached.GetEnumerator();
