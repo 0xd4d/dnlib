@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using dot10.PE;
 using dot10.Utils;
 using dot10.IO;
@@ -221,6 +222,28 @@ namespace dot10.DotNet {
 					dnFile.Dispose();
 				throw;
 			}
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
+		/// </summary>
+		/// <param name="mod">An existing reflection module</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(System.Reflection.Module mod) {
+			return Load(mod, null);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
+		/// </summary>
+		/// <param name="mod">An existing reflection module</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context) {
+			IntPtr addr = Marshal.GetHINSTANCE(mod);
+			if (addr == new IntPtr(-1))
+				throw new InvalidOperationException(string.Format("Module {0} has no HINSTANCE", mod));
+			return Load(addr, context);
 		}
 
 		/// <summary>
