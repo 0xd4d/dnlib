@@ -277,16 +277,16 @@ namespace dot10.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction CreateLdcI4(int value) {
 			switch (value) {
-			case -1: return Instruction.Create(OpCodes.Ldc_I4_M1);
-			case 0: return Instruction.Create(OpCodes.Ldc_I4_0);
-			case 1: return Instruction.Create(OpCodes.Ldc_I4_1);
-			case 2: return Instruction.Create(OpCodes.Ldc_I4_2);
-			case 3: return Instruction.Create(OpCodes.Ldc_I4_3);
-			case 4: return Instruction.Create(OpCodes.Ldc_I4_4);
-			case 5: return Instruction.Create(OpCodes.Ldc_I4_5);
-			case 6: return Instruction.Create(OpCodes.Ldc_I4_6);
-			case 7: return Instruction.Create(OpCodes.Ldc_I4_7);
-			case 8: return Instruction.Create(OpCodes.Ldc_I4_8);
+			case -1: return OpCodes.Ldc_I4_M1.ToInstruction();
+			case 0: return OpCodes.Ldc_I4_0.ToInstruction();
+			case 1: return OpCodes.Ldc_I4_1.ToInstruction();
+			case 2: return OpCodes.Ldc_I4_2.ToInstruction();
+			case 3: return OpCodes.Ldc_I4_3.ToInstruction();
+			case 4: return OpCodes.Ldc_I4_4.ToInstruction();
+			case 5: return OpCodes.Ldc_I4_5.ToInstruction();
+			case 6: return OpCodes.Ldc_I4_6.ToInstruction();
+			case 7: return OpCodes.Ldc_I4_7.ToInstruction();
+			case 8: return OpCodes.Ldc_I4_8.ToInstruction();
 			}
 			if (sbyte.MinValue <= value && value <= sbyte.MaxValue)
 				return new Instruction(OpCodes.Ldc_I4_S, (sbyte)value);

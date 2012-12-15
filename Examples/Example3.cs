@@ -66,10 +66,10 @@ namespace dot10.Examples {
 			// Add a CIL method body to the entry point method
 			CilBody epBody = new CilBody();
 			entryPoint.Body = epBody;
-			epBody.Instructions.Add(Instruction.Create(OpCodes.Ldstr, "Hello World!"));
-			epBody.Instructions.Add(Instruction.Create(OpCodes.Call, consoleWrite1));
-			epBody.Instructions.Add(Instruction.Create(OpCodes.Ldc_I4_0));
-			epBody.Instructions.Add(Instruction.Create(OpCodes.Ret));
+			epBody.Instructions.Add(OpCodes.Ldstr.ToInstruction("Hello World!"));
+			epBody.Instructions.Add(OpCodes.Call.ToInstruction(consoleWrite1));
+			epBody.Instructions.Add(OpCodes.Ldc_I4_0.ToInstruction());
+			epBody.Instructions.Add(OpCodes.Ret.ToInstruction());
 
 			// Save the assembly to a file on disk
 			mod.Write(@"C:\saved-assembly.exe");

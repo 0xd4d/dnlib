@@ -46,14 +46,14 @@ namespace dot10.Examples {
 			body.Variables.Add(local1);
 
 			// Add the instructions, and use the useless local
-			body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-			body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
-			body.Instructions.Add(Instruction.Create(OpCodes.Add));
-			body.Instructions.Add(Instruction.Create(OpCodes.Ldsfld, field1));
-			body.Instructions.Add(Instruction.Create(OpCodes.Add));
-			body.Instructions.Add(Instruction.Create(OpCodes.Stloc, local1));
-			body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, local1));
-			body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+			body.Instructions.Add(OpCodes.Ldarg_0.ToInstruction());
+			body.Instructions.Add(OpCodes.Ldarg_1.ToInstruction());
+			body.Instructions.Add(OpCodes.Add.ToInstruction());
+			body.Instructions.Add(OpCodes.Ldsfld.ToInstruction(field1));
+			body.Instructions.Add(OpCodes.Add.ToInstruction());
+			body.Instructions.Add(OpCodes.Stloc.ToInstruction(local1));
+			body.Instructions.Add(OpCodes.Ldloc.ToInstruction(local1));
+			body.Instructions.Add(OpCodes.Ret.ToInstruction());
 
 			// Save the assembly to a file on disk
 			mod.Write(@"C:\saved-assembly.dll");

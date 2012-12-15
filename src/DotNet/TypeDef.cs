@@ -797,7 +797,7 @@ namespace dot10.DotNet {
 			var body = new CilBody();
 			body.InitLocals = true;
 			body.MaxStack = 8;
-			body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+			body.Instructions.Add(OpCodes.Ret.ToInstruction());
 			cctor.Body = body;
 			Methods.Add(cctor);
 			return cctor;
