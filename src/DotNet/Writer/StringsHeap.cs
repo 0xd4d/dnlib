@@ -64,15 +64,6 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #Strings heap</returns>
-		public uint Add(string s) {
-			return Add(new UTF8String(s));
-		}
-
-		/// <summary>
-		/// Adds a string to the #Strings heap
-		/// </summary>
-		/// <param name="s">The string</param>
-		/// <returns>The offset of the string in the #Strings heap</returns>
 		public uint Add(UTF8String s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");

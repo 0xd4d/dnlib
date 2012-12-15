@@ -1399,11 +1399,10 @@ namespace dot10.DotNet {
 		/// <param name="simpleName">Simple name of assembly (eg. "mscorlib")</param>
 		/// <returns>The found <see cref="AssemblyRef"/> or <c>null</c> if there's no such
 		/// assembly reference.</returns>
-		public AssemblyRef GetAssemblyRef(string simpleName) {
-			var simpleName2 = new UTF8String(simpleName);
+		public AssemblyRef GetAssemblyRef(UTF8String simpleName) {
 			AssemblyRef found = null;
 			foreach (var asmRef in GetAssemblyRefs()) {
-				if (asmRef.Name != simpleName2)
+				if (asmRef.Name != simpleName)
 					continue;
 				if (found == null || found.Version == null || (asmRef.Version != null && asmRef.Version > found.Version))
 					found = asmRef;

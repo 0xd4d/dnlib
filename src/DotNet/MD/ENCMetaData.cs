@@ -9,7 +9,7 @@ namespace dot10.DotNet.MD {
 	/// Used when a #- stream is present in the metadata
 	/// </summary>
 	sealed class ENCMetaData : MetaData {
-		static readonly UTF8String DeletedName = new UTF8String("_Deleted");
+		static readonly UTF8String DeletedName = "_Deleted";
 		bool hasMethodPtr, hasFieldPtr, hasParamPtr, hasEventPtr, hasPropertyPtr;
 		bool hasDeletedRows;
 		Dictionary<Table, SortedTable> sortedTables = new Dictionary<Table, SortedTable>();

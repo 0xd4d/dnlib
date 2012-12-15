@@ -275,37 +275,6 @@ namespace dot10.DotNet {
 			this.name = name;
 			this.@namespace = @namespace;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="name">Type name</param>
-		public TypeRefUser(ModuleDef module, string name)
-			: this(module, string.Empty, name) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="namespace">Type namespace</param>
-		/// <param name="name">Type name</param>
-		public TypeRefUser(ModuleDef module, string @namespace, string name)
-			: this(module, @namespace, name, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="namespace">Type namespace</param>
-		/// <param name="name">Type name</param>
-		/// <param name="resolutionScope">Resolution scope (a <see cref="ModuleDef"/>,
-		/// <see cref="ModuleRef"/>, <see cref="AssemblyRef"/> or <see cref="TypeRef"/>)</param>
-		public TypeRefUser(ModuleDef module, string @namespace, string name, IResolutionScope resolutionScope)
-			: this(module, new UTF8String(@namespace), new UTF8String(name), resolutionScope) {
-		}
 	}
 
 	/// <summary>

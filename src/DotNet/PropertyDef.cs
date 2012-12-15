@@ -306,33 +306,6 @@ namespace dot10.DotNet {
 			this.type = sig;
 			this.flags = flags;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		public PropertyDefUser(string name)
-			: this(name, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="sig">Property signature</param>
-		public PropertyDefUser(string name, PropertySig sig)
-			: this(name, sig, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="sig">Property signature</param>
-		/// <param name="flags">Flags</param>
-		public PropertyDefUser(string name, PropertySig sig, PropertyAttributes flags)
-			: this(new UTF8String(name), sig, flags) {
-		}
 	}
 
 	/// <summary>

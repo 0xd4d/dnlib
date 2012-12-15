@@ -10,8 +10,8 @@ namespace dot10.DotNet {
 	/// A high-level representation of a row in the Method table
 	/// </summary>
 	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef> {
-		internal static readonly UTF8String staticConstructorName = new UTF8String(".cctor");
-		static readonly UTF8String instanceConstructorName = new UTF8String(".ctor");
+		internal static readonly UTF8String staticConstructorName = ".cctor";
+		static readonly UTF8String instanceConstructorName = ".ctor";
 
 		/// <summary>
 		/// The row id in its table
@@ -925,54 +925,6 @@ namespace dot10.DotNet {
 			this.parameters = new LazyList<ParamDef>(this);
 			this.genericParams = new LazyList<GenericParam>(this);
 			this.parameterList = new ParameterList(this);
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Method name</param>
-		public MethodDefUser(string name)
-			: this(name, null, 0, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Method name</param>
-		/// <param name="methodSig">Method sig</param>
-		public MethodDefUser(string name, MethodSig methodSig)
-			: this(name, methodSig, 0, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Method name</param>
-		/// <param name="methodSig">Method sig</param>
-		/// <param name="flags">Flags</param>
-		public MethodDefUser(string name, MethodSig methodSig, MethodAttributes flags)
-			: this(name, methodSig, 0, flags) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Method name</param>
-		/// <param name="methodSig">Method sig</param>
-		/// <param name="implFlags">Impl flags</param>
-		public MethodDefUser(string name, MethodSig methodSig, MethodImplAttributes implFlags)
-			: this(name, methodSig, implFlags, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Method name</param>
-		/// <param name="methodSig">Method sig</param>
-		/// <param name="implFlags">Impl flags</param>
-		/// <param name="flags">Flags</param>
-		public MethodDefUser(string name, MethodSig methodSig, MethodImplAttributes implFlags, MethodAttributes flags)
-			: this(new UTF8String(name), methodSig, implFlags, flags) {
 		}
 	}
 

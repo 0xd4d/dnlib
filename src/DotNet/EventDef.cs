@@ -269,33 +269,6 @@ namespace dot10.DotNet {
 			this.type = type;
 			this.flags = flags;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		public EventDefUser(string name)
-			: this(name, null, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="type">Type</param>
-		public EventDefUser(string name, ITypeDefOrRef type)
-			: this(name, type, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="type">Type</param>
-		/// <param name="flags">Flags</param>
-		public EventDefUser(string name, ITypeDefOrRef type, EventAttributes flags)
-			: this(new UTF8String(name), type, flags) {
-		}
 	}
 
 	/// <summary>

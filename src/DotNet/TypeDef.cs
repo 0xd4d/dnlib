@@ -727,30 +727,12 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of method</param>
 		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if not found</returns>
-		public MethodDef FindMethod(string name) {
-			return FindMethod(new UTF8String(name));
-		}
-
-		/// <summary>
-		/// Finds a method by name
-		/// </summary>
-		/// <param name="name">Name of method</param>
-		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if not found</returns>
 		public MethodDef FindMethod(UTF8String name) {
 			foreach (var method in Methods) {
 				if (UTF8String.Equals(method.Name, name))
 					return method;
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Finds all methods by name
-		/// </summary>
-		/// <param name="name">Name of method</param>
-		/// <returns>All methods with that name</returns>
-		public IEnumerable<MethodDef> FindMethods(string name) {
-			return FindMethods(new UTF8String(name));
 		}
 
 		/// <summary>
@@ -878,30 +860,12 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of field</param>
 		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if not found</returns>
-		public FieldDef FindField(string name) {
-			return FindField(new UTF8String(name));
-		}
-
-		/// <summary>
-		/// Finds a field by name
-		/// </summary>
-		/// <param name="name">Name of field</param>
-		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if not found</returns>
 		public FieldDef FindField(UTF8String name) {
 			foreach (var field in Fields) {
 				if (UTF8String.Equals(field.Name, name))
 					return field;
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Finds all fields by name
-		/// </summary>
-		/// <param name="name">Name of field</param>
-		/// <returns>All fields with that name</returns>
-		public IEnumerable<FieldDef> FindFields(string name) {
-			return FindFields(new UTF8String(name));
 		}
 
 		/// <summary>
@@ -922,29 +886,8 @@ namespace dot10.DotNet {
 		/// <param name="name">Name of event</param>
 		/// <param name="type">Type of event</param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(string name, IType type) {
-			return FindEvent(new UTF8String(name), type, 0);
-		}
-
-		/// <summary>
-		/// Finds an event
-		/// </summary>
-		/// <param name="name">Name of event</param>
-		/// <param name="type">Type of event</param>
-		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
 		public EventDef FindEvent(UTF8String name, IType type) {
 			return FindEvent(name, type, 0);
-		}
-
-		/// <summary>
-		/// Finds an event
-		/// </summary>
-		/// <param name="name">Name of event</param>
-		/// <param name="type">Type of event</param>
-		/// <param name="options">Event type comparison options</param>
-		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(string name, IType type, SigComparerOptions options) {
-			return FindEvent(new UTF8String(name), type, options);
 		}
 
 		/// <summary>
@@ -972,30 +915,12 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of event</param>
 		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(string name) {
-			return FindEvent(new UTF8String(name));
-		}
-
-		/// <summary>
-		/// Finds an event by name
-		/// </summary>
-		/// <param name="name">Name of event</param>
-		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
 		public EventDef FindEvent(UTF8String name) {
 			foreach (var @event in Events) {
 				if (UTF8String.Equals(@event.Name, name))
 					return @event;
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Finds all events by name
-		/// </summary>
-		/// <param name="name">Name of event</param>
-		/// <returns>All events with that name</returns>
-		public IEnumerable<EventDef> FindEvents(string name) {
-			return FindEvents(new UTF8String(name));
 		}
 
 		/// <summary>
@@ -1016,29 +941,8 @@ namespace dot10.DotNet {
 		/// <param name="name">Name of property</param>
 		/// <param name="propSig">Property signature</param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(string name, CallingConventionSig propSig) {
-			return FindProperty(new UTF8String(name), propSig, 0);
-		}
-
-		/// <summary>
-		/// Finds a property
-		/// </summary>
-		/// <param name="name">Name of property</param>
-		/// <param name="propSig">Property signature</param>
-		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
 		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig) {
 			return FindProperty(name, propSig, 0);
-		}
-
-		/// <summary>
-		/// Finds a property
-		/// </summary>
-		/// <param name="name">Name of property</param>
-		/// <param name="propSig">Property signature</param>
-		/// <param name="options">Property type comparison options</param>
-		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(string name, CallingConventionSig propSig, SigComparerOptions options) {
-			return FindProperty(new UTF8String(name), propSig, options);
 		}
 
 		/// <summary>
@@ -1066,30 +970,12 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of prop</param>
 		/// <returns>The <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(string name) {
-			return FindProperty(new UTF8String(name));
-		}
-
-		/// <summary>
-		/// Finds a prop by name
-		/// </summary>
-		/// <param name="name">Name of prop</param>
-		/// <returns>The <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
 		public PropertyDef FindProperty(UTF8String name) {
 			foreach (var prop in Properties) {
 				if (UTF8String.Equals(prop.Name, name))
 					return prop;
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Finds all props by name
-		/// </summary>
-		/// <param name="name">Name of prop</param>
-		/// <returns>All props with that name</returns>
-		public IEnumerable<PropertyDef> FindProperties(string name) {
-			return FindProperties(new UTF8String(name));
 		}
 
 		/// <summary>
@@ -1138,15 +1024,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Finds a method by checking this type or any of its base types
-		/// </summary>
-		/// <param name="name">Method name</param>
-		/// <returns>The method or <c>null</c> if it wasn't found</returns>
-		public MethodDef FindMethodCheckBaseType(string name) {
-			return FindMethodCheckBaseType(new UTF8String(name));
-		}
-
-		/// <summary>
 		/// Finds a field by checking this type or any of its base types
 		/// </summary>
 		/// <param name="name">Field name</param>
@@ -1177,15 +1054,6 @@ namespace dot10.DotNet {
 				td = td.BaseType.ResolveTypeDef();
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Finds a field by checking this type or any of its base types
-		/// </summary>
-		/// <param name="name">Field name</param>
-		/// <returns>The field or <c>null</c> if it wasn't found</returns>
-		public FieldDef FindFieldCheckBaseType(string name) {
-			return FindFieldCheckBaseType(new UTF8String(name));
 		}
 
 		/// <summary>
@@ -1222,15 +1090,6 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Finds an event by checking this type or any of its base types
-		/// </summary>
-		/// <param name="name">Event name</param>
-		/// <returns>The event or <c>null</c> if it wasn't found</returns>
-		public EventDef FindEventCheckBaseType(string name) {
-			return FindEventCheckBaseType(new UTF8String(name));
-		}
-
-		/// <summary>
 		/// Finds a property by checking this type or any of its base types
 		/// </summary>
 		/// <param name="name">Property name</param>
@@ -1261,15 +1120,6 @@ namespace dot10.DotNet {
 				td = td.BaseType.ResolveTypeDef();
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Finds a property by checking this type or any of its base types
-		/// </summary>
-		/// <param name="name">Property name</param>
-		/// <returns>The property or <c>null</c> if it wasn't found</returns>
-		public PropertyDef FindPropertyCheckBaseType(string name) {
-			return FindPropertyCheckBaseType(new UTF8String(name));
 		}
 
 		/// <summary>
@@ -1521,11 +1371,10 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <returns>A list of 0 or more fields with name <paramref name="name"/></returns>
-		public List<FieldDef> GetFields(string name) {
+		public List<FieldDef> GetFields(UTF8String name) {
 			var fields = new List<FieldDef>();
-			var name2 = new UTF8String(name);
 			foreach (var field in Fields) {
-				if (field.Name == name2)
+				if (field.Name == name)
 					fields.Add(field);
 			}
 			return fields;
@@ -1536,10 +1385,9 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <returns>The field or <c>null</c> if none found</returns>
-		public FieldDef GetField(string name) {
-			var name2 = new UTF8String(name);
+		public FieldDef GetField(UTF8String name) {
 			foreach (var field in Fields) {
-				if (field.Name == name2)
+				if (field.Name == name)
 					return field;
 			}
 			return null;
@@ -1725,42 +1573,6 @@ namespace dot10.DotNet {
 			this.@namespace = @namespace;
 			this.name = name;
 			this.baseType = baseType;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		public TypeDefUser(string name)
-			: this(null, name, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="namespace">Namespace</param>
-		/// <param name="name">Name</param>
-		public TypeDefUser(string @namespace, string name)
-			: this(@namespace, name, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(string name, ITypeDefOrRef baseType)
-			: this(null, name, baseType) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="namespace">Namespace</param>
-		/// <param name="name">Name</param>
-		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(string @namespace, string name, ITypeDefOrRef baseType)
-			: this(new UTF8String(@namespace), new UTF8String(name), baseType) {
 		}
 	}
 

@@ -333,7 +333,7 @@ namespace dot10.DotNet {
 			set {
 				var paramDef = ParamDef;
 				if (paramDef != null)
-					paramDef.Name = new UTF8String(value);
+					paramDef.Name = value;
 			}
 		}
 

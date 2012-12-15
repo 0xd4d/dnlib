@@ -651,7 +651,7 @@ namespace dot10.DotNet {
 			if (ownerModule != null)
 				ownerModule.UpdateRowId(asmRef);
 
-			asmRef.Name = new UTF8String(ReadId());
+			asmRef.Name = ReadId();
 			SkipWhite();
 			if (PeekChar() != ',')
 				return asmRef;
@@ -697,7 +697,7 @@ namespace dot10.DotNet {
 					if (value.Equals("neutral", StringComparison.OrdinalIgnoreCase))
 						asmRef.Culture = UTF8String.Empty;
 					else
-						asmRef.Culture = new UTF8String(value);
+						asmRef.Culture = value;
 					break;
 				}
 			}

@@ -1018,16 +1018,7 @@ namespace dot10.DotNet {
 		/// Default constructor
 		/// </summary>
 		public ModuleDefUser()
-			: this((UTF8String)null, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <remarks><see cref="Mvid"/> is initialized to a random <see cref="Guid"/></remarks>
-		/// <param name="name">Module nam</param>
-		public ModuleDefUser(string name)
-			: this(new UTF8String(name)) {
+			: this(null, null) {
 		}
 
 		/// <summary>
@@ -1037,15 +1028,6 @@ namespace dot10.DotNet {
 		/// <param name="name">Module nam</param>
 		public ModuleDefUser(UTF8String name)
 			: this(name, Guid.NewGuid()) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Module name</param>
-		/// <param name="mvid">Module version ID</param>
-		public ModuleDefUser(string name, Guid? mvid)
-			: this(new UTF8String(name), mvid) {
 		}
 
 		/// <summary>

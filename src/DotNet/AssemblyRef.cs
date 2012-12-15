@@ -417,48 +417,6 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="name">Simple name</param>
-		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyRefUser(string name)
-			: this(name, new Version(0, 0, 0, 0)) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Simple name</param>
-		/// <param name="version">Version</param>
-		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyRefUser(string name, Version version)
-			: this(name, version, new PublicKey()) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Simple name</param>
-		/// <param name="version">Version</param>
-		/// <param name="publicKey">Public key or public key token</param>
-		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyRefUser(string name, Version version, PublicKeyBase publicKey)
-			: this(name, version, publicKey, string.Empty) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Simple name</param>
-		/// <param name="version">Version</param>
-		/// <param name="publicKey">Public key or public key token</param>
-		/// <param name="locale">Locale</param>
-		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyRefUser(string name, Version version, PublicKeyBase publicKey, string locale)
-			: this(new UTF8String(name), version, publicKey, new UTF8String(locale)) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyRefUser(AssemblyName asmName)

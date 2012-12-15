@@ -135,15 +135,6 @@ namespace dot10.DotNet {
 
 		/// <summary>
 		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="name">Module name</param>
-		public ModuleRefUser(ModuleDef module, string name)
-			: this(module, new UTF8String(name)) {
-		}
-
-		/// <summary>
-		/// Constructor
 		/// <param name="module">Owner module</param>
 		/// </summary>
 		/// <param name="name">Module name</param>

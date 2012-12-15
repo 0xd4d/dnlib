@@ -560,33 +560,6 @@ namespace dot10.DotNet {
 			this.signature = signature;
 			this.flags = flags;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		public FieldDefUser(string name)
-			: this(name, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="signature">Signature</param>
-		public FieldDefUser(string name, FieldSig signature)
-			: this(name, signature, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="signature">Signature</param>
-		/// <param name="flags">Flags</param>
-		public FieldDefUser(string name, FieldSig signature, FieldAttributes flags)
-			: this(new UTF8String(name), signature, flags) {
-		}
 	}
 
 	/// <summary>

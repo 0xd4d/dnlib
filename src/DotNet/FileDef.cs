@@ -139,16 +139,6 @@ namespace dot10.DotNet {
 		/// <param name="name">Name of file</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="hashValue">File hash</param>
-		public FileDefUser(string name, FileAttributes flags, byte[] hashValue)
-			: this(new UTF8String(name), flags, hashValue) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of file</param>
-		/// <param name="flags">Flags</param>
-		/// <param name="hashValue">File hash</param>
 		public FileDefUser(UTF8String name, FileAttributes flags, byte[] hashValue) {
 			this.name = name;
 			this.flags = flags;

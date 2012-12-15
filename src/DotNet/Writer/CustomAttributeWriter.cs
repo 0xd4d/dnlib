@@ -716,10 +716,6 @@ namespace dot10.DotNet.Writer {
 			return null;
 		}
 
-		void WriteUTF8String(string s) {
-			WriteUTF8String(s == null ? null : new UTF8String(s));
-		}
-
 		void WriteUTF8String(UTF8String s) {
 			if ((object)s == null || s.Data == null)
 				writer.Write((byte)0xFF);

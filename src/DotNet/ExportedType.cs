@@ -526,19 +526,6 @@ namespace dot10.DotNet {
 			this.flags = flags;
 			this.implementation = implementation;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="typeDefId">TypeDef ID</param>
-		/// <param name="typeName">Type name</param>
-		/// <param name="typeNamespace">Type namespace</param>
-		/// <param name="flags">Flags</param>
-		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(ModuleDef module, uint typeDefId, string typeNamespace, string typeName, TypeAttributes flags, IImplementation implementation)
-			: this(module, typeDefId, new UTF8String(typeNamespace), new UTF8String(typeName), flags, implementation) {
-		}
 	}
 
 	/// <summary>

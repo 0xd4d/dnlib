@@ -124,8 +124,8 @@ namespace dot10.DotNet {
 			this.flags = (AssemblyAttributes)asmName.Flags;
 			this.publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
-			this.name = new UTF8String(asmName.Name ?? string.Empty);
-			this.locale = new UTF8String(asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : "");
+			this.name = asmName.Name ?? string.Empty;
+			this.locale = asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : string.Empty;
 		}
 
 		/// <inhertidoc/>

@@ -128,7 +128,7 @@ namespace dot10.DotNet {
 				string asmNameTrimmed = asmName.Trim();
 				if (asmName != asmNameTrimmed) {
 					assembly = new AssemblyNameInfo {
-						Name = new UTF8String(asmNameTrimmed),
+						Name = asmNameTrimmed,
 						Version = assembly.Version,
 						PublicKeyOrToken = assembly.PublicKeyOrToken,
 						Locale = assembly.Locale,

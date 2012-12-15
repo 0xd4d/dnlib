@@ -78,6 +78,16 @@ namespace dot10.DotNet {
 			return (object)utf8 == null || utf8.data == null || utf8.data.Length == 0;
 		}
 
+		/// <summary>Implicit conversion from <see cref="UTF8String"/> to <see cref="string"/></summary>
+		public static implicit operator string(UTF8String s) {
+			return UTF8String.ToSystemString(s);
+		}
+
+		/// <summary>Implicit conversion from <see cref="string"/> to <see cref="UTF8String"/></summary>
+		public static implicit operator UTF8String(string s) {
+			return s == null ? null : new UTF8String(s);
+		}
+
 		/// <summary>
 		/// Converts it to a <see cref="string"/>
 		/// </summary>

@@ -385,57 +385,6 @@ namespace dot10.DotNet {
 			this.@class = @class;
 			this.signature = sig;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="name">Name of ref</param>
-		public MemberRefUser(ModuleDef module, string name)
-			: this(module, new UTF8String(name)) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="name">Name of field ref</param>
-		/// <param name="sig">Field sig</param>
-		public MemberRefUser(ModuleDef module, string name, FieldSig sig)
-			: this(module, name, sig, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="name">Name of field ref</param>
-		/// <param name="sig">Field sig</param>
-		/// <param name="class">Owner of field</param>
-		public MemberRefUser(ModuleDef module, string name, FieldSig sig, IMemberRefParent @class)
-			: this(module, new UTF8String(name), sig, @class) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="name">Name of method ref</param>
-		/// <param name="sig">Method sig</param>
-		public MemberRefUser(ModuleDef module, string name, MethodSig sig)
-			: this(module, name, sig, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Owner module</param>
-		/// <param name="name">Name of method ref</param>
-		/// <param name="sig">Method sig</param>
-		/// <param name="class">Owner of method</param>
-		public MemberRefUser(ModuleDef module, string name, MethodSig sig, IMemberRefParent @class)
-			: this(module, new UTF8String(name), sig, @class) {
-		}
 	}
 
 	/// <summary>

@@ -164,26 +164,6 @@ namespace dot10.DotNet {
 		public EmbeddedResource(UTF8String name, byte[] data, ManifestResourceAttributes flags)
 			: this(name, new MemoryImageStream(0, data, 0, data.Length), flags) {
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="data">Resource data</param>
-		public EmbeddedResource(string name, byte[] data)
-			: this(new UTF8String(name), data) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="data">Resource data</param>
-		/// <param name="flags">Resource flags</param>
-		public EmbeddedResource(string name, byte[] data, ManifestResourceAttributes flags)
-			: this(new UTF8String(name), data, flags) {
-		}
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -204,25 +184,6 @@ namespace dot10.DotNet {
 			if (dataStream == null)
 				throw new ArgumentNullException("dataStream");
 			this.dataStream = dataStream;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="dataStream">Resource data</param>
-		public EmbeddedResource(string name, IImageStream dataStream)
-			: this(new UTF8String(name), dataStream) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="dataStream">Resource data</param>
-		/// <param name="flags">Resource flags</param>
-		public EmbeddedResource(string name, IImageStream dataStream, ManifestResourceAttributes flags)
-			: this(new UTF8String(name), dataStream, flags) {
 		}
 
 		/// <summary>
@@ -292,16 +253,6 @@ namespace dot10.DotNet {
 				throw new ArgumentNullException("asmRef");
 		}
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="asmRef">Assembly reference</param>
-		/// <param name="flags">Resource flags</param>
-		public AssemblyLinkedResource(string name, AssemblyRef asmRef, ManifestResourceAttributes flags)
-			: this(new UTF8String(name), asmRef, flags) {
-		}
-
 		/// <inheritdoc/>
 		public override string ToString() {
 			return string.Format("{0} - assembly: {1}", UTF8String.ToSystemStringOrEmpty(Name), asmRef.FullName);
@@ -355,16 +306,6 @@ namespace dot10.DotNet {
 		public LinkedResource(UTF8String name, FileDef file, ManifestResourceAttributes flags)
 			: base(name, flags) {
 			this.file = file;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="fileName">File name</param>
-		/// <param name="flags">Resource flags</param>
-		public LinkedResource(string name, string fileName, ManifestResourceAttributes flags)
-			: this(new UTF8String(name), new FileDefUser(new UTF8String(fileName), FileAttributes.ContainsNoMetaData, null), flags) {
 		}
 
 		/// <inheritdoc/>

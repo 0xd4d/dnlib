@@ -160,36 +160,6 @@ namespace dot10.DotNet {
 			this.flags = flags;
 			this.offset = offset;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="implementation">Implementation</param>
-		public ManifestResourceUser(string name, IImplementation implementation)
-			: this(name, implementation, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="implementation">Implementation</param>
-		/// <param name="flags">Flags</param>
-		public ManifestResourceUser(string name, IImplementation implementation, ManifestResourceAttributes flags)
-			: this(name, implementation, flags, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="implementation">Implementation</param>
-		/// <param name="flags">Flags</param>
-		/// <param name="offset">Offset</param>
-		public ManifestResourceUser(string name, IImplementation implementation, ManifestResourceAttributes flags, uint offset)
-			: this(new UTF8String(name), implementation, flags, offset) {
-		}
 	}
 
 	/// <summary>

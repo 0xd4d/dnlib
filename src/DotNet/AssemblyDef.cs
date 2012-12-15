@@ -274,15 +274,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Name of module</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
-		public ModuleDef FindModule(string name) {
-			return FindModule(new UTF8String(name));
-		}
-
-		/// <summary>
-		/// Finds a module in this assembly
-		/// </summary>
-		/// <param name="name">Name of module</param>
-		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
 		public ModuleDef FindModule(UTF8String name) {
 			foreach (var module in Modules) {
 				if (UTF8String.CaseInsensitiveEquals(module.Name, name))
@@ -734,39 +725,6 @@ namespace dot10.DotNet {
 		/// </summary>
 		public AssemblyDefUser()
 			: this(UTF8String.Empty, new Version(0, 0, 0, 0)) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Simple name</param>
-		/// <param name="version">Version</param>
-		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(string name, Version version)
-			: this(name, version, new PublicKey()) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Simple name</param>
-		/// <param name="version">Version</param>
-		/// <param name="publicKey">Public key</param>
-		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(string name, Version version, PublicKey publicKey)
-			: this(name, version, publicKey, "") {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Simple name</param>
-		/// <param name="version">Version</param>
-		/// <param name="publicKey">Public key</param>
-		/// <param name="locale">Locale</param>
-		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(string name, Version version, PublicKey publicKey, string locale)
-			: this(new UTF8String(name), version, publicKey, new UTF8String(locale)) {
 		}
 
 		/// <summary>

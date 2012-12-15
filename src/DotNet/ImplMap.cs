@@ -253,16 +253,6 @@ namespace dot10.DotNet {
 			this.name = name;
 			this.flags = flags;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="scope">Scope</param>
-		/// <param name="name">Name</param>
-		/// <param name="flags">Flags</param>
-		public ImplMapUser(ModuleRef scope, string name, PInvokeAttributes flags)
-			: this(scope, new UTF8String(name), flags) {
-		}
 	}
 
 	/// <summary>

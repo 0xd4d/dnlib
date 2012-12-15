@@ -260,33 +260,6 @@ namespace dot10.DotNet {
 			this.sequence = sequence;
 			this.flags = flags;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		public ParamDefUser(string name)
-			: this(name, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="sequence">Sequence</param>
-		public ParamDefUser(string name, ushort sequence)
-			: this(name, sequence, 0) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name</param>
-		/// <param name="sequence">Sequence</param>
-		/// <param name="flags">Flags</param>
-		public ParamDefUser(string name, ushort sequence, ParamAttributes flags)
-			: this(new UTF8String(name), sequence, flags) {
-		}
 	}
 
 	/// <summary>

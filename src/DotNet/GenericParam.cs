@@ -243,16 +243,6 @@ namespace dot10.DotNet {
 			this.flags = flags;
 			this.name = name;
 		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="number">The generic param number</param>
-		/// <param name="flags">Flags</param>
-		/// <param name="name">Name</param>
-		public GenericParamUser(ushort number, GenericParamAttributes flags, string name)
-			: this(number, flags, new UTF8String(name)) {
-		}
 	}
 
 	/// <summary>
