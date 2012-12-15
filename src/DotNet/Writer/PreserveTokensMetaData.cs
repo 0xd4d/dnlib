@@ -905,7 +905,7 @@ namespace dot10.DotNet.Writer {
 			for (int i = 0; i < methodDefInfos.Count; i++) {
 				var method = methodDefInfos.Get(i).Def;
 				pos = 0;
-				foreach (var param in Sort(method.ParamList)) {
+				foreach (var param in Sort(method.ParamDefs)) {
 					if (param == null)
 						continue;
 					paramDefInfos.Add(param, pos++);
@@ -992,7 +992,7 @@ namespace dot10.DotNet.Writer {
 				var row = tablesHeap.MethodTable[methodRid];
 				row.ParamList = ridList;
 				if (methodInfo != null)
-					ridList += (uint)methodInfo.Def.ParamList.Count;
+					ridList += (uint)methodInfo.Def.ParamDefs.Count;
 			}
 		}
 

@@ -38,8 +38,8 @@ namespace dot10.Examples {
 			CilBody body = new CilBody();
 			meth1.Body = body;
 			// Name the 1st and 2nd args a and b, respectively
-			meth1.ParamList.Add(new ParamDefUser("a", 1));
-			meth1.ParamList.Add(new ParamDefUser("b", 2));
+			meth1.ParamDefs.Add(new ParamDefUser("a", 1));
+			meth1.ParamDefs.Add(new ParamDefUser("b", 2));
 
 			// Create a local. We don't really need it but let's add one anyway
 			Local local1 = new Local(mod.CorLibTypes.Int32);

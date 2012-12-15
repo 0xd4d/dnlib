@@ -97,7 +97,7 @@ namespace dot10.DotNet {
 		/// <summary>
 		/// From column Method.ParamList
 		/// </summary>
-		public abstract IList<ParamDef> ParamList { get; }
+		public abstract IList<ParamDef> ParamDefs { get; }
 
 		/// <inheritdoc/>
 		public abstract IList<GenericParam> GenericParameters { get; }
@@ -757,7 +757,7 @@ namespace dot10.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ParamDef>.OnClear() {
-			foreach (var pd in ParamList)
+			foreach (var pd in ParamDefs)
 				pd.DeclaringMethod = null;
 		}
 
@@ -819,7 +819,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<ParamDef> ParamList {
+		public override IList<ParamDef> ParamDefs {
 			get { return parameters; }
 		}
 
@@ -1033,7 +1033,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<ParamDef> ParamList {
+		public override IList<ParamDef> ParamDefs {
 			get {
 				if (parameters == null) {
 					var list = readerModule.MetaData.GetParamRidList(rid);

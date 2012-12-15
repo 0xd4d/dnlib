@@ -135,7 +135,7 @@ namespace dot10.DotNet {
 			else
 				return hiddenThisParamDef;
 
-			foreach (var paramDef in method.ParamList) {
+			foreach (var paramDef in method.ParamDefs) {
 				if (paramDef != null && paramDef.Sequence == seq)
 					return paramDef;
 			}
@@ -160,7 +160,7 @@ namespace dot10.DotNet {
 			}
 			int seq = param.IsReturnTypeParameter ? 0 : param.MethodSigIndex + 1;
 			paramDef = UpdateRowId(new ParamDefUser(UTF8String.Empty, (ushort)seq, 0));
-			method.ParamList.Add(paramDef);
+			method.ParamDefs.Add(paramDef);
 		}
 
 		ParamDef UpdateRowId(ParamDef pd) {

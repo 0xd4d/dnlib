@@ -1133,7 +1133,7 @@ namespace dot10.DotNet.Writer {
 					AddDeclSecurities(new MDToken(Table.Method, rid), method.DeclSecurities);
 					AddImplMap(new MDToken(Table.Method, rid), method);
 					AddMethodImpls(method, method.Overrides);
-					foreach (var pd in method.ParamList) {
+					foreach (var pd in method.ParamDefs) {
 						if (pd == null) {
 							Error("Param is null");
 							continue;
@@ -1201,7 +1201,7 @@ namespace dot10.DotNet.Writer {
 					if (method == null)
 						continue;
 					AddCustomAttributes(Table.Method, GetRid(method), method);
-					foreach (var pd in method.ParamList) {
+					foreach (var pd in method.ParamDefs) {
 						if (pd == null)
 							continue;
 						AddCustomAttributes(Table.Param, GetRid(pd), pd);

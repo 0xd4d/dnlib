@@ -50,7 +50,7 @@ namespace dot10.Examples {
 							MethodAttributes.HideBySig | MethodAttributes.ReuseSlot;
 			entryPoint.ImplAttributes = MethodImplAttributes.IL | MethodImplAttributes.Managed;
 			// Name the 1st argument (argument 0 is the return type)
-			entryPoint.ParamList.Add(new ParamDefUser("args", 1));
+			entryPoint.ParamDefs.Add(new ParamDefUser("args", 1));
 			// Add the method to the startup type
 			startUpType.Methods.Add(entryPoint);
 			// Set module entry point
