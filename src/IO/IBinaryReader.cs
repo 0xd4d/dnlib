@@ -128,6 +128,184 @@ namespace dot10.IO {
 
 	public static partial class IOExtensions {
 		/// <summary>
+		/// Reads a <see cref="Boolean"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Boolean"/></returns>
+		public static bool ReadBooleanAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadBoolean();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Byte"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Byte"/></returns>
+		public static byte ReadByteAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadByte();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="SByte"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="SByte"/></returns>
+		public static sbyte ReadSByteAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadSByte();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Int16"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Int16"/></returns>
+		public static short ReadInt16At(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadInt16();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="UInt16"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="UInt16"/></returns>
+		public static ushort ReadUInt16At(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadUInt16();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Int32"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Int32"/></returns>
+		public static int ReadInt32At(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadInt32();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="UInt32"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="UInt32"/></returns>
+		public static uint ReadUInt32At(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadUInt32();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Int64"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Int64"/></returns>
+		public static long ReadInt64At(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadInt64();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="UInt64"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="UInt64"/></returns>
+		public static ulong ReadUInt64At(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadUInt64();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Single"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Single"/></returns>
+		public static float ReadSingleAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadSingle();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Double"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Double"/></returns>
+		public static double ReadDoubleAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadDouble();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Byte"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Byte"/></returns>
+		public static string ReadStringAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadString();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Byte"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <param name="encoding">Encoding</param>
+		/// <returns>The <see cref="Byte"/></returns>
+		public static string ReadStringAt(this IBinaryReader reader, long offset, Encoding encoding) {
+			reader.Position = offset;
+			return reader.ReadString(encoding);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Char"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Char"/></returns>
+		public static char ReadCharAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadChar();
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Char"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <param name="encoding">Encoding</param>
+		/// <returns>The <see cref="Char"/></returns>
+		public static char ReadCharAt(this IBinaryReader reader, long offset, Encoding encoding) {
+			reader.Position = offset;
+			return reader.ReadChar(encoding);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="Decimal"/> at offset <paramref name="offset"/>
+		/// </summary>
+		/// <param name="reader">this</param>
+		/// <param name="offset">Offset</param>
+		/// <returns>The <see cref="Decimal"/></returns>
+		public static decimal ReadDecimalAt(this IBinaryReader reader, long offset) {
+			reader.Position = offset;
+			return reader.ReadDecimal();
+		}
+
+		/// <summary>
 		/// Reads all remaining bytes
 		/// </summary>
 		/// <param name="reader">this</param>
