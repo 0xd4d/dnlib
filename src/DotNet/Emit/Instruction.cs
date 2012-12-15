@@ -187,6 +187,18 @@ namespace dot10.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Creates a new instruction with a method/field operand
+		/// </summary>
+		/// <param name="opCode">The opcode</param>
+		/// <param name="mr">The method/field</param>
+		/// <returns>A new <see cref="Instruction"/> instance</returns>
+		public static Instruction Create(OpCode opCode, MemberRef mr) {
+			if (opCode.OperandType != OperandType.InlineField && opCode.OperandType != OperandType.InlineMethod && opCode.OperandType != OperandType.InlineTok)
+				throw new ArgumentException("Opcode does not have a field operand", "opCode");
+			return new Instruction(opCode, mr);
+		}
+
+		/// <summary>
 		/// Creates a new instruction with a field operand
 		/// </summary>
 		/// <param name="opCode">The opcode</param>
