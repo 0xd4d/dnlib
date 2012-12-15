@@ -18,6 +18,13 @@ namespace dot10.DotNet.MD {
 		/// <param name="index">Index. Must be &lt; <see cref="Length"/></param>
 		/// <returns>A rid or 0 if <paramref name="index"/> is invalid</returns>
 		public abstract uint this[uint index] { get; }
+
+		/// <summary>
+		/// Gets the <paramref name="index"/>'th rid
+		/// </summary>
+		/// <param name="index">Index. Must be &lt; <see cref="Length"/></param>
+		/// <returns>A rid or 0 if <paramref name="index"/> is invalid</returns>
+		public abstract uint this[int index] { get; }
 	}
 
 	/// <summary>
@@ -53,6 +60,11 @@ namespace dot10.DotNet.MD {
 			}
 		}
 
+		/// <inheritdoc/>
+		public override uint this[int index] {
+			get { return this[(uint)index]; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -83,6 +95,11 @@ namespace dot10.DotNet.MD {
 					return 0;
 				return indexToRid[(int)index];
 			}
+		}
+
+		/// <inheritdoc/>
+		public override uint this[int index] {
+			get { return this[(uint)index]; }
 		}
 
 		/// <summary>
