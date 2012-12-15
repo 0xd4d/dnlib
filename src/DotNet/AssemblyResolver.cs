@@ -98,7 +98,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Contstructor
+		/// Constructor
 		/// </summary>
 		/// <param name="defaultModuleContext">Module context for all resolved assemblies</param>
 		public AssemblyResolver(ModuleContext defaultModuleContext)
