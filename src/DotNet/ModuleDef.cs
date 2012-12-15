@@ -1053,7 +1053,17 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="name">Module name</param>
 		/// <param name="mvid">Module version ID</param>
-		public ModuleDefUser(UTF8String name, Guid? mvid) {
+		public ModuleDefUser(UTF8String name, Guid? mvid)
+			: this(name, mvid, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Module name</param>
+		/// <param name="mvid">Module version ID</param>
+		/// <param name="corLibAssemblyRef">Corlib assembly ref or <c>null</c></param>
+		public ModuleDefUser(UTF8String name, Guid? mvid, AssemblyRef corLibAssemblyRef) {
 			this.Kind = ModuleKind.Windows;
 			this.Characteristics = DefaultCharacteristics;
 			this.DllCharacteristics = DefaultDllCharacteristics;
@@ -1062,7 +1072,7 @@ namespace dot10.DotNet {
 			this.Cor20HeaderFlags = ComImageFlags.ILOnly;
 			this.Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
 			this.TablesHeaderVersion = 0x0200;				// .NET 2.0 or later should use 2.0
-			this.corLibTypes = new CorLibTypes(this);
+			this.corLibTypes = new CorLibTypes(this, corLibAssemblyRef);
 			this.types = new LazyList<TypeDef>(this);
 			this.name = name;
 			this.mvid = mvid;
