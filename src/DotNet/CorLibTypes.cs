@@ -139,7 +139,7 @@ namespace dot10.DotNet {
 		}
 
 		AssemblyRef CreateCorLibAssemblyRef() {
-			return module.UpdateRowId(new AssemblyRefUser("mscorlib", new Version(2, 0, 0, 0), new PublicKeyToken("b77a5c561934e089")));
+			return module.UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR20());
 		}
 
 		void Initialize() {

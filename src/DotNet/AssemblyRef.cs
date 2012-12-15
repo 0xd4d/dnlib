@@ -328,6 +328,34 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Creates a reference to CLR 1.0's mscorlib
+		/// </summary>
+		public static AssemblyRefUser CreateMscorlibReferenceCLR10() {
+			return new AssemblyRefUser("mscorlib", new Version(1, 0, 3300, 0), new PublicKeyToken("b77a5c561934e089"));
+		}
+
+		/// <summary>
+		/// Creates a reference to CLR 1.1's mscorlib
+		/// </summary>
+		public static AssemblyRefUser CreateMscorlibReferenceCLR11() {
+			return new AssemblyRefUser("mscorlib", new Version(1, 0, 5000, 0), new PublicKeyToken("b77a5c561934e089"));
+		}
+
+		/// <summary>
+		/// Creates a reference to CLR 2.0's mscorlib
+		/// </summary>
+		public static AssemblyRefUser CreateMscorlibReferenceCLR20() {
+			return new AssemblyRefUser("mscorlib", new Version(2, 0, 0, 0), new PublicKeyToken("b77a5c561934e089"));
+		}
+
+		/// <summary>
+		/// Creates a reference to CLR 4.0's mscorlib
+		/// </summary>
+		public static AssemblyRefUser CreateMscorlibReferenceCLR40() {
+			return new AssemblyRefUser("mscorlib", new Version(4, 0, 0, 0), new PublicKeyToken("b77a5c561934e089"));
+		}
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public AssemblyRefUser()
