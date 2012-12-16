@@ -138,5 +138,46 @@ namespace dot10.DotNet.Emit {
 			this.exceptionHandlers = exceptionHandlers;
 			this.localList = new LocalList(locals);
 		}
+
+		/// <summary>
+		/// Shorter instructions are converted to the longer form, eg. <c>Ldc_I4_1</c> is
+		/// converted to <c>Ldc_I4</c> with a <c>1</c> as the operand.
+		/// </summary>
+		/// <param name="parameters">All method parameters, including the hidden 'this' parameter
+		/// if it's an instance method. Use <see cref="MethodDef.Parameters"/>.</param>
+		public void SimplifyMacros(IList<Parameter> parameters) {
+			instructions.SimplifyMacros(localList, parameters);
+		}
+
+		/// <summary>
+		/// Optimizes instructions by using the shorter form if possible. Eg. <c>Ldc_I4</c> <c>1</c>
+		/// will be replaced with <c>Ldc_I4_1</c>.
+		/// </summary>
+		public void OptimizeMacros() {
+			instructions.OptimizeMacros();
+		}
+
+		/// <summary>
+		/// Short branch instructions are converted to the long form, eg. <c>Beq_S</c> is
+		/// converted to <c>Beq</c>.
+		/// </summary>
+		public void SimplifyBranches() {
+			instructions.SimplifyBranches();
+		}
+
+		/// <summary>
+		/// Optimizes branches by using the smallest possible branch
+		/// </summary>
+		public void OptimizeBranches() {
+			instructions.OptimizeBranches();
+		}
+
+		/// <summary>
+		/// Updates each instruction's offset
+		/// </summary>
+		/// <returns>Total size in bytes of all instructions</returns>
+		public uint UpdateInstructionOffsets() {
+			return instructions.UpdateInstructionOffsets();
+		}
 	}
 }
