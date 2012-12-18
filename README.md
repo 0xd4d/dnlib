@@ -95,6 +95,20 @@ else {
 }
 ```
 
+Strong name sign an assembly
+----------------------------
+
+When saving the assembly, set the ModuleWriterOptions.StrongNameKey property:
+
+```C#
+using dot10.DotNet.Writer;
+...
+ModuleDefMD mod = ModuleDefMD.Load(.....);
+ModuleWriterOptions opts = new ModuleWriterOptions(mod);
+opts.StrongNameKey = new StrongNameKey(@"c:\my\file.snk");
+mod.Write(@"C:\out\file.dll", opts);
+```
+
 Type classes
 ------------
 
