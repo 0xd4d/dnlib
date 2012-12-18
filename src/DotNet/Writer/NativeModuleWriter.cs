@@ -119,6 +119,11 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		protected override ModuleDef TheModule {
+			get { return module; }
+		}
+
+		/// <inheritdoc/>
 		public override ModuleWriterOptionsBase TheOptions {
 			get { return Options; }
 		}
@@ -326,7 +331,8 @@ namespace dot10.DotNet.Writer {
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
-			//TODO: Strong name sign the assembly
+			if (Options.StrongNameKey != null)
+				StrongNameSign(0);	//TODO: Pass in a StrongNameSignature's offset
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);

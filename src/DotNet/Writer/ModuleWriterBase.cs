@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using dot10.IO;
 using dot10.PE;
 using dot10.W32Resources;
@@ -17,6 +19,7 @@ namespace dot10.DotNet.Writer {
 		ILogger logger;
 		ILogger metaDataLogger;
 		Win32Resources win32Resources;
+		StrongNameKey strongNameKey;
 
 		/// <summary>
 		/// Gets/sets the listener
@@ -76,6 +79,14 @@ namespace dot10.DotNet.Writer {
 		public Win32Resources Win32Resources {
 			get { return win32Resources; }
 			set { win32Resources = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the strong name key
+		/// </summary>
+		public StrongNameKey StrongNameKey {
+			get { return strongNameKey; }
+			set { strongNameKey = value; }
 		}
 
 		/// <summary>
@@ -326,6 +337,13 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		public void Write(Stream dest) {
+			var snk = TheOptions.StrongNameKey;
+			if (snk != null) {
+				if (TheModule.Assembly != null)
+					snk.HashAlgorithm = TheModule.Assembly.HashAlgorithm;
+				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
+			}
+
 			Listener = TheOptions.Listener ?? DummyModuleWriterListener.Instance;
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
@@ -334,6 +352,11 @@ namespace dot10.DotNet.Writer {
 			destStream.Position = destStreamBaseOffset + imageLength;
 			Listener.OnWriterEvent(this, ModuleWriterEvent.End);
 		}
+
+		/// <summary>
+		/// Returns the module that is written
+		/// </summary>
+		protected abstract ModuleDef TheModule { get; }
 
 		/// <summary>
 		/// Writes the module to <see cref="destStream"/>. <see cref="Listener"/> and
@@ -355,6 +378,8 @@ namespace dot10.DotNet.Writer {
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, TheOptions.MetaDataOptions);
 			metaData.Logger = TheOptions.MetaDataLogger ?? this;
 			metaData.Listener = this;
+			if (TheOptions.StrongNameKey != null)
+				metaData.AssemblyPublicKey = TheOptions.StrongNameKey.PublicKey;
 
 			var w32Resources = GetWin32Resources();
 			if (w32Resources != null)
@@ -398,6 +423,109 @@ namespace dot10.DotNet.Writer {
 				var newOffset = offset.AlignUp(fileAlignment);
 				writer.WriteZeros((int)(newOffset - offset));
 				offset = newOffset;
+			}
+		}
+
+		/// <summary>
+		/// Strong name sign the assembly
+		/// </summary>
+		/// <param name="snSigOffset">Strong name signagure offset</param>
+		protected void StrongNameSign(long snSigOffset) {
+			var snk = TheOptions.StrongNameKey;
+			var hash = StrongNameHashData(snk, snSigOffset);
+			var snSig = GetStrongNameSignature(snk, hash);
+
+			destStream.Position = destStreamBaseOffset + snSigOffset;
+			destStream.Write(snSig, 0, snSig.Length);
+		}
+
+		byte[] StrongNameHashData(StrongNameKey snk, long snSigOffset) {
+			var reader = new BinaryReader(destStream);
+
+			uint snSigSize = (uint)snk.PublicKey.Length - 0x20;
+			snSigOffset += destStreamBaseOffset;
+			long snSigOffsetEnd = snSigOffset + snSigSize;
+
+			using (var hasher = new AssemblyHash(snk.HashAlgorithm)) {
+				byte[] buffer = new byte[0x8000];
+
+				// Hash the DOS header
+				destStream.Position = destStreamBaseOffset + 0x3C;
+				uint ntHeadersOffs = reader.ReadUInt32();
+				destStream.Position = destStreamBaseOffset;
+				hasher.Hash(destStream, ntHeadersOffs, buffer);
+
+				// Hash NT headers, but hash authenticode + checksum as 0s
+				destStream.Position += 6;
+				int numSections = reader.ReadUInt16();
+				destStream.Position -= 8;
+				hasher.Hash(destStream, 0x18, buffer);	// magic + FileHeader
+
+				bool is32bit = reader.ReadUInt16() == 0x010B;
+				destStream.Position -= 2;
+				int optHeaderSize = is32bit ? 0x60 : 0x70;
+				if (destStream.Read(buffer, 0, optHeaderSize) != optHeaderSize)
+					throw new IOException("Could not read data");
+				// Clear checksum
+				for (int i = 0; i < 4; i++)
+					buffer[0x40 + i] = 0;
+				hasher.Hash(buffer, 0, optHeaderSize);
+
+				const int imageDirsSize = 16 * 8;
+				if (destStream.Read(buffer, 0, imageDirsSize) != imageDirsSize)
+					throw new IOException("Could not read data");
+				// Clear authenticode data dir
+				for (int i = 0; i < 8; i++)
+					buffer[4 * 8 + i] = 0;
+				hasher.Hash(buffer, 0, imageDirsSize);
+
+				// Hash section headers
+				long sectHeaderOffs = destStream.Position;
+				hasher.Hash(destStream, (uint)numSections * 0x28, buffer);
+
+				// Hash all raw section data but make sure we don't hash the location
+				// where the strong name signature will be stored.
+				for (int i = 0; i < numSections; i++) {
+					destStream.Position = sectHeaderOffs + i * 0x28 + 0x10;
+					uint sizeOfRawData = reader.ReadUInt32();
+					uint pointerToRawData = reader.ReadUInt32();
+
+					destStream.Position = destStreamBaseOffset + pointerToRawData;
+					while (sizeOfRawData > 0) {
+						var pos = destStream.Position;
+
+						if (snSigOffset <= pos && pos < snSigOffsetEnd) {
+							uint skipSize = (uint)(snSigOffsetEnd - pos);
+							if (skipSize >= sizeOfRawData)
+								break;
+							sizeOfRawData -= skipSize;
+							destStream.Position += skipSize;
+							continue;
+						}
+
+						if (pos >= snSigOffsetEnd) {
+							hasher.Hash(destStream, sizeOfRawData, buffer);
+							break;
+						}
+
+						uint maxLen = (uint)Math.Min(snSigOffset - pos, sizeOfRawData);
+						hasher.Hash(destStream, maxLen, buffer);
+						sizeOfRawData -= maxLen;
+					}
+				}
+
+				return hasher.ComputeHash();
+			}
+		}
+
+		byte[] GetStrongNameSignature(StrongNameKey snk, byte[] hash) {
+			using (var rsa = snk.CreateRSA()) {
+				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
+				string hashName = snk.HashAlgorithm.GetName() ?? AssemblyHashAlgorithm.SHA1.GetName();
+				rsaFmt.SetHashAlgorithm(hashName);
+				var snSig = rsaFmt.CreateSignature(hash);
+				Array.Reverse(snSig);
+				return snSig;
 			}
 		}
 

@@ -71,6 +71,11 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		protected override ModuleDef TheModule {
+			get { return module; }
+		}
+
+		/// <inheritdoc/>
 		public override ModuleWriterOptionsBase TheOptions {
 			get { return Options; }
 		}
@@ -229,7 +234,9 @@ namespace dot10.DotNet.Writer {
 				relocDirectory = new RelocDirectory();
 			}
 
-			if (module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey)) {
+			if (Options.StrongNameKey != null)
+				strongNameSignature = new StrongNameSignature(Options.StrongNameKey.PublicKey.Length - 0x20);
+			else if (module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey)) {
 				int len = module.Assembly.PublicKey.Data.Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
 			}
@@ -285,7 +292,8 @@ namespace dot10.DotNet.Writer {
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
-			//TODO: Strong name sign the assembly
+			if (Options.StrongNameKey != null)
+				StrongNameSign((long)strongNameSignature.FileOffset);
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
