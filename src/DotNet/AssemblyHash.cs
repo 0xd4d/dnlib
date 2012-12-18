@@ -1,10 +1,59 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.IO;
+using System.Security.Cryptography;
 
 namespace dot10.DotNet {
 	/// <summary>
 	/// Hashes some data according to a <see cref="AssemblyHashAlgorithm"/>
 	/// </summary>
-	static class AssemblyHash {
+	struct AssemblyHash : IDisposable {
+		HashAlgorithm hasher;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <remarks>If <paramref name="hashAlgo"/> is an unsupported hash algorithm, then
+		/// <see cref="AssemblyHashAlgorithm.SHA1"/> will be used as the hash algorithm.</remarks>
+		/// <param name="hashAlgo">The algorithm to use</param>
+		public AssemblyHash(AssemblyHashAlgorithm hashAlgo) {
+			switch (hashAlgo) {
+			case AssemblyHashAlgorithm.MD5:
+				hasher = MD5.Create();
+				break;
+
+			case AssemblyHashAlgorithm.None:
+			case AssemblyHashAlgorithm.MD2:
+			case AssemblyHashAlgorithm.MD4:
+			case AssemblyHashAlgorithm.SHA1:
+			case AssemblyHashAlgorithm.MAC:
+			case AssemblyHashAlgorithm.SSL3_SHAMD5:
+			case AssemblyHashAlgorithm.HMAC:
+			case AssemblyHashAlgorithm.TLS1PRF:
+			case AssemblyHashAlgorithm.HASH_REPLACE_OWF:
+			default:
+				hasher = SHA1.Create();
+				break;
+
+			case AssemblyHashAlgorithm.SHA_256:
+				hasher = SHA256.Create();
+				break;
+
+			case AssemblyHashAlgorithm.SHA_384:
+				hasher = SHA384.Create();
+				break;
+
+			case AssemblyHashAlgorithm.SHA_512:
+				hasher = SHA512.Create();
+				break;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Dispose() {
+			if (hasher != null)
+				((IDisposable)hasher).Dispose();
+		}
+
 		/// <summary>
 		/// Hash data
 		/// </summary>
@@ -17,36 +66,50 @@ namespace dot10.DotNet {
 			if (data == null)
 				return null;
 
-			switch (hashAlgo) {
-			case AssemblyHashAlgorithm.MD5:
-				using (var hash = MD5.Create())
-					return hash.ComputeHash(data);
-
-			case AssemblyHashAlgorithm.None:
-			case AssemblyHashAlgorithm.MD2:
-			case AssemblyHashAlgorithm.MD4:
-			case AssemblyHashAlgorithm.SHA1:
-			case AssemblyHashAlgorithm.MAC:
-			case AssemblyHashAlgorithm.SSL3_SHAMD5:
-			case AssemblyHashAlgorithm.HMAC:
-			case AssemblyHashAlgorithm.TLS1PRF:
-			case AssemblyHashAlgorithm.HASH_REPLACE_OWF:
-			default:
-				using (var hash = SHA1.Create())
-					return hash.ComputeHash(data);
-
-			case AssemblyHashAlgorithm.SHA_256:
-				using (var hash = SHA256.Create())
-					return hash.ComputeHash(data);
-
-			case AssemblyHashAlgorithm.SHA_384:
-				using (var hash = SHA384.Create())
-					return hash.ComputeHash(data);
-
-			case AssemblyHashAlgorithm.SHA_512:
-				using (var hash = SHA512.Create())
-					return hash.ComputeHash(data);
+			using (var asmHash = new AssemblyHash(hashAlgo)) {
+				asmHash.Hash(data);
+				return asmHash.ComputeHash();
 			}
+		}
+
+		/// <summary>
+		/// Hash data
+		/// </summary>
+		/// <param name="data">Data</param>
+		public void Hash(byte[] data) {
+			Hash(data, 0, data.Length);
+		}
+
+		/// <summary>
+		/// Hash data
+		/// </summary>
+		/// <param name="data">Data</param>
+		/// <param name="offset">Offset</param>
+		/// <param name="length">Length</param>
+		public void Hash(byte[] data, int offset, int length) {
+			if (hasher.TransformBlock(data, offset, length, data, offset) != length)
+				throw new IOException("Could not calculate hash");
+		}
+
+		/// <summary>
+		/// Hash stream data
+		/// </summary>
+		/// <param name="stream">Stream</param>
+		/// <param name="length">Number of bytes to hash</param>
+		/// <param name="buffer">Temp buffer</param>
+		public void Hash(Stream stream, uint length, byte[] buffer) {
+			while (length > 0) {
+				int len = length > (uint)buffer.Length ? buffer.Length : (int)length;
+				if (stream.Read(buffer, 0, len) != len)
+					throw new IOException("Could not read data");
+				Hash(buffer, 0, len);
+				length -= (uint)len;
+			}
+		}
+
+		public byte[] ComputeHash() {
+			hasher.TransformFinalBlock(new byte[0], 0, 0);
+			return hasher.Hash;
 		}
 
 		/// <summary>
