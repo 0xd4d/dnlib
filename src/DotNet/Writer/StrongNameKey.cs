@@ -177,10 +177,10 @@ namespace dot10.DotNet.Writer {
 				if (reader.ReadByte() != 2)
 					throw new InvalidStrongNameKeyException("Invalid version");
 				reader.ReadUInt16();	// reserved
-
-				// Read RSAPUBKEY
 				if (reader.ReadUInt32() != CALG_RSA_SIGN)
 					throw new InvalidStrongNameKeyException("Not RSA sign");
+
+				// Read RSAPUBKEY
 				if (reader.ReadUInt32() != 0x32415352)	// magic = RSA2
 					throw new InvalidStrongNameKeyException("Invalid RSA2 magic");
 				bitLength = reader.ReadUInt32();
