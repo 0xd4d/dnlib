@@ -57,6 +57,13 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the strong name signature size in bytes
+		/// </summary>
+		public int SignatureSize {
+			get { return modulus.Length; }
+		}
+
+		/// <summary>
 		/// Gets/sets the public key hash algorithm. It's usually <see cref="AssemblyHashAlgorithm.SHA1"/>
 		/// </summary>
 		public AssemblyHashAlgorithm HashAlgorithm {

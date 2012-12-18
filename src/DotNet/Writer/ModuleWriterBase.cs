@@ -440,7 +440,7 @@ namespace dot10.DotNet.Writer {
 		/// <param name="snSigOffset">Strong name signagure offset</param>
 		protected void StrongNameSign(long snSigOffset) {
 			var snk = TheOptions.StrongNameKey;
-			uint snSigSize = (uint)snk.PublicKey.Length - 0x20;
+			uint snSigSize = (uint)snk.SignatureSize;
 			var hash = StrongNameHashData(snk, snSigOffset, snSigSize);
 			var snSig = GetStrongNameSignature(snk, hash);
 			if (snSig.Length != snSigSize)
