@@ -241,6 +241,8 @@ namespace dot10.DotNet.Writer {
 		protected const uint DEFAULT_METADATA_ALIGNMENT = 4;
 		/// <summary>Default Win32 resources alignment</summary>
 		protected internal const uint DEFAULT_WIN32_RESOURCES_ALIGNMENT = 8;
+		/// <summary>Default strong name signature alignment</summary>
+		protected const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
 
 		/// <summary>See <see cref="DestinationStream"/></summary>
 		protected Stream destStream;

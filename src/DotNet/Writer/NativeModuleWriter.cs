@@ -90,6 +90,19 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		long checkSumOffset;
 
+		/// <summary>
+		/// If we must sign the assembly, and either it wasn't signed, or if the strong name
+		/// signature doesn't fit in the old location, this will be non-<c>null</c>.
+		/// </summary>
+		StrongNameSignature strongNameSignature;
+
+		/// <summary>
+		/// If we must sign the assembly and the new strong name signature fits in the old
+		/// location, this is the offset of the old strong name sig which will be overwritten
+		/// with the new sn sig.
+		/// </summary>
+		long? strongNameSigOffset;
+
 		sealed class OrigSection : IDisposable {
 			public ImageSectionHeader peSection;
 			public BinaryReaderChunk chunk;
@@ -200,7 +213,7 @@ namespace dot10.DotNet.Writer {
 			CreateSections();
 			Listener.OnWriterEvent(this, ModuleWriterEvent.PESectionsCreated);
 
-			CreateMetaDataChunks(module);
+			CreateChunks();
 			Listener.OnWriterEvent(this, ModuleWriterEvent.ChunksCreated);
 
 			AddChunksToSections();
@@ -214,7 +227,27 @@ namespace dot10.DotNet.Writer {
 			CreateExtraData();
 		}
 
+		void CreateChunks() {
+			CreateMetaDataChunks(module);
+
+			if (Options.StrongNameKey != null) {
+				int snSigSize = Options.StrongNameKey.SignatureSize;
+				var cor20Hdr = module.MetaData.ImageCor20Header;
+				if ((uint)snSigSize <= cor20Hdr.StrongNameSignature.Size) {
+					// The original file had a strong name signature, and the new strong name
+					// signature fits in that location.
+					strongNameSigOffset = (long)module.MetaData.PEImage.ToFileOffset(cor20Hdr.StrongNameSignature.VirtualAddress);
+				}
+				else {
+					// The original image wasn't signed, or its strong name signature is smaller
+					// than the new strong name signature. Create a new one.
+					strongNameSignature = new StrongNameSignature(snSigSize);
+				}
+			}
+		}
+
 		void AddChunksToSections() {
+			textSection.Add(strongNameSignature, DEFAULT_STRONGNAMESIG_ALIGNMENT);
 			textSection.Add(constants, DEFAULT_CONSTANTS_ALIGNMENT);
 			textSection.Add(methodBodies, DEFAULT_METHODBODIES_ALIGNMENT);
 			textSection.Add(netResources, DEFAULT_NETRESOURCES_ALIGNMENT);
@@ -331,8 +364,12 @@ namespace dot10.DotNet.Writer {
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
-			if (Options.StrongNameKey != null)
-				StrongNameSign(0);	//TODO: Pass in a StrongNameSignature's offset
+			if (Options.StrongNameKey != null) {
+				if (strongNameSignature != null)
+					StrongNameSign((long)strongNameSignature.FileOffset);
+				else if (strongNameSigOffset != null)
+					StrongNameSign(strongNameSigOffset.Value);
+			}
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
@@ -483,7 +520,15 @@ namespace dot10.DotNet.Writer {
 			writer.Write((uint)GetComImageFlags(GetEntryPoint(out entryPoint)));
 			writer.Write(Options.Cor20HeaderOptions.EntryPoint ?? entryPoint);
 			writer.WriteDataDirectory(netResources);
-			//TODO: Write new strong name signature if we resigned it
+			if (Options.StrongNameKey != null) {
+				if (strongNameSignature != null)
+					writer.WriteDataDirectory(strongNameSignature);
+				else if (strongNameSigOffset != null) {
+					// RVA is the same. Only need to update size.
+					writer.BaseStream.Position += 4;
+					writer.Write(Options.StrongNameKey.SignatureSize);
+				}
+			}
 
 			UpdateVTableFixups(writer);
 		}
