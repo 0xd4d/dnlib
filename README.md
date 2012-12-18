@@ -14,6 +14,7 @@ Features
 * Assembly writer has hooks for various writer events
 * Easy to port code from Mono.Cecil to dot10
 * Add/delete Win32 resource blobs
+* Saved assemblies can be strong name signed
 
 Compiling
 ---------
