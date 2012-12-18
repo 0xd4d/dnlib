@@ -68,11 +68,11 @@ namespace dot10.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="chunk">The data</param>
 		internal static void WriteDataDirectory(this BinaryWriter writer, IChunk chunk) {
-			if (chunk == null || chunk.GetFileLength() == 0)
+			if (chunk == null || chunk.GetVirtualSize() == 0)
 				writer.Write(0UL);
 			else {
 				writer.Write((uint)chunk.RVA);
-				writer.Write(chunk.GetFileLength());
+				writer.Write(chunk.GetVirtualSize());
 			}
 		}
 	}
