@@ -244,8 +244,14 @@ namespace dot10.DotNet.Writer {
 				D = privateExponent,
 			};
 			var rsa = RSA.Create();
-			rsa.ImportParameters(rsaParams);
-			return rsa;
+			try {
+				rsa.ImportParameters(rsaParams);
+				return rsa;
+			}
+			catch {
+				((IDisposable)rsa).Dispose();
+				throw;
+			}
 		}
 	}
 }
