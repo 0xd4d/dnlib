@@ -450,6 +450,13 @@ namespace dot10.DotNet.Writer {
 			destStream.Write(snSig, 0, snSig.Length);
 		}
 
+		/// <summary>
+		/// Strong name hashes the .NET file
+		/// </summary>
+		/// <param name="snk">Strong name key</param>
+		/// <param name="snSigOffset">Strong name sig offset (relative to start of .NET PE file)</param>
+		/// <param name="snSigSize">Size of strong name signature</param>
+		/// <returns>The strong name hash of the .NET file</returns>
 		byte[] StrongNameHashData(StrongNameKey snk, long snSigOffset, uint snSigSize) {
 			var reader = new BinaryReader(destStream);
 
@@ -459,7 +466,8 @@ namespace dot10.DotNet.Writer {
 			using (var hasher = new AssemblyHash(snk.HashAlgorithm)) {
 				byte[] buffer = new byte[0x8000];
 
-				// Hash the DOS header
+				// Hash the DOS header. It's defined to be all data from the start of
+				// the file up to the NT headers.
 				destStream.Position = destStreamBaseOffset + 0x3C;
 				uint ntHeadersOffs = reader.ReadUInt32();
 				destStream.Position = destStreamBaseOffset;
@@ -490,13 +498,13 @@ namespace dot10.DotNet.Writer {
 				hasher.Hash(buffer, 0, imageDirsSize);
 
 				// Hash section headers
-				long sectHeaderOffs = destStream.Position;
+				long sectHeadersOffs = destStream.Position;
 				hasher.Hash(destStream, (uint)numSections * 0x28, buffer);
 
 				// Hash all raw section data but make sure we don't hash the location
 				// where the strong name signature will be stored.
 				for (int i = 0; i < numSections; i++) {
-					destStream.Position = sectHeaderOffs + i * 0x28 + 0x10;
+					destStream.Position = sectHeadersOffs + i * 0x28 + 0x10;
 					uint sizeOfRawData = reader.ReadUInt32();
 					uint pointerToRawData = reader.ReadUInt32();
 
@@ -528,6 +536,12 @@ namespace dot10.DotNet.Writer {
 			}
 		}
 
+		/// <summary>
+		/// Returns the strong name signature
+		/// </summary>
+		/// <param name="snk">Strong name key</param>
+		/// <param name="hash">Strong name hash of the .NET PE file</param>
+		/// <returns>Strong name signature</returns>
 		byte[] GetStrongNameSignature(StrongNameKey snk, byte[] hash) {
 			using (var rsa = snk.CreateRSA()) {
 				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
