@@ -283,6 +283,11 @@ namespace dot10.DotNet.Writer {
 			set { logger = value; }
 		}
 
+		/// <summary>
+		/// The public key that should be used instead of the one in <see cref="AssemblyDef"/>.
+		/// </summary>
+		internal byte[] AssemblyPublicKey { get; set; }
+
 		internal sealed class SortedRows<T, TRow> where T : class where TRow : class {
 			public List<Info> infos = new List<Info>();
 			Dictionary<T, uint> toRid = new Dictionary<T, uint>();
@@ -1052,7 +1057,7 @@ namespace dot10.DotNet.Writer {
 			//TODO: Add ExportedTypes
 			InitializeEntryPoint();
 			if (module.Assembly != null)
-				AddAssembly(module.Assembly);
+				AddAssembly(module.Assembly, AssemblyPublicKey);
 
 			SortTables();
 			InitializeGenericParamConstraintTable();
@@ -1489,7 +1494,7 @@ namespace dot10.DotNet.Writer {
 					return AddTypeSpec((TypeSpec)tp);
 
 				case Table.Assembly:
-					return AddAssembly((AssemblyDef)tp);
+					return AddAssembly((AssemblyDef)tp, null);
 
 				case Table.AssemblyRef:
 					return AddAssemblyRef((AssemblyRef)tp);
@@ -1758,8 +1763,9 @@ namespace dot10.DotNet.Writer {
 		/// Adds an <c>Assembly</c> row
 		/// </summary>
 		/// <param name="asm">Assembly</param>
+		/// <param name="publicKey">The public key that should be used</param>
 		/// <returns>Its new rid</returns>
-		protected uint AddAssembly(AssemblyDef asm) {
+		protected uint AddAssembly(AssemblyDef asm, byte[] publicKey) {
 			if (asm == null) {
 				Error("Assembly is null");
 				return 0;
@@ -1767,14 +1773,21 @@ namespace dot10.DotNet.Writer {
 			uint rid;
 			if (assemblyInfos.TryGetRid(asm, out rid))
 				return rid;
+
+			var asmAttrs = asm.Attributes;
+			if (publicKey != null)
+				asmAttrs |= AssemblyAttributes.PublicKey;
+			else
+				publicKey = PublicKeyBase.GetRawData(asm.PublicKeyOrToken);
+
 			var version = Utils.CreateVersionWithNoUndefinedValues(asm.Version);
 			var row = new RawAssemblyRow((uint)asm.HashAlgorithm,
 							(ushort)version.Major,
 							(ushort)version.Minor,
 							(ushort)version.Build,
 							(ushort)version.Revision,
-							(uint)asm.Attributes,
-							blobHeap.Add(PublicKeyBase.GetRawData(asm.PublicKeyOrToken)),
+							(uint)asmAttrs,
+							blobHeap.Add(publicKey),
 							stringsHeap.Add(asm.Name),
 							stringsHeap.Add(asm.Culture));
 			rid = tablesHeap.AssemblyTable.Add(row);
