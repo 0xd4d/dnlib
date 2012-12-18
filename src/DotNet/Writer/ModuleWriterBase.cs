@@ -440,17 +440,19 @@ namespace dot10.DotNet.Writer {
 		/// <param name="snSigOffset">Strong name signagure offset</param>
 		protected void StrongNameSign(long snSigOffset) {
 			var snk = TheOptions.StrongNameKey;
-			var hash = StrongNameHashData(snk, snSigOffset);
+			uint snSigSize = (uint)snk.PublicKey.Length - 0x20;
+			var hash = StrongNameHashData(snk, snSigOffset, snSigSize);
 			var snSig = GetStrongNameSignature(snk, hash);
+			if (snSig.Length != snSigSize)
+				throw new InvalidOperationException("Invalid strong name signature size");
 
 			destStream.Position = destStreamBaseOffset + snSigOffset;
 			destStream.Write(snSig, 0, snSig.Length);
 		}
 
-		byte[] StrongNameHashData(StrongNameKey snk, long snSigOffset) {
+		byte[] StrongNameHashData(StrongNameKey snk, long snSigOffset, uint snSigSize) {
 			var reader = new BinaryReader(destStream);
 
-			uint snSigSize = (uint)snk.PublicKey.Length - 0x20;
 			snSigOffset += destStreamBaseOffset;
 			long snSigOffsetEnd = snSigOffset + snSigSize;
 
