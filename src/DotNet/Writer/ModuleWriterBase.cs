@@ -90,6 +90,14 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets/sets the strong name signature hash algorithm. Default value is
+		/// <see cref="AssemblyHashAlgorithm.SHA1"/>. If you set this to anything
+		/// other than MD5 or SHA1, then strong name verification will fail unless
+		/// the runtime is .NET 4.5 (see Enhanced Strong Naming).
+		/// </summary>
+		public AssemblyHashAlgorithm? StrongNameHashAlgorithm { get; set; }
+
+		/// <summary>
 		/// <c>true</c> if method bodies can be shared (two or more method bodies can share the
 		/// same RVA), <c>false</c> if method bodies can't be shared. Don't enable it if there
 		/// must be a 1:1 relationship with method bodies and their RVAs.
@@ -340,7 +348,7 @@ namespace dot10.DotNet.Writer {
 			var snk = TheOptions.StrongNameKey;
 			if (snk != null) {
 				if (TheModule.Assembly != null)
-					snk.HashAlgorithm = TheModule.Assembly.HashAlgorithm;
+					snk.HashAlgorithm = TheOptions.StrongNameHashAlgorithm ?? AssemblyHashAlgorithm.SHA1;
 				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 			}
 
