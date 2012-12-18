@@ -47,18 +47,18 @@ namespace dot10.DotNet {
 	/// Thrown by CustomAttributeReader when it fails to parse a custom attribute blob
 	/// </summary>
 	[Serializable]
-	class CABlobParsingException : Exception {
+	class CABlobParserException : Exception {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public CABlobParsingException() {
+		public CABlobParserException() {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="message">Error message</param>
-		public CABlobParsingException(string message)
+		public CABlobParserException(string message)
 			: base(message) {
 		}
 
@@ -67,7 +67,7 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="innerException">Other exception</param>
-		public CABlobParsingException(string message, Exception innerException)
+		public CABlobParserException(string message, Exception innerException)
 			: base(message, innerException) {
 		}
 	}
@@ -97,7 +97,7 @@ namespace dot10.DotNet {
 				try {
 					return reader.Read();
 				}
-				catch (CABlobParsingException) {
+				catch (CABlobParserException) {
 					return new CustomAttribute(ctor, reader.GetRawBlob());
 				}
 				catch (IOException) {
@@ -121,7 +121,7 @@ namespace dot10.DotNet {
 				using (var reader = new CustomAttributeReader(module, stream, ctor))
 					return reader.Read();
 			}
-			catch (CABlobParsingException) {
+			catch (CABlobParserException) {
 				return null;
 			}
 			catch (IOException) {
@@ -158,7 +158,7 @@ namespace dot10.DotNet {
 		CustomAttribute Read() {
 			var methodSig = ctor == null ? null : ((IMethodDefOrRef)ctor).MethodSig;
 			if (methodSig == null)
-				throw new CABlobParsingException("ctor is null or not a method");
+				throw new CABlobParserException("ctor is null or not a method");
 
 			var mrCtor = ctor as MemberRef;
 			if (mrCtor != null) {
@@ -174,7 +174,7 @@ namespace dot10.DotNet {
 
 			bool isEmpty = methodSig.Params.Count == 0 && reader.Position == reader.Length;
 			if (!isEmpty && reader.ReadUInt16() != 1)
-				throw new CABlobParsingException("Invalid CA blob prolog");
+				throw new CABlobParserException("Invalid CA blob prolog");
 
 			var ctorArgs = new List<CAArgument>(methodSig.Params.Count);
 			for (int i = 0; i < methodSig.Params.Count; i++)
@@ -189,7 +189,7 @@ namespace dot10.DotNet {
 			// verifyReadAllBytes will be set when we guess the underlying type of an enum.
 			// To make sure we guessed right, verify that we read all bytes.
 			if (verifyReadAllBytes && reader.Position != reader.Length)
-				throw new CABlobParsingException("Not all CA blob bytes were read");
+				throw new CABlobParserException("Not all CA blob bytes were read");
 
 			return new CustomAttribute(ctor, ctorArgs, namedArgs);
 		}
@@ -206,9 +206,9 @@ namespace dot10.DotNet {
 
 		CAArgument ReadFixedArg(TypeSig argType) {
 			if (!recursionCounter.Increment())
-				throw new CABlobParsingException("Too much recursion");
+				throw new CABlobParserException("Too much recursion");
 			if (argType == null)
-				throw new CABlobParsingException("null argType");
+				throw new CABlobParserException("null argType");
 			CAArgument result;
 
 			var arrayType = argType as SZArraySig;
@@ -223,11 +223,11 @@ namespace dot10.DotNet {
 
 		CAArgument ReadElem(TypeSig argType) {
 			if (argType == null)
-				throw new CABlobParsingException("null argType");
+				throw new CABlobParserException("null argType");
 			TypeSig realArgType;
 			var value = ReadValue((SerializationType)argType.ElementType, argType, out realArgType);
 			if (realArgType == null)
-				throw new CABlobParsingException("Invalid arg type");
+				throw new CABlobParserException("Invalid arg type");
 
 			// One example when this is true is when prop/field type is object and
 			// value type is string[]
@@ -239,7 +239,7 @@ namespace dot10.DotNet {
 
 		object ReadValue(SerializationType etype, TypeSig argType, out TypeSig realArgType) {
 			if (!recursionCounter.Increment())
-				throw new CABlobParsingException("Too much recursion");
+				throw new CABlobParserException("Too much recursion");
 
 			object result;
 			switch (etype) {
@@ -311,7 +311,7 @@ namespace dot10.DotNet {
 			// It's ET.ValueType if it's eg. a ctor enum arg type
 			case (SerializationType)ElementType.ValueType:
 				if (argType == null)
-					throw new CABlobParsingException("Invalid element type");
+					throw new CABlobParserException("Invalid element type");
 				realArgType = argType;
 				result = ReadEnumValue(GetEnumUnderlyingType(argType));
 				break;
@@ -362,7 +362,7 @@ namespace dot10.DotNet {
 				break;
 
 			default:
-				throw new CABlobParsingException("Invalid element type");
+				throw new CABlobParserException("Invalid element type");
 			}
 
 			recursionCounter.Decrement();
@@ -372,7 +372,7 @@ namespace dot10.DotNet {
 		object ReadEnumValue(TypeSig underlyingType) {
 			if (underlyingType != null) {
 				if (underlyingType.ElementType < ElementType.Boolean || underlyingType.ElementType > ElementType.U8)
-					throw new CABlobParsingException("Invalid enum underlying type");
+					throw new CABlobParserException("Invalid enum underlying type");
 				TypeSig realArgType;
 				return ReadValue((SerializationType)underlyingType.ElementType, underlyingType, out realArgType);
 			}
@@ -390,7 +390,7 @@ namespace dot10.DotNet {
 			var asmRefFinder = new CAAssemblyRefFinder(module);
 			var type = TypeNameParser.ParseAsTypeSigReflection(module, UTF8String.ToSystemStringOrEmpty(name), asmRefFinder);
 			if (type == null)
-				throw new CABlobParsingException("Could not parse type");
+				throw new CABlobParserException("Could not parse type");
 			return type;
 		}
 
@@ -399,15 +399,15 @@ namespace dot10.DotNet {
 		/// </summary>
 		/// <param name="type">An enum type</param>
 		/// <returns>The underlying type or <c>null</c> if we couldn't resolve the type ref</returns>
-		/// <exception cref="CABlobParsingException">If <paramref name="type"/> is not an enum or <c>null</c></exception>
+		/// <exception cref="CABlobParserException">If <paramref name="type"/> is not an enum or <c>null</c></exception>
 		static TypeSig GetEnumUnderlyingType(TypeSig type) {
 			if (type == null)
-				throw new CABlobParsingException("null enum type");
+				throw new CABlobParserException("null enum type");
 			var td = GetTypeDef(type);
 			if (td == null)
 				return null;
 			if (!td.IsEnum)
-				throw new CABlobParsingException("Not an enum");
+				throw new CABlobParserException("Not an enum");
 			return td.GetEnumUnderlyingType().RemoveModifiers();
 		}
 
@@ -435,14 +435,14 @@ namespace dot10.DotNet {
 
 		CAArgument ReadArrayArgument(SZArraySig arrayType) {
 			if (!recursionCounter.Increment())
-				throw new CABlobParsingException("Too much recursion");
+				throw new CABlobParserException("Too much recursion");
 			var arg = new CAArgument(arrayType);
 
 			int arrayCount = reader.ReadInt32();
 			if (arrayCount == -1) {	// -1 if it's null
 			}
 			else if (arrayCount < 0)
-				throw new CABlobParsingException("Array is too big");
+				throw new CABlobParserException("Array is too big");
 			else {
 				var array = new List<CAArgument>(arrayCount);
 				arg.Value = array;
@@ -459,7 +459,7 @@ namespace dot10.DotNet {
 			switch ((SerializationType)reader.ReadByte()) {
 			case SerializationType.Property: isField = false; break;
 			case SerializationType.Field: isField = true; break;
-			default: throw new CABlobParsingException("Named argument is not a field/property");
+			default: throw new CABlobParserException("Named argument is not a field/property");
 			}
 
 			TypeSig fieldPropType = ReadFieldOrPropType();
@@ -471,7 +471,7 @@ namespace dot10.DotNet {
 
 		TypeSig ReadFieldOrPropType() {
 			if (!recursionCounter.Increment())
-				throw new CABlobParsingException("Too much recursion");
+				throw new CABlobParserException("Too much recursion");
 			TypeSig result;
 			switch ((SerializationType)reader.ReadByte()) {
 			case SerializationType.Boolean: result = module.CorLibTypes.Boolean; break;
@@ -491,7 +491,7 @@ namespace dot10.DotNet {
 			case SerializationType.Type:	result = new ClassSig(module.CorLibTypes.GetTypeRef("System", "Type")); break;
 			case SerializationType.TaggedObject: result = module.CorLibTypes.Object; break;
 			case SerializationType.Enum:	result = ReadType(); break;
-			default: throw new CABlobParsingException("Invalid type");
+			default: throw new CABlobParserException("Invalid type");
 			}
 			recursionCounter.Decrement();
 			return result;
@@ -503,7 +503,7 @@ namespace dot10.DotNet {
 			reader.Position--;
 			uint len;
 			if (!reader.ReadCompressedUInt32(out len))
-				throw new CABlobParsingException("Could not read compressed UInt32");
+				throw new CABlobParserException("Could not read compressed UInt32");
 			if (len == 0)
 				return UTF8String.Empty;
 			return new UTF8String(reader.ReadBytes((int)len));
