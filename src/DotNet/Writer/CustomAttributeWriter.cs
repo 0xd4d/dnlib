@@ -465,10 +465,12 @@ namespace dot10.DotNet.Writer {
 				break;
 
 			case ElementType.String:
-				if (!VerifyTypeAndValue(value, ElementType.String, typeof(UTF8String)))
-					WriteUTF8String(UTF8String.Empty);
-				else
+				if (VerifyTypeAndValue(value, ElementType.String, typeof(UTF8String)))
 					WriteUTF8String((UTF8String)value.Value);
+				else if (VerifyTypeAndValue(value, ElementType.String, typeof(string)))
+					WriteUTF8String((string)value.Value);
+				else
+					WriteUTF8String(UTF8String.Empty);
 				break;
 
 			case ElementType.ValueType:
