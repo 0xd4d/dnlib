@@ -14,7 +14,7 @@ Features
 * Assembly writer has hooks for various writer events
 * Easy to port code from Mono.Cecil to dot10
 * Add/delete Win32 resource blobs
-* Saved assemblies can be strong name signed
+* Saved assemblies can be strong name signed and enhanced strong name signed
 
 Compiling
 ---------
@@ -106,6 +106,54 @@ using dot10.DotNet.Writer;
 ModuleDefMD mod = ModuleDefMD.Load(.....);
 ModuleWriterOptions opts = new ModuleWriterOptions(mod);
 opts.StrongNameKey = new StrongNameKey(@"c:\my\file.snk");
+mod.Write(@"C:\out\file.dll", opts);
+```
+
+Enhanced strong name signing an assembly
+----------------------------------------
+
+See this [MSDN article](http://msdn.microsoft.com/en-us/library/hh415055.aspx) for info on enhanced strong naming.
+
+Enhanced strong name signing without key migration:
+
+```C#
+// Open or create an assembly
+ModuleDefMD mod = ModuleDefMD.Load(....);
+
+// Open or create the signature keys
+var signatureKey = new StrongNameKey(....);
+var signaturePubKey = new StrongNamePublicKey(....);
+
+// Create module writer options
+var opts = new ModuleWriterOptions(mod);
+
+// This method will initialize the required properties
+opts.InitializeEnhancedStrongNameSigning(signatureKey, signaturePubKey);
+
+// Write and strong name sign the assembly
+mod.Write(@"C:\out\file.dll", opts);
+```
+
+Enhanced strong name signing with key migration:
+
+```C#
+// Open or create an assembly
+ModuleDefMD mod = ModuleDefMD.Load(....);
+
+// Open or create the identity and signature keys
+var signatureKey = new StrongNameKey(....);
+var signaturePubKey = new StrongNamePublicKey(....);
+var identityKey = new StrongNameKey(....);
+var identityPubKey = new StrongNamePublicKey(....);
+
+// Create module writer options
+var opts = new ModuleWriterOptions(mod);
+
+// This method will initialize the required properties and add
+// the required attribute to the assembly.
+opts.InitializeEnhancedStrongNameSigning(mod, signatureKey, signaturePubKey, identityKey, identityPubKey);
+
+// Write and strong name sign the assembly
 mod.Write(@"C:\out\file.dll", opts);
 ```
 
