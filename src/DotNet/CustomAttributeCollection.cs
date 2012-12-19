@@ -32,6 +32,17 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
+		/// Removes all custom attributes of a certain type
+		/// </summary>
+		/// <param name="fullName">Full name of custom attribute type that should be removed</param>
+		public void RemoveAll(string fullName) {
+			for (int i = Count - 1; i >= 0; i--) {
+				if (this[i].TypeFullName == fullName)
+					RemoveAt(i);
+			}
+		}
+
+		/// <summary>
 		/// Finds a custom attribute
 		/// </summary>
 		/// <param name="fullName">Full name of custom attribute type</param>
