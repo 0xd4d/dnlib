@@ -107,6 +107,9 @@ namespace dot10.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Computes the hash
+		/// </summary>
 		public byte[] ComputeHash() {
 			hasher.TransformFinalBlock(new byte[0], 0, 0);
 			return hasher.Hash;
