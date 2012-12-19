@@ -20,6 +20,7 @@ namespace dot10.DotNet.Writer {
 		ILogger metaDataLogger;
 		Win32Resources win32Resources;
 		StrongNameKey strongNameKey;
+		StrongNamePublicKey strongNamePublicKey;
 
 		/// <summary>
 		/// Gets/sets the listener
@@ -82,7 +83,11 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets/sets the strong name key
+		/// Gets/sets the strong name key. When you enhance strong name sign an assembly,
+		/// this instance's HashAlgorithm must be initialized to its public key's HashAlgorithm.
+		/// You should call <see cref="InitializeEnhancedStrongNameSigning(StrongNameKey,StrongNamePublicKey)"/>
+		/// or <see cref="InitializeEnhancedStrongNameSigning(ModuleDef,StrongNameKey,StrongNamePublicKey,StrongNameKey,StrongNamePublicKey)"/>
+		/// to initialize this property if you use enhanced strong name signing.
 		/// </summary>
 		public StrongNameKey StrongNameKey {
 			get { return strongNameKey; }
@@ -90,12 +95,17 @@ namespace dot10.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets/sets the strong name signature hash algorithm. Default value is
-		/// <see cref="AssemblyHashAlgorithm.SHA1"/>. If you set this to anything
-		/// other than MD5 or SHA1, then strong name verification will fail unless
-		/// the runtime is .NET 4.5 (see Enhanced Strong Naming).
+		/// Gets/sets the new public key that should be used. If this is <c>null</c>, use
+		/// the public key generated from <see cref="StrongNameKey"/>. If it is also <c>null</c>,
+		/// use the module's Assembly's public key.
+		/// You should call <see cref="InitializeEnhancedStrongNameSigning(StrongNameKey,StrongNamePublicKey)"/>
+		/// or <see cref="InitializeEnhancedStrongNameSigning(ModuleDef,StrongNameKey,StrongNamePublicKey,StrongNameKey,StrongNamePublicKey)"/>
+		/// to initialize this property if you use enhanced strong name signing.
 		/// </summary>
-		public AssemblyHashAlgorithm? StrongNameHashAlgorithm { get; set; }
+		public StrongNamePublicKey StrongNamePublicKey {
+			get { return strongNamePublicKey; }
+			set { strongNamePublicKey = value; }
+		}
 
 		/// <summary>
 		/// <c>true</c> if method bodies can be shared (two or more method bodies can share the
@@ -225,6 +235,36 @@ namespace dot10.DotNet.Writer {
 			else
 				PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
 		}
+
+		/// <summary>
+		/// Initializes <see cref="StrongNameKey"/> and <see cref="StrongNamePublicKey"/>
+		/// for enhanced strong name signing (without key migration). See
+		/// http://msdn.microsoft.com/en-us/library/hh415055.aspx
+		/// </summary>
+		/// <param name="signatureKey">Signature strong name key pair</param>
+		/// <param name="signaturePubKey">Signature public key</param>
+		public void InitializeEnhancedStrongNameSigning(StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey) {
+			StrongNameKey = signatureKey;
+			StrongNameKey.HashAlgorithm = signaturePubKey.HashAlgorithm;
+		}
+
+		/// <summary>
+		/// Initializes <see cref="StrongNameKey"/> and <see cref="StrongNamePublicKey"/>
+		/// for enhanced strong name signing (with key migration). See
+		/// http://msdn.microsoft.com/en-us/library/hh415055.aspx
+		/// </summary>
+		/// <param name="module">Module</param>
+		/// <param name="signatureKey">Signature strong name key pair</param>
+		/// <param name="signaturePubKey">Signature public key</param>
+		/// <param name="identityKey">Identity strong name key pair</param>
+		/// <param name="identityPubKey">Identity public key</param>
+		public void InitializeEnhancedStrongNameSigning(ModuleDef module, StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey, StrongNameKey identityKey, StrongNamePublicKey identityPubKey) {
+			StrongNameKey = signatureKey;
+			StrongNameKey.HashAlgorithm = signaturePubKey.HashAlgorithm;
+			StrongNamePublicKey = identityPubKey;
+			if (module.Assembly != null)
+				module.Assembly.UpdateOrCreateAssemblySignatureKeyAttribute(identityPubKey, identityKey, signaturePubKey);
+		}
 	}
 
 	/// <summary>
@@ -347,12 +387,8 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		public void Write(Stream dest) {
-			var snk = TheOptions.StrongNameKey;
-			if (snk != null) {
-				if (TheModule.Assembly != null)
-					snk.HashAlgorithm = TheOptions.StrongNameHashAlgorithm ?? AssemblyHashAlgorithm.SHA1;
+			if (TheOptions.StrongNameKey != null || TheOptions.StrongNamePublicKey != null)
 				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
-			}
 
 			Listener = TheOptions.Listener ?? DummyModuleWriterListener.Instance;
 			destStream = dest;
@@ -388,7 +424,13 @@ namespace dot10.DotNet.Writer {
 			metaData = MetaData.Create(module, constants, methodBodies, netResources, TheOptions.MetaDataOptions);
 			metaData.Logger = TheOptions.MetaDataLogger ?? this;
 			metaData.Listener = this;
-			if (TheOptions.StrongNameKey != null)
+
+			// StrongNamePublicKey is used if the user wants to override the assembly's
+			// public key or when enhanced strong naming the assembly.
+			var pk = TheOptions.StrongNamePublicKey;
+			if (pk != null)
+				metaData.AssemblyPublicKey = pk.CreatePublicKey();
+			else if (TheOptions.StrongNameKey != null)
 				metaData.AssemblyPublicKey = TheOptions.StrongNameKey.PublicKey;
 
 			var w32Resources = GetWin32Resources();
@@ -443,8 +485,9 @@ namespace dot10.DotNet.Writer {
 		protected void StrongNameSign(long snSigOffset) {
 			var snk = TheOptions.StrongNameKey;
 			uint snSigSize = (uint)snk.SignatureSize;
-			var hash = StrongNameHashData(snk, snSigOffset, snSigSize);
-			var snSig = GetStrongNameSignature(snk, hash);
+			var hashAlg = snk.HashAlgorithm == 0 ? AssemblyHashAlgorithm.SHA1 : snk.HashAlgorithm;
+			var hash = StrongNameHashData(hashAlg, snSigOffset, snSigSize);
+			var snSig = GetStrongNameSignature(snk, hashAlg, hash);
 			if (snSig.Length != snSigSize)
 				throw new InvalidOperationException("Invalid strong name signature size");
 
@@ -455,17 +498,17 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Strong name hashes the .NET file
 		/// </summary>
-		/// <param name="snk">Strong name key</param>
+		/// <param name="hashAlg">Hash algorithm</param>
 		/// <param name="snSigOffset">Strong name sig offset (relative to start of .NET PE file)</param>
 		/// <param name="snSigSize">Size of strong name signature</param>
 		/// <returns>The strong name hash of the .NET file</returns>
-		byte[] StrongNameHashData(StrongNameKey snk, long snSigOffset, uint snSigSize) {
+		byte[] StrongNameHashData(AssemblyHashAlgorithm hashAlg, long snSigOffset, uint snSigSize) {
 			var reader = new BinaryReader(destStream);
 
 			snSigOffset += destStreamBaseOffset;
 			long snSigOffsetEnd = snSigOffset + snSigSize;
 
-			using (var hasher = new AssemblyHash(snk.HashAlgorithm)) {
+			using (var hasher = new AssemblyHash(hashAlg)) {
 				byte[] buffer = new byte[0x8000];
 
 				// Hash the DOS header. It's defined to be all data from the start of
@@ -542,12 +585,13 @@ namespace dot10.DotNet.Writer {
 		/// Returns the strong name signature
 		/// </summary>
 		/// <param name="snk">Strong name key</param>
+		/// <param name="hashAlg">Hash algorithm</param>
 		/// <param name="hash">Strong name hash of the .NET PE file</param>
 		/// <returns>Strong name signature</returns>
-		byte[] GetStrongNameSignature(StrongNameKey snk, byte[] hash) {
+		byte[] GetStrongNameSignature(StrongNameKey snk, AssemblyHashAlgorithm hashAlg, byte[] hash) {
 			using (var rsa = snk.CreateRSA()) {
 				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
-				string hashName = snk.HashAlgorithm.GetName() ?? AssemblyHashAlgorithm.SHA1.GetName();
+				string hashName = hashAlg.GetName() ?? AssemblyHashAlgorithm.SHA1.GetName();
 				rsaFmt.SetHashAlgorithm(hashName);
 				var snSig = rsaFmt.CreateSignature(hash);
 				Array.Reverse(snSig);
