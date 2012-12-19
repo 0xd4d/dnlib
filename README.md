@@ -1,6 +1,6 @@
-dot10 is a library that can read, write and create .NET assemblies and modules.
+dot10 is a MIT licensed library that can read, write and create .NET assemblies and modules.
 
-It was written for de4dot which must have a rock solid assembly reader and writer library since it has to deal with heavily obfuscated assemblies with invalid metadata. If the CLR can load the assembly, dot10 must be able to read it and save it.
+It was written for [de4dot](https://bitbucket.org/0xd4d/de4dot/) which must have a rock solid assembly reader and writer library since it has to deal with heavily obfuscated assemblies with invalid metadata. If the CLR can load the assembly, dot10 must be able to read it and save it.
 
 Features
 * Supports reading, writing and creating .NET assemblies/modules targeting any .NET framework (eg. desktop, Silverlight, Windows Phone, etc).
