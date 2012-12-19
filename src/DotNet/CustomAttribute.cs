@@ -167,8 +167,8 @@ namespace dot10.DotNet {
 		/// <param name="namedArguments">Named arguments. The list is now owned by this instance.</param>
 		internal CustomAttribute(ICustomAttributeType ctor, List<CAArgument> arguments, List<CANamedArgument> namedArguments) {
 			this.ctor = ctor;
-			this.arguments = arguments;
-			this.namedArguments = namedArguments;
+			this.arguments = arguments == null ? new List<CAArgument>() : arguments;
+			this.namedArguments = namedArguments == null ? new List<CANamedArgument>() : namedArguments;
 		}
 
 		/// <summary>
