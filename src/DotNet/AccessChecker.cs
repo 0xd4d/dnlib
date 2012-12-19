@@ -525,7 +525,7 @@ namespace dot10.DotNet {
 
 			var ts = parent as TypeSpec;
 			if (ts != null)
-				return CanAccess(ts.ResolveTypeDef(), ts.ToGenericInstSig(), mr);
+				return CanAccess(ts.ResolveTypeDef(), ts.TryGetGenericInstSig(), mr);
 
 			var md = parent as MethodDef;
 			if (md != null)

@@ -155,7 +155,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="TypeDefOrRefSig"/> or <c>null</c> if it's not a
 		/// <see cref="TypeDefOrRefSig"/></returns>
-		public static TypeDefOrRefSig ToTypeDefOrRefSig(this ITypeDefOrRef type) {
+		public static TypeDefOrRefSig TryGetTypeDefOrRefSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as TypeDefOrRefSig;
 		}
@@ -166,7 +166,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ClassOrValueTypeSig"/> or <c>null</c> if it's not a
 		/// <see cref="ClassOrValueTypeSig"/></returns>
-		public static ClassOrValueTypeSig ToClassOrValueTypeSig(this ITypeDefOrRef type) {
+		public static ClassOrValueTypeSig TryGetClassOrValueTypeSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as ClassOrValueTypeSig;
 		}
@@ -177,7 +177,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ValueTypeSig"/> or <c>null</c> if it's not a
 		/// <see cref="ValueTypeSig"/></returns>
-		public static ValueTypeSig ToValueTypeSig(this ITypeDefOrRef type) {
+		public static ValueTypeSig TryGetValueTypeSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as ValueTypeSig;
 		}
@@ -188,7 +188,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ClassSig"/> or <c>null</c> if it's not a
 		/// <see cref="ClassSig"/></returns>
-		public static ClassSig ToClassSig(this ITypeDefOrRef type) {
+		public static ClassSig TryGetClassSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as ClassSig;
 		}
@@ -199,7 +199,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericSig"/> or <c>null</c> if it's not a
 		/// <see cref="GenericSig"/></returns>
-		public static GenericSig ToGenericSig(this ITypeDefOrRef type) {
+		public static GenericSig TryGetGenericSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as GenericSig;
 		}
@@ -210,7 +210,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericVar"/> or <c>null</c> if it's not a
 		/// <see cref="GenericVar"/></returns>
-		public static GenericVar ToGenericVar(this ITypeDefOrRef type) {
+		public static GenericVar TryGetGenericVar(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as GenericVar;
 		}
@@ -221,7 +221,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericMVar"/> or <c>null</c> if it's not a
 		/// <see cref="GenericMVar"/></returns>
-		public static GenericMVar ToGenericMVar(this ITypeDefOrRef type) {
+		public static GenericMVar TryGetGenericMVar(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as GenericMVar;
 		}
@@ -232,7 +232,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericInstSig"/> or <c>null</c> if it's not a
 		/// <see cref="GenericInstSig"/></returns>
-		public static GenericInstSig ToGenericInstSig(this ITypeDefOrRef type) {
+		public static GenericInstSig TryGetGenericInstSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as GenericInstSig;
 		}
@@ -243,7 +243,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="PtrSig"/> or <c>null</c> if it's not a
 		/// <see cref="PtrSig"/></returns>
-		public static PtrSig ToPtrSig(this ITypeDefOrRef type) {
+		public static PtrSig TryGetPtrSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as PtrSig;
 		}
@@ -254,7 +254,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ByRefSig"/> or <c>null</c> if it's not a
 		/// <see cref="ByRefSig"/></returns>
-		public static ByRefSig ToByRefSig(this ITypeDefOrRef type) {
+		public static ByRefSig TryGetByRefSig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as ByRefSig;
 		}
@@ -265,7 +265,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ArraySig"/> or <c>null</c> if it's not a
 		/// <see cref="ArraySig"/></returns>
-		public static ArraySig ToArraySig(this ITypeDefOrRef type) {
+		public static ArraySig TryGetArraySig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as ArraySig;
 		}
@@ -276,7 +276,7 @@ namespace dot10.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="SZArraySig"/> or <c>null</c> if it's not a
 		/// <see cref="SZArraySig"/></returns>
-		public static SZArraySig ToSZArraySig(this ITypeDefOrRef type) {
+		public static SZArraySig TryGetSZArraySig(this ITypeDefOrRef type) {
 			var ts = type as TypeSpec;
 			return ts == null ? null : ts.TypeSig.RemovePinnedAndModifiers() as SZArraySig;
 		}
