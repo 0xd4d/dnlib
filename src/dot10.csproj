@@ -216,7 +216,7 @@
     <Compile Include="DotNet\Writer\SignatureWriter.cs" />
     <Compile Include="DotNet\Writer\StartupStub.cs" />
     <Compile Include="DotNet\Writer\StringsHeap.cs" />
-    <Compile Include="DotNet\Writer\StrongNameKey.cs" />
+    <Compile Include="DotNet\StrongNameKey.cs" />
     <Compile Include="DotNet\Writer\StrongNameSignature.cs" />
     <Compile Include="DotNet\Writer\TablesHeap.cs" />
     <Compile Include="DotNet\Writer\UniqueChunkList.cs" />

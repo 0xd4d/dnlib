@@ -2,7 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace dot10.DotNet.Writer {
+namespace dot10.DotNet {
 	/// <summary>
 	/// Thrown if the strong name key or public key is invalid
 	/// </summary>
