@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using dot10.IO;
 using dot10.PE;
 using dot10.W32Resources;
@@ -484,120 +483,8 @@ namespace dot10.DotNet.Writer {
 		/// </summary>
 		/// <param name="snSigOffset">Strong name signature offset</param>
 		protected void StrongNameSign(long snSigOffset) {
-			var snk = TheOptions.StrongNameKey;
-			uint snSigSize = (uint)snk.SignatureSize;
-			var hashAlg = snk.HashAlgorithm == 0 ? AssemblyHashAlgorithm.SHA1 : snk.HashAlgorithm;
-			var hash = StrongNameHashData(hashAlg, snSigOffset, snSigSize);
-			var snSig = GetStrongNameSignature(snk, hashAlg, hash);
-			if (snSig.Length != snSigSize)
-				throw new InvalidOperationException("Invalid strong name signature size");
-
-			destStream.Position = destStreamBaseOffset + snSigOffset;
-			destStream.Write(snSig, 0, snSig.Length);
-		}
-
-		/// <summary>
-		/// Strong name hashes the .NET file
-		/// </summary>
-		/// <param name="hashAlg">Hash algorithm</param>
-		/// <param name="snSigOffset">Strong name sig offset (relative to start of .NET PE file)</param>
-		/// <param name="snSigSize">Size of strong name signature</param>
-		/// <returns>The strong name hash of the .NET file</returns>
-		byte[] StrongNameHashData(AssemblyHashAlgorithm hashAlg, long snSigOffset, uint snSigSize) {
-			var reader = new BinaryReader(destStream);
-
-			snSigOffset += destStreamBaseOffset;
-			long snSigOffsetEnd = snSigOffset + snSigSize;
-
-			using (var hasher = new AssemblyHash(hashAlg)) {
-				byte[] buffer = new byte[0x8000];
-
-				// Hash the DOS header. It's defined to be all data from the start of
-				// the file up to the NT headers.
-				destStream.Position = destStreamBaseOffset + 0x3C;
-				uint ntHeadersOffs = reader.ReadUInt32();
-				destStream.Position = destStreamBaseOffset;
-				hasher.Hash(destStream, ntHeadersOffs, buffer);
-
-				// Hash NT headers, but hash authenticode + checksum as 0s
-				destStream.Position += 6;
-				int numSections = reader.ReadUInt16();
-				destStream.Position -= 8;
-				hasher.Hash(destStream, 0x18, buffer);	// magic + FileHeader
-
-				bool is32bit = reader.ReadUInt16() == 0x010B;
-				destStream.Position -= 2;
-				int optHeaderSize = is32bit ? 0x60 : 0x70;
-				if (destStream.Read(buffer, 0, optHeaderSize) != optHeaderSize)
-					throw new IOException("Could not read data");
-				// Clear checksum
-				for (int i = 0; i < 4; i++)
-					buffer[0x40 + i] = 0;
-				hasher.Hash(buffer, 0, optHeaderSize);
-
-				const int imageDirsSize = 16 * 8;
-				if (destStream.Read(buffer, 0, imageDirsSize) != imageDirsSize)
-					throw new IOException("Could not read data");
-				// Clear authenticode data dir
-				for (int i = 0; i < 8; i++)
-					buffer[4 * 8 + i] = 0;
-				hasher.Hash(buffer, 0, imageDirsSize);
-
-				// Hash section headers
-				long sectHeadersOffs = destStream.Position;
-				hasher.Hash(destStream, (uint)numSections * 0x28, buffer);
-
-				// Hash all raw section data but make sure we don't hash the location
-				// where the strong name signature will be stored.
-				for (int i = 0; i < numSections; i++) {
-					destStream.Position = sectHeadersOffs + i * 0x28 + 0x10;
-					uint sizeOfRawData = reader.ReadUInt32();
-					uint pointerToRawData = reader.ReadUInt32();
-
-					destStream.Position = destStreamBaseOffset + pointerToRawData;
-					while (sizeOfRawData > 0) {
-						var pos = destStream.Position;
-
-						if (snSigOffset <= pos && pos < snSigOffsetEnd) {
-							uint skipSize = (uint)(snSigOffsetEnd - pos);
-							if (skipSize >= sizeOfRawData)
-								break;
-							sizeOfRawData -= skipSize;
-							destStream.Position += skipSize;
-							continue;
-						}
-
-						if (pos >= snSigOffsetEnd) {
-							hasher.Hash(destStream, sizeOfRawData, buffer);
-							break;
-						}
-
-						uint maxLen = (uint)Math.Min(snSigOffset - pos, sizeOfRawData);
-						hasher.Hash(destStream, maxLen, buffer);
-						sizeOfRawData -= maxLen;
-					}
-				}
-
-				return hasher.ComputeHash();
-			}
-		}
-
-		/// <summary>
-		/// Returns the strong name signature
-		/// </summary>
-		/// <param name="snk">Strong name key</param>
-		/// <param name="hashAlg">Hash algorithm</param>
-		/// <param name="hash">Strong name hash of the .NET PE file</param>
-		/// <returns>Strong name signature</returns>
-		byte[] GetStrongNameSignature(StrongNameKey snk, AssemblyHashAlgorithm hashAlg, byte[] hash) {
-			using (var rsa = snk.CreateRSA()) {
-				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
-				string hashName = hashAlg.GetName() ?? AssemblyHashAlgorithm.SHA1.GetName();
-				rsaFmt.SetHashAlgorithm(hashName);
-				var snSig = rsaFmt.CreateSignature(hash);
-				Array.Reverse(snSig);
-				return snSig;
-			}
+			var snSigner = new StrongNameSigner(destStream, destStreamBaseOffset);
+			snSigner.WriteSignature(TheOptions.StrongNameKey, snSigOffset);
 		}
 
 		/// <inheritdoc/>

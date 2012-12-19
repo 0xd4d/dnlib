@@ -167,6 +167,7 @@
     <Compile Include="DotNet\SigComparer.cs" />
     <Compile Include="DotNet\SignatureReader.cs" />
     <Compile Include="DotNet\StandAloneSig.cs" />
+    <Compile Include="DotNet\StrongNameSigner.cs" />
     <Compile Include="DotNet\TypeAttributes.cs" />
     <Compile Include="DotNet\TypeDef.cs" />
     <Compile Include="DotNet\TypeDefFinder.cs" />
