@@ -228,7 +228,7 @@ TypeSig type2 = type1.ToTypeSig();
 Naming conventions of metadata table classes
 --------------------------------------------
 
-For most tables in the metadata, there's a corresponding dot10 class with the exact same name. Eg. the metadata has a `TypeDef` table, and dot10 has a `TypeDef` class. Some tables don't have a class because they're referenced by other classes, and that information is part of some other class. Eg. the `TypeDef` class contains all its properties and events, even though the `TypeDef` table has no property or event column.
+For most tables in the metadata, there's a corresponding dot10 class with the exact same or a similar name. Eg. the metadata has a `TypeDef` table, and dot10 has a `TypeDef` class. Some tables don't have a class because they're referenced by other classes, and that information is part of some other class. Eg. the `TypeDef` class contains all its properties and events, even though the `TypeDef` table has no property or event column.
 
 For each of these table classes, there's an abstract base class, and two sub classes. These sub classes are named the same as the base class but ends in either `MD` (for classes created from the metadata) or `User` (for classes created by the user). Eg. `TypeDef` is the base class, and it has two sub classes `TypeDefMD` which is auto-created from metadata, and `TypeRefUser` which is created by the user when adding user types. Most of the XyzMD classes are internal and can't be referenced directly by the user. They're created by `ModuleDefMD` (which is the only public `MD` class). All XyzUser classes are public.
 
