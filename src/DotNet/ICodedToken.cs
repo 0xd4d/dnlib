@@ -35,7 +35,7 @@ namespace dot10.DotNet {
 		MDToken MDToken { get; }
 
 		/// <summary>
-		/// Getst/sets the row ID
+		/// Gets/sets the row ID
 		/// </summary>
 		uint Rid { get; set; }
 	}
