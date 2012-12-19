@@ -246,6 +246,7 @@ namespace dot10.DotNet.Writer {
 		public void InitializeEnhancedStrongNameSigning(StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey) {
 			StrongNameKey = signatureKey;
 			StrongNameKey.HashAlgorithm = signaturePubKey.HashAlgorithm;
+			StrongNamePublicKey = null;
 		}
 
 		/// <summary>
