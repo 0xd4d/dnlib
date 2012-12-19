@@ -725,10 +725,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgorithm {
 			get { return hashAlgId; }
-			set {
-				hashAlgId = value;
-				publicKey.HashAlgorithm = hashAlgId;
-			}
+			set { hashAlgId = value; }
 		}
 
 		/// <inheritdoc/>
@@ -750,10 +747,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override PublicKey PublicKey {
 			get { return publicKey; }
-			set {
-				publicKey = value ?? new PublicKey();
-				publicKey.HashAlgorithm = hashAlgId;
-			}
+			set { publicKey = value ?? new PublicKey(); }
 		}
 
 		/// <inheritdoc/>
@@ -884,10 +878,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgorithm {
 			get { return hashAlgId.Value; }
-			set {
-				hashAlgId.Value = value;
-				publicKey.Value.HashAlgorithm = hashAlgId.Value;
-			}
+			set { hashAlgId.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -909,10 +900,7 @@ namespace dot10.DotNet {
 		/// <inheritdoc/>
 		public override PublicKey PublicKey {
 			get { return publicKey.Value; }
-			set {
-				publicKey.Value = value ?? new PublicKey();
-				publicKey.Value.HashAlgorithm = hashAlgId.Value;
-			}
+			set { publicKey.Value = value ?? new PublicKey(); }
 		}
 
 		/// <inheritdoc/>

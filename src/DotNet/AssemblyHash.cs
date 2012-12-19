@@ -118,12 +118,11 @@ namespace dot10.DotNet {
 		/// <remarks>A public key is hashed, and the last 8 bytes of the hash, in reverse
 		/// order, is used as the public key token</remarks>
 		/// <param name="publicKeyData">The data</param>
-		/// <param name="hashAlgo">The algorithm to use</param>
 		/// <returns>A new <see cref="PublicKeyToken"/> instance</returns>
-		public static PublicKeyToken CreatePublicKeyToken(byte[] publicKeyData, AssemblyHashAlgorithm hashAlgo) {
+		public static PublicKeyToken CreatePublicKeyToken(byte[] publicKeyData) {
 			if (publicKeyData == null)
 				return new PublicKeyToken();
-			var hash = Hash(publicKeyData, hashAlgo);
+			var hash = Hash(publicKeyData, AssemblyHashAlgorithm.SHA1);
 			byte[] pkt = new byte[8];
 			for (int i = 0; i < pkt.Length && i < hash.Length; i++)
 				pkt[i] = hash[hash.Length - i - 1];
