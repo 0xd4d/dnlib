@@ -482,7 +482,7 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Strong name sign the assembly
 		/// </summary>
-		/// <param name="snSigOffset">Strong name signagure offset</param>
+		/// <param name="snSigOffset">Strong name signature offset</param>
 		protected void StrongNameSign(long snSigOffset) {
 			var snk = TheOptions.StrongNameKey;
 			uint snSigSize = (uint)snk.SignatureSize;
