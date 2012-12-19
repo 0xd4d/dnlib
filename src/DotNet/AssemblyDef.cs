@@ -602,6 +602,69 @@ namespace dot10.DotNet {
 			return false;
 		}
 
+		/// <summary>
+		/// Adds or updates an existing <c>System.Reflection.AssemblySignatureKeyAttribute</c>
+		/// attribute. This attribute is used in enhanced strong naming with key migration.
+		/// See http://msdn.microsoft.com/en-us/library/hh415055.aspx
+		/// </summary>
+		/// <param name="identityPubKey">Identity public key</param>
+		/// <param name="identityKey">Identity strong name key pair</param>
+		/// <param name="signaturePubKey">Signature public key</param>
+		public void UpdateOrCreateAssemblySignatureKeyAttribute(StrongNamePublicKey identityPubKey, StrongNameKey identityKey, StrongNamePublicKey signaturePubKey) {
+			if (ManifestModule == null)
+				return;
+
+			// Remove all existing attributes
+			CustomAttribute ca = null;
+			for (int i = 0; i < CustomAttributes.Count; i++) {
+				var caTmp = CustomAttributes[i];
+				if (caTmp.TypeFullName != "System.Reflection.AssemblySignatureKeyAttribute")
+					continue;
+				CustomAttributes.RemoveAt(i);
+				i--;
+				if (ca == null)
+					ca = caTmp;
+			}
+
+			if (IsValidAssemblySignatureKeyAttribute(ca))
+				ca.NamedArguments.Clear();
+			else
+				ca = CreateAssemblySignatureKeyAttribute();
+
+			var counterSig = StrongNameKey.CreateCounterSignatureAsString(identityPubKey, identityKey, signaturePubKey);
+			ca.ConstructorArguments[0] = new CAArgument(ManifestModule.CorLibTypes.String, new UTF8String(signaturePubKey.ToString()));
+			ca.ConstructorArguments[1] = new CAArgument(ManifestModule.CorLibTypes.String, new UTF8String(counterSig));
+			CustomAttributes.Add(ca);
+		}
+
+		bool IsValidAssemblySignatureKeyAttribute(CustomAttribute ca) {
+			if (ca == null)
+				return false;
+			var ctor = ca.Constructor as IMethodDefOrRef;
+			if (ctor == null)
+				return false;
+			var sig = ctor.MethodSig;
+			if (sig == null || sig.Params.Count != 2)
+				return false;
+			if (sig.Params[0].GetElementType() != ElementType.String)
+				return false;
+			if (sig.Params[1].GetElementType() != ElementType.String)
+				return false;
+			if (ca.ConstructorArguments.Count != 2)
+				return false;
+			return true;
+		}
+
+		CustomAttribute CreateAssemblySignatureKeyAttribute() {
+			var owner = ManifestModule.UpdateRowId(new TypeRefUser(ManifestModule, "System.Reflection", "AssemblySignatureKeyAttribute", ManifestModule.CorLibTypes.AssemblyRef));
+			var methodSig = MethodSig.CreateInstance(ManifestModule.CorLibTypes.Void, ManifestModule.CorLibTypes.String, ManifestModule.CorLibTypes.String);
+			var ctor = ManifestModule.UpdateRowId(new MemberRefUser(ManifestModule, ".ctor", methodSig, owner));
+			var ca = new CustomAttribute(ctor);
+			ca.ConstructorArguments.Add(new CAArgument(ManifestModule.CorLibTypes.String, UTF8String.Empty));
+			ca.ConstructorArguments.Add(new CAArgument(ManifestModule.CorLibTypes.String, UTF8String.Empty));
+			return ca;
+		}
+
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnLazyAdd(int index, ref ModuleDef module) {
 			if (module == null)
