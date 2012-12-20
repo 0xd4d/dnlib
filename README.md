@@ -1,4 +1,4 @@
-dnlib is a MIT licensed library that can read, write and create .NET assemblies and modules.
+dnlib is a library that can read, write and create .NET assemblies and modules.
 
 It was written for [de4dot](https://bitbucket.org/0xd4d/de4dot/) which must
 have a rock solid assembly reader and writer library since it has to deal with
