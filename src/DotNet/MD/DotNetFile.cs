@@ -29,7 +29,7 @@ using dnlib.PE;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
-	/// 
+	/// Low level access to a .NET file's metadata
 	/// </summary>
 	public sealed class DotNetFile : IDisposable {
 		IMetaData metaData;

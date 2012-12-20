@@ -691,7 +691,7 @@ namespace dnlib.DotNet {
 
 	static partial class Extensions {
 		/// <summary>
-		/// Convert a <see cref="TypeSig"/> to a <see cref="ITypeDefOrRef"/>
+		/// Converts a <see cref="TypeSig"/> to a <see cref="ITypeDefOrRef"/>
 		/// </summary>
 		/// <param name="sig">The sig</param>
 		public static ITypeDefOrRef ToTypeDefOrRef(this TypeSig sig) {
