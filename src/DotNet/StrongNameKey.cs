@@ -550,7 +550,7 @@ namespace dnlib.DotNet {
 			writer.Write((byte)2);			// bVersion
 			writer.Write((ushort)0);		// reserved
 			writer.Write((uint)SignatureAlgorithm.CALG_RSA_SIGN);	// aiKeyAlg
-			writer.Write(RSA2_SIG);			// magic (RSA1)
+			writer.Write(RSA2_SIG);			// magic (RSA2)
 			writer.Write(modulus.Length * 8);	// bitlen
 			writer.WriteReverse(publicExponent);
 			writer.WriteReverse(modulus);
