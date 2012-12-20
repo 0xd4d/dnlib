@@ -24,9 +24,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Represents the IMAGE_DATA_DIRECTORY PE section
 	/// </summary>

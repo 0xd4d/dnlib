@@ -23,11 +23,11 @@
 
 ﻿using System.Collections.Generic;
 using System.IO;
-using dot10.IO;
-using dot10.PE;
-using dot10.DotNet.MD;
+using dnlib.IO;
+using dnlib.PE;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// <see cref="TablesHeap"/> options
 	/// </summary>

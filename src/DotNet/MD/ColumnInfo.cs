@@ -24,9 +24,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Info about one column in a MD table
 	/// </summary>

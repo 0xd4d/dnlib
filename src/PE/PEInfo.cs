@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Reads all PE sections from a PE stream
 	/// </summary>

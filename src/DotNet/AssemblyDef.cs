@@ -25,11 +25,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using dot10.Utils;
-using dot10.DotNet.MD;
-using dot10.DotNet.Writer;
+using dnlib.Utils;
+using dnlib.DotNet.MD;
+using dnlib.DotNet.Writer;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>

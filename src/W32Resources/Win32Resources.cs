@@ -22,11 +22,11 @@
 */
 
 ﻿using System;
-using dot10.Utils;
-using dot10.IO;
-using dot10.PE;
+using dnlib.Utils;
+using dnlib.IO;
+using dnlib.PE;
 
-namespace dot10.W32Resources {
+namespace dnlib.W32Resources {
 	/// <summary>
 	/// Win32 resources base class
 	/// </summary>

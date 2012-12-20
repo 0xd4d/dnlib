@@ -23,9 +23,9 @@
 
 ﻿using System.Diagnostics;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Base class for classes needing to implement IFileSection
 	/// </summary>

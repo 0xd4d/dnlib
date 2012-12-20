@@ -25,7 +25,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A list of all method parameters
 	/// </summary>
@@ -331,14 +331,14 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="dot10.DotNet.ParamDef"/> or <c>null</c> if not present
+		/// Gets the <see cref="dnlib.DotNet.ParamDef"/> or <c>null</c> if not present
 		/// </summary>
 		public ParamDef ParamDef {
 			get { return parameterList == null ? null : parameterList.FindParamDef(this); }
 		}
 
 		/// <summary>
-		/// <c>true</c> if it has a <see cref="dot10.DotNet.ParamDef"/>
+		/// <c>true</c> if it has a <see cref="dnlib.DotNet.ParamDef"/>
 		/// </summary>
 		public bool HasParamDef {
 			get { return ParamDef != null; }
@@ -409,7 +409,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="dot10.DotNet.ParamDef"/> if it doesn't already exist
+		/// Creates a <see cref="dnlib.DotNet.ParamDef"/> if it doesn't already exist
 		/// </summary>
 		public void CreateParamDef() {
 			if (parameterList != null)

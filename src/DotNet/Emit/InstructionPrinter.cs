@@ -24,7 +24,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Converts instructions to strings
 	/// </summary>

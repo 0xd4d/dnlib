@@ -26,7 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Compares <see cref="UTF8String"/>s
 	/// </summary>

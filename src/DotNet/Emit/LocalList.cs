@@ -23,9 +23,9 @@
 
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using dot10.Utils;
+using dnlib.Utils;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Stores a collection of <see cref="Local"/>
 	/// </summary>

@@ -23,7 +23,7 @@
 
 ﻿using System.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Extension methods
 	/// </summary>

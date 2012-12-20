@@ -24,10 +24,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using dot10.IO;
-using dot10.PE;
+using dnlib.IO;
+using dnlib.PE;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// .NET metadata tables stream
 	/// </summary>

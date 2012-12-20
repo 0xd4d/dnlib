@@ -22,7 +22,7 @@
 */
 
 ﻿using System.Collections.Generic;
-using dot10.DotNet.MD;
+using dnlib.DotNet.MD;
 
 /*
 All TypeSig classes:
@@ -53,7 +53,7 @@ TypeSig								base class
 		ModuleSig					Module (undocumented/not implemented by the CLR so don't use it)
 */
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Type sig base class
 	/// </summary>
@@ -661,7 +661,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.ValueType"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.ValueType"/>
 	/// </summary>
 	public sealed class ValueTypeSig : ClassOrValueTypeSig {
 		/// <inheritdoc/>
@@ -679,7 +679,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.Class"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.Class"/>
 	/// </summary>
 	public sealed class ClassSig : ClassOrValueTypeSig {
 		/// <inheritdoc/>
@@ -736,7 +736,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.Var"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.Var"/>
 	/// </summary>
 	public sealed class GenericVar : GenericSig {
 		/// <inheritdoc/>
@@ -756,7 +756,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.MVar"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.MVar"/>
 	/// </summary>
 	public sealed class GenericMVar : GenericSig {
 		/// <inheritdoc/>
@@ -776,7 +776,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.Sentinel"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.Sentinel"/>
 	/// </summary>
 	public sealed class SentinelSig : LeafSig {
 		/// <inheritdoc/>
@@ -786,7 +786,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.FnPtr"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.FnPtr"/>
 	/// </summary>
 	public sealed class FnPtrSig : LeafSig {
 		readonly CallingConventionSig signature;
@@ -820,7 +820,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.GenericInst"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.GenericInst"/>
 	/// </summary>
 	public sealed class GenericInstSig : LeafSig {
 		ClassOrValueTypeSig genericType;
@@ -961,7 +961,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.Ptr"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.Ptr"/>
 	/// </summary>
 	public sealed class PtrSig : NonLeafSig {
 		/// <inheritdoc/>
@@ -979,7 +979,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.ByRef"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.ByRef"/>
 	/// </summary>
 	public sealed class ByRefSig : NonLeafSig {
 		/// <inheritdoc/>
@@ -997,7 +997,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.Array"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.Array"/>
 	/// </summary>
 	/// <seealso cref="SZArraySig"/>
 	public sealed class ArraySig : NonLeafSig {
@@ -1104,7 +1104,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.SZArray"/> (single dimension, zero lower bound array)
+	/// Represents a <see cref="dnlib.DotNet.ElementType.SZArray"/> (single dimension, zero lower bound array)
 	/// </summary>
 	/// <seealso cref="ArraySig"/>
 	public sealed class SZArraySig : NonLeafSig {
@@ -1147,7 +1147,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.CModReqd"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.CModReqd"/>
 	/// </summary>
 	public sealed class CModReqdSig : ModifierSig {
 		/// <inheritdoc/>
@@ -1162,7 +1162,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.CModOpt"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.CModOpt"/>
 	/// </summary>
 	public sealed class CModOptSig : ModifierSig {
 		/// <inheritdoc/>
@@ -1177,7 +1177,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.Pinned"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.Pinned"/>
 	/// </summary>
 	public sealed class PinnedSig : NonLeafSig {
 		/// <inheritdoc/>
@@ -1195,7 +1195,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.ValueArray"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.ValueArray"/>
 	/// </summary>
 	public sealed class ValueArraySig : NonLeafSig {
 		uint size;
@@ -1225,7 +1225,7 @@ namespace dot10.DotNet {
 	}
 
 	/// <summary>
-	/// Represents a <see cref="dot10.DotNet.ElementType.Module"/>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.Module"/>
 	/// </summary>
 	public sealed class ModuleSig : NonLeafSig {
 		uint index;

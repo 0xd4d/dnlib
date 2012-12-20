@@ -25,9 +25,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Represents the IMAGE_SECTION_HEADER PE section
 	/// </summary>

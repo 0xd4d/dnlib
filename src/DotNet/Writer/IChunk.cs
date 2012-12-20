@@ -22,10 +22,10 @@
 */
 
 ﻿using System.IO;
-using dot10.IO;
-using dot10.PE;
+using dnlib.IO;
+using dnlib.PE;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Data that gets written to the file
 	/// </summary>

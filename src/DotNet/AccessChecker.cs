@@ -24,7 +24,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Checks whether a type has access to some other target type, method or field
 	/// according to the target's visibility.

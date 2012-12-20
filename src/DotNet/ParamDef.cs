@@ -23,10 +23,10 @@
 
 ﻿using System;
 using System.Diagnostics;
-using dot10.Utils;
-using dot10.DotNet.MD;
+using dnlib.Utils;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Param table
 	/// </summary>
@@ -107,7 +107,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the constant element type or <see cref="dot10.DotNet.ElementType.End"/> if there's no constant
+		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
 		/// </summary>
 		public ElementType ElementType {
 			get { return Constant == null ? ElementType.End : Constant.Type; }

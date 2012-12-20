@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// See COMIMAGE_FLAGS_XXX in CorHdr.h in the Windows SDK
 	/// </summary>

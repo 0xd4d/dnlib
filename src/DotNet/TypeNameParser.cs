@@ -26,7 +26,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Thrown by <see cref="TypeNameParser"/> when it fails to parse a type name
 	/// </summary>

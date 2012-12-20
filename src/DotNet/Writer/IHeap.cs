@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.DotNet.Writer {
+﻿namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET Heap interface
 	/// </summary>

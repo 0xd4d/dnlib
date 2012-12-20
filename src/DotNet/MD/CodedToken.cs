@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Contains all possible coded token classes
 	/// </summary>

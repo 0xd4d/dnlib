@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// MDStream flags
 	/// </summary>

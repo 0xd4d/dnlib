@@ -23,10 +23,10 @@
 
 ﻿using System;
 using System.Reflection;
-using dot10.Utils;
-using dot10.DotNet.MD;
+using dnlib.Utils;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the AssemblyRef table
 	/// </summary>

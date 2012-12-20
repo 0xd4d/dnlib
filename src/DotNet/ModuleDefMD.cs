@@ -25,17 +25,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using dot10.PE;
-using dot10.Utils;
-using dot10.IO;
-using dot10.DotNet;
-using dot10.DotNet.MD;
-using dot10.DotNet.Emit;
-using dot10.W32Resources;
+using dnlib.PE;
+using dnlib.Utils;
+using dnlib.IO;
+using dnlib.DotNet;
+using dnlib.DotNet.MD;
+using dnlib.DotNet.Emit;
+using dnlib.W32Resources;
 
-using DNW = dot10.DotNet.Writer;
+using DNW = dnlib.DotNet.Writer;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>

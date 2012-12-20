@@ -8,8 +8,8 @@
     <ProjectGuid>{F27E72B5-C4BD-40BF-AD19-4C8A99B55872}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>dot10.Examples</RootNamespace>
-    <AssemblyName>dot10.Examples</AssemblyName>
+    <RootNamespace>dnlib.Examples</RootNamespace>
+    <AssemblyName>dnlib.Examples</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,9 +40,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\dot10.csproj">
+    <ProjectReference Include="..\src\dnlib.csproj">
       <Project>{FDFC1237-143F-4919-8318-4926901F4639}</Project>
-      <Name>dot10</Name>
+      <Name>dnlib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

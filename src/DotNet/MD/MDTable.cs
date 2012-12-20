@@ -25,9 +25,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// A MD table (eg. Method table)
 	/// </summary>

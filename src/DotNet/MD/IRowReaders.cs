@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.DotNet.MD {
+﻿namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Reads metadata table columns
 	/// </summary>

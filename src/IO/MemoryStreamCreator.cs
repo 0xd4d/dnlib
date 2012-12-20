@@ -25,7 +25,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Creates <see cref="MemoryStream"/>s to partially access a byte[]
 	/// </summary>

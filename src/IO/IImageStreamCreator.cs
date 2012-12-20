@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Creates a new stream that accesses part of some data
 	/// </summary>

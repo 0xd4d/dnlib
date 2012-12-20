@@ -24,7 +24,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Extension methods for reflection types, methods, fields
 	/// </summary>

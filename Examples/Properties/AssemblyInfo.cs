@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("dot10.Examples")]
-[assembly: AssemblyDescription("dot10 examples")]
+[assembly: AssemblyTitle("dnlib.Examples")]
+[assembly: AssemblyDescription("dnlib examples")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("dot10.Examples")]
+[assembly: AssemblyProduct("dnlib.Examples")]
 [assembly: AssemblyCopyright("Copyright (C) 2012 de4dot@gmail.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -27,7 +27,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Maps a file into memory using MapViewOfFile() and creates streams
 	/// that can access part of it in memory.

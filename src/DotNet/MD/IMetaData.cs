@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using dot10.PE;
+using dnlib.PE;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Interface to access the .NET metadata
 	/// </summary>

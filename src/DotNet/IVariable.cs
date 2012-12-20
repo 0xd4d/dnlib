@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.DotNet {
+﻿namespace dnlib.DotNet {
 	/// <summary>
 	/// Interface to access a local or a parameter
 	/// </summary>

@@ -26,7 +26,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// IImageStream for unmanaged memory
 	/// </summary>

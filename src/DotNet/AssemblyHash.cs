@@ -25,7 +25,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Hashes some data according to a <see cref="AssemblyHashAlgorithm"/>
 	/// </summary>

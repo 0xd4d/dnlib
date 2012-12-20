@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.Utils {
+﻿namespace dnlib.Utils {
 	delegate T MFunc<T>();
 	delegate U MFunc<T, U>(T t);
 	delegate V MFunc<T, U, V>(T t, U u);

@@ -23,7 +23,7 @@
 
 ﻿using System.Collections.Generic;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Returns types without getting stuck in an infinite loop
 	/// </summary>

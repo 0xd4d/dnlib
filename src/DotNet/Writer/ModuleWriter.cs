@@ -23,12 +23,12 @@
 
 ﻿using System.Collections.Generic;
 using System.IO;
-using dot10.DotNet.MD;
-using dot10.PE;
-using dot10.IO;
-using dot10.W32Resources;
+using dnlib.DotNet.MD;
+using dnlib.PE;
+using dnlib.IO;
+using dnlib.W32Resources;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// <see cref="ModuleWriter"/> options
 	/// </summary>

@@ -25,7 +25,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Assembly flags from Assembly.Flags column.
 	/// </summary>

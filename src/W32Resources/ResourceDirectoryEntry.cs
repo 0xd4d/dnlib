@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.W32Resources {
+﻿namespace dnlib.W32Resources {
 	/// <summary>
 	/// Base class of <see cref="ResourceDirectory"/> and <see cref="ResourceData"/>
 	/// </summary>

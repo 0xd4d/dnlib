@@ -23,10 +23,10 @@
 
 ﻿using System.IO;
 using System.Text;
-using dot10.IO;
-using dot10.PE;
+using dnlib.IO;
+using dnlib.PE;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Import directory chunk
 	/// </summary>

@@ -25,7 +25,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// TypeDef and ExportedType flags. See CorHdr.h/CorTypeAttr
 	/// </summary>

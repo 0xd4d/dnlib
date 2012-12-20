@@ -24,9 +24,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Searches for a type according to custom attribute search rules: first try the
 	/// current assembly, and if that fails, try mscorlib

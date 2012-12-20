@@ -35,7 +35,7 @@ CallingConventionSig
 	GenericInstMethodSig
 */
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Base class for sigs with a calling convention
 	/// </summary>

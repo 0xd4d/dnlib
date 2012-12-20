@@ -25,7 +25,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Generic parameter flags. See CorHdr.h/CorGenericParamAttr
 	/// </summary>

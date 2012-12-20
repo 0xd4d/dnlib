@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.Diagnostics;
-using dot10.DotNet.MD;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// MetaData token
 	/// </summary>

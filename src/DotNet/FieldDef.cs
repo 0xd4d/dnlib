@@ -22,11 +22,11 @@
 */
 
 ﻿using System;
-using dot10.Utils;
-using dot10.DotNet.MD;
-using dot10.PE;
+using dnlib.Utils;
+using dnlib.DotNet.MD;
+using dnlib.PE;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Field table
 	/// </summary>
@@ -173,7 +173,7 @@ namespace dot10.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the constant element type or <see cref="dot10.DotNet.ElementType.End"/> if there's no constant
+		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
 		/// </summary>
 		public ElementType ElementType {
 			get { return Constant == null ? ElementType.End : Constant.Type; }

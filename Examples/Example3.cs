@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
-using dot10.DotNet;
-using dot10.DotNet.Emit;
+using dnlib.DotNet;
+using dnlib.DotNet.Emit;
 
-namespace dot10.Examples {
+namespace dnlib.Examples {
 	// This example creates a new assembly and saves it to disk.
 	// This is what it will look like if you decompile it:
 	//

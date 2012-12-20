@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using dot10.DotNet.MD;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Does not preserve metadata tokens
 	/// </summary>

@@ -24,11 +24,11 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("dot10")]
+[assembly: AssemblyTitle("dnlib")]
 [assembly: AssemblyDescription(".NET assembly reader/writer")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("dot10")]
+[assembly: AssemblyProduct("dnlib")]
 [assembly: AssemblyCopyright("Copyright (C) 2012 de4dot@gmail.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.DotNet.Emit {
+﻿namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Contains all valid CIL opcodes
 	/// </summary>

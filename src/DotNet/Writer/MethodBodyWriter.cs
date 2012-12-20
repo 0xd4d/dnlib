@@ -24,9 +24,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using dot10.DotNet.Emit;
+using dnlib.DotNet.Emit;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Returns tokens of token types, strings and signatures
 	/// </summary>

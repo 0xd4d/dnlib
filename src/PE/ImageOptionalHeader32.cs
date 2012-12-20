@@ -24,9 +24,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Represents the IMAGE_OPTIONAL_HEADER (32-bit) PE section
 	/// </summary>

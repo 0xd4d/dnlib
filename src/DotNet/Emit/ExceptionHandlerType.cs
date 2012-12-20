@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Type of exception handler. See CorHdr.h/CorExceptionFlag
 	/// </summary>

@@ -25,9 +25,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the .NET metadata header
 	/// </summary>

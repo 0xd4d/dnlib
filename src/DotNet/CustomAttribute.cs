@@ -23,7 +23,7 @@
 
 ﻿using System.Collections.Generic;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A custom attribute
 	/// </summary>

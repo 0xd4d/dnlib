@@ -24,7 +24,7 @@
 ﻿using System;
 using System.IO;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Interface to access part of some data
 	/// </summary>

@@ -21,9 +21,9 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿using dot10.DotNet.MD;
+﻿using dnlib.DotNet.MD;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// CIL opcode operand type
 	/// </summary>

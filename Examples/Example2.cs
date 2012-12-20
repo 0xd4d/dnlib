@@ -1,7 +1,7 @@
-﻿using dot10.DotNet;
-using dot10.DotNet.Emit;
+﻿using dnlib.DotNet;
+using dnlib.DotNet.Emit;
 
-namespace dot10.Examples {
+namespace dnlib.Examples {
 	public class Example2 {
 		// This will open the current assembly, add a new class and method to it,
 		// and then save the assembly to disk.

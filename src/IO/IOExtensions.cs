@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.IO {
+﻿namespace dnlib.IO {
 	/// <summary>
 	/// Extension methods
 	/// </summary>

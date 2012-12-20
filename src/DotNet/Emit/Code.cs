@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.DotNet.Emit {
+﻿namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A CIL opcode. If the high byte is 0 or if it's <see cref="UNKNOWN1"/>, it's a 1-byte opcode,
 	/// else it's a two-byte opcode and the highest byte is the first byte of the opcode.

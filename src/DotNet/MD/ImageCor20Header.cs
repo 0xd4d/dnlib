@@ -23,10 +23,10 @@
 
 ﻿using System;
 using System.IO;
-using dot10.IO;
-using dot10.PE;
+using dnlib.IO;
+using dnlib.PE;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the IMAGE_COR20_HEADER structure
 	/// </summary>

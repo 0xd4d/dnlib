@@ -23,9 +23,9 @@
 
 ﻿using System.IO;
 using System.Text;
-using dot10.PE;
+using dnlib.PE;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// A PE section
 	/// </summary>

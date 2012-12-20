@@ -26,13 +26,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.IO;
-using dot10.Utils;
-using dot10.DotNet.MD;
-using dot10.DotNet.Writer;
-using dot10.PE;
-using dot10.W32Resources;
+using dnlib.Utils;
+using dnlib.DotNet.MD;
+using dnlib.DotNet.Writer;
+using dnlib.PE;
+using dnlib.W32Resources;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
@@ -411,21 +411,21 @@ namespace dot10.DotNet {
 		public Machine Machine { get; set; }
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Machine"/> is <see cref="dot10.PE.Machine.I386"/>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.I386"/>
 		/// </summary>
 		public bool IsI386 {
 			get { return Machine == Machine.I386; }
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Machine"/> is <see cref="dot10.PE.Machine.IA64"/>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.IA64"/>
 		/// </summary>
 		public bool IsIA64 {
 			get { return Machine == Machine.IA64; }
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Machine"/> is <see cref="dot10.PE.Machine.AMD64"/>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.AMD64"/>
 		/// </summary>
 		public bool IsAMD64 {
 			get { return Machine == Machine.AMD64; }

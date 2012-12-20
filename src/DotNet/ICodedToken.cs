@@ -24,7 +24,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// The table row can be referenced by a MD token
 	/// </summary>
@@ -402,17 +402,17 @@ namespace dot10.DotNet {
 	/// </summary>
 	public enum ScopeType {
 		/// <summary>
-		/// It's an <see cref="dot10.DotNet.AssemblyRef"/> instance
+		/// It's an <see cref="dnlib.DotNet.AssemblyRef"/> instance
 		/// </summary>
 		AssemblyRef,
 
 		/// <summary>
-		/// It's a <see cref="dot10.DotNet.ModuleRef"/> instance
+		/// It's a <see cref="dnlib.DotNet.ModuleRef"/> instance
 		/// </summary>
 		ModuleRef,
 
 		/// <summary>
-		/// It's a <see cref="dot10.DotNet.ModuleDef"/> instance
+		/// It's a <see cref="dnlib.DotNet.ModuleDef"/> instance
 		/// </summary>
 		ModuleDef,
 	}

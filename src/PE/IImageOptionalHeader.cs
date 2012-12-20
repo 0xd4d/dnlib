@@ -21,9 +21,9 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿using dot10.IO;
+﻿using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Interface for PE optional header classes
 	/// </summary>

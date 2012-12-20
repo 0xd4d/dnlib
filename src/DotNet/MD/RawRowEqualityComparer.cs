@@ -25,7 +25,7 @@
 
 #pragma warning disable 1591	// XML doc comments
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Equality comparer for all raw rows
 	/// </summary>

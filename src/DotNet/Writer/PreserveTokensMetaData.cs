@@ -24,10 +24,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using dot10.Utils;
-using dot10.DotNet.MD;
+using dnlib.Utils;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Preserves metadata tokens
 	/// </summary>

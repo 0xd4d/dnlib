@@ -24,7 +24,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Helps <see cref="FullNameCreator"/> create a name
 	/// </summary>

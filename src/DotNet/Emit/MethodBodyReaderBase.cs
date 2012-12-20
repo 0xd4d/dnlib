@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Method body reader base class
 	/// </summary>

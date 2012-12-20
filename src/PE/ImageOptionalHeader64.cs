@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Represents the IMAGE_OPTIONAL_HEADER64 PE section
 	/// </summary>

@@ -21,9 +21,9 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿using dot10.IO;
+﻿using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Converts a <see cref="FileOffset"/> to/from an <see cref="RVA"/>
 	/// </summary>

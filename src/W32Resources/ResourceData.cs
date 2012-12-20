@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.W32Resources {
+namespace dnlib.W32Resources {
 	/// <summary>
 	/// A resource blob
 	/// </summary>

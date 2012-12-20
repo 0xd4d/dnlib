@@ -24,7 +24,7 @@
 ﻿using System;
 using System.IO;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// A <see cref="Stream"/> class that can be used when you have a <see cref="IBinaryReader"/>
 	/// but must use a <see cref="Stream"/>

@@ -23,10 +23,10 @@
 
 ﻿using System;
 using System.IO;
-using dot10.IO;
-using dot10.DotNet.MD;
+using dnlib.IO;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Type of resource
 	/// </summary>

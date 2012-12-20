@@ -25,9 +25,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using dot10.DotNet.MD;
+using dnlib.DotNet.MD;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Compares byte arrays
 	/// </summary>

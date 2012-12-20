@@ -1,6 +1,6 @@
-dot10 is a MIT licensed library that can read, write and create .NET assemblies and modules.
+dnlib is a MIT licensed library that can read, write and create .NET assemblies and modules.
 
-It was written for [de4dot](https://bitbucket.org/0xd4d/de4dot/) which must have a rock solid assembly reader and writer library since it has to deal with heavily obfuscated assemblies with invalid metadata. If the CLR can load the assembly, dot10 must be able to read it and save it.
+It was written for [de4dot](https://bitbucket.org/0xd4d/de4dot/) which must have a rock solid assembly reader and writer library since it has to deal with heavily obfuscated assemblies with invalid metadata. If the CLR can load the assembly, dnlib must be able to read it and save it.
 
 Features
 * Supports reading, writing and creating .NET assemblies/modules targeting any .NET framework (eg. desktop, Silverlight, Windows Phone, etc).
@@ -12,7 +12,7 @@ Features
 * Metadata tokens and heaps can be preserved when saving an assembly
 * Assembly reader has hooks for decrypting methods and strings
 * Assembly writer has hooks for various writer events
-* Easy to port code from Mono.Cecil to dot10
+* Easy to port code from Mono.Cecil to dnlib
 * Add/delete Win32 resource blobs
 * Saved assemblies can be strong name signed and enhanced strong name signed
 
@@ -31,11 +31,11 @@ See the Examples project for several examples.
 Opening a .NET assembly/module
 ------------------------------
 
-First of all, the important namespaces are `dot10.DotNet` and `dot10.DotNet.Emit`. `dot10.DotNet.Emit` is only needed if you intend to read/write method bodies. All the examples below assume you have the appropriate using statements at the top of each source file:
+First of all, the important namespaces are `dnlib.DotNet` and `dnlib.DotNet.Emit`. `dnlib.DotNet.Emit` is only needed if you intend to read/write method bodies. All the examples below assume you have the appropriate using statements at the top of each source file:
 
 ```C#
-using dot10.DotNet;
-using dot10.DotNet.Emit;
+using dnlib.DotNet;
+using dnlib.DotNet.Emit;
 ```
 
 ModuleDefMD is the class that is created when you open a .NET module. It has several `Load()` methods that will create a ModuleDefMD instance. If it's not a .NET module/assembly, a `BadImageFormatException` will be thrown.
@@ -101,7 +101,7 @@ Strong name sign an assembly
 When saving the assembly, set the ModuleWriterOptions.StrongNameKey property:
 
 ```C#
-using dot10.DotNet.Writer;
+using dnlib.DotNet.Writer;
 ...
 ModuleDefMD mod = ModuleDefMD.Load(.....);
 ModuleWriterOptions opts = new ModuleWriterOptions(mod);
@@ -160,7 +160,7 @@ mod.Write(@"C:\out\file.dll", opts);
 Type classes
 ------------
 
-The metadata has three type tables: `TypeRef`, `TypeDef`, and `TypeSpec`. The classes dot10 use are called the same. These three classes all implement `ITypeDefOrRef`.
+The metadata has three type tables: `TypeRef`, `TypeDef`, and `TypeSpec`. The classes dnlib use are called the same. These three classes all implement `ITypeDefOrRef`.
 
 There's also type signature classes. The base class is `TypeSig`. You'll find `TypeSig`s in method signatures (return type and parameter types) and locals. The `TypeSpec` class also has a `TypeSig` property.
 
@@ -228,7 +228,7 @@ TypeSig type2 = type1.ToTypeSig();
 Naming conventions of metadata table classes
 --------------------------------------------
 
-For most tables in the metadata, there's a corresponding dot10 class with the exact same or a similar name. Eg. the metadata has a `TypeDef` table, and dot10 has a `TypeDef` class. Some tables don't have a class because they're referenced by other classes, and that information is part of some other class. Eg. the `TypeDef` class contains all its properties and events, even though the `TypeDef` table has no property or event column.
+For most tables in the metadata, there's a corresponding dnlib class with the exact same or a similar name. Eg. the metadata has a `TypeDef` table, and dnlib has a `TypeDef` class. Some tables don't have a class because they're referenced by other classes, and that information is part of some other class. Eg. the `TypeDef` class contains all its properties and events, even though the `TypeDef` table has no property or event column.
 
 For each of these table classes, there's an abstract base class, and two sub classes. These sub classes are named the same as the base class but ends in either `MD` (for classes created from the metadata) or `User` (for classes created by the user). Eg. `TypeDef` is the base class, and it has two sub classes `TypeDefMD` which is auto-created from metadata, and `TypeRefUser` which is created by the user when adding user types. Most of the XyzMD classes are internal and can't be referenced directly by the user. They're created by `ModuleDefMD` (which is the only public `MD` class). All XyzUser classes are public.
 
@@ -278,7 +278,7 @@ The following are the field classes: `FieldDef` and `MemberRef` (field ref). The
 Comparing types, methods, fields, etc
 -------------------------------------
 
-dot10 has a `SigComparer` class that can compare any type with any other type. Any method with any other method, etc. It also has several pre-created `IEqualityComparer<T>` classes (eg. `TypeEqualityComparer`, `FieldEqualityComparer`, etc) which you can use if you intend to eg. use a type as a key in a `Dictionary<TKey, TValue>`.
+dnlib has a `SigComparer` class that can compare any type with any other type. Any method with any other method, etc. It also has several pre-created `IEqualityComparer<T>` classes (eg. `TypeEqualityComparer`, `FieldEqualityComparer`, etc) which you can use if you intend to eg. use a type as a key in a `Dictionary<TKey, TValue>`.
 
 The `SigComparer` class can also compare types with `System.Type`, methods with `System.Reflection.MethodBase`, etc.
 
@@ -322,7 +322,7 @@ There's three types of .NET resource, and they all derive from the common base c
 Win32 resources
 ---------------
 
-`ModuleDef.Win32Resources` can be null or a `Win32Resources` instance. You can add/remove any Win32 resource blob. dot10 doesn't try to parse these blobs.
+`ModuleDef.Win32Resources` can be null or a `Win32Resources` instance. You can add/remove any Win32 resource blob. dnlib doesn't try to parse these blobs.
 
 Parsing method bodies
 ---------------------
@@ -394,7 +394,7 @@ It's also possible to override `ModuleDefMD.ReadUserString()`. This method is ca
 Low level access to the metadata
 --------------------------------
 
-The low level classes are in the `dot10.DotNet.MD` namespace.
+The low level classes are in the `dnlib.DotNet.MD` namespace.
 
 Open an existing .NET module/assembly and you get a ModuleDefMD. It has several properties, eg. `StringsStream` is the #Strings stream.
 
@@ -403,7 +403,7 @@ The `MetaData` property gives you full access to the metadata.
 To get a list of all valid TypeDef rids (row IDs), use this code:
 
 ```C#
-using dot10.DotNet.MD;
+using dnlib.DotNet.MD;
 // ...
 ModuleDefMD mod = ModuleDefMD.Load(...);
 RidList typeDefRids = mod.MetaData.GetTypeDefRidList();

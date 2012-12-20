@@ -24,7 +24,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A CIL instruction (opcode + operand)
 	/// </summary>

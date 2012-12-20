@@ -25,7 +25,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Compares types
 	/// </summary>

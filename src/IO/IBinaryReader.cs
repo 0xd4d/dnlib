@@ -25,7 +25,7 @@
 using System.IO;
 using System.Text;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Reads binary data
 	/// </summary>

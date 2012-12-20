@@ -24,9 +24,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Reads signatures from the #Blob stream
 	/// </summary>

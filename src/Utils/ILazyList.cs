@@ -24,7 +24,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace dot10.Utils {
+namespace dnlib.Utils {
 	/// <summary>
 	/// Interface to access a lazily initialized list
 	/// </summary>

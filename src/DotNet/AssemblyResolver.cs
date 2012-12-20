@@ -27,7 +27,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Resolves assemblies
 	/// </summary>

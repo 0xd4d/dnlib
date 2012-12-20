@@ -24,10 +24,10 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using dot10.IO;
-using dot10.W32Resources;
+using dnlib.IO;
+using dnlib.W32Resources;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Converts <see cref="RVA"/>s to/from <see cref="FileOffset"/>s
 	/// </summary>

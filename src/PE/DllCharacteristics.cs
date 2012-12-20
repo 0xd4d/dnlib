@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// IMAGE_OPTIONAL_HEADER.DllCharacteristics
 	/// </summary>

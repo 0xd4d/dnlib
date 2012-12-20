@@ -22,9 +22,9 @@
 */
 
 ﻿using System;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the #GUID stream
 	/// </summary>

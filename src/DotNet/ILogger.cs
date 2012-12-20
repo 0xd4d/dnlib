@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.Reflection;
-using dot10.DotNet.Writer;
+using dnlib.DotNet.Writer;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// <see cref="ILogger"/> events
 	/// </summary>

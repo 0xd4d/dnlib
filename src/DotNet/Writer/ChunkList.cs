@@ -24,7 +24,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Contains a list of <see cref="IChunk"/>s
 	/// </summary>

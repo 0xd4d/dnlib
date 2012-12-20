@@ -24,11 +24,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using dot10.Utils;
-using dot10.IO;
-using dot10.PE;
+using dnlib.Utils;
+using dnlib.IO;
+using dnlib.PE;
 
-namespace dot10.W32Resources {
+namespace dnlib.W32Resources {
 	/// <summary>
 	/// A Win32 resource directory (see IMAGE_RESOURCE_DIRECTORY in the Windows SDK)
 	/// </summary>

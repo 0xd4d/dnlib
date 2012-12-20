@@ -23,11 +23,11 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using dot10.Utils;
-using dot10.DotNet.MD;
-using dot10.DotNet.Emit;
+using dnlib.Utils;
+using dnlib.DotNet.MD;
+using dnlib.DotNet.Emit;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the TypeDef table
 	/// </summary>

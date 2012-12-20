@@ -26,7 +26,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Stores assembly name information
 	/// </summary>

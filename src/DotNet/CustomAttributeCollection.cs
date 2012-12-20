@@ -22,9 +22,9 @@
 */
 
 ﻿using System.Collections.Generic;
-using dot10.Utils;
+using dnlib.Utils;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Stores <see cref="CustomAttribute"/>s
 	/// </summary>

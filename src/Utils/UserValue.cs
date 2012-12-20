@@ -24,7 +24,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace dot10.Utils {
+namespace dnlib.Utils {
 	/// <summary>
 	/// Lazily returns the original value if the user hasn't overwritten the value
 	/// </summary>

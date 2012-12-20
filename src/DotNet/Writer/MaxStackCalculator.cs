@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using dot10.DotNet.Emit;
+using dnlib.DotNet.Emit;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Calculates max stack usage by using a simple pass over all instructions. This value
 	/// can be placed in the fat method header's MaxStack field.

@@ -23,7 +23,7 @@
 
 ﻿using System.Diagnostics;
 
-namespace dot10.Utils {
+namespace dnlib.Utils {
 	/// <summary>
 	/// A readonly list that gets initialized lazily
 	/// </summary>

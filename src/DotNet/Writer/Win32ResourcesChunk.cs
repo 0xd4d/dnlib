@@ -25,11 +25,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using dot10.IO;
-using dot10.PE;
-using dot10.W32Resources;
+using dnlib.IO;
+using dnlib.PE;
+using dnlib.W32Resources;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Writes Win32 resources
 	/// </summary>

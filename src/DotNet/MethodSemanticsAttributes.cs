@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Method semantics flags, see CorHdr.h/CorMethodSemanticsAttr
 	/// </summary>

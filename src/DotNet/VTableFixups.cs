@@ -24,10 +24,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using dot10.PE;
-using dot10.IO;
+using dnlib.PE;
+using dnlib.IO;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// All native vtables
 	/// </summary>

@@ -21,9 +21,9 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿using dot10.IO;
+﻿using dnlib.IO;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Represents a section in a file
 	/// </summary>

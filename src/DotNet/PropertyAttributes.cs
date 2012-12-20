@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Property attributes, see CorHdr.h/CorPropertyAttr
 	/// </summary>

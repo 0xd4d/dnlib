@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Resolve exception base class
 	/// </summary>

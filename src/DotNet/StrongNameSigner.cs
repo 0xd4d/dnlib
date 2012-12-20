@@ -25,7 +25,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Strong name signs an assembly. It supports normal strong name signing and the new
 	/// (.NET 4.5) enhanced strong name signing.

@@ -24,11 +24,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using dot10.Utils;
-using dot10.W32Resources;
-using dot10.IO;
+using dnlib.Utils;
+using dnlib.W32Resources;
+using dnlib.IO;
 
-namespace dot10.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Image layout
 	/// </summary>

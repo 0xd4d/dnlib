@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Thrown when the module writer encounters an unrecoverable error
 	/// </summary>

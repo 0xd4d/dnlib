@@ -22,9 +22,9 @@
 */
 
 ﻿using System.Collections.Generic;
-using dot10.Utils;
+using dnlib.Utils;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	struct SectionSizeInfo {
 		/// <summary>
 		/// Length of section

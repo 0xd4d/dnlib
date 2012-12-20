@@ -22,10 +22,10 @@
 */
 
 ﻿using System.Collections.Generic;
-using dot10.PE;
-using dot10.DotNet.Emit;
+using dnlib.PE;
+using dnlib.DotNet.Emit;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Interface to decrypt methods
 	/// </summary>

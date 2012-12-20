@@ -25,9 +25,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using dot10.IO;
+using dnlib.IO;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// A metadata stream header
 	/// </summary>

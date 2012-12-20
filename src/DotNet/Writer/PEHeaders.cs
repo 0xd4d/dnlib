@@ -25,10 +25,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using dot10.IO;
-using dot10.PE;
+using dnlib.IO;
+using dnlib.PE;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// <see cref="PEHeaders"/> options
 	/// </summary>
@@ -36,12 +36,12 @@ namespace dot10.DotNet.Writer {
 		/// <summary>
 		/// Default DLL characteristics
 		/// </summary>
-		public const DllCharacteristics DefaultDllCharacteristics = dot10.PE.DllCharacteristics.TerminalServerAware | dot10.PE.DllCharacteristics.NoSeh | dot10.PE.DllCharacteristics.NxCompat | dot10.PE.DllCharacteristics.DynamicBase;
+		public const DllCharacteristics DefaultDllCharacteristics = dnlib.PE.DllCharacteristics.TerminalServerAware | dnlib.PE.DllCharacteristics.NoSeh | dnlib.PE.DllCharacteristics.NxCompat | dnlib.PE.DllCharacteristics.DynamicBase;
 
 		/// <summary>
 		/// Default subsystem value
 		/// </summary>
-		public const Subsystem DEFAULT_SUBSYSTEM = dot10.PE.Subsystem.WindowsGui;
+		public const Subsystem DEFAULT_SUBSYSTEM = dnlib.PE.Subsystem.WindowsGui;
 
 		/// <summary>
 		/// Default major linker version
@@ -64,7 +64,7 @@ namespace dot10.DotNet.Writer {
 		public uint? TimeDateStamp;
 
 		/// <summary>
-		/// IMAGE_FILE_HEADER.Characteristics value. <see cref="dot10.PE.Characteristics.Dll"/> bit
+		/// IMAGE_FILE_HEADER.Characteristics value. <see cref="dnlib.PE.Characteristics.Dll"/> bit
 		/// is ignored and set/cleared depending on whether it's a EXE or a DLL file.
 		/// </summary>
 		public Characteristics? Characteristics;

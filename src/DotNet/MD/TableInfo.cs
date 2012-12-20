@@ -24,7 +24,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace dot10.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Info about one MD table
 	/// </summary>

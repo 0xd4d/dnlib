@@ -25,7 +25,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace dot10.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// IImageStream for byte[]
 	/// </summary>

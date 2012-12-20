@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Thrown when invalid data is detected while parsing a .NET method
 	/// </summary>

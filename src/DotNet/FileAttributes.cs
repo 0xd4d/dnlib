@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// File row flags. See CorHdr.h/CorFileFlags
 	/// </summary>

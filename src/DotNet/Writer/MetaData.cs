@@ -25,12 +25,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using dot10.IO;
-using dot10.PE;
-using dot10.DotNet.MD;
-using dot10.DotNet.Emit;
+using dnlib.IO;
+using dnlib.PE;
+using dnlib.DotNet.MD;
+using dnlib.DotNet.Emit;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// <see cref="MetaData"/> flags
 	/// </summary>

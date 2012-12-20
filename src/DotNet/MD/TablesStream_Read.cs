@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.DotNet.MD {
+﻿namespace dnlib.DotNet.MD {
 	public partial class TablesStream {
 		/// <summary>
 		/// Reads a raw Module row

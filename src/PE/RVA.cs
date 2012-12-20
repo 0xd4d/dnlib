@@ -21,7 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿namespace dot10.PE {
+﻿namespace dnlib.PE {
 	/// <summary>
 	/// Stores an RVA (relative virtual address)
 	/// </summary>

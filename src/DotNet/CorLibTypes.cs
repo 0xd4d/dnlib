@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	sealed class CorLibTypes : ICorLibTypes {
 		ModuleDef module;
 		CorLibTypeSig typeVoid;

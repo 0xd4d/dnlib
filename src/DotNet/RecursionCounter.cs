@@ -23,7 +23,7 @@
 
 ﻿using System;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	[Serializable]
 	class InfiniteRecursionException : Exception {
 		/// <summary>

@@ -22,9 +22,9 @@
 */
 
 ﻿using System.Collections.Generic;
-using dot10.PE;
+using dnlib.PE;
 
-namespace dot10.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Method body base class
 	/// </summary>

@@ -23,7 +23,7 @@
 
 ﻿using System.IO;
 
-namespace dot10.DotNet.Writer {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Extension methods
 	/// </summary>

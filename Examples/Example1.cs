@@ -1,7 +1,7 @@
 ﻿using System;
-using dot10.DotNet;
+using dnlib.DotNet;
 
-namespace dot10.Examples {
+namespace dnlib.Examples {
 	// This example will open mscorlib.dll and then print out all types
 	// in the assembly, including the number of methods, fields, properties
 	// and events each type has.

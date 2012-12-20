@@ -25,7 +25,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace dot10.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Thrown if the strong name key or public key is invalid
 	/// </summary>
