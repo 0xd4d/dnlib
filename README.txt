@@ -120,9 +120,19 @@ When saving the assembly, set the ModuleWriterOptions.StrongNameKey property:
 ```C#
 using dnlib.DotNet.Writer;
 ...
-ModuleDefMD mod = ModuleDefMD.Load(.....);
-ModuleWriterOptions opts = new ModuleWriterOptions(mod);
-opts.StrongNameKey = new StrongNameKey(@"c:\my\file.snk");
+// Open or create an assembly
+ModuleDef mod = ModuleDefMD.Load(.....);
+
+// Create writer options
+var opts = new ModuleWriterOptions(mod);
+
+// Open or create the strong name key
+var signatureKey = new StrongNameKey(@"c:\my\file.snk");
+
+// This method will initialize the required properties
+opts.InitializeStrongNameSigning(mod, signatureKey);
+
+// Write and strong name sign the assembly
 mod.Write(@"C:\out\file.dll", opts);
 ```
 
@@ -135,8 +145,10 @@ for info on enhanced strong naming.
 Enhanced strong name signing without key migration:
 
 ```C#
+using dnlib.DotNet.Writer;
+...
 // Open or create an assembly
-ModuleDefMD mod = ModuleDefMD.Load(....);
+ModuleDef mod = ModuleDefMD.Load(....);
 
 // Open or create the signature keys
 var signatureKey = new StrongNameKey(....);
@@ -146,7 +158,7 @@ var signaturePubKey = new StrongNamePublicKey(....);
 var opts = new ModuleWriterOptions(mod);
 
 // This method will initialize the required properties
-opts.InitializeEnhancedStrongNameSigning(signatureKey, signaturePubKey);
+opts.InitializeEnhancedStrongNameSigning(mod, signatureKey, signaturePubKey);
 
 // Write and strong name sign the assembly
 mod.Write(@"C:\out\file.dll", opts);
@@ -155,8 +167,10 @@ mod.Write(@"C:\out\file.dll", opts);
 Enhanced strong name signing with key migration:
 
 ```C#
+using dnlib.DotNet.Writer;
+...
 // Open or create an assembly
-ModuleDefMD mod = ModuleDefMD.Load(....);
+ModuleDef mod = ModuleDefMD.Load(....);
 
 // Open or create the identity and signature keys
 var signatureKey = new StrongNameKey(....);

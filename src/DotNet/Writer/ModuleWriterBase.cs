@@ -107,7 +107,9 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the strong name key. When you enhance strong name sign an assembly,
 		/// this instance's HashAlgorithm must be initialized to its public key's HashAlgorithm.
-		/// You should call <see cref="InitializeEnhancedStrongNameSigning(StrongNameKey,StrongNamePublicKey)"/>
+		/// You should call <see cref="InitializeStrongNameSigning(ModuleDef,StrongNameKey)"/>
+		/// to initialize this property if you use normal strong name signing.
+		/// You should call <see cref="InitializeEnhancedStrongNameSigning(ModuleDef,StrongNameKey,StrongNamePublicKey)"/>
 		/// or <see cref="InitializeEnhancedStrongNameSigning(ModuleDef,StrongNameKey,StrongNamePublicKey,StrongNameKey,StrongNamePublicKey)"/>
 		/// to initialize this property if you use enhanced strong name signing.
 		/// </summary>
@@ -120,7 +122,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the new public key that should be used. If this is <c>null</c>, use
 		/// the public key generated from <see cref="StrongNameKey"/>. If it is also <c>null</c>,
 		/// use the module's Assembly's public key.
-		/// You should call <see cref="InitializeEnhancedStrongNameSigning(StrongNameKey,StrongNamePublicKey)"/>
+		/// You should call <see cref="InitializeEnhancedStrongNameSigning(ModuleDef,StrongNameKey,StrongNamePublicKey)"/>
 		/// or <see cref="InitializeEnhancedStrongNameSigning(ModuleDef,StrongNameKey,StrongNamePublicKey,StrongNameKey,StrongNamePublicKey)"/>
 		/// to initialize this property if you use enhanced strong name signing.
 		/// </summary>
@@ -260,15 +262,28 @@ namespace dnlib.DotNet.Writer {
 
 		/// <summary>
 		/// Initializes <see cref="StrongNameKey"/> and <see cref="StrongNamePublicKey"/>
+		/// for normal strong name signing.
+		/// </summary>
+		/// <param name="module">Module</param>
+		/// <param name="signatureKey">Signature strong name key pair</param>
+		public void InitializeStrongNameSigning(ModuleDef module, StrongNameKey signatureKey) {
+			StrongNameKey = signatureKey;
+			StrongNamePublicKey = null;
+			if (module.Assembly != null)
+				module.Assembly.CustomAttributes.RemoveAll("System.Reflection.AssemblySignatureKeyAttribute");
+		}
+
+		/// <summary>
+		/// Initializes <see cref="StrongNameKey"/> and <see cref="StrongNamePublicKey"/>
 		/// for enhanced strong name signing (without key migration). See
 		/// http://msdn.microsoft.com/en-us/library/hh415055.aspx
 		/// </summary>
+		/// <param name="module">Module</param>
 		/// <param name="signatureKey">Signature strong name key pair</param>
 		/// <param name="signaturePubKey">Signature public key</param>
-		public void InitializeEnhancedStrongNameSigning(StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey) {
-			StrongNameKey = signatureKey;
+		public void InitializeEnhancedStrongNameSigning(ModuleDef module, StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey) {
+			InitializeStrongNameSigning(module, signatureKey);
 			StrongNameKey.HashAlgorithm = signaturePubKey.HashAlgorithm;
-			StrongNamePublicKey = null;
 		}
 
 		/// <summary>
