@@ -136,6 +136,7 @@
     <Compile Include="DotNet\MD\TablesStream_Read.cs" />
     <Compile Include="DotNet\MD\USStream.cs" />
     <Compile Include="DotNet\MDToken.cs" />
+    <Compile Include="DotNet\MemberMDInitializer.cs" />
     <Compile Include="DotNet\MemberRef.cs" />
     <Compile Include="DotNet\MethodAttributes.cs" />
     <Compile Include="DotNet\MethodDef.cs" />

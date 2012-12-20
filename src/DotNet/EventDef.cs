@@ -414,6 +414,19 @@ namespace dnlib.DotNet {
 			rawRow = readerModule.TablesStream.ReadEventRow(rid);
 		}
 
+		internal EventDefMD InitializeAll() {
+			MemberMDInitializer.Initialize(Attributes);
+			MemberMDInitializer.Initialize(Name);
+			MemberMDInitializer.Initialize(EventType);
+			MemberMDInitializer.Initialize(CustomAttributes);
+			MemberMDInitializer.Initialize(AddMethod);
+			MemberMDInitializer.Initialize(InvokeMethod);
+			MemberMDInitializer.Initialize(RemoveMethod);
+			MemberMDInitializer.Initialize(OtherMethods);
+			MemberMDInitializer.Initialize(DeclaringType);
+			return this;
+		}
+
 		void InitializeEventMethods() {
 			if (otherMethods != null)
 				return;

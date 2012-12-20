@@ -182,5 +182,12 @@ namespace dnlib.DotNet {
 				return;
 			rawRow = readerModule.TablesStream.ReadGenericParamConstraintRow(rid);
 		}
+
+		internal GenericParamConstraintMD InitializeAll() {
+			MemberMDInitializer.Initialize(Owner);
+			MemberMDInitializer.Initialize(Constraint);
+			MemberMDInitializer.Initialize(CustomAttributes);
+			return this;
+		}
 	}
 }

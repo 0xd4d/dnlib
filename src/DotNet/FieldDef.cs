@@ -744,6 +744,21 @@ namespace dnlib.DotNet {
 			rawRow = readerModule.TablesStream.ReadFieldRow(rid);
 		}
 
+		internal FieldDefMD InitializeAll() {
+			MemberMDInitializer.Initialize(CustomAttributes);
+			MemberMDInitializer.Initialize(Attributes);
+			MemberMDInitializer.Initialize(Name);
+			MemberMDInitializer.Initialize(Signature);
+			MemberMDInitializer.Initialize(FieldOffset);
+			MemberMDInitializer.Initialize(FieldMarshal);
+			MemberMDInitializer.Initialize(RVA);
+			MemberMDInitializer.Initialize(InitialValue);
+			MemberMDInitializer.Initialize(ImplMap);
+			MemberMDInitializer.Initialize(Constant);
+			MemberMDInitializer.Initialize(DeclaringType);
+			return this;
+		}
+
 		bool GetFieldRVA(out RVA rva) {
 			InitializeRawRow();
 			if (((FieldAttributes)rawRow.Flags & FieldAttributes.HasFieldRVA) == 0) {

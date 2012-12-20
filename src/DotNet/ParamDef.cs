@@ -397,5 +397,16 @@ namespace dnlib.DotNet {
 				return;
 			rawRow = readerModule.TablesStream.ReadParamRow(rid);
 		}
+
+		internal ParamDefMD InitializeAll() {
+			MemberMDInitializer.Initialize(DeclaringMethod);
+			MemberMDInitializer.Initialize(Attributes);
+			MemberMDInitializer.Initialize(Sequence);
+			MemberMDInitializer.Initialize(Name);
+			MemberMDInitializer.Initialize(FieldMarshal);
+			MemberMDInitializer.Initialize(Constant);
+			MemberMDInitializer.Initialize(CustomAttributes);
+			return this;
+		}
 	}
 }

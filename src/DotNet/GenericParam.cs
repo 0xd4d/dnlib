@@ -386,11 +386,22 @@ namespace dnlib.DotNet {
 			rawRow = readerModule.TablesStream.ReadGenericParamRow(rid);
 		}
 
+		internal GenericParamMD InitializeAll() {
+			MemberMDInitializer.Initialize(Owner);
+			MemberMDInitializer.Initialize(Number);
+			MemberMDInitializer.Initialize(Flags);
+			MemberMDInitializer.Initialize(Name);
+			MemberMDInitializer.Initialize(Kind);
+			MemberMDInitializer.Initialize(CustomAttributes);
+			MemberMDInitializer.Initialize(GenericParamConstraints);
+			return this;
+		}
+
 		/// <inheritdoc/>
 		public override void OnLazyAdd(int index, ref GenericParamConstraint value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadGenericParamConstraint(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParamConstraint(value.Rid).InitializeAll());
 				value.Owner = this;
 			}
 		}

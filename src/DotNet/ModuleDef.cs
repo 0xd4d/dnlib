@@ -577,6 +577,18 @@ namespace dnlib.DotNet {
 			return tableRow;
 		}
 
+		/// <summary>
+		/// Updates the <c>rid</c> to the next free <c>rid</c> available.
+		/// </summary>
+		/// <typeparam name="T">IMDTokenProvider</typeparam>
+		/// <param name="tableRow">The row that should be updated</param>
+		/// <returns>Returns the input</returns>
+		public T ForceUpdateRowId<T>(T tableRow) where T : IMDTokenProvider {
+			if (tableRow != null)
+				tableRow.Rid = GetNextFreeRid(tableRow.MDToken.Table);
+			return tableRow;
+		}
+
 		uint GetNextFreeRid(Table table) {
 			if ((uint)table >= lastUsedRids.Length)
 				return 0;

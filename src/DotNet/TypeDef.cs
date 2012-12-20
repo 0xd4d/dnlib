@@ -2021,7 +2021,7 @@ namespace dnlib.DotNet {
 		public override void OnLazyAdd(int index, ref FieldDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadField(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadField(value.Rid).InitializeAll());
 				value.DeclaringType2 = this;
 			}
 		}
@@ -2030,7 +2030,7 @@ namespace dnlib.DotNet {
 		public override void OnLazyAdd(int index, ref MethodDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadMethod(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadMethod(value.Rid).InitializeAll());
 				value.DeclaringType2 = this;
 			}
 		}
@@ -2039,7 +2039,7 @@ namespace dnlib.DotNet {
 		public override void OnLazyAdd(int index, ref EventDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadEvent(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadEvent(value.Rid).InitializeAll());
 				value.DeclaringType2 = this;
 			}
 		}
@@ -2048,7 +2048,7 @@ namespace dnlib.DotNet {
 		public override void OnLazyAdd(int index, ref PropertyDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadProperty(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadProperty(value.Rid).InitializeAll());
 				value.DeclaringType2 = this;
 			}
 		}
@@ -2057,7 +2057,7 @@ namespace dnlib.DotNet {
 		public override void OnLazyAdd(int index, ref GenericParam value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadGenericParam(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParam(value.Rid).InitializeAll());
 				value.Owner = this;
 			}
 		}

@@ -1143,11 +1143,28 @@ namespace dnlib.DotNet {
 			rawRow = readerModule.TablesStream.ReadMethodRow(rid);
 		}
 
+		internal MethodDefMD InitializeAll() {
+			MemberMDInitializer.Initialize(RVA);
+			MemberMDInitializer.Initialize(Attributes);
+			MemberMDInitializer.Initialize(ImplAttributes);
+			MemberMDInitializer.Initialize(Name);
+			MemberMDInitializer.Initialize(Signature);
+			MemberMDInitializer.Initialize(ImplMap);
+			MemberMDInitializer.Initialize(MethodBody);
+			MemberMDInitializer.Initialize(DeclaringType);
+			MemberMDInitializer.Initialize(CustomAttributes);
+			MemberMDInitializer.Initialize(Overrides);
+			MemberMDInitializer.Initialize(ParamDefs);
+			MemberMDInitializer.Initialize(GenericParameters);
+			MemberMDInitializer.Initialize(DeclSecurities);
+			return this;
+		}
+
 		/// <inheritdoc/>
 		public override void OnLazyAdd(int index, ref GenericParam value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadGenericParam(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParam(value.Rid).InitializeAll());
 				value.Owner = this;
 			}
 		}
@@ -1156,7 +1173,7 @@ namespace dnlib.DotNet {
 		public override void OnLazyAdd(int index, ref ParamDef value) {
 			if (value.DeclaringMethod != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ReadParam(value.Rid);
+				value = readerModule.ForceUpdateRowId(readerModule.ReadParam(value.Rid).InitializeAll());
 				value.DeclaringMethod = this;
 			}
 		}

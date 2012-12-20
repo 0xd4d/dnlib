@@ -454,6 +454,19 @@ namespace dnlib.DotNet {
 			rawRow = readerModule.TablesStream.ReadPropertyRow(rid);
 		}
 
+		internal PropertyDefMD InitializeAll() {
+			MemberMDInitializer.Initialize(Attributes);
+			MemberMDInitializer.Initialize(Name);
+			MemberMDInitializer.Initialize(Type);
+			MemberMDInitializer.Initialize(Constant);
+			MemberMDInitializer.Initialize(CustomAttributes);
+			MemberMDInitializer.Initialize(GetMethod);
+			MemberMDInitializer.Initialize(SetMethod);
+			MemberMDInitializer.Initialize(OtherMethods);
+			MemberMDInitializer.Initialize(DeclaringType);
+			return this;
+		}
+
 		void InitializePropertyMethods() {
 			if (otherMethods != null)
 				return;
