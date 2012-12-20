@@ -421,10 +421,16 @@ All assemblies that you yourself open should be added to the assembly resolver
 cache.
 
 ```C#
-MOduleDefMD mod = MOduleDefMD.Load(...);
+ModuleDefMD mod = ModuleDefMD.Load(...);
 mod.Context = modCtx;	// Use the previously created (and shared) context
 mod.Context.AssemblyResolver.AddToCache(mod);
 ```
+
+Resolving types, methods, etc from metadata tokens
+--------------------------------------------------
+
+`ModuleDefMD` has several `ResolveXXX()` methods, eg. `ResolveTypeDef()`,
+`ResolveMethod()`, etc.
 
 Creating mscorlib type references
 ---------------------------------
@@ -451,11 +457,9 @@ IMethod writeLine = importer.Import(typeof(System.Console).GetMethod("WriteLine"
 
 You can also use it to import types, methods etc from another `ModuleDef`.
 
-Resolving types, methods, and more
-----------------------------------
-
-`ModuleDefMD` has several `ResolveXXX()` methods, eg. `ResolveTypeDef()`,
-`ResolveMethod()`, etc.
+All imported types, methods etc will be references to the original assembly.
+I.e., it won't add the imported `TypeDef` to the target module. It will just
+create a `TypeRef` to it.
 
 Using decrypted methods
 -----------------------
@@ -492,3 +496,5 @@ RidList typeDefRids = mod.MetaData.GetTypeDefRidList();
 for (int i = 0; i < typeDefRids.Count; i++)
 	Console.WriteLine("rid: {0}", typeDefRids[i]);
 ```
+
+You don't need to create a `ModuleDefMD`, though. See `DotNetFile`.
