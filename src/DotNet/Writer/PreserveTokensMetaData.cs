@@ -644,7 +644,6 @@ namespace dnlib.DotNet.Writer {
 					if ((uint)i + 1 != tablesHeap.EventPtrTable.Add(new RawEventPtrRow(info.Rid)))
 						throw new ModuleWriterException("Invalid event ptr rid");
 				}
-				ReUseDeletedEventRows();
 			}
 
 			if (propertyDefInfos.NeedPtrTable) {
@@ -653,13 +652,19 @@ namespace dnlib.DotNet.Writer {
 					if ((uint)i + 1 != tablesHeap.PropertyPtrTable.Add(new RawPropertyPtrRow(info.Rid)))
 						throw new ModuleWriterException("Invalid property ptr rid");
 				}
-				ReUseDeletedPropertyRows();
 			}
 
 			InitializeMethodAndFieldList();
 			InitializeParamList();
 			InitializeEventMap();
 			InitializePropertyMap();
+
+			// We must re-use deleted event/property rows after we've initialized
+			// the event/prop map tables.
+			if (eventDefInfos.NeedPtrTable)
+				ReUseDeletedEventRows();
+			if (propertyDefInfos.NeedPtrTable)
+				ReUseDeletedPropertyRows();
 
 			InitializeTypeRefTableRows();
 			InitializeTypeSpecTableRows();
