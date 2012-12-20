@@ -104,7 +104,7 @@ To detect it at runtime, use this code:
 Strong name sign an assembly
 ----------------------------
 
-When saving the assembly, set the ModuleWriterOptions.StrongNameKey property:
+Use the following code to strong name sign the assembly when saving it:
 
     :::C#
     using dnlib.DotNet.Writer;
