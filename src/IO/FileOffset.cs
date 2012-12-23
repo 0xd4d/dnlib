@@ -23,7 +23,7 @@
 
 ﻿namespace dnlib.IO {
 	/// <summary>
-	/// Stores a file offset
+	/// Represents a file offset
 	/// </summary>
 	public enum FileOffset : long {
 	}
