@@ -307,7 +307,12 @@ namespace dnlib.DotNet.Writer {
 			return GetFileLength();
 		}
 
-		void CalculateLength() {
+		/// <summary>
+		/// Calculates the length. This will set all MD tables to read-only.
+		/// </summary>
+		public void CalculateLength() {
+			if (length != 0)
+				return;
 			SetReadOnly();
 
 			majorVersion = options.MajorVersion ?? 2;
