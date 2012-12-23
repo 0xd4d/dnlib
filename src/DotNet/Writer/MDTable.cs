@@ -58,13 +58,18 @@ namespace dnlib.DotNet.Writer {
 		/// Called when the table can't be modified any more
 		/// </summary>
 		void SetReadOnly();
+
+		/// <summary>
+		/// Gets all raw rows
+		/// </summary>
+		IEnumerable<IRawRow> GetRawRows();
 	}
 
 	/// <summary>
 	/// Creates rows in a table. Rows can optionally be shared to create a compact table.
 	/// </summary>
 	/// <typeparam name="T">The raw row type</typeparam>
-	public sealed class MDTable<T> : IMDTable, IEnumerable<T> {
+	public sealed class MDTable<T> : IMDTable, IEnumerable<T> where T : IRawRow {
 		readonly Table table;
 		readonly Dictionary<T, uint> cachedDict;
 		readonly List<T> cached;
@@ -177,6 +182,12 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
 			return GetEnumerator();
+		}
+
+		/// <inheritdoc/>
+		public IEnumerable<IRawRow> GetRawRows() {
+			foreach (var rawRow in cached)
+				yield return rawRow;
 		}
 	}
 }

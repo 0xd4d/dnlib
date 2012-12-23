@@ -198,6 +198,7 @@
     <Compile Include="DotNet\Writer\ImportDirectory.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
+    <Compile Include="DotNet\Writer\MDTableWriter.cs" />
     <Compile Include="DotNet\Writer\MetaData.cs" />
     <Compile Include="DotNet\Writer\MetaDataHeader.cs" />
     <Compile Include="DotNet\Writer\MethodBody.cs" />
