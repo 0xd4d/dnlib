@@ -50,6 +50,11 @@ namespace dnlib.DotNet.Writer {
 		bool IsSorted { get; set; }
 
 		/// <summary>
+		/// <c>true</c> if <see cref="SetReadOnly()"/> has been called
+		/// </summary>
+		bool IsReadOnly { get; }
+
+		/// <summary>
 		/// Gets/sets the <see cref="TableInfo"/>
 		/// </summary>
 		TableInfo TableInfo { get; set; }
@@ -96,6 +101,11 @@ namespace dnlib.DotNet.Writer {
 		public bool IsSorted {
 			get { return isSorted; }
 			set { isSorted = value; }
+		}
+
+		/// <inheritdoc/>
+		public bool IsReadOnly {
+			get { return isReadOnly; }
 		}
 
 		/// <inheritdoc/>
