@@ -196,6 +196,7 @@
     <Compile Include="DotNet\Writer\IModuleWriterListener.cs" />
     <Compile Include="DotNet\Writer\ImportAddressTable.cs" />
     <Compile Include="DotNet\Writer\ImportDirectory.cs" />
+    <Compile Include="DotNet\Writer\IOffsetHeap.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
     <Compile Include="DotNet\Writer\MDTableWriter.cs" />

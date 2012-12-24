@@ -31,11 +31,12 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// #US heap
 	/// </summary>
-	sealed class USHeap : HeapBase {
+	public sealed class USHeap : HeapBase, IOffsetHeap<string> {
 		Dictionary<string, uint> cachedDict = new Dictionary<string, uint>(StringComparer.Ordinal);
 		List<string> cached = new List<string>();
 		uint nextOffset = 1;
 		byte[] originalData;
+		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>
 		public override string Name {
@@ -122,7 +123,7 @@ namespace dnlib.DotNet.Writer {
 			uint offset;
 			cached.Add(s);
 			cachedDict[s] = offset = nextOffset;
-			nextOffset += (uint)(Utils.GetCompressedUInt32Length((uint)s.Length * 2 + 1) + s.Length * 2 + 1);
+			nextOffset += (uint)GetRawDataSize(s);
 			return offset;
 		}
 
@@ -137,16 +138,59 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(originalData);
 			else
 				writer.Write((byte)0);
+
+			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
-				writer.WriteCompressedUInt32((uint)s.Length * 2 + 1);
-				byte last = 0;
-				for (int i = 0; i < s.Length; i++) {
-					ushort c = (ushort)s[i];
-					writer.Write(c);
-					if (c > 0xFF || (1 <= c && c <= 8) || (0x0E <= c && c <= 0x1F) || c == 0x27 || c == 0x2D || c == 0x7F)
-						last = 1;
+				int rawLen = GetRawDataSize(s);
+				byte[] rawData;
+				if (userRawData != null && userRawData.TryGetValue(offset, out rawData)) {
+					if (rawData.Length != rawLen)
+						throw new InvalidOperationException("Invalid length of raw data");
+					writer.Write(rawData);
 				}
-				writer.Write(last);
+				else
+					WriteString(writer, s);
+				offset += (uint)rawLen;
+			}
+		}
+
+		void WriteString(BinaryWriter writer, string s) {
+			writer.WriteCompressedUInt32((uint)s.Length * 2 + 1);
+			byte last = 0;
+			for (int i = 0; i < s.Length; i++) {
+				ushort c = (ushort)s[i];
+				writer.Write(c);
+				if (c > 0xFF || (1 <= c && c <= 8) || (0x0E <= c && c <= 0x1F) || c == 0x27 || c == 0x2D || c == 0x7F)
+					last = 1;
+			}
+			writer.Write(last);
+		}
+
+		/// <inheritdoc/>
+		public int GetRawDataSize(string data) {
+			return Utils.GetCompressedUInt32Length((uint)data.Length * 2 + 1) + data.Length * 2 + 1;
+		}
+
+		/// <inheritdoc/>
+		public void SetRawData(uint offset, byte[] rawData) {
+			if (rawData == null)
+				throw new ArgumentNullException("rawData");
+			if (userRawData == null)
+				userRawData = new Dictionary<uint, byte[]>();
+			userRawData[offset] = rawData;
+		}
+
+		/// <inheritdoc/>
+		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
+			var memStream = new MemoryStream();
+			var writer = new BinaryWriter(memStream);
+			uint offset = originalData != null ? (uint)originalData.Length : 1;
+			foreach (var s in cached) {
+				memStream.Position = 0;
+				memStream.SetLength(0);
+				WriteString(writer, s);
+				yield return new KeyValuePair<uint, byte[]>(offset, memStream.ToArray());
+				offset += (uint)memStream.Length;
 			}
 		}
 	}
