@@ -181,6 +181,7 @@ namespace dnlib.DotNet.Writer {
 	public sealed class MetaDataOptions {
 		MetaDataHeaderOptions metaDataHeaderOptions;
 		TablesHeapOptions tablesHeapOptions;
+		List<IHeap> otherHeaps;
 
 		/// <summary>
 		/// Gets/sets the <see cref="MetaDataHeader"/> options. This is never <c>null</c>.
@@ -206,7 +207,9 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Any additional heaps that should be added to the heaps list
 		/// </summary>
-		public IEnumerable<IHeap> OtherHeaps;
+		public List<IHeap> OtherHeaps {
+			get { return otherHeaps ?? (otherHeaps = new List<IHeap>()); }
+		}
 
 		/// <summary>
 		/// Default constructor
