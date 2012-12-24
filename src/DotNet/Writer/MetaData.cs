@@ -310,6 +310,76 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets the module
+		/// </summary>
+		public ModuleDef Module {
+			get { return module; }
+		}
+
+		/// <summary>
+		/// Gets the constants
+		/// </summary>
+		public UniqueChunkList<ByteArrayChunk> Constants {
+			get { return constants; }
+		}
+
+		/// <summary>
+		/// Gets the method body chunks
+		/// </summary>
+		public MethodBodyChunks MethodBodyChunks {
+			get { return methodBodies; }
+		}
+
+		/// <summary>
+		/// Gets the .NET resources
+		/// </summary>
+		public NetResources NetResources {
+			get { return netResources; }
+		}
+
+		/// <summary>
+		/// Gets the MD header
+		/// </summary>
+		public MetaDataHeader MetaDataHeader {
+			get { return metaDataHeader; }
+		}
+
+		/// <summary>
+		/// Gets the tables heap (<c>#~</c> or <c>#-</c>)
+		/// </summary>
+		public TablesHeap TablesHeap {
+			get { return tablesHeap; }
+		}
+
+		/// <summary>
+		/// Gets the #Strings heap
+		/// </summary>
+		public StringsHeap StringsHeap {
+			get { return stringsHeap; }
+		}
+
+		/// <summary>
+		/// Gets the #US heap
+		/// </summary>
+		public USHeap USHeap {
+			get { return usHeap; }
+		}
+
+		/// <summary>
+		/// Gets the #GUID heap
+		/// </summary>
+		public GuidHeap GuidHeap {
+			get { return guidHeap; }
+		}
+
+		/// <summary>
+		/// Gets the #Blob heap
+		/// </summary>
+		public BlobHeap BlobHeap {
+			get { return blobHeap; }
+		}
+
+		/// <summary>
 		/// The public key that should be used instead of the one in <see cref="AssemblyDef"/>.
 		/// </summary>
 		internal byte[] AssemblyPublicKey { get; set; }
