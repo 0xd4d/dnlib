@@ -57,7 +57,7 @@ namespace dnlib.DotNet.MD {
 		/// Returns a reader positioned at a table row
 		/// </summary>
 		/// <param name="table">Table</param>
-		/// <param name="rid">Row ID</param>
+		/// <param name="rid">A valid row ID (i.e., &gt;= <c>1</c> and &lt;= number of rows)</param>
 		/// <returns>The reader (owned by us) or <c>null</c> if the row isn't present</returns>
 		public IImageStream GetTableReader(MDTable table, uint rid) {
 			long offset;
@@ -73,7 +73,7 @@ namespace dnlib.DotNet.MD {
 		/// Returns the offset (in <see cref="fullStream"/>) of a row
 		/// </summary>
 		/// <param name="table">Table</param>
-		/// <param name="rid">Row ID</param>
+		/// <param name="rid">A valid row ID (i.e., &gt;= <c>1</c> and &lt;= number of rows)</param>
 		/// <param name="offset">Updated with the offset</param>
 		/// <returns><c>true</c> if the row exists, <c>false</c> if the row doesn't exist</returns>
 		protected abstract bool GetRowOffset(MDTable table, uint rid, out long offset);
