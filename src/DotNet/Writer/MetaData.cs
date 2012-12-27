@@ -259,6 +259,7 @@ namespace dnlib.DotNet.Writer {
 		internal MethodBodyChunks methodBodies;
 		internal NetResources netResources;
 		internal MetaDataHeader metaDataHeader;
+		internal HotHeap hotHeap;
 		internal TablesHeap tablesHeap;
 		internal StringsHeap stringsHeap;
 		internal USHeap usHeap;
@@ -342,6 +343,14 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public MetaDataHeader MetaDataHeader {
 			get { return metaDataHeader; }
+		}
+
+		/// <summary>
+		/// Gets/sets the hot heap (<c>#!</c>)
+		/// </summary>
+		public HotHeap HotHeap {
+			get { return hotHeap; }
+			set { hotHeap = value; }
 		}
 
 		/// <summary>
@@ -2630,6 +2639,16 @@ namespace dnlib.DotNet.Writer {
 
 		IList<IHeap> GetHeaps() {
 			var heaps = new List<IHeap>();
+
+			// The #! heap must be added before the other heaps or the CLR can
+			// sometimes flag an error. Eg., it can check whether a pointer is valid.
+			// It does this by comparing the pointer to the last valid address for
+			// the particular heap. If this pointer really is in the #! heap and the
+			// #! heap is at an address > than the other heap, then the CLR will think
+			// it's an invalid pointer.
+			if (hotHeap != null)	// Don't check whether it's empty
+				heaps.Add(hotHeap);
+
 			heaps.Add(tablesHeap);
 			if (!stringsHeap.IsEmpty || AlwaysCreateStringsHeap)
 				heaps.Add(stringsHeap);
