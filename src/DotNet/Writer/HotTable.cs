@@ -232,15 +232,16 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			if (CanWritePartialTable) {
+			if (CanWritePartialTable)
 				PartialWriteTo(writer);
-				firstLevelTable = null;
-				secondLevelTable = null;
-				partialData = null;
-				rids = null;
-			}
 			else
 				FullWriteTo(writer);
+
+			firstLevelTable = null;
+			secondLevelTable = null;
+			partialData = null;
+			rids = null;
+			data = null;
 		}
 
 		/// <summary>
@@ -258,7 +259,7 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(0);		// offset of indexes table
 			writer.Write(alignedHotTableHeaderSize);	// offset of hot data (4-byte aligned)
 			writer.Write((ushort)0);	// shift count
-			writer.WriteZeros((int)(writer.BaseStream.Position - startPos));
+			writer.WriteZeros(alignedHotTableHeaderSize - (int)(writer.BaseStream.Position - startPos));
 			writer.Write(data);
 		}
 
