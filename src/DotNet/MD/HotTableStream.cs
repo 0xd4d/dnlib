@@ -170,7 +170,7 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		protected override bool GetRowOffset(MDTable table, uint rid, out long offset) {
 			offset = 0;
-			if ((uint)table.Table >= tableHeaders.Length)
+			if ((uint)table.Table >= (uint)tableHeaders.Length)
 				return false;
 			var header = tableHeaders[(int)table.Table];
 			if (header == null)
@@ -261,7 +261,7 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		protected override bool GetRowOffset(MDTable table, uint rid, out long offset) {
 			offset = 0;
-			if ((uint)table.Table >= tableHeaders.Length)
+			if ((uint)table.Table >= (uint)tableHeaders.Length)
 				return false;
 			var header = tableHeaders[(int)table.Table];
 			if (header == null)
