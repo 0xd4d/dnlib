@@ -1283,6 +1283,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="offset">Offset of resource relative to the .NET resources section</param>
 		/// <returns>A stream the size of the resource</returns>
+		[System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
 		IImageStream CreateResourceStream(uint offset) {
 			IImageStream fs = null, imageStream = null;
 			try {

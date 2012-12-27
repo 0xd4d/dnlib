@@ -227,6 +227,7 @@
     <Compile Include="DotNet\Writer\USHeap.cs" />
     <Compile Include="DotNet\Writer\Win32ResourcesChunk.cs" />
     <Compile Include="ExtensionAttribute.cs" />
+    <Compile Include="HandleProcessCorruptedStateExceptionsAttribute.cs" />
     <Compile Include="IO\BinaryReaderStream.cs" />
     <Compile Include="IO\FileOffset.cs" />
     <Compile Include="IO\FileSection.cs" />
