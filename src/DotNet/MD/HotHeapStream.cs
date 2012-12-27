@@ -119,6 +119,10 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				if (reader != null)
+					reader.Dispose();
+			}
 		}
 	}
 
