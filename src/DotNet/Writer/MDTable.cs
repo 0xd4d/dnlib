@@ -65,6 +65,13 @@ namespace dnlib.DotNet.Writer {
 		void SetReadOnly();
 
 		/// <summary>
+		/// Gets a raw row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The raw row</returns>
+		IRawRow Get(uint rid);
+
+		/// <summary>
 		/// Gets all raw rows
 		/// </summary>
 		IEnumerable<IRawRow> GetRawRows();
@@ -120,6 +127,11 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="rid">The row ID</param>
 		public T this[uint rid] {
 			get { return cached[(int)rid - 1]; }
+		}
+
+		/// <inheritdoc/>
+		public IRawRow Get(uint rid) {
+			return this[rid];
 		}
 
 		/// <summary>
