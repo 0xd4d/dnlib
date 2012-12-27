@@ -30,6 +30,28 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public static class MDTableWriter {
 		/// <summary>
+		/// Writes a raw row
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="table">Table</param>
+		/// <param name="row">Row</param>
+		public static void Write(this BinaryWriter writer, IMDTable table, IRawRow row) {
+			if (table.Table == Table.Constant) {
+				var cols = table.TableInfo.Columns;
+				var row2 = (RawConstantRow)row;
+				writer.Write(row2.Type);
+				writer.Write(row2.Padding);
+				cols[1].Write(writer, row2.Parent);
+				cols[2].Write(writer, row2.Value);
+			}
+			else {
+				var cols = table.TableInfo.Columns;
+				foreach (var col in cols)
+					col.Write(writer, row.Read(col.Index));
+			}
+		}
+
+		/// <summary>
 		/// Writes a metadata table
 		/// </summary>
 		/// <param name="writer">Writer</param>
