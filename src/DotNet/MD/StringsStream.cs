@@ -27,7 +27,7 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the #Strings stream
 	/// </summary>
-	public sealed class StringsStream : DotNetStream {
+	public sealed class StringsStream : HeapStream {
 		/// <inheritdoc/>
 		public StringsStream() {
 		}
@@ -45,8 +45,8 @@ namespace dnlib.DotNet.MD {
 		public UTF8String Read(uint offset) {
 			if (offset >= imageStream.Length)
 				return null;
-			imageStream.Position = offset;
-			var data = imageStream.ReadBytesUntilByte(0);
+			var reader = GetReader(offset);
+			var data = reader.ReadBytesUntilByte(0);
 			if (data == null)
 				return null;
 			return new UTF8String(data);

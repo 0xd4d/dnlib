@@ -22,6 +22,8 @@
 */
 
 ﻿using System;
+using System.Collections.Generic;
+using dnlib.DotNet.MD;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -35,16 +37,30 @@ namespace dnlib.DotNet.MD {
 			: base(peImage, cor20Header, mdHeader) {
 		}
 
+		static HotHeapVersion GetHotHeapVersion(string version) {
+			if (version.StartsWith(MDHeaderRuntimeVersion.MS_CLR_20_PREFIX))
+				return HotHeapVersion.CLR20;
+			if (version.StartsWith(MDHeaderRuntimeVersion.MS_CLR_40_PREFIX))
+				return HotHeapVersion.CLR40;
+
+			return HotHeapVersion.CLR20;
+		}
+
 		/// <inheritdoc/>
 		protected override void Initialize2() {
-			IImageStream imageStream = null;
+			var hotHeapVersion = GetHotHeapVersion(mdHeader.VersionString);
+
+			IImageStream imageStream = null, fullStream = null;
 			DotNetStream dns = null;
+			List<HotStream> hotStreams = null;
+			HotStream hotStream = null;
 			try {
 				var mdRva = cor20Header.MetaData.VirtualAddress;
 				for (int i = mdHeader.StreamHeaders.Count - 1; i >= 0; i--) {
 					var sh = mdHeader.StreamHeaders[i];
 					var rva = mdRva + sh.Offset;
-					imageStream = peImage.CreateStream(rva, sh.StreamSize);
+					var fileOffset = peImage.ToFileOffset(rva);
+					imageStream = peImage.CreateStream(fileOffset, sh.StreamSize);
 					switch (sh.Name) {
 					case "#Strings":
 						if (stringsStream == null) {
@@ -90,6 +106,18 @@ namespace dnlib.DotNet.MD {
 							continue;
 						}
 						break;
+
+					case "#!":
+						if (hotStreams == null)
+							hotStreams = new List<HotStream>();
+						fullStream = peImage.CreateFullStream();
+						hotStream = HotStream.Create(hotHeapVersion, imageStream, sh, fullStream, fileOffset);
+						fullStream = null;
+						hotStreams.Add(hotStream);
+						allStreams.Add(hotStream);
+						hotStream = null;
+						imageStream = null;
+						continue;
 					}
 					dns = new DotNetStream(imageStream, sh);
 					imageStream = null;
@@ -100,15 +128,97 @@ namespace dnlib.DotNet.MD {
 			finally {
 				if (imageStream != null)
 					imageStream.Dispose();
+				if (fullStream != null)
+					fullStream.Dispose();
 				if (dns != null)
 					dns.Dispose();
+				if (hotStream != null)
+					hotStream.Dispose();
 			}
 
 			allStreams.Reverse();
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
+
+			if (hotStreams != null) {
+				hotStreams.Reverse();
+				InitializeHotStreams(hotStreams);
+			}
+
 			tablesStream.Initialize(peImage);
+		}
+
+		int GetPointerSize() {
+			var machine = peImage.ImageNTHeaders.FileHeader.Machine;
+			if (machine == Machine.AMD64 || machine == Machine.IA64)
+				return 8;
+			// Assume 32-bit
+			return 4;
+		}
+
+		void InitializeHotStreams(IList<HotStream> hotStreams) {
+			if (hotStreams == null || hotStreams.Count == 0)
+				return;
+
+			// If this is a 32-bit image, make sure that we emulate this by masking
+			// all base offsets to 32 bits.
+			bool is64Bit = GetPointerSize() == 8;
+			long offsetMask = is64Bit ? -1L : uint.MaxValue;
+
+			// It's always the last one found that is used
+			var hotTable = hotStreams[hotStreams.Count - 1].HotTableStream;
+			if (hotTable != null) {
+				hotTable.Initialize(offsetMask);
+				tablesStream.HotTableStream = hotTable;
+			}
+
+			HotHeapStream hotStrings = null, hotBlob = null, hotGuid = null, hotUs = null;
+			for (int i = hotStreams.Count - 1; i >= 0; i--) {
+				var hotStream = hotStreams[i];
+				var hotHeapStreams = hotStream.HotHeapStreams;
+				if (hotHeapStreams == null)
+					continue;
+
+				// It's always the last one found that is used
+				for (int j = hotHeapStreams.Count - 1; j >= 0; j--) {
+					var hotHeap = hotHeapStreams[j];
+					switch (hotHeap.HeapType) {
+					case HeapType.Strings:
+						if (hotStrings == null) {
+							hotHeap.Initialize(offsetMask);
+							hotStrings = hotHeap;
+						}
+						break;
+
+					case HeapType.Guid:
+						if (hotGuid == null) {
+							hotHeap.Initialize(offsetMask);
+							hotGuid = hotHeap;
+						}
+						break;
+
+					case HeapType.Blob:
+						if (hotBlob == null) {
+							hotHeap.Initialize(offsetMask);
+							hotBlob = hotHeap;
+						}
+						break;
+
+					case HeapType.US:
+						if (hotUs == null) {
+							hotHeap.Initialize(offsetMask);
+							hotUs = hotHeap;
+						}
+						break;
+					}
+				}
+			}
+			InitializeNonExistentHeaps();
+			stringsStream.HotHeapStream = hotStrings;
+			guidStream.HotHeapStream = hotGuid;
+			blobStream.HotHeapStream = hotBlob;
+			usStream.HotHeapStream = hotUs;
 		}
 
 		/// <inheritdoc/>

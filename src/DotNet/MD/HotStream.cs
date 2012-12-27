@@ -1,0 +1,288 @@
+﻿/*
+    Copyright (C) 2012 de4dot@gmail.com
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+using System;
+using System.IO;
+using System.Collections.Generic;
+using dnlib.IO;
+
+namespace dnlib.DotNet.MD {
+	/// <summary>
+	/// Represents the (undocumented) #! stream. The CLR only uses this stream if the
+	/// normal compressed tables stream (#~) is used.
+	/// </summary>
+	abstract class HotStream : DotNetStream {
+		protected readonly IImageStream fullStream;
+		protected readonly long baseOffset;
+		protected readonly long endOffset;
+		protected HotTableStream hotTableStream;
+		protected List<HotHeapStream> hotHeapStreams;
+
+		/// <summary>
+		/// Gets the <see cref="dnlib.DotNet.MD.HotTableStream"/> or <c>null</c> if there's none
+		/// </summary>
+		public HotTableStream HotTableStream {
+			get { return hotTableStream ?? (hotTableStream = CreateHotTableStream()); }
+		}
+
+		/// <summary>
+		/// Gets all <see cref="HotHeapStream"/>s
+		/// </summary>
+		public IList<HotHeapStream> HotHeapStreams {
+			get { return hotHeapStreams ?? (hotHeapStreams = CreateHotHeapStreams()); }
+		}
+
+		/// <summary>
+		/// Creates a <see cref="HotStream"/> instance
+		/// </summary>
+		/// <param name="version">Hot heap version</param>
+		/// <param name="imageStream">Heap stream</param>
+		/// <param name="streamHeader">Stream header info</param>
+		/// <param name="fullStream">Stream for the full PE file</param>
+		/// <param name="baseOffset">Offset in <paramref name="fullStream"/> where the data starts</param>
+		/// <returns>A <see cref="HotStream"/> instance or <c>null</c> if <paramref name="version"/>
+		/// is invalid</returns>
+		public static HotStream Create(HotHeapVersion version, IImageStream imageStream, StreamHeader streamHeader, IImageStream fullStream, FileOffset baseOffset) {
+			switch (version) {
+			case HotHeapVersion.CLR20: return new HotStreamCLR20(imageStream, streamHeader, fullStream, baseOffset);
+			case HotHeapVersion.CLR40: return new HotStreamCLR40(imageStream, streamHeader, fullStream, baseOffset);
+			default: return null;
+			}
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="imageStream">Heap stream</param>
+		/// <param name="streamHeader">Stream header info</param>
+		/// <param name="fullStream">Stream for the full PE file</param>
+		/// <param name="baseOffset">Offset in <paramref name="fullStream"/> where the data starts</param>
+		protected HotStream(IImageStream imageStream, StreamHeader streamHeader, IImageStream fullStream, FileOffset baseOffset)
+			: base(imageStream, streamHeader) {
+			this.fullStream = fullStream;
+			this.baseOffset = (long)baseOffset;
+			this.endOffset = (long)baseOffset + imageStream.Length;
+		}
+
+		[System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+		HotTableStream CreateHotTableStream() {
+			try {
+				return CreateHotTableStreamImpl();
+			}
+			catch (AccessViolationException) {
+				return null;
+			}
+			catch (IOException) {
+				return null;
+			}
+		}
+
+		[System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+		List<HotHeapStream> CreateHotHeapStreams() {
+			try {
+				return CreateHotHeapStreams2();
+			}
+			catch (AccessViolationException) {
+				return null;
+			}
+			catch (IOException) {
+				return null;
+			}
+		}
+
+		List<HotHeapStream> CreateHotHeapStreams2() {
+			var list = new List<HotHeapStream>();
+			try {
+				long dirBaseOffs = GetHotHeapDirectoryBaseOffset();
+				for (long offs = dirBaseOffs; offs + 8 <= endOffset - 8; offs += 8) {
+					fullStream.Position = offs;
+					HeapType heapType;
+					long hotHeapOffset;
+					ReadHotHeapDirectory(fullStream, dirBaseOffs, out heapType, out hotHeapOffset);
+
+					IImageStream dataStream = null;
+					HotHeapStream hotHeapStream = null;
+					try {
+						dataStream = fullStream.Clone();
+						list.Add(hotHeapStream = CreateHotHeapStream(heapType, dataStream, hotHeapOffset));
+						dataStream = null;
+						hotHeapStream = null;
+					}
+					catch {
+						if (hotHeapStream != null)
+							hotHeapStream.Dispose();
+						if (dataStream != null)
+							dataStream.Dispose();
+						throw;
+					}
+				}
+			}
+			catch {
+				foreach (var h in list)
+					h.Dispose();
+				throw;
+			}
+			return list;
+		}
+
+		/// <summary>
+		/// Reads a hot heap directory
+		/// </summary>
+		/// <param name="reader">Reader stream</param>
+		/// <param name="dirBaseOffs">Pool directory base offset</param>
+		/// <param name="heapType">Updated with heap type</param>
+		/// <param name="hotHeapOffs">Updated with heap offset</param>
+		protected abstract void ReadHotHeapDirectory(IImageStream reader, long dirBaseOffs, out HeapType heapType, out long hotHeapOffs);
+
+		/// <summary>
+		/// Creates a <see cref="HotHeapStream"/>
+		/// </summary>
+		/// <param name="heapType">Heap type</param>
+		/// <param name="stream">Data stream</param>
+		/// <param name="baseOffset">Offset in <paramref name="stream"/> of start of data</param>
+		/// <returns>A new <see cref="HotHeapStream"/> instance</returns>
+		protected abstract HotHeapStream CreateHotHeapStream(HeapType heapType, IImageStream stream, long baseOffset);
+
+		/// <summary>
+		/// Creates the <see cref="dnlib.DotNet.MD.HotTableStream"/>
+		/// </summary>
+		/// <returns>A new instance or <c>null</c> if it doesn't exist</returns>
+		protected abstract HotTableStream CreateHotTableStreamImpl();
+
+		/// <summary>
+		/// Gets the offset of the hot table directory in <see cref="fullStream"/>
+		/// </summary>
+		protected long GetHotTableBaseOffset() {
+			return endOffset - 8 - HotTableStream.HOT_HEAP_DIR_SIZE - fullStream.ReadUInt32At(endOffset - 8);
+		}
+
+		/// <summary>
+		/// Gets the offset of the hot pool directory in <see cref="fullStream"/>
+		/// </summary>
+		protected long GetHotHeapDirectoryBaseOffset() {
+			// CLR 2.0: The low 2 bits are ignored
+			// CLR 4.0: The low 2 bits must be 0
+			return endOffset - 8 - (fullStream.ReadUInt32At(endOffset - 8 + 4) & ~3);
+		}
+
+		/// <inheritdoc/>
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (fullStream != null)
+					fullStream.Dispose();
+				if (hotTableStream != null)
+					hotTableStream.Dispose();
+				if (hotHeapStreams != null) {
+					foreach (var hs in hotHeapStreams) {
+						if (hs != null)
+							hs.Dispose();
+					}
+				}
+			}
+			base.Dispose(disposing);
+		}
+	}
+
+	/// <summary>
+	/// Represents the #! stream. Should be used if the module uses CLR 2.0 (.NET 2.0 - 3.5)
+	/// </summary>
+	sealed class HotStreamCLR20 : HotStream {
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="imageStream">Heap stream</param>
+		/// <param name="streamHeader">Stream header info</param>
+		/// <param name="fullStream">Stream for the full PE file</param>
+		/// <param name="baseOffset">Offset in <paramref name="fullStream"/> where the data starts</param>
+		public HotStreamCLR20(IImageStream imageStream, StreamHeader streamHeader, IImageStream fullStream, FileOffset baseOffset)
+			: base(imageStream, streamHeader, fullStream, baseOffset) {
+		}
+
+		/// <inheritdoc/>
+		protected override HotTableStream CreateHotTableStreamImpl() {
+			IImageStream stream = null;
+			try {
+				stream = fullStream.Clone();
+				return new HotTableStreamCLR20(stream, GetHotTableBaseOffset());
+			}
+			catch {
+				if (stream != null)
+					stream.Dispose();
+				throw;
+			}
+		}
+
+		/// <inheritdoc/>
+		protected override void ReadHotHeapDirectory(IImageStream reader, long dirBaseOffs, out HeapType heapType, out long hotHeapOffs) {
+			heapType = (HeapType)reader.ReadUInt32();
+			// Lower 2 bits are ignored
+			hotHeapOffs = dirBaseOffs - (reader.ReadUInt32() & ~3);
+		}
+
+		/// <inheritdoc/>
+		protected override HotHeapStream CreateHotHeapStream(HeapType heapType, IImageStream stream, long baseOffset) {
+			return new HotHeapStreamCLR20(heapType, stream, baseOffset);
+		}
+	}
+
+	/// <summary>
+	/// Represents the #! stream. Should be used if the module uses CLR 4.0 (.NET 4.0 - 4.5)
+	/// </summary>
+	sealed class HotStreamCLR40 : HotStream {
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="imageStream">Heap stream</param>
+		/// <param name="streamHeader">Stream header info</param>
+		/// <param name="fullStream">Stream for the full PE file</param>
+		/// <param name="baseOffset">Offset in <paramref name="fullStream"/> where the data starts</param>
+		public HotStreamCLR40(IImageStream imageStream, StreamHeader streamHeader, IImageStream fullStream, FileOffset baseOffset)
+			: base(imageStream, streamHeader, fullStream, baseOffset) {
+		}
+
+		/// <inheritdoc/>
+		protected override HotTableStream CreateHotTableStreamImpl() {
+			IImageStream stream = null;
+			try {
+				stream = fullStream.Clone();
+				return new HotTableStreamCLR40(stream, GetHotTableBaseOffset());
+			}
+			catch {
+				if (stream != null)
+					stream.Dispose();
+				throw;
+			}
+		}
+
+		/// <inheritdoc/>
+		protected override void ReadHotHeapDirectory(IImageStream reader, long dirBaseOffs, out HeapType heapType, out long hotHeapOffs) {
+			heapType = (HeapType)reader.ReadUInt32();
+			hotHeapOffs = dirBaseOffs - reader.ReadUInt32();
+		}
+
+		/// <inheritdoc/>
+		protected override HotHeapStream CreateHotHeapStream(HeapType heapType, IImageStream stream, long baseOffset) {
+			return new HotHeapStreamCLR40(heapType, stream, baseOffset);
+		}
+	}
+}

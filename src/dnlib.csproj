@@ -116,6 +116,11 @@
     <Compile Include="DotNet\MD\DotNetTableSizes.cs" />
     <Compile Include="DotNet\MD\ENCMetaData.cs" />
     <Compile Include="DotNet\MD\GuidStream.cs" />
+    <Compile Include="DotNet\MD\HeapType.cs" />
+    <Compile Include="DotNet\MD\HotHeapStream.cs" />
+    <Compile Include="DotNet\MD\HotHeapVersion.cs" />
+    <Compile Include="DotNet\MD\HotStream.cs" />
+    <Compile Include="DotNet\MD\HotTableStream.cs" />
     <Compile Include="DotNet\MD\ImageCor20Header.cs" />
     <Compile Include="DotNet\MD\IMetaData.cs" />
     <Compile Include="DotNet\MD\IRowReaders.cs" />
