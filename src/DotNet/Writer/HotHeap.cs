@@ -172,7 +172,7 @@ namespace dnlib.DotNet.Writer {
 				if (header == null)
 					writer.Write(0);
 				else {
-					writer.Write(offs);	// any alignment
+					writer.Write(offs);	// any alignment, all bits are used
 					offs += header.GetFileLength();
 					offs = Utils.AlignUp(offs, HH_ALIGNMENT);
 				}
@@ -201,7 +201,8 @@ namespace dnlib.DotNet.Writer {
 			for (int i = 0; i < hotPools.Count; i++) {
 				var hotPool = hotPools[i];
 				writer.Write((uint)hotPool.HeapType);
-				// Low 2 bits are ignored
+				// CLR 2.0: low 2 bits are ignored
+				// CLR 4.0: any alignment, all bits are used
 				writer.Write((uint)(poolDBOffs - hotPoolOffset[i] - hotPool.HeaderOffset));
 			}
 			offs += (uint)hotPools.Count * 8;
@@ -210,7 +211,7 @@ namespace dnlib.DotNet.Writer {
 			// any alignment
 			writer.Write((uint)(offs - HOT_HEAP_DIR_SIZE));
 			// CLR 2.0: low 2 bits are ignored
-			// CLR 4.0: any alignment
+			// CLR 4.0: any alignment, all bits are used
 			writer.Write((uint)(hotMDDirOffs - poolDBOffs));
 		}
 

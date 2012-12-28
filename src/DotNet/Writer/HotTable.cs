@@ -392,9 +392,9 @@ namespace dnlib.DotNet.Writer {
 		internal override void PartialWriteTo(BinaryWriter writer) {
 			var startPos = writer.BaseStream.Position;
 			writer.Write(partialData.Count);// hot records
-			writer.Write(firstLevelOffset);	// offset of 1st level table
-			writer.Write(secondLevelOffset);// offset of 2nd level table
-			writer.Write(dataOffset);	// offset of hot data (4-byte aligned)
+			writer.Write(firstLevelOffset);	// any alignment, all bits are used
+			writer.Write(secondLevelOffset);// any alignment, all bits are used
+			writer.Write(dataOffset);	// any alignment, all bits are used
 			writer.Write((ushort)shift);// shift count
 			writer.WriteZeros(alignedHotTableHeaderSize - (int)(writer.BaseStream.Position - startPos));
 
@@ -464,10 +464,10 @@ namespace dnlib.DotNet.Writer {
 		internal override void PartialWriteTo(BinaryWriter writer) {
 			var startPos = writer.BaseStream.Position;
 			writer.Write(partialData.Count);// hot records
-			writer.Write(firstLevelOffset);	// offset of 1st level table
-			writer.Write(secondLevelOffset);// offset of 2nd level table
-			writer.Write(indexesOffset);// offset of indexes table
-			writer.Write(dataOffset);	// offset of hot data (4-byte aligned)
+			writer.Write(firstLevelOffset);	// any alignment, all bits are used
+			writer.Write(secondLevelOffset);// any alignment, all bits are used
+			writer.Write(indexesOffset);// any alignment, all bits are used
+			writer.Write(dataOffset);	// any alignment, all bits are used
 			writer.Write((ushort)shift);// shift count
 			writer.WriteZeros(alignedHotTableHeaderSize - (int)(writer.BaseStream.Position - startPos));
 

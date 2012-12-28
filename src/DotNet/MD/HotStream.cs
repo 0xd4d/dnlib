@@ -173,17 +173,14 @@ namespace dnlib.DotNet.MD {
 		/// Gets the offset of the hot table directory in <see cref="fullStream"/>
 		/// </summary>
 		protected long GetHotTableBaseOffset() {
+			// All bits in this dword are used
 			return endOffset - 8 - HotTableStream.HOT_HEAP_DIR_SIZE - fullStream.ReadUInt32At(endOffset - 8);
 		}
 
 		/// <summary>
 		/// Gets the offset of the hot pool directory in <see cref="fullStream"/>
 		/// </summary>
-		protected long GetHotHeapDirectoryBaseOffset() {
-			// CLR 2.0: The low 2 bits are ignored
-			// CLR 4.0: The low 2 bits must be 0
-			return endOffset - 8 - (fullStream.ReadUInt32At(endOffset - 8 + 4) & ~3);
-		}
+		protected abstract long GetHotHeapDirectoryBaseOffset();
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
@@ -233,6 +230,12 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		protected override long GetHotHeapDirectoryBaseOffset() {
+			// Lower 2 bits are ignored
+			return endOffset - 8 - (fullStream.ReadUInt32At(endOffset - 8 + 4) & ~3);
+		}
+
+		/// <inheritdoc/>
 		protected override void ReadHotHeapDirectory(IImageStream reader, long dirBaseOffs, out HeapType heapType, out long hotHeapOffs) {
 			heapType = (HeapType)reader.ReadUInt32();
 			// Lower 2 bits are ignored
@@ -275,8 +278,15 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		protected override long GetHotHeapDirectoryBaseOffset() {
+			// All bits are used
+			return endOffset - 8 - fullStream.ReadUInt32At(endOffset - 8 + 4);
+		}
+
+		/// <inheritdoc/>
 		protected override void ReadHotHeapDirectory(IImageStream reader, long dirBaseOffs, out HeapType heapType, out long hotHeapOffs) {
 			heapType = (HeapType)reader.ReadUInt32();
+			// All bits are used
 			hotHeapOffs = dirBaseOffs - reader.ReadUInt32();
 		}
 
