@@ -123,7 +123,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="rawData"></param>
 		public void Add(uint offset, byte[] rawData) {
 			if (dataList != null)
-				throw new InvalidOperationException("Can't Add() after CreateDataInfos() has been called");
+				throw new InvalidOperationException("Can't Add() after CreateData() has been called");
 			allData[offset] = rawData;
 		}
 
