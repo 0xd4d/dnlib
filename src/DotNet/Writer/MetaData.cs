@@ -182,6 +182,7 @@ namespace dnlib.DotNet.Writer {
 		MetaDataHeaderOptions metaDataHeaderOptions;
 		TablesHeapOptions tablesHeapOptions;
 		List<IHeap> otherHeaps;
+		List<IHeap> otherHeapsEnd;
 
 		/// <summary>
 		/// Gets/sets the <see cref="MetaDataHeader"/> options. This is never <c>null</c>.
@@ -205,10 +206,17 @@ namespace dnlib.DotNet.Writer {
 		public MetaDataFlags Flags;
 
 		/// <summary>
-		/// Any additional heaps that should be added to the heaps list
+		/// Any additional heaps that should be added to the beginning of the heaps list
 		/// </summary>
 		public List<IHeap> OtherHeaps {
 			get { return otherHeaps ?? (otherHeaps = new List<IHeap>()); }
+		}
+
+		/// <summary>
+		/// Any additional heaps that should be added to end of the heaps list
+		/// </summary>
+		public List<IHeap> OtherHeapsEnd {
+			get { return otherHeapsEnd ?? (otherHeapsEnd = new List<IHeap>()); }
 		}
 
 		/// <summary>
@@ -2640,6 +2648,9 @@ namespace dnlib.DotNet.Writer {
 		IList<IHeap> GetHeaps() {
 			var heaps = new List<IHeap>();
 
+			if (options.OtherHeaps != null)
+				heaps.AddRange(options.OtherHeaps);
+
 			// The #! heap must be added before the other heaps or the CLR can
 			// sometimes flag an error. Eg., it can check whether a pointer is valid.
 			// It does this by comparing the pointer to the last valid address for
@@ -2658,8 +2669,10 @@ namespace dnlib.DotNet.Writer {
 				heaps.Add(guidHeap);
 			if (!blobHeap.IsEmpty || AlwaysCreateBlobHeap)
 				heaps.Add(blobHeap);
-			if (options.OtherHeaps != null)
-				heaps.AddRange(options.OtherHeaps);
+
+			if (options.OtherHeapsEnd != null)
+				heaps.AddRange(options.OtherHeapsEnd);
+
 			return heaps;
 		}
 
