@@ -34,10 +34,11 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public abstract class HotTable : IChunk {
 		/// <summary>
-		/// No more than 64K-1 rows are possible due to 1st level table being a ushort[]
-		/// and the last element must be used for the end index.
+		/// At most 64K rows can be used when only a partial table is stored in the
+		/// hot table. The first level table indexes into the second level table,
+		/// and the index is 16 bits.
 		/// </summary>
-		public const int MAX_ROWS = ushort.MaxValue;
+		public const int MAX_ROWS = 0x10000;
 		internal const uint HT_ALIGNMENT = 4;
 
 		FileOffset offset;
