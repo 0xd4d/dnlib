@@ -64,10 +64,10 @@ namespace dnlib.DotNet {
 			var windir = Environment.GetEnvironmentVariable("WINDIR");
 			if (!string.IsNullOrEmpty(windir)) {
 				gac2Info = new GacInfo("", Path.Combine(windir, "assembly"), new string[] {
-					"GAC_MSIL", "GAC_32", "GAC_64", "GAC"
+					"GAC_32", "GAC_64", "GAC_MSIL", "GAC"
 				});
 				gac4Info = new GacInfo("v4.0_", Path.Combine(Path.Combine(windir, "Microsoft.NET"), "assembly"), new string[] {
-					"GAC_MSIL", "GAC_32", "GAC_64"
+					"GAC_32", "GAC_64", "GAC_MSIL"
 				});
 			}
 		}
