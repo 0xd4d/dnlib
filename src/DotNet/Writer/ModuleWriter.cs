@@ -232,7 +232,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override Win32Resources GetWin32Resources() {
-			return module.Win32Resources ?? Options.Win32Resources;
+			return Options.Win32Resources ?? module.Win32Resources;
 		}
 
 		void CreateSections() {
