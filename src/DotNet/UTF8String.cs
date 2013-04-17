@@ -70,7 +70,7 @@ namespace dnlib.DotNet {
 		public string String {
 			get {
 				if (asString == null)
-					asString = ConvertToUTF8(data);
+					asString = ConvertFromUTF8(data);
 				return asString;
 			}
 		}
@@ -255,7 +255,7 @@ namespace dnlib.DotNet {
 			: this(s == null ? null : Encoding.UTF8.GetBytes(s)) {
 		}
 
-		static string ConvertToUTF8(byte[] data) {
+		static string ConvertFromUTF8(byte[] data) {
 			if (data == null)
 				return null;
 			try {
