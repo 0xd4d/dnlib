@@ -124,6 +124,13 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
+			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyBase.ToPublicKeyToken(PublicKeyOrToken)); }
+		}
+
+		/// <summary>
+		/// Same as <see cref="FullName"/>, except that it uses the <c>PublicKey</c> if available.
+		/// </summary>
+		public string RealFullName {
 			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyOrToken); }
 		}
 

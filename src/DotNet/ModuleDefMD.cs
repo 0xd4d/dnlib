@@ -1072,7 +1072,7 @@ namespace dnlib.DotNet {
 			// seem to verify it. We must parse the method exactly the way the CLR parses it.
 			using (var reader = dnFile.MetaData.PEImage.CreateFullStream()) {
 				reader.Position = (long)dnFile.MetaData.PEImage.ToFileOffset(rva);
-				return MethodBodyReader.Create(this, reader, parameters);
+				return MethodBodyReader.CreateCilBody(this, reader, parameters);
 			}
 		}
 

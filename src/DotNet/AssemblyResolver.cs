@@ -64,10 +64,10 @@ namespace dnlib.DotNet {
 			var windir = Environment.GetEnvironmentVariable("WINDIR");
 			if (!string.IsNullOrEmpty(windir)) {
 				gac2Info = new GacInfo("", Path.Combine(windir, "assembly"), new string[] {
-					"GAC_MSIL", "GAC_32", "GAC_64", "GAC"
+					"GAC_32", "GAC_64", "GAC_MSIL", "GAC"
 				});
 				gac4Info = new GacInfo("v4.0_", Path.Combine(Path.Combine(windir, "Microsoft.NET"), "assembly"), new string[] {
-					"GAC_MSIL", "GAC_32", "GAC_64"
+					"GAC_32", "GAC_64", "GAC_MSIL"
 				});
 			}
 		}
@@ -593,11 +593,17 @@ namespace dnlib.DotNet {
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\Silverlight\v5.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\2.0\Runtime\v2.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\2.0\Runtime\v4.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\3.0\Runtime\v2.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\3.0\Runtime\v4.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\WindowsPowerShell\v1.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\WindowsPowerShell\3.0");
 			AddIfExists(paths, path, @"Microsoft Visual Studio .NET\Common7\IDE\PublicAssemblies");
 			AddIfExists(paths, path, @"Microsoft Visual Studio .NET\Common7\IDE\PrivateAssemblies");
-			AddIfExists(paths, path, @"Microsoft Visual Studio 8.0\Common7\IDE\PublicAssemblies");
-			AddIfExists(paths, path, @"Microsoft Visual Studio 8.0\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio .NET 2003\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio .NET 2003\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 8\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 8\Common7\IDE\PrivateAssemblies");
 			AddIfExists(paths, path, @"Microsoft Visual Studio 9.0\Common7\IDE\PublicAssemblies");
 			AddIfExists(paths, path, @"Microsoft Visual Studio 9.0\Common7\IDE\PrivateAssemblies");
 			AddIfExists(paths, path, @"Microsoft Visual Studio 10.0\Common7\IDE\PublicAssemblies");
