@@ -66,8 +66,8 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
-		public static CilBody Create(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method) {
-			return Create(opResolver, reader, method.Parameters);
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method) {
+			return CreateCilBody(opResolver, reader, method.Parameters);
 		}
 
 		/// <summary>
@@ -77,8 +77,8 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="opResolver">The operand resolver</param>
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="parameters">Method parameters</param>
-		public static CilBody Create(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters) {
-			return Create(opResolver, reader, null, parameters);
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters) {
+			return CreateCilBody(opResolver, reader, null, parameters);
 		}
 
 		/// <summary>
@@ -90,8 +90,8 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
 		/// <paramref name="code"/></param>
 		/// <param name="parameters">Method parameters</param>
-		public static CilBody Create(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters) {
-			return Create(opResolver, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters);
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters) {
+			return CreateCilBody(opResolver, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters);
 		}
 
 		/// <summary>
@@ -103,7 +103,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
 		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
 		/// <param name="parameters">Method parameters</param>
-		public static CilBody Create(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters) {
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters) {
 			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
 			if (!mbReader.Read())
 				return new CilBody();
@@ -123,7 +123,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="maxStack">Max stack</param>
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
-		public static CilBody Create(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
 			var codeReader = MemoryImageStream.Create(code);
 			var ehReader = exceptions == null ? null : MemoryImageStream.Create(exceptions);
 			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
