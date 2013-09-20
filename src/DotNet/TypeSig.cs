@@ -771,7 +771,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public GenericMVar(int number)
-			: base(true, (uint)number) {
+			: base(false, (uint)number) {
 		}
 	}
 
