@@ -53,7 +53,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Compare assembly simple name, version, public key token and locale
 		/// </summary>
-		All = 0xF,
+		All = Name | Version | PublicKeyToken | Locale,
 	}
 
 	/// <summary>
