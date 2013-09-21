@@ -150,29 +150,15 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(0x48);	// cb
 			writer.Write(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);
 			writer.Write(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
-			WriteDataDirectory(writer, MetaData);
+			writer.WriteDataDirectory(MetaData);
 			writer.Write((uint)(options.Flags ?? ComImageFlags.ILOnly));
 			writer.Write(options.EntryPoint ?? 0);
-			WriteDataDirectory(writer, NetResources);
-			WriteDataDirectory(writer, StrongNameSignature);
-			WriteDataDirectory(writer, null);	// Code manager table
-			WriteDataDirectory(writer, null);	// Vtable fixups
-			WriteDataDirectory(writer, null);	// Export address table jumps
-			WriteDataDirectory(writer, null);	// Managed native header
-		}
-
-		/// <summary>
-		/// Update a data directory
-		/// </summary>
-		/// <param name="writer">Writer</param>
-		/// <param name="chunk">The data</param>
-		public void WriteDataDirectory(BinaryWriter writer, IChunk chunk) {
-			if (chunk == null || chunk.GetFileLength() == 0)
-				writer.Write(0UL);
-			else {
-				writer.Write((uint)chunk.RVA);
-				writer.Write(chunk.GetFileLength());
-			}
+			writer.WriteDataDirectory(NetResources);
+			writer.WriteDataDirectory(StrongNameSignature);
+			writer.WriteDataDirectory(null);	// Code manager table
+			writer.WriteDataDirectory(null);	// Vtable fixups
+			writer.WriteDataDirectory(null);	// Export address table jumps
+			writer.WriteDataDirectory(null);	// Managed native header
 		}
 	}
 }
