@@ -31,9 +31,14 @@ namespace dnlib.DotNet.MD {
 	[DebuggerDisplay("Length = {Length}")]
 	public abstract class RidList {
 		/// <summary>
-		/// Gets the number of rids it will iterate over
+		/// Gets the number of rids it will iterate over (UInt32)
 		/// </summary>
 		public abstract uint Length { get; }
+
+		/// <summary>
+		/// Gets the number of rids it will iterate over (Int32)
+		/// </summary>
+		public abstract int Count { get; }
 
 		/// <summary>
 		/// Gets the <paramref name="index"/>'th rid
@@ -75,6 +80,11 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		public override int Count {
+			get { return (int)length; }
+		}
+
+		/// <inheritdoc/>
 		public override uint this[uint index] {
 			get {
 				if (index >= length)
@@ -109,6 +119,11 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public override uint Length {
 			get { return (uint)indexToRid.Count; }
+		}
+
+		/// <inheritdoc/>
+		public override int Count {
+			get { return indexToRid.Count; }
 		}
 
 		/// <inheritdoc/>
