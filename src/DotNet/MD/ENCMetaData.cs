@@ -156,8 +156,8 @@ namespace dnlib.DotNet.MD {
 				foreach (var sh in mdHeader.StreamHeaders) {
 					var rva = mdRva + sh.Offset;
 					imageStream = peImage.CreateStream(rva, sh.StreamSize);
-					switch (sh.Name) {
-					case "#Strings":
+					switch (sh.Name.ToUpperInvariant()) {
+					case "#STRINGS":
 						if (stringsStream == null) {
 							stringsStream = new StringsStream(imageStream, sh);
 							imageStream = null;
@@ -175,7 +175,7 @@ namespace dnlib.DotNet.MD {
 						}
 						break;
 
-					case "#Blob":
+					case "#BLOB":
 						if (blobStream == null) {
 							blobStream = new BlobStream(imageStream, sh);
 							imageStream = null;
