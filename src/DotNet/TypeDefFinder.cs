@@ -95,6 +95,16 @@ namespace dnlib.DotNet {
 			typeEnumerator = (includeNestedTypes ? AllTypesHelper.Types(rootTypes) : rootTypes).GetEnumerator();
 		}
 
+		/// <summary>
+		/// Resets the cache (clears all cached elements). Use this method if the cache is
+		/// enabled but some of the types have been modified (eg. removed, added, renamed).
+		/// </summary>
+		public void ResetCache() {
+			bool old = IsCacheEnabled;
+			IsCacheEnabled = false;
+			IsCacheEnabled = old;
+		}
+
 		/// <inheritdoc/>
 		public TypeDef Find(string fullName, bool isReflectionName) {
 			if (fullName == null)

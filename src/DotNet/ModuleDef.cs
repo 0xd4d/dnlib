@@ -770,6 +770,15 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Resets the <see cref="TypeDef"/> cache which can be enabled by setting
+		/// <see cref="EnableTypeDefFindCache"/> to <c>true</c>. Use this method if the cache is
+		/// enabled but some of the types have been modified (eg. removed, added, renamed).
+		/// </summary>
+		public void ResetTypeDefFindCache() {
+			TypeDefFinder.ResetCache();
+		}
+
+		/// <summary>
 		/// Finds a <see cref="ResourceData"/>
 		/// </summary>
 		/// <param name="type">Type</param>
