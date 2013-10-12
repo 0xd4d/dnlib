@@ -30,7 +30,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the ImplMap table
 	/// </summary>
-	[DebuggerDisplay("{Scope} {Name}")]
+	[DebuggerDisplay("{Module} {Name}")]
 	public abstract class ImplMap : IMDTokenProvider {
 		/// <summary>
 		/// The row id in its table
