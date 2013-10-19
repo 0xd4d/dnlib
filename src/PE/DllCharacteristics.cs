@@ -30,7 +30,7 @@ namespace dnlib.PE {
 	[Flags]
 	public enum DllCharacteristics {
 		/// <summary>Image can handle a high entropy 64-bit virtual address space.</summary>
-		HighEntrypyVA		= 0x0020,
+		HighEntropyVA		= 0x0020,
 		/// <summary>DLL can move.</summary>
 		DynamicBase			= 0x0040,
 		/// <summary>Code Integrity Image</summary>
