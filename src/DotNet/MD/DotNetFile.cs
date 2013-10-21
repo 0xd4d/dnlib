@@ -88,8 +88,37 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
 		public static DotNetFile Load(IntPtr addr) {
 			IPEImage peImage = null;
+
+			// We don't know what layout it is. Memory is more common so try that first.
 			try {
-				return Load(peImage = new PEImage(addr));
+				return Load(peImage = new PEImage(addr, ImageLayout.Memory, true));
+			}
+			catch {
+				if (peImage != null)
+					peImage.Dispose();
+				peImage = null;
+			}
+
+			try {
+				return Load(peImage = new PEImage(addr, ImageLayout.File, true));
+			}
+			catch {
+				if (peImage != null)
+					peImage.Dispose();
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Create a <see cref="DotNetFile"/> instance
+		/// </summary>
+		/// <param name="addr">Address of a .NET file in memory</param>
+		/// <param name="imageLayout">Image layout of the file in memory</param>
+		/// <returns>A new <see cref="DotNetFile"/> instance</returns>
+		public static DotNetFile Load(IntPtr addr, ImageLayout imageLayout) {
+			IPEImage peImage = null;
+			try {
+				return Load(peImage = new PEImage(addr, imageLayout, true));
 			}
 			catch {
 				if (peImage != null)

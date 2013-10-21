@@ -253,7 +253,7 @@ namespace dnlib.DotNet {
 		/// <param name="mod">An existing reflection module</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod) {
-			return Load(mod, null);
+			return Load(mod, null, GetImageLayout(mod));
 		}
 
 		/// <summary>
@@ -263,10 +263,28 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context) {
+			return Load(mod, context, GetImageLayout(mod));
+		}
+
+		static ImageLayout GetImageLayout(System.Reflection.Module mod) {
+			var fqn = mod.FullyQualifiedName;
+			if (fqn.Length > 0 && fqn[0] == '<' && fqn[fqn.Length - 1] == '>')
+				return ImageLayout.File;
+			return ImageLayout.Memory;
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
+		/// </summary>
+		/// <param name="mod">An existing reflection module</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <param name="imageLayout">Image layout of the module in memory</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context, ImageLayout imageLayout) {
 			IntPtr addr = Marshal.GetHINSTANCE(mod);
 			if (addr == new IntPtr(-1))
 				throw new InvalidOperationException(string.Format("Module {0} has no HINSTANCE", mod));
-			return Load(addr, context);
+			return Load(addr, context, imageLayout);
 		}
 
 		/// <summary>
@@ -288,6 +306,25 @@ namespace dnlib.DotNet {
 			DotNetFile dnFile = null;
 			try {
 				return Load(dnFile = DotNetFile.Load(addr), context);
+			}
+			catch {
+				if (dnFile != null)
+					dnFile.Dispose();
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
+		/// </summary>
+		/// <param name="addr">Address of a .NET module/assembly</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <param name="imageLayout">Image layout of the file in memory</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) {
+			DotNetFile dnFile = null;
+			try {
+				return Load(dnFile = DotNetFile.Load(addr, imageLayout), context);
 			}
 			catch {
 				if (dnFile != null)
