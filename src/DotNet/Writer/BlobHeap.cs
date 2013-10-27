@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// #Blob heap
 	/// </summary>
-	sealed class BlobHeap : HeapBase {
+	public sealed class BlobHeap : HeapBase {
 		Dictionary<byte[], uint> cachedDict = new Dictionary<byte[], uint>(ByteArrayEqualityComparer.Instance);
 		List<byte[]> cached = new List<byte[]>();
 		uint nextOffset = 1;

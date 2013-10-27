@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// #Strings heap
 	/// </summary>
-	sealed class StringsHeap : HeapBase {
+	public sealed class StringsHeap : HeapBase {
 		Dictionary<UTF8String, uint> cachedDict = new Dictionary<UTF8String, uint>(UTF8StringEqualityComparer.Instance);
 		List<UTF8String> cached = new List<UTF8String>();
 		uint nextOffset = 1;

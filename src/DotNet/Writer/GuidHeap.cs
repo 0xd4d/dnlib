@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// #GUID heap
 	/// </summary>
-	sealed class GuidHeap : HeapBase {
+	public sealed class GuidHeap : HeapBase {
 		List<Guid> guids = new List<Guid>();
 
 		/// <inheritdoc/>
