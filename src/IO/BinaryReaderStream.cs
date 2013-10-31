@@ -101,7 +101,7 @@ namespace dnlib.IO {
 			switch (origin) {
 			case SeekOrigin.Begin: Position = offset; break;
 			case SeekOrigin.Current: Position += offset; break;
-			case SeekOrigin.End: Position = Length - offset; break;
+			case SeekOrigin.End: Position = Length + offset; break;
 			}
 			return Position;
 		}
