@@ -820,9 +820,9 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.TypeDef: return ResolveTypeDef(rid);
-			case Table.TypeRef: return ResolveTypeRef(rid);
-			case Table.TypeSpec: return ResolveTypeSpec(rid);
+			case Table.TypeDef:		return ResolveTypeDef(rid);
+			case Table.TypeRef:		return ResolveTypeRef(rid);
+			case Table.TypeSpec:	return ResolveTypeSpec(rid);
 			}
 			return null;
 		}
@@ -838,9 +838,9 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Field: return ResolveField(rid);
-			case Table.Param: return ResolveParam(rid);
-			case Table.Property: return ResolveProperty(rid);
+			case Table.Field:	return ResolveField(rid);
+			case Table.Param:	return ResolveParam(rid);
+			case Table.Property:return ResolveProperty(rid);
 			}
 			return null;
 		}
@@ -856,28 +856,28 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Method: return ResolveMethod(rid);
-			case Table.Field: return ResolveField(rid);
-			case Table.TypeRef: return ResolveTypeRef(rid);
-			case Table.TypeDef: return ResolveTypeDef(rid);
-			case Table.Param: return ResolveParam(rid);
+			case Table.Method:		return ResolveMethod(rid);
+			case Table.Field:		return ResolveField(rid);
+			case Table.TypeRef:		return ResolveTypeRef(rid);
+			case Table.TypeDef:		return ResolveTypeDef(rid);
+			case Table.Param:		return ResolveParam(rid);
 			case Table.InterfaceImpl: return ResolveInterfaceImpl(rid);
-			case Table.MemberRef: return ResolveMemberRef(rid);
-			case Table.Module: return ResolveModule(rid);
-			case Table.DeclSecurity: return ResolveDeclSecurity(rid);
-			case Table.Property: return ResolveProperty(rid);
-			case Table.Event: return ResolveEvent(rid);
+			case Table.MemberRef:	return ResolveMemberRef(rid);
+			case Table.Module:		return ResolveModule(rid);
+			case Table.DeclSecurity:return ResolveDeclSecurity(rid);
+			case Table.Property:	return ResolveProperty(rid);
+			case Table.Event:		return ResolveEvent(rid);
 			case Table.StandAloneSig: return ResolveStandAloneSig(rid);
-			case Table.ModuleRef: return ResolveModuleRef(rid);
-			case Table.TypeSpec: return ResolveTypeSpec(rid);
-			case Table.Assembly: return ResolveAssembly(rid);
-			case Table.AssemblyRef: return ResolveAssemblyRef(rid);
-			case Table.File: return ResolveFile(rid);
-			case Table.ExportedType: return ResolveExportedType(rid);
+			case Table.ModuleRef:	return ResolveModuleRef(rid);
+			case Table.TypeSpec:	return ResolveTypeSpec(rid);
+			case Table.Assembly:	return ResolveAssembly(rid);
+			case Table.AssemblyRef:	return ResolveAssemblyRef(rid);
+			case Table.File:		return ResolveFile(rid);
+			case Table.ExportedType:return ResolveExportedType(rid);
 			case Table.ManifestResource: return ResolveManifestResource(rid);
-			case Table.GenericParam: return ResolveGenericParam(rid);
+			case Table.GenericParam:return ResolveGenericParam(rid);
 			case Table.GenericParamConstraint: return ResolveGenericParamConstraint(rid);
-			case Table.MethodSpec: return ResolveMethodSpec(rid);
+			case Table.MethodSpec:	return ResolveMethodSpec(rid);
 			}
 			return null;
 		}
@@ -893,8 +893,8 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Field: return ResolveField(rid);
-			case Table.Param: return ResolveParam(rid);
+			case Table.Field:	return ResolveField(rid);
+			case Table.Param:	return ResolveParam(rid);
 			}
 			return null;
 		}
@@ -910,9 +910,9 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.TypeDef: return ResolveTypeDef(rid);
-			case Table.Method: return ResolveMethod(rid);
-			case Table.Assembly: return ResolveAssembly(rid);
+			case Table.TypeDef:		return ResolveTypeDef(rid);
+			case Table.Method:		return ResolveMethod(rid);
+			case Table.Assembly:	return ResolveAssembly(rid);
 			}
 			return null;
 		}
@@ -928,11 +928,11 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.TypeDef: return ResolveTypeDef(rid);
-			case Table.TypeRef: return ResolveTypeRef(rid);
-			case Table.ModuleRef: return ResolveModuleRef(rid);
-			case Table.Method: return ResolveMethod(rid);
-			case Table.TypeSpec: return ResolveTypeSpec(rid);
+			case Table.TypeDef:		return ResolveTypeDef(rid);
+			case Table.TypeRef:		return ResolveTypeRef(rid);
+			case Table.ModuleRef:	return ResolveModuleRef(rid);
+			case Table.Method:		return ResolveMethod(rid);
+			case Table.TypeSpec:	return ResolveTypeSpec(rid);
 			}
 			return null;
 		}
@@ -948,8 +948,8 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Event: return ResolveEvent(rid);
-			case Table.Property: return ResolveProperty(rid);
+			case Table.Event:		return ResolveEvent(rid);
+			case Table.Property:	return ResolveProperty(rid);
 			}
 			return null;
 		}
@@ -965,8 +965,8 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Method: return ResolveMethod(rid);
-			case Table.MemberRef: return ResolveMemberRef(rid);
+			case Table.Method:		return ResolveMethod(rid);
+			case Table.MemberRef:	return ResolveMemberRef(rid);
 			}
 			return null;
 		}
@@ -982,8 +982,8 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Field: return ResolveField(rid);
-			case Table.Method: return ResolveMethod(rid);
+			case Table.Field:	return ResolveField(rid);
+			case Table.Method:	return ResolveMethod(rid);
 			}
 			return null;
 		}
@@ -999,9 +999,9 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.File: return ResolveFile(rid);
-			case Table.AssemblyRef: return ResolveAssemblyRef(rid);
-			case Table.ExportedType: return ResolveExportedType(rid);
+			case Table.File:			return ResolveFile(rid);
+			case Table.AssemblyRef:		return ResolveAssemblyRef(rid);
+			case Table.ExportedType:	return ResolveExportedType(rid);
 			}
 			return null;
 		}
@@ -1017,8 +1017,8 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Method: return ResolveMethod(rid);
-			case Table.MemberRef: return ResolveMemberRef(rid);
+			case Table.Method:		return ResolveMethod(rid);
+			case Table.MemberRef:	return ResolveMemberRef(rid);
 			}
 			return null;
 		}
@@ -1034,10 +1034,10 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Module: return ResolveModule(rid);
-			case Table.ModuleRef: return ResolveModuleRef(rid);
-			case Table.AssemblyRef: return ResolveAssemblyRef(rid);
-			case Table.TypeRef: return ResolveTypeRef(rid);
+			case Table.Module:		return ResolveModule(rid);
+			case Table.ModuleRef:	return ResolveModuleRef(rid);
+			case Table.AssemblyRef:	return ResolveAssemblyRef(rid);
+			case Table.TypeRef:		return ResolveTypeRef(rid);
 			}
 			return null;
 		}
@@ -1053,8 +1053,8 @@ namespace dnlib.DotNet {
 				return null;
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.TypeDef: return ResolveTypeDef(rid);
-			case Table.Method: return ResolveMethod(rid);
+			case Table.TypeDef:	return ResolveTypeDef(rid);
+			case Table.Method:	return ResolveMethod(rid);
 			}
 			return null;
 		}
