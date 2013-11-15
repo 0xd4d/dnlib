@@ -40,8 +40,8 @@
   <ItemGroup>
     <Compile Include="DotNet\AccessChecker.cs" />
     <Compile Include="DotNet\AllTypesHelper.cs" />
-    <Compile Include="DotNet\AssemblyDef.cs" />
     <Compile Include="DotNet\AssemblyAttributes.cs" />
+    <Compile Include="DotNet\AssemblyDef.cs" />
     <Compile Include="DotNet\AssemblyHash.cs" />
     <Compile Include="DotNet\AssemblyHashAlgorithm.cs" />
     <Compile Include="DotNet\AssemblyNameComparer.cs" />
@@ -168,6 +168,7 @@
     <Compile Include="DotNet\SigComparer.cs" />
     <Compile Include="DotNet\SignatureReader.cs" />
     <Compile Include="DotNet\StandAloneSig.cs" />
+    <Compile Include="DotNet\StrongNameKey.cs" />
     <Compile Include="DotNet\StrongNameSigner.cs" />
     <Compile Include="DotNet\TypeAttributes.cs" />
     <Compile Include="DotNet\TypeDef.cs" />
@@ -219,7 +220,6 @@
     <Compile Include="DotNet\Writer\SignatureWriter.cs" />
     <Compile Include="DotNet\Writer\StartupStub.cs" />
     <Compile Include="DotNet\Writer\StringsHeap.cs" />
-    <Compile Include="DotNet\StrongNameKey.cs" />
     <Compile Include="DotNet\Writer\StrongNameSignature.cs" />
     <Compile Include="DotNet\Writer\TablesHeap.cs" />
     <Compile Include="DotNet\Writer\UniqueChunkList.cs" />
