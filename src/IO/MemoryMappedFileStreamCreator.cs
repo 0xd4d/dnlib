@@ -75,27 +75,35 @@ namespace dnlib.IO {
 		/// <param name="mapAsImage"><c>true</c> if we should map it as an executable</param>
 		/// <exception cref="IOException">If we can't open/map the file</exception>
 		public MemoryMappedFileStreamCreator(string fileName, bool mapAsImage) {
-			this.theFileName = fileName;
-			using (var fileHandle = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
+			this.theFileName = GetFullPath(fileName);
+			using (var fileHandle = CreateFile(theFileName, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
 				if (fileHandle.IsInvalid)
-					throw new IOException(string.Format("Could not open file {0} for reading. Error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
+					throw new IOException(string.Format("Could not open file {0} for reading. Error: {1:X8}", theFileName, Marshal.GetLastWin32Error()));
 
 				uint sizeHi;
 				uint sizeLo = GetFileSize(fileHandle, out sizeHi);
 				int hr;
 				if (sizeLo == INVALID_FILE_SIZE && (hr = Marshal.GetLastWin32Error()) != NO_ERROR)
-					throw new IOException(string.Format("Could not get file size. File: {0}, error: {1:X8}", fileName, hr));
+					throw new IOException(string.Format("Could not get file size. File: {0}, error: {1:X8}", theFileName, hr));
 				var fileSize = ((long)sizeHi << 32) | sizeLo;
 
 				using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY | (mapAsImage ? SEC_IMAGE : 0), 0, 0, null)) {
 					if (fileMapping.IsInvalid)
-						throw new IOException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
+						throw new IOException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", theFileName, Marshal.GetLastWin32Error()));
 					this.data = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
 					if (this.data == IntPtr.Zero)
-						throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", fileName, Marshal.GetLastWin32Error()));
-					this.theFileName = fileName;
+						throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", theFileName, Marshal.GetLastWin32Error()));
 					this.dataLength = fileSize;
 				}
+			}
+		}
+
+		static string GetFullPath(string fileName) {
+			try {
+				return Path.GetFullPath(fileName);
+			}
+			catch {
+				return fileName;
 			}
 		}
 
