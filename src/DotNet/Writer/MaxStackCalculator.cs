@@ -101,8 +101,14 @@ namespace dnlib.DotNet.Writer {
 					instr.CalculateStackUsage(out pushes, out pops);
 					if (pops == -1)
 						stack = 0;
-					else
-						stack += pushes - pops;
+					else {
+						stack -= pops;
+						if (stack < 0) {
+							errors++;
+							stack = 0;
+						}
+						stack += pushes;
+					}
 				}
 				if (stack < 0) {
 					errors++;
