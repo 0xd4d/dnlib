@@ -77,6 +77,12 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		protected MethodBodyReaderBase() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		/// <param name="reader">The reader</param>
 		protected MethodBodyReaderBase(IBinaryReader reader)
 			: this(reader, null) {
