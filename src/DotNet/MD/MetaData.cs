@@ -173,6 +173,13 @@ namespace dnlib.DotNet.MD {
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
+			InitializeNonExistentHeaps();
+		}
+
+		/// <summary>
+		/// Creates empty heap objects if they're not present in the metadata
+		/// </summary>
+		protected void InitializeNonExistentHeaps() {
 			if (stringsStream == null)
 				stringsStream = new StringsStream();
 			if (usStream == null)

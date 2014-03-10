@@ -31,11 +31,12 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// #Blob heap
 	/// </summary>
-	public sealed class BlobHeap : HeapBase {
+	public sealed class BlobHeap : HeapBase, IOffsetHeap<byte[]> {
 		Dictionary<byte[], uint> cachedDict = new Dictionary<byte[], uint>(ByteArrayEqualityComparer.Instance);
 		List<byte[]> cached = new List<byte[]>();
 		uint nextOffset = 1;
 		byte[] originalData;
+		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>
 		public override string Name {
@@ -115,7 +116,7 @@ namespace dnlib.DotNet.Writer {
 			uint offset;
 			cached.Add(data);
 			cachedDict[data] = offset = nextOffset;
-			nextOffset += (uint)(Utils.GetCompressedUInt32Length((uint)data.Length) + data.Length);
+			nextOffset += (uint)GetRawDataSize(data);
 			return offset;
 		}
 
@@ -130,9 +131,50 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(originalData);
 			else
 				writer.Write((byte)0);
+
+			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var data in cached) {
+				int rawLen = GetRawDataSize(data);
+				byte[] rawData;
+				if (userRawData != null && userRawData.TryGetValue(offset, out rawData)) {
+					if (rawData.Length != rawLen)
+						throw new InvalidOperationException("Invalid length of raw data");
+					writer.Write(rawData);
+				}
+				else {
+					writer.WriteCompressedUInt32((uint)data.Length);
+					writer.Write(data);
+				}
+				offset += (uint)rawLen;
+			}
+		}
+
+		/// <inheritdoc/>
+		public int GetRawDataSize(byte[] data) {
+			return Utils.GetCompressedUInt32Length((uint)data.Length) + data.Length;
+		}
+
+		/// <inheritdoc/>
+		public void SetRawData(uint offset, byte[] rawData) {
+			if (rawData == null)
+				throw new ArgumentNullException("rawData");
+			if (userRawData == null)
+				userRawData = new Dictionary<uint, byte[]>();
+			userRawData[offset] = rawData;
+		}
+
+		/// <inheritdoc/>
+		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
+			var memStream = new MemoryStream();
+			var writer = new BinaryWriter(memStream);
+			uint offset = originalData != null ? (uint)originalData.Length : 1;
+			foreach (var data in cached) {
+				memStream.Position = 0;
+				memStream.SetLength(0);
 				writer.WriteCompressedUInt32((uint)data.Length);
 				writer.Write(data);
+				yield return new KeyValuePair<uint, byte[]>(offset, memStream.ToArray());
+				offset += (uint)memStream.Length;
 			}
 		}
 	}

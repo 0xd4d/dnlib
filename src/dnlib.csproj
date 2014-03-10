@@ -117,6 +117,11 @@
     <Compile Include="DotNet\MD\DotNetTableSizes.cs" />
     <Compile Include="DotNet\MD\ENCMetaData.cs" />
     <Compile Include="DotNet\MD\GuidStream.cs" />
+    <Compile Include="DotNet\MD\HeapType.cs" />
+    <Compile Include="DotNet\MD\HotHeapStream.cs" />
+    <Compile Include="DotNet\MD\HotHeapVersion.cs" />
+    <Compile Include="DotNet\MD\HotStream.cs" />
+    <Compile Include="DotNet\MD\HotTableStream.cs" />
     <Compile Include="DotNet\MD\ImageCor20Header.cs" />
     <Compile Include="DotNet\MD\IMetaData.cs" />
     <Compile Include="DotNet\MD\IRowReaders.cs" />
@@ -191,6 +196,9 @@
     <Compile Include="DotNet\Writer\Extensions.cs" />
     <Compile Include="DotNet\Writer\GuidHeap.cs" />
     <Compile Include="DotNet\Writer\HeapBase.cs" />
+    <Compile Include="DotNet\Writer\HotHeap.cs" />
+    <Compile Include="DotNet\Writer\HotPool.cs" />
+    <Compile Include="DotNet\Writer\HotTable.cs" />
     <Compile Include="DotNet\Writer\IChunk.cs" />
     <Compile Include="DotNet\Writer\IHeap.cs" />
     <Compile Include="DotNet\Writer\ImageCor20Header.cs" />
@@ -198,6 +206,7 @@
     <Compile Include="DotNet\Writer\IModuleWriterListener.cs" />
     <Compile Include="DotNet\Writer\ImportAddressTable.cs" />
     <Compile Include="DotNet\Writer\ImportDirectory.cs" />
+    <Compile Include="DotNet\Writer\IOffsetHeap.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
     <Compile Include="DotNet\Writer\MDTableWriter.cs" />
@@ -227,6 +236,7 @@
     <Compile Include="DotNet\Writer\USHeap.cs" />
     <Compile Include="DotNet\Writer\Win32ResourcesChunk.cs" />
     <Compile Include="ExtensionAttribute.cs" />
+    <Compile Include="HandleProcessCorruptedStateExceptionsAttribute.cs" />
     <Compile Include="IO\BinaryReaderStream.cs" />
     <Compile Include="IO\FileOffset.cs" />
     <Compile Include="IO\FileSection.cs" />

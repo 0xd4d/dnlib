@@ -31,11 +31,12 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// #Strings heap
 	/// </summary>
-	public sealed class StringsHeap : HeapBase {
+	public sealed class StringsHeap : HeapBase, IOffsetHeap<UTF8String> {
 		Dictionary<UTF8String, uint> cachedDict = new Dictionary<UTF8String, uint>(UTF8StringEqualityComparer.Instance);
 		List<UTF8String> cached = new List<UTF8String>();
 		uint nextOffset = 1;
 		byte[] originalData;
+		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>
 		public override string Name {
@@ -135,9 +136,45 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(originalData);
 			else
 				writer.Write((byte)0);
+
+			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
-				writer.Write(s.Data);
-				writer.Write((byte)0);
+				byte[] rawData;
+				if (userRawData != null && userRawData.TryGetValue(offset, out rawData)) {
+					if (rawData.Length != s.Data.Length + 1)
+						throw new InvalidOperationException("Invalid length of raw data");
+					writer.Write(rawData);
+				}
+				else {
+					writer.Write(s.Data);
+					writer.Write((byte)0);
+				}
+				offset += (uint)s.Data.Length + 1;
+			}
+		}
+
+		/// <inheritdoc/>
+		public int GetRawDataSize(UTF8String data) {
+			return data.Data.Length + 1;
+		}
+
+		/// <inheritdoc/>
+		public void SetRawData(uint offset, byte[] rawData) {
+			if (rawData == null)
+				throw new ArgumentNullException("rawData");
+			if (userRawData == null)
+				userRawData = new Dictionary<uint, byte[]>();
+			userRawData[offset] = rawData;
+		}
+
+		/// <inheritdoc/>
+		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
+			uint offset = originalData != null ? (uint)originalData.Length : 1;
+			foreach (var s in cached) {
+				var rawData = new byte[s.Data.Length + 1];
+				Array.Copy(s.Data, rawData, s.Data.Length);
+				yield return new KeyValuePair<uint, byte[]>(offset, rawData);
+				offset += (uint)rawData.Length;
 			}
 		}
 	}

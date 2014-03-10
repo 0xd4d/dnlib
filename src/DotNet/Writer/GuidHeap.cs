@@ -29,8 +29,9 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// #GUID heap
 	/// </summary>
-	public sealed class GuidHeap : HeapBase {
+	public sealed class GuidHeap : HeapBase, IOffsetHeap<Guid> {
 		List<Guid> guids = new List<Guid>();
+		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>
 		public override string Name {
@@ -66,8 +67,37 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(BinaryWriter writer) {
-			foreach (var guid in guids)
-				writer.Write(guid.ToByteArray());
+			uint offset = 0;
+			foreach (var guid in guids) {
+				byte[] rawData;
+				if (userRawData == null || !userRawData.TryGetValue(offset, out rawData))
+					rawData = guid.ToByteArray();
+				writer.Write(rawData);
+				offset += 16;
+			}
+		}
+
+		/// <inheritdoc/>
+		public int GetRawDataSize(Guid data) {
+			return 16;
+		}
+
+		/// <inheritdoc/>
+		public void SetRawData(uint offset, byte[] rawData) {
+			if (rawData == null || rawData.Length != 16)
+				throw new ArgumentException("Invalid size of GUID raw data");
+			if (userRawData == null)
+				userRawData = new Dictionary<uint, byte[]>();
+			userRawData[offset] = rawData;
+		}
+
+		/// <inheritdoc/>
+		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
+			uint offset = 0;
+			foreach (var guid in guids) {
+				yield return new KeyValuePair<uint, byte[]>(offset, guid.ToByteArray());
+				offset += 16;
+			}
 		}
 	}
 }

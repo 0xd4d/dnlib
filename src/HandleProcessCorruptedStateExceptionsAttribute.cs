@@ -1,4 +1,4 @@
-/*
+﻿/*
     Copyright (C) 2012-2013 de4dot@gmail.com
 
     Permission is hereby granted, free of charge, to any person obtaining
@@ -22,37 +22,10 @@
 */
 
 ﻿using System;
-using dnlib.IO;
+#pragma warning disable 1591	// XML doc warning
 
-namespace dnlib.DotNet.MD {
-	/// <summary>
-	/// Represents the #GUID stream
-	/// </summary>
-	public sealed class GuidStream : HeapStream {
-		/// <inheritdoc/>
-		public GuidStream() {
-		}
-
-		/// <inheritdoc/>
-		public GuidStream(IImageStream imageStream, StreamHeader streamHeader)
-			: base(imageStream, streamHeader) {
-		}
-
-		/// <inheritdoc/>
-		public override bool IsValidIndex(uint index) {
-			return index == 0 || (index <= 0x10000000 && IsValidOffset((index - 1) * 16, 16));
-		}
-
-		/// <summary>
-		/// Read a <see cref="Guid"/>
-		/// </summary>
-		/// <param name="index">Index into this stream</param>
-		/// <returns>A <see cref="Guid"/> or <c>null</c> if <paramref name="index"/> is 0 or invalid</returns>
-		public Guid? Read(uint index) {
-			if (index == 0 || !IsValidIndex(index))
-				return null;
-			var reader = GetReader((index - 1) * 16);
-			return new Guid(reader.ReadBytes(16));
-		}
+namespace System.Runtime.ExceptionServices {
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+	sealed class HandleProcessCorruptedStateExceptionsAttribute : Attribute {
 	}
 }

@@ -42,6 +42,7 @@ namespace dnlib.DotNet.MD {
 		uint extraData;
 		MDTable[] mdTables;
 
+		HotTableStream hotTableStream;
 		IColumnReader columnReader;
 		IRowReader<RawMethodRow> methodRowReader;
 
@@ -92,6 +93,11 @@ namespace dnlib.DotNet.MD {
 		public MDTable MethodSpecTable;
 		public MDTable GenericParamConstraintTable;
 #pragma warning restore
+
+		internal HotTableStream HotTableStream {
+			get { return hotTableStream; }
+			set { hotTableStream = value; }
+		}
 
 		/// <summary>
 		/// Gets/sets the column reader

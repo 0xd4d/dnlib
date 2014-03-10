@@ -27,7 +27,7 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the #Blob stream
 	/// </summary>
-	public sealed class BlobStream : DotNetStream {
+	public sealed class BlobStream : HeapStream {
 		static readonly byte[] noData = new byte[0];
 
 		/// <inheritdoc/>
@@ -49,11 +49,11 @@ namespace dnlib.DotNet.MD {
 			// 0-length data, even if that first byte isn't 0 at all.
 			if (offset == 0)
 				return noData;
-			int compressedLen;
-			int size = GetSize(offset, out compressedLen);
+			IImageStream reader;
+			int size = GetReader(offset, out reader);
 			if (size < 0)
 				return null;
-			return imageStream.ReadBytes(size);
+			return reader.ReadBytes(size);
 		}
 
 		/// <summary>
@@ -72,25 +72,24 @@ namespace dnlib.DotNet.MD {
 		/// <param name="offset">Offset of blob</param>
 		/// <returns>A new stream</returns>
 		public IImageStream CreateStream(uint offset) {
-			int compressedLen;
-			int size = GetSize(offset, out compressedLen);
+			IImageStream reader;
+			int size = GetReader(offset, out reader);
 			if (size < 0)
 				return MemoryImageStream.CreateEmpty();
-			return imageStream.Create((FileOffset)((long)offset + compressedLen), size);
+			return reader.Create((FileOffset)reader.Position, size);
 		}
 
-		int GetSize(uint offset, out int compressedLen) {
-			compressedLen = -1;
+		int GetReader(uint offset, out IImageStream reader) {
+			reader = null;
 			if (!IsValidOffset(offset))
 				return -1;
-			imageStream.Position = offset;
+			reader = GetReader(offset);
 			uint length;
-			if (!imageStream.ReadCompressedUInt32(out length))
+			if (!reader.ReadCompressedUInt32(out length))
 				return -1;
-			if (imageStream.Position + length < length || imageStream.Position + length > imageStream.Length)
+			if (reader.Position + length < length || reader.Position + length > reader.Length)
 				return -1;
 
-			compressedLen = (int)(imageStream.Position - offset);
 			return (int)length;	// length <= 0x1FFFFFFF so this cast does not make it negative
 		}
 	}

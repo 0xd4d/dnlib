@@ -28,7 +28,7 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the #US stream
 	/// </summary>
-	public sealed class USStream : DotNetStream {
+	public sealed class USStream : HeapStream {
 		/// <inheritdoc/>
 		public USStream() {
 		}
@@ -48,14 +48,14 @@ namespace dnlib.DotNet.MD {
 				return string.Empty;
 			if (!IsValidOffset(offset))
 				return null;
-			imageStream.Position = offset;
+			var reader = GetReader(offset);
 			uint length;
-			if (!imageStream.ReadCompressedUInt32(out length))
+			if (!reader.ReadCompressedUInt32(out length))
 				return null;
-			if (imageStream.Position + length < length || imageStream.Position + length > imageStream.Length)
+			if (reader.Position + length < length || reader.Position + length > reader.Length)
 				return null;
 			try {
-				return imageStream.ReadString((int)(length / 2));
+				return reader.ReadString((int)(length / 2));
 			}
 			catch (OutOfMemoryException) {
 				throw;

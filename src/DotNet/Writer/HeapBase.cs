@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public void SetOffset(FileOffset offset, RVA rva) {
+		public virtual void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
 		}

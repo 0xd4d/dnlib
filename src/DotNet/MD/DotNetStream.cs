@@ -140,4 +140,53 @@ namespace dnlib.DotNet.MD {
 			return size > 0 && (long)offset + (uint)size <= imageStream.Length;
 		}
 	}
+
+	/// <summary>
+	/// Base class of #US, #Strings, #Blob, and #GUID classes
+	/// </summary>
+	public abstract class HeapStream : DotNetStream {
+		internal HotHeapStream hotHeapStream;
+
+		/// <summary>
+		/// Gets/sets the <see cref="dnlib.DotNet.MD.HotHeapStream"/> instance
+		/// </summary>
+		internal HotHeapStream HotHeapStream {
+			get { return hotHeapStream; }
+			set { hotHeapStream = value; }
+		}
+
+		/// <inheritdoc/>
+		protected HeapStream() {
+		}
+
+		/// <inheritdoc/>
+		protected HeapStream(IImageStream imageStream, StreamHeader streamHeader)
+			: base(imageStream, streamHeader) {
+		}
+
+		/// <summary>
+		/// Gets the heap reader and initializes its position
+		/// </summary>
+		/// <param name="offset">Offset in the heap. If it's the #GUID heap, this should
+		/// be the offset of the GUID, not its index</param>
+		/// <returns>The heap reader</returns>
+		protected IImageStream GetReader(uint offset) {
+			if (hotHeapStream != null) {
+				var stream = hotHeapStream.GetBlobReader(offset);
+				if (stream != null)
+					return stream;
+			}
+			imageStream.Position = offset;
+			return imageStream;
+		}
+
+		/// <inheritdoc/>
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (hotHeapStream != null)
+					hotHeapStream.Dispose();
+			}
+			base.Dispose(disposing);
+		}
+	}
 }

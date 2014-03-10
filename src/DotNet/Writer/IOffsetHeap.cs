@@ -1,4 +1,4 @@
-/*
+﻿/*
     Copyright (C) 2012-2013 de4dot@gmail.com
 
     Permission is hereby granted, free of charge, to any person obtaining
@@ -21,45 +21,35 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-﻿using dnlib.IO;
+using System.Collections.Generic;
 
-namespace dnlib.DotNet.MD {
+namespace dnlib.DotNet.Writer {
 	/// <summary>
-	/// Represents the #Strings stream
+	/// Interface to get and set raw heap data. Implemented by the offset heaps: #Strings,
+	/// #GUID, #Blob, and #US.
 	/// </summary>
-	public sealed class StringsStream : HeapStream {
-		/// <inheritdoc/>
-		public StringsStream() {
-		}
-
-		/// <inheritdoc/>
-		public StringsStream(IImageStream imageStream, StreamHeader streamHeader)
-			: base(imageStream, streamHeader) {
-		}
+	/// <typeparam name="TValue">Type of cooked data</typeparam>
+	public interface IOffsetHeap<TValue> {
+		/// <summary>
+		/// Gets the size of the data as raw data when written to the heap
+		/// </summary>
+		/// <param name="data">The data</param>
+		/// <returns>Size of the data as raw data when written to the heap</returns>
+		int GetRawDataSize(TValue data);
 
 		/// <summary>
-		/// Reads a <see cref="UTF8String"/>
+		/// Overrides what value should be written to the heap.
 		/// </summary>
-		/// <param name="offset">Offset of string</param>
-		/// <returns>A <see cref="UTF8String"/> instance or <c>null</c> if invalid offset</returns>
-		public UTF8String Read(uint offset) {
-			if (offset >= imageStream.Length)
-				return null;
-			var reader = GetReader(offset);
-			var data = reader.ReadBytesUntilByte(0);
-			if (data == null)
-				return null;
-			return new UTF8String(data);
-		}
+		/// <param name="offset">Offset of value. Must match an offset returned by
+		/// <see cref="GetAllRawData()"/></param>
+		/// <param name="rawData">The new raw data. The size must match the raw size exactly.</param>
+		void SetRawData(uint offset, byte[] rawData);
 
 		/// <summary>
-		/// Reads a <see cref="UTF8String"/>. The empty string is returned if <paramref name="offset"/>
-		/// is invalid.
+		/// Gets all inserted raw data and their offsets. The returned <see cref="byte"/> array
+		/// is owned by the caller.
 		/// </summary>
-		/// <param name="offset">Offset of string</param>
-		/// <returns>A <see cref="UTF8String"/> instance</returns>
-		public UTF8String ReadNoNull(uint offset) {
-			return Read(offset) ?? UTF8String.Empty;
-		}
+		/// <returns>An enumerable of all raw data and their offsets</returns>
+		IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData();
 	}
 }
