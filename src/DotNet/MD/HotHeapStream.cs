@@ -23,6 +23,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.ExceptionServices;
+using System.Security;
 using dnlib.IO;
 
 namespace dnlib.DotNet.MD {
@@ -141,7 +143,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		[System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0
 		public override void Initialize(long mask) {
 			try {
 				offsetMask = mask;
@@ -198,7 +200,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		[System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0
 		public override void Initialize(long mask) {
 			try {
 				offsetMask = mask;

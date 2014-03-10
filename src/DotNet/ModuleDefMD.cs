@@ -24,7 +24,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Security;
 using dnlib.PE;
 using dnlib.Utils;
 using dnlib.IO;
@@ -1320,7 +1322,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="offset">Offset of resource relative to the .NET resources section</param>
 		/// <returns>A stream the size of the resource</returns>
-		[System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0
 		IImageStream CreateResourceStream(uint offset) {
 			IImageStream fs = null, imageStream = null;
 			try {
