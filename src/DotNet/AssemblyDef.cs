@@ -811,6 +811,15 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Simple name</param>
+		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
+		public AssemblyDefUser(UTF8String name)
+			: this(name, new Version(0, 0, 0, 0), new PublicKey()) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Simple name</param>
 		/// <param name="version">Version</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
 		public AssemblyDefUser(UTF8String name, Version version)
