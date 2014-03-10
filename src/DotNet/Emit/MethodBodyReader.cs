@@ -185,6 +185,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Reads the method body header, locals, all instructions, and the exception handlers (if any)
 		/// </summary>
+		/// <returns><c>true</c> if it worked, and <c>false</c> if something failed</returns>
 		public bool Read() {
 			try {
 				if (!ReadHeader())
