@@ -362,35 +362,40 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets the tables heap (<c>#~</c> or <c>#-</c>)
+		/// Gets the tables heap. Access to this heap is not recommended, but is useful if you
+		/// want to add random table entries.
 		/// </summary>
 		public TablesHeap TablesHeap {
 			get { return tablesHeap; }
 		}
 
 		/// <summary>
-		/// Gets the #Strings heap
+		/// Gets the #Strings heap. Access to this heap is not recommended, but is useful if you
+		/// want to add random strings.
 		/// </summary>
 		public StringsHeap StringsHeap {
 			get { return stringsHeap; }
 		}
 
 		/// <summary>
-		/// Gets the #US heap
+		/// Gets the #US heap. Access to this heap is not recommended, but is useful if
+		/// you want to add random user strings.
 		/// </summary>
 		public USHeap USHeap {
 			get { return usHeap; }
 		}
 
 		/// <summary>
-		/// Gets the #GUID heap
+		/// Gets the #GUID heap. Access to this heap is not recommended, but is useful if you
+		/// want to add random GUIDs.
 		/// </summary>
 		public GuidHeap GuidHeap {
 			get { return guidHeap; }
 		}
 
 		/// <summary>
-		/// Gets the #Blob heap
+		/// Gets the #Blob heap. Access to this heap is not recommended, but is useful if you
+		/// want to add random blobs.
 		/// </summary>
 		public BlobHeap BlobHeap {
 			get { return blobHeap; }
@@ -696,46 +701,6 @@ namespace dnlib.DotNet.Writer {
 		/// field value and create a new Field RVA.
 		/// </summary>
 		internal bool KeepFieldRVA { get; set; }
-
-		/// <summary>
-		/// Gets the tables heap. Access to this heap is not recommended, but is useful if you
-		/// want to add random table entries.
-		/// </summary>
-		public TablesHeap TablesHeap {
-			get { return tablesHeap; }
-		}
-
-		/// <summary>
-		/// Gets the strings heap. Access to this heap is not recommended, but is useful if you
-		/// want to add random strings.
-		/// </summary>
-		public StringsHeap StringsHeap {
-			get { return stringsHeap; }
-		}
-
-		/// <summary>
-		/// Gets the user strings heap. Access to this heap is not recommended, but is useful if
-		/// you want to add random user strings.
-		/// </summary>
-		public USHeap USHeap {
-			get { return usHeap; }
-		}
-
-		/// <summary>
-		/// Gets the GUID heap. Access to this heap is not recommended, but is useful if you
-		/// want to add random GUIDs.
-		/// </summary>
-		public GuidHeap GuidHeap {
-			get { return guidHeap; }
-		}
-
-		/// <summary>
-		/// Gets the blob heap. Access to this heap is not recommended, but is useful if you
-		/// want to add random blobs.
-		/// </summary>
-		public BlobHeap BlobHeap {
-			get { return blobHeap; }
-		}
 
 		/// <summary>
 		/// Constructor
