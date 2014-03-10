@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2012-2013 de4dot@gmail.com
+    Copyright (C) 2012-2014 de4dot@gmail.com
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
@@ -29,7 +29,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("dnlib")]
-[assembly: AssemblyCopyright("Copyright (C) 2012-2013 de4dot@gmail.com")]
+[assembly: AssemblyCopyright("Copyright (C) 2012-2014 de4dot@gmail.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
