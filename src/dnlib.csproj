@@ -71,6 +71,7 @@
     <Compile Include="DotNet\Emit\MethodBody.cs" />
     <Compile Include="DotNet\Emit\MethodBodyReader.cs" />
     <Compile Include="DotNet\Emit\MethodBodyReaderBase.cs" />
+    <Compile Include="DotNet\Emit\MethodTableToTypeConverter.cs" />
     <Compile Include="DotNet\Emit\MethodUtils.cs" />
     <Compile Include="DotNet\Emit\OpCode.cs" />
     <Compile Include="DotNet\Emit\OpCodes.cs" />
