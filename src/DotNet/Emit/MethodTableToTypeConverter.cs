@@ -81,9 +81,7 @@ namespace dnlib.DotNet.Emit {
 			if (alreadyInitialized == null)
 				alreadyInitialized = new Dictionary<object, bool>();
 			foreach (var asm in AppDomain.CurrentDomain.GetAssemblies()) {
-				if (alreadyInitialized.ContainsKey(asm))
-					continue;
-				foreach (var mod in asm.GetModules()) {
+				foreach (var mod in GetModules(asm)) {
 					if (alreadyInitialized.ContainsKey(mod))
 						continue;
 
@@ -110,10 +108,16 @@ namespace dnlib.DotNet.Emit {
 					if (modType != typeof(ModuleBuilder) && modType.ToString() != "System.Reflection.Emit.InternalModuleBuilder")
 						alreadyInitialized[mod] = true;
 				}
-				var asmType = asm.GetType();
-				if (asmType != typeof(AssemblyBuilder) && asmType.ToString() != "System.Reflection.Emit.InternalAssemblyBuilder")
-					alreadyInitialized[asm] = true;
 			}
+		}
+
+		static IEnumerable<Module> GetModules(Assembly asm) {
+			try {
+				return asm.GetModules();
+			}
+			catch {
+			}
+			return asm.GetLoadedModules();
 		}
 
 		static Type GetTypeUsingTypeBuilder(IntPtr address) {
