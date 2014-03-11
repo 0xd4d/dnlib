@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("dnlib.Examples")]
-[assembly: AssemblyCopyright("Copyright (C) 2012-2013 de4dot@gmail.com")]
+[assembly: AssemblyCopyright("Copyright (C) 2012-2014 de4dot@gmail.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
