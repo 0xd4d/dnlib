@@ -620,7 +620,7 @@ namespace dnlib.DotNet {
 		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
 		/// or if we failed to import the field</returns>
 		public MemberRef Import(FieldInfo fieldInfo) {
-			return new Importer(this).Import(fieldInfo);
+			return new Importer(this).Import(fieldInfo) as MemberRef;
 		}
 
 		/// <summary>
