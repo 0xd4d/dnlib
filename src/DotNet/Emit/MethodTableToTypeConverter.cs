@@ -36,22 +36,19 @@ namespace dnlib.DotNet.Emit {
 	/// <remarks>It currently doesn't support all possible type addresses if it's .NET 2.0.
 	/// Only addresses of normal types can then be used, eg. <c>SomeType</c> but not
 	/// <c>SomeType*</c> or <c>SomeType[]</c>, etc.</remarks>
-	class MethodTableToTypeConverter {
+	static class MethodTableToTypeConverter {
 		const string METHOD_NAME = "m";
 		static readonly MethodInfo setMethodBodyMethodInfo = typeof(MethodBuilder).GetMethod("SetMethodBody", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		static readonly FieldInfo localSignatureFieldInfo = typeof(ILGenerator).GetField("m_localSignature", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		static readonly FieldInfo sigDoneFieldInfo = typeof(SignatureHelper).GetField("m_sigDone", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		static readonly FieldInfo currSigFieldInfo = typeof(SignatureHelper).GetField("m_currSig", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		static readonly FieldInfo signatureFieldInfo = typeof(SignatureHelper).GetField("m_signature", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		Dictionary<IntPtr, Type> addrToType = new Dictionary<IntPtr, Type>();
-		Dictionary<object, bool> alreadyInitialized;
-		ModuleBuilder moduleBuilder;
-		int numNewTypes;
+		static Dictionary<IntPtr, Type> addrToType = new Dictionary<IntPtr, Type>();
+		static Dictionary<object, bool> alreadyInitialized;
+		static ModuleBuilder moduleBuilder;
+		static int numNewTypes;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public MethodTableToTypeConverter() {
+		static MethodTableToTypeConverter() {
 			var asmb = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("DynAsm"), AssemblyBuilderAccess.Run);
 			moduleBuilder = asmb.DefineDynamicModule("DynMod");
 		}
@@ -63,7 +60,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="address">Address of type</param>
 		/// <returns>The <see cref="Type"/> or <c>null</c></returns>
-		public Type Convert(IntPtr address) {
+		public static Type Convert(IntPtr address) {
 			Type type;
 			if (addrToType.TryGetValue(address, out type))
 				return type;
@@ -80,7 +77,7 @@ namespace dnlib.DotNet.Emit {
 			return type;
 		}
 
-		void InitializeAllSimpleTypeAddresses() {
+		static void InitializeAllSimpleTypeAddresses() {
 			if (alreadyInitialized == null)
 				alreadyInitialized = new Dictionary<object, bool>();
 			foreach (var asm in AppDomain.CurrentDomain.GetAssemblies()) {
@@ -119,7 +116,7 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
-		Type GetTypeUsingTypeBuilder(IntPtr address) {
+		static Type GetTypeUsingTypeBuilder(IntPtr address) {
 			if (moduleBuilder == null)
 				return null;
 
@@ -139,7 +136,7 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		// .NET 4.5 and later have the documented SetMethodBody() method.
-		Type GetTypeNET45(TypeBuilder tb, MethodBuilder mb, IntPtr address) {
+		static Type GetTypeNET45(TypeBuilder tb, MethodBuilder mb, IntPtr address) {
 			byte[] code = new byte[1] { 0x2A };
 			int maxStack = 8;
 			byte[] locals = GetLocalSignature(address);
@@ -151,7 +148,7 @@ namespace dnlib.DotNet.Emit {
 
 		// .NET 2.0 - 4.5. This code works with .NET 4.0+ but will throw an exception
 		// if .NET 2.0 is used ("operation could destabilize the runtime")
-		Type GetTypeNET20(TypeBuilder tb, MethodBuilder mb, IntPtr address) {
+		static Type GetTypeNET20(TypeBuilder tb, MethodBuilder mb, IntPtr address) {
 			var ilg = mb.GetILGenerator();
 			ilg.Emit(SR.Emit.OpCodes.Ret);
 
@@ -168,7 +165,7 @@ namespace dnlib.DotNet.Emit {
 			return createdMethod.GetMethodBody().LocalVariables[0].LocalType;
 		}
 
-		string GetNextTypeName() {
+		static string GetNextTypeName() {
 			return string.Format("Type{0}", numNewTypes++);
 		}
 
