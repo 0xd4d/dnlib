@@ -121,7 +121,7 @@ namespace dnlib.DotNet {
 		public byte[] PublicExponent {
 			get { return publicExponent; }
 			set {
-				if (publicExponent == null || publicExponent.Length != 4)
+				if (value == null || value.Length != 4)
 					throw new ArgumentException("PublicExponent must be exactly 4 bytes");
 				publicExponent = value;
 			}
@@ -321,7 +321,7 @@ namespace dnlib.DotNet {
 		public byte[] PublicExponent {
 			get { return publicExponent; }
 			set {
-				if (publicExponent == null || publicExponent.Length != 4)
+				if (value == null || value.Length != 4)
 					throw new ArgumentException("PublicExponent must be exactly 4 bytes");
 				publicExponent = value;
 			}
