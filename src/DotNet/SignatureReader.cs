@@ -42,7 +42,7 @@ namespace dnlib.DotNet {
 		/// <seealso cref="dnlib.DotNet.Emit.MethodTableToTypeConverter"/>
 		/// <param name="address">Address of <see cref="Type"/>. This is also known as the
 		/// method table and has the same value as <see cref="RuntimeTypeHandle.Value"/></param>
-		/// <returns>A <see cref="Type"/> or <c>null</c> if not supported</returns>
+		/// <returns>A <see cref="TypeSig"/> or <c>null</c> if not supported</returns>
 		TypeSig ConvertRTInternalAddress(IntPtr address);
 	}
 
