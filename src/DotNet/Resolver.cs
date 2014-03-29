@@ -48,25 +48,57 @@
 			var asmRef = nonNestedTypeRef.ResolutionScope as AssemblyRef;
 			if (asmRef != null) {
 				var asm = assemblyResolver.Resolve(asmRef, nonNestedTypeRef.Module);
-				return asm == null ? null : asm.Find(typeRef);
+				return asm == null ? null : asm.Find(typeRef) ?? ResolveExportedType(asm, typeRef);
 			}
 
 			var moduleDef = nonNestedTypeRef.ResolutionScope as ModuleDef;
 			if (moduleDef != null)
-				return moduleDef.Find(typeRef);
+				return moduleDef.Find(typeRef) ??
+					ResolveExportedType(moduleDef.Assembly, typeRef);
 
 			var moduleRef = nonNestedTypeRef.ResolutionScope as ModuleRef;
 			if (moduleRef != null) {
 				if (nonNestedTypeRef.Module == null)
 					return null;
 				if (new SigComparer().Equals(moduleRef, nonNestedTypeRef.Module))
-					return nonNestedTypeRef.Module.Find(typeRef);
+					return nonNestedTypeRef.Module.Find(typeRef) ??
+						ResolveExportedType(nonNestedTypeRef.Module.Assembly, typeRef);
 				if (nonNestedTypeRef.Module.Assembly == null)
 					return null;
 				var resolvedModule = nonNestedTypeRef.Module.Assembly.FindModule(moduleRef.Name);
-				return resolvedModule == null ? null : resolvedModule.Find(typeRef);
+				return resolvedModule == null ? null : resolvedModule.Find(typeRef) ??
+						ResolveExportedType(resolvedModule.Assembly, typeRef);
 			}
 
+			return null;
+		}
+
+		TypeDef ResolveExportedType(AssemblyDef asm, TypeRef typeRef) {
+			var exportedType = FindExportedType(asm, typeRef);
+			if (exportedType == null)
+				return null;
+
+			var asmResolver = asm.ManifestModule == null ? null : asm.ManifestModule.Context.AssemblyResolver;
+			if (asmResolver == null)
+				return null;
+			var etAsm = asmResolver.Resolve(exportedType.DefinitionAssembly, typeRef.Module);
+			if (etAsm == null)
+				return null;
+
+			return etAsm.Find(typeRef);
+		}
+
+		static ExportedType FindExportedType(AssemblyDef asm, TypeRef typeRef) {
+			if (asm == null || typeRef == null)
+				return null;
+			foreach (var module in asm.Modules) {
+				if (module.ExportedTypes.Count == 0)
+					continue;
+				foreach (var exportedType in module.ExportedTypes) {
+					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef))
+						return exportedType;
+				}
+			}
 			return null;
 		}
 
