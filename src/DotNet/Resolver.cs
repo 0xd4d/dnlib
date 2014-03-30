@@ -21,6 +21,8 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System.Collections.Generic;
+
 ﻿namespace dnlib.DotNet {
 	/// <summary>
 	/// Resolves types, methods, fields
@@ -48,13 +50,13 @@
 			var asmRef = nonNestedTypeRef.ResolutionScope as AssemblyRef;
 			if (asmRef != null) {
 				var asm = assemblyResolver.Resolve(asmRef, nonNestedTypeRef.Module);
-				return asm == null ? null : asm.Find(typeRef) ?? ResolveExportedType(asm, typeRef);
+				return asm == null ? null : asm.Find(typeRef) ?? ResolveExportedType(asm.Modules, typeRef);
 			}
 
 			var moduleDef = nonNestedTypeRef.ResolutionScope as ModuleDef;
 			if (moduleDef != null)
 				return moduleDef.Find(typeRef) ??
-					ResolveExportedType(moduleDef.Assembly, typeRef);
+					ResolveExportedType(new ModuleDef[] { moduleDef }, typeRef);
 
 			var moduleRef = nonNestedTypeRef.ResolutionScope as ModuleRef;
 			if (moduleRef != null) {
@@ -62,25 +64,23 @@
 					return null;
 				if (new SigComparer().Equals(moduleRef, nonNestedTypeRef.Module))
 					return nonNestedTypeRef.Module.Find(typeRef) ??
-						ResolveExportedType(nonNestedTypeRef.Module.Assembly, typeRef);
+						ResolveExportedType(new ModuleDef[] { nonNestedTypeRef.Module }, typeRef);
 				if (nonNestedTypeRef.Module.Assembly == null)
 					return null;
 				var resolvedModule = nonNestedTypeRef.Module.Assembly.FindModule(moduleRef.Name);
 				return resolvedModule == null ? null : resolvedModule.Find(typeRef) ??
-						ResolveExportedType(resolvedModule.Assembly, typeRef);
+						ResolveExportedType(new ModuleDef[] { resolvedModule }, typeRef);
 			}
 
 			return null;
 		}
 
-		TypeDef ResolveExportedType(AssemblyDef asm, TypeRef typeRef) {
-			var exportedType = FindExportedType(asm, typeRef);
+		TypeDef ResolveExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
+			var exportedType = FindExportedType(modules, typeRef);
 			if (exportedType == null)
 				return null;
 
-			var asmResolver = asm.ManifestModule == null ? null : asm.ManifestModule.Context.AssemblyResolver;
-			if (asmResolver == null)
-				return null;
+			var asmResolver = modules[0].Context.AssemblyResolver;
 			var etAsm = asmResolver.Resolve(exportedType.DefinitionAssembly, typeRef.Module);
 			if (etAsm == null)
 				return null;
@@ -88,12 +88,10 @@
 			return etAsm.Find(typeRef);
 		}
 
-		static ExportedType FindExportedType(AssemblyDef asm, TypeRef typeRef) {
-			if (asm == null || typeRef == null)
+		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
+			if (typeRef == null)
 				return null;
-			foreach (var module in asm.Modules) {
-				if (module.ExportedTypes.Count == 0)
-					continue;
+			foreach (var module in modules) {
 				foreach (var exportedType in module.ExportedTypes) {
 					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef))
 						return exportedType;
