@@ -171,6 +171,7 @@
     <Compile Include="DotNet\ResolveException.cs" />
     <Compile Include="DotNet\Resolver.cs" />
     <Compile Include="DotNet\Resource.cs" />
+    <Compile Include="DotNet\ResourceCollection.cs" />
     <Compile Include="DotNet\SerializationType.cs" />
     <Compile Include="DotNet\SigComparer.cs" />
     <Compile Include="DotNet\SignatureReader.cs" />

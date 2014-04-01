@@ -167,11 +167,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		internal override ILazyList<Resource> Resources2 {
+		internal override ResourceCollection Resources2 {
 			get {
 				if (resources == null) {
 					var table = TablesStream.ManifestResourceTable;
-					resources = new LazyList<Resource>((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
+					resources = new ResourceCollection((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
 				}
 				return resources;
 			}

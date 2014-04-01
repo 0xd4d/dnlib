@@ -188,14 +188,14 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets a list of all <see cref="Resource"/>s
 		/// </summary>
-		public IList<Resource> Resources {
+		public ResourceCollection Resources {
 			get { return Resources2; }
 		}
 
 		/// <summary>
 		/// Gets a list of all <see cref="Resource"/>s
 		/// </summary>
-		internal abstract ILazyList<Resource> Resources2 { get; }
+		internal abstract ResourceCollection Resources2 { get; }
 
 		/// <summary>
 		/// Gets/sets the <see cref="VTableFixups"/>. This is <c>null</c> if there are no
@@ -959,7 +959,7 @@ namespace dnlib.DotNet {
 		AssemblyDef assembly;
 		LazyList<TypeDef> types;
 		List<ExportedType> exportedTypes = new List<ExportedType>();
-		ILazyList<Resource> resources = new LazyList<Resource>();
+		ResourceCollection resources = new ResourceCollection();
 		RVA nativeEntryPoint;
 		IManagedEntryPoint managedEntryPoint;
 		Win32Resources win32Resources;
@@ -1018,7 +1018,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		internal override ILazyList<Resource> Resources2 {
+		internal override ResourceCollection Resources2 {
 			get { return resources; }
 		}
 
@@ -1134,7 +1134,7 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected IList<ExportedType> exportedTypes;
 		/// <summary/>
-		internal ILazyList<Resource> resources;
+		internal ResourceCollection resources;
 		UserValue<RVA> nativeEntryPoint;
 		UserValue<IManagedEntryPoint> managedEntryPoint;
 		Win32Resources win32Resources;
@@ -1199,7 +1199,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		internal override ILazyList<Resource> Resources2 {
+		internal override ResourceCollection Resources2 {
 			get { return resources; }
 		}
 
@@ -1268,7 +1268,7 @@ namespace dnlib.DotNet {
 				this.TablesHeaderVersion = 0x0200;				// .NET 2.0 or later should use 2.0
 				this.types = new LazyList<TypeDef>(this);
 				this.exportedTypes = new List<ExportedType>();
-				this.resources = new LazyList<Resource>();
+				this.resources = new ResourceCollection();
 				this.corLibTypes = new CorLibTypes(this);
 				this.location = string.Empty;
 			}
