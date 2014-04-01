@@ -225,6 +225,27 @@ namespace dnlib.DotNet {
 		public bool IsCallConvFastcall {
 			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvFastcall; }
 		}
+
+		/// <summary>
+		/// Checks whether this <see cref="ImplMap"/> is a certain P/Invoke method
+		/// </summary>
+		/// <param name="dllName">Name of the DLL</param>
+		/// <param name="funcName">Name of the function within the DLL</param>
+		/// <returns><c>true</c> if it's the specified P/Invoke method, else <c>false</c></returns>
+		public bool IsPinvokeMethod(string dllName, string funcName) {
+			if (Name != funcName)
+				return false;
+			var module = Module;
+			if (module == null)
+				return false;
+			return GetDllName(dllName).Equals(GetDllName(module.Name), StringComparison.OrdinalIgnoreCase);
+		}
+
+		static string GetDllName(string dllName) {
+			if (dllName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+				return dllName.Substring(0, dllName.Length - 4);
+			return dllName;
+		}
 	}
 
 	/// <summary>
