@@ -24,6 +24,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace dnlib.DotNet {
@@ -80,6 +81,23 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public byte[] Data {
 			get { return data; }
+		}
+
+		/// <summary>
+		/// Gets the length of the this as a <see cref="string"/>. I.e., it's the same as
+		/// <c>String.Length</c>.
+		/// </summary>
+		/// <seealso cref="DataLength"/>
+		public int Length {
+			get { return String.Length;}
+		}
+
+		/// <summary>
+		/// Gets the length of the raw data. It's the same as <c>Data.Length</c>
+		/// </summary>
+		/// <seealso cref="Length"/>
+		public int DataLength {
+			get { return Data.Length; }
 		}
 
 		/// <summary>
@@ -287,6 +305,418 @@ namespace dnlib.DotNet {
 			if ((object)other == null)
 				return false;
 			return CompareTo(this, other) == 0;
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="value"/> exists in this string
+		/// </summary>
+		/// <param name="value">Value to find</param>
+		/// <returns><c>true</c> if <paramref name="value"/> exists in string or is the
+		/// empty string, else <c>false</c></returns>
+		public bool Contains(string value) {
+			return String.Contains(value);
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="value"/> matches the end of this string
+		/// </summary>
+		/// <param name="value">Value</param>
+		/// <returns></returns>
+		public bool EndsWith(string value) {
+			return String.EndsWith(value);
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="value"/> matches the end of this string
+		/// </summary>
+		/// <param name="value">Value</param>
+		/// <param name="ignoreCase"><c>true</c> to ignore case</param>
+		/// <param name="culture">Culture info</param>
+		/// <returns></returns>
+		public bool EndsWith(string value, bool ignoreCase, CultureInfo culture) {
+			return String.EndsWith(value, ignoreCase, culture);
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="value"/> matches the end of this string
+		/// </summary>
+		/// <param name="value">Value</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns></returns>
+		public bool EndsWith(string value, StringComparison comparisonType) {
+			return String.EndsWith(value, comparisonType);
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="value"/> matches the beginning of this string
+		/// </summary>
+		/// <param name="value">Value</param>
+		/// <returns></returns>
+		public bool StartsWith(string value) {
+			return String.StartsWith(value);
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="value"/> matches the beginning of this string
+		/// </summary>
+		/// <param name="value">Value</param>
+		/// <param name="ignoreCase"><c>true</c> to ignore case</param>
+		/// <param name="culture">Culture info</param>
+		/// <returns></returns>
+		public bool StartsWith(string value, bool ignoreCase, CultureInfo culture) {
+			return String.StartsWith(value, ignoreCase, culture);
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="value"/> matches the beginning of this string
+		/// </summary>
+		/// <param name="value">Value</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns></returns>
+		public bool StartsWith(string value, StringComparison comparisonType) {
+			return String.StartsWith(value, comparisonType);
+		}
+
+		/// <summary>
+		/// Compares this instance with <paramref name="strB"/>
+		/// </summary>
+		/// <param name="strB">Other string</param>
+		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
+		public int CompareTo(string strB) {
+			return String.CompareTo(strB);
+		}
+
+		/// <summary>
+		/// Returns the index of the first character <paramref name="value"/> in this string
+		/// </summary>
+		/// <param name="value">Character</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(char value) {
+			return String.IndexOf(value);
+		}
+
+		/// <summary>
+		/// Returns the index of the first character <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="value">Character</param>
+		/// <param name="startIndex">Start index</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(char value, int startIndex) {
+			return String.IndexOf(value, startIndex);
+		}
+
+		/// <summary>
+		/// Returns the index of the first character <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/> for max <paramref name="count"/>
+		/// characters.
+		/// </summary>
+		/// <param name="value">Character</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="count">Max number of chars to scan</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(char value, int startIndex, int count) {
+			return String.IndexOf(value, startIndex, count);
+		}
+
+		/// <summary>
+		/// Returns the index of the first sub string <paramref name="value"/> in this string
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(string value) {
+			return String.IndexOf(value);
+		}
+
+		/// <summary>
+		/// Returns the index of the first sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(string value, int startIndex) {
+			return String.IndexOf(value, startIndex);
+		}
+
+		/// <summary>
+		/// Returns the index of the first sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/> for max <paramref name="count"/>
+		/// characters.
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="count">Max number of chars to scan</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(string value, int startIndex, int count) {
+			return String.IndexOf(value, startIndex, count);
+		}
+
+		/// <summary>
+		/// Returns the index of the first sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/> for max <paramref name="count"/>
+		/// characters.
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="count">Max number of chars to scan</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(string value, int startIndex, int count, StringComparison comparisonType) {
+			return String.IndexOf(value, startIndex, count, comparisonType);
+		}
+
+		/// <summary>
+		/// Returns the index of the first sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(string value, int startIndex, StringComparison comparisonType) {
+			return String.IndexOf(value, startIndex, comparisonType);
+		}
+
+		/// <summary>
+		/// Returns the index of the first sub string <paramref name="value"/> in this string
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int IndexOf(string value, StringComparison comparisonType) {
+			return String.IndexOf(value, comparisonType);
+		}
+
+		/// <summary>
+		/// Returns the index of the last character <paramref name="value"/> in this string
+		/// </summary>
+		/// <param name="value">Character</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(char value) {
+			return String.LastIndexOf(value);
+		}
+
+		/// <summary>
+		/// Returns the index of the last character <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="value">Character</param>
+		/// <param name="startIndex">Start index</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(char value, int startIndex) {
+			return String.LastIndexOf(value, startIndex);
+		}
+
+		/// <summary>
+		/// Returns the index of the last character <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/> for max <paramref name="count"/>
+		/// characters.
+		/// </summary>
+		/// <param name="value">Character</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="count">Max number of chars to scan</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(char value, int startIndex, int count) {
+			return String.LastIndexOf(value, startIndex, count);
+		}
+
+		/// <summary>
+		/// Returns the index of the last sub string <paramref name="value"/> in this string
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(string value) {
+			return String.LastIndexOf(value);
+		}
+
+		/// <summary>
+		/// Returns the index of the last sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(string value, int startIndex) {
+			return String.LastIndexOf(value, startIndex);
+		}
+
+		/// <summary>
+		/// Returns the index of the last sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/> for max <paramref name="count"/>
+		/// characters.
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="count">Max number of chars to scan</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(string value, int startIndex, int count) {
+			return String.LastIndexOf(value, startIndex, count);
+		}
+
+		/// <summary>
+		/// Returns the index of the last sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/> for max <paramref name="count"/>
+		/// characters.
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="count">Max number of chars to scan</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(string value, int startIndex, int count, StringComparison comparisonType) {
+			return String.LastIndexOf(value, startIndex, count, comparisonType);
+		}
+
+		/// <summary>
+		/// Returns the index of the last sub string <paramref name="value"/> in this string
+		/// starting from index <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(string value, int startIndex, StringComparison comparisonType) {
+			return String.LastIndexOf(value, startIndex, comparisonType);
+		}
+
+		/// <summary>
+		/// Returns the index of the last sub string <paramref name="value"/> in this string
+		/// </summary>
+		/// <param name="value">String</param>
+		/// <param name="comparisonType">Comparison type</param>
+		/// <returns>The index of <paramref name="value"/> or <c>-1</c> if not found</returns>
+		public int LastIndexOf(string value, StringComparison comparisonType) {
+			return String.LastIndexOf(value, comparisonType);
+		}
+
+		/// <summary>
+		/// Inserts string <paramref name="value"/> at a index <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="value">Value to insert</param>
+		/// <returns>A new instance with the <paramref name="value"/> inserted at position
+		/// <paramref name="startIndex"/></returns>
+		public UTF8String Insert(int startIndex, string value) {
+			return new UTF8String(String.Insert(startIndex, value));
+		}
+
+		/// <summary>
+		/// Removes all characters starting from position <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="startIndex">Start index</param>
+		/// <returns>A new instance</returns>
+		public UTF8String Remove(int startIndex) {
+			return new UTF8String(String.Remove(startIndex));
+		}
+
+		/// <summary>
+		/// Removes <paramref name="count"/> characters starting from position
+		/// <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="count">Number of characters to remove</param>
+		/// <returns>A new instance</returns>
+		public UTF8String Remove(int startIndex, int count) {
+			return new UTF8String(String.Remove(startIndex, count));
+		}
+
+		/// <summary>
+		/// Replaces all characters <paramref name="oldChar"/> with <paramref name="newChar"/>
+		/// </summary>
+		/// <param name="oldChar">Character to find</param>
+		/// <param name="newChar">Character to replace all <paramref name="oldChar"/></param>
+		/// <returns>A new instance</returns>
+		public UTF8String Replace(char oldChar, char newChar) {
+			return new UTF8String(String.Replace(oldChar, newChar));
+		}
+
+		/// <summary>
+		/// Replaces all sub strings <paramref name="oldValue"/> with <paramref name="newValue"/>
+		/// </summary>
+		/// <param name="oldValue">Sub string to find</param>
+		/// <param name="newValue">Sub string to replace all <paramref name="oldValue"/></param>
+		/// <returns>A new instance</returns>
+		public UTF8String Replace(string oldValue, string newValue) {
+			return new UTF8String(String.Replace(oldValue, newValue));
+		}
+
+		/// <summary>
+		/// Returns a sub string of this string starting at offset <paramref name="startIndex"/>
+		/// </summary>
+		/// <param name="startIndex">Start index</param>
+		/// <returns>A new instance</returns>
+		public UTF8String Substring(int startIndex) {
+			return new UTF8String(String.Substring(startIndex));
+		}
+
+		/// <summary>
+		/// Returns a sub string of this string starting at offset <paramref name="startIndex"/>.
+		/// Length of sub string is <paramref name="length"/>.
+		/// </summary>
+		/// <param name="startIndex">Start index</param>
+		/// <param name="length">Length of sub string</param>
+		/// <returns>A new instance</returns>
+		public UTF8String Substring(int startIndex, int length) {
+			return new UTF8String(String.Substring(startIndex, length));
+		}
+
+		/// <summary>
+		/// Returns the lower case version of this string
+		/// </summary>
+		/// <returns>A new instance</returns>
+		public UTF8String ToLower() {
+			return new UTF8String(String.ToLower());
+		}
+
+		/// <summary>
+		/// Returns the lower case version of this string
+		/// </summary>
+		/// <param name="culture">Culture info</param>
+		/// <returns>A new instance</returns>
+		public UTF8String ToLower(CultureInfo culture) {
+			return new UTF8String(String.ToLower(culture));
+		}
+
+		/// <summary>
+		/// Returns the lower case version of this string using the invariant culture
+		/// </summary>
+		/// <returns>A new instance</returns>
+		public UTF8String ToLowerInvariant() {
+			return new UTF8String(String.ToLowerInvariant());
+		}
+
+		/// <summary>
+		/// Returns the upper case version of this string
+		/// </summary>
+		/// <returns>A new instance</returns>
+		public UTF8String ToUpper() {
+			return new UTF8String(String.ToUpper());
+		}
+
+		/// <summary>
+		/// Returns the upper case version of this string
+		/// </summary>
+		/// <param name="culture">Culture info</param>
+		/// <returns>A new instance</returns>
+		public UTF8String ToUpper(CultureInfo culture) {
+			return new UTF8String(String.ToUpper(culture));
+		}
+
+		/// <summary>
+		/// Returns the upper case version of this string using the invariant culture
+		/// </summary>
+		/// <returns>A new instance</returns>
+		public UTF8String ToUpperInvariant() {
+			return new UTF8String(String.ToUpperInvariant());
+		}
+
+		/// <summary>
+		/// Removes all leading and trailing whitespace characters
+		/// </summary>
+		/// <returns>A new instance</returns>
+		public UTF8String Trim() {
+			return new UTF8String(String.Trim());
 		}
 
 		/// <inheritdoc/>
