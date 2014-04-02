@@ -1172,7 +1172,7 @@ namespace dnlib.DotNet.Writer {
 
 			InitializeVTableFixups();
 
-			//TODO: Add ExportedTypes
+			AddExportedTypes();
 			InitializeEntryPoint();
 			if (module.Assembly != null)
 				AddAssembly(module.Assembly, AssemblyPublicKey);
@@ -1364,6 +1364,11 @@ namespace dnlib.DotNet.Writer {
 					AddMDTokenProvider(method);
 				}
 			}
+		}
+
+		void AddExportedTypes() {
+			foreach (var et in module.ExportedTypes)
+				AddExportedType(et);
 		}
 
 		/// <summary>
@@ -2420,7 +2425,7 @@ namespace dnlib.DotNet.Writer {
 						et.TypeDefId,	//TODO: Should be updated with the new rid
 						stringsHeap.Add(et.TypeName),
 						stringsHeap.Add(et.TypeNamespace),
-						AddImplementation(et));
+						AddImplementation(et.Implementation));
 			rid = tablesHeap.ExportedTypeTable.Add(row);
 			exportedTypeInfos.SetRid(et, rid);
 			AddCustomAttributes(Table.ExportedType, rid, et);
