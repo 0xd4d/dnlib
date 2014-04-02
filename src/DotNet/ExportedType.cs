@@ -74,7 +74,8 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
-				throw new NotImplementedException();	//TODO:
+				var td = Resolve();
+				return td != null && td.IsValueType;
 			}
 		}
 
@@ -470,6 +471,32 @@ namespace dnlib.DotNet {
 				else
 					Attributes &= ~TypeAttributes.HasSecurity;
 			}
+		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
+		public TypeDef Resolve() {
+			if (module == null)
+				return null;
+			var etAsm = module.Context.AssemblyResolver.Resolve(DefinitionAssembly, module);
+			if (etAsm == null)
+				return null;
+
+			return etAsm.Find(this.FullName, false);
+		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		public TypeDef ResolveThrow() {
+			var type = Resolve();
+			if (type != null)
+				return type;
+			throw new TypeResolveException(string.Format("Could not resolve type: {0}", this));
 		}
 
 		/// <inheritdoc/>
