@@ -93,6 +93,8 @@ using System.Collections.Generic;
 				return null;
 			foreach (var module in modules) {
 				foreach (var exportedType in module.ExportedTypes) {
+					if (!exportedType.IsForwarder)
+						continue;
 					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef))
 						return exportedType;
 				}
