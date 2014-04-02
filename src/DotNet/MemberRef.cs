@@ -107,8 +107,7 @@ namespace dnlib.DotNet {
 
 				var mr = owner as ModuleRef;
 				if (mr != null) {
-					//TODO: Use the correct namespace + name of the global type in the referenced module
-					var tr = new TypeRefUser(module, "", "<Module>", mr);
+					var tr = GetGlobalTypeRef(mr);
 					if (module != null)
 						return module.UpdateRowId(tr);
 					return tr;
@@ -116,6 +115,23 @@ namespace dnlib.DotNet {
 
 				return null;
 			}
+		}
+
+		TypeRefUser GetGlobalTypeRef(ModuleRef mr) {
+			if (module == null)
+				return CreateDefaultGlobalTypeRef(mr);
+			if (module.GlobalType != null && new SigComparer().Equals(module, mr))
+				return new TypeRefUser(module, module.GlobalType.Namespace, module.GlobalType.Name, mr);
+			if (module.Assembly == null)
+				return CreateDefaultGlobalTypeRef(mr);
+			var mod = module.Assembly.FindModule(mr.Name);
+			if (mod == null || mod.GlobalType == null)
+				return CreateDefaultGlobalTypeRef(mr);
+			return new TypeRefUser(module, mod.GlobalType.Namespace, mod.GlobalType.Name, mr);
+		}
+
+		TypeRefUser CreateDefaultGlobalTypeRef(ModuleRef mr) {
+			return new TypeRefUser(module, string.Empty, "<Module>", mr);
 		}
 
 		/// <summary>
