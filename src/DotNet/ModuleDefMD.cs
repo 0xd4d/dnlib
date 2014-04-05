@@ -1571,7 +1571,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be truncated.
+		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be overwritten.
 		/// </summary>
 		/// <param name="filename">Filename</param>
 		public void NativeWrite(string filename) {
@@ -1579,7 +1579,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be truncated.
+		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be overwritten.
 		/// </summary>
 		/// <param name="filename">Filename</param>
 		/// <param name="options">Writer options</param>

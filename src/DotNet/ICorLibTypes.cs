@@ -122,7 +122,7 @@
 		AssemblyRef AssemblyRef { get; }
 
 		/// <summary>
-		/// Gets a <see cref="TypeRef"/> that references a type in the assembly
+		/// Gets a <see cref="TypeRef"/> that references a type in the core library assembly
 		/// </summary>
 		/// <param name="namespace">Namespace of type (eg. "System")</param>
 		/// <param name="name">Name of type</param>

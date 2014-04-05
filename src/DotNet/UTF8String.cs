@@ -260,7 +260,6 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="data">UTF-8 data that this instance now owns</param>
-		/// <exception cref="ArgumentException">If <paramref name="data"/> contains a nul byte</exception>
 		public UTF8String(byte[] data) {
 			this.data = data;
 		}

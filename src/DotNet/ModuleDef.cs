@@ -271,6 +271,7 @@ namespace dnlib.DotNet {
 		/// This is disabled by default. When disabled, all calls to <see cref="Find(string,bool)"/>
 		/// and <see cref="Find(TypeRef)"/> will result in a slow <c>O(n)</c> (linear) search.
 		/// </summary>
+		/// <seealso cref="ResetTypeDefFindCache()"/>
 		public bool EnableTypeDefFindCache {
 			get { return TypeDefFinder.IsCacheEnabled; }
 			set { TypeDefFinder.IsCacheEnabled = value; }
@@ -734,7 +735,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Writes the module to a file on disk. If the file exists, it will be truncated.
+		/// Writes the module to a file on disk. If the file exists, it will be overwritten.
 		/// </summary>
 		/// <param name="filename">Filename</param>
 		public void Write(string filename) {
@@ -742,7 +743,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Writes the module to a file on disk. If the file exists, it will be truncated.
+		/// Writes the module to a file on disk. If the file exists, it will be overwritten.
 		/// </summary>
 		/// <param name="filename">Filename</param>
 		/// <param name="options">Writer options</param>
