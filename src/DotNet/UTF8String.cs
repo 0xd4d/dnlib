@@ -97,7 +97,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <seealso cref="Length"/>
 		public int DataLength {
-			get { return Data.Length; }
+			get { return data == null ? 0 : data.Length; }
 		}
 
 		/// <summary>
