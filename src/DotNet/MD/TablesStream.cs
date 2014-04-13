@@ -26,12 +26,14 @@ using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
 using dnlib.PE;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// .NET metadata tables stream
 	/// </summary>
 	public sealed partial class TablesStream : DotNetStream {
+		bool initialized;
 		uint reserved1;
 		byte majorVersion;
 		byte minorVersion;
@@ -47,55 +49,58 @@ namespace dnlib.DotNet.MD {
 		IRowReader<RawMethodRow> methodRowReader;
 
 #pragma warning disable 1591	// XML doc comment
-		public MDTable ModuleTable;
-		public MDTable TypeRefTable;
-		public MDTable TypeDefTable;
-		public MDTable FieldPtrTable;
-		public MDTable FieldTable;
-		public MDTable MethodPtrTable;
-		public MDTable MethodTable;
-		public MDTable ParamPtrTable;
-		public MDTable ParamTable;
-		public MDTable InterfaceImplTable;
-		public MDTable MemberRefTable;
-		public MDTable ConstantTable;
-		public MDTable CustomAttributeTable;
-		public MDTable FieldMarshalTable;
-		public MDTable DeclSecurityTable;
-		public MDTable ClassLayoutTable;
-		public MDTable FieldLayoutTable;
-		public MDTable StandAloneSigTable;
-		public MDTable EventMapTable;
-		public MDTable EventPtrTable;
-		public MDTable EventTable;
-		public MDTable PropertyMapTable;
-		public MDTable PropertyPtrTable;
-		public MDTable PropertyTable;
-		public MDTable MethodSemanticsTable;
-		public MDTable MethodImplTable;
-		public MDTable ModuleRefTable;
-		public MDTable TypeSpecTable;
-		public MDTable ImplMapTable;
-		public MDTable FieldRVATable;
-		public MDTable ENCLogTable;
-		public MDTable ENCMapTable;
-		public MDTable AssemblyTable;
-		public MDTable AssemblyProcessorTable;
-		public MDTable AssemblyOSTable;
-		public MDTable AssemblyRefTable;
-		public MDTable AssemblyRefProcessorTable;
-		public MDTable AssemblyRefOSTable;
-		public MDTable FileTable;
-		public MDTable ExportedTypeTable;
-		public MDTable ManifestResourceTable;
-		public MDTable NestedClassTable;
-		public MDTable GenericParamTable;
-		public MDTable MethodSpecTable;
-		public MDTable GenericParamConstraintTable;
+		public MDTable ModuleTable { get; private set; }
+		public MDTable TypeRefTable { get; private set; }
+		public MDTable TypeDefTable { get; private set; }
+		public MDTable FieldPtrTable { get; private set; }
+		public MDTable FieldTable { get; private set; }
+		public MDTable MethodPtrTable { get; private set; }
+		public MDTable MethodTable { get; private set; }
+		public MDTable ParamPtrTable { get; private set; }
+		public MDTable ParamTable { get; private set; }
+		public MDTable InterfaceImplTable { get; private set; }
+		public MDTable MemberRefTable { get; private set; }
+		public MDTable ConstantTable { get; private set; }
+		public MDTable CustomAttributeTable { get; private set; }
+		public MDTable FieldMarshalTable { get; private set; }
+		public MDTable DeclSecurityTable { get; private set; }
+		public MDTable ClassLayoutTable { get; private set; }
+		public MDTable FieldLayoutTable { get; private set; }
+		public MDTable StandAloneSigTable { get; private set; }
+		public MDTable EventMapTable { get; private set; }
+		public MDTable EventPtrTable { get; private set; }
+		public MDTable EventTable { get; private set; }
+		public MDTable PropertyMapTable { get; private set; }
+		public MDTable PropertyPtrTable { get; private set; }
+		public MDTable PropertyTable { get; private set; }
+		public MDTable MethodSemanticsTable { get; private set; }
+		public MDTable MethodImplTable { get; private set; }
+		public MDTable ModuleRefTable { get; private set; }
+		public MDTable TypeSpecTable { get; private set; }
+		public MDTable ImplMapTable { get; private set; }
+		public MDTable FieldRVATable { get; private set; }
+		public MDTable ENCLogTable { get; private set; }
+		public MDTable ENCMapTable { get; private set; }
+		public MDTable AssemblyTable { get; private set; }
+		public MDTable AssemblyProcessorTable { get; private set; }
+		public MDTable AssemblyOSTable { get; private set; }
+		public MDTable AssemblyRefTable { get; private set; }
+		public MDTable AssemblyRefProcessorTable { get; private set; }
+		public MDTable AssemblyRefOSTable { get; private set; }
+		public MDTable FileTable { get; private set; }
+		public MDTable ExportedTypeTable { get; private set; }
+		public MDTable ManifestResourceTable { get; private set; }
+		public MDTable NestedClassTable { get; private set; }
+		public MDTable GenericParamTable { get; private set; }
+		public MDTable MethodSpecTable { get; private set; }
+		public MDTable GenericParamConstraintTable { get; private set; }
 #pragma warning restore
 
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
+
 		internal HotTableStream HotTableStream {
-			get { return hotTableStream; }
 			set { hotTableStream = value; }
 		}
 
@@ -231,6 +236,10 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="peImage">The PEImage</param>
 		public void Initialize(IPEImage peImage) {
+			if (initialized)
+				throw new Exception("Initialize() has already been called");
+			initialized = true;
+
 			reserved1 = imageStream.ReadUInt32();
 			majorVersion = imageStream.ReadByte();
 			minorVersion = imageStream.ReadByte();
@@ -324,8 +333,9 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				if (mdTables != null) {
-					foreach (var mdTable in mdTables) {
+				var mt = mdTables;
+				if (mt != null) {
+					foreach (var mdTable in mt) {
 						if (mdTable != null)
 							mdTable.Dispose();
 					}

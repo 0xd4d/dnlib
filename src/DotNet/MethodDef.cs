@@ -23,23 +23,38 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.PE;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Method table
 	/// </summary>
 	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef> {
-		internal static readonly UTF8String staticConstructorName = ".cctor";
-		static readonly UTF8String instanceConstructorName = ".ctor";
+		internal static readonly UTF8String StaticConstructorName = ".cctor";
+		internal static readonly UTF8String InstanceConstructorName = ".ctor";
 
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <summary>
 		/// All parameters
@@ -100,12 +115,62 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Method.ImplFlags
 		/// </summary>
-		public abstract MethodImplAttributes ImplAttributes { get; set; }
+		public MethodImplAttributes ImplAttributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return ImplAttributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					ImplAttributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return ImplAttributes_NoLock; }
+			set { ImplAttributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column Method.ImplFlags
+		/// </summary>
+		protected abstract MethodImplAttributes ImplAttributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Method.Flags
 		/// </summary>
-		public abstract MethodAttributes Attributes { get; set; }
+		public MethodAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column Method.Flags
+		/// </summary>
+		protected abstract MethodAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Method.Name
@@ -115,18 +180,43 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Method.Signature
 		/// </summary>
-		public abstract CallingConventionSig Signature { get; set; }
+		public CallingConventionSig Signature {
+			get {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				return Signature_NoLock;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				Signature_NoLock = value;
+				parameterList.UpdateParameterTypes(true);
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+		}
+
+		/// <summary>
+		/// From column Method.Signature
+		/// </summary>
+		protected internal abstract CallingConventionSig Signature_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Method.ParamList
 		/// </summary>
-		public abstract IList<ParamDef> ParamDefs { get; }
+		public abstract ThreadSafe.IList<ParamDef> ParamDefs { get; }
 
 		/// <inheritdoc/>
-		public abstract IList<GenericParam> GenericParameters { get; }
+		public abstract ThreadSafe.IList<GenericParam> GenericParameters { get; }
 
 		/// <inheritdoc/>
-		public abstract IList<DeclSecurity> DeclSecurities { get; }
+		public abstract ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
 
 		/// <inheritdoc/>
 		public abstract ImplMap ImplMap { get; set; }
@@ -144,7 +234,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the methods this method implements
 		/// </summary>
-		public abstract IList<MethodOverride> Overrides { get; }
+		public abstract ThreadSafe.IList<MethodOverride> Overrides { get; }
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -158,6 +248,8 @@ namespace dnlib.DotNet {
 			get { return DeclaringType2; }
 			set {
 				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType == value)
+					return;
 				if (currentDeclaringType != null)
 					currentDeclaringType.Methods.Remove(this);	// Will set DeclaringType2 = null
 				if (value != null)
@@ -175,7 +267,32 @@ namespace dnlib.DotNet {
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public abstract TypeDef DeclaringType2 { get; set; }
+		public TypeDef DeclaringType2 {
+			get {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				return DeclaringType2_NoLock;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				DeclaringType2_NoLock = value;
+				parameterList.UpdateThisParameterType(value, true);
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+		}
+
+		/// <summary>
+		/// The no-lock version of <see cref="DeclaringType2"/>
+		/// </summary>
+		protected abstract TypeDef DeclaringType2_NoLock { get; set; }
 
 		/// <inheritdoc/>
 		public ModuleDef Module {
@@ -276,32 +393,115 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if the method has a hidden 'this' parameter
 		/// </summary>
 		public bool HasThis {
-			get { return MethodSig == null ? false : MethodSig.HasThis; }
+			get {
+				var ms = MethodSig;
+				return ms == null ? false : ms.HasThis;
+			}
 		}
 
 		/// <summary>
 		/// <c>true</c> if the method has an explicit 'this' parameter
 		/// </summary>
 		public bool ExplicitThis {
-			get { return MethodSig == null ? false : MethodSig.ExplicitThis; }
+			get {
+				var ms = MethodSig;
+				return ms == null ? false : ms.ExplicitThis;
+			}
 		}
 
 		/// <summary>
 		/// Gets the calling convention
 		/// </summary>
 		public CallingConvention CallingConvention {
-			get { return MethodSig == null ? 0 : MethodSig.CallingConvention & CallingConvention.Mask; }
+			get {
+				var ms = MethodSig;
+				return ms == null ? 0 : ms.CallingConvention & CallingConvention.Mask;
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets the method return type
 		/// </summary>
 		public TypeSig ReturnType {
-			get { return MethodSig == null ? null : MethodSig.RetType; }
-			set {
-				if (MethodSig != null)
-					MethodSig.RetType = value;
+			get {
+				var ms = MethodSig;
+				return ms == null ? null : ms.RetType;
 			}
+			set {
+				var ms = MethodSig;
+				if (ms != null)
+					ms.RetType = value;
+			}
+		}
+
+		/// <summary>
+		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
+		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyAttributes(MethodAttributes andMask, MethodAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, MethodAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Modify <see cref="ImplAttributes_NoLock"/> property: <see cref="ImplAttributes_NoLock"/> =
+		/// (<see cref="ImplAttributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyImplAttributes(MethodImplAttributes andMask, MethodImplAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				ImplAttributes_NoLock = (ImplAttributes_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="ImplAttributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyImplAttributes(bool set, MethodImplAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					ImplAttributes_NoLock |= flags;
+				else
+					ImplAttributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -309,7 +509,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public MethodAttributes Access {
 			get { return Attributes & MethodAttributes.MemberAccessMask; }
-			set { Attributes = (Attributes & ~MethodAttributes.MemberAccessMask) | (value & MethodAttributes.MemberAccessMask); }
+			set { ModifyAttributes(~MethodAttributes.MemberAccessMask, value & MethodAttributes.MemberAccessMask); }
 		}
 
 		/// <summary>
@@ -373,12 +573,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsStatic {
 			get { return (Attributes & MethodAttributes.Static) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.Static;
-				else
-					Attributes &= ~MethodAttributes.Static;
-			}
+			set { ModifyAttributes(value, MethodAttributes.Static); }
 		}
 
 		/// <summary>
@@ -386,12 +581,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsFinal {
 			get { return (Attributes & MethodAttributes.Final) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.Final;
-				else
-					Attributes &= ~MethodAttributes.Final;
-			}
+			set { ModifyAttributes(value, MethodAttributes.Final); }
 		}
 
 		/// <summary>
@@ -399,12 +589,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsVirtual {
 			get { return (Attributes & MethodAttributes.Virtual) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.Virtual;
-				else
-					Attributes &= ~MethodAttributes.Virtual;
-			}
+			set { ModifyAttributes(value, MethodAttributes.Virtual); }
 		}
 
 		/// <summary>
@@ -412,12 +597,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsHideBySig {
 			get { return (Attributes & MethodAttributes.HideBySig) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.HideBySig;
-				else
-					Attributes &= ~MethodAttributes.HideBySig;
-			}
+			set { ModifyAttributes(value, MethodAttributes.HideBySig); }
 		}
 
 		/// <summary>
@@ -425,12 +605,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsNewSlot {
 			get { return (Attributes & MethodAttributes.NewSlot) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.NewSlot;
-				else
-					Attributes &= ~MethodAttributes.NewSlot;
-			}
+			set { ModifyAttributes(value, MethodAttributes.NewSlot); }
 		}
 
 		/// <summary>
@@ -438,12 +613,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsReuseSlot {
 			get { return (Attributes & MethodAttributes.NewSlot) == 0; }
-			set {
-				if (value)
-					Attributes &= ~MethodAttributes.NewSlot;
-				else
-					Attributes |= MethodAttributes.NewSlot;
-			}
+			set { ModifyAttributes(!value, MethodAttributes.NewSlot); }
 		}
 
 		/// <summary>
@@ -451,12 +621,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsCheckAccessOnOverride {
 			get { return (Attributes & MethodAttributes.CheckAccessOnOverride) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.CheckAccessOnOverride;
-				else
-					Attributes &= ~MethodAttributes.CheckAccessOnOverride;
-			}
+			set { ModifyAttributes(value, MethodAttributes.CheckAccessOnOverride); }
 		}
 
 		/// <summary>
@@ -464,12 +629,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsAbstract {
 			get { return (Attributes & MethodAttributes.Abstract) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.Abstract;
-				else
-					Attributes &= ~MethodAttributes.Abstract;
-			}
+			set { ModifyAttributes(value, MethodAttributes.Abstract); }
 		}
 
 		/// <summary>
@@ -477,12 +637,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSpecialName {
 			get { return (Attributes & MethodAttributes.SpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.SpecialName;
-				else
-					Attributes &= ~MethodAttributes.SpecialName;
-			}
+			set { ModifyAttributes(value, MethodAttributes.SpecialName); }
 		}
 
 		/// <summary>
@@ -490,12 +645,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsPinvokeImpl {
 			get { return (Attributes & MethodAttributes.PinvokeImpl) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.PinvokeImpl;
-				else
-					Attributes &= ~MethodAttributes.PinvokeImpl;
-			}
+			set { ModifyAttributes(value, MethodAttributes.PinvokeImpl); }
 		}
 
 		/// <summary>
@@ -503,12 +653,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsUnmanagedExport {
 			get { return (Attributes & MethodAttributes.UnmanagedExport) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.UnmanagedExport;
-				else
-					Attributes &= ~MethodAttributes.UnmanagedExport;
-			}
+			set { ModifyAttributes(value, MethodAttributes.UnmanagedExport); }
 		}
 
 		/// <summary>
@@ -516,12 +661,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsRuntimeSpecialName {
 			get { return (Attributes & MethodAttributes.RTSpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.RTSpecialName;
-				else
-					Attributes &= ~MethodAttributes.RTSpecialName;
-			}
+			set { ModifyAttributes(value, MethodAttributes.RTSpecialName); }
 		}
 
 		/// <summary>
@@ -529,12 +669,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasSecurity {
 			get { return (Attributes & MethodAttributes.HasSecurity) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.HasSecurity;
-				else
-					Attributes &= ~MethodAttributes.HasSecurity;
-			}
+			set { ModifyAttributes(value, MethodAttributes.HasSecurity); }
 		}
 
 		/// <summary>
@@ -542,12 +677,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsRequireSecObject {
 			get { return (Attributes & MethodAttributes.RequireSecObject) != 0; }
-			set {
-				if (value)
-					Attributes |= MethodAttributes.RequireSecObject;
-				else
-					Attributes &= ~MethodAttributes.RequireSecObject;
-			}
+			set { ModifyAttributes(value, MethodAttributes.RequireSecObject); }
 		}
 
 		/// <summary>
@@ -555,7 +685,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public MethodImplAttributes CodeType {
 			get { return ImplAttributes & MethodImplAttributes.CodeTypeMask; }
-			set { ImplAttributes = (ImplAttributes & ~MethodImplAttributes.CodeTypeMask) | (value & MethodImplAttributes.CodeTypeMask); }
+			set { ModifyImplAttributes(~MethodImplAttributes.CodeTypeMask, value & MethodImplAttributes.CodeTypeMask); }
 		}
 
 		/// <summary>
@@ -591,12 +721,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsUnmanaged {
 			get { return (ImplAttributes & MethodImplAttributes.Unmanaged) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.Unmanaged;
-				else
-					ImplAttributes &= ~MethodImplAttributes.Unmanaged;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.Unmanaged); }
 		}
 
 		/// <summary>
@@ -604,12 +729,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsManaged {
 			get { return (ImplAttributes & MethodImplAttributes.Unmanaged) == 0; }
-			set {
-				if (value)
-					ImplAttributes &= ~MethodImplAttributes.Unmanaged;
-				else
-					ImplAttributes |= MethodImplAttributes.Unmanaged;
-			}
+			set { ModifyImplAttributes(!value, MethodImplAttributes.Unmanaged); }
 		}
 
 		/// <summary>
@@ -617,12 +737,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsForwardRef {
 			get { return (ImplAttributes & MethodImplAttributes.ForwardRef) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.ForwardRef;
-				else
-					ImplAttributes &= ~MethodImplAttributes.ForwardRef;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.ForwardRef); }
 		}
 
 		/// <summary>
@@ -630,12 +745,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsPreserveSig {
 			get { return (ImplAttributes & MethodImplAttributes.PreserveSig) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.PreserveSig;
-				else
-					ImplAttributes &= ~MethodImplAttributes.PreserveSig;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.PreserveSig); }
 		}
 
 		/// <summary>
@@ -643,12 +753,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsInternalCall {
 			get { return (ImplAttributes & MethodImplAttributes.InternalCall) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.InternalCall;
-				else
-					ImplAttributes &= ~MethodImplAttributes.InternalCall;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.InternalCall); }
 		}
 
 		/// <summary>
@@ -656,12 +761,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSynchronized {
 			get { return (ImplAttributes & MethodImplAttributes.Synchronized) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.Synchronized;
-				else
-					ImplAttributes &= ~MethodImplAttributes.Synchronized;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.Synchronized); }
 		}
 
 		/// <summary>
@@ -669,12 +769,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsNoInlining {
 			get { return (ImplAttributes & MethodImplAttributes.NoInlining) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.NoInlining;
-				else
-					ImplAttributes &= ~MethodImplAttributes.NoInlining;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.NoInlining); }
 		}
 
 		/// <summary>
@@ -682,12 +777,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsAggressiveInlining {
 			get { return (ImplAttributes & MethodImplAttributes.AggressiveInlining) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.AggressiveInlining;
-				else
-					ImplAttributes &= ~MethodImplAttributes.AggressiveInlining;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.AggressiveInlining); }
 		}
 
 		/// <summary>
@@ -695,26 +785,21 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsNoOptimization {
 			get { return (ImplAttributes & MethodImplAttributes.NoOptimization) != 0; }
-			set {
-				if (value)
-					ImplAttributes |= MethodImplAttributes.NoOptimization;
-				else
-					ImplAttributes &= ~MethodImplAttributes.NoOptimization;
-			}
+			set { ModifyImplAttributes(value, MethodImplAttributes.NoOptimization); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if this is the static type constructor
 		/// </summary>
 		public bool IsStaticConstructor {
-			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, staticConstructorName); }
+			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, StaticConstructorName); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if this is an instance constructor
 		/// </summary>
 		public bool IsInstanceConstructor {
-			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, instanceConstructorName); }
+			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, InstanceConstructorName); }
 		}
 
 		/// <summary>
@@ -725,7 +810,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref GenericParam value) {
+		void IListListener<GenericParam>.OnLazyAdd(int index, ref GenericParam value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref GenericParam value) {
 #if DEBUG
 			if (value.Owner != this)
 				throw new InvalidOperationException("Added generic param's Owner != this");
@@ -750,12 +839,16 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnClear() {
-			foreach (var gp in GenericParameters)
+			foreach (var gp in GenericParameters.GetEnumerable_NoLock())
 				gp.Owner = null;
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref ParamDef value) {
+		void IListListener<ParamDef>.OnLazyAdd(int index, ref ParamDef value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref ParamDef value) {
 #if DEBUG
 			if (value.DeclaringMethod != this)
 				throw new InvalidOperationException("Added param's DeclaringMethod != this");
@@ -780,7 +873,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ParamDef>.OnClear() {
-			foreach (var pd in ParamDefs)
+			foreach (var pd in ParamDefs.GetEnumerable_NoLock())
 				pd.DeclaringMethod = null;
 		}
 
@@ -799,13 +892,13 @@ namespace dnlib.DotNet {
 		MethodAttributes flags;
 		UTF8String name;
 		CallingConventionSig signature;
-		IList<ParamDef> parameters;
+		ThreadSafe.IList<ParamDef> parameters;
 		LazyList<GenericParam> genericParams;
-		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
+		ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
 		ImplMap implMap;
 		MethodBody methodBody;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-		IList<MethodOverride> overrides = new List<MethodOverride>();
+		ThreadSafe.IList<MethodOverride> overrides = ThreadSafeListCreator.Create<MethodOverride>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -815,13 +908,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override MethodImplAttributes ImplAttributes {
+		protected override MethodImplAttributes ImplAttributes_NoLock {
 			get { return implFlags; }
 			set { implFlags = value; }
 		}
 
 		/// <inheritdoc/>
-		public override MethodAttributes Attributes {
+		protected override MethodAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -833,26 +926,23 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override CallingConventionSig Signature {
+		protected internal override CallingConventionSig Signature_NoLock {
 			get { return signature; }
-			set {
-				signature = value;
-				parameterList.UpdateParameterTypes();
-			}
+			set { signature = value; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<ParamDef> ParamDefs {
+		public override ThreadSafe.IList<ParamDef> ParamDefs {
 			get { return parameters; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParam> GenericParameters {
+		public override ThreadSafe.IList<GenericParam> GenericParameters {
 			get { return genericParams; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<DeclSecurity> DeclSecurities {
+		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get { return declSecurities; }
 		}
 
@@ -874,17 +964,14 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<MethodOverride> Overrides {
+		public override ThreadSafe.IList<MethodOverride> Overrides {
 			get { return overrides; }
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		protected override TypeDef DeclaringType2_NoLock {
 			get { return declaringType; }
-			set {
-				declaringType = value;
-				parameterList.UpdateThisParameterType();
-			}
+			set { declaringType = value; }
 		}
 
 		/// <summary>
@@ -957,7 +1044,7 @@ namespace dnlib.DotNet {
 	sealed class MethodDefMD : MethodDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMethodRow rawRow;
 
 		UserValue<RVA> rva;
@@ -971,7 +1058,7 @@ namespace dnlib.DotNet {
 		UserValue<ImplMap> implMap;
 		UserValue<MethodBody> methodBody;
 		CustomAttributeCollection customAttributeCollection;
-		IList<MethodOverride> overrides;
+		ThreadSafe.IList<MethodOverride> overrides;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
@@ -981,13 +1068,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override MethodImplAttributes ImplAttributes {
+		protected override MethodImplAttributes ImplAttributes_NoLock {
 			get { return implFlags.Value; }
 			set { implFlags.Value = value; }
 		}
 
 		/// <inheritdoc/>
-		public override MethodAttributes Attributes {
+		protected override MethodAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -999,42 +1086,42 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override CallingConventionSig Signature {
+		protected internal override CallingConventionSig Signature_NoLock {
 			get { return signature.Value; }
-			set {
-				signature.Value = value;
-				parameterList.UpdateParameterTypes();
-			}
+			set { signature.Value = value; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<ParamDef> ParamDefs {
+		public override ThreadSafe.IList<ParamDef> ParamDefs {
 			get {
 				if (parameters == null) {
 					var list = readerModule.MetaData.GetParamRidList(rid);
-					parameters = new LazyList<ParamDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveParam(((RidList)list2)[index]));
+					var tmp = new LazyList<ParamDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveParam(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref parameters, tmp, null);
 				}
 				return parameters;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParam> GenericParameters {
+		public override ThreadSafe.IList<GenericParam> GenericParameters {
 			get {
 				if (genericParams == null) {
 					var list = readerModule.MetaData.GetGenericParamRidList(Table.Method, rid);
-					genericParams = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
+					var tmp = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref genericParams, tmp, null);
 				}
 				return genericParams;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<DeclSecurity> DeclSecurities {
+		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get {
 				if (declSecurities == null) {
 					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Method, rid);
-					declSecurities = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+					var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref declSecurities, tmp, null);
 				}
 				return declSecurities;
 			}
@@ -1057,31 +1144,29 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Method, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<MethodOverride> Overrides {
+		public override ThreadSafe.IList<MethodOverride> Overrides {
 			get {
 				if (overrides != null)
 					return overrides;
 				var dt = DeclaringType as TypeDefMD;
-				if (dt == null)
-					return overrides = new List<MethodOverride>();
-				return overrides = dt.GetMethodOverrides(this);
+				var tmp = dt == null ? ThreadSafeListCreator.Create<MethodOverride>() : dt.GetMethodOverrides(this);
+				Interlocked.CompareExchange(ref overrides, tmp, null);
+				return overrides;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		protected override TypeDef DeclaringType2_NoLock {
 			get { return declaringType.Value; }
-			set {
-				declaringType.Value = value;
-				parameterList.UpdateThisParameterType();
-			}
+			set { declaringType.Value = value; }
 		}
 
 		/// <summary>
@@ -1106,38 +1191,48 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			rva.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (RVA)rawRow.RVA;
 			};
 			implFlags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (MethodImplAttributes)rawRow.ImplFlags;
 			};
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (MethodAttributes)rawRow.Flags;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			signature.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ReadSignature(rawRow.Signature);
 			};
 			implMap.ReadOriginalValue = () => {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, rid));
 			};
 			methodBody.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ReadMethodBody(this, rawRow);
 			};
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);
 			};
+#if THREAD_SAFE
+			rva.Lock = theLock;
+			// implFlags.Lock = theLock;	No lock for this one
+			// flags.Lock = theLock;		No lock for this one
+			name.Lock = theLock;
+			// signature.Lock = theLock;	No lock for this one
+			implMap.Lock = theLock;
+			methodBody.Lock = theLock;
+			// declaringType.Lock = theLock;No lock for this one
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadMethodRow(rid);
@@ -1161,7 +1256,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref GenericParam value) {
+		internal override void OnLazyAdd2(int index, ref GenericParam value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParam(value.Rid).InitializeAll());
@@ -1170,7 +1265,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref ParamDef value) {
+		internal override void OnLazyAdd2(int index, ref ParamDef value) {
 			if (value.DeclaringMethod != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadParam(value.Rid).InitializeAll());

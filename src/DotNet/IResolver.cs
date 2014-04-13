@@ -53,7 +53,7 @@
 		IMemberForwarded Resolve(MemberRef memberRef);
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Resolves a type
 		/// </summary>

@@ -25,6 +25,7 @@
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	interface ISignatureReaderHelper {
@@ -93,7 +94,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="CallingConventionSig"/> signature
 		/// </summary>
 		/// <param name="module">The module where the signature is located in</param>
-		/// <param name="signature">The signature reader</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD module, IImageStream signature) {
@@ -117,7 +118,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
 		/// <param name="corLibTypes">ICorLibTypes instance</param>
-		/// <param name="signature">The signature reader</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IImageStream signature) {
@@ -195,7 +196,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="TypeSig"/> signature
 		/// </summary>
 		/// <param name="module">The module where the signature is located in</param>
-		/// <param name="signature">The signature reader</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ModuleDefMD module, IImageStream signature) {
@@ -219,7 +220,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
 		/// <param name="corLibTypes">ICorLibTypes instance</param>
-		/// <param name="signature">The signature reader</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IImageStream signature) {
@@ -362,7 +363,7 @@ namespace dnlib.DotNet {
 				var type = ReadType();
 				if (type is SentinelSig) {
 					if (methodSig.ParamsAfterSentinel == null)
-						methodSig.ParamsAfterSentinel = parameters = new List<TypeSig>((int)(numParams - i));
+						methodSig.ParamsAfterSentinel = parameters = ThreadSafeListCreator.Create<TypeSig>((int)(numParams - i));
 					i--;
 				}
 				else

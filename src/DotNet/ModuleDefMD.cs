@@ -27,15 +27,23 @@ using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Threading;
 using dnlib.PE;
 using dnlib.Utils;
 using dnlib.IO;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
+using dnlib.Threading;
 using dnlib.W32Resources;
 
 using DNW = dnlib.DotNet.Writer;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -145,33 +153,36 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<TypeDef> Types {
+		public override ThreadSafe.IList<TypeDef> Types {
 			get {
 				if (types == null) {
 					var list = MetaData.GetNonNestedClassRidList();
-					types = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[index]));
+					var tmp = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref types, tmp, null);
 				}
 				return types;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<ExportedType> ExportedTypes {
+		public override ThreadSafe.IList<ExportedType> ExportedTypes {
 			get {
 				if (exportedTypes == null) {
 					var list = MetaData.GetExportedTypeRidList();
-					exportedTypes = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
+					var tmp = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
+					Interlocked.CompareExchange(ref exportedTypes, tmp, null);
 				}
 				return exportedTypes;
 			}
 		}
 
 		/// <inheritdoc/>
-		internal override ResourceCollection Resources2 {
+		public override ResourceCollection Resources {
 			get {
 				if (resources == null) {
 					var table = TablesStream.ManifestResourceTable;
-					resources = new ResourceCollection((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
+					var tmp = new ResourceCollection((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
+					Interlocked.CompareExchange(ref resources, tmp, null);
 				}
 				return resources;
 			}
@@ -439,7 +450,7 @@ namespace dnlib.DotNet {
 			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.AssemblyRefTable.Rows, rid2 => new AssemblyRefMD(this, rid2));
 			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
 
-			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == rid ? this : new ModuleDefMD2(this, rid2));
+			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == 1 ? this : new ModuleDefMD2(this, rid2));
 			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.TypeRefTable.Rows, rid2 => new TypeRefMD(this, rid2));
 			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.TypeDefTable.Rows, rid2 => new TypeDefMD(this, rid2));
 			listFieldDefMD = new SimpleLazyList<FieldDefMD>(ts.FieldTable.Rows, rid2 => new FieldDefMD(this, rid2));
@@ -477,10 +488,15 @@ namespace dnlib.DotNet {
 					return null;
 				return new VTableFixups(this);
 			};
+#if THREAD_SAFE
+			location.Lock = theLock;
+			win32Resources.Lock = theLock;
+			vtableFixups.Lock = theLock;
+#endif
 
 			for (int i = 0; i < 64; i++) {
 				var tbl = TablesStream.Get((Table)i);
-				lastUsedRids[i] = tbl == null ? 0 : tbl.Rows;
+				lastUsedRids[i] = tbl == null ? 0 : (int)tbl.Rows;
 			}
 		}
 
@@ -495,12 +511,18 @@ namespace dnlib.DotNet {
 				var asmRef = ResolveAssemblyRef(i);
 				if (!UTF8String.ToSystemStringOrEmpty(asmRef.Name).Equals("mscorlib", StringComparison.OrdinalIgnoreCase))
 					continue;
-				if (corLibAsmRef == null || corLibAsmRef.Version == null || (asmRef.Version != null && asmRef.Version >= corLibAsmRef.Version))
+				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
 					corLibAsmRef = asmRef;
 			}
-			if (corLibAsmRef != null)
-				return corLibAsmRef;
-			return null;
+			return corLibAsmRef;
+		}
+
+		static bool IsGreaterAssemblyRefVersion(AssemblyRef found, AssemblyRef newOne) {
+			if (found == null)
+				return true;
+			var foundVer = found.Version;
+			var newVer = newOne.Version;
+			return foundVer == null || (newVer != null && newVer >= foundVer);
 		}
 
 		/// <inheritdoc/>
@@ -509,8 +531,9 @@ namespace dnlib.DotNet {
 			// eventually use dnFile that we will dispose
 			base.Dispose(disposing);
 			if (disposing) {
-				if (dnFile != null)
-					dnFile.Dispose();
+				var dnf = dnFile;
+				if (dnf != null)
+					dnf.Dispose();
 				dnFile = null;
 			}
 		}
@@ -541,31 +564,31 @@ namespace dnlib.DotNet {
 		public IMDTokenProvider ResolveToken(uint token) {
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
-			case Table.Module: return ResolveModule(rid);
-			case Table.TypeRef: return ResolveTypeRef(rid);
-			case Table.TypeDef: return ResolveTypeDef(rid);
-			case Table.Field: return ResolveField(rid);
-			case Table.Method: return ResolveMethod(rid);
-			case Table.Param: return ResolveParam(rid);
-			case Table.InterfaceImpl: return ResolveInterfaceImpl(rid);
-			case Table.MemberRef: return ResolveMemberRef(rid);
-			case Table.Constant: return ResolveConstant(rid);
-			case Table.FieldMarshal: return ResolveFieldMarshal(rid);
-			case Table.DeclSecurity: return ResolveDeclSecurity(rid);
-			case Table.ClassLayout: return ResolveClassLayout(rid);
-			case Table.StandAloneSig: return ResolveStandAloneSig(rid);
-			case Table.Event: return ResolveEvent(rid);
-			case Table.Property: return ResolveProperty(rid);
-			case Table.ModuleRef: return ResolveModuleRef(rid);
-			case Table.TypeSpec: return ResolveTypeSpec(rid);
-			case Table.ImplMap: return ResolveImplMap(rid);
-			case Table.Assembly: return ResolveAssembly(rid);
-			case Table.AssemblyRef: return ResolveAssemblyRef(rid);
-			case Table.File: return ResolveFile(rid);
-			case Table.ExportedType: return ResolveExportedType(rid);
-			case Table.ManifestResource: return ResolveManifestResource(rid);
-			case Table.GenericParam: return ResolveGenericParam(rid);
-			case Table.MethodSpec: return ResolveMethodSpec(rid);
+			case Table.Module:			return ResolveModule(rid);
+			case Table.TypeRef:			return ResolveTypeRef(rid);
+			case Table.TypeDef:			return ResolveTypeDef(rid);
+			case Table.Field:			return ResolveField(rid);
+			case Table.Method:			return ResolveMethod(rid);
+			case Table.Param:			return ResolveParam(rid);
+			case Table.InterfaceImpl:	return ResolveInterfaceImpl(rid);
+			case Table.MemberRef:		return ResolveMemberRef(rid);
+			case Table.Constant:		return ResolveConstant(rid);
+			case Table.FieldMarshal:	return ResolveFieldMarshal(rid);
+			case Table.DeclSecurity:	return ResolveDeclSecurity(rid);
+			case Table.ClassLayout:		return ResolveClassLayout(rid);
+			case Table.StandAloneSig:	return ResolveStandAloneSig(rid);
+			case Table.Event:			return ResolveEvent(rid);
+			case Table.Property:		return ResolveProperty(rid);
+			case Table.ModuleRef:		return ResolveModuleRef(rid);
+			case Table.TypeSpec:		return ResolveTypeSpec(rid);
+			case Table.ImplMap:			return ResolveImplMap(rid);
+			case Table.Assembly:		return ResolveAssembly(rid);
+			case Table.AssemblyRef:		return ResolveAssemblyRef(rid);
+			case Table.File:			return ResolveFile(rid);
+			case Table.ExportedType:	return ResolveExportedType(rid);
+			case Table.ManifestResource:return ResolveManifestResource(rid);
+			case Table.GenericParam:	return ResolveGenericParam(rid);
+			case Table.MethodSpec:		return ResolveMethodSpec(rid);
 			case Table.GenericParamConstraint: return ResolveGenericParamConstraint(rid);
 			}
 			return null;
@@ -784,8 +807,6 @@ namespace dnlib.DotNet {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParam"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public GenericParam ResolveGenericParam(uint rid) {
-			if (listGenericParamMD == null)
-				return null;
 			return listGenericParamMD[rid - 1];
 		}
 
@@ -795,8 +816,6 @@ namespace dnlib.DotNet {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="MethodSpec"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public MethodSpec ResolveMethodSpec(uint rid) {
-			if (listMethodSpecMD == null)
-				return null;
 			return listMethodSpecMD[rid - 1];
 		}
 
@@ -806,8 +825,6 @@ namespace dnlib.DotNet {
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="GenericParamConstraint"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public GenericParamConstraint ResolveGenericParamConstraint(uint rid) {
-			if (listGenericParamConstraintMD == null)
-				return null;
 			return listGenericParamConstraintMD[rid - 1];
 		}
 
@@ -1182,9 +1199,10 @@ namespace dnlib.DotNet {
 		/// Reads a module
 		/// </summary>
 		/// <param name="fileRid">File rid</param>
+		/// <param name="owner">The assembly owning the module we should read</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance or <c>null</c> if <paramref name="fileRid"/>
 		/// is invalid or if it's not a .NET module.</returns>
-		internal ModuleDefMD ReadModule(uint fileRid) {
+		internal ModuleDefMD ReadModule(uint fileRid, AssemblyDef owner) {
 			var fileDef = ResolveFile(fileRid);
 			if (fileDef == null)
 				return null;
@@ -1204,14 +1222,15 @@ namespace dnlib.DotNet {
 				// share context
 				module.context = context;
 
-				if (module.Assembly != null)
-					module.Assembly.Modules.Remove(module);
+				var asm = module.Assembly;
+				if (asm != null && asm != owner)
+					asm.Modules.Remove(module);
 			}
 			return module;
 		}
 
 		/// <summary>
-		/// Gets a list of all <c>File</c> rids that are .NET modules. Call <see cref="ReadModule(uint)"/>
+		/// Gets a list of all <c>File</c> rids that are .NET modules. Call <see cref="ReadModule(uint,AssemblyDef)"/>
 		/// to read one of these modules.
 		/// </summary>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
@@ -1225,7 +1244,7 @@ namespace dnlib.DotNet {
 			if (moduleRidList != null)
 				return;
 			uint rows = TablesStream.FileTable.Rows;
-			moduleRidList = new RandomRidList((int)rows);
+			var newModuleRidList = new RandomRidList((int)rows);
 
 			var baseDir = GetBaseDirectoryOfImage();
 			for (uint fileRid = 1; fileRid <= rows; fileRid++) {
@@ -1236,8 +1255,9 @@ namespace dnlib.DotNet {
 					continue;
 				var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
 				if (pathName != null)
-					moduleRidList.Add(fileRid);
+					newModuleRidList.Add(fileRid);
 			}
+			Interlocked.CompareExchange(ref moduleRidList, newModuleRidList, null);
 		}
 
 		/// <summary>
@@ -1467,7 +1487,7 @@ namespace dnlib.DotNet {
 			foreach (var asmRef in GetAssemblyRefs()) {
 				if (asmRef.Name != simpleName)
 					continue;
-				if (found == null || found.Version == null || (asmRef.Version != null && asmRef.Version > found.Version))
+				if (IsGreaterAssemblyRefVersion(found, asmRef))
 					found = asmRef;
 			}
 			return found;
@@ -1543,12 +1563,14 @@ namespace dnlib.DotNet {
 		/// <param name="row">Method's row</param>
 		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
 		internal MethodBody ReadMethodBody(MethodDefMD method, RawMethodRow row) {
-			if (methodDecrypter != null && methodDecrypter.HasMethodBody(method.Rid))
-				return methodDecrypter.GetMethodBody(method.Rid, (RVA)row.RVA, method.Parameters);
+			MethodBody mb;
+			var mDec = methodDecrypter;
+			if (mDec != null && mDec.GetMethodBody(method.Rid, (RVA)row.RVA, method.Parameters, out mb))
+				return mb;
 
 			if (row.RVA == 0)
 				return null;
-			var codeType = ((MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask);
+			var codeType = (MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask;
 			if (codeType == MethodImplAttributes.IL)
 				return ReadCilBody(method.Parameters, (RVA)row.RVA);
 			if (codeType == MethodImplAttributes.Native)
@@ -1562,8 +1584,9 @@ namespace dnlib.DotNet {
 		/// <param name="token">String token</param>
 		/// <returns>A non-null string</returns>
 		public string ReadUserString(uint token) {
-			if (stringDecrypter != null) {
-				var s = stringDecrypter.ReadUserString(token);
+			var sDec = stringDecrypter;
+			if (sDec != null) {
+				var s = sDec.ReadUserString(token);
 				if (s != null)
 					return s;
 			}

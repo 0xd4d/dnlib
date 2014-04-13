@@ -35,6 +35,13 @@
 		/// Returns <c>true</c> if <see cref="Data"/> is <c>null</c> or empty
 		/// </summary>
 		public bool IsNullOrEmpty {
+			get { return IsNullOrEmpty_NoLock; }
+		}
+
+		/// <summary>
+		/// The unlocked version of <see cref="IsNullOrEmpty"/>.
+		/// </summary>
+		protected bool IsNullOrEmpty_NoLock {
 			get { return data == null || data.Length == 0; }
 		}
 
@@ -42,7 +49,7 @@
 		/// Returns <c>true</c> if <see cref="Data"/> is <c>null</c>
 		/// </summary>
 		public bool IsNull {
-			get { return data == null; }
+			get { return Data == null; }
 		}
 
 		/// <summary>
@@ -87,7 +94,7 @@
 		/// </summary>
 		/// <param name="a">Public key or token instance</param>
 		public static bool IsNullOrEmpty2(PublicKeyBase a) {
-			return a == null || a.data == null || a.data.Length == 0;
+			return a == null || a.IsNullOrEmpty;
 		}
 
 		/// <summary>
@@ -136,7 +143,7 @@
 		public static int TokenCompareTo(PublicKeyToken a, PublicKeyToken b) {
 			if (a == b)
 				return 0;
-			return TokenCompareTo(a == null ? null : a.data, b == null ? null : b.data);
+			return TokenCompareTo(a == null ? null : a.Data, b == null ? null : b.Data);
 		}
 
 		static int TokenCompareTo(byte[] a, byte[] b) {
@@ -210,9 +217,10 @@
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			if (IsNullOrEmpty)
+			var d = Data;
+			if (d == null || d.Length == 0)
 				return "null";
-			return Utils.ToHex(data, false);
+			return Utils.ToHex(d, false);
 		}
 	}
 }

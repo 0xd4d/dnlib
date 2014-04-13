@@ -211,8 +211,9 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (metaData != null)
-				metaData.Dispose();
+			var md = metaData;
+			if (md != null)
+				md.Dispose();
 			metaData = null;
 		}
 	}

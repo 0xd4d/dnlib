@@ -22,8 +22,10 @@
 */
 
 ﻿using System;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -73,19 +75,36 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		MethodSig IMethod.MethodSig {
-			get { return Method == null ? null : Method.MethodSig; }
-			set { if (Method != null) Method.MethodSig = value; }
+			get {
+				var m = Method;
+				return m == null ? null : m.MethodSig;
+			}
+			set {
+				var m = Method;
+				if (m != null)
+					m.MethodSig = value;
+			}
 		}
 
 		/// <inheritdoc/>
 		public UTF8String Name {
-			get { return Method == null ? UTF8String.Empty : Method.Name; }
-			set { if (Method != null) Method.Name = value; }
+			get {
+				var m = Method;
+				return m == null ? UTF8String.Empty : m.Name;
+			}
+			set {
+				var m = Method;
+				if (m != null)
+					m.Name = value;
+			}
 		}
 
 		/// <inheritdoc/>
 		public ITypeDefOrRef DeclaringType {
-			get { return Method == null ? null : Method.DeclaringType; }
+			get {
+				var m = Method;
+				return m == null ? null : m.DeclaringType;
+			}
 		}
 
 		/// <summary>
@@ -127,16 +146,21 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public string FullName {
 			get {
-				var methodGenArgs = GenericInstMethodSig == null ? null : GenericInstMethodSig.GenericArguments;
-				var methodDef = Method as MethodDef;
+				var gims = GenericInstMethodSig;
+				var methodGenArgs = gims == null ? null : gims.GenericArguments;
+				var method = Method;
+				var methodDef = method as MethodDef;
 				if (methodDef != null) {
 					var declaringType = methodDef.DeclaringType;
 					return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, methodDef.Name, methodDef.MethodSig, null, methodGenArgs);
 				}
 
-				var memberRef = Method as MemberRef;
-				if (memberRef != null && memberRef.IsMethodRef)
-					return FullNameCreator.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, memberRef.MethodSig, null, methodGenArgs);
+				var memberRef = method as MemberRef;
+				if (memberRef != null) {
+					var methodSig = memberRef.MethodSig;
+					if (methodSig != null)
+						return FullNameCreator.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, null, methodGenArgs);
+				}
 
 				return string.Empty;
 			}
@@ -204,12 +228,15 @@ namespace dnlib.DotNet {
 	sealed class MethodSpecMD : MethodSpec {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMethodSpecRow rawRow;
 
 		UserValue<IMethodDefOrRef> method;
 		UserValue<CallingConventionSig> instantiation;
 		CustomAttributeCollection customAttributeCollection;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public override IMethodDefOrRef Method {
@@ -228,7 +255,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MethodSpec, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -255,16 +283,20 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			method.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ResolveMethodDefOrRef(rawRow.Method);
 			};
 			instantiation.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ReadSignature(rawRow.Instantiation);
 			};
+#if THREAD_SAFE
+			method.Lock = theLock;
+			instantiation.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadMethodSpecRow(rid);

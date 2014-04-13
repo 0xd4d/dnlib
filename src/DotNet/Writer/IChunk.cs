@@ -71,7 +71,7 @@ namespace dnlib.DotNet.Writer {
 		void WriteTo(BinaryWriter writer);
 	}
 
-	partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Writes all data to <paramref name="writer"/> and verifies that all bytes were written
 		/// </summary>

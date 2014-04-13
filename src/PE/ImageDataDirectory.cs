@@ -32,8 +32,8 @@ namespace dnlib.PE {
 	/// </summary>
 	[DebuggerDisplay("{virtualAddress} {dataSize}")]
 	public sealed class ImageDataDirectory : FileSection {
-		RVA virtualAddress;
-		uint dataSize;
+		readonly RVA virtualAddress;
+		readonly uint dataSize;
 
 		/// <summary>
 		/// Returns the IMAGE_DATA_DIRECTORY.VirtualAddress field

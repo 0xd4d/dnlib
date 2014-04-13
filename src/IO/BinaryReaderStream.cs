@@ -99,9 +99,9 @@ namespace dnlib.IO {
 		/// <inheritdoc/>
 		public override long Seek(long offset, SeekOrigin origin) {
 			switch (origin) {
-			case SeekOrigin.Begin: Position = offset; break;
-			case SeekOrigin.Current: Position += offset; break;
-			case SeekOrigin.End: Position = Length + offset; break;
+			case SeekOrigin.Begin:	Position = offset; break;
+			case SeekOrigin.Current:Position += offset; break;
+			case SeekOrigin.End:	Position = Length + offset; break;
 			}
 			return Position;
 		}
@@ -119,8 +119,9 @@ namespace dnlib.IO {
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				if (ownsReader && reader != null)
-					reader.Dispose();
+				var r = reader;
+				if (ownsReader && r != null)
+					r.Dispose();
 				reader = null;
 			}
 			base.Dispose(disposing);

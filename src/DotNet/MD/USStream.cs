@@ -48,7 +48,10 @@ namespace dnlib.DotNet.MD {
 				return string.Empty;
 			if (!IsValidOffset(offset))
 				return null;
-			var reader = GetReader(offset);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(offset);
 			uint length;
 			if (!reader.ReadCompressedUInt32(out length))
 				return null;
@@ -65,6 +68,9 @@ namespace dnlib.DotNet.MD {
 				// a string. If so, return an empty string.
 				return string.Empty;
 			}
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>

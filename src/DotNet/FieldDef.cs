@@ -22,9 +22,11 @@
 */
 
 ﻿using System;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.PE;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -35,6 +37,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -75,7 +84,30 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Field.Flags
 		/// </summary>
-		public abstract FieldAttributes Attributes { get; set; }
+		public FieldAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				} finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				} finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column Field.Flags
+		/// </summary>
+		protected abstract FieldAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Field.Name
@@ -123,6 +155,8 @@ namespace dnlib.DotNet {
 			get { return DeclaringType2; }
 			set {
 				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType == value)
+					return;
 				if (currentDeclaringType != null)
 					currentDeclaringType.Fields.Remove(this);	// Will set DeclaringType2 = null
 				if (value != null)
@@ -140,7 +174,30 @@ namespace dnlib.DotNet {
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public abstract TypeDef DeclaringType2 { get; set; }
+		public TypeDef DeclaringType2 {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock(); try {
+					return DeclaringType2_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock(); try {
+					DeclaringType2_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return DeclaringType2_NoLock; }
+			set { DeclaringType2_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// No-lock version of <see cref="DeclaringType2"/>.
+		/// </summary>
+		internal abstract TypeDef DeclaringType2_NoLock { get; set; }
 
 		/// <summary>
 		/// Gets/sets the <see cref="FieldSig"/>
@@ -176,7 +233,10 @@ namespace dnlib.DotNet {
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
 		/// </summary>
 		public ElementType ElementType {
-			get { return Constant == null ? ElementType.End : Constant.Type; }
+			get {
+				var c = Constant;
+				return c == null ? ElementType.End : c.Type;
+			}
 		}
 
 		/// <summary>
@@ -199,11 +259,46 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
+		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyAttributes(FieldAttributes andMask, FieldAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, FieldAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets the field access
 		/// </summary>
 		public FieldAttributes Access {
 			get { return Attributes & FieldAttributes.FieldAccessMask; }
-			set { Attributes = (Attributes & ~FieldAttributes.FieldAccessMask) | (value & FieldAttributes.FieldAccessMask); }
+			set { ModifyAttributes(~FieldAttributes.FieldAccessMask, value & FieldAttributes.FieldAccessMask); }
 		}
 
 		/// <summary>
@@ -267,12 +362,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsStatic {
 			get { return (Attributes & FieldAttributes.Static) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.Static;
-				else
-					Attributes &= ~FieldAttributes.Static;
-			}
+			set { ModifyAttributes(value, FieldAttributes.Static); }
 		}
 
 		/// <summary>
@@ -280,12 +370,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsInitOnly {
 			get { return (Attributes & FieldAttributes.InitOnly) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.InitOnly;
-				else
-					Attributes &= ~FieldAttributes.InitOnly;
-			}
+			set { ModifyAttributes(value, FieldAttributes.InitOnly); }
 		}
 
 		/// <summary>
@@ -293,12 +378,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsLiteral {
 			get { return (Attributes & FieldAttributes.Literal) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.Literal;
-				else
-					Attributes &= ~FieldAttributes.Literal;
-			}
+			set { ModifyAttributes(value, FieldAttributes.Literal); }
 		}
 
 		/// <summary>
@@ -306,12 +386,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsNotSerialized {
 			get { return (Attributes & FieldAttributes.NotSerialized) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.NotSerialized;
-				else
-					Attributes &= ~FieldAttributes.NotSerialized;
-			}
+			set { ModifyAttributes(value, FieldAttributes.NotSerialized); }
 		}
 
 		/// <summary>
@@ -319,12 +394,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSpecialName {
 			get { return (Attributes & FieldAttributes.SpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.SpecialName;
-				else
-					Attributes &= ~FieldAttributes.SpecialName;
-			}
+			set { ModifyAttributes(value, FieldAttributes.SpecialName); }
 		}
 
 		/// <summary>
@@ -332,12 +402,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsPinvokeImpl {
 			get { return (Attributes & FieldAttributes.PinvokeImpl) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.PinvokeImpl;
-				else
-					Attributes &= ~FieldAttributes.PinvokeImpl;
-			}
+			set { ModifyAttributes(value, FieldAttributes.PinvokeImpl); }
 		}
 
 		/// <summary>
@@ -345,12 +410,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsRuntimeSpecialName {
 			get { return (Attributes & FieldAttributes.RTSpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.RTSpecialName;
-				else
-					Attributes &= ~FieldAttributes.RTSpecialName;
-			}
+			set { ModifyAttributes(value, FieldAttributes.RTSpecialName); }
 		}
 
 		/// <summary>
@@ -358,12 +418,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasFieldMarshal {
 			get { return (Attributes & FieldAttributes.HasFieldMarshal) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.HasFieldMarshal;
-				else
-					Attributes &= ~FieldAttributes.HasFieldMarshal;
-			}
+			set { ModifyAttributes(value, FieldAttributes.HasFieldMarshal); }
 		}
 
 		/// <summary>
@@ -371,12 +426,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasDefault {
 			get { return (Attributes & FieldAttributes.HasDefault) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.HasDefault;
-				else
-					Attributes &= ~FieldAttributes.HasDefault;
-			}
+			set { ModifyAttributes(value, FieldAttributes.HasDefault); }
 		}
 
 		/// <summary>
@@ -384,12 +434,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasFieldRVA {
 			get { return (Attributes & FieldAttributes.HasFieldRVA) != 0; }
-			set {
-				if (value)
-					Attributes |= FieldAttributes.HasFieldRVA;
-				else
-					Attributes &= ~FieldAttributes.HasFieldRVA;
-			}
+			set { ModifyAttributes(value, FieldAttributes.HasFieldRVA); }
 		}
 
 		/// <summary>
@@ -418,20 +463,30 @@ namespace dnlib.DotNet {
 		/// <param name="size">Updated with size</param>
 		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
 		public bool GetFieldSize(out uint size) {
-			size = 0;
-			var fieldSig = this.FieldSig;
-			if (fieldSig == null)
-				return false;
-			return GetClassSize(fieldSig.Type, out size);
+			return GetFieldSize(DeclaringType, FieldSig, out size);
 		}
 
-		bool GetClassSize(TypeSig ts, out uint size) {
+		/// <summary>
+		/// Gets the size of this field in bytes or <c>0</c> if unknown.
+		/// </summary>
+		/// <param name="declaringType">The declaring type of <c>this</c></param>
+		/// <param name="fieldSig">The field signature of <c>this</c></param>
+		/// <param name="size">Updated with size</param>
+		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
+		protected bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, out uint size) {
+			size = 0;
+			if (fieldSig == null)
+				return false;
+			return GetClassSize(declaringType, fieldSig.Type, out size);
+		}
+
+		bool GetClassSize(TypeDef declaringType, TypeSig ts, out uint size) {
 			size = 0;
 			ts = ts.RemovePinnedAndModifiers();
 			if (ts == null)
 				return false;
 
-			int size2 = ts.ElementType.GetPrimitiveSize(GetPointerSize());
+			int size2 = ts.ElementType.GetPrimitiveSize(GetPointerSize(declaringType));
 			if (size2 >= 0) {
 				size = (uint)size2;
 				return true;
@@ -452,11 +507,10 @@ namespace dnlib.DotNet {
 			return false;
 		}
 
-		int GetPointerSize() {
-			var dt = DeclaringType;
-			if (dt == null)
+		int GetPointerSize(TypeDef declaringType) {
+			if (declaringType == null)
 				return 4;
-			var module = dt.Module;
+			var module = declaringType.Module;
 			if (module == null)
 				return 4;
 			return module.GetPointerSize();
@@ -490,7 +544,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldAttributes Attributes {
+		protected override FieldAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -544,7 +598,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		internal override TypeDef DeclaringType2_NoLock {
 			get { return declaringType; }
 			set { declaringType = value; }
 		}
@@ -591,7 +645,7 @@ namespace dnlib.DotNet {
 	sealed class FieldDefMD : FieldDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawFieldRow rawRow;
 
 		CustomAttributeCollection customAttributeCollection;
@@ -611,14 +665,15 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Field, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override FieldAttributes Attributes {
+		protected override FieldAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -631,6 +686,24 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override CallingConventionSig Signature {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock(); try {
+					return Signature_NoLock;
+				} finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock(); try {
+					Signature_NoLock = value;
+				} finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Signature_NoLock; }
+			set { Signature_NoLock = value; }
+#endif
+		}
+
+		CallingConventionSig Signature_NoLock {
 			get { return signature.Value; }
 			set { signature.Value = value; }
 		}
@@ -672,7 +745,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		internal override TypeDef DeclaringType2_NoLock {
 			get { return declaringType.Value; }
 			set { declaringType.Value = value; }
 		}
@@ -698,15 +771,15 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (FieldAttributes)rawRow.Flags;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			signature.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ReadSignature(rawRow.Signature);
 			};
 			fieldOffset.ReadOriginalValue = () => {
@@ -718,14 +791,14 @@ namespace dnlib.DotNet {
 			};
 			rva.ReadOriginalValue = () => {
 				RVA rva2;
-				GetFieldRVA(out rva2);
+				GetFieldRVA_NoLock(out rva2);
 				return rva2;
 			};
 			initialValue.ReadOriginalValue = () => {
 				RVA rva2;
-				if (!GetFieldRVA(out rva2))
+				if (!GetFieldRVA_NoLock(out rva2))
 					return null;
-				return ReadInitialValue(rva2);
+				return ReadInitialValue_NoLock(rva2);
 			};
 			implMap.ReadOriginalValue = () => {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Field, rid));
@@ -736,9 +809,21 @@ namespace dnlib.DotNet {
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);
 			};
+#if THREAD_SAFE
+			// flags.Lock = theLock;			No lock for this one
+			name.Lock = theLock;
+			// signature.Lock = theLock;		No lock for this one
+			fieldOffset.Lock = theLock;
+			fieldMarshal.Lock = theLock;
+			rva.Lock = theLock;
+			initialValue.Lock = theLock;
+			implMap.Lock = theLock;
+			constant.Lock = theLock;
+			// declaringType.Lock = theLock;	No lock for this one
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadFieldRow(rid);
@@ -759,8 +844,8 @@ namespace dnlib.DotNet {
 			return this;
 		}
 
-		bool GetFieldRVA(out RVA rva) {
-			InitializeRawRow();
+		bool GetFieldRVA_NoLock(out RVA rva) {
+			InitializeRawRow_NoLock();
 			if (((FieldAttributes)rawRow.Flags & FieldAttributes.HasFieldRVA) == 0) {
 				rva = 0;
 				return false;
@@ -774,9 +859,9 @@ namespace dnlib.DotNet {
 			return true;
 		}
 
-		byte[] ReadInitialValue(RVA rva) {
+		byte[] ReadInitialValue_NoLock(RVA rva) {
 			uint size;
-			if (!GetFieldSize(out size))
+			if (!GetFieldSize(DeclaringType2_NoLock, Signature_NoLock as FieldSig, out size))
 				return null;
 			if (size >= int.MaxValue)
 				return null;

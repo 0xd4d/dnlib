@@ -580,7 +580,7 @@ namespace dnlib.IO {
 					return val;
 				bits += 7;
 			}
-			throw new IOException("Invalid encoded int32");
+			throw new IOException("Invalid encoded UInt32");
 		}
 
 		/// <summary>
@@ -595,7 +595,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// Creates a <see cref="Stream"/> using <paramref name="reader"/>. The created
 		/// <see cref="Stream"/> doesn't own <paramref name="reader"/>, so it's not
-		/// <c>Dispose()</c>'d.
+		/// <see cref="IDisposable.Dispose()"/>'d.
 		/// </summary>
 		/// <param name="reader">this</param>
 		/// <returns>A new <see cref="Stream"/> instance</returns>

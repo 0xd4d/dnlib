@@ -51,8 +51,14 @@ namespace dnlib.DotNet.MD {
 		public Guid? Read(uint index) {
 			if (index == 0 || !IsValidIndex(index))
 				return null;
-			var reader = GetReader((index - 1) * 16);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock((index - 1) * 16);
 			return new Guid(reader.ReadBytes(16));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 	}
 }

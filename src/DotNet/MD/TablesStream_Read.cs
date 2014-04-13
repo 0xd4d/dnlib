@@ -25,7 +25,7 @@ using dnlib.IO;
 
 ﻿namespace dnlib.DotNet.MD {
 	public partial class TablesStream {
-		IBinaryReader GetReader(MDTable table, uint rid) {
+		IBinaryReader GetReader_NoLock(MDTable table, uint rid) {
 			IBinaryReader reader;
 			if (hotTableStream != null) {
 				reader = hotTableStream.GetTableReader(table, rid);
@@ -46,13 +46,19 @@ using dnlib.IO;
 			var table = ModuleTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawModuleRow(reader.ReadUInt16(),
 				columns[1].Read(reader),
 				columns[2].Read(reader),
 				columns[3].Read(reader),
 				columns[4].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -64,11 +70,17 @@ using dnlib.IO;
 			var table = TypeRefTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawTypeRefRow(columns[0].Read(reader),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -80,7 +92,10 @@ using dnlib.IO;
 			var table = TypeDefTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawTypeDefRow(reader.ReadUInt32(),
 				columns[1].Read(reader),
@@ -88,6 +103,9 @@ using dnlib.IO;
 				columns[3].Read(reader),
 				columns[4].Read(reader),
 				columns[5].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -99,9 +117,15 @@ using dnlib.IO;
 			var table = FieldPtrTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawFieldPtrRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -113,11 +137,17 @@ using dnlib.IO;
 			var table = FieldTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawFieldRow(reader.ReadUInt16(),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -129,9 +159,15 @@ using dnlib.IO;
 			var table = MethodPtrTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawMethodPtrRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -143,12 +179,16 @@ using dnlib.IO;
 			var table = MethodTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			if (methodRowReader != null) {
-				var row = methodRowReader.ReadRow(rid);
+			var mrr = methodRowReader;
+			if (mrr != null) {
+				var row = mrr.ReadRow(rid);
 				if (row != null)
 					return row;
 			}
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawMethodRow(reader.ReadUInt32(),
 				reader.ReadUInt16(),
@@ -156,6 +196,9 @@ using dnlib.IO;
 				columns[3].Read(reader),
 				columns[4].Read(reader),
 				columns[5].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -167,9 +210,15 @@ using dnlib.IO;
 			var table = ParamPtrTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawParamPtrRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -181,11 +230,17 @@ using dnlib.IO;
 			var table = ParamTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawParamRow(reader.ReadUInt16(),
 				reader.ReadUInt16(),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -197,10 +252,16 @@ using dnlib.IO;
 			var table = InterfaceImplTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawInterfaceImplRow(columns[0].Read(reader),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -212,11 +273,17 @@ using dnlib.IO;
 			var table = MemberRefTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawMemberRefRow(columns[0].Read(reader),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -228,12 +295,18 @@ using dnlib.IO;
 			var table = ConstantTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawConstantRow(reader.ReadByte(),
 				reader.ReadByte(),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -245,11 +318,17 @@ using dnlib.IO;
 			var table = CustomAttributeTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawCustomAttributeRow(columns[0].Read(reader),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -261,10 +340,16 @@ using dnlib.IO;
 			var table = FieldMarshalTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawFieldMarshalRow(columns[0].Read(reader),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -276,11 +361,17 @@ using dnlib.IO;
 			var table = DeclSecurityTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawDeclSecurityRow(reader.ReadInt16(),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -292,11 +383,17 @@ using dnlib.IO;
 			var table = ClassLayoutTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawClassLayoutRow(reader.ReadUInt16(),
 				reader.ReadUInt32(),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -308,10 +405,16 @@ using dnlib.IO;
 			var table = FieldLayoutTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawFieldLayoutRow(reader.ReadUInt32(),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -323,9 +426,15 @@ using dnlib.IO;
 			var table = StandAloneSigTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawStandAloneSigRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -337,10 +446,16 @@ using dnlib.IO;
 			var table = EventMapTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawEventMapRow(columns[0].Read(reader),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -352,9 +467,15 @@ using dnlib.IO;
 			var table = EventPtrTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawEventPtrRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -366,11 +487,17 @@ using dnlib.IO;
 			var table = EventTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawEventRow(reader.ReadUInt16(),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -382,10 +509,16 @@ using dnlib.IO;
 			var table = PropertyMapTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawPropertyMapRow(columns[0].Read(reader),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -397,9 +530,15 @@ using dnlib.IO;
 			var table = PropertyPtrTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawPropertyPtrRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -411,11 +550,17 @@ using dnlib.IO;
 			var table = PropertyTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawPropertyRow(reader.ReadUInt16(),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -427,11 +572,17 @@ using dnlib.IO;
 			var table = MethodSemanticsTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawMethodSemanticsRow(reader.ReadUInt16(),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -443,11 +594,17 @@ using dnlib.IO;
 			var table = MethodImplTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawMethodImplRow(columns[0].Read(reader),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -459,9 +616,15 @@ using dnlib.IO;
 			var table = ModuleRefTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawModuleRefRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -473,9 +636,15 @@ using dnlib.IO;
 			var table = TypeSpecTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawTypeSpecRow(columns[0].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -487,12 +656,18 @@ using dnlib.IO;
 			var table = ImplMapTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawImplMapRow(reader.ReadUInt16(),
 				columns[1].Read(reader),
 				columns[2].Read(reader),
 				columns[3].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -504,10 +679,16 @@ using dnlib.IO;
 			var table = FieldRVATable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawFieldRVARow(reader.ReadUInt32(),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -519,9 +700,15 @@ using dnlib.IO;
 			var table = ENCLogTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			return new RawENCLogRow(reader.ReadUInt32(),
 				reader.ReadUInt32());
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -533,8 +720,14 @@ using dnlib.IO;
 			var table = ENCMapTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			return new RawENCMapRow(reader.ReadUInt32());
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -546,7 +739,10 @@ using dnlib.IO;
 			var table = AssemblyTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawAssemblyRow(reader.ReadUInt32(),
 				reader.ReadUInt16(),
@@ -557,6 +753,9 @@ using dnlib.IO;
 				columns[6].Read(reader),
 				columns[7].Read(reader),
 				columns[8].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -568,8 +767,14 @@ using dnlib.IO;
 			var table = AssemblyProcessorTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			return new RawAssemblyProcessorRow(reader.ReadUInt32());
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -581,10 +786,16 @@ using dnlib.IO;
 			var table = AssemblyOSTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			return new RawAssemblyOSRow(reader.ReadUInt32(),
 				reader.ReadUInt32(),
 				reader.ReadUInt32());
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -596,7 +807,10 @@ using dnlib.IO;
 			var table = AssemblyRefTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawAssemblyRefRow(reader.ReadUInt16(),
 				reader.ReadUInt16(),
@@ -607,6 +821,9 @@ using dnlib.IO;
 				columns[6].Read(reader),
 				columns[7].Read(reader),
 				columns[8].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -618,10 +835,16 @@ using dnlib.IO;
 			var table = AssemblyRefProcessorTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawAssemblyRefProcessorRow(reader.ReadUInt32(),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -633,12 +856,18 @@ using dnlib.IO;
 			var table = AssemblyRefOSTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawAssemblyRefOSRow(reader.ReadUInt32(),
 				reader.ReadUInt32(),
 				reader.ReadUInt32(),
 				columns[3].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -650,11 +879,17 @@ using dnlib.IO;
 			var table = FileTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawFileRow(reader.ReadUInt32(),
 				columns[1].Read(reader),
 				columns[2].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -666,13 +901,19 @@ using dnlib.IO;
 			var table = ExportedTypeTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawExportedTypeRow(reader.ReadUInt32(),
 				reader.ReadUInt32(),
 				columns[2].Read(reader),
 				columns[3].Read(reader),
 				columns[4].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -684,12 +925,18 @@ using dnlib.IO;
 			var table = ManifestResourceTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawManifestResourceRow(reader.ReadUInt32(),
 				reader.ReadUInt32(),
 				columns[2].Read(reader),
 				columns[3].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -701,10 +948,16 @@ using dnlib.IO;
 			var table = NestedClassTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawNestedClassRow(columns[0].Read(reader),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -716,7 +969,10 @@ using dnlib.IO;
 			var table = GenericParamTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			if (columns.Count == 4) {
 				return new RawGenericParamRow(reader.ReadUInt16(),
@@ -729,6 +985,9 @@ using dnlib.IO;
 				columns[2].Read(reader),
 				columns[3].Read(reader),
 				columns[4].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -740,10 +999,16 @@ using dnlib.IO;
 			var table = MethodSpecTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawMethodSpecRow(columns[0].Read(reader),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -755,10 +1020,16 @@ using dnlib.IO;
 			var table = GenericParamConstraintTable;
 			if (table == null || table.IsInvalidRID(rid))
 				return null;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			return new RawGenericParamConstraintRow(columns[0].Read(reader),
 				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -786,11 +1057,18 @@ using dnlib.IO;
 				value = 0;
 				return false;
 			}
-			if (columnReader != null && columnReader.ReadColumn(table, rid, column, out value))
+			var cr = columnReader;
+			if (cr != null && cr.ReadColumn(table, rid, column, out value))
 				return true;
-			var reader = GetReader(table, rid);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
 			reader.Position += column.Offset;
 			value = column.Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 			return true;
 		}
 	}

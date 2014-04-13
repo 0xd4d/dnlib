@@ -24,8 +24,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -37,6 +45,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -83,7 +98,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column GenericParam.Flags
 		/// </summary>
-		public abstract GenericParamAttributes Flags { get; set; }
+		public GenericParamAttributes Flags {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Flags_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Flags_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Flags_NoLock; }
+			set { Flags_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column GenericParam.Flags
+		/// </summary>
+		protected abstract GenericParamAttributes Flags_NoLock { get; set; }
 
 		/// <summary>
 		/// From column GenericParam.Name
@@ -98,7 +138,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the generic param constraints
 		/// </summary>
-		public abstract IList<GenericParamConstraint> GenericParamConstraints { get; }
+		public abstract ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints { get; }
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -124,11 +164,27 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Modify <see cref="Flags_NoLock"/> property: <see cref="Flags_NoLock"/> =
+		/// (<see cref="Flags_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyAttributes(GenericParamAttributes andMask, GenericParamAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				Flags_NoLock = (Flags_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets variance (non, contra, co)
 		/// </summary>
 		public GenericParamAttributes Variance {
 			get { return Flags & GenericParamAttributes.VarianceMask; }
-			set { Flags = (Flags & ~GenericParamAttributes.VarianceMask) | (value & GenericParamAttributes.VarianceMask); }
+			set { ModifyAttributes(~GenericParamAttributes.VarianceMask, value & GenericParamAttributes.VarianceMask); }
 		}
 
 		/// <summary>
@@ -136,11 +192,15 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public GenericParamAttributes SpecialConstraint {
 			get { return Flags & GenericParamAttributes.SpecialConstraintMask; }
-			set { Flags = (Flags & ~GenericParamAttributes.SpecialConstraintMask) | (value & GenericParamAttributes.SpecialConstraintMask); }
+			set { ModifyAttributes(~GenericParamAttributes.SpecialConstraintMask, value & GenericParamAttributes.SpecialConstraintMask); }
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref GenericParamConstraint value) {
+		void IListListener<GenericParamConstraint>.OnLazyAdd(int index, ref GenericParamConstraint value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref GenericParamConstraint value) {
 #if DEBUG
 			if (value.Owner != this)
 				throw new InvalidOperationException("Added generic param constraint's Owner != this");
@@ -165,7 +225,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParamConstraint>.OnClear() {
-			foreach (var gpc in GenericParamConstraints)
+			foreach (var gpc in GenericParamConstraints.GetEnumerable_NoLock())
 				gpc.Owner = null;
 		}
 
@@ -204,7 +264,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override GenericParamAttributes Flags {
+		protected override GenericParamAttributes Flags_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -222,7 +282,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParamConstraint> GenericParamConstraints {
+		public override ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints {
 			get { return genericParamConstraints; }
 		}
 
@@ -274,7 +334,7 @@ namespace dnlib.DotNet {
 	sealed class GenericParamMD : GenericParam {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawGenericParamRow rawRow;
 
 		UserValue<ITypeOrMethodDef> owner;
@@ -298,7 +358,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override GenericParamAttributes Flags {
+		protected override GenericParamAttributes Flags_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -320,18 +380,20 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParam, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParamConstraint> GenericParamConstraints {
+		public override ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints {
 			get {
 				if (genericParamConstraints == null) {
 					var list = readerModule.MetaData.GetGenericParamConstraintRidList(rid);
-					genericParamConstraints = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index]));
+					var tmp = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 				}
 				return genericParamConstraints;
 			}
@@ -361,26 +423,33 @@ namespace dnlib.DotNet {
 				return readerModule.GetOwner(this);
 			};
 			number.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return rawRow.Number;
 			};
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (GenericParamAttributes)rawRow.Flags;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			kind.ReadOriginalValue = () => {
 				if (readerModule.TablesStream.GenericParamTable.TableInfo.Columns.Count != 5)
 					return null;
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Kind);
 			};
+#if THREAD_SAFE
+			owner.Lock = theLock;
+			number.Lock = theLock;
+			// flags.Lock = theLock;	No lock for this one
+			name.Lock = theLock;
+			kind.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadGenericParamRow(rid);
@@ -398,7 +467,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref GenericParamConstraint value) {
+		internal override void OnLazyAdd2(int index, ref GenericParamConstraint value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParamConstraint(value.Rid).InitializeAll());

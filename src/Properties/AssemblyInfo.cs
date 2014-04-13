@@ -24,7 +24,11 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
+#if THREAD_SAFE
+[assembly: AssemblyTitle("dnlib (thread safe)")]
+#else
 [assembly: AssemblyTitle("dnlib")]
+#endif
 [assembly: AssemblyDescription(".NET assembly reader/writer")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]

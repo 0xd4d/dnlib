@@ -22,8 +22,10 @@
 */
 
 ﻿using System;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -34,6 +36,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <summary>
 		/// The owner module
@@ -152,7 +161,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ExportedType.Flags
 		/// </summary>
-		public abstract TypeAttributes Attributes { get; set; }
+		public TypeAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column ExportedType.Flags
+		/// </summary>
+		protected abstract TypeAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column ExportedType.TypeDefId
@@ -189,11 +223,46 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
+		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyAttributes(TypeAttributes andMask, TypeAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, TypeAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
 			get { return Attributes & TypeAttributes.VisibilityMask; }
-			set { Attributes = (Attributes & ~TypeAttributes.VisibilityMask) | (value & TypeAttributes.VisibilityMask); }
+			set { ModifyAttributes(~TypeAttributes.VisibilityMask, value & TypeAttributes.VisibilityMask); }
 		}
 
 		/// <summary>
@@ -257,7 +326,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeAttributes Layout {
 			get { return Attributes & TypeAttributes.LayoutMask; }
-			set { Attributes = (Attributes & ~TypeAttributes.LayoutMask) | (value & TypeAttributes.LayoutMask); }
+			set { ModifyAttributes(~TypeAttributes.LayoutMask, value & TypeAttributes.LayoutMask); }
 		}
 
 		/// <summary>
@@ -286,12 +355,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsInterface {
 			get { return (Attributes & TypeAttributes.Interface) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Interface;
-				else
-					Attributes &= ~TypeAttributes.Interface;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Interface); }
 		}
 
 		/// <summary>
@@ -299,12 +363,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsClass {
 			get { return (Attributes & TypeAttributes.Interface) == 0; }
-			set {
-				if (value)
-					Attributes &= ~TypeAttributes.Interface;
-				else
-					Attributes |= TypeAttributes.Interface;
-			}
+			set { ModifyAttributes(!value, TypeAttributes.Interface); }
 		}
 
 		/// <summary>
@@ -312,12 +371,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsAbstract {
 			get { return (Attributes & TypeAttributes.Abstract) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Abstract;
-				else
-					Attributes &= ~TypeAttributes.Abstract;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Abstract); }
 		}
 
 		/// <summary>
@@ -325,12 +379,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSealed {
 			get { return (Attributes & TypeAttributes.Sealed) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Sealed;
-				else
-					Attributes &= ~TypeAttributes.Sealed;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Sealed); }
 		}
 
 		/// <summary>
@@ -338,12 +387,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSpecialName {
 			get { return (Attributes & TypeAttributes.SpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.SpecialName;
-				else
-					Attributes &= ~TypeAttributes.SpecialName;
-			}
+			set { ModifyAttributes(value, TypeAttributes.SpecialName); }
 		}
 
 		/// <summary>
@@ -351,12 +395,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsImport {
 			get { return (Attributes & TypeAttributes.Import) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Import;
-				else
-					Attributes &= ~TypeAttributes.Import;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Import); }
 		}
 
 		/// <summary>
@@ -364,12 +403,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSerializable {
 			get { return (Attributes & TypeAttributes.Serializable) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Serializable;
-				else
-					Attributes &= ~TypeAttributes.Serializable;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Serializable); }
 		}
 
 		/// <summary>
@@ -377,12 +411,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsWindowsRuntime {
 			get { return (Attributes & TypeAttributes.WindowsRuntime) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.WindowsRuntime;
-				else
-					Attributes &= ~TypeAttributes.WindowsRuntime;
-			}
+			set { ModifyAttributes(value, TypeAttributes.WindowsRuntime); }
 		}
 
 		/// <summary>
@@ -390,7 +419,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeAttributes StringFormat {
 			get { return Attributes & TypeAttributes.StringFormatMask; }
-			set { Attributes = (Attributes & ~TypeAttributes.StringFormatMask) | (value & TypeAttributes.StringFormatMask); }
+			set { ModifyAttributes(~TypeAttributes.StringFormatMask, value & TypeAttributes.StringFormatMask); }
 		}
 
 		/// <summary>
@@ -426,12 +455,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsBeforeFieldInit {
 			get { return (Attributes & TypeAttributes.BeforeFieldInit) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.BeforeFieldInit;
-				else
-					Attributes &= ~TypeAttributes.BeforeFieldInit;
-			}
+			set { ModifyAttributes(value, TypeAttributes.BeforeFieldInit); }
 		}
 
 		/// <summary>
@@ -439,12 +463,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsForwarder {
 			get { return (Attributes & TypeAttributes.Forwarder) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Forwarder;
-				else
-					Attributes &= ~TypeAttributes.Forwarder;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Forwarder); }
 		}
 
 		/// <summary>
@@ -452,12 +471,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsRuntimeSpecialName {
 			get { return (Attributes & TypeAttributes.RTSpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.RTSpecialName;
-				else
-					Attributes &= ~TypeAttributes.RTSpecialName;
-			}
+			set { ModifyAttributes(value, TypeAttributes.RTSpecialName); }
 		}
 
 		/// <summary>
@@ -465,12 +479,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasSecurity {
 			get { return (Attributes & TypeAttributes.HasSecurity) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.HasSecurity;
-				else
-					Attributes &= ~TypeAttributes.HasSecurity;
-			}
+			set { ModifyAttributes(value, TypeAttributes.HasSecurity); }
 		}
 
 		/// <summary>
@@ -522,7 +531,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override TypeAttributes Attributes {
+		protected override TypeAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -584,7 +593,7 @@ namespace dnlib.DotNet {
 	sealed class ExportedTypeMD : ExportedType {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawExportedTypeRow rawRow;
 
 		CustomAttributeCollection customAttributeCollection;
@@ -599,14 +608,15 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ExportedType, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override TypeAttributes Attributes {
+		protected override TypeAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -657,28 +667,35 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (TypeAttributes)rawRow.Flags;
 			};
 			typeDefId.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return rawRow.TypeDefId;
 			};
 			typeName.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.TypeName);
 			};
 			typeNamespace.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.TypeNamespace);
 			};
 			implementation.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ResolveImplementation(rawRow.Implementation);
 			};
+#if THREAD_SAFE
+			// flags.Lock = theLock;	No lock for this one
+			typeDefId.Lock = theLock;
+			typeName.Lock = theLock;
+			typeNamespace.Lock = theLock;
+			implementation.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadExportedTypeRow(rid);

@@ -23,9 +23,17 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -36,6 +44,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -151,7 +166,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column TypeDef.Flags
 		/// </summary>
-		public abstract TypeAttributes Attributes { get; set; }
+		public TypeAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column TypeDef.Flags
+		/// </summary>
+		protected abstract TypeAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column TypeDef.Name
@@ -171,23 +211,23 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column TypeDef.FieldList
 		/// </summary>
-		public abstract IList<FieldDef> Fields { get; }
+		public abstract ThreadSafe.IList<FieldDef> Fields { get; }
 
 		/// <summary>
 		/// From column TypeDef.MethodList
 		/// </summary>
-		public abstract IList<MethodDef> Methods { get; }
+		public abstract ThreadSafe.IList<MethodDef> Methods { get; }
 
 		/// <inheritdoc/>
-		public abstract IList<GenericParam> GenericParameters { get; }
+		public abstract ThreadSafe.IList<GenericParam> GenericParameters { get; }
 
 		/// <summary>
 		/// Gets the interfaces
 		/// </summary>
-		public abstract IList<InterfaceImpl> Interfaces { get; }
+		public abstract ThreadSafe.IList<InterfaceImpl> Interfaces { get; }
 
 		/// <inheritdoc/>
-		public abstract IList<DeclSecurity> DeclSecurities { get; }
+		public abstract ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
 
 		/// <summary>
 		/// Gets/sets the class layout
@@ -203,7 +243,6 @@ namespace dnlib.DotNet {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
 					return;
-
 				if (currentDeclaringType != null)
 					currentDeclaringType.NestedTypes.Remove(this);	// Will set DeclaringType2 = null
 				if (value != null)
@@ -219,22 +258,45 @@ namespace dnlib.DotNet {
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public abstract TypeDef DeclaringType2 { get; set; }
+		public TypeDef DeclaringType2 {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock(); try {
+					return DeclaringType2_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock(); try {
+					DeclaringType2_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return DeclaringType2_NoLock; }
+			set { DeclaringType2_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// The no-lock version of <see cref="DeclaringType2"/>.
+		/// </summary>
+		protected abstract TypeDef DeclaringType2_NoLock { get; set; }
 
 		/// <summary>
 		/// Gets all the nested types
 		/// </summary>
-		public abstract IList<TypeDef> NestedTypes { get; }
+		public abstract ThreadSafe.IList<TypeDef> NestedTypes { get; }
 
 		/// <summary>
 		/// Gets all events
 		/// </summary>
-		public abstract IList<EventDef> Events { get; }
+		public abstract ThreadSafe.IList<EventDef> Events { get; }
 
 		/// <summary>
 		/// Gets all properties
 		/// </summary>
-		public abstract IList<PropertyDef> Properties { get; }
+		public abstract ThreadSafe.IList<PropertyDef> Properties { get; }
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -306,10 +368,14 @@ namespace dnlib.DotNet {
 		/// gets/sets the packing size
 		/// </summary>
 		public ushort PackingSize {
-			get { return ClassLayout == null ? ushort.MaxValue : ClassLayout.PackingSize; }
+			get {
+				var cl = ClassLayout;
+				return cl == null ? ushort.MaxValue : cl.PackingSize;
+			}
 			set {
-				if (ClassLayout != null)
-					ClassLayout.PackingSize = value;
+				var cl = ClassLayout;
+				if (cl != null)
+					cl.PackingSize = value;
 			}
 		}
 
@@ -317,10 +383,14 @@ namespace dnlib.DotNet {
 		/// Gets/sets the class size
 		/// </summary>
 		public uint ClassSize {
-			get { return ClassLayout == null ? uint.MaxValue : ClassLayout.ClassSize; }
+			get {
+				var cl = ClassLayout;
+				return cl == null ? uint.MaxValue : cl.ClassSize;
+			}
 			set {
-				if (ClassLayout != null)
-					ClassLayout.ClassSize = value;
+				var cl = ClassLayout;
+				if (cl != null)
+					cl.ClassSize = value;
 			}
 		}
 
@@ -362,11 +432,46 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
+		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyAttributes(TypeAttributes andMask, TypeAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, TypeAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
 			get { return Attributes & TypeAttributes.VisibilityMask; }
-			set { Attributes = (Attributes & ~TypeAttributes.VisibilityMask) | (value & TypeAttributes.VisibilityMask); }
+			set { ModifyAttributes(~TypeAttributes.VisibilityMask, value & TypeAttributes.VisibilityMask); }
 		}
 
 		/// <summary>
@@ -430,7 +535,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeAttributes Layout {
 			get { return Attributes & TypeAttributes.LayoutMask; }
-			set { Attributes = (Attributes & ~TypeAttributes.LayoutMask) | (value & TypeAttributes.LayoutMask); }
+			set { ModifyAttributes(~TypeAttributes.LayoutMask, value & TypeAttributes.LayoutMask); }
 		}
 
 		/// <summary>
@@ -459,12 +564,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsInterface {
 			get { return (Attributes & TypeAttributes.Interface) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Interface;
-				else
-					Attributes &= ~TypeAttributes.Interface;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Interface); }
 		}
 
 		/// <summary>
@@ -472,12 +572,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsClass {
 			get { return (Attributes & TypeAttributes.Interface) == 0; }
-			set {
-				if (value)
-					Attributes &= ~TypeAttributes.Interface;
-				else
-					Attributes |= TypeAttributes.Interface;
-			}
+			set { ModifyAttributes(!value, TypeAttributes.Interface); }
 		}
 
 		/// <summary>
@@ -485,12 +580,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsAbstract {
 			get { return (Attributes & TypeAttributes.Abstract) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Abstract;
-				else
-					Attributes &= ~TypeAttributes.Abstract;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Abstract); }
 		}
 
 		/// <summary>
@@ -498,12 +588,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSealed {
 			get { return (Attributes & TypeAttributes.Sealed) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Sealed;
-				else
-					Attributes &= ~TypeAttributes.Sealed;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Sealed); }
 		}
 
 		/// <summary>
@@ -511,12 +596,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSpecialName {
 			get { return (Attributes & TypeAttributes.SpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.SpecialName;
-				else
-					Attributes &= ~TypeAttributes.SpecialName;
-			}
+			set { ModifyAttributes(value, TypeAttributes.SpecialName); }
 		}
 
 		/// <summary>
@@ -524,12 +604,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsImport {
 			get { return (Attributes & TypeAttributes.Import) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Import;
-				else
-					Attributes &= ~TypeAttributes.Import;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Import); }
 		}
 
 		/// <summary>
@@ -537,12 +612,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsSerializable {
 			get { return (Attributes & TypeAttributes.Serializable) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Serializable;
-				else
-					Attributes &= ~TypeAttributes.Serializable;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Serializable); }
 		}
 
 		/// <summary>
@@ -550,12 +620,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsWindowsRuntime {
 			get { return (Attributes & TypeAttributes.WindowsRuntime) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.WindowsRuntime;
-				else
-					Attributes &= ~TypeAttributes.WindowsRuntime;
-			}
+			set { ModifyAttributes(value, TypeAttributes.WindowsRuntime); }
 		}
 
 		/// <summary>
@@ -563,7 +628,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeAttributes StringFormat {
 			get { return Attributes & TypeAttributes.StringFormatMask; }
-			set { Attributes = (Attributes & ~TypeAttributes.StringFormatMask) | (value & TypeAttributes.StringFormatMask); }
+			set { ModifyAttributes(~TypeAttributes.StringFormatMask, value & TypeAttributes.StringFormatMask); }
 		}
 
 		/// <summary>
@@ -599,12 +664,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsBeforeFieldInit {
 			get { return (Attributes & TypeAttributes.BeforeFieldInit) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.BeforeFieldInit;
-				else
-					Attributes &= ~TypeAttributes.BeforeFieldInit;
-			}
+			set { ModifyAttributes(value, TypeAttributes.BeforeFieldInit); }
 		}
 
 		/// <summary>
@@ -612,12 +672,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsForwarder {
 			get { return (Attributes & TypeAttributes.Forwarder) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.Forwarder;
-				else
-					Attributes &= ~TypeAttributes.Forwarder;
-			}
+			set { ModifyAttributes(value, TypeAttributes.Forwarder); }
 		}
 
 		/// <summary>
@@ -625,12 +680,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsRuntimeSpecialName {
 			get { return (Attributes & TypeAttributes.RTSpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.RTSpecialName;
-				else
-					Attributes &= ~TypeAttributes.RTSpecialName;
-			}
+			set { ModifyAttributes(value, TypeAttributes.RTSpecialName); }
 		}
 
 		/// <summary>
@@ -638,12 +688,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasSecurity {
 			get { return (Attributes & TypeAttributes.HasSecurity) != 0; }
-			set {
-				if (value)
-					Attributes |= TypeAttributes.HasSecurity;
-				else
-					Attributes &= ~TypeAttributes.HasSecurity;
-			}
+			set { ModifyAttributes(value, TypeAttributes.HasSecurity); }
 		}
 
 		/// <summary>
@@ -668,7 +713,7 @@ namespace dnlib.DotNet {
 		/// if this is an enum.
 		/// </summary>
 		public TypeSig GetEnumUnderlyingType() {
-			foreach (var field in Fields) {
+			foreach (var field in Fields.GetSafeEnumerable()) {
 				if (!field.IsLiteral && !field.IsStatic) {
 					var fieldSig = field.FieldSig;
 					if (fieldSig != null)
@@ -734,7 +779,7 @@ namespace dnlib.DotNet {
 				return null;
 			var comparer = new SigComparer(options);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeMethodIsComparable) != 0;
-			foreach (var method in Methods) {
+			foreach (var method in Methods.GetSafeEnumerable()) {
 				if (!allowPrivateScope && method.IsPrivateScope)
 					continue;
 				if (!UTF8String.Equals(method.Name, name))
@@ -751,7 +796,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of method</param>
 		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if not found</returns>
 		public MethodDef FindMethod(UTF8String name) {
-			foreach (var method in Methods) {
+			foreach (var method in Methods.GetSafeEnumerable()) {
 				if (UTF8String.Equals(method.Name, name))
 					return method;
 			}
@@ -764,7 +809,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of method</param>
 		/// <returns>All methods with that name</returns>
 		public IEnumerable<MethodDef> FindMethods(UTF8String name) {
-			foreach (var method in Methods) {
+			foreach (var method in Methods.GetSafeEnumerable()) {
 				if (UTF8String.Equals(method.Name, name))
 					yield return method;
 			}
@@ -775,7 +820,11 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>The class constructor or <c>null</c> if none found</returns>
 		public MethodDef FindStaticConstructor() {
-			foreach (var method in Methods) {
+			return Methods.ExecuteLocked<MethodDef, object, MethodDef>(null, (tsList, arg) => FindStaticConstructor_NoMethodsLock());
+		}
+
+		MethodDef FindStaticConstructor_NoMethodsLock() {
+			foreach (var method in Methods.GetEnumerable_NoLock()) {
 				if (method.IsStaticConstructor)
 					return method;
 			}
@@ -797,15 +846,21 @@ namespace dnlib.DotNet {
 			var flags = MethodAttributes.Private | MethodAttributes.Static |
 						MethodAttributes.HideBySig | MethodAttributes.ReuseSlot |
 						MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
-			cctor = Module.UpdateRowId(new MethodDefUser(MethodDef.staticConstructorName,
-						MethodSig.CreateStatic(Module.CorLibTypes.Void), implFlags, flags));
+			var module = Module;
+			cctor = module.UpdateRowId(new MethodDefUser(MethodDef.StaticConstructorName,
+						MethodSig.CreateStatic(module.CorLibTypes.Void), implFlags, flags));
 			var body = new CilBody();
 			body.InitLocals = true;
 			body.MaxStack = 8;
 			body.Instructions.Add(OpCodes.Ret.ToInstruction());
 			cctor.Body = body;
-			Methods.Add(cctor);
-			return cctor;
+			return Methods.ExecuteLocked<MethodDef, MethodDef, MethodDef>(cctor, (tsList, cctor2) => {
+				var cctor3 = FindStaticConstructor_NoMethodsLock();
+				if (cctor3 != null)
+					return cctor3;
+				tsList.Add_NoLock(cctor2);
+				return cctor2;
+			});
 		}
 
 		/// <summary>
@@ -813,7 +868,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>All instance constructors</returns>
 		public IEnumerable<MethodDef> FindInstanceConstructors() {
-			foreach (var method in Methods) {
+			foreach (var method in Methods.GetSafeEnumerable()) {
 				if (method.IsInstanceConstructor)
 					yield return method;
 			}
@@ -824,7 +879,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>All static and instance constructors</returns>
 		public IEnumerable<MethodDef> FindConstructors() {
-			foreach (var method in Methods) {
+			foreach (var method in Methods.GetSafeEnumerable()) {
 				if (method.IsConstructor)
 					yield return method;
 			}
@@ -835,7 +890,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>The default instance constructor or <c>null</c> if none</returns>
 		public MethodDef FindDefaultConstructor() {
-			foreach (var method in Methods) {
+			foreach (var method in Methods.GetSafeEnumerable()) {
 				if (!method.IsInstanceConstructor)
 					continue;
 				var sig = method.MethodSig;
@@ -867,7 +922,7 @@ namespace dnlib.DotNet {
 				return null;
 			var comparer = new SigComparer(options);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeFieldIsComparable) != 0;
-			foreach (var field in Fields) {
+			foreach (var field in Fields.GetSafeEnumerable()) {
 				if (!allowPrivateScope && field.IsPrivateScope)
 					continue;
 				if (!UTF8String.Equals(field.Name, name))
@@ -884,7 +939,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of field</param>
 		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if not found</returns>
 		public FieldDef FindField(UTF8String name) {
-			foreach (var field in Fields) {
+			foreach (var field in Fields.GetSafeEnumerable()) {
 				if (UTF8String.Equals(field.Name, name))
 					return field;
 			}
@@ -897,7 +952,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of field</param>
 		/// <returns>All fields with that name</returns>
 		public IEnumerable<FieldDef> FindFields(UTF8String name) {
-			foreach (var field in Fields) {
+			foreach (var field in Fields.GetSafeEnumerable()) {
 				if (UTF8String.Equals(field.Name, name))
 					yield return field;
 			}
@@ -924,7 +979,7 @@ namespace dnlib.DotNet {
 			if (UTF8String.IsNull(name) || type == null)
 				return null;
 			var comparer = new SigComparer(options);
-			foreach (var @event in Events) {
+			foreach (var @event in Events.GetSafeEnumerable()) {
 				if (!UTF8String.Equals(@event.Name, name))
 					continue;
 				if (comparer.Equals(@event.EventType, type))
@@ -939,7 +994,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of event</param>
 		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
 		public EventDef FindEvent(UTF8String name) {
-			foreach (var @event in Events) {
+			foreach (var @event in Events.GetSafeEnumerable()) {
 				if (UTF8String.Equals(@event.Name, name))
 					return @event;
 			}
@@ -952,7 +1007,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of event</param>
 		/// <returns>All events with that name</returns>
 		public IEnumerable<EventDef> FindEvents(UTF8String name) {
-			foreach (var @event in Events) {
+			foreach (var @event in Events.GetSafeEnumerable()) {
 				if (UTF8String.Equals(@event.Name, name))
 					yield return @event;
 			}
@@ -979,7 +1034,7 @@ namespace dnlib.DotNet {
 			if (UTF8String.IsNull(name) || propSig == null)
 				return null;
 			var comparer = new SigComparer(options);
-			foreach (var prop in Properties) {
+			foreach (var prop in Properties.GetSafeEnumerable()) {
 				if (!UTF8String.Equals(prop.Name, name))
 					continue;
 				if (comparer.Equals(prop.Type, propSig))
@@ -994,7 +1049,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of prop</param>
 		/// <returns>The <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
 		public PropertyDef FindProperty(UTF8String name) {
-			foreach (var prop in Properties) {
+			foreach (var prop in Properties.GetSafeEnumerable()) {
 				if (UTF8String.Equals(prop.Name, name))
 					return prop;
 			}
@@ -1007,7 +1062,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of prop</param>
 		/// <returns>All props with that name</returns>
 		public IEnumerable<PropertyDef> FindProperties(UTF8String name) {
-			foreach (var prop in Properties) {
+			foreach (var prop in Properties.GetSafeEnumerable()) {
 				if (UTF8String.Equals(prop.Name, name))
 					yield return prop;
 			}
@@ -1163,7 +1218,7 @@ namespace dnlib.DotNet {
 			if (method == null)
 				return;
 
-			foreach (var prop in Properties) {
+			foreach (var prop in Properties.GetSafeEnumerable()) {
 				if (prop.GetMethod == method)
 					prop.GetMethod = null;
 				if (prop.SetMethod == method)
@@ -1171,7 +1226,7 @@ namespace dnlib.DotNet {
 				prop.OtherMethods.Remove(method);
 			}
 
-			foreach (var evt in Events) {
+			foreach (var evt in Events.GetSafeEnumerable()) {
 				if (evt.AddMethod == method)
 					evt.AddMethod = null;
 				if (evt.RemoveMethod == method)
@@ -1190,23 +1245,25 @@ namespace dnlib.DotNet {
 		}
 
 		void RemoveEmptyProperties() {
-			var props = Properties;
-			for (int i = props.Count - 1; i >= 0; i--) {
-				if (props[i].IsEmpty)
-					props.RemoveAt(i);
-			}
+			Properties.IterateAllReverse((tsList, index, value) => {
+				if (value.IsEmpty)
+					tsList.RemoveAt_NoLock(index);
+			});
 		}
 
 		void RemoveEmptyEvents() {
-			var events = Events;
-			for (int i = events.Count - 1; i >= 0; i--) {
-				if (events[i].IsEmpty)
-					events.RemoveAt(i);
-			}
+			Events.IterateAllReverse((tsList, index, value) => {
+				if (value.IsEmpty)
+					tsList.RemoveAt_NoLock(index);
+			});
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref FieldDef value) {
+		void IListListener<FieldDef>.OnLazyAdd(int index, ref FieldDef value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref FieldDef value) {
 #if DEBUG
 			if (value.DeclaringType != this)
 				throw new InvalidOperationException("Added field's DeclaringType != this");
@@ -1231,12 +1288,16 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<FieldDef>.OnClear() {
-			foreach (var field in Fields)
+			foreach (var field in Fields.GetEnumerable_NoLock())
 				field.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref MethodDef value) {
+		void IListListener<MethodDef>.OnLazyAdd(int index, ref MethodDef value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref MethodDef value) {
 #if DEBUG
 			if (value.DeclaringType != this)
 				throw new InvalidOperationException("Added method's DeclaringType != this");
@@ -1261,7 +1322,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnClear() {
-			foreach (var method in Methods)
+			foreach (var method in Methods.GetEnumerable_NoLock())
 				method.DeclaringType2 = null;
 		}
 
@@ -1295,12 +1356,16 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnClear() {
-			foreach (var type in NestedTypes)
+			foreach (var type in NestedTypes.GetEnumerable_NoLock())
 				type.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref EventDef value) {
+		void IListListener<EventDef>.OnLazyAdd(int index, ref EventDef value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref EventDef value) {
 #if DEBUG
 			if (value.DeclaringType != this)
 				throw new InvalidOperationException("Added event's DeclaringType != this");
@@ -1325,12 +1390,16 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<EventDef>.OnClear() {
-			foreach (var @event in Events)
+			foreach (var @event in Events.GetEnumerable_NoLock())
 				@event.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref PropertyDef value) {
+		void IListListener<PropertyDef>.OnLazyAdd(int index, ref PropertyDef value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref PropertyDef value) {
 #if DEBUG
 			if (value.DeclaringType != this)
 				throw new InvalidOperationException("Added property's DeclaringType != this");
@@ -1355,12 +1424,16 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<PropertyDef>.OnClear() {
-			foreach (var prop in Properties)
+			foreach (var prop in Properties.GetEnumerable_NoLock())
 				prop.DeclaringType2 = null;
 		}
 
 		/// <inheritdoc/>
-		public virtual void OnLazyAdd(int index, ref GenericParam value) {
+		void IListListener<GenericParam>.OnLazyAdd(int index, ref GenericParam value) {
+			OnLazyAdd2(index, ref value);
+		}
+
+		internal virtual void OnLazyAdd2(int index, ref GenericParam value) {
 #if DEBUG
 			if (value.Owner != this)
 				throw new InvalidOperationException("Added generic param's Owner != this");
@@ -1385,7 +1458,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnClear() {
-			foreach (var gp in GenericParameters)
+			foreach (var gp in GenericParameters.GetEnumerable_NoLock())
 				gp.Owner = null;
 		}
 
@@ -1394,9 +1467,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <returns>A list of 0 or more fields with name <paramref name="name"/></returns>
-		public List<FieldDef> GetFields(UTF8String name) {
+		public IList<FieldDef> GetFields(UTF8String name) {
 			var fields = new List<FieldDef>();
-			foreach (var field in Fields) {
+			foreach (var field in Fields.GetSafeEnumerable()) {
 				if (field.Name == name)
 					fields.Add(field);
 			}
@@ -1409,7 +1482,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Field name</param>
 		/// <returns>The field or <c>null</c> if none found</returns>
 		public FieldDef GetField(UTF8String name) {
-			foreach (var field in Fields) {
+			foreach (var field in Fields.GetSafeEnumerable()) {
 				if (field.Name == name)
 					return field;
 			}
@@ -1425,14 +1498,18 @@ namespace dnlib.DotNet {
 			if (!td.IsSequentialLayout && !td.IsExplicitLayout) {
 				if (td.Fields.Count != 1)
 					return false;
-				return td.Fields[0].GetFieldSize(out size);
+				var fd = td.Fields.Get(0, null);
+				if (fd == null)
+					return false;
+				return fd.GetFieldSize(out size);
 			}
 
 			var classLayout = td.ClassLayout;
 			if (classLayout == null)
 				return false;
-			if (classLayout.ClassSize != 0) {
-				size = classLayout.ClassSize;
+			uint classSize = classLayout.ClassSize;
+			if (classSize != 0) {
+				size = classSize;
 				return true;
 			}
 
@@ -1457,8 +1534,8 @@ namespace dnlib.DotNet {
 		LazyList<FieldDef> fields;
 		LazyList<MethodDef> methods;
 		LazyList<GenericParam> genericParams;
-		IList<InterfaceImpl> interfaceImpls = new List<InterfaceImpl>();
-		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
+		ThreadSafe.IList<InterfaceImpl> interfaceImpls = ThreadSafeListCreator.Create<InterfaceImpl>();
+		ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
 		ClassLayout classLayout;
 		TypeDef declaringType;
 		LazyList<EventDef> events;
@@ -1468,7 +1545,7 @@ namespace dnlib.DotNet {
 		ModuleDef module;
 
 		/// <inheritdoc/>
-		public override TypeAttributes Attributes {
+		protected override TypeAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -1492,27 +1569,27 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<FieldDef> Fields {
+		public override ThreadSafe.IList<FieldDef> Fields {
 			get { return fields; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<MethodDef> Methods {
+		public override ThreadSafe.IList<MethodDef> Methods {
 			get { return methods; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParam> GenericParameters {
+		public override ThreadSafe.IList<GenericParam> GenericParameters {
 			get { return genericParams; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<InterfaceImpl> Interfaces {
+		public override ThreadSafe.IList<InterfaceImpl> Interfaces {
 			get { return interfaceImpls; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<DeclSecurity> DeclSecurities {
+		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get { return declSecurities; }
 		}
 
@@ -1523,23 +1600,23 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		protected override TypeDef DeclaringType2_NoLock {
 			get { return declaringType; }
 			set { declaringType = value; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<EventDef> Events {
+		public override ThreadSafe.IList<EventDef> Events {
 			get { return events; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<PropertyDef> Properties {
+		public override ThreadSafe.IList<PropertyDef> Properties {
 			get { return properties; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<TypeDef> NestedTypes {
+		public override ThreadSafe.IList<TypeDef> NestedTypes {
 			get { return nestedTypes; }
 		}
 
@@ -1605,7 +1682,7 @@ namespace dnlib.DotNet {
 	sealed class TypeDefMD : TypeDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawTypeDefRow rawRow;
 
 		UserValue<TypeAttributes> flags;
@@ -1624,10 +1701,10 @@ namespace dnlib.DotNet {
 		LazyList<TypeDef> nestedTypes;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<ModuleDef> module;
-		Dictionary<uint, List<MethodOverride>> methodRidToOverrides;
+		Dictionary<uint, ThreadSafe.IList<MethodOverride>> methodRidToOverrides;
 
 		/// <inheritdoc/>
-		public override TypeAttributes Attributes {
+		protected override TypeAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -1651,55 +1728,60 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<FieldDef> Fields {
+		public override ThreadSafe.IList<FieldDef> Fields {
 			get {
 				if (fields == null) {
 					var list = readerModule.MetaData.GetFieldRidList(rid);
-					fields = new LazyList<FieldDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveField(((RidList)list2)[index]));
+					var tmp = new LazyList<FieldDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveField(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref fields, tmp, null);
 				}
 				return fields;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<MethodDef> Methods {
+		public override ThreadSafe.IList<MethodDef> Methods {
 			get {
 				if (methods == null) {
 					var list = readerModule.MetaData.GetMethodRidList(rid);
-					methods = new LazyList<MethodDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[index]));
+					var tmp = new LazyList<MethodDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref methods, tmp, null);
 				}
 				return methods;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<GenericParam> GenericParameters {
+		public override ThreadSafe.IList<GenericParam> GenericParameters {
 			get {
 				if (genericParams == null) {
 					var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, rid);
-					genericParams = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
+					var tmp = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref genericParams, tmp, null);
 				}
 				return genericParams;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<InterfaceImpl> Interfaces {
+		public override ThreadSafe.IList<InterfaceImpl> Interfaces {
 			get {
 				if (interfaceImpls == null) {
 					var list = readerModule.MetaData.GetInterfaceImplRidList(rid);
-					interfaceImpls = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index]));
+					var tmp = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref interfaceImpls, tmp, null);
 				}
 				return interfaceImpls;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<DeclSecurity> DeclSecurities {
+		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get {
 				if (declSecurities == null) {
 					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.TypeDef, rid);
-					declSecurities = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+					var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref declSecurities, tmp, null);
 				}
 				return declSecurities;
 			}
@@ -1712,41 +1794,44 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		protected override TypeDef DeclaringType2_NoLock {
 			get { return declaringType.Value; }
 			set { declaringType.Value = value; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<EventDef> Events {
+		public override ThreadSafe.IList<EventDef> Events {
 			get {
 				if (events == null) {
 					var mapRid = readerModule.MetaData.GetEventMapRid(rid);
 					var list = readerModule.MetaData.GetEventRidList(mapRid);
-					events = new LazyList<EventDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveEvent(((RidList)list2)[index]));
+					var tmp = new LazyList<EventDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveEvent(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref events, tmp, null);
 				}
 				return events;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<PropertyDef> Properties {
+		public override ThreadSafe.IList<PropertyDef> Properties {
 			get {
 				if (properties == null) {
 					var mapRid = readerModule.MetaData.GetPropertyMapRid(rid);
 					var list = readerModule.MetaData.GetPropertyRidList(mapRid);
-					properties = new LazyList<PropertyDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveProperty(((RidList)list2)[index]));
+					var tmp = new LazyList<PropertyDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveProperty(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref properties, tmp, null);
 				}
 				return properties;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<TypeDef> NestedTypes {
+		public override ThreadSafe.IList<TypeDef> NestedTypes {
 			get {
 				if (nestedTypes == null) {
 					var list = readerModule.MetaData.GetNestedClassRidList(rid);
-					nestedTypes = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveTypeDef(((RidList)list2)[index]));
+					var tmp = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveTypeDef(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref nestedTypes, tmp, null);
 				}
 				return nestedTypes;
 			}
@@ -1757,7 +1842,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeDef, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -1790,19 +1876,19 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (TypeAttributes)rawRow.Flags;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			@namespace.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Namespace);
 			};
 			baseType.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ResolveTypeDefOrRef(rawRow.Extends);
 			};
 			classLayout.ReadOriginalValue = () => {
@@ -1813,11 +1899,20 @@ namespace dnlib.DotNet {
 				return row == null ? null : readerModule.ResolveTypeDef(row.EnclosingClass);
 			};
 			module.ReadOriginalValue = () => {
-				return DeclaringType != null ? null : readerModule;
+				return DeclaringType2_NoLock != null ? null : readerModule;
 			};
+#if THREAD_SAFE
+			// flags.Lock = theLock;			No lock for this one
+			name.Lock = theLock;
+			@namespace.Lock = theLock;
+			baseType.Lock = theLock;
+			classLayout.Lock = theLock;
+			// declaringType.Lock = theLock;	No lock for this one
+			module.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadTypeDefRow(rid);
@@ -1828,23 +1923,21 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>A list (possibly empty) of all methods <paramref name="method"/> overrides</returns>
-		internal List<MethodOverride> GetMethodOverrides(MethodDefMD method) {
+		internal ThreadSafe.IList<MethodOverride> GetMethodOverrides(MethodDefMD method) {
 			if (method == null)
-				return new List<MethodOverride>();
+				return ThreadSafeListCreator.Create<MethodOverride>();
 
 			if (methodRidToOverrides == null)
 				InitializeMethodOverrides();
 
-			List<MethodOverride> overrides;
+			ThreadSafe.IList<MethodOverride> overrides;
 			if (methodRidToOverrides.TryGetValue(method.Rid, out overrides))
 				return overrides;
-			return new List<MethodOverride>();
+			return ThreadSafeListCreator.Create<MethodOverride>();
 		}
 
 		void InitializeMethodOverrides() {
-			if (methodRidToOverrides != null)
-				return;
-			methodRidToOverrides = new Dictionary<uint, List<MethodOverride>>();
+			var newMethodRidToOverrides = new Dictionary<uint, ThreadSafe.IList<MethodOverride>>();
 
 			var ridList = readerModule.MetaData.GetMethodImplRidList(rid);
 			for (uint i = 0; i < ridList.Length; i++) {
@@ -1864,11 +1957,12 @@ namespace dnlib.DotNet {
 				if (method == null || method.DeclaringType != this)
 					continue;
 
-				List<MethodOverride> overrides;
-				if (!methodRidToOverrides.TryGetValue(method.Rid, out overrides))
-					methodRidToOverrides[method.Rid] = overrides = new List<MethodOverride>();
+				ThreadSafe.IList<MethodOverride> overrides;
+				if (!newMethodRidToOverrides.TryGetValue(method.Rid, out overrides))
+					newMethodRidToOverrides[method.Rid] = overrides = ThreadSafeListCreator.Create<MethodOverride>();
 				overrides.Add(new MethodOverride(methodBody, methodDecl));
 			}
+			Interlocked.CompareExchange(ref methodRidToOverrides, newMethodRidToOverrides, null);
 		}
 
 		MethodDef FindMethodImplMethod(IMethodDefOrRef mdr) {
@@ -1921,10 +2015,10 @@ namespace dnlib.DotNet {
 		/// <param name="getMethod">Updated with the getter method or <c>null</c> if none</param>
 		/// <param name="setMethod">Updated with the setter method or <c>null</c> if none</param>
 		/// <param name="otherMethods">Updated with a list of all other methods</param>
-		internal void InitializeProperty(PropertyDefMD prop, out MethodDef getMethod, out MethodDef setMethod, out List<MethodDef> otherMethods) {
+		internal void InitializeProperty(PropertyDefMD prop, out MethodDef getMethod, out MethodDef setMethod, out ThreadSafe.IList<MethodDef> otherMethods) {
 			getMethod = null;
 			setMethod = null;
-			otherMethods = new List<MethodDef>();
+			otherMethods = ThreadSafeListCreator.Create<MethodDef>();
 			if (prop == null)
 				return;
 
@@ -1935,7 +2029,7 @@ namespace dnlib.DotNet {
 					continue;	// Should never happen
 
 				var method = readerModule.ResolveMethod(rawRow.Method);
-				if (method == null || method.DeclaringType != prop.DeclaringType)
+				if (method == null || method.DeclaringType != prop.DeclaringType2_NoLock)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
@@ -1970,11 +2064,11 @@ namespace dnlib.DotNet {
 		/// <param name="invokeMethod">Updated with the fire method or <c>null</c> if none</param>
 		/// <param name="removeMethod">Updated with the removeOn method or <c>null</c> if none</param>
 		/// <param name="otherMethods">Updated with a list of all other methods</param>
-		internal void InitializeEvent(EventDefMD evt, out MethodDef addMethod, out MethodDef invokeMethod, out MethodDef removeMethod, out List<MethodDef> otherMethods) {
+		internal void InitializeEvent(EventDefMD evt, out MethodDef addMethod, out MethodDef invokeMethod, out MethodDef removeMethod, out ThreadSafe.IList<MethodDef> otherMethods) {
 			addMethod = null;
 			invokeMethod = null;
 			removeMethod = null;
-			otherMethods = new List<MethodDef>();
+			otherMethods = ThreadSafeListCreator.Create<MethodDef>();
 			if (evt == null)
 				return;
 
@@ -1985,7 +2079,7 @@ namespace dnlib.DotNet {
 					continue;	// Should never happen
 
 				var method = readerModule.ResolveMethod(rawRow.Method);
-				if (method == null || method.DeclaringType != evt.DeclaringType)
+				if (method == null || method.DeclaringType != evt.DeclaringType2_NoLock)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
@@ -2018,7 +2112,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref FieldDef value) {
+		internal override void OnLazyAdd2(int index, ref FieldDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadField(value.Rid).InitializeAll());
@@ -2027,7 +2121,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref MethodDef value) {
+		internal override void OnLazyAdd2(int index, ref MethodDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadMethod(value.Rid).InitializeAll());
@@ -2036,7 +2130,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref EventDef value) {
+		internal override void OnLazyAdd2(int index, ref EventDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadEvent(value.Rid).InitializeAll());
@@ -2045,7 +2139,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref PropertyDef value) {
+		internal override void OnLazyAdd2(int index, ref PropertyDef value) {
 			if (value.DeclaringType != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadProperty(value.Rid).InitializeAll());
@@ -2054,7 +2148,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override void OnLazyAdd(int index, ref GenericParam value) {
+		internal override void OnLazyAdd2(int index, ref GenericParam value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParam(value.Rid).InitializeAll());

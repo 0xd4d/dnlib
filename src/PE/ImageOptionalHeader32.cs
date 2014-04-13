@@ -31,37 +31,37 @@ namespace dnlib.PE {
 	/// Represents the IMAGE_OPTIONAL_HEADER (32-bit) PE section
 	/// </summary>
 	public sealed class ImageOptionalHeader32 : FileSection, IImageOptionalHeader {
-		ushort magic;
-		byte majorLinkerVersion;
-		byte minorLinkerVersion;
-		uint sizeOfCode;
-		uint sizeOfInitializedData;
-		uint sizeOfUninitializedData;
-		RVA addressOfEntryPoint;
-		RVA baseOfCode;
-		RVA baseOfData;
-		uint imageBase;
-		uint sectionAlignment;
-		uint fileAlignment;
-		ushort majorOperatingSystemVersion;
-		ushort minorOperatingSystemVersion;
-		ushort majorImageVersion;
-		ushort minorImageVersion;
-		ushort majorSubsystemVersion;
-		ushort minorSubsystemVersion;
-		uint win32VersionValue;
-		uint sizeOfImage;
-		uint sizeOfHeaders;
-		uint checkSum;
-		Subsystem subsystem;
-		DllCharacteristics dllCharacteristics;
-		uint sizeOfStackReserve;
-		uint sizeOfStackCommit;
-		uint sizeOfHeapReserve;
-		uint sizeOfHeapCommit;
-		uint loaderFlags;
-		uint numberOfRvaAndSizes;
-		ImageDataDirectory[] dataDirectories = new ImageDataDirectory[16];
+		readonly ushort magic;
+		readonly byte majorLinkerVersion;
+		readonly byte minorLinkerVersion;
+		readonly uint sizeOfCode;
+		readonly uint sizeOfInitializedData;
+		readonly uint sizeOfUninitializedData;
+		readonly RVA addressOfEntryPoint;
+		readonly RVA baseOfCode;
+		readonly RVA baseOfData;
+		readonly uint imageBase;
+		readonly uint sectionAlignment;
+		readonly uint fileAlignment;
+		readonly ushort majorOperatingSystemVersion;
+		readonly ushort minorOperatingSystemVersion;
+		readonly ushort majorImageVersion;
+		readonly ushort minorImageVersion;
+		readonly ushort majorSubsystemVersion;
+		readonly ushort minorSubsystemVersion;
+		readonly uint win32VersionValue;
+		readonly uint sizeOfImage;
+		readonly uint sizeOfHeaders;
+		readonly uint checkSum;
+		readonly Subsystem subsystem;
+		readonly DllCharacteristics dllCharacteristics;
+		readonly uint sizeOfStackReserve;
+		readonly uint sizeOfStackCommit;
+		readonly uint sizeOfHeapReserve;
+		readonly uint sizeOfHeapCommit;
+		readonly uint loaderFlags;
+		readonly uint numberOfRvaAndSizes;
+		readonly ImageDataDirectory[] dataDirectories = new ImageDataDirectory[16];
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.Magic field

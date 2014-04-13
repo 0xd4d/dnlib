@@ -24,6 +24,7 @@
 ﻿using System;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -99,11 +100,14 @@ namespace dnlib.DotNet {
 	sealed class ClassLayoutMD : ClassLayout {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawClassLayoutRow rawRow;
 
 		UserValue<ushort> packingSize;
 		UserValue<uint> classSize;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public override ushort PackingSize {
@@ -138,16 +142,20 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			packingSize.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return rawRow.PackingSize;
 			};
 			classSize.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return rawRow.ClassSize;
 			};
+#if THREAD_SAFE
+			packingSize.Lock = theLock;
+			classSize.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadClassLayoutRow(rid);

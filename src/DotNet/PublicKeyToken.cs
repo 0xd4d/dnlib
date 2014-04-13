@@ -43,15 +43,17 @@
 
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {
+			if ((object)this == obj)
+				return true;
 			var other = obj as PublicKeyToken;
 			if (other == null)
 				return false;
-			return Utils.Equals(data, other.data);
+			return Utils.Equals(Data, other.Data);
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return Utils.GetHashCode(data);
+			return Utils.GetHashCode(Data);
 		}
 	}
 }

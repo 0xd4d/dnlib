@@ -3154,10 +3154,14 @@ namespace dnlib.DotNet {
 
 			bool result = a.IsGlobalModuleType &&
 				Equals((IModule)a.Module, (IModule)b) &&
-				Equals(a.DefinitionAssembly, b.Module == null ? null : b.Module.Assembly);
+				Equals(a.DefinitionAssembly, GetAssembly(b.Module));
 
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		static AssemblyDef GetAssembly(ModuleDef module) {
+			return module == null ? null : module.Assembly;
 		}
 
 		/// <summary>

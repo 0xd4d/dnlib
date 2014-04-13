@@ -22,8 +22,10 @@
 */
 
 ﻿using System;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -73,7 +75,10 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
-			get { return TypeSig == null ? 0 : ((IGenericParameterProvider)TypeSig).NumberOfGenericParameters; }
+			get {
+				var ts = TypeSig;
+				return ts == null ? 0 : ((IGenericParameterProvider)ts).NumberOfGenericParameters;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -224,12 +229,15 @@ namespace dnlib.DotNet {
 	sealed class TypeSpecMD : TypeSpec {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawTypeSpecRow rawRow;
 
 		UserValue<TypeSig> typeSig;
 		byte[] extraData;
 		CustomAttributeCollection customAttributeCollection;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public override TypeSig TypeSig {
@@ -254,7 +262,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeSpec, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -281,15 +290,18 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			typeSig.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				var sig = readerModule.ReadTypeSignature(rawRow.Signature, out extraData);
 				if (sig != null)
 					sig.Rid = rid;
 				return sig;
 			};
+#if THREAD_SAFE
+			typeSig.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadTypeSpecRow(rid);

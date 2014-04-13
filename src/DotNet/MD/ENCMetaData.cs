@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.IO;
 using dnlib.PE;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -35,7 +36,10 @@ namespace dnlib.DotNet.MD {
 		static readonly UTF8String DeletedName = "_Deleted";
 		bool hasMethodPtr, hasFieldPtr, hasParamPtr, hasEventPtr, hasPropertyPtr;
 		bool hasDeletedRows;
-		Dictionary<Table, SortedTable> sortedTables = new Dictionary<Table, SortedTable>();
+		readonly Dictionary<Table, SortedTable> sortedTables = new Dictionary<Table, SortedTable>();
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <summary>
 		/// Sorts a table by key column
@@ -86,13 +90,14 @@ namespace dnlib.DotNet.MD {
 				rows = new RowInfo[mdTable.Rows + 1];
 				if (mdTable.Rows == 0)
 					return;
-				var reader = mdTable.ImageStream;
-				reader.Position = keyColumn.Offset;
-				int increment = mdTable.TableInfo.RowSize - keyColumn.Size;
-				for (uint i = 1; i <= mdTable.Rows; i++) {
-					rows[i] = new RowInfo(i, keyColumn.Read(reader));
-					if (i < mdTable.Rows)
-						reader.Position += increment;
+				using (var reader = mdTable.CloneImageStream()) {
+					reader.Position = keyColumn.Offset;
+					int increment = mdTable.TableInfo.RowSize - keyColumn.Size;
+					for (uint i = 1; i <= mdTable.Rows; i++) {
+						rows[i] = new RowInfo(i, keyColumn.Read(reader));
+						if (i < mdTable.Rows)
+							reader.Position += increment;
+					}
 				}
 			}
 
@@ -538,8 +543,14 @@ namespace dnlib.DotNet.MD {
 			if (tablesStream.IsSorted(tableSource))
 				return FindAllRows(tableSource, keyColIndex, key);
 			SortedTable sortedTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
 			if (!sortedTables.TryGetValue(tableSource.Table, out sortedTable))
 				sortedTables[tableSource.Table] = sortedTable = new SortedTable(tableSource, keyColIndex);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 			return sortedTable.FindAllRows(key);
 		}
 	}

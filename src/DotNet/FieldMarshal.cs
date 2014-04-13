@@ -24,6 +24,7 @@
 ﻿using System;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -77,9 +78,12 @@ namespace dnlib.DotNet {
 	sealed class FieldMarshalMD : FieldMarshal {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawFieldMarshalRow rawRow;
 		UserValue<byte[]> nativeType;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public override byte[] NativeType {
@@ -108,12 +112,15 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			nativeType.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.BlobStream.Read(rawRow.NativeType);
 			};
+#if THREAD_SAFE
+			nativeType.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadFieldMarshalRow(rid);

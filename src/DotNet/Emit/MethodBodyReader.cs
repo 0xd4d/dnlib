@@ -175,7 +175,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token</param>
 		void SetHeader(ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
-			hasReadHeader = true;
+			this.hasReadHeader = true;
 			this.flags = flags;
 			this.maxStack = maxStack;
 			this.codeSize = codeSize;

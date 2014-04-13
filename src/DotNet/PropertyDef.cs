@@ -23,8 +23,16 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -35,6 +43,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -65,7 +80,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Property.PropFlags
 		/// </summary>
-		public abstract PropertyAttributes Attributes { get; set; }
+		public PropertyAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column Property.PropFlags
+		/// </summary>
+		protected abstract PropertyAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Property.Name
@@ -98,7 +138,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the other methods
 		/// </summary>
-		public abstract IList<MethodDef> OtherMethods { get; }
+		public abstract ThreadSafe.IList<MethodDef> OtherMethods { get; }
 
 		/// <summary>
 		/// <c>true</c> if there are no methods attached to this property
@@ -134,7 +174,10 @@ namespace dnlib.DotNet {
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
 		/// </summary>
 		public ElementType ElementType {
-			get { return Constant == null ? ElementType.End : Constant.Type; }
+			get {
+				var c = Constant;
+				return c == null ? ElementType.End : c.Type;
+			}
 		}
 
 		/// <summary>
@@ -152,6 +195,8 @@ namespace dnlib.DotNet {
 			get { return DeclaringType2; }
 			set {
 				var currentDeclaringType = DeclaringType2;
+				if (currentDeclaringType == value)
+					return;
 				if (currentDeclaringType != null)
 					currentDeclaringType.Properties.Remove(this);	// Will set DeclaringType2 = null
 				if (value != null)
@@ -164,7 +209,30 @@ namespace dnlib.DotNet {
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public abstract TypeDef DeclaringType2 { get; set; }
+		public TypeDef DeclaringType2 {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock(); try {
+					return DeclaringType2_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock(); try {
+					DeclaringType2_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return DeclaringType2_NoLock; }
+			set { DeclaringType2_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// No-lock version of <see cref="DeclaringType2"/>.
+		/// </summary>
+		internal abstract TypeDef DeclaringType2_NoLock { get; set; }
 
 		/// <inheritdoc/>
 		public ModuleDef Module {
@@ -185,16 +253,30 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, PropertyAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="PropertyAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
 			get { return (Attributes & PropertyAttributes.SpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= PropertyAttributes.SpecialName;
-				else
-					Attributes &= ~PropertyAttributes.SpecialName;
-			}
+			set { ModifyAttributes(value, PropertyAttributes.SpecialName); }
 		}
 
 		/// <summary>
@@ -202,12 +284,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsRuntimeSpecialName {
 			get { return (Attributes & PropertyAttributes.RTSpecialName) != 0; }
-			set {
-				if (value)
-					Attributes |= PropertyAttributes.RTSpecialName;
-				else
-					Attributes &= ~PropertyAttributes.RTSpecialName;
-			}
+			set { ModifyAttributes(value, PropertyAttributes.RTSpecialName); }
 		}
 
 		/// <summary>
@@ -215,12 +292,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasDefault {
 			get { return (Attributes & PropertyAttributes.HasDefault) != 0; }
-			set {
-				if (value)
-					Attributes |= PropertyAttributes.HasDefault;
-				else
-					Attributes &= ~PropertyAttributes.HasDefault;
-			}
+			set { ModifyAttributes(value, PropertyAttributes.HasDefault); }
 		}
 
 		/// <inheritdoc/>
@@ -240,11 +312,11 @@ namespace dnlib.DotNet {
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		MethodDef getMethod;
 		MethodDef setMethod;
-		IList<MethodDef> otherMethods = new List<MethodDef>();
+		ThreadSafe.IList<MethodDef> otherMethods = ThreadSafeListCreator.Create<MethodDef>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
-		public override PropertyAttributes Attributes {
+		protected override PropertyAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -285,12 +357,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<MethodDef> OtherMethods {
+		public override ThreadSafe.IList<MethodDef> OtherMethods {
 			get { return otherMethods; }
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		internal override TypeDef DeclaringType2_NoLock {
 			get { return declaringType; }
 			set { declaringType = value; }
 		}
@@ -337,7 +409,7 @@ namespace dnlib.DotNet {
 	sealed class PropertyDefMD : PropertyDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawPropertyRow rawRow;
 
 		UserValue<PropertyAttributes> flags;
@@ -347,11 +419,11 @@ namespace dnlib.DotNet {
 		CustomAttributeCollection customAttributeCollection;
 		MethodDef getMethod;
 		MethodDef setMethod;
-		List<MethodDef> otherMethods;
+		ThreadSafe.IList<MethodDef> otherMethods;
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
-		public override PropertyAttributes Attributes {
+		protected override PropertyAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -379,7 +451,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Property, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -387,23 +460,23 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override MethodDef GetMethod {
-			get { InitializePropertyMethods(); return getMethod; }
-			set { InitializePropertyMethods(); getMethod = value; }
+			get { InitializePropertyMethods_NoLock(); return getMethod; }
+			set { InitializePropertyMethods_NoLock(); getMethod = value; }
 		}
 
 		/// <inheritdoc/>
 		public override MethodDef SetMethod {
-			get { InitializePropertyMethods(); return setMethod; }
-			set { InitializePropertyMethods(); setMethod = value; }
+			get { InitializePropertyMethods_NoLock(); return setMethod; }
+			set { InitializePropertyMethods_NoLock(); setMethod = value; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<MethodDef> OtherMethods {
-			get { InitializePropertyMethods(); return otherMethods; }
+		public override ThreadSafe.IList<MethodDef> OtherMethods {
+			get { InitializePropertyMethods_NoLock(); return otherMethods; }
 		}
 
 		/// <inheritdoc/>
-		public override TypeDef DeclaringType2 {
+		internal override TypeDef DeclaringType2_NoLock {
 			get { return declaringType.Value; }
 			set { declaringType.Value = value; }
 		}
@@ -429,15 +502,15 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (PropertyAttributes)rawRow.PropFlags;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			type.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ReadSignature(rawRow.Type);
 			};
 			constant.ReadOriginalValue = () => {
@@ -446,9 +519,16 @@ namespace dnlib.DotNet {
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);
 			};
+#if THREAD_SAFE
+			// flags.Lock = theLock;			No lock for this one
+			name.Lock = theLock;
+			type.Lock = theLock;
+			constant.Lock = theLock;
+			// declaringType.Lock = theLock;	No lock for this one
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadPropertyRow(rid);
@@ -467,15 +547,23 @@ namespace dnlib.DotNet {
 			return this;
 		}
 
-		void InitializePropertyMethods() {
+		void InitializePropertyMethods_NoLock() {
 			if (otherMethods != null)
 				return;
-			var dt = DeclaringType as TypeDefMD;
-			if (dt == null) {
-				otherMethods = new List<MethodDef>();
-				return;
-			}
-			dt.InitializeProperty(this, out getMethod, out setMethod, out otherMethods);
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+			if (otherMethods != null) return;
+#endif
+			ThreadSafe.IList<MethodDef> newOtherMethods;
+			var dt = DeclaringType2_NoLock as TypeDefMD;
+			if (dt == null)
+				newOtherMethods = ThreadSafeListCreator.Create<MethodDef>();
+			else
+				dt.InitializeProperty(this, out getMethod, out setMethod, out newOtherMethods);
+			otherMethods = newOtherMethods;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 	}
 }

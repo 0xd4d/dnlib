@@ -54,7 +54,7 @@
 		SHA_512				= 0x800E,
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		internal static string GetName(this AssemblyHashAlgorithm hashAlg) {
 			switch (hashAlg) {
 			case AssemblyHashAlgorithm.MD2:		return null;

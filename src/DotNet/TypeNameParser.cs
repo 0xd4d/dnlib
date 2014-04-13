@@ -76,7 +76,7 @@ namespace dnlib.DotNet {
 		/// <summary>Owner module</summary>
 		protected ModuleDef ownerModule;
 		StringReader reader;
-		IAssemblyRefFinder typeNameParserHelper;
+		readonly IAssemblyRefFinder typeNameParserHelper;
 		RecursionCounter recursionCounter;
 
 		/// <summary>

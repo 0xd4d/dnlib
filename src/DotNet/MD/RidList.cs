@@ -23,6 +23,7 @@
 
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>

@@ -23,8 +23,10 @@
 
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -122,12 +124,15 @@ namespace dnlib.DotNet {
 	sealed class DeclSecurityMD : DeclSecurity {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawDeclSecurityRow rawRow;
 
 		UserValue<DeclSecurityAction> action;
 		UserValue<byte[]> permissionSet;
 		CustomAttributeCollection customAttributeCollection;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public override DeclSecurityAction Action {
@@ -146,7 +151,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.DeclSecurity, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -173,16 +179,20 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			action.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (DeclSecurityAction)rawRow.Action;
 			};
 			permissionSet.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.BlobStream.Read(rawRow.PermissionSet);
 			};
+#if THREAD_SAFE
+			action.Lock = theLock;
+			permissionSet.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadDeclSecurityRow(rid);

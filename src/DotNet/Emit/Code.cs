@@ -260,7 +260,7 @@
 #pragma warning restore
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Converts a <see cref="Code"/> to an <see cref="OpCode"/>
 		/// </summary>

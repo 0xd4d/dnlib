@@ -23,6 +23,7 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -184,7 +185,7 @@ namespace dnlib.DotNet.Emit {
 		public static Instruction Create(OpCode opCode, IList<Instruction> targets) {
 			if (opCode.OperandType != OperandType.InlineSwitch)
 				throw new ArgumentException("Opcode does not have a targets array operand", "opCode");
-			return new Instruction(opCode, targets);
+			return new Instruction(opCode, ThreadSafeListCreator.MakeThreadSafe(targets));
 		}
 
 		/// <summary>
@@ -300,7 +301,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction CreateLdcI4(int value) {
 			switch (value) {
-			case -1: return OpCodes.Ldc_I4_M1.ToInstruction();
+			case -1:return OpCodes.Ldc_I4_M1.ToInstruction();
 			case 0: return OpCodes.Ldc_I4_0.ToInstruction();
 			case 1: return OpCodes.Ldc_I4_1.ToInstruction();
 			case 2: return OpCodes.Ldc_I4_2.ToInstruction();
@@ -321,7 +322,8 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <returns></returns>
 		public int GetSize() {
-			switch (OpCode.OperandType) {
+			var opCode = OpCode;
+			switch (opCode.OperandType) {
 			case OperandType.InlineBrTarget:
 			case OperandType.InlineField:
 			case OperandType.InlineI:
@@ -331,28 +333,28 @@ namespace dnlib.DotNet.Emit {
 			case OperandType.InlineTok:
 			case OperandType.InlineType:
 			case OperandType.ShortInlineR:
-				return OpCode.Size + 4;
+				return opCode.Size + 4;
 
 			case OperandType.InlineI8:
 			case OperandType.InlineR:
-				return OpCode.Size + 8;
+				return opCode.Size + 8;
 
 			case OperandType.InlineNone:
 			case OperandType.InlinePhi:
 			default:
-				return OpCode.Size;
+				return opCode.Size;
 
 			case OperandType.InlineSwitch:
 				var targets = Operand as IList<Instruction>;
-				return OpCode.Size + 4 + (targets == null ? 0 : targets.Count * 4);
+				return opCode.Size + 4 + (targets == null ? 0 : targets.Count * 4);
 
 			case OperandType.InlineVar:
-				return OpCode.Size + 2;
+				return opCode.Size + 2;
 
 			case OperandType.ShortInlineBrTarget:
 			case OperandType.ShortInlineI:
 			case OperandType.ShortInlineVar:
-				return OpCode.Size + 1;
+				return opCode.Size + 1;
 			}
 		}
 
@@ -401,48 +403,51 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="pops">Updated with number of stack pops or <c>-1</c> if the stack should
 		/// be cleared.</param>
 		public void CalculateStackUsage(bool methodHasReturnValue, out int pushes, out int pops) {
-			if (OpCode.FlowControl == FlowControl.Call)
-				CalculateStackUsageCall(out pushes, out pops);
+			var opCode = OpCode;
+			if (opCode.FlowControl == FlowControl.Call)
+				CalculateStackUsageCall(opCode, out pushes, out pops);
 			else
-				CalculateStackUsageNonCall(methodHasReturnValue, out pushes, out pops);
+				CalculateStackUsageNonCall(opCode, methodHasReturnValue, out pushes, out pops);
 		}
 
-		void CalculateStackUsageCall(out int pushes, out int pops) {
+		void CalculateStackUsageCall(OpCode opCode, out int pushes, out int pops) {
 			pushes = 0;
 			pops = 0;
 
 			// It doesn't push or pop anything. The stack should be empty when JMP is executed.
-			if (OpCode.Code == Code.Jmp)
+			if (opCode.Code == Code.Jmp)
 				return;
 
 			MethodSig sig;
-			var method = Operand as IMethod;
+			var op = Operand;
+			var method = op as IMethod;
 			if (method != null)
 				sig = method.MethodSig;
 			else
-				sig = Operand as MethodSig;	// calli instruction
+				sig = op as MethodSig;	// calli instruction
 			if (sig == null)
 				return;
 			bool implicitThis = sig.ImplicitThis;
-			if (!IsSystemVoid(sig.RetType) || (OpCode.Code == Code.Newobj && sig.HasThis))
+			if (!IsSystemVoid(sig.RetType) || (opCode.Code == Code.Newobj && sig.HasThis))
 				pushes++;
 
 			pops += sig.Params.Count;
-			if (sig.ParamsAfterSentinel != null)
-				pops += sig.ParamsAfterSentinel.Count;
-			if (implicitThis && OpCode.Code != Code.Newobj)
+			var paramsAfterSentinel = sig.ParamsAfterSentinel;
+			if (paramsAfterSentinel != null)
+				pops += paramsAfterSentinel.Count;
+			if (implicitThis && opCode.Code != Code.Newobj)
 				pops++;
-			if (OpCode.Code == Code.Calli)
+			if (opCode.Code == Code.Calli)
 				pops++;
 		}
 
-		void CalculateStackUsageNonCall(bool hasReturnValue, out int pushes, out int pops) {
+		void CalculateStackUsageNonCall(OpCode opCode, bool hasReturnValue, out int pushes, out int pops) {
 			StackBehaviour stackBehavior;
 
 			pushes = 0;
 			pops = 0;
 
-			stackBehavior = OpCode.StackBehaviourPush;
+			stackBehavior = opCode.StackBehaviourPush;
 			switch (stackBehavior) {
 			case StackBehaviour.Push0:
 				break;
@@ -465,7 +470,7 @@ namespace dnlib.DotNet.Emit {
 				break;
 			}
 
-			stackBehavior = OpCode.StackBehaviourPop;
+			stackBehavior = opCode.StackBehaviourPop;
 			switch (stackBehavior) {
 			case StackBehaviour.Pop0:
 				break;
@@ -698,7 +703,8 @@ namespace dnlib.DotNet.Emit {
 		/// instruction or if the local doesn't exist.</returns>
 		public Local GetLocal(IList<Local> locals) {
 			int index;
-			switch (OpCode.Code) {
+			var code = OpCode.Code;
+			switch (code) {
 			case Code.Ldloc:
 			case Code.Ldloc_S:
 			case Code.Stloc:
@@ -709,23 +715,21 @@ namespace dnlib.DotNet.Emit {
 			case Code.Ldloc_1:
 			case Code.Ldloc_2:
 			case Code.Ldloc_3:
-				index = OpCode.Code - Code.Ldloc_0;
+				index = code - Code.Ldloc_0;
 				break;
 
 			case Code.Stloc_0:
 			case Code.Stloc_1:
 			case Code.Stloc_2:
 			case Code.Stloc_3:
-				index = OpCode.Code - Code.Stloc_0;
+				index = code - Code.Stloc_0;
 				break;
 
 			default:
 				return null;
 			}
 
-			if (index < locals.Count)
-				return locals[index];
-			return null;
+			return locals.Get(index, null);
 		}
 
 		/// <summary>
@@ -758,10 +762,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">All parameters</param>
 		/// <returns>A parameter or <c>null</c> if it doesn't exist</returns>
 		public Parameter GetParameter(IList<Parameter> parameters) {
-			int index = GetParameterIndex();
-			if ((uint)index < (uint)parameters.Count)
-				return parameters[index];
-			return null;
+			return parameters.Get(GetParameterIndex(), null);
 		}
 
 		/// <summary>
@@ -778,9 +779,7 @@ namespace dnlib.DotNet.Emit {
 				return declaringType.ToTypeSig();	//TODO: Should be ByRef if value type
 			if (methodSig.ImplicitThis)
 				index--;
-			if ((uint)index >= (uint)methodSig.Params.Count)
-				return null;
-			return methodSig.Params[index];
+			return methodSig.Params.Get(index, null);
 		}
 
 		/// <summary>

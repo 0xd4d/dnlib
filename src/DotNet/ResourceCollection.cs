@@ -23,6 +23,7 @@
 
 using System.Collections.Generic;
 using dnlib.Utils;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -59,8 +60,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="Resource"/> or <c>-1</c> if none was found</returns>
 		public int IndexOf(UTF8String name) {
-			for (int i = 0; i < Count; i++) {
-				var resource = this[i];
+			int i = -1;
+			foreach (var resource in this.GetSafeEnumerable()) {
+				i++;
 				if (resource != null && resource.Name == name)
 					return i;
 			}
@@ -73,8 +75,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="EmbeddedResource"/> or <c>-1</c> if none was found</returns>
 		public int IndexOfEmbeddedResource(UTF8String name) {
-			for (int i = 0; i < Count; i++) {
-				var resource = this[i];
+			int i = -1;
+			foreach (var resource in this.GetSafeEnumerable()) {
+				i++;
 				if (resource != null &&
 					resource.ResourceType == ResourceType.Embedded &&
 					resource.Name == name)
@@ -89,8 +92,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="AssemblyLinkedResource"/> or <c>-1</c> if none was found</returns>
 		public int IndexOfAssemblyLinkedResource(UTF8String name) {
-			for (int i = 0; i < Count; i++) {
-				var resource = this[i];
+			int i = -1;
+			foreach (var resource in this.GetSafeEnumerable()) {
+				i++;
 				if (resource != null &&
 					resource.ResourceType == ResourceType.AssemblyLinked &&
 					resource.Name == name)
@@ -105,8 +109,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="LinkedResource"/> or <c>-1</c> if none was found</returns>
 		public int IndexOfLinkedResource(UTF8String name) {
-			for (int i = 0; i < Count; i++) {
-				var resource = this[i];
+			int i = -1;
+			foreach (var resource in this.GetSafeEnumerable()) {
+				i++;
 				if (resource != null &&
 					resource.ResourceType == ResourceType.Linked &&
 					resource.Name == name)
@@ -121,8 +126,11 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="Resource"/> or <c>null</c> if none was found</returns>
 		public Resource Find(UTF8String name) {
-			int index = IndexOf(name);
-			return index < 0 ? null : this[index];
+			foreach (var resource in this.GetSafeEnumerable()) {
+				if (resource != null && resource.Name == name)
+					return resource;
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -131,8 +139,13 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="EmbeddedResource"/> or <c>null</c> if none was found</returns>
 		public EmbeddedResource FindEmbeddedResource(UTF8String name) {
-			int index = IndexOfEmbeddedResource(name);
-			return index < 0 ? null : (EmbeddedResource)this[index];
+			foreach (var resource in this.GetSafeEnumerable()) {
+				if (resource != null &&
+					resource.ResourceType == ResourceType.Embedded &&
+					resource.Name == name)
+					return (EmbeddedResource)resource;
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -141,8 +154,13 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="AssemblyLinkedResource"/> or <c>null</c> if none was found</returns>
 		public AssemblyLinkedResource FindAssemblyLinkedResource(UTF8String name) {
-			int index = IndexOfAssemblyLinkedResource(name);
-			return index < 0 ? null : (AssemblyLinkedResource)this[index];
+			foreach (var resource in this.GetSafeEnumerable()) {
+				if (resource != null &&
+					resource.ResourceType == ResourceType.AssemblyLinked &&
+					resource.Name == name)
+					return (AssemblyLinkedResource)resource;
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -151,8 +169,13 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="LinkedResource"/> or <c>null</c> if none was found</returns>
 		public LinkedResource FindLinkedResource(UTF8String name) {
-			int index = IndexOfLinkedResource(name);
-			return index < 0 ? null : (LinkedResource)this[index];
+			foreach (var resource in this.GetSafeEnumerable()) {
+				if (resource != null &&
+					resource.ResourceType == ResourceType.Linked &&
+					resource.Name == name)
+					return (LinkedResource)resource;
+			}
+			return null;
 		}
 	}
 }

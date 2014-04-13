@@ -23,6 +23,13 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -70,7 +77,7 @@ namespace dnlib.DotNet {
 		UTF8String Culture { get; set; }
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Checks whether <paramref name="asm"/> appears to be the core library (eg.
 		/// mscorlib or System.Runtime)
@@ -596,7 +603,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the permission sets
 		/// </summary>
-		IList<DeclSecurity> DeclSecurities { get; }
+		ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
 	}
 
 	/// <summary>
@@ -686,10 +693,10 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the generic parameters
 		/// </summary>
-		IList<GenericParam> GenericParameters { get; }
+		ThreadSafe.IList<GenericParam> GenericParameters { get; }
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Converts a <see cref="TypeSig"/> to a <see cref="ITypeDefOrRef"/>
 		/// </summary>

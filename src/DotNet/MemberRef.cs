@@ -23,8 +23,10 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -120,14 +122,19 @@ namespace dnlib.DotNet {
 		TypeRefUser GetGlobalTypeRef(ModuleRef mr) {
 			if (module == null)
 				return CreateDefaultGlobalTypeRef(mr);
-			if (module.GlobalType != null && new SigComparer().Equals(module, mr))
-				return new TypeRefUser(module, module.GlobalType.Namespace, module.GlobalType.Name, mr);
-			if (module.Assembly == null)
+			var globalType = module.GlobalType;
+			if (globalType != null && new SigComparer().Equals(module, mr))
+				return new TypeRefUser(module, globalType.Namespace, globalType.Name, mr);
+			var asm = module.Assembly;
+			if (asm == null)
 				return CreateDefaultGlobalTypeRef(mr);
-			var mod = module.Assembly.FindModule(mr.Name);
-			if (mod == null || mod.GlobalType == null)
+			var mod = asm.FindModule(mr.Name);
+			if (mod == null)
 				return CreateDefaultGlobalTypeRef(mr);
-			return new TypeRefUser(module, mod.GlobalType.Namespace, mod.GlobalType.Name, mr);
+			globalType = mod.GlobalType;
+			if (globalType == null)
+				return CreateDefaultGlobalTypeRef(mr);
+			return new TypeRefUser(module, globalType.Namespace, globalType.Name, mr);
 		}
 
 		TypeRefUser CreateDefaultGlobalTypeRef(ModuleRef mr) {
@@ -173,31 +180,44 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if the method has a hidden 'this' parameter
 		/// </summary>
 		public bool HasThis {
-			get { return MethodSig == null ? false : MethodSig.HasThis; }
+			get {
+				var ms = MethodSig;
+				return ms == null ? false : ms.HasThis;
+			}
 		}
 
 		/// <summary>
 		/// <c>true</c> if the method has an explicit 'this' parameter
 		/// </summary>
 		public bool ExplicitThis {
-			get { return MethodSig == null ? false : MethodSig.ExplicitThis; }
+			get {
+				var ms = MethodSig;
+				return ms == null ? false : ms.ExplicitThis;
+			}
 		}
 
 		/// <summary>
 		/// Gets the calling convention
 		/// </summary>
 		public CallingConvention CallingConvention {
-			get { return MethodSig == null ? 0 : MethodSig.CallingConvention & CallingConvention.Mask; }
+			get {
+				var ms = MethodSig;
+				return ms == null ? 0 : ms.CallingConvention & CallingConvention.Mask;
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets the method return type
 		/// </summary>
 		public TypeSig ReturnType {
-			get { return MethodSig == null ? null : MethodSig.RetType; }
+			get {
+				var ms = MethodSig;
+				return ms == null ? null : ms.RetType;
+			}
 			set {
-				if (MethodSig != null)
-					MethodSig.RetType = value;
+				var ms = MethodSig;
+				if (ms != null)
+					ms.RetType = value;
 			}
 		}
 
@@ -231,10 +251,12 @@ namespace dnlib.DotNet {
 					if (sig != null)
 						typeGenArgs = sig.GenericArguments;
 				}
-				if (IsMethodRef)
-					return FullNameCreator.MethodFullName(GetDeclaringTypeFullName(), Name, MethodSig, typeGenArgs, null);
-				if (IsFieldRef)
-					return FullNameCreator.FieldFullName(GetDeclaringTypeFullName(), Name, FieldSig, typeGenArgs);
+				var methodSig = MethodSig;
+				if (methodSig != null)
+					return FullNameCreator.MethodFullName(GetDeclaringTypeFullName(parent), Name, methodSig, typeGenArgs, null);
+				var fieldSig = FieldSig;
+				if (fieldSig != null)
+					return FullNameCreator.FieldFullName(GetDeclaringTypeFullName(parent), Name, fieldSig, typeGenArgs);
 				return string.Empty;
 			}
 		}
@@ -244,7 +266,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>Full name or <c>null</c> if there's no declaring type</returns>
 		public string GetDeclaringTypeFullName() {
-			var parent = Class;
+			return GetDeclaringTypeFullName(Class);
+		}
+
+		string GetDeclaringTypeFullName(IMemberRefParent parent) {
 			if (parent == null)
 				return null;
 			if (parent is ITypeDefOrRef)
@@ -432,13 +457,16 @@ namespace dnlib.DotNet {
 	sealed class MemberRefMD : MemberRef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMemberRefRow rawRow;
 
 		UserValue<IMemberRefParent> @class;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> signature;
 		CustomAttributeCollection customAttributeCollection;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public override IMemberRefParent Class {
@@ -463,7 +491,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MemberRef, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -491,20 +520,25 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			@class.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ResolveMemberRefParent(rawRow.Class);
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			signature.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ReadSignature(rawRow.Signature);
 			};
+#if THREAD_SAFE
+			@class.Lock = theLock;
+			name.Lock = theLock;
+			signature.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadMemberRefRow(rid);

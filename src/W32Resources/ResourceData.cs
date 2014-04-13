@@ -23,6 +23,7 @@
 
 ﻿using System;
 using System.IO;
+using System.Threading;
 using dnlib.IO;
 
 namespace dnlib.W32Resources {
@@ -40,11 +41,9 @@ namespace dnlib.W32Resources {
 		public IBinaryReader Data {
 			get { return reader; }
 			set {
-				if (reader == value)
-					return;
-				if (reader != null)
-					reader.Dispose();
-				reader = value;
+				var oldValue = Interlocked.Exchange(ref reader, value);
+				if (oldValue != value && oldValue != null)
+					oldValue.Dispose();
 			}
 		}
 
@@ -105,9 +104,9 @@ namespace dnlib.W32Resources {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (reader != null)
-				reader.Dispose();
-			reader = null;
+			var oldValue = Interlocked.Exchange(ref reader, null);
+			if (oldValue != null)
+				oldValue.Dispose();
 		}
 	}
 }

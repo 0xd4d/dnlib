@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using dnlib.DotNet.MD;
 using dnlib.IO;
 using dnlib.PE;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -54,6 +55,7 @@ namespace dnlib.DotNet.MD {
 			DotNetStream dns = null;
 			List<HotStream> hotStreams = null;
 			HotStream hotStream = null;
+			var newAllStreams = new List<DotNetStream>(allStreams);
 			try {
 				var mdRva = cor20Header.MetaData.VirtualAddress;
 				for (int i = mdHeader.StreamHeaders.Count - 1; i >= 0; i--) {
@@ -66,7 +68,7 @@ namespace dnlib.DotNet.MD {
 						if (stringsStream == null) {
 							stringsStream = new StringsStream(imageStream, sh);
 							imageStream = null;
-							allStreams.Add(stringsStream);
+							newAllStreams.Add(stringsStream);
 							continue;
 						}
 						break;
@@ -75,7 +77,7 @@ namespace dnlib.DotNet.MD {
 						if (usStream == null) {
 							usStream = new USStream(imageStream, sh);
 							imageStream = null;
-							allStreams.Add(usStream);
+							newAllStreams.Add(usStream);
 							continue;
 						}
 						break;
@@ -84,7 +86,7 @@ namespace dnlib.DotNet.MD {
 						if (blobStream == null) {
 							blobStream = new BlobStream(imageStream, sh);
 							imageStream = null;
-							allStreams.Add(blobStream);
+							newAllStreams.Add(blobStream);
 							continue;
 						}
 						break;
@@ -93,7 +95,7 @@ namespace dnlib.DotNet.MD {
 						if (guidStream == null) {
 							guidStream = new GuidStream(imageStream, sh);
 							imageStream = null;
-							allStreams.Add(guidStream);
+							newAllStreams.Add(guidStream);
 							continue;
 						}
 						break;
@@ -102,7 +104,7 @@ namespace dnlib.DotNet.MD {
 						if (tablesStream == null) {
 							tablesStream = new TablesStream(imageStream, sh);
 							imageStream = null;
-							allStreams.Add(tablesStream);
+							newAllStreams.Add(tablesStream);
 							continue;
 						}
 						break;
@@ -114,14 +116,14 @@ namespace dnlib.DotNet.MD {
 						hotStream = HotStream.Create(hotHeapVersion, imageStream, sh, fullStream, fileOffset);
 						fullStream = null;
 						hotStreams.Add(hotStream);
-						allStreams.Add(hotStream);
+						newAllStreams.Add(hotStream);
 						hotStream = null;
 						imageStream = null;
 						continue;
 					}
 					dns = new DotNetStream(imageStream, sh);
 					imageStream = null;
-					allStreams.Add(dns);
+					newAllStreams.Add(dns);
 					dns = null;
 				}
 			}
@@ -134,9 +136,9 @@ namespace dnlib.DotNet.MD {
 					dns.Dispose();
 				if (hotStream != null)
 					hotStream.Dispose();
+				newAllStreams.Reverse();
+				allStreams = ThreadSafeListCreator.MakeThreadSafe(newAllStreams);
 			}
-
-			allStreams.Reverse();
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");

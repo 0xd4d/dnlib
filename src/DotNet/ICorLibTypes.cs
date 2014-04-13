@@ -130,7 +130,7 @@
 		TypeRef GetTypeRef(string @namespace, string name);
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Gets a <see cref="CorLibTypeSig"/> if <paramref name="type"/> matches a primitive type.
 		/// </summary>

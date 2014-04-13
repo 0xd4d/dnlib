@@ -22,9 +22,11 @@
 */
 
 ﻿using System;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.IO;
 using dnlib.PE;
+using dnlib.Threading;
 
 namespace dnlib.W32Resources {
 	/// <summary>
@@ -88,10 +90,7 @@ namespace dnlib.W32Resources {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;
-			var root = Root;
-			if (root != null)
-				root.Dispose();
-			Root = null;
+			Root = null;	// Property handler will call Dispose()
 		}
 	}
 
@@ -104,7 +103,11 @@ namespace dnlib.W32Resources {
 		/// <inheritdoc/>
 		public override ResourceDirectory Root {
 			get { return root; }
-			set { root = value; }
+			set {
+				var oldValue = Interlocked.Exchange(ref root, value);
+				if (oldValue != value && oldValue != null)
+					oldValue.Dispose();
+			}
 		}
 	}
 
@@ -115,7 +118,7 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// Converts data RVAs to file offsets in <see cref="dataReader"/>
 		/// </summary>
-		IRvaFileOffsetConverter rvaConverter;
+		readonly IRvaFileOffsetConverter rvaConverter;
 
 		/// <summary>
 		/// This reader only reads the raw data. The data RVA is found in the data header and
@@ -132,16 +135,31 @@ namespace dnlib.W32Resources {
 
 		UserValue<ResourceDirectory> root;
 
+#if THREAD_SAFE
+		internal readonly Lock theLock = Lock.Create();
+#endif
+
 		/// <inheritdoc/>
 		public override ResourceDirectory Root {
 			get { return root.Value; }
-			set { root.Value = value; }
+			set {
+				IDisposable origValue = null;
+				if (root.IsValueInitialized) {
+					origValue = root.Value;
+					if (origValue == value)
+						return;
+				}
+				root.Value = value;
+
+				if (origValue != null)
+					origValue.Dispose();
+			}
 		}
 
 		/// <summary>
 		/// Gets the resource reader
 		/// </summary>
-		public IBinaryReader ResourceReader {
+		internal IBinaryReader ResourceReader {
 			get { return rsrcReader; }
 		}
 
@@ -204,6 +222,9 @@ namespace dnlib.W32Resources {
 				rsrcReader.Position = oldPos;
 				return dir;
 			};
+#if THREAD_SAFE
+			root.Lock = theLock;
+#endif
 		}
 
 		/// <summary>
@@ -213,6 +234,16 @@ namespace dnlib.W32Resources {
 		/// <param name="size">Size of data</param>
 		/// <returns>A new <see cref="IBinaryReader"/> for this data</returns>
 		public IBinaryReader CreateDataReader(RVA rva, uint size) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			return CreateDataReader_NoLock(rva, size);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal IBinaryReader CreateDataReader_NoLock(RVA rva, uint size) {
 			var reader = dataReader.Create(rvaConverter.ToFileOffset(rva), size);
 			if (reader.Length == size)
 				return reader;
@@ -224,12 +255,18 @@ namespace dnlib.W32Resources {
 		protected override void Dispose(bool disposing) {
 			if (!disposing)
 				return;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
 			if (dataReader != null)
 				dataReader.Dispose();
 			if (rsrcReader != null)
 				rsrcReader.Dispose();
 			dataReader = null;
 			rsrcReader = null;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 			base.Dispose(disposing);
 		}
 	}

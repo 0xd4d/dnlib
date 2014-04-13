@@ -27,6 +27,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using SR = System.Reflection;
 using System.IO;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -44,6 +45,9 @@ namespace dnlib.DotNet.Emit {
 		static Dictionary<IntPtr, Type> addrToType = new Dictionary<IntPtr, Type>();
 		static ModuleBuilder moduleBuilder;
 		static int numNewTypes;
+#if THREAD_SAFE
+		static readonly Lock theLock = Lock.Create();
+#endif
 
 		static MethodTableToTypeConverter() {
 			if (ptrFieldInfo == null) {
@@ -59,12 +63,18 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>The <see cref="Type"/> or <c>null</c></returns>
 		public static Type Convert(IntPtr address) {
 			Type type;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
 			if (addrToType.TryGetValue(address, out type))
 				return type;
 
 			type = GetTypeNET20(address) ?? GetTypeUsingTypeBuilder(address);
 			addrToType[address] = type;
 			return type;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		static Type GetTypeUsingTypeBuilder(IntPtr address) {

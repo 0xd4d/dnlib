@@ -21,6 +21,8 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System.Threading;
+
 ﻿namespace dnlib.DotNet {
 	/// <summary>
 	/// <see cref="ModuleDef"/> context
@@ -33,7 +35,11 @@
 		/// Gets/sets the assembly resolver. This is never <c>null</c>.
 		/// </summary>
 		public IAssemblyResolver AssemblyResolver {
-			get { return assemblyResolver ?? (assemblyResolver = NullResolver.Instance); }
+			get {
+				if (assemblyResolver == null)
+					Interlocked.CompareExchange(ref assemblyResolver, NullResolver.Instance, null);
+				return assemblyResolver;
+			}
 			set { assemblyResolver = value; }
 		}
 
@@ -41,7 +47,11 @@
 		/// Gets/sets the resolver. This is never <c>null</c>.
 		/// </summary>
 		public IResolver Resolver {
-			get { return resolver ?? (resolver = NullResolver.Instance); }
+			get {
+				if (resolver == null)
+					Interlocked.CompareExchange(ref resolver, NullResolver.Instance, null);
+				return resolver;
+			}
 			set { resolver = value; }
 		}
 

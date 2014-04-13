@@ -25,6 +25,7 @@
 using System.Diagnostics;
 using System.IO;
 using dnlib.IO;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -53,10 +54,10 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Returns the internal image stream
+		/// Gets the length of the internal .NET blob stream
 		/// </summary>
-		public IImageStream ImageStream {
-			get { return imageStream; }
+		public long ImageStreamLength {
+			get { return imageStream.Length; }
 		}
 
 		/// <summary>
@@ -70,7 +71,15 @@ namespace dnlib.DotNet.MD {
 		/// Gets the name of the stream
 		/// </summary>
 		public string Name {
-			get { return streamHeader.Name; }
+			get { return streamHeader == null ? string.Empty : streamHeader.Name; }
+		}
+
+		/// <summary>
+		/// Returns a cloned <see cref="IImageStream"/> of the internal .NET blob stream.
+		/// </summary>
+		/// <returns>A new <see cref="IImageStream"/> instance</returns>
+		public IImageStream GetClonedImageStream() {
+			return imageStream.Clone();
 		}
 
 		/// <summary>
@@ -103,8 +112,9 @@ namespace dnlib.DotNet.MD {
 		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (imageStream != null)
-					imageStream.Dispose();
+				var ims = imageStream;
+				if (ims != null)
+					ims.Dispose();
 				imageStream = null;
 				streamHeader = null;
 			}
@@ -145,13 +155,15 @@ namespace dnlib.DotNet.MD {
 	/// Base class of #US, #Strings, #Blob, and #GUID classes
 	/// </summary>
 	public abstract class HeapStream : DotNetStream {
-		internal HotHeapStream hotHeapStream;
+		HotHeapStream hotHeapStream;
+#if THREAD_SAFE
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <summary>
 		/// Gets/sets the <see cref="dnlib.DotNet.MD.HotHeapStream"/> instance
 		/// </summary>
 		internal HotHeapStream HotHeapStream {
-			get { return hotHeapStream; }
 			set { hotHeapStream = value; }
 		}
 
@@ -170,21 +182,22 @@ namespace dnlib.DotNet.MD {
 		/// <param name="offset">Offset in the heap. If it's the #GUID heap, this should
 		/// be the offset of the GUID, not its index</param>
 		/// <returns>The heap reader</returns>
-		protected IImageStream GetReader(uint offset) {
-			if (hotHeapStream != null) {
-				var stream = hotHeapStream.GetBlobReader(offset);
-				if (stream != null)
-					return stream;
+		protected IImageStream GetReader_NoLock(uint offset) {
+			var stream = hotHeapStream == null ? null : hotHeapStream.GetBlobReader(offset);
+			if (stream == null) {
+				stream = imageStream;
+				stream.Position = offset;
 			}
-			imageStream.Position = offset;
-			return imageStream;
+			return stream;
 		}
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				if (hotHeapStream != null)
-					hotHeapStream.Dispose();
+				var hhs = hotHeapStream;
+				if (hhs != null)
+					hhs.Dispose();
+				hotHeapStream = null;
 			}
 			base.Dispose(disposing);
 		}

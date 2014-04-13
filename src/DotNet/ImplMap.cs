@@ -25,6 +25,7 @@
 using System.Diagnostics;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -36,6 +37,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -51,7 +59,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ImplMap.MappingFlags
 		/// </summary>
-		public abstract PInvokeAttributes Attributes { get; set; }
+		public PInvokeAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column ImplMap.MappingFlags
+		/// </summary>
+		protected abstract PInvokeAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column ImplMap.ImportName
@@ -64,16 +97,46 @@ namespace dnlib.DotNet {
 		public abstract ModuleRef Module { get; set; }
 
 		/// <summary>
+		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
+		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyAttributes(PInvokeAttributes andMask, PInvokeAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, PInvokeAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="PInvokeAttributes.NoMangle"/> bit
 		/// </summary>
 		public bool IsNoMangle {
 			get { return (Attributes & PInvokeAttributes.NoMangle) != 0; }
-			set {
-				if (value)
-					Attributes |= PInvokeAttributes.NoMangle;
-				else
-					Attributes &= ~PInvokeAttributes.NoMangle;
-			}
+			set { ModifyAttributes(value, PInvokeAttributes.NoMangle); }
 		}
 
 		/// <summary>
@@ -81,7 +144,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public PInvokeAttributes CharSet {
 			get { return Attributes & PInvokeAttributes.CharSetMask; }
-			set { Attributes = (Attributes & ~PInvokeAttributes.CharSetMask) | (value & PInvokeAttributes.CharSetMask); }
+			set { ModifyAttributes(~PInvokeAttributes.CharSetMask, value & PInvokeAttributes.CharSetMask); }
 		}
 
 		/// <summary>
@@ -117,7 +180,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public PInvokeAttributes BestFit {
 			get { return Attributes & PInvokeAttributes.BestFitMask; }
-			set { Attributes = (Attributes & ~PInvokeAttributes.BestFitMask) | (value & PInvokeAttributes.BestFitMask); }
+			set { ModifyAttributes(~PInvokeAttributes.BestFitMask, value & PInvokeAttributes.BestFitMask); }
 		}
 
 		/// <summary>
@@ -146,7 +209,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public PInvokeAttributes ThrowOnUnmappableChar {
 			get { return Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask; }
-			set { Attributes = (Attributes & ~PInvokeAttributes.ThrowOnUnmappableCharMask) | (value & PInvokeAttributes.ThrowOnUnmappableCharMask); }
+			set { ModifyAttributes(~PInvokeAttributes.ThrowOnUnmappableCharMask, value & PInvokeAttributes.ThrowOnUnmappableCharMask); }
 		}
 
 		/// <summary>
@@ -175,12 +238,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool SupportsLastError {
 			get { return (Attributes & PInvokeAttributes.SupportsLastError) != 0; }
-			set {
-				if (value)
-					Attributes |= PInvokeAttributes.SupportsLastError;
-				else
-					Attributes &= ~PInvokeAttributes.SupportsLastError;
-			}
+			set { ModifyAttributes(value, PInvokeAttributes.SupportsLastError); }
 		}
 
 		/// <summary>
@@ -188,7 +246,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public PInvokeAttributes CallConv {
 			get { return Attributes & PInvokeAttributes.CallConvMask; }
-			set { Attributes = (Attributes & ~PInvokeAttributes.CallConvMask) | (value & PInvokeAttributes.CallConvMask); }
+			set { ModifyAttributes(~PInvokeAttributes.CallConvMask, value & PInvokeAttributes.CallConvMask); }
 		}
 
 		/// <summary>
@@ -256,25 +314,19 @@ namespace dnlib.DotNet {
 		UTF8String name;
 		ModuleRef scope;
 
-		/// <summary>
-		/// From column ImplMap.MappingFlags
-		/// </summary>
-		public override PInvokeAttributes Attributes {
+		/// <inheritdoc/>
+		protected override PInvokeAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
 
-		/// <summary>
-		/// From column ImplMap.ImportName
-		/// </summary>
+		/// <inheritdoc/>
 		public override UTF8String Name {
 			get { return name; }
 			set { name = value; }
 		}
 
-		/// <summary>
-		/// From column ImplMap.ImportScope
-		/// </summary>
+		/// <inheritdoc/>
 		public override ModuleRef Module {
 			get { return scope; }
 			set { scope = value; }
@@ -305,32 +357,26 @@ namespace dnlib.DotNet {
 	sealed class ImplMapMD : ImplMap {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawImplMapRow rawRow;
 
 		UserValue<PInvokeAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<ModuleRef> scope;
 
-		/// <summary>
-		/// From column ImplMap.MappingFlags
-		/// </summary>
-		public override PInvokeAttributes Attributes {
+		/// <inheritdoc/>
+		protected override PInvokeAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
 
-		/// <summary>
-		/// From column ImplMap.ImportName
-		/// </summary>
+		/// <inheritdoc/>
 		public override UTF8String Name {
 			get { return name.Value; }
 			set { name.Value = value; }
 		}
 
-		/// <summary>
-		/// From column ImplMap.ImportScope
-		/// </summary>
+		/// <inheritdoc/>
 		public override ModuleRef Module {
 			get { return scope.Value; }
 			set { scope.Value = value; }
@@ -357,20 +403,25 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (PInvokeAttributes)rawRow.MappingFlags;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.ImportName);
 			};
 			scope.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.ResolveModuleRef(rawRow.ImportScope);
 			};
+#if THREAD_SAFE
+			// flags.Lock = theLock;	No lock for this one
+			name.Lock = theLock;
+			scope.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadImplMapRow(rid);

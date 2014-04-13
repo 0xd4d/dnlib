@@ -25,6 +25,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
 namespace dnlib.IO {
@@ -114,10 +115,10 @@ namespace dnlib.IO {
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
-			if (data != IntPtr.Zero) {
-				UnmapViewOfFile(data);
-				data = IntPtr.Zero;
+			var origData = Interlocked.Exchange(ref data, IntPtr.Zero);
+			if (origData != IntPtr.Zero) {
 				dataLength = 0;
+				UnmapViewOfFile(origData);
 			}
 			base.Dispose(disposing);
 		}

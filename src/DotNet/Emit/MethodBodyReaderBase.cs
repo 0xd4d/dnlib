@@ -24,6 +24,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using dnlib.IO;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -106,7 +107,7 @@ namespace dnlib.DotNet.Emit {
 			locals.Clear();
 			if (newLocals == null)
 				return;
-			foreach (var typeSig in newLocals)
+			foreach (var typeSig in newLocals.GetSafeEnumerable())
 				locals.Add(new Local(typeSig));
 		}
 
@@ -118,7 +119,7 @@ namespace dnlib.DotNet.Emit {
 			locals.Clear();
 			if (newLocals == null)
 				return;
-			foreach (var local in newLocals)
+			foreach (var local in newLocals.GetSafeEnumerable())
 				locals.Add(new Local(local.Type));
 		}
 
@@ -497,9 +498,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="index">A parameter index</param>
 		/// <returns>A <see cref="Parameter"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
 		protected Parameter GetParameter(int index) {
-			if ((uint)index >= (uint)parameters.Count)
-				return null;
-			return parameters[index];
+			return parameters.Get(index, null);
 		}
 
 		/// <summary>
@@ -508,9 +507,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="index">A local index</param>
 		/// <returns>A <see cref="Local"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
 		protected Local GetLocal(int index) {
-			if ((uint)index >= (uint)locals.Count)
-				return null;
-			return locals[index];
+			return locals.Get(index, null);
 		}
 
 		/// <summary>

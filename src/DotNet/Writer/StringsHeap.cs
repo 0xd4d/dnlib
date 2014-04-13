@@ -55,10 +55,10 @@ namespace dnlib.DotNet.Writer {
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
 				throw new InvalidOperationException("Add() has already been called");
-			if (stringsStream == null || stringsStream.ImageStream.Length == 0)
+			if (stringsStream == null || stringsStream.ImageStreamLength == 0)
 				return;
 
-			using (var reader = stringsStream.ImageStream.Clone()) {
+			using (var reader = stringsStream.GetClonedImageStream()) {
 				originalData = reader.ReadAllBytes();
 				nextOffset = (uint)originalData.Length;
 				Populate(reader);

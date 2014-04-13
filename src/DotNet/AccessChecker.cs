@@ -224,9 +224,10 @@ namespace dnlib.DotNet {
 
 		CheckTypeAccess GetTypeAccess2(TypeDef td, GenericInstSig git) {
 			while (td != null) {
-				if (userType != td.DeclaringType && !IsVisible(td, git))
+				var declType = td.DeclaringType;
+				if (userType != declType && !IsVisible(td, git))
 					return CheckTypeAccess.None;
-				td = td.DeclaringType;
+				td = declType;
 				git = null;
 			}
 			return CheckTypeAccess.Normal;
@@ -284,10 +285,11 @@ namespace dnlib.DotNet {
 				return false;
 			if (userModule == module)
 				return true;
-			if (IsSameAssembly(userModule.Assembly, module.Assembly))
-				return true;
 			var userAsm = userModule.Assembly;
-			if (userAsm != null && userAsm.IsFriendAssemblyOf(module.Assembly))
+			var modAsm = module.Assembly;
+			if (IsSameAssembly(userAsm, modAsm))
+				return true;
+			if (userAsm != null && userAsm.IsFriendAssemblyOf(modAsm))
 				return true;
 
 			return false;
@@ -322,8 +324,9 @@ namespace dnlib.DotNet {
 				return true;
 
 			// If one of our enclosing types derive from it, we also have access to it
-			if (userType.DeclaringType != null)
-				return new AccessChecker(userType.DeclaringType).CheckFamily(td, git);
+			var userDeclType = userType.DeclaringType;
+			if (userDeclType != null)
+				return new AccessChecker(userDeclType).CheckFamily(td, git);
 
 			return false;
 		}
@@ -550,7 +553,7 @@ namespace dnlib.DotNet {
 				var md = td.FindMethodCheckBaseType(mr.Name, mr.MethodSig);
 				if (md == null) {
 					// Assume that it's an array type if it's one of these methods
-					if (mr.Name == "Get" || mr.Name == "Set" || mr.Name == "Address" || mr.Name == ".ctor")
+					if (mr.Name == "Get" || mr.Name == "Set" || mr.Name == "Address" || mr.Name == MethodDef.InstanceConstructorName)
 						return true;
 					return null;
 				}
@@ -576,11 +579,12 @@ namespace dnlib.DotNet {
 			var userModule = userType.Module;
 			if (userModule == null)
 				return null;
-			if (!IsSameAssembly(userModule.Assembly, mod.Module.Assembly))
+			var userAsm = userModule.Assembly;
+			if (!IsSameAssembly(userAsm, mod.Module.Assembly))
 				return false;
-			if (userModule.Assembly == null)
+			if (userAsm == null)
 				return false;
-			var otherMod = userModule.Assembly.FindModule(mod.Name);
+			var otherMod = userAsm.FindModule(mod.Name);
 			if (otherMod == null)
 				return false;
 			return CanAccess(otherMod.GlobalType, mr);

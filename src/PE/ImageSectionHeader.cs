@@ -33,17 +33,17 @@ namespace dnlib.PE {
 	/// </summary>
 	[DebuggerDisplay("RVA:{virtualAddress} VS:{virtualSize} FO:{pointerToRawData} FS:{sizeOfRawData} {displayName}")]
 	public sealed class ImageSectionHeader : FileSection {
-		string displayName;
-		byte[] name;
-		uint virtualSize;
-		RVA virtualAddress;
-		uint sizeOfRawData;
-		uint pointerToRawData;
-		uint pointerToRelocations;
-		uint pointerToLinenumbers;
-		ushort numberOfRelocations;
-		ushort numberOfLinenumbers;
-		uint characteristics;
+		readonly string displayName;
+		readonly byte[] name;
+		readonly uint virtualSize;
+		readonly RVA virtualAddress;
+		readonly uint sizeOfRawData;
+		readonly uint pointerToRawData;
+		readonly uint pointerToRelocations;
+		readonly uint pointerToLinenumbers;
+		readonly ushort numberOfRelocations;
+		readonly ushort numberOfLinenumbers;
+		readonly uint characteristics;
 
 		/// <summary>
 		/// Returns the human readable section name, ignoring everything after

@@ -30,10 +30,10 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	[DebuggerDisplay("{rowSize} {name}")]
 	public sealed class TableInfo {
-		Table table;
+		readonly Table table;
 		int rowSize;
-		IList<ColumnInfo> columns;
-		string name;
+		readonly IList<ColumnInfo> columns;
+		readonly string name;
 
 		/// <summary>
 		/// Returns the table type

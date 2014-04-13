@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using System.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -61,7 +62,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public static readonly UTF8String Empty = new UTF8String(string.Empty);
 
-		byte[] data;
+		readonly byte[] data;
 		string asString;
 
 		/// <summary>
@@ -71,13 +72,13 @@ namespace dnlib.DotNet {
 		public string String {
 			get {
 				if (asString == null)
-					asString = ConvertFromUTF8(data);
+					Interlocked.CompareExchange(ref asString, ConvertFromUTF8(data), null);
 				return asString;
 			}
 		}
 
 		/// <summary>
-		/// Gets the original encoded data
+		/// Gets the original encoded data. Don't modify this data.
 		/// </summary>
 		public byte[] Data {
 			get { return data; }
@@ -89,7 +90,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <seealso cref="DataLength"/>
 		public int Length {
-			get { return String.Length;}
+			get { return String.Length; }
 		}
 
 		/// <summary>

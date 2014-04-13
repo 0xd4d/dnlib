@@ -49,11 +49,17 @@ namespace dnlib.DotNet.MD {
 			// 0-length data, even if that first byte isn't 0 at all.
 			if (offset == 0)
 				return noData;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
 			IImageStream reader;
-			int size = GetReader(offset, out reader);
+			int size = GetReader_NoLock(offset, out reader);
 			if (size < 0)
 				return null;
 			return reader.ReadBytes(size);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -72,18 +78,24 @@ namespace dnlib.DotNet.MD {
 		/// <param name="offset">Offset of blob</param>
 		/// <returns>A new stream</returns>
 		public IImageStream CreateStream(uint offset) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
 			IImageStream reader;
-			int size = GetReader(offset, out reader);
+			int size = GetReader_NoLock(offset, out reader);
 			if (size < 0)
 				return MemoryImageStream.CreateEmpty();
 			return reader.Create((FileOffset)reader.Position, size);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
-		int GetReader(uint offset, out IImageStream reader) {
+		int GetReader_NoLock(uint offset, out IImageStream reader) {
 			reader = null;
 			if (!IsValidOffset(offset))
 				return -1;
-			reader = GetReader(offset);
+			reader = GetReader_NoLock(offset);
 			uint length;
 			if (!reader.ReadCompressedUInt32(out length))
 				return -1;

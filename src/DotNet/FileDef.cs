@@ -22,8 +22,10 @@
 */
 
 ﻿using System;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -34,6 +36,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -59,7 +68,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column File.Flags
 		/// </summary>
-		public abstract FileAttributes Flags { get; set; }
+		public FileAttributes Flags {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Flags_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Flags_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Flags_NoLock; }
+			set { Flags_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column File.Flags
+		/// </summary>
+		protected abstract FileAttributes Flags_NoLock { get; set; }
 
 		/// <summary>
 		/// From column File.Name
@@ -82,16 +116,30 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Set or clear flags in <see cref="Flags_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, FileAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Flags_NoLock |= flags;
+				else
+					Flags_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="FileAttributes.ContainsMetaData"/> bit
 		/// </summary>
 		public bool ContainsMetaData {
 			get { return (Flags & FileAttributes.ContainsNoMetaData) == 0; }
-			set {
-				if (value)
-					Flags &= ~FileAttributes.ContainsNoMetaData;
-				else
-					Flags |= FileAttributes.ContainsNoMetaData;
-			}
+			set { ModifyAttributes(!value, FileAttributes.ContainsNoMetaData); }
 		}
 
 		/// <summary>
@@ -99,12 +147,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool ContainsNoMetaData {
 			get { return (Flags & FileAttributes.ContainsNoMetaData) != 0; }
-			set {
-				if (value)
-					Flags |= FileAttributes.ContainsNoMetaData;
-				else
-					Flags &= ~FileAttributes.ContainsNoMetaData;
-			}
+			set { ModifyAttributes(value, FileAttributes.ContainsNoMetaData); }
 		}
 
 		/// <inheritdoc/>
@@ -128,7 +171,7 @@ namespace dnlib.DotNet {
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
-		public override FileAttributes Flags {
+		protected override FileAttributes Flags_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -175,7 +218,7 @@ namespace dnlib.DotNet {
 	sealed class FileDefMD : FileDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawFileRow rawRow;
 
 		UserValue<FileAttributes> flags;
@@ -184,7 +227,7 @@ namespace dnlib.DotNet {
 		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
-		public override FileAttributes Flags {
+		protected override FileAttributes Flags_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -206,7 +249,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.File, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -233,20 +277,25 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (FileAttributes)rawRow.Flags;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			hashValue.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.BlobStream.Read(rawRow.HashValue);
 			};
+#if THREAD_SAFE
+			// flags.Lock = theLock;	No lock for this one
+			name.Lock = theLock;
+			hashValue.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadFileRow(rid);

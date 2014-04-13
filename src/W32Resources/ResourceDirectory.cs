@@ -27,6 +27,13 @@ using System.Text;
 using dnlib.Utils;
 using dnlib.IO;
 using dnlib.PE;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.W32Resources {
 	/// <summary>
@@ -81,14 +88,14 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// Gets all directory entries
 		/// </summary>
-		public IList<ResourceDirectory> Directories {
+		public ThreadSafe.IList<ResourceDirectory> Directories {
 			get { return directories; }
 		}
 
 		/// <summary>
 		/// Gets all resource data
 		/// </summary>
-		public IList<ResourceData> Data {
+		public ThreadSafe.IList<ResourceData> Data {
 			get { return data; }
 		}
 
@@ -106,7 +113,7 @@ namespace dnlib.W32Resources {
 		/// <param name="name">Name</param>
 		/// <returns>A <see cref="ResourceDirectory"/> or <c>null</c> if it wasn't found</returns>
 		public ResourceDirectory FindDirectory(ResourceName name) {
-			foreach (var dir in directories) {
+			foreach (var dir in directories.GetSafeEnumerable()) {
 				if (dir.Name == name)
 					return dir;
 			}
@@ -119,7 +126,7 @@ namespace dnlib.W32Resources {
 		/// <param name="name">Name</param>
 		/// <returns>A <see cref="ResourceData"/> or <c>null</c> if it wasn't found</returns>
 		public ResourceData FindData(ResourceName name) {
-			foreach (var d in data) {
+			foreach (var d in data.GetSafeEnumerable()) {
 				if (d.Name == name)
 					return d;
 			}
@@ -188,10 +195,10 @@ namespace dnlib.W32Resources {
 		List<EntryInfo> dirInfos;
 
 		struct EntryInfo {
-			public ResourceName name;
+			public readonly ResourceName name;
 
 			/// <summary>Offset of resource directory / data</summary>
-			public uint offset;
+			public readonly uint offset;
 
 			public EntryInfo(ResourceName name, uint offset) {
 				this.name = name;
@@ -288,6 +295,9 @@ namespace dnlib.W32Resources {
 		}
 
 		ResourceDirectory ReadResourceDirectory(int i) {
+#if THREAD_SAFE
+			resources.theLock.EnterWriteLock(); try {
+#endif
 			var info = dirInfos[i];
 			var reader = resources.ResourceReader;
 			var oldPos = reader.Position;
@@ -297,9 +307,15 @@ namespace dnlib.W32Resources {
 
 			reader.Position = oldPos;
 			return dir;
+#if THREAD_SAFE
+			} finally { resources.theLock.ExitWriteLock(); }
+#endif
 		}
 
 		ResourceData ReadResourceData(int i) {
+#if THREAD_SAFE
+			resources.theLock.EnterWriteLock(); try {
+#endif
 			var info = dataInfos[i];
 			var reader = resources.ResourceReader;
 			var oldPos = reader.Position;
@@ -311,7 +327,7 @@ namespace dnlib.W32Resources {
 				uint size = reader.ReadUInt32();
 				uint codePage = reader.ReadUInt32();
 				uint reserved = reader.ReadUInt32();
-				var dataReader = resources.CreateDataReader(rva, size);
+				var dataReader = resources.CreateDataReader_NoLock(rva, size);
 				data = new ResourceData(info.name, dataReader, codePage, reserved);
 			}
 			else
@@ -319,6 +335,9 @@ namespace dnlib.W32Resources {
 
 			reader.Position = oldPos;
 			return data;
+#if THREAD_SAFE
+			} finally { resources.theLock.ExitWriteLock(); }
+#endif
 		}
 
 		void InitializeDefault() {

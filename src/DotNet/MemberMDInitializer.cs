@@ -22,6 +22,7 @@
 */
 
 using System.Collections.Generic;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -34,7 +35,7 @@ namespace dnlib.DotNet {
 		/// <typeparam name="T">Collection element type</typeparam>
 		/// <param name="coll">Collection</param>
 		public static void Initialize<T>(IEnumerable<T> coll) {
-			foreach (var c in coll) {
+			foreach (var c in coll.GetSafeEnumerable()) {
 			}
 		}
 

@@ -22,6 +22,7 @@
 */
 
 ﻿using System.Collections.Generic;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -45,7 +46,7 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment()) {
 			}
 			else {
-				foreach (var type in types) {
+				foreach (var type in types.GetSafeEnumerable()) {
 					if (visited.ContainsKey(type))
 						continue;
 					visited[type] = true;

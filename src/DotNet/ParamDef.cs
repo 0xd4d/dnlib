@@ -23,8 +23,10 @@
 
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -36,6 +38,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -71,7 +80,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Param.Flags
 		/// </summary>
-		public abstract ParamAttributes Attributes { get; set; }
+		public ParamAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column Param.Flags
+		/// </summary>
+		protected abstract ParamAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Param.Sequence
@@ -110,7 +144,10 @@ namespace dnlib.DotNet {
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
 		/// </summary>
 		public ElementType ElementType {
-			get { return Constant == null ? ElementType.End : Constant.Type; }
+			get {
+				var c = Constant;
+				return c == null ? ElementType.End : c.Type;
+			}
 		}
 
 		/// <summary>
@@ -131,16 +168,30 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, ParamAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.In"/> bit
 		/// </summary>
 		public bool IsIn {
 			get { return (Attributes & ParamAttributes.In) != 0; }
-			set {
-				if (value)
-					Attributes |= ParamAttributes.In;
-				else
-					Attributes &= ~ParamAttributes.In;
-			}
+			set { ModifyAttributes(value, ParamAttributes.In); }
 		}
 
 		/// <summary>
@@ -148,12 +199,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsOut {
 			get { return (Attributes & ParamAttributes.Out) != 0; }
-			set {
-				if (value)
-					Attributes |= ParamAttributes.Out;
-				else
-					Attributes &= ~ParamAttributes.Out;
-			}
+			set { ModifyAttributes(value, ParamAttributes.Out); }
 		}
 
 		/// <summary>
@@ -161,12 +207,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsOptional {
 			get { return (Attributes & ParamAttributes.Optional) != 0; }
-			set {
-				if (value)
-					Attributes |= ParamAttributes.Optional;
-				else
-					Attributes &= ~ParamAttributes.Optional;
-			}
+			set { ModifyAttributes(value, ParamAttributes.Optional); }
 		}
 
 		/// <summary>
@@ -174,12 +215,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasDefault {
 			get { return (Attributes & ParamAttributes.HasDefault) != 0; }
-			set {
-				if (value)
-					Attributes |= ParamAttributes.HasDefault;
-				else
-					Attributes &= ~ParamAttributes.HasDefault;
-			}
+			set { ModifyAttributes(value, ParamAttributes.HasDefault); }
 		}
 
 		/// <summary>
@@ -187,12 +223,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasFieldMarshal {
 			get { return (Attributes & ParamAttributes.HasFieldMarshal) != 0; }
-			set {
-				if (value)
-					Attributes |= ParamAttributes.HasFieldMarshal;
-				else
-					Attributes &= ~ParamAttributes.HasFieldMarshal;
-			}
+			set { ModifyAttributes(value, ParamAttributes.HasFieldMarshal); }
 		}
 	}
 
@@ -215,7 +246,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ParamAttributes Attributes {
+		protected override ParamAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -291,7 +322,7 @@ namespace dnlib.DotNet {
 	sealed class ParamDefMD : ParamDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawParamRow rawRow;
 
 		UserValue<MethodDef> declaringMethod;
@@ -309,7 +340,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ParamAttributes Attributes {
+		protected override ParamAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -343,7 +374,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Param, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -373,15 +405,15 @@ namespace dnlib.DotNet {
 				return readerModule.GetOwner(this);
 			};
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (ParamAttributes)rawRow.Flags;
 			};
 			sequence.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return rawRow.Sequence;
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			fieldMarshal.ReadOriginalValue = () => {
@@ -390,9 +422,17 @@ namespace dnlib.DotNet {
 			constant.ReadOriginalValue = () => {
 				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, rid));
 			};
+#if THREAD_SAFE
+			declaringMethod.Lock = theLock;
+			// flags.Lock = theLock;	No lock for this one
+			sequence.Lock = theLock;
+			name.Lock = theLock;
+			fieldMarshal.Lock = theLock;
+			constant.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadParamRow(rid);

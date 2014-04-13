@@ -22,6 +22,13 @@
 */
 
 ﻿using System.Collections.Generic;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -30,8 +37,8 @@ namespace dnlib.DotNet {
 	public sealed class CustomAttribute {
 		ICustomAttributeType ctor;
 		byte[] rawData;
-		List<CAArgument> arguments;
-		List<CANamedArgument> namedArguments;
+		ThreadSafe.IList<CAArgument> arguments;
+		ThreadSafe.IList<CANamedArgument> namedArguments;
 
 		/// <summary>
 		/// Gets/sets the custom attribute constructor
@@ -61,8 +68,11 @@ namespace dnlib.DotNet {
 					return mrCtor.GetDeclaringTypeFullName() ?? string.Empty;
 
 				var mdCtor = ctor as MethodDef;
-				if (mdCtor != null && mdCtor.DeclaringType != null)
-					return mdCtor.DeclaringType.FullName;
+				if (mdCtor != null) {
+					var declType = mdCtor.DeclaringType;
+					if (declType != null)
+						return declType.FullName;
+				}
 
 				return string.Empty;
 			}
@@ -85,7 +95,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all constructor arguments
 		/// </summary>
-		public List<CAArgument> ConstructorArguments {
+		public ThreadSafe.IList<CAArgument> ConstructorArguments {
 			get { return arguments; }
 		}
 
@@ -99,7 +109,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all named arguments (field and property values)
 		/// </summary>
-		public List<CANamedArgument> NamedArguments {
+		public ThreadSafe.IList<CANamedArgument> NamedArguments {
 			get { return namedArguments; }
 		}
 
@@ -115,7 +125,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IEnumerable<CANamedArgument> Fields {
 			get {
-				foreach (var namedArg in namedArguments) {
+				foreach (var namedArg in namedArguments.GetSafeEnumerable()) {
 					if (namedArg.IsField)
 						yield return namedArg;
 				}
@@ -127,7 +137,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IEnumerable<CANamedArgument> Properties {
 			get {
-				foreach (var namedArg in namedArguments) {
+				foreach (var namedArg in namedArguments.GetSafeEnumerable()) {
 					if (namedArg.IsProperty)
 						yield return namedArg;
 				}
@@ -178,8 +188,8 @@ namespace dnlib.DotNet {
 		/// <param name="namedArguments">Named arguments or <c>null</c> if none</param>
 		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments) {
 			this.ctor = ctor;
-			this.arguments = arguments == null ? new List<CAArgument>() : new List<CAArgument>(arguments);
-			this.namedArguments = namedArguments == null ? new List<CANamedArgument>() : new List<CANamedArgument>(namedArguments);
+			this.arguments = arguments == null ? ThreadSafeListCreator.Create<CAArgument>() : ThreadSafeListCreator.Create<CAArgument>(arguments);
+			this.namedArguments = namedArguments == null ? ThreadSafeListCreator.Create<CANamedArgument>() : ThreadSafeListCreator.Create<CANamedArgument>(namedArguments);
 		}
 
 		/// <summary>
@@ -190,8 +200,8 @@ namespace dnlib.DotNet {
 		/// <param name="namedArguments">Named arguments. The list is now owned by this instance.</param>
 		internal CustomAttribute(ICustomAttributeType ctor, List<CAArgument> arguments, List<CANamedArgument> namedArguments) {
 			this.ctor = ctor;
-			this.arguments = arguments == null ? new List<CAArgument>() : arguments;
-			this.namedArguments = namedArguments == null ? new List<CANamedArgument>() : namedArguments;
+			this.arguments = arguments == null ? ThreadSafeListCreator.Create<CAArgument>() : ThreadSafeListCreator.MakeThreadSafe(arguments);
+			this.namedArguments = namedArguments == null ? ThreadSafeListCreator.Create<CANamedArgument>() : ThreadSafeListCreator.MakeThreadSafe(namedArguments);
 		}
 
 		/// <summary>
@@ -237,7 +247,7 @@ namespace dnlib.DotNet {
 		/// <param name="isField"><c>true</c> if it's a field, <c>false</c> if it's a property</param>
 		/// <returns>A <see cref="CANamedArgument"/> instance or <c>null</c> if not found</returns>
 		public CANamedArgument GetNamedArgument(string name, bool isField) {
-			foreach (var namedArg in namedArguments) {
+			foreach (var namedArg in namedArguments.GetSafeEnumerable()) {
 				if (namedArg.IsField == isField && UTF8String.ToSystemStringOrEmpty(namedArg.Name) == name)
 					return namedArg;
 			}
@@ -251,7 +261,7 @@ namespace dnlib.DotNet {
 		/// <param name="isField"><c>true</c> if it's a field, <c>false</c> if it's a property</param>
 		/// <returns>A <see cref="CANamedArgument"/> instance or <c>null</c> if not found</returns>
 		public CANamedArgument GetNamedArgument(UTF8String name, bool isField) {
-			foreach (var namedArg in namedArguments) {
+			foreach (var namedArg in namedArguments.GetSafeEnumerable()) {
 				if (namedArg.IsField == isField && UTF8String.Equals(namedArg.Name, name))
 					return namedArg;
 			}

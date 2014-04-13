@@ -25,6 +25,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -347,8 +348,9 @@ namespace dnlib.DotNet {
 			if (type == null)
 				return null;
 			var asmName = type.Assembly.GetName();
-			if (module.Assembly != null) {
-				if (UTF8String.ToSystemStringOrEmpty(module.Assembly.Name).Equals(asmName.Name, StringComparison.OrdinalIgnoreCase)) {
+			var modAsm = module.Assembly;
+			if (modAsm != null) {
+				if (UTF8String.ToSystemStringOrEmpty(modAsm.Name).Equals(asmName.Name, StringComparison.OrdinalIgnoreCase)) {
 					if (UTF8String.ToSystemStringOrEmpty(module.Name).Equals(type.Module.ScopeName, StringComparison.OrdinalIgnoreCase))
 						return module;
 					return module.UpdateRowId(new ModuleRefUser(module, type.Module.ScopeName));
@@ -385,12 +387,12 @@ namespace dnlib.DotNet {
 			// Assume all modifiers should be applied in the same order as in the lists.
 
 			if (requiredModifiers != null) {
-				foreach (var modifier in requiredModifiers)
+				foreach (var modifier in requiredModifiers.GetSafeEnumerable())
 					ts = new CModReqdSig(Import(modifier), ts);
 			}
 
 			if (optionalModifiers != null) {
-				foreach (var modifier in optionalModifiers)
+				foreach (var modifier in optionalModifiers.GetSafeEnumerable())
 					ts = new CModOptSig(Import(modifier), ts);
 			}
 
@@ -552,8 +554,9 @@ namespace dnlib.DotNet {
 
 		IMemberRefParent GetModuleParent(Module module2) {
 			// If we have no assembly, assume this is a netmodule in the same assembly as module
-			bool isSameAssembly = module.Assembly == null ||
-				UTF8String.ToSystemStringOrEmpty(module.Assembly.Name).Equals(module2.Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase);
+			var modAsm = module.Assembly;
+			bool isSameAssembly = modAsm == null ||
+				UTF8String.ToSystemStringOrEmpty(modAsm.Name).Equals(module2.Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase);
 			if (!isSameAssembly)
 				return null;
 			return module.UpdateRowId(new ModuleRefUser(module, module.Name));
@@ -685,8 +688,9 @@ namespace dnlib.DotNet {
 				return null;
 			TypeRef result;
 
-			if (type.DeclaringType != null)
-				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(type.DeclaringType)));
+			var declType = type.DeclaringType;
+			if (declType != null)
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declType)));
 			else
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
 
@@ -697,8 +701,9 @@ namespace dnlib.DotNet {
 		IResolutionScope CreateScopeReference(IAssembly defAsm, ModuleDef defMod) {
 			if (defAsm == null)
 				return null;
-			if (defMod != null && defAsm != null && module.Assembly != null) {
-				if (UTF8String.CaseInsensitiveEquals(module.Assembly.Name, defAsm.Name)) {
+			var modAsm = module.Assembly;
+			if (defMod != null && defAsm != null && modAsm != null) {
+				if (UTF8String.CaseInsensitiveEquals(modAsm.Name, defAsm.Name)) {
 					if (UTF8String.CaseInsensitiveEquals(module.Name, defMod.Name))
 						return module;
 					return module.UpdateRowId(new ModuleRefUser(module, defMod.Name));
@@ -803,7 +808,7 @@ namespace dnlib.DotNet {
 			case ElementType.GenericInst:
 				var gis = (GenericInstSig)type;
 				var genArgs = new List<TypeSig>(gis.GenericArguments.Count);
-				foreach (var ga in gis.GenericArguments)
+				foreach (var ga in gis.GenericArguments.GetSafeEnumerable())
 					genArgs.Add(Import(ga));
 				result = new GenericInstSig(Import(gis.GenericType) as ClassOrValueTypeSig, genArgs);
 				break;
@@ -900,12 +905,13 @@ namespace dnlib.DotNet {
 
 		T Import<T>(T sig, T old) where T : MethodBaseSig {
 			sig.RetType = Import(old.RetType);
-			foreach (var p in old.Params)
+			foreach (var p in old.Params.GetSafeEnumerable())
 				sig.Params.Add(Import(p));
 			sig.GenParamCount = old.GenParamCount;
-			if (sig.ParamsAfterSentinel != null) {
-				foreach (var p in old.ParamsAfterSentinel)
-					sig.ParamsAfterSentinel.Add(Import(p));
+			var paramsAfterSentinel = sig.ParamsAfterSentinel;
+			if (paramsAfterSentinel != null) {
+				foreach (var p in old.ParamsAfterSentinel.GetSafeEnumerable())
+					paramsAfterSentinel.Add(Import(p));
 			}
 			return sig;
 		}
@@ -939,7 +945,7 @@ namespace dnlib.DotNet {
 				return null;
 
 			LocalSig result = new LocalSig(sig.GetCallingConvention(), (uint)sig.Locals.Count);
-			foreach (var l in sig.Locals)
+			foreach (var l in sig.Locals.GetSafeEnumerable())
 				result.Locals.Add(Import(l));
 
 			recursionCounter.Decrement();
@@ -958,7 +964,7 @@ namespace dnlib.DotNet {
 				return null;
 
 			GenericInstMethodSig result = new GenericInstMethodSig(sig.GetCallingConvention(), (uint)sig.GenericArguments.Count);
-			foreach (var l in sig.GenericArguments)
+			foreach (var l in sig.GenericArguments.GetSafeEnumerable())
 				result.GenericArguments.Add(Import(l));
 
 			recursionCounter.Decrement();

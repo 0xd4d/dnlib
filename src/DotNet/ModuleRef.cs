@@ -22,8 +22,10 @@
 */
 
 ﻿using System;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -104,10 +106,11 @@ namespace dnlib.DotNet {
 			get {
 				if (module == null)
 					return null;
-				if (UTF8String.CaseInsensitiveEquals(Name, module.Name))
+				var name = Name;
+				if (UTF8String.CaseInsensitiveEquals(name, module.Name))
 					return module;
 				var asm = DefinitionAssembly;
-				return asm == null ? null : asm.FindModule(Name);
+				return asm == null ? null : asm.FindModule(name);
 			}
 		}
 
@@ -173,11 +176,14 @@ namespace dnlib.DotNet {
 	sealed class ModuleRefMD : ModuleRef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawModuleRefRow rawRow;
 
 		UserValue<UTF8String> name;
 		CustomAttributeCollection customAttributeCollection;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <inheritdoc/>
 		public override UTF8String Name {
@@ -190,7 +196,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ModuleRef, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -218,12 +225,15 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
+#if THREAD_SAFE
+			name.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadModuleRefRow(rid);

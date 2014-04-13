@@ -24,6 +24,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -287,31 +288,66 @@ namespace dnlib.DotNet {
 		byte[] exponent2;
 		byte[] coefficient;
 		byte[] privateExponent;
+#if THREAD_SAFE
+		readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <summary>
 		/// Gets the public key
 		/// </summary>
 		public byte[] PublicKey {
-			get { return publicKey ?? (publicKey = CreatePublicKey()); }
+			get {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				if (publicKey == null)
+					publicKey = CreatePublicKey_NoLock();
+				return publicKey;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets the strong name signature size in bytes
 		/// </summary>
 		public int SignatureSize {
-			get { return modulus.Length; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return modulus.Length;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets the public key hash algorithm. It's usually <see cref="AssemblyHashAlgorithm.SHA1"/>
 		/// </summary>
 		public AssemblyHashAlgorithm HashAlgorithm {
-			get { return hashAlg; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return hashAlg;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
 			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
 				if (hashAlg == value)
 					return;
 				publicKey = null;
 				hashAlg = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
 			}
 		}
 
@@ -319,11 +355,25 @@ namespace dnlib.DotNet {
 		/// Gets/sets the public exponent
 		/// </summary>
 		public byte[] PublicExponent {
-			get { return publicExponent; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return publicExponent;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
 			set {
 				if (value == null || value.Length != 4)
 					throw new ArgumentException("PublicExponent must be exactly 4 bytes");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
 				publicExponent = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
 			}
 		}
 
@@ -331,56 +381,182 @@ namespace dnlib.DotNet {
 		/// Gets/sets the modulus
 		/// </summary>
 		public byte[] Modulus {
-			get { return modulus; }
-			set { modulus = value; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return modulus;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				modulus = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets prime1
 		/// </summary>
 		public byte[] Prime1 {
-			get { return prime1; }
-			set { prime1 = value; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return prime1;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				prime1 = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets prime2
 		/// </summary>
 		public byte[] Prime2 {
-			get { return prime2; }
-			set { prime2 = value; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return prime2;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				prime2 = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets exponent1
 		/// </summary>
 		public byte[] Exponent1 {
-			get { return exponent1; }
-			set { exponent1 = value; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return exponent1;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				exponent1 = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets exponent2
 		/// </summary>
 		public byte[] Exponent2 {
-			get { return exponent2; }
-			set { exponent2 = value; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return exponent2;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				exponent2 = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets the coefficient
 		/// </summary>
 		public byte[] Coefficient {
-			get { return coefficient; }
-			set { coefficient = value; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return coefficient;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				coefficient = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
 		/// Gets/sets the private exponent
 		/// </summary>
 		public byte[] PrivateExponent {
-			get { return privateExponent; }
-			set { privateExponent = value; }
+			get {
+#if THREAD_SAFE
+				theLock.EnterReadLock(); try {
+#endif
+				return privateExponent;
+#if THREAD_SAFE
+				} finally { theLock.ExitReadLock(); }
+#endif
+			}
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				privateExponent = value;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <summary>
@@ -510,7 +686,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		byte[] CreatePublicKey() {
+		byte[] CreatePublicKey_NoLock() {
 			var halg = hashAlg == 0 ? AssemblyHashAlgorithm.SHA1 : hashAlg;
 			return StrongNamePublicKey.CreatePublicKey(SignatureAlgorithm.CALG_RSA_SIGN, halg, modulus, publicExponent);
 		}
@@ -519,7 +695,11 @@ namespace dnlib.DotNet {
 		/// Creates an <see cref="RSA"/> instance
 		/// </summary>
 		public RSA CreateRSA() {
-			var rsaParams = new RSAParameters {
+			RSAParameters rsaParams;
+#if THREAD_SAFE
+			theLock.EnterReadLock(); try {
+#endif
+			rsaParams = new RSAParameters {
 				Exponent = publicExponent,
 				Modulus = modulus,
 				P = prime1,
@@ -529,6 +709,9 @@ namespace dnlib.DotNet {
 				InverseQ = coefficient,
 				D = privateExponent,
 			};
+#if THREAD_SAFE
+			} finally { theLock.ExitReadLock(); }
+#endif
 			var rsa = RSA.Create();
 			try {
 				rsa.ImportParameters(rsaParams);
@@ -551,6 +734,9 @@ namespace dnlib.DotNet {
 			writer.Write((ushort)0);		// reserved
 			writer.Write((uint)SignatureAlgorithm.CALG_RSA_SIGN);	// aiKeyAlg
 			writer.Write(RSA2_SIG);			// magic (RSA2)
+#if THREAD_SAFE
+			theLock.EnterReadLock(); try {
+#endif
 			writer.Write(modulus.Length * 8);	// bitlen
 			writer.WriteReverse(publicExponent);
 			writer.WriteReverse(modulus);
@@ -560,6 +746,9 @@ namespace dnlib.DotNet {
 			writer.WriteReverse(exponent2);
 			writer.WriteReverse(coefficient);
 			writer.WriteReverse(privateExponent);
+#if THREAD_SAFE
+			} finally { theLock.ExitReadLock(); }
+#endif
 			return outStream.ToArray();
 		}
 

@@ -23,6 +23,7 @@
 
 ﻿using System.Collections.Generic;
 using System.Text;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -47,9 +48,9 @@ namespace dnlib.DotNet {
 	public struct FullNameCreator {
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
-		StringBuilder sb;
-		bool isReflection;
-		IFullNameCreatorHelper helper;
+		readonly StringBuilder sb;
+		readonly bool isReflection;
+		readonly IFullNameCreatorHelper helper;
 		GenericArguments genericArguments;
 		RecursionCounter recursionCounter;
 
@@ -1141,18 +1142,19 @@ namespace dnlib.DotNet {
 				if (createName) {
 					var arraySig = (ArraySig)typeSig;
 					sb.Append('[');
-					if (arraySig.Rank == 0)
+					uint rank = arraySig.Rank;
+					if (rank == 0)
 						sb.Append("<RANK0>");	// Not allowed
-					else if (arraySig.Rank == 1)
+					else if (rank == 1)
 						sb.Append('*');
-					else for (int i = 0; i < (int)arraySig.Rank; i++) {
+					else for (int i = 0; i < (int)rank; i++) {
 						if (i != 0)
 							sb.Append(',');
 						if (!isReflection) {
 							const int NO_LOWER = int.MinValue;
 							const uint NO_SIZE = uint.MaxValue;
-							int lower = i >= arraySig.LowerBounds.Count ? NO_LOWER : arraySig.LowerBounds[i];
-							uint size = i >= arraySig.Sizes.Count ? NO_SIZE : arraySig.Sizes[i];
+							int lower = arraySig.LowerBounds.Get(i, NO_LOWER);
+							uint size = arraySig.Sizes.Get(i, NO_SIZE);
 							if (lower != NO_LOWER) {
 								sb.Append(lower);
 								sb.Append("..");
@@ -1228,10 +1230,11 @@ namespace dnlib.DotNet {
 				if (createNamespace && createName) {
 					if (isReflection) {
 						sb.Append('[');
-						for (int i = 0; i < typeGenArgs.Count; i++) {
+						int i = -1;
+						foreach (var genArg in typeGenArgs.GetSafeEnumerable()) {
+							i++;
 							if (i != 0)
 								sb.Append(',');
-							var genArg = typeGenArgs[i];
 
 							bool mustWriteAssembly = MustUseAssemblyName(genArg);
 							if (mustWriteAssembly)
@@ -1253,10 +1256,12 @@ namespace dnlib.DotNet {
 					}
 					else {
 						sb.Append('<');
-						for (int i = 0; i < typeGenArgs.Count; i++) {
+						int i = -1;
+						foreach (var genArg in typeGenArgs.GetSafeEnumerable()) {
+							i++;
 							if (i != 0)
 								sb.Append(',');
-							CreateFullName(typeGenArgs[i]);
+							CreateFullName(genArg);
 						}
 						sb.Append('>');
 					}
@@ -1974,10 +1979,11 @@ namespace dnlib.DotNet {
 
 			if (methodSig.Generic) {
 				sb.Append('<');
-				for (int i = 0; i < methodSig.GenParamCount; i++) {
+				uint genParamCount = methodSig.GenParamCount;
+				for (uint i = 0; i < genParamCount; i++) {
 					if (i != 0)
 						sb.Append(',');
-					CreateFullName(new GenericMVar((uint)i));
+					CreateFullName(new GenericMVar(i));
 				}
 				sb.Append('>');
 			}
@@ -1997,7 +2003,7 @@ namespace dnlib.DotNet {
 				hasPrintedArgs = true;
 			}
 			int count = 0;
-			foreach (var arg in args) {
+			foreach (var arg in args.GetSafeEnumerable()) {
 				count++;
 				if (hasPrintedArgs)
 					sb.Append(',');

@@ -30,9 +30,9 @@ namespace dnlib.PE {
 	/// Represents the IMAGE_NT_HEADERS PE section
 	/// </summary>
 	public sealed class ImageNTHeaders : FileSection {
-		uint signature;
-		ImageFileHeader imageFileHeader;
-		IImageOptionalHeader imageOptionalHeader;
+		readonly uint signature;
+		readonly ImageFileHeader imageFileHeader;
+		readonly IImageOptionalHeader imageOptionalHeader;
 
 		/// <summary>
 		/// Returns the IMAGE_NT_HEADERS.Signature field

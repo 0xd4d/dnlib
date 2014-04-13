@@ -22,6 +22,7 @@
 */
 
 ﻿using System.Collections.Generic;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -177,7 +178,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="targets">The targets</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public Instruction ToInstruction(IList<Instruction> targets) {
-			return Instruction.Create(this, targets);
+			return Instruction.Create(this, ThreadSafeListCreator.MakeThreadSafe(targets));
 		}
 
 		/// <summary>

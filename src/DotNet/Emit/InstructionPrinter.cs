@@ -23,6 +23,7 @@
 
 ﻿using System.Collections.Generic;
 using System.Text;
+using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -75,11 +76,12 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="extra">A string that will be added before the operand, if there's
 		/// an operand.</param>
 		public static void AddOperandString(StringBuilder sb, Instruction instr, string extra) {
+			var op = instr.Operand;
 			switch (instr.OpCode.OperandType) {
 			case OperandType.InlineBrTarget:
 			case OperandType.ShortInlineBrTarget:
 				sb.Append(extra);
-				AddInstructionTarget(sb, instr.Operand as Instruction);
+				AddInstructionTarget(sb, op as Instruction);
 				break;
 
 			case OperandType.InlineField:
@@ -87,10 +89,10 @@ namespace dnlib.DotNet.Emit {
 			case OperandType.InlineTok:
 			case OperandType.InlineType:
 				sb.Append(extra);
-				if (instr.Operand is IFullName)
-					sb.Append((instr.Operand as IFullName).FullName);
-				else if (instr.Operand != null)
-					sb.Append(instr.Operand.ToString());
+				if (op is IFullName)
+					sb.Append((op as IFullName).FullName);
+				else if (op != null)
+					sb.Append(op.ToString());
 				else
 					sb.Append("null");
 				break;
@@ -100,21 +102,21 @@ namespace dnlib.DotNet.Emit {
 			case OperandType.InlineR:
 			case OperandType.ShortInlineI:
 			case OperandType.ShortInlineR:
-				sb.Append(string.Format("{0}{1}", extra, instr.Operand));
+				sb.Append(string.Format("{0}{1}", extra, op));
 				break;
 
 			case OperandType.InlineSig:
 				sb.Append(extra);
-				sb.Append(FullNameCreator.MethodFullName(null, (UTF8String)null, instr.Operand as MethodSig));
+				sb.Append(FullNameCreator.MethodFullName(null, (UTF8String)null, op as MethodSig));
 				break;
 
 			case OperandType.InlineString:
 				sb.Append(extra);
-				EscapeString(sb, instr.Operand as string, true);
+				EscapeString(sb, op as string, true);
 				break;
 
 			case OperandType.InlineSwitch:
-				var targets = instr.Operand as IList<Instruction>;
+				var targets = op as IList<Instruction>;
 				if (targets == null)
 					sb.Append("null");
 				else {
@@ -122,7 +124,7 @@ namespace dnlib.DotNet.Emit {
 					for (int i = 0; i < targets.Count; i++) {
 						if (i != 0)
 							sb.Append(',');
-						AddInstructionTarget(sb, targets[i]);
+						AddInstructionTarget(sb, targets.Get(i, null));
 					}
 					sb.Append(')');
 				}
@@ -131,10 +133,10 @@ namespace dnlib.DotNet.Emit {
 			case OperandType.InlineVar:
 			case OperandType.ShortInlineVar:
 				sb.Append(extra);
-				if (instr.Operand == null)
+				if (op == null)
 					sb.Append("null");
 				else
-					sb.Append(instr.Operand.ToString());
+					sb.Append(op.ToString());
 				break;
 
 			case OperandType.InlineNone:

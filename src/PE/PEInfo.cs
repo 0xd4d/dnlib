@@ -141,7 +141,7 @@ namespace dnlib.PE {
 			var optHdr = ImageNTHeaders.OptionalHeader;
 			uint alignment = optHdr.SectionAlignment;
 			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
-			foreach (var section in ImageSectionHeaders) {
+			foreach (var section in imageSectionHeaders) {
 				ulong len2 = alignUp((ulong)section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
 				if (len2 > len)
 					len = len2;

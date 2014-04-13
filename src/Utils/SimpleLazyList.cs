@@ -22,18 +22,17 @@
 */
 
 ﻿using System.Diagnostics;
+using System.Threading;
 
 namespace dnlib.Utils {
 	/// <summary>
 	/// A readonly list that gets initialized lazily
 	/// </summary>
-	/// <typeparam name="T">Any class/value type</typeparam>
+	/// <typeparam name="T">Any class type</typeparam>
 	[DebuggerDisplay("Count = {Length}")]
 	sealed class SimpleLazyList<T> where T : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-		T[] elements;
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		bool[] initialized;
+		readonly T[] elements;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		readonly MFunc<uint, T> readElementByRID;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -55,14 +54,8 @@ namespace dnlib.Utils {
 			get {
 				if (index >= length)
 					return null;
-				if (elements == null) {
-					elements = new T[length];
-					initialized = new bool[length];
-				}
-				if (!initialized[index]) {
-					elements[index] = readElementByRID(index + 1);
-					initialized[index] = true;
-				}
+				if (elements[index] == null)
+					Interlocked.CompareExchange(ref elements[index], readElementByRID(index + 1), null);
 				return elements[index];
 			}
 		}
@@ -71,10 +64,13 @@ namespace dnlib.Utils {
 		/// Constructor
 		/// </summary>
 		/// <param name="length">Length of the list</param>
-		/// <param name="readElementByRID">Delegate instance that lazily reads an element</param>
+		/// <param name="readElementByRID">Delegate instance that lazily reads an element. It might
+		/// be called more than once for each <c>rid</c> in rare cases. It must never return
+		/// <c>null</c>.</param>
 		public SimpleLazyList(uint length, MFunc<uint, T> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;
+			this.elements = new T[length];
 		}
 	}
 }

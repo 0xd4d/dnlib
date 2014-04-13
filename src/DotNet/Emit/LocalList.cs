@@ -24,13 +24,20 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.Utils;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Stores a collection of <see cref="Local"/>
 	/// </summary>
 	[DebuggerDisplay("Count = {Count}")]
-	public sealed class LocalList : IListListener<Local>, IList<Local> {
+	public sealed class LocalList : IListListener<Local>, ThreadSafe.IList<Local> {
 		LazyList<Local> locals;
 
 		/// <summary>
@@ -43,7 +50,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the list of locals
 		/// </summary>
-		public IList<Local> Locals {
+		public ThreadSafe.IList<Local> Locals {
 			get { return locals; }
 		}
 
@@ -69,7 +76,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="locals">All locals that will be owned by this instance</param>
 		public LocalList(IEnumerable<Local> locals) {
 			this.locals = new LazyList<Local>(this);
-			foreach (var local in locals)
+			foreach (var local in locals.GetSafeEnumerable())
 				this.locals.Add(local);
 		}
 
@@ -98,13 +105,13 @@ namespace dnlib.DotNet.Emit {
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnResize(int index) {
-			for (int i = index; i < locals.Count; i++)
-				locals[i].Index = i;
+			for (int i = index; i < locals.Count_NoLock(); i++)
+				locals.Get_NoLock(i).Index = i;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnClear() {
-			foreach (var local in locals)
+			foreach (var local in locals.GetEnumerable_NoLock())
 				local.Index = -1;
 		}
 
@@ -142,11 +149,8 @@ namespace dnlib.DotNet.Emit {
 			locals.CopyTo(array, arrayIndex);
 		}
 
-		int ICollection<Local>.Count {
-			get { return locals.Count; }
-		}
-
-		bool ICollection<Local>.IsReadOnly {
+		/// <inheritdoc/>
+		public bool IsReadOnly {
 			get { return false; }
 		}
 
@@ -163,6 +167,78 @@ namespace dnlib.DotNet.Emit {
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
 			return ((IEnumerable<Local>)this).GetEnumerator();
 		}
+
+#if THREAD_SAFE
+		/// <inheritdoc/>
+		public int IndexOf_NoLock(Local item) {
+			return locals.IndexOf_NoLock(item);
+		}
+
+		/// <inheritdoc/>
+		public void Insert_NoLock(int index, Local item) {
+			locals.Insert_NoLock(index, item);
+		}
+
+		/// <inheritdoc/>
+		public void RemoveAt_NoLock(int index) {
+			locals.RemoveAt_NoLock(index);
+		}
+
+		/// <inheritdoc/>
+		public Local Get_NoLock(int index) {
+			return locals.Get_NoLock(index);
+		}
+
+		/// <inheritdoc/>
+		public void Set_NoLock(int index, Local value) {
+			locals.Set_NoLock(index, value);
+		}
+
+		/// <inheritdoc/>
+		public void Add_NoLock(Local item) {
+			locals.Add_NoLock(item);
+		}
+
+		/// <inheritdoc/>
+		public void Clear_NoLock() {
+			locals.Clear_NoLock();
+		}
+
+		/// <inheritdoc/>
+		public bool Contains_NoLock(Local item) {
+			return locals.Contains_NoLock(item);
+		}
+
+		/// <inheritdoc/>
+		public void CopyTo_NoLock(Local[] array, int arrayIndex) {
+			locals.CopyTo_NoLock(array, arrayIndex);
+		}
+
+		/// <inheritdoc/>
+		public int Count_NoLock {
+			get { return locals.Count_NoLock; }
+		}
+
+		/// <inheritdoc/>
+		public bool IsReadOnly_NoLock {
+			get { return locals.IsReadOnly_NoLock; }
+		}
+
+		/// <inheritdoc/>
+		public bool Remove_NoLock(Local item) {
+			return locals.Remove_NoLock(item);
+		}
+
+		/// <inheritdoc/>
+		public IEnumerator<Local> GetEnumerator_NoLock() {
+			return locals.GetEnumerator_NoLock();
+		}
+
+		/// <inheritdoc/>
+		public TRetType ExecuteLocked<TArgType, TRetType>(TArgType arg, ExecuteLockedDelegate<Local, TArgType, TRetType> handler) {
+			return locals.ExecuteLocked<TArgType, TRetType>(arg, (tsList, arg2) => handler(this, arg2));
+		}
+#endif
 	}
 
 	/// <summary>
@@ -207,9 +283,10 @@ namespace dnlib.DotNet.Emit {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			if (string.IsNullOrEmpty(Name))
+			var name = Name;
+			if (string.IsNullOrEmpty(name))
 				return string.Format("V_{0}", Index);
-			return Name;
+			return name;
 		}
 	}
 }

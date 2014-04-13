@@ -56,7 +56,7 @@ namespace dnlib.DotNet {
 		bool Remove(AssemblyDef asm);
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Add a module's assembly to the assembly cache
 		/// </summary>

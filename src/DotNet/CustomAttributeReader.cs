@@ -25,6 +25,7 @@
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -99,12 +100,13 @@ namespace dnlib.DotNet {
 	/// Reads custom attributes from the #Blob stream
 	/// </summary>
 	public struct CustomAttributeReader : IDisposable {
-		ModuleDef module;
-		IImageStream reader;
-		ICustomAttributeType ctor;
+		readonly ModuleDef module;
+		readonly IImageStream reader;
+		readonly ICustomAttributeType ctor;
 		GenericArguments genericArguments;
 		RecursionCounter recursionCounter;
 		bool verifyReadAllBytes;
+		readonly bool ownReader;
 
 		/// <summary>
 		/// Reads a custom attribute
@@ -159,6 +161,7 @@ namespace dnlib.DotNet {
 		CustomAttributeReader(ModuleDefMD readerModule, ICustomAttributeType ctor, uint offset) {
 			this.module = readerModule;
 			this.reader = readerModule.BlobStream.CreateStream(offset);
+			this.ownReader = true;
 			this.ctor = ctor;
 			this.genericArguments = null;
 			this.recursionCounter = new RecursionCounter();
@@ -168,6 +171,7 @@ namespace dnlib.DotNet {
 		CustomAttributeReader(ModuleDef module, IImageStream reader, ICustomAttributeType ctor) {
 			this.module = module;
 			this.reader = reader;
+			this.ownReader = false;
 			this.ctor = ctor;
 			this.genericArguments = null;
 			this.recursionCounter = new RecursionCounter();
@@ -200,8 +204,8 @@ namespace dnlib.DotNet {
 				throw new CABlobParserException("Invalid CA blob prolog");
 
 			var ctorArgs = new List<CAArgument>(methodSig.Params.Count);
-			for (int i = 0; i < methodSig.Params.Count; i++)
-				ctorArgs.Add(ReadFixedArg(FixTypeSig(methodSig.Params[i])));
+			foreach (var arg in methodSig.Params.GetSafeEnumerable())
+				ctorArgs.Add(ReadFixedArg(FixTypeSig(arg)));
 
 			// Some tools don't write the next ushort if there are no named arguments.
 			int numNamedArgs = reader.Position == reader.Length ? 0 : reader.ReadUInt16();
@@ -467,7 +471,7 @@ namespace dnlib.DotNet {
 			else if (arrayCount < 0)
 				throw new CABlobParserException("Array is too big");
 			else {
-				var array = new List<CAArgument>(arrayCount);
+				var array = ThreadSafeListCreator.Create<CAArgument>(arrayCount);
 				arg.Value = array;
 				for (int i = 0; i < arrayCount; i++)
 					array.Add(ReadFixedArg(FixTypeSig(arrayType.Next)));
@@ -480,8 +484,8 @@ namespace dnlib.DotNet {
 		CANamedArgument ReadNamedArgument() {
 			bool isField;
 			switch ((SerializationType)reader.ReadByte()) {
-			case SerializationType.Property: isField = false; break;
-			case SerializationType.Field: isField = true; break;
+			case SerializationType.Property:isField = false; break;
+			case SerializationType.Field:	isField = true; break;
 			default: throw new CABlobParserException("Named argument is not a field/property");
 			}
 
@@ -534,7 +538,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (reader != null)
+			if (ownReader && reader != null)
 				reader.Dispose();
 		}
 	}

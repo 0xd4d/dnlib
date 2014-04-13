@@ -31,21 +31,16 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public interface IMethodDecrypter {
 		/// <summary>
-		/// Checks whether <see cref="GetMethodBody"/> can be called
-		/// </summary>
-		/// <param name="rid"><c>Method</c> rid</param>
-		/// <returns><c>true</c> if <see cref="GetMethodBody"/> can be called, <c>false</c>
-		/// otherwise. If <c>false</c>, the normal method body parser code is called.</returns>
-		bool HasMethodBody(uint rid);
-
-		/// <summary>
 		/// Gets the method's body
 		/// </summary>
 		/// <param name="rid"><c>Method</c> rid</param>
 		/// <param name="rva">The <see cref="RVA"/> found in the method's <c>Method</c> row</param>
 		/// <param name="parameters">The method's parameters</param>
-		/// <returns>The method's <see cref="MethodBody"/></returns>
-		MethodBody GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters);
+		/// <param name="methodBody">Updated with the method's <see cref="MethodBody"/> if this
+		/// method returns <c>true</c></param>
+		/// <returns><c>true</c> if the method body was decrypted, <c>false</c> if the method isn't
+		/// encrypted and the default <see cref="MethodDef"/> body reader code should be used.</returns>
+		bool GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters, out MethodBody methodBody);
 	}
 
 	/// <summary>

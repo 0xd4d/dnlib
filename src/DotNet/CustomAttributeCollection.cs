@@ -23,6 +23,7 @@
 
 ﻿using System.Collections.Generic;
 using dnlib.Utils;
+using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -59,10 +60,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="fullName">Full name of custom attribute type that should be removed</param>
 		public void RemoveAll(string fullName) {
-			for (int i = Count - 1; i >= 0; i--) {
-				if (this[i].TypeFullName == fullName)
-					RemoveAt(i);
-			}
+			this.IterateAllReverse((tsList, index, value) => {
+				if (value.TypeFullName == fullName)
+					RemoveAt_NoLock(index);
+			});
 		}
 
 		/// <summary>
@@ -71,7 +72,7 @@ namespace dnlib.DotNet {
 		/// <param name="fullName">Full name of custom attribute type</param>
 		/// <returns>A <see cref="CustomAttribute"/> or <c>null</c> if it wasn't found</returns>
 		public CustomAttribute Find(string fullName) {
-			foreach (var ca in this) {
+			foreach (var ca in this.GetSafeEnumerable()) {
 				if (ca != null && ca.TypeFullName == fullName)
 					return ca;
 			}
@@ -85,7 +86,7 @@ namespace dnlib.DotNet {
 		/// <param name="fullName">Full name of custom attribute type</param>
 		/// <returns>All <see cref="CustomAttribute"/>s of the requested type</returns>
 		public IEnumerable<CustomAttribute> FindAll(string fullName) {
-			foreach (var ca in this) {
+			foreach (var ca in this.GetSafeEnumerable()) {
 				if (ca != null && ca.TypeFullName == fullName)
 					yield return ca;
 			}
@@ -108,7 +109,7 @@ namespace dnlib.DotNet {
 		/// <returns>The first <see cref="CustomAttribute"/> found or <c>null</c> if none found</returns>
 		public CustomAttribute Find(IType attrType, SigComparerOptions options) {
 			var comparer = new SigComparer(options);
-			foreach (var ca in this) {
+			foreach (var ca in this.GetSafeEnumerable()) {
 				if (comparer.Equals(ca.AttributeType, attrType))
 					return ca;
 			}
@@ -132,7 +133,7 @@ namespace dnlib.DotNet {
 		/// <returns>All <see cref="CustomAttribute"/>s of the requested type</returns>
 		public IEnumerable<CustomAttribute> FindAll(IType attrType, SigComparerOptions options) {
 			var comparer = new SigComparer(options);
-			foreach (var ca in this) {
+			foreach (var ca in this.GetSafeEnumerable()) {
 				if (comparer.Equals(ca.AttributeType, attrType))
 					yield return ca;
 			}

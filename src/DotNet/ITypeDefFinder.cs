@@ -45,7 +45,7 @@
 		TypeDef Find(TypeRef typeRef);
 	}
 
-	static partial class Extensions {
+	public static partial class Extensions {
 		/// <summary>
 		/// Finds a <see cref="TypeDef"/>. Its scope (i.e., module or assembly) is ignored when
 		/// looking up the type.

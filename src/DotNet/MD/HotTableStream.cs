@@ -107,8 +107,9 @@ namespace dnlib.DotNet.MD {
 		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (fullStream != null)
-					fullStream.Dispose();
+				var fs = fullStream;
+				if (fs != null)
+					fs.Dispose();
 			}
 		}
 	}

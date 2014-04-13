@@ -24,6 +24,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using dnlib.PE;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -88,7 +95,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets all streams
 		/// </summary>
-		IList<DotNetStream> AllStreams { get; }
+		ThreadSafe.IList<DotNetStream> AllStreams { get; }
 
 		/// <summary>
 		/// Gets a list of all the valid <c>TypeDef</c> rids. It's usually every rid in the

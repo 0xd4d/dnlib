@@ -25,9 +25,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -38,6 +46,13 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
+
+#if THREAD_SAFE
+		/// <summary>
+		/// The lock
+		/// </summary>
+		internal readonly Lock theLock = Lock.Create();
+#endif
 
 		/// <summary>
 		/// The manifest module
@@ -80,7 +95,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Assembly.Flags
 		/// </summary>
-		public abstract AssemblyAttributes Attributes { get; set; }
+		public AssemblyAttributes Attributes {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Attributes_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			set {
+				theLock.EnterWriteLock();
+				try {
+					Attributes_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Attributes_NoLock; }
+			set { Attributes_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// From column Assembly.Flags
+		/// </summary>
+		protected abstract AssemblyAttributes Attributes_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Assembly.PublicKey
@@ -106,7 +146,7 @@ namespace dnlib.DotNet {
 		public abstract UTF8String Culture { get; set; }
 
 		/// <inheritdoc/>
-		public abstract IList<DeclSecurity> DeclSecurities { get; }
+		public abstract ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
 
 		/// <inheritdoc/>
 		public PublicKeyBase PublicKeyOrToken {
@@ -121,7 +161,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all modules. The first module is always the <see cref="ManifestModule"/>.
 		/// </summary>
-		public abstract IList<ModuleDef> Modules { get; }
+		public abstract ThreadSafe.IList<ModuleDef> Modules { get; }
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -135,9 +175,45 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Gets the manifest (main) module. This is always the first module in <see cref="Modules"/>.
+		/// <c>null</c> is returned if <see cref="Modules"/> is empty.
 		/// </summary>
 		public ModuleDef ManifestModule {
-			get { return Modules.Count == 0 ? null : Modules[0]; }
+			get { return Modules.Get(0, null); }
+		}
+
+		/// <summary>
+		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
+		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// </summary>
+		/// <param name="andMask">Value to <c>AND</c></param>
+		/// <param name="orMask">Value to OR</param>
+		void ModifyAttributes(AssemblyAttributes andMask, AssemblyAttributes orMask) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, AssemblyAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Attributes_NoLock |= flags;
+				else
+					Attributes_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
 		}
 
 		/// <summary>
@@ -145,12 +221,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool HasPublicKey {
 			get { return (Attributes & AssemblyAttributes.PublicKey) != 0; }
-			set {
-				if (value)
-					Attributes |= AssemblyAttributes.PublicKey;
-				else
-					Attributes &= ~AssemblyAttributes.PublicKey;
-			}
+			set { ModifyAttributes(value, AssemblyAttributes.PublicKey); }
 		}
 
 		/// <summary>
@@ -158,7 +229,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public AssemblyAttributes ProcessorArchitecture {
 			get { return Attributes & AssemblyAttributes.PA_Mask; }
-			set { Attributes = (Attributes & ~AssemblyAttributes.PA_Mask) | (value & AssemblyAttributes.PA_Mask); }
+			set { ModifyAttributes(~AssemblyAttributes.PA_Mask, value & AssemblyAttributes.PA_Mask); }
 		}
 
 		/// <summary>
@@ -166,7 +237,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public AssemblyAttributes ProcessorArchitectureFull {
 			get { return Attributes & AssemblyAttributes.PA_FullMask; }
-			set { Attributes = (Attributes & ~AssemblyAttributes.PA_FullMask) | (value & AssemblyAttributes.PA_FullMask); }
+			set { ModifyAttributes(~AssemblyAttributes.PA_FullMask, value & AssemblyAttributes.PA_FullMask); }
 		}
 
 		/// <summary>
@@ -223,12 +294,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsProcessorArchitectureSpecified {
 			get { return (Attributes & AssemblyAttributes.PA_Specified) != 0; }
-			set {
-				if (value)
-					Attributes |= AssemblyAttributes.PA_Specified;
-				else
-					Attributes &= ~AssemblyAttributes.PA_Specified;
-			}
+			set { ModifyAttributes(value, AssemblyAttributes.PA_Specified); }
 		}
 
 		/// <summary>
@@ -236,12 +302,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool EnableJITcompileTracking {
 			get { return (Attributes & AssemblyAttributes.EnableJITcompileTracking) != 0; }
-			set {
-				if (value)
-					Attributes |= AssemblyAttributes.EnableJITcompileTracking;
-				else
-					Attributes &= ~AssemblyAttributes.EnableJITcompileTracking;
-			}
+			set { ModifyAttributes(value, AssemblyAttributes.EnableJITcompileTracking); }
 		}
 
 		/// <summary>
@@ -249,12 +310,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool DisableJITcompileOptimizer {
 			get { return (Attributes & AssemblyAttributes.DisableJITcompileOptimizer) != 0; }
-			set {
-				if (value)
-					Attributes |= AssemblyAttributes.DisableJITcompileOptimizer;
-				else
-					Attributes &= ~AssemblyAttributes.DisableJITcompileOptimizer;
-			}
+			set { ModifyAttributes(value, AssemblyAttributes.DisableJITcompileOptimizer); }
 		}
 
 		/// <summary>
@@ -262,12 +318,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsRetargetable {
 			get { return (Attributes & AssemblyAttributes.Retargetable) != 0; }
-			set {
-				if (value)
-					Attributes |= AssemblyAttributes.Retargetable;
-				else
-					Attributes &= ~AssemblyAttributes.Retargetable;
-			}
+			set { ModifyAttributes(value, AssemblyAttributes.Retargetable); }
 		}
 
 		/// <summary>
@@ -275,7 +326,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public AssemblyAttributes ContentType {
 			get { return Attributes & AssemblyAttributes.ContentType_Mask; }
-			set { Attributes = (Attributes & ~AssemblyAttributes.ContentType_Mask) | (value & AssemblyAttributes.ContentType_Mask); }
+			set { ModifyAttributes(~AssemblyAttributes.ContentType_Mask, value & AssemblyAttributes.ContentType_Mask); }
 		}
 
 		/// <summary>
@@ -298,7 +349,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of module</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
 		public ModuleDef FindModule(UTF8String name) {
-			foreach (var module in Modules) {
+			foreach (var module in Modules.GetSafeEnumerable()) {
+				if (module == null)
+					continue;
 				if (UTF8String.CaseInsensitiveEquals(module.Name, name))
 					return module;
 			}
@@ -522,7 +575,7 @@ namespace dnlib.DotNet {
 		/// are separated by a <c>/</c> character.</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		public TypeDef Find(string fullName, bool isReflectionName) {
-			foreach (var module in Modules) {
+			foreach (var module in Modules.GetSafeEnumerable()) {
 				if (module == null)
 					continue;
 				var type = module.Find(fullName, isReflectionName);
@@ -540,7 +593,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		public TypeDef Find(TypeRef typeRef) {
-			foreach (var module in Modules) {
+			foreach (var module in Modules.GetSafeEnumerable()) {
 				if (module == null)
 					continue;
 				var type = module.Find(typeRef);
@@ -602,7 +655,7 @@ namespace dnlib.DotNet {
 			foreach (var ca in targetAsm.CustomAttributes.FindAll("System.Runtime.CompilerServices.InternalsVisibleToAttribute")) {
 				if (ca.ConstructorArguments.Count != 1)
 					continue;
-				var arg = ca.ConstructorArguments[0];
+				var arg = ca.ConstructorArguments.Get(0, default(CAArgument));
 				if (arg.Type.GetElementType() != ElementType.String)
 					continue;
 				var asmName = arg.Value as UTF8String;
@@ -634,20 +687,24 @@ namespace dnlib.DotNet {
 		/// <param name="identityKey">Identity strong name key pair</param>
 		/// <param name="signaturePubKey">Signature public key</param>
 		public void UpdateOrCreateAssemblySignatureKeyAttribute(StrongNamePublicKey identityPubKey, StrongNameKey identityKey, StrongNamePublicKey signaturePubKey) {
-			if (ManifestModule == null)
+			var manifestModule = ManifestModule;
+			if (manifestModule == null)
 				return;
 
 			// Remove all existing attributes
-			CustomAttribute ca = null;
-			for (int i = 0; i < CustomAttributes.Count; i++) {
-				var caTmp = CustomAttributes[i];
-				if (caTmp.TypeFullName != "System.Reflection.AssemblySignatureKeyAttribute")
-					continue;
-				CustomAttributes.RemoveAt(i);
-				i--;
-				if (ca == null)
-					ca = caTmp;
-			}
+			var ca = CustomAttributes.ExecuteLocked<CustomAttribute, object, CustomAttribute>(null, (tsList, arg) => {
+				CustomAttribute foundCa = null;
+				for (int i = 0; i < tsList.Count_NoLock(); i++) {
+					var caTmp = tsList.Get_NoLock(i);
+					if (caTmp.TypeFullName != "System.Reflection.AssemblySignatureKeyAttribute")
+						continue;
+					tsList.RemoveAt_NoLock(i);
+					i--;
+					if (foundCa == null)
+						foundCa = caTmp;
+				}
+				return foundCa;
+			});
 
 			if (IsValidAssemblySignatureKeyAttribute(ca))
 				ca.NamedArguments.Clear();
@@ -655,12 +712,15 @@ namespace dnlib.DotNet {
 				ca = CreateAssemblySignatureKeyAttribute();
 
 			var counterSig = StrongNameKey.CreateCounterSignatureAsString(identityPubKey, identityKey, signaturePubKey);
-			ca.ConstructorArguments[0] = new CAArgument(ManifestModule.CorLibTypes.String, new UTF8String(signaturePubKey.ToString()));
-			ca.ConstructorArguments[1] = new CAArgument(ManifestModule.CorLibTypes.String, new UTF8String(counterSig));
+			ca.ConstructorArguments[0] = new CAArgument(manifestModule.CorLibTypes.String, new UTF8String(signaturePubKey.ToString()));
+			ca.ConstructorArguments[1] = new CAArgument(manifestModule.CorLibTypes.String, new UTF8String(counterSig));
 			CustomAttributes.Add(ca);
 		}
 
 		bool IsValidAssemblySignatureKeyAttribute(CustomAttribute ca) {
+#if THREAD_SAFE
+			return false;
+#else
 			if (ca == null)
 				return false;
 			var ctor = ca.Constructor as IMethodDefOrRef;
@@ -676,15 +736,17 @@ namespace dnlib.DotNet {
 			if (ca.ConstructorArguments.Count != 2)
 				return false;
 			return true;
+#endif
 		}
 
 		CustomAttribute CreateAssemblySignatureKeyAttribute() {
-			var owner = ManifestModule.UpdateRowId(new TypeRefUser(ManifestModule, "System.Reflection", "AssemblySignatureKeyAttribute", ManifestModule.CorLibTypes.AssemblyRef));
-			var methodSig = MethodSig.CreateInstance(ManifestModule.CorLibTypes.Void, ManifestModule.CorLibTypes.String, ManifestModule.CorLibTypes.String);
-			var ctor = ManifestModule.UpdateRowId(new MemberRefUser(ManifestModule, ".ctor", methodSig, owner));
+			var manifestModule = ManifestModule;
+			var owner = manifestModule.UpdateRowId(new TypeRefUser(manifestModule, "System.Reflection", "AssemblySignatureKeyAttribute", manifestModule.CorLibTypes.AssemblyRef));
+			var methodSig = MethodSig.CreateInstance(manifestModule.CorLibTypes.Void, manifestModule.CorLibTypes.String, manifestModule.CorLibTypes.String);
+			var ctor = manifestModule.UpdateRowId(new MemberRefUser(manifestModule, MethodDef.InstanceConstructorName, methodSig, owner));
 			var ca = new CustomAttribute(ctor);
-			ca.ConstructorArguments.Add(new CAArgument(ManifestModule.CorLibTypes.String, UTF8String.Empty));
-			ca.ConstructorArguments.Add(new CAArgument(ManifestModule.CorLibTypes.String, UTF8String.Empty));
+			ca.ConstructorArguments.Add(new CAArgument(manifestModule.CorLibTypes.String, UTF8String.Empty));
+			ca.ConstructorArguments.Add(new CAArgument(manifestModule.CorLibTypes.String, UTF8String.Empty));
 			return ca;
 		}
 
@@ -719,7 +781,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnClear() {
-			foreach (var module in Modules) {
+			foreach (var module in Modules.GetEnumerable_NoLock()) {
 				if (module != null)
 					module.Assembly = null;
 			}
@@ -741,7 +803,7 @@ namespace dnlib.DotNet {
 		PublicKey publicKey;
 		UTF8String name;
 		UTF8String locale;
-		IList<DeclSecurity> declSecurities = new List<DeclSecurity>();
+		ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
 		LazyList<ModuleDef> modules;
 		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
@@ -762,7 +824,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override AssemblyAttributes Attributes {
+		protected override AssemblyAttributes Attributes_NoLock {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -786,12 +848,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<DeclSecurity> DeclSecurities {
+		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get { return declSecurities; }
 		}
 
 		/// <inheritdoc/>
-		public override IList<ModuleDef> Modules {
+		public override ThreadSafe.IList<ModuleDef> Modules {
 			get { return modules; }
 		}
 
@@ -894,7 +956,7 @@ namespace dnlib.DotNet {
 	sealed class AssemblyDefMD : AssemblyDef {
 		/// <summary>The module where this instance is located</summary>
 		ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow"/> is called</summary>
+		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawAssemblyRow rawRow;
 
 		UserValue<AssemblyHashAlgorithm> hashAlgId;
@@ -924,7 +986,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override AssemblyAttributes Attributes {
+		protected override AssemblyAttributes Attributes_NoLock {
 			get { return flags.Value; }
 			set { flags.Value = value; }
 		}
@@ -948,32 +1010,34 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IList<DeclSecurity> DeclSecurities {
+		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get {
 				if (declSecurities == null) {
 					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, rid);
-					declSecurities = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+					var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref declSecurities, tmp, null);
 				}
 				return declSecurities;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IList<ModuleDef> Modules {
+		public override ThreadSafe.IList<ModuleDef> Modules {
 			get {
 				if (modules == null) {
 					var list = readerModule.GetModuleRidList();
-					modules = new LazyList<ModuleDef>((int)list.Length + 1, this, list, (list2, index) => {
+					var tmp = new LazyList<ModuleDef>((int)list.Length + 1, this, list, (list2, index) => {
 						ModuleDef module;
 						if (index == 0)
 							module = readerModule;
 						else
-							module = readerModule.ReadModule(((RidList)list2)[index - 1]);
+							module = readerModule.ReadModule(((RidList)list2)[index - 1], this);
 						if (module == null)
 							module = new ModuleDefUser("INVALID", Guid.NewGuid());
 						module.Assembly = this;
 						return module;
 					});
+					Interlocked.CompareExchange(ref modules, tmp, null);
 				}
 				return modules;
 			}
@@ -984,7 +1048,8 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributeCollection == null) {
 					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, rid);
-					customAttributeCollection = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
 				return customAttributeCollection;
 			}
@@ -1013,32 +1078,40 @@ namespace dnlib.DotNet {
 
 		void Initialize() {
 			hashAlgId.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (AssemblyHashAlgorithm)rawRow.HashAlgId;
 			};
 			version.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return new Version(rawRow.MajorVersion, rawRow.MinorVersion, rawRow.BuildNumber, rawRow.RevisionNumber);
 			};
 			flags.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return (AssemblyAttributes)rawRow.Flags;
 			};
 			publicKey.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return new PublicKey(readerModule.BlobStream.Read(rawRow.PublicKey));
 			};
 			name.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			locale.ReadOriginalValue = () => {
-				InitializeRawRow();
+				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Locale);
 			};
+#if THREAD_SAFE
+			hashAlgId.Lock = theLock;
+			version.Lock = theLock;
+			// flags.Lock = theLock;	No lock for this one
+			publicKey.Lock = theLock;
+			name.Lock = theLock;
+			locale.Lock = theLock;
+#endif
 		}
 
-		void InitializeRawRow() {
+		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadAssemblyRow(rid);

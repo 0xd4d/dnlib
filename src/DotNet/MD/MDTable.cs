@@ -103,8 +103,11 @@ namespace dnlib.DotNet.MD {
 		internal IImageStream ImageStream {
 			get { return imageStream; }
 			set {
-				if (imageStream != null)
-					imageStream.Dispose();
+				var ims = imageStream;
+				if (ims == value)
+					return;
+				if (ims != null)
+					ims.Dispose();
 				imageStream = value;
 			}
 		}
@@ -119,6 +122,10 @@ namespace dnlib.DotNet.MD {
 			this.table = table;
 			this.numRows = numRows;
 			this.tableInfo = tableInfo;
+		}
+
+		internal IImageStream CloneImageStream() {
+			return imageStream.Clone();
 		}
 
 		/// <summary>
@@ -139,8 +146,9 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (imageStream != null)
-				imageStream.Dispose();
+			var ims = imageStream;
+			if (ims != null)
+				ims.Dispose();
 			numRows = 0;
 			tableInfo = null;
 			imageStream = null;
