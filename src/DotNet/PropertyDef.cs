@@ -22,7 +22,6 @@
 */
 
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;

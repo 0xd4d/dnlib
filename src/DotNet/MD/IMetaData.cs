@@ -22,7 +22,6 @@
 */
 
 ﻿using System;
-using System.Collections.Generic;
 using dnlib.PE;
 using dnlib.Threading;
 
