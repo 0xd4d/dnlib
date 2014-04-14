@@ -177,7 +177,7 @@ namespace dnlib.DotNet.MD {
 		/// Initializes the metadata, tables, streams
 		/// </summary>
 		public void Initialize() {
-			Initialize2();
+			InitializeInternal();
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
@@ -201,7 +201,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Called by <see cref="Initialize()"/>
 		/// </summary>
-		protected abstract void Initialize2();
+		protected abstract void InitializeInternal();
 
 		/// <inheritdoc/>
 		public virtual RidList GetTypeDefRidList() {

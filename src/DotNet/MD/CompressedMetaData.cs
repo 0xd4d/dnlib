@@ -48,7 +48,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override void Initialize2() {
+		protected override void InitializeInternal() {
 			var hotHeapVersion = GetHotHeapVersion(mdHeader.VersionString);
 
 			IImageStream imageStream = null, fullStream = null;

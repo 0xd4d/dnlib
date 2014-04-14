@@ -153,7 +153,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override void Initialize2() {
+		protected override void InitializeInternal() {
 			IImageStream imageStream = null;
 			DotNetStream dns = null;
 			try {
