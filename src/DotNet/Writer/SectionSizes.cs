@@ -51,19 +51,19 @@ namespace dnlib.DotNet.Writer {
 	/// Calculates the optional header section sizes
 	/// </summary>
 	struct SectionSizes {
-		public uint sizeOfHeaders;
-		public uint sizeOfImage;
-		public uint baseOfData, baseOfCode;
-		public uint sizeOfCode, sizeOfInitdData, sizeOfUninitdData;
+		public readonly uint SizeOfHeaders;
+		public readonly uint SizeOfImage;
+		public readonly uint BaseOfData, BaseOfCode;
+		public readonly uint SizeOfCode, SizeOfInitdData, SizeOfUninitdData;
 
 		public SectionSizes(uint fileAlignment, uint sectionAlignment, uint headerLen, MFunc<IEnumerable<SectionSizeInfo>> getSectionSizeInfos) {
-			sizeOfHeaders = Utils.AlignUp(headerLen, fileAlignment);
-			sizeOfImage = Utils.AlignUp(sizeOfHeaders, sectionAlignment);
-			baseOfData = 0;
-			baseOfCode = 0;
-			sizeOfCode = 0;
-			sizeOfInitdData = 0;
-			sizeOfUninitdData = 0;
+			SizeOfHeaders = Utils.AlignUp(headerLen, fileAlignment);
+			SizeOfImage = Utils.AlignUp(SizeOfHeaders, sectionAlignment);
+			BaseOfData = 0;
+			BaseOfCode = 0;
+			SizeOfCode = 0;
+			SizeOfInitdData = 0;
+			SizeOfUninitdData = 0;
 			foreach (var section in getSectionSizeInfos()) {
 				uint sectAlignedVs = Utils.AlignUp(section.length, sectionAlignment);
 				uint fileAlignedVs = Utils.AlignUp(section.length, fileAlignment);
@@ -72,18 +72,18 @@ namespace dnlib.DotNet.Writer {
 				bool isInitdData = (section.characteristics & 0x40) != 0;
 				bool isUnInitdData = (section.characteristics & 0x80) != 0;
 
-				if (baseOfCode == 0 && isCode)
-					baseOfCode = sizeOfImage;
-				if (baseOfData == 0 && (isInitdData || isUnInitdData))
-					baseOfData = sizeOfImage;
+				if (BaseOfCode == 0 && isCode)
+					BaseOfCode = SizeOfImage;
+				if (BaseOfData == 0 && (isInitdData || isUnInitdData))
+					BaseOfData = SizeOfImage;
 				if (isCode)
-					sizeOfCode += fileAlignedVs;
+					SizeOfCode += fileAlignedVs;
 				if (isInitdData)
-					sizeOfInitdData += fileAlignedVs;
+					SizeOfInitdData += fileAlignedVs;
 				if (isUnInitdData)
-					sizeOfUninitdData += fileAlignedVs;
+					SizeOfUninitdData += fileAlignedVs;
 
-				sizeOfImage += sectAlignedVs;
+				SizeOfImage += sectAlignedVs;
 			}
 		}
 	}

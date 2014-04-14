@@ -458,12 +458,12 @@ namespace dnlib.DotNet.Writer {
 				writer.BaseStream.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
 				WriteByte(writer, peOptions.MinorLinkerVersion);
-				writer.Write(sectionSizes.sizeOfCode);
-				writer.Write(sectionSizes.sizeOfInitdData);
-				writer.Write(sectionSizes.sizeOfUninitdData);
+				writer.Write(sectionSizes.SizeOfCode);
+				writer.Write(sectionSizes.SizeOfInitdData);
+				writer.Write(sectionSizes.SizeOfUninitdData);
 				writer.BaseStream.Position += 4;	// EntryPoint
-				writer.Write(sectionSizes.baseOfCode);
-				writer.Write(sectionSizes.baseOfData);
+				writer.Write(sectionSizes.BaseOfCode);
+				writer.Write(sectionSizes.BaseOfData);
 				WriteUInt32(writer, peOptions.ImageBase);
 				writer.BaseStream.Position += 8;	// SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
@@ -473,8 +473,8 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt16(writer, peOptions.MajorSubsystemVersion);
 				WriteUInt16(writer, peOptions.MinorSubsystemVersion);
 				WriteUInt32(writer, peOptions.Win32VersionValue);
-				writer.Write(sectionSizes.sizeOfImage);
-				writer.Write(sectionSizes.sizeOfHeaders);
+				writer.Write(sectionSizes.SizeOfImage);
+				writer.Write(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				WriteUInt16(writer, peOptions.Subsystem);
@@ -490,11 +490,11 @@ namespace dnlib.DotNet.Writer {
 				writer.BaseStream.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
 				WriteByte(writer, peOptions.MinorLinkerVersion);
-				writer.Write(sectionSizes.sizeOfCode);
-				writer.Write(sectionSizes.sizeOfInitdData);
-				writer.Write(sectionSizes.sizeOfUninitdData);
+				writer.Write(sectionSizes.SizeOfCode);
+				writer.Write(sectionSizes.SizeOfInitdData);
+				writer.Write(sectionSizes.SizeOfUninitdData);
 				writer.BaseStream.Position += 4;	// EntryPoint
-				writer.Write(sectionSizes.baseOfCode);
+				writer.Write(sectionSizes.BaseOfCode);
 				WriteUInt64(writer, peOptions.ImageBase);
 				writer.BaseStream.Position += 8;	// SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
@@ -504,8 +504,8 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt16(writer, peOptions.MajorSubsystemVersion);
 				WriteUInt16(writer, peOptions.MinorSubsystemVersion);
 				WriteUInt32(writer, peOptions.Win32VersionValue);
-				writer.Write(sectionSizes.sizeOfImage);
-				writer.Write(sectionSizes.sizeOfHeaders);
+				writer.Write(sectionSizes.SizeOfImage);
+				writer.Write(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				WriteUInt16(writer, peOptions.Subsystem ?? GetSubsystem());

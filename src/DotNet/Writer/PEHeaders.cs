@@ -359,12 +359,12 @@ namespace dnlib.DotNet.Writer {
 				writer.Write((ushort)0x010B);
 				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
 				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
-				writer.Write(sectionSizes.sizeOfCode);
-				writer.Write(sectionSizes.sizeOfInitdData);
-				writer.Write(sectionSizes.sizeOfUninitdData);
+				writer.Write(sectionSizes.SizeOfCode);
+				writer.Write(sectionSizes.SizeOfInitdData);
+				writer.Write(sectionSizes.SizeOfUninitdData);
 				writer.Write(ep);
-				writer.Write(sectionSizes.baseOfCode);
-				writer.Write(sectionSizes.baseOfData);
+				writer.Write(sectionSizes.BaseOfCode);
+				writer.Write(sectionSizes.BaseOfData);
 				writer.Write((uint)imageBase);
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
@@ -375,8 +375,8 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(options.MajorSubsystemVersion ?? 4);
 				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
-				writer.Write(sectionSizes.sizeOfImage);
-				writer.Write(sectionSizes.sizeOfHeaders);
+				writer.Write(sectionSizes.SizeOfImage);
+				writer.Write(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
@@ -392,11 +392,11 @@ namespace dnlib.DotNet.Writer {
 				writer.Write((ushort)0x020B);
 				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
 				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
-				writer.Write(sectionSizes.sizeOfCode);
-				writer.Write(sectionSizes.sizeOfInitdData);
-				writer.Write(sectionSizes.sizeOfUninitdData);
+				writer.Write(sectionSizes.SizeOfCode);
+				writer.Write(sectionSizes.SizeOfInitdData);
+				writer.Write(sectionSizes.SizeOfUninitdData);
 				writer.Write(ep);
-				writer.Write(sectionSizes.baseOfCode);
+				writer.Write(sectionSizes.BaseOfCode);
 				writer.Write(imageBase);
 				writer.Write(sectionAlignment);
 				writer.Write(fileAlignment);
@@ -407,8 +407,8 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(options.MajorSubsystemVersion ?? 4);
 				writer.Write(options.MinorSubsystemVersion ?? 0);
 				writer.Write(options.Win32VersionValue ?? 0);
-				writer.Write(sectionSizes.sizeOfImage);
-				writer.Write(sectionSizes.sizeOfHeaders);
+				writer.Write(sectionSizes.SizeOfImage);
+				writer.Write(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.BaseStream.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
@@ -439,7 +439,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteDataDirectory(null);	// Reserved
 
 			// Sections
-			uint rva = Utils.AlignUp(sectionSizes.sizeOfHeaders, sectionAlignment);
+			uint rva = Utils.AlignUp(sectionSizes.SizeOfHeaders, sectionAlignment);
 			foreach (var section in sections)
 				rva += section.WriteHeaderTo(writer, fileAlignment, sectionAlignment, rva);
 		}
