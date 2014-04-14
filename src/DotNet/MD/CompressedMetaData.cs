@@ -260,13 +260,13 @@ namespace dnlib.DotNet.MD {
 			var column = tableSource.TableInfo.Columns[colIndex];
 			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
-				return ContiguousRidList.Empty;
+				return RidList.Empty;
 			uint nextListRid;
 			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
 
 			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
-				return ContiguousRidList.Empty;
+				return RidList.Empty;
 			uint endRid = hasNext ? nextListRid : lastRid;
 			if (endRid < startRid)
 				endRid = startRid;

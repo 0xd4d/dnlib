@@ -31,6 +31,11 @@ namespace dnlib.DotNet.MD {
 	[DebuggerDisplay("Length = {Length}")]
 	public abstract class RidList {
 		/// <summary>
+		/// The empty <see cref="RidList"/>
+		/// </summary>
+		public static readonly RidList Empty = new ContiguousRidList(0, 0);
+
+		/// <summary>
 		/// Gets the number of rids it will iterate over (UInt32)
 		/// </summary>
 		public abstract uint Length { get; }
@@ -59,11 +64,6 @@ namespace dnlib.DotNet.MD {
 	/// A <see cref="RidList"/> where the rids are contiguous
 	/// </summary>
 	sealed class ContiguousRidList : RidList {
-		/// <summary>
-		/// The empty <see cref="RidList"/>
-		/// </summary>
-		public static readonly ContiguousRidList Empty = new ContiguousRidList(0, 0);
-
 		readonly uint startRid;
 		readonly uint length;
 

@@ -130,7 +130,7 @@ namespace dnlib.DotNet.MD {
 			public RidList FindAllRows(uint key) {
 				int startIndex = BinarySearch(key);
 				if (startIndex == 0)
-					return ContiguousRidList.Empty;
+					return RidList.Empty;
 				int endIndex = startIndex + 1;
 				for (; startIndex > 1; startIndex--) {
 					if (key != rows[startIndex - 1].key)
@@ -474,13 +474,13 @@ namespace dnlib.DotNet.MD {
 			var column = tableSource.TableInfo.Columns[colIndex];
 			uint startRid;
 			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
-				return ContiguousRidList.Empty;
+				return RidList.Empty;
 			uint nextListRid;
 			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
 
 			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
-				return ContiguousRidList.Empty;
+				return RidList.Empty;
 			uint endRid = hasNext && nextListRid != 0 ? nextListRid : lastRid;
 			if (endRid < startRid)
 				endRid = startRid;
@@ -539,7 +539,7 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		protected override RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) {
 			if (tableSource == null)
-				return ContiguousRidList.Empty;
+				return RidList.Empty;
 			if (tablesStream.IsSorted(tableSource))
 				return FindAllRows(tableSource, keyColIndex, key);
 			SortedTable sortedTable;
