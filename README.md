@@ -1,6 +1,6 @@
 dnlib is a library that can read, write and create .NET assemblies and modules.
 
-It was written for [de4dot](https://bitbucket.org/0xd4d/de4dot/) which must
+It was written for [de4dot](https://github.com/0xd4d/de4dot/) which must
 have a rock solid assembly reader and writer library since it has to deal with
 heavily obfuscated assemblies with invalid metadata. If the CLR can load the
 assembly, dnlib must be able to read it and save it.
