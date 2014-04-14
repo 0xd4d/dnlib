@@ -603,101 +603,6 @@ namespace dnlib.Threading {
 
 #if THREAD_SAFE
 		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.IndexOf_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="item">Item</param>
-		/// <returns>Index of <paramref name="item"/></returns>
-		public static int IndexOf_NoLock<T>(this ThreadSafe.IList<T> tsList, T item) {
-			return tsList.IndexOf_NoLock(item);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.Insert_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="index">Index</param>
-		/// <param name="item">Item</param>
-		public static void Insert_NoLock<T>(this ThreadSafe.IList<T> tsList, int index, T item) {
-			tsList.Insert_NoLock(index, item);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.RemoveAt_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="index">Index</param>
-		public static void RemoveAt_NoLock<T>(this ThreadSafe.IList<T> tsList, int index) {
-			tsList.RemoveAt_NoLock(index);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.Get_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="index">Index</param>
-		/// <returns>Value at index <paramref name="index"/></returns>
-		public static T Get_NoLock<T>(this ThreadSafe.IList<T> tsList, int index) {
-			return tsList.Get_NoLock(index);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.Set_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="index">Index</param>
-		/// <param name="value">Value</param>
-		public static void Set_NoLock<T>(this ThreadSafe.IList<T> tsList, int index, T value) {
-			tsList.Set_NoLock(index, value);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.Add_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="item">Item</param>
-		public static void Add_NoLock<T>(this ThreadSafe.IList<T> tsList, T item) {
-			tsList.Add_NoLock(item);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.Clear_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		public static void Clear_NoLock<T>(this ThreadSafe.IList<T> tsList) {
-			tsList.Clear_NoLock();
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.Contains_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="item">Item</param>
-		/// <returns><c>true</c> if <paramref name="item"/> is in the list, else <c>false</c></returns>
-		public static bool Contains_NoLock<T>(this ThreadSafe.IList<T> tsList, T item) {
-			return tsList.Contains_NoLock(item);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.CopyTo_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="array">Destination array</param>
-		/// <param name="arrayIndex">Destination index</param>
-		public static void CopyTo_NoLock<T>(this ThreadSafe.IList<T> tsList, T[] array, int arrayIndex) {
-			tsList.CopyTo_NoLock(array, arrayIndex);
-		}
-
-		/// <summary>
 		/// Calls <see cref="ThreadSafe.IList{T}.Count_NoLock"/>
 		/// </summary>
 		/// <typeparam name="T">Type to store in list</typeparam>
@@ -714,27 +619,6 @@ namespace dnlib.Threading {
 		/// <param name="tsList">A thread-safe list</param>
 		public static bool IsReadOnly_NoLock<T>(this ThreadSafe.IList<T> tsList) {
 			return tsList.IsReadOnly_NoLock;
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.Remove_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <param name="item">Item</param>
-		/// <returns><c>true</c> if <paramref name="item"/> was removed, else <c>false</c></returns>
-		public static bool Remove_NoLock<T>(this ThreadSafe.IList<T> tsList, T item) {
-			return tsList.Remove_NoLock(item);
-		}
-
-		/// <summary>
-		/// Calls <see cref="ThreadSafe.IList{T}.GetEnumerator_NoLock"/>
-		/// </summary>
-		/// <typeparam name="T">Type to store in list</typeparam>
-		/// <param name="tsList">A thread-safe list</param>
-		/// <returns>A new <see cref="IEnumerator{T}"/> instance</returns>
-		public static IEnumerator<T> GetEnumerator_NoLock<T>(this ThreadSafe.IList<T> tsList) {
-			return tsList.GetEnumerator_NoLock();
 		}
 #endif
 
