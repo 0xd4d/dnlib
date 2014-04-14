@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Emit {
 		static readonly FieldInfo currSigFieldInfo = typeof(SignatureHelper).GetField("m_currSig", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		static readonly FieldInfo signatureFieldInfo = typeof(SignatureHelper).GetField("m_signature", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		static readonly FieldInfo ptrFieldInfo = typeof(RuntimeTypeHandle).GetField("m_ptr", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-		static Dictionary<IntPtr, Type> addrToType = new Dictionary<IntPtr, Type>();
+		static readonly Dictionary<IntPtr, Type> addrToType = new Dictionary<IntPtr, Type>();
 		static ModuleBuilder moduleBuilder;
 		static int numNewTypes;
 #if THREAD_SAFE

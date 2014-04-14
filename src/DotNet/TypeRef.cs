@@ -242,7 +242,7 @@ namespace dnlib.DotNet {
 		IResolutionScope resolutionScope;
 		UTF8String name;
 		UTF8String @namespace;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override IResolutionScope ResolutionScope {
@@ -307,7 +307,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class TypeRefMD : TypeRef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawTypeRefRow rawRow;
 

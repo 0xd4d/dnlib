@@ -42,10 +42,10 @@ namespace dnlib.DotNet.Writer {
 	/// Writes <see cref="CustomAttribute"/>s
 	/// </summary>
 	public struct CustomAttributeWriter : IDisposable {
-		ICustomAttributeWriterHelper helper;
+		readonly ICustomAttributeWriterHelper helper;
 		RecursionCounter recursionCounter;
-		MemoryStream outStream;
-		BinaryWriter writer;
+		readonly MemoryStream outStream;
+		readonly BinaryWriter writer;
 		GenericArguments genericArguments;
 
 		/// <summary>

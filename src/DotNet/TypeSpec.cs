@@ -189,7 +189,7 @@ namespace dnlib.DotNet {
 	public class TypeSpecUser : TypeSpec {
 		TypeSig typeSig;
 		byte[] extraData;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override TypeSig TypeSig {
@@ -228,7 +228,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class TypeSpecMD : TypeSpec {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawTypeSpecRow rawRow;
 

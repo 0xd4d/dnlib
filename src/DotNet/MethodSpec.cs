@@ -178,7 +178,7 @@ namespace dnlib.DotNet {
 	public class MethodSpecUser : MethodSpec {
 		IMethodDefOrRef method;
 		CallingConventionSig instantiation;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override IMethodDefOrRef Method {
@@ -227,7 +227,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class MethodSpecMD : MethodSpec {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMethodSpecRow rawRow;
 

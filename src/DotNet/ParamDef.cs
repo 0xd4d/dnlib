@@ -237,7 +237,7 @@ namespace dnlib.DotNet {
 		UTF8String name;
 		FieldMarshal fieldMarshal;
 		Constant constant;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override MethodDef DeclaringMethod {
@@ -321,7 +321,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class ParamDefMD : ParamDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawParamRow rawRow;
 

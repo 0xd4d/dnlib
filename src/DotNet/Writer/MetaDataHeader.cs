@@ -85,7 +85,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MetaDataHeader : IChunk {
 		IList<IHeap> heaps;
-		MetaDataHeaderOptions options;
+		readonly MetaDataHeaderOptions options;
 		uint length;
 		FileOffset offset;
 		RVA rva;

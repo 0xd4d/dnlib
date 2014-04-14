@@ -33,7 +33,7 @@ namespace dnlib.DotNet {
 	/// current assembly, and if that fails, try mscorlib
 	/// </summary>
 	sealed class CAAssemblyRefFinder : IAssemblyRefFinder {
-		ModuleDef module;
+		readonly ModuleDef module;
 
 		/// <summary>
 		/// Constructor

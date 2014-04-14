@@ -138,7 +138,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public class ModuleRefUser : ModuleRef {
 		UTF8String name;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override UTF8String Name {
@@ -175,7 +175,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class ModuleRefMD : ModuleRef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawModuleRefRow rawRow;
 

@@ -29,12 +29,12 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Length of section
 		/// </summary>
-		public uint length;
+		public readonly uint length;
 
 		/// <summary>
 		/// Section characteristics
 		/// </summary>
-		public uint characteristics;
+		public readonly uint characteristics;
 
 		/// <summary>
 		/// Constructor

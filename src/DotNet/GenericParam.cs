@@ -248,7 +248,7 @@ namespace dnlib.DotNet {
 		UTF8String name;
 		ITypeDefOrRef kind;
 		LazyList<GenericParamConstraint> genericParamConstraints;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override ITypeOrMethodDef Owner {
@@ -332,7 +332,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class GenericParamMD : GenericParam {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawGenericParamRow rawRow;
 

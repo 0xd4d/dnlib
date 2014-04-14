@@ -51,9 +51,9 @@ namespace dnlib.DotNet {
 	/// Reads signatures from the #Blob stream
 	/// </summary>
 	struct SignatureReader : IDisposable {
-		ISignatureReaderHelper helper;
-		ICorLibTypes corLibTypes;
-		IImageStream reader;
+		readonly ISignatureReaderHelper helper;
+		readonly ICorLibTypes corLibTypes;
+		readonly IImageStream reader;
 		RecursionCounter recursionCounter;
 
 		/// <summary>

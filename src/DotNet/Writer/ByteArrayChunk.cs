@@ -30,7 +30,7 @@ namespace dnlib.DotNet.Writer {
 	/// Stores a byte array
 	/// </summary>
 	public sealed class ByteArrayChunk : IChunk {
-		byte[] array;
+		readonly byte[] array;
 		FileOffset offset;
 		RVA rva;
 

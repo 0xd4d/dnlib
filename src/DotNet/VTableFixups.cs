@@ -154,7 +154,7 @@ namespace dnlib.DotNet {
 	public sealed class VTable : IEnumerable<IMethod> {
 		RVA rva;
 		VTableFlags flags;
-		ThreadSafe.IList<IMethod> methods;
+		readonly ThreadSafe.IList<IMethod> methods;
 
 		/// <summary>
 		/// Gets/sets the <see cref="RVA"/> of this vtable

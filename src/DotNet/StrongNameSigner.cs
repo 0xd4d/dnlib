@@ -31,8 +31,8 @@ namespace dnlib.DotNet {
 	/// (.NET 4.5) enhanced strong name signing.
 	/// </summary>
 	public struct StrongNameSigner {
-		Stream stream;
-		long baseOffset;
+		readonly Stream stream;
+		readonly long baseOffset;
 
 		/// <summary>
 		/// Constructor

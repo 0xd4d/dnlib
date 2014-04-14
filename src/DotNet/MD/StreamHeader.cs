@@ -33,9 +33,9 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	[DebuggerDisplay("O:{offset} L:{streamSize} {name}")]
 	public sealed class StreamHeader : FileSection {
-		uint offset;
-		uint streamSize;
-		string name;
+		readonly uint offset;
+		readonly uint streamSize;
+		readonly string name;
 
 		/// <summary>
 		/// The offset of the stream relative to the start of the MetaData header

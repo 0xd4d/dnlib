@@ -526,7 +526,7 @@ namespace dnlib.DotNet {
 	/// A Field row created by the user and not present in the original .NET file
 	/// </summary>
 	public class FieldDefUser : FieldDef {
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		FieldAttributes flags;
 		UTF8String name;
 		CallingConventionSig signature;
@@ -644,7 +644,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class FieldDefMD : FieldDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawFieldRow rawRow;
 

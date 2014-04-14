@@ -359,7 +359,7 @@ namespace dnlib.DotNet {
 		IMemberRefParent @class;
 		UTF8String name;
 		CallingConventionSig signature;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override IMemberRefParent Class {
@@ -456,7 +456,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class MemberRefMD : MemberRef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMemberRefRow rawRow;
 

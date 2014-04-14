@@ -272,11 +272,11 @@ namespace dnlib.DotNet {
 		EventAttributes flags;
 		UTF8String name;
 		ITypeDefOrRef type;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		MethodDef addMethod;
 		MethodDef invokeMethod;
 		MethodDef removeMethod;
-		ThreadSafe.IList<MethodDef> otherMethods = ThreadSafeListCreator.Create<MethodDef>();
+		readonly ThreadSafe.IList<MethodDef> otherMethods = ThreadSafeListCreator.Create<MethodDef>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -372,7 +372,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class EventDefMD : EventDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawEventRow rawRow;
 

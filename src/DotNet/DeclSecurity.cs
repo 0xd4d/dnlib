@@ -82,7 +82,7 @@ namespace dnlib.DotNet {
 	public class DeclSecurityUser : DeclSecurity {
 		DeclSecurityAction action;
 		byte[] permissionSet;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override DeclSecurityAction Action {
@@ -123,7 +123,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class DeclSecurityMD : DeclSecurity {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawDeclSecurityRow rawRow;
 

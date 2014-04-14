@@ -43,8 +43,8 @@ namespace dnlib.DotNet.Writer {
 		const uint HH_ALIGNMENT = 4;
 
 		uint totalLength;
-		HotTable[] headers = new HotTable[MAX_TABLES];
-		List<HotPool> hotPools = new List<HotPool>();
+		readonly HotTable[] headers = new HotTable[MAX_TABLES];
+		readonly List<HotPool> hotPools = new List<HotPool>();
 
 		/// <summary>
 		/// Gets the hot heap version

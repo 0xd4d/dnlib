@@ -48,9 +48,9 @@ namespace dnlib.DotNet.Writer {
 		bool indexesIsSorted;
 
 		internal class DataInfo {
-			public uint HeapOffset;
+			public readonly uint HeapOffset;
 			public uint PoolOffset;
-			public byte[] Data;
+			public readonly byte[] Data;
 			public DataInfo(uint heapOffset, byte[] data) {
 				this.HeapOffset = heapOffset;
 				this.Data = data;

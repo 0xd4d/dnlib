@@ -130,7 +130,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class ConstantMD : Constant {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawConstantRow rawRow;
 

@@ -76,7 +76,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public class InterfaceImplUser : InterfaceImpl {
 		ITypeDefOrRef @interface;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Interface {
@@ -109,7 +109,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class InterfaceImplMD : InterfaceImpl {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawInterfaceImplRow rawRow;
 

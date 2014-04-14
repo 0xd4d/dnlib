@@ -90,7 +90,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public class StandAloneSigUser : StandAloneSig {
 		CallingConventionSig signature;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override CallingConventionSig Signature {
@@ -131,7 +131,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class StandAloneSigMD : StandAloneSig {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawStandAloneSigRow rawRow;
 

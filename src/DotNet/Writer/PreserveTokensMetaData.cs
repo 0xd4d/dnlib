@@ -32,23 +32,23 @@ namespace dnlib.DotNet.Writer {
 	/// Preserves metadata tokens
 	/// </summary>
 	sealed class PreserveTokensMetaData : MetaData {
-		ModuleDefMD mod;
-		Rows<TypeRef> typeRefInfos = new Rows<TypeRef>();
-		Dictionary<TypeDef, uint> typeToRid = new Dictionary<TypeDef, uint>();
+		readonly ModuleDefMD mod;
+		readonly Rows<TypeRef> typeRefInfos = new Rows<TypeRef>();
+		readonly Dictionary<TypeDef, uint> typeToRid = new Dictionary<TypeDef, uint>();
 		MemberDefDict<FieldDef> fieldDefInfos;
 		MemberDefDict<MethodDef> methodDefInfos;
 		MemberDefDict<ParamDef> paramDefInfos;
-		Rows<MemberRef> memberRefInfos = new Rows<MemberRef>();
-		Rows<StandAloneSig> standAloneSigInfos = new Rows<StandAloneSig>();
+		readonly Rows<MemberRef> memberRefInfos = new Rows<MemberRef>();
+		readonly Rows<StandAloneSig> standAloneSigInfos = new Rows<StandAloneSig>();
 		MemberDefDict<EventDef> eventDefInfos;
 		MemberDefDict<PropertyDef> propertyDefInfos;
-		Rows<TypeSpec> typeSpecInfos = new Rows<TypeSpec>();
-		Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
-		Dictionary<uint, uint> callConvTokenToSignature = new Dictionary<uint, uint>();
+		readonly Rows<TypeSpec> typeSpecInfos = new Rows<TypeSpec>();
+		readonly Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
+		readonly Dictionary<uint, uint> callConvTokenToSignature = new Dictionary<uint, uint>();
 
 		[DebuggerDisplay("{Rid} -> {NewRid} {Def}")]
 		sealed class MemberDefInfo<T> where T : IMDTokenProvider {
-			public T Def;
+			public readonly T Def;
 
 			/// <summary>
 			/// Its real rid
@@ -70,20 +70,20 @@ namespace dnlib.DotNet.Writer {
 
 		[DebuggerDisplay("Count = {Count}")]
 		sealed class MemberDefDict<T> where T : IMDTokenProvider {
-			Type defMDType;
+			readonly Type defMDType;
 			uint userRid = 0x01000000;
 			uint newRid = 1;
 			int numDefMDs;
 			int numDefUsers;
 			int tableSize;
 			bool wasSorted;
-			bool preserveRids;
-			bool enableRidToInfo;
-			Dictionary<T, MemberDefInfo<T>> defToInfo = new Dictionary<T, MemberDefInfo<T>>();
+			readonly bool preserveRids;
+			readonly bool enableRidToInfo;
+			readonly Dictionary<T, MemberDefInfo<T>> defToInfo = new Dictionary<T, MemberDefInfo<T>>();
 			Dictionary<uint, MemberDefInfo<T>> ridToInfo;
-			List<MemberDefInfo<T>> defs = new List<MemberDefInfo<T>>();
+			readonly List<MemberDefInfo<T>> defs = new List<MemberDefInfo<T>>();
 			List<MemberDefInfo<T>> sortedDefs;
-			Dictionary<T, int> collectionPositions = new Dictionary<T, int>();
+			readonly Dictionary<T, int> collectionPositions = new Dictionary<T, int>();
 
 			/// <summary>
 			/// Gets total number of defs in the list. It does <c>not</c> necessarily return

@@ -308,10 +308,10 @@ namespace dnlib.DotNet {
 		UTF8String name;
 		CallingConventionSig type;
 		Constant constant;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		MethodDef getMethod;
 		MethodDef setMethod;
-		ThreadSafe.IList<MethodDef> otherMethods = ThreadSafeListCreator.Create<MethodDef>();
+		readonly ThreadSafe.IList<MethodDef> otherMethods = ThreadSafeListCreator.Create<MethodDef>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -407,7 +407,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class PropertyDefMD : PropertyDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawPropertyRow rawRow;
 

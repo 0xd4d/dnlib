@@ -893,11 +893,11 @@ namespace dnlib.DotNet {
 		CallingConventionSig signature;
 		ThreadSafe.IList<ParamDef> parameters;
 		LazyList<GenericParam> genericParams;
-		ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
+		readonly ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
 		ImplMap implMap;
 		MethodBody methodBody;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-		ThreadSafe.IList<MethodOverride> overrides = ThreadSafeListCreator.Create<MethodOverride>();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly ThreadSafe.IList<MethodOverride> overrides = ThreadSafeListCreator.Create<MethodOverride>();
 		TypeDef declaringType;
 
 		/// <inheritdoc/>
@@ -1042,7 +1042,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class MethodDefMD : MethodDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMethodRow rawRow;
 

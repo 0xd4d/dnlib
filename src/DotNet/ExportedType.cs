@@ -518,7 +518,7 @@ namespace dnlib.DotNet {
 	/// An ExportedType row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ExportedTypeUser : ExportedType {
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		TypeAttributes flags;
 		uint typeDefId;
 		UTF8String typeName;
@@ -592,7 +592,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class ExportedTypeMD : ExportedType {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawExportedTypeRow rawRow;
 

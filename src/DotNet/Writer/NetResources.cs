@@ -32,8 +32,8 @@ namespace dnlib.DotNet.Writer {
 	/// .NET resources
 	/// </summary>
 	public sealed class NetResources : IChunk {
-		List<ByteArrayChunk> resources = new List<ByteArrayChunk>();
-		uint alignment;
+		readonly List<ByteArrayChunk> resources = new List<ByteArrayChunk>();
+		readonly uint alignment;
 		uint length;
 		bool setOffsetCalled;
 		FileOffset offset;

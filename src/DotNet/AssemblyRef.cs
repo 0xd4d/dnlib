@@ -380,7 +380,7 @@ namespace dnlib.DotNet {
 		UTF8String name;
 		UTF8String locale;
 		byte[] hashValue;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override CustomAttributeCollection CustomAttributes {
@@ -561,7 +561,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class AssemblyRefMD : AssemblyRef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawAssemblyRefRow rawRow;
 

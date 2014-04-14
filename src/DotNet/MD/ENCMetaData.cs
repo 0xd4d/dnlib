@@ -52,8 +52,8 @@ namespace dnlib.DotNet.MD {
 			/// </summary>
 			[DebuggerDisplay("{rid} {key}")]
 			struct RowInfo : IComparable<RowInfo> {
-				public uint rid;
-				public uint key;
+				public readonly uint rid;
+				public readonly uint key;
 
 				/// <summary>
 				/// Constructor

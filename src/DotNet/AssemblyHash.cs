@@ -30,7 +30,7 @@ namespace dnlib.DotNet {
 	/// Hashes some data according to a <see cref="AssemblyHashAlgorithm"/>
 	/// </summary>
 	struct AssemblyHash : IDisposable {
-		HashAlgorithm hasher;
+		readonly HashAlgorithm hasher;
 
 		/// <summary>
 		/// Constructor

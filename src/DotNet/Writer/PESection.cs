@@ -30,8 +30,8 @@ namespace dnlib.DotNet.Writer {
 	/// A PE section
 	/// </summary>
 	public sealed class PESection : ChunkList<IChunk> {
-		string name;
-		uint characteristics;
+		readonly string name;
+		readonly uint characteristics;
 
 		/// <summary>
 		/// Gets the name

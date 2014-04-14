@@ -37,8 +37,8 @@ namespace dnlib.DotNet {
 	public sealed class CustomAttribute {
 		ICustomAttributeType ctor;
 		byte[] rawData;
-		ThreadSafe.IList<CAArgument> arguments;
-		ThreadSafe.IList<CANamedArgument> namedArguments;
+		readonly ThreadSafe.IList<CAArgument> arguments;
+		readonly ThreadSafe.IList<CANamedArgument> namedArguments;
 
 		/// <summary>
 		/// Gets/sets the custom attribute constructor

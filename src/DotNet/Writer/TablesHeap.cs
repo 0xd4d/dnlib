@@ -78,7 +78,7 @@ namespace dnlib.DotNet.Writer {
 		bool bigGuid;
 		bool bigBlob;
 		bool hasDeletedRows;
-		TablesHeapOptions options;
+		readonly TablesHeapOptions options;
 		FileOffset offset;
 		RVA rva;
 

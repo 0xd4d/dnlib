@@ -160,7 +160,7 @@ namespace dnlib.Utils {
 		/// initialized or not.
 		/// </summary>
 		sealed class LazyElement : Element {
-			internal uint origIndex;
+			internal readonly uint origIndex;
 			LazyList<TValue> lazyList;
 
 			/// <inheritdoc/>

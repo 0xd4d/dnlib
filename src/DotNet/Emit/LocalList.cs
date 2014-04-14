@@ -38,7 +38,7 @@ namespace dnlib.DotNet.Emit {
 	/// </summary>
 	[DebuggerDisplay("Count = {Count}")]
 	public sealed class LocalList : IListListener<Local>, ThreadSafe.IList<Local> {
-		LazyList<Local> locals;
+		readonly LazyList<Local> locals;
 
 		/// <summary>
 		/// Gets the number of locals

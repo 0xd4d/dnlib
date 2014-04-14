@@ -25,7 +25,7 @@
 
 namespace dnlib.DotNet {
 	sealed class CorLibTypes : ICorLibTypes {
-		ModuleDef module;
+		readonly ModuleDef module;
 		CorLibTypeSig typeVoid;
 		CorLibTypeSig typeBoolean;
 		CorLibTypeSig typeChar;
@@ -44,7 +44,7 @@ namespace dnlib.DotNet {
 		CorLibTypeSig typeIntPtr;
 		CorLibTypeSig typeUIntPtr;
 		CorLibTypeSig typeObject;
-		AssemblyRef corLibAssemblyRef;
+		readonly AssemblyRef corLibAssemblyRef;
 
 		/// <inheritdoc/>
 		public CorLibTypeSig Void {

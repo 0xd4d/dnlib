@@ -30,7 +30,7 @@ namespace dnlib.DotNet.Writer {
 	/// #GUID heap
 	/// </summary>
 	public sealed class GuidHeap : HeapBase, IOffsetHeap<Guid> {
-		List<Guid> guids = new List<Guid>();
+		readonly List<Guid> guids = new List<Guid>();
 		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>

@@ -48,10 +48,10 @@ namespace dnlib.DotNet.Writer {
 	/// Writes signatures
 	/// </summary>
 	public struct SignatureWriter : IDisposable {
-		ISignatureWriterHelper helper;
+		readonly ISignatureWriterHelper helper;
 		RecursionCounter recursionCounter;
-		MemoryStream outStream;
-		BinaryWriter writer;
+		readonly MemoryStream outStream;
+		readonly BinaryWriter writer;
 
 		/// <summary>
 		/// Write a <see cref="TypeSig"/> signature

@@ -30,7 +30,7 @@ using dnlib.Threading;
 	/// Resolves types, methods, fields
 	/// </summary>
 	public sealed class Resolver : IResolver {
-		IAssemblyResolver assemblyResolver;
+		readonly IAssemblyResolver assemblyResolver;
 
 		/// <summary>
 		/// Constructor

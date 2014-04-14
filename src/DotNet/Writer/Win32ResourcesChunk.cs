@@ -38,14 +38,14 @@ namespace dnlib.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 		uint length;
-		Dictionary<ResourceDirectory, uint> dirDict = new Dictionary<ResourceDirectory, uint>();
-		List<ResourceDirectory> dirList = new List<ResourceDirectory>();
-		Dictionary<ResourceData, uint> dataHeaderDict = new Dictionary<ResourceData, uint>();
-		List<ResourceData> dataHeaderList = new List<ResourceData>();
-		Dictionary<string, uint> stringsDict = new Dictionary<string, uint>(StringComparer.Ordinal);
-		List<string> stringsList = new List<string>();
-		Dictionary<IBinaryReader, uint> dataDict = new Dictionary<IBinaryReader, uint>();
-		List<IBinaryReader> dataList = new List<IBinaryReader>();
+		readonly Dictionary<ResourceDirectory, uint> dirDict = new Dictionary<ResourceDirectory, uint>();
+		readonly List<ResourceDirectory> dirList = new List<ResourceDirectory>();
+		readonly Dictionary<ResourceData, uint> dataHeaderDict = new Dictionary<ResourceData, uint>();
+		readonly List<ResourceData> dataHeaderList = new List<ResourceData>();
+		readonly Dictionary<string, uint> stringsDict = new Dictionary<string, uint>(StringComparer.Ordinal);
+		readonly List<string> stringsList = new List<string>();
+		readonly Dictionary<IBinaryReader, uint> dataDict = new Dictionary<IBinaryReader, uint>();
+		readonly List<IBinaryReader> dataList = new List<IBinaryReader>();
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset {

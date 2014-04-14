@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 		uint length;
 		bool setOffsetCalled;
-		bool alignFatBodies;
+		readonly bool alignFatBodies;
 		uint savedBytes;
 
 		/// <inheritdoc/>

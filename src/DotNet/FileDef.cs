@@ -168,7 +168,7 @@ namespace dnlib.DotNet {
 		FileAttributes flags;
 		UTF8String name;
 		byte[] hashValue;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		protected override FileAttributes Flags_NoLock {
@@ -217,7 +217,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class FileDefMD : FileDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawFileRow rawRow;
 

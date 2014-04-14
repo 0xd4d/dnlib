@@ -32,8 +32,8 @@ namespace dnlib.DotNet.Writer {
 	/// #Blob heap
 	/// </summary>
 	public sealed class BlobHeap : HeapBase, IOffsetHeap<byte[]> {
-		Dictionary<byte[], uint> cachedDict = new Dictionary<byte[], uint>(ByteArrayEqualityComparer.Instance);
-		List<byte[]> cached = new List<byte[]>();
+		readonly Dictionary<byte[], uint> cachedDict = new Dictionary<byte[], uint>(ByteArrayEqualityComparer.Instance);
+		readonly List<byte[]> cached = new List<byte[]>();
 		uint nextOffset = 1;
 		byte[] originalData;
 		Dictionary<uint, byte[]> userRawData;

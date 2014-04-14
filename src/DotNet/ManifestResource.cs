@@ -164,7 +164,7 @@ namespace dnlib.DotNet {
 		ManifestResourceAttributes flags;
 		UTF8String name;
 		IImplementation implementation;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override uint Offset {
@@ -240,7 +240,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class ManifestResourceMD : ManifestResource {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawManifestResourceRow rawRow;
 

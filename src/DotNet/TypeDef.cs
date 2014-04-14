@@ -1534,14 +1534,14 @@ namespace dnlib.DotNet {
 		LazyList<FieldDef> fields;
 		LazyList<MethodDef> methods;
 		LazyList<GenericParam> genericParams;
-		ThreadSafe.IList<InterfaceImpl> interfaceImpls = ThreadSafeListCreator.Create<InterfaceImpl>();
-		ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
+		readonly ThreadSafe.IList<InterfaceImpl> interfaceImpls = ThreadSafeListCreator.Create<InterfaceImpl>();
+		readonly ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
 		ClassLayout classLayout;
 		TypeDef declaringType;
 		LazyList<EventDef> events;
 		LazyList<PropertyDef> properties;
 		LazyList<TypeDef> nestedTypes;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		ModuleDef module;
 
 		/// <inheritdoc/>
@@ -1681,7 +1681,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class TypeDefMD : TypeDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawTypeDefRow rawRow;
 

@@ -48,10 +48,10 @@ namespace dnlib.DotNet {
 		static readonly GacInfo gac4Info;	// .NET 4.x
 
 		ModuleContext defaultModuleContext;
-		Dictionary<ModuleDef, IList<string>> moduleSearchPaths = new Dictionary<ModuleDef, IList<string>>();
-		Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.Ordinal);
-		ThreadSafe.IList<string> preSearchPaths = ThreadSafeListCreator.Create<string>();
-		ThreadSafe.IList<string> postSearchPaths = ThreadSafeListCreator.Create<string>();
+		readonly Dictionary<ModuleDef, IList<string>> moduleSearchPaths = new Dictionary<ModuleDef, IList<string>>();
+		readonly Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.Ordinal);
+		readonly ThreadSafe.IList<string> preSearchPaths = ThreadSafeListCreator.Create<string>();
+		readonly ThreadSafe.IList<string> postSearchPaths = ThreadSafeListCreator.Create<string>();
 		bool findExactMatch;
 		bool enableTypeDefCache;
 #if THREAD_SAFE
@@ -59,9 +59,9 @@ namespace dnlib.DotNet {
 #endif
 
 		sealed class GacInfo {
-			public string path;
-			public string prefix;
-			public IList<string> subDirs;
+			public readonly string path;
+			public readonly string prefix;
+			public readonly IList<string> subDirs;
 
 			public GacInfo(string prefix, string path, IList<string> subDirs) {
 				this.prefix = prefix;

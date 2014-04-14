@@ -32,8 +32,8 @@ namespace dnlib.DotNet.Writer {
 	/// #US heap
 	/// </summary>
 	public sealed class USHeap : HeapBase, IOffsetHeap<string> {
-		Dictionary<string, uint> cachedDict = new Dictionary<string, uint>(StringComparer.Ordinal);
-		List<string> cached = new List<string>();
+		readonly Dictionary<string, uint> cachedDict = new Dictionary<string, uint>(StringComparer.Ordinal);
+		readonly List<string> cached = new List<string>();
 		uint nextOffset = 1;
 		byte[] originalData;
 		Dictionary<uint, byte[]> userRawData;

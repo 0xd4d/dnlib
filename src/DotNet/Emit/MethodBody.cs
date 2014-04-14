@@ -74,9 +74,9 @@ namespace dnlib.DotNet.Emit {
 		bool initLocals;
 		ushort maxStack;
 		uint localVarSigTok;
-		ThreadSafe.IList<Instruction> instructions;
-		ThreadSafe.IList<ExceptionHandler> exceptionHandlers;
-		LocalList localList;
+		readonly ThreadSafe.IList<Instruction> instructions;
+		readonly ThreadSafe.IList<ExceptionHandler> exceptionHandlers;
+		readonly LocalList localList;
 
 		/// <summary>
 		/// Gets/sets the init locals flag. This is only valid if the method has any locals.

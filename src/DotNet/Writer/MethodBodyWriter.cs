@@ -59,9 +59,9 @@ namespace dnlib.DotNet.Writer {
 	/// Writes CIL method bodies
 	/// </summary>
 	public sealed class MethodBodyWriter : MethodBodyWriterBase {
-		ITokenCreator helper;
-		CilBody cilBody;
-		bool keepMaxStack;
+		readonly ITokenCreator helper;
+		readonly CilBody cilBody;
+		readonly bool keepMaxStack;
 		uint codeSize;
 		uint maxStack;
 		byte[] code;

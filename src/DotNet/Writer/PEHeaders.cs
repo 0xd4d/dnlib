@@ -175,12 +175,12 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class PEHeaders : IChunk {
 		IList<PESection> sections;
-		PEHeadersOptions options;
+		readonly PEHeadersOptions options;
 		FileOffset offset;
 		RVA rva;
 		uint length;
-		uint sectionAlignment;
-		uint fileAlignment;
+		readonly uint sectionAlignment;
+		readonly uint fileAlignment;
 		ulong imageBase;
 		static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		long startOffset;

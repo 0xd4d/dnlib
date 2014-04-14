@@ -93,7 +93,7 @@ namespace dnlib.DotNet.Writer {
 		List<OrigSection> origSections;
 
 		/// <summary>Original PE image</summary>
-		IPEImage peImage;
+		readonly IPEImage peImage;
 
 		/// <summary>New sections we've added and their data</summary>
 		List<PESection> sections;

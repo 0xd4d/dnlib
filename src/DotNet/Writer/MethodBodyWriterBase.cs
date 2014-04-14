@@ -31,10 +31,10 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public abstract class MethodBodyWriterBase {
 		/// <summary/>
-		protected IList<Instruction> instructions;
+		protected readonly IList<Instruction> instructions;
 		/// <summary/>
-		protected IList<ExceptionHandler> exceptionHandlers;
-		Dictionary<Instruction, uint> offsets = new Dictionary<Instruction, uint>();
+		protected readonly IList<ExceptionHandler> exceptionHandlers;
+		readonly Dictionary<Instruction, uint> offsets = new Dictionary<Instruction, uint>();
 		uint firstInstructionOffset;
 		int errors;
 

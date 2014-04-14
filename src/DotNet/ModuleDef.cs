@@ -73,7 +73,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Array of last used rid in each table. I.e., next free rid is value + 1
 		/// </summary>
-		protected int[] lastUsedRids = new int[64];
+		protected readonly int[] lastUsedRids = new int[64];
 
 		/// <summary>Module context</summary>
 		protected ModuleContext context;
@@ -1035,11 +1035,11 @@ namespace dnlib.DotNet {
 		Guid? mvid;
 		Guid? encId;
 		Guid? encBaseId;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 		AssemblyDef assembly;
 		LazyList<TypeDef> types;
-		ThreadSafe.IList<ExportedType> exportedTypes = ThreadSafeListCreator.Create<ExportedType>();
-		ResourceCollection resources = new ResourceCollection();
+		readonly ThreadSafe.IList<ExportedType> exportedTypes = ThreadSafeListCreator.Create<ExportedType>();
+		readonly ResourceCollection resources = new ResourceCollection();
 		RVA nativeEntryPoint;
 		IManagedEntryPoint managedEntryPoint;
 		Win32Resources win32Resources;
@@ -1192,7 +1192,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public class ModuleDefMD2 : ModuleDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawModuleRow rawRow;
 

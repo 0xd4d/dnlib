@@ -25,8 +25,8 @@
 
 namespace dnlib.DotNet {
 	struct GenericArgumentsStack {
-		List<IList<TypeSig>> argsStack;
-		bool isTypeVar;
+		readonly List<IList<TypeSig>> argsStack;
+		readonly bool isTypeVar;
 
 		/// <summary>
 		/// Constructor

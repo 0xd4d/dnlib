@@ -32,8 +32,8 @@ namespace dnlib.DotNet.Writer {
 	public class BinaryReaderChunk : IChunk {
 		FileOffset offset;
 		RVA rva;
-		IBinaryReader data;
-		uint virtualSize;
+		readonly IBinaryReader data;
+		readonly uint virtualSize;
 
 		/// <summary>
 		/// Gets the data

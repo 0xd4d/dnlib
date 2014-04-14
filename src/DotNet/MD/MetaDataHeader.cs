@@ -33,17 +33,17 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	/// <remarks><c>IMAGE_COR20_HEADER.MetaData</c> points to this header</remarks>
 	public sealed class MetaDataHeader : FileSection {
-		uint signature;
-		ushort majorVersion;
-		ushort minorVersion;
-		uint reserved1;
-		uint stringLength;
-		string versionString;
-		uint offset2ndPart;
-		StorageFlags flags;
-		byte reserved2;
-		ushort streams;
-		IList<StreamHeader> streamHeaders;
+		readonly uint signature;
+		readonly ushort majorVersion;
+		readonly ushort minorVersion;
+		readonly uint reserved1;
+		readonly uint stringLength;
+		readonly string versionString;
+		readonly uint offset2ndPart;
+		readonly StorageFlags flags;
+		readonly byte reserved2;
+		readonly ushort streams;
+		readonly IList<StreamHeader> streamHeaders;
 
 		/// <summary>
 		/// Returns the signature (should be 0x424A5342)

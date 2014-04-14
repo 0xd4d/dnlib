@@ -71,7 +71,7 @@ namespace dnlib.DotNet {
 	/// and <see cref="FieldInfo"/>s as references
 	/// </summary>
 	public struct Importer {
-		ModuleDef module;
+		readonly ModuleDef module;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
 

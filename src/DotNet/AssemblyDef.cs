@@ -797,9 +797,9 @@ namespace dnlib.DotNet {
 		PublicKey publicKey;
 		UTF8String name;
 		UTF8String locale;
-		ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
+		readonly ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
 		LazyList<ModuleDef> modules;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgorithm {
@@ -949,7 +949,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class AssemblyDefMD : AssemblyDef {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawAssemblyRow rawRow;
 

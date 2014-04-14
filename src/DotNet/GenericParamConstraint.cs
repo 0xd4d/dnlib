@@ -80,7 +80,7 @@ namespace dnlib.DotNet {
 	public class GenericParamConstraintUser : GenericParamConstraint {
 		GenericParam owner;
 		ITypeDefOrRef constraint;
-		CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
+		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
 		public override GenericParam Owner {
@@ -119,7 +119,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	sealed class GenericParamConstraintMD : GenericParamConstraint {
 		/// <summary>The module where this instance is located</summary>
-		ModuleDefMD readerModule;
+		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawGenericParamConstraintRow rawRow;
 

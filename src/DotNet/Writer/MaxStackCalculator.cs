@@ -31,9 +31,9 @@ namespace dnlib.DotNet.Writer {
 	/// can be placed in the fat method header's MaxStack field.
 	/// </summary>
 	public struct MaxStackCalculator {
-		IList<Instruction> instructions;
-		IList<ExceptionHandler> exceptionHandlers;
-		Dictionary<Instruction, int> stackHeights;
+		readonly IList<Instruction> instructions;
+		readonly IList<ExceptionHandler> exceptionHandlers;
+		readonly Dictionary<Instruction, int> stackHeights;
 		int errors;
 
 		/// <summary>

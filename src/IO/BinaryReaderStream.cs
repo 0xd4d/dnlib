@@ -31,7 +31,7 @@ namespace dnlib.IO {
 	/// </summary>
 	sealed class BinaryReaderStream : Stream {
 		IBinaryReader reader;
-		bool ownsReader;
+		readonly bool ownsReader;
 
 		/// <summary>
 		/// Constructor
