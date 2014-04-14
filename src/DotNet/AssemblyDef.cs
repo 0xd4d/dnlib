@@ -53,11 +53,6 @@ namespace dnlib.DotNet {
 		internal readonly Lock theLock = Lock.Create();
 #endif
 
-		/// <summary>
-		/// The manifest module
-		/// </summary>
-		protected ModuleDef manifestModule;
-
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.Assembly, rid); }
