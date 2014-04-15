@@ -38,6 +38,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public string Name {
 			get { return name; }
+			set { name = value; }
 		}
 
 		/// <summary>
@@ -45,6 +46,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public uint Characteristics {
 			get { return characteristics; }
+			set { characteristics = value; }
 		}
 
 		/// <summary>
