@@ -101,6 +101,9 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>New .text section where we put some stuff, eg. .NET metadata</summary>
 		PESection textSection;
 
+		/// <summary>The new COR20 header</summary>
+		ByteArrayChunk imageCor20Header;
+
 		/// <summary>
 		/// New .rsrc section where we put the new Win32 resources. This is <c>null</c> if there
 		/// are no Win32 resources or if <see cref="NativeModuleWriterOptions.KeepWin32Resources"/>
@@ -118,13 +121,6 @@ namespace dnlib.DotNet.Writer {
 		/// signature doesn't fit in the old location, this will be non-<c>null</c>.
 		/// </summary>
 		StrongNameSignature strongNameSignature;
-
-		/// <summary>
-		/// If we must sign the assembly and the new strong name signature fits in the old
-		/// location, this is the offset of the old strong name sig which will be overwritten
-		/// with the new sn sig.
-		/// </summary>
-		long? strongNameSigOffset;
 
 		sealed class OrigSection : IDisposable {
 			public ImageSectionHeader peSection;
@@ -253,23 +249,17 @@ namespace dnlib.DotNet.Writer {
 		void CreateChunks() {
 			CreateMetaDataChunks(module);
 
+			imageCor20Header = new ByteArrayChunk(new byte[0x48]);
+
 			if (Options.StrongNameKey != null) {
 				int snSigSize = Options.StrongNameKey.SignatureSize;
 				var cor20Hdr = module.MetaData.ImageCor20Header;
-				if ((uint)snSigSize <= cor20Hdr.StrongNameSignature.Size) {
-					// The original file had a strong name signature, and the new strong name
-					// signature fits in that location.
-					strongNameSigOffset = (long)module.MetaData.PEImage.ToFileOffset(cor20Hdr.StrongNameSignature.VirtualAddress);
-				}
-				else {
-					// The original image wasn't signed, or its strong name signature is smaller
-					// than the new strong name signature. Create a new one.
-					strongNameSignature = new StrongNameSignature(snSigSize);
-				}
+				strongNameSignature = new StrongNameSignature(snSigSize);
 			}
 		}
 
 		void AddChunksToSections() {
+			textSection.Add(imageCor20Header, DEFAULT_COR20HEADER_ALIGNMENT);
 			textSection.Add(strongNameSignature, DEFAULT_STRONGNAMESIG_ALIGNMENT);
 			textSection.Add(constants, DEFAULT_CONSTANTS_ALIGNMENT);
 			textSection.Add(methodBodies, DEFAULT_METHODBODIES_ALIGNMENT);
@@ -390,8 +380,6 @@ namespace dnlib.DotNet.Writer {
 			if (Options.StrongNameKey != null) {
 				if (strongNameSignature != null)
 					StrongNameSign((long)strongNameSignature.FileOffset);
-				else if (strongNameSigOffset != null)
-					StrongNameSign(strongNameSigOffset.Value);
 			}
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
 
@@ -436,7 +424,7 @@ namespace dnlib.DotNet.Writer {
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
 			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
 			long dataDirOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.EndOffset - 16 * 8;
-			long cor20Offset = destStreamBaseOffset + (long)module.MetaData.ImageCor20Header.StartOffset;
+			long cor20Offset = destStreamBaseOffset + (long)imageCor20Header.FileOffset;
 
 			uint fileAlignment = peImage.ImageNTHeaders.OptionalHeader.FileAlignment;
 			uint sectionAlignment = peImage.ImageNTHeaders.OptionalHeader.SectionAlignment;
@@ -451,7 +439,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write((ushort)(peOptions.Characteristics ?? GetCharacteristics()));
 
 			// Update optional header
-			var sectionSizes = new SectionSizes(fileAlignment, sectionAlignment, headerSection.GetVirtualSize(), () => GetSectionSizeInfos());
+			var sectionSizes = new SectionSizes(fileAlignment, sectionAlignment, headerSection.GetVirtualSize(), GetSectionSizeInfos);
 			writer.BaseStream.Position = optionalHeaderOffset;
 			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			if (is32BitOptionalHeader) {
@@ -524,6 +512,10 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteDataDirectory(win32Resources);
 			}
 
+			// Write a new Metadata data directory
+			writer.BaseStream.Position = dataDirOffset + 14 * 8;
+			writer.WriteDataDirectory(imageCor20Header);
+
 			// Update old sections, and add new sections
 			writer.BaseStream.Position = sectionsOffset;
 			foreach (var section in origSections) {
@@ -534,8 +526,9 @@ namespace dnlib.DotNet.Writer {
 			foreach (var section in sections)
 				section.WriteHeaderTo(writer, fileAlignment, sectionAlignment, (uint)section.RVA);
 
-			// Update .NET header
-			writer.BaseStream.Position = cor20Offset + 4;
+			// Write the .NET header
+			writer.BaseStream.Position = cor20Offset;
+			writer.Write(0x48);		// cb
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MajorRuntimeVersion);
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MinorRuntimeVersion);
 			writer.WriteDataDirectory(metaData);
@@ -543,17 +536,21 @@ namespace dnlib.DotNet.Writer {
 			writer.Write((uint)GetComImageFlags(GetEntryPoint(out entryPoint)));
 			writer.Write(Options.Cor20HeaderOptions.EntryPoint ?? entryPoint);
 			writer.WriteDataDirectory(netResources);
-			if (Options.StrongNameKey != null) {
-				if (strongNameSignature != null)
-					writer.WriteDataDirectory(strongNameSignature);
-				else if (strongNameSigOffset != null) {
-					// RVA is the same. Only need to update size.
-					writer.BaseStream.Position += 4;
-					writer.Write(Options.StrongNameKey.SignatureSize);
-				}
-			}
+			if (Options.StrongNameKey != null && strongNameSignature != null)
+				writer.WriteDataDirectory(strongNameSignature);
+			else
+				writer.Write(0L);
+			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.CodeManagerTable);
+			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.VTableFixups);
+			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.ExportAddressTableJumps);
+			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.ManagedNativeHeader);
 
 			UpdateVTableFixups(writer);
+		}
+
+		static void WriteDataDirectory(BinaryWriter writer, ImageDataDirectory dataDir) {
+			writer.Write((uint)dataDir.VirtualAddress);
+			writer.Write(dataDir.Size);
 		}
 
 		static void WriteByte(BinaryWriter writer, byte? value) {

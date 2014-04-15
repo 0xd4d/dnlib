@@ -321,6 +321,8 @@ namespace dnlib.DotNet.Writer {
 		protected internal const uint DEFAULT_WIN32_RESOURCES_ALIGNMENT = 8;
 		/// <summary>Default strong name signature alignment</summary>
 		protected const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
+		/// <summary>Default COR20 header alignment</summary>
+		protected const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
 
 		/// <summary>See <see cref="DestinationStream"/></summary>
 		protected Stream destStream;

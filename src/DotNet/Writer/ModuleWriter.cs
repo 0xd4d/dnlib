@@ -62,7 +62,6 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class ModuleWriter : ModuleWriterBase {
 		const uint DEFAULT_IAT_ALIGNMENT = 4;
-		const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
 		const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_IMPORTDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_STARTUPSTUB_ALIGNMENT = 1;
