@@ -198,6 +198,7 @@ namespace dnlib.DotNet.MD {
 						}
 						break;
 
+					case "#~":	// Only if #Schema is used
 					case "#-":
 						if (tablesStream == null) {
 							tablesStream = new TablesStream(imageStream, sh);

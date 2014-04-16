@@ -200,13 +200,20 @@ namespace dnlib.DotNet.MD {
 		}
 
 		static MetaDataType GetMetaDataType(IList<StreamHeader> streamHeaders) {
+			MetaDataType? mdType = null;
 			foreach (var sh in streamHeaders) {
-				if (sh.Name == "#~")
-					return MetaDataType.Compressed;
-				if (sh.Name == "#-")
-					return MetaDataType.ENC;
+				if (mdType == null) {
+					if (sh.Name == "#~")
+						mdType = MetaDataType.Compressed;
+					else if (sh.Name == "#-")
+						mdType = MetaDataType.ENC;
+				}
+				if (sh.Name == "#Schema")
+					mdType = MetaDataType.ENC;
 			}
-			return MetaDataType.Unknown;
+			if (mdType == null)
+				return MetaDataType.Unknown;
+			return mdType.Value;
 		}
 
 		/// <inheritdoc/>
