@@ -116,12 +116,6 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		long checkSumOffset;
 
-		/// <summary>
-		/// If we must sign the assembly, and either it wasn't signed, or if the strong name
-		/// signature doesn't fit in the old location, this will be non-<c>null</c>.
-		/// </summary>
-		StrongNameSignature strongNameSignature;
-
 		sealed class OrigSection : IDisposable {
 			public ImageSectionHeader peSection;
 			public BinaryReaderChunk chunk;
@@ -250,12 +244,7 @@ namespace dnlib.DotNet.Writer {
 			CreateMetaDataChunks(module);
 
 			imageCor20Header = new ByteArrayChunk(new byte[0x48]);
-
-			if (Options.StrongNameKey != null) {
-				int snSigSize = Options.StrongNameKey.SignatureSize;
-				var cor20Hdr = module.MetaData.ImageCor20Header;
-				strongNameSignature = new StrongNameSignature(snSigSize);
-			}
+			CreateStrongNameSignature();
 		}
 
 		void AddChunksToSections() {
@@ -377,10 +366,8 @@ namespace dnlib.DotNet.Writer {
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
-			if (Options.StrongNameKey != null) {
-				if (strongNameSignature != null)
-					StrongNameSign((long)strongNameSignature.FileOffset);
-			}
+			if (Options.StrongNameKey != null)
+				StrongNameSign((long)strongNameSignature.FileOffset);
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
@@ -536,10 +523,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write((uint)GetComImageFlags(GetEntryPoint(out entryPoint)));
 			writer.Write(Options.Cor20HeaderOptions.EntryPoint ?? entryPoint);
 			writer.WriteDataDirectory(netResources);
-			if (Options.StrongNameKey != null && strongNameSignature != null)
-				writer.WriteDataDirectory(strongNameSignature);
-			else
-				writer.Write(0L);
+			writer.WriteDataDirectory(strongNameSignature);
 			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.CodeManagerTable);
 			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.VTableFixups);
 			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.ExportAddressTableJumps);

@@ -78,7 +78,6 @@ namespace dnlib.DotNet.Writer {
 		PEHeaders peHeaders;
 		ImportAddressTable importAddressTable;
 		ImageCor20Header imageCor20Header;
-		StrongNameSignature strongNameSignature;
 		DebugDirectory debugDirectory;
 		ImportDirectory importDirectory;
 		StartupStub startupStub;
@@ -156,13 +155,6 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public ImageCor20Header ImageCor20Header {
 			get { return imageCor20Header; }
-		}
-
-		/// <summary>
-		/// Gets the strong name signature or <c>null</c> if there's none
-		/// </summary>
-		public StrongNameSignature StrongNameSignature {
-			get { return strongNameSignature; }
 		}
 
 		/// <summary>
@@ -255,14 +247,7 @@ namespace dnlib.DotNet.Writer {
 				relocDirectory = new RelocDirectory();
 			}
 
-			if (Options.StrongNameKey != null)
-				strongNameSignature = new StrongNameSignature(Options.StrongNameKey.SignatureSize);
-			else if (module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey)) {
-				int len = module.Assembly.PublicKey.Data.Length - 0x20;
-				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
-			}
-			else if (((Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags) & ComImageFlags.StrongNameSigned) != 0)
-				strongNameSignature = new StrongNameSignature(0x80);
+			CreateStrongNameSignature();
 
 			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
 			CreateMetaDataChunks(module);

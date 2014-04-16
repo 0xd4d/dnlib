@@ -341,6 +341,11 @@ namespace dnlib.DotNet.Writer {
 		IModuleWriterListener listener;
 
 		/// <summary>
+		/// Strong name signature
+		/// </summary>
+		protected StrongNameSignature strongNameSignature;
+
+		/// <summary>
 		/// Returns the module writer options
 		/// </summary>
 		public abstract ModuleWriterOptionsBase TheOptions { get; }
@@ -393,6 +398,13 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public Win32ResourcesChunk Win32Resources {
 			get { return win32Resources; }
+		}
+
+		/// <summary>
+		/// Gets the strong name signature or <c>null</c> if there's none
+		/// </summary>
+		public StrongNameSignature StrongNameSignature {
+			get { return strongNameSignature; }
 		}
 
 		/// <summary>
@@ -450,6 +462,21 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <returns>Number of bytes written</returns>
 		protected abstract long WriteImpl();
+
+		/// <summary>
+		/// Creates the strong name signature if the module has one of the strong name flags
+		/// set or wants to sign the assembly.
+		/// </summary>
+		protected void CreateStrongNameSignature() {
+			if (TheOptions.StrongNameKey != null)
+				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
+			else if (TheModule.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(TheModule.Assembly.PublicKey)) {
+				int len = TheModule.Assembly.PublicKey.Data.Length - 0x20;
+				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
+			}
+			else if (((TheOptions.Cor20HeaderOptions.Flags ?? TheModule.Cor20HeaderFlags) & ComImageFlags.StrongNameSigned) != 0)
+				strongNameSignature = new StrongNameSignature(0x80);
+		}
 
 		/// <summary>
 		/// Creates the .NET metadata chunks (constants, method bodies, .NET resources,
