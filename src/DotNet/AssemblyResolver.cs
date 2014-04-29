@@ -671,6 +671,14 @@ namespace dnlib.DotNet {
 			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET Web Pages\v1.0\Assemblies");
 			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET Web Pages\v2.0\Assemblies");
 			AddIfExists(paths, path, @"Microsoft SDKs\F#\3.0\Framework\v4.0");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v3.0\Assemblies");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v4.0\Assemblies");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v4.1\Assemblies\le");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v4.1\Assemblies\be");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v4.2\Assemblies\le");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v4.2\Assemblies\be");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v4.3\Assemblies\le");
+			AddIfExists(paths, path, @"Microsoft .NET Micro Framework\v4.3\Assemblies\be");
 		}
 
 		static void AddSilverlightDirs(IList<string> paths, string basePath) {
