@@ -161,7 +161,7 @@ namespace dnlib.DotNet.MD {
 #endif
 
 		/// <summary>
-		/// Gets/sets the <see cref="dnlib.DotNet.MD.HotHeapStream"/> instance
+		/// Gets/sets the <see cref="HotHeapStream"/> instance
 		/// </summary>
 		internal HotHeapStream HotHeapStream {
 			set { hotHeapStream = value; }

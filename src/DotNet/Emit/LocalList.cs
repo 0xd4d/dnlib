@@ -34,7 +34,7 @@ using ThreadSafe = System.Collections.Generic;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
-	/// Stores a collection of <see cref="Local"/>
+	/// A collection of <see cref="Local"/>s
 	/// </summary>
 	[DebuggerDisplay("Count = {Count}")]
 	public sealed class LocalList : IListListener<Local>, ThreadSafe.IList<Local> {
