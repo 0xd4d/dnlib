@@ -500,6 +500,25 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		static readonly Dictionary<string, int> preferredCorLibs = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
+			// .NET Framework
+			{ "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", 100 },
+			{ "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", 90 },
+			{ "mscorlib, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", 60 },
+			{ "mscorlib, Version=1.0.3300.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", 50 },
+
+			// Silverlight
+			{ "mscorlib, Version=5.0.5.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e", 80 },
+			{ "mscorlib, Version=2.0.5.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e", 70 },
+
+			// Zune
+			{ "mscorlib, Version=3.5.0.0, Culture=neutral, PublicKeyToken=e92a8b81eba7ceb7", 60 },
+
+			// Compact Framework
+			{ "mscorlib, Version=3.5.0.0, Culture=neutral, PublicKeyToken=969db8053d3322ac", 60 },
+			{ "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=969db8053d3322ac", 50 },
+		};
+
 		/// <summary>
 		/// Finds a mscorlib <see cref="AssemblyRef"/>
 		/// </summary>
@@ -507,6 +526,21 @@ namespace dnlib.DotNet {
 		AssemblyRef FindCorLibAssemblyRef() {
 			var numAsmRefs = TablesStream.AssemblyRefTable.Rows;
 			AssemblyRef corLibAsmRef = null;
+
+			int currentPriority = int.MinValue;
+			for (uint i = 1; i <= numAsmRefs; i++) {
+				var asmRef = ResolveAssemblyRef(i);
+				int priority;
+				if (!preferredCorLibs.TryGetValue(asmRef.FullName, out priority))
+					continue;
+				if (priority > currentPriority) {
+					currentPriority = priority;
+					corLibAsmRef = asmRef;
+				}
+			}
+			if (corLibAsmRef != null)
+				return corLibAsmRef;
+
 			for (uint i = 1; i <= numAsmRefs; i++) {
 				var asmRef = ResolveAssemblyRef(i);
 				if (!UTF8String.ToSystemStringOrEmpty(asmRef.Name).Equals("mscorlib", StringComparison.OrdinalIgnoreCase))
