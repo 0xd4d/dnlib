@@ -28,7 +28,10 @@ using dnlib.IO;
 using dnlib.Threading;
 
 namespace dnlib.DotNet {
-	interface ISignatureReaderHelper {
+	/// <summary>
+	/// Helps <see cref="SignatureReader"/> resolve types
+	/// </summary>
+	public interface ISignatureReaderHelper {
 		/// <summary>
 		/// Resolves a <see cref="ITypeDefOrRef"/>
 		/// </summary>
@@ -50,10 +53,10 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Reads signatures from the #Blob stream
 	/// </summary>
-	struct SignatureReader : IDisposable {
+	public struct SignatureReader : IDisposable {
 		readonly ISignatureReaderHelper helper;
 		readonly ICorLibTypes corLibTypes;
-		readonly IImageStream reader;
+		readonly IBinaryReader reader;
 		RecursionCounter recursionCounter;
 
 		/// <summary>
@@ -97,7 +100,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ModuleDefMD module, IImageStream signature) {
+		public static CallingConventionSig ReadSig(ModuleDefMD module, IBinaryReader signature) {
 			return ReadSig(module, module.CorLibTypes, signature);
 		}
 
@@ -121,7 +124,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IImageStream signature) {
+		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature) {
 			try {
 				using (var reader = new SignatureReader(helper, corLibTypes, signature)) {
 					if (reader.reader.Length == 0)
@@ -199,7 +202,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD module, IImageStream signature) {
+		public static TypeSig ReadTypeSig(ModuleDefMD module, IBinaryReader signature) {
 			return ReadTypeSig(module, module.CorLibTypes, signature);
 		}
 
@@ -223,7 +226,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IImageStream signature) {
+		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature) {
 			try {
 				using (var reader = new SignatureReader(helper, corLibTypes, signature)) {
 					TypeSig ts;
@@ -231,7 +234,6 @@ namespace dnlib.DotNet {
 						ts = reader.ReadType();
 					}
 					catch (IOException) {
-						reader.reader.Position = 0;
 						ts = null;
 					}
 					return ts;
@@ -257,7 +259,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Token resolver</param>
 		/// <param name="corLibTypes">ICorLibTypes instance</param>
 		/// <param name="reader">The signature data</param>
-		SignatureReader(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IImageStream reader) {
+		SignatureReader(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader reader) {
 			this.helper = helper;
 			this.corLibTypes = corLibTypes;
 			this.reader = reader;

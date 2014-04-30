@@ -71,7 +71,7 @@ namespace dnlib.DotNet {
 	/// Thrown by CustomAttributeReader when it fails to parse a custom attribute blob
 	/// </summary>
 	[Serializable]
-	class CABlobParserException : Exception {
+	public class CABlobParserException : Exception {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
