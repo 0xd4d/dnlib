@@ -255,7 +255,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET meta data
 	/// </summary>
-	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper {
+	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IMarshalBlobWriterHelper {
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -2025,16 +2025,16 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="parent">New owner token</param>
 		/// <param name="hfm">Owner</param>
 		protected void AddFieldMarshal(MDToken parent, IHasFieldMarshal hfm) {
-			if (hfm == null || hfm.FieldMarshal == null)
+			if (hfm == null || hfm.MarshalType == null)
 				return;
-			var fieldMarshal = hfm.FieldMarshal;
+			var fieldMarshal = hfm.MarshalType;
 			uint encodedParent;
 			if (!CodedToken.HasFieldMarshal.Encode(parent, out encodedParent)) {
 				Error("Can't encode HasFieldMarshal token {0:X8}", parent.Raw);
 				encodedParent = 0;
 			}
 			var row = new RawFieldMarshalRow(encodedParent,
-						blobHeap.Add(fieldMarshal.NativeType));
+						blobHeap.Add(MarshalBlobWriter.Write(fieldMarshal, this)));
 			fieldMarshalInfos.Add(hfm, row);
 		}
 
@@ -2524,6 +2524,11 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		void ICustomAttributeWriterHelper.Error(string message) {
+			Error(message);
+		}
+
+		/// <inheritdoc/>
+		void IMarshalBlobWriterHelper.Error(string message) {
 			Error(message);
 		}
 

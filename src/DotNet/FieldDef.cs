@@ -125,7 +125,7 @@ namespace dnlib.DotNet {
 		public abstract uint? FieldOffset { get; set; }
 
 		/// <inheritdoc/>
-		public abstract FieldMarshal FieldMarshal { get; set; }
+		public abstract MarshalType MarshalType { get; set; }
 
 		/// <summary>
 		/// Gets/sets the field RVA
@@ -240,10 +240,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="FieldMarshal"/> is not <c>null</c>
+		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
 		public bool HasMarshalInfo {
-			get { return FieldMarshal != null; }
+			get { return MarshalType != null; }
 		}
 
 		/// <summary>
@@ -531,7 +531,7 @@ namespace dnlib.DotNet {
 		UTF8String name;
 		CallingConventionSig signature;
 		uint? fieldOffset;
-		FieldMarshal fieldMarshal;
+		MarshalType marshalType;
 		RVA rva;
 		byte[] initialValue;
 		ImplMap implMap;
@@ -568,9 +568,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldMarshal FieldMarshal {
-			get { return fieldMarshal; }
-			set { fieldMarshal = value; }
+		public override MarshalType MarshalType {
+			get { return marshalType; }
+			set { marshalType = value; }
 		}
 
 		/// <inheritdoc/>
@@ -653,7 +653,7 @@ namespace dnlib.DotNet {
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> signature;
 		UserValue<uint?> fieldOffset;
-		UserValue<FieldMarshal> fieldMarshal;
+		UserValue<MarshalType> marshalType;
 		UserValue<RVA> rva;
 		UserValue<byte[]> initialValue;
 		UserValue<ImplMap> implMap;
@@ -715,9 +715,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldMarshal FieldMarshal {
-			get { return fieldMarshal.Value; }
-			set { fieldMarshal.Value = value; }
+		public override MarshalType MarshalType {
+			get { return marshalType.Value; }
+			set { marshalType.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -786,8 +786,8 @@ namespace dnlib.DotNet {
 				var row = readerModule.TablesStream.ReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(rid));
 				return row == null ? null : new uint?(row.OffSet);
 			};
-			fieldMarshal.ReadOriginalValue = () => {
-				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Field, rid));
+			marshalType.ReadOriginalValue = () => {
+				return readerModule.ReadMarshalType(Table.Field, rid);
 			};
 			rva.ReadOriginalValue = () => {
 				RVA rva2;
@@ -814,7 +814,7 @@ namespace dnlib.DotNet {
 			name.Lock = theLock;
 			// signature.Lock = theLock;		No lock for this one
 			fieldOffset.Lock = theLock;
-			fieldMarshal.Lock = theLock;
+			marshalType.Lock = theLock;
 			rva.Lock = theLock;
 			initialValue.Lock = theLock;
 			implMap.Lock = theLock;
@@ -835,7 +835,7 @@ namespace dnlib.DotNet {
 			MemberMDInitializer.Initialize(Name);
 			MemberMDInitializer.Initialize(Signature);
 			MemberMDInitializer.Initialize(FieldOffset);
-			MemberMDInitializer.Initialize(FieldMarshal);
+			MemberMDInitializer.Initialize(MarshalType);
 			MemberMDInitializer.Initialize(RVA);
 			MemberMDInitializer.Initialize(InitialValue);
 			MemberMDInitializer.Initialize(ImplMap);

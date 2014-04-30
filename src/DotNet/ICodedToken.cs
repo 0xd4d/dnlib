@@ -585,9 +585,9 @@ namespace dnlib.DotNet {
 		int HasFieldMarshalTag { get; }
 
 		/// <summary>
-		/// Gets/sets the field marshal
+		/// Gets/sets the marshal type
 		/// </summary>
-		FieldMarshal FieldMarshal { get; set; }
+		MarshalType MarshalType { get; set; }
 	}
 
 	/// <summary>

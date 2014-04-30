@@ -69,7 +69,6 @@ namespace dnlib.DotNet {
 		SimpleLazyList<InterfaceImplMD> listInterfaceImplMD;
 		SimpleLazyList<MemberRefMD> listMemberRefMD;
 		SimpleLazyList<ConstantMD> listConstantMD;
-		SimpleLazyList<FieldMarshalMD> listFieldMarshalMD;
 		SimpleLazyList<DeclSecurityMD> listDeclSecurityMD;
 		SimpleLazyList<ClassLayoutMD> listClassLayoutMD;
 		SimpleLazyList<StandAloneSigMD> listStandAloneSigMD;
@@ -459,7 +458,6 @@ namespace dnlib.DotNet {
 			listInterfaceImplMD = new SimpleLazyList<InterfaceImplMD>(ts.InterfaceImplTable.Rows, rid2 => new InterfaceImplMD(this, rid2));
 			listMemberRefMD = new SimpleLazyList<MemberRefMD>(ts.MemberRefTable.Rows, rid2 => new MemberRefMD(this, rid2));
 			listConstantMD = new SimpleLazyList<ConstantMD>(ts.ConstantTable.Rows, rid2 => new ConstantMD(this, rid2));
-			listFieldMarshalMD = new SimpleLazyList<FieldMarshalMD>(ts.FieldMarshalTable.Rows, rid2 => new FieldMarshalMD(this, rid2));
 			listDeclSecurityMD = new SimpleLazyList<DeclSecurityMD>(ts.DeclSecurityTable.Rows, rid2 => new DeclSecurityMD(this, rid2));
 			listClassLayoutMD = new SimpleLazyList<ClassLayoutMD>(ts.ClassLayoutTable.Rows, rid2 => new ClassLayoutMD(this, rid2));
 			listStandAloneSigMD = new SimpleLazyList<StandAloneSigMD>(ts.StandAloneSigTable.Rows, rid2 => new StandAloneSigMD(this, rid2));
@@ -607,7 +605,6 @@ namespace dnlib.DotNet {
 			case Table.InterfaceImpl:	return ResolveInterfaceImpl(rid);
 			case Table.MemberRef:		return ResolveMemberRef(rid);
 			case Table.Constant:		return ResolveConstant(rid);
-			case Table.FieldMarshal:	return ResolveFieldMarshal(rid);
 			case Table.DeclSecurity:	return ResolveDeclSecurity(rid);
 			case Table.ClassLayout:		return ResolveClassLayout(rid);
 			case Table.StandAloneSig:	return ResolveStandAloneSig(rid);
@@ -707,15 +704,6 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="Constant"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
 		public Constant ResolveConstant(uint rid) {
 			return listConstantMD[rid - 1];
-		}
-
-		/// <summary>
-		/// Resolves a <see cref="FieldMarshal"/>
-		/// </summary>
-		/// <param name="rid">The row ID</param>
-		/// <returns>A <see cref="FieldMarshal"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public FieldMarshal ResolveFieldMarshal(uint rid) {
-			return listFieldMarshalMD[rid - 1];
 		}
 
 		/// <summary>
@@ -1142,6 +1130,20 @@ namespace dnlib.DotNet {
 		/// <paramref name="sig"/> is invalid.</returns>
 		public TypeSig ReadTypeSignature(uint sig, out byte[] extraData) {
 			return SignatureReader.ReadTypeSig(this, sig, out extraData);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="MarshalType"/> from the blob
+		/// </summary>
+		/// <param name="table">Table of owner</param>
+		/// <param name="rid">Row ID of owner</param>
+		/// <returns>A new <see cref="MarshalType"/> instance or <c>null</c> if there's no field
+		/// marshal for this owner.</returns>
+		internal MarshalType ReadMarshalType(Table table, uint rid) {
+			var row = TablesStream.ReadFieldMarshalRow(MetaData.GetFieldMarshalRid(table, rid));
+			if (row == null)
+				return null;
+			return MarshalBlobReader.Read(this, row.NativeType);
 		}
 
 		/// <summary>

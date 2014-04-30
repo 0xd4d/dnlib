@@ -85,7 +85,6 @@
     <Compile Include="DotNet\Extensions.cs" />
     <Compile Include="DotNet\FieldAttributes.cs" />
     <Compile Include="DotNet\FieldDef.cs" />
-    <Compile Include="DotNet\FieldMarshal.cs" />
     <Compile Include="DotNet\FileAttributes.cs" />
     <Compile Include="DotNet\FileDef.cs" />
     <Compile Include="DotNet\FullNameCreator.cs" />
@@ -107,6 +106,8 @@
     <Compile Include="DotNet\IVariable.cs" />
     <Compile Include="DotNet\ManifestResource.cs" />
     <Compile Include="DotNet\ManifestResourceAttributes.cs" />
+    <Compile Include="DotNet\MarshalBlobReader.cs" />
+    <Compile Include="DotNet\MarshalType.cs" />
     <Compile Include="DotNet\MD\BlobStream.cs" />
     <Compile Include="DotNet\MD\CodedToken.cs" />
     <Compile Include="DotNet\MD\ColumnInfo.cs" />
@@ -156,6 +157,7 @@
     <Compile Include="DotNet\ModuleDefMD.cs" />
     <Compile Include="DotNet\ModuleKind.cs" />
     <Compile Include="DotNet\ModuleRef.cs" />
+    <Compile Include="DotNet\NativeType.cs" />
     <Compile Include="DotNet\NullResolver.cs" />
     <Compile Include="DotNet\ParamAttributes.cs" />
     <Compile Include="DotNet\ParamDef.cs" />
@@ -187,6 +189,7 @@
     <Compile Include="DotNet\TypeSpec.cs" />
     <Compile Include="DotNet\UTF8String.cs" />
     <Compile Include="DotNet\Utils.cs" />
+    <Compile Include="DotNet\VariantType.cs" />
     <Compile Include="DotNet\VTableFixups.cs" />
     <Compile Include="DotNet\Writer\BinaryReaderChunk.cs" />
     <Compile Include="DotNet\Writer\BlobHeap.cs" />
@@ -209,6 +212,7 @@
     <Compile Include="DotNet\Writer\ImportAddressTable.cs" />
     <Compile Include="DotNet\Writer\ImportDirectory.cs" />
     <Compile Include="DotNet\Writer\IOffsetHeap.cs" />
+    <Compile Include="DotNet\Writer\MarshalBlobWriter.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
     <Compile Include="DotNet\Writer\MDTableWriter.cs" />

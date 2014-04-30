@@ -118,7 +118,7 @@ namespace dnlib.DotNet {
 		public abstract UTF8String Name { get; set; }
 
 		/// <inheritdoc/>
-		public abstract FieldMarshal FieldMarshal { get; set; }
+		public abstract MarshalType MarshalType { get; set; }
 
 		/// <inheritdoc/>
 		public abstract Constant Constant { get; set; }
@@ -151,10 +151,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="FieldMarshal"/> is not <c>null</c>
+		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
 		public bool HasMarshalInfo {
-			get { return FieldMarshal != null; }
+			get { return MarshalType != null; }
 		}
 
 		/// <inheritdoc/>
@@ -235,7 +235,7 @@ namespace dnlib.DotNet {
 		ParamAttributes flags;
 		ushort sequence;
 		UTF8String name;
-		FieldMarshal fieldMarshal;
+		MarshalType marshalType;
 		Constant constant;
 		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
@@ -264,9 +264,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldMarshal FieldMarshal {
-			get { return fieldMarshal; }
-			set { fieldMarshal = value; }
+		public override MarshalType MarshalType {
+			get { return marshalType; }
+			set { marshalType = value; }
 		}
 
 		/// <inheritdoc/>
@@ -329,7 +329,7 @@ namespace dnlib.DotNet {
 		UserValue<ParamAttributes> flags;
 		UserValue<ushort> sequence;
 		UserValue<UTF8String> name;
-		UserValue<FieldMarshal> fieldMarshal;
+		UserValue<MarshalType> marshalType;
 		UserValue<Constant> constant;
 		CustomAttributeCollection customAttributeCollection;
 
@@ -358,9 +358,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override FieldMarshal FieldMarshal {
-			get { return fieldMarshal.Value; }
-			set { fieldMarshal.Value = value; }
+		public override MarshalType MarshalType {
+			get { return marshalType.Value; }
+			set { marshalType.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -416,8 +416,8 @@ namespace dnlib.DotNet {
 				InitializeRawRow_NoLock();
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
-			fieldMarshal.ReadOriginalValue = () => {
-				return readerModule.ResolveFieldMarshal(readerModule.MetaData.GetFieldMarshalRid(Table.Param, rid));
+			marshalType.ReadOriginalValue = () => {
+				return readerModule.ReadMarshalType(Table.Param, rid);
 			};
 			constant.ReadOriginalValue = () => {
 				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, rid));
@@ -427,7 +427,7 @@ namespace dnlib.DotNet {
 			// flags.Lock = theLock;	No lock for this one
 			sequence.Lock = theLock;
 			name.Lock = theLock;
-			fieldMarshal.Lock = theLock;
+			marshalType.Lock = theLock;
 			constant.Lock = theLock;
 #endif
 		}
@@ -443,7 +443,7 @@ namespace dnlib.DotNet {
 			MemberMDInitializer.Initialize(Attributes);
 			MemberMDInitializer.Initialize(Sequence);
 			MemberMDInitializer.Initialize(Name);
-			MemberMDInitializer.Initialize(FieldMarshal);
+			MemberMDInitializer.Initialize(MarshalType);
 			MemberMDInitializer.Initialize(Constant);
 			MemberMDInitializer.Initialize(CustomAttributes);
 			return this;
