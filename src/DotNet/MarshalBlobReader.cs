@@ -42,7 +42,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Reads a <see cref="MarshalType"/> from <see cref="reader"/>
+		/// Reads a <see cref="MarshalType"/> from <paramref name="data"/>
 		/// </summary>
 		/// <param name="data">Marshal data</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
