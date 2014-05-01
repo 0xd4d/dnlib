@@ -91,7 +91,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint WriteCompressedUInt32(uint value) {
-			if (value >= 0x1FFFFFFF) {
+			if (value > 0x1FFFFFFF) {
 				helper.Error("UInt32 value is too big and can't be compressed");
 				value = 0x1FFFFFFF;
 			}
