@@ -57,7 +57,7 @@
     <Compile Include="DotNet\CustomAttributeCollection.cs" />
     <Compile Include="DotNet\CustomAttributeReader.cs" />
     <Compile Include="DotNet\DeclSecurity.cs" />
-    <Compile Include="DotNet\DeclSecurityAction.cs" />
+    <Compile Include="DotNet\DeclSecurityReader.cs" />
     <Compile Include="DotNet\ElementType.cs" />
     <Compile Include="DotNet\Emit\Code.cs" />
     <Compile Include="DotNet\Emit\DynamicMethodBodyReader.cs" />
@@ -95,6 +95,7 @@
     <Compile Include="DotNet\IAssemblyResolver.cs" />
     <Compile Include="DotNet\ICodedToken.cs" />
     <Compile Include="DotNet\ICorLibTypes.cs" />
+    <Compile Include="DotNet\ICustomAttribute.cs" />
     <Compile Include="DotNet\IDecrypters.cs" />
     <Compile Include="DotNet\ILogger.cs" />
     <Compile Include="DotNet\ImplMap.cs" />
@@ -174,6 +175,8 @@
     <Compile Include="DotNet\Resolver.cs" />
     <Compile Include="DotNet\Resource.cs" />
     <Compile Include="DotNet\ResourceCollection.cs" />
+    <Compile Include="DotNet\SecurityAction.cs" />
+    <Compile Include="DotNet\SecurityAttribute.cs" />
     <Compile Include="DotNet\SerializationType.cs" />
     <Compile Include="DotNet\SigComparer.cs" />
     <Compile Include="DotNet\SignatureReader.cs" />
@@ -198,6 +201,7 @@
     <Compile Include="DotNet\Writer\ChunkListBase.cs" />
     <Compile Include="DotNet\Writer\CustomAttributeWriter.cs" />
     <Compile Include="DotNet\Writer\DebugDirectory.cs" />
+    <Compile Include="DotNet\Writer\DeclSecurityWriter.cs" />
     <Compile Include="DotNet\Writer\Extensions.cs" />
     <Compile Include="DotNet\Writer\GuidHeap.cs" />
     <Compile Include="DotNet\Writer\HeapBase.cs" />

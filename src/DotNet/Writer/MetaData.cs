@@ -255,7 +255,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET meta data
 	/// </summary>
-	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IMarshalBlobWriterHelper {
+	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IMarshalBlobWriterHelper, IDeclSecurityWriterHelper {
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -2205,7 +2205,7 @@ namespace dnlib.DotNet.Writer {
 					continue;
 				var row = new RawDeclSecurityRow((short)decl.Action,
 							encodedParent,
-							blobHeap.Add(decl.PermissionSet));
+							blobHeap.Add(DeclSecurityWriter.Write(module, decl.SecurityAttributes, this)));
 				declSecurityInfos.Add(decl, row);
 			}
 		}
@@ -2533,19 +2533,13 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) {
-			var td = type as TypeDef;
-			if (td != null)
-				return td.Module != module;
+		void IDeclSecurityWriterHelper.Error(string message) {
+			Error(message);
+		}
 
-			var tr = type as TypeRef;
-			if (tr == null)
-				return true;
-			if (tr.ResolutionScope == AssemblyRef.CurrentAssembly)
-				return false;
-			if (!tr.DefinitionAssembly.IsCorLib())
-				return true;
-			return module.Find(tr) != null;
+		/// <inheritdoc/>
+		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) {
+			return FullNameCreator.MustUseAssemblyName(module, type);
 		}
 
 		/// <summary>

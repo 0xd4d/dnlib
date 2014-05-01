@@ -49,11 +49,11 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="marshalType">Marshal type</param>
 		/// <param name="helper">Helps this class</param>
-		/// <returns>A field marshal blob of <paramref name="marshalType"/> or <c>null</c> if
-		/// <paramref name="marshalType"/> is <c>null</c></returns>
+		/// <returns>A field marshal blob or <c>null</c> if <paramref name="marshalType"/> is
+		/// <c>null</c></returns>
 		public static byte[] Write(MarshalType marshalType, IMarshalBlobWriterHelper helper) {
 			using (var writer = new MarshalBlobWriter(helper))
-				return writer.Write2(marshalType);
+				return writer.Write(marshalType);
 		}
 
 		MarshalBlobWriter(IMarshalBlobWriterHelper helper) {
@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Writer {
 			this.helper = helper;
 		}
 
-		byte[] Write2(MarshalType marshalType) {
+		byte[] Write(MarshalType marshalType) {
 			if (marshalType == null)
 				return null;
 

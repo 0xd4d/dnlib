@@ -55,6 +55,31 @@ namespace dnlib.DotNet {
 		RecursionCounter recursionCounter;
 
 		/// <summary>
+		/// Checks whether the assembly name should be included when printing the full name.
+		/// See <see cref="IFullNameCreatorHelper.MustUseAssemblyName"/> for more info.
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="type">The type (<c>TypeDef</c>, <c>TypeRef</c> or <c>ExportedType</c>)
+		/// or <c>null</c></param>
+		/// <returns><c>true</c> if the assembly name must be included, <c>false</c> otherwise</returns>
+		public static bool MustUseAssemblyName(ModuleDef module, IType type) {
+			var td = type as TypeDef;
+			if (td != null)
+				return td.Module != module;
+
+			var tr = type as TypeRef;
+			if (tr == null)
+				return true;
+			if (tr.ResolutionScope == AssemblyRef.CurrentAssembly)
+				return false;
+			if (!tr.DefinitionAssembly.IsCorLib())
+				return true;
+			// If it's present in this module, but it's a corlib type, then we will need the
+			// assembly name.
+			return module.Find(tr) != null;
+		}
+
+		/// <summary>
 		/// Returns the assembly qualified full name of a <see cref="IType"/>
 		/// </summary>
 		/// <param name="type">The <c>IType</c></param>

@@ -61,6 +61,19 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
+		/// <summary>
+		/// Writes custom attribute named arguments
+		/// </summary>
+		/// <param name="helper">Helper class</param>
+		/// <param name="namedArgs">Named arguments</param>
+		/// <returns>The named args blob</returns>
+		internal static byte[] Write(ICustomAttributeWriterHelper helper, IList<CANamedArgument> namedArgs) {
+			using (var writer = new CustomAttributeWriter(helper)) {
+				writer.Write(namedArgs);
+				return writer.GetResult();
+			}
+		}
+
 		CustomAttributeWriter(ICustomAttributeWriterHelper helper) {
 			this.helper = helper;
 			this.recursionCounter = new RecursionCounter();
@@ -130,6 +143,16 @@ namespace dnlib.DotNet.Writer {
 			writer.Write((ushort)numNamedArgs);
 			for (int i = 0; i < numNamedArgs; i++)
 				Write(ca.NamedArguments[i]);
+		}
+
+		void Write(IList<CANamedArgument> namedArgs) {
+			if (namedArgs == null || namedArgs.Count > 0x1FFFFFFF) {
+				helper.Error("Too many named arguments");
+				namedArgs = new CANamedArgument[0];
+			}
+			writer.WriteCompressedUInt32((uint)namedArgs.Count);
+			for (int i = 0; i < namedArgs.Count; i++)
+				Write(namedArgs[i]);
 		}
 
 		TypeSig FixTypeSig(TypeSig type) {

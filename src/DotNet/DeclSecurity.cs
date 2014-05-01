@@ -22,17 +22,24 @@
 */
 
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.Threading;
 
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the DeclSecurity table
 	/// </summary>
-	[DebuggerDisplay("{Action} {Parent}")]
+	[DebuggerDisplay("{Action} Count={SecurityAttributes.Count}")]
 	public abstract class DeclSecurity : IHasCustomAttribute {
 		/// <summary>
 		/// The row id in its table
@@ -58,12 +65,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column DeclSecurity.Action
 		/// </summary>
-		public abstract DeclSecurityAction Action { get; set; }
+		public abstract SecurityAction Action { get; set; }
 
 		/// <summary>
 		/// From column DeclSecurity.PermissionSet
 		/// </summary>
-		public abstract byte[] PermissionSet { get; set; }
+		public abstract ThreadSafe.IList<SecurityAttribute> SecurityAttributes { get; }
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -74,26 +81,31 @@ namespace dnlib.DotNet {
 		public bool HasCustomAttributes {
 			get { return CustomAttributes.Count > 0; }
 		}
+
+		/// <summary>
+		/// Gets the blob data or <c>null</c> if there's none
+		/// </summary>
+		/// <returns>Blob data or <c>null</c></returns>
+		public abstract byte[] GetBlob();
 	}
 
 	/// <summary>
 	/// A DeclSecurity row created by the user and not present in the original .NET file
 	/// </summary>
 	public class DeclSecurityUser : DeclSecurity {
-		DeclSecurityAction action;
-		byte[] permissionSet;
+		SecurityAction action;
+		readonly ThreadSafe.IList<SecurityAttribute> securityAttrs = ThreadSafeListCreator.Create<SecurityAttribute>();
 		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
-		public override DeclSecurityAction Action {
+		public override SecurityAction Action {
 			get { return action; }
 			set { action = value; }
 		}
 
 		/// <inheritdoc/>
-		public override byte[] PermissionSet {
-			get { return permissionSet; }
-			set { permissionSet = value; }
+		public override ThreadSafe.IList<SecurityAttribute> SecurityAttributes {
+			get { return securityAttrs; }
 		}
 
 		/// <inheritdoc/>
@@ -111,10 +123,15 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="action">The security action</param>
-		/// <param name="permissionSet">The permission set</param>
-		public DeclSecurityUser(DeclSecurityAction action, byte[] permissionSet) {
+		/// <param name="securityAttrs">The security attributes (now owned by this)</param>
+		public DeclSecurityUser(SecurityAction action, IList<SecurityAttribute> securityAttrs) {
 			this.action = action;
-			this.permissionSet = permissionSet;
+			this.securityAttrs = ThreadSafeListCreator.MakeThreadSafe(securityAttrs);
+		}
+
+		/// <inheritdoc/>
+		public override byte[] GetBlob() {
+			return null;
 		}
 	}
 
@@ -127,23 +144,35 @@ namespace dnlib.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawDeclSecurityRow rawRow;
 
-		UserValue<DeclSecurityAction> action;
-		UserValue<byte[]> permissionSet;
+		UserValue<SecurityAction> action;
+		ThreadSafe.IList<SecurityAttribute> securityAttrs;
 		CustomAttributeCollection customAttributeCollection;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
 
 		/// <inheritdoc/>
-		public override DeclSecurityAction Action {
+		public override SecurityAction Action {
 			get { return action.Value; }
 			set { action.Value = value; }
 		}
 
 		/// <inheritdoc/>
-		public override byte[] PermissionSet {
-			get { return permissionSet.Value; }
-			set { permissionSet.Value = value; }
+		public override ThreadSafe.IList<SecurityAttribute> SecurityAttributes {
+			get {
+				if (securityAttrs != null)
+					return securityAttrs;
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+				if (securityAttrs != null)
+					return securityAttrs;
+#endif
+				InitializeRawRow_NoLock();
+				return securityAttrs = DeclSecurityReader.Read(readerModule, rawRow.PermissionSet);
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
 		}
 
 		/// <inheritdoc/>
@@ -180,15 +209,10 @@ namespace dnlib.DotNet {
 		void Initialize() {
 			action.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return (DeclSecurityAction)rawRow.Action;
-			};
-			permissionSet.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.BlobStream.Read(rawRow.PermissionSet);
+				return (SecurityAction)rawRow.Action;
 			};
 #if THREAD_SAFE
 			action.Lock = theLock;
-			permissionSet.Lock = theLock;
 #endif
 		}
 
@@ -196,6 +220,18 @@ namespace dnlib.DotNet {
 			if (rawRow != null)
 				return;
 			rawRow = readerModule.TablesStream.ReadDeclSecurityRow(rid);
+		}
+
+		/// <inheritdoc/>
+		public override byte[] GetBlob() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			InitializeRawRow_NoLock();
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+			return readerModule.BlobStream.Read(rawRow.PermissionSet);
 		}
 	}
 }

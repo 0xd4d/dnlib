@@ -25,7 +25,7 @@
 	/// <summary>
 	/// Security action. See CorHdr.h/CorDeclSecurity
 	/// </summary>
-	public enum DeclSecurityAction : short {
+	public enum SecurityAction : short {
 		/// <summary>Mask allows growth of enum.</summary>
 		ActionMask			= 0x001F,
 		/// <summary/>
@@ -43,7 +43,11 @@
 		/// <summary/>
 		LinktimeCheck		= 0x0006,
 		/// <summary/>
+		LinkDemand			= LinktimeCheck,
+		/// <summary/>
 		InheritanceCheck	= 0x0007,
+		/// <summary/>
+		InheritDemand		= InheritanceCheck,
 		/// <summary/>
 		RequestMinimum		= 0x0008,
 		/// <summary/>
@@ -52,8 +56,12 @@
 		RequestRefuse		= 0x000A,
 		/// <summary>Persisted grant set at prejit time</summary>
 		PrejitGrant			= 0x000B,
+		/// <summary>Persisted grant set at prejit time</summary>
+		PreJitGrant			= PrejitGrant,
 		/// <summary>Persisted denied set at prejit time</summary>
 		PrejitDenied		= 0x000C,
+		/// <summary>Persisted denied set at prejit time</summary>
+		PreJitDeny			= PrejitDenied,
 		/// <summary/>
 		NonCasDemand		= 0x000D,
 		/// <summary/>
