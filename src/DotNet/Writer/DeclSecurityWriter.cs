@@ -27,22 +27,11 @@ using System.Text;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
-	/// Helps <see cref="DeclSecurityWriter"/>
-	/// </summary>
-	public interface IDeclSecurityWriterHelper {
-		/// <summary>
-		/// Called when an error is detected. The error can be ignored but the blob won't be valid.
-		/// </summary>
-		/// <param name="message">Error message</param>
-		void Error(string message);
-	}
-
-	/// <summary>
 	/// Writes <c>DeclSecurity</c> blobs
 	/// </summary>
 	public struct DeclSecurityWriter : ICustomAttributeWriterHelper {
 		readonly ModuleDef module;
-		readonly IDeclSecurityWriterHelper helper;
+		readonly IWriterError helper;
 
 		/// <summary>
 		/// Creates a <c>DeclSecurity</c> blob from <paramref name="secAttrs"/>
@@ -51,11 +40,11 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="secAttrs">List of <see cref="SecurityAttribute"/>s</param>
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A <c>DeclSecurity</c> blob</returns>
-		public static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IDeclSecurityWriterHelper helper) {
+		public static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper) {
 			return new DeclSecurityWriter(module, helper).Write(secAttrs);
 		}
 
-		DeclSecurityWriter(ModuleDef module, IDeclSecurityWriterHelper helper) {
+		DeclSecurityWriter(ModuleDef module, IWriterError helper) {
 			this.module = module;
 			this.helper = helper;
 		}
@@ -155,7 +144,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(s.Data);
 		}
 
-		void ICustomAttributeWriterHelper.Error(string message) {
+		void IWriterError.Error(string message) {
 			helper.Error(message);
 		}
 

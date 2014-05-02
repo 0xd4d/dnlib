@@ -26,23 +26,12 @@ using System.IO;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
-	/// Helps <see cref="MarshalBlobWriter"/>
-	/// </summary>
-	public interface IMarshalBlobWriterHelper {
-		/// <summary>
-		/// Called when an error is detected. The error can be ignored but the blob won't be valid.
-		/// </summary>
-		/// <param name="message">Error message</param>
-		void Error(string message);
-	}
-
-	/// <summary>
 	/// Writes field marshal blobs
 	/// </summary>
 	public struct MarshalBlobWriter : IDisposable {
 		readonly MemoryStream outStream;
 		readonly BinaryWriter writer;
-		readonly IMarshalBlobWriterHelper helper;
+		readonly IWriterError helper;
 
 		/// <summary>
 		/// Creates a field marshal blob from <paramref name="marshalType"/>
@@ -51,12 +40,12 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A field marshal blob or <c>null</c> if <paramref name="marshalType"/> is
 		/// <c>null</c></returns>
-		public static byte[] Write(MarshalType marshalType, IMarshalBlobWriterHelper helper) {
+		public static byte[] Write(MarshalType marshalType, IWriterError helper) {
 			using (var writer = new MarshalBlobWriter(helper))
 				return writer.Write(marshalType);
 		}
 
-		MarshalBlobWriter(IMarshalBlobWriterHelper helper) {
+		MarshalBlobWriter(IWriterError helper) {
 			this.outStream = new MemoryStream();
 			this.writer = new BinaryWriter(outStream);
 			this.helper = helper;

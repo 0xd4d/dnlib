@@ -29,13 +29,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Helps <see cref="CustomAttributeWriter"/> write custom attributes
 	/// </summary>
-	public interface ICustomAttributeWriterHelper : IFullNameCreatorHelper {
-		/// <summary>
-		/// Called when an error is detected (eg. a null pointer). The error can be
-		/// ignored but the signature won't be valid.
-		/// </summary>
-		/// <param name="message">Error message</param>
-		void Error(string message);
+	public interface ICustomAttributeWriterHelper : IWriterError, IFullNameCreatorHelper {
 	}
 
 	/// <summary>

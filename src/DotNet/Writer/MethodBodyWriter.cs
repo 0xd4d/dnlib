@@ -30,7 +30,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Returns tokens of token types, strings and signatures
 	/// </summary>
-	public interface ITokenCreator {
+	public interface ITokenCreator : IWriterError {
 		/// <summary>
 		/// Gets the token of <paramref name="o"/>
 		/// </summary>
@@ -46,13 +46,6 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>A <c>StandAloneSig</c> token or <c>0</c> if <paramref name="locals"/> is
 		/// empty.</returns>
 		MDToken GetToken(IList<TypeSig> locals, uint origToken);
-
-		/// <summary>
-		/// Called when an error is detected (eg. a null pointer). The error can be
-		/// ignored but the method won't be valid.
-		/// </summary>
-		/// <param name="message">Error message</param>
-		void Error(string message);
 	}
 
 	/// <summary>

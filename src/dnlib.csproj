@@ -216,6 +216,7 @@
     <Compile Include="DotNet\Writer\ImportAddressTable.cs" />
     <Compile Include="DotNet\Writer\ImportDirectory.cs" />
     <Compile Include="DotNet\Writer\IOffsetHeap.cs" />
+    <Compile Include="DotNet\Writer\IWriterError.cs" />
     <Compile Include="DotNet\Writer\MarshalBlobWriter.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />

@@ -255,7 +255,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET meta data
 	/// </summary>
-	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IMarshalBlobWriterHelper, IDeclSecurityWriterHelper {
+	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper {
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -2513,27 +2513,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		void ISignatureWriterHelper.Error(string message) {
-			Error(message);
-		}
-
-		/// <inheritdoc/>
-		void ITokenCreator.Error(string message) {
-			Error(message);
-		}
-
-		/// <inheritdoc/>
-		void ICustomAttributeWriterHelper.Error(string message) {
-			Error(message);
-		}
-
-		/// <inheritdoc/>
-		void IMarshalBlobWriterHelper.Error(string message) {
-			Error(message);
-		}
-
-		/// <inheritdoc/>
-		void IDeclSecurityWriterHelper.Error(string message) {
+		void IWriterError.Error(string message) {
 			Error(message);
 		}
 

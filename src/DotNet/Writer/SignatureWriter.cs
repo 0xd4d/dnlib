@@ -29,19 +29,12 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Helps <see cref="SignatureWriter"/> map <see cref="ITypeDefOrRef"/>s to tokens
 	/// </summary>
-	public interface ISignatureWriterHelper {
+	public interface ISignatureWriterHelper : IWriterError {
 		/// <summary>
 		/// Returns a <c>TypeDefOrRef</c> encoded token
 		/// </summary>
 		/// <param name="typeDefOrRef">A <c>TypeDefOrRef</c> type</param>
 		uint ToEncodedToken(ITypeDefOrRef typeDefOrRef);
-
-		/// <summary>
-		/// Called when an error is detected (eg. a null pointer). The error can be
-		/// ignored but the signature won't be valid.
-		/// </summary>
-		/// <param name="message">Error message</param>
-		void Error(string message);
 	}
 
 	/// <summary>
