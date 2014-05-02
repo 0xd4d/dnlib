@@ -128,7 +128,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class SafeArrayMarshalType : MarshalType {
 		VariantType vt;
-		UTF8String name;
+		ITypeDefOrRef userDefinedSubType;
 
 		/// <summary>
 		/// Gets/sets the variant type
@@ -139,11 +139,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the name (it's usually <c>null</c>)
+		/// Gets/sets the user-defined sub type (it's usually <c>null</c>)
 		/// </summary>
-		public UTF8String Name {
-			get { return name; }
-			set { name = value; }
+		public ITypeDefOrRef UserDefinedSubType {
+			get { return userDefinedSubType; }
+			set { userDefinedSubType = value; }
 		}
 
 		/// <summary>
@@ -154,10 +154,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Name"/> is valid
+		/// <c>true</c> if <see cref="UserDefinedSubType"/> is valid
 		/// </summary>
-		public bool IsNameValid {
-			get { return !UTF8String.IsNull(name); }
+		public bool IsUserDefinedSubTypeValid {
+			get { return userDefinedSubType != null; }
 		}
 
 		/// <summary>
@@ -178,28 +178,28 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="name">Name</param>
-		public SafeArrayMarshalType(UTF8String name)
-			: this(VariantType.NotInitialized, name) {
+		/// <param name="userDefinedSubType">User-defined sub type</param>
+		public SafeArrayMarshalType(ITypeDefOrRef userDefinedSubType)
+			: this(VariantType.NotInitialized, userDefinedSubType) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="vt">Variant type</param>
-		/// <param name="name">Name</param>
-		public SafeArrayMarshalType(VariantType vt, UTF8String name)
+		/// <param name="userDefinedSubType">User-defined sub type</param>
+		public SafeArrayMarshalType(VariantType vt, ITypeDefOrRef userDefinedSubType)
 			: base(NativeType.SafeArray) {
 			this.vt = vt;
-			this.name = name;
+			this.userDefinedSubType = userDefinedSubType;
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			var n = name;
-			if (!UTF8String.IsNull(n))
-				return string.Format("{0} ({1}, {2})", nativeType, vt, n);
-			return string.Format("{0} ({1}, <no name>)", nativeType, vt);
+			var udt = userDefinedSubType;
+			if (udt != null)
+				return string.Format("{0} ({1}, {2})", nativeType, vt, udt);
+			return string.Format("{0} ({1})", nativeType, vt);
 		}
 	}
 
@@ -420,7 +420,7 @@ namespace dnlib.DotNet {
 	public sealed class CustomMarshalType : MarshalType {
 		UTF8String guid;
 		UTF8String nativeTypeName;
-		UTF8String custMarshalerName;
+		ITypeDefOrRef custMarshaler;
 		UTF8String cookie;
 
 		/// <summary>
@@ -440,11 +440,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the custom marshaler name string
+		/// Gets/sets the custom marshaler
 		/// </summary>
-		public UTF8String CustomMarshalerName {
-			get { return custMarshalerName; }
-			set { custMarshalerName = value; }
+		public ITypeDefOrRef CustomMarshaler {
+			get { return custMarshaler; }
+			set { custMarshaler = value; }
 		}
 
 		/// <summary>
@@ -484,9 +484,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="guid">GUID string</param>
 		/// <param name="nativeTypeName">Native type name string</param>
-		/// <param name="custMarshalerName">Custom marshaler name string</param>
-		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, UTF8String custMarshalerName)
-			: this(guid, nativeTypeName, custMarshalerName, null) {
+		/// <param name="custMarshaler">Custom marshaler name string</param>
+		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, ITypeDefOrRef custMarshaler)
+			: this(guid, nativeTypeName, custMarshaler, null) {
 		}
 
 		/// <summary>
@@ -494,19 +494,19 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="guid">GUID string</param>
 		/// <param name="nativeTypeName">Native type name string</param>
-		/// <param name="custMarshalerName">Custom marshaler name string</param>
+		/// <param name="custMarshaler">Custom marshaler name string</param>
 		/// <param name="cookie">Cookie string</param>
-		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, UTF8String custMarshalerName, UTF8String cookie)
+		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, ITypeDefOrRef custMarshaler, UTF8String cookie)
 			: base(NativeType.CustomMarshaler) {
 			this.guid = guid;
 			this.nativeTypeName = nativeTypeName;
-			this.custMarshalerName = custMarshalerName;
+			this.custMarshaler = custMarshaler;
 			this.cookie = cookie;
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("{0} ({1}, {2}, {3}, {4})", nativeType, guid, nativeTypeName, custMarshalerName, cookie);
+			return string.Format("{0} ({1}, {2}, {3}, {4})", nativeType, guid, nativeTypeName, custMarshaler, cookie);
 		}
 	}
 

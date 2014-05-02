@@ -2034,7 +2034,7 @@ namespace dnlib.DotNet.Writer {
 				encodedParent = 0;
 			}
 			var row = new RawFieldMarshalRow(encodedParent,
-						blobHeap.Add(MarshalBlobWriter.Write(fieldMarshal, this)));
+						blobHeap.Add(MarshalBlobWriter.Write(module, fieldMarshal, this)));
 			fieldMarshalInfos.Add(hfm, row);
 		}
 

@@ -29,6 +29,7 @@ namespace dnlib.DotNet {
 	/// Reads <see cref="MarshalType"/>s
 	/// </summary>
 	public struct MarshalBlobReader : IDisposable {
+		readonly ModuleDef module;
 		readonly IBinaryReader reader;
 
 		/// <summary>
@@ -38,29 +39,32 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Blob offset</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
 		public static MarshalType Read(ModuleDefMD module, uint sig) {
-			return Read(module.BlobStream.CreateStream(sig));
+			return Read(module, module.BlobStream.CreateStream(sig));
 		}
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from <paramref name="data"/>
 		/// </summary>
+		/// <param name="module">Owner module</param>
 		/// <param name="data">Marshal data</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(byte[] data) {
-			return Read(MemoryImageStream.Create(data));
+		public static MarshalType Read(ModuleDef module, byte[] data) {
+			return Read(module, MemoryImageStream.Create(data));
 		}
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from <see cref="reader"/>
 		/// </summary>
+		/// <param name="module">Owner module</param>
 		/// <param name="reader">A reader that will be owned by us</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(IBinaryReader reader) {
-			using (var marshalReader = new MarshalBlobReader(reader))
+		public static MarshalType Read(ModuleDef module, IBinaryReader reader) {
+			using (var marshalReader = new MarshalBlobReader(module, reader))
 				return marshalReader.Read();
 		}
 
-		MarshalBlobReader(IBinaryReader reader) {
+		MarshalBlobReader(ModuleDef module, IBinaryReader reader) {
+			this.module = module;
 			this.reader = reader;
 		}
 
@@ -78,8 +82,9 @@ namespace dnlib.DotNet {
 
 				case NativeType.SafeArray:
 					var vt = CanRead() ? (VariantType)reader.ReadCompressedUInt32() : VariantType.NotInitialized;
-					var name = CanRead() ? ReadUTF8String() : null;
-					returnValue = new SafeArrayMarshalType(vt, name);
+					var udtName = CanRead() ? ReadUTF8String() : null;
+					var udtRef = (object)udtName == null ? null : TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(udtName), null);
+					returnValue = new SafeArrayMarshalType(vt, udtRef);
 					break;
 
 				case NativeType.FixedArray:
@@ -100,8 +105,9 @@ namespace dnlib.DotNet {
 					var guid = ReadUTF8String();
 					var nativeTypeName = ReadUTF8String();
 					var custMarshalerName = ReadUTF8String();
+					var cmRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(custMarshalerName), new CAAssemblyRefFinder(module));
 					var cookie = ReadUTF8String();
-					returnValue = new CustomMarshalType(guid, nativeTypeName, custMarshalerName, cookie);
+					returnValue = new CustomMarshalType(guid, nativeTypeName, cmRef, cookie);
 					break;
 
 				case NativeType.IUnknown:

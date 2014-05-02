@@ -28,7 +28,8 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Writes field marshal blobs
 	/// </summary>
-	public struct MarshalBlobWriter : IDisposable {
+	public struct MarshalBlobWriter : IDisposable, IFullNameCreatorHelper {
+		readonly ModuleDef module;
 		readonly MemoryStream outStream;
 		readonly BinaryWriter writer;
 		readonly IWriterError helper;
@@ -36,16 +37,18 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Creates a field marshal blob from <paramref name="marshalType"/>
 		/// </summary>
+		/// <param name="module">Owner module</param>
 		/// <param name="marshalType">Marshal type</param>
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A field marshal blob or <c>null</c> if <paramref name="marshalType"/> is
 		/// <c>null</c></returns>
-		public static byte[] Write(MarshalType marshalType, IWriterError helper) {
-			using (var writer = new MarshalBlobWriter(helper))
+		public static byte[] Write(ModuleDef module, MarshalType marshalType, IWriterError helper) {
+			using (var writer = new MarshalBlobWriter(module, helper))
 				return writer.Write(marshalType);
 		}
 
-		MarshalBlobWriter(IWriterError helper) {
+		MarshalBlobWriter(ModuleDef module, IWriterError helper) {
+			this.module = module;
 			this.outStream = new MemoryStream();
 			this.writer = new BinaryWriter(outStream);
 			this.helper = helper;
@@ -73,8 +76,8 @@ namespace dnlib.DotNet.Writer {
 				var safeArray = (SafeArrayMarshalType)marshalType;
 				if (UpdateCanWrite(safeArray.IsVariantTypeValid, "VariantType", ref canWrite))
 					WriteCompressedUInt32((uint)safeArray.VariantType);
-				if (UpdateCanWrite(safeArray.IsNameValid, "Name", ref canWrite))
-					Write(safeArray.Name);
+				if (UpdateCanWrite(safeArray.IsUserDefinedSubTypeValid, "UserDefinedSubType", ref canWrite))
+					Write(safeArray.UserDefinedSubType.AssemblyQualifiedName);
 				break;
 
 			case NativeType.FixedArray:
@@ -101,7 +104,9 @@ namespace dnlib.DotNet.Writer {
 				var custMarshaler = (CustomMarshalType)marshalType;
 				Write(custMarshaler.Guid);
 				Write(custMarshaler.NativeTypeName);
-				Write(custMarshaler.CustomMarshalerName);
+				var cm = custMarshaler.CustomMarshaler;
+				var cmName = cm == null ? string.Empty : FullNameCreator.AssemblyQualifiedName(cm, this);
+				Write(cmName);
 				Write(custMarshaler.Cookie);
 				break;
 
@@ -152,6 +157,10 @@ namespace dnlib.DotNet.Writer {
 		public void Dispose() {
 			if (outStream != null)
 				outStream.Dispose();
+		}
+
+		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) {
+			return FullNameCreator.MustUseAssemblyName(module, type);
 		}
 	}
 }
