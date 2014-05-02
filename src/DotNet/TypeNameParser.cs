@@ -355,8 +355,9 @@ namespace dnlib.DotNet {
 				asmRef = typeNameParserHelper.FindAssemblyRef(nonNestedTypeRef);
 			if (asmRef != null)
 				return asmRef;
-			if (ownerModule.Assembly != null)
-				return ownerModule.UpdateRowId(ownerModule.Assembly.ToAssemblyRef());
+			var ownerAsm = ownerModule.Assembly;
+			if (ownerAsm != null)
+				return ownerModule.UpdateRowId(ownerAsm.ToAssemblyRef());
 			return AssemblyRef.CurrentAssembly;
 		}
 
