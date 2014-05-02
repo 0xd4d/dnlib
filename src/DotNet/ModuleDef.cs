@@ -388,14 +388,25 @@ namespace dnlib.DotNet {
 		/// and minor version numbers are checked)
 		/// </summary>
 		public bool IsClr10 {
-			get { return (RuntimeVersion ?? string.Empty).StartsWith(MDHeaderRuntimeVersion.MS_CLR_10_PREFIX); }
+			get {
+				var ver = RuntimeVersion ?? string.Empty;
+				return ver.StartsWith(MDHeaderRuntimeVersion.MS_CLR_10_PREFIX) ||
+					ver.StartsWith(MDHeaderRuntimeVersion.MS_CLR_10_PREFIX_X86RETAIL) ||
+					ver == MDHeaderRuntimeVersion.MS_CLR_10_RETAIL ||
+					ver == MDHeaderRuntimeVersion.MS_CLR_10_COMPLUS;
+			}
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 string
 		/// </summary>
 		public bool IsClr10Exactly {
-			get { return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_10; }
+			get {
+				return RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_10 ||
+					RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_10_X86RETAIL ||
+					RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_10_RETAIL ||
+					RuntimeVersion == MDHeaderRuntimeVersion.MS_CLR_10_COMPLUS;
+			}
 		}
 
 		/// <summary>

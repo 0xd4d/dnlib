@@ -32,6 +32,21 @@
 		public const string MS_CLR_10 = "v1.0.3705";
 
 		/// <summary>
+		/// MS CLR 1.0 version string (.NET 1.0). This is an incorrect version that shouldn't be used.
+		/// </summary>
+		public const string MS_CLR_10_X86RETAIL = "v1.x86ret";
+
+		/// <summary>
+		/// MS CLR 1.0 version string (.NET 1.0). This is an incorrect version that shouldn't be used.
+		/// </summary>
+		public const string MS_CLR_10_RETAIL = "retail";
+
+		/// <summary>
+		/// MS CLR 1.0 version string (.NET 1.0). This is an incorrect version that shouldn't be used.
+		/// </summary>
+		public const string MS_CLR_10_COMPLUS = "COMPLUS";
+
+		/// <summary>
 		/// MS CLR 1.1 version string (.NET 1.1)
 		/// </summary>
 		public const string MS_CLR_11 = "v1.1.4322";
@@ -50,6 +65,11 @@
 		/// MS CLR 1.0 any version
 		/// </summary>
 		public const string MS_CLR_10_PREFIX = "v1.0";
+
+		/// <summary>
+		/// MS CLR 1.0 any version
+		/// </summary>
+		public const string MS_CLR_10_PREFIX_X86RETAIL = "v1.x86";
 
 		/// <summary>
 		/// MS CLR 1.1 any version
