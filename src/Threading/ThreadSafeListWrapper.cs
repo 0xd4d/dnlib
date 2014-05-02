@@ -37,6 +37,7 @@ namespace dnlib.Threading {
 	/// Protects an <see cref="IList{T}"/> from being accessed by multiple threads at the same time
 	/// </summary>
 	/// <typeparam name="T">List type</typeparam>
+	[DebuggerDisplay("Count = {Count}")]
 	sealed class ThreadSafeListWrapper<T> : ThreadSafe.IList<T> {
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		readonly Lock theLock = Lock.Create();
