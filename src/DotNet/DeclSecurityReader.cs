@@ -102,7 +102,8 @@ namespace dnlib.DotNet {
 
 			for (int i = 0; i < numAttrs; i++) {
 				var name = ReadUTF8String();
-				var attrRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(name), null);
+				// Use CA search rules. Some tools don't write the fully qualified name.
+				var attrRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(name), new CAAssemblyRefFinder(module));
 				int blobLength = (int)reader.ReadCompressedUInt32();
 				int numNamedArgs = (int)reader.ReadCompressedUInt32();
 				var namedArgs = CustomAttributeReader.ReadNamedArguments(module, reader, numNamedArgs);
