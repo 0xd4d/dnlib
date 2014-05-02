@@ -126,22 +126,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint WriteCompressedUInt32(BinaryWriter writer, uint value) {
-			if (value > 0x1FFFFFFF) {
-				helper.Error("UInt32 value is too big and can't be compressed");
-				value = 0x1FFFFFFF;
-			}
-			writer.WriteCompressedUInt32(value);
-			return value;
+			return writer.WriteCompressedUInt32(helper, value);
 		}
 
 		void Write(BinaryWriter writer, UTF8String s) {
-			if (UTF8String.IsNull(s)) {
-				helper.Error("UTF8String is null");
-				s = UTF8String.Empty;
-			}
-
-			WriteCompressedUInt32(writer, (uint)s.DataLength);
-			writer.Write(s.Data);
+			writer.Write(helper, s);
 		}
 
 		void IWriterError.Error(string message) {
