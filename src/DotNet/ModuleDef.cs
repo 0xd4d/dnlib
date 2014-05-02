@@ -1031,6 +1031,31 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
+		/// <summary>
+		/// Creates a new <see cref="ModuleContext"/> instance. There should normally only be one
+		/// instance shared by all <see cref="ModuleDef"/>s.
+		/// </summary>
+		/// <returns>A new <see cref="ModuleContext"/> instance</returns>
+		public static ModuleContext CreateModuleContext() {
+			return CreateModuleContext(true);
+		}
+
+		/// <summary>
+		/// Creates a new <see cref="ModuleContext"/> instance. There should normally only be one
+		/// instance shared by all <see cref="ModuleDef"/>s.
+		/// </summary>
+		/// <param name="addOtherSearchPaths">If <c>true</c>, add other common assembly search
+		/// paths, not just the module search paths and the GAC.</param>
+		/// <returns>A new <see cref="ModuleContext"/> instance</returns>
+		public static ModuleContext CreateModuleContext(bool addOtherSearchPaths) {
+			var ctx = new ModuleContext();
+			var asmRes = new AssemblyResolver(ctx, addOtherSearchPaths);
+			var res = new Resolver(asmRes);
+			ctx.AssemblyResolver = asmRes;
+			ctx.Resolver = res;
+			return ctx;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
