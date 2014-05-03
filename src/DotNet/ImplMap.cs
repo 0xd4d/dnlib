@@ -354,15 +354,21 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the ImplMap table
 	/// </summary>
-	sealed class ImplMapMD : ImplMap {
+	sealed class ImplMapMD : ImplMap, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawImplMapRow rawRow;
 
+		readonly uint origRid;
 		UserValue<PInvokeAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<ModuleRef> scope;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		protected override PInvokeAttributes Attributes_NoLock {
@@ -396,6 +402,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.ImplMapTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("ImplMap rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -424,7 +431,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadImplMapRow(rid);
+			rawRow = readerModule.TablesStream.ReadImplMapRow(origRid);
 		}
 	}
 }

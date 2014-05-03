@@ -947,12 +947,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Assembly table
 	/// </summary>
-	sealed class AssemblyDefMD : AssemblyDef {
+	sealed class AssemblyDefMD : AssemblyDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawAssemblyRow rawRow;
 
+		readonly uint origRid;
 		UserValue<AssemblyHashAlgorithm> hashAlgId;
 		UserValue<Version> version;
 		UserValue<AssemblyAttributes> flags;
@@ -962,6 +963,11 @@ namespace dnlib.DotNet {
 		LazyList<DeclSecurity> declSecurities;
 		LazyList<ModuleDef> modules;
 		CustomAttributeCollection customAttributeCollection;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override AssemblyHashAlgorithm HashAlgorithm {
@@ -1007,7 +1013,7 @@ namespace dnlib.DotNet {
 		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get {
 				if (declSecurities == null) {
-					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, rid);
+					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, origRid);
 					var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref declSecurities, tmp, null);
 				}
@@ -1041,7 +1047,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -1063,6 +1069,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.AssemblyTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Assembly rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			if (rid != 1)
@@ -1108,7 +1115,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadAssemblyRow(rid);
+			rawRow = readerModule.TablesStream.ReadAssemblyRow(origRid);
 		}
 	}
 }

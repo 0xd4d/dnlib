@@ -642,12 +642,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Field table
 	/// </summary>
-	sealed class FieldDefMD : FieldDef {
+	sealed class FieldDefMD : FieldDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawFieldRow rawRow;
 
+		readonly uint origRid;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<FieldAttributes> flags;
 		UserValue<UTF8String> name;
@@ -661,10 +662,15 @@ namespace dnlib.DotNet {
 		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
+
+		/// <inheritdoc/>
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Field, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Field, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -764,6 +770,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.FieldTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Field rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -783,11 +790,11 @@ namespace dnlib.DotNet {
 				return readerModule.ReadSignature(rawRow.Signature);
 			};
 			fieldOffset.ReadOriginalValue = () => {
-				var row = readerModule.TablesStream.ReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(rid));
+				var row = readerModule.TablesStream.ReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(origRid));
 				return row == null ? null : new uint?(row.OffSet);
 			};
 			marshalType.ReadOriginalValue = () => {
-				return readerModule.ReadMarshalType(Table.Field, rid);
+				return readerModule.ReadMarshalType(Table.Field, origRid);
 			};
 			rva.ReadOriginalValue = () => {
 				RVA rva2;
@@ -801,10 +808,10 @@ namespace dnlib.DotNet {
 				return ReadInitialValue_NoLock(rva2);
 			};
 			implMap.ReadOriginalValue = () => {
-				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Field, rid));
+				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Field, origRid));
 			};
 			constant.ReadOriginalValue = () => {
-				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Field, rid));
+				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Field, origRid));
 			};
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);
@@ -826,7 +833,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadFieldRow(rid);
+			rawRow = readerModule.TablesStream.ReadFieldRow(origRid);
 		}
 
 		internal FieldDefMD InitializeAll() {
@@ -850,7 +857,7 @@ namespace dnlib.DotNet {
 				rva = 0;
 				return false;
 			}
-			var row = readerModule.TablesStream.ReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(rid));
+			var row = readerModule.TablesStream.ReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(origRid));
 			if (row == null) {
 				rva = 0;
 				return false;

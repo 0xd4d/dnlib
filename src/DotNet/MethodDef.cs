@@ -1040,12 +1040,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Method table
 	/// </summary>
-	sealed class MethodDefMD : MethodDef {
+	sealed class MethodDefMD : MethodDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMethodRow rawRow;
 
+		readonly uint origRid;
 		UserValue<RVA> rva;
 		UserValue<MethodImplAttributes> implFlags;
 		UserValue<MethodAttributes> flags;
@@ -1059,6 +1060,11 @@ namespace dnlib.DotNet {
 		CustomAttributeCollection customAttributeCollection;
 		ThreadSafe.IList<MethodOverride> overrides;
 		UserValue<TypeDef> declaringType;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override RVA RVA {
@@ -1094,7 +1100,7 @@ namespace dnlib.DotNet {
 		public override ThreadSafe.IList<ParamDef> ParamDefs {
 			get {
 				if (parameters == null) {
-					var list = readerModule.MetaData.GetParamRidList(rid);
+					var list = readerModule.MetaData.GetParamRidList(origRid);
 					var tmp = new LazyList<ParamDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveParam(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref parameters, tmp, null);
 				}
@@ -1106,7 +1112,7 @@ namespace dnlib.DotNet {
 		public override ThreadSafe.IList<GenericParam> GenericParameters {
 			get {
 				if (genericParams == null) {
-					var list = readerModule.MetaData.GetGenericParamRidList(Table.Method, rid);
+					var list = readerModule.MetaData.GetGenericParamRidList(Table.Method, origRid);
 					var tmp = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref genericParams, tmp, null);
 				}
@@ -1118,7 +1124,7 @@ namespace dnlib.DotNet {
 		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
 			get {
 				if (declSecurities == null) {
-					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Method, rid);
+					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Method, origRid);
 					var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref declSecurities, tmp, null);
 				}
@@ -1142,7 +1148,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Method, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Method, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -1182,6 +1188,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.MethodTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Method rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -1210,7 +1217,7 @@ namespace dnlib.DotNet {
 				return readerModule.ReadSignature(rawRow.Signature);
 			};
 			implMap.ReadOriginalValue = () => {
-				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, rid));
+				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, origRid));
 			};
 			methodBody.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
@@ -1234,7 +1241,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadMethodRow(rid);
+			rawRow = readerModule.TablesStream.ReadMethodRow(origRid);
 		}
 
 		internal MethodDefMD InitializeAll() {

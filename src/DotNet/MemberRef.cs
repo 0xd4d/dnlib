@@ -454,12 +454,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the MemberRef table
 	/// </summary>
-	sealed class MemberRefMD : MemberRef {
+	sealed class MemberRefMD : MemberRef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMemberRefRow rawRow;
 
+		readonly uint origRid;
 		UserValue<IMemberRefParent> @class;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> signature;
@@ -467,6 +468,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override IMemberRefParent Class {
@@ -490,7 +496,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MemberRef, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MemberRef, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -512,6 +518,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.MemberRefTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("MemberRef rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
@@ -541,7 +548,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadMemberRefRow(rid);
+			rawRow = readerModule.TablesStream.ReadMemberRefRow(origRid);
 		}
 	}
 }

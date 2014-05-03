@@ -47,6 +47,16 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
+	/// All <c>*MD</c> classes implement this interface.
+	/// </summary>
+	public interface IMDTokenProviderMD : IMDTokenProvider {
+		/// <summary>
+		/// Gets the original row ID
+		/// </summary>
+		uint OrigRid { get; }
+	}
+
+	/// <summary>
 	/// Interface to access an <see cref="AssemblyRef"/> or an <see cref="AssemblyDef"/>
 	/// </summary>
 	public interface IAssembly : IFullName {

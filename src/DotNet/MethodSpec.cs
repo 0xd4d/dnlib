@@ -225,18 +225,24 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the MethodSpec table
 	/// </summary>
-	sealed class MethodSpecMD : MethodSpec {
+	sealed class MethodSpecMD : MethodSpec, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMethodSpecRow rawRow;
 
+		readonly uint origRid;
 		UserValue<IMethodDefOrRef> method;
 		UserValue<CallingConventionSig> instantiation;
 		CustomAttributeCollection customAttributeCollection;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override IMethodDefOrRef Method {
@@ -254,7 +260,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MethodSpec, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MethodSpec, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -276,6 +282,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.MethodSpecTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("MethodSpec rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -299,7 +306,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadMethodSpecRow(rid);
+			rawRow = readerModule.TablesStream.ReadMethodSpecRow(origRid);
 		}
 	}
 }

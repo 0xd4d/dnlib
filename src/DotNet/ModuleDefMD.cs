@@ -1174,7 +1174,7 @@ namespace dnlib.DotNet {
 		/// <param name="field">The field</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(FieldDefMD field) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfField(field.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfField(field.OrigRid));
 		}
 
 		/// <summary>
@@ -1183,7 +1183,7 @@ namespace dnlib.DotNet {
 		/// <param name="method">The method</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(MethodDefMD method) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfMethod(method.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfMethod(method.OrigRid));
 		}
 
 		/// <summary>
@@ -1192,7 +1192,7 @@ namespace dnlib.DotNet {
 		/// <param name="evt">The event</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(EventDefMD evt) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfEvent(evt.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfEvent(evt.OrigRid));
 		}
 
 		/// <summary>
@@ -1201,7 +1201,7 @@ namespace dnlib.DotNet {
 		/// <param name="property">The property</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
 		internal TypeDef GetOwnerType(PropertyDefMD property) {
-			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.Rid));
+			return ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.OrigRid));
 		}
 
 		/// <summary>
@@ -1210,7 +1210,7 @@ namespace dnlib.DotNet {
 		/// <param name="gp">The generic param</param>
 		/// <returns>The owner type/method or <c>null</c> if none</returns>
 		internal ITypeOrMethodDef GetOwner(GenericParamMD gp) {
-			return ResolveTypeOrMethodDef(MetaData.GetOwnerOfGenericParam(gp.Rid));
+			return ResolveTypeOrMethodDef(MetaData.GetOwnerOfGenericParam(gp.OrigRid));
 		}
 
 		/// <summary>
@@ -1219,7 +1219,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpc">The generic param constraint</param>
 		/// <returns>The owner generic param or <c>null</c> if none</returns>
 		internal GenericParam GetOwner(GenericParamConstraintMD gpc) {
-			return ResolveGenericParam(MetaData.GetOwnerOfGenericParamConstraint(gpc.Rid));
+			return ResolveGenericParam(MetaData.GetOwnerOfGenericParamConstraint(gpc.OrigRid));
 		}
 
 		/// <summary>
@@ -1228,7 +1228,7 @@ namespace dnlib.DotNet {
 		/// <param name="pd">The param</param>
 		/// <returns>The owner method or <c>null</c> if none</returns>
 		internal MethodDef GetOwner(ParamDefMD pd) {
-			return ResolveMethod(MetaData.GetOwnerOfParam(pd.Rid));
+			return ResolveMethod(MetaData.GetOwnerOfParam(pd.OrigRid));
 		}
 
 		/// <summary>
@@ -1601,7 +1601,7 @@ namespace dnlib.DotNet {
 		internal MethodBody ReadMethodBody(MethodDefMD method, RawMethodRow row) {
 			MethodBody mb;
 			var mDec = methodDecrypter;
-			if (mDec != null && mDec.GetMethodBody(method.Rid, (RVA)row.RVA, method.Parameters, out mb))
+			if (mDec != null && mDec.GetMethodBody(method.OrigRid, (RVA)row.RVA, method.Parameters, out mb))
 				return mb;
 
 			if (row.RVA == 0)

@@ -226,18 +226,24 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the TypeSpec table
 	/// </summary>
-	sealed class TypeSpecMD : TypeSpec {
+	sealed class TypeSpecMD : TypeSpec, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawTypeSpecRow rawRow;
 
+		readonly uint origRid;
 		UserValue<TypeSig> typeSig;
 		byte[] extraData;
 		CustomAttributeCollection customAttributeCollection;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override TypeSig TypeSig {
@@ -261,7 +267,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeSpec, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeSpec, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -283,6 +289,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.TypeSpecTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("TypeSpec rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -293,7 +300,7 @@ namespace dnlib.DotNet {
 				InitializeRawRow_NoLock();
 				var sig = readerModule.ReadTypeSignature(rawRow.Signature, out extraData);
 				if (sig != null)
-					sig.Rid = rid;
+					sig.Rid = origRid;
 				return sig;
 			};
 #if THREAD_SAFE
@@ -304,7 +311,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadTypeSpecRow(rid);
+			rawRow = readerModule.TablesStream.ReadTypeSpecRow(origRid);
 		}
 	}
 }

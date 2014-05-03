@@ -590,12 +590,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the ExportedType table
 	/// </summary>
-	sealed class ExportedTypeMD : ExportedType {
+	sealed class ExportedTypeMD : ExportedType, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawExportedTypeRow rawRow;
 
+		readonly uint origRid;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<TypeAttributes> flags;
 		UserValue<uint> typeDefId;
@@ -604,10 +605,15 @@ namespace dnlib.DotNet {
 		UserValue<IImplementation> implementation;
 
 		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
+
+		/// <inheritdoc/>
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ExportedType, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ExportedType, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -659,6 +665,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.ExportedTypeTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("ExportedType rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
@@ -698,7 +705,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadExportedTypeRow(rid);
+			rawRow = readerModule.TablesStream.ReadExportedTypeRow(origRid);
 		}
 	}
 }

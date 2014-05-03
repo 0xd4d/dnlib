@@ -559,12 +559,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the AssemblyRef table
 	/// </summary>
-	sealed class AssemblyRefMD : AssemblyRef {
+	sealed class AssemblyRefMD : AssemblyRef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawAssemblyRefRow rawRow;
 
+		readonly uint origRid;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<Version> version;
 		UserValue<AssemblyAttributes> flags;
@@ -574,10 +575,15 @@ namespace dnlib.DotNet {
 		UserValue<byte[]> hashValue;
 
 		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
+
+		/// <inheritdoc/>
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.AssemblyRef, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.AssemblyRef, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -639,6 +645,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.AssemblyRefTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("AssemblyRef rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -685,7 +692,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadAssemblyRefRow(rid);
+			rawRow = readerModule.TablesStream.ReadAssemblyRefRow(origRid);
 		}
 	}
 }

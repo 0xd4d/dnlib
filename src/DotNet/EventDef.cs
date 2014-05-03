@@ -370,12 +370,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Event table
 	/// </summary>
-	sealed class EventDefMD : EventDef {
+	sealed class EventDefMD : EventDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawEventRow rawRow;
 
+		readonly uint origRid;
 		UserValue<EventAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<ITypeDefOrRef> type;
@@ -385,6 +386,11 @@ namespace dnlib.DotNet {
 		MethodDef removeMethod;
 		ThreadSafe.IList<MethodDef> otherMethods;
 		UserValue<TypeDef> declaringType;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		protected override EventAttributes Attributes_NoLock {
@@ -408,7 +414,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Event, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Event, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -459,6 +465,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.EventTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Event rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -491,7 +498,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadEventRow(rid);
+			rawRow = readerModule.TablesStream.ReadEventRow(origRid);
 		}
 
 		internal EventDefMD InitializeAll() {

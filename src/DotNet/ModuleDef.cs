@@ -1226,12 +1226,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>
-	public class ModuleDefMD2 : ModuleDef {
+	public class ModuleDefMD2 : ModuleDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawModuleRow rawRow;
 
+		readonly uint origRid;
 		UserValue<ushort> generation;
 		UserValue<UTF8String> name;
 		UserValue<Guid?> mvid;
@@ -1250,6 +1251,11 @@ namespace dnlib.DotNet {
 		Win32Resources win32Resources;
 		VTableFixups vtableFixups;
 		string location;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override ushort Generation {
@@ -1279,7 +1285,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Module, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Module, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -1360,6 +1366,7 @@ namespace dnlib.DotNet {
 			if (rid != 1 && readerModule.TablesStream.ModuleTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Module rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			if (rid != 1) {
@@ -1402,7 +1409,7 @@ namespace dnlib.DotNet {
 				return readerModule.GuidStream.Read(rawRow.EncBaseId);
 			};
 			assembly.ReadOriginalValue = () => {
-				if (rid != 1)
+				if (origRid != 1)
 					return null;
 				return readerModule.ResolveAssembly(1);
 			};
@@ -1427,7 +1434,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadModuleRow(rid) ?? new RawModuleRow();
+			rawRow = readerModule.TablesStream.ReadModuleRow(origRid) ?? new RawModuleRow();
 		}
 	}
 }

@@ -405,12 +405,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Property table
 	/// </summary>
-	sealed class PropertyDefMD : PropertyDef {
+	sealed class PropertyDefMD : PropertyDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawPropertyRow rawRow;
 
+		readonly uint origRid;
 		UserValue<PropertyAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<CallingConventionSig> type;
@@ -420,6 +421,11 @@ namespace dnlib.DotNet {
 		MethodDef setMethod;
 		ThreadSafe.IList<MethodDef> otherMethods;
 		UserValue<TypeDef> declaringType;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		protected override PropertyAttributes Attributes_NoLock {
@@ -449,7 +455,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Property, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Property, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -494,6 +500,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.PropertyTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Property rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -513,7 +520,7 @@ namespace dnlib.DotNet {
 				return readerModule.ReadSignature(rawRow.Type);
 			};
 			constant.ReadOriginalValue = () => {
-				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Property, rid));
+				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Property, origRid));
 			};
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);
@@ -530,7 +537,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadPropertyRow(rid);
+			rawRow = readerModule.TablesStream.ReadPropertyRow(origRid);
 		}
 
 		internal PropertyDefMD InitializeAll() {

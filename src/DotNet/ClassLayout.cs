@@ -97,17 +97,23 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the ClassLayout table
 	/// </summary>
-	sealed class ClassLayoutMD : ClassLayout {
+	sealed class ClassLayoutMD : ClassLayout, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawClassLayoutRow rawRow;
 
+		readonly uint origRid;
 		UserValue<ushort> packingSize;
 		UserValue<uint> classSize;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override ushort PackingSize {
@@ -135,6 +141,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.ClassLayoutTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("ClassLayout rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -158,7 +165,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadClassLayoutRow(rid);
+			rawRow = readerModule.TablesStream.ReadClassLayoutRow(origRid);
 		}
 	}
 }

@@ -330,12 +330,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the GenericParam table
 	/// </summary>
-	sealed class GenericParamMD : GenericParam {
+	sealed class GenericParamMD : GenericParam, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawGenericParamRow rawRow;
 
+		readonly uint origRid;
 		UserValue<ITypeOrMethodDef> owner;
 		UserValue<ushort> number;
 		UserValue<GenericParamAttributes> flags;
@@ -343,6 +344,11 @@ namespace dnlib.DotNet {
 		UserValue<ITypeDefOrRef> kind;
 		LazyList<GenericParamConstraint> genericParamConstraints;
 		CustomAttributeCollection customAttributeCollection;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override ITypeOrMethodDef Owner {
@@ -378,7 +384,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParam, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParam, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -390,7 +396,7 @@ namespace dnlib.DotNet {
 		public override ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints {
 			get {
 				if (genericParamConstraints == null) {
-					var list = readerModule.MetaData.GetGenericParamConstraintRidList(rid);
+					var list = readerModule.MetaData.GetGenericParamConstraintRidList(origRid);
 					var tmp = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 				}
@@ -412,6 +418,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.GenericParamTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("GenericParam rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -451,7 +458,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadGenericParamRow(rid);
+			rawRow = readerModule.TablesStream.ReadGenericParamRow(origRid);
 		}
 
 		internal GenericParamMD InitializeAll() {

@@ -238,17 +238,23 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the ManifestResource table
 	/// </summary>
-	sealed class ManifestResourceMD : ManifestResource {
+	sealed class ManifestResourceMD : ManifestResource, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawManifestResourceRow rawRow;
 
+		readonly uint origRid;
 		UserValue<uint> offset;
 		UserValue<ManifestResourceAttributes> flags;
 		UserValue<UTF8String> name;
 		UserValue<IImplementation> implementation;
 		CustomAttributeCollection customAttributeCollection;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override uint Offset {
@@ -278,7 +284,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ManifestResource, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ManifestResource, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -300,6 +306,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.ManifestResourceTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("ManifestResource rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -333,7 +340,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadManifestResourceRow(rid);
+			rawRow = readerModule.TablesStream.ReadManifestResourceRow(origRid);
 		}
 	}
 }

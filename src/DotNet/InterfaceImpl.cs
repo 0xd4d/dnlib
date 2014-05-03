@@ -107,17 +107,23 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the InterfaceImpl table
 	/// </summary>
-	sealed class InterfaceImplMD : InterfaceImpl {
+	sealed class InterfaceImplMD : InterfaceImpl, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawInterfaceImplRow rawRow;
 
+		readonly uint origRid;
 		UserValue<ITypeDefOrRef> @interface;
 		CustomAttributeCollection customAttributeCollection;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override ITypeDefOrRef Interface {
@@ -129,7 +135,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.InterfaceImpl, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.InterfaceImpl, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -151,6 +157,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.InterfaceImplTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("InterfaceImpl rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -169,7 +176,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadInterfaceImplRow(rid);
+			rawRow = readerModule.TablesStream.ReadInterfaceImplRow(origRid);
 		}
 	}
 }

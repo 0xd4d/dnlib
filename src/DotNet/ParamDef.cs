@@ -319,12 +319,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Param table
 	/// </summary>
-	sealed class ParamDefMD : ParamDef {
+	sealed class ParamDefMD : ParamDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawParamRow rawRow;
 
+		readonly uint origRid;
 		UserValue<MethodDef> declaringMethod;
 		UserValue<ParamAttributes> flags;
 		UserValue<ushort> sequence;
@@ -332,6 +333,11 @@ namespace dnlib.DotNet {
 		UserValue<MarshalType> marshalType;
 		UserValue<Constant> constant;
 		CustomAttributeCollection customAttributeCollection;
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override MethodDef DeclaringMethod {
@@ -373,7 +379,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Param, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Param, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -395,6 +401,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.ParamTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("Param rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -417,10 +424,10 @@ namespace dnlib.DotNet {
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			marshalType.ReadOriginalValue = () => {
-				return readerModule.ReadMarshalType(Table.Param, rid);
+				return readerModule.ReadMarshalType(Table.Param, origRid);
 			};
 			constant.ReadOriginalValue = () => {
-				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, rid));
+				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, origRid));
 			};
 #if THREAD_SAFE
 			declaringMethod.Lock = theLock;
@@ -435,7 +442,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadParamRow(rid);
+			rawRow = readerModule.TablesStream.ReadParamRow(origRid);
 		}
 
 		internal ParamDefMD InitializeAll() {

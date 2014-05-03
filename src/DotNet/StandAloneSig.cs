@@ -129,17 +129,23 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the StandAloneSig table
 	/// </summary>
-	sealed class StandAloneSigMD : StandAloneSig {
+	sealed class StandAloneSigMD : StandAloneSig, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawStandAloneSigRow rawRow;
 
+		readonly uint origRid;
 		UserValue<CallingConventionSig> signature;
 		CustomAttributeCollection customAttributeCollection;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
+
+		/// <inheritdoc/>
+		public uint OrigRid {
+			get { return origRid; }
+		}
 
 		/// <inheritdoc/>
 		public override CallingConventionSig Signature {
@@ -151,7 +157,7 @@ namespace dnlib.DotNet {
 		public override CustomAttributeCollection CustomAttributes {
 			get {
 				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.StandAloneSig, rid);
+					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.StandAloneSig, origRid);
 					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
 				}
@@ -173,6 +179,7 @@ namespace dnlib.DotNet {
 			if (readerModule.TablesStream.StandAloneSigTable.IsInvalidRID(rid))
 				throw new BadImageFormatException(string.Format("StandAloneSig rid {0} does not exist", rid));
 #endif
+			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			Initialize();
@@ -191,7 +198,7 @@ namespace dnlib.DotNet {
 		void InitializeRawRow_NoLock() {
 			if (rawRow != null)
 				return;
-			rawRow = readerModule.TablesStream.ReadStandAloneSigRow(rid);
+			rawRow = readerModule.TablesStream.ReadStandAloneSigRow(origRid);
 		}
 	}
 }
