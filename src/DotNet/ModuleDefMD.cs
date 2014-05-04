@@ -444,11 +444,6 @@ namespace dnlib.DotNet {
 		void Initialize() {
 			var ts = dnFile.MetaData.TablesStream;
 
-			// FindCorLibAssemblyRef() needs this list initialized. Other code may need corLibTypes
-			// so initialize these two first.
-			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.AssemblyRefTable.Rows, rid2 => new AssemblyRefMD(this, rid2));
-			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
-
 			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == 1 ? this : new ModuleDefMD2(this, rid2));
 			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.TypeRefTable.Rows, rid2 => new TypeRefMD(this, rid2));
 			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.TypeDefTable.Rows, rid2 => new TypeDefMD(this, rid2));
@@ -468,6 +463,7 @@ namespace dnlib.DotNet {
 			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.ImplMapTable.Rows, rid2 => new ImplMapMD(this, rid2));
 			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.AssemblyTable.Rows, rid2 => new AssemblyDefMD(this, rid2));
 			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.FileTable.Rows, rid2 => new FileDefMD(this, rid2));
+			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.AssemblyRefTable.Rows, rid2 => new AssemblyRefMD(this, rid2));
 			listExportedTypeMD = new SimpleLazyList<ExportedTypeMD>(ts.ExportedTypeTable.Rows, rid2 => new ExportedTypeMD(this, rid2));
 			listManifestResourceMD = new SimpleLazyList<ManifestResourceMD>(ts.ManifestResourceTable.Rows, rid2 => new ManifestResourceMD(this, rid2));
 			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.GenericParamTable.Rows, rid2 => new GenericParamMD(this, rid2));
@@ -496,6 +492,8 @@ namespace dnlib.DotNet {
 				var tbl = TablesStream.Get((Table)i);
 				lastUsedRids[i] = tbl == null ? 0 : (int)tbl.Rows;
 			}
+
+			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
 		}
 
 		static readonly Dictionary<string, int> preferredCorLibs = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
@@ -546,6 +544,14 @@ namespace dnlib.DotNet {
 				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
 					corLibAsmRef = asmRef;
 			}
+			if (corLibAsmRef != null)
+				return corLibAsmRef;
+
+			// If we've loaded mscorlib itself, it won't have any AssemblyRefs to itself.
+			var asm = Assembly;
+			if (asm != null && asm.IsCorLib())
+				return UpdateRowId(new AssemblyRefUser(asm));
+
 			return corLibAsmRef;
 		}
 
