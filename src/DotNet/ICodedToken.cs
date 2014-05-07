@@ -668,11 +668,20 @@ namespace dnlib.DotNet {
 	/// <see cref="FieldDef"/>, <see cref="MethodDef"/>, <see cref="EventDef"/>,
 	/// <see cref="PropertyDef"/>, and <see cref="GenericParam"/>.
 	/// </summary>
-	public interface IMemberDef : IMemberRef {
+	public interface IMemberDef : IDnlibDef, IMemberRef {
 		/// <summary>
 		/// Gets the declaring type
 		/// </summary>
 		new TypeDef DeclaringType { get; }
+	}
+
+	/// <summary>
+	/// Implemented by the following classes: <see cref="TypeDef"/>,
+	/// <see cref="FieldDef"/>, <see cref="MethodDef"/>, <see cref="EventDef"/>,
+	/// <see cref="PropertyDef"/>, <see cref="GenericParam"/>, <see cref="AssemblyDef"/>,
+	/// and <see cref="ModuleDef"/>
+	/// </summary>
+	public interface IDnlibDef : ICodedToken, IFullName, IHasCustomAttribute {
 	}
 
 	/// <summary>

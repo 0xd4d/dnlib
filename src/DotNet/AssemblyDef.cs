@@ -40,7 +40,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>
-	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly, IListListener<ModuleDef>, ITypeDefFinder {
+	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly, IListListener<ModuleDef>, ITypeDefFinder, IDnlibDef {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
