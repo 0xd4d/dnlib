@@ -746,6 +746,11 @@ namespace dnlib.DotNet {
 		/// Gets/sets the marshal type
 		/// </summary>
 		MarshalType MarshalType { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
+		/// </summary>
+		bool HasMarshalType { get; }
 	}
 
 	/// <summary>

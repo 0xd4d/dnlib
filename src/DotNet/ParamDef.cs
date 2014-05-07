@@ -153,7 +153,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
-		public bool HasMarshalInfo {
+		public bool HasMarshalType {
 			get { return MarshalType != null; }
 		}
 
