@@ -210,7 +210,7 @@ namespace dnlib.DotNet {
 		}
 
 		CustomAttribute Read(ICustomAttributeType ctor) {
-			var methodSig = ctor == null ? null : ((IMethodDefOrRef)ctor).MethodSig;
+			var methodSig = ctor == null ? null : ctor.MethodSig;
 			if (methodSig == null)
 				throw new CABlobParserException("ctor is null or not a method");
 

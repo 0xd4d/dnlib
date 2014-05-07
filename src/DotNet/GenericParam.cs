@@ -164,7 +164,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get {
-				var dt = Owner as IMemberRef;
+				var dt = Owner;
 				return dt == null ? null : dt.Module;
 			}
 		}

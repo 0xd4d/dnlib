@@ -747,15 +747,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static MethodSig GetMethodSig(ICustomAttributeType ctor) {
-			var mrCtor = ctor as MemberRef;
-			if (mrCtor != null)
-				return mrCtor.MethodSig;
-
-			var mdCtor = ctor as MethodDef;
-			if (mdCtor != null)
-				return mdCtor.MethodSig;
-
-			return null;
+			return ctor == null ? null : ctor.MethodSig;
 		}
 
 		void WriteUTF8String(UTF8String s) {

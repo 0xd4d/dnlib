@@ -786,7 +786,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// HasSemantic coded token interface
 	/// </summary>
-	public interface IHasSemantic : ICodedToken, IHasCustomAttribute, IFullName {
+	public interface IHasSemantic : ICodedToken, IHasCustomAttribute, IFullName, IMemberRef {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -806,7 +806,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// MemberForwarded coded token interface
 	/// </summary>
-	public interface IMemberForwarded : ICodedToken, IHasCustomAttribute, IFullName {
+	public interface IMemberForwarded : ICodedToken, IHasCustomAttribute, IFullName, IMemberRef {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -836,7 +836,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// CustomAttributeType coded token interface
 	/// </summary>
-	public interface ICustomAttributeType : ICodedToken, IHasCustomAttribute {
+	public interface ICustomAttributeType : ICodedToken, IHasCustomAttribute, IMethod {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -856,7 +856,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// TypeOrMethodDef coded token interface
 	/// </summary>
-	public interface ITypeOrMethodDef : ICodedToken, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IFullName {
+	public interface ITypeOrMethodDef : ICodedToken, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IFullName, IMemberRef {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>

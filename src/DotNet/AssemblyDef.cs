@@ -729,7 +729,7 @@ namespace dnlib.DotNet {
 #else
 			if (ca == null)
 				return false;
-			var ctor = ca.Constructor as IMethodDefOrRef;
+			var ctor = ca.Constructor;
 			if (ctor == null)
 				return false;
 			var sig = ctor.MethodSig;
