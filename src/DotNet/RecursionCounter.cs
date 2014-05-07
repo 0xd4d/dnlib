@@ -24,7 +24,10 @@
 ﻿using System;
 
 namespace dnlib.DotNet {
-	struct RecursionCounter {
+	/// <summary>
+	/// Recursion counter
+	/// </summary>
+	public struct RecursionCounter {
 		/// <summary>
 		/// Max recursion count. If this is reached, we won't continue, and will use a default value.
 		/// </summary>
