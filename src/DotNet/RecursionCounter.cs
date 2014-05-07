@@ -24,32 +24,6 @@
 ﻿using System;
 
 namespace dnlib.DotNet {
-	[Serializable]
-	class InfiniteRecursionException : Exception {
-		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public InfiniteRecursionException() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="msg">Error message</param>
-		public InfiniteRecursionException(string msg)
-			: base(msg) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="msg">Error message</param>
-		/// <param name="innerException">Other exception</param>
-		public InfiniteRecursionException(string msg, Exception innerException)
-			: base(msg, innerException) {
-		}
-	}
-
 	struct RecursionCounter {
 		/// <summary>
 		/// Max recursion count. If this is reached, we won't continue, and will use a default value.
