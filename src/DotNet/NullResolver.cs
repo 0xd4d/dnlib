@@ -35,7 +35,7 @@
 		}
 
 		/// <inheritdoc/>
-		public AssemblyDef Resolve(AssemblyNameInfo assembly, ModuleDef sourceModule) {
+		public AssemblyDef Resolve(IAssembly assembly, ModuleDef sourceModule) {
 			return null;
 		}
 

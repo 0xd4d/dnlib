@@ -151,7 +151,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public AssemblyDef Resolve(AssemblyNameInfo assembly, ModuleDef sourceModule) {
+		public AssemblyDef Resolve(IAssembly assembly, ModuleDef sourceModule) {
 			if (assembly == null)
 				return null;
 
@@ -180,7 +180,7 @@ namespace dnlib.DotNet {
 				return null;
 			}
 
-			var key1 = GetAssemblyNameKey(new AssemblyNameInfo(resolvedAssembly));
+			var key1 = GetAssemblyNameKey(resolvedAssembly);
 			var key2 = GetAssemblyNameKey(assembly);
 			AssemblyDef asm1, asm2;
 			cachedAssemblies.TryGetValue(key1, out asm1);
@@ -222,7 +222,7 @@ namespace dnlib.DotNet {
 		public bool AddToCache(AssemblyDef asm) {
 			if (asm == null)
 				return false;
-			var asmKey = GetAssemblyNameKey(new AssemblyNameInfo(asm));
+			var asmKey = GetAssemblyNameKey(asm);
 			AssemblyDef cachedAsm;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -240,7 +240,7 @@ namespace dnlib.DotNet {
 		public bool Remove(AssemblyDef asm) {
 			if (asm == null)
 				return false;
-			var asmKey = GetAssemblyNameKey(new AssemblyNameInfo(asm));
+			var asmKey = GetAssemblyNameKey(asm);
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -250,12 +250,12 @@ namespace dnlib.DotNet {
 #endif
 		}
 
-		static string GetAssemblyNameKey(AssemblyNameInfo asmName) {
+		static string GetAssemblyNameKey(IAssembly asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
 			return asmName.FullNameToken.ToUpperInvariant();
 		}
 
-		AssemblyDef Resolve2(AssemblyNameInfo assembly, ModuleDef sourceModule) {
+		AssemblyDef Resolve2(IAssembly assembly, ModuleDef sourceModule) {
 			AssemblyDef resolvedAssembly;
 
 			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out resolvedAssembly))
@@ -289,7 +289,7 @@ namespace dnlib.DotNet {
 		/// <param name="moduleContext">Module context</param>
 		/// <returns>An <see cref="AssemblyDef"/> instance or <c>null</c> if an exact match
 		/// couldn't be found.</returns>
-		AssemblyDef FindExactAssembly(AssemblyNameInfo assembly, IEnumerable<string> paths, ModuleContext moduleContext) {
+		AssemblyDef FindExactAssembly(IAssembly assembly, IEnumerable<string> paths, ModuleContext moduleContext) {
 			if (paths == null)
 				return null;
 			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
@@ -298,7 +298,7 @@ namespace dnlib.DotNet {
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
-					if (asm != null && asmComparer.Equals(assembly, new AssemblyNameInfo(asm))) {
+					if (asm != null && asmComparer.Equals(assembly, asm)) {
 						mod = null;
 						return asm;
 					}
@@ -318,19 +318,19 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="assembly">Assembly name to find</param>
 		/// <returns>The closest <see cref="AssemblyDef"/> or <c>null</c> if none found</returns>
-		AssemblyDef FindClosestAssembly(AssemblyNameInfo assembly) {
+		AssemblyDef FindClosestAssembly(IAssembly assembly) {
 			AssemblyDef closest = null;
 			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 			foreach (var asm in cachedAssemblies.Values) {
 				if (asm == null)
 					continue;
-				if (asmComparer.CompareClosest(assembly, new AssemblyNameInfo(closest), new AssemblyNameInfo(asm)) == 1)
+				if (asmComparer.CompareClosest(assembly, closest, asm) == 1)
 					closest = asm;
 			}
 			return closest;
 		}
 
-		AssemblyDef FindClosestAssembly(AssemblyNameInfo assembly, AssemblyDef closest, IEnumerable<string> paths, ModuleContext moduleContext) {
+		AssemblyDef FindClosestAssembly(IAssembly assembly, AssemblyDef closest, IEnumerable<string> paths, ModuleContext moduleContext) {
 			if (paths == null)
 				return closest;
 			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
@@ -339,7 +339,7 @@ namespace dnlib.DotNet {
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
-					if (asm != null && asmComparer.CompareClosest(assembly, new AssemblyNameInfo(closest), new AssemblyNameInfo(asm)) == 1) {
+					if (asm != null && asmComparer.CompareClosest(assembly, closest, asm) == 1) {
 						if (!IsCached(closest) && closest != null) {
 							var closeMod = closest.ManifestModule;
 							if (closeMod != null)
@@ -368,11 +368,11 @@ namespace dnlib.DotNet {
 			if (asm == null)
 				return false;
 			AssemblyDef cachedAsm;
-			return cachedAssemblies.TryGetValue(GetAssemblyNameKey(new AssemblyNameInfo(asm)), out cachedAsm) &&
+			return cachedAssemblies.TryGetValue(GetAssemblyNameKey(asm), out cachedAsm) &&
 					cachedAsm == asm;
 		}
 
-		IEnumerable<string> FindAssemblies2(AssemblyNameInfo assembly, IEnumerable<string> paths) {
+		IEnumerable<string> FindAssemblies2(IAssembly assembly, IEnumerable<string> paths) {
 			if (paths != null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				foreach (var ext in assemblyExtensions) {
@@ -392,7 +392,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> PreFindAssemblies(AssemblyNameInfo assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string> PreFindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			foreach (var path in FindAssemblies2(assembly, preSearchPaths))
 				yield return path;
 		}
@@ -404,7 +404,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> PostFindAssemblies(AssemblyNameInfo assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string> PostFindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			foreach (var path in FindAssemblies2(assembly, postSearchPaths))
 				yield return path;
 		}
@@ -416,27 +416,27 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> FindAssemblies(AssemblyNameInfo assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string> FindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			foreach (var path in FindAssembliesGac(assembly, sourceModule, matchExactly))
 				yield return path;
 			foreach (var path in FindAssembliesModuleSearchPaths(assembly, sourceModule, matchExactly))
 				yield return path;
 		}
 
-		IEnumerable<string> FindAssembliesGac(AssemblyNameInfo assembly, ModuleDef sourceModule, bool matchExactly) {
+		IEnumerable<string> FindAssembliesGac(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			if (matchExactly)
 				return FindAssembliesGacExactly(assembly, sourceModule);
 			return FindAssembliesGacAny(assembly, sourceModule);
 		}
 
-		IEnumerable<string> FindAssembliesGacExactly(AssemblyNameInfo assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacExactly(IAssembly assembly, ModuleDef sourceModule) {
 			foreach (var path in FindAssembliesGacExactly(gac2Info, assembly, sourceModule))
 				yield return path;
 			foreach (var path in FindAssembliesGacExactly(gac4Info, assembly, sourceModule))
 				yield return path;
 		}
 
-		IEnumerable<string> FindAssembliesGacExactly(GacInfo gacInfo, AssemblyNameInfo assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacExactly(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
 			var pkt = PublicKeyBase.ToPublicKeyToken(assembly.PublicKeyOrToken);
 			if (gacInfo != null && pkt != null) {
 				string pktString = pkt.ToString();
@@ -453,14 +453,14 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacAny(AssemblyNameInfo assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacAny(IAssembly assembly, ModuleDef sourceModule) {
 			foreach (var path in FindAssembliesGacAny(gac2Info, assembly, sourceModule))
 				yield return path;
 			foreach (var path in FindAssembliesGacAny(gac4Info, assembly, sourceModule))
 				yield return path;
 		}
 
-		IEnumerable<string> FindAssembliesGacAny(GacInfo gacInfo, AssemblyNameInfo assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacAny(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
 			if (gacInfo != null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				foreach (var subDir in gacInfo.subDirs) {
@@ -486,7 +486,7 @@ namespace dnlib.DotNet {
 			return dirs;
 		}
 
-		IEnumerable<string> FindAssembliesModuleSearchPaths(AssemblyNameInfo assembly, ModuleDef sourceModule, bool matchExactly) {
+		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 			var searchPaths = GetSearchPaths(sourceModule);
 			foreach (var ext in assemblyExtensions) {
