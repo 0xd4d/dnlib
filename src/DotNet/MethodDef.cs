@@ -240,6 +240,18 @@ namespace dnlib.DotNet {
 			get { return CustomAttributes.Count > 0; }
 		}
 
+		/// <inheritdoc/>
+		public bool HasDeclSecurities {
+			get { return DeclSecurities.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ParamDefs"/> is not empty
+		/// </summary>
+		public bool HasParamDefs {
+			get { return ParamDefs.Count > 0; }
+		}
+
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>

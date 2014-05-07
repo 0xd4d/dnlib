@@ -167,6 +167,18 @@ namespace dnlib.DotNet {
 			get { return CustomAttributes.Count > 0; }
 		}
 
+		/// <inheritdoc/>
+		public bool HasDeclSecurities {
+			get { return DeclSecurities.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Modules"/> is not empty
+		/// </summary>
+		public bool HasModules {
+			get { return Modules.Count > 0; }
+		}
+
 		/// <summary>
 		/// Gets the manifest (main) module. This is always the first module in <see cref="Modules"/>.
 		/// <c>null</c> is returned if <see cref="Modules"/> is empty.

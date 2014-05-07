@@ -766,6 +766,11 @@ namespace dnlib.DotNet {
 		/// Gets the permission sets
 		/// </summary>
 		ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="DeclSecurities"/> is not empty
+		/// </summary>
+		bool HasDeclSecurities { get; }
 	}
 
 	/// <summary>
@@ -811,6 +816,11 @@ namespace dnlib.DotNet {
 		/// Gets/sets the impl map
 		/// </summary>
 		ImplMap ImplMap { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ImplMap"/> is not <c>null</c>
+		/// </summary>
+		bool HasImplMap { get; }
 	}
 
 	/// <summary>
@@ -856,6 +866,11 @@ namespace dnlib.DotNet {
 		/// Gets the generic parameters
 		/// </summary>
 		ThreadSafe.IList<GenericParam> GenericParameters { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParameters"/> is not empty
+		/// </summary>
+		bool HasGenericParameters { get; }
 	}
 
 	public static partial class Extensions {

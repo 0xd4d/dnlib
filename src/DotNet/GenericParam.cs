@@ -154,6 +154,13 @@ namespace dnlib.DotNet {
 			get { return CustomAttributes.Count > 0; }
 		}
 
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamConstraints"/> is not empty
+		/// </summary>
+		public bool HasGenericParamConstraints {
+			get { return GenericParamConstraints.Count > 0; }
+		}
+
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get {

@@ -83,6 +83,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="SecurityAttributes"/> is not empty
+		/// </summary>
+		public bool HasSecurityAttributes {
+			get { return SecurityAttributes.Count > 0; }
+		}
+
+		/// <summary>
 		/// Gets the blob data or <c>null</c> if there's none
 		/// </summary>
 		/// <returns>Blob data or <c>null</c></returns>

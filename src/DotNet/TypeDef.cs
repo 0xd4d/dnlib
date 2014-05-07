@@ -286,6 +286,11 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public abstract ClassLayout ClassLayout { get; set; }
 
+		/// <inheritdoc/>
+		public bool HasDeclSecurities {
+			get { return DeclSecurities.Count > 0; }
+		}
+
 		/// <summary>
 		/// Gets/sets the enclosing type. It's <c>null</c> if this isn't a nested class.
 		/// </summary>
