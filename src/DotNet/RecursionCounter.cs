@@ -79,22 +79,8 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Increments <see cref="counter"/> if it's not too high. <c>ALL</c> instance methods
-		/// that can be called recursively must call this method and <see cref="Decrement"/>
-		/// (if this method returns <c>true</c>)
-		/// </summary>
-		/// <exception cref="InfiniteRecursionException"><see cref="IncrementThrow"/>
-		/// has been called too many times</exception>
-		public void IncrementThrow() {
-			if (counter >= MAX_RECURSION_COUNT)
-				throw new InfiniteRecursionException("Infinite recursion");
-			counter++;
-		}
-
-		/// <summary>
 		/// Must be called before returning to caller if <see cref="Increment"/>
-		/// returned <c>true</c> or if <see cref="IncrementThrow"/> didn't throw an
-		/// exception.
+		/// returned <c>true</c>.
 		/// </summary>
 		public void Decrement() {
 #if DEBUG
