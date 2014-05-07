@@ -976,15 +976,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public IField Import(IField field) {
+		public MemberRef Import(IField field) {
 			if (field == null)
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
 
-			IField result;
+			MemberRef result, mr;
 			FieldDef fd;
-			MemberRef mr;
 
 			if ((fd = field as FieldDef) != null)
 				result = Import(fd);
