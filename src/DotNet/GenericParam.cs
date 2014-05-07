@@ -187,11 +187,60 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.NonVariant"/> is set
+		/// </summary>
+		public bool IsNonVariant {
+			get { return Variance == GenericParamAttributes.NonVariant; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.Covariant"/> is set
+		/// </summary>
+		public bool IsCovariant {
+			get { return Variance == GenericParamAttributes.Covariant; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.Contravariant"/> is set
+		/// </summary>
+		public bool IsContravariant {
+			get { return Variance == GenericParamAttributes.Contravariant; }
+		}
+
+		/// <summary>
 		/// Gets/sets the special constraint
 		/// </summary>
 		public GenericParamAttributes SpecialConstraint {
 			get { return Flags & GenericParamAttributes.SpecialConstraintMask; }
 			set { ModifyAttributes(~GenericParamAttributes.SpecialConstraintMask, value & GenericParamAttributes.SpecialConstraintMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.NoSpecialConstraint"/> is set
+		/// </summary>
+		public bool IsNoSpecialConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.NoSpecialConstraint; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.ReferenceTypeConstraint"/> is set
+		/// </summary>
+		public bool IsReferenceTypeConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.ReferenceTypeConstraint; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.NotNullableValueTypeConstraint"/> is set
+		/// </summary>
+		public bool IsNotNullableValueTypeConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.NotNullableValueTypeConstraint; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.DefaultConstructorConstraint"/> is set
+		/// </summary>
+		public bool IsDefaultConstructorConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.DefaultConstructorConstraint; }
 		}
 
 		/// <inheritdoc/>
