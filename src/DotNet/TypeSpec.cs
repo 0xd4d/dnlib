@@ -82,7 +82,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		UTF8String IMemberRef.Name {
+		UTF8String IFullName.Name {
 			get {
 				var mr = ScopeType;
 				return mr == null ? UTF8String.Empty : mr.Name;

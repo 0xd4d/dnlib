@@ -77,11 +77,6 @@ namespace dnlib.DotNet {
 		PublicKeyBase PublicKeyOrToken { get; }
 
 		/// <summary>
-		/// Simple assembly name
-		/// </summary>
-		UTF8String Name { get; set; }
-
-		/// <summary>
 		/// Locale, aka culture
 		/// </summary>
 		UTF8String Culture { get; set; }
@@ -527,11 +522,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Interface to access a module def/ref
 	/// </summary>
-	public interface IModule : IScope {
-		/// <summary>
-		/// Gets the module name
-		/// </summary>
-		UTF8String Name { get; }
+	public interface IModule : IScope, IFullName {
 	}
 
 	/// <summary>
@@ -577,6 +568,11 @@ namespace dnlib.DotNet {
 		/// Gets the full name
 		/// </summary>
 		string FullName { get; }
+
+		/// <summary>
+		/// Simple name of implementer
+		/// </summary>
+		UTF8String Name { get; set; }
 	}
 
 	/// <summary>
@@ -593,11 +589,6 @@ namespace dnlib.DotNet {
 	/// Implemented by types, fields, methods, properties, events
 	/// </summary>
 	public interface IMemberRef : ICodedToken, IFullName, IOwnerModule {
-		/// <summary>
-		/// Gets/sets the name
-		/// </summary>
-		UTF8String Name { get; set; }
-
 		/// <summary>
 		/// Gets the declaring type
 		/// </summary>

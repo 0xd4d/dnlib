@@ -94,6 +94,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public UTF8String Name {
+			get { return TypeName; }
+			set { TypeName = value; }
+		}
+
+		/// <inheritdoc/>
 		public string ReflectionName {
 			get { return FullNameCreator.Name(this, true); }
 		}

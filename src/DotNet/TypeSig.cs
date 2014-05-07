@@ -131,6 +131,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		UTF8String IFullName.Name {
+			get { return new UTF8String(FullNameCreator.Name(this, false)); }
+			set { throw new NotSupportedException(); }
+		}
+
+		/// <inheritdoc/>
 		public string ReflectionName {
 			get { return FullNameCreator.Name(this, true); }
 		}
