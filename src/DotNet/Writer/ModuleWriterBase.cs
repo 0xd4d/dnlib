@@ -408,6 +408,29 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets all <see cref="PESection"/>s
+		/// </summary>
+		public abstract List<PESection> Sections { get; }
+
+		/// <summary>
+		/// Gets the <c>.text</c> section
+		/// </summary>
+		public abstract PESection TextSection { get; }
+
+		/// <summary>
+		/// Gets the <c>.rsrc</c> section or <c>null</c> if there's none
+		/// </summary>
+		public abstract PESection RsrcSection { get; }
+
+		/// <summary>
+		/// <c>true</c> if <c>this</c> is a <see cref="NativeModuleWriter"/>, <c>false</c> if
+		/// <c>this</c> is a <see cref="ModuleWriter"/>.
+		/// </summary>
+		public bool IsNativeWriter {
+			get { return this is NativeModuleWriter; }
+		}
+
+		/// <summary>
 		/// Writes the module to a file
 		/// </summary>
 		/// <param name="fileName">File name. The file will be truncated if it exists.</param>
@@ -454,7 +477,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Returns the module that is written
 		/// </summary>
-		protected abstract ModuleDef TheModule { get; }
+		public abstract ModuleDef Module { get; }
 
 		/// <summary>
 		/// Writes the module to <see cref="destStream"/>. <see cref="Listener"/> and
@@ -470,11 +493,11 @@ namespace dnlib.DotNet.Writer {
 		protected void CreateStrongNameSignature() {
 			if (TheOptions.StrongNameKey != null)
 				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
-			else if (TheModule.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(TheModule.Assembly.PublicKey)) {
-				int len = TheModule.Assembly.PublicKey.Data.Length - 0x20;
+			else if (Module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(Module.Assembly.PublicKey)) {
+				int len = Module.Assembly.PublicKey.Data.Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
 			}
-			else if (((TheOptions.Cor20HeaderOptions.Flags ?? TheModule.Cor20HeaderFlags) & ComImageFlags.StrongNameSigned) != 0)
+			else if (((TheOptions.Cor20HeaderOptions.Flags ?? Module.Cor20HeaderFlags) & ComImageFlags.StrongNameSigned) != 0)
 				strongNameSignature = new StrongNameSignature(0x80);
 		}
 
