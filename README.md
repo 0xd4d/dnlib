@@ -1,25 +1,4 @@
-dnlib is a library that can read, write and create .NET assemblies and modules.
-
-It was written for [de4dot](https://github.com/0xd4d/de4dot/) which must
-have a rock solid assembly reader and writer library since it has to deal with
-heavily obfuscated assemblies with invalid metadata. If the CLR can load the
-assembly, dnlib must be able to read it and save it.
-
-Features
---------
-
-* Supports reading, writing and creating .NET assemblies/modules targeting any .NET framework (eg. desktop, Silverlight, Windows Phone, etc).
-* Supports reading and writing mixed mode assemblies (eg. C++/CLI)
-* Can read and write non-ECMA compatible .NET assemblies that MS' CLR can load and execute
-* Very stable and can handle obfuscated assemblies that crash other similar libraries.
-* High and low level access to the metadata
-* Output size of non-obfuscated assemblies is usually smaller than the original assembly
-* Metadata tokens and heaps can be preserved when saving an assembly
-* Assembly reader has hooks for decrypting methods and strings
-* Assembly writer has hooks for various writer events
-* Easy to port code from Mono.Cecil to dnlib
-* Add/delete Win32 resource blobs
-* Saved assemblies can be strong name signed and enhanced strong name signed
+.NET module/assembly reader/writer library written for [de4dot](https://github.com/0xd4d/de4dot/).
 
 Compiling
 ---------
