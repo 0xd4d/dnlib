@@ -656,7 +656,7 @@ namespace dnlib.DotNet {
 				if (UTF8String.IsNull(asmName))
 					continue;
 
-				var asmInfo = new AssemblyNameInfo(asmName.String);
+				var asmInfo = new AssemblyNameInfo(asmName);
 				if (asmInfo.Name != Name)
 					continue;
 				if (!PublicKeyBase.IsNullOrEmpty2(PublicKey)) {
@@ -931,14 +931,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
-		public AssemblyDefUser(AssemblyNameInfo asmName) {
+		public AssemblyDefUser(IAssembly asmName) {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
 			this.modules = new LazyList<ModuleDef>(this);
 			this.name = asmName.Name;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.publicKey = asmName.PublicKeyOrToken as PublicKey ?? new PublicKey();
-			this.locale = asmName.Locale;
+			this.locale = asmName.Culture;
 			this.flags = AssemblyAttributes.None;
 			this.hashAlgId = AssemblyHashAlgorithm.SHA1;
 		}

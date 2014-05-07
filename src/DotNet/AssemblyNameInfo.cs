@@ -30,13 +30,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Stores assembly name information
 	/// </summary>
-	public sealed class AssemblyNameInfo {
+	public sealed class AssemblyNameInfo : IAssembly {
 		AssemblyHashAlgorithm hashAlgId;
 		Version version;
 		AssemblyAttributes flags;
 		PublicKeyBase publicKeyOrToken;
 		UTF8String name;
-		UTF8String locale;
+		UTF8String culture;
 
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyHashAlgorithm"/>
@@ -57,7 +57,16 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyAttributes"/>
 		/// </summary>
+		[Obsolete("Use Attributes property instead", false)]
 		public AssemblyAttributes Flags {
+			get { return flags; }
+			set { flags = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes"/>
+		/// </summary>
+		public AssemblyAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
 		}
@@ -79,18 +88,27 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the locale or <c>null</c> if none specified
+		/// Gets/sets the culture or <c>null</c> if none specified
 		/// </summary>
+		[Obsolete("Use Culture property instead", false)]
 		public UTF8String Locale {
-			get { return locale; }
-			set { locale = value; }
+			get { return Culture; }
+			set { Culture = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the culture or <c>null</c> if none specified
+		/// </summary>
+		public UTF8String Culture {
+			get { return culture; }
+			set { culture = value; }
 		}
 
 		/// <summary>
 		/// Gets the full name of the assembly
 		/// </summary>
 		public string FullName {
-			get { return Utils.GetAssemblyNameString(name, version, locale, publicKeyOrToken); }
+			get { return FullNameToken; }
 		}
 
 		/// <summary>
@@ -101,7 +119,7 @@ namespace dnlib.DotNet {
 				var pk = publicKeyOrToken;
 				if (pk is PublicKey)
 					pk = (pk as PublicKey).Token;
-				return Utils.GetAssemblyNameString(name, version, locale, pk);
+				return Utils.GetAssemblyNameString(name, version, culture, pk);
 			}
 		}
 
@@ -132,7 +150,7 @@ namespace dnlib.DotNet {
 			this.flags = asm.Attributes;
 			this.publicKeyOrToken = asm.PublicKeyOrToken;
 			this.name = UTF8String.IsNullOrEmpty(asm.Name) ? UTF8String.Empty : asm.Name;
-			this.locale = UTF8String.IsNullOrEmpty(asm.Culture) ? UTF8String.Empty : asm.Culture;
+			this.culture = UTF8String.IsNullOrEmpty(asm.Culture) ? UTF8String.Empty : asm.Culture;
 		}
 
 		/// <summary>
@@ -148,7 +166,7 @@ namespace dnlib.DotNet {
 			this.publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			this.name = asmName.Name ?? string.Empty;
-			this.locale = asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : string.Empty;
+			this.culture = asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : string.Empty;
 		}
 
 		/// <inhertidoc/>

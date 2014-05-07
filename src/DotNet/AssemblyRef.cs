@@ -527,22 +527,6 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="asmName">Assembly name info</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
-		public AssemblyRefUser(AssemblyNameInfo asmName) {
-			if (asmName == null)
-				throw new ArgumentNullException("asmName");
-
-			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
-			this.publicKeyOrToken = asmName.PublicKeyOrToken;
-			this.name = UTF8String.IsNullOrEmpty(asmName.Name) ? UTF8String.Empty : asmName.Name;
-			this.locale = asmName.Locale;
-			this.flags = publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="assembly">Assembly</param>
 		public AssemblyRefUser(IAssembly assembly) {
 			if (assembly == null)

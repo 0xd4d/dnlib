@@ -167,7 +167,7 @@ namespace dnlib.DotNet {
 						Name = asmNameTrimmed,
 						Version = assembly.Version,
 						PublicKeyOrToken = assembly.PublicKeyOrToken,
-						Locale = assembly.Locale,
+						Culture = assembly.Culture,
 					};
 					resolvedAssembly = Resolve2(assembly, sourceModule);
 				}
