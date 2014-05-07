@@ -57,7 +57,8 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
-	/// Interface to access an <see cref="AssemblyRef"/> or an <see cref="AssemblyDef"/>
+	/// An assembly. Implemented by <see cref="AssemblyRef"/>, <see cref="AssemblyDef"/> and
+	/// <see cref="AssemblyNameInfo"/>.
 	/// </summary>
 	public interface IAssembly : IFullName {
 		/// <summary>
