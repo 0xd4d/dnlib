@@ -86,6 +86,11 @@ namespace dnlib.DotNet {
 		UTF8String Culture { get; set; }
 
 		/// <summary>
+		/// Gets the full name of the assembly but use a public key token
+		/// </summary>
+		string FullNameToken { get; }
+
+		/// <summary>
 		/// Gets/sets the <see cref="AssemblyAttributes.PublicKey"/> bit
 		/// </summary>
 		bool HasPublicKey { get; set; }

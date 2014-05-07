@@ -149,6 +149,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
+			get { return FullNameToken; }
+		}
+
+		/// <inheritdoc/>
+		public string FullNameToken {
 			get { return GetFullNameWithPublicKeyToken(); }
 		}
 

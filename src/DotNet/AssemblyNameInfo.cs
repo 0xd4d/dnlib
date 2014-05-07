@@ -122,6 +122,7 @@ namespace dnlib.DotNet {
 				return Utils.GetAssemblyNameString(name, version, culture, pk);
 			}
 		}
+
 		/// <summary>
 		/// Modify <see cref="Attributes"/> property: <see cref="Attributes"/> =
 		/// (<see cref="Attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.

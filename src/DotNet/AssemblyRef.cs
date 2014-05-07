@@ -192,7 +192,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyBase.ToPublicKeyToken(PublicKeyOrToken)); }
+			get { return FullNameToken; }
 		}
 
 		/// <summary>
@@ -200,6 +200,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public string RealFullName {
 			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyOrToken); }
+		}
+
+		/// <summary>
+		/// Gets the full name of the assembly but use a public key token
+		/// </summary>
+		public string FullNameToken {
+			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyBase.ToPublicKeyToken(PublicKeyOrToken)); }
 		}
 
 		/// <summary>
