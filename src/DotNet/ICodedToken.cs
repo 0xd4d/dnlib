@@ -84,6 +84,91 @@ namespace dnlib.DotNet {
 		/// Locale, aka culture
 		/// </summary>
 		UTF8String Culture { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.PublicKey"/> bit
+		/// </summary>
+		bool HasPublicKey { get; set; }
+
+		/// <summary>
+		/// Gets/sets the processor architecture
+		/// </summary>
+		AssemblyAttributes ProcessorArchitecture { get; set; }
+
+		/// <summary>
+		/// Gets/sets the processor architecture
+		/// </summary>
+		AssemblyAttributes ProcessorArchitectureFull { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if unspecified processor architecture
+		/// </summary>
+		bool IsProcessorArchitectureNone { get; }
+
+		/// <summary>
+		/// <c>true</c> if neutral (PE32) architecture
+		/// </summary>
+		bool IsProcessorArchitectureMSIL { get; }
+
+		/// <summary>
+		/// <c>true</c> if x86 (PE32) architecture
+		/// </summary>
+		bool IsProcessorArchitectureX86 { get; }
+
+		/// <summary>
+		/// <c>true</c> if IA-64 (PE32+) architecture
+		/// </summary>
+		bool IsProcessorArchitectureIA64 { get; }
+
+		/// <summary>
+		/// <c>true</c> if x64 (PE32+) architecture
+		/// </summary>
+		bool IsProcessorArchitectureX64 { get; }
+
+		/// <summary>
+		/// <c>true</c> if ARM (PE32) architecture
+		/// </summary>
+		bool IsProcessorArchitectureARM { get; }
+
+		/// <summary>
+		/// <c>true</c> if eg. reference assembly (not runnable)
+		/// </summary>
+		bool IsProcessorArchitectureNoPlatform { get; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.PA_Specified"/> bit
+		/// </summary>
+		bool IsProcessorArchitectureSpecified { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.EnableJITcompileTracking"/> bit
+		/// </summary>
+		bool EnableJITcompileTracking { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.DisableJITcompileOptimizer"/> bit
+		/// </summary>
+		bool DisableJITcompileOptimizer { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.Retargetable"/> bit
+		/// </summary>
+		bool IsRetargetable { get; set; }
+
+		/// <summary>
+		/// Gets/sets the content type
+		/// </summary>
+		AssemblyAttributes ContentType { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if content type is <c>Default</c>
+		/// </summary>
+		bool IsContentTypeDefault { get; }
+
+		/// <summary>
+		/// <c>true</c> if content type is <c>WindowsRuntime</c>
+		/// </summary>
+		bool IsContentTypeWindowsRuntime { get; }
 	}
 
 	public static partial class Extensions {
