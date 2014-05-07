@@ -257,7 +257,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMethod.DeclaringType {
+		ITypeDefOrRef IMemberRef.DeclaringType {
 			get { return DeclaringType; }
 		}
 

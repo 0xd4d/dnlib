@@ -190,6 +190,11 @@ namespace dnlib.DotNet {
 			get { return ResolutionScope as TypeRef; }
 		}
 
+		/// <inheritdoc/>
+		ITypeDefOrRef IMemberRef.DeclaringType {
+			get { return DeclaringType; }
+		}
+
 		/// <summary>
 		/// Resolves the type
 		/// </summary>

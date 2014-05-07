@@ -81,6 +81,11 @@ namespace dnlib.DotNet {
 			get { return Owner as TypeDef; }
 		}
 
+		/// <inheritdoc/>
+		ITypeDefOrRef IMemberRef.DeclaringType {
+			get { return DeclaringType; }
+		}
+
 		/// <summary>
 		/// Gets the declaring method or <c>null</c> if none or if <see cref="Owner"/> is
 		/// not a <see cref="MethodDef"/>

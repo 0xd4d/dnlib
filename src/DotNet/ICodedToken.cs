@@ -561,6 +561,11 @@ namespace dnlib.DotNet {
 		/// Gets/sets the name
 		/// </summary>
 		UTF8String Name { get; set; }
+
+		/// <summary>
+		/// Gets the declaring type
+		/// </summary>
+		ITypeDefOrRef DeclaringType { get; }
 	}
 
 	/// <summary>
@@ -591,11 +596,6 @@ namespace dnlib.DotNet {
 		/// Gets/sets the field signature
 		/// </summary>
 		FieldSig FieldSig { get; set; }
-
-		/// <summary>
-		/// Gets the declaring type
-		/// </summary>
-		ITypeDefOrRef DeclaringType { get; }
 	}
 
 	/// <summary>
@@ -606,11 +606,6 @@ namespace dnlib.DotNet {
 		/// Method signature
 		/// </summary>
 		MethodSig MethodSig { get; set; }
-
-		/// <summary>
-		/// Gets the declaring type
-		/// </summary>
-		ITypeDefOrRef DeclaringType { get; }
 	}
 
 	/// <summary>

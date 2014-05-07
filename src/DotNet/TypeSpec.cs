@@ -95,6 +95,26 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		ITypeDefOrRef IMemberRef.DeclaringType {
+			get {
+				var sig = TypeSig.RemovePinnedAndModifiers();
+
+				var gis = sig as GenericInstSig;
+				if (gis != null)
+					sig = gis.GenericType;
+
+				var tdr = sig as TypeDefOrRefSig;
+				if (tdr != null) {
+					if (tdr.IsTypeDef || tdr.IsTypeRef)
+						return tdr.TypeDefOrRef.DeclaringType;
+					return null;	// If it's another TypeSpec, just stop. Don't want possible inf recursion.
+				}
+
+				return null;
+			}
+		}
+
+		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
 				var sig = TypeSig;
