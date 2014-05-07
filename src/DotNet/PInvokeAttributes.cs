@@ -74,6 +74,8 @@ namespace dnlib.DotNet {
 		CallConvCdecl		= 0x0200,
 		/// <summary/>
 		CallConvStdcall		= 0x0300,
+		/// <summary/>
+		CallConvStdCall		= CallConvStdcall,
 		/// <summary>In M9, pinvoke will raise exception.</summary>
 		CallConvThiscall	= 0x0400,
 		/// <summary/>
