@@ -82,8 +82,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets/sets a flag indicating whether the original max stack value should be used.
 		/// </summary>
-		public bool KeepOldMaxStack
-		{
+		public bool KeepOldMaxStack {
 			get { return keepOldMaxStack; }
 			set { keepOldMaxStack = value; }
 		}
