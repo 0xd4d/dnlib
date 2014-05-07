@@ -484,6 +484,36 @@ namespace dnlib.DotNet {
 
 			return null;
 		}
+
+		/// <summary>
+		/// Gets the scope type, resolves it, and returns the <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="tdr">Type</param>
+		/// <returns>A <see cref="TypeDef"/> instance.</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		public static TypeDef ResolveTypeDefThrow(this ITypeDefOrRef tdr) {
+			var td = tdr as TypeDef;
+			if (td != null)
+				return td;
+
+			var tr = tdr as TypeRef;
+			if (tr != null)
+				return tr.ResolveThrow();
+
+			if (tdr == null)
+				throw new TypeResolveException("Can't resolve a null pointer");
+			tdr = tdr.ScopeType;
+
+			td = tdr as TypeDef;
+			if (td != null)
+				return td;
+
+			tr = tdr as TypeRef;
+			if (tr != null)
+				return tr.ResolveThrow();
+
+			throw new TypeResolveException(string.Format("Could not resolve type: {0}", tdr));
+		}
 	}
 
 	/// <summary>
