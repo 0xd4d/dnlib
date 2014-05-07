@@ -39,7 +39,7 @@ namespace dnlib.DotNet {
 	/// A high-level representation of a row in the GenericParam table
 	/// </summary>
 	[DebuggerDisplay("{Name.String}")]
-	public abstract class GenericParam : IHasCustomAttribute, IMemberRef, IListListener<GenericParamConstraint> {
+	public abstract class GenericParam : IHasCustomAttribute, IMemberDef, IListListener<GenericParamConstraint> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>

@@ -672,6 +672,18 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
+	/// All member definitions implement this interface: <see cref="TypeDef"/>,
+	/// <see cref="FieldDef"/>, <see cref="MethodDef"/>, <see cref="EventDef"/>,
+	/// <see cref="PropertyDef"/>, and <see cref="GenericParam"/>.
+	/// </summary>
+	public interface IMemberDef : IMemberRef {
+		/// <summary>
+		/// Gets the declaring type
+		/// </summary>
+		new TypeDef DeclaringType { get; }
+	}
+
+	/// <summary>
 	/// Implemented by types and methods
 	/// </summary>
 	public interface IGenericParameterProvider : ICodedToken {

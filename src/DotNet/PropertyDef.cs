@@ -37,7 +37,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Property table
 	/// </summary>
-	public abstract class PropertyDef : IHasConstant, IHasCustomAttribute, IHasSemantic, IFullName, IMemberRef {
+	public abstract class PropertyDef : IHasConstant, IHasCustomAttribute, IHasSemantic, IFullName, IMemberDef {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
