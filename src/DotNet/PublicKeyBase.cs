@@ -61,6 +61,11 @@
 		}
 
 		/// <summary>
+		/// Gets the <see cref="PublicKeyToken"/>
+		/// </summary>
+		public abstract PublicKeyToken Token { get; }
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		protected PublicKeyBase() {

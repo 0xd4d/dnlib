@@ -37,7 +37,7 @@ using dnlib.Threading;
 		/// <summary>
 		/// Gets the <see cref="PublicKeyToken"/>
 		/// </summary>
-		public PublicKeyToken Token {
+		public override PublicKeyToken Token {
 			get {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
