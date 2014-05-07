@@ -566,6 +566,74 @@ namespace dnlib.DotNet {
 		/// Gets the declaring type
 		/// </summary>
 		ITypeDefOrRef DeclaringType { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeSpec"/>, <see cref="TypeRef"/> or
+		/// a <see cref="TypeDef"/>.
+		/// </summary>
+		bool IsType { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MethodDef"/>, <see cref="MethodSpec"/> or a
+		/// <see cref="MemberRef"/> that's referencing a method.
+		/// </summary>
+		bool IsMethod { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="FieldDef"/> or a <see cref="MemberRef"/> that's
+		/// referencing a field.
+		/// </summary>
+		bool IsField { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeSpec"/>
+		/// </summary>
+		bool IsTypeSpec { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeRef"/>
+		/// </summary>
+		bool IsTypeRef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeDef"/>
+		/// </summary>
+		bool IsTypeDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MethodSpec"/>
+		/// </summary>
+		bool IsMethodSpec { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MethodDef"/>
+		/// </summary>
+		bool IsMethodDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MemberRef"/>
+		/// </summary>
+		bool IsMemberRef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="FieldDef"/>
+		/// </summary>
+		bool IsFieldDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="PropertyDef"/>
+		/// </summary>
+		bool IsPropertyDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="EventDef"/>
+		/// </summary>
+		bool IsEventDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="GenericParam"/>
+		/// </summary>
+		bool IsGenericParam { get; }
 	}
 
 	/// <summary>

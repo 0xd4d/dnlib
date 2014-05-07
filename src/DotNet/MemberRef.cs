@@ -141,6 +141,58 @@ namespace dnlib.DotNet {
 			return new TypeRefUser(module, string.Empty, "<Module>", mr);
 		}
 
+		bool IMemberRef.IsType {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethod {
+			get { return IsMethodRef; }
+		}
+
+		bool IMemberRef.IsField {
+			get { return IsFieldRef; }
+		}
+
+		bool IMemberRef.IsTypeSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMemberRef {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsFieldDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsPropertyDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsEventDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsGenericParam {
+			get { return false; }
+		}
+
 		/// <summary>
 		/// <c>true</c> if this is a method reference (<see cref="MethodSig"/> != <c>null</c>)
 		/// </summary>
