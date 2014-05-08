@@ -743,6 +743,8 @@ namespace dnlib.DotNet.Emit {
 			case Code.Ldarg_2: return 2;
 			case Code.Ldarg_3: return 3;
 
+			case Code.Starg:
+			case Code.Starg_S:
 			case Code.Ldarga:
 			case Code.Ldarga_S:
 			case Code.Ldarg:
