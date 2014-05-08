@@ -320,6 +320,7 @@ namespace dnlib.DotNet {
 			: base(name, flags) {
 			if (asmRef == null)
 				throw new ArgumentNullException("asmRef");
+			this.asmRef = asmRef;
 		}
 
 		/// <inheritdoc/>
