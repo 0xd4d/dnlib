@@ -735,6 +735,45 @@ namespace dnlib.DotNet {
 		readonly ITypeOrMethodDef genericParamProvider;
 
 		/// <summary>
+		/// <c>true</c> if it has an owner <see cref="TypeDef"/> or <see cref="MethodDef"/>
+		/// </summary>
+		public bool HasOwner {
+			get { return genericParamProvider != null; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it has an owner <see cref="TypeDef"/> (<see cref="OwnerType"/> is
+		/// not <c>null</c>)
+		/// </summary>
+		public bool HasOwnerType {
+			get { return OwnerType != null; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it has an owner <see cref="MethodDef"/> (<see cref="OwnerMethod"/> is
+		/// not <c>null</c>)
+		/// </summary>
+		public bool HasOwnerMethod {
+			get { return OwnerMethod != null; }
+		}
+
+		/// <summary>
+		/// Gets the owner type or <c>null</c> if the owner is a <see cref="MethodDef"/> or if it
+		/// has no owner.
+		/// </summary>
+		public TypeDef OwnerType {
+			get { return genericParamProvider as TypeDef; }
+		}
+
+		/// <summary>
+		/// Gets the owner method or <c>null</c> if the owner is a <see cref="TypeDef"/> or if it
+		/// has no owner.
+		/// </summary>
+		public MethodDef OwnerMethod {
+			get { return genericParamProvider as MethodDef; }
+		}
+
+		/// <summary>
 		/// Gets the generic param number
 		/// </summary>
 		public uint Number {
