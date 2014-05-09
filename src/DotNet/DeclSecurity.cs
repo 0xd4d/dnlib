@@ -181,7 +181,8 @@ namespace dnlib.DotNet {
 					return securityAttrs;
 #endif
 				InitializeRawRow_NoLock();
-				return securityAttrs = DeclSecurityReader.Read(readerModule, rawRow.PermissionSet);
+				var gpContext = new GenericParamContext();
+				return securityAttrs = DeclSecurityReader.Read(readerModule, rawRow.PermissionSet, gpContext);
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif

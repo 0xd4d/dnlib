@@ -574,7 +574,7 @@ namespace dnlib.DotNet {
 			};
 			type.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Type);
+				return readerModule.ReadSignature(rawRow.Type, new GenericParamContext(DeclaringType2_NoLock));
 			};
 			constant.ReadOriginalValue = () => {
 				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Property, origRid));

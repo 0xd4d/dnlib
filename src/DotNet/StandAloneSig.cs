@@ -129,12 +129,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the StandAloneSig table
 	/// </summary>
-	sealed class StandAloneSigMD : StandAloneSig, IMDTokenProviderMD {
+	sealed class StandAloneSigMD : StandAloneSig, IMDTokenProviderMD, IContainsGenericParameter {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawStandAloneSigRow rawRow;
 
+		readonly GenericParamContext gpContext;
 		readonly uint origRid;
 		UserValue<CallingConventionSig> signature;
 		CustomAttributeCollection customAttributeCollection;
@@ -165,14 +166,19 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		public bool ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="readerModule">The module which contains this <c>StandAloneSig</c> row</param>
 		/// <param name="rid">Row ID</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public StandAloneSigMD(ModuleDefMD readerModule, uint rid) {
+		public StandAloneSigMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
@@ -182,13 +188,14 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.gpContext = gpContext;
 			Initialize();
 		}
 
 		void Initialize() {
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Signature);
+				return readerModule.ReadSignature(rawRow.Signature, gpContext);
 			};
 #if THREAD_SAFE
 			signature.Lock = theLock;

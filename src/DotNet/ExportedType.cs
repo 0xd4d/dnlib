@@ -144,6 +144,14 @@ namespace dnlib.DotNet {
 			get { return FullNameCreator.ScopeType(this); }
 		}
 
+		/// <summary>
+		/// Always returns <c>false</c> since a <see cref="ExportedType"/> does not contain any
+		/// <see cref="GenericVar"/> or <see cref="GenericMVar"/>.
+		/// </summary>
+		public bool ContainsGenericParameter {
+			get { return false; }
+		}
+
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get { return module; }

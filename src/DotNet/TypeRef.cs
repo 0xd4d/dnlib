@@ -138,6 +138,14 @@ namespace dnlib.DotNet {
 			get { return this; }
 		}
 
+		/// <summary>
+		/// Always returns <c>false</c> since a <see cref="TypeRef"/> does not contain any
+		/// <see cref="GenericVar"/> or <see cref="GenericMVar"/>.
+		/// </summary>
+		public bool ContainsGenericParameter {
+			get { return false; }
+		}
+
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get { return module; }

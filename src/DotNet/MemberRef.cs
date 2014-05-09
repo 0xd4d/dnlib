@@ -506,12 +506,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the MemberRef table
 	/// </summary>
-	sealed class MemberRefMD : MemberRef, IMDTokenProviderMD {
+	sealed class MemberRefMD : MemberRef, IMDTokenProviderMD, IContainsGenericParameter {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMemberRefRow rawRow;
 
+		readonly GenericParamContext gpContext;
 		readonly uint origRid;
 		UserValue<IMemberRefParent> @class;
 		UserValue<UTF8String> name;
@@ -556,14 +557,19 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		bool IContainsGenericParameter.ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="readerModule">The module which contains this <c>MemberRef</c> row</param>
 		/// <param name="rid">Row ID</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public MemberRefMD(ModuleDefMD readerModule, uint rid) {
+		public MemberRefMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
@@ -574,13 +580,14 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
+			this.gpContext = gpContext;
 			Initialize();
 		}
 
 		void Initialize() {
 			@class.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ResolveMemberRefParent(rawRow.Class);
+				return readerModule.ResolveMemberRefParent(rawRow.Class, gpContext);
 			};
 			name.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
@@ -588,7 +595,7 @@ namespace dnlib.DotNet {
 			};
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Signature);
+				return readerModule.ReadSignature(rawRow.Signature, gpContext);
 			};
 #if THREAD_SAFE
 			@class.Lock = theLock;

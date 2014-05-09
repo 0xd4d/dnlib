@@ -36,9 +36,10 @@ namespace dnlib.DotNet {
 		/// Resolves a <see cref="ITypeDefOrRef"/>
 		/// </summary>
 		/// <param name="codedToken">A <c>TypeDefOrRef</c> coded token</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="ITypeDefOrRef"/> or <c>null</c> if <paramref name="codedToken"/>
 		/// is invalid</returns>
-		ITypeDefOrRef ResolveTypeDefOrRef(uint codedToken);
+		ITypeDefOrRef ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext);
 
 		/// <summary>
 		/// Converts the address of a <see cref="Type"/> to a <see cref="TypeSig"/>
@@ -57,6 +58,7 @@ namespace dnlib.DotNet {
 		readonly ISignatureReaderHelper helper;
 		readonly ICorLibTypes corLibTypes;
 		readonly IBinaryReader reader;
+		readonly GenericParamContext gpContext;
 		RecursionCounter recursionCounter;
 
 		/// <summary>
@@ -67,8 +69,20 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) {
+			return ReadSig(readerModule, sig, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a signature from the #Blob stream
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
 			try {
-				using (var reader = new SignatureReader(readerModule, sig)) {
+				using (var reader = new SignatureReader(readerModule, sig, gpContext)) {
 					if (reader.reader.Length == 0)
 						return null;
 					var csig = reader.ReadSig();
@@ -90,7 +104,19 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD module, byte[] signature) {
-			return ReadSig(module, module.CorLibTypes, MemoryImageStream.Create(signature));
+			return ReadSig(module, module.CorLibTypes, MemoryImageStream.Create(signature), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="CallingConventionSig"/> signature
+		/// </summary>
+		/// <param name="module">The module where the signature is located in</param>
+		/// <param name="signature">The signature data</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static CallingConventionSig ReadSig(ModuleDefMD module, byte[] signature, GenericParamContext gpContext) {
+			return ReadSig(module, module.CorLibTypes, MemoryImageStream.Create(signature), gpContext);
 		}
 
 		/// <summary>
@@ -101,7 +127,19 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ModuleDefMD module, IBinaryReader signature) {
-			return ReadSig(module, module.CorLibTypes, signature);
+			return ReadSig(module, module.CorLibTypes, signature, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="CallingConventionSig"/> signature
+		/// </summary>
+		/// <param name="module">The module where the signature is located in</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static CallingConventionSig ReadSig(ModuleDefMD module, IBinaryReader signature, GenericParamContext gpContext) {
+			return ReadSig(module, module.CorLibTypes, signature, gpContext);
 		}
 
 		/// <summary>
@@ -113,7 +151,20 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature) {
-			return ReadSig(helper, corLibTypes, MemoryImageStream.Create(signature));
+			return ReadSig(helper, corLibTypes, MemoryImageStream.Create(signature), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="CallingConventionSig"/> signature
+		/// </summary>
+		/// <param name="helper">Token resolver</param>
+		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="signature">The signature data</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) {
+			return ReadSig(helper, corLibTypes, MemoryImageStream.Create(signature), gpContext);
 		}
 
 		/// <summary>
@@ -125,8 +176,21 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature) {
+			return ReadSig(helper, corLibTypes, signature, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="CallingConventionSig"/> signature
+		/// </summary>
+		/// <param name="helper">Token resolver</param>
+		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature, GenericParamContext gpContext) {
 			try {
-				using (var reader = new SignatureReader(helper, corLibTypes, signature)) {
+				using (var reader = new SignatureReader(helper, corLibTypes, signature, gpContext)) {
 					if (reader.reader.Length == 0)
 						return null;
 					return reader.ReadSig();
@@ -145,8 +209,20 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig) {
+			return ReadTypeSig(readerModule, sig, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
 			try {
-				using (var reader = new SignatureReader(readerModule, sig))
+				using (var reader = new SignatureReader(readerModule, sig, gpContext))
 					return reader.ReadType();
 			}
 			catch {
@@ -164,8 +240,22 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig, out byte[] extraData) {
+			return ReadTypeSig(readerModule, sig, new GenericParamContext(), out extraData);
+		}
+
+		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="extraData">If there's any extra data after the signature, it's saved
+		/// here, else this will be <c>null</c></param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, out byte[] extraData) {
 			try {
-				using (var reader = new SignatureReader(readerModule, sig)) {
+				using (var reader = new SignatureReader(readerModule, sig, gpContext)) {
 					TypeSig ts;
 					try {
 						ts = reader.ReadType();
@@ -192,7 +282,19 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ModuleDefMD module, byte[] signature) {
-			return ReadTypeSig(module, module.CorLibTypes, MemoryImageStream.Create(signature));
+			return ReadTypeSig(module, module.CorLibTypes, MemoryImageStream.Create(signature), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="TypeSig"/> signature
+		/// </summary>
+		/// <param name="module">The module where the signature is located in</param>
+		/// <param name="signature">The signature data</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ModuleDefMD module, byte[] signature, GenericParamContext gpContext) {
+			return ReadTypeSig(module, module.CorLibTypes, MemoryImageStream.Create(signature), gpContext);
 		}
 
 		/// <summary>
@@ -203,7 +305,19 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ModuleDefMD module, IBinaryReader signature) {
-			return ReadTypeSig(module, module.CorLibTypes, signature);
+			return ReadTypeSig(module, module.CorLibTypes, signature, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="TypeSig"/> signature
+		/// </summary>
+		/// <param name="module">The module where the signature is located in</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ModuleDefMD module, IBinaryReader signature, GenericParamContext gpContext) {
+			return ReadTypeSig(module, module.CorLibTypes, signature, gpContext);
 		}
 
 		/// <summary>
@@ -215,7 +329,20 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature) {
-			return ReadTypeSig(helper, corLibTypes, MemoryImageStream.Create(signature));
+			return ReadTypeSig(helper, corLibTypes, MemoryImageStream.Create(signature), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="TypeSig"/> signature
+		/// </summary>
+		/// <param name="helper">Token resolver</param>
+		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="signature">The signature data</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) {
+			return ReadTypeSig(helper, corLibTypes, MemoryImageStream.Create(signature), gpContext);
 		}
 
 		/// <summary>
@@ -227,8 +354,21 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature) {
+			return ReadTypeSig(helper, corLibTypes, signature, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="TypeSig"/> signature
+		/// </summary>
+		/// <param name="helper">Token resolver</param>
+		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature, GenericParamContext gpContext) {
 			try {
-				using (var reader = new SignatureReader(helper, corLibTypes, signature)) {
+				using (var reader = new SignatureReader(helper, corLibTypes, signature, gpContext)) {
 					TypeSig ts;
 					try {
 						ts = reader.ReadType();
@@ -249,8 +389,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="readerModule">Reader module</param>
 		/// <param name="sig">#Blob stream offset of signature</param>
-		SignatureReader(ModuleDefMD readerModule, uint sig)
-			: this(readerModule, readerModule.CorLibTypes, readerModule.BlobStream.CreateStream(sig)) {
+		/// <param name="gpContext">Generic parameter context</param>
+		SignatureReader(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext)
+			: this(readerModule, readerModule.CorLibTypes, readerModule.BlobStream.CreateStream(sig), gpContext) {
 		}
 
 		/// <summary>
@@ -259,10 +400,12 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Token resolver</param>
 		/// <param name="corLibTypes">ICorLibTypes instance</param>
 		/// <param name="reader">The signature data</param>
-		SignatureReader(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader reader) {
+		/// <param name="gpContext">Generic parameter context</param>
+		SignatureReader(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader reader, GenericParamContext gpContext) {
 			this.helper = helper;
 			this.corLibTypes = corLibTypes;
 			this.reader = reader;
+			this.gpContext = gpContext;
 			this.recursionCounter = new RecursionCounter();
 		}
 
@@ -451,13 +594,13 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 				if (!reader.ReadCompressedUInt32(out num))
 					break;
-				result = new GenericVar(num);
+				result = new GenericVar(num, gpContext.Type);
 				break;
 
 			case ElementType.MVar:
 				if (!reader.ReadCompressedUInt32(out num))
 					break;
-				result = new GenericMVar(num);
+				result = new GenericMVar(num, gpContext.Method);
 				break;
 
 			case ElementType.ValueArray:
@@ -542,7 +685,7 @@ exit:
 			uint codedToken;
 			if (!reader.ReadCompressedUInt32(out codedToken))
 				return null;
-			return helper.ResolveTypeDefOrRef(codedToken);
+			return helper.ResolveTypeDefOrRef(codedToken, gpContext);
 		}
 
 		/// <inheritdoc/>

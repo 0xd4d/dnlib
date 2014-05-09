@@ -25,7 +25,7 @@
 	/// <summary>
 	/// Interface to get the full name of a type
 	/// </summary>
-	public interface IType : IFullName, IOwnerModule, ICodedToken, IGenericParameterProvider {
+	public interface IType : IFullName, IOwnerModule, ICodedToken, IGenericParameterProvider, IContainsGenericParameter {
 		/// <summary>
 		/// <c>true</c> if it's a value type
 		/// </summary>
@@ -85,6 +85,16 @@
 		/// <see cref="TypeRef"/> that is found (without searching generic arguments) is returned.
 		/// </summary>
 		ITypeDefOrRef ScopeType { get; }
+	}
+
+	/// <summary>
+	/// Implemented by types and calling convention signatures.
+	/// </summary>
+	public interface IContainsGenericParameter {
+		/// <summary>
+		/// <c>true</c> if this contains a <see cref="GenericVar"/> or a <see cref="GenericMVar"/>.
+		/// </summary>
+		bool ContainsGenericParameter { get; }
 	}
 
 	public static partial class Extensions {

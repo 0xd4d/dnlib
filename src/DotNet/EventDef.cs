@@ -539,7 +539,7 @@ namespace dnlib.DotNet {
 			};
 			type.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.EventType);
+				return readerModule.ResolveTypeDefOrRef(rawRow.EventType, new GenericParamContext(DeclaringType2_NoLock));
 			};
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);

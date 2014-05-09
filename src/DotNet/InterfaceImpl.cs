@@ -107,12 +107,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the InterfaceImpl table
 	/// </summary>
-	sealed class InterfaceImplMD : InterfaceImpl, IMDTokenProviderMD {
+	sealed class InterfaceImplMD : InterfaceImpl, IMDTokenProviderMD, IContainsGenericParameter {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawInterfaceImplRow rawRow;
 
+		readonly GenericParamContext gpContext;
 		readonly uint origRid;
 		UserValue<ITypeDefOrRef> @interface;
 		CustomAttributeCollection customAttributeCollection;
@@ -143,14 +144,19 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		bool IContainsGenericParameter.ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="readerModule">The module which contains this <c>InterfaceImpl</c> row</param>
 		/// <param name="rid">Row ID</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public InterfaceImplMD(ModuleDefMD readerModule, uint rid) {
+		public InterfaceImplMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
@@ -160,13 +166,14 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.gpContext = gpContext;
 			Initialize();
 		}
 
 		void Initialize() {
 			@interface.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.Interface);
+				return readerModule.ResolveTypeDefOrRef(rawRow.Interface, gpContext);
 			};
 #if THREAD_SAFE
 			@interface.Lock = theLock;

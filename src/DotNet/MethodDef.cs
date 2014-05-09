@@ -415,7 +415,7 @@ namespace dnlib.DotNet {
 		public string FullName {
 			get {
 				var declaringType = DeclaringType;
-				return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, Name, MethodSig);
+				return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, Name, MethodSig, null, null, this);
 			}
 		}
 
@@ -1226,7 +1226,7 @@ namespace dnlib.DotNet {
 				if (overrides != null)
 					return overrides;
 				var dt = DeclaringType as TypeDefMD;
-				var tmp = dt == null ? ThreadSafeListCreator.Create<MethodOverride>() : dt.GetMethodOverrides(this);
+				var tmp = dt == null ? ThreadSafeListCreator.Create<MethodOverride>() : dt.GetMethodOverrides(this, new GenericParamContext(DeclaringType, this));
 				Interlocked.CompareExchange(ref overrides, tmp, null);
 				return overrides;
 			}
@@ -1278,14 +1278,14 @@ namespace dnlib.DotNet {
 			};
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Signature);
+				return readerModule.ReadSignature(rawRow.Signature, new GenericParamContext(DeclaringType2_NoLock, this));
 			};
 			implMap.ReadOriginalValue = () => {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, origRid));
 			};
 			methodBody.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadMethodBody(this, rawRow);
+				return readerModule.ReadMethodBody(this, rawRow, new GenericParamContext(DeclaringType2_NoLock, this));
 			};
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);

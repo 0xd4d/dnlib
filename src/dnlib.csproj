@@ -92,6 +92,7 @@
     <Compile Include="DotNet\GenericParam.cs" />
     <Compile Include="DotNet\GenericParamAttributes.cs" />
     <Compile Include="DotNet\GenericParamConstraint.cs" />
+    <Compile Include="DotNet\GenericParamContext.cs" />
     <Compile Include="DotNet\IAssemblyResolver.cs" />
     <Compile Include="DotNet\ICodedToken.cs" />
     <Compile Include="DotNet\ICorLibTypes.cs" />
@@ -186,6 +187,7 @@
     <Compile Include="DotNet\TypeAttributes.cs" />
     <Compile Include="DotNet\TypeDef.cs" />
     <Compile Include="DotNet\TypeDefFinder.cs" />
+    <Compile Include="DotNet\TypeHelper.cs" />
     <Compile Include="DotNet\TypeNameParser.cs" />
     <Compile Include="DotNet\TypeRef.cs" />
     <Compile Include="DotNet\TypeSig.cs" />

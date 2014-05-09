@@ -153,6 +153,14 @@ namespace dnlib.DotNet {
 			get { return this; }
 		}
 
+		/// <summary>
+		/// Always returns <c>false</c> since a <see cref="TypeDef"/> does not contain any
+		/// <see cref="GenericVar"/> or <see cref="GenericMVar"/>.
+		/// </summary>
+		public bool ContainsGenericParameter {
+			get { return false; }
+		}
+
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get { return FullNameCreator.OwnerModule(this); }
@@ -1764,7 +1772,7 @@ namespace dnlib.DotNet {
 		LazyList<TypeDef> nestedTypes;
 		CustomAttributeCollection customAttributeCollection;
 		UserValue<ModuleDef> module;
-		Dictionary<uint, ThreadSafe.IList<MethodOverride>> methodRidToOverrides;
+		Dictionary<uint, ThreadSafe.IList<MethodOverrideTokens>> methodRidToOverrides;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -1836,7 +1844,7 @@ namespace dnlib.DotNet {
 			get {
 				if (interfaceImpls == null) {
 					var list = readerModule.MetaData.GetInterfaceImplRidList(origRid);
-					var tmp = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index]));
+					var tmp = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index], new GenericParamContext(this)));
 					Interlocked.CompareExchange(ref interfaceImpls, tmp, null);
 				}
 				return interfaceImpls;
@@ -1958,7 +1966,7 @@ namespace dnlib.DotNet {
 			};
 			baseType.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.Extends);
+				return readerModule.ResolveTypeDefOrRef(rawRow.Extends, new GenericParamContext(this));
 			};
 			classLayout.ReadOriginalValue = () => {
 				return readerModule.ResolveClassLayout(readerModule.MetaData.GetClassLayoutRid(origRid));
@@ -1991,22 +1999,42 @@ namespace dnlib.DotNet {
 		/// Gets all methods <paramref name="method"/> overrides
 		/// </summary>
 		/// <param name="method">The method</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A list (possibly empty) of all methods <paramref name="method"/> overrides</returns>
-		internal ThreadSafe.IList<MethodOverride> GetMethodOverrides(MethodDefMD method) {
+		internal ThreadSafe.IList<MethodOverride> GetMethodOverrides(MethodDefMD method, GenericParamContext gpContext) {
 			if (method == null)
 				return ThreadSafeListCreator.Create<MethodOverride>();
 
 			if (methodRidToOverrides == null)
 				InitializeMethodOverrides();
 
-			ThreadSafe.IList<MethodOverride> overrides;
-			if (methodRidToOverrides.TryGetValue(method.OrigRid, out overrides))
-				return overrides;
+			ThreadSafe.IList<MethodOverrideTokens> overrides;
+			if (methodRidToOverrides.TryGetValue(method.OrigRid, out overrides)) {
+				var newList = ThreadSafeListCreator.Create<MethodOverride>(overrides.Count);
+
+				for (int i = 0; i < overrides.Count; i++) {
+					var ovr = overrides[i];
+					var newMethodBody = (IMethodDefOrRef)readerModule.ResolveToken(ovr.MethodBodyToken, gpContext);
+					var newMethodDeclaration = (IMethodDefOrRef)readerModule.ResolveToken(ovr.MethodDeclarationToken, gpContext);
+					newList.Add(new MethodOverride(newMethodBody, newMethodDeclaration));
+				}
+				return newList;
+			}
 			return ThreadSafeListCreator.Create<MethodOverride>();
 		}
 
+		struct MethodOverrideTokens {
+			public readonly uint MethodBodyToken;
+			public readonly uint MethodDeclarationToken;
+
+			public MethodOverrideTokens(uint methodBodyToken, uint methodDeclarationToken) {
+				this.MethodBodyToken = methodBodyToken;
+				this.MethodDeclarationToken = methodDeclarationToken;
+			}
+		}
+
 		void InitializeMethodOverrides() {
-			var newMethodRidToOverrides = new Dictionary<uint, ThreadSafe.IList<MethodOverride>>();
+			var newMethodRidToOverrides = new Dictionary<uint, ThreadSafe.IList<MethodOverrideTokens>>();
 
 			var ridList = readerModule.MetaData.GetMethodImplRidList(origRid);
 			for (uint i = 0; i < ridList.Length; i++) {
@@ -2026,11 +2054,11 @@ namespace dnlib.DotNet {
 				if (method == null || method.DeclaringType != this)
 					continue;
 
-				ThreadSafe.IList<MethodOverride> overrides;
+				ThreadSafe.IList<MethodOverrideTokens> overrides;
 				uint rid = method.Rid;
 				if (!newMethodRidToOverrides.TryGetValue(rid, out overrides))
-					newMethodRidToOverrides[rid] = overrides = ThreadSafeListCreator.Create<MethodOverride>();
-				overrides.Add(new MethodOverride(methodBody, methodDecl));
+					newMethodRidToOverrides[rid] = overrides = ThreadSafeListCreator.Create<MethodOverrideTokens>();
+				overrides.Add(new MethodOverrideTokens(methodBody.MDToken.Raw, methodDecl.MDToken.Raw));
 			}
 			Interlocked.CompareExchange(ref methodRidToOverrides, newMethodRidToOverrides, null);
 		}

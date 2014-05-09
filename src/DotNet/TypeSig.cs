@@ -333,6 +333,14 @@ namespace dnlib.DotNet {
 			get { return this is ModuleSig; }
 		}
 
+		/// <summary>
+		/// <c>true</c> if this <see cref="TypeSig"/> contains a <see cref="GenericVar"/> or a
+		/// <see cref="GenericMVar"/>.
+		/// </summary>
+		public bool ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -724,6 +732,7 @@ namespace dnlib.DotNet {
 	public abstract class GenericSig : LeafSig {
 		readonly bool isTypeVar;
 		readonly uint number;
+		readonly ITypeOrMethodDef genericParamProvider;
 
 		/// <summary>
 		/// Gets the generic param number
@@ -733,13 +742,40 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the corresponding <see cref="dnlib.DotNet.GenericParam"/> or <c>null</c> if none exists.
+		/// </summary>
+		public GenericParam GenericParam {
+			get {
+				var gpp = genericParamProvider;
+				if (gpp == null)
+					return null;
+				foreach (var gp in gpp.GenericParameters.GetSafeEnumerable()) {
+					if (gp.Number == number)
+						return gp;
+				}
+				return null;
+			}
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="isTypeVar"><c>true</c> if it's a <c>Var</c>, <c>false</c> if it's a <c>MVar</c></param>
 		/// <param name="number">Generic param number</param>
-		protected GenericSig(bool isTypeVar, uint number) {
+		protected GenericSig(bool isTypeVar, uint number)
+			: this(isTypeVar, number, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="isTypeVar"><c>true</c> if it's a <c>Var</c>, <c>false</c> if it's a <c>MVar</c></param>
+		/// <param name="number">Generic param number</param>
+		/// <param name="genericParamProvider">Owner method/type or <c>null</c></param>
+		protected GenericSig(bool isTypeVar, uint number, ITypeOrMethodDef genericParamProvider) {
 			this.isTypeVar = isTypeVar;
 			this.number = number;
+			this.genericParamProvider = genericParamProvider;
 		}
 
 		/// <summary>
@@ -775,6 +811,24 @@ namespace dnlib.DotNet {
 		public GenericVar(int number)
 			: base(true, (uint)number) {
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="number">Generic parameter number</param>
+		/// <param name="genericParamProvider">Owner type or <c>null</c></param>
+		public GenericVar(uint number, TypeDef genericParamProvider)
+			: base(true, number, genericParamProvider) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="number">Generic parameter number</param>
+		/// <param name="genericParamProvider">Owner type or <c>null</c></param>
+		public GenericVar(int number, TypeDef genericParamProvider)
+			: base(true, (uint)number, genericParamProvider) {
+		}
 	}
 
 	/// <summary>
@@ -794,6 +848,24 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public GenericMVar(int number)
 			: base(false, (uint)number) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="number">Generic parameter number</param>
+		/// <param name="genericParamProvider">Owner method or <c>null</c></param>
+		public GenericMVar(uint number, MethodDef genericParamProvider)
+			: base(false, number, genericParamProvider) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="number">Generic parameter number</param>
+		/// <param name="genericParamProvider">Owner method or <c>null</c></param>
+		public GenericMVar(int number, MethodDef genericParamProvider)
+			: base(false, (uint)number, genericParamProvider) {
 		}
 	}
 

@@ -844,14 +844,14 @@ namespace dnlib.DotNet {
 			};
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Signature);
+				return readerModule.ReadSignature(rawRow.Signature, new GenericParamContext(DeclaringType2_NoLock));
 			};
 			fieldOffset.ReadOriginalValue = () => {
 				var row = readerModule.TablesStream.ReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(origRid));
 				return row == null ? null : new uint?(row.OffSet);
 			};
 			marshalType.ReadOriginalValue = () => {
-				return readerModule.ReadMarshalType(Table.Field, origRid);
+				return readerModule.ReadMarshalType(Table.Field, origRid, new GenericParamContext(DeclaringType2_NoLock));
 			};
 			rva.ReadOriginalValue = () => {
 				RVA rva2;

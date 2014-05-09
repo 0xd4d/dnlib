@@ -31,8 +31,9 @@ using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
-	/// Converts a type address to a type. The address can be found in RuntimeTypeHandle.Value
-	/// and it's the same address you use with the WinDbg SOS command !dumpmt.
+	/// Converts a type address to a <see cref="Type"/>. The address can be found in
+	/// <c>RuntimeTypeHandle.Value</c> and it's the same address you use with the WinDbg SOS command
+	/// !dumpmt.
 	/// </summary>
 	static class MethodTableToTypeConverter {
 		const string METHOD_NAME = "m";

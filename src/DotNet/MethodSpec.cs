@@ -277,12 +277,13 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the MethodSpec table
 	/// </summary>
-	sealed class MethodSpecMD : MethodSpec, IMDTokenProviderMD {
+	sealed class MethodSpecMD : MethodSpec, IMDTokenProviderMD, IContainsGenericParameter {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawMethodSpecRow rawRow;
 
+		readonly GenericParamContext gpContext;
 		readonly uint origRid;
 		UserValue<IMethodDefOrRef> method;
 		UserValue<CallingConventionSig> instantiation;
@@ -320,14 +321,19 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		bool IContainsGenericParameter.ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="readerModule">The module which contains this <c>MethodSpec</c> row</param>
 		/// <param name="rid">Row ID</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public MethodSpecMD(ModuleDefMD readerModule, uint rid) {
+		public MethodSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
@@ -337,17 +343,18 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.gpContext = gpContext;
 			Initialize();
 		}
 
 		void Initialize() {
 			method.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ResolveMethodDefOrRef(rawRow.Method);
+				return readerModule.ResolveMethodDefOrRef(rawRow.Method, gpContext);
 			};
 			instantiation.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Instantiation);
+				return readerModule.ReadSignature(rawRow.Instantiation, gpContext);
 			};
 #if THREAD_SAFE
 			method.Lock = theLock;

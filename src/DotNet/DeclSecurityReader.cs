@@ -40,6 +40,7 @@ namespace dnlib.DotNet {
 	public struct DeclSecurityReader : IDisposable {
 		readonly IBinaryReader reader;
 		readonly ModuleDef module;
+		readonly GenericParamContext gpContext;
 
 		/// <summary>
 		/// Reads a <c>DeclSecurity</c> blob
@@ -48,7 +49,18 @@ namespace dnlib.DotNet {
 		/// <param name="sig"><c>#Blob</c> offset of <c>DeclSecurity</c> signature</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
 		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDefMD module, uint sig) {
-			return Read(module, module.BlobStream.CreateStream(sig));
+			return Read(module, module.BlobStream.CreateStream(sig), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <c>DeclSecurity</c> blob
+		/// </summary>
+		/// <param name="module">Module that will own the returned list</param>
+		/// <param name="sig"><c>#Blob</c> offset of <c>DeclSecurity</c> signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
+		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDefMD module, uint sig, GenericParamContext gpContext) {
+			return Read(module, module.BlobStream.CreateStream(sig), gpContext);
 		}
 
 		/// <summary>
@@ -58,7 +70,18 @@ namespace dnlib.DotNet {
 		/// <param name="blob"><c>DeclSecurity</c> blob</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
 		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, byte[] blob) {
-			return Read(module, MemoryImageStream.Create(blob));
+			return Read(module, MemoryImageStream.Create(blob), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <c>DeclSecurity</c> blob
+		/// </summary>
+		/// <param name="module">Module that will own the returned list</param>
+		/// <param name="blob"><c>DeclSecurity</c> blob</param>
+		/// <param name="gpContext">Generic parameter context</param>/// 
+		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
+		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, byte[] blob, GenericParamContext gpContext) {
+			return Read(module, MemoryImageStream.Create(blob), gpContext);
 		}
 
 		/// <summary>
@@ -68,13 +91,25 @@ namespace dnlib.DotNet {
 		/// <param name="signature"><c>DeclSecurity</c> stream that will be owned by us</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
 		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, IBinaryReader signature) {
-			using (var reader = new DeclSecurityReader(module, signature))
+			return Read(module, signature, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <c>DeclSecurity</c> blob
+		/// </summary>
+		/// <param name="module">Module that will own the returned list</param>
+		/// <param name="signature"><c>DeclSecurity</c> stream that will be owned by us</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
+		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, IBinaryReader signature, GenericParamContext gpContext) {
+			using (var reader = new DeclSecurityReader(module, signature, gpContext))
 				return reader.Read();
 		}
 
-		DeclSecurityReader(ModuleDef module, IBinaryReader reader) {
+		DeclSecurityReader(ModuleDef module, IBinaryReader reader, GenericParamContext gpContext) {
 			this.reader = reader;
 			this.module = module;
+			this.gpContext = gpContext;
 		}
 
 		ThreadSafe.IList<SecurityAttribute> Read() {
@@ -103,10 +138,10 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < numAttrs; i++) {
 				var name = ReadUTF8String();
 				// Use CA search rules. Some tools don't write the fully qualified name.
-				var attrRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(name), new CAAssemblyRefFinder(module));
+				var attrRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(name), new CAAssemblyRefFinder(module), gpContext);
 				int blobLength = (int)reader.ReadCompressedUInt32();
 				int numNamedArgs = (int)reader.ReadCompressedUInt32();
-				var namedArgs = CustomAttributeReader.ReadNamedArguments(module, reader, numNamedArgs);
+				var namedArgs = CustomAttributeReader.ReadNamedArguments(module, reader, numNamedArgs, gpContext);
 				if (namedArgs == null)
 					throw new ApplicationException("Could not read named arguments");
 				list.Add(new SecurityAttribute(attrRef, namedArgs));
