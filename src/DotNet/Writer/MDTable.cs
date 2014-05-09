@@ -196,6 +196,16 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
+		/// <summary>
+		/// Reset the table.
+		/// </summary>
+		public void Reset() {
+			if (isReadOnly)
+				throw new ModuleWriterException(string.Format("Trying to modify table {0} after it's been set to read-only", table));
+			cachedDict.Clear();
+			cached.Clear();
+		}
+
 		/// <inheritdoc/>
 		public IEnumerator<T> GetEnumerator() {
 			return cached.GetEnumerator();

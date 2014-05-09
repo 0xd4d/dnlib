@@ -36,11 +36,12 @@ namespace dnlib.DotNet {
 		/// <param name="rid"><c>Method</c> rid</param>
 		/// <param name="rva">The <see cref="RVA"/> found in the method's <c>Method</c> row</param>
 		/// <param name="parameters">The method's parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="methodBody">Updated with the method's <see cref="MethodBody"/> if this
 		/// method returns <c>true</c></param>
 		/// <returns><c>true</c> if the method body was decrypted, <c>false</c> if the method isn't
 		/// encrypted and the default <see cref="MethodDef"/> body reader code should be used.</returns>
-		bool GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters, out MethodBody methodBody);
+		bool GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters, GenericParamContext gpContext, out MethodBody methodBody);
 	}
 
 	/// <summary>

@@ -46,7 +46,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Base class for sigs with a calling convention
 	/// </summary>
-	public abstract class CallingConventionSig {
+	public abstract class CallingConventionSig : IContainsGenericParameter {
 		/// <summary>
 		/// The calling convention
 		/// </summary>
@@ -203,6 +203,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool ImplicitThis {
 			get { return HasThis && !ExplicitThis; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this <see cref="CallingConventionSig"/> contains a
+		/// <see cref="GenericVar"/> or a <see cref="GenericMVar"/>.
+		/// </summary>
+		public bool ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
 		}
 
 		/// <summary>

@@ -78,7 +78,10 @@ namespace dnlib.DotNet {
 		}
 	}
 
-	sealed class GenericArguments {
+	/// <summary>
+	/// Replaces generic type/method var with its generic argument
+	/// </summary>
+	public sealed class GenericArguments {
 		GenericArgumentsStack typeArgsStack = new GenericArgumentsStack(true);
 		GenericArgumentsStack methodArgsStack = new GenericArgumentsStack(false);
 

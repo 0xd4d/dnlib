@@ -26,6 +26,13 @@
 	/// Represents a public key token
 	/// </summary>
 	public sealed class PublicKeyToken : PublicKeyBase {
+		/// <summary>
+		/// Gets the <see cref="PublicKeyToken"/>
+		/// </summary>
+		public override PublicKeyToken Token {
+			get { return this; }
+		}
+
 		/// <inheritdoc/>
 		public PublicKeyToken()
 			: base() {

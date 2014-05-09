@@ -75,7 +75,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the declaring method
 		/// </summary>
-		public abstract MethodDef DeclaringMethod { get; internal set; }
+		public MethodDef DeclaringMethod {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return DeclaringMethod_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			internal set {
+				theLock.EnterWriteLock();
+				try {
+					DeclaringMethod_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return DeclaringMethod_NoLock; }
+			internal set { DeclaringMethod_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// Gets the declaring method
+		/// </summary>
+		protected abstract MethodDef DeclaringMethod_NoLock { get; set; }
 
 		/// <summary>
 		/// From column Param.Flags
@@ -153,7 +178,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
-		public bool HasMarshalInfo {
+		public bool HasMarshalType {
 			get { return MarshalType != null; }
 		}
 
@@ -240,9 +265,9 @@ namespace dnlib.DotNet {
 		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
-		public override MethodDef DeclaringMethod {
+		protected override MethodDef DeclaringMethod_NoLock {
 			get { return declaringMethod; }
-			internal set { declaringMethod = value; }
+			set { declaringMethod = value; }
 		}
 
 		/// <inheritdoc/>
@@ -340,9 +365,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override MethodDef DeclaringMethod {
+		protected override MethodDef DeclaringMethod_NoLock {
 			get { return declaringMethod.Value; }
-			internal set { declaringMethod.Value = value; }
+			set { declaringMethod.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -424,14 +449,14 @@ namespace dnlib.DotNet {
 				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
 			};
 			marshalType.ReadOriginalValue = () => {
-				return readerModule.ReadMarshalType(Table.Param, origRid);
+				return readerModule.ReadMarshalType(Table.Param, origRid, GenericParamContext.Create(DeclaringMethod_NoLock));
 			};
 			constant.ReadOriginalValue = () => {
 				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, origRid));
 			};
 #if THREAD_SAFE
-			declaringMethod.Lock = theLock;
-			// flags.Lock = theLock;	No lock for this one
+			// declaringMethod.Lock = theLock;	No lock for this one
+			// flags.Lock = theLock;			No lock for this one
 			sequence.Lock = theLock;
 			name.Lock = theLock;
 			marshalType.Lock = theLock;

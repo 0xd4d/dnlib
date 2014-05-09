@@ -77,6 +77,15 @@ namespace dnlib.DotNet.Emit {
 		readonly ThreadSafe.IList<Instruction> instructions;
 		readonly ThreadSafe.IList<ExceptionHandler> exceptionHandlers;
 		readonly LocalList localList;
+		bool keepOldMaxStack = false;
+
+		/// <summary>
+		/// Gets/sets a flag indicating whether the original max stack value should be used.
+		/// </summary>
+		public bool KeepOldMaxStack {
+			get { return keepOldMaxStack; }
+			set { keepOldMaxStack = value; }
+		}
 
 		/// <summary>
 		/// Gets/sets the init locals flag. This is only valid if the method has any locals.

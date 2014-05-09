@@ -57,7 +57,8 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
-	/// Interface to access an <see cref="AssemblyRef"/> or an <see cref="AssemblyDef"/>
+	/// An assembly. Implemented by <see cref="AssemblyRef"/>, <see cref="AssemblyDef"/> and
+	/// <see cref="AssemblyNameInfo"/>.
 	/// </summary>
 	public interface IAssembly : IFullName {
 		/// <summary>
@@ -76,14 +77,99 @@ namespace dnlib.DotNet {
 		PublicKeyBase PublicKeyOrToken { get; }
 
 		/// <summary>
-		/// Simple assembly name
-		/// </summary>
-		UTF8String Name { get; set; }
-
-		/// <summary>
 		/// Locale, aka culture
 		/// </summary>
 		UTF8String Culture { get; set; }
+
+		/// <summary>
+		/// Gets the full name of the assembly but use a public key token
+		/// </summary>
+		string FullNameToken { get; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.PublicKey"/> bit
+		/// </summary>
+		bool HasPublicKey { get; set; }
+
+		/// <summary>
+		/// Gets/sets the processor architecture
+		/// </summary>
+		AssemblyAttributes ProcessorArchitecture { get; set; }
+
+		/// <summary>
+		/// Gets/sets the processor architecture
+		/// </summary>
+		AssemblyAttributes ProcessorArchitectureFull { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if unspecified processor architecture
+		/// </summary>
+		bool IsProcessorArchitectureNone { get; }
+
+		/// <summary>
+		/// <c>true</c> if neutral (PE32) architecture
+		/// </summary>
+		bool IsProcessorArchitectureMSIL { get; }
+
+		/// <summary>
+		/// <c>true</c> if x86 (PE32) architecture
+		/// </summary>
+		bool IsProcessorArchitectureX86 { get; }
+
+		/// <summary>
+		/// <c>true</c> if IA-64 (PE32+) architecture
+		/// </summary>
+		bool IsProcessorArchitectureIA64 { get; }
+
+		/// <summary>
+		/// <c>true</c> if x64 (PE32+) architecture
+		/// </summary>
+		bool IsProcessorArchitectureX64 { get; }
+
+		/// <summary>
+		/// <c>true</c> if ARM (PE32) architecture
+		/// </summary>
+		bool IsProcessorArchitectureARM { get; }
+
+		/// <summary>
+		/// <c>true</c> if eg. reference assembly (not runnable)
+		/// </summary>
+		bool IsProcessorArchitectureNoPlatform { get; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.PA_Specified"/> bit
+		/// </summary>
+		bool IsProcessorArchitectureSpecified { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.EnableJITcompileTracking"/> bit
+		/// </summary>
+		bool EnableJITcompileTracking { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.DisableJITcompileOptimizer"/> bit
+		/// </summary>
+		bool DisableJITcompileOptimizer { get; set; }
+
+		/// <summary>
+		/// Gets/sets the <see cref="AssemblyAttributes.Retargetable"/> bit
+		/// </summary>
+		bool IsRetargetable { get; set; }
+
+		/// <summary>
+		/// Gets/sets the content type
+		/// </summary>
+		AssemblyAttributes ContentType { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if content type is <c>Default</c>
+		/// </summary>
+		bool IsContentTypeDefault { get; }
+
+		/// <summary>
+		/// <c>true</c> if content type is <c>WindowsRuntime</c>
+		/// </summary>
+		bool IsContentTypeWindowsRuntime { get; }
 	}
 
 	public static partial class Extensions {
@@ -394,6 +480,36 @@ namespace dnlib.DotNet {
 
 			return null;
 		}
+
+		/// <summary>
+		/// Gets the scope type, resolves it, and returns the <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="tdr">Type</param>
+		/// <returns>A <see cref="TypeDef"/> instance.</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		public static TypeDef ResolveTypeDefThrow(this ITypeDefOrRef tdr) {
+			var td = tdr as TypeDef;
+			if (td != null)
+				return td;
+
+			var tr = tdr as TypeRef;
+			if (tr != null)
+				return tr.ResolveThrow();
+
+			if (tdr == null)
+				throw new TypeResolveException("Can't resolve a null pointer");
+			tdr = tdr.ScopeType;
+
+			td = tdr as TypeDef;
+			if (td != null)
+				return td;
+
+			tr = tdr as TypeRef;
+			if (tr != null)
+				return tr.ResolveThrow();
+
+			throw new TypeResolveException(string.Format("Could not resolve type: {0}", tdr));
+		}
 	}
 
 	/// <summary>
@@ -406,11 +522,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Interface to access a module def/ref
 	/// </summary>
-	public interface IModule : IScope {
-		/// <summary>
-		/// Gets the module name
-		/// </summary>
-		UTF8String Name { get; }
+	public interface IModule : IScope, IFullName {
 	}
 
 	/// <summary>
@@ -456,6 +568,11 @@ namespace dnlib.DotNet {
 		/// Gets the full name
 		/// </summary>
 		string FullName { get; }
+
+		/// <summary>
+		/// Simple name of implementer
+		/// </summary>
+		UTF8String Name { get; set; }
 	}
 
 	/// <summary>
@@ -473,9 +590,98 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public interface IMemberRef : ICodedToken, IFullName, IOwnerModule {
 		/// <summary>
-		/// Gets/sets the name
+		/// Gets the declaring type
 		/// </summary>
-		UTF8String Name { get; set; }
+		ITypeDefOrRef DeclaringType { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeSpec"/>, <see cref="TypeRef"/> or
+		/// a <see cref="TypeDef"/>.
+		/// </summary>
+		bool IsType { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MethodDef"/>, <see cref="MethodSpec"/> or a
+		/// <see cref="MemberRef"/> that's referencing a method.
+		/// </summary>
+		bool IsMethod { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="FieldDef"/> or a <see cref="MemberRef"/> that's
+		/// referencing a field.
+		/// </summary>
+		bool IsField { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeSpec"/>
+		/// </summary>
+		bool IsTypeSpec { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeRef"/>
+		/// </summary>
+		bool IsTypeRef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="TypeDef"/>
+		/// </summary>
+		bool IsTypeDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MethodSpec"/>
+		/// </summary>
+		bool IsMethodSpec { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MethodDef"/>
+		/// </summary>
+		bool IsMethodDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="MemberRef"/>
+		/// </summary>
+		bool IsMemberRef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="FieldDef"/>
+		/// </summary>
+		bool IsFieldDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="PropertyDef"/>
+		/// </summary>
+		bool IsPropertyDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="EventDef"/>
+		/// </summary>
+		bool IsEventDef { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="GenericParam"/>
+		/// </summary>
+		bool IsGenericParam { get; }
+	}
+
+	/// <summary>
+	/// All member definitions implement this interface: <see cref="TypeDef"/>,
+	/// <see cref="FieldDef"/>, <see cref="MethodDef"/>, <see cref="EventDef"/>,
+	/// <see cref="PropertyDef"/>, and <see cref="GenericParam"/>.
+	/// </summary>
+	public interface IMemberDef : IDnlibDef, IMemberRef {
+		/// <summary>
+		/// Gets the declaring type
+		/// </summary>
+		new TypeDef DeclaringType { get; }
+	}
+
+	/// <summary>
+	/// Implemented by the following classes: <see cref="TypeDef"/>,
+	/// <see cref="FieldDef"/>, <see cref="MethodDef"/>, <see cref="EventDef"/>,
+	/// <see cref="PropertyDef"/>, <see cref="GenericParam"/>, <see cref="AssemblyDef"/>,
+	/// and <see cref="ModuleDef"/>
+	/// </summary>
+	public interface IDnlibDef : ICodedToken, IFullName, IHasCustomAttribute {
 	}
 
 	/// <summary>
@@ -506,11 +712,6 @@ namespace dnlib.DotNet {
 		/// Gets/sets the field signature
 		/// </summary>
 		FieldSig FieldSig { get; set; }
-
-		/// <summary>
-		/// Gets the declaring type
-		/// </summary>
-		ITypeDefOrRef DeclaringType { get; }
 	}
 
 	/// <summary>
@@ -521,11 +722,6 @@ namespace dnlib.DotNet {
 		/// Method signature
 		/// </summary>
 		MethodSig MethodSig { get; set; }
-
-		/// <summary>
-		/// Gets the declaring type
-		/// </summary>
-		ITypeDefOrRef DeclaringType { get; }
 	}
 
 	/// <summary>
@@ -598,6 +794,11 @@ namespace dnlib.DotNet {
 		/// Gets/sets the marshal type
 		/// </summary>
 		MarshalType MarshalType { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
+		/// </summary>
+		bool HasMarshalType { get; }
 	}
 
 	/// <summary>
@@ -613,6 +814,11 @@ namespace dnlib.DotNet {
 		/// Gets the permission sets
 		/// </summary>
 		ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="DeclSecurities"/> is not empty
+		/// </summary>
+		bool HasDeclSecurities { get; }
 	}
 
 	/// <summary>
@@ -628,7 +834,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// HasSemantic coded token interface
 	/// </summary>
-	public interface IHasSemantic : ICodedToken, IHasCustomAttribute, IFullName {
+	public interface IHasSemantic : ICodedToken, IHasCustomAttribute, IFullName, IMemberRef {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -648,7 +854,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// MemberForwarded coded token interface
 	/// </summary>
-	public interface IMemberForwarded : ICodedToken, IHasCustomAttribute, IFullName {
+	public interface IMemberForwarded : ICodedToken, IHasCustomAttribute, IFullName, IMemberRef {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -658,6 +864,11 @@ namespace dnlib.DotNet {
 		/// Gets/sets the impl map
 		/// </summary>
 		ImplMap ImplMap { get; set; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ImplMap"/> is not <c>null</c>
+		/// </summary>
+		bool HasImplMap { get; }
 	}
 
 	/// <summary>
@@ -673,7 +884,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// CustomAttributeType coded token interface
 	/// </summary>
-	public interface ICustomAttributeType : ICodedToken, IHasCustomAttribute {
+	public interface ICustomAttributeType : ICodedToken, IHasCustomAttribute, IMethod {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -693,7 +904,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// TypeOrMethodDef coded token interface
 	/// </summary>
-	public interface ITypeOrMethodDef : ICodedToken, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IFullName {
+	public interface ITypeOrMethodDef : ICodedToken, IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IFullName, IMemberRef, IGenericParameterProvider {
 		/// <summary>
 		/// The coded token tag
 		/// </summary>
@@ -703,6 +914,11 @@ namespace dnlib.DotNet {
 		/// Gets the generic parameters
 		/// </summary>
 		ThreadSafe.IList<GenericParam> GenericParameters { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParameters"/> is not empty
+		/// </summary>
+		bool HasGenericParameters { get; }
 	}
 
 	public static partial class Extensions {

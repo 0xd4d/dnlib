@@ -192,7 +192,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyBase.ToPublicKeyToken(PublicKeyOrToken)); }
+			get { return FullNameToken; }
 		}
 
 		/// <summary>
@@ -200,6 +200,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public string RealFullName {
 			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyOrToken); }
+		}
+
+		/// <summary>
+		/// Gets the full name of the assembly but use a public key token
+		/// </summary>
+		public string FullNameToken {
+			get { return Utils.GetAssemblyNameString(Name, Version, Culture, PublicKeyBase.ToPublicKeyToken(PublicKeyOrToken)); }
 		}
 
 		/// <summary>
@@ -522,22 +529,6 @@ namespace dnlib.DotNet {
 		public AssemblyRefUser(AssemblyName asmName)
 			: this(new AssemblyNameInfo(asmName)) {
 			this.flags = (AssemblyAttributes)asmName.Flags;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="asmName">Assembly name info</param>
-		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
-		public AssemblyRefUser(AssemblyNameInfo asmName) {
-			if (asmName == null)
-				throw new ArgumentNullException("asmName");
-
-			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
-			this.publicKeyOrToken = asmName.PublicKeyOrToken;
-			this.name = UTF8String.IsNullOrEmpty(asmName.Name) ? UTF8String.Empty : asmName.Name;
-			this.locale = asmName.Locale;
-			this.flags = publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None;
 		}
 
 		/// <summary>

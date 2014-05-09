@@ -300,7 +300,7 @@ namespace dnlib.DotNet {
 				return false;
 			if (asm1 == asm2)
 				return true;
-			return new AssemblyNameComparer(AssemblyNameComparerFlags.All).Equals(new AssemblyNameInfo(asm1), new AssemblyNameInfo(asm2));
+			return new AssemblyNameComparer(AssemblyNameComparerFlags.All).Equals(asm1, asm2);
 		}
 
 		/// <summary>

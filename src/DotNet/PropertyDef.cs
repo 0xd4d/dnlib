@@ -37,7 +37,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Property table
 	/// </summary>
-	public abstract class PropertyDef : IHasConstant, IHasCustomAttribute, IHasSemantic, IFullName, IMemberRef {
+	public abstract class PropertyDef : IHasConstant, IHasCustomAttribute, IHasSemantic, IFullName, IMemberDef {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -203,6 +203,11 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		ITypeDefOrRef IMemberRef.DeclaringType {
+			get { return DeclaringType; }
+		}
+
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
@@ -249,6 +254,58 @@ namespace dnlib.DotNet {
 				var dt = DeclaringType;
 				return FullNameCreator.PropertyFullName(dt == null ? null : dt.FullName, Name, Type);
 			}
+		}
+
+		bool IMemberRef.IsType {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethod {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsField {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMemberRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsFieldDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsPropertyDef {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsEventDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsGenericParam {
+			get { return false; }
 		}
 
 		/// <summary>
@@ -517,7 +574,7 @@ namespace dnlib.DotNet {
 			};
 			type.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Type);
+				return readerModule.ReadSignature(rawRow.Type, new GenericParamContext(DeclaringType2_NoLock));
 			};
 			constant.ReadOriginalValue = () => {
 				return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Property, origRid));

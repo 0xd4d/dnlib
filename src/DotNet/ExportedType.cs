@@ -94,6 +94,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public UTF8String Name {
+			get { return TypeName; }
+			set { TypeName = value; }
+		}
+
+		/// <inheritdoc/>
 		public string ReflectionName {
 			get { return FullNameCreator.Name(this, true); }
 		}
@@ -136,6 +142,14 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public ITypeDefOrRef ScopeType {
 			get { return FullNameCreator.ScopeType(this); }
+		}
+
+		/// <summary>
+		/// Always returns <c>false</c> since a <see cref="ExportedType"/> does not contain any
+		/// <see cref="GenericVar"/> or <see cref="GenericMVar"/>.
+		/// </summary>
+		public bool ContainsGenericParameter {
+			get { return false; }
 		}
 
 		/// <inheritdoc/>

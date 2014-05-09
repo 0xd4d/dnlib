@@ -82,7 +82,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		UTF8String IMemberRef.Name {
+		UTF8String IFullName.Name {
 			get {
 				var mr = ScopeType;
 				return mr == null ? UTF8String.Empty : mr.Name;
@@ -92,6 +92,78 @@ namespace dnlib.DotNet {
 				if (mr != null)
 					mr.Name = value;
 			}
+		}
+
+		/// <inheritdoc/>
+		ITypeDefOrRef IMemberRef.DeclaringType {
+			get {
+				var sig = TypeSig.RemovePinnedAndModifiers();
+
+				var gis = sig as GenericInstSig;
+				if (gis != null)
+					sig = gis.GenericType;
+
+				var tdr = sig as TypeDefOrRefSig;
+				if (tdr != null) {
+					if (tdr.IsTypeDef || tdr.IsTypeRef)
+						return tdr.TypeDefOrRef.DeclaringType;
+					return null;	// If it's another TypeSpec, just stop. Don't want possible inf recursion.
+				}
+
+				return null;
+			}
+		}
+
+		bool IMemberRef.IsType {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsMethod {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsField {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeSpec {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsTypeRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMemberRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsFieldDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsPropertyDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsEventDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsGenericParam {
+			get { return false; }
 		}
 
 		/// <inheritdoc/>
@@ -150,6 +222,11 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public ITypeDefOrRef ScopeType {
 			get { return FullNameCreator.ScopeType(this); }
+		}
+
+		/// <inheritdoc/>
+		public bool ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
 		}
 
 		/// <inheritdoc/>
@@ -232,6 +309,7 @@ namespace dnlib.DotNet {
 		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
 		RawTypeSpecRow rawRow;
 
+		readonly GenericParamContext gpContext;
 		readonly uint origRid;
 		UserValue<TypeSig> typeSig;
 		byte[] extraData;
@@ -280,9 +358,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="readerModule">The module which contains this <c>TypeSpec</c> row</param>
 		/// <param name="rid">Row ID</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public TypeSpecMD(ModuleDefMD readerModule, uint rid) {
+		public TypeSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
@@ -292,13 +371,14 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
+			this.gpContext = gpContext;
 			Initialize();
 		}
 
 		void Initialize() {
 			typeSig.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				var sig = readerModule.ReadTypeSignature(rawRow.Signature, out extraData);
+				var sig = readerModule.ReadTypeSignature(rawRow.Signature, gpContext, out extraData);
 				if (sig != null)
 					sig.Rid = origRid;
 				return sig;

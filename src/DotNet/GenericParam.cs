@@ -39,7 +39,7 @@ namespace dnlib.DotNet {
 	/// A high-level representation of a row in the GenericParam table
 	/// </summary>
 	[DebuggerDisplay("{Name.String}")]
-	public abstract class GenericParam : IHasCustomAttribute, IMemberRef, IListListener<GenericParamConstraint> {
+	public abstract class GenericParam : IHasCustomAttribute, IMemberDef, IListListener<GenericParamConstraint> {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -71,7 +71,32 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the owner type/method
 		/// </summary>
-		public abstract ITypeOrMethodDef Owner { get; internal set; }
+		public ITypeOrMethodDef Owner {
+#if THREAD_SAFE
+			get {
+				theLock.EnterWriteLock();
+				try {
+					return Owner_NoLock;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+			internal set {
+				theLock.EnterWriteLock();
+				try {
+					Owner_NoLock = value;
+				}
+				finally { theLock.ExitWriteLock(); }
+			}
+#else
+			get { return Owner_NoLock; }
+			internal set { Owner_NoLock = value; }
+#endif
+		}
+
+		/// <summary>
+		/// Gets the owner type/method
+		/// </summary>
+		protected abstract ITypeOrMethodDef Owner_NoLock { get; set; }
 
 		/// <summary>
 		/// Gets the declaring type or <c>null</c> if none or if <see cref="Owner"/> is
@@ -79,6 +104,11 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeDef DeclaringType {
 			get { return Owner as TypeDef; }
+		}
+
+		/// <inheritdoc/>
+		ITypeDefOrRef IMemberRef.DeclaringType {
+			get { return DeclaringType; }
 		}
 
 		/// <summary>
@@ -149,10 +179,17 @@ namespace dnlib.DotNet {
 			get { return CustomAttributes.Count > 0; }
 		}
 
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamConstraints"/> is not empty
+		/// </summary>
+		public bool HasGenericParamConstraints {
+			get { return GenericParamConstraints.Count > 0; }
+		}
+
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get {
-				var dt = Owner as IMemberRef;
+				var dt = Owner;
 				return dt == null ? null : dt.Module;
 			}
 		}
@@ -160,6 +197,58 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public string FullName {
 			get { return UTF8String.ToSystemStringOrEmpty(Name); }
+		}
+
+		bool IMemberRef.IsType {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethod {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsField {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMemberRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsFieldDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsPropertyDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsEventDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsGenericParam {
+			get { return true; }
 		}
 
 		/// <summary>
@@ -187,11 +276,60 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.NonVariant"/> is set
+		/// </summary>
+		public bool IsNonVariant {
+			get { return Variance == GenericParamAttributes.NonVariant; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.Covariant"/> is set
+		/// </summary>
+		public bool IsCovariant {
+			get { return Variance == GenericParamAttributes.Covariant; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.Contravariant"/> is set
+		/// </summary>
+		public bool IsContravariant {
+			get { return Variance == GenericParamAttributes.Contravariant; }
+		}
+
+		/// <summary>
 		/// Gets/sets the special constraint
 		/// </summary>
 		public GenericParamAttributes SpecialConstraint {
 			get { return Flags & GenericParamAttributes.SpecialConstraintMask; }
 			set { ModifyAttributes(~GenericParamAttributes.SpecialConstraintMask, value & GenericParamAttributes.SpecialConstraintMask); }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.NoSpecialConstraint"/> is set
+		/// </summary>
+		public bool IsNoSpecialConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.NoSpecialConstraint; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.ReferenceTypeConstraint"/> is set
+		/// </summary>
+		public bool IsReferenceTypeConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.ReferenceTypeConstraint; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.NotNullableValueTypeConstraint"/> is set
+		/// </summary>
+		public bool IsNotNullableValueTypeConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.NotNullableValueTypeConstraint; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="GenericParamAttributes.DefaultConstructorConstraint"/> is set
+		/// </summary>
+		public bool IsDefaultConstructorConstraint {
+			get { return SpecialConstraint == GenericParamAttributes.DefaultConstructorConstraint; }
 		}
 
 		/// <inheritdoc/>
@@ -251,9 +389,9 @@ namespace dnlib.DotNet {
 		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
 
 		/// <inheritdoc/>
-		public override ITypeOrMethodDef Owner {
+		protected override ITypeOrMethodDef Owner_NoLock {
 			get { return owner; }
-			internal set { owner = value; }
+			set { owner = value; }
 		}
 
 		/// <inheritdoc/>
@@ -351,9 +489,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ITypeOrMethodDef Owner {
+		protected override ITypeOrMethodDef Owner_NoLock {
 			get { return owner.Value; }
-			internal set { owner.Value = value; }
+			set { owner.Value = value; }
 		}
 
 		/// <inheritdoc/>
@@ -397,11 +535,18 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParamConstraints == null) {
 					var list = readerModule.MetaData.GetGenericParamConstraintRidList(origRid);
-					var tmp = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index]));
+					var tmp = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index], GetGenericParamContext(Owner)));
 					Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 				}
 				return genericParamConstraints;
 			}
+		}
+
+		static GenericParamContext GetGenericParamContext(ITypeOrMethodDef tmOwner) {
+			var md = tmOwner as MethodDef;
+			if (md != null)
+				return GenericParamContext.Create(md);
+			return new GenericParamContext(tmOwner as TypeDef);
 		}
 
 		/// <summary>
@@ -444,10 +589,10 @@ namespace dnlib.DotNet {
 				if (readerModule.TablesStream.GenericParamTable.TableInfo.Columns.Count != 5)
 					return null;
 				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.Kind);
+				return readerModule.ResolveTypeDefOrRef(rawRow.Kind, GetGenericParamContext(Owner_NoLock));
 			};
 #if THREAD_SAFE
-			owner.Lock = theLock;
+			// owner.Lock = theLock;	No lock for this one
 			number.Lock = theLock;
 			// flags.Lock = theLock;	No lock for this one
 			name.Lock = theLock;
@@ -476,7 +621,7 @@ namespace dnlib.DotNet {
 		internal override void OnLazyAdd2(int index, ref GenericParamConstraint value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParamConstraint(value.Rid).InitializeAll());
+				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParamConstraint(value.Rid, GetGenericParamContext(Owner)).InitializeAll());
 				value.Owner = this;
 			}
 		}

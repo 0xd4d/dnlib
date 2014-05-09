@@ -83,15 +83,8 @@ namespace dnlib.DotNet.Writer {
 		StartupStub startupStub;
 		RelocDirectory relocDirectory;
 
-		/// <summary>
-		/// Gets the module
-		/// </summary>
-		public ModuleDef Module {
-			get { return module; }
-		}
-
 		/// <inheritdoc/>
-		protected override ModuleDef TheModule {
+		public override ModuleDef Module {
 			get { return module; }
 		}
 
@@ -111,21 +104,21 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets all <see cref="PESection"/>s
 		/// </summary>
-		public List<PESection> Sections {
+		public override List<PESection> Sections {
 			get { return sections; }
 		}
 
 		/// <summary>
 		/// Gets the <c>.text</c> section
 		/// </summary>
-		public PESection TextSection {
+		public override PESection TextSection {
 			get { return textSection; }
 		}
 
 		/// <summary>
 		/// Gets the <c>.rsrc</c> section or <c>null</c> if there's none
 		/// </summary>
-		public PESection RsrcSection {
+		public override PESection RsrcSection {
 			get { return rsrcSection; }
 		}
 

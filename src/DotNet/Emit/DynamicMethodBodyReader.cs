@@ -63,6 +63,7 @@ namespace dnlib.DotNet.Emit {
 
 		readonly ModuleDef module;
 		readonly Importer importer;
+		readonly GenericParamContext gpContext;
 		readonly MethodDef method;
 		readonly int codeSize;
 		readonly int maxStack;
@@ -117,8 +118,20 @@ namespace dnlib.DotNet.Emit {
 		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
 		/// instance or a DynamicResolver instance.</param>
 		public DynamicMethodBodyReader(ModuleDef module, object obj) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">Module that will own the method body</param>
+		/// <param name="obj">This can be one of several supported types: the delegate instance
+		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
+		/// instance or a DynamicResolver instance.</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public DynamicMethodBodyReader(ModuleDef module, object obj, GenericParamContext gpContext) {
 			this.module = module;
-			this.importer = new Importer(module, ImporterOptions.TryToUseDefs);
+			this.importer = new Importer(module, ImporterOptions.TryToUseDefs, gpContext);
+			this.gpContext = gpContext;
 
 			if (obj == null)
 				throw new ArgumentNullException("obj");
@@ -211,7 +224,7 @@ namespace dnlib.DotNet.Emit {
 			if (localsSig == null || localsSig.Length == 0)
 				return;
 
-			var sig = SignatureReader.ReadSig(this, module.CorLibTypes, localsSig) as LocalSig;
+			var sig = SignatureReader.ReadSig(this, module.CorLibTypes, localsSig, gpContext) as LocalSig;
 			if (sig == null)
 				return;
 
@@ -476,7 +489,7 @@ namespace dnlib.DotNet.Emit {
 			if (sig == null)
 				return null;
 
-			return SignatureReader.ReadSig(this, module.CorLibTypes, sig);
+			return SignatureReader.ReadSig(this, module.CorLibTypes, sig, gpContext);
 		}
 
 		object Resolve(uint index) {
@@ -485,7 +498,7 @@ namespace dnlib.DotNet.Emit {
 			return tokens[(int)index];
 		}
 
-		ITypeDefOrRef ISignatureReaderHelper.ResolveTypeDefOrRef(uint codedToken) {
+		ITypeDefOrRef ISignatureReaderHelper.ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext) {
 			uint token;
 			if (!CodedToken.TypeDefOrRef.Decode(codedToken, out token))
 				return null;

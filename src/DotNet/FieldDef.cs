@@ -32,7 +32,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Field table
 	/// </summary>
-	public abstract class FieldDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal, IMemberForwarded, IField, ITokenOperand {
+	public abstract class FieldDef : IHasConstant, IHasCustomAttribute, IHasFieldMarshal, IMemberForwarded, IField, ITokenOperand, IMemberDef {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -148,6 +148,11 @@ namespace dnlib.DotNet {
 			get { return CustomAttributes.Count > 0; }
 		}
 
+		/// <inheritdoc/>
+		public bool HasImplMap {
+			get { return ImplMap != null; }
+		}
+
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
@@ -165,7 +170,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IField.DeclaringType {
+		ITypeDefOrRef IMemberRef.DeclaringType {
 			get { return DeclaringType; }
 		}
 
@@ -215,6 +220,58 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		bool IMemberRef.IsType {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethod {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsField {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsTypeSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMemberRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsFieldDef {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsPropertyDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsEventDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsGenericParam {
+			get { return false; }
+		}
+
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldOffset"/> is not <c>null</c>
 		/// </summary>
@@ -242,7 +299,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
-		public bool HasMarshalInfo {
+		public bool HasMarshalType {
 			get { return MarshalType != null; }
 		}
 
@@ -787,14 +844,14 @@ namespace dnlib.DotNet {
 			};
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Signature);
+				return readerModule.ReadSignature(rawRow.Signature, new GenericParamContext(DeclaringType2_NoLock));
 			};
 			fieldOffset.ReadOriginalValue = () => {
 				var row = readerModule.TablesStream.ReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(origRid));
 				return row == null ? null : new uint?(row.OffSet);
 			};
 			marshalType.ReadOriginalValue = () => {
-				return readerModule.ReadMarshalType(Table.Field, origRid);
+				return readerModule.ReadMarshalType(Table.Field, origRid, new GenericParamContext(DeclaringType2_NoLock));
 			};
 			rva.ReadOriginalValue = () => {
 				RVA rva2;

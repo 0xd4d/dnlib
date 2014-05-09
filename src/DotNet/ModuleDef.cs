@@ -44,7 +44,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
-	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder {
+	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder, IDnlibDef {
 		/// <summary>Default characteristics</summary>
 		protected const Characteristics DefaultCharacteristics = Characteristics.ExecutableImage | Characteristics._32BitMachine;
 
@@ -709,7 +709,7 @@ namespace dnlib.DotNet {
 		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
 		/// or if we failed to import the field</returns>
 		public MemberRef Import(FieldInfo fieldInfo) {
-			return new Importer(this).Import(fieldInfo) as MemberRef;
+			return (MemberRef)new Importer(this).Import(fieldInfo);
 		}
 
 		/// <summary>
@@ -737,8 +737,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public ITypeDefOrRef Import(TypeDef type) {
-			return new Importer(this).Import(type);
+		public TypeRef Import(TypeDef type) {
+			return (TypeRef)new Importer(this).Import(type);
 		}
 
 		/// <summary>
@@ -746,8 +746,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public ITypeDefOrRef Import(TypeRef type) {
-			return new Importer(this).Import(type);
+		public TypeRef Import(TypeRef type) {
+			return (TypeRef)new Importer(this).Import(type);
 		}
 
 		/// <summary>
@@ -773,7 +773,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public IField Import(IField field) {
+		public MemberRef Import(IField field) {
 			return new Importer(this).Import(field);
 		}
 

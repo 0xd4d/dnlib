@@ -40,7 +40,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Assembly table
 	/// </summary>
-	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly, IListListener<ModuleDef>, ITypeDefFinder {
+	public abstract class AssemblyDef : IHasCustomAttribute, IHasDeclSecurity, IAssembly, IListListener<ModuleDef>, ITypeDefFinder, IDnlibDef {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -149,6 +149,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
+			get { return FullNameToken; }
+		}
+
+		/// <inheritdoc/>
+		public string FullNameToken {
 			get { return GetFullNameWithPublicKeyToken(); }
 		}
 
@@ -165,6 +170,18 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
 			get { return CustomAttributes.Count > 0; }
+		}
+
+		/// <inheritdoc/>
+		public bool HasDeclSecurities {
+			get { return DeclSecurities.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Modules"/> is not empty
+		/// </summary>
+		public bool HasModules {
+			get { return Modules.Count > 0; }
 		}
 
 		/// <summary>
@@ -656,7 +673,7 @@ namespace dnlib.DotNet {
 				if (UTF8String.IsNull(asmName))
 					continue;
 
-				var asmInfo = new AssemblyNameInfo(asmName.String);
+				var asmInfo = new AssemblyNameInfo(asmName);
 				if (asmInfo.Name != Name)
 					continue;
 				if (!PublicKeyBase.IsNullOrEmpty2(PublicKey)) {
@@ -717,7 +734,7 @@ namespace dnlib.DotNet {
 #else
 			if (ca == null)
 				return false;
-			var ctor = ca.Constructor as IMethodDefOrRef;
+			var ctor = ca.Constructor;
 			if (ctor == null)
 				return false;
 			var sig = ctor.MethodSig;
@@ -931,14 +948,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
-		public AssemblyDefUser(AssemblyNameInfo asmName) {
+		public AssemblyDefUser(IAssembly asmName) {
 			if (asmName == null)
 				throw new ArgumentNullException("asmName");
 			this.modules = new LazyList<ModuleDef>(this);
 			this.name = asmName.Name;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.publicKey = asmName.PublicKeyOrToken as PublicKey ?? new PublicKey();
-			this.locale = asmName.Locale;
+			this.locale = asmName.Culture;
 			this.flags = AssemblyAttributes.None;
 			this.hashAlgId = AssemblyHashAlgorithm.SHA1;
 		}

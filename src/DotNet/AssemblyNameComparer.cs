@@ -46,20 +46,20 @@ namespace dnlib.DotNet {
 		PublicKeyToken = 4,
 
 		/// <summary>
-		/// Compare assembly locale
+		/// Compare assembly culture
 		/// </summary>
-		Locale = 8,
+		Culture = 8,
 
 		/// <summary>
 		/// Compare assembly simple name, version, public key token and locale
 		/// </summary>
-		All = Name | Version | PublicKeyToken | Locale,
+		All = Name | Version | PublicKeyToken | Culture,
 	}
 
 	/// <summary>
 	/// Compares two assembly names
 	/// </summary>
-	struct AssemblyNameComparer : IEqualityComparer<AssemblyNameInfo> {
+	struct AssemblyNameComparer : IEqualityComparer<IAssembly> {
 		AssemblyNameComparerFlags flags;
 
 		/// <summary>
@@ -110,15 +110,15 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Locale"/> bit
+		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Culture"/> bit
 		/// </summary>
-		public bool CompareLocale {
-			get { return (flags & AssemblyNameComparerFlags.Locale) != 0; }
+		public bool CompareCulture {
+			get { return (flags & AssemblyNameComparerFlags.Culture) != 0; }
 			set {
 				if (value)
-					flags |= AssemblyNameComparerFlags.Locale;
+					flags |= AssemblyNameComparerFlags.Culture;
 				else
-					flags &= ~AssemblyNameComparerFlags.Locale;
+					flags &= ~AssemblyNameComparerFlags.Culture;
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public int CompareTo(AssemblyNameInfo a, AssemblyNameInfo b) {
+		public int CompareTo(IAssembly a, IAssembly b) {
 			if (a == b)
 				return 0;
 			if (a == null)
@@ -152,7 +152,7 @@ namespace dnlib.DotNet {
 				return v;
 			if (ComparePublicKeyToken && (v = PublicKeyBase.TokenCompareTo(a.PublicKeyOrToken, b.PublicKeyOrToken)) != 0)
 				return v;
-			if (CompareLocale && (v = Utils.LocaleCompareTo(a.Locale, b.Locale)) != 0)
+			if (CompareCulture && (v = Utils.LocaleCompareTo(a.Culture, b.Culture)) != 0)
 				return v;
 
 			return 0;
@@ -164,7 +164,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if equal, <c>false</c> otherwise</returns>
-		public bool Equals(AssemblyNameInfo a, AssemblyNameInfo b) {
+		public bool Equals(IAssembly a, IAssembly b) {
 			return CompareTo(a, b) == 0;
 		}
 
@@ -175,7 +175,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>-1 if both are equally close, 0 if a is closest, 1 if b is closest</returns>
-		public int CompareClosest(AssemblyNameInfo requested, AssemblyNameInfo a, AssemblyNameInfo b) {
+		public int CompareClosest(IAssembly requested, IAssembly a, IAssembly b) {
 			if (a == b)
 				return 0;
 			if (a == null)
@@ -246,9 +246,9 @@ namespace dnlib.DotNet {
 				}
 			}
 
-			if (CompareLocale) {
-				bool la = Utils.LocaleEquals(requested.Locale, a.Locale);
-				bool lb = Utils.LocaleEquals(requested.Locale, b.Locale);
+			if (CompareCulture) {
+				bool la = Utils.LocaleEquals(requested.Culture, a.Culture);
+				bool lb = Utils.LocaleEquals(requested.Culture, b.Culture);
 				if (la && !lb)
 					return 0;
 				if (!la && lb)
@@ -263,7 +263,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="a">Assembly name</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(AssemblyNameInfo a) {
+		public int GetHashCode(IAssembly a) {
 			if (a == null)
 				return 0;
 
@@ -275,8 +275,8 @@ namespace dnlib.DotNet {
 				hash += Utils.CreateVersionWithNoUndefinedValues(a.Version).GetHashCode();
 			if (ComparePublicKeyToken)
 				hash += PublicKeyBase.GetHashCodeToken(a.PublicKeyOrToken);
-			if (CompareLocale)
-				hash += Utils.GetHashCodeLocale(a.Locale);
+			if (CompareCulture)
+				hash += Utils.GetHashCodeLocale(a.Culture);
 
 			return hash;
 		}

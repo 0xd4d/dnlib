@@ -36,8 +36,9 @@ namespace dnlib.DotNet.Emit {
 		/// Resolves a token
 		/// </summary>
 		/// <param name="token">The metadata token</param>
+		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		IMDTokenProvider ResolveToken(uint token);
+		IMDTokenProvider ResolveToken(uint token, GenericParamContext gpContext);
 
 		/// <summary>
 		/// Reads a string from the #US heap
@@ -45,6 +46,18 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="token">String token</param>
 		/// <returns>A string</returns>
 		string ReadUserString(uint token);
+	}
+
+	public static partial class Extensions {
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="self">An <see cref="IInstructionOperandResolver"/> object</param>
+		/// <param name="token">The metadata token</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
+		public static IMDTokenProvider ResolveToken(this IInstructionOperandResolver self, uint token) {
+			return self.ResolveToken(token, new GenericParamContext());
+		}
 	}
 
 	/// <summary>
@@ -58,6 +71,7 @@ namespace dnlib.DotNet.Emit {
 		uint codeSize;
 		uint localVarSigTok;
 		IBinaryReader exceptionsReader;
+		readonly GenericParamContext gpContext;
 
 		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
@@ -67,7 +81,19 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
 		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method) {
-			return CreateCilBody(opResolver, reader, method.Parameters);
+			return CreateCilBody(opResolver, reader, null, method.Parameters, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="method">Use parameters from this method</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method, GenericParamContext gpContext) {
+			return CreateCilBody(opResolver, reader, null, method.Parameters, gpContext);
 		}
 
 		/// <summary>
@@ -78,7 +104,19 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="parameters">Method parameters</param>
 		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters) {
-			return CreateCilBody(opResolver, reader, null, parameters);
+			return CreateCilBody(opResolver, reader, null, parameters, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters, GenericParamContext gpContext) {
+			return CreateCilBody(opResolver, reader, null, parameters, gpContext);
 		}
 
 		/// <summary>
@@ -91,7 +129,21 @@ namespace dnlib.DotNet.Emit {
 		/// <paramref name="code"/></param>
 		/// <param name="parameters">Method parameters</param>
 		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters) {
-			return CreateCilBody(opResolver, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters);
+			return CreateCilBody(opResolver, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
+		/// a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="code">All code</param>
+		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
+		/// <paramref name="code"/></param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, GenericParamContext gpContext) {
+			return CreateCilBody(opResolver, MemoryImageStream.Create(code), exceptions == null ? null : MemoryImageStream.Create(exceptions), parameters, gpContext);
 		}
 
 		/// <summary>
@@ -104,7 +156,21 @@ namespace dnlib.DotNet.Emit {
 		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
 		/// <param name="parameters">Method parameters</param>
 		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters) {
-			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
+			return CreateCilBody(opResolver, codeReader, ehReader, parameters, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="codeReader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters, GenericParamContext gpContext) {
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext);
 			if (!mbReader.Read())
 				return new CilBody();
 			return mbReader.CreateCilBody();
@@ -124,9 +190,27 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
 		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) {
+			return CreateCilBody(opResolver, code, exceptions, parameters, flags, maxStack, codeSize, localVarSigTok, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
+		/// a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="code">All code</param>
+		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
+		/// <paramref name="code"/></param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="flags">Method header flags, eg. 2 if tiny method</param>
+		/// <param name="maxStack">Max stack</param>
+		/// <param name="codeSize">Code size</param>
+		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext) {
 			var codeReader = MemoryImageStream.Create(code);
 			var ehReader = exceptions == null ? null : MemoryImageStream.Create(exceptions);
-			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters);
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext);
 			mbReader.SetHeader(flags, maxStack, codeSize, localVarSigTok);
 			if (!mbReader.Read())
 				return new CilBody();
@@ -140,7 +224,18 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="method">Use parameters from this method</param>
 		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method)
-			: this(opResolver, reader, null, method.Parameters) {
+			: this(opResolver, reader, null, method.Parameters, new GenericParamContext()) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="method">Use parameters from this method</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader reader, MethodDef method, GenericParamContext gpContext)
+			: this(opResolver, reader, null, method.Parameters, gpContext) {
 		}
 
 		/// <summary>
@@ -150,7 +245,18 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
 		/// <param name="parameters">Method parameters</param>
 		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters)
-			: this(opResolver, reader, null, parameters) {
+			: this(opResolver, reader, null, parameters, new GenericParamContext()) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader reader, IList<Parameter> parameters, GenericParamContext gpContext)
+			: this(opResolver, reader, null, parameters, gpContext) {
 		}
 
 		/// <summary>
@@ -162,9 +268,23 @@ namespace dnlib.DotNet.Emit {
 		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
 		/// <param name="parameters">Method parameters</param>
 		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters)
+			: this(opResolver, codeReader, ehReader, parameters, new GenericParamContext()) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public MethodBodyReader(IInstructionOperandResolver opResolver, IBinaryReader codeReader, IBinaryReader ehReader, IList<Parameter> parameters, GenericParamContext gpContext)
 			: base(codeReader, parameters) {
 			this.opResolver = opResolver;
 			this.exceptionsReader = ehReader;
+			this.gpContext = gpContext;
 		}
 
 		/// <summary>
@@ -252,7 +372,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <returns>All locals or <c>null</c> if there are none</returns>
 		IList<TypeSig> ReadLocals() {
-			var standAloneSig = opResolver.ResolveToken(localVarSigTok) as StandAloneSig;
+			var standAloneSig = opResolver.ResolveToken(localVarSigTok, gpContext) as StandAloneSig;
 			if (standAloneSig == null)
 				return null;
 			var localSig = standAloneSig.LocalSig;
@@ -270,17 +390,17 @@ namespace dnlib.DotNet.Emit {
 
 		/// <inheritdoc/>
 		protected override IField ReadInlineField(Instruction instr) {
-			return opResolver.ResolveToken(reader.ReadUInt32()) as IField;
+			return opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as IField;
 		}
 
 		/// <inheritdoc/>
 		protected override IMethod ReadInlineMethod(Instruction instr) {
-			return opResolver.ResolveToken(reader.ReadUInt32()) as IMethod;
+			return opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as IMethod;
 		}
 
 		/// <inheritdoc/>
 		protected override MethodSig ReadInlineSig(Instruction instr) {
-			var standAloneSig = opResolver.ResolveToken(reader.ReadUInt32()) as StandAloneSig;
+			var standAloneSig = opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as StandAloneSig;
 			if (standAloneSig == null)
 				return null;
 			var sig = standAloneSig.MethodSig;
@@ -296,12 +416,12 @@ namespace dnlib.DotNet.Emit {
 
 		/// <inheritdoc/>
 		protected override ITokenOperand ReadInlineTok(Instruction instr) {
-			return opResolver.ResolveToken(reader.ReadUInt32()) as ITokenOperand;
+			return opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as ITokenOperand;
 		}
 
 		/// <inheritdoc/>
 		protected override ITypeDefOrRef ReadInlineType(Instruction instr) {
-			return opResolver.ResolveToken(reader.ReadUInt32()) as ITypeDefOrRef;
+			return opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as ITypeDefOrRef;
 		}
 
 		/// <summary>
@@ -344,7 +464,7 @@ namespace dnlib.DotNet.Emit {
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadUInt32());
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
+					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32(), gpContext) as ITypeDefOrRef;
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else
@@ -365,7 +485,7 @@ namespace dnlib.DotNet.Emit {
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadByte());
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32()) as ITypeDefOrRef;
+					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32(), gpContext) as ITypeDefOrRef;
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
 					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else

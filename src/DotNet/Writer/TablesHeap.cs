@@ -50,7 +50,8 @@ namespace dnlib.DotNet.Writer {
 
 		/// <summary>
 		/// <c>true</c> if the Edit N' Continue stream header should be used (#-) instead of
-		/// the normal compressed stream (#~).
+		/// the normal compressed stream (#~). Note that this can't be used to disable the #-
+		/// stream, only enable it. It should actually be called <c>ForceENC</c>.
 		/// </summary>
 		public bool? UseENC;
 

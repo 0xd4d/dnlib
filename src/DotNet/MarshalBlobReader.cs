@@ -31,6 +31,7 @@ namespace dnlib.DotNet {
 	public struct MarshalBlobReader : IDisposable {
 		readonly ModuleDef module;
 		readonly IBinaryReader reader;
+		readonly GenericParamContext gpContext;
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from the <c>#Blob</c> heap
@@ -39,7 +40,18 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Blob offset</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
 		public static MarshalType Read(ModuleDefMD module, uint sig) {
-			return Read(module, module.BlobStream.CreateStream(sig));
+			return Read(module, module.BlobStream.CreateStream(sig), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="MarshalType"/> from the <c>#Blob</c> heap
+		/// </summary>
+		/// <param name="module">Module</param>
+		/// <param name="sig">Blob offset</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="MarshalType"/> instance</returns>
+		public static MarshalType Read(ModuleDefMD module, uint sig, GenericParamContext gpContext) {
+			return Read(module, module.BlobStream.CreateStream(sig), gpContext);
 		}
 
 		/// <summary>
@@ -49,7 +61,18 @@ namespace dnlib.DotNet {
 		/// <param name="data">Marshal data</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
 		public static MarshalType Read(ModuleDef module, byte[] data) {
-			return Read(module, MemoryImageStream.Create(data));
+			return Read(module, MemoryImageStream.Create(data), new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="MarshalType"/> from <paramref name="data"/>
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="data">Marshal data</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="MarshalType"/> instance</returns>
+		public static MarshalType Read(ModuleDef module, byte[] data, GenericParamContext gpContext) {
+			return Read(module, MemoryImageStream.Create(data), gpContext);
 		}
 
 		/// <summary>
@@ -59,13 +82,25 @@ namespace dnlib.DotNet {
 		/// <param name="reader">A reader that will be owned by us</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
 		public static MarshalType Read(ModuleDef module, IBinaryReader reader) {
-			using (var marshalReader = new MarshalBlobReader(module, reader))
+			return Read(module, reader, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a <see cref="MarshalType"/> from <see cref="reader"/>
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="reader">A reader that will be owned by us</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="MarshalType"/> instance</returns>
+		public static MarshalType Read(ModuleDef module, IBinaryReader reader, GenericParamContext gpContext) {
+			using (var marshalReader = new MarshalBlobReader(module, reader, gpContext))
 				return marshalReader.Read();
 		}
 
-		MarshalBlobReader(ModuleDef module, IBinaryReader reader) {
+		MarshalBlobReader(ModuleDef module, IBinaryReader reader, GenericParamContext gpContext) {
 			this.module = module;
 			this.reader = reader;
+			this.gpContext = gpContext;
 		}
 
 		MarshalType Read() {
@@ -83,7 +118,7 @@ namespace dnlib.DotNet {
 				case NativeType.SafeArray:
 					var vt = CanRead() ? (VariantType)reader.ReadCompressedUInt32() : VariantType.NotInitialized;
 					var udtName = CanRead() ? ReadUTF8String() : null;
-					var udtRef = (object)udtName == null ? null : TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(udtName), null);
+					var udtRef = (object)udtName == null ? null : TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(udtName), null, gpContext);
 					returnValue = new SafeArrayMarshalType(vt, udtRef);
 					break;
 
@@ -105,7 +140,7 @@ namespace dnlib.DotNet {
 					var guid = ReadUTF8String();
 					var nativeTypeName = ReadUTF8String();
 					var custMarshalerName = ReadUTF8String();
-					var cmRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(custMarshalerName), new CAAssemblyRefFinder(module));
+					var cmRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(custMarshalerName), new CAAssemblyRefFinder(module), gpContext);
 					var cookie = ReadUTF8String();
 					returnValue = new CustomMarshalType(guid, nativeTypeName, cmRef, cookie);
 					break;

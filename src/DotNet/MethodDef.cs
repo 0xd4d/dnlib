@@ -39,7 +39,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Method table
 	/// </summary>
-	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef> {
+	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef>, IMemberDef {
 		internal static readonly UTF8String StaticConstructorName = ".cctor";
 		internal static readonly UTF8String InstanceConstructorName = ".ctor";
 
@@ -240,6 +240,18 @@ namespace dnlib.DotNet {
 			get { return CustomAttributes.Count > 0; }
 		}
 
+		/// <inheritdoc/>
+		public bool HasDeclSecurities {
+			get { return DeclSecurities.Count > 0; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="ParamDefs"/> is not empty
+		/// </summary>
+		public bool HasParamDefs {
+			get { return ParamDefs.Count > 0; }
+		}
+
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
@@ -257,7 +269,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMethod.DeclaringType {
+		ITypeDefOrRef IMemberRef.DeclaringType {
 			get { return DeclaringType; }
 		}
 
@@ -299,6 +311,58 @@ namespace dnlib.DotNet {
 				var dt = DeclaringType;
 				return dt == null ? null : dt.Module;
 			}
+		}
+
+		bool IMemberRef.IsType {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethod {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsField {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsTypeDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodSpec {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsMethodDef {
+			get { return true; }
+		}
+
+		bool IMemberRef.IsMemberRef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsFieldDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsPropertyDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsEventDef {
+			get { return false; }
+		}
+
+		bool IMemberRef.IsGenericParam {
+			get { return false; }
 		}
 
 		/// <summary>
@@ -351,7 +415,7 @@ namespace dnlib.DotNet {
 		public string FullName {
 			get {
 				var declaringType = DeclaringType;
-				return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, Name, MethodSig);
+				return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, Name, MethodSig, null, null, this);
 			}
 		}
 
@@ -1162,7 +1226,7 @@ namespace dnlib.DotNet {
 				if (overrides != null)
 					return overrides;
 				var dt = DeclaringType as TypeDefMD;
-				var tmp = dt == null ? ThreadSafeListCreator.Create<MethodOverride>() : dt.GetMethodOverrides(this);
+				var tmp = dt == null ? ThreadSafeListCreator.Create<MethodOverride>() : dt.GetMethodOverrides(this, new GenericParamContext(DeclaringType, this));
 				Interlocked.CompareExchange(ref overrides, tmp, null);
 				return overrides;
 			}
@@ -1214,14 +1278,14 @@ namespace dnlib.DotNet {
 			};
 			signature.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Signature);
+				return readerModule.ReadSignature(rawRow.Signature, new GenericParamContext(DeclaringType2_NoLock, this));
 			};
 			implMap.ReadOriginalValue = () => {
 				return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, origRid));
 			};
 			methodBody.ReadOriginalValue = () => {
 				InitializeRawRow_NoLock();
-				return readerModule.ReadMethodBody(this, rawRow);
+				return readerModule.ReadMethodBody(this, rawRow, new GenericParamContext(DeclaringType2_NoLock, this));
 			};
 			declaringType.ReadOriginalValue = () => {
 				return readerModule.GetOwnerType(this);

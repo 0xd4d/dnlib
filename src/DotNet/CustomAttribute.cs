@@ -53,8 +53,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public ITypeDefOrRef AttributeType {
 			get {
-				var methodRef = ctor as IMethod;
-				return methodRef == null ? null : methodRef.DeclaringType;
+				var cat = ctor;
+				return cat == null ? null : cat.DeclaringType;
 			}
 		}
 

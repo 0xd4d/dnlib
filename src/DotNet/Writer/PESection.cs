@@ -30,14 +30,15 @@ namespace dnlib.DotNet.Writer {
 	/// A PE section
 	/// </summary>
 	public sealed class PESection : ChunkList<IChunk> {
-		readonly string name;
-		readonly uint characteristics;
+		string name;
+		uint characteristics;
 
 		/// <summary>
 		/// Gets the name
 		/// </summary>
 		public string Name {
 			get { return name; }
+			set { name = value; }
 		}
 
 		/// <summary>
@@ -45,6 +46,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public uint Characteristics {
 			get { return characteristics; }
+			set { characteristics = value; }
 		}
 
 		/// <summary>

@@ -83,6 +83,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="SecurityAttributes"/> is not empty
+		/// </summary>
+		public bool HasSecurityAttributes {
+			get { return SecurityAttributes.Count > 0; }
+		}
+
+		/// <summary>
 		/// Gets the blob data or <c>null</c> if there's none
 		/// </summary>
 		/// <returns>Blob data or <c>null</c></returns>
@@ -174,7 +181,8 @@ namespace dnlib.DotNet {
 					return securityAttrs;
 #endif
 				InitializeRawRow_NoLock();
-				return securityAttrs = DeclSecurityReader.Read(readerModule, rawRow.PermissionSet);
+				var gpContext = new GenericParamContext();
+				return securityAttrs = DeclSecurityReader.Read(readerModule, rawRow.PermissionSet, gpContext);
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
