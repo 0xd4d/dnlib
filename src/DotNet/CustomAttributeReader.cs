@@ -128,19 +128,23 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
 		public static CustomAttribute Read(ModuleDefMD readerModule, ICustomAttributeType ctor, uint offset, GenericParamContext gpContext) {
-			if (ctor == null)
-				return CreateEmpty(ctor);
 			using (var reader = new CustomAttributeReader(readerModule, offset, gpContext)) {
 				try {
+					if (ctor == null)
+						return reader.CreateRaw(ctor);
 					return reader.Read(ctor);
 				}
 				catch (CABlobParserException) {
-					return new CustomAttribute(ctor, reader.GetRawBlob());
+					return reader.CreateRaw(ctor);
 				}
 				catch (IOException) {
-					return new CustomAttribute(ctor, reader.GetRawBlob());
+					return reader.CreateRaw(ctor);
 				}
 			}
+		}
+
+		CustomAttribute CreateRaw(ICustomAttributeType ctor) {
+			return new CustomAttribute(ctor, GetRawBlob());
 		}
 
 		/// <summary>
@@ -199,10 +203,6 @@ namespace dnlib.DotNet {
 			catch (IOException) {
 				return null;
 			}
-		}
-
-		static CustomAttribute CreateEmpty(ICustomAttributeType ctor) {
-			return new CustomAttribute(ctor, new byte[0]);
 		}
 
 		CustomAttributeReader(ModuleDefMD readerModule, uint offset, GenericParamContext gpContext) {
@@ -273,7 +273,16 @@ namespace dnlib.DotNet {
 			if (verifyReadAllBytes && reader.Position != reader.Length)
 				throw new CABlobParserException("Not all CA blob bytes were read");
 
-			return new CustomAttribute(ctor, ctorArgs, namedArgs);
+			return new CustomAttribute(ctor, ctorArgs, namedArgs, CloneBlobReader(reader));
+		}
+
+		static IBinaryReader CloneBlobReader(IBinaryReader reader) {
+			if (reader == null)
+				return null;
+			var imgStream = reader as IImageStream;
+			if (imgStream != null)
+				return imgStream.Clone();
+			return MemoryImageStream.Create(reader.ReadAllBytes());
 		}
 
 		List<CANamedArgument> ReadNamedArguments(int numNamedArgs) {

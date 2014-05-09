@@ -23,6 +23,7 @@
 
 ﻿using System.Collections.Generic;
 using dnlib.Threading;
+using dnlib.IO;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;
@@ -39,6 +40,7 @@ namespace dnlib.DotNet {
 		byte[] rawData;
 		readonly ThreadSafe.IList<CAArgument> arguments;
 		readonly ThreadSafe.IList<CANamedArgument> namedArguments;
+		readonly IBinaryReader blobReader;
 
 		/// <summary>
 		/// Gets/sets the custom attribute constructor
@@ -86,7 +88,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the raw custom attribute blob or <c>null</c>
+		/// Gets the raw custom attribute blob or <c>null</c> if the CA was successfully parsed.
 		/// </summary>
 		public byte[] RawData {
 			get { return rawData; }
@@ -150,7 +152,7 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="rawData">Raw custom attribute blob</param>
 		public CustomAttribute(ICustomAttributeType ctor, byte[] rawData)
-			: this(ctor, null, null) {
+			: this(ctor, null, null, null) {
 			this.rawData = rawData;
 		}
 
@@ -159,7 +161,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="ctor">Custom attribute constructor</param>
 		public CustomAttribute(ICustomAttributeType ctor)
-			: this(ctor, null, null) {
+			: this(ctor, null, null, null) {
 		}
 
 		/// <summary>
@@ -186,10 +188,22 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="arguments">Constructor arguments or <c>null</c> if none</param>
 		/// <param name="namedArguments">Named arguments or <c>null</c> if none</param>
-		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments) {
+		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments)
+			: this(ctor, arguments, namedArguments, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ctor">Custom attribute constructor</param>
+		/// <param name="arguments">Constructor arguments or <c>null</c> if none</param>
+		/// <param name="namedArguments">Named arguments or <c>null</c> if none</param>
+		/// <param name="blobReader">A reader that returns the original custom attribute blob data</param>
+		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments, IBinaryReader blobReader) {
 			this.ctor = ctor;
 			this.arguments = arguments == null ? ThreadSafeListCreator.Create<CAArgument>() : ThreadSafeListCreator.Create<CAArgument>(arguments);
 			this.namedArguments = namedArguments == null ? ThreadSafeListCreator.Create<CANamedArgument>() : ThreadSafeListCreator.Create<CANamedArgument>(namedArguments);
+			this.blobReader = blobReader;
 		}
 
 		/// <summary>
@@ -198,10 +212,12 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="arguments">Constructor arguments. The list is now owned by this instance.</param>
 		/// <param name="namedArguments">Named arguments. The list is now owned by this instance.</param>
-		internal CustomAttribute(ICustomAttributeType ctor, List<CAArgument> arguments, List<CANamedArgument> namedArguments) {
+		/// <param name="blobReader">A reader that returns the original custom attribute blob data</param>
+		internal CustomAttribute(ICustomAttributeType ctor, List<CAArgument> arguments, List<CANamedArgument> namedArguments, IBinaryReader blobReader) {
 			this.ctor = ctor;
 			this.arguments = arguments == null ? ThreadSafeListCreator.Create<CAArgument>() : ThreadSafeListCreator.MakeThreadSafe(arguments);
 			this.namedArguments = namedArguments == null ? ThreadSafeListCreator.Create<CANamedArgument>() : ThreadSafeListCreator.MakeThreadSafe(namedArguments);
+			this.blobReader = blobReader;
 		}
 
 		/// <summary>
@@ -266,6 +282,22 @@ namespace dnlib.DotNet {
 					return namedArg;
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Gets the binary custom attribute data that was used to create this instance.
+		/// </summary>
+		/// <returns>Blob of this custom attribute</returns>
+		public byte[] GetBlob() {
+			if (rawData != null)
+				return rawData;
+			if (blobReader != null) {
+#if THREAD_SAFE
+				lock (this)
+#endif
+					return blobReader.ReadAllBytes();
+			}
+			return new byte[0];
 		}
 
 		/// <inheritdoc/>
