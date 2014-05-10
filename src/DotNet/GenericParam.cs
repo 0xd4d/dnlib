@@ -268,6 +268,25 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Set or clear flags in <see cref="Flags_NoLock"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, GenericParamAttributes flags) {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+				if (set)
+					Flags_NoLock |= flags;
+				else
+					Flags_NoLock &= ~flags;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
 		/// Gets/sets variance (non, contra, co)
 		/// </summary>
 		public GenericParamAttributes Variance {
@@ -305,31 +324,35 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="GenericParamAttributes.NoSpecialConstraint"/> is set
+		/// Gets/sets the <see cref="GenericParamAttributes.NoSpecialConstraint"/> bit
 		/// </summary>
-		public bool IsNoSpecialConstraint {
-			get { return SpecialConstraint == GenericParamAttributes.NoSpecialConstraint; }
+		public bool HasNoSpecialConstraint {
+			get { return (Flags & GenericParamAttributes.NoSpecialConstraint) != 0; }
+			set { ModifyAttributes(value, GenericParamAttributes.NoSpecialConstraint); }
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="GenericParamAttributes.ReferenceTypeConstraint"/> is set
+		/// Gets/sets the <see cref="GenericParamAttributes.ReferenceTypeConstraint"/> bit
 		/// </summary>
-		public bool IsReferenceTypeConstraint {
-			get { return SpecialConstraint == GenericParamAttributes.ReferenceTypeConstraint; }
+		public bool HasReferenceTypeConstraint {
+			get { return (Flags & GenericParamAttributes.ReferenceTypeConstraint) != 0; }
+			set { ModifyAttributes(value, GenericParamAttributes.ReferenceTypeConstraint); }
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="GenericParamAttributes.NotNullableValueTypeConstraint"/> is set
+		/// Gets/sets the <see cref="GenericParamAttributes.NotNullableValueTypeConstraint"/> bit
 		/// </summary>
-		public bool IsNotNullableValueTypeConstraint {
-			get { return SpecialConstraint == GenericParamAttributes.NotNullableValueTypeConstraint; }
+		public bool HasNotNullableValueTypeConstraint {
+			get { return (Flags & GenericParamAttributes.NotNullableValueTypeConstraint) != 0; }
+			set { ModifyAttributes(value, GenericParamAttributes.NotNullableValueTypeConstraint); }
 		}
 
 		/// <summary>
-		/// <c>true</c> if <see cref="GenericParamAttributes.DefaultConstructorConstraint"/> is set
+		/// Gets/sets the <see cref="GenericParamAttributes.DefaultConstructorConstraint"/> bit
 		/// </summary>
-		public bool IsDefaultConstructorConstraint {
-			get { return SpecialConstraint == GenericParamAttributes.DefaultConstructorConstraint; }
+		public bool HasDefaultConstructorConstraint {
+			get { return (Flags & GenericParamAttributes.DefaultConstructorConstraint) != 0; }
+			set { ModifyAttributes(value, GenericParamAttributes.DefaultConstructorConstraint); }
 		}
 
 		/// <inheritdoc/>
