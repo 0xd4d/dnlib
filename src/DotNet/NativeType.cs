@@ -97,7 +97,7 @@ namespace dnlib.DotNet {
 		/// <summary>byvalstr</summary>
 		ByValStr			= 0x22,
 		/// <summary>ansi bstr</summary>
-		ANSIBstr			= 0x23,
+		ANSIBStr			= 0x23,
 		/// <summary>tbstr</summary>
 		TBStr				= 0x24,
 		/// <summary>variant bool</summary>
