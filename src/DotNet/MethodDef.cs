@@ -845,14 +845,14 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if this is the static type constructor
 		/// </summary>
 		public bool IsStaticConstructor {
-			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, StaticConstructorName); }
+			get { return IsRuntimeSpecialName && UTF8String.Equals(Name, StaticConstructorName); }
 		}
 
 		/// <summary>
 		/// <c>true</c> if this is an instance constructor
 		/// </summary>
 		public bool IsInstanceConstructor {
-			get { return IsRuntimeSpecialName && IsSpecialName && UTF8String.Equals(Name, InstanceConstructorName); }
+			get { return IsRuntimeSpecialName && UTF8String.Equals(Name, InstanceConstructorName); }
 		}
 
 		/// <summary>
