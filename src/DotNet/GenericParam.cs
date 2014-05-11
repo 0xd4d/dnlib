@@ -199,11 +199,11 @@ namespace dnlib.DotNet {
 			get { return UTF8String.ToSystemStringOrEmpty(Name); }
 		}
 
-		bool IMemberRef.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return false; }
 		}
 
-		bool IMemberRef.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return false; }
 		}
 

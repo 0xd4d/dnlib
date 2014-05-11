@@ -313,11 +313,11 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		bool IMemberRef.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return false; }
 		}
 
-		bool IMemberRef.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return true; }
 		}
 
@@ -432,16 +432,6 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public ParameterList Parameters {
 			get { return parameterList; }
-		}
-
-		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsMethod {
-			get { return true; }
-		}
-
-		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsType {
-			get { return false; }
 		}
 
 		/// <inheritdoc/>

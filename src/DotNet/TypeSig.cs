@@ -92,12 +92,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return false; }
 		}
 
 		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return true; }
 		}
 

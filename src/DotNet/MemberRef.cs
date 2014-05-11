@@ -141,11 +141,11 @@ namespace dnlib.DotNet {
 			return new TypeRefUser(module, string.Empty, "<Module>", mr);
 		}
 
-		bool IMemberRef.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return false; }
 		}
 
-		bool IMemberRef.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return IsMethodRef; }
 		}
 
@@ -271,16 +271,6 @@ namespace dnlib.DotNet {
 				if (ms != null)
 					ms.RetType = value;
 			}
-		}
-
-		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsMethod {
-			get { return true; }
-		}
-
-		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsType {
-			get { return false; }
 		}
 
 		/// <inheritdoc/>

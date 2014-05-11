@@ -116,16 +116,6 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsMethod {
-			get { return true; }
-		}
-
-		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsType {
-			get { return false; }
-		}
-
-		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
 			get {
 				var sig = GenericInstMethodSig;
@@ -166,11 +156,11 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		bool IMemberRef.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return false; }
 		}
 
-		bool IMemberRef.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return true; }
 		}
 

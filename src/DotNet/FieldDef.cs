@@ -220,11 +220,11 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		bool IMemberRef.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return false; }
 		}
 
-		bool IMemberRef.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return false; }
 		}
 

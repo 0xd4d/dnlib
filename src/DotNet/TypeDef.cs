@@ -89,16 +89,6 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsMethod {
-			get { return false; }
-		}
-
-		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsType {
-			get { return true; }
-		}
-
-		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
 			get { return GenericParameters.Count; }
 		}
@@ -171,11 +161,11 @@ namespace dnlib.DotNet {
 		/// </summary>
 		internal abstract ModuleDef Module2 { get; set; }
 
-		bool IMemberRef.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return true; }
 		}
 
-		bool IMemberRef.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return false; }
 		}
 

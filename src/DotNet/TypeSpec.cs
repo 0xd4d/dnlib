@@ -64,16 +64,6 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsMethod {
-			get { return false; }
-		}
-
-		/// <inheritdoc/>
-		bool IGenericParameterProvider.IsType {
-			get { return true; }
-		}
-
-		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
 			get {
 				var ts = TypeSig;
@@ -114,11 +104,11 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		bool IMemberRef.IsType {
+		bool IIsTypeOrMethod.IsType {
 			get { return true; }
 		}
 
-		bool IMemberRef.IsMethod {
+		bool IIsTypeOrMethod.IsMethod {
 			get { return false; }
 		}
 

@@ -586,25 +586,28 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
-	/// Implemented by types, fields, methods, properties, events
+	/// Methods to check whether the implementer is a type or a method.
 	/// </summary>
-	public interface IMemberRef : ICodedToken, IFullName, IOwnerModule {
+	public interface IIsTypeOrMethod {
 		/// <summary>
-		/// Gets the declaring type
-		/// </summary>
-		ITypeDefOrRef DeclaringType { get; }
-
-		/// <summary>
-		/// <c>true</c> if it's a <see cref="TypeSpec"/>, <see cref="TypeRef"/> or
-		/// a <see cref="TypeDef"/>.
+		/// <c>true</c> if it's a type
 		/// </summary>
 		bool IsType { get; }
 
 		/// <summary>
-		/// <c>true</c> if it's a <see cref="MethodDef"/>, <see cref="MethodSpec"/> or a
-		/// <see cref="MemberRef"/> that's referencing a method.
+		/// <c>true</c> if it's a or a method
 		/// </summary>
 		bool IsMethod { get; }
+	}
+
+	/// <summary>
+	/// Implemented by types, fields, methods, properties, events
+	/// </summary>
+	public interface IMemberRef : ICodedToken, IFullName, IOwnerModule, IIsTypeOrMethod {
+		/// <summary>
+		/// Gets the declaring type
+		/// </summary>
+		ITypeDefOrRef DeclaringType { get; }
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="FieldDef"/> or a <see cref="MemberRef"/> that's
@@ -687,17 +690,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Implemented by types and methods
 	/// </summary>
-	public interface IGenericParameterProvider : ICodedToken {
-		/// <summary>
-		/// <c>true</c> if this is a method
-		/// </summary>
-		bool IsMethod { get; }
-
-		/// <summary>
-		/// <c>true</c> if this is a type
-		/// </summary>
-		bool IsType { get; }
-
+	public interface IGenericParameterProvider : ICodedToken, IIsTypeOrMethod {
 		/// <summary>
 		/// Gets the number of generic parameters / arguments
 		/// </summary>
