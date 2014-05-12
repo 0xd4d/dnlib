@@ -464,7 +464,9 @@ namespace dnlib.DotNet {
 					return false;
 				if (baseType.TypeName != "ValueType" && baseType.TypeName != "Enum")
 					return false;
-				return baseType.DefinitionAssembly.IsCorLib();
+				if (!baseType.DefinitionAssembly.IsCorLib())
+					return false;
+				return !(FullName == "System.Enum" && DefinitionAssembly.IsCorLib());
 			}
 		}
 
