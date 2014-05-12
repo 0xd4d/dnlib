@@ -326,6 +326,17 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Returns the full name of a method sig
+		/// </summary>
+		/// <param name="methodSig">Method sig</param>
+		/// <returns>Method sig full name</returns>
+		public static string MethodSigFullName(MethodSig methodSig) {
+			var fnc = new FullNameCreator(false, null);
+			fnc.CreateMethodFullName(null, null, methodSig, null);
+			return fnc.Result;
+		}
+
+		/// <summary>
 		/// Returns the namespace of a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>

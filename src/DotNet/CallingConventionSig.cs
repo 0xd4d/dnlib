@@ -690,6 +690,10 @@ namespace dnlib.DotNet {
 		public MethodSig Clone() {
 			return new MethodSig(callingConvention, genParamCount, retType, parameters, paramsAfterSentinel);
 		}
+
+		public override string ToString() {
+			return FullNameCreator.MethodSigFullName(this);
+		}
 	}
 
 	/// <summary>
