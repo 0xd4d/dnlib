@@ -669,10 +669,13 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="corType">The type</param>
+		/// <param name="corType">The type which must be a <see cref="TypeRef"/> or a
+		/// <see cref="TypeDef"/>. <see cref="TypeSpec"/> and <c>null</c> are not allowed.</param>
 		/// <param name="elementType">The type's element type</param>
-		public CorLibTypeSig(TypeRef corType, ElementType elementType)
+		public CorLibTypeSig(ITypeDefOrRef corType, ElementType elementType)
 			: base(corType) {
+			if (!(corType is TypeRef) && !(corType is TypeDef))
+				throw new ArgumentException("corType must be a TypeDef or a TypeRef. null and TypeSpec are invalid inputs.");
 			this.elementType = elementType;
 		}
 	}
