@@ -632,6 +632,19 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets/sets the <see cref="MetaDataFlags.PreserveExtraSignatureData"/> bit
+		/// </summary>
+		public bool PreserveExtraSignatureData {
+			get { return (options.Flags & MetaDataFlags.PreserveExtraSignatureData) != 0; }
+			set {
+				if (value)
+					options.Flags |= MetaDataFlags.PreserveExtraSignatureData;
+				else
+					options.Flags &= ~MetaDataFlags.PreserveExtraSignatureData;
+			}
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="MetaDataFlags.KeepOldMaxStack"/> bit
 		/// </summary>
 		public bool KeepOldMaxStack {
@@ -2436,7 +2449,8 @@ namespace dnlib.DotNet.Writer {
 		/// Gets a #Blob offset of a type signature
 		/// </summary>
 		/// <param name="ts">Type sig</param>
-		/// <param name="extraData">Extra data to append the signature</param>
+		/// <param name="extraData">Extra data to append the signature if
+		/// <see cref="PreserveExtraSignatureData"/> is <c>true</c>.</param>
 		/// <returns>#Blob offset</returns>
 		protected uint GetSignature(TypeSig ts, byte[] extraData) {
 			byte[] blob;
@@ -2467,7 +2481,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AppendExtraData(ref byte[] blob, byte[] extraData) {
-			if (extraData != null && extraData.Length > 0) {
+			if (PreserveExtraSignatureData && extraData != null && extraData.Length > 0) {
 				int blen = blob == null ? 0 : blob.Length;
 				Array.Resize(ref blob, blen + extraData.Length);
 				Array.Copy(extraData, 0, blob, blen, extraData.Length);
