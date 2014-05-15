@@ -691,6 +691,7 @@ namespace dnlib.DotNet {
 			return new MethodSig(callingConvention, genParamCount, retType, parameters, paramsAfterSentinel);
 		}
 
+		/// <inheritdoc/>
 		public override string ToString() {
 			return FullNameCreator.MethodSigFullName(this);
 		}
