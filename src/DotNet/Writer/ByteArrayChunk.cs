@@ -54,7 +54,11 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="array">The data (now owned by us and can't be modified by the caller)</param>
+		/// <param name="array">The data. It will be owned by this instance and can't be modified by
+		/// other code if this instance is inserted as a <c>key</c> in a dictionary (because
+		/// <see cref="GetHashCode"/> return value will be different if you modify the array). If
+		/// it's never inserted as a <c>key</c> in a dictionary, then the contents can be modified,
+		/// but shouldn't be resized after <see cref="SetOffset"/> has been called.</param>
 		public ByteArrayChunk(byte[] array) {
 			this.array = array ?? new byte[0];
 		}
