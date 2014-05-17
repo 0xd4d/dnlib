@@ -25,7 +25,6 @@
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -56,17 +55,39 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the owner generic param
 		/// </summary>
-		public abstract GenericParam Owner { get; internal set; }
+		public GenericParam Owner {
+			get { return owner; }
+			internal set { owner = value; }
+		}
+		/// <summary/>
+		protected GenericParam owner;
 
 		/// <summary>
 		/// From column GenericParamConstraint.Constraint
 		/// </summary>
-		public abstract ITypeDefOrRef Constraint { get; set; }
+		public ITypeDefOrRef Constraint {
+			get { return constraint; }
+			set { constraint = value; }
+		}
+		/// <summary/>
+		protected ITypeDefOrRef constraint;
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -78,27 +99,6 @@ namespace dnlib.DotNet {
 	/// A GenericParamConstraintAssembly row created by the user and not present in the original .NET file
 	/// </summary>
 	public class GenericParamConstraintUser : GenericParamConstraint {
-		GenericParam owner;
-		ITypeDefOrRef constraint;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		public override GenericParam Owner {
-			get { return owner; }
-			internal set { owner = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeDefOrRef Constraint {
-			get { return constraint; }
-			set { constraint = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -120,17 +120,8 @@ namespace dnlib.DotNet {
 	sealed class GenericParamConstraintMD : GenericParamConstraint, IMDTokenProviderMD, IContainsGenericParameter {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawGenericParamConstraintRow rawRow;
 
-		readonly GenericParamContext gpContext;
 		readonly uint origRid;
-		UserValue<GenericParam> owner;
-		UserValue<ITypeDefOrRef> constraint;
-		CustomAttributeCollection customAttributeCollection;
-#if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
-#endif
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -138,27 +129,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override GenericParam Owner {
-			get { return owner.Value; }
-			internal set { owner.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeDefOrRef Constraint {
-			get { return constraint.Value; }
-			set { constraint.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParamConstraint, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParamConstraint, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		bool IContainsGenericParameter.ContainsGenericParameter {
@@ -183,28 +157,9 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			this.gpContext = gpContext;
-			Initialize();
-		}
-
-		void Initialize() {
-			owner.ReadOriginalValue = () => {
-				return readerModule.GetOwner(this);
-			};
-			constraint.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.Constraint, gpContext);
-			};
-#if THREAD_SAFE
-			owner.Lock = theLock;
-			constraint.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadGenericParamConstraintRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadGenericParamConstraintRow(origRid);
+			constraint = readerModule.ResolveTypeDefOrRef(rawRow.Constraint, gpContext);
+			owner = readerModule.GetOwner(this);
 		}
 
 		internal GenericParamConstraintMD InitializeAll() {

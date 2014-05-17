@@ -44,10 +44,7 @@ namespace dnlib.DotNet {
 		protected uint rid;
 
 #if THREAD_SAFE
-		/// <summary>
-		/// The lock
-		/// </summary>
-		internal readonly Lock theLock = Lock.Create();
+		readonly Lock theLock = Lock.Create();
 #endif
 
 		/// <inheritdoc/>
@@ -75,76 +72,146 @@ namespace dnlib.DotNet {
 		/// From column Event.EventFlags
 		/// </summary>
 		public EventAttributes Attributes {
-#if THREAD_SAFE
-			get {
-				theLock.EnterWriteLock();
-				try {
-					return Attributes_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-			set {
-				theLock.EnterWriteLock();
-				try {
-					Attributes_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return Attributes_NoLock; }
-			set { Attributes_NoLock = value; }
-#endif
+			get { return (EventAttributes)attributes; }
+			set { attributes = (int)value; }
 		}
-
-		/// <summary>
-		/// From column Event.EventFlags
-		/// </summary>
-		protected abstract EventAttributes Attributes_NoLock { get; set; }
+		/// <summary/>
+		protected int attributes;
 
 		/// <summary>
 		/// From column Event.Name
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// From column Event.EventType
 		/// </summary>
-		public abstract ITypeDefOrRef EventType { get; set; }
+		public ITypeDefOrRef EventType {
+			get { return eventType; }
+			set { eventType = value; }
+		}
+		/// <summary/>
+		protected ITypeDefOrRef eventType;
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <summary>
 		/// Gets/sets the adder method
 		/// </summary>
-		public abstract MethodDef AddMethod { get; set; }
+		public MethodDef AddMethod {
+			get {
+				if (otherMethods == null)
+					InitializeEventMethods();
+				return addMethod;
+			}
+			set {
+				if (otherMethods == null)
+					InitializeEventMethods();
+				addMethod = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets/sets the invoker method
 		/// </summary>
-		public abstract MethodDef InvokeMethod { get; set; }
+		public MethodDef InvokeMethod {
+			get {
+				if (otherMethods == null)
+					InitializeEventMethods();
+				return invokeMethod;
+			}
+			set {
+				if (otherMethods == null)
+					InitializeEventMethods();
+				invokeMethod = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets/sets the remover method
 		/// </summary>
-		public abstract MethodDef RemoveMethod { get; set; }
+		public MethodDef RemoveMethod {
+			get {
+				if (otherMethods == null)
+					InitializeEventMethods();
+				return removeMethod;
+			}
+			set {
+				if (otherMethods == null)
+					InitializeEventMethods();
+				removeMethod = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets the other methods
 		/// </summary>
-		public abstract ThreadSafe.IList<MethodDef> OtherMethods { get; }
+		public ThreadSafe.IList<MethodDef> OtherMethods {
+			get {
+				if (otherMethods == null)
+					InitializeEventMethods();
+				return otherMethods;
+			}
+		}
+
+		void InitializeEventMethods() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (otherMethods == null)
+				InitializeEventMethods_NoLock();
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Initializes <see cref="otherMethods"/>, <see cref="addMethod"/>,
+		/// <see cref="invokeMethod"/> and <see cref="removeMethod"/>.
+		/// </summary>
+		protected virtual void InitializeEventMethods_NoLock() {
+			otherMethods = ThreadSafeListCreator.Create<MethodDef>();
+		}
+
+		/// <summary/>
+		protected MethodDef addMethod;
+		/// <summary/>
+		protected MethodDef invokeMethod;
+		/// <summary/>
+		protected MethodDef removeMethod;
+		/// <summary/>
+		protected ThreadSafe.IList<MethodDef> otherMethods;
 
 		/// <summary>
 		/// <c>true</c> if there are no methods attached to this event
 		/// </summary>
 		public bool IsEmpty {
 			get {
+				// The first property access initializes the other fields we access here
 				return AddMethod == null &&
-					RemoveMethod == null &&
-					InvokeMethod == null &&
-					OtherMethods.Count == 0;
+					removeMethod == null &&
+					invokeMethod == null &&
+					otherMethods.Count == 0;
 			}
 		}
 
@@ -164,7 +231,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
 		public TypeDef DeclaringType {
-			get { return DeclaringType2; }
+			get { return declaringType2; }
 			set {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
@@ -178,7 +245,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		ITypeDefOrRef IMemberRef.DeclaringType {
-			get { return DeclaringType; }
+			get { return declaringType2; }
 		}
 
 		/// <summary>
@@ -187,34 +254,16 @@ namespace dnlib.DotNet {
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
 		public TypeDef DeclaringType2 {
-#if THREAD_SAFE
-			get {
-				theLock.EnterWriteLock(); try {
-					return DeclaringType2_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-			set {
-				theLock.EnterWriteLock(); try {
-					DeclaringType2_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return DeclaringType2_NoLock; }
-			set { DeclaringType2_NoLock = value; }
-#endif
+			get { return declaringType2; }
+			set { declaringType2 = value; }
 		}
-
-		/// <summary>
-		/// No-lock version of <see cref="DeclaringType2"/>.
-		/// </summary>
-		internal abstract TypeDef DeclaringType2_NoLock { get; set; }
+		/// <summary/>
+		protected TypeDef declaringType2;
 
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get {
-				var dt = DeclaringType;
+				var dt = declaringType2;
 				return dt == null ? null : dt.Module;
 			}
 		}
@@ -224,8 +273,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public string FullName {
 			get {
-				var dt = DeclaringType;
-				return FullNameCreator.EventFullName(dt == null ? null : dt.FullName, Name, EventType);
+				var dt = declaringType2;
+				return FullNameCreator.EventFullName(dt == null ? null : dt.FullName, name, eventType);
 			}
 		}
 
@@ -282,21 +331,26 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// Set or clear flags in <see cref="attributes"/>
 		/// </summary>
 		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, EventAttributes flags) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
+			int origVal, newVal;
+			do {
+				origVal = attributes;
 				if (set)
-					Attributes_NoLock |= flags;
+					newVal = origVal | (int)flags;
 				else
-					Attributes_NoLock &= ~flags;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+					newVal = origVal & ~(int)flags;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			if (set)
+				attributes |= (int)flags;
+			else
+				attributes &= ~(int)flags;
 #endif
 		}
 
@@ -304,7 +358,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="EventAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return (Attributes & EventAttributes.SpecialName) != 0; }
+			get { return ((EventAttributes)attributes & EventAttributes.SpecialName) != 0; }
 			set { ModifyAttributes(value, EventAttributes.SpecialName); }
 		}
 
@@ -312,7 +366,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="EventAttributes.RTSpecialName"/> bit
 		/// </summary>
 		public bool IsRuntimeSpecialName {
-			get { return (Attributes & EventAttributes.RTSpecialName) != 0; }
+			get { return ((EventAttributes)attributes & EventAttributes.RTSpecialName) != 0; }
 			set { ModifyAttributes(value, EventAttributes.RTSpecialName); }
 		}
 
@@ -326,68 +380,6 @@ namespace dnlib.DotNet {
 	/// An Event row created by the user and not present in the original .NET file
 	/// </summary>
 	public class EventDefUser : EventDef {
-		EventAttributes flags;
-		UTF8String name;
-		ITypeDefOrRef type;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-		MethodDef addMethod;
-		MethodDef invokeMethod;
-		MethodDef removeMethod;
-		readonly ThreadSafe.IList<MethodDef> otherMethods = ThreadSafeListCreator.Create<MethodDef>();
-		TypeDef declaringType;
-
-		/// <inheritdoc/>
-		protected override EventAttributes Attributes_NoLock {
-			get { return flags; }
-			set { flags = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeDefOrRef EventType {
-			get { return type; }
-			set { type = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
-		/// <inheritdoc/>
-		public override MethodDef AddMethod {
-			get { return addMethod; }
-			set { addMethod = value; }
-		}
-
-		/// <inheritdoc/>
-		public override MethodDef InvokeMethod {
-			get { return invokeMethod; }
-			set { invokeMethod = value; }
-		}
-
-		/// <inheritdoc/>
-		public override MethodDef RemoveMethod {
-			get { return removeMethod; }
-			set { removeMethod = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<MethodDef> OtherMethods {
-			get { return otherMethods; }
-		}
-
-		/// <inheritdoc/>
-		internal override TypeDef DeclaringType2_NoLock {
-			get { return declaringType; }
-			set { declaringType = value; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -419,8 +411,8 @@ namespace dnlib.DotNet {
 		/// <param name="flags">Flags</param>
 		public EventDefUser(UTF8String name, ITypeDefOrRef type, EventAttributes flags) {
 			this.name = name;
-			this.type = type;
-			this.flags = flags;
+			this.eventType = type;
+			this.attributes = (int)flags;
 		}
 	}
 
@@ -430,19 +422,8 @@ namespace dnlib.DotNet {
 	sealed class EventDefMD : EventDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawEventRow rawRow;
 
 		readonly uint origRid;
-		UserValue<EventAttributes> flags;
-		UserValue<UTF8String> name;
-		UserValue<ITypeDefOrRef> type;
-		CustomAttributeCollection customAttributeCollection;
-		MethodDef addMethod;
-		MethodDef invokeMethod;
-		MethodDef removeMethod;
-		ThreadSafe.IList<MethodDef> otherMethods;
-		UserValue<TypeDef> declaringType;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -450,62 +431,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override EventAttributes Attributes_NoLock {
-			get { return flags.Value; }
-			set { flags.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeDefOrRef EventType {
-			get { return type.Value; }
-			set { type.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Event, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override MethodDef AddMethod {
-			get { InitializeEventMethods_NoLock(); return addMethod; }
-			set { InitializeEventMethods_NoLock(); addMethod = value; }
-		}
-
-		/// <inheritdoc/>
-		public override MethodDef InvokeMethod {
-			get { InitializeEventMethods_NoLock(); return invokeMethod; }
-			set { InitializeEventMethods_NoLock(); invokeMethod = value; }
-		}
-
-		/// <inheritdoc/>
-		public override MethodDef RemoveMethod {
-			get { InitializeEventMethods_NoLock(); return removeMethod; }
-			set { InitializeEventMethods_NoLock(); removeMethod = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<MethodDef> OtherMethods {
-			get { InitializeEventMethods_NoLock(); return otherMethods; }
-		}
-
-		/// <inheritdoc/>
-		internal override TypeDef DeclaringType2_NoLock {
-			get { return declaringType.Value; }
-			set { declaringType.Value = value; }
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Event, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <summary>
@@ -525,37 +454,11 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			Initialize();
-		}
-
-		void Initialize() {
-			flags.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (EventAttributes)rawRow.EventFlags;
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			};
-			type.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.EventType, new GenericParamContext(DeclaringType2_NoLock));
-			};
-			declaringType.ReadOriginalValue = () => {
-				return readerModule.GetOwnerType(this);
-			};
-#if THREAD_SAFE
-			// flags.Lock = theLock;			No lock for this one
-			name.Lock = theLock;
-			type.Lock = theLock;
-			// declaringType.Lock = theLock;	No lock for this one
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadEventRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadEventRow(origRid);
+			attributes = (int)rawRow.EventFlags;
+			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			declaringType2 = readerModule.GetOwnerType(this);
+			eventType = readerModule.ResolveTypeDefOrRef(rawRow.EventType, new GenericParamContext(declaringType2));
 		}
 
 		internal EventDefMD InitializeAll() {
@@ -571,23 +474,15 @@ namespace dnlib.DotNet {
 			return this;
 		}
 
-		void InitializeEventMethods_NoLock() {
-			if (otherMethods != null)
-				return;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-			if (otherMethods != null) return;
-#endif
+		/// <inheritdoc/>
+		protected override void InitializeEventMethods_NoLock() {
 			ThreadSafe.IList<MethodDef> newOtherMethods;
-			var dt = DeclaringType2_NoLock as TypeDefMD;
+			var dt = declaringType2 as TypeDefMD;
 			if (dt == null)
 				newOtherMethods = ThreadSafeListCreator.Create<MethodDef>();
 			else
 				dt.InitializeEvent(this, out addMethod, out invokeMethod, out removeMethod, out newOtherMethods);
 			otherMethods = newOtherMethods;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 	}
 }

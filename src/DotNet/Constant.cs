@@ -25,7 +25,6 @@
 using System.Text;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -51,33 +50,28 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Constant.Type
 		/// </summary>
-		public abstract ElementType Type { get; set; }
+		public ElementType Type {
+			get { return type; }
+			set { type = value; }
+		}
+		/// <summary/>
+		protected ElementType type;
 
 		/// <summary>
 		/// From column Constant.Value
 		/// </summary>
-		public abstract object Value { get; set; }
+		public object Value {
+			get { return value; }
+			set { this.value = value; }
+		}
+		/// <summary/>
+		protected object value;
 	}
 
 	/// <summary>
 	/// A Constant row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ConstantUser : Constant {
-		ElementType type;
-		object value;
-
-		/// <inheritdoc/>
-		public override ElementType Type {
-			get { return type; }
-			set { type = value; }
-		}
-
-		/// <inheritdoc/>
-		public override object Value {
-			get { return value; }
-			set { this.value = value; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -131,31 +125,12 @@ namespace dnlib.DotNet {
 	sealed class ConstantMD : Constant, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawConstantRow rawRow;
 
 		readonly uint origRid;
-		UserValue<ElementType> type;
-		UserValue<object> value;
-#if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
-#endif
 
 		/// <inheritdoc/>
 		public uint OrigRid {
 			get { return origRid; }
-		}
-
-		/// <inheritdoc/>
-		public override ElementType Type {
-			get { return type.Value; }
-			set { type.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override object Value {
-			get { return value.Value; }
-			set { this.value.Value = value; }
 		}
 
 		/// <summary>
@@ -175,22 +150,9 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			Initialize();
-		}
-
-		void Initialize() {
-			type.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (ElementType)rawRow.Type;
-			};
-			value.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return GetValue((ElementType)rawRow.Type, readerModule.BlobStream.ReadNoNull(rawRow.Value));
-			};
-#if THREAD_SAFE
-			type.Lock = theLock;
-			value.Lock = theLock;
-#endif
+			var rawRow = readerModule.TablesStream.ReadConstantRow(origRid);
+			type = (ElementType)rawRow.Type;
+			value = GetValue((ElementType)rawRow.Type, readerModule.BlobStream.ReadNoNull(rawRow.Value));
 		}
 
 		static object GetValue(ElementType etype, byte[] data) {
@@ -266,12 +228,6 @@ namespace dnlib.DotNet {
 			default:
 				return null;
 			}
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadConstantRow(origRid);
 		}
 	}
 }

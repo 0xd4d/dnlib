@@ -23,9 +23,9 @@
 
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -37,13 +37,6 @@ namespace dnlib.DotNet {
 		/// The row id in its table
 		/// </summary>
 		protected uint rid;
-
-#if THREAD_SAFE
-		/// <summary>
-		/// The lock
-		/// </summary>
-		internal readonly Lock theLock = Lock.Create();
-#endif
 
 		/// <inheritdoc/>
 		public MDToken MDToken {
@@ -60,74 +53,71 @@ namespace dnlib.DotNet {
 		/// From column ImplMap.MappingFlags
 		/// </summary>
 		public PInvokeAttributes Attributes {
-#if THREAD_SAFE
-			get {
-				theLock.EnterWriteLock();
-				try {
-					return Attributes_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-			set {
-				theLock.EnterWriteLock();
-				try {
-					Attributes_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return Attributes_NoLock; }
-			set { Attributes_NoLock = value; }
-#endif
+			get { return (PInvokeAttributes)attributes; }
+			set { attributes = (int)value; }
 		}
-
-		/// <summary>
-		/// From column ImplMap.MappingFlags
-		/// </summary>
-		protected abstract PInvokeAttributes Attributes_NoLock { get; set; }
+		/// <summary>Attributes</summary>
+		protected int attributes;
 
 		/// <summary>
 		/// From column ImplMap.ImportName
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// From column ImplMap.ImportScope
 		/// </summary>
-		public abstract ModuleRef Module { get; set; }
+		public ModuleRef Module {
+			get { return module; }
+			set { module = value; }
+		}
+		/// <summary/>
+		protected ModuleRef module;
 
 		/// <summary>
-		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
-		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
+		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
 		void ModifyAttributes(PInvokeAttributes andMask, PInvokeAttributes orMask) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			int origVal, newVal;
+			do {
+				origVal = attributes;
+				newVal = (origVal & (int)andMask) | (int)orMask;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			attributes = (attributes & (int)andMask) | (int)orMask;
 #endif
 		}
 
 		/// <summary>
-		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// Set or clear flags in <see cref="attributes"/>
 		/// </summary>
 		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, PInvokeAttributes flags) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
+			int origVal, newVal;
+			do {
+				origVal = attributes;
 				if (set)
-					Attributes_NoLock |= flags;
+					newVal = origVal | (int)flags;
 				else
-					Attributes_NoLock &= ~flags;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+					newVal = origVal & ~(int)flags;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			if (set)
+				attributes |= (int)flags;
+			else
+				attributes &= ~(int)flags;
 #endif
 		}
 
@@ -135,7 +125,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="PInvokeAttributes.NoMangle"/> bit
 		/// </summary>
 		public bool IsNoMangle {
-			get { return (Attributes & PInvokeAttributes.NoMangle) != 0; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.NoMangle) != 0; }
 			set { ModifyAttributes(value, PInvokeAttributes.NoMangle); }
 		}
 
@@ -143,7 +133,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the char set
 		/// </summary>
 		public PInvokeAttributes CharSet {
-			get { return Attributes & PInvokeAttributes.CharSetMask; }
+			get { return (PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask; }
 			set { ModifyAttributes(~PInvokeAttributes.CharSetMask, value & PInvokeAttributes.CharSetMask); }
 		}
 
@@ -151,35 +141,35 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetNotSpec"/> is set
 		/// </summary>
 		public bool IsCharSetNotSpec {
-			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetNotSpec; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetNotSpec; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetAnsi"/> is set
 		/// </summary>
 		public bool IsCharSetAnsi {
-			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAnsi; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAnsi; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetUnicode"/> is set
 		/// </summary>
 		public bool IsCharSetUnicode {
-			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetUnicode; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetUnicode; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetAuto"/> is set
 		/// </summary>
 		public bool IsCharSetAuto {
-			get { return (Attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAuto; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAuto; }
 		}
 
 		/// <summary>
 		/// Gets/sets best fit
 		/// </summary>
 		public PInvokeAttributes BestFit {
-			get { return Attributes & PInvokeAttributes.BestFitMask; }
+			get { return (PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask; }
 			set { ModifyAttributes(~PInvokeAttributes.BestFitMask, value & PInvokeAttributes.BestFitMask); }
 		}
 
@@ -187,28 +177,28 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitUseAssem"/> is set
 		/// </summary>
 		public bool IsBestFitUseAssem {
-			get { return (Attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitUseAssem; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitUseAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitEnabled"/> is set
 		/// </summary>
 		public bool IsBestFitEnabled {
-			get { return (Attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitEnabled; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitEnabled; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitDisabled"/> is set
 		/// </summary>
 		public bool IsBestFitDisabled {
-			get { return (Attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitDisabled; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitDisabled; }
 		}
 
 		/// <summary>
 		/// Gets/sets throw on unmappable char
 		/// </summary>
 		public PInvokeAttributes ThrowOnUnmappableChar {
-			get { return Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask; }
+			get { return (PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask; }
 			set { ModifyAttributes(~PInvokeAttributes.ThrowOnUnmappableCharMask, value & PInvokeAttributes.ThrowOnUnmappableCharMask); }
 		}
 
@@ -216,28 +206,28 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharUseAssem"/> is set
 		/// </summary>
 		public bool IsThrowOnUnmappableCharUseAssem {
-			get { return (Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharUseAssem; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharUseAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharEnabled"/> is set
 		/// </summary>
 		public bool IsThrowOnUnmappableCharEnabled {
-			get { return (Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharEnabled; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharEnabled; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharDisabled"/> is set
 		/// </summary>
 		public bool IsThrowOnUnmappableCharDisabled {
-			get { return (Attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharDisabled; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharDisabled; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="PInvokeAttributes.SupportsLastError"/> bit
 		/// </summary>
 		public bool SupportsLastError {
-			get { return (Attributes & PInvokeAttributes.SupportsLastError) != 0; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.SupportsLastError) != 0; }
 			set { ModifyAttributes(value, PInvokeAttributes.SupportsLastError); }
 		}
 
@@ -245,7 +235,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets calling convention
 		/// </summary>
 		public PInvokeAttributes CallConv {
-			get { return Attributes & PInvokeAttributes.CallConvMask; }
+			get { return (PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask; }
 			set { ModifyAttributes(~PInvokeAttributes.CallConvMask, value & PInvokeAttributes.CallConvMask); }
 		}
 
@@ -253,35 +243,35 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvWinapi"/> is set
 		/// </summary>
 		public bool IsCallConvWinapi {
-			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvWinapi; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvWinapi; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvCdecl"/> is set
 		/// </summary>
 		public bool IsCallConvCdecl {
-			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvCdecl; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvCdecl; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvStdcall"/> is set
 		/// </summary>
 		public bool IsCallConvStdcall {
-			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvStdcall; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvStdcall; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvThiscall"/> is set
 		/// </summary>
 		public bool IsCallConvThiscall {
-			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvThiscall; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvThiscall; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvFastcall"/> is set
 		/// </summary>
 		public bool IsCallConvFastcall {
-			get { return (Attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvFastcall; }
+			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvFastcall; }
 		}
 
 		/// <summary>
@@ -291,12 +281,12 @@ namespace dnlib.DotNet {
 		/// <param name="funcName">Name of the function within the DLL</param>
 		/// <returns><c>true</c> if it's the specified P/Invoke method, else <c>false</c></returns>
 		public bool IsPinvokeMethod(string dllName, string funcName) {
-			if (Name != funcName)
+			if (name != funcName)
 				return false;
-			var module = Module;
-			if (module == null)
+			var mod = module;
+			if (mod == null)
 				return false;
-			return GetDllName(dllName).Equals(GetDllName(module.Name), StringComparison.OrdinalIgnoreCase);
+			return GetDllName(dllName).Equals(GetDllName(mod.Name), StringComparison.OrdinalIgnoreCase);
 		}
 
 		static string GetDllName(string dllName) {
@@ -310,28 +300,6 @@ namespace dnlib.DotNet {
 	/// An ImplMap row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ImplMapUser : ImplMap {
-		PInvokeAttributes flags;
-		UTF8String name;
-		ModuleRef scope;
-
-		/// <inheritdoc/>
-		protected override PInvokeAttributes Attributes_NoLock {
-			get { return flags; }
-			set { flags = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleRef Module {
-			get { return scope; }
-			set { scope = value; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -345,9 +313,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="flags">Flags</param>
 		public ImplMapUser(ModuleRef scope, UTF8String name, PInvokeAttributes flags) {
-			this.scope = scope;
+			this.module = scope;
 			this.name = name;
-			this.flags = flags;
+			this.attributes = (int)flags;
 		}
 	}
 
@@ -357,35 +325,12 @@ namespace dnlib.DotNet {
 	sealed class ImplMapMD : ImplMap, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawImplMapRow rawRow;
 
 		readonly uint origRid;
-		UserValue<PInvokeAttributes> flags;
-		UserValue<UTF8String> name;
-		UserValue<ModuleRef> scope;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
 			get { return origRid; }
-		}
-
-		/// <inheritdoc/>
-		protected override PInvokeAttributes Attributes_NoLock {
-			get { return flags.Value; }
-			set { flags.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ModuleRef Module {
-			get { return scope.Value; }
-			set { scope.Value = value; }
 		}
 
 		/// <summary>
@@ -405,33 +350,10 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			Initialize();
-		}
-
-		void Initialize() {
-			flags.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (PInvokeAttributes)rawRow.MappingFlags;
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.ImportName);
-			};
-			scope.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.ResolveModuleRef(rawRow.ImportScope);
-			};
-#if THREAD_SAFE
-			// flags.Lock = theLock;	No lock for this one
-			name.Lock = theLock;
-			scope.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadImplMapRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadImplMapRow(origRid);
+			attributes = (int)rawRow.MappingFlags;
+			name = readerModule.StringsStream.ReadNoNull(rawRow.ImportName);
+			module = readerModule.ResolveModuleRef(rawRow.ImportScope);
 		}
 	}
 }

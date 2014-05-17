@@ -25,7 +25,6 @@
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -81,12 +80,29 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ModuleRef.Name
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -106,11 +122,11 @@ namespace dnlib.DotNet {
 			get {
 				if (module == null)
 					return null;
-				var name = Name;
-				if (UTF8String.CaseInsensitiveEquals(name, module.Name))
+				var n = name;
+				if (UTF8String.CaseInsensitiveEquals(n, module.Name))
 					return module;
 				var asm = DefinitionAssembly;
-				return asm == null ? null : asm.FindModule(name);
+				return asm == null ? null : asm.FindModule(n);
 			}
 		}
 
@@ -124,7 +140,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return UTF8String.ToSystemStringOrEmpty(Name); }
+			get { return UTF8String.ToSystemStringOrEmpty(name); }
 		}
 
 		/// <inheritdoc/>
@@ -137,20 +153,6 @@ namespace dnlib.DotNet {
 	/// A ModuleRef row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ModuleRefUser : ModuleRef {
-		UTF8String name;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -176,15 +178,8 @@ namespace dnlib.DotNet {
 	sealed class ModuleRefMD : ModuleRef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawModuleRefRow rawRow;
 
 		readonly uint origRid;
-		UserValue<UTF8String> name;
-		CustomAttributeCollection customAttributeCollection;
-#if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
-#endif
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -192,21 +187,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ModuleRef, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ModuleRef, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <summary>
@@ -227,23 +211,8 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
-			Initialize();
-		}
-
-		void Initialize() {
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			};
-#if THREAD_SAFE
-			name.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadModuleRefRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadModuleRefRow(origRid);
+			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
 		}
 	}
 }

@@ -57,10 +57,7 @@ namespace dnlib.DotNet {
 		protected uint rid;
 
 #if THREAD_SAFE
-		/// <summary>
-		/// The lock
-		/// </summary>
-		internal readonly Lock theLock = Lock.Create();
+		readonly Lock theLock = Lock.Create();
 #endif
 
 		/// <summary>
@@ -112,48 +109,114 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets Module.Generation column
 		/// </summary>
-		public abstract ushort Generation { get; set; }
+		public ushort Generation {
+			get { return generation; }
+			set { generation = value; }
+		}
+		/// <summary/>
+		protected ushort generation;
 
 		/// <summary>
 		/// Gets/sets Module.Name column
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// Gets/sets Module.Mvid column
 		/// </summary>
-		public abstract Guid? Mvid { get; set; }
+		public Guid? Mvid {
+			get { return mvid; }
+			set { mvid = value; }
+		}
+		/// <summary/>
+		protected Guid? mvid;
 
 		/// <summary>
 		/// Gets/sets Module.EncId column
 		/// </summary>
-		public abstract Guid? EncId { get; set; }
+		public Guid? EncId {
+			get { return encId; }
+			set { encId = value; }
+		}
+		/// <summary/>
+		protected Guid? encId;
 
 		/// <summary>
 		/// Gets/sets Module.EncBaseId column
 		/// </summary>
-		public abstract Guid? EncBaseId { get; set; }
+		public Guid? EncBaseId {
+			get { return encBaseId; }
+			set { encBaseId = value; }
+		}
+		/// <summary/>
+		protected Guid? encBaseId;
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <summary>
 		/// Gets the module's assembly. To set this value, add this <see cref="ModuleDef"/>
 		/// to <see cref="AssemblyDef.Modules"/>.
 		/// </summary>
-		public abstract AssemblyDef Assembly { get; internal set; }
+		public AssemblyDef Assembly {
+			get { return assembly; }
+			internal set { assembly = value; }
+		}
+		/// <summary/>
+		protected AssemblyDef assembly;
 
 		/// <summary>
 		/// Gets a list of all non-nested <see cref="TypeDef"/>s
 		/// </summary>
-		public abstract ThreadSafe.IList<TypeDef> Types { get; }
+		public ThreadSafe.IList<TypeDef> Types {
+			get {
+				if (types == null)
+					InitializeTypes();
+				return types;
+			}
+		}
+		/// <summary/>
+		protected LazyList<TypeDef> types;
+		/// <summary>Initializes <see cref="types"/></summary>
+		protected virtual void InitializeTypes() {
+			Interlocked.CompareExchange(ref types, new LazyList<TypeDef>(this), null);
+		}
 
 		/// <summary>
 		/// Gets a list of all <see cref="ExportedType"/>s
 		/// </summary>
-		public abstract ThreadSafe.IList<ExportedType> ExportedTypes { get; }
+		public ThreadSafe.IList<ExportedType> ExportedTypes {
+			get {
+				if (exportedTypes == null)
+					InitializeExportedTypes();
+				return exportedTypes;
+			}
+		}
+		/// <summary/>
+		protected ThreadSafe.IList<ExportedType> exportedTypes;
+		/// <summary>Initializes <see cref="exportedTypes"/></summary>
+		protected virtual void InitializeExportedTypes() {
+			Interlocked.CompareExchange(ref exportedTypes, ThreadSafeListCreator.Create<ExportedType>(), null);
+		}
 
 		/// <summary>
 		/// Gets/sets the native entry point. Only one of <see cref="NativeEntryPoint"/> and
@@ -161,61 +224,72 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public RVA NativeEntryPoint {
 			get {
-#if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
-#endif
-				return NativeEntryPoint_NoLock;
-#if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
-#endif
+				if (!nativeAndManagedEntryPoint_initialized)
+					InitializeNativeAndManagedEntryPoint();
+				return nativeEntryPoint;
 			}
 			set {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				NativeEntryPoint_NoLock = value;
-				ManagedEntryPoint_NoLock = null;
+				nativeEntryPoint = value;
+				managedEntryPoint = null;
+				nativeAndManagedEntryPoint_initialized = true;
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
-
-		/// <summary>
-		/// No-lock version of <see cref="NativeEntryPoint"/>
-		/// </summary>
-		protected abstract RVA NativeEntryPoint_NoLock { get; set; }
-
 		/// <summary>
 		/// Gets/sets the managed entry point. Only one of <see cref="NativeEntryPoint"/> and
 		/// <see cref="ManagedEntryPoint"/> can be set. You write to one and the other one gets cleared.
 		/// </summary>
 		public IManagedEntryPoint ManagedEntryPoint {
 			get {
-#if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
-#endif
-				return ManagedEntryPoint_NoLock;
-#if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
-#endif
+				if (!nativeAndManagedEntryPoint_initialized)
+					InitializeNativeAndManagedEntryPoint();
+				return managedEntryPoint;
 			}
 			set {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				NativeEntryPoint_NoLock = 0;
-				ManagedEntryPoint_NoLock = value;
+				nativeEntryPoint = 0;
+				managedEntryPoint = value;
+				nativeAndManagedEntryPoint_initialized = true;
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
+		/// <summary/>
+		protected RVA nativeEntryPoint;
+		/// <summary/>
+		protected IManagedEntryPoint managedEntryPoint;
+		/// <summary/>
+		protected bool nativeAndManagedEntryPoint_initialized;
 
-		/// <summary>
-		/// No-lock version of <see cref="ManagedEntryPoint"/>
-		/// </summary>
-		protected abstract IManagedEntryPoint ManagedEntryPoint_NoLock { get; set; }
+		void InitializeNativeAndManagedEntryPoint() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (nativeAndManagedEntryPoint_initialized)
+				return;
+			nativeEntryPoint = GetNativeEntryPoint_NoLock();
+			managedEntryPoint = GetManagedEntryPoint_NoLock();
+			nativeAndManagedEntryPoint_initialized = true;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+		/// <summary>Called to initialize <see cref="nativeEntryPoint"/></summary>
+		protected virtual RVA GetNativeEntryPoint_NoLock() {
+			return 0;
+		}
+		/// <summary>Called to initialize <see cref="managedEntryPoint"/></summary>
+		protected virtual IManagedEntryPoint GetManagedEntryPoint_NoLock() {
+			return null;
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -254,13 +328,63 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets a list of all <see cref="Resource"/>s
 		/// </summary>
-		public abstract ResourceCollection Resources { get; }
+		public ResourceCollection Resources {
+			get {
+				if (resources == null)
+					InitializeResources();
+				return resources;
+			}
+		}
+		/// <summary/>
+		protected ResourceCollection resources;
+		/// <summary>Initializes <see cref="resources"/></summary>
+		protected virtual void InitializeResources() {
+			Interlocked.CompareExchange(ref resources, new ResourceCollection(), null);
+		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="VTableFixups"/>. This is <c>null</c> if there are no
 		/// vtable fixups.
 		/// </summary>
-		public abstract VTableFixups VTableFixups { get; set; }
+		public VTableFixups VTableFixups {
+			get {
+				if (!vtableFixups_isInitialized)
+					InitializeVTableFixups();
+				return vtableFixups;
+			}
+			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				vtableFixups = value;
+				vtableFixups_isInitialized = true;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+		}
+		/// <summary/>
+		protected VTableFixups vtableFixups;
+		/// <summary/>
+		protected bool vtableFixups_isInitialized;
+
+		void InitializeVTableFixups() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (vtableFixups_isInitialized)
+				return;
+			vtableFixups = GetVTableFixups_NoLock();
+			vtableFixups_isInitialized = true;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>Called to initialize <see cref="vtableFixups"/></summary>
+		protected virtual VTableFixups GetVTableFixups_NoLock() {
+			return null;
+		}
 
 		/// <summary>
 		/// <c>true</c> if there's at least one <see cref="TypeDef"/> in <see cref="Types"/>
@@ -285,13 +409,18 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return UTF8String.ToSystemStringOrEmpty(Name); }
+			get { return UTF8String.ToSystemStringOrEmpty(name); }
 		}
 
 		/// <summary>
 		/// Gets/sets the path of the module or an empty string if it wasn't loaded from disk
 		/// </summary>
-		public abstract string Location { get; set; }
+		public string Location {
+			get { return location; }
+			set { location = value; }
+		}
+		/// <summary/>
+		protected string location;
 
 		/// <summary>
 		/// Gets the <see cref="ICorLibTypes"/>
@@ -320,7 +449,7 @@ namespace dnlib.DotNet {
 					Interlocked.CompareExchange(ref context, new ModuleContext(), null);
 				return context;
 			}
-			set { context = value; }
+			set { context = value ?? new ModuleContext(); }
 		}
 
 		/// <summary>
@@ -345,7 +474,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsManifestModule {
 			get {
-				var asm = Assembly;
+				var asm = assembly;
 				return asm != null && asm.ManifestModule == this;
 			}
 		}
@@ -360,7 +489,45 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the Win32 resources
 		/// </summary>
-		public abstract Win32Resources Win32Resources { get; set; }
+		public Win32Resources Win32Resources {
+			get {
+				if (!win32Resources_isInitialized)
+					InitializeWin32Resources();
+				return win32Resources;
+			}
+			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				win32Resources = value;
+				win32Resources_isInitialized = true;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+		}
+		/// <summary/>
+		protected Win32Resources win32Resources;
+		/// <summary/>
+		protected bool win32Resources_isInitialized;
+
+		void InitializeWin32Resources() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (win32Resources_isInitialized)
+				return;
+			win32Resources = GetWin32Resources_NoLock();
+			win32Resources_isInitialized = true;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>Called to initialize <see cref="win32Resources"/></summary>
+		protected virtual Win32Resources GetWin32Resources_NoLock() {
+			return null;
+		}
 
 		/// <summary>
 		/// Module kind
@@ -513,23 +680,11 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="Cor20HeaderFlags"/> (from .NET header)
 		/// </summary>
 		public ComImageFlags Cor20HeaderFlags {
-#if THREAD_SAFE
-			get {
-				theLock.EnterReadLock(); try {
-					return Cor20HeaderFlags_NoLock;
-				} finally { theLock.ExitReadLock(); }
-			}
-			set {
-				theLock.EnterWriteLock(); try {
-					Cor20HeaderFlags_NoLock = value;
-				} finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return Cor20HeaderFlags_NoLock; }
-			set { Cor20HeaderFlags_NoLock = value; }
-#endif
+			get { return (ComImageFlags)cor20HeaderFlags; }
+			set { cor20HeaderFlags = (int)value; }
 		}
-		ComImageFlags Cor20HeaderFlags_NoLock;
+		/// <summary/>
+		protected int cor20HeaderFlags;
 
 		/// <summary>
 		/// Gets/sets the runtime version number in the COR20 header. The major version is
@@ -552,21 +707,26 @@ namespace dnlib.DotNet {
 		public ushort? TablesHeaderVersion { get; set; }
 
 		/// <summary>
-		/// Set or clear flags in <see cref="Cor20HeaderFlags_NoLock"/>
+		/// Set or clear flags in <see cref="cor20HeaderFlags"/>
 		/// </summary>
 		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyComImageFlags(bool set, ComImageFlags flags) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
+			int origVal, newVal;
+			do {
+				origVal = cor20HeaderFlags;
 				if (set)
-					Cor20HeaderFlags_NoLock |= flags;
+					newVal = origVal | (int)flags;
 				else
-					Cor20HeaderFlags_NoLock &= ~flags;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+					newVal = origVal & ~(int)flags;
+			} while (Interlocked.CompareExchange(ref cor20HeaderFlags, newVal, origVal) != origVal);
+#else
+			if (set)
+				cor20HeaderFlags |= (int)flags;
+			else
+				cor20HeaderFlags &= ~(int)flags;
 #endif
 		}
 
@@ -574,7 +734,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="ComImageFlags.ILOnly"/> bit
 		/// </summary>
 		public bool IsILOnly {
-			get { return (Cor20HeaderFlags & ComImageFlags.ILOnly) != 0; }
+			get { return ((ComImageFlags)cor20HeaderFlags & ComImageFlags.ILOnly) != 0; }
 			set { ModifyComImageFlags(value, ComImageFlags.ILOnly); }
 		}
 
@@ -582,7 +742,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="ComImageFlags._32BitRequired"/> bit
 		/// </summary>
 		public bool Is32BitRequired {
-			get { return (Cor20HeaderFlags & ComImageFlags._32BitRequired) != 0; }
+			get { return ((ComImageFlags)cor20HeaderFlags & ComImageFlags._32BitRequired) != 0; }
 			set { ModifyComImageFlags(value, ComImageFlags._32BitRequired); }
 		}
 
@@ -590,7 +750,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="ComImageFlags.StrongNameSigned"/> bit
 		/// </summary>
 		public bool IsStrongNameSigned {
-			get { return (Cor20HeaderFlags & ComImageFlags.StrongNameSigned) != 0; }
+			get { return ((ComImageFlags)cor20HeaderFlags & ComImageFlags.StrongNameSigned) != 0; }
 			set { ModifyComImageFlags(value, ComImageFlags.StrongNameSigned); }
 		}
 
@@ -598,7 +758,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="ComImageFlags.NativeEntryPoint"/> bit
 		/// </summary>
 		public bool HasNativeEntryPoint {
-			get { return (Cor20HeaderFlags & ComImageFlags.NativeEntryPoint) != 0; }
+			get { return ((ComImageFlags)cor20HeaderFlags & ComImageFlags.NativeEntryPoint) != 0; }
 			set { ModifyComImageFlags(value, ComImageFlags.NativeEntryPoint); }
 		}
 
@@ -606,7 +766,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="ComImageFlags._32BitPreferred"/> bit
 		/// </summary>
 		public bool Is32BitPreferred {
-			get { return (Cor20HeaderFlags & ComImageFlags._32BitPreferred) != 0; }
+			get { return ((ComImageFlags)cor20HeaderFlags & ComImageFlags._32BitPreferred) != 0; }
 			set { ModifyComImageFlags(value, ComImageFlags._32BitPreferred); }
 		}
 
@@ -916,7 +1076,7 @@ namespace dnlib.DotNet {
 
 			// If it's a 32-bit PE header, and ILOnly is cleared, it's always loaded as a
 			// 32-bit process.
-			var flags = Cor20HeaderFlags;
+			var flags = (ComImageFlags)cor20HeaderFlags;
 			if ((flags & ComImageFlags.ILOnly) == 0)
 				return 4;
 
@@ -1066,108 +1226,6 @@ namespace dnlib.DotNet {
 	/// A Module row created by the user and not present in the original .NET file
 	/// </summary>
 	public class ModuleDefUser : ModuleDef {
-		ushort generation;
-		UTF8String name;
-		Guid? mvid;
-		Guid? encId;
-		Guid? encBaseId;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-		AssemblyDef assembly;
-		LazyList<TypeDef> types;
-		readonly ThreadSafe.IList<ExportedType> exportedTypes = ThreadSafeListCreator.Create<ExportedType>();
-		readonly ResourceCollection resources = new ResourceCollection();
-		RVA nativeEntryPoint;
-		IManagedEntryPoint managedEntryPoint;
-		Win32Resources win32Resources;
-		VTableFixups vtableFixups;
-		string location = string.Empty;
-
-		/// <inheritdoc/>
-		public override ushort Generation {
-			get { return generation; }
-			set { generation = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Guid? Mvid {
-			get { return mvid; }
-			set { mvid = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Guid? EncId {
-			get { return encId; }
-			set { encId = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Guid? EncBaseId {
-			get { return encBaseId; }
-			set { encBaseId = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
-		/// <inheritdoc/>
-		public override AssemblyDef Assembly {
-			get { return assembly; }
-			internal set { assembly = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<TypeDef> Types {
-			get { return types; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<ExportedType> ExportedTypes {
-			get { return exportedTypes; }
-		}
-
-		/// <inheritdoc/>
-		public override ResourceCollection Resources {
-			get { return resources; }
-		}
-
-		/// <inheritdoc/>
-		protected override RVA NativeEntryPoint_NoLock {
-			get { return nativeEntryPoint; }
-			set { nativeEntryPoint = value; }
-		}
-
-		/// <inheritdoc/>
-		protected override IManagedEntryPoint ManagedEntryPoint_NoLock {
-			get { return managedEntryPoint; }
-			set { managedEntryPoint = value; }
-		}
-
-		/// <inheritdoc/>
-		public override string Location {
-			get { return location; }
-			set { location = value ?? string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override Win32Resources Win32Resources {
-			get { return win32Resources; }
-			set { win32Resources = value; }
-		}
-
-		/// <inheritdoc/>
-		public override VTableFixups VTableFixups {
-			get { return vtableFixups; }
-			set { vtableFixups = value; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -1178,7 +1236,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <remarks><see cref="Mvid"/> is initialized to a random <see cref="Guid"/></remarks>
+		/// <remarks><see cref="ModuleDef.Mvid"/> is initialized to a random <see cref="Guid"/></remarks>
 		/// <param name="name">Module nam</param>
 		public ModuleDefUser(UTF8String name)
 			: this(name, Guid.NewGuid()) {
@@ -1205,9 +1263,12 @@ namespace dnlib.DotNet {
 			this.DllCharacteristics = DefaultDllCharacteristics;
 			this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 			this.Machine = Machine.I386;
-			this.Cor20HeaderFlags = ComImageFlags.ILOnly;
+			this.cor20HeaderFlags = (int)ComImageFlags.ILOnly;
 			this.Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
 			this.TablesHeaderVersion = 0x0200;				// .NET 2.0 or later should use 2.0
+			this.types = new LazyList<TypeDef>(this);
+			this.exportedTypes = new LazyList<ExportedType>();
+			this.resources = new ResourceCollection();
 			this.corLibTypes = new CorLibTypes(this, corLibAssemblyRef);
 			this.types = new LazyList<TypeDef>(this);
 			this.name = name;
@@ -1229,28 +1290,8 @@ namespace dnlib.DotNet {
 	public class ModuleDefMD2 : ModuleDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawModuleRow rawRow;
 
 		readonly uint origRid;
-		UserValue<ushort> generation;
-		UserValue<UTF8String> name;
-		UserValue<Guid?> mvid;
-		UserValue<Guid?> encId;
-		UserValue<Guid?> encBaseId;
-		CustomAttributeCollection customAttributeCollection;
-		UserValue<AssemblyDef> assembly;
-		/// <summary/>
-		protected LazyList<TypeDef> types;
-		/// <summary/>
-		protected LazyList<ExportedType> exportedTypes;
-		/// <summary/>
-		protected ResourceCollection resources;
-		UserValue<RVA> nativeEntryPoint;
-		UserValue<IManagedEntryPoint> managedEntryPoint;
-		Win32Resources win32Resources;
-		VTableFixups vtableFixups;
-		string location;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -1258,96 +1299,20 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ushort Generation {
-			get { return generation.Value; }
-			set { generation.Value = value; }
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Module, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
+		protected override RVA GetNativeEntryPoint_NoLock() {
+			return readerModule.GetNativeEntryPoint();
 		}
 
 		/// <inheritdoc/>
-		public override Guid? Mvid {
-			get { return mvid.Value; }
-			set { mvid.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Guid? EncId {
-			get { return encId.Value; }
-			set { encId.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Module, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override Guid? EncBaseId {
-			get { return encBaseId.Value; }
-			set { encBaseId.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override AssemblyDef Assembly {
-			get { return assembly.Value; }
-			internal set { assembly.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<TypeDef> Types {
-			get { return types; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<ExportedType> ExportedTypes {
-			get { return exportedTypes; }
-		}
-
-		/// <inheritdoc/>
-		public override ResourceCollection Resources {
-			get { return resources; }
-		}
-
-		/// <inheritdoc/>
-		protected override RVA NativeEntryPoint_NoLock {
-			get { return nativeEntryPoint.Value; }
-			set { nativeEntryPoint.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		protected override IManagedEntryPoint ManagedEntryPoint_NoLock {
-			get { return managedEntryPoint.Value; }
-			set { managedEntryPoint.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override string Location {
-			get { return location; }
-			set { location = value ?? string.Empty; }
-		}
-
-		/// <inheritdoc/>
-		public override Win32Resources Win32Resources {
-			get { return win32Resources; }
-			set { win32Resources = value; }
-		}
-
-		/// <inheritdoc/>
-		public override VTableFixups VTableFixups {
-			get { return vtableFixups; }
-			set { vtableFixups = value; }
+		protected override IManagedEntryPoint GetManagedEntryPoint_NoLock() {
+			return readerModule.GetManagedEntryPoint();
 		}
 
 		/// <summary>
@@ -1375,66 +1340,27 @@ namespace dnlib.DotNet {
 				this.DllCharacteristics = DefaultDllCharacteristics;
 				this.RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 				this.Machine = Machine.I386;
-				this.Cor20HeaderFlags = ComImageFlags.ILOnly;
+				this.cor20HeaderFlags = (int)ComImageFlags.ILOnly;
 				this.Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
 				this.TablesHeaderVersion = 0x0200;				// .NET 2.0 or later should use 2.0
-				this.types = new LazyList<TypeDef>(this);
-				this.exportedTypes = new LazyList<ExportedType>();
-				this.resources = new ResourceCollection();
 				this.corLibTypes = new CorLibTypes(this);
 				this.location = string.Empty;
+				InitializeFromRawRow();
 			}
-			Initialize();
 		}
 
-		void Initialize() {
-			generation.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return rawRow.Generation;
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			};
-			mvid.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.GuidStream.Read(rawRow.Mvid);
-			};
-			encId.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.GuidStream.Read(rawRow.EncId);
-			};
-			encBaseId.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.GuidStream.Read(rawRow.EncBaseId);
-			};
-			assembly.ReadOriginalValue = () => {
-				if (origRid != 1)
-					return null;
-				return readerModule.ResolveAssembly(1);
-			};
-			nativeEntryPoint.ReadOriginalValue = () => {
-				return readerModule.GetNativeEntryPoint();
-			};
-			managedEntryPoint.ReadOriginalValue = () => {
-				return readerModule.GetManagedEntryPoint();
-			};
-#if THREAD_SAFE
-			generation.Lock = theLock;
-			name.Lock = theLock;
-			mvid.Lock = theLock;
-			encId.Lock = theLock;
-			encBaseId.Lock = theLock;
-			assembly.Lock = theLock;
-			// nativeEntryPoint.Lock = theLock;		No lock for this one
-			// managedEntryPoint.Lock = theLock;	No lock for this one
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadModuleRow(origRid) ?? new RawModuleRow();
+		/// <summary>
+		/// Initialize fields from the raw <c>Module</c> row
+		/// </summary>
+		protected void InitializeFromRawRow() {
+			var rawRow = readerModule.TablesStream.ReadModuleRow(origRid) ?? new RawModuleRow();
+			generation = rawRow.Generation;
+			mvid = readerModule.GuidStream.Read(rawRow.Mvid);
+			encId = readerModule.GuidStream.Read(rawRow.EncId);
+			encBaseId = readerModule.GuidStream.Read(rawRow.EncBaseId);
+			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			if (origRid == 1)
+				assembly = readerModule.ResolveAssembly(origRid);
 		}
 	}
 }

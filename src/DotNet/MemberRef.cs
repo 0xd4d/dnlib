@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -72,22 +71,49 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column MemberRef.Class
 		/// </summary>
-		public abstract IMemberRefParent Class { get; set; }
+		public IMemberRefParent Class {
+			get { return @class; }
+			set { @class = value; }
+		}
+		/// <summary/>
+		protected IMemberRefParent @class;
 
 		/// <summary>
 		/// From column MemberRef.Name
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// From column MemberRef.Signature
 		/// </summary>
-		public abstract CallingConventionSig Signature { get; set; }
+		public CallingConventionSig Signature {
+			get { return signature; }
+			set { signature = value; }
+		}
+		/// <summary/>
+		protected CallingConventionSig signature;
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -97,7 +123,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public ITypeDefOrRef DeclaringType {
 			get {
-				var owner = Class;
+				var owner = @class;
 
 				var tdr = owner as ITypeDefOrRef;
 				if (tdr != null)
@@ -211,16 +237,16 @@ namespace dnlib.DotNet {
 		/// Gets/sets the method sig
 		/// </summary>
 		public MethodSig MethodSig {
-			get { return Signature as MethodSig; }
-			set { Signature = value; }
+			get { return signature as MethodSig; }
+			set { signature = value; }
 		}
 
 		/// <summary>
 		/// Gets/sets the field sig
 		/// </summary>
 		public FieldSig FieldSig {
-			get { return Signature as FieldSig; }
-			set { Signature = value; }
+			get { return signature as FieldSig; }
+			set { signature = value; }
 		}
 
 		/// <inheritdoc/>
@@ -286,7 +312,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public string FullName {
 			get {
-				var parent = Class;
+				var parent = @class;
 				IList<TypeSig> typeGenArgs = null;
 				if (parent is TypeSpec) {
 					var sig = ((TypeSpec)parent).TypeSig as GenericInstSig;
@@ -295,10 +321,10 @@ namespace dnlib.DotNet {
 				}
 				var methodSig = MethodSig;
 				if (methodSig != null)
-					return FullNameCreator.MethodFullName(GetDeclaringTypeFullName(parent), Name, methodSig, typeGenArgs, null);
+					return FullNameCreator.MethodFullName(GetDeclaringTypeFullName(parent), name, methodSig, typeGenArgs, null);
 				var fieldSig = FieldSig;
 				if (fieldSig != null)
-					return FullNameCreator.FieldFullName(GetDeclaringTypeFullName(parent), Name, fieldSig, typeGenArgs);
+					return FullNameCreator.FieldFullName(GetDeclaringTypeFullName(parent), name, fieldSig, typeGenArgs);
 				return string.Empty;
 			}
 		}
@@ -308,7 +334,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>Full name or <c>null</c> if there's no declaring type</returns>
 		public string GetDeclaringTypeFullName() {
-			return GetDeclaringTypeFullName(Class);
+			return GetDeclaringTypeFullName(@class);
 		}
 
 		string GetDeclaringTypeFullName(IMemberRefParent parent) {
@@ -398,34 +424,6 @@ namespace dnlib.DotNet {
 	/// A MemberRef row created by the user and not present in the original .NET file
 	/// </summary>
 	public class MemberRefUser : MemberRef {
-		IMemberRefParent @class;
-		UTF8String name;
-		CallingConventionSig signature;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		public override IMemberRefParent Class {
-			get { return @class; }
-			set { @class = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CallingConventionSig Signature {
-			get { return signature; }
-			set { signature = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -499,18 +497,8 @@ namespace dnlib.DotNet {
 	sealed class MemberRefMD : MemberRef, IMDTokenProviderMD, IContainsGenericParameter {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawMemberRefRow rawRow;
 
-		readonly GenericParamContext gpContext;
 		readonly uint origRid;
-		UserValue<IMemberRefParent> @class;
-		UserValue<UTF8String> name;
-		UserValue<CallingConventionSig> signature;
-		CustomAttributeCollection customAttributeCollection;
-#if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
-#endif
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -518,33 +506,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override IMemberRefParent Class {
-			get { return @class.Value; }
-			set { @class.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CallingConventionSig Signature {
-			get { return signature.Value; }
-			set { signature.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MemberRef, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MemberRef, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		bool IContainsGenericParameter.ContainsGenericParameter {
@@ -570,34 +535,10 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
-			this.gpContext = gpContext;
-			Initialize();
-		}
-
-		void Initialize() {
-			@class.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.ResolveMemberRefParent(rawRow.Class, gpContext);
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			};
-			signature.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.ReadSignature(rawRow.Signature, gpContext);
-			};
-#if THREAD_SAFE
-			@class.Lock = theLock;
-			name.Lock = theLock;
-			signature.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadMemberRefRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadMemberRefRow(origRid);
+			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			@class = readerModule.ResolveMemberRefParent(rawRow.Class, gpContext);
+			signature = readerModule.ReadSignature(rawRow.Signature, gpContext);
 		}
 	}
 }

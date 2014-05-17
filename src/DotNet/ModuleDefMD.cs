@@ -55,9 +55,6 @@ namespace dnlib.DotNet {
 		IMethodDecrypter methodDecrypter;
 		IStringDecrypter stringDecrypter;
 
-		UserValue<string> location;
-		UserValue<Win32Resources> win32Resources;
-		UserValue<VTableFixups> vtableFixups;
 		RandomRidList moduleRidList;
 
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
@@ -152,57 +149,37 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<TypeDef> Types {
-			get {
-				if (types == null) {
-					var list = MetaData.GetNonNestedClassRidList();
-					var tmp = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref types, tmp, null);
-				}
-				return types;
-			}
+		protected override void InitializeTypes() {
+			var list = MetaData.GetNonNestedClassRidList();
+			var tmp = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref types, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<ExportedType> ExportedTypes {
-			get {
-				if (exportedTypes == null) {
-					var list = MetaData.GetExportedTypeRidList();
-					var tmp = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
-					Interlocked.CompareExchange(ref exportedTypes, tmp, null);
-				}
-				return exportedTypes;
-			}
+		protected override void InitializeExportedTypes() {
+			var list = MetaData.GetExportedTypeRidList();
+			var tmp = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
+			Interlocked.CompareExchange(ref exportedTypes, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ResourceCollection Resources {
-			get {
-				if (resources == null) {
-					var table = TablesStream.ManifestResourceTable;
-					var tmp = new ResourceCollection((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
-					Interlocked.CompareExchange(ref resources, tmp, null);
-				}
-				return resources;
-			}
+		protected override void InitializeResources() {
+			var table = TablesStream.ManifestResourceTable;
+			var tmp = new ResourceCollection((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
+			Interlocked.CompareExchange(ref resources, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override string Location {
-			get { return location.Value; }
-			set { location.Value = value ?? string.Empty; }
+		protected override Win32Resources GetWin32Resources_NoLock() {
+			return dnFile.MetaData.PEImage.Win32Resources;
 		}
 
 		/// <inheritdoc/>
-		public override Win32Resources Win32Resources {
-			get { return win32Resources.Value; }
-			set { win32Resources.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override VTableFixups VTableFixups {
-			get { return vtableFixups.Value; }
-			set { vtableFixups.Value = value; }
+		protected override VTableFixups GetVTableFixups_NoLock() {
+			var vtableFixupsInfo = dnFile.MetaData.ImageCor20Header.VTableFixups;
+			if (vtableFixupsInfo.VirtualAddress == 0 || vtableFixupsInfo.Size == 0)
+				return null;
+			return new VTableFixups(this);
 		}
 
 		/// <summary>
@@ -412,6 +389,8 @@ namespace dnlib.DotNet {
 			this.dnFile = dnFile;
 			this.context = context;
 			Initialize();
+			InitializeFromRawRow();
+			location = dnFile.MetaData.PEImage.FileName ?? string.Empty;
 
 			this.Kind = GetKind();
 			this.Characteristics = MetaData.PEImage.ImageNTHeaders.FileHeader.Characteristics;
@@ -421,6 +400,7 @@ namespace dnlib.DotNet {
 			this.Cor20HeaderFlags = MetaData.ImageCor20Header.Flags;
 			this.Cor20HeaderRuntimeVersion = (uint)(MetaData.ImageCor20Header.MajorRuntimeVersion << 16) | MetaData.ImageCor20Header.MinorRuntimeVersion;
 			this.TablesHeaderVersion = MetaData.TablesStream.Version;
+			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
 		}
 
 		ModuleKind GetKind() {
@@ -470,30 +450,10 @@ namespace dnlib.DotNet {
 			listMethodSpecMD = new SimpleLazyList2<MethodSpecMD>(ts.MethodSpecTable.Rows, (rid2, gpContext) => new MethodSpecMD(this, rid2, gpContext));
 			listGenericParamConstraintMD = new SimpleLazyList2<GenericParamConstraintMD>(ts.GenericParamConstraintTable.Rows, (rid2, gpContext) => new GenericParamConstraintMD(this, rid2, gpContext));
 
-			location.ReadOriginalValue = () => {
-				return dnFile.MetaData.PEImage.FileName ?? string.Empty;
-			};
-			win32Resources.ReadOriginalValue = () => {
-				return dnFile.MetaData.PEImage.Win32Resources;
-			};
-			vtableFixups.ReadOriginalValue = () => {
-				var vtableFixupsInfo = dnFile.MetaData.ImageCor20Header.VTableFixups;
-				if (vtableFixupsInfo.VirtualAddress == 0 || vtableFixupsInfo.Size == 0)
-					return null;
-				return new VTableFixups(this);
-			};
-#if THREAD_SAFE
-			location.Lock = theLock;
-			win32Resources.Lock = theLock;
-			vtableFixups.Lock = theLock;
-#endif
-
 			for (int i = 0; i < 64; i++) {
 				var tbl = TablesStream.Get((Table)i);
 				lastUsedRids[i] = tbl == null ? 0 : (int)tbl.Rows;
 			}
-
-			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
 		}
 
 		static readonly Dictionary<string, int> preferredCorLibs = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
@@ -1819,22 +1779,23 @@ namespace dnlib.DotNet {
 		/// Reads a method body
 		/// </summary>
 		/// <param name="method">Method</param>
-		/// <param name="row">Method's row</param>
+		/// <param name="rva">Method RVA</param>
+		/// <param name="implAttrs">Method impl attrs</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
-		internal MethodBody ReadMethodBody(MethodDefMD method, RawMethodRow row, GenericParamContext gpContext) {
+		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, GenericParamContext gpContext) {
 			MethodBody mb;
 			var mDec = methodDecrypter;
-			if (mDec != null && mDec.GetMethodBody(method.OrigRid, (RVA)row.RVA, method.Parameters, gpContext, out mb))
+			if (mDec != null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out mb))
 				return mb;
 
-			if (row.RVA == 0)
+			if (rva == 0)
 				return null;
-			var codeType = (MethodImplAttributes)row.ImplFlags & MethodImplAttributes.CodeTypeMask;
+			var codeType = implAttrs & MethodImplAttributes.CodeTypeMask;
 			if (codeType == MethodImplAttributes.IL)
-				return ReadCilBody(method.Parameters, (RVA)row.RVA, gpContext);
+				return ReadCilBody(method.Parameters, rva, gpContext);
 			if (codeType == MethodImplAttributes.Native)
-				return new NativeMethodBody((RVA)row.RVA);
+				return new NativeMethodBody(rva);
 			return null;
 		}
 

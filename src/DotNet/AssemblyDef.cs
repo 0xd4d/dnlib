@@ -46,13 +46,6 @@ namespace dnlib.DotNet {
 		/// </summary>
 		protected uint rid;
 
-#if THREAD_SAFE
-		/// <summary>
-		/// The lock
-		/// </summary>
-		internal readonly Lock theLock = Lock.Create();
-#endif
-
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.Assembly, rid); }
@@ -77,79 +70,100 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Assembly.HashAlgId
 		/// </summary>
-		public abstract AssemblyHashAlgorithm HashAlgorithm { get; set; }
+		public AssemblyHashAlgorithm HashAlgorithm {
+			get { return hashAlgorithm; }
+			set { hashAlgorithm = value; }
+		}
+		/// <summary/>
+		protected AssemblyHashAlgorithm hashAlgorithm;
 
 		/// <summary>
 		/// From columns Assembly.MajorVersion, Assembly.MinorVersion, Assembly.BuildNumber,
 		/// Assembly.RevisionNumber.
 		/// </summary>
 		/// <exception cref="ArgumentNullException">If <paramref name="value"/> is <c>null</c></exception>
-		public abstract Version Version { get; set; }
+		public Version Version {
+			get { return version; }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+				version = value;
+			}
+		}
+		/// <summary/>
+		protected Version version;
 
 		/// <summary>
 		/// From column Assembly.Flags
 		/// </summary>
 		public AssemblyAttributes Attributes {
-#if THREAD_SAFE
-			get {
-				theLock.EnterWriteLock();
-				try {
-					return Attributes_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-			set {
-				theLock.EnterWriteLock();
-				try {
-					Attributes_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return Attributes_NoLock; }
-			set { Attributes_NoLock = value; }
-#endif
+			get { return (AssemblyAttributes)attributes; }
+			set { attributes = (int)value; }
 		}
-
-		/// <summary>
-		/// From column Assembly.Flags
-		/// </summary>
-		protected abstract AssemblyAttributes Attributes_NoLock { get; set; }
+		/// <summary>Attributes</summary>
+		protected int attributes;
 
 		/// <summary>
 		/// From column Assembly.PublicKey
 		/// </summary>
 		/// <remarks>An empty <see cref="PublicKey"/> is created if the caller writes <c>null</c></remarks>
-		public abstract PublicKey PublicKey { get; set; }
+		public PublicKey PublicKey {
+			get { return publicKey; }
+			set { publicKey = value ?? new PublicKey(); }
+		}
+		/// <summary/>
+		protected PublicKey publicKey;
 
 		/// <summary>
 		/// Gets the public key token which is calculated from <see cref="PublicKey"/>
 		/// </summary>
 		public PublicKeyToken PublicKeyToken {
-			get { return PublicKey.Token; }
+			get { return publicKey.Token; }
 		}
 
 		/// <summary>
 		/// From column Assembly.Name
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// From column Assembly.Locale
 		/// </summary>
-		public abstract UTF8String Culture { get; set; }
+		public UTF8String Culture {
+			get { return culture; }
+			set { culture = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String culture;
 
 		/// <inheritdoc/>
-		public abstract ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
+		public ThreadSafe.IList<DeclSecurity> DeclSecurities {
+			get {
+				if (declSecurities == null)
+					InitializeDeclSecurities();
+				return declSecurities;
+			}
+		}
+		/// <summary/>
+		protected ThreadSafe.IList<DeclSecurity> declSecurities;
+		/// <summary>Initializes <see cref="declSecurities"/></summary>
+		protected virtual void InitializeDeclSecurities() {
+			Interlocked.CompareExchange(ref declSecurities, ThreadSafeListCreator.Create<DeclSecurity>(), null);
+		}
 
 		/// <inheritdoc/>
 		public PublicKeyBase PublicKeyOrToken {
-			get { return PublicKey; }
+			get { return publicKey; }
 		}
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return FullNameToken; }
+			get { return GetFullNameWithPublicKeyToken(); }
 		}
 
 		/// <inheritdoc/>
@@ -160,12 +174,36 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all modules. The first module is always the <see cref="ManifestModule"/>.
 		/// </summary>
-		public abstract ThreadSafe.IList<ModuleDef> Modules { get; }
+		public ThreadSafe.IList<ModuleDef> Modules {
+			get {
+				if (modules == null)
+					InitializeModules();
+				return modules;
+			}
+		}
+		/// <summary/>
+		protected LazyList<ModuleDef> modules;
+		/// <summary>Initializes <see cref="modules"/></summary>
+		protected virtual void InitializeModules() {
+			Interlocked.CompareExchange(ref modules, new LazyList<ModuleDef>(this), null);
+		}
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -193,37 +231,44 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
-		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
+		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
 		void ModifyAttributes(AssemblyAttributes andMask, AssemblyAttributes orMask) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			int origVal, newVal;
+			do {
+				origVal = attributes;
+				newVal = (origVal & (int)andMask) | (int)orMask;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			attributes = (attributes & (int)andMask) | (int)orMask;
 #endif
 		}
 
 		/// <summary>
-		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// Set or clear flags in <see cref="attributes"/>
 		/// </summary>
 		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, AssemblyAttributes flags) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
+			int origVal, newVal;
+			do {
+				origVal = attributes;
 				if (set)
-					Attributes_NoLock |= flags;
+					newVal = origVal | (int)flags;
 				else
-					Attributes_NoLock &= ~flags;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+					newVal = origVal & ~(int)flags;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			if (set)
+				attributes |= (int)flags;
+			else
+				attributes &= ~(int)flags;
 #endif
 		}
 
@@ -231,7 +276,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="AssemblyAttributes.PublicKey"/> bit
 		/// </summary>
 		public bool HasPublicKey {
-			get { return (Attributes & AssemblyAttributes.PublicKey) != 0; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PublicKey) != 0; }
 			set { ModifyAttributes(value, AssemblyAttributes.PublicKey); }
 		}
 
@@ -239,7 +284,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the processor architecture
 		/// </summary>
 		public AssemblyAttributes ProcessorArchitecture {
-			get { return Attributes & AssemblyAttributes.PA_Mask; }
+			get { return (AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask; }
 			set { ModifyAttributes(~AssemblyAttributes.PA_Mask, value & AssemblyAttributes.PA_Mask); }
 		}
 
@@ -247,7 +292,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the processor architecture
 		/// </summary>
 		public AssemblyAttributes ProcessorArchitectureFull {
-			get { return Attributes & AssemblyAttributes.PA_FullMask; }
+			get { return (AssemblyAttributes)attributes & AssemblyAttributes.PA_FullMask; }
 			set { ModifyAttributes(~AssemblyAttributes.PA_FullMask, value & AssemblyAttributes.PA_FullMask); }
 		}
 
@@ -255,56 +300,56 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if unspecified processor architecture
 		/// </summary>
 		public bool IsProcessorArchitectureNone {
-			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_None; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_None; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if neutral (PE32) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureMSIL {
-			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_MSIL; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_MSIL; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if x86 (PE32) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureX86 {
-			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_x86; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_x86; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if IA-64 (PE32+) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureIA64 {
-			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_IA64; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_IA64; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if x64 (PE32+) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureX64 {
-			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_AMD64; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_AMD64; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if ARM (PE32) architecture
 		/// </summary>
 		public bool IsProcessorArchitectureARM {
-			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_ARM; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_ARM; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if eg. reference assembly (not runnable)
 		/// </summary>
 		public bool IsProcessorArchitectureNoPlatform {
-			get { return (Attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_NoPlatform; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Mask) == AssemblyAttributes.PA_NoPlatform; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyAttributes.PA_Specified"/> bit
 		/// </summary>
 		public bool IsProcessorArchitectureSpecified {
-			get { return (Attributes & AssemblyAttributes.PA_Specified) != 0; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.PA_Specified) != 0; }
 			set { ModifyAttributes(value, AssemblyAttributes.PA_Specified); }
 		}
 
@@ -312,7 +357,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="AssemblyAttributes.EnableJITcompileTracking"/> bit
 		/// </summary>
 		public bool EnableJITcompileTracking {
-			get { return (Attributes & AssemblyAttributes.EnableJITcompileTracking) != 0; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.EnableJITcompileTracking) != 0; }
 			set { ModifyAttributes(value, AssemblyAttributes.EnableJITcompileTracking); }
 		}
 
@@ -320,7 +365,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="AssemblyAttributes.DisableJITcompileOptimizer"/> bit
 		/// </summary>
 		public bool DisableJITcompileOptimizer {
-			get { return (Attributes & AssemblyAttributes.DisableJITcompileOptimizer) != 0; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.DisableJITcompileOptimizer) != 0; }
 			set { ModifyAttributes(value, AssemblyAttributes.DisableJITcompileOptimizer); }
 		}
 
@@ -328,7 +373,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="AssemblyAttributes.Retargetable"/> bit
 		/// </summary>
 		public bool IsRetargetable {
-			get { return (Attributes & AssemblyAttributes.Retargetable) != 0; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.Retargetable) != 0; }
 			set { ModifyAttributes(value, AssemblyAttributes.Retargetable); }
 		}
 
@@ -336,7 +381,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the content type
 		/// </summary>
 		public AssemblyAttributes ContentType {
-			get { return Attributes & AssemblyAttributes.ContentType_Mask; }
+			get { return (AssemblyAttributes)attributes & AssemblyAttributes.ContentType_Mask; }
 			set { ModifyAttributes(~AssemblyAttributes.ContentType_Mask, value & AssemblyAttributes.ContentType_Mask); }
 		}
 
@@ -344,14 +389,14 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if content type is <c>Default</c>
 		/// </summary>
 		public bool IsContentTypeDefault {
-			get { return (Attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_Default; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_Default; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if content type is <c>WindowsRuntime</c>
 		/// </summary>
 		public bool IsContentTypeWindowsRuntime {
-			get { return (Attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime; }
+			get { return ((AssemblyAttributes)attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime; }
 		}
 
 		/// <summary>
@@ -562,18 +607,18 @@ namespace dnlib.DotNet {
 		/// Gets the assembly name with the public key
 		/// </summary>
 		public string GetFullNameWithPublicKey() {
-			return GetFullName(PublicKey);
+			return GetFullName(publicKey);
 		}
 
 		/// <summary>
 		/// Gets the assembly name with the public key token
 		/// </summary>
 		public string GetFullNameWithPublicKeyToken() {
-			return GetFullName(PublicKeyToken);
+			return GetFullName(publicKey.Token);
 		}
 
 		string GetFullName(PublicKeyBase pkBase) {
-			return Utils.GetAssemblyNameString(Name, Version, Culture, pkBase);
+			return Utils.GetAssemblyNameString(name, version, culture, pkBase);
 		}
 
 		/// <summary>
@@ -660,7 +705,7 @@ namespace dnlib.DotNet {
 
 			// Both must be unsigned or both must be signed according to the
 			// InternalsVisibleToAttribute documentation.
-			if (PublicKeyBase.IsNullOrEmpty2(PublicKey) != PublicKeyBase.IsNullOrEmpty2(targetAsm.PublicKey))
+			if (PublicKeyBase.IsNullOrEmpty2(publicKey) != PublicKeyBase.IsNullOrEmpty2(targetAsm.PublicKey))
 				return false;
 
 			foreach (var ca in targetAsm.CustomAttributes.FindAll("System.Runtime.CompilerServices.InternalsVisibleToAttribute")) {
@@ -674,9 +719,9 @@ namespace dnlib.DotNet {
 					continue;
 
 				var asmInfo = new AssemblyNameInfo(asmName);
-				if (asmInfo.Name != Name)
+				if (asmInfo.Name != name)
 					continue;
-				if (!PublicKeyBase.IsNullOrEmpty2(PublicKey)) {
+				if (!PublicKeyBase.IsNullOrEmpty2(publicKey)) {
 					if (!PublicKey.Equals(asmInfo.PublicKeyOrToken as PublicKey))
 						continue;
 				}
@@ -808,71 +853,6 @@ namespace dnlib.DotNet {
 	/// An Assembly row created by the user and not present in the original .NET file
 	/// </summary>
 	public class AssemblyDefUser : AssemblyDef {
-		AssemblyHashAlgorithm hashAlgId;
-		Version version;
-		AssemblyAttributes flags;
-		PublicKey publicKey;
-		UTF8String name;
-		UTF8String locale;
-		readonly ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
-		LazyList<ModuleDef> modules;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		public override AssemblyHashAlgorithm HashAlgorithm {
-			get { return hashAlgId; }
-			set { hashAlgId = value; }
-		}
-
-		/// <inheritdoc/>
-		public override Version Version {
-			get { return version; }
-			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
-				version = value;
-			}
-		}
-
-		/// <inheritdoc/>
-		protected override AssemblyAttributes Attributes_NoLock {
-			get { return flags; }
-			set { flags = value; }
-		}
-
-		/// <inheritdoc/>
-		public override PublicKey PublicKey {
-			get { return publicKey; }
-			set { publicKey = value ?? new PublicKey(); }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Culture {
-			get { return locale; }
-			set { locale = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
-			get { return declSecurities; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<ModuleDef> Modules {
-			get { return modules; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -929,7 +909,8 @@ namespace dnlib.DotNet {
 			this.name = name;
 			this.version = version;
 			this.publicKey = publicKey ?? new PublicKey();
-			this.locale = locale;
+			this.culture = locale;
+			this.attributes = (int)AssemblyAttributes.None;
 		}
 
 		/// <summary>
@@ -939,8 +920,8 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyDefUser(AssemblyName asmName)
 			: this(new AssemblyNameInfo(asmName)) {
-			this.hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
-			this.flags = (AssemblyAttributes)asmName.Flags;
+			this.hashAlgorithm = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
+			this.attributes = (int)asmName.Flags;
 		}
 
 		/// <summary>
@@ -955,9 +936,9 @@ namespace dnlib.DotNet {
 			this.name = asmName.Name;
 			this.version = asmName.Version ?? new Version(0, 0, 0, 0);
 			this.publicKey = asmName.PublicKeyOrToken as PublicKey ?? new PublicKey();
-			this.locale = asmName.Culture;
-			this.flags = AssemblyAttributes.None;
-			this.hashAlgId = AssemblyHashAlgorithm.SHA1;
+			this.culture = asmName.Culture;
+			this.attributes = (int)AssemblyAttributes.None;
+			this.hashAlgorithm = AssemblyHashAlgorithm.SHA1;
 		}
 	}
 
@@ -967,19 +948,8 @@ namespace dnlib.DotNet {
 	sealed class AssemblyDefMD : AssemblyDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawAssemblyRow rawRow;
 
 		readonly uint origRid;
-		UserValue<AssemblyHashAlgorithm> hashAlgId;
-		UserValue<Version> version;
-		UserValue<AssemblyAttributes> flags;
-		UserValue<PublicKey> publicKey;
-		UserValue<UTF8String> name;
-		UserValue<UTF8String> locale;
-		LazyList<DeclSecurity> declSecurities;
-		LazyList<ModuleDef> modules;
-		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -987,89 +957,34 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override AssemblyHashAlgorithm HashAlgorithm {
-			get { return hashAlgId.Value; }
-			set { hashAlgId.Value = value; }
+		protected override void InitializeDeclSecurities() {
+			var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, origRid);
+			var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override Version Version {
-			get { return version.Value; }
-			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
-				version.Value = value;
-			}
+		protected override void InitializeModules() {
+			var list = readerModule.GetModuleRidList();
+			var tmp = new LazyList<ModuleDef>((int)list.Length + 1, this, list, (list2, index) => {
+				ModuleDef module;
+				if (index == 0)
+					module = readerModule;
+				else
+					module = readerModule.ReadModule(((RidList)list2)[index - 1], this);
+				if (module == null)
+					module = new ModuleDefUser("INVALID", Guid.NewGuid());
+				module.Assembly = this;
+				return module;
+			});
+			Interlocked.CompareExchange(ref modules, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		protected override AssemblyAttributes Attributes_NoLock {
-			get { return flags.Value; }
-			set { flags.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override PublicKey PublicKey {
-			get { return publicKey.Value; }
-			set { publicKey.Value = value ?? new PublicKey(); }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Culture {
-			get { return locale.Value; }
-			set { locale.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
-			get {
-				if (declSecurities == null) {
-					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, origRid);
-					var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref declSecurities, tmp, null);
-				}
-				return declSecurities;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<ModuleDef> Modules {
-			get {
-				if (modules == null) {
-					var list = readerModule.GetModuleRidList();
-					var tmp = new LazyList<ModuleDef>((int)list.Length + 1, this, list, (list2, index) => {
-						ModuleDef module;
-						if (index == 0)
-							module = readerModule;
-						else
-							module = readerModule.ReadModule(((RidList)list2)[index - 1], this);
-						if (module == null)
-							module = new ModuleDefUser("INVALID", Guid.NewGuid());
-						module.Assembly = this;
-						return module;
-					});
-					Interlocked.CompareExchange(ref modules, tmp, null);
-				}
-				return modules;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <summary>
@@ -1091,48 +1006,13 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			if (rid != 1)
 				this.modules = new LazyList<ModuleDef>(this);
-			Initialize();
-		}
-
-		void Initialize() {
-			hashAlgId.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (AssemblyHashAlgorithm)rawRow.HashAlgId;
-			};
-			version.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return new Version(rawRow.MajorVersion, rawRow.MinorVersion, rawRow.BuildNumber, rawRow.RevisionNumber);
-			};
-			flags.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (AssemblyAttributes)rawRow.Flags;
-			};
-			publicKey.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return new PublicKey(readerModule.BlobStream.Read(rawRow.PublicKey));
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			};
-			locale.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Locale);
-			};
-#if THREAD_SAFE
-			hashAlgId.Lock = theLock;
-			version.Lock = theLock;
-			// flags.Lock = theLock;	No lock for this one
-			publicKey.Lock = theLock;
-			name.Lock = theLock;
-			locale.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadAssemblyRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadAssemblyRow(origRid);
+			attributes = (int)rawRow.Flags;
+			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			culture = readerModule.StringsStream.ReadNoNull(rawRow.Locale);
+			hashAlgorithm = (AssemblyHashAlgorithm)rawRow.HashAlgId;
+			version = new Version(rawRow.MajorVersion, rawRow.MinorVersion, rawRow.BuildNumber, rawRow.RevisionNumber);
+			publicKey = new PublicKey(readerModule.BlobStream.Read(rawRow.PublicKey));
 		}
 	}
 }

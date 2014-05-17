@@ -46,10 +46,7 @@ namespace dnlib.DotNet {
 		protected uint rid;
 
 #if THREAD_SAFE
-		/// <summary>
-		/// The lock
-		/// </summary>
-		internal readonly Lock theLock = Lock.Create();
+		readonly Lock theLock = Lock.Create();
 #endif
 
 		/// <inheritdoc/>
@@ -159,7 +156,45 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the owner module
 		/// </summary>
-		internal abstract ModuleDef Module2 { get; set; }
+		internal ModuleDef Module2 {
+			get {
+				if (!module2_isInitialized)
+					InitializeModule2();
+				return module2;
+			}
+			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				module2 = value;
+				module2_isInitialized = true;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+		}
+		/// <summary/>
+		protected ModuleDef module2;
+		/// <summary/>
+		protected bool module2_isInitialized;
+
+		void InitializeModule2() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (module2_isInitialized)
+				return;
+			module2 = GetModule2_NoLock();
+			module2_isInitialized = true;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>Called to initialize <see cref="module2"/></summary>
+		protected virtual ModuleDef GetModule2_NoLock() {
+			return null;
+		}
 
 		bool IIsTypeOrMethod.IsType {
 			get { return true; }
@@ -217,72 +252,198 @@ namespace dnlib.DotNet {
 		/// From column TypeDef.Flags
 		/// </summary>
 		public TypeAttributes Attributes {
-#if THREAD_SAFE
-			get {
-				theLock.EnterWriteLock();
-				try {
-					return Attributes_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-			set {
-				theLock.EnterWriteLock();
-				try {
-					Attributes_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return Attributes_NoLock; }
-			set { Attributes_NoLock = value; }
-#endif
+			get { return (TypeAttributes)attributes; }
+			set { attributes = (int)value; }
 		}
-
-		/// <summary>
-		/// From column TypeDef.Flags
-		/// </summary>
-		protected abstract TypeAttributes Attributes_NoLock { get; set; }
+		/// <summary>Attributes</summary>
+		protected int attributes;
 
 		/// <summary>
 		/// From column TypeDef.Name
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// From column TypeDef.Namespace
 		/// </summary>
-		public abstract UTF8String Namespace { get; set; }
+		public UTF8String Namespace {
+			get { return @namespace; }
+			set { @namespace = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String @namespace;
 
 		/// <summary>
 		/// From column TypeDef.Extends
 		/// </summary>
-		public abstract ITypeDefOrRef BaseType { get; set; }
+		public ITypeDefOrRef BaseType {
+			get {
+				if (!baseType_isInitialized)
+					InitializeBaseType();
+				return baseType;
+			}
+			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				baseType = value;
+				baseType_isInitialized = true;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+		}
+		/// <summary/>
+		protected ITypeDefOrRef baseType;
+		/// <summary/>
+		protected bool baseType_isInitialized;
+
+		void InitializeBaseType() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (baseType_isInitialized)
+				return;
+			baseType = GetBaseType_NoLock();
+			baseType_isInitialized = true;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>Called to initialize <see cref="baseType"/></summary>
+		protected virtual ITypeDefOrRef GetBaseType_NoLock() {
+			return null;
+		}
 
 		/// <summary>
 		/// From column TypeDef.FieldList
 		/// </summary>
-		public abstract ThreadSafe.IList<FieldDef> Fields { get; }
+		public ThreadSafe.IList<FieldDef> Fields {
+			get {
+				if (fields == null)
+					InitializeFields();
+				return fields;
+			}
+		}
+		/// <summary/>
+		protected LazyList<FieldDef> fields;
+		/// <summary>Initializes <see cref="fields"/></summary>
+		protected virtual void InitializeFields() {
+			Interlocked.CompareExchange(ref fields, new LazyList<FieldDef>(this), null);
+		}
 
 		/// <summary>
 		/// From column TypeDef.MethodList
 		/// </summary>
-		public abstract ThreadSafe.IList<MethodDef> Methods { get; }
+		public ThreadSafe.IList<MethodDef> Methods {
+			get {
+				if (methods == null)
+					InitializeMethods();
+				return methods;
+			}
+		}
+		/// <summary/>
+		protected LazyList<MethodDef> methods;
+		/// <summary>Initializes <see cref="methods"/></summary>
+		protected virtual void InitializeMethods() {
+			Interlocked.CompareExchange(ref methods, new LazyList<MethodDef>(this), null);
+		}
 
 		/// <inheritdoc/>
-		public abstract ThreadSafe.IList<GenericParam> GenericParameters { get; }
+		public ThreadSafe.IList<GenericParam> GenericParameters {
+			get {
+				if (genericParameters == null)
+					InitializeGenericParameters();
+				return genericParameters;
+			}
+		}
+		/// <summary/>
+		protected LazyList<GenericParam> genericParameters;
+		/// <summary>Initializes <see cref="genericParameters"/></summary>
+		protected virtual void InitializeGenericParameters() {
+			Interlocked.CompareExchange(ref genericParameters, new LazyList<GenericParam>(this), null);
+		}
 
 		/// <summary>
 		/// Gets the interfaces
 		/// </summary>
-		public abstract ThreadSafe.IList<InterfaceImpl> Interfaces { get; }
+		public ThreadSafe.IList<InterfaceImpl> Interfaces {
+			get {
+				if (interfaces == null)
+					InitializeInterfaces();
+				return interfaces;
+			}
+		}
+		/// <summary/>
+		protected ThreadSafe.IList<InterfaceImpl> interfaces;
+		/// <summary>Initializes <see cref="interfaces"/></summary>
+		protected virtual void InitializeInterfaces() {
+			Interlocked.CompareExchange(ref interfaces, ThreadSafeListCreator.Create<InterfaceImpl>(), null);
+		}
 
 		/// <inheritdoc/>
-		public abstract ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
+		public ThreadSafe.IList<DeclSecurity> DeclSecurities {
+			get {
+				if (declSecurities == null)
+					InitializeDeclSecurities();
+				return declSecurities;
+			}
+		}
+		/// <summary/>
+		protected ThreadSafe.IList<DeclSecurity> declSecurities;
+		/// <summary>Initializes <see cref="declSecurities"/></summary>
+		protected virtual void InitializeDeclSecurities() {
+			Interlocked.CompareExchange(ref declSecurities, ThreadSafeListCreator.Create<DeclSecurity>(), null);
+		}
 
 		/// <summary>
 		/// Gets/sets the class layout
 		/// </summary>
-		public abstract ClassLayout ClassLayout { get; set; }
+		public ClassLayout ClassLayout {
+			get {
+				if (!classLayout_isInitialized)
+					InitializeClassLayout();
+				return classLayout;
+			}
+			set {
+#if THREAD_SAFE
+				theLock.EnterWriteLock(); try {
+#endif
+				classLayout = value;
+				classLayout_isInitialized = true;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
+			}
+		}
+		/// <summary/>
+		protected ClassLayout classLayout;
+		/// <summary/>
+		protected bool classLayout_isInitialized;
+
+		void InitializeClassLayout() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (classLayout_isInitialized)
+				return;
+			classLayout = GetClassLayout_NoLock();
+			classLayout_isInitialized = true;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>Called to initialize <see cref="classLayout"/></summary>
+		protected virtual ClassLayout GetClassLayout_NoLock() {
+			return null;
+		}
 
 		/// <inheritdoc/>
 		public bool HasDeclSecurities {
@@ -293,7 +454,11 @@ namespace dnlib.DotNet {
 		/// Gets/sets the enclosing type. It's <c>null</c> if this isn't a nested class.
 		/// </summary>
 		public TypeDef DeclaringType {
-			get { return DeclaringType2; }
+			get {
+				if (!declaringType2_isInitialized)
+					InitializeDeclaringType2();
+				return declaringType2;
+			}
 			set {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
@@ -319,49 +484,112 @@ namespace dnlib.DotNet {
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
 		public TypeDef DeclaringType2 {
-#if THREAD_SAFE
 			get {
-				theLock.EnterWriteLock(); try {
-					return DeclaringType2_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
+				if (!declaringType2_isInitialized)
+					InitializeDeclaringType2();
+				return declaringType2;
 			}
 			set {
+#if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
-					DeclaringType2_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
+#endif
+				declaringType2 = value;
+				declaringType2_isInitialized = true;
+#if THREAD_SAFE
+				} finally { theLock.ExitWriteLock(); }
+#endif
 			}
-#else
-			get { return DeclaringType2_NoLock; }
-			set { DeclaringType2_NoLock = value; }
+		}
+		/// <summary/>
+		protected TypeDef declaringType2;
+		/// <summary/>
+		protected bool declaringType2_isInitialized;
+
+		void InitializeDeclaringType2() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (declaringType2_isInitialized)
+				return;
+			declaringType2 = GetDeclaringType2_NoLock();
+			declaringType2_isInitialized = true;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
-		/// <summary>
-		/// The no-lock version of <see cref="DeclaringType2"/>.
-		/// </summary>
-		protected abstract TypeDef DeclaringType2_NoLock { get; set; }
+		/// <summary>Called to initialize <see cref="declaringType2"/></summary>
+		protected virtual TypeDef GetDeclaringType2_NoLock() {
+			return null;
+		}
 
 		/// <summary>
 		/// Gets all the nested types
 		/// </summary>
-		public abstract ThreadSafe.IList<TypeDef> NestedTypes { get; }
+		public ThreadSafe.IList<TypeDef> NestedTypes {
+			get {
+				if (nestedTypes == null)
+					InitializeNestedTypes();
+				return nestedTypes;
+			}
+		}
+		/// <summary/>
+		protected LazyList<TypeDef> nestedTypes;
+		/// <summary>Initializes <see cref="nestedTypes"/></summary>
+		protected virtual void InitializeNestedTypes() {
+			Interlocked.CompareExchange(ref nestedTypes, new LazyList<TypeDef>(this), null);
+		}
 
 		/// <summary>
 		/// Gets all events
 		/// </summary>
-		public abstract ThreadSafe.IList<EventDef> Events { get; }
+		public ThreadSafe.IList<EventDef> Events {
+			get {
+				if (events == null)
+					InitializeEvents();
+				return events;
+			}
+		}
+		/// <summary/>
+		protected LazyList<EventDef> events;
+		/// <summary>Initializes <see cref="events"/></summary>
+		protected virtual void InitializeEvents() {
+			Interlocked.CompareExchange(ref events, new LazyList<EventDef>(this), null);
+		}
 
 		/// <summary>
 		/// Gets all properties
 		/// </summary>
-		public abstract ThreadSafe.IList<PropertyDef> Properties { get; }
+		public ThreadSafe.IList<PropertyDef> Properties {
+			get {
+				if (properties == null)
+					InitializeProperties();
+				return properties;
+			}
+		}
+		/// <summary/>
+		protected LazyList<PropertyDef> properties;
+		/// <summary>Initializes <see cref="properties"/></summary>
+		protected virtual void InitializeProperties() {
+			Interlocked.CompareExchange(ref properties, new LazyList<PropertyDef>(this), null);
+		}
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -494,37 +722,44 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Modify <see cref="Attributes_NoLock"/> property: <see cref="Attributes_NoLock"/> =
-		/// (<see cref="Attributes_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
+		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
 		void ModifyAttributes(TypeAttributes andMask, TypeAttributes orMask) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-				Attributes_NoLock = (Attributes_NoLock & andMask) | orMask;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			int origVal, newVal;
+			do {
+				origVal = attributes;
+				newVal = (origVal & (int)andMask) | (int)orMask;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			attributes = (attributes & (int)andMask) | (int)orMask;
 #endif
 		}
 
 		/// <summary>
-		/// Set or clear flags in <see cref="Attributes_NoLock"/>
+		/// Set or clear flags in <see cref="attributes"/>
 		/// </summary>
 		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, TypeAttributes flags) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
+			int origVal, newVal;
+			do {
+				origVal = attributes;
 				if (set)
-					Attributes_NoLock |= flags;
+					newVal = origVal | (int)flags;
 				else
-					Attributes_NoLock &= ~flags;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+					newVal = origVal & ~(int)flags;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			if (set)
+				attributes |= (int)flags;
+			else
+				attributes &= ~(int)flags;
 #endif
 		}
 
@@ -532,7 +767,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the visibility
 		/// </summary>
 		public TypeAttributes Visibility {
-			get { return Attributes & TypeAttributes.VisibilityMask; }
+			get { return (TypeAttributes)attributes & TypeAttributes.VisibilityMask; }
 			set { ModifyAttributes(~TypeAttributes.VisibilityMask, value & TypeAttributes.VisibilityMask); }
 		}
 
@@ -540,63 +775,63 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="TypeAttributes.NotPublic"/> is set
 		/// </summary>
 		public bool IsNotPublic {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.Public"/> is set
 		/// </summary>
 		public bool IsPublic {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.Public; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.Public; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedPublic"/> is set
 		/// </summary>
 		public bool IsNestedPublic {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPublic; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPublic; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedPrivate"/> is set
 		/// </summary>
 		public bool IsNestedPrivate {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPrivate; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedPrivate; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedFamily"/> is set
 		/// </summary>
 		public bool IsNestedFamily {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamily; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamily; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedAssembly"/> is set
 		/// </summary>
 		public bool IsNestedAssembly {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedAssembly; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedAssembly; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedFamANDAssem"/> is set
 		/// </summary>
 		public bool IsNestedFamilyAndAssembly {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamANDAssem; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamANDAssem; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.NestedFamORAssem"/> is set
 		/// </summary>
 		public bool IsNestedFamilyOrAssembly {
-			get { return (Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamORAssem; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NestedFamORAssem; }
 		}
 
 		/// <summary>
 		/// Gets/sets the layout
 		/// </summary>
 		public TypeAttributes Layout {
-			get { return Attributes & TypeAttributes.LayoutMask; }
+			get { return (TypeAttributes)attributes & TypeAttributes.LayoutMask; }
 			set { ModifyAttributes(~TypeAttributes.LayoutMask, value & TypeAttributes.LayoutMask); }
 		}
 
@@ -604,28 +839,28 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="TypeAttributes.AutoLayout"/> is set
 		/// </summary>
 		public bool IsAutoLayout {
-			get { return (Attributes & TypeAttributes.LayoutMask) == TypeAttributes.AutoLayout; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.LayoutMask) == TypeAttributes.AutoLayout; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.SequentialLayout"/> is set
 		/// </summary>
 		public bool IsSequentialLayout {
-			get { return (Attributes & TypeAttributes.LayoutMask) == TypeAttributes.SequentialLayout; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.LayoutMask) == TypeAttributes.SequentialLayout; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.ExplicitLayout"/> is set
 		/// </summary>
 		public bool IsExplicitLayout {
-			get { return (Attributes & TypeAttributes.LayoutMask) == TypeAttributes.ExplicitLayout; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.LayoutMask) == TypeAttributes.ExplicitLayout; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="TypeAttributes.Interface"/> bit
 		/// </summary>
 		public bool IsInterface {
-			get { return (Attributes & TypeAttributes.Interface) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.Interface) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.Interface); }
 		}
 
@@ -633,7 +868,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Class"/> bit
 		/// </summary>
 		public bool IsClass {
-			get { return (Attributes & TypeAttributes.Interface) == 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.Interface) == 0; }
 			set { ModifyAttributes(!value, TypeAttributes.Interface); }
 		}
 
@@ -641,7 +876,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Abstract"/> bit
 		/// </summary>
 		public bool IsAbstract {
-			get { return (Attributes & TypeAttributes.Abstract) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.Abstract) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.Abstract); }
 		}
 
@@ -649,7 +884,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Sealed"/> bit
 		/// </summary>
 		public bool IsSealed {
-			get { return (Attributes & TypeAttributes.Sealed) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.Sealed) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.Sealed); }
 		}
 
@@ -657,7 +892,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return (Attributes & TypeAttributes.SpecialName) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.SpecialName) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.SpecialName); }
 		}
 
@@ -665,7 +900,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Import"/> bit
 		/// </summary>
 		public bool IsImport {
-			get { return (Attributes & TypeAttributes.Import) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.Import) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.Import); }
 		}
 
@@ -673,7 +908,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Serializable"/> bit
 		/// </summary>
 		public bool IsSerializable {
-			get { return (Attributes & TypeAttributes.Serializable) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.Serializable) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.Serializable); }
 		}
 
@@ -681,7 +916,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.WindowsRuntime"/> bit
 		/// </summary>
 		public bool IsWindowsRuntime {
-			get { return (Attributes & TypeAttributes.WindowsRuntime) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.WindowsRuntime) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.WindowsRuntime); }
 		}
 
@@ -689,7 +924,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the string format
 		/// </summary>
 		public TypeAttributes StringFormat {
-			get { return Attributes & TypeAttributes.StringFormatMask; }
+			get { return (TypeAttributes)attributes & TypeAttributes.StringFormatMask; }
 			set { ModifyAttributes(~TypeAttributes.StringFormatMask, value & TypeAttributes.StringFormatMask); }
 		}
 
@@ -697,35 +932,35 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="TypeAttributes.AnsiClass"/> is set
 		/// </summary>
 		public bool IsAnsiClass {
-			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.AnsiClass; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.StringFormatMask) == TypeAttributes.AnsiClass; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.UnicodeClass"/> is set
 		/// </summary>
 		public bool IsUnicodeClass {
-			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.UnicodeClass; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.StringFormatMask) == TypeAttributes.UnicodeClass; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.AutoClass"/> is set
 		/// </summary>
 		public bool IsAutoClass {
-			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.AutoClass; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.StringFormatMask) == TypeAttributes.AutoClass; }
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="TypeAttributes.CustomFormatClass"/> is set
 		/// </summary>
 		public bool IsCustomFormatClass {
-			get { return (Attributes & TypeAttributes.StringFormatMask) == TypeAttributes.CustomFormatClass; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.StringFormatMask) == TypeAttributes.CustomFormatClass; }
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="TypeAttributes.BeforeFieldInit"/> bit
 		/// </summary>
 		public bool IsBeforeFieldInit {
-			get { return (Attributes & TypeAttributes.BeforeFieldInit) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.BeforeFieldInit) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.BeforeFieldInit); }
 		}
 
@@ -733,7 +968,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Forwarder"/> bit
 		/// </summary>
 		public bool IsForwarder {
-			get { return (Attributes & TypeAttributes.Forwarder) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.Forwarder) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.Forwarder); }
 		}
 
@@ -741,7 +976,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.RTSpecialName"/> bit
 		/// </summary>
 		public bool IsRuntimeSpecialName {
-			get { return (Attributes & TypeAttributes.RTSpecialName) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.RTSpecialName) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.RTSpecialName); }
 		}
 
@@ -749,7 +984,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.HasSecurity"/> bit
 		/// </summary>
 		public bool HasSecurity {
-			get { return (Attributes & TypeAttributes.HasSecurity) != 0; }
+			get { return ((TypeAttributes)attributes & TypeAttributes.HasSecurity) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.HasSecurity); }
 		}
 
@@ -1589,110 +1824,6 @@ namespace dnlib.DotNet {
 	/// A TypeDef row created by the user and not present in the original .NET file
 	/// </summary>
 	public class TypeDefUser : TypeDef {
-		TypeAttributes flags;
-		UTF8String name;
-		UTF8String @namespace;
-		ITypeDefOrRef baseType;
-		LazyList<FieldDef> fields;
-		LazyList<MethodDef> methods;
-		LazyList<GenericParam> genericParams;
-		readonly ThreadSafe.IList<InterfaceImpl> interfaceImpls = ThreadSafeListCreator.Create<InterfaceImpl>();
-		readonly ThreadSafe.IList<DeclSecurity> declSecurities = ThreadSafeListCreator.Create<DeclSecurity>();
-		ClassLayout classLayout;
-		TypeDef declaringType;
-		LazyList<EventDef> events;
-		LazyList<PropertyDef> properties;
-		LazyList<TypeDef> nestedTypes;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-		ModuleDef module;
-
-		/// <inheritdoc/>
-		protected override TypeAttributes Attributes_NoLock {
-			get { return flags; }
-			set { flags = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Namespace {
-			get { return @namespace; }
-			set { @namespace = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeDefOrRef BaseType {
-			get { return baseType; }
-			set { baseType = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<FieldDef> Fields {
-			get { return fields; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<MethodDef> Methods {
-			get { return methods; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<GenericParam> GenericParameters {
-			get { return genericParams; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<InterfaceImpl> Interfaces {
-			get { return interfaceImpls; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
-			get { return declSecurities; }
-		}
-
-		/// <inheritdoc/>
-		public override ClassLayout ClassLayout {
-			get { return classLayout; }
-			set { classLayout = value; }
-		}
-
-		/// <inheritdoc/>
-		protected override TypeDef DeclaringType2_NoLock {
-			get { return declaringType; }
-			set { declaringType = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<EventDef> Events {
-			get { return events; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<PropertyDef> Properties {
-			get { return properties; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<TypeDef> NestedTypes {
-			get { return nestedTypes; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
-		/// <inheritdoc/>
-		internal override ModuleDef Module2 {
-			get { return module; }
-			set { module = value; }
-		}
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -1728,13 +1859,14 @@ namespace dnlib.DotNet {
 		public TypeDefUser(UTF8String @namespace, UTF8String name, ITypeDefOrRef baseType) {
 			this.fields = new LazyList<FieldDef>(this);
 			this.methods = new LazyList<MethodDef>(this);
-			this.genericParams = new LazyList<GenericParam>(this);
+			this.genericParameters = new LazyList<GenericParam>(this);
 			this.nestedTypes = new LazyList<TypeDef>(this);
 			this.events = new LazyList<EventDef>(this);
 			this.properties = new LazyList<PropertyDef>(this);
 			this.@namespace = @namespace;
 			this.name = name;
 			this.baseType = baseType;
+			this.baseType_isInitialized = true;
 		}
 	}
 
@@ -1744,26 +1876,9 @@ namespace dnlib.DotNet {
 	sealed class TypeDefMD : TypeDef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawTypeDefRow rawRow;
 
 		readonly uint origRid;
-		UserValue<TypeAttributes> flags;
-		UserValue<UTF8String> name;
-		UserValue<UTF8String> @namespace;
-		UserValue<ITypeDefOrRef> baseType;
-		LazyList<FieldDef> fields;
-		LazyList<MethodDef> methods;
-		LazyList<GenericParam> genericParams;
-		LazyList<InterfaceImpl> interfaceImpls;
-		LazyList<DeclSecurity> declSecurities;
-		UserValue<ClassLayout> classLayout;
-		UserValue<TypeDef> declaringType;
-		LazyList<EventDef> events;
-		LazyList<PropertyDef> properties;
-		LazyList<TypeDef> nestedTypes;
-		CustomAttributeCollection customAttributeCollection;
-		UserValue<ModuleDef> module;
+		readonly uint extendsCodedToken;
 		Dictionary<uint, ThreadSafe.IList<MethodOverrideTokens>> methodRidToOverrides;
 
 		/// <inheritdoc/>
@@ -1772,155 +1887,99 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeAttributes Attributes_NoLock {
-			get { return flags.Value; }
-			set { flags.Value = value; }
+		protected override ITypeDefOrRef GetBaseType_NoLock() {
+			return readerModule.ResolveTypeDefOrRef(extendsCodedToken, new GenericParamContext(this));
 		}
 
 		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
+		protected override void InitializeFields() {
+			var list = readerModule.MetaData.GetFieldRidList(origRid);
+			var tmp = new LazyList<FieldDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveField(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref fields, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override UTF8String Namespace {
-			get { return @namespace.Value; }
-			set { @namespace.Value = value; }
+		protected override void InitializeMethods() {
+			var list = readerModule.MetaData.GetMethodRidList(origRid);
+			var tmp = new LazyList<MethodDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref methods, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ITypeDefOrRef BaseType {
-			get { return baseType.Value; }
-			set { baseType.Value = value; }
+		protected override void InitializeGenericParameters() {
+			var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, origRid);
+			var tmp = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref genericParameters, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<FieldDef> Fields {
+		protected override void InitializeInterfaces() {
+			var list = readerModule.MetaData.GetInterfaceImplRidList(origRid);
+			var tmp = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index], new GenericParamContext(this)));
+			Interlocked.CompareExchange(ref interfaces, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override void InitializeDeclSecurities() {
+			var list = readerModule.MetaData.GetDeclSecurityRidList(Table.TypeDef, origRid);
+			var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref declSecurities, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override ClassLayout GetClassLayout_NoLock() {
+			return readerModule.ResolveClassLayout(readerModule.MetaData.GetClassLayoutRid(origRid));
+		}
+
+		/// <inheritdoc/>
+		protected override TypeDef GetDeclaringType2_NoLock() {
+			var row = readerModule.TablesStream.ReadNestedClassRow(readerModule.MetaData.GetNestedClassRid(origRid));
+			return row == null ? null : readerModule.ResolveTypeDef(row.EnclosingClass);
+		}
+
+		TypeDef DeclaringType2_NoLock {
 			get {
-				if (fields == null) {
-					var list = readerModule.MetaData.GetFieldRidList(origRid);
-					var tmp = new LazyList<FieldDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveField(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref fields, tmp, null);
+				if (!declaringType2_isInitialized) {
+					declaringType2 = GetDeclaringType2_NoLock();
+					declaringType2_isInitialized = true;
 				}
-				return fields;
+				return declaringType2;
 			}
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<MethodDef> Methods {
-			get {
-				if (methods == null) {
-					var list = readerModule.MetaData.GetMethodRidList(origRid);
-					var tmp = new LazyList<MethodDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref methods, tmp, null);
-				}
-				return methods;
-			}
+		protected override void InitializeEvents() {
+			var mapRid = readerModule.MetaData.GetEventMapRid(origRid);
+			var list = readerModule.MetaData.GetEventRidList(mapRid);
+			var tmp = new LazyList<EventDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveEvent(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref events, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<GenericParam> GenericParameters {
-			get {
-				if (genericParams == null) {
-					var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, origRid);
-					var tmp = new LazyList<GenericParam>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref genericParams, tmp, null);
-				}
-				return genericParams;
-			}
+		protected override void InitializeProperties() {
+			var mapRid = readerModule.MetaData.GetPropertyMapRid(origRid);
+			var list = readerModule.MetaData.GetPropertyRidList(mapRid);
+			var tmp = new LazyList<PropertyDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveProperty(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref properties, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<InterfaceImpl> Interfaces {
-			get {
-				if (interfaceImpls == null) {
-					var list = readerModule.MetaData.GetInterfaceImplRidList(origRid);
-					var tmp = new LazyList<InterfaceImpl>((int)list.Length, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[index], new GenericParamContext(this)));
-					Interlocked.CompareExchange(ref interfaceImpls, tmp, null);
-				}
-				return interfaceImpls;
-			}
+		protected override void InitializeNestedTypes() {
+			var list = readerModule.MetaData.GetNestedClassRidList(origRid);
+			var tmp = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveTypeDef(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref nestedTypes, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<DeclSecurity> DeclSecurities {
-			get {
-				if (declSecurities == null) {
-					var list = readerModule.MetaData.GetDeclSecurityRidList(Table.TypeDef, origRid);
-					var tmp = new LazyList<DeclSecurity>((int)list.Length, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref declSecurities, tmp, null);
-				}
-				return declSecurities;
-			}
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeDef, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ClassLayout ClassLayout {
-			get { return classLayout.Value; }
-			set { classLayout.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		protected override TypeDef DeclaringType2_NoLock {
-			get { return declaringType.Value; }
-			set { declaringType.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<EventDef> Events {
-			get {
-				if (events == null) {
-					var mapRid = readerModule.MetaData.GetEventMapRid(origRid);
-					var list = readerModule.MetaData.GetEventRidList(mapRid);
-					var tmp = new LazyList<EventDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveEvent(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref events, tmp, null);
-				}
-				return events;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<PropertyDef> Properties {
-			get {
-				if (properties == null) {
-					var mapRid = readerModule.MetaData.GetPropertyMapRid(origRid);
-					var list = readerModule.MetaData.GetPropertyRidList(mapRid);
-					var tmp = new LazyList<PropertyDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveProperty(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref properties, tmp, null);
-				}
-				return properties;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<TypeDef> NestedTypes {
-			get {
-				if (nestedTypes == null) {
-					var list = readerModule.MetaData.GetNestedClassRidList(origRid);
-					var tmp = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => readerModule.ResolveTypeDef(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref nestedTypes, tmp, null);
-				}
-				return nestedTypes;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeDef, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
-		}
-
-		/// <inheritdoc/>
-		internal override ModuleDef Module2 {
-			get { return module.Value; }
-			set { module.Value = value; }
+		protected override ModuleDef GetModule2_NoLock() {
+			return DeclaringType2_NoLock != null ? null : readerModule;
 		}
 
 		/// <summary>
@@ -1940,51 +1999,11 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			Initialize();
-		}
-
-		void Initialize() {
-			flags.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (TypeAttributes)rawRow.Flags;
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			};
-			@namespace.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Namespace);
-			};
-			baseType.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.Extends, new GenericParamContext(this));
-			};
-			classLayout.ReadOriginalValue = () => {
-				return readerModule.ResolveClassLayout(readerModule.MetaData.GetClassLayoutRid(origRid));
-			};
-			declaringType.ReadOriginalValue = () => {
-				var row = readerModule.TablesStream.ReadNestedClassRow(readerModule.MetaData.GetNestedClassRid(origRid));
-				return row == null ? null : readerModule.ResolveTypeDef(row.EnclosingClass);
-			};
-			module.ReadOriginalValue = () => {
-				return DeclaringType2_NoLock != null ? null : readerModule;
-			};
-#if THREAD_SAFE
-			// flags.Lock = theLock;			No lock for this one
-			name.Lock = theLock;
-			@namespace.Lock = theLock;
-			baseType.Lock = theLock;
-			classLayout.Lock = theLock;
-			// declaringType.Lock = theLock;	No lock for this one
-			module.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadTypeDefRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadTypeDefRow(origRid);
+			attributes = (int)rawRow.Flags;
+			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			@namespace = readerModule.StringsStream.ReadNoNull(rawRow.Namespace);
+			extendsCodedToken = rawRow.Extends;
 		}
 
 		/// <summary>
@@ -2119,7 +2138,7 @@ namespace dnlib.DotNet {
 					continue;	// Should never happen
 
 				var method = readerModule.ResolveMethod(rawRow.Method);
-				if (method == null || method.DeclaringType != prop.DeclaringType2_NoLock)
+				if (method == null || method.DeclaringType != prop.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
@@ -2169,7 +2188,7 @@ namespace dnlib.DotNet {
 					continue;	// Should never happen
 
 				var method = readerModule.ResolveMethod(rawRow.Method);
-				if (method == null || method.DeclaringType != evt.DeclaringType2_NoLock)
+				if (method == null || method.DeclaringType != evt.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set

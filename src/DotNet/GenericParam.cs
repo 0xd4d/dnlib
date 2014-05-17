@@ -45,13 +45,6 @@ namespace dnlib.DotNet {
 		/// </summary>
 		protected uint rid;
 
-#if THREAD_SAFE
-		/// <summary>
-		/// The lock
-		/// </summary>
-		internal readonly Lock theLock = Lock.Create();
-#endif
-
 		/// <inheritdoc/>
 		public MDToken MDToken {
 			get { return new MDToken(Table.GenericParam, rid); }
@@ -72,43 +65,23 @@ namespace dnlib.DotNet {
 		/// Gets the owner type/method
 		/// </summary>
 		public ITypeOrMethodDef Owner {
-#if THREAD_SAFE
-			get {
-				theLock.EnterWriteLock();
-				try {
-					return Owner_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-			internal set {
-				theLock.EnterWriteLock();
-				try {
-					Owner_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return Owner_NoLock; }
-			internal set { Owner_NoLock = value; }
-#endif
+			get { return owner; }
+			internal set { owner = value; }
 		}
-
-		/// <summary>
-		/// Gets the owner type/method
-		/// </summary>
-		protected abstract ITypeOrMethodDef Owner_NoLock { get; set; }
+		/// <summary/>
+		protected ITypeOrMethodDef owner;
 
 		/// <summary>
 		/// Gets the declaring type or <c>null</c> if none or if <see cref="Owner"/> is
 		/// not a <see cref="TypeDef"/>
 		/// </summary>
 		public TypeDef DeclaringType {
-			get { return Owner as TypeDef; }
+			get { return owner as TypeDef; }
 		}
 
 		/// <inheritdoc/>
 		ITypeDefOrRef IMemberRef.DeclaringType {
-			get { return DeclaringType; }
+			get { return owner as TypeDef; }
 		}
 
 		/// <summary>
@@ -116,63 +89,82 @@ namespace dnlib.DotNet {
 		/// not a <see cref="MethodDef"/>
 		/// </summary>
 		public MethodDef DeclaringMethod {
-			get { return Owner as MethodDef; }
+			get { return owner as MethodDef; }
 		}
 
 		/// <summary>
 		/// From column GenericParam.Number
 		/// </summary>
-		public abstract ushort Number { get; set; }
+		public ushort Number {
+			get { return number; }
+			set { number = value; }
+		}
+		/// <summary/>
+		protected ushort number;
 
 		/// <summary>
 		/// From column GenericParam.Flags
 		/// </summary>
 		public GenericParamAttributes Flags {
-#if THREAD_SAFE
-			get {
-				theLock.EnterWriteLock();
-				try {
-					return Flags_NoLock;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-			set {
-				theLock.EnterWriteLock();
-				try {
-					Flags_NoLock = value;
-				}
-				finally { theLock.ExitWriteLock(); }
-			}
-#else
-			get { return Flags_NoLock; }
-			set { Flags_NoLock = value; }
-#endif
+			get { return (GenericParamAttributes)attributes; }
+			set { attributes = (int)value; }
 		}
-
-		/// <summary>
-		/// From column GenericParam.Flags
-		/// </summary>
-		protected abstract GenericParamAttributes Flags_NoLock { get; set; }
+		/// <summary>Attributes</summary>
+		protected int attributes;
 
 		/// <summary>
 		/// From column GenericParam.Name
 		/// </summary>
-		public abstract UTF8String Name { get; set; }
+		public UTF8String Name {
+			get { return name; }
+			set { name = value; }
+		}
+		/// <summary>Name</summary>
+		protected UTF8String name;
 
 		/// <summary>
 		/// From column GenericParam.Kind (v1.1 only)
 		/// </summary>
-		public abstract ITypeDefOrRef Kind { get; set; }
+		public ITypeDefOrRef Kind {
+			get { return kind; }
+			set { kind = value; }
+		}
+		/// <summary/>
+		protected ITypeDefOrRef kind;
 
 		/// <summary>
 		/// Gets the generic param constraints
 		/// </summary>
-		public abstract ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints { get; }
+		public ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints {
+			get {
+				if (genericParamConstraints == null)
+					InitializeGenericParamConstraints();
+				return genericParamConstraints;
+			}
+		}
+		/// <summary/>
+		protected LazyList<GenericParamConstraint> genericParamConstraints;
+		/// <summary>Initializes <see cref="genericParamConstraints"/></summary>
+		protected virtual void InitializeGenericParamConstraints() {
+			Interlocked.CompareExchange(ref genericParamConstraints, new LazyList<GenericParamConstraint>(this), null);
+		}
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -189,14 +181,14 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public ModuleDef Module {
 			get {
-				var dt = Owner;
+				var dt = owner;
 				return dt == null ? null : dt.Module;
 			}
 		}
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return UTF8String.ToSystemStringOrEmpty(Name); }
+			get { return UTF8String.ToSystemStringOrEmpty(name); }
 		}
 
 		bool IIsTypeOrMethod.IsType {
@@ -252,37 +244,44 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Modify <see cref="Flags_NoLock"/> property: <see cref="Flags_NoLock"/> =
-		/// (<see cref="Flags_NoLock"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
+		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
+		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
 		void ModifyAttributes(GenericParamAttributes andMask, GenericParamAttributes orMask) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-				Flags_NoLock = (Flags_NoLock & andMask) | orMask;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			int origVal, newVal;
+			do {
+				origVal = attributes;
+				newVal = (origVal & (int)andMask) | (int)orMask;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			attributes = (attributes & (int)andMask) | (int)orMask;
 #endif
 		}
 
 		/// <summary>
-		/// Set or clear flags in <see cref="Flags_NoLock"/>
+		/// Set or clear flags in <see cref="attributes"/>
 		/// </summary>
 		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, GenericParamAttributes flags) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
+			int origVal, newVal;
+			do {
+				origVal = attributes;
 				if (set)
-					Flags_NoLock |= flags;
+					newVal = origVal | (int)flags;
 				else
-					Flags_NoLock &= ~flags;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+					newVal = origVal & ~(int)flags;
+			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
+#else
+			if (set)
+				attributes |= (int)flags;
+			else
+				attributes &= ~(int)flags;
 #endif
 		}
 
@@ -290,7 +289,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets variance (non, contra, co)
 		/// </summary>
 		public GenericParamAttributes Variance {
-			get { return Flags & GenericParamAttributes.VarianceMask; }
+			get { return (GenericParamAttributes)attributes & GenericParamAttributes.VarianceMask; }
 			set { ModifyAttributes(~GenericParamAttributes.VarianceMask, value & GenericParamAttributes.VarianceMask); }
 		}
 
@@ -319,7 +318,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the special constraint
 		/// </summary>
 		public GenericParamAttributes SpecialConstraint {
-			get { return Flags & GenericParamAttributes.SpecialConstraintMask; }
+			get { return (GenericParamAttributes)attributes & GenericParamAttributes.SpecialConstraintMask; }
 			set { ModifyAttributes(~GenericParamAttributes.SpecialConstraintMask, value & GenericParamAttributes.SpecialConstraintMask); }
 		}
 
@@ -327,7 +326,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="GenericParamAttributes.NoSpecialConstraint"/> bit
 		/// </summary>
 		public bool HasNoSpecialConstraint {
-			get { return (Flags & GenericParamAttributes.NoSpecialConstraint) != 0; }
+			get { return ((GenericParamAttributes)attributes & GenericParamAttributes.NoSpecialConstraint) != 0; }
 			set { ModifyAttributes(value, GenericParamAttributes.NoSpecialConstraint); }
 		}
 
@@ -335,7 +334,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="GenericParamAttributes.ReferenceTypeConstraint"/> bit
 		/// </summary>
 		public bool HasReferenceTypeConstraint {
-			get { return (Flags & GenericParamAttributes.ReferenceTypeConstraint) != 0; }
+			get { return ((GenericParamAttributes)attributes & GenericParamAttributes.ReferenceTypeConstraint) != 0; }
 			set { ModifyAttributes(value, GenericParamAttributes.ReferenceTypeConstraint); }
 		}
 
@@ -343,7 +342,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="GenericParamAttributes.NotNullableValueTypeConstraint"/> bit
 		/// </summary>
 		public bool HasNotNullableValueTypeConstraint {
-			get { return (Flags & GenericParamAttributes.NotNullableValueTypeConstraint) != 0; }
+			get { return ((GenericParamAttributes)attributes & GenericParamAttributes.NotNullableValueTypeConstraint) != 0; }
 			set { ModifyAttributes(value, GenericParamAttributes.NotNullableValueTypeConstraint); }
 		}
 
@@ -351,7 +350,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="GenericParamAttributes.DefaultConstructorConstraint"/> bit
 		/// </summary>
 		public bool HasDefaultConstructorConstraint {
-			get { return (Flags & GenericParamAttributes.DefaultConstructorConstraint) != 0; }
+			get { return ((GenericParamAttributes)attributes & GenericParamAttributes.DefaultConstructorConstraint) != 0; }
 			set { ModifyAttributes(value, GenericParamAttributes.DefaultConstructorConstraint); }
 		}
 
@@ -391,11 +390,12 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			if (Owner is TypeDef)
-				return string.Format("!{0}", Number);
-			if (Owner is MethodDef)
-				return string.Format("!!{0}", Number);
-			return string.Format("??{0}", Number);
+			var o = owner;
+			if (o is TypeDef)
+				return string.Format("!{0}", number);
+			if (o is MethodDef)
+				return string.Format("!!{0}", number);
+			return string.Format("??{0}", number);
 		}
 	}
 
@@ -403,54 +403,6 @@ namespace dnlib.DotNet {
 	/// A GenericParam row created by the user and not present in the original .NET file
 	/// </summary>
 	public class GenericParamUser : GenericParam {
-		ITypeOrMethodDef owner;
-		ushort number;
-		GenericParamAttributes flags;
-		UTF8String name;
-		ITypeDefOrRef kind;
-		LazyList<GenericParamConstraint> genericParamConstraints;
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		protected override ITypeOrMethodDef Owner_NoLock {
-			get { return owner; }
-			set { owner = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ushort Number {
-			get { return number; }
-			set { number = value; }
-		}
-
-		/// <inheritdoc/>
-		protected override GenericParamAttributes Flags_NoLock {
-			get { return flags; }
-			set { flags = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name; }
-			set { name = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeDefOrRef Kind {
-			get { return kind; }
-			set { kind = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints {
-			get { return genericParamConstraints; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -483,7 +435,7 @@ namespace dnlib.DotNet {
 		public GenericParamUser(ushort number, GenericParamAttributes flags, UTF8String name) {
 			this.genericParamConstraints = new LazyList<GenericParamConstraint>(this);
 			this.number = number;
-			this.flags = flags;
+			this.attributes = (int)flags;
 			this.name = name;
 		}
 	}
@@ -494,17 +446,8 @@ namespace dnlib.DotNet {
 	sealed class GenericParamMD : GenericParam, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawGenericParamRow rawRow;
 
 		readonly uint origRid;
-		UserValue<ITypeOrMethodDef> owner;
-		UserValue<ushort> number;
-		UserValue<GenericParamAttributes> flags;
-		UserValue<UTF8String> name;
-		UserValue<ITypeDefOrRef> kind;
-		LazyList<GenericParamConstraint> genericParamConstraints;
-		CustomAttributeCollection customAttributeCollection;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -512,57 +455,17 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override ITypeOrMethodDef Owner_NoLock {
-			get { return owner.Value; }
-			set { owner.Value = value; }
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParam, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ushort Number {
-			get { return number.Value; }
-			set { number.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		protected override GenericParamAttributes Flags_NoLock {
-			get { return flags.Value; }
-			set { flags.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override UTF8String Name {
-			get { return name.Value; }
-			set { name.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ITypeDefOrRef Kind {
-			get { return kind.Value; }
-			set { kind.Value = value; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParam, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<GenericParamConstraint> GenericParamConstraints {
-			get {
-				if (genericParamConstraints == null) {
-					var list = readerModule.MetaData.GetGenericParamConstraintRidList(origRid);
-					var tmp = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index], GetGenericParamContext(Owner)));
-					Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
-				}
-				return genericParamConstraints;
-			}
+		protected override void InitializeGenericParamConstraints() {
+			var list = readerModule.MetaData.GetGenericParamConstraintRidList(origRid);
+			var tmp = new LazyList<GenericParamConstraint>((int)list.Length, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(((RidList)list2)[index], GetGenericParamContext(owner)));
+			Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 		}
 
 		static GenericParamContext GetGenericParamContext(ITypeOrMethodDef tmOwner) {
@@ -589,44 +492,13 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			Initialize();
-		}
-
-		void Initialize() {
-			owner.ReadOriginalValue = () => {
-				return readerModule.GetOwner(this);
-			};
-			number.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return rawRow.Number;
-			};
-			flags.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (GenericParamAttributes)rawRow.Flags;
-			};
-			name.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			};
-			kind.ReadOriginalValue = () => {
-				if (readerModule.TablesStream.GenericParamTable.TableInfo.Columns.Count != 5)
-					return null;
-				InitializeRawRow_NoLock();
-				return readerModule.ResolveTypeDefOrRef(rawRow.Kind, GetGenericParamContext(Owner_NoLock));
-			};
-#if THREAD_SAFE
-			// owner.Lock = theLock;	No lock for this one
-			number.Lock = theLock;
-			// flags.Lock = theLock;	No lock for this one
-			name.Lock = theLock;
-			kind.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadGenericParamRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadGenericParamRow(origRid);
+			number = rawRow.Number;
+			attributes = (int)rawRow.Flags;
+			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			owner = readerModule.GetOwner(this);
+			if (rawRow.Kind != 0)
+				kind = readerModule.ResolveTypeDefOrRef(rawRow.Kind, GetGenericParamContext(owner));
 		}
 
 		internal GenericParamMD InitializeAll() {
@@ -644,7 +516,7 @@ namespace dnlib.DotNet {
 		internal override void OnLazyAdd2(int index, ref GenericParamConstraint value) {
 			if (value.Owner != this) {
 				// More than one owner... This module has invalid metadata.
-				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParamConstraint(value.Rid, GetGenericParamContext(Owner)).InitializeAll());
+				value = readerModule.ForceUpdateRowId(readerModule.ReadGenericParamConstraint(value.Rid, GetGenericParamContext(owner)).InitializeAll());
 				value.Owner = this;
 			}
 		}

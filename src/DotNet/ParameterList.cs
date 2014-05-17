@@ -123,13 +123,14 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="method">The method with all parameters</param>
-		internal ParameterList(MethodDef method) {
+		/// <param name="declaringType"><paramref name="method"/>'s declaring type</param>
+		internal ParameterList(MethodDef method, TypeDef declaringType) {
 			this.method = method;
 			this.parameters = new List<Parameter>();
 			this.methodSigIndexBase = -1;
 			this.hiddenThisParameter = new Parameter(this, 0, Parameter.HIDDEN_THIS_METHOD_SIG_INDEX);
 			this.returnParameter = new Parameter(this, -1, Parameter.RETURN_TYPE_METHOD_SIG_INDEX);
-			UpdateThisParameterType(method.DeclaringType, false);
+			UpdateThisParameterType(declaringType);
 			UpdateParameterTypes();
 		}
 
@@ -137,9 +138,7 @@ namespace dnlib.DotNet {
 		/// Should be called when the method's declaring type has changed
 		/// </summary>
 		/// <param name="methodDeclaringType">Method declaring type</param>
-		/// <param name="noMethodLock"><c>true</c> if the <see cref="MethodDef"/> lock has
-		/// already been taken by the <see cref="MethodDef"/></param>
-		internal void UpdateThisParameterType(TypeDef methodDeclaringType, bool noMethodLock) {
+		internal void UpdateThisParameterType(TypeDef methodDeclaringType) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -147,9 +146,9 @@ namespace dnlib.DotNet {
 				return;
 
 			if (methodDeclaringType.IsValueType)
-				hiddenThisParameter.SetType(noMethodLock, false, new ByRefSig(new ValueTypeSig(methodDeclaringType)));
+				hiddenThisParameter.SetType(false, new ByRefSig(new ValueTypeSig(methodDeclaringType)));
 			else
-				hiddenThisParameter.SetType(noMethodLock, false, new ClassSig(methodDeclaringType));
+				hiddenThisParameter.SetType(false, new ClassSig(methodDeclaringType));
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
@@ -159,19 +158,10 @@ namespace dnlib.DotNet {
 		/// Should be called when the method sig has changed
 		/// </summary>
 		public void UpdateParameterTypes() {
-			UpdateParameterTypes(false);
-		}
-
-		/// <summary>
-		/// Should be called when the method sig has changed
-		/// </summary>
-		/// <param name="noMethodLock"><c>true</c> if the <see cref="MethodDef"/> lock has
-		/// already been taken by the <see cref="MethodDef"/></param>
-		internal void UpdateParameterTypes(bool noMethodLock) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			var sig = GetMethodSig_NoLock(noMethodLock);
+			var sig = method.MethodSig;
 			if (sig == null) {
 				methodSigIndexBase = -1;
 				parameters.Clear();
@@ -179,13 +169,13 @@ namespace dnlib.DotNet {
 			}
 			if (UpdateThisParameter_NoLock(sig))
 				parameters.Clear();
-			returnParameter.SetType(noMethodLock, false, sig.RetType);
+			returnParameter.SetType(false, sig.RetType);
 			sig.Params.ExecuteLocked<TypeSig, object, object>(null, (tsList, arg) => {
 				ResizeParameters_NoLock(tsList.Count_NoLock() + methodSigIndexBase);
 				if (methodSigIndexBase > 0)
 					parameters[0] = hiddenThisParameter;
 				for (int i = 0; i < tsList.Count_NoLock(); i++)
-					parameters[i + methodSigIndexBase].SetType(noMethodLock, true, tsList.Get_NoLock(i));
+					parameters[i + methodSigIndexBase].SetType(true, tsList.Get_NoLock(i));
 				return null;
 			});
 #if THREAD_SAFE
@@ -244,18 +234,8 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		/// <summary>
-		/// Gets the method signature
-		/// </summary>
-		/// <param name="noMethodLock"><c>true</c> if the <see cref="MethodDef"/> lock has
-		/// already been taken by the <see cref="MethodDef"/></param>
-		/// <returns><see cref="method"/>'s <see cref="MethodSig"/> or <c>null</c> if none</returns>
-		MethodSig GetMethodSig_NoLock(bool noMethodLock) {
-			return (noMethodLock ? method.Signature_NoLock : method.Signature) as MethodSig;
-		}
-
-		internal void TypeUpdated(Parameter param, bool noMethodLock, bool noParamsLock) {
-			var sig = GetMethodSig_NoLock(noMethodLock);
+		internal void TypeUpdated(Parameter param, bool noParamsLock) {
+			var sig = method.MethodSig;
 			if (sig == null)
 				return;
 			int index = param.MethodSigIndex;
@@ -494,25 +474,21 @@ namespace dnlib.DotNet {
 			set {
 				typeSig = value;
 				if (parameterList != null)
-					parameterList.TypeUpdated(this, false, false);
+					parameterList.TypeUpdated(this, false);
 			}
 		}
 
 		/// <summary>
-		/// This method does exactly what the <see cref="Type"/> setter does except that
-		/// it makes sure not to call any <see cref="MethodDef"/> methods or properties
-		/// that try to acquire the <see cref="MethodDef"/> lock if <paramref name="noMethodLock"/>
-		/// is <c>true</c>.
+		/// This method does exactly what the <see cref="Type"/> setter does except that it
+		/// uses the no-lock method if <paramref name="noParamsLock"/> is <c>true</c>.
 		/// </summary>
-		/// <param name="noMethodLock"><c>true</c> if the <see cref="MethodDef"/> lock has
-		/// already been taken by the <see cref="MethodDef"/></param>
 		/// <param name="noParamsLock"><c>true</c> if <c>MethodSig.Params</c> lock is being held by
 		/// us</param>
 		/// <param name="type"></param>
-		internal void SetType(bool noMethodLock, bool noParamsLock, TypeSig type) {
+		internal void SetType(bool noParamsLock, TypeSig type) {
 			typeSig = type;
 			if (parameterList != null)
-				parameterList.TypeUpdated(this, noMethodLock, noParamsLock);
+				parameterList.TypeUpdated(this, noParamsLock);
 		}
 
 		/// <summary>

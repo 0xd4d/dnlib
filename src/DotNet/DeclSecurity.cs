@@ -65,17 +65,46 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column DeclSecurity.Action
 		/// </summary>
-		public abstract SecurityAction Action { get; set; }
+		public SecurityAction Action {
+			get { return action; }
+			set { action = value; }
+		}
+		/// <summary/>
+		protected SecurityAction action;
 
 		/// <summary>
 		/// From column DeclSecurity.PermissionSet
 		/// </summary>
-		public abstract ThreadSafe.IList<SecurityAttribute> SecurityAttributes { get; }
+		public ThreadSafe.IList<SecurityAttribute> SecurityAttributes {
+			get {
+				if (securityAttributes == null)
+					InitializeSecurityAttributes();
+				return securityAttributes;
+			}
+		}
+		/// <summary/>
+		protected ThreadSafe.IList<SecurityAttribute> securityAttributes;
+		/// <summary>Initializes <see cref="securityAttributes"/></summary>
+		protected virtual void InitializeSecurityAttributes() {
+			Interlocked.CompareExchange(ref securityAttributes, ThreadSafeListCreator.Create<SecurityAttribute>(), null);
+		}
 
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
-		public abstract CustomAttributeCollection CustomAttributes { get; }
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes == null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() {
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
@@ -100,26 +129,6 @@ namespace dnlib.DotNet {
 	/// A DeclSecurity row created by the user and not present in the original .NET file
 	/// </summary>
 	public class DeclSecurityUser : DeclSecurity {
-		SecurityAction action;
-		readonly ThreadSafe.IList<SecurityAttribute> securityAttrs = ThreadSafeListCreator.Create<SecurityAttribute>();
-		readonly CustomAttributeCollection customAttributeCollection = new CustomAttributeCollection();
-
-		/// <inheritdoc/>
-		public override SecurityAction Action {
-			get { return action; }
-			set { action = value; }
-		}
-
-		/// <inheritdoc/>
-		public override ThreadSafe.IList<SecurityAttribute> SecurityAttributes {
-			get { return securityAttrs; }
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get { return customAttributeCollection; }
-		}
-
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -133,7 +142,7 @@ namespace dnlib.DotNet {
 		/// <param name="securityAttrs">The security attributes (now owned by this)</param>
 		public DeclSecurityUser(SecurityAction action, IList<SecurityAttribute> securityAttrs) {
 			this.action = action;
-			this.securityAttrs = ThreadSafeListCreator.MakeThreadSafe(securityAttrs);
+			this.securityAttributes = ThreadSafeListCreator.MakeThreadSafe(securityAttrs);
 		}
 
 		/// <inheritdoc/>
@@ -148,16 +157,9 @@ namespace dnlib.DotNet {
 	sealed class DeclSecurityMD : DeclSecurity, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
-		/// <summary>The raw table row. It's <c>null</c> until <see cref="InitializeRawRow_NoLock"/> is called</summary>
-		RawDeclSecurityRow rawRow;
 
 		readonly uint origRid;
-		UserValue<SecurityAction> action;
-		ThreadSafe.IList<SecurityAttribute> securityAttrs;
-		CustomAttributeCollection customAttributeCollection;
-#if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
-#endif
+		readonly uint permissionSet;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -165,40 +167,17 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override SecurityAction Action {
-			get { return action.Value; }
-			set { action.Value = value; }
+		protected override void InitializeSecurityAttributes() {
+			var gpContext = new GenericParamContext();
+			var tmp = DeclSecurityReader.Read(readerModule, permissionSet, gpContext);
+			Interlocked.CompareExchange(ref securityAttributes, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<SecurityAttribute> SecurityAttributes {
-			get {
-				if (securityAttrs != null)
-					return securityAttrs;
-#if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
-				if (securityAttrs != null)
-					return securityAttrs;
-#endif
-				InitializeRawRow_NoLock();
-				var gpContext = new GenericParamContext();
-				return securityAttrs = DeclSecurityReader.Read(readerModule, rawRow.PermissionSet, gpContext);
-#if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
-#endif
-			}
-		}
-
-		/// <inheritdoc/>
-		public override CustomAttributeCollection CustomAttributes {
-			get {
-				if (customAttributeCollection == null) {
-					var list = readerModule.MetaData.GetCustomAttributeRidList(Table.DeclSecurity, origRid);
-					var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
-					Interlocked.CompareExchange(ref customAttributeCollection, tmp, null);
-				}
-				return customAttributeCollection;
-			}
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.DeclSecurity, origRid);
+			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <summary>
@@ -218,35 +197,14 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			Initialize();
-		}
-
-		void Initialize() {
-			action.ReadOriginalValue = () => {
-				InitializeRawRow_NoLock();
-				return (SecurityAction)rawRow.Action;
-			};
-#if THREAD_SAFE
-			action.Lock = theLock;
-#endif
-		}
-
-		void InitializeRawRow_NoLock() {
-			if (rawRow != null)
-				return;
-			rawRow = readerModule.TablesStream.ReadDeclSecurityRow(origRid);
+			var rawRow = readerModule.TablesStream.ReadDeclSecurityRow(origRid);
+			action = (SecurityAction)rawRow.Action;
+			permissionSet = rawRow.PermissionSet;
 		}
 
 		/// <inheritdoc/>
 		public override byte[] GetBlob() {
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			InitializeRawRow_NoLock();
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
-			return readerModule.BlobStream.Read(rawRow.PermissionSet);
+			return readerModule.BlobStream.Read(permissionSet);
 		}
 	}
 }
