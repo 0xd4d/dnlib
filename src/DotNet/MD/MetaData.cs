@@ -442,7 +442,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public uint GetOwnerTypeOfField(uint fieldRid) {
-			if (fieldRidToTypeDefRid == null) 
+			if (fieldRidToTypeDefRid == null)
 				InitializeInverseFieldOwnerRidList();
 			uint index = fieldRid - 1;
 			if (index >= fieldRidToTypeDefRid.LongLength)

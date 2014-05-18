@@ -51,7 +51,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class ModuleDefMD : ModuleDefMD2, IInstructionOperandResolver, ISignatureReaderHelper {
 		/// <summary>The file that contains all .NET metadata</summary>
-		DotNetFile dnFile;
+		MetaData metaData;
 		IMethodDecrypter methodDecrypter;
 		IStringDecrypter stringDecrypter;
 
@@ -100,52 +100,45 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Returns the .NET file
-		/// </summary>
-		public DotNetFile DotNetFile {
-			get { return dnFile; }
-		}
-
-		/// <summary>
 		/// Returns the .NET metadata interface
 		/// </summary>
 		public IMetaData MetaData {
-			get { return dnFile.MetaData; }
+			get { return metaData; }
 		}
 
 		/// <summary>
 		/// Returns the #~ or #- tables stream
 		/// </summary>
 		public TablesStream TablesStream {
-			get { return dnFile.MetaData.TablesStream; }
+			get { return metaData.TablesStream; }
 		}
 
 		/// <summary>
 		/// Returns the #Strings stream
 		/// </summary>
 		public StringsStream StringsStream {
-			get { return dnFile.MetaData.StringsStream; }
+			get { return metaData.StringsStream; }
 		}
 
 		/// <summary>
 		/// Returns the #Blob stream
 		/// </summary>
 		public BlobStream BlobStream {
-			get { return dnFile.MetaData.BlobStream; }
+			get { return metaData.BlobStream; }
 		}
 
 		/// <summary>
 		/// Returns the #GUID stream
 		/// </summary>
 		public GuidStream GuidStream {
-			get { return dnFile.MetaData.GuidStream; }
+			get { return metaData.GuidStream; }
 		}
 
 		/// <summary>
 		/// Returns the #US stream
 		/// </summary>
 		public USStream USStream {
-			get { return dnFile.MetaData.USStream; }
+			get { return metaData.USStream; }
 		}
 
 		/// <inheritdoc/>
@@ -171,12 +164,12 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override Win32Resources GetWin32Resources_NoLock() {
-			return dnFile.MetaData.PEImage.Win32Resources;
+			return metaData.PEImage.Win32Resources;
 		}
 
 		/// <inheritdoc/>
 		protected override VTableFixups GetVTableFixups_NoLock() {
-			var vtableFixupsInfo = dnFile.MetaData.ImageCor20Header.VTableFixups;
+			var vtableFixupsInfo = metaData.ImageCor20Header.VTableFixups;
 			if (vtableFixupsInfo.VirtualAddress == 0 || vtableFixupsInfo.Size == 0)
 				return null;
 			return new VTableFixups(this);
@@ -198,15 +191,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(string fileName, ModuleContext context) {
-			DotNetFile dnFile = null;
-			try {
-				return Load(dnFile = DotNetFile.Load(fileName), context);
-			}
-			catch {
-				if (dnFile != null)
-					dnFile.Dispose();
-				throw;
-			}
+			return Load(MetaDataCreator.Load(fileName), context);
 		}
 
 		/// <summary>
@@ -225,15 +210,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(byte[] data, ModuleContext context) {
-			DotNetFile dnFile = null;
-			try {
-				return Load(dnFile = DotNetFile.Load(data), context);
-			}
-			catch {
-				if (dnFile != null)
-					dnFile.Dispose();
-				throw;
-			}
+			return Load(MetaDataCreator.Load(data), context);
 		}
 
 		/// <summary>
@@ -292,15 +269,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) {
-			DotNetFile dnFile = null;
-			try {
-				return Load(dnFile = DotNetFile.Load(addr), context);
-			}
-			catch {
-				if (dnFile != null)
-					dnFile.Dispose();
-				throw;
-			}
+			return Load(MetaDataCreator.Load(addr), context);
 		}
 
 		/// <summary>
@@ -311,15 +280,7 @@ namespace dnlib.DotNet {
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) {
-			DotNetFile dnFile = null;
-			try {
-				return Load(dnFile = DotNetFile.Load(addr, imageLayout), context);
-			}
-			catch {
-				if (dnFile != null)
-					dnFile.Dispose();
-				throw;
-			}
+			return Load(MetaDataCreator.Load(addr, imageLayout), context);
 		}
 
 		/// <summary>
@@ -356,41 +317,41 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="DotNetFile"/>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="MetaData"/>
 		/// </summary>
-		/// <param name="dnFile">The loaded .NET file</param>
-		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="dnFile"/></returns>
-		public static ModuleDefMD Load(DotNetFile dnFile) {
-			return Load(dnFile, null);
+		/// <param name="metaData">The metadata</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="metaData"/></returns>
+		internal static ModuleDefMD Load(MetaData metaData) {
+			return Load(metaData, null);
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="DotNetFile"/>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="MetaData"/>
 		/// </summary>
-		/// <param name="dnFile">The loaded .NET file</param>
+		/// <param name="metaData">The metadata</param>
 		/// <param name="context">Module context or <c>null</c></param>
-		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="dnFile"/></returns>
-		public static ModuleDefMD Load(DotNetFile dnFile, ModuleContext context) {
-			return new ModuleDefMD(dnFile, context);
+		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="metaData"/></returns>
+		internal static ModuleDefMD Load(MetaData metaData, ModuleContext context) {
+			return new ModuleDefMD(metaData, context);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="dnFile">The loaded .NET file</param>
+		/// <param name="metaData">The metadata</param>
 		/// <param name="context">Module context or <c>null</c></param>
-		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
-		ModuleDefMD(DotNetFile dnFile, ModuleContext context)
+		/// <exception cref="ArgumentNullException">If <paramref name="metaData"/> is <c>null</c></exception>
+		ModuleDefMD(MetaData metaData, ModuleContext context)
 			: base(null, 1) {
 #if DEBUG
-			if (dnFile == null)
-				throw new ArgumentNullException("dnFile");
+			if (metaData == null)
+				throw new ArgumentNullException("metaData");
 #endif
-			this.dnFile = dnFile;
+			this.metaData = metaData;
 			this.context = context;
 			Initialize();
 			InitializeFromRawRow();
-			location = dnFile.MetaData.PEImage.FileName ?? string.Empty;
+			location = metaData.PEImage.FileName ?? string.Empty;
 
 			this.Kind = GetKind();
 			this.Characteristics = MetaData.PEImage.ImageNTHeaders.FileHeader.Characteristics;
@@ -422,7 +383,7 @@ namespace dnlib.DotNet {
 		}
 
 		void Initialize() {
-			var ts = dnFile.MetaData.TablesStream;
+			var ts = metaData.TablesStream;
 
 			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == 1 ? this : new ModuleDefMD2(this, rid2));
 			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.TypeRefTable.Rows, rid2 => new TypeRefMD(this, rid2));
@@ -526,13 +487,13 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
 			// Call base first since it will dispose of all the resources, which will
-			// eventually use dnFile that we will dispose
+			// eventually use metaData that we will dispose
 			base.Dispose(disposing);
 			if (disposing) {
-				var dnf = dnFile;
-				if (dnf != null)
-					dnf.Dispose();
-				dnFile = null;
+				var md = metaData;
+				if (md != null)
+					md.Dispose();
+				metaData = null;
 			}
 		}
 
@@ -1316,8 +1277,8 @@ namespace dnlib.DotNet {
 			// If we create a partial stream starting from rva, then position will be 0 and always
 			// 4-byte aligned. All fat method bodies should be 4-byte aligned, but the CLR doesn't
 			// seem to verify it. We must parse the method exactly the way the CLR parses it.
-			using (var reader = dnFile.MetaData.PEImage.CreateFullStream()) {
-				reader.Position = (long)dnFile.MetaData.PEImage.ToFileOffset(rva);
+			using (var reader = metaData.PEImage.CreateFullStream()) {
+				reader.Position = (long)metaData.PEImage.ToFileOffset(rva);
 				return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext);
 			}
 		}
@@ -1536,8 +1497,8 @@ namespace dnlib.DotNet {
 		IImageStream CreateResourceStream(uint offset) {
 			IImageStream fs = null, imageStream = null;
 			try {
-				var peImage = dnFile.MetaData.PEImage;
-				var cor20Header = dnFile.MetaData.ImageCor20Header;
+				var peImage = metaData.PEImage;
+				var cor20Header = metaData.ImageCor20Header;
 				var resources = cor20Header.Resources;
 				if (resources.VirtualAddress == 0 || resources.Size == 0)
 					return MemoryImageStream.CreateEmpty();

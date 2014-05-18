@@ -567,30 +567,30 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Creates an <see cref="AssemblyDef"/> instance from a <see cref="DotNetFile"/>
+		/// Creates an <see cref="AssemblyDef"/> instance from a <see cref="MetaDataCreator"/>
 		/// </summary>
-		/// <param name="dnFile">The loaded .NET file</param>
-		/// <returns>A new <see cref="AssemblyDef"/> instance that now owns <paramref name="dnFile"/></returns>
-		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
+		/// <param name="metaData">The metadata</param>
+		/// <returns>A new <see cref="AssemblyDef"/> instance that now owns <paramref name="metaData"/></returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="metaData"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(DotNetFile dnFile) {
-			return Load(dnFile, null);
+		internal static AssemblyDef Load(MD.MetaData metaData) {
+			return Load(metaData, null);
 		}
 
 		/// <summary>
-		/// Creates an <see cref="AssemblyDef"/> instance from a <see cref="DotNetFile"/>
+		/// Creates an <see cref="AssemblyDef"/> instance from a <see cref="MetaDataCreator"/>
 		/// </summary>
-		/// <param name="dnFile">The loaded .NET file</param>
+		/// <param name="metaData">The metadata</param>
 		/// <param name="context">Module context or <c>null</c></param>
-		/// <returns>A new <see cref="AssemblyDef"/> instance that now owns <paramref name="dnFile"/></returns>
-		/// <exception cref="ArgumentNullException">If <paramref name="dnFile"/> is <c>null</c></exception>
+		/// <returns>A new <see cref="AssemblyDef"/> instance that now owns <paramref name="metaData"/></returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="metaData"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(DotNetFile dnFile, ModuleContext context) {
-			if (dnFile == null)
-				throw new ArgumentNullException("dnFile");
+		internal static AssemblyDef Load(MD.MetaData metaData, ModuleContext context) {
+			if (metaData == null)
+				throw new ArgumentNullException("metaData");
 			ModuleDef module = null;
 			try {
-				module = ModuleDefMD.Load(dnFile, context);
+				module = ModuleDefMD.Load(metaData, context);
 				var asm = module.Assembly;
 				if (asm == null)
 					throw new BadImageFormatException(string.Format("{0} is only a .NET module, not a .NET assembly. Use ModuleDef.Load().", module.ToString()));
