@@ -97,7 +97,7 @@ namespace dnlib.DotNet.MD {
 #pragma warning restore
 
 #if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
+		internal readonly Lock theLock = Lock.Create();
 #endif
 
 		internal HotTableStream HotTableStream {

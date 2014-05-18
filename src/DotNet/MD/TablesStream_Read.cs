@@ -44,7 +44,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawModuleRow ReadModuleRow(uint rid) {
 			var table = ModuleTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -68,7 +68,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeRefRow ReadTypeRefRow(uint rid) {
 			var table = TypeRefTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -90,7 +90,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeDefRow ReadTypeDefRow(uint rid) {
 			var table = TypeDefTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -115,7 +115,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldPtrRow ReadFieldPtrRow(uint rid) {
 			var table = FieldPtrTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -135,7 +135,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldRow ReadFieldRow(uint rid) {
 			var table = FieldTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -157,7 +157,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodPtrRow ReadMethodPtrRow(uint rid) {
 			var table = MethodPtrTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -177,7 +177,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodRow ReadMethodRow(uint rid) {
 			var table = MethodTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 			var mrr = methodRowReader;
 			if (mrr != null) {
@@ -208,7 +208,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawParamPtrRow ReadParamPtrRow(uint rid) {
 			var table = ParamPtrTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -228,7 +228,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawParamRow ReadParamRow(uint rid) {
 			var table = ParamTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -250,7 +250,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawInterfaceImplRow ReadInterfaceImplRow(uint rid) {
 			var table = InterfaceImplTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -271,7 +271,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMemberRefRow ReadMemberRefRow(uint rid) {
 			var table = MemberRefTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -293,7 +293,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawConstantRow ReadConstantRow(uint rid) {
 			var table = ConstantTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -316,7 +316,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawCustomAttributeRow ReadCustomAttributeRow(uint rid) {
 			var table = CustomAttributeTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -338,7 +338,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldMarshalRow ReadFieldMarshalRow(uint rid) {
 			var table = FieldMarshalTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -359,7 +359,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawDeclSecurityRow ReadDeclSecurityRow(uint rid) {
 			var table = DeclSecurityTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -381,7 +381,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawClassLayoutRow ReadClassLayoutRow(uint rid) {
 			var table = ClassLayoutTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -403,7 +403,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldLayoutRow ReadFieldLayoutRow(uint rid) {
 			var table = FieldLayoutTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -424,7 +424,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawStandAloneSigRow ReadStandAloneSigRow(uint rid) {
 			var table = StandAloneSigTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -444,7 +444,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventMapRow ReadEventMapRow(uint rid) {
 			var table = EventMapTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -465,7 +465,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventPtrRow ReadEventPtrRow(uint rid) {
 			var table = EventPtrTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -485,7 +485,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawEventRow ReadEventRow(uint rid) {
 			var table = EventTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -507,7 +507,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyMapRow ReadPropertyMapRow(uint rid) {
 			var table = PropertyMapTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -528,7 +528,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyPtrRow ReadPropertyPtrRow(uint rid) {
 			var table = PropertyPtrTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -548,7 +548,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawPropertyRow ReadPropertyRow(uint rid) {
 			var table = PropertyTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -570,7 +570,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodSemanticsRow ReadMethodSemanticsRow(uint rid) {
 			var table = MethodSemanticsTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -592,7 +592,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodImplRow ReadMethodImplRow(uint rid) {
 			var table = MethodImplTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -614,7 +614,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawModuleRefRow ReadModuleRefRow(uint rid) {
 			var table = ModuleRefTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -634,7 +634,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawTypeSpecRow ReadTypeSpecRow(uint rid) {
 			var table = TypeSpecTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -654,7 +654,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawImplMapRow ReadImplMapRow(uint rid) {
 			var table = ImplMapTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -677,7 +677,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFieldRVARow ReadFieldRVARow(uint rid) {
 			var table = FieldRVATable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -698,7 +698,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawENCLogRow ReadENCLogRow(uint rid) {
 			var table = ENCLogTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -718,7 +718,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawENCMapRow ReadENCMapRow(uint rid) {
 			var table = ENCMapTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -737,7 +737,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRow ReadAssemblyRow(uint rid) {
 			var table = AssemblyTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -765,7 +765,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyProcessorRow ReadAssemblyProcessorRow(uint rid) {
 			var table = AssemblyProcessorTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -784,7 +784,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyOSRow ReadAssemblyOSRow(uint rid) {
 			var table = AssemblyOSTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -805,7 +805,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefRow ReadAssemblyRefRow(uint rid) {
 			var table = AssemblyRefTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -833,7 +833,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefProcessorRow ReadAssemblyRefProcessorRow(uint rid) {
 			var table = AssemblyRefProcessorTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -854,7 +854,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawAssemblyRefOSRow ReadAssemblyRefOSRow(uint rid) {
 			var table = AssemblyRefOSTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -877,7 +877,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawFileRow ReadFileRow(uint rid) {
 			var table = FileTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -899,7 +899,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawExportedTypeRow ReadExportedTypeRow(uint rid) {
 			var table = ExportedTypeTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -923,7 +923,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawManifestResourceRow ReadManifestResourceRow(uint rid) {
 			var table = ManifestResourceTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -946,7 +946,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawNestedClassRow ReadNestedClassRow(uint rid) {
 			var table = NestedClassTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -967,7 +967,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawGenericParamRow ReadGenericParamRow(uint rid) {
 			var table = GenericParamTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -997,7 +997,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawMethodSpecRow ReadMethodSpecRow(uint rid) {
 			var table = MethodSpecTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -1018,7 +1018,7 @@ using dnlib.IO;
 		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
 		public RawGenericParamConstraintRow ReadGenericParamConstraintRow(uint rid) {
 			var table = GenericParamConstraintTable;
-			if (table == null || table.IsInvalidRID(rid))
+			if (table.IsInvalidRID(rid))
 				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -1053,7 +1053,7 @@ using dnlib.IO;
 		/// <param name="value">Result is put here or 0 if we return <c>false</c></param>
 		/// <returns><c>true</c> if we could read the column, <c>false</c> otherwise</returns>
 		public bool ReadColumn(MDTable table, uint rid, ColumnInfo column, out uint value) {
-			if (table == null || table.IsInvalidRID(rid)) {
+			if (table.IsInvalidRID(rid)) {
 				value = 0;
 				return false;
 			}
@@ -1069,6 +1069,28 @@ using dnlib.IO;
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
+			return true;
+		}
+
+		/// <summary>
+		/// Reads a column
+		/// </summary>
+		/// <param name="table">The table</param>
+		/// <param name="rid">Row ID</param>
+		/// <param name="column">Column</param>
+		/// <param name="value">Result is put here or 0 if we return <c>false</c></param>
+		/// <returns><c>true</c> if we could read the column, <c>false</c> otherwise</returns>
+		internal bool ReadColumn_NoLock(MDTable table, uint rid, ColumnInfo column, out uint value) {
+			if (table.IsInvalidRID(rid)) {
+				value = 0;
+				return false;
+			}
+			var cr = columnReader;
+			if (cr != null && cr.ReadColumn(table, rid, column, out value))
+				return true;
+			var reader = GetReader_NoLock(table, rid);
+			reader.Position += column.Offset;
+			value = column.Read(reader);
 			return true;
 		}
 	}

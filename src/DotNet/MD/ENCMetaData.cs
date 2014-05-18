@@ -473,11 +473,17 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
 			var column = tableSource.TableInfo.Columns[colIndex];
-			uint startRid;
-			if (!tablesStream.ReadColumn(tableSource, tableSourceRid, column, out startRid))
+			uint startRid, nextListRid;
+			bool hasNext;
+#if THREAD_SAFE
+			tablesStream.theLock.EnterWriteLock(); try {
+#endif
+			if (!tablesStream.ReadColumn_NoLock(tableSource, tableSourceRid, column, out startRid))
 				return RidList.Empty;
-			uint nextListRid;
-			bool hasNext = tablesStream.ReadColumn(tableSource, tableSourceRid + 1, column, out nextListRid);
+			hasNext = tablesStream.ReadColumn_NoLock(tableSource, tableSourceRid + 1, column, out nextListRid);
+#if THREAD_SAFE
+			} finally { tablesStream.theLock.ExitWriteLock(); }
+#endif
 
 			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
@@ -491,15 +497,13 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override uint BinarySearch(MDTable tableSource, int keyColIndex, uint key) {
-			if (tableSource == null)
-				return 0;
+		protected override uint BinarySearch_NoLock(MDTable tableSource, int keyColIndex, uint key) {
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
 				uint key2;
-				if (!tablesStream.ReadColumn(tableSource, rid, keyColumn, out key2))
+				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;
@@ -510,7 +514,7 @@ namespace dnlib.DotNet.MD {
 			}
 
 			if (tableSource.Table == Table.GenericParam && !tablesStream.IsSorted(tableSource))
-				return LinearSearch(tableSource, keyColIndex, key);
+				return LinearSearch_NoLock(tableSource, keyColIndex, key);
 
 			return 0;
 		}
@@ -523,13 +527,13 @@ namespace dnlib.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
-		uint LinearSearch(MDTable tableSource, int keyColIndex, uint key) {
+		uint LinearSearch_NoLock(MDTable tableSource, int keyColIndex, uint key) {
 			if (tableSource == null)
 				return 0;
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
 				uint key2;
-				if (!tablesStream.ReadColumn(tableSource, rid, keyColumn, out key2))
+				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;
@@ -539,8 +543,6 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		protected override RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) {
-			if (tableSource == null)
-				return RidList.Empty;
 			if (tablesStream.IsSorted(tableSource))
 				return FindAllRows(tableSource, keyColIndex, key);
 			SortedTable sortedTable;
