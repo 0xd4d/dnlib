@@ -454,11 +454,11 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadEventRow(origRid);
-			attributes = (int)rawRow.EventFlags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			declaringType2 = readerModule.GetOwnerType(this);
-			eventType = readerModule.ResolveTypeDefOrRef(rawRow.EventType, new GenericParamContext(declaringType2));
+			uint name;
+			uint eventType = readerModule.TablesStream.ReadEventRow(origRid, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.declaringType2 = readerModule.GetOwnerType(this);
+			this.eventType = readerModule.ResolveTypeDefOrRef(eventType, new GenericParamContext(declaringType2));
 		}
 
 		internal EventDefMD InitializeAll() {

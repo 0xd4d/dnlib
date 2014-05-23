@@ -390,8 +390,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
-			var rawRow = readerModule.TablesStream.ReadTypeSpecRow(origRid);
-			signatureOffset = rawRow.Signature;
+			this.signatureOffset = readerModule.TablesStream.ReadTypeSpecRow2(origRid);
 		}
 	}
 }

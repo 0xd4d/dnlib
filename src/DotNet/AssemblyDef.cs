@@ -1006,13 +1006,11 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			if (rid != 1)
 				this.modules = new LazyList<ModuleDef>(this);
-			var rawRow = readerModule.TablesStream.ReadAssemblyRow(origRid);
-			attributes = (int)rawRow.Flags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			culture = readerModule.StringsStream.ReadNoNull(rawRow.Locale);
-			hashAlgorithm = (AssemblyHashAlgorithm)rawRow.HashAlgId;
-			version = new Version(rawRow.MajorVersion, rawRow.MinorVersion, rawRow.BuildNumber, rawRow.RevisionNumber);
-			publicKey = new PublicKey(readerModule.BlobStream.Read(rawRow.PublicKey));
+			uint publicKey, name;
+			uint culture = readerModule.TablesStream.ReadAssemblyRow(origRid, out this.hashAlgorithm, out this.version, out this.attributes, out publicKey, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.culture = readerModule.StringsStream.ReadNoNull(culture);
+			this.publicKey = new PublicKey(readerModule.BlobStream.Read(publicKey));
 		}
 	}
 }

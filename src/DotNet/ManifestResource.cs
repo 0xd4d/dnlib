@@ -239,11 +239,10 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadManifestResourceRow(origRid);
-			offset = rawRow.Offset;
-			attributes = (int)rawRow.Flags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			implementation = readerModule.ResolveImplementation(rawRow.Implementation);
+			uint name;
+			uint implementation = readerModule.TablesStream.ReadManifestResourceRow(origRid, out this.offset, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.implementation = readerModule.ResolveImplementation(implementation);
 		}
 	}
 }

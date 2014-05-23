@@ -1167,15 +1167,13 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadMethodRow(origRid);
-			rva = (RVA)rawRow.RVA;
-			implAttributes = (int)rawRow.ImplFlags;
-			attributes = (int)rawRow.Flags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			origRva = (RVA)rawRow.RVA;
-			origImplAttributes = (MethodImplAttributes)rawRow.ImplFlags;
-			declaringType2 = readerModule.GetOwnerType(this);
-			signature = readerModule.ReadSignature(rawRow.Signature, new GenericParamContext(declaringType2, this));
+			uint name;
+			uint signature = readerModule.TablesStream.ReadMethodRow(origRid, out this.rva, out this.implAttributes, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.origRva = rva;
+			this.origImplAttributes = (MethodImplAttributes)implAttributes;
+			this.declaringType2 = readerModule.GetOwnerType(this);
+			this.signature = readerModule.ReadSignature(signature, new GenericParamContext(declaringType2, this));
 			this.parameterList = new ParameterList(this, declaringType2);
 		}
 

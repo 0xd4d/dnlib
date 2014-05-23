@@ -211,8 +211,8 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
-			var rawRow = readerModule.TablesStream.ReadModuleRefRow(origRid);
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			uint name = readerModule.TablesStream.ReadModuleRefRow2(origRid);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
 		}
 	}
 }

@@ -119,9 +119,7 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadClassLayoutRow(origRid);
-			packingSize = rawRow.PackingSize;
-			classSize = rawRow.ClassSize;
+			this.classSize = readerModule.TablesStream.ReadClassLayoutRow(origRid, out this.packingSize);
 		}
 	}
 }

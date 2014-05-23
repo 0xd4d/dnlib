@@ -350,10 +350,10 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadImplMapRow(origRid);
-			attributes = (int)rawRow.MappingFlags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.ImportName);
-			module = readerModule.ResolveModuleRef(rawRow.ImportScope);
+			uint name;
+			uint scope = readerModule.TablesStream.ReadImplMapRow(origRid, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.module = readerModule.ResolveModuleRef(scope);
 		}
 	}
 }

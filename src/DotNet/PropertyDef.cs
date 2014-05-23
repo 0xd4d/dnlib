@@ -484,7 +484,6 @@ namespace dnlib.DotNet {
 		readonly ModuleDefMD readerModule;
 
 		readonly uint origRid;
-		readonly uint typeSignature;
 
 		/// <inheritdoc/>
 		public uint OrigRid {
@@ -520,12 +519,11 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadPropertyRow(origRid);
-			attributes = (int)rawRow.PropFlags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			typeSignature = rawRow.Type;
-			declaringType2 = readerModule.GetOwnerType(this);
-			type = readerModule.ReadSignature(typeSignature, new GenericParamContext(declaringType2));
+			uint name;
+			uint type = readerModule.TablesStream.ReadPropertyRow(origRid, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.declaringType2 = readerModule.GetOwnerType(this);
+			this.type = readerModule.ReadSignature(type, new GenericParamContext(declaringType2));
 		}
 
 		internal PropertyDefMD InitializeAll() {

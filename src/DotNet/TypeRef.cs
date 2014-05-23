@@ -439,10 +439,11 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
-			var rawRow = readerModule.TablesStream.ReadTypeRefRow(origRid);
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			@namespace = readerModule.StringsStream.ReadNoNull(rawRow.Namespace);
-			resolutionScopeCodedToken = rawRow.ResolutionScope;
+			uint resolutionScope, name;
+			uint @namespace = readerModule.TablesStream.ReadTypeRefRow(origRid, out resolutionScope, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.@namespace = readerModule.StringsStream.ReadNoNull(@namespace);
+			this.resolutionScopeCodedToken = resolutionScope;
 		}
 	}
 }

@@ -150,9 +150,8 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadConstantRow(origRid);
-			type = (ElementType)rawRow.Type;
-			value = GetValue((ElementType)rawRow.Type, readerModule.BlobStream.ReadNoNull(rawRow.Value));
+			uint value = readerModule.TablesStream.ReadConstantRow(origRid, out this.type);
+			this.value = GetValue(this.type, readerModule.BlobStream.ReadNoNull(value));
 		}
 
 		static object GetValue(ElementType etype, byte[] data) {

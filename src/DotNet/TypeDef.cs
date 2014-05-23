@@ -1933,8 +1933,8 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override TypeDef GetDeclaringType2_NoLock() {
-			var row = readerModule.TablesStream.ReadNestedClassRow(readerModule.MetaData.GetNestedClassRid(origRid));
-			return row == null ? null : readerModule.ResolveTypeDef(row.EnclosingClass);
+			uint enclosingClass = readerModule.TablesStream.ReadNestedClassRow2(readerModule.MetaData.GetNestedClassRid(origRid));
+			return enclosingClass == 0 ? null : readerModule.ResolveTypeDef(enclosingClass);
 		}
 
 		TypeDef DeclaringType2_NoLock {
@@ -1999,11 +1999,10 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadTypeDefRow(origRid);
-			attributes = (int)rawRow.Flags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			@namespace = readerModule.StringsStream.ReadNoNull(rawRow.Namespace);
-			extendsCodedToken = rawRow.Extends;
+			uint name, @namespace;
+			extendsCodedToken = readerModule.TablesStream.ReadTypeDefRow(origRid, out this.attributes, out name, out @namespace);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.@namespace = readerModule.StringsStream.ReadNoNull(@namespace);
 		}
 
 		/// <summary>
@@ -2049,12 +2048,11 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodImplRidList(origRid);
 			for (uint i = 0; i < ridList.Length; i++) {
-				var methodImpl = readerModule.TablesStream.ReadMethodImplRow(ridList[i]);
-				if (methodImpl == null)
-					continue;	// Should never happen since rid should be valid
+				uint methodBodyToken;
+				uint methodDeclToken = readerModule.TablesStream.ReadMethodImplRow(ridList[i], out methodBodyToken);
 
-				var methodBody = readerModule.ResolveMethodDefOrRef(methodImpl.MethodBody);
-				var methodDecl = readerModule.ResolveMethodDefOrRef(methodImpl.MethodDeclaration);
+				var methodBody = readerModule.ResolveMethodDefOrRef(methodBodyToken);
+				var methodDecl = readerModule.ResolveMethodDefOrRef(methodDeclToken);
 				if (methodBody == null || methodDecl == null)
 					continue;	// Should only happen if some obfuscator added invalid metadata
 
@@ -2133,16 +2131,15 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, prop.OrigRid);
 			for (uint i = 0; i < ridList.Length; i++) {
-				var rawRow = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i]);
-				if (rawRow == null)
-					continue;	// Should never happen
+				MethodSemanticsAttributes semantic;
+				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out semantic);
 
-				var method = readerModule.ResolveMethod(rawRow.Method);
+				var method = readerModule.ResolveMethod(methodToken);
 				if (method == null || method.DeclaringType != prop.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
-				switch ((MethodSemanticsAttributes)rawRow.Semantic) {
+				switch (semantic) {
 				case MethodSemanticsAttributes.Setter:
 					if (setMethod == null)
 						setMethod = method;
@@ -2183,16 +2180,15 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, evt.OrigRid);
 			for (uint i = 0; i < ridList.Length; i++) {
-				var rawRow = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i]);
-				if (rawRow == null)
-					continue;	// Should never happen
+				MethodSemanticsAttributes semantic;
+				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out semantic);
 
-				var method = readerModule.ResolveMethod(rawRow.Method);
+				var method = readerModule.ResolveMethod(methodToken);
 				if (method == null || method.DeclaringType != evt.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
-				switch ((MethodSemanticsAttributes)rawRow.Semantic) {
+				switch (semantic) {
 				case MethodSemanticsAttributes.AddOn:
 					if (addMethod == null)
 						addMethod = method;

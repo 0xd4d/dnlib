@@ -157,9 +157,9 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadGenericParamConstraintRow(origRid);
-			constraint = readerModule.ResolveTypeDefOrRef(rawRow.Constraint, gpContext);
-			owner = readerModule.GetOwner(this);
+			uint constraint = readerModule.TablesStream.ReadGenericParamConstraintRow2(origRid);
+			this.constraint = readerModule.ResolveTypeDefOrRef(constraint, gpContext);
+			this.owner = readerModule.GetOwner(this);
 		}
 
 		internal GenericParamConstraintMD InitializeAll() {

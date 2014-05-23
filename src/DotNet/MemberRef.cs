@@ -535,10 +535,11 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
-			var rawRow = readerModule.TablesStream.ReadMemberRefRow(origRid);
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			@class = readerModule.ResolveMemberRefParent(rawRow.Class, gpContext);
-			signature = readerModule.ReadSignature(rawRow.Signature, gpContext);
+			uint @class, name;
+			uint signature = readerModule.TablesStream.ReadMemberRefRow(origRid, out @class, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.@class = readerModule.ResolveMemberRefParent(@class, gpContext);
+			this.signature = readerModule.ReadSignature(signature, gpContext);
 		}
 	}
 }

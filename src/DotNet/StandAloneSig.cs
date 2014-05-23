@@ -171,8 +171,8 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadStandAloneSigRow(origRid);
-			signature = readerModule.ReadSignature(rawRow.Signature, gpContext);
+			uint signature = readerModule.TablesStream.ReadStandAloneSigRow2(origRid);
+			this.signature = readerModule.ReadSignature(signature, gpContext);
 		}
 	}
 }

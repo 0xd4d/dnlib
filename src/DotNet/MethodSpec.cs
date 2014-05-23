@@ -307,9 +307,10 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadMethodSpecRow(origRid);
-			method = readerModule.ResolveMethodDefOrRef(rawRow.Method, gpContext);
-			instantiation = readerModule.ReadSignature(rawRow.Instantiation, gpContext);
+			uint method;
+			uint instantiation = readerModule.TablesStream.ReadMethodSpecRow(origRid, out method);
+			this.method = readerModule.ResolveMethodDefOrRef(method, gpContext);
+			this.instantiation = readerModule.ReadSignature(instantiation, gpContext);
 		}
 	}
 }

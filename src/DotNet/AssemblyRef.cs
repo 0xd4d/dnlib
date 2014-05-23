@@ -522,17 +522,16 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadAssemblyRefRow(origRid);
-			version = new Version(rawRow.MajorVersion, rawRow.MinorVersion, rawRow.BuildNumber, rawRow.RevisionNumber);
-			attributes = (int)rawRow.Flags;
-			var pkData = readerModule.BlobStream.Read(rawRow.PublicKeyOrToken);
-			if ((rawRow.Flags & (uint)AssemblyAttributes.PublicKey) != 0)
-				publicKeyOrToken = new PublicKey(pkData);
+			uint publicKeyOrToken, name, culture;
+			uint hashValue = readerModule.TablesStream.ReadAssemblyRefRow(origRid, out this.version, out this.attributes, out publicKeyOrToken, out name, out culture);
+			var pkData = readerModule.BlobStream.Read(publicKeyOrToken);
+			if ((this.attributes & (uint)AssemblyAttributes.PublicKey) != 0)
+				this.publicKeyOrToken = new PublicKey(pkData);
 			else
-				publicKeyOrToken = new PublicKeyToken(pkData);
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			culture = readerModule.StringsStream.ReadNoNull(rawRow.Locale);
-			hashValue = readerModule.BlobStream.Read(rawRow.HashValue);
+				this.publicKeyOrToken = new PublicKeyToken(pkData);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.culture = readerModule.StringsStream.ReadNoNull(culture);
+			this.hashValue = readerModule.BlobStream.Read(hashValue);
 		}
 	}
 }

@@ -1353,12 +1353,12 @@ namespace dnlib.DotNet {
 		/// Initialize fields from the raw <c>Module</c> row
 		/// </summary>
 		protected void InitializeFromRawRow() {
-			var rawRow = readerModule.TablesStream.ReadModuleRow(origRid) ?? new RawModuleRow();
-			generation = rawRow.Generation;
-			mvid = readerModule.GuidStream.Read(rawRow.Mvid);
-			encId = readerModule.GuidStream.Read(rawRow.EncId);
-			encBaseId = readerModule.GuidStream.Read(rawRow.EncBaseId);
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
+			uint name, mvid, encId;
+			uint encBaseId = readerModule.TablesStream.ReadModuleRow(origRid, out generation, out name, out mvid, out encId);
+			this.mvid = readerModule.GuidStream.Read(mvid);
+			this.encId = readerModule.GuidStream.Read(encId);
+			this.encBaseId = readerModule.GuidStream.Read(encBaseId);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
 			if (origRid == 1)
 				assembly = readerModule.ResolveAssembly(origRid);
 		}

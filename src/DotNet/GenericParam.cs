@@ -492,13 +492,12 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadGenericParamRow(origRid);
-			number = rawRow.Number;
-			attributes = (int)rawRow.Flags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			owner = readerModule.GetOwner(this);
-			if (rawRow.Kind != 0)
-				kind = readerModule.ResolveTypeDefOrRef(rawRow.Kind, GetGenericParamContext(owner));
+			uint name;
+			uint kind = readerModule.TablesStream.ReadGenericParamRow(origRid, out this.number, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.owner = readerModule.GetOwner(this);
+			if (kind != 0)
+				this.kind = readerModule.ResolveTypeDefOrRef(kind, GetGenericParamContext(owner));
 		}
 
 		internal GenericParamMD InitializeAll() {

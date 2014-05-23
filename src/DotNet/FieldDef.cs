@@ -861,8 +861,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override uint? GetFieldOffset_NoLock() {
-			var row = readerModule.TablesStream.ReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(origRid));
-			return row == null ? null : new uint?(row.OffSet);
+			return readerModule.TablesStream.ReadFieldLayoutRow2(readerModule.MetaData.GetFieldLayoutRid(origRid));
 		}
 
 		/// <inheritdoc/>
@@ -912,12 +911,12 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadFieldRow(origRid);
-			attributes = (int)rawRow.Flags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			origAttributes = (FieldAttributes)rawRow.Flags;
-			declaringType2 = readerModule.GetOwnerType(this);
-			signature = readerModule.ReadSignature(rawRow.Signature, new GenericParamContext(declaringType2));
+			uint name;
+			uint signature = readerModule.TablesStream.ReadFieldRow(origRid, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.origAttributes = (FieldAttributes)attributes;
+			this.declaringType2 = readerModule.GetOwnerType(this);
+			this.signature = readerModule.ReadSignature(signature, new GenericParamContext(declaringType2));
 		}
 
 		internal FieldDefMD InitializeAll() {
@@ -940,13 +939,7 @@ namespace dnlib.DotNet {
 				rva = 0;
 				return false;
 			}
-			var row = readerModule.TablesStream.ReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(origRid));
-			if (row == null) {
-				rva = 0;
-				return false;
-			}
-			rva = (RVA)row.RVA;
-			return true;
+			return readerModule.TablesStream.ReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(origRid), out rva);
 		}
 
 		byte[] ReadInitialValue_NoLock(RVA rva) {

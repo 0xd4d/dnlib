@@ -658,12 +658,10 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.module = readerModule;
-			var rawRow = readerModule.TablesStream.ReadExportedTypeRow(origRid);
-			attributes = (int)rawRow.Flags;
-			typeDefId = rawRow.TypeDefId;
-			typeName = readerModule.StringsStream.ReadNoNull(rawRow.TypeName);
-			typeNamespace = readerModule.StringsStream.ReadNoNull(rawRow.TypeNamespace);
-			implementationRid = rawRow.Implementation;
+			uint name, @namespace;
+			this.implementationRid = readerModule.TablesStream.ReadExportedTypeRow(origRid, out this.attributes, out this.typeDefId, out name, out @namespace);
+			this.typeName = readerModule.StringsStream.ReadNoNull(name);
+			this.typeNamespace = readerModule.StringsStream.ReadNoNull(@namespace);
 		}
 	}
 }

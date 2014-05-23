@@ -400,11 +400,9 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadParamRow(origRid);
-			attributes = (int)rawRow.Flags;
-			sequence = rawRow.Sequence;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			declaringMethod = readerModule.GetOwner(this);
+			uint name = readerModule.TablesStream.ReadParamRow(origRid, out this.attributes, out this.sequence);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.declaringMethod = readerModule.GetOwner(this);
 		}
 
 		internal ParamDefMD InitializeAll() {

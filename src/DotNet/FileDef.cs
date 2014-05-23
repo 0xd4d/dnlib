@@ -221,10 +221,10 @@ namespace dnlib.DotNet {
 			this.origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			var rawRow = readerModule.TablesStream.ReadFileRow(origRid);
-			attributes = (int)rawRow.Flags;
-			name = readerModule.StringsStream.ReadNoNull(rawRow.Name);
-			hashValue = readerModule.BlobStream.Read(rawRow.HashValue);
+			uint name;
+			uint hashValue = readerModule.TablesStream.ReadFileRow(origRid, out this.attributes, out name);
+			this.name = readerModule.StringsStream.ReadNoNull(name);
+			this.hashValue = readerModule.BlobStream.Read(hashValue);
 		}
 	}
 }
