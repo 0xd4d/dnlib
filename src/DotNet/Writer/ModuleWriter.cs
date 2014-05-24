@@ -272,12 +272,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long WriteFile() {
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 			var chunks = new List<IChunk>();
 			chunks.Add(peHeaders);
 			foreach (var section in sections)
 				chunks.Add(section);
-
-			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 			peHeaders.PESections = sections;
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peHeaders.FileAlignment, peHeaders.SectionAlignment);
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
