@@ -85,7 +85,10 @@ namespace dnlib.DotNet.Writer {
 			return GetFileLength();
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Gets the raw length of the heap
+		/// </summary>
+		/// <returns>Raw length of the heap</returns>
 		public abstract uint GetRawLength();
 
 		/// <inheritdoc/>

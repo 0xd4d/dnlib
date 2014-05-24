@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Updates a data directory
+		/// Writes a data directory
 		/// </summary>
 		/// <param name="writer">Writer</param>
 		/// <param name="chunk">The data</param>

@@ -27,7 +27,7 @@
 	/// </summary>
 	public interface IModuleWriterListener {
 		/// <summary>
-		/// Called by <see cref="ModuleWriter"/>
+		/// Called by <see cref="ModuleWriterBase"/> and its sub classes.
 		/// </summary>
 		/// <param name="writer">The module writer</param>
 		/// <param name="evt">Type of writer event</param>
