@@ -96,6 +96,7 @@ namespace dnlib.DotNet.Emit {
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnAdd(int index, Local value) {
+			value.Index = index;
 		}
 
 		/// <inheritdoc/>
