@@ -146,7 +146,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="CallingConventionSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature data</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
@@ -158,7 +158,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="CallingConventionSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature data</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
@@ -171,7 +171,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="CallingConventionSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
@@ -183,7 +183,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="CallingConventionSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
@@ -324,7 +324,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="TypeSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature data</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
@@ -336,7 +336,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="TypeSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature data</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
@@ -349,7 +349,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="TypeSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
@@ -361,7 +361,7 @@ namespace dnlib.DotNet {
 		/// Reads a <see cref="TypeSig"/> signature
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="signature">The signature reader which will be owned by us</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
@@ -398,7 +398,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="helper">Token resolver</param>
-		/// <param name="corLibTypes">ICorLibTypes instance</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
 		/// <param name="reader">The signature data</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		SignatureReader(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader reader, GenericParamContext gpContext) {
