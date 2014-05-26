@@ -600,20 +600,20 @@ namespace dnlib.DotNet.Writer {
 				Listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefCustomAttributesWritten);
 				break;
 
-			case MetaDataEvent.BeginWriteMethodBodies:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginWriteMethodBodies);
-				break;
-
-			case MetaDataEvent.EndWriteMethodBodies:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDEndWriteMethodBodies);
-				break;
-
 			case MetaDataEvent.BeginAddResources:
 				Listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginAddResources);
 				break;
 
 			case MetaDataEvent.EndAddResources:
 				Listener.OnWriterEvent(this, ModuleWriterEvent.MDEndAddResources);
+				break;
+
+			case MetaDataEvent.BeginWriteMethodBodies:
+				Listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginWriteMethodBodies);
+				break;
+
+			case MetaDataEvent.EndWriteMethodBodies:
+				Listener.OnWriterEvent(this, ModuleWriterEvent.MDEndWriteMethodBodies);
 				break;
 
 			case MetaDataEvent.OnAllTablesSorted:

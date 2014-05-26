@@ -108,18 +108,6 @@
 		MDMemberDefCustomAttributesWritten,
 
 		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.BeginWriteMethodBodies"/>.
-		/// All method bodies are about to be written
-		/// </summary>
-		MDBeginWriteMethodBodies,
-
-		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.EndWriteMethodBodies"/>.
-		/// All method bodies have been written. Their RVAs are still not known.
-		/// </summary>
-		MDEndWriteMethodBodies,
-
-		/// <summary>
 		/// Original event: <see cref="MetaDataEvent.BeginAddResources"/>.
 		/// All resources are about to be added to the .NET resources table
 		/// </summary>
@@ -130,6 +118,18 @@
 		/// All resources have been added to the .NET resources table
 		/// </summary>
 		MDEndAddResources,
+
+		/// <summary>
+		/// Original event: <see cref="MetaDataEvent.BeginWriteMethodBodies"/>.
+		/// All method bodies are about to be written
+		/// </summary>
+		MDBeginWriteMethodBodies,
+
+		/// <summary>
+		/// Original event: <see cref="MetaDataEvent.EndWriteMethodBodies"/>.
+		/// All method bodies have been written. Their RVAs are still not known.
+		/// </summary>
+		MDEndWriteMethodBodies,
 
 		/// <summary>
 		/// Original event: <see cref="MetaDataEvent.OnAllTablesSorted"/>.

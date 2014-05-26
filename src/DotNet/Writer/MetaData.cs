@@ -1197,13 +1197,13 @@ namespace dnlib.DotNet.Writer {
 			WriteTypeDefAndMemberDefCustomAttributes();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefCustomAttributesWritten);
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginWriteMethodBodies);
-			WriteMethodBodies();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.EndWriteMethodBodies);
-
 			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginAddResources);
 			AddResources(module.Resources);
 			Listener.OnMetaDataEvent(this, MetaDataEvent.EndAddResources);
+
+			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginWriteMethodBodies);
+			WriteMethodBodies();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.EndWriteMethodBodies);
 
 			BeforeSortingCustomAttributes();
 			InitializeCustomAttributeTable();

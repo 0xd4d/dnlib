@@ -83,16 +83,6 @@
 		MemberDefCustomAttributesWritten,
 
 		/// <summary>
-		/// All method bodies are about to be written
-		/// </summary>
-		BeginWriteMethodBodies,
-
-		/// <summary>
-		/// All method bodies have been written. Their RVAs are still not known.
-		/// </summary>
-		EndWriteMethodBodies,
-
-		/// <summary>
 		/// All resources are about to be added to the .NET resources table
 		/// </summary>
 		BeginAddResources,
@@ -101,6 +91,16 @@
 		/// All resources have been added to the .NET resources table
 		/// </summary>
 		EndAddResources,
+
+		/// <summary>
+		/// All method bodies are about to be written
+		/// </summary>
+		BeginWriteMethodBodies,
+
+		/// <summary>
+		/// All method bodies have been written. Their RVAs are still not known.
+		/// </summary>
+		EndWriteMethodBodies,
 
 		/// <summary>
 		/// All tables are now sorted, including the <c>CustomAttribute</c> table.
