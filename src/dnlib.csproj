@@ -155,6 +155,7 @@
     <Compile Include="DotNet\MethodSemanticsAttributes.cs" />
     <Compile Include="DotNet\MethodSpec.cs" />
     <Compile Include="DotNet\ModuleContext.cs" />
+    <Compile Include="DotNet\ModuleCreationOptions.cs" />
     <Compile Include="DotNet\ModuleDef.cs" />
     <Compile Include="DotNet\ModuleDefMD.cs" />
     <Compile Include="DotNet\ModuleKind.cs" />

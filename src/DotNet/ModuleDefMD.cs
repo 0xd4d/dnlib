@@ -181,7 +181,7 @@ namespace dnlib.DotNet {
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(string fileName) {
-			return Load(fileName, null);
+			return Load(fileName, (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -191,7 +191,17 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(string fileName, ModuleContext context) {
-			return Load(MetaDataCreator.Load(fileName), context);
+			return Load(fileName, new ModuleCreationOptions(context));
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a file
+		/// </summary>
+		/// <param name="fileName">File name of an existing .NET module/assembly</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options) {
+			return Load(MetaDataCreator.Load(fileName), options);
 		}
 
 		/// <summary>
@@ -200,7 +210,7 @@ namespace dnlib.DotNet {
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(byte[] data) {
-			return Load(data, null);
+			return Load(data, (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -210,7 +220,17 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(byte[] data, ModuleContext context) {
-			return Load(MetaDataCreator.Load(data), context);
+			return Load(data, new ModuleCreationOptions(context));
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
+		/// </summary>
+		/// <param name="data">Contents of a .NET module/assembly</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options) {
+			return Load(MetaDataCreator.Load(data), options);
 		}
 
 		/// <summary>
@@ -219,7 +239,7 @@ namespace dnlib.DotNet {
 		/// <param name="mod">An existing reflection module</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod) {
-			return Load(mod, null, GetImageLayout(mod));
+			return Load(mod, (ModuleCreationOptions)null, GetImageLayout(mod));
 		}
 
 		/// <summary>
@@ -229,7 +249,17 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context) {
-			return Load(mod, context, GetImageLayout(mod));
+			return Load(mod, new ModuleCreationOptions(context), GetImageLayout(mod));
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
+		/// </summary>
+		/// <param name="mod">An existing reflection module</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleCreationOptions options) {
+			return Load(mod, options, GetImageLayout(mod));
 		}
 
 		static ImageLayout GetImageLayout(System.Reflection.Module mod) {
@@ -247,10 +277,21 @@ namespace dnlib.DotNet {
 		/// <param name="imageLayout">Image layout of the module in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context, ImageLayout imageLayout) {
+			return Load(mod, new ModuleCreationOptions(context), imageLayout);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
+		/// </summary>
+		/// <param name="mod">An existing reflection module</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <param name="imageLayout">Image layout of the module in memory</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleCreationOptions options, ImageLayout imageLayout) {
 			IntPtr addr = Marshal.GetHINSTANCE(mod);
 			if (addr == new IntPtr(-1))
 				throw new InvalidOperationException(string.Format("Module {0} has no HINSTANCE", mod));
-			return Load(addr, context, imageLayout);
+			return Load(addr, options, imageLayout);
 		}
 
 		/// <summary>
@@ -259,7 +300,7 @@ namespace dnlib.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(IntPtr addr) {
-			return Load(addr, null);
+			return Load(MetaDataCreator.Load(addr), (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -269,7 +310,17 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) {
-			return Load(MetaDataCreator.Load(addr), context);
+			return Load(MetaDataCreator.Load(addr), new ModuleCreationOptions(context));
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
+		/// </summary>
+		/// <param name="addr">Address of a .NET module/assembly</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options) {
+			return Load(MetaDataCreator.Load(addr), options);
 		}
 
 		/// <summary>
@@ -280,7 +331,18 @@ namespace dnlib.DotNet {
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) {
-			return Load(MetaDataCreator.Load(addr, imageLayout), context);
+			return Load(MetaDataCreator.Load(addr, imageLayout), new ModuleCreationOptions(context));
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
+		/// </summary>
+		/// <param name="addr">Address of a .NET module/assembly</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <param name="imageLayout">Image layout of the file in memory</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options, ImageLayout imageLayout) {
+			return Load(MetaDataCreator.Load(addr, imageLayout), options);
 		}
 
 		/// <summary>
@@ -292,7 +354,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		public static ModuleDefMD Load(Stream stream) {
-			return Load(stream, null);
+			return Load(stream, (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -305,6 +367,19 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		public static ModuleDefMD Load(Stream stream, ModuleContext context) {
+			return Load(stream, new ModuleCreationOptions(context));
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a stream
+		/// </summary>
+		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[],ModuleContext)"/>.
+		/// It's better to use one of the other Load() methods.</remarks>
+		/// <param name="stream">The stream (owned by caller)</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
+		public static ModuleDefMD Load(Stream stream, ModuleCreationOptions options) {
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 			if (stream.Length > int.MaxValue)
@@ -313,42 +388,33 @@ namespace dnlib.DotNet {
 			stream.Position = 0;
 			if (stream.Read(data, 0, data.Length) != data.Length)
 				throw new IOException("Could not read all bytes from the stream");
-			return Load(data, context);
+			return Load(data, options);
 		}
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="MetaData"/>
 		/// </summary>
 		/// <param name="metaData">The metadata</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="metaData"/></returns>
-		internal static ModuleDefMD Load(MetaData metaData) {
-			return Load(metaData, null);
-		}
-
-		/// <summary>
-		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="MetaData"/>
-		/// </summary>
-		/// <param name="metaData">The metadata</param>
-		/// <param name="context">Module context or <c>null</c></param>
-		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="metaData"/></returns>
-		internal static ModuleDefMD Load(MetaData metaData, ModuleContext context) {
-			return new ModuleDefMD(metaData, context);
+		internal static ModuleDefMD Load(MetaData metaData, ModuleCreationOptions options) {
+			return new ModuleDefMD(metaData, options);
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="metaData">The metadata</param>
-		/// <param name="context">Module context or <c>null</c></param>
+		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <exception cref="ArgumentNullException">If <paramref name="metaData"/> is <c>null</c></exception>
-		ModuleDefMD(MetaData metaData, ModuleContext context)
+		ModuleDefMD(MetaData metaData, ModuleCreationOptions options)
 			: base(null, 1) {
 #if DEBUG
 			if (metaData == null)
 				throw new ArgumentNullException("metaData");
 #endif
 			this.metaData = metaData;
-			this.context = context;
+			this.context = options == null ? null : options.Context;
 			Initialize();
 			InitializeFromRawRow();
 			location = metaData.PEImage.FileName ?? string.Empty;
