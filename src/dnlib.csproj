@@ -259,6 +259,7 @@
     <Compile Include="IO\IFileSection.cs" />
     <Compile Include="IO\IImageStream.cs" />
     <Compile Include="IO\IImageStreamCreator.cs" />
+    <Compile Include="IO\ImageStreamCreator.cs" />
     <Compile Include="IO\IOExtensions.cs" />
     <Compile Include="IO\MemoryImageStream.cs" />
     <Compile Include="IO\MemoryMappedFileStreamCreator.cs" />

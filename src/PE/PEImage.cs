@@ -54,17 +54,6 @@ namespace dnlib.PE {
 		// is available, which will be slower.
 		const bool USE_MEMORY_LAYOUT_WITH_MAPPED_FILES = false;
 
-		// Current Memory-mapped files implementation uses Win32 API, thus does not work on
-		// Unix-like OS. For those platforms, use MemoryStreamCreator instead.
-		static readonly bool IS_UNIX;
-
-		static PEImage() {
-			// See http://mono-project.com/FAQ:_Technical#Mono_Platforms for platform detection.
-			int p = (int)Environment.OSVersion.Platform;
-			if (p == 4 || p == 6 || p == 128)
-				IS_UNIX = true;
-		}
-
 		static readonly IPEType MemoryLayout = new MemoryPEType();
 		static readonly IPEType FileLayout = new FilePEType();
 
@@ -188,13 +177,6 @@ namespace dnlib.PE {
 			}
 		}
 
-		static IImageStreamCreator GetFileStreamCreator(string fileName, bool mapAsImage) {
-			if (IS_UNIX)
-				return new MemoryStreamCreator(File.ReadAllBytes(fileName)) { FileName = fileName };
-			else
-				return new MemoryMappedFileStreamCreator(fileName, mapAsImage);
-		}
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -202,9 +184,9 @@ namespace dnlib.PE {
 		/// <param name="mapAsImage"><c>true</c> if we should map it as an executable</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string fileName, bool mapAsImage, bool verify)
-			: this(GetFileStreamCreator(fileName, mapAsImage), mapAsImage ? ImageLayout.Memory : ImageLayout.File, verify) {
+			: this(ImageStreamCreator.Create(fileName, mapAsImage), mapAsImage ? ImageLayout.Memory : ImageLayout.File, verify) {
 			try {
-				if (!IS_UNIX && mapAsImage) {
+				if (mapAsImage && imageStreamCreator is MemoryMappedFileStreamCreator) {
 					((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
 					ResetReader();
 				}
