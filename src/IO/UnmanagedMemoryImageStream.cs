@@ -36,6 +36,7 @@ namespace dnlib.IO {
 		byte* startAddr;
 		byte* endAddr;
 		byte* currentAddr;
+		UnmanagedMemoryStreamCreator creator;
 
 		/// <summary>
 		/// Constructor
@@ -58,6 +59,15 @@ namespace dnlib.IO {
 			this.startAddr = baseAddr;
 			this.endAddr = baseAddr + length;
 			this.currentAddr = this.startAddr;
+		}
+
+		/// <summary>
+		/// Saves <paramref name="creator"/> in this instance so it doesn't get garbage collected.
+		/// </summary>
+		/// <param name="creator">A <see cref="UnmanagedMemoryStreamCreator"/> instance</param>
+		internal UnmanagedMemoryImageStream(UnmanagedMemoryStreamCreator creator)
+			: this(0, creator.Address, creator.Length) {
+			this.creator = creator;
 		}
 
 		/// <inheritdoc/>
@@ -235,6 +245,9 @@ namespace dnlib.IO {
 			startAddr = null;
 			endAddr = null;
 			currentAddr = null;
+			if (creator != null)
+				creator.Dispose();
+			creator = null;
 		}
 	}
 }

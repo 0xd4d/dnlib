@@ -63,5 +63,35 @@ namespace dnlib.IO {
 			else
 				return new MemoryMappedFileStreamCreator(fileName, mapAsImage);
 		}
+
+		/// <summary>
+		/// Creates a <see cref="IImageStream"/>
+		/// </summary>
+		/// <param name="fileName">Filename</param>
+		/// <returns>A new <see cref="IImageStream"/> instance</returns>
+		public static IImageStream CreateImageStream(string fileName) {
+			return CreateImageStream(fileName, false);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="IImageStream"/>
+		/// </summary>
+		/// <param name="fileName">Filename</param>
+		/// <param name="mapAsImage"><c>true</c> if we should map it as an executable</param>
+		/// <returns>A new <see cref="IImageStream"/> instance</returns>
+		public static IImageStream CreateImageStream(string fileName, bool mapAsImage) {
+			if (doesNotSupportMmapFileMethods)
+				return MemoryImageStream.Create(File.ReadAllBytes(fileName));
+
+			var creator = new MemoryMappedFileStreamCreator(fileName, mapAsImage);
+			try {
+				return new UnmanagedMemoryImageStream(creator);
+			}
+			catch {
+				if (creator != null)
+					creator.Dispose();
+				throw;
+			}
+		}
 	}
 }
