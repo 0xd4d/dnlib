@@ -91,7 +91,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Resolves the specified FieldDef.
 		/// </summary>
-		/// <param name="methodDef">The FieldDef.</param>
+		/// <param name="fieldDef">The FieldDef.</param>
 		/// <returns>The resolved FieldDef, or <c>null</c> if cannot be resolved.</returns>
 		public virtual FieldDef Resolve(FieldDef fieldDef) {
 			return null;
