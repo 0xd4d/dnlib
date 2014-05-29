@@ -38,6 +38,7 @@ namespace dnlib.DotNet.Writer {
 		uint length;
 		FileOffset offset;
 		RVA rva;
+		uint localVarSigTok;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
@@ -61,6 +62,13 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public byte[] ExtraSections {
 			get { return extraSections; }
+		}
+
+		/// <summary>
+		/// Gets the token of the locals
+		/// </summary>
+		public uint LocalVarSigTok {
+			get { return localVarSigTok; }
 		}
 
 		/// <summary>
@@ -89,7 +97,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="code">Code</param>
 		public MethodBody(byte[] code)
-			: this(code, null) {
+			: this(code, null, 0) {
 		}
 
 		/// <summary>
@@ -97,10 +105,21 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="code">Code</param>
 		/// <param name="extraSections">Extra sections or <c>null</c></param>
-		public MethodBody(byte[] code, byte[] extraSections) {
+		public MethodBody(byte[] code, byte[] extraSections)
+			: this(code, extraSections, 0) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="code">Code</param>
+		/// <param name="extraSections">Extra sections or <c>null</c></param>
+		/// <param name="localVarSigTok">Token of locals</param>
+		public MethodBody(byte[] code, byte[] extraSections, uint localVarSigTok) {
 			this.isTiny = (code[0] & 3) == 2;
 			this.code = code;
 			this.extraSections = extraSections;
+			this.localVarSigTok = localVarSigTok;
 		}
 
 		/// <summary>

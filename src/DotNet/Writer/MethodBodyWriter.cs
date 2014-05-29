@@ -59,6 +59,7 @@ namespace dnlib.DotNet.Writer {
 		uint maxStack;
 		byte[] code;
 		byte[] extraSections;
+		uint localVarSigTok;
 
 		/// <summary>
 		/// Gets the code as a byte array. This is valid only after calling <see cref="Write()"/>.
@@ -75,6 +76,13 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public byte[] ExtraSections {
 			get { return extraSections; }
+		}
+
+		/// <summary>
+		/// Gets the token of the locals
+		/// </summary>
+		public uint LocalVarSigTok {
+			get { return localVarSigTok; }
 		}
 
 		/// <summary>
@@ -153,7 +161,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(flags);
 			writer.Write((ushort)maxStack);
 			writer.Write(codeSize);
-			writer.Write(helper.GetToken(GetLocals(), cilBody.LocalVarSigTok).Raw);
+			writer.Write(localVarSigTok = helper.GetToken(GetLocals(), cilBody.LocalVarSigTok).Raw);
 			if (WriteInstructions(writer) != codeSize)
 				Error("Didn't write all code bytes");
 		}
@@ -166,6 +174,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void WriteTinyHeader() {
+			localVarSigTok = 0;
 			code = new byte[1 + codeSize];
 			var writer = new BinaryWriter(new MemoryStream(code));
 			writer.Write((byte)((codeSize << 2) | 2));

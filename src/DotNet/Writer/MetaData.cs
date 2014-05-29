@@ -1071,6 +1071,16 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Gets a method's local variable signature token
+		/// </summary>
+		/// <param name="md">Method</param>
+		/// <returns>Locals sig token or <c>0</c></returns>
+		public uint GetLocalVarSigToken(MethodDef md) {
+			var mb = GetMethodBody(md);
+			return mb == null ? 0 : mb.LocalVarSigTok;
+		}
+
+		/// <summary>
 		/// Gets the <see cref="ByteArrayChunk"/> where the resource data will be stored
 		/// </summary>
 		/// <param name="er">Embedded resource</param>
@@ -1508,7 +1518,7 @@ namespace dnlib.DotNet.Writer {
 							continue;
 						var writer = new MethodBodyWriter(this, cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
 						writer.Write();
-						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections));
+						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok));
 						methodToBody[method] = mb;
 						continue;
 					}
