@@ -243,6 +243,9 @@ namespace dnlib.DotNet.Writer {
 		void CreateChunks() {
 			CreateMetaDataChunks(module);
 
+			if (TheOptions.WritePdb)
+				debugDirectory = new DebugDirectory();
+
 			imageCor20Header = new ByteArrayChunk(new byte[0x48]);
 			CreateStrongNameSignature();
 		}
@@ -254,6 +257,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(methodBodies, DEFAULT_METHODBODIES_ALIGNMENT);
 			textSection.Add(netResources, DEFAULT_NETRESOURCES_ALIGNMENT);
 			textSection.Add(metaData, DEFAULT_METADATA_ALIGNMENT);
+			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			if (rsrcSection != null)
 				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 		}
@@ -341,6 +345,12 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long WriteFile() {
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePdb);
+			WritePdbFile();
+			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePdb);
+
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
+
 			var chunks = new List<IChunk>();
 			chunks.Add(headerSection);
 			foreach (var origSection in origSections)
@@ -350,7 +360,6 @@ namespace dnlib.DotNet.Writer {
 			if (extraData != null)
 				chunks.Add(extraData);
 
-			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			foreach (var section in origSections) {
 				if (section.chunk.RVA != section.peSection.VirtualAddress)
@@ -498,6 +507,10 @@ namespace dnlib.DotNet.Writer {
 				writer.BaseStream.Position = dataDirOffset + 2 * 8;
 				writer.WriteDataDirectory(win32Resources);
 			}
+
+			// Write a new debug directory
+			writer.BaseStream.Position = dataDirOffset + 6 * 8;
+			writer.WriteDataDirectory(debugDirectory, DebugDirectory.HEADER_SIZE);
 
 			// Write a new Metadata data directory
 			writer.BaseStream.Position = dataDirOffset + 14 * 8;

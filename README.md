@@ -80,6 +80,39 @@ To detect it at runtime, use this code:
     	module.NativeWrite(@"C:\saved-assembly.dll");
     }
 
+PDB files
+---------
+
+Right after opening the module, call one of its `LoadPdb()` methods. You can
+also pass in a `ModuleCreationOptions` to `ModuleDefMD.Load()` and if one of
+the PDB options is enabled, the PDB file will be opened before `Load()`
+returns.
+
+    :::C#
+    var mod = ModuleDefMD.Load(@"C:\myfile.dll");
+    mod.LoadPdb();	// Will load C:\myfile.pdb if it exists
+
+To save a PDB file, create a `ModuleCreationOptions` /
+`NativeModuleWriterOptions` and set its `WritePdb` property to `true`. By
+default, it will create a PDB file with the same name as the output assembly
+but with a `.pdb` extension. You can override this by writing the PDB file
+name to `PdbFileName` or writing your own stream to `PdbStream`. If
+`PdbStream` is initialized, `PdbFileName` should also be initialized because
+the name of the PDB file will be written to the PE file. Another more
+advanced property is `CreatePdbSymbolWriter` which returns a `ISymbolWriter2`
+instance that dnlib will use.
+
+    :::C#
+    var mod = ModuleDefMD.Load(@"C:\myfile.dll");
+    // ...
+    var wopts = new dnlib.DotNet.Writer.ModuleWriterOptions(mod);
+    wopts.WritePdb = true;
+    // wopts.PdbFileName = @"C:\out2.pdb";	// Set other file name
+    mod.Write(@"C:\out.dll", wopts);
+
+The current PDB reader and writer code use diasymreader.dll to read and write
+PDB files so it will only work if the OS is Windows.
+
 Strong name sign an assembly
 ----------------------------
 

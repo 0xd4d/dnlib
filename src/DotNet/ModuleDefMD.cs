@@ -23,6 +23,7 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -34,6 +35,7 @@ using dnlib.IO;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.Pdb;
 using dnlib.Threading;
 using dnlib.W32Resources;
 
@@ -428,6 +430,92 @@ namespace dnlib.DotNet {
 			this.Cor20HeaderRuntimeVersion = (uint)(MetaData.ImageCor20Header.MajorRuntimeVersion << 16) | MetaData.ImageCor20Header.MinorRuntimeVersion;
 			this.TablesHeaderVersion = MetaData.TablesStream.Version;
 			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
+			InitializePdb(options);
+		}
+
+		void InitializePdb(ModuleCreationOptions options) {
+			if (options == null)
+				return;
+			LoadPdb(CreateSymbolReader(options));
+		}
+
+		ISymbolReader CreateSymbolReader(ModuleCreationOptions options) {
+			if (options.CreateSymbolReader != null) {
+				var symReader = options.CreateSymbolReader(this);
+				if (symReader != null)
+					return symReader;
+			}
+
+			if (options.PdbFileOrData != null) {
+				var pdbFileName = options.PdbFileOrData as string;
+				if (!string.IsNullOrEmpty(pdbFileName)) {
+					var symReader = SymbolReaderCreator.Create(metaData, pdbFileName);
+					if (symReader != null)
+						return symReader;
+				}
+
+				var pdbData = options.PdbFileOrData as byte[];
+				if (pdbData != null)
+					return SymbolReaderCreator.Create(metaData, pdbData);
+
+				var pdbStream = options.PdbFileOrData as IImageStream;
+				if (pdbStream != null)
+					return SymbolReaderCreator.Create(metaData, pdbStream);
+			}
+
+			if (options.TryToLoadPdbFromDisk && !string.IsNullOrEmpty(location))
+				return SymbolReaderCreator.Create(location);
+
+			return null;
+		}
+
+		/// <summary>
+		/// Loads symbols using <paramref name="symbolReader"/>
+		/// </summary>
+		/// <param name="symbolReader">PDB symbol reader</param>
+		public void LoadPdb(ISymbolReader symbolReader) {
+			if (symbolReader == null)
+				return;
+			if (pdbState != null)
+				throw new InvalidOperationException("PDB file has already been initialized");
+
+			var orig = Interlocked.CompareExchange(ref pdbState, new PdbState(symbolReader, this), null);
+			if (orig != null)
+				throw new InvalidOperationException("PDB file has already been initialized");
+		}
+
+		/// <summary>
+		/// Loads symbols from a PDB file
+		/// </summary>
+		/// <param name="pdbFileName">PDB file name</param>
+		public void LoadPdb(string pdbFileName) {
+			LoadPdb(SymbolReaderCreator.Create(metaData, pdbFileName));
+		}
+
+		/// <summary>
+		/// Loads symbols from a byte array
+		/// </summary>
+		/// <param name="pdbData">PDB data</param>
+		public void LoadPdb(byte[] pdbData) {
+			LoadPdb(SymbolReaderCreator.Create(metaData, pdbData));
+		}
+
+		/// <summary>
+		/// Loads symbols from a stream
+		/// </summary>
+		/// <param name="pdbStream"></param>
+		public void LoadPdb(IImageStream pdbStream) {
+			LoadPdb(SymbolReaderCreator.Create(metaData, pdbStream));
+		}
+
+		/// <summary>
+		/// Loads symbols if a PDB file is available
+		/// </summary>
+		public void LoadPdb() {
+			var loc = location;
+			if (string.IsNullOrEmpty(loc))
+				return;
+			LoadPdb(SymbolReaderCreator.Create(loc));
 		}
 
 		ModuleKind GetKind() {
@@ -1813,17 +1901,33 @@ namespace dnlib.DotNet {
 		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, GenericParamContext gpContext) {
 			MethodBody mb;
 			var mDec = methodDecrypter;
-			if (mDec != null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out mb))
+			if (mDec != null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out mb)) {
+				var cilBody = mb as CilBody;
+				if (cilBody != null)
+					return InitializeBodyFromPdb(cilBody, method.OrigRid);
 				return mb;
+			}
 
 			if (rva == 0)
 				return null;
 			var codeType = implAttrs & MethodImplAttributes.CodeTypeMask;
 			if (codeType == MethodImplAttributes.IL)
-				return ReadCilBody(method.Parameters, rva, gpContext);
+				return InitializeBodyFromPdb(ReadCilBody(method.Parameters, rva, gpContext), method.OrigRid);
 			if (codeType == MethodImplAttributes.Native)
 				return new NativeMethodBody(rva);
 			return null;
+		}
+
+		/// <summary>
+		/// Updates <paramref name="body"/> with the PDB info (if any)
+		/// </summary>
+		/// <param name="body">Method body</param>
+		/// <param name="rid">Method rid</param>
+		/// <returns>Returns originak <paramref name="body"/> value</returns>
+		CilBody InitializeBodyFromPdb(CilBody body, uint rid) {
+			if (pdbState != null)
+				pdbState.Initialize(body, rid);
+			return body;
 		}
 
 		/// <summary>

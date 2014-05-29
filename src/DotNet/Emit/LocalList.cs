@@ -249,6 +249,7 @@ namespace dnlib.DotNet.Emit {
 		TypeSig typeSig;
 		int index;
 		string name;
+		int pdbAttributes;
 
 		/// <summary>
 		/// Gets/sets the type of the local
@@ -275,6 +276,15 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Gets/sets the PDB attributes. Seems to be <c>1</c> if it's a compiler-generated local,
+		/// else <c>0</c>.
+		/// </summary>
+		public int PdbAttributes {
+			get { return pdbAttributes; }
+			set { pdbAttributes = value; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="typeSig">The type</param>
@@ -284,10 +294,10 @@ namespace dnlib.DotNet.Emit {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			var name = Name;
-			if (string.IsNullOrEmpty(name))
+			var n = name;
+			if (string.IsNullOrEmpty(n))
 				return string.Format("V_{0}", Index);
-			return name;
+			return n;
 		}
 	}
 }

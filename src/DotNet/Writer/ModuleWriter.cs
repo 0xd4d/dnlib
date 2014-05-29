@@ -62,7 +62,6 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class ModuleWriter : ModuleWriterBase {
 		const uint DEFAULT_IAT_ALIGNMENT = 4;
-		const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_IMPORTDIRECTORY_ALIGNMENT = 4;
 		const uint DEFAULT_STARTUPSTUB_ALIGNMENT = 1;
 		const uint DEFAULT_RELOC_ALIGNMENT = 4;
@@ -78,7 +77,6 @@ namespace dnlib.DotNet.Writer {
 		PEHeaders peHeaders;
 		ImportAddressTable importAddressTable;
 		ImageCor20Header imageCor20Header;
-		DebugDirectory debugDirectory;
 		ImportDirectory importDirectory;
 		StartupStub startupStub;
 		RelocDirectory relocDirectory;
@@ -148,13 +146,6 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public ImageCor20Header ImageCor20Header {
 			get { return imageCor20Header; }
-		}
-
-		/// <summary>
-		/// Gets the debug directory or <c>null</c> if there's none
-		/// </summary>
-		public DebugDirectory DebugDirectory {
-			get { return debugDirectory; }
 		}
 
 		/// <summary>
@@ -229,8 +220,6 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void CreateChunks() {
-			bool hasDebugDirectory = false;
-
 			peHeaders = new PEHeaders(Options.PEHeadersOptions);
 
 			if (!Options.Is64Bit) {
@@ -245,7 +234,7 @@ namespace dnlib.DotNet.Writer {
 			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
 			CreateMetaDataChunks(module);
 
-			if (hasDebugDirectory)
+			if (TheOptions.WritePdb)
 				debugDirectory = new DebugDirectory();
 
 			if (importDirectory != null)
@@ -272,6 +261,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long WriteFile() {
+			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePdb);
+			WritePdbFile();
+			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePdb);
+
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 			var chunks = new List<IChunk>();
 			chunks.Add(peHeaders);
@@ -318,6 +311,7 @@ namespace dnlib.DotNet.Writer {
 			peHeaders.ImportDirectory = importDirectory;
 			peHeaders.Win32Resources = win32Resources;
 			peHeaders.RelocDirectory = relocDirectory;
+			peHeaders.DebugDirectory = debugDirectory;
 			imageCor20Header.MetaData = metaData;
 			imageCor20Header.NetResources = netResources;
 			imageCor20Header.StrongNameSignature = strongNameSignature;

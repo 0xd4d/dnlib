@@ -145,6 +145,17 @@
 		MDEndCreateTables,
 
 		/// <summary>
+		/// This event occurs before the PDB file is written. This event occurs even if no PDB file
+		/// will be written.
+		/// </summary>
+		BeginWritePdb,
+
+		/// <summary>
+		/// The PDB file has been written. This event occurs even if no PDB file has been written.
+		/// </summary>
+		EndWritePdb,
+
+		/// <summary>
 		/// This event occurs just before all RVAs and file offsets of the chunks are calculated.
 		/// </summary>
 		BeginCalculateRvasAndFileOffsets,

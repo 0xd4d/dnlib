@@ -28,7 +28,7 @@ namespace dnlib.IO {
 	/// <summary>
 	/// Creates a <see cref="IImageStreamCreator"/> instance
 	/// </summary>
-	public class ImageStreamCreator {
+	public static class ImageStreamCreator {
 		static readonly bool doesNotSupportMmapFileMethods;
 
 		static ImageStreamCreator() {

@@ -29,6 +29,7 @@ using System.Reflection;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
+using dnlib.DotNet.Pdb;
 using dnlib.DotNet.Writer;
 using dnlib.PE;
 using dnlib.Threading;
@@ -64,6 +65,11 @@ namespace dnlib.DotNet {
 		/// Initialize this in the ctor
 		/// </summary>
 		protected ICorLibTypes corLibTypes;
+
+		/// <summary>
+		/// PDB state
+		/// </summary>
+		protected PdbState pdbState;
 
 		TypeDefFinder typeDefFinder;
 
@@ -527,6 +533,13 @@ namespace dnlib.DotNet {
 		/// <summary>Called to initialize <see cref="win32Resources"/></summary>
 		protected virtual Win32Resources GetWin32Resources_NoLock() {
 			return null;
+		}
+
+		/// <summary>
+		/// Gets the <see cref="dnlib.DotNet.Pdb.PdbState"/>
+		/// </summary>
+		public PdbState PdbState {
+			get { return pdbState; }
 		}
 
 		/// <summary>
@@ -1037,6 +1050,25 @@ namespace dnlib.DotNet {
 		public ResourceData FindWin32ResourceData(ResourceName type, ResourceName name, ResourceName langId) {
 			var w32Resources = Win32Resources;
 			return w32Resources == null ? null : w32Resources.Find(type, name, langId);
+		}
+
+		/// <summary>
+		/// Creates a new <see cref="dnlib.DotNet.Pdb.PdbState"/>
+		/// </summary>
+		public void CreatePdbState() {
+			SetPdbState(new PdbState());
+		}
+
+		/// <summary>
+		/// Sets a <see cref="dnlib.DotNet.Pdb.PdbState"/>
+		/// </summary>
+		/// <param name="pdbState">New <see cref="dnlib.DotNet.Pdb.PdbState"/></param>
+		public void SetPdbState(PdbState pdbState) {
+			if (pdbState == null)
+				throw new ArgumentNullException("pdbState");
+			var orig = Interlocked.CompareExchange(ref this.pdbState, pdbState, null);
+			if (orig != null)
+				throw new InvalidOperationException("PDB file has already been initialized");
 		}
 
 		uint GetCor20RuntimeVersion() {

@@ -21,6 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System.Diagnostics.SymbolStore;
 using dnlib.IO;
 
 namespace dnlib.DotNet {
@@ -32,6 +33,26 @@ namespace dnlib.DotNet {
 		/// Module context
 		/// </summary>
 		public ModuleContext Context { get; set; }
+
+		/// <summary>
+		/// Set this if you want to decide how to create the PDB symbol reader. You don't need to
+		/// initialize <see cref="PdbFileOrData"/> or <see cref="TryToLoadPdbFromDisk"/>.
+		/// </summary>
+		public CreateSymbolReaderDelegate CreateSymbolReader { get; set; }
+
+		/// <summary>
+		/// Set it to A) the path (string) of the PDB file, B) the data (byte[]) of the PDB file or
+		/// C) to an <see cref="IImageStream"/> of the PDB data. The <see cref="IImageStream"/> will
+		/// be owned by the module. You don't need to initialize <see cref="TryToLoadPdbFromDisk"/>
+		/// or <see cref="CreateSymbolReader"/>
+		/// </summary>
+		public object PdbFileOrData { get; set; }
+
+		/// <summary>
+		/// If <c>true</c>, will load the PDB file from disk if present. You don't need to
+		/// initialize <see cref="CreateSymbolReader"/> or <see cref="PdbFileOrData"/>.
+		/// </summary>
+		public bool TryToLoadPdbFromDisk { get; set; }
 
 		/// <summary>
 		/// Default constructor
@@ -47,4 +68,12 @@ namespace dnlib.DotNet {
 			this.Context = context;
 		}
 	}
+
+	/// <summary>
+	/// Creates a <see cref="ISymbolReader"/>
+	/// </summary>
+	/// <param name="module">Module</param>
+	/// <returns>A <see cref="ISymbolReader"/> instance for (and now owned by)
+	/// <paramref name="module"/> or <c>null</c>.</returns>
+	public delegate ISymbolReader CreateSymbolReaderDelegate(ModuleDefMD module);
 }

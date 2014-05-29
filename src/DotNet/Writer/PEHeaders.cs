@@ -168,6 +168,15 @@ namespace dnlib.DotNet.Writer {
 		/// IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes value
 		/// </summary>
 		public uint? NumberOfRvaAndSizes;
+
+		/// <summary>
+		/// Creates a new time date stamp using current time
+		/// </summary>
+		/// <returns>A new time date stamp</returns>
+		public static uint CreateNewTimeDateStamp() {
+			return (uint)(DateTime.UtcNow - Epoch).TotalSeconds;
+		}
+		static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 	}
 
 	/// <summary>
@@ -182,7 +191,6 @@ namespace dnlib.DotNet.Writer {
 		readonly uint sectionAlignment;
 		readonly uint fileAlignment;
 		ulong imageBase;
-		static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		long startOffset;
 		long checkSumOffset;
 		bool isExeFile;
@@ -236,6 +244,11 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the relocation directory
 		/// </summary>
 		public RelocDirectory RelocDirectory { get; set; }
+
+		/// <summary>
+		/// Gets/sets the debug directory
+		/// </summary>
+		public DebugDirectory DebugDirectory { get; set; }
 
 		/// <summary>
 		/// Gets the image base
@@ -345,7 +358,7 @@ namespace dnlib.DotNet.Writer {
 			// Image file header
 			writer.Write((ushort)GetMachine());
 			writer.Write((ushort)sections.Count);
-			writer.Write(options.TimeDateStamp ?? (uint)(DateTime.UtcNow - Epoch).TotalSeconds);
+			writer.Write(options.TimeDateStamp ?? PEHeadersOptions.CreateNewTimeDateStamp());
 			writer.Write(0);
 			writer.Write(0);
 			writer.Write((ushort)(Use32BitOptionalHeader() ? 0xE0U : 0xF0));
@@ -427,7 +440,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteDataDirectory(null);	// Exception table
 			writer.WriteDataDirectory(null);	// Certificate table
 			writer.WriteDataDirectory(RelocDirectory);
-			writer.WriteDataDirectory(null);	// Debugging information
+			writer.WriteDataDirectory(DebugDirectory, DebugDirectory.HEADER_SIZE);
 			writer.WriteDataDirectory(null);	// Architecture-specific data
 			writer.WriteDataDirectory(null);	// Global pointer register RVA
 			writer.WriteDataDirectory(null);	// Thread local storage

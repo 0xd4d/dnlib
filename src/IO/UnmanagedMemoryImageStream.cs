@@ -75,6 +75,13 @@ namespace dnlib.IO {
 			get { return fileOffset; }
 		}
 
+		/// <summary>
+		/// Gets the start address of the memory this instance uses
+		/// </summary>
+		internal unsafe IntPtr StartAddress {
+			get { return new IntPtr(startAddr); }
+		}
+
 		/// <inheritdoc/>
 		public unsafe long Length {
 			get { return endAddr - startAddr; }

@@ -72,6 +72,20 @@ namespace dnlib.IO {
 			this.position = dataOffset;
 		}
 
+		/// <summary>
+		/// Gets the data
+		/// </summary>
+		internal byte[] DataArray {
+			get { return data; }
+		}
+
+		/// <summary>
+		/// Gets the start of the data in <see cref="DataArray"/> used by this stream
+		/// </summary>
+		internal int DataOffset {
+			get { return dataOffset; }
+		}
+
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
 			get { return fileOffset; }

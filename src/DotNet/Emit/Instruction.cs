@@ -23,6 +23,7 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using dnlib.DotNet.Pdb;
 using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
@@ -44,6 +45,11 @@ namespace dnlib.DotNet.Emit {
 		/// Offset of the instruction in the method body
 		/// </summary>
 		public uint Offset;
+
+		/// <summary>
+		/// PDB sequence point or <c>null</c> if none
+		/// </summary>
+		public SequencePoint SequencePoint;
 
 		/// <summary>
 		/// Default constructor
@@ -785,13 +791,15 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// Clone this instance
+		/// Clone this instance. The <see cref="Operand"/> and <see cref="SequencePoint"/> fields
+		/// are shared by this instance and the created instance.
 		/// </summary>
 		public Instruction Clone() {
 			return new Instruction {
 				Offset = Offset,
 				OpCode = OpCode,
 				Operand = Operand,
+				SequencePoint = SequencePoint,
 			};
 		}
 
