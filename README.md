@@ -92,7 +92,7 @@ returns.
     var mod = ModuleDefMD.Load(@"C:\myfile.dll");
     mod.LoadPdb();	// Will load C:\myfile.pdb if it exists
 
-To save a PDB file, create a `ModuleCreationOptions` /
+To save a PDB file, create a `ModuleWriterOptions` /
 `NativeModuleWriterOptions` and set its `WritePdb` property to `true`. By
 default, it will create a PDB file with the same name as the output assembly
 but with a `.pdb` extension. You can override this by writing the PDB file
