@@ -169,6 +169,7 @@
     <Compile Include="DotNet\Pdb\Dss\ImageStreamIStream.cs" />
     <Compile Include="DotNet\Pdb\Dss\MDEmitter.cs" />
     <Compile Include="DotNet\Pdb\Dss\PinnedMetaData.cs" />
+    <Compile Include="DotNet\Pdb\Dss\StreamIStream.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolDocument.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolDocumentWriter.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolMethod.cs" />
@@ -185,7 +186,6 @@
     <Compile Include="DotNet\Pdb\PdbState.cs" />
     <Compile Include="DotNet\Pdb\PdbWriter.cs" />
     <Compile Include="DotNet\Pdb\SequencePoint.cs" />
-    <Compile Include="DotNet\Pdb\StreamIStream.cs" />
     <Compile Include="DotNet\Pdb\SymbolReaderCreator.cs" />
     <Compile Include="DotNet\Pdb\SymbolWriterCreator.cs" />
     <Compile Include="DotNet\PInvokeAttributes.cs" />
