@@ -49,9 +49,9 @@ namespace dnlib.DotNet.Writer {
 		public byte? MinorVersion;
 
 		/// <summary>
-		/// <c>true</c> if the Edit N' Continue stream header should be used (#-) instead of
-		/// the normal compressed stream (#~). Note that this can't be used to disable the #-
-		/// stream, only enable it. It should actually be called <c>ForceENC</c>.
+		/// Force #- or #~ stream. Default value is <c>null</c> and recommended because the correct
+		/// tables stream will be used. <c>true</c> will force <c>#-</c> (Edit N' Continue)
+		/// stream, and <c>false</c> will force <c>#~</c> (normal compressed) stream.
 		/// </summary>
 		public bool? UseENC;
 
@@ -161,8 +161,8 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public bool IsENC {
 			get {
-				if (options.UseENC ?? false)
-					return true;
+				if (options.UseENC.HasValue)
+					return options.UseENC.Value;
 				return hasDeletedRows ||
 						!FieldPtrTable.IsEmpty ||
 						!MethodPtrTable.IsEmpty ||
