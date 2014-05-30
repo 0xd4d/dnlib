@@ -21,12 +21,14 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System.Diagnostics;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// PDB sequence point
 	/// </summary>
+	[DebuggerDisplay("({StartLine}, {StartColumn}) - ({EndLine}, {EndColumn}) {Document.Url}")]
 	public sealed class SequencePoint {
 		/// <summary>
 		/// PDB document

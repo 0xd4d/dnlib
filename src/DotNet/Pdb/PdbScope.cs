@@ -21,6 +21,7 @@
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System.Diagnostics;
 using dnlib.DotNet.Emit;
 using dnlib.Threading;
 
@@ -34,6 +35,7 @@ namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// A PDB scope
 	/// </summary>
+	[DebuggerDisplay("{Start} - {End}")]
 	public sealed class PdbScope {
 		readonly ThreadSafe.IList<PdbScope> scopes = ThreadSafeListCreator.Create<PdbScope>();
 		readonly ThreadSafe.IList<Local> locals = ThreadSafeListCreator.Create<Local>();
