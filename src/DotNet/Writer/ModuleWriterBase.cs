@@ -695,6 +695,8 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			createdPdbFileName = GetDefaultPdbFileName();
+			if (createdPdbFileName == null)
+				return null;
 			return SymbolWriterCreator.Create(createdPdbFileName);
 		}
 
