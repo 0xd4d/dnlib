@@ -704,20 +704,13 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		string GetDefaultPdbFileName() {
-			var destFileName = GetDestinationFileName();
+			var destFileName = GetStreamName(destStream);
 			if (string.IsNullOrEmpty(destFileName)) {
 				Error("TheOptions.WritePdb is true but it's not possible to guess the default PDB file name. Set PdbFileName to the name of the PDB file.");
 				return null;
 			}
 
 			return Path.ChangeExtension(destFileName, "pdb");
-		}
-
-		string GetDestinationFileName() {
-			var fs = destStream as FileStream;
-			if (fs == null)
-				return null;
-			return fs.Name;
 		}
 
 		/// <inheritdoc/>
