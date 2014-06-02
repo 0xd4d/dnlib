@@ -276,8 +276,8 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// Gets/sets the PDB attributes. Seems to be <c>1</c> if it's a compiler-generated local,
-		/// else <c>0</c>.
+		/// Gets/sets the PDB attributes. This seems to be a <c>CorSymVarFlag</c> enumeration.
+		/// It's <c>VAR_IS_COMP_GEN</c> (<c>1</c>) if it's a compiler-generated local.
 		/// </summary>
 		public int PdbAttributes {
 			get { return pdbAttributes; }
