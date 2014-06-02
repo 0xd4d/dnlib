@@ -136,42 +136,63 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// Creates a new <see cref="ISymbolReader"/> instance
 		/// </summary>
 		/// <param name="metaData">.NET metadata</param>
-		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
+		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
 		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c> if any of the COM
 		/// methods fail.</returns>
 		public static ISymbolReader Create(IMetaData metaData, IImageStream pdbStream) {
-			return Create(CreateMetaDataStream(metaData), pdbStream);
+			try {
+				return Create(CreateMetaDataStream(metaData), pdbStream);
+			}
+			catch {
+				if (pdbStream != null)
+					pdbStream.Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>
 		/// Creates a new <see cref="ISymbolReader"/> instance
 		/// </summary>
-		/// <param name="mdStream">.NET metadata stream which is now owned by us</param>
+		/// <param name="mdStream">.NET metadata stream which is now owned by this method</param>
 		/// <param name="pdbFileName">Path to PDB file</param>
 		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk or if any of the COM methods fail.</returns>
 		public static ISymbolReader Create(IImageStream mdStream, string pdbFileName) {
-			return Create(mdStream, OpenImageStream(pdbFileName));
+			try {
+				return Create(mdStream, OpenImageStream(pdbFileName));
+			}
+			catch {
+				if (mdStream != null)
+					mdStream.Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>
 		/// Creates a new <see cref="ISymbolReader"/> instance
 		/// </summary>
-		/// <param name="mdStream">.NET metadata stream which is now owned by us</param>
+		/// <param name="mdStream">.NET metadata stream which is now owned by this method</param>
 		/// <param name="pdbData">PDB file data</param>
 		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c> if any of the COM
 		/// methods fail.</returns>
 		public static ISymbolReader Create(IImageStream mdStream, byte[] pdbData) {
 			if (pdbData == null)
 				return null;
-			return Create(mdStream, MemoryImageStream.Create(pdbData));
+			try {
+				return Create(mdStream, MemoryImageStream.Create(pdbData));
+			}
+			catch {
+				if (mdStream != null)
+					mdStream.Dispose();
+				throw;
+			}
 		}
 
 		/// <summary>
 		/// Creates a new <see cref="ISymbolReader"/> instance
 		/// </summary>
-		/// <param name="mdStream">.NET metadata stream which is now owned by us</param>
-		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
+		/// <param name="mdStream">.NET metadata stream which is now owned by this method</param>
+		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
 		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c> if any of the COM
 		/// methods fail.</returns>
 		public static ISymbolReader Create(IImageStream mdStream, IImageStream pdbStream) {
