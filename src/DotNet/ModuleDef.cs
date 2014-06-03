@@ -536,7 +536,8 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="dnlib.DotNet.Pdb.PdbState"/>
+		/// Gets the <see cref="dnlib.DotNet.Pdb.PdbState"/>. This is <c>null</c> if no PDB file
+		/// has been loaded or if no PDB file could be found.
 		/// </summary>
 		public PdbState PdbState {
 			get { return pdbState; }

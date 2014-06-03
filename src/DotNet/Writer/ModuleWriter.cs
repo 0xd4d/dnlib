@@ -234,8 +234,7 @@ namespace dnlib.DotNet.Writer {
 			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
 			CreateMetaDataChunks(module);
 
-			if (TheOptions.WritePdb)
-				debugDirectory = new DebugDirectory();
+			CreateDebugDirectory();
 
 			if (importDirectory != null)
 				importDirectory.IsExeFile = Options.IsExeFile;

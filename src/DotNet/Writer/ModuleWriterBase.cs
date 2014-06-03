@@ -627,12 +627,24 @@ namespace dnlib.DotNet.Writer {
 			snSigner.WriteSignature(TheOptions.StrongNameKey, snSigOffset);
 		}
 
+		bool CanWritePdb() {
+			return TheOptions.WritePdb && Module.PdbState != null;
+		}
+
+		/// <summary>
+		/// Creates the debug directory if PDB should be written
+		/// </summary>
+		protected void CreateDebugDirectory() {
+			if (CanWritePdb())
+				debugDirectory = new DebugDirectory();
+		}
+
 		/// <summary>
 		/// Write the PDB file. The caller should send the PDB events before and after calling this
 		/// method.
 		/// </summary>
 		protected void WritePdbFile() {
-			if (!TheOptions.WritePdb)
+			if (!CanWritePdb())
 				return;
 			if (debugDirectory == null)
 				throw new InvalidOperationException("debugDirectory is null but WritePdb is true");

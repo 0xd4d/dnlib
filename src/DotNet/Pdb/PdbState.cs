@@ -190,7 +190,9 @@ namespace dnlib.DotNet.Pdb {
 
 		/// <summary>
 		/// Initializes a <see cref="CilBody"/> with information found in the PDB file. The
-		/// instructions in <paramref name="body"/> must have valid offsets.
+		/// instructions in <paramref name="body"/> must have valid offsets. This method is
+		/// automatically called by <see cref="ModuleDefMD"/> and you don't need to explicitly call
+		/// it.
 		/// </summary>
 		/// <param name="body">Method body</param>
 		/// <param name="methodRid">Method row ID</param>
