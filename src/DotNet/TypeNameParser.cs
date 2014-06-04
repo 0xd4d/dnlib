@@ -787,21 +787,38 @@ namespace dnlib.DotNet {
 					asmRef.Version = Utils.ParseVersion(value);
 					break;
 
+				case "CONTENTTYPE":
+					if (value.Equals("WindowsRuntime", StringComparison.OrdinalIgnoreCase))
+						asmRef.ContentType = AssemblyAttributes.ContentType_WindowsRuntime;
+					else
+						asmRef.ContentType = AssemblyAttributes.ContentType_Default;
+					break;
+
+				case "RETARGETABLE":
+					if (value.Equals("Yes", StringComparison.OrdinalIgnoreCase))
+						asmRef.IsRetargetable = true;
+					else
+						asmRef.IsRetargetable = false;
+					break;
+
 				case "PUBLICKEY":
-					if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
+					if (value.Equals("null", StringComparison.OrdinalIgnoreCase) ||
+						value.Equals("neutral", StringComparison.OrdinalIgnoreCase))
 						asmRef.PublicKeyOrToken = new PublicKey();
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKey(Utils.ParseBytes(value));
 					break;
 
 				case "PUBLICKEYTOKEN":
-					if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
+					if (value.Equals("null", StringComparison.OrdinalIgnoreCase) ||
+						value.Equals("neutral", StringComparison.OrdinalIgnoreCase))
 						asmRef.PublicKeyOrToken = new PublicKeyToken();
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKeyToken(Utils.ParseBytes(value));
 					break;
 
 				case "CULTURE":
+				case "LANGUAGE":
 					if (value.Equals("neutral", StringComparison.OrdinalIgnoreCase))
 						asmRef.Culture = UTF8String.Empty;
 					else

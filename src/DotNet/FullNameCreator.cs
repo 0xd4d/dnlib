@@ -1413,7 +1413,7 @@ namespace dnlib.DotNet {
 			var pk = assembly.PublicKeyOrToken;
 			if (pk is PublicKey)
 				pk = ((PublicKey)pk).Token;
-			return Utils.GetAssemblyNameString(EscapeAssemblyName(assembly.Name), assembly.Version, assembly.Culture, pk);
+			return Utils.GetAssemblyNameString(EscapeAssemblyName(assembly.Name), assembly.Version, assembly.Culture, pk, assembly.Attributes);
 		}
 
 		static string EscapeAssemblyName(UTF8String asmSimplName) {
@@ -1459,7 +1459,7 @@ namespace dnlib.DotNet {
 				var pkt = assembly.PublicKeyOrToken;
 				if (pkt is PublicKey)
 					pkt = ((PublicKey)pkt).Token;
-				sb.Append(Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Culture, pkt));
+				sb.Append(Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Culture, pkt, assembly.Attributes));
 			}
 		}
 

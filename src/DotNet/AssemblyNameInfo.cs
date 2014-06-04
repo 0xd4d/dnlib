@@ -119,7 +119,7 @@ namespace dnlib.DotNet {
 				var pk = publicKeyOrToken;
 				if (pk is PublicKey)
 					pk = (pk as PublicKey).Token;
-				return Utils.GetAssemblyNameString(name, version, culture, pk);
+				return Utils.GetAssemblyNameString(name, version, culture, pk, flags);
 			}
 		}
 
