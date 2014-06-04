@@ -631,7 +631,7 @@ namespace dnlib.DotNet {
 		}
 
 		string GetFullName(PublicKeyBase pkBase) {
-			return Utils.GetAssemblyNameString(name, version, culture, pkBase);
+			return Utils.GetAssemblyNameString(name, version, culture, pkBase, Attributes);
 		}
 
 		/// <summary>
