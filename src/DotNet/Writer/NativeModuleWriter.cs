@@ -243,8 +243,7 @@ namespace dnlib.DotNet.Writer {
 		void CreateChunks() {
 			CreateMetaDataChunks(module);
 
-			if (TheOptions.WritePdb)
-				debugDirectory = new DebugDirectory();
+			CreateDebugDirectory();
 
 			imageCor20Header = new ByteArrayChunk(new byte[0x48]);
 			CreateStrongNameSignature();
