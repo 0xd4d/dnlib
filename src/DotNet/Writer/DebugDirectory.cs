@@ -91,7 +91,8 @@ namespace dnlib.DotNet.Writer {
 			this.rva = rva;
 
 			length = HEADER_SIZE;
-			length += (uint)data.Length;
+			if (data != null)	// Could be null if dontWriteAnything is true
+				length += (uint)data.Length;
 		}
 
 		/// <inheritdoc/>
