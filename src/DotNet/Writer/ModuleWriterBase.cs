@@ -632,7 +632,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Creates the debug directory if PDB should be written
+		/// Creates the debug directory if a PDB file should be written
 		/// </summary>
 		protected void CreateDebugDirectory() {
 			if (CanWritePdb())
