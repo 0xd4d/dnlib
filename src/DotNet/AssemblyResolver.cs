@@ -250,6 +250,23 @@ namespace dnlib.DotNet {
 #endif
 		}
 
+		/// <inheritdoc/>
+		public void Clear() {
+			List<AssemblyDef> asms;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			asms = new List<AssemblyDef>(cachedAssemblies.Values);
+			cachedAssemblies.Clear();
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+			foreach (var asm in asms) {
+				foreach (var mod in asm.Modules)
+					mod.Dispose();
+			}
+		}
+
 		static string GetAssemblyNameKey(IAssembly asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
 			return asmName.FullNameToken.ToUpperInvariant();
