@@ -1,5 +1,18 @@
 .NET module/assembly reader/writer library written for [de4dot](https://github.com/0xd4d/de4dot/).
 
+
+dnlib was created because de4dot needed a robust .NET assembly library that
+could handle all types of obfuscated assemblies. de4dot used to use Mono.Cecil
+but since Mono.Cecil can't handle obfuscated assemblies, doesn't fully support
+mixed mode assemblies, doesn't read .NET assemblies the same way the [CLR](http://en.wikipedia.org/wiki/Common_Language_Runtime) does
+and many other missing features de4dot needed, dnlib was a necessity. The API
+is similar because it made porting de4dot to dnlib a lot easier.
+
+For another application using dnlib, see [ConfuserEx](https://github.com/yck1509/ConfuserEx/)
+(a .NET obfuscator). It uses many of the more advanced features of dnlib. Have
+a look at its writer code which gets executed during the assembly writing
+process.
+
 Compiling
 ---------
 
