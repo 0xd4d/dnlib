@@ -11,7 +11,7 @@ namespace dnlib.Examples {
 	/// This example shows how to create a module writer listener that gets notified of various
 	/// events. This listener just adds a new PE section to the image and prints the new RIDs.
 	/// It also shows how to add some dummy .NET heaps, and simple obfuscation that will break
-	/// most .NET libraries.
+	/// most libraries that open .NET assemblies.
 	/// </summary>
 	public class Example6 : IModuleWriterListener {
 		public static void Run() {
@@ -34,7 +34,8 @@ namespace dnlib.Examples {
 			// apps into thinking that there's no .NET metadata available
 			opts.PEHeadersOptions.NumberOfRvaAndSizes = 13;
 
-			// Add extra data. This will break most .NET libraries. Any value can be written here.
+			// Add extra data. This will break most libraries that open .NET assemblies.
+			// Any value can be written here.
 			opts.MetaDataOptions.TablesHeapOptions.ExtraData = 0x12345678;
 
 			// Add a few dummy heaps
