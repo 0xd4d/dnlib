@@ -248,7 +248,8 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the initial value
+		/// Gets/sets the initial value. Be sure to set <see cref="HasFieldRVA"/> to <c>true</c> if
+		/// you write to this field.
 		/// </summary>
 		public byte[] InitialValue {
 			get {
