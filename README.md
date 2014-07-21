@@ -36,9 +36,10 @@ First of all, the important namespaces are `dnlib.DotNet` and
 read/write method bodies. All the examples below assume you have the
 appropriate using statements at the top of each source file:
 
-    :::C#
+```csharp
     using dnlib.DotNet;
     using dnlib.DotNet.Emit;
+```
 
 ModuleDefMD is the class that is created when you open a .NET module. It has
 several `Load()` methods that will create a ModuleDefMD instance. If it's not a
@@ -46,44 +47,50 @@ several `Load()` methods that will create a ModuleDefMD instance. If it's not a
 
 Read a .NET module from a file:
 
-    :::C#
+```csharp
     ModuleDefMD module = ModuleDefMD.Load(@"C:\path\to\file.exe");
+```
 
 Read a .NET module from a byte array:
 
-    :::C#
+```csharp
     byte[] data = System.IO.File.ReadAllBytes(@"C:\path\of\file.dll");
     ModuleDefMD module = ModuleDefMD.Load(data);
+```
 
 You can also pass in a Stream instance, an address in memory (HINSTANCE) or
 even a System.Reflection.Module instance:
 
-    :::C#
+```csharp
     System.Reflection.Module reflectionModule = typeof(void).Module;	// Get mscorlib.dll's module
     ModuleDefMD module = ModuleDefMD.Load(reflectionModule);
+```
 
 To get the assembly, use its Assembly property:
 
-    :::C#
+```csharp
     AssemblyDef asm = module.Assembly;
     Console.WriteLine("Assembly: {0}", asm);
+```
 
 Saving a .NET assembly/module
 -----------------------------
 
 Use `module.Write()`. It can save the assembly to a file or a Stream.
 
-    :::C#
+```csharp
     module.Write(@"C:\saved-assembly.dll");
+```
 
 If it's a C++/CLI assembly, you should use `NativeWrite()`
 
-    :::C#
+```csharp
     module.NativeWrite(@"C:\saved-assembly.dll");
+```
 
 To detect it at runtime, use this code:
 
-    :::C#
+```csharp
     if (module.IsILOnly) {
     	// This assembly has only IL code, and no native code (eg. it's a C# or VB assembly)
     	module.Write(@"C:\saved-assembly.dll");
@@ -92,6 +99,7 @@ To detect it at runtime, use this code:
     	// This assembly has native code (eg. C++/CLI)
     	module.NativeWrite(@"C:\saved-assembly.dll");
     }
+```
 
 PDB files
 ---------
@@ -101,9 +109,10 @@ also pass in a `ModuleCreationOptions` to `ModuleDefMD.Load()` and if one of
 the PDB options is enabled, the PDB file will be opened before `Load()`
 returns.
 
-    :::C#
+```csharp
     var mod = ModuleDefMD.Load(@"C:\myfile.dll");
     mod.LoadPdb();	// Will load C:\myfile.pdb if it exists
+```
 
 To save a PDB file, create a `ModuleWriterOptions` /
 `NativeModuleWriterOptions` and set its `WritePdb` property to `true`. By
@@ -115,13 +124,14 @@ the name of the PDB file will be written to the PE file. Another more
 advanced property is `CreatePdbSymbolWriter` which returns a `ISymbolWriter2`
 instance that dnlib will use.
 
-    :::C#
+```csharp
     var mod = ModuleDefMD.Load(@"C:\myfile.dll");
     // ...
     var wopts = new dnlib.DotNet.Writer.ModuleWriterOptions(mod);
     wopts.WritePdb = true;
     // wopts.PdbFileName = @"C:\out2.pdb";	// Set other file name
     mod.Write(@"C:\out.dll", wopts);
+```
 
 The current PDB reader and writer code use diasymreader.dll to read and write
 PDB files so it will only work if the OS is Windows.
@@ -131,7 +141,7 @@ Strong name sign an assembly
 
 Use the following code to strong name sign the assembly when saving it:
 
-    :::C#
+```csharp
     using dnlib.DotNet.Writer;
     ...
     // Open or create an assembly
@@ -148,6 +158,7 @@ Use the following code to strong name sign the assembly when saving it:
     
     // Write and strong name sign the assembly
     mod.Write(@"C:\out\file.dll", opts);
+```
 
 Enhanced strong name signing an assembly
 ----------------------------------------
@@ -157,7 +168,7 @@ for info on enhanced strong naming.
 
 Enhanced strong name signing without key migration:
 
-    :::C#
+```csharp
     using dnlib.DotNet.Writer;
     ...
     // Open or create an assembly
@@ -175,10 +186,11 @@ Enhanced strong name signing without key migration:
     
     // Write and strong name sign the assembly
     mod.Write(@"C:\out\file.dll", opts);
+```
 
 Enhanced strong name signing with key migration:
 
-    :::C#
+```csharp
     using dnlib.DotNet.Writer;
     ...
     // Open or create an assembly
@@ -199,6 +211,7 @@ Enhanced strong name signing with key migration:
     
     // Write and strong name sign the assembly
     mod.Write(@"C:\out\file.dll", opts);
+```
 
 Type classes
 ------------
@@ -252,7 +265,7 @@ is a `SZArraySig`, and *not* an `ArraySig`.
 Some examples if you're not used to the way type signatures are represented
 in metadata:
 
-    :::C#
+```csharp
     ModuleDef mod = ....;
     
     // Create a byte[]
@@ -271,14 +284,16 @@ in metadata:
     // If it were a value type, you would use ValueTypeSig instead.
     TypeRef stream = new TypeRefUser(mod, "System.IO", "Stream", mod.CorLibTypes.AssemblyRef);
     SZArraySig array5 = new SZArraySig(new ClassSig(stream));
+```
 
 Sometimes you must convert an `ITypeDefOrRef` (`TypeRef`, `TypeDef`, or
 `TypeSpec`) to/from a `TypeSig`. There's extension methods you can use:
 
-    :::C#
+```csharp
     // array5 is defined above
     ITypeDefOrRef type1 = array5.ToTypeDefOrRef();
     TypeSig type2 = type1.ToTypeSig();
+```
 
 Naming conventions of metadata table classes
 --------------------------------------------
@@ -364,7 +379,7 @@ The `SigComparer` class can also compare types with `System.Type`, methods with
 It has many options you can set, see `SigComparerOptions`. The default options
 is usually good enough, though.
 
-    :::C#
+```csharp
     // Compare two types
     TypeRef type1 = ...;
     TypeDef type2 = ...;
@@ -380,6 +395,7 @@ is usually good enough, though.
     TypeRef type1 = ...;
     if (new SigComparer().Equals(type1, typeof(int)))
     	Console.WriteLine("They're equal");
+```
 
 It has many `Equals()` and `GetHashCode()` overloads.
 
@@ -422,7 +438,7 @@ If you call Resolve() or read custom attributes, you should initialize
 module.Context to a `ModuleContext`. It should normally be shared between all
 modules you open.
 
-    :::C#
+```csharp
     AssemblyResolver asmResolver = new AssemblyResolver();
     ModuleContext modCtx = new ModuleContext(asmResolver);
     
@@ -433,14 +449,16 @@ modules you open.
     // by the assembly resolver. Only enable it if all auto-loaded
     // assemblies are read-only.
     asmResolver.EnableTypeDefCache = true;
+```
 
 All assemblies that you yourself open should be added to the assembly resolver
 cache.
 
-    :::C#
+```csharp
     ModuleDefMD mod = ModuleDefMD.Load(...);
     mod.Context = modCtx;	// Use the previously created (and shared) context
     mod.Context.AssemblyResolver.AddToCache(mod);
+```
 
 Resolving types, methods, etc from metadata tokens
 --------------------------------------------------
@@ -455,8 +473,9 @@ Every module has a `CorLibTypes` property. It has references to a few of the
 simplest types such as all integer types, floating point types, Object, String,
 etc. If you need a type that's not there, you must create it yourself, eg.:
 
-    :::C#
+```csharp
     TypeRef consoleRef = new TypeRefUser(mod, "System", "Console", mod.CorLibTypes.AssemblyRef);
+```
 
 Importing runtime types, methods, fields
 ----------------------------------------
@@ -464,10 +483,11 @@ Importing runtime types, methods, fields
 To import a `System.Type`, `System.Reflection.MethodInfo`,
 `System.Reflection.FieldInfo`, etc into a module, use the `Importer` class.
 
-    :::C#
+```csharp
     Importer importer = new Importer(mod);
     ITypeDefOrRef consoleRef = importer.Import(typeof(System.Console));
     IMethod writeLine = importer.Import(typeof(System.Console).GetMethod("WriteLine"));
+```
 
 You can also use it to import types, methods etc from another `ModuleDef`.
 
@@ -502,12 +522,13 @@ The `MetaData` property gives you full access to the metadata.
 
 To get a list of all valid TypeDef rids (row IDs), use this code:
 
-    :::C#
+```csharp
     using dnlib.DotNet.MD;
     // ...
     ModuleDefMD mod = ModuleDefMD.Load(...);
     RidList typeDefRids = mod.MetaData.GetTypeDefRidList();
     for (int i = 0; i < typeDefRids.Count; i++)
     	Console.WriteLine("rid: {0}", typeDefRids[i]);
+```
 
 You don't need to create a `ModuleDefMD`, though. See `DotNetFile`.
