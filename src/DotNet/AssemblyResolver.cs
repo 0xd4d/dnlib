@@ -267,6 +267,10 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Gets the cached assemblies in this resolver.
+		/// </summary>
+		/// <returns>The cached assemblies.</returns>
 		public IEnumerable<AssemblyDef> GetCachedAssemblies() {
 			return cachedAssemblies.Values;
 		}
