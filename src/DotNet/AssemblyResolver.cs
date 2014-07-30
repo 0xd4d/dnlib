@@ -267,6 +267,10 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		public IEnumerable<AssemblyDef> GetCachedAssemblies() {
+			return cachedAssemblies.Values;
+		}
+
 		static string GetAssemblyNameKey(IAssembly asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
 			return asmName.FullNameToken.ToUpperInvariant();
