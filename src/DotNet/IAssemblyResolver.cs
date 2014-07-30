@@ -54,6 +54,14 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if it was removed, <c>false</c> if it wasn't removed since it
 		/// wasn't in the cache or if <paramref name="asm"/> was <c>null</c></returns>
 		bool Remove(AssemblyDef asm);
+
+		/// <summary>
+		/// Clears the cache and calls <see cref="IDisposable.Dispose()"/> on each cached module.
+		/// Use <see cref="Remove(AssemblyDef)"/> to remove any assemblies you added yourself
+		/// using <see cref="AddToCache(AssemblyDef)"/> before calling this method if you don't want
+		/// them disposed.
+		/// </summary>
+		void Clear();
 	}
 
 	public static partial class Extensions {

@@ -439,6 +439,13 @@ namespace dnlib.DotNet {
 			} finally { theLock.ExitWriteLock(); }
 #endif
 		}
+		ClassLayout GetOrCreateClassLayout() {
+			var cl = ClassLayout;
+			if (cl != null)
+				return cl;
+			Interlocked.CompareExchange(ref classLayout, new ClassLayoutUser(0, 0), null);
+			return classLayout;
+		}
 
 		/// <summary>Called to initialize <see cref="classLayout"/></summary>
 		protected virtual ClassLayout GetClassLayout_NoLock() {
@@ -653,7 +660,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// gets/sets the packing size
+		/// Gets/sets the packing size. If you write to this property but <see cref="ClassLayout"/>
+		/// is <c>null</c>, it will be created. The value <see cref="ushort.MaxValue"/> is returned
+		/// if <see cref="ClassLayout"/> is <c>null</c>.
 		/// </summary>
 		public ushort PackingSize {
 			get {
@@ -661,14 +670,15 @@ namespace dnlib.DotNet {
 				return cl == null ? ushort.MaxValue : cl.PackingSize;
 			}
 			set {
-				var cl = ClassLayout;
-				if (cl != null)
-					cl.PackingSize = value;
+				var cl = GetOrCreateClassLayout();
+				cl.PackingSize = value;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the class size
+		/// Gets/sets the class size. If you write to this property but <see cref="ClassLayout"/>
+		/// is <c>null</c>, it will be created. The value <see cref="uint.MaxValue"/> is returned
+		/// if <see cref="ClassLayout"/> is <c>null</c>.
 		/// </summary>
 		public uint ClassSize {
 			get {
@@ -676,9 +686,8 @@ namespace dnlib.DotNet {
 				return cl == null ? uint.MaxValue : cl.ClassSize;
 			}
 			set {
-				var cl = ClassLayout;
-				if (cl != null)
-					cl.ClassSize = value;
+				var cl = GetOrCreateClassLayout();
+				cl.ClassSize = value;
 			}
 		}
 

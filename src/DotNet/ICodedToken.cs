@@ -510,6 +510,108 @@ namespace dnlib.DotNet {
 
 			throw new TypeResolveException(string.Format("Could not resolve type: {0}", tdr));
 		}
+
+		/// <summary>
+		/// Resolves an <see cref="IField"/> to a <see cref="FieldDef"/>. Returns <c>null</c> if it
+		/// was not possible to resolve it. See also <see cref="ResolveFieldDefThrow"/>
+		/// </summary>
+		/// <param name="field">Field to resolve</param>
+		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if <paramref name="field"/> is
+		/// <c>null</c> or if it wasn't possible to resolve it (the field doesn't exist or its
+		/// assembly couldn't be loaded)</returns>
+		public static FieldDef ResolveFieldDef(this IField field) {
+			var fd = field as FieldDef;
+			if (fd != null)
+				return fd;
+
+			var mr = field as MemberRef;
+			if (mr != null)
+				return mr.ResolveField();
+
+			return null;
+		}
+
+		/// <summary>
+		/// Resolves an <see cref="IField"/> to a <see cref="FieldDef"/> and throws an exception if
+		/// it was not possible to resolve it. See also <see cref="ResolveFieldDef"/>
+		/// </summary>
+		/// <param name="field">Field to resolve</param>
+		/// <returns>The <see cref="FieldDef"/></returns>
+		public static FieldDef ResolveFieldDefThrow(this IField field) {
+			var fd = field as FieldDef;
+			if (fd != null)
+				return fd;
+
+			var mr = field as MemberRef;
+			if (mr != null)
+				return mr.ResolveFieldThrow();
+
+			throw new MemberRefResolveException(string.Format("Could not resolve field: {0}", field));
+		}
+
+		/// <summary>
+		/// Resolves an <see cref="IMethod"/> to a <see cref="MethodDef"/>. Returns <c>null</c> if it
+		/// was not possible to resolve it. See also <see cref="ResolveMethodDefThrow"/>. If
+		/// <paramref name="method"/> is a <see cref="MethodSpec"/>, then the
+		/// <see cref="MethodSpec.Method"/> property is resolved and returned.
+		/// </summary>
+		/// <param name="method">Method to resolve</param>
+		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if <paramref name="method"/> is
+		/// <c>null</c> or if it wasn't possible to resolve it (the method doesn't exist or its
+		/// assembly couldn't be loaded)</returns>
+		public static MethodDef ResolveMethodDef(this IMethod method) {
+			var md = method as MethodDef;
+			if (md != null)
+				return md;
+
+			var mr = method as MemberRef;
+			if (mr != null)
+				return mr.ResolveMethod();
+
+			var ms = method as MethodSpec;
+			if (ms != null) {
+				md = ms.Method as MethodDef;
+				if (md != null)
+					return md;
+
+				mr = ms.Method as MemberRef;
+				if (mr != null)
+					return mr.ResolveMethod();
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Resolves an <see cref="IMethod"/> to a <see cref="MethodDef"/> and throws an exception
+		/// if it was not possible to resolve it. See also <see cref="ResolveMethodDef"/>. If
+		/// <paramref name="method"/> is a <see cref="MethodSpec"/>, then the
+		/// <see cref="MethodSpec.Method"/> property is resolved and returned.
+		/// </summary>
+		/// <param name="method">Method to resolve</param>
+		/// <returns>The <see cref="MethodDef"/></returns>
+		public static MethodDef ResolveMethodDefThrow(this IMethod method) {
+			var md = method as MethodDef;
+			if (md != null)
+				return md;
+
+			var mr = method as MemberRef;
+			if (mr != null)
+				return mr.ResolveMethodThrow();
+
+			var ms = method as MethodSpec;
+			if (ms != null) {
+				md = ms.Method as MethodDef;
+				if (md != null)
+					return md;
+
+				mr = ms.Method as MemberRef;
+				if (mr != null)
+					return mr.ResolveMethodThrow();
+			}
+
+			throw new MemberRefResolveException(string.Format("Could not resolve method: {0}", method));
+		}
 	}
 
 	/// <summary>

@@ -50,6 +50,10 @@
 		}
 
 		/// <inheritdoc/>
+		public void Clear() {
+		}
+
+		/// <inheritdoc/>
 		public TypeDef Resolve(TypeRef typeRef) {
 			return null;
 		}

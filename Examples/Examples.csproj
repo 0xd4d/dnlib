@@ -36,6 +36,9 @@
     <Compile Include="Example1.cs" />
     <Compile Include="Example2.cs" />
     <Compile Include="Example3.cs" />
+    <Compile Include="Example4.cs" />
+    <Compile Include="Example5.cs" />
+    <Compile Include="Example6.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
