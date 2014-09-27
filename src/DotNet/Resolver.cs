@@ -100,8 +100,6 @@ using dnlib.Threading;
 				return null;
 			foreach (var module in modules.GetSafeEnumerable()) {
 				foreach (var exportedType in module.ExportedTypes.GetSafeEnumerable()) {
-					if (!exportedType.IsForwarder)
-						continue;
 					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef))
 						return exportedType;
 				}
