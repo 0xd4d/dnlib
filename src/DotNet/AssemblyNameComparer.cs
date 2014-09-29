@@ -179,9 +179,9 @@ namespace dnlib.DotNet {
 			if (a == b)
 				return 0;
 			if (a == null)
-				return 1;
+				return !CompareName ? 1 : UTF8String.CaseInsensitiveEquals(requested.Name, b.Name) ? 1 : 0;
 			if (b == null)
-				return 0;
+				return !CompareName ? 0 : UTF8String.CaseInsensitiveEquals(requested.Name, a.Name) ? 0 : 1;
 
 			// Compare the most important parts first:
 			//	1. Assembly simple name
