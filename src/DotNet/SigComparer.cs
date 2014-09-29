@@ -1046,6 +1046,133 @@ namespace dnlib.DotNet {
 			return ts.TypeSig.RemoveModifiers() as GenericInstSig;
 		}
 
+		bool Equals(IAssembly aAsm, IAssembly bAsm, TypeRef b) {
+			if (Equals(aAsm, bAsm))
+				return true;
+
+			// Could be an exported type. Resolve it and check again.
+
+			var td = b.Resolve();
+			return td != null && Equals(aAsm, td.Module.Assembly);
+		}
+
+		bool Equals(IAssembly aAsm, IAssembly bAsm, ExportedType b) {
+			if (Equals(aAsm, bAsm))
+				return true;
+
+			var td = b.Resolve();
+			return td != null && Equals(aAsm, td.Module.Assembly);
+		}
+
+		bool Equals(IAssembly aAsm, TypeRef a, IAssembly bAsm, TypeRef b) {
+			if (Equals(aAsm, bAsm))
+				return true;
+
+			// Could be exported types. Resolve them and check again.
+
+			var tda = a.Resolve();
+			var tdb = b.Resolve();
+			return tda != null && tdb != null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
+		}
+
+		bool Equals(IAssembly aAsm, ExportedType a, IAssembly bAsm, ExportedType b) {
+			if (Equals(aAsm, bAsm))
+				return true;
+
+			var tda = a.Resolve();
+			var tdb = b.Resolve();
+			return tda != null && tdb != null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
+		}
+
+		bool Equals(IAssembly aAsm, TypeRef a, IAssembly bAsm, ExportedType b) {
+			if (Equals(aAsm, bAsm))
+				return true;
+
+			// Could be an exported type. Resolve it and check again.
+
+			var tda = a.Resolve();
+			var tdb = b.Resolve();
+			return tda != null && tdb != null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
+		}
+
+		bool Equals(TypeDef a, IModule bMod, TypeRef b) {
+			if (Equals(a.Module, bMod) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+				return true;
+
+			// Could be an exported type. Resolve it and check again.
+
+			var td = b.Resolve();
+			return td != null && Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
+		}
+
+		bool Equals(TypeDef a, FileDef bFile, ExportedType b) {
+			if (Equals(a.Module, bFile) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+				return true;
+
+			var td = b.Resolve();
+			return td != null && Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
+		}
+
+		bool Equals(TypeRef a, IModule ma, TypeRef b, IModule mb) {
+			if (Equals(ma, mb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+				return true;
+
+			// Could be exported types. Resolve them and check again.
+
+			var tda = a.Resolve();
+			var tdb = b.Resolve();
+			return tda != null && tdb != null &&
+				Equals(tda.Module, tdb.Module) && Equals(tda.DefinitionAssembly, tdb.DefinitionAssembly);
+		}
+
+		bool Equals(TypeRef a, IModule ma, ExportedType b, FileDef fb) {
+			if (Equals(ma, fb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+				return true;
+
+			// Could be an exported type. Resolve it and check again.
+
+			var tda = a.Resolve();
+			var tdb = b.Resolve();
+			return tda != null && tdb != null &&
+				Equals(tda.Module, tdb.Module) && Equals(tda.DefinitionAssembly, tdb.DefinitionAssembly);
+		}
+
+		bool Equals(Assembly aAsm, IAssembly bAsm, TypeRef b) {
+			if (Equals(bAsm, aAsm))
+				return true;
+
+			// Could be an exported type. Resolve it and check again.
+
+			var td = b.Resolve();
+			return td != null && Equals(td.Module.Assembly, aAsm);
+		}
+
+		bool Equals(Assembly aAsm, IAssembly bAsm, ExportedType b) {
+			if (Equals(bAsm, aAsm))
+				return true;
+
+			var td = b.Resolve();
+			return td != null && Equals(td.Module.Assembly, aAsm);
+		}
+
+		bool Equals(Type a, IModule bMod, TypeRef b) {
+			if (Equals(bMod, a.Module) && Equals(b.DefinitionAssembly, a.Assembly))
+				return true;
+
+			// Could be an exported type. Resolve it and check again.
+
+			var td = b.Resolve();
+			return td != null && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
+		}
+
+		bool Equals(Type a, FileDef bFile, ExportedType b) {
+			if (Equals(bFile, a.Module) && Equals(b.DefinitionAssembly, a.Assembly))
+				return true;
+
+			var td = b.Resolve();
+			return td != null && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
+		}
+
 		/// <summary>
 		/// Compares types
 		/// </summary>
@@ -1199,13 +1326,11 @@ namespace dnlib.DotNet {
 			}
 			else if (DontCompareTypeScope)
 				result = true;
-			else if ((bMod = scope as IModule) != null) {	// 'b' is defined in the same assembly as 'a'
-				result = Equals((IModule)a.Module, (IModule)bMod) &&
-						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
-			}
+			else if ((bMod = scope as IModule) != null)	// 'b' is defined in the same assembly as 'a'
+				result = Equals(a, bMod, b);
 			else if ((bAsm = scope as AssemblyRef) != null) {
 				var aMod = a.Module;
-				result = aMod != null && Equals(aMod.Assembly, bAsm);
+				result = aMod != null && Equals(aMod.Assembly, bAsm, b);
 			}
 			else {
 				result = false;
@@ -1258,13 +1383,11 @@ namespace dnlib.DotNet {
 			}
 			else if (DontCompareTypeScope)
 				result = true;
-			else if ((bFile = scope as FileDef) != null) {
-				result = Equals(a.Module, bFile) &&
-						Equals(a.DefinitionAssembly, b.DefinitionAssembly);
-			}
+			else if ((bFile = scope as FileDef) != null)
+				result = Equals(a, bFile, b);
 			else if ((bAsm = scope as AssemblyRef) != null) {
 				var aMod = a.Module;
-				result = aMod != null && Equals(aMod.Assembly, bAsm);
+				result = aMod != null && Equals(aMod.Assembly, bAsm, b);
 			}
 			else
 				result = false;
@@ -1723,7 +1846,6 @@ namespace dnlib.DotNet {
 			TypeRef ea, eb;
 			IModule ma, mb;
 			AssemblyRef aa, ab;
-			ModuleRef modRef;
 			ModuleDef modDef;
 
 			// if one of them is a TypeRef, the other one must be too
@@ -1733,22 +1855,22 @@ namespace dnlib.DotNet {
 				result = true;
 			// only compare if both are modules
 			else if ((ma = ra as IModule) != null & (mb = rb as IModule) != null)
-				result = Equals(ma, mb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly);
+				result = Equals(a, ma, b, mb);
 			// only compare if both are assemblies
 			else if ((aa = ra as AssemblyRef) != null & (ab = rb as AssemblyRef) != null)
-				result = Equals((IAssembly)aa, (IAssembly)ab);
-			else if (aa != null && (modRef = rb as ModuleRef) != null) {
+				result = Equals(aa, a, ab, b);
+			else if (aa != null && rb is ModuleRef) {
 				var bMod = b.Module;
-				result = bMod != null && Equals(aa, bMod.Assembly);
+				result = bMod != null && Equals(bMod.Assembly, b, aa, a);
 			}
-			else if (ab != null && (modRef = ra as ModuleRef) != null) {
+			else if (ab != null && ra is ModuleRef) {
 				var aMod = a.Module;
-				result = aMod != null && Equals(ab, aMod.Assembly);
+				result = aMod != null && Equals(aMod.Assembly, a, ab, b);
 			}
 			else if (aa != null && (modDef = rb as ModuleDef) != null)
-				result = Equals(aa, modDef.Assembly);
+				result = Equals(modDef.Assembly, aa, a);
 			else if (ab != null && (modDef = ra as ModuleDef) != null)
-				result = Equals(ab, modDef.Assembly);
+				result = Equals(modDef.Assembly, ab, b);
 			else
 				result = false;
 
@@ -1791,11 +1913,11 @@ namespace dnlib.DotNet {
 				result = Equals(fa, fb);
 			// only compare if both are assemblies
 			else if ((aa = ia as AssemblyRef) != null & (ab = ib as AssemblyRef) != null)
-				result = Equals((IAssembly)aa, (IAssembly)ab);
+				result = Equals(aa, a, ab, b);
 			else if (fa != null && ab != null)
-				result = Equals(a.DefinitionAssembly, ab);
+				result = Equals(a.DefinitionAssembly, ab, b);
 			else if (fb != null && aa != null)
-				result = Equals(b.DefinitionAssembly, aa);
+				result = Equals(b.DefinitionAssembly, aa, a);
 			else
 				result = false;
 
@@ -1836,13 +1958,13 @@ namespace dnlib.DotNet {
 			else if (DontCompareTypeScope)
 				result = true;
 			else if ((ma = ra as IModule) != null & (fb = ib as FileDef) != null)
-				result = Equals(ma, fb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly);
+				result = Equals(a, ma, b, fb);
 			else if ((aa = ra as AssemblyRef) != null & (ab = ib as AssemblyRef) != null)
-				result = Equals(aa, ab);
+				result = Equals(aa, a, ab, b);
 			else if (ma != null && ab != null)
-				result = Equals(a.DefinitionAssembly, ab);
+				result = Equals(a.DefinitionAssembly, ab, b);
 			else if (fb != null && aa != null)
-				result = Equals(b.DefinitionAssembly, aa);
+				result = Equals(b.DefinitionAssembly, aa, a);
 			else
 				result = false;
 
@@ -3299,12 +3421,10 @@ namespace dnlib.DotNet {
 				result = false;	// b is nested, a isn't
 			else if (DontCompareTypeScope)
 				result = true;
-			else if ((aMod = scope as IModule) != null) {	// 'a' is defined in the same assembly as 'b'
-				result = Equals(aMod, b.Module) &&
-						Equals(a.DefinitionAssembly, b.Assembly);
-			}
+			else if ((aMod = scope as IModule) != null)	// 'a' is defined in the same assembly as 'b'
+				result = Equals(b, aMod, a);
 			else if ((aAsm = scope as AssemblyRef) != null)
-				result = Equals(aAsm, b.Assembly);
+				result = Equals(b.Assembly, aAsm, a);
 			else {
 				result = false;
 				//TODO: Handle the case where scope == null
@@ -3585,12 +3705,10 @@ namespace dnlib.DotNet {
 				result = false;	// b is nested, a isn't
 			else if (DontCompareTypeScope)
 				result = true;
-			else if ((aFile = scope as FileDef) != null) {
-				result = Equals(aFile, b.Module) &&
-						Equals(a.DefinitionAssembly, b.Assembly);
-			}
+			else if ((aFile = scope as FileDef) != null)
+				result = Equals(b, aFile, a);
 			else if ((aAsm = scope as AssemblyRef) != null)
-				result = Equals(aAsm, b.Assembly);
+				result = Equals(b.Assembly, aAsm, a);
 			else
 				result = false;
 
@@ -3851,7 +3969,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Module #1</param>
 		/// <param name="b">Module #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal bool Equals(IModule a, Module b) {
+		bool Equals(IModule a, Module b) {
 			if (a == b)
 				return true;
 			if (a == null || b == null)
@@ -4382,7 +4500,7 @@ namespace dnlib.DotNet {
 		}
 
 		static bool IsSystemVoid(TypeSig a) {
-			return a != null && a.FullName == "System.Void" && a.DefinitionAssembly.IsCorLib();
+			return a.RemovePinnedAndModifiers().GetElementType() == ElementType.Void;
 		}
 
 		/// <summary>
