@@ -1030,8 +1030,8 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a method or a field. The <see cref="MemberRef.Class"/> (owner type) is
-		/// ignored when resolving the method/field. Private scope methods/fields are not returned.
+		/// Resolves a method or a field. <see cref="MemberRef.Class"/> (owner type) is ignored when
+		/// resolving the method/field. Private scope methods/fields are not returned.
 		/// </summary>
 		/// <param name="memberRef">A method/field reference</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
@@ -1041,8 +1041,8 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Resolves a method or a field. The <see cref="MemberRef.Class"/> (owner type) is
-		/// ignored when resolving the method/field.
+		/// Resolves a method or a field. <see cref="MemberRef.Class"/> (owner type) is ignored when
+		/// resolving the method/field.
 		/// </summary>
 		/// <param name="memberRef">A method/field reference</param>
 		/// <param name="options">Method/field signature comparison options</param>
@@ -1054,11 +1054,11 @@ namespace dnlib.DotNet {
 
 			var methodSig = memberRef.MethodSig;
 			if (methodSig != null)
-				return FindMethod(memberRef.Name, methodSig, options);
+				return FindMethodCheckBaseType(memberRef.Name, methodSig, options);
 
 			var fieldSig = memberRef.FieldSig;
 			if (fieldSig != null)
-				return FindField(memberRef.Name, fieldSig, options);
+				return FindFieldCheckBaseType(memberRef.Name, fieldSig, options);
 
 			return null;
 		}
@@ -1381,9 +1381,20 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Method signature</param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
 		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig) {
+			return FindMethodCheckBaseType(name, sig, 0);
+		}
+
+		/// <summary>
+		/// Finds a method by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <param name="sig">Method signature</param>
+		/// <param name="options">Method signature comparison options</param>
+		/// <returns>The method or <c>null</c> if it wasn't found</returns>
+		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options) {
 			var td = this;
 			while (td != null) {
-				var md = td.FindMethod(name, sig);
+				var md = td.FindMethod(name, sig, options);
 				if (md != null)
 					return md;
 				td = td.BaseType.ResolveTypeDef();
@@ -1414,9 +1425,20 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Field signature</param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
 		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig) {
+			return FindFieldCheckBaseType(name, sig, 0);
+		}
+
+		/// <summary>
+		/// Finds a field by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <param name="sig">Field signature</param>
+		/// <param name="options">Field signature comparison options</param>
+		/// <returns>The field or <c>null</c> if it wasn't found</returns>
+		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options) {
 			var td = this;
 			while (td != null) {
-				var fd = td.FindField(name, sig);
+				var fd = td.FindField(name, sig, options);
 				if (fd != null)
 					return fd;
 				td = td.BaseType.ResolveTypeDef();
