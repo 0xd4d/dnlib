@@ -117,7 +117,8 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="obj">This can be one of several supported types: the delegate instance
 		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
 		/// instance or a DynamicResolver instance.</param>
-		public DynamicMethodBodyReader(ModuleDef module, object obj) {
+		public DynamicMethodBodyReader(ModuleDef module, object obj)
+			: this(module, obj, new GenericParamContext()) {
 		}
 
 		/// <summary>

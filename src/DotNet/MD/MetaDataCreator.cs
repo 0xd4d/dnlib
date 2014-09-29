@@ -124,7 +124,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="peImage">The PE image</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
 		internal static MetaData Load(IPEImage peImage) {
-			return Load(peImage, true);
+			return Create(peImage, true);
 		}
 
 		/// <summary>
@@ -133,7 +133,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="peImage">The PE image</param>
 		/// <returns>A new <see cref="IMetaData"/> instance</returns>
 		public static IMetaData CreateMetaData(IPEImage peImage) {
-			return Load(peImage, true);
+			return Create(peImage, true);
 		}
 
 		/// <summary>
@@ -143,7 +143,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="IMetaData"/> instance</returns>
 		public static IMetaData CreateMetaData(IPEImage peImage, bool verify) {
-			return Load(peImage, verify);
+			return Create(peImage, verify);
 		}
 
 		/// <summary>
@@ -152,7 +152,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="peImage">The PE image</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Load(IPEImage peImage, bool verify) {
+		internal static MetaData Create(IPEImage peImage, bool verify) {
 			IImageStream cor20HeaderStream = null, mdHeaderStream = null;
 			MetaData md = null;
 			try {
