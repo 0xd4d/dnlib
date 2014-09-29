@@ -52,72 +52,72 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(IType x, IType y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(IType obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(ITypeDefOrRef x, ITypeDefOrRef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(ITypeDefOrRef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeRef x, TypeRef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeRef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeDef x, TypeDef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeDef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeSpec x, TypeSpec y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeSpec obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(TypeSig x, TypeSig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(TypeSig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(ExportedType x, ExportedType y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(ExportedType obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 	}
 
@@ -157,32 +157,32 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(IField x, IField y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(IField obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(FieldDef x, FieldDef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(FieldDef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MemberRef x, MemberRef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MemberRef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 	}
 
@@ -222,52 +222,52 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(IMethod x, IMethod y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(IMethod obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(IMethodDefOrRef x, IMethodDefOrRef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(IMethodDefOrRef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodDef x, MethodDef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodDef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MemberRef x, MemberRef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MemberRef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodSpec x, MethodSpec y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodSpec obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 	}
 
@@ -307,12 +307,12 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(PropertyDef x, PropertyDef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(PropertyDef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 	}
 
@@ -352,12 +352,12 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(EventDef x, EventDef y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(EventDef obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 	}
 
@@ -387,72 +387,72 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public bool Equals(CallingConventionSig x, CallingConventionSig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(CallingConventionSig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodBaseSig x, MethodBaseSig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodBaseSig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(MethodSig x, MethodSig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(MethodSig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(PropertySig x, PropertySig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(PropertySig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(FieldSig x, FieldSig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(FieldSig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(LocalSig x, LocalSig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(LocalSig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(GenericInstMethodSig x, GenericInstMethodSig y) {
-			return new SigComparer { Options = options }.Equals(x, y);
+			return new SigComparer(options).Equals(x, y);
 		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(GenericInstMethodSig obj) {
-			return new SigComparer { Options = options }.GetHashCode(obj);
+			return new SigComparer(options).GetHashCode(obj);
 		}
 	}
 

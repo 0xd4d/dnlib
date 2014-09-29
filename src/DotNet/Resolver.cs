@@ -139,7 +139,7 @@ using dnlib.Threading;
 				if (module == null)
 					return null;
 				TypeDef globalType = null;
-				if (new SigComparer(0).Equals(module, moduleRef))
+				if (new SigComparer().Equals(module, moduleRef))
 					globalType = module.GlobalType;
 				var modAsm = module.Assembly;
 				if (globalType == null && modAsm != null) {
