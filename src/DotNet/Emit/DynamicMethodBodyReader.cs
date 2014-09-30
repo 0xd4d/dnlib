@@ -513,7 +513,7 @@ namespace dnlib.DotNet.Emit {
 			return null;
 		}
 
-		unsafe TypeSig ISignatureReaderHelper.ConvertRTInternalAddress(IntPtr address) {
+		TypeSig ISignatureReaderHelper.ConvertRTInternalAddress(IntPtr address) {
 			return importer.ImportAsTypeSig(MethodTableToTypeConverter.Convert(address));
 		}
 	}

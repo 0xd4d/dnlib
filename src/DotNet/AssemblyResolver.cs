@@ -262,6 +262,8 @@ namespace dnlib.DotNet {
 			} finally { theLock.ExitWriteLock(); }
 #endif
 			foreach (var asm in asms) {
+				if (asm == null)
+					continue;
 				foreach (var mod in asm.Modules)
 					mod.Dispose();
 			}

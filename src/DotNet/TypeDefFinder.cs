@@ -170,7 +170,7 @@ namespace dnlib.DotNet {
 				return cachedType;
 
 			// Build the cache lazily
-			var comparer = new SigComparer { Options = TypeComparerOptions };
+			var comparer = new SigComparer(TypeComparerOptions);
 			while (true) {
 				cachedType = GetNextTypeDefCache();
 				if (cachedType == null || comparer.Equals(cachedType, typeRef))
@@ -206,7 +206,7 @@ namespace dnlib.DotNet {
 
 		TypeDef FindSlow(TypeRef typeRef) {
 			InitializeTypeEnumerator();
-			var comparer = new SigComparer { Options = TypeComparerOptions };
+			var comparer = new SigComparer(TypeComparerOptions);
 			while (true) {
 				var type = GetNextTypeDef();
 				if (type == null || comparer.Equals(type, typeRef))
