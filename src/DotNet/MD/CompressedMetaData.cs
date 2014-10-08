@@ -165,8 +165,7 @@ namespace dnlib.DotNet.MD {
 
 			// If this is a 32-bit image, make sure that we emulate this by masking
 			// all base offsets to 32 bits.
-			bool is64Bit = GetPointerSize() == 8;
-			long offsetMask = is64Bit ? -1L : uint.MaxValue;
+			long offsetMask = GetPointerSize() == 8 ? -1L : uint.MaxValue;
 
 			// It's always the last one found that is used
 			var hotTable = hotStreams[hotStreams.Count - 1].HotTableStream;

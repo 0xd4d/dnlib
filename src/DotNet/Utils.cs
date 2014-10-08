@@ -76,13 +76,11 @@ namespace dnlib.DotNet {
 			sb.Append(publicKey == null || publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
 			sb.Append(publicKey == null ? "null" : publicKey.ToString());
 
-			if ((attributes & AssemblyAttributes.Retargetable) != 0) {
+			if ((attributes & AssemblyAttributes.Retargetable) != 0)
 				sb.Append(", Retargetable=Yes");
-			}
 
-			if ((attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime) {
+			if ((attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime)
 				sb.Append(", ContentType=WindowsRuntime");
-			}
 
 			return sb.ToString();
 		}

@@ -133,6 +133,6 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		TypeMask		= 0x0FFF,
 		/// <summary>This wasn't present in the blob</summary>
-		NotInitialized			= 0xFFFFFFFF,
+		NotInitialized	= 0xFFFFFFFF,
 	}
 }
