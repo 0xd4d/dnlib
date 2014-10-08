@@ -415,8 +415,10 @@ namespace dnlib.DotNet {
 			if (metaData == null)
 				throw new ArgumentNullException("metaData");
 #endif
+			if (options == null)
+				options = ModuleCreationOptions.Default;
 			this.metaData = metaData;
-			this.context = options == null ? null : options.Context;
+			this.context = options.Context;
 			Initialize();
 			InitializeFromRawRow();
 			location = metaData.PEImage.FileName ?? string.Empty;
@@ -429,7 +431,7 @@ namespace dnlib.DotNet {
 			this.Cor20HeaderFlags = MetaData.ImageCor20Header.Flags;
 			this.Cor20HeaderRuntimeVersion = (uint)(MetaData.ImageCor20Header.MajorRuntimeVersion << 16) | MetaData.ImageCor20Header.MinorRuntimeVersion;
 			this.TablesHeaderVersion = MetaData.TablesStream.Version;
-			corLibTypes = new CorLibTypes(this, FindCorLibAssemblyRef());
+			corLibTypes = new CorLibTypes(this, options.CorLibAssemblyRef ?? FindCorLibAssemblyRef());
 			InitializePdb(options);
 		}
 

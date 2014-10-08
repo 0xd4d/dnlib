@@ -29,6 +29,8 @@ namespace dnlib.DotNet {
 	/// <see cref="ModuleDefMD"/> creation options
 	/// </summary>
 	public sealed class ModuleCreationOptions {
+		internal static readonly ModuleCreationOptions Default = new ModuleCreationOptions();
+
 		/// <summary>
 		/// Module context
 		/// </summary>
@@ -53,6 +55,12 @@ namespace dnlib.DotNet {
 		/// initialize <see cref="CreateSymbolReader"/> or <see cref="PdbFileOrData"/>.
 		/// </summary>
 		public bool TryToLoadPdbFromDisk { get; set; }
+
+		/// <summary>
+		/// corlib assembly reference to use or <c>null</c> if the default one from the opened
+		/// module should be used.
+		/// </summary>
+		public AssemblyRef CorLibAssemblyRef { get; set; }
 
 		/// <summary>
 		/// Default constructor
