@@ -587,6 +587,8 @@ namespace dnlib.DotNet {
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, MethodSemanticsAttributes flags) {
+			if ((semAttrs & SEMATTRS_INITD) == 0)
+				InitializeSemanticsAttributes();
 #if THREAD_SAFE
 			int origVal, newVal;
 			do {
