@@ -371,7 +371,7 @@ namespace dnlib.DotNet {
 			var memberDef = Resolve();
 			if (memberDef != null)
 				return memberDef;
-			throw new MemberRefResolveException(string.Format("Could not resolve method/field: {0}", this));
+			throw new MemberRefResolveException(string.Format("Could not resolve method/field: {0} ({1})", this, this.GetDefinitionAssembly()));
 		}
 
 		/// <summary>
@@ -391,7 +391,7 @@ namespace dnlib.DotNet {
 			var field = ResolveField();
 			if (field != null)
 				return field;
-			throw new MemberRefResolveException(string.Format("Could not resolve field: {0}", this));
+			throw new MemberRefResolveException(string.Format("Could not resolve field: {0} ({1})", this, this.GetDefinitionAssembly()));
 		}
 
 		/// <summary>
@@ -411,7 +411,7 @@ namespace dnlib.DotNet {
 			var method = ResolveMethod();
 			if (method != null)
 				return method;
-			throw new MemberRefResolveException(string.Format("Could not resolve method: {0}", this));
+			throw new MemberRefResolveException(string.Format("Could not resolve method: {0} ({1})", this, this.GetDefinitionAssembly()));
 		}
 
 		/// <inheritdoc/>

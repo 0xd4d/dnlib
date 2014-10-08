@@ -328,7 +328,7 @@ namespace dnlib.DotNet {
 			var type = Resolve();
 			if (type != null)
 				return type;
-			throw new TypeResolveException(string.Format("Could not resolve type: {0}", this));
+			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", this, DefinitionAssembly));
 		}
 
 		/// <summary>

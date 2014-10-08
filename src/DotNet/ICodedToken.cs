@@ -508,7 +508,7 @@ namespace dnlib.DotNet {
 			if (tr != null)
 				return tr.ResolveThrow();
 
-			throw new TypeResolveException(string.Format("Could not resolve type: {0}", tdr));
+			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", tdr, tdr == null ? null : tdr.DefinitionAssembly));
 		}
 
 		/// <summary>
@@ -611,6 +611,34 @@ namespace dnlib.DotNet {
 			}
 
 			throw new MemberRefResolveException(string.Format("Could not resolve method: {0}", method));
+		}
+
+		/// <summary>
+		/// Returns the definition assembly of a <see cref="MemberRef"/>
+		/// </summary>
+		/// <param name="mr">Member reference</param>
+		/// <returns></returns>
+		static internal IAssembly GetDefinitionAssembly(this MemberRef mr) {
+			if (mr == null)
+				return null;
+			var parent = mr.Class;
+
+			var tdr = parent as ITypeDefOrRef;
+			if (tdr != null)
+				return tdr.DefinitionAssembly;
+
+			if (parent is ModuleRef) {
+				var mod = mr.Module;
+				return mod == null ? null : mod.Assembly;
+			}
+
+			var md = parent as MethodDef;
+			if (md != null) {
+				var declType = md.DeclaringType;
+				return declType == null ? null : declType.DefinitionAssembly;
+			}
+
+			return null;
 		}
 	}
 
