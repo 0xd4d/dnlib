@@ -85,6 +85,11 @@
 		/// <see cref="TypeRef"/> that is found (without searching generic arguments) is returned.
 		/// </summary>
 		ITypeDefOrRef ScopeType { get; }
+
+		/// <summary>
+		/// <c>true</c> if it's an integer or a floating point type
+		/// </summary>
+		bool IsPrimitive { get; }
 	}
 
 	/// <summary>

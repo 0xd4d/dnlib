@@ -1060,5 +1060,40 @@ namespace dnlib.DotNet {
 				return new TypeSpecUser(sig);
 			return module.UpdateRowId(new TypeSpecUser(sig));
 		}
+
+		/// <summary>
+		/// Returns <c>true</c> if it's an integer or a floating point type
+		/// </summary>
+		/// <param name="tdr">Type</param>
+		/// <returns></returns>
+		internal static bool IsPrimitive(this IType tdr) {
+			if (tdr == null)
+				return false;
+
+			switch (tdr.Name) {
+			case "Boolean":
+			case "Char":
+			case "SByte":
+			case "Byte":
+			case "Int16":
+			case "UInt16":
+			case "Int32":
+			case "UInt32":
+			case "Int64":
+			case "UInt64":
+			case "Single":
+			case "Double":
+			case "IntPtr":
+			case "UIntPtr":
+				break;
+			default:
+				return false;
+			}
+
+			if (tdr.Namespace != "System")
+				return false;
+
+			return tdr.DefinitionAssembly.IsCorLib();
+		}
 	}
 }

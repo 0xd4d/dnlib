@@ -245,6 +245,11 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		public bool IsPrimitive {
+			get { return this.IsPrimitive(); }
+		}
+
 		/// <summary>
 		/// Gets the declaring type, if any
 		/// </summary>

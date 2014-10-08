@@ -169,6 +169,14 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public bool IsPrimitive {
+			get {
+				var sig = TypeSig;
+				return sig != null && sig.IsPrimitive;
+			}
+		}
+
+		/// <inheritdoc/>
 		public string TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}

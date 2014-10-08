@@ -98,6 +98,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public bool IsPrimitive {
+			get { return this.IsPrimitive(); }
+		}
+
+		/// <inheritdoc/>
 		string IType.TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}
