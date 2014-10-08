@@ -152,11 +152,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		int GetPointerSize() {
-			var machine = peImage.ImageNTHeaders.FileHeader.Machine;
-			if (machine == Machine.AMD64 || machine == Machine.IA64)
-				return 8;
-			// Assume 32-bit
-			return 4;
+			return peImage.ImageNTHeaders.OptionalHeader.Magic == 0x10B ? 4 : 8;
 		}
 
 		void InitializeHotStreams(IList<HotStream> hotStreams) {

@@ -83,6 +83,8 @@
 		/// <summary>M32R little-endian</summary>
 		M32R		= 0x9041,
 		/// <summary></summary>
+		ARM64		= 0xAA64,
+		/// <summary></summary>
 		CEE			= 0xC0EE,
 	}
 }

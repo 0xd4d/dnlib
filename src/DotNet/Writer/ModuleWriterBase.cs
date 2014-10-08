@@ -153,7 +153,8 @@ namespace dnlib.DotNet.Writer {
 				if (!PEHeadersOptions.Machine.HasValue)
 					return false;
 				return PEHeadersOptions.Machine == Machine.IA64 ||
-					PEHeadersOptions.Machine == Machine.AMD64;
+					PEHeadersOptions.Machine == Machine.AMD64 ||
+					PEHeadersOptions.Machine == Machine.ARM64;
 			}
 		}
 
