@@ -60,7 +60,12 @@ namespace dnlib.DotNet {
 		/// <returns>An assembly name string</returns>
 		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey, AssemblyAttributes attributes) {
 			var sb = new StringBuilder();
-			sb.Append(UTF8String.ToSystemStringOrEmpty(name));
+
+			foreach (var c in UTF8String.ToSystemStringOrEmpty(name)) {
+				if (c == ',' || c == '=')
+					sb.Append('\\');
+				sb.Append(c);
+			}
 
 			if (version != null) {
 				sb.Append(", Version=");
