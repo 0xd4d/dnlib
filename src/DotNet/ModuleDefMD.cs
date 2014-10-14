@@ -1782,14 +1782,16 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets all <see cref="MemberRef"/>s
+		/// Gets all <see cref="MemberRef"/>s. <see cref="MemberRef"/>s with generic parameters
+		/// aren't cached and a new copy is always returned.
 		/// </summary>
 		public IEnumerable<MemberRef> GetMemberRefs() {
 			return GetMemberRefs(new GenericParamContext());
 		}
 
 		/// <summary>
-		/// Gets all <see cref="MemberRef"/>s
+		/// Gets all <see cref="MemberRef"/>s. <see cref="MemberRef"/>s with generic parameters
+		/// aren't cached and a new copy is always returned.
 		/// </summary>
 		/// <param name="gpContext">Generic parameter context</param>
 		public IEnumerable<MemberRef> GetMemberRefs(GenericParamContext gpContext) {
