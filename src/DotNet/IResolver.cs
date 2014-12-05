@@ -65,7 +65,7 @@
 			var type = self.Resolve(typeRef);
 			if (type != null)
 				return type;
-			throw new TypeResolveException(string.Format("Could not resolve type: {0}", typeRef));
+			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", typeRef, typeRef == null ? null : typeRef.DefinitionAssembly));
 		}
 
 		/// <summary>
@@ -79,7 +79,7 @@
 			var memberDef = self.Resolve(memberRef);
 			if (memberDef != null)
 				return memberDef;
-			throw new MemberRefResolveException(string.Format("Could not resolve method/field: {0}", memberRef));
+			throw new MemberRefResolveException(string.Format("Could not resolve method/field: {0} ({1})", memberRef, memberRef == null ? null : memberRef.GetDefinitionAssembly()));
 		}
 
 		/// <summary>
@@ -103,7 +103,7 @@
 			var field = self.Resolve(memberRef) as FieldDef;
 			if (field != null)
 				return field;
-			throw new MemberRefResolveException(string.Format("Could not resolve field: {0}", memberRef));
+			throw new MemberRefResolveException(string.Format("Could not resolve field: {0} ({1})", memberRef, memberRef == null ? null : memberRef.GetDefinitionAssembly()));
 		}
 
 		/// <summary>
@@ -127,7 +127,7 @@
 			var method = self.Resolve(memberRef) as MethodDef;
 			if (method != null)
 				return method;
-			throw new MemberRefResolveException(string.Format("Could not resolve method: {0}", memberRef));
+			throw new MemberRefResolveException(string.Format("Could not resolve method: {0} ({1})", memberRef, memberRef == null ? null : memberRef.GetDefinitionAssembly()));
 		}
 	}
 }

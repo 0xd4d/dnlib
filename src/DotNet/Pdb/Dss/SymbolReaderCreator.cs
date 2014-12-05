@@ -176,8 +176,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c> if any of the COM
 		/// methods fail.</returns>
 		public static ISymbolReader Create(IImageStream mdStream, byte[] pdbData) {
-			if (pdbData == null)
+			if (pdbData == null) {
+				if (mdStream != null)
+					mdStream.Dispose();
 				return null;
+			}
 			try {
 				return Create(mdStream, MemoryImageStream.Create(pdbData));
 			}
@@ -227,7 +230,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 					error = false;
 					return new SymbolReader(symReader);
 				}
-				stream.Dispose();
 			}
 			catch (IOException) {
 			}

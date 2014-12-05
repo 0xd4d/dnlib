@@ -245,6 +245,11 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <inheritdoc/>
+		public bool IsPrimitive {
+			get { return this.IsPrimitive(); }
+		}
+
 		/// <summary>
 		/// Gets the declaring type, if any
 		/// </summary>
@@ -328,7 +333,7 @@ namespace dnlib.DotNet {
 			var type = Resolve();
 			if (type != null)
 				return type;
-			throw new TypeResolveException(string.Format("Could not resolve type: {0}", this));
+			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", this, DefinitionAssembly));
 		}
 
 		/// <summary>

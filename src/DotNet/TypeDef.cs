@@ -730,6 +730,11 @@ namespace dnlib.DotNet {
 			get { return DeclaringType != null; }
 		}
 
+		/// <inheritdoc/>
+		public bool IsPrimitive {
+			get { return this.IsPrimitive(); }
+		}
+
 		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
 		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
@@ -2147,6 +2152,42 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Initializes all <see cref="MethodDef.semAttrs"/>. Only those <see cref="MethodDef"/>s
+		/// that are property or event handlers get updated.
+		/// </summary>
+		internal void InitializeMethodSemanticsAttributes() {
+			var mapRid = readerModule.MetaData.GetPropertyMapRid(origRid);
+			var list = readerModule.MetaData.GetPropertyRidList(mapRid);
+			for (uint i = 0; i < list.Length; i++) {
+				var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, list[i]);
+				for (uint j = 0; j < ridList.Length; j++) {
+					MethodSemanticsAttributes semantics;
+					uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[j], out semantics);
+					var method = readerModule.ResolveMethod(methodToken);
+					if (method == null)
+						continue;
+
+					Interlocked.CompareExchange(ref method.semAttrs, (int)semantics | MethodDef.SEMATTRS_INITD, 0);
+				}
+			}
+
+			mapRid = readerModule.MetaData.GetEventMapRid(origRid);
+			list = readerModule.MetaData.GetEventRidList(mapRid);
+			for (uint i = 0; i < list.Length; i++) {
+				var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, list[i]);
+				for (uint j = 0; j < ridList.Length; j++) {
+					MethodSemanticsAttributes semantics;
+					uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[j], out semantics);
+					var method = readerModule.ResolveMethod(methodToken);
+					if (method == null)
+						continue;
+
+					Interlocked.CompareExchange(ref method.semAttrs, (int)semantics | MethodDef.SEMATTRS_INITD, 0);
+				}
+			}
+		}
+
+		/// <summary>
 		/// Initializes a property's special methods
 		/// </summary>
 		/// <param name="prop">The property</param>
@@ -2162,15 +2203,14 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, prop.OrigRid);
 			for (uint i = 0; i < ridList.Length; i++) {
-				MethodSemanticsAttributes semantic;
-				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out semantic);
-
+				MethodSemanticsAttributes semantics;
+				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out semantics);
 				var method = readerModule.ResolveMethod(methodToken);
 				if (method == null || method.DeclaringType != prop.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
-				switch (semantic) {
+				switch (semantics) {
 				case MethodSemanticsAttributes.Setter:
 					if (setMethod == null)
 						setMethod = method;
@@ -2211,15 +2251,14 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, evt.OrigRid);
 			for (uint i = 0; i < ridList.Length; i++) {
-				MethodSemanticsAttributes semantic;
-				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out semantic);
-
+				MethodSemanticsAttributes semantics;
+				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out semantics);
 				var method = readerModule.ResolveMethod(methodToken);
 				if (method == null || method.DeclaringType != evt.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
-				switch (semantic) {
+				switch (semantics) {
 				case MethodSemanticsAttributes.AddOn:
 					if (addMethod == null)
 						addMethod = method;

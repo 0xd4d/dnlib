@@ -691,6 +691,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.ARM64"/>
+		/// </summary>
+		public bool IsARM64 {
+			get { return Machine == Machine.ARM64; }
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="Cor20HeaderFlags"/> (from .NET header)
 		/// </summary>
 		public ComImageFlags Cor20HeaderFlags {
@@ -1096,7 +1103,7 @@ namespace dnlib.DotNet {
 		/// <returns>Size of a pointer (4 or 8)</returns>
 		public int GetPointerSize(int defaultPointerSize) {
 			var machine = Machine;
-			if (machine == Machine.AMD64 || machine == Machine.IA64)
+			if (machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64)
 				return 8;
 			if (machine != Machine.I386)
 				return 4;

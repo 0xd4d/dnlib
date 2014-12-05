@@ -126,6 +126,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public bool IsPrimitive {
+			get { return ElementType.IsPrimitive(); }
+		}
+
+		/// <inheritdoc/>
 		public string TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}

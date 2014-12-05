@@ -39,7 +39,7 @@ namespace dnlib.DotNet.Pdb {
 		readonly PdbState pdbState;
 		readonly ModuleDef module;
 		readonly MetaData metaData;
-		Dictionary<PdbDocument, ISymbolDocumentWriter> pdbDocs = new Dictionary<PdbDocument, ISymbolDocumentWriter>();
+		readonly Dictionary<PdbDocument, ISymbolDocumentWriter> pdbDocs = new Dictionary<PdbDocument, ISymbolDocumentWriter>();
 		readonly SequencePointHelper seqPointsHelper = new SequencePointHelper();
 
 		/// <summary>

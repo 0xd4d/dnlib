@@ -475,7 +475,7 @@ namespace dnlib.DotNet.Writer {
 
 		bool Use32BitOptionalHeader() {
 			var mach = GetMachine();
-			return mach != Machine.IA64 && mach != Machine.AMD64;
+			return mach != Machine.IA64 && mach != Machine.AMD64 && mach != Machine.ARM64;
 		}
 
 		Characteristics GetCharacteristics() {

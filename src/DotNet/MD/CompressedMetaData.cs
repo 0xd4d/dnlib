@@ -152,11 +152,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		int GetPointerSize() {
-			var machine = peImage.ImageNTHeaders.FileHeader.Machine;
-			if (machine == Machine.AMD64 || machine == Machine.IA64)
-				return 8;
-			// Assume 32-bit
-			return 4;
+			return peImage.ImageNTHeaders.OptionalHeader.Magic == 0x10B ? 4 : 8;
 		}
 
 		void InitializeHotStreams(IList<HotStream> hotStreams) {
@@ -165,8 +161,7 @@ namespace dnlib.DotNet.MD {
 
 			// If this is a 32-bit image, make sure that we emulate this by masking
 			// all base offsets to 32 bits.
-			bool is64Bit = GetPointerSize() == 8;
-			long offsetMask = is64Bit ? -1L : uint.MaxValue;
+			long offsetMask = GetPointerSize() == 8 ? -1L : uint.MaxValue;
 
 			// It's always the last one found that is used
 			var hotTable = hotStreams[hotStreams.Count - 1].HotTableStream;

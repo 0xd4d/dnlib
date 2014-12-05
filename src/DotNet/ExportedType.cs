@@ -98,6 +98,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		public bool IsPrimitive {
+			get { return this.IsPrimitive(); }
+		}
+
+		/// <inheritdoc/>
 		string IType.TypeName {
 			get { return FullNameCreator.Name(this, false); }
 		}
@@ -572,7 +577,7 @@ namespace dnlib.DotNet {
 			var type = Resolve();
 			if (type != null)
 				return type;
-			throw new TypeResolveException(string.Format("Could not resolve type: {0}", this));
+			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", this, DefinitionAssembly));
 		}
 
 		/// <inheritdoc/>

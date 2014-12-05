@@ -60,7 +60,12 @@ namespace dnlib.DotNet {
 		/// <returns>An assembly name string</returns>
 		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey, AssemblyAttributes attributes) {
 			var sb = new StringBuilder();
-			sb.Append(UTF8String.ToSystemStringOrEmpty(name));
+
+			foreach (var c in UTF8String.ToSystemStringOrEmpty(name)) {
+				if (c == ',' || c == '=')
+					sb.Append('\\');
+				sb.Append(c);
+			}
 
 			if (version != null) {
 				sb.Append(", Version=");
@@ -76,13 +81,11 @@ namespace dnlib.DotNet {
 			sb.Append(publicKey == null || publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
 			sb.Append(publicKey == null ? "null" : publicKey.ToString());
 
-			if ((attributes & AssemblyAttributes.Retargetable) != 0) {
+			if ((attributes & AssemblyAttributes.Retargetable) != 0)
 				sb.Append(", Retargetable=Yes");
-			}
 
-			if ((attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime) {
+			if ((attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime)
 				sb.Append(", ContentType=WindowsRuntime");
-			}
 
 			return sb.ToString();
 		}

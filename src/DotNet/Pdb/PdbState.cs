@@ -113,11 +113,10 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			Add_NoLock(doc);
+			return Add_NoLock(doc);
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
-			return doc;
 		}
 
 		PdbDocument Add_NoLock(PdbDocument doc) {

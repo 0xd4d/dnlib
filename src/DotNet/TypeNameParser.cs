@@ -759,7 +759,7 @@ namespace dnlib.DotNet {
 			if (ownerModule != null)
 				ownerModule.UpdateRowId(asmRef);
 
-			asmRef.Name = ReadId();
+			asmRef.Name = ReadAssemblyNameId();
 			SkipWhite();
 			if (PeekChar() != ',')
 				return asmRef;
@@ -828,6 +828,35 @@ namespace dnlib.DotNet {
 			}
 
 			return asmRef;
+		}
+
+		string ReadAssemblyNameId() {
+			SkipWhite();
+			var sb = new StringBuilder();
+			int c;
+			while ((c = GetAsmNameChar()) != -1)
+				sb.Append((char)c);
+			var name = sb.ToString().Trim();
+			Verify(name.Length > 0, "Expected an assembly name");
+			return name;
+		}
+
+		int GetAsmNameChar() {
+			int c = PeekChar();
+			if (c == -1)
+				return -1;
+			switch (c) {
+			case '\\':
+				ReadChar();
+				return ReadChar();
+
+			case ']':
+			case ',':
+				return -1;
+
+			default:
+				return ReadChar();
+			}
 		}
 
 		internal override int GetIdChar(bool ignoreWhiteSpace) {

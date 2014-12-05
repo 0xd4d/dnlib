@@ -559,6 +559,54 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the method semantics attributes. If you remove/add a method to a property or
+		/// an event, you must manually update this property or eg. <see cref="IsSetter"/> won't
+		/// work as expected.
+		/// </summary>
+		public MethodSemanticsAttributes SemanticsAttributes {
+			get {
+				if ((semAttrs & SEMATTRS_INITD) == 0)
+					InitializeSemanticsAttributes();
+				return (MethodSemanticsAttributes)semAttrs;
+			}
+			set { semAttrs = (ushort)value | SEMATTRS_INITD; }
+		}
+		/// <summary>Set when <see cref="semAttrs"/> has been initialized</summary>
+		protected internal static int SEMATTRS_INITD = unchecked((int)0x80000000);
+		/// <summary/>
+		protected internal int semAttrs;
+		/// <summary>Initializes <see cref="semAttrs"/></summary>
+		protected virtual void InitializeSemanticsAttributes() {
+			semAttrs = 0 | SEMATTRS_INITD;
+		}
+
+		/// <summary>
+		/// Set or clear flags in <see cref="semAttrs"/>
+		/// </summary>
+		/// <param name="set"><c>true</c> if flags should be set, <c>false</c> if flags should
+		/// be cleared</param>
+		/// <param name="flags">Flags to set or clear</param>
+		void ModifyAttributes(bool set, MethodSemanticsAttributes flags) {
+			if ((semAttrs & SEMATTRS_INITD) == 0)
+				InitializeSemanticsAttributes();
+#if THREAD_SAFE
+			int origVal, newVal;
+			do {
+				origVal = semAttrs;
+				if (set)
+					newVal = origVal | (int)flags;
+				else
+					newVal = origVal & ~(int)flags;
+			} while (Interlocked.CompareExchange(ref semAttrs, newVal, origVal) != origVal);
+#else
+			if (set)
+				semAttrs |= (int)flags;
+			else
+				semAttrs &= ~(int)flags;
+#endif
+		}
+
+		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
 		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>
@@ -927,6 +975,54 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the <see cref="MethodSemanticsAttributes.Setter"/> bit
+		/// </summary>
+		public bool IsSetter {
+			get { return (SemanticsAttributes & MethodSemanticsAttributes.Setter) != 0; }
+			set { ModifyAttributes(value, MethodSemanticsAttributes.Setter); }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodSemanticsAttributes.Getter"/> bit
+		/// </summary>
+		public bool IsGetter {
+			get { return (SemanticsAttributes & MethodSemanticsAttributes.Getter) != 0; }
+			set { ModifyAttributes(value, MethodSemanticsAttributes.Getter); }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodSemanticsAttributes.Other"/> bit
+		/// </summary>
+		public bool IsOther {
+			get { return (SemanticsAttributes & MethodSemanticsAttributes.Other) != 0; }
+			set { ModifyAttributes(value, MethodSemanticsAttributes.Other); }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodSemanticsAttributes.AddOn"/> bit
+		/// </summary>
+		public bool IsAddOn {
+			get { return (SemanticsAttributes & MethodSemanticsAttributes.AddOn) != 0; }
+			set { ModifyAttributes(value, MethodSemanticsAttributes.AddOn); }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodSemanticsAttributes.RemoveOn"/> bit
+		/// </summary>
+		public bool IsRemoveOn {
+			get { return (SemanticsAttributes & MethodSemanticsAttributes.RemoveOn) != 0; }
+			set { ModifyAttributes(value, MethodSemanticsAttributes.RemoveOn); }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MethodSemanticsAttributes.Fire"/> bit
+		/// </summary>
+		public bool IsFire {
+			get { return (SemanticsAttributes & MethodSemanticsAttributes.Fire) != 0; }
+			set { ModifyAttributes(value, MethodSemanticsAttributes.Fire); }
+		}
+
+		/// <summary>
 		/// <c>true</c> if this is the static type constructor
 		/// </summary>
 		public bool IsStaticConstructor {
@@ -1032,6 +1128,7 @@ namespace dnlib.DotNet {
 			this.paramDefs = new LazyList<ParamDef>(this);
 			this.genericParameters = new LazyList<GenericParam>(this);
 			this.parameterList = new ParameterList(this, null);
+			this.semAttrs = 0 | SEMATTRS_INITD;
 		}
 
 		/// <summary>
@@ -1086,6 +1183,7 @@ namespace dnlib.DotNet {
 			this.implAttributes = (int)implFlags;
 			this.attributes = (int)flags;
 			this.parameterList = new ParameterList(this, null);
+			this.semAttrs = 0 | SEMATTRS_INITD;
 		}
 	}
 
@@ -1148,6 +1246,14 @@ namespace dnlib.DotNet {
 			var dt = declaringType2 as TypeDefMD;
 			var tmp = dt == null ? ThreadSafeListCreator.Create<MethodOverride>() : dt.GetMethodOverrides(this, new GenericParamContext(declaringType2, this));
 			Interlocked.CompareExchange(ref overrides, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override void InitializeSemanticsAttributes() {
+			var dt = DeclaringType as TypeDefMD;
+			if (dt != null)
+				dt.InitializeMethodSemanticsAttributes();
+			semAttrs |= SEMATTRS_INITD;
 		}
 
 		/// <summary>
