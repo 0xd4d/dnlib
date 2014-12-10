@@ -451,11 +451,11 @@ namespace dnlib.DotNet {
 
 			case SerializationType.Type:
 				realArgType = argType;
-				result = ReadType();
+				result = ReadType(true);
 				break;
 
 			case SerializationType.Enum:
-				realArgType = ReadType();
+				realArgType = ReadType(false);
 				result = ReadEnumValue(GetEnumUnderlyingType(realArgType));
 				break;
 
@@ -483,8 +483,10 @@ namespace dnlib.DotNet {
 			return reader.ReadInt32();
 		}
 
-		TypeSig ReadType() {
+		TypeSig ReadType(bool canReturnNull) {
 			var name = ReadUTF8String();
+			if (canReturnNull && (object)name == null)
+				return null;
 			var asmRefFinder = new CAAssemblyRefFinder(module);
 			var type = TypeNameParser.ParseAsTypeSigReflection(module, UTF8String.ToSystemStringOrEmpty(name), asmRefFinder, gpContext);
 			if (type == null)
@@ -588,7 +590,7 @@ namespace dnlib.DotNet {
 			case SerializationType.SZArray: result = new SZArraySig(ReadFieldOrPropType()); break;
 			case SerializationType.Type:	result = new ClassSig(module.CorLibTypes.GetTypeRef("System", "Type")); break;
 			case SerializationType.TaggedObject: result = module.CorLibTypes.Object; break;
-			case SerializationType.Enum:	result = ReadType(); break;
+			case SerializationType.Enum:	result = ReadType(false); break;
 			default: throw new CABlobParserException("Invalid type");
 			}
 			recursionCounter.Decrement();
