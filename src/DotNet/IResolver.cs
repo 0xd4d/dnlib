@@ -36,8 +36,9 @@
 		/// Resolves a type
 		/// </summary>
 		/// <param name="typeRef">The type</param>
+		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		TypeDef Resolve(TypeRef typeRef);
+		TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule = null);
 	}
 
 	/// <summary>

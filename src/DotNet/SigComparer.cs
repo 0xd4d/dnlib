@@ -615,6 +615,7 @@ namespace dnlib.DotNet {
 		RecursionCounter recursionCounter;
 		SigComparerOptions options;
 		GenericArguments genericArguments;
+		ModuleDef sourceModule;
 
 		/// <summary>
 		/// Gets/sets the options
@@ -901,10 +902,12 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
-		public SigComparer(SigComparerOptions options) {
+		/// <param name="sourceModule">The module which the comparison take place in.</param>
+		public SigComparer(SigComparerOptions options, ModuleDef sourceModule = null) {
 			this.recursionCounter = new RecursionCounter();
 			this.options = options;
 			this.genericArguments = null;
+			this.sourceModule = sourceModule;
 		}
 
 		/// <summary>
@@ -1052,7 +1055,7 @@ namespace dnlib.DotNet {
 
 			// Could be an exported type. Resolve it and check again.
 
-			var td = b.Resolve();
+			var td = b.Resolve(sourceModule);
 			return td != null && Equals(aAsm, td.Module.Assembly);
 		}
 
@@ -1070,8 +1073,8 @@ namespace dnlib.DotNet {
 
 			// Could be exported types. Resolve them and check again.
 
-			var tda = a.Resolve();
-			var tdb = b.Resolve();
+			var tda = a.Resolve(sourceModule);
+			var tdb = b.Resolve(sourceModule);
 			return tda != null && tdb != null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
 		}
 
@@ -1090,7 +1093,7 @@ namespace dnlib.DotNet {
 
 			// Could be an exported type. Resolve it and check again.
 
-			var tda = a.Resolve();
+			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve();
 			return tda != null && tdb != null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
 		}
@@ -1101,7 +1104,7 @@ namespace dnlib.DotNet {
 
 			// Could be an exported type. Resolve it and check again.
 
-			var td = b.Resolve();
+			var td = b.Resolve(sourceModule);
 			return td != null && Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
 		}
 
@@ -1119,8 +1122,8 @@ namespace dnlib.DotNet {
 
 			// Could be exported types. Resolve them and check again.
 
-			var tda = a.Resolve();
-			var tdb = b.Resolve();
+			var tda = a.Resolve(sourceModule);
+			var tdb = b.Resolve(sourceModule);
 			return tda != null && tdb != null &&
 				Equals(tda.Module, tdb.Module) && Equals(tda.DefinitionAssembly, tdb.DefinitionAssembly);
 		}
@@ -1131,7 +1134,7 @@ namespace dnlib.DotNet {
 
 			// Could be an exported type. Resolve it and check again.
 
-			var tda = a.Resolve();
+			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve();
 			return tda != null && tdb != null &&
 				Equals(tda.Module, tdb.Module) && Equals(tda.DefinitionAssembly, tdb.DefinitionAssembly);
@@ -1143,7 +1146,7 @@ namespace dnlib.DotNet {
 
 			// Could be an exported type. Resolve it and check again.
 
-			var td = b.Resolve();
+			var td = b.Resolve(sourceModule);
 			return td != null && Equals(td.Module.Assembly, aAsm);
 		}
 
@@ -1161,7 +1164,7 @@ namespace dnlib.DotNet {
 
 			// Could be an exported type. Resolve it and check again.
 
-			var td = b.Resolve();
+			var td = b.Resolve(sourceModule);
 			return td != null && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
 		}
 

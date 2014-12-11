@@ -1059,11 +1059,11 @@ namespace dnlib.DotNet {
 
 			var methodSig = memberRef.MethodSig;
 			if (methodSig != null)
-				return FindMethodCheckBaseType(memberRef.Name, methodSig, options);
+				return FindMethodCheckBaseType(memberRef.Name, methodSig, options, memberRef.Module);
 
 			var fieldSig = memberRef.FieldSig;
 			if (fieldSig != null)
-				return FindFieldCheckBaseType(memberRef.Name, fieldSig, options);
+				return FindFieldCheckBaseType(memberRef.Name, fieldSig, options, memberRef.Module);
 
 			return null;
 		}
@@ -1084,11 +1084,12 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <param name="options">Method signature comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the method or <c>null</c></param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options) {
+		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
-			var comparer = new SigComparer(options);
+			var comparer = new SigComparer(options, sourceModule);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeMethodIsComparable) != 0;
 			foreach (var method in Methods.GetSafeEnumerable()) {
 				if (!allowPrivateScope && method.IsPrivateScope)
@@ -1227,11 +1228,12 @@ namespace dnlib.DotNet {
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <param name="options">Field signature comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the field or <c>null</c></param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options) {
+		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
-			var comparer = new SigComparer(options);
+			var comparer = new SigComparer(options, sourceModule);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeFieldIsComparable) != 0;
 			foreach (var field in Fields.GetSafeEnumerable()) {
 				if (!allowPrivateScope && field.IsPrivateScope)
@@ -1285,11 +1287,12 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of event</param>
 		/// <param name="type">Type of event</param>
 		/// <param name="options">Event type comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the event or <c>null</c></param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options) {
+		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule = null) {
 			if (UTF8String.IsNull(name) || type == null)
 				return null;
-			var comparer = new SigComparer(options);
+			var comparer = new SigComparer(options, sourceModule);
 			foreach (var @event in Events.GetSafeEnumerable()) {
 				if (!UTF8String.Equals(@event.Name, name))
 					continue;
@@ -1340,11 +1343,12 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of property</param>
 		/// <param name="propSig">Property signature</param>
 		/// <param name="options">Property signature comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the property or <c>null</c></param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options) {
+		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule = null) {
 			if (UTF8String.IsNull(name) || propSig == null)
 				return null;
-			var comparer = new SigComparer(options);
+			var comparer = new SigComparer(options, sourceModule);
 			foreach (var prop in Properties.GetSafeEnumerable()) {
 				if (!UTF8String.Equals(prop.Name, name))
 					continue;
@@ -1395,11 +1399,12 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <param name="options">Method signature comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the method or <c>null</c></param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
-		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options) {
+		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
 			var td = this;
 			while (td != null) {
-				var md = td.FindMethod(name, sig, options);
+				var md = td.FindMethod(name, sig, options, sourceModule);
 				if (md != null)
 					return md;
 				td = td.BaseType.ResolveTypeDef();
@@ -1439,11 +1444,12 @@ namespace dnlib.DotNet {
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <param name="options">Field signature comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the field or <c>null</c></param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
-		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options) {
+		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
 			var td = this;
 			while (td != null) {
-				var fd = td.FindField(name, sig, options);
+				var fd = td.FindField(name, sig, options, sourceModule);
 				if (fd != null)
 					return fd;
 				td = td.BaseType.ResolveTypeDef();
