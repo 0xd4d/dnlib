@@ -54,7 +54,7 @@
 		}
 
 		/// <inheritdoc/>
-		public TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule = null) {
+		public TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule) {
 			return null;
 		}
 

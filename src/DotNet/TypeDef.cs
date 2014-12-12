@@ -1075,7 +1075,18 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Method signature</param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
 		public MethodDef FindMethod(UTF8String name, MethodSig sig) {
-			return FindMethod(name, sig, 0);
+			return FindMethod(name, sig, 0, null);
+		}
+
+		/// <summary>
+		/// Finds a method
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <param name="sig">Method signature</param>
+		/// <param name="options">Method signature comparison options</param>
+		/// <returns>The first method that matches or <c>null</c> if none found</returns>
+		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options) {
+			return FindMethod(name, sig, options, null);
 		}
 
 		/// <summary>
@@ -1086,7 +1097,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Method signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the method or <c>null</c></param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
+		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1219,7 +1230,18 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Field signature</param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
 		public FieldDef FindField(UTF8String name, FieldSig sig) {
-			return FindField(name, sig, 0);
+			return FindField(name, sig, 0, null);
+		}
+
+		/// <summary>
+		/// Finds a field
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <param name="sig">Field signature</param>
+		/// <param name="options">Field signature comparison options</param>
+		/// <returns>The first field that matches or <c>null</c> if none found</returns>
+		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options) {
+			return FindField(name, sig, options, null);
 		}
 
 		/// <summary>
@@ -1230,7 +1252,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Field signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the field or <c>null</c></param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
+		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			if (UTF8String.IsNull(name) || sig == null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1278,7 +1300,18 @@ namespace dnlib.DotNet {
 		/// <param name="type">Type of event</param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
 		public EventDef FindEvent(UTF8String name, IType type) {
-			return FindEvent(name, type, 0);
+			return FindEvent(name, type, 0, null);
+		}
+
+		/// <summary>
+		/// Finds an event
+		/// </summary>
+		/// <param name="name">Name of event</param>
+		/// <param name="type">Type of event</param>
+		/// <param name="options">Event type comparison options</param>
+		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
+		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options) {
+			return FindEvent(name, type, options, null);
 		}
 
 		/// <summary>
@@ -1289,7 +1322,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Event type comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the event or <c>null</c></param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule = null) {
+		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule) {
 			if (UTF8String.IsNull(name) || type == null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1334,7 +1367,18 @@ namespace dnlib.DotNet {
 		/// <param name="propSig">Property signature</param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
 		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig) {
-			return FindProperty(name, propSig, 0);
+			return FindProperty(name, propSig, 0, null);
+		}
+
+		/// <summary>
+		/// Finds a property
+		/// </summary>
+		/// <param name="name">Name of property</param>
+		/// <param name="propSig">Property signature</param>
+		/// <param name="options">Property signature comparison options</param>
+		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
+		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options) {
+			return FindProperty(name, propSig, options, null);
 		}
 
 		/// <summary>
@@ -1345,7 +1389,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Property signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the property or <c>null</c></param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule = null) {
+		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule) {
 			if (UTF8String.IsNull(name) || propSig == null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1390,7 +1434,18 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Method signature</param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
 		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig) {
-			return FindMethodCheckBaseType(name, sig, 0);
+			return FindMethodCheckBaseType(name, sig, 0, null);
+		}
+
+		/// <summary>
+		/// Finds a method by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Method name</param>
+		/// <param name="sig">Method signature</param>
+		/// <param name="options">Method signature comparison options</param>
+		/// <returns>The method or <c>null</c> if it wasn't found</returns>
+		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options) {
+			return FindMethodCheckBaseType(name, sig, options, null);
 		}
 
 		/// <summary>
@@ -1401,7 +1456,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Method signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the method or <c>null</c></param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
-		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
+		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
 			while (td != null) {
 				var md = td.FindMethod(name, sig, options, sourceModule);
@@ -1435,7 +1490,18 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Field signature</param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
 		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig) {
-			return FindFieldCheckBaseType(name, sig, 0);
+			return FindFieldCheckBaseType(name, sig, 0, null);
+		}
+
+		/// <summary>
+		/// Finds a field by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <param name="sig">Field signature</param>
+		/// <param name="options">Field signature comparison options</param>
+		/// <returns>The field or <c>null</c> if it wasn't found</returns>
+		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options) {
+			return FindFieldCheckBaseType(name, sig, options, null);
 		}
 
 		/// <summary>
@@ -1446,7 +1512,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Field signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the field or <c>null</c></param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
-		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule = null) {
+		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
 			while (td != null) {
 				var fd = td.FindField(name, sig, options, sourceModule);

@@ -38,7 +38,7 @@
 		/// <param name="typeRef">The type</param>
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule = null);
+		TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule);
 	}
 
 	/// <summary>
@@ -129,6 +129,16 @@
 			if (method != null)
 				return method;
 			throw new MemberRefResolveException(string.Format("Could not resolve method: {0} ({1})", memberRef, memberRef == null ? null : memberRef.GetDefinitionAssembly()));
+		}
+
+		/// <summary>
+		/// Resolves a type
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="typeRef">The type</param>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
+		public static TypeDef Resolve(this ITypeResolver self, TypeRef typeRef) {
+			return self.Resolve(typeRef, null);
 		}
 	}
 }

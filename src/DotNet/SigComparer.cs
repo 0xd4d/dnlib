@@ -902,8 +902,16 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
+		public SigComparer(SigComparerOptions options)
+			: this(options, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="options">Comparison options</param>
 		/// <param name="sourceModule">The module which the comparison take place in.</param>
-		public SigComparer(SigComparerOptions options, ModuleDef sourceModule = null) {
+		public SigComparer(SigComparerOptions options, ModuleDef sourceModule) {
 			this.recursionCounter = new RecursionCounter();
 			this.options = options;
 			this.genericArguments = null;
