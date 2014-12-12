@@ -56,6 +56,7 @@ namespace dnlib.DotNet {
 		readonly ThreadSafe.IList<string> preSearchPaths = ThreadSafeListCreator.Create<string>();
 		readonly ThreadSafe.IList<string> postSearchPaths = ThreadSafeListCreator.Create<string>();
 		bool findExactMatch;
+		bool enableFrameworkRedirect;
 		bool enableTypeDefCache;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -367,6 +368,8 @@ namespace dnlib.DotNet {
 		}
 
 		static void ApplyFrameworkRedirect(ref IAssembly assembly, ModuleDef sourceModule) {
+			if (sourceModule == null)
+				return;
 			if (!Utils.LocaleEquals(assembly.Culture, ""))
 				return;
 			if (!sourceModule.IsClr20 && !sourceModule.IsClr40)
@@ -400,6 +403,17 @@ namespace dnlib.DotNet {
 		public bool FindExactMatch {
 			get { return findExactMatch; }
 			set { findExactMatch = value; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if resolved .NET framework assemblies can be redirected to the source
+		/// module's framework assembly version. Eg. if a resolved .NET 3.5 assembly can be
+		/// redirected to a .NET 4.0 assembly if the source module is a .NET 4.0 assembly. This is
+		/// ignored if <see cref="FindExactMatch"/> is <c>true</c>.
+		/// </summary>
+		public bool EnableFrameworkRedirect {
+			get { return enableFrameworkRedirect; }
+			set { enableFrameworkRedirect = value; }
 		}
 
 		/// <summary>
@@ -448,6 +462,7 @@ namespace dnlib.DotNet {
 		/// paths, not just the module search paths and the GAC.</param>
 		public AssemblyResolver(ModuleContext defaultModuleContext, bool addOtherSearchPaths) {
 			this.defaultModuleContext = defaultModuleContext;
+			this.enableFrameworkRedirect = true;
 			if (addOtherSearchPaths)
 				AddOtherSearchPaths(postSearchPaths);
 		}
@@ -457,7 +472,8 @@ namespace dnlib.DotNet {
 			if (assembly == null)
 				return null;
 
-			ApplyFrameworkRedirect(ref assembly, sourceModule);
+			if (EnableFrameworkRedirect && !FindExactMatch)
+				ApplyFrameworkRedirect(ref assembly, sourceModule);
 
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
