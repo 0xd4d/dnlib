@@ -319,9 +319,18 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
 		public TypeDef Resolve() {
+			return Resolve(null);
+		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
+		public TypeDef Resolve(ModuleDef sourceModule) {
 			if (module == null)
 				return null;
-			return module.Context.Resolver.Resolve(this);
+			return module.Context.Resolver.Resolve(this, sourceModule);
 		}
 
 		/// <summary>
@@ -330,7 +339,17 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		public TypeDef ResolveThrow() {
-			var type = Resolve();
+			return ResolveThrow(null);
+		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		public TypeDef ResolveThrow(ModuleDef sourceModule) {
+			var type = Resolve(sourceModule);
 			if (type != null)
 				return type;
 			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", this, DefinitionAssembly));

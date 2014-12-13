@@ -350,7 +350,8 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("{0} ({1})", value, type);
+			object v = value;
+			return string.Format("{0} ({1})", v == null ? "null" : v, type);
 		}
 	}
 
@@ -471,7 +472,8 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("({0}) {1} {2} = {3} ({4})", isField ? "field" : "property", type, name, Value, ArgumentType);
+			object v = Value;
+			return string.Format("({0}) {1} {2} = {3} ({4})", isField ? "field" : "property", type, name, v == null ? "null" : v, ArgumentType);
 		}
 	}
 }

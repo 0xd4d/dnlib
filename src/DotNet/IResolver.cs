@@ -36,8 +36,9 @@
 		/// Resolves a type
 		/// </summary>
 		/// <param name="typeRef">The type</param>
+		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		TypeDef Resolve(TypeRef typeRef);
+		TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule);
 	}
 
 	/// <summary>
@@ -59,10 +60,32 @@
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <param name="typeRef">The type</param>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
+		public static TypeDef Resolve(this ITypeResolver self, TypeRef typeRef) {
+			return self.Resolve(typeRef, null);
+		}
+
+		/// <summary>
+		/// Resolves a type
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="typeRef">The type</param>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef typeRef) {
-			var type = self.Resolve(typeRef);
+			return self.ResolveThrow(typeRef, null);
+		}
+
+		/// <summary>
+		/// Resolves a type
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <param name="typeRef">The type</param>
+		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef typeRef, ModuleDef sourceModule) {
+			var type = self.Resolve(typeRef, sourceModule);
 			if (type != null)
 				return type;
 			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", typeRef, typeRef == null ? null : typeRef.DefinitionAssembly));
