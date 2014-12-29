@@ -584,7 +584,7 @@ namespace dnlib.DotNet {
 			foreach (var asm in asms) {
 				if (asm == null)
 					continue;
-				foreach (var mod in asm.Modules)
+				foreach (var mod in asm.Modules.GetSafeEnumerable())
 					mod.Dispose();
 			}
 		}
