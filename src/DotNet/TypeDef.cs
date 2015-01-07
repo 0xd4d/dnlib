@@ -1714,11 +1714,13 @@ namespace dnlib.DotNet {
 			if (value.DeclaringType != null)
 				throw new InvalidOperationException("Method is already owned by another type. Set DeclaringType to null first.");
 			value.DeclaringType2 = this;
+			value.Parameters.UpdateThisParameterType(this);
 		}
 
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnRemove(int index, MethodDef value) {
 			value.DeclaringType2 = null;
+			value.Parameters.UpdateThisParameterType(null);
 		}
 
 		/// <inheritdoc/>
@@ -1727,8 +1729,10 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnClear() {
-			foreach (var method in Methods.GetEnumerable_NoLock())
+			foreach (var method in Methods.GetEnumerable_NoLock()) {
 				method.DeclaringType2 = null;
+				method.Parameters.UpdateThisParameterType(null);
+			}
 		}
 
 		/// <inheritdoc/>
@@ -2373,6 +2377,7 @@ namespace dnlib.DotNet {
 				// More than one owner... This module has invalid metadata.
 				value = readerModule.ForceUpdateRowId(readerModule.ReadMethod(value.Rid).InitializeAll());
 				value.DeclaringType2 = this;
+				value.Parameters.UpdateThisParameterType(this);
 			}
 		}
 

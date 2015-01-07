@@ -143,9 +143,8 @@ namespace dnlib.DotNet {
 			theLock.EnterWriteLock(); try {
 #endif
 			if (methodDeclaringType == null)
-				return;
-
-			if (methodDeclaringType.IsValueType)
+				hiddenThisParameter.SetType(false, null);
+			else if (methodDeclaringType.IsValueType)
 				hiddenThisParameter.SetType(false, new ByRefSig(new ValueTypeSig(methodDeclaringType)));
 			else
 				hiddenThisParameter.SetType(false, new ClassSig(methodDeclaringType));
