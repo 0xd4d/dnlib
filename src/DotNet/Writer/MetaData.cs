@@ -2249,7 +2249,7 @@ namespace dnlib.DotNet.Writer {
 			AddMethodSemantics(token, evt.AddMethod, MethodSemanticsAttributes.AddOn);
 			AddMethodSemantics(token, evt.RemoveMethod, MethodSemanticsAttributes.RemoveOn);
 			AddMethodSemantics(token, evt.InvokeMethod, MethodSemanticsAttributes.Fire);
-			AddMethodSemantics(token, evt.OtherMethods);
+			AddMethodSemantics(token, evt.OtherMethods, MethodSemanticsAttributes.Other);
 		}
 
 		/// <summary>
@@ -2265,16 +2265,16 @@ namespace dnlib.DotNet.Writer {
 			if (rid == 0)
 				return;
 			var token = new MDToken(Table.Property, rid);
-			AddMethodSemantics(token, prop.GetMethod, MethodSemanticsAttributes.Getter);
-			AddMethodSemantics(token, prop.SetMethod, MethodSemanticsAttributes.Setter);
-			AddMethodSemantics(token, prop.OtherMethods);
+			AddMethodSemantics(token, prop.GetMethods, MethodSemanticsAttributes.Getter);
+			AddMethodSemantics(token, prop.SetMethods, MethodSemanticsAttributes.Setter);
+			AddMethodSemantics(token, prop.OtherMethods, MethodSemanticsAttributes.Other);
 		}
 
-		void AddMethodSemantics(MDToken owner, IList<MethodDef> otherMethods) {
-			if (otherMethods == null)
+		void AddMethodSemantics(MDToken owner, IList<MethodDef> methods, MethodSemanticsAttributes attrs) {
+			if (methods == null)
 				return;
-			foreach (var method in otherMethods)
-				AddMethodSemantics(owner, method, MethodSemanticsAttributes.Other);
+			foreach (var method in methods)
+				AddMethodSemantics(owner, method, attrs);
 		}
 
 		void AddMethodSemantics(MDToken owner, MethodDef method, MethodSemanticsAttributes flags) {
