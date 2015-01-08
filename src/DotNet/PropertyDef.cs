@@ -162,34 +162,66 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the getter method
+		/// Gets/sets the first getter method. Writing <c>null</c> will clear all get methods.
 		/// </summary>
 		public MethodDef GetMethod {
 			get {
 				if (otherMethods == null)
 					InitializePropertyMethods();
-				return getMethod;
+				return getMethods.Get(0, null);
 			}
 			set {
 				if (otherMethods == null)
 					InitializePropertyMethods();
-				getMethod = value;
+				if (value == null)
+					getMethods.Clear();
+				else if (getMethods.Count == 0)
+					getMethods.Add(value);
+				else
+					getMethods.Set(0, value);
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the setter method
+		/// Gets/sets the first setter method. Writing <c>null</c> will clear all set methods.
 		/// </summary>
 		public MethodDef SetMethod {
 			get {
 				if (otherMethods == null)
 					InitializePropertyMethods();
-				return setMethod;
+				return setMethods.Get(0, null);
 			}
 			set {
 				if (otherMethods == null)
 					InitializePropertyMethods();
-				setMethod = value;
+				if (value == null)
+					setMethods.Clear();
+				else if (setMethods.Count == 0)
+					setMethods.Add(value);
+				else
+					setMethods.Set(0, value);
+			}
+		}
+
+		/// <summary>
+		/// Gets all getter methods
+		/// </summary>
+		public ThreadSafe.IList<MethodDef> GetMethods {
+			get {
+				if (otherMethods == null)
+					InitializePropertyMethods();
+				return getMethods;
+			}
+		}
+
+		/// <summary>
+		/// Gets all setter methods
+		/// </summary>
+		public ThreadSafe.IList<MethodDef> SetMethods {
+			get {
+				if (otherMethods == null)
+					InitializePropertyMethods();
+				return setMethods;
 			}
 		}
 
@@ -216,17 +248,19 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Initializes <see cref="otherMethods"/>, <see cref="getMethod"/>,
-		/// and <see cref="setMethod"/>.
+		/// Initializes <see cref="otherMethods"/>, <see cref="getMethods"/>,
+		/// and <see cref="setMethods"/>.
 		/// </summary>
 		protected virtual void InitializePropertyMethods_NoLock() {
+			getMethods = ThreadSafeListCreator.Create<MethodDef>();
+			setMethods = ThreadSafeListCreator.Create<MethodDef>();
 			otherMethods = ThreadSafeListCreator.Create<MethodDef>();
 		}
 
 		/// <summary/>
-		protected MethodDef getMethod;
+		protected ThreadSafe.IList<MethodDef> getMethods;
 		/// <summary/>
-		protected MethodDef setMethod;
+		protected ThreadSafe.IList<MethodDef> setMethods;
 		/// <summary/>
 		protected ThreadSafe.IList<MethodDef> otherMethods;
 
@@ -236,8 +270,8 @@ namespace dnlib.DotNet {
 		public bool IsEmpty {
 			get {
 				// The first property access initializes the other fields we access here
-				return GetMethod == null &&
-					setMethod == null &&
+				return GetMethods.Count == 0 &&
+					setMethods.Count == 0 &&
 					otherMethods.Count == 0;
 			}
 		}
@@ -544,11 +578,18 @@ namespace dnlib.DotNet {
 			if (otherMethods != null)
 				return;
 			ThreadSafe.IList<MethodDef> newOtherMethods;
+			ThreadSafe.IList<MethodDef> newGetMethods, newSetMethods;
 			var dt = declaringType2 as TypeDefMD;
-			if (dt == null)
+			if (dt == null) {
+				newGetMethods = ThreadSafeListCreator.Create<MethodDef>();
+				newSetMethods = ThreadSafeListCreator.Create<MethodDef>();
 				newOtherMethods = ThreadSafeListCreator.Create<MethodDef>();
+			}
 			else
-				dt.InitializeProperty(this, out getMethod, out setMethod, out newOtherMethods);
+				dt.InitializeProperty(this, out newGetMethods, out newSetMethods, out newOtherMethods);
+			getMethods = newGetMethods;
+			setMethods = newSetMethods;
+			// Must be initialized last
 			otherMethods = newOtherMethods;
 		}
 	}

@@ -2267,12 +2267,12 @@ namespace dnlib.DotNet {
 		/// Initializes a property's special methods
 		/// </summary>
 		/// <param name="prop">The property</param>
-		/// <param name="getMethod">Updated with the getter method or <c>null</c> if none</param>
-		/// <param name="setMethod">Updated with the setter method or <c>null</c> if none</param>
+		/// <param name="getMethods">Updated with a list of all get methods</param>
+		/// <param name="setMethods">Updated with a list of all set methods</param>
 		/// <param name="otherMethods">Updated with a list of all other methods</param>
-		internal void InitializeProperty(PropertyDefMD prop, out MethodDef getMethod, out MethodDef setMethod, out ThreadSafe.IList<MethodDef> otherMethods) {
-			getMethod = null;
-			setMethod = null;
+		internal void InitializeProperty(PropertyDefMD prop, out ThreadSafe.IList<MethodDef> getMethods, out ThreadSafe.IList<MethodDef> setMethods, out ThreadSafe.IList<MethodDef> otherMethods) {
+			getMethods = ThreadSafeListCreator.Create<MethodDef>();
+			setMethods = ThreadSafeListCreator.Create<MethodDef>();
 			otherMethods = ThreadSafeListCreator.Create<MethodDef>();
 			if (prop == null)
 				return;
@@ -2288,13 +2288,13 @@ namespace dnlib.DotNet {
 				// It's documented to be flags, but ignore those with more than one bit set
 				switch (semantics) {
 				case MethodSemanticsAttributes.Setter:
-					if (setMethod == null)
-						setMethod = method;
+					if (!setMethods.Contains(method))
+						setMethods.Add(method);
 					break;
 
 				case MethodSemanticsAttributes.Getter:
-					if (getMethod == null)
-						getMethod = method;
+					if (!getMethods.Contains(method))
+						getMethods.Add(method);
 					break;
 
 				case MethodSemanticsAttributes.Other:
