@@ -29,7 +29,7 @@ namespace dnlib.DotNet {
 	/// Flags used by <see cref="AssemblyNameComparer"/>
 	/// </summary>
 	[Flags]
-	enum AssemblyNameComparerFlags {
+	public enum AssemblyNameComparerFlags {
 		/// <summary>
 		/// Compare assembly simple name
 		/// </summary>
@@ -59,7 +59,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Compares two assembly names
 	/// </summary>
-	struct AssemblyNameComparer : IEqualityComparer<IAssembly> {
+	public struct AssemblyNameComparer : IEqualityComparer<IAssembly> {
 		AssemblyNameComparerFlags flags;
 
 		/// <summary>
