@@ -1,3 +1,0 @@
-0xd4d, "de4dot <de4dot@gmail.com>", https://github.com/0xd4d
-Ki, "yck1509 <confuser.net@gmail.com>", https://github.com/yck1509
-kiootic, "kiootic <kiootic@gmail.com>", https://github.com/kiootic
