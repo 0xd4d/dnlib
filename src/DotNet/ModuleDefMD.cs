@@ -528,6 +528,8 @@ namespace dnlib.DotNet {
 		/// threads. See also <see cref="ModuleCreationOptions.PreLoadAllPdbData"/>.
 		/// </summary>
 		public void PreLoadAllPdbData() {
+			if (pdbState == null)
+				return;
 			for (uint rid = 1; ; rid++) {
 				var method = ResolveMethod(rid);
 				if (method == null)
