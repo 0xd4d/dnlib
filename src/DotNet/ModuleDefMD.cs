@@ -439,6 +439,8 @@ namespace dnlib.DotNet {
 			if (options == null)
 				return;
 			LoadPdb(CreateSymbolReader(options));
+			if (options.PreLoadAllPdbData)
+				PreLoadAllPdbData();
 		}
 
 		ISymbolReader CreateSymbolReader(ModuleCreationOptions options) {
@@ -518,6 +520,21 @@ namespace dnlib.DotNet {
 			if (string.IsNullOrEmpty(loc))
 				return;
 			LoadPdb(SymbolReaderCreator.Create(loc));
+		}
+
+		/// <summary>
+		/// Loads all PDB data from the file. Only call this method if your application is an STA
+		/// application and this <see cref="ModuleDefMD"/> instance can be accessed from different
+		/// threads. See also <see cref="ModuleCreationOptions.PreLoadAllPdbData"/>.
+		/// </summary>
+		public void PreLoadAllPdbData() {
+			for (uint rid = 1; ; rid++) {
+				var method = ResolveMethod(rid);
+				if (method == null)
+					break;
+				// This call will read all PDB data for this method
+				var body = method.Body;
+			}
 		}
 
 		ModuleKind GetKind() {
