@@ -133,8 +133,10 @@ instance that dnlib will use.
     mod.Write(@"C:\out.dll", wopts);
 ```
 
-The current PDB reader and writer code use diasymreader.dll to read and write
-PDB files so it will only work if the OS is Windows.
+There exist two different types of PDB readers, one is using the Microsoft
+COM PDB API available in diasymreader.dll (for Windows only), and the other
+one, which is now the default implementation, is a managed PDB reader. The PDB
+writer currently only uses the COM PDB API so will only work on Windows.
 
 Strong name sign an assembly
 ----------------------------

@@ -180,7 +180,9 @@
     <Compile Include="DotNet\Pdb\Dss\SymbolWriter.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolWriterCreator.cs" />
     <Compile Include="DotNet\Pdb\ISymbolWriter2.cs" />
+    <Compile Include="DotNet\Pdb\Managed\SymbolReaderCreator.cs" />
     <Compile Include="DotNet\Pdb\PdbDocument.cs" />
+    <Compile Include="DotNet\Pdb\PdbImplType.cs" />
     <Compile Include="DotNet\Pdb\PdbScope.cs" />
     <Compile Include="DotNet\Pdb\PdbState.cs" />
     <Compile Include="DotNet\Pdb\PdbWriter.cs" />

@@ -2,6 +2,7 @@
 
 using System.Diagnostics.SymbolStore;
 using dnlib.IO;
+using dnlib.DotNet.Pdb;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -20,6 +21,11 @@ namespace dnlib.DotNet {
 		/// initialize <see cref="PdbFileOrData"/> or <see cref="TryToLoadPdbFromDisk"/>.
 		/// </summary>
 		public CreateSymbolReaderDelegate CreateSymbolReader { get; set; }
+
+		/// <summary>
+		/// Which PDB reader to use. Default is <see cref="PdbImplType.Default"/>.
+		/// </summary>
+		public PdbImplType PdbImplementation { get; set; }
 
 		/// <summary>
 		/// Set it to A) the path (string) of the PDB file, B) the data (byte[]) of the PDB file or
@@ -45,6 +51,7 @@ namespace dnlib.DotNet {
 		/// Default constructor
 		/// </summary>
 		public ModuleCreationOptions() {
+			this.PdbImplementation = PdbImplType.Default;
 		}
 
 		/// <summary>
@@ -53,6 +60,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context</param>
 		public ModuleCreationOptions(ModuleContext context) {
 			this.Context = context;
+			this.PdbImplementation = PdbImplType.Default;
 		}
 	}
 
