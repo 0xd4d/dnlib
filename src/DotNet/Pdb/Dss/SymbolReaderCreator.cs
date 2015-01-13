@@ -49,6 +49,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 				if (hr >= 0)
 					return new SymbolReader(symReader);
 			}
+			catch (IOException) {
+			}
+			catch (UnauthorizedAccessException) {
+			}
+			catch (SecurityException) {
+			}
 			catch (InvalidCastException) {
 			}
 			catch (COMException) {
