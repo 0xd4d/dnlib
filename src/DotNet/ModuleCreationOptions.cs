@@ -2,6 +2,7 @@
 
 using System.Diagnostics.SymbolStore;
 using dnlib.IO;
+using dnlib.DotNet.Pdb;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -22,6 +23,11 @@ namespace dnlib.DotNet {
 		public CreateSymbolReaderDelegate CreateSymbolReader { get; set; }
 
 		/// <summary>
+		/// Which PDB reader to use. Default is <see cref="PdbImplType.Default"/>.
+		/// </summary>
+		public PdbImplType PdbImplementation { get; set; }
+
+		/// <summary>
 		/// Set it to A) the path (string) of the PDB file, B) the data (byte[]) of the PDB file or
 		/// C) to an <see cref="IImageStream"/> of the PDB data. The <see cref="IImageStream"/> will
 		/// be owned by the module. You don't need to initialize <see cref="TryToLoadPdbFromDisk"/>
@@ -36,15 +42,6 @@ namespace dnlib.DotNet {
 		public bool TryToLoadPdbFromDisk { get; set; }
 
 		/// <summary>
-		/// If <c>true</c>, loads all PDB data in the <see cref="ModuleDefMD"/> constructor. This is
-		/// ignored if no PDB file is loaded in the <see cref="ModuleDefMD"/> constructor. This
-		/// results in calling <see cref="ModuleDefMD.PreLoadAllPdbData()"/>. Should be enabled if
-		/// this is an STA application but the <see cref="ModuleDefMD"/> instance can be accessed
-		/// from other threads than the creator thread.
-		/// </summary>
-		public bool PreLoadAllPdbData { get; set; }
-
-		/// <summary>
 		/// corlib assembly reference to use or <c>null</c> if the default one from the opened
 		/// module should be used.
 		/// </summary>
@@ -54,6 +51,7 @@ namespace dnlib.DotNet {
 		/// Default constructor
 		/// </summary>
 		public ModuleCreationOptions() {
+			this.PdbImplementation = PdbImplType.Default;
 		}
 
 		/// <summary>
@@ -62,6 +60,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context</param>
 		public ModuleCreationOptions(ModuleContext context) {
 			this.Context = context;
+			this.PdbImplementation = PdbImplType.Default;
 		}
 	}
 
