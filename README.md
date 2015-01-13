@@ -136,25 +136,6 @@ instance that dnlib will use.
 The current PDB reader and writer code use diasymreader.dll to read and write
 PDB files so it will only work if the OS is Windows.
 
-If your application is an STA application (which is most likely the case if
-it's a GUI application) and you access the created ModuleDefMD instance in
-multiple threads, you will need to preload all PDB data. This can easily be
-done by using the following snippet:
-
-```csharp
-	var module = ModuleDefMD.Load(@"C:\path\file.dll",
-		new ModuleCreationOptions() {
-			Context = ModuleDefMD.CreateModuleContext(),
-			TryToLoadPdbFromDisk = true,
-			// Only needed if it's an STA app and the module is accessed
-			// in another thread than the current creator thread.
-			PreLoadAllPdbData = true,
-		}
-	);
-```
-
-or you can call `ModuleDefMD.PreLoadAllPdbData()` explicitly.
-
 Strong name sign an assembly
 ----------------------------
 

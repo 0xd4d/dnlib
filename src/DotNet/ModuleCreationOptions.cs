@@ -36,15 +36,6 @@ namespace dnlib.DotNet {
 		public bool TryToLoadPdbFromDisk { get; set; }
 
 		/// <summary>
-		/// If <c>true</c>, loads all PDB data in the <see cref="ModuleDefMD"/> constructor. This is
-		/// ignored if no PDB file is loaded in the <see cref="ModuleDefMD"/> constructor. This
-		/// results in calling <see cref="ModuleDefMD.PreLoadAllPdbData()"/>. Should be enabled if
-		/// this is an STA application but the <see cref="ModuleDefMD"/> instance can be accessed
-		/// from other threads than the creator thread.
-		/// </summary>
-		public bool PreLoadAllPdbData { get; set; }
-
-		/// <summary>
 		/// corlib assembly reference to use or <c>null</c> if the default one from the opened
 		/// module should be used.
 		/// </summary>
