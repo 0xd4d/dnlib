@@ -47,15 +47,24 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
 		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c>.</returns>
 		public static ISymbolReader Create(IImageStream pdbStream) {
+			if (pdbStream == null)
+				return null;
 			try {
 				var pdbReader = new PdbReader();
 				pdbReader.Read(pdbStream);
 				return pdbReader;
 			}
+			catch (IOException) {
+			}
+			catch (UnauthorizedAccessException) {
+			}
+			catch (SecurityException) {
+			}
 			finally {
 				if (pdbStream != null)
 					pdbStream.Dispose();
 			}
+			return null;
 		}
 
 		static IImageStream OpenImageStream(string fileName) {

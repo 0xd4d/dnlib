@@ -77,13 +77,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 				throw new PdbException("File size mismatch");
 
 			var pages = new IImageStream[pageCount];
-			FileOffset offset = 0;
-			for (uint i = 0; i < pageCount; i++) {
-				pages[i] = stream.Create(offset, pageSize);
-				offset += pageSize;
-			}
-
 			try {
+				FileOffset offset = 0;
+				for (uint i = 0; i < pageCount; i++) {
+					pages[i] = stream.Create(offset, pageSize);
+					offset += pageSize;
+				}
+
 				var rootPages = new IImageStream[numOfRootPages];
 				int pageIndex = 0;
 				for (int i = 0; i < numOfPtrPages && pageIndex < numOfRootPages; i++) {
@@ -96,8 +96,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 				ReadRootDirectory(new MsfStream(rootPages, rootSize), pages, pageSize);
 			}
 			finally {
-				foreach (var page in pages)
-					page.Dispose();
+				foreach (var page in pages) {
+					if (page != null)
+						page.Dispose();
+				}
 			}
 
 			ReadNames();
