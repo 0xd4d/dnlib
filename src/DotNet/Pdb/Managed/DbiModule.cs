@@ -191,7 +191,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					var lineFlags = stream.ReadUInt32();
 
 					line.LineBegin = lineFlags & 0x00ffffff;
-					line.LineEnd = line.LineBegin + (lineFlags >> 24);
+					line.LineEnd = line.LineBegin + ((lineFlags >> 24) & 0x7F);
 					if ((flags & 1) != 0) {
 						stream.Position = colTablePos + i * COL_ENTRY_SIZE;
 						line.ColumnBegin = stream.ReadUInt16();
