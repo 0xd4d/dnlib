@@ -486,6 +486,10 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteDataDirectory(win32Resources);
 			}
 
+			// Clear the security descriptor directory
+			writer.BaseStream.Position = dataDirOffset + 4 * 8;
+			writer.WriteDataDirectory(null);
+
 			// Write a new debug directory
 			writer.BaseStream.Position = dataDirOffset + 6 * 8;
 			writer.WriteDataDirectory(debugDirectory, DebugDirectory.HEADER_SIZE);
