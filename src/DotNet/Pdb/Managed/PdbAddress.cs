@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 	/// An address in the image
 	/// </summary>
 	[DebuggerDisplay("{Section}:{Offset}")]
-	public struct PdbAddress : IEquatable<PdbAddress>, IComparable<PdbAddress> {
+	struct PdbAddress : IEquatable<PdbAddress>, IComparable<PdbAddress> {
 		/// <summary>
 		/// Section
 		/// </summary>

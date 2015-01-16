@@ -63,9 +63,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		void ReadInternal(IImageStream stream) {
 			stream.Position = 0;
-			string sig = Encoding.ASCII.GetString(stream.ReadBytes(32));
-			if (sig != "Microsoft C/C++ MSF 7.00\r\n\u001ADS\0\0\0")
+			string sig = Encoding.ASCII.GetString(stream.ReadBytes(30));
+			if (sig != "Microsoft C/C++ MSF 7.00\r\n\u001ADS\0")
 				throw new PdbException("Invalid signature");
+			stream.Position += 2;
 
 			uint pageSize = stream.ReadUInt32();
 			uint fpm = stream.ReadUInt32();
@@ -200,24 +201,29 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
+		static uint ReadSizeField(IBinaryReader reader) {
+			int size = reader.ReadInt32();
+			return size <= 0 ? 0 : (uint)size;
+		}
+
 		ushort? ReadModules() {
 			var stream = streams[STREAM_DBI].Content;
 			stream.Position = 20;
 			ushort symrecStream = stream.ReadUInt16();
 			stream.Position += 2;
-			uint gpmodiSize = stream.ReadUInt32(); // gpmodiSize
+			uint gpmodiSize = ReadSizeField(stream); // gpmodiSize
 			uint otherSize = 0;
-			otherSize += stream.ReadUInt32(); // secconSize
-			otherSize += stream.ReadUInt32(); // secmapSize
-			otherSize += stream.ReadUInt32(); // filinfSize
-			otherSize += stream.ReadUInt32(); // tsmapSize
+			otherSize += ReadSizeField(stream); // secconSize
+			otherSize += ReadSizeField(stream); // secmapSize
+			otherSize += ReadSizeField(stream); // filinfSize
+			otherSize += ReadSizeField(stream); // tsmapSize
 			stream.ReadUInt32(); // mfcIndex
-			uint dbghdrSize = stream.ReadUInt32();
-			otherSize += stream.ReadUInt32(); // ecinfoSize
+			uint dbghdrSize = ReadSizeField(stream);
+			otherSize += ReadSizeField(stream); // ecinfoSize
 			stream.Position += 8;
 
 			modules = new List<DbiModule>();
-			using (var moduleStream = stream.Create(stream.FileOffset + stream.Position, gpmodiSize)) {
+			using (var moduleStream = stream.Create((FileOffset)stream.Position, gpmodiSize)) {
 				while (moduleStream.Position < moduleStream.Length) {
 					var module = new DbiModule();
 					module.Read(moduleStream);
