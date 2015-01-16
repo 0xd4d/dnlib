@@ -43,10 +43,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 						stream.Position += 4;
 						childEnd = stream.ReadUInt32();
 						var len = stream.ReadUInt32();
-						var off = stream.ReadUInt32();
-						stream.Position += 4;
+						var addr = PdbAddress.ReadAddress(stream);
 						var name = PdbReader.ReadCString(stream);
-						child = new DbiScope(name, off, len);
+						child = new DbiScope(name, addr.Offset, len);
 						break;
 					}
 					case SymbolType.S_UNAMESPACE:

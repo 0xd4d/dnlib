@@ -21,6 +21,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		const int STREAM_NAMES = 1;
 		const int STREAM_TPI = 2;
 		const int STREAM_DBI = 3;
+		const ushort STREAM_INVALID_INDEX = ushort.MaxValue;
 
 		Dictionary<string, DbiDocument> documents;
 		Dictionary<uint, DbiFunction> functions;
@@ -108,11 +109,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 			documents = new Dictionary<string, DbiDocument>(StringComparer.OrdinalIgnoreCase);
 			foreach (var module in modules)
-				if ((short)module.StreamId > 0) {
+				if (IsValidStreamIndex(module.StreamId))
 					module.LoadFunctions(this, streams[module.StreamId].Content);
-				}
 
-			if ((short)(tokenMapStream ?? 0) > 0)
+			if (IsValidStreamIndex(tokenMapStream ?? STREAM_INVALID_INDEX))
 				ApplyRidMap(streams[tokenMapStream.Value].Content);
 
 			functions = new Dictionary<uint, DbiFunction>();
@@ -120,6 +120,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 				foreach (var func in module.Functions) {
 					functions.Add(func.Token, func);
 				}
+		}
+
+		bool IsValidStreamIndex(ushort index) {
+			return index != STREAM_INVALID_INDEX && index < streams.Length;
 		}
 
 		void ReadRootDirectory(MsfStream stream, IImageStream[] pages, uint pageSize) {
@@ -221,7 +225,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				}
 			}
 
-			if ((short)symrecStream > 0)
+			if (IsValidStreamIndex(symrecStream))
 				ReadGlobalSymbols(streams[symrecStream].Content);
 
 			if (dbghdrSize != 0) {

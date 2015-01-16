@@ -161,6 +161,7 @@
     <Compile Include="DotNet\ModuleRef.cs" />
     <Compile Include="DotNet\NativeType.cs" />
     <Compile Include="DotNet\NullResolver.cs" />
+    <Compile Include="DotNet\Pdb\Managed\PdbAddress.cs" />
     <Compile Include="DotNet\PInvokeAttributes.cs" />
     <Compile Include="DotNet\ParamAttributes.cs" />
     <Compile Include="DotNet\ParamDef.cs" />
