@@ -1228,7 +1228,7 @@ namespace dnlib.DotNet.Writer {
 
 				foreach (var field in type.Fields) {
 					if (field == null) {
-						Error("Field is null");
+						Error("Field is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 						continue;
 					}
 					uint rid = GetRid(field);
@@ -1245,7 +1245,7 @@ namespace dnlib.DotNet.Writer {
 
 				foreach (var method in type.Methods) {
 					if (method == null) {
-						Error("Method is null");
+						Error("Method is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 						continue;
 					}
 					uint rid = GetRid(method);
@@ -1260,7 +1260,7 @@ namespace dnlib.DotNet.Writer {
 					AddMethodImpls(method, method.Overrides);
 					foreach (var pd in method.ParamDefs) {
 						if (pd == null) {
-							Error("Param is null");
+							Error("Param is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
 							continue;
 						}
 						uint pdRid = GetRid(pd);
@@ -1276,7 +1276,7 @@ namespace dnlib.DotNet.Writer {
 				if (!IsEmpty(type.Events)) {
 					foreach (var evt in type.Events) {
 						if (evt == null) {
-							Error("Event is null");
+							Error("Event is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 							continue;
 						}
 						uint rid = GetRid(evt);
@@ -1291,7 +1291,7 @@ namespace dnlib.DotNet.Writer {
 				if (!IsEmpty(type.Properties)) {
 					foreach (var prop in type.Properties) {
 						if (prop == null) {
-							Error("Property is null");
+							Error("Property is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 							continue;
 						}
 						uint rid = GetRid(prop);
@@ -1569,7 +1569,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected virtual uint AddStandAloneSig(MethodSig methodSig, uint origToken) {
 			if (methodSig == null) {
-				Error("MethodSig is null");
+				Error("StandAloneSig: MethodSig is null");
 				return 0;
 			}
 
@@ -2186,7 +2186,7 @@ namespace dnlib.DotNet.Writer {
 
 		void VerifyConstantType(ElementType realType, ElementType expectedType) {
 			if (realType != expectedType)
-				Error("Constant value's type is the wrong type");
+				Error("Constant value's type is the wrong type: {0} != {1}", realType, expectedType);
 		}
 
 		/// <summary>
@@ -2275,7 +2275,7 @@ namespace dnlib.DotNet.Writer {
 			if (overrides == null)
 				return;
 			if (method.DeclaringType == null) {
-				Error("Method declaring type == null");
+				Error("Method declaring type == null. Method {0} ({1:X8})", method, method.MDToken.Raw);
 				return;
 			}
 			uint rid = GetRid(method.DeclaringType);

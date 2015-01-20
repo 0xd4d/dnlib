@@ -120,7 +120,7 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(IList<CANamedArgument> namedArgs) {
 			if (namedArgs == null || namedArgs.Count > 0x1FFFFFFF) {
-				helper.Error("Too many named arguments");
+				helper.Error("Too many custom attribute named arguments");
 				namedArgs = new CANamedArgument[0];
 			}
 			writer.WriteCompressedUInt32((uint)namedArgs.Count);
@@ -140,7 +140,7 @@ namespace dnlib.DotNet.Writer {
 
 		void WriteValue(TypeSig argType, CAArgument value) {
 			if (argType == null || value.Type == null) {
-				helper.Error("Argument type is null");
+				helper.Error("Custom attribute argument type is null");
 				return;
 			}
 			if (!recursionCounter.Increment()) {
@@ -152,7 +152,7 @@ namespace dnlib.DotNet.Writer {
 			if (arrayType != null) {
 				var argsArray = value.Value as IList<CAArgument>;
 				if (argsArray == null && value.Value != null)
-					helper.Error("Value is not null or an array");
+					helper.Error("CAArgument.Value is not null or an array");
 				WriteArrayValue(arrayType, argsArray);
 			}
 			else
@@ -163,7 +163,7 @@ namespace dnlib.DotNet.Writer {
 
 		void WriteArrayValue(SZArraySig arrayType, IList<CAArgument> args) {
 			if (arrayType == null) {
-				helper.Error("Array type is null");
+				helper.Error("Custom attribute: Array type is null");
 				return;
 			}
 
@@ -363,7 +363,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="value">The value to write</param>
 		void WriteElem(TypeSig argType, CAArgument value) {
 			if (argType == null) {
-				helper.Error("Arg type is null");
+				helper.Error("Custom attribute: Arg type is null");
 				argType = value.Type;
 				if (argType == null)
 					return;
@@ -489,12 +489,12 @@ namespace dnlib.DotNet.Writer {
 						if (ts != null)
 							WriteType(ts);
 						else {
-							helper.Error("CA value is not a type");
+							helper.Error("Custom attribute value is not a type");
 							WriteUTF8String(UTF8String.Empty);
 						}
 					}
 					else {
-						helper.Error("CA value type is not System.Type");
+						helper.Error("Custom attribute value type is not System.Type");
 						WriteUTF8String(UTF8String.Empty);
 					}
 					break;
@@ -631,7 +631,7 @@ namespace dnlib.DotNet.Writer {
 		void WriteFieldOrPropType(TypeSig type) {
 			type = type.RemoveModifiers();
 			if (type == null) {
-				helper.Error("Field/property type is null");
+				helper.Error("Custom attribute: Field/property type is null");
 				return;
 			}
 			if (!recursionCounter.Increment()) {
@@ -691,7 +691,7 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			default:
-				helper.Error("Invalid type");
+				helper.Error("Custom attribute: Invalid type");
 				writer.Write((byte)0xFF);
 				break;
 			}
@@ -701,7 +701,7 @@ namespace dnlib.DotNet.Writer {
 
 		void WriteType(IType type) {
 			if (type == null) {
-				helper.Error("Type is null");
+				helper.Error("Custom attribute: Type is null");
 				WriteUTF8String(UTF8String.Empty);
 			}
 			else

@@ -93,7 +93,7 @@ namespace dnlib.DotNet.Writer {
 
 					var namedArgsBlob = CustomAttributeWriter.Write(this, sa.NamedArguments);
 					if (namedArgsBlob.Length > 0x1FFFFFFF) {
-						helper.Error("Named arguments blob is too big");
+						helper.Error("Named arguments blob size doesn't fit in 29 bits");
 						namedArgsBlob = new byte[0];
 					}
 					WriteCompressedUInt32(writer, (uint)namedArgsBlob.Length);
