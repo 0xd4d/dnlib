@@ -164,6 +164,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					throw new NotSupportedException();
 
 				names = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+				entryCapacity = Math.Min(entryCapacity, (uint)entryOk.Count);
 				for (int i = 0; i < entryCapacity; i++) {
 					if (!entryOk[i])
 						continue;
