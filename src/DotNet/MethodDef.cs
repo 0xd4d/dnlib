@@ -258,6 +258,22 @@ namespace dnlib.DotNet {
 #endif
 		}
 
+		/// <summary>
+		/// Frees the method body if it has been loaded.
+		/// </summary>
+		public void FreeMethodBody() {
+			if (!methodBody_isInitialized)
+				return;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			methodBody = null;
+			methodBody_isInitialized = false;
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
 		/// <summary>Called to initialize <see cref="methodBody"/></summary>
 		protected virtual MethodBody GetMethodBody_NoLock() {
 			return null;
@@ -408,7 +424,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the CIL method body
+		/// Gets/sets the CIL method body. See also <see cref="FreeMethodBody()"/>
 		/// </summary>
 		public CilBody Body {
 			get {
