@@ -8,7 +8,7 @@ namespace dnlib.DotNet {
 	/// Flags used by <see cref="AssemblyNameComparer"/>
 	/// </summary>
 	[Flags]
-	enum AssemblyNameComparerFlags {
+	public enum AssemblyNameComparerFlags {
 		/// <summary>
 		/// Compare assembly simple name
 		/// </summary>
@@ -38,67 +38,50 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Compares two assembly names
 	/// </summary>
-	struct AssemblyNameComparer : IEqualityComparer<IAssembly> {
-		AssemblyNameComparerFlags flags;
-
+	public struct AssemblyNameComparer : IEqualityComparer<IAssembly> {
 		/// <summary>
-		/// Gets/sets the comparison flags
+		/// Compares the name, version, public key token and culture
 		/// </summary>
-		public AssemblyNameComparerFlags Flags {
-			get { return flags; }
-			set { flags = value; }
-		}
+		public static AssemblyNameComparer CompareAll = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Name"/> bit
+		/// Compares only the name and the public key token
+		/// </summary>
+		public static AssemblyNameComparer NameAndPublicKeyTokenOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name | AssemblyNameComparerFlags.PublicKeyToken);
+
+		/// <summary>
+		/// Compares only the name
+		/// </summary>
+		public static AssemblyNameComparer NameOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name);
+
+		readonly AssemblyNameComparerFlags flags;
+
+		/// <summary>
+		/// Gets the <see cref="AssemblyNameComparerFlags.Name"/> bit
 		/// </summary>
 		public bool CompareName {
 			get { return (flags & AssemblyNameComparerFlags.Name) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.Name;
-				else
-					flags &= ~AssemblyNameComparerFlags.Name;
-			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Version"/> bit
+		/// Gets the <see cref="AssemblyNameComparerFlags.Version"/> bit
 		/// </summary>
 		public bool CompareVersion {
 			get { return (flags & AssemblyNameComparerFlags.Version) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.Version;
-				else
-					flags &= ~AssemblyNameComparerFlags.Version;
-			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.PublicKeyToken"/> bit
+		/// Gets the <see cref="AssemblyNameComparerFlags.PublicKeyToken"/> bit
 		/// </summary>
 		public bool ComparePublicKeyToken {
 			get { return (flags & AssemblyNameComparerFlags.PublicKeyToken) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.PublicKeyToken;
-				else
-					flags &= ~AssemblyNameComparerFlags.PublicKeyToken;
-			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Culture"/> bit
+		/// Gets the <see cref="AssemblyNameComparerFlags.Culture"/> bit
 		/// </summary>
 		public bool CompareCulture {
 			get { return (flags & AssemblyNameComparerFlags.Culture) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.Culture;
-				else
-					flags &= ~AssemblyNameComparerFlags.Culture;
-			}
 		}
 
 		/// <summary>
