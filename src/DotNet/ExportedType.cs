@@ -538,13 +538,48 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
 		public TypeDef Resolve() {
+			return Resolve(null);
+		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <param name="sourceModule">Source module or <c>null</c></param>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
+		public TypeDef Resolve(ModuleDef sourceModule) {
 			if (module == null)
 				return null;
-			var etAsm = module.Context.AssemblyResolver.Resolve(DefinitionAssembly, module);
-			if (etAsm == null)
-				return null;
 
-			return etAsm.Find(this.FullName, false);
+			return Resolve(sourceModule, this);
+		}
+
+		static TypeDef Resolve(ModuleDef sourceModule, ExportedType et) {
+			for (int i = 0; i < 30; i++) {
+				if (et == null || et.module == null)
+					break;
+				var resolver = et.module.Context.AssemblyResolver;
+				var etAsm = resolver.Resolve(et.DefinitionAssembly, sourceModule ?? et.module);
+				if (etAsm == null)
+					break;
+
+				var td = etAsm.Find(et.FullName, false);
+				if (td != null)
+					return td;
+
+				et = FindExportedType(etAsm, et);
+			}
+
+			return null;
+		}
+
+		static ExportedType FindExportedType(AssemblyDef asm, ExportedType et) {
+			foreach (var mod in asm.Modules.GetSafeEnumerable()) {
+				foreach (var et2 in mod.ExportedTypes.GetSafeEnumerable()) {
+					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(et, et2))
+						return et2;
+				}
+			}
+			return null;
 		}
 
 		/// <summary>
