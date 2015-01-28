@@ -14,6 +14,8 @@ namespace dnlib.DotNet {
 		/// <typeparam name="T">Collection element type</typeparam>
 		/// <param name="coll">Collection</param>
 		public static void Initialize<T>(IEnumerable<T> coll) {
+			if (coll == null)
+				return;
 			foreach (var c in coll.GetSafeEnumerable()) {
 			}
 		}
