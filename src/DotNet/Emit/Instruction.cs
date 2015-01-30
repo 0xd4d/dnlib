@@ -787,4 +787,42 @@ namespace dnlib.DotNet.Emit {
 			return InstructionPrinter.ToString(this);
 		}
 	}
+
+	static partial class Extensions {
+		/// <summary>
+		/// Gets the opcode or <see cref="OpCodes.UNKNOWN1"/> if <paramref name="self"/> is <c>null</c>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns></returns>
+		public static OpCode GetOpCode(this Instruction self) {
+			return self == null ? OpCodes.UNKNOWN1 : self.OpCode;
+		}
+
+		/// <summary>
+		/// Gets the operand or <c>null</c> if <paramref name="self"/> is <c>null</c>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns></returns>
+		public static object GetOperand(this Instruction self) {
+			return self == null ? null : self.Operand;
+		}
+
+		/// <summary>
+		/// Gets the offset or 0 if <paramref name="self"/> is <c>null</c>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns></returns>
+		public static uint GetOffset(this Instruction self) {
+			return self == null ? 0 : self.Offset;
+		}
+
+		/// <summary>
+		/// Gets the sequence point or <c>null</c> if <paramref name="self"/> is <c>null</c>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns></returns>
+		public static dnlib.DotNet.Pdb.SequencePoint GetSequencePoint(this Instruction self) {
+			return self == null ? null : self.SequencePoint;
+		}
+	}
 }

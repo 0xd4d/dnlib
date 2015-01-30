@@ -523,7 +523,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="nativeType">Native type</param>
-		/// <param name="iidParamIndex"></param>
+		/// <param name="iidParamIndex">IID parameter index</param>
 		public InterfaceMarshalType(NativeType nativeType, int iidParamIndex)
 			: base(nativeType) {
 			if (nativeType != NativeType.IUnknown &&

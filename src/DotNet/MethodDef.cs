@@ -554,6 +554,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if the method returns a value (i.e., return type is not <see cref="System.Void"/>)
+		/// </summary>
+		public bool HasReturnType {
+			get { return ReturnType.RemovePinnedAndModifiers().GetElementType() != ElementType.Void; }
+		}
+
+		/// <summary>
 		/// Gets/sets the method semantics attributes. If you remove/add a method to a property or
 		/// an event, you must manually update this property or eg. <see cref="IsSetter"/> won't
 		/// work as expected.
