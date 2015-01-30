@@ -510,7 +510,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="TypeAttributes.Forwarder"/> bit
+		/// Gets/sets the <see cref="TypeAttributes.Forwarder"/> bit. See also <see cref="MovedToAnotherAssembly"/>
 		/// </summary>
 		public bool IsForwarder {
 			get { return ((TypeAttributes)attributes & TypeAttributes.Forwarder) != 0; }
@@ -531,6 +531,27 @@ namespace dnlib.DotNet {
 		public bool HasSecurity {
 			get { return ((TypeAttributes)attributes & TypeAttributes.HasSecurity) != 0; }
 			set { ModifyAttributes(value, TypeAttributes.HasSecurity); }
+		}
+
+		const int MAX_LOOP_ITERS = 50;
+
+		/// <summary>
+		/// <c>true</c> if this type has been moved to another assembly
+		/// </summary>
+		public bool MovedToAnotherAssembly {
+			get {
+				ExportedType et = this;
+				for (int i = 0; i < MAX_LOOP_ITERS; i++) {
+					var impl = et.Implementation;
+					if (impl is AssemblyRef)
+						return et.IsForwarder;
+
+					et = impl as ExportedType;
+					if (et == null)
+						break;
+				}
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -554,7 +575,7 @@ namespace dnlib.DotNet {
 		}
 
 		static TypeDef Resolve(ModuleDef sourceModule, ExportedType et) {
-			for (int i = 0; i < 30; i++) {
+			for (int i = 0; i < MAX_LOOP_ITERS; i++) {
 				if (et == null || et.module == null)
 					break;
 				var resolver = et.module.Context.AssemblyResolver;
@@ -602,7 +623,7 @@ namespace dnlib.DotNet {
 			TypeRef result = null, prev = null;
 			var mod = module;
 			IImplementation impl = this;
-			for (int i = 0; i < 50 && impl != null; i++) {
+			for (int i = 0; i < MAX_LOOP_ITERS && impl != null; i++) {
 				var et = impl as ExportedType;
 				if (et != null) {
 					var newTr = mod.UpdateRowId(new TypeRefUser(mod, et.TypeNamespace, et.TypeName));
