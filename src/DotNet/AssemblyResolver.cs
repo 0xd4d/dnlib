@@ -23,8 +23,13 @@ namespace dnlib.DotNet {
 		// DLL files are searched before EXE files
 		static readonly IList<string> assemblyExtensions = new string[] { ".dll", ".exe" };
 
-		static readonly GacInfo gac2Info;	// .NET 1.x and 2.x
-		static readonly GacInfo gac4Info;	// .NET 4.x
+		static readonly List<GacInfo> gacInfos;
+		static readonly List<string> extraMonoPaths;
+		static readonly string[] monoVerDirs = new string[] {
+			"4.5", "4.0",
+			"3.5", "3.0", "2.0",
+			"1.1", "1.0",
+		};
 
 		static readonly Dictionary<string, FrameworkRedirectInfo> frmRedir2;
 		static readonly Dictionary<string, FrameworkRedirectInfo> frmRedir4;
@@ -42,11 +47,13 @@ namespace dnlib.DotNet {
 #endif
 
 		sealed class GacInfo {
+			public readonly int version;
 			public readonly string path;
 			public readonly string prefix;
 			public readonly IList<string> subDirs;
 
-			public GacInfo(string prefix, string path, IList<string> subDirs) {
+			public GacInfo(int version, string prefix, string path, IList<string> subDirs) {
+				this.version = version;
 				this.prefix = prefix;
 				this.path = path;
 				this.subDirs = subDirs;
@@ -64,20 +71,85 @@ namespace dnlib.DotNet {
 		}
 
 		static AssemblyResolver() {
-			var windir = Environment.GetEnvironmentVariable("WINDIR");
-			if (!string.IsNullOrEmpty(windir)) {
-				gac2Info = new GacInfo("", Path.Combine(windir, "assembly"), new string[] {
-					"GAC_32", "GAC_64", "GAC_MSIL", "GAC"
-				});
-				gac4Info = new GacInfo("v4.0_", Path.Combine(Path.Combine(windir, "Microsoft.NET"), "assembly"), new string[] {
-					"GAC_32", "GAC_64", "GAC_MSIL"
-				});
+			gacInfos = new List<GacInfo>();
+
+			if (Type.GetType("Mono.Runtime") != null) {
+				var dirs = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+				extraMonoPaths = new List<string>();
+				foreach (var prefix in FindMonoPrefixes()) {
+					var dir = Path.Combine(Path.Combine(Path.Combine(prefix, "lib"), "mono"), "gac");
+					if (dirs.ContainsKey(dir))
+						continue;
+					dirs[dir] = true;
+
+					if (Directory.Exists(dir)) {
+						gacInfos.Add(new GacInfo(-1, "", Path.GetDirectoryName(dir), new string[] {
+							Path.GetFileName(dir)
+						}));
+					}
+
+					dir = Path.GetDirectoryName(dir);
+					foreach (var verDir in monoVerDirs) {
+						var dir2 = Path.Combine(dir, verDir);
+						if (Directory.Exists(dir2))
+							extraMonoPaths.Add(dir2);
+					}
+				}
+
+				var paths = Environment.GetEnvironmentVariable("MONO_PATH");
+				if (paths != null) {
+					foreach (var path in paths.Split(Path.PathSeparator)) {
+						if (path != string.Empty && Directory.Exists(path))
+							extraMonoPaths.Add(path);
+					}
+				}
+			}
+			else {
+				var windir = Environment.GetEnvironmentVariable("WINDIR");
+				if (!string.IsNullOrEmpty(windir)) {
+					string path;
+
+					// .NET 1.x and 2.x
+					path = Path.Combine(windir, "assembly");
+					if (Directory.Exists(path)) {
+						gacInfos.Add(new GacInfo(2, "", path, new string[] {
+							"GAC_32", "GAC_64", "GAC_MSIL", "GAC"
+						}));
+					}
+
+					// .NET 4.x
+					path = Path.Combine(Path.Combine(windir, "Microsoft.NET"), "assembly");
+					if (Directory.Exists(path)) {
+						gacInfos.Add(new GacInfo(4, "v4.0_", path, new string[] {
+							"GAC_32", "GAC_64", "GAC_MSIL"
+						}));
+					}
+				}
 			}
 
 			frmRedir2 = new Dictionary<string, FrameworkRedirectInfo>(StringComparer.OrdinalIgnoreCase);
 			frmRedir4 = new Dictionary<string, FrameworkRedirectInfo>(StringComparer.OrdinalIgnoreCase);
 			InitFrameworkRedirectV2();
 			InitFrameworkRedirectV4();
+		}
+
+		static string GetCurrentMonoPrefix() {
+			var path = typeof(object).Module.FullyQualifiedName;
+			for (int i = 0; i < 4; i++)
+				path = Path.GetDirectoryName(path);
+			return path;
+		}
+
+		static IEnumerable<string> FindMonoPrefixes() {
+			yield return GetCurrentMonoPrefix();
+
+			var prefixes = Environment.GetEnvironmentVariable("MONO_GAC_PREFIX");
+			if (!string.IsNullOrEmpty(prefixes)) {
+				foreach (var prefix in prefixes.Split(Path.PathSeparator)) {
+					if (prefix != string.Empty)
+						yield return prefix;
+				}
+			}
 		}
 
 		static void InitFrameworkRedirectV2() {
@@ -602,7 +674,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds an assembly that exactly matches the requested assembly
 		/// </summary>
-		/// <param name="assembly">Assembly name to find</param>
+		/// <param name="assembly">Assembly to find</param>
 		/// <param name="paths">Search paths or <c>null</c> if none</param>
 		/// <param name="moduleContext">Module context</param>
 		/// <returns>An <see cref="AssemblyDef"/> instance or <c>null</c> if an exact match
@@ -634,7 +706,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds the closest assembly from the already cached assemblies
 		/// </summary>
-		/// <param name="assembly">Assembly name to find</param>
+		/// <param name="assembly">Assembly to find</param>
 		/// <returns>The closest <see cref="AssemblyDef"/> or <c>null</c> if none found</returns>
 		AssemblyDef FindClosestAssembly(IAssembly assembly) {
 			AssemblyDef closest = null;
@@ -706,7 +778,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Called before <see cref="FindAssemblies"/>
 		/// </summary>
-		/// <param name="assembly">Simple assembly name</param>
+		/// <param name="assembly">Assembly to find</param>
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
@@ -718,7 +790,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Called after <see cref="FindAssemblies"/> (if it fails)
 		/// </summary>
-		/// <param name="assembly">Simple assembly name</param>
+		/// <param name="assembly">Assembly to find</param>
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
@@ -730,7 +802,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Called after <see cref="PreFindAssemblies"/> (if it fails)
 		/// </summary>
-		/// <param name="assembly">Simple assembly name</param>
+		/// <param name="assembly">Assembly to find</param>
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
@@ -747,11 +819,38 @@ namespace dnlib.DotNet {
 			return FindAssembliesGacAny(assembly, sourceModule);
 		}
 
+		IEnumerable<GacInfo> GetGacInfos(ModuleDef sourceModule) {
+			int version = sourceModule == null ? int.MinValue : sourceModule.IsClr40 ? 4 : 2;
+			// Try the correct GAC first (eg. GAC4 if it's a .NET 4 assembly)
+			foreach (var gacInfo in gacInfos) {
+				if (gacInfo.version == version)
+					yield return gacInfo;
+			}
+			foreach (var gacInfo in gacInfos) {
+				if (gacInfo.version != version)
+					yield return gacInfo;
+			}
+		}
+
 		IEnumerable<string> FindAssembliesGacExactly(IAssembly assembly, ModuleDef sourceModule) {
-			foreach (var path in FindAssembliesGacExactly(gac2Info, assembly, sourceModule))
-				yield return path;
-			foreach (var path in FindAssembliesGacExactly(gac4Info, assembly, sourceModule))
-				yield return path;
+			foreach (var gacInfo in GetGacInfos(sourceModule)) {
+				foreach (var path in FindAssembliesGacExactly(gacInfo, assembly, sourceModule))
+					yield return path;
+			}
+			if (extraMonoPaths != null) {
+				foreach (var path in GetExtraMonoPaths(assembly, sourceModule))
+					yield return path;
+			}
+		}
+
+		static IEnumerable<string> GetExtraMonoPaths(IAssembly assembly, ModuleDef sourceModule) {
+			if (extraMonoPaths != null) {
+				foreach (var dir in extraMonoPaths) {
+					var file = Path.Combine(dir, assembly.Name + ".dll");
+					if (File.Exists(file))
+						yield return file;
+				}
+			}
 		}
 
 		IEnumerable<string> FindAssembliesGacExactly(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
@@ -772,10 +871,14 @@ namespace dnlib.DotNet {
 		}
 
 		IEnumerable<string> FindAssembliesGacAny(IAssembly assembly, ModuleDef sourceModule) {
-			foreach (var path in FindAssembliesGacAny(gac2Info, assembly, sourceModule))
-				yield return path;
-			foreach (var path in FindAssembliesGacAny(gac4Info, assembly, sourceModule))
-				yield return path;
+			foreach (var gacInfo in GetGacInfos(sourceModule)) {
+				foreach (var path in FindAssembliesGacAny(gacInfo, assembly, sourceModule))
+					yield return path;
+			}
+			if (extraMonoPaths != null) {
+				foreach (var path in GetExtraMonoPaths(assembly, sourceModule))
+					yield return path;
+			}
 		}
 
 		IEnumerable<string> FindAssembliesGacAny(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
