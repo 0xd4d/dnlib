@@ -21,7 +21,7 @@ namespace dnlib.DotNet {
 		static readonly ModuleDef nullModule = new ModuleDefUser();
 
 		// DLL files are searched before EXE files
-		static readonly IList<string> assemblyExtensions = new string[] { ".dll", ".exe" };
+		static readonly string[] assemblyExtensions = new string[] { ".dll", ".exe", ".winmd" };
 
 		static readonly List<GacInfo> gacInfos;
 		static readonly List<string> extraMonoPaths;
@@ -682,7 +682,7 @@ namespace dnlib.DotNet {
 		AssemblyDef FindExactAssembly(IAssembly assembly, IEnumerable<string> paths, ModuleContext moduleContext) {
 			if (paths == null)
 				return null;
-			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
+			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var path in paths.GetSafeEnumerable()) {
 				ModuleDefMD mod = null;
 				try {
@@ -710,7 +710,7 @@ namespace dnlib.DotNet {
 		/// <returns>The closest <see cref="AssemblyDef"/> or <c>null</c> if none found</returns>
 		AssemblyDef FindClosestAssembly(IAssembly assembly) {
 			AssemblyDef closest = null;
-			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
+			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var asm in cachedAssemblies.Values) {
 				if (asm == null)
 					continue;
@@ -723,7 +723,7 @@ namespace dnlib.DotNet {
 		AssemblyDef FindClosestAssembly(IAssembly assembly, AssemblyDef closest, IEnumerable<string> paths, ModuleContext moduleContext) {
 			if (paths == null)
 				return closest;
-			var asmComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
+			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var path in paths.GetSafeEnumerable()) {
 				ModuleDefMD mod = null;
 				try {
@@ -807,8 +807,15 @@ namespace dnlib.DotNet {
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
 		protected virtual IEnumerable<string> FindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
-			foreach (var path in FindAssembliesGac(assembly, sourceModule, matchExactly))
-				yield return path;
+			if (assembly.IsContentTypeWindowsRuntime) {
+				var path = Path.Combine(Path.Combine(Environment.SystemDirectory, "WinMetadata"), assembly.Name + ".winmd");
+				if (File.Exists(path))
+					yield return path;
+			}
+			else {
+				foreach (var path in FindAssembliesGac(assembly, sourceModule, matchExactly))
+					yield return path;
+			}
 			foreach (var path in FindAssembliesModuleSearchPaths(assembly, sourceModule, matchExactly))
 				yield return path;
 		}

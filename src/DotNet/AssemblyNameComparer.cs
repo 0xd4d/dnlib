@@ -30,9 +30,14 @@ namespace dnlib.DotNet {
 		Culture = 8,
 
 		/// <summary>
-		/// Compare assembly simple name, version, public key token and locale
+		/// Compare content type
 		/// </summary>
-		All = Name | Version | PublicKeyToken | Culture,
+		ContentType = 0x10,
+
+		/// <summary>
+		/// Compare assembly simple name, version, public key token, locale and content type
+		/// </summary>
+		All = Name | Version | PublicKeyToken | Culture | ContentType,
 	}
 
 	/// <summary>
@@ -40,7 +45,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public struct AssemblyNameComparer : IEqualityComparer<IAssembly> {
 		/// <summary>
-		/// Compares the name, version, public key token and culture
+		/// Compares the name, version, public key token, culture and content type
 		/// </summary>
 		public static AssemblyNameComparer CompareAll = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 
@@ -85,6 +90,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the <see cref="AssemblyNameComparerFlags.ContentType"/> bit
+		/// </summary>
+		public bool CompareContentType {
+			get { return (flags & AssemblyNameComparerFlags.ContentType) != 0; }
+		}
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="flags">Comparison flags</param>
@@ -116,6 +128,8 @@ namespace dnlib.DotNet {
 				return v;
 			if (CompareCulture && (v = Utils.LocaleCompareTo(a.Culture, b.Culture)) != 0)
 				return v;
+			if (CompareContentType && (v = a.ContentType.CompareTo(b.ContentType)) != 0)
+				return v;
 
 			return 0;
 		}
@@ -136,7 +150,8 @@ namespace dnlib.DotNet {
 		/// <param name="requested">Requested assembly name</param>
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
-		/// <returns>-1 if both are equally close, 0 if a is closest, 1 if b is closest</returns>
+		/// <returns>-1 if both are equally close, 0 if <paramref name="a"/> is closest, 1 if
+		/// <paramref name="b"/> is closest</returns>
 		public int CompareClosest(IAssembly requested, IAssembly a, IAssembly b) {
 			if (a == b)
 				return 0;
@@ -150,6 +165,7 @@ namespace dnlib.DotNet {
 			//	2. Public key token
 			//	3. Version
 			//	4. Locale
+			//	5. Content type
 
 			if (CompareName) {
 				// If the name only matches one of a or b, return that one.
@@ -217,6 +233,15 @@ namespace dnlib.DotNet {
 					return 1;
 			}
 
+			if (CompareContentType) {
+				bool ca = requested.ContentType == a.ContentType;
+				bool cb = requested.ContentType == b.ContentType;
+				if (ca && !cb)
+					return 0;
+				if (!ca && cb)
+					return 1;
+			}
+
 			return -1;
 		}
 
@@ -239,6 +264,8 @@ namespace dnlib.DotNet {
 				hash += PublicKeyBase.GetHashCodeToken(a.PublicKeyOrToken);
 			if (CompareCulture)
 				hash += Utils.GetHashCodeLocale(a.Culture);
+			if (CompareContentType)
+				hash += (int)a.ContentType;
 
 			return hash;
 		}
