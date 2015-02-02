@@ -705,7 +705,7 @@ namespace dnlib.DotNet {
 		bool IsType { get; }
 
 		/// <summary>
-		/// <c>true</c> if it's a or a method
+		/// <c>true</c> if it's a method
 		/// </summary>
 		bool IsMethod { get; }
 	}
