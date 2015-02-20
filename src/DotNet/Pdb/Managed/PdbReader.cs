@@ -21,6 +21,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		const int STREAM_NAMES = 1;
 		const int STREAM_TPI = 2;
 		const int STREAM_DBI = 3;
+		const ushort STREAM_INVALID_INDEX = ushort.MaxValue;
 
 		Dictionary<string, DbiDocument> documents;
 		Dictionary<uint, DbiFunction> functions;
@@ -62,9 +63,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		void ReadInternal(IImageStream stream) {
 			stream.Position = 0;
-			string sig = Encoding.ASCII.GetString(stream.ReadBytes(32));
-			if (sig != "Microsoft C/C++ MSF 7.00\r\n\u001ADS\0\0\0")
+			string sig = Encoding.ASCII.GetString(stream.ReadBytes(30));
+			if (sig != "Microsoft C/C++ MSF 7.00\r\n\u001ADS\0")
 				throw new PdbException("Invalid signature");
+			stream.Position += 2;
 
 			uint pageSize = stream.ReadUInt32();
 			uint fpm = stream.ReadUInt32();
@@ -108,11 +110,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 			documents = new Dictionary<string, DbiDocument>(StringComparer.OrdinalIgnoreCase);
 			foreach (var module in modules)
-				if ((short)module.StreamId > 0) {
+				if (IsValidStreamIndex(module.StreamId))
 					module.LoadFunctions(this, streams[module.StreamId].Content);
-				}
 
-			if ((short)(tokenMapStream ?? 0) > 0)
+			if (IsValidStreamIndex(tokenMapStream ?? STREAM_INVALID_INDEX))
 				ApplyRidMap(streams[tokenMapStream.Value].Content);
 
 			functions = new Dictionary<uint, DbiFunction>();
@@ -120,6 +121,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 				foreach (var func in module.Functions) {
 					functions.Add(func.Token, func);
 				}
+		}
+
+		bool IsValidStreamIndex(ushort index) {
+			return index != STREAM_INVALID_INDEX && index < streams.Length;
 		}
 
 		void ReadRootDirectory(MsfStream stream, IImageStream[] pages, uint pageSize) {
@@ -159,6 +164,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					throw new NotSupportedException();
 
 				names = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+				entryCapacity = Math.Min(entryCapacity, (uint)entryOk.Count);
 				for (int i = 0; i < entryCapacity; i++) {
 					if (!entryOk[i])
 						continue;
@@ -196,24 +202,29 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
+		static uint ReadSizeField(IBinaryReader reader) {
+			int size = reader.ReadInt32();
+			return size <= 0 ? 0 : (uint)size;
+		}
+
 		ushort? ReadModules() {
 			var stream = streams[STREAM_DBI].Content;
 			stream.Position = 20;
 			ushort symrecStream = stream.ReadUInt16();
 			stream.Position += 2;
-			uint gpmodiSize = stream.ReadUInt32(); // gpmodiSize
+			uint gpmodiSize = ReadSizeField(stream); // gpmodiSize
 			uint otherSize = 0;
-			otherSize += stream.ReadUInt32(); // secconSize
-			otherSize += stream.ReadUInt32(); // secmapSize
-			otherSize += stream.ReadUInt32(); // filinfSize
-			otherSize += stream.ReadUInt32(); // tsmapSize
+			otherSize += ReadSizeField(stream); // secconSize
+			otherSize += ReadSizeField(stream); // secmapSize
+			otherSize += ReadSizeField(stream); // filinfSize
+			otherSize += ReadSizeField(stream); // tsmapSize
 			stream.ReadUInt32(); // mfcIndex
-			uint dbghdrSize = stream.ReadUInt32();
-			otherSize += stream.ReadUInt32(); // ecinfoSize
+			uint dbghdrSize = ReadSizeField(stream);
+			otherSize += ReadSizeField(stream); // ecinfoSize
 			stream.Position += 8;
 
 			modules = new List<DbiModule>();
-			using (var moduleStream = stream.Create(stream.FileOffset + stream.Position, gpmodiSize)) {
+			using (var moduleStream = stream.Create((FileOffset)stream.Position, gpmodiSize)) {
 				while (moduleStream.Position < moduleStream.Length) {
 					var module = new DbiModule();
 					module.Read(moduleStream);
@@ -221,7 +232,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				}
 			}
 
-			if ((short)symrecStream > 0)
+			if (IsValidStreamIndex(symrecStream))
 				ReadGlobalSymbols(streams[symrecStream].Content);
 
 			if (dbghdrSize != 0) {

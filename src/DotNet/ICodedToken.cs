@@ -154,7 +154,7 @@ namespace dnlib.DotNet {
 	public static partial class Extensions {
 		/// <summary>
 		/// Checks whether <paramref name="asm"/> appears to be the core library (eg.
-		/// mscorlib or System.Runtime)
+		/// mscorlib, System.Runtime or corefx)
 		/// </summary>
 		/// <param name="asm">The assembly</param>
 		public static bool IsCorLib(this IAssembly asm) {
@@ -162,7 +162,8 @@ namespace dnlib.DotNet {
 			return asm != null &&
 				UTF8String.IsNullOrEmpty(asm.Culture) &&
 				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name)).Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
-				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase));
+				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ||
+				asmName.Equals("corefx", StringComparison.OrdinalIgnoreCase));
 		}
 
 		/// <summary>
@@ -704,7 +705,7 @@ namespace dnlib.DotNet {
 		bool IsType { get; }
 
 		/// <summary>
-		/// <c>true</c> if it's a or a method
+		/// <c>true</c> if it's a method
 		/// </summary>
 		bool IsMethod { get; }
 	}

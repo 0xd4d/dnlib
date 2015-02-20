@@ -60,7 +60,7 @@ namespace dnlib.DotNet.Writer {
 				return 0;
 			uint maxStack;
 			if (!MaxStackCalculator.GetMaxStack(instructions, exceptionHandlers, out maxStack)) {
-				Error("Error calculating max stack value");
+				Error("Error calculating max stack value. If the method's obfuscated, set CilBody.KeepOldMaxStack or MetaDataOptions.Flags (KeepOldMaxStack, global option) to ignore this error. Otherwise fix your generated CIL code so it conforms to the ECMA standard.");
 				maxStack += 8;
 			}
 			return maxStack;
@@ -80,7 +80,7 @@ namespace dnlib.DotNet.Writer {
 			uint offset;
 			if (offsets.TryGetValue(instr, out offset))
 				return offset;
-			Error("Found some other method's instruction or a removed instruction");
+			Error("Found some other method's instruction or a removed instruction. You probably removed an instruction that is the target of a branch instruction or an instruction that's the first/last instruction in an exception handler.");
 			return 0;
 		}
 
@@ -356,7 +356,7 @@ namespace dnlib.DotNet.Writer {
 			if (sbyte.MinValue <= displ && displ <= sbyte.MaxValue)
 				writer.Write((sbyte)displ);
 			else {
-				Error("Target instruction is too far away for a short branch");
+				Error("Target instruction is too far away for a short branch. Use the long branch or call CilBody.SimplifyBranches() and CilBody.OptimizeBranches()");
 				writer.Write((byte)0);
 			}
 		}
@@ -405,7 +405,7 @@ namespace dnlib.DotNet.Writer {
 			else if (byte.MinValue <= variable.Index && variable.Index <= byte.MaxValue)
 				writer.Write((byte)variable.Index);
 			else {
-				Error("Local/arg index doesn't fit in a Byte");
+				Error("Local/arg index doesn't fit in a Byte. Use the longer ldloc/ldarg/stloc/starg instruction.");
 				writer.Write((byte)0);
 			}
 		}

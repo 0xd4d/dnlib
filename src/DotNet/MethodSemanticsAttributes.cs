@@ -8,6 +8,8 @@ namespace dnlib.DotNet {
 	/// </summary>
 	[Flags]
 	public enum MethodSemanticsAttributes : ushort {
+		/// <summary>No bit is set</summary>
+		None		= 0,
 		/// <summary>Setter for property</summary>
 		Setter		= 0x0001,
 		/// <summary>Getter for property</summary>

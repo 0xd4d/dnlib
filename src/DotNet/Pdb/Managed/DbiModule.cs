@@ -30,6 +30,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 			cbLines = stream.ReadUInt32();
 			stream.Position += 16;
 
+			if ((int)cbSyms < 0)
+				cbSyms = 0;
+			if ((int)cbOldLines < 0)
+				cbOldLines = 0;
+			if ((int)cbLines < 0)
+				cbLines = 0;
+
 			ModuleName = PdbReader.ReadCString(stream);
 			ObjectName = PdbReader.ReadCString(stream);
 
@@ -80,7 +87,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var sig = (ModuleStreamType)stream.ReadUInt32();
 				var size = stream.ReadUInt32();
 				var begin = stream.Position;
-				var end = begin + size;
+				var end = (begin + size + 3) & ~3;
 
 				if (sig == ModuleStreamType.FileInfo)
 					ReadFiles(reader, docs, stream, end);
@@ -90,7 +97,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 			var sortedFuncs = new DbiFunction[Functions.Count];
 			Functions.CopyTo(sortedFuncs, 0);
-			Array.Sort(sortedFuncs, (a, b) => Comparer<uint>.Default.Compare(a.Address, b.Address));
+			Array.Sort(sortedFuncs, (a, b) => a.Address.CompareTo(b.Address));
 
 			stream.Position = 0;
 			while (stream.Position < stream.Length) {
@@ -123,9 +130,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		void ReadLines(DbiFunction[] funcs, Dictionary<long, DbiDocument> documents, IImageStream stream, long end) {
-			var address = stream.ReadUInt32();
-			if (stream.ReadUInt16() != 1)
-				return;
+			var address = PdbAddress.ReadAddress(stream);
 
 			int first = 0;
 			int last = funcs.Length - 1;

@@ -2,6 +2,7 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using dnlib.DotNet.MD;
 using dnlib.IO;
 using dnlib.PE;
@@ -17,18 +18,32 @@ namespace dnlib.DotNet.MD {
 			: base(peImage, cor20Header, mdHeader) {
 		}
 
-		static HotHeapVersion GetHotHeapVersion(string version) {
+		static CompressedMetaData() {
+			var windir = Environment.GetEnvironmentVariable("WINDIR");
+			if (!string.IsNullOrEmpty(windir)) {
+				var baseDir = Path.Combine(windir, "assembly");
+				nativeImages40 = Path.Combine(baseDir, "NativeImages_v4.0.30319");
+			}
+		}
+
+		static string nativeImages40;
+		static HotHeapVersion GetHotHeapVersion(string fileName, string version) {
+			// Some .NET 2.0 assemblies are stored in the 4.0 GAC. The version is not easily
+			// detectable from the data in the image so check the path.
+			if (nativeImages40 != null && fileName != null && fileName.StartsWith(nativeImages40, StringComparison.OrdinalIgnoreCase))
+				return HotHeapVersion.CLR40;
+
 			if (version.StartsWith(MDHeaderRuntimeVersion.MS_CLR_20_PREFIX))
 				return HotHeapVersion.CLR20;
 			if (version.StartsWith(MDHeaderRuntimeVersion.MS_CLR_40_PREFIX))
 				return HotHeapVersion.CLR40;
 
-			return HotHeapVersion.CLR20;
+			return HotHeapVersion.CLR40;
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeInternal() {
-			var hotHeapVersion = GetHotHeapVersion(mdHeader.VersionString);
+			var hotHeapVersion = GetHotHeapVersion(peImage.FileName, mdHeader.VersionString);
 
 			IImageStream imageStream = null, fullStream = null;
 			DotNetStream dns = null;

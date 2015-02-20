@@ -52,7 +52,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
+		/// Gets/sets the <see cref="PEHeaders"/> options. This is never <c>null</c>.
 		/// </summary>
 		public PEHeadersOptions PEHeadersOptions {
 			get { return peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions()); }

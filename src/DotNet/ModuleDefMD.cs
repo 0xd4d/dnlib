@@ -410,7 +410,7 @@ namespace dnlib.DotNet {
 			this.Cor20HeaderFlags = MetaData.ImageCor20Header.Flags;
 			this.Cor20HeaderRuntimeVersion = (uint)(MetaData.ImageCor20Header.MajorRuntimeVersion << 16) | MetaData.ImageCor20Header.MinorRuntimeVersion;
 			this.TablesHeaderVersion = MetaData.TablesStream.Version;
-			corLibTypes = new CorLibTypes(this, options.CorLibAssemblyRef ?? FindCorLibAssemblyRef());
+			corLibTypes = new CorLibTypes(this, options.CorLibAssemblyRef ?? FindCorLibAssemblyRef() ?? CreateDefaultCorLibAssemblyRef());
 			InitializePdb(options);
 		}
 
@@ -644,6 +644,28 @@ namespace dnlib.DotNet {
 				return UpdateRowId(new AssemblyRefUser(asm));
 
 			return corLibAsmRef;
+		}
+
+		/// <summary>
+		/// Called when no corlib assembly reference was found
+		/// </summary>
+		/// <returns></returns>
+		AssemblyRef CreateDefaultCorLibAssemblyRef() {
+			AssemblyRef asmRef;
+			var asm = Assembly;
+			if (asm != null && Find("System.Int32", false) != null)
+				asmRef = new AssemblyRefUser(asm);
+			else if (this.IsClr40)
+				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR40();
+			else if (this.IsClr20)
+				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR20();
+			else if (this.IsClr11)
+				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR11();
+			else if (this.IsClr10)
+				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR10();
+			else
+				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR40();
+			return UpdateRowId(asmRef);
 		}
 
 		static bool IsGreaterAssemblyRefVersion(AssemblyRef found, AssemblyRef newOne) {

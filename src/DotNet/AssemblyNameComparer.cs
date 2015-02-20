@@ -30,75 +30,70 @@ namespace dnlib.DotNet {
 		Culture = 8,
 
 		/// <summary>
-		/// Compare assembly simple name, version, public key token and locale
+		/// Compare content type
 		/// </summary>
-		All = Name | Version | PublicKeyToken | Culture,
+		ContentType = 0x10,
+
+		/// <summary>
+		/// Compare assembly simple name, version, public key token, locale and content type
+		/// </summary>
+		All = Name | Version | PublicKeyToken | Culture | ContentType,
 	}
 
 	/// <summary>
 	/// Compares two assembly names
 	/// </summary>
 	public struct AssemblyNameComparer : IEqualityComparer<IAssembly> {
-		AssemblyNameComparerFlags flags;
-
 		/// <summary>
-		/// Gets/sets the comparison flags
+		/// Compares the name, version, public key token, culture and content type
 		/// </summary>
-		public AssemblyNameComparerFlags Flags {
-			get { return flags; }
-			set { flags = value; }
-		}
+		public static AssemblyNameComparer CompareAll = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Name"/> bit
+		/// Compares only the name and the public key token
+		/// </summary>
+		public static AssemblyNameComparer NameAndPublicKeyTokenOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name | AssemblyNameComparerFlags.PublicKeyToken);
+
+		/// <summary>
+		/// Compares only the name
+		/// </summary>
+		public static AssemblyNameComparer NameOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name);
+
+		readonly AssemblyNameComparerFlags flags;
+
+		/// <summary>
+		/// Gets the <see cref="AssemblyNameComparerFlags.Name"/> bit
 		/// </summary>
 		public bool CompareName {
 			get { return (flags & AssemblyNameComparerFlags.Name) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.Name;
-				else
-					flags &= ~AssemblyNameComparerFlags.Name;
-			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Version"/> bit
+		/// Gets the <see cref="AssemblyNameComparerFlags.Version"/> bit
 		/// </summary>
 		public bool CompareVersion {
 			get { return (flags & AssemblyNameComparerFlags.Version) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.Version;
-				else
-					flags &= ~AssemblyNameComparerFlags.Version;
-			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.PublicKeyToken"/> bit
+		/// Gets the <see cref="AssemblyNameComparerFlags.PublicKeyToken"/> bit
 		/// </summary>
 		public bool ComparePublicKeyToken {
 			get { return (flags & AssemblyNameComparerFlags.PublicKeyToken) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.PublicKeyToken;
-				else
-					flags &= ~AssemblyNameComparerFlags.PublicKeyToken;
-			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="AssemblyNameComparerFlags.Culture"/> bit
+		/// Gets the <see cref="AssemblyNameComparerFlags.Culture"/> bit
 		/// </summary>
 		public bool CompareCulture {
 			get { return (flags & AssemblyNameComparerFlags.Culture) != 0; }
-			set {
-				if (value)
-					flags |= AssemblyNameComparerFlags.Culture;
-				else
-					flags &= ~AssemblyNameComparerFlags.Culture;
-			}
+		}
+
+		/// <summary>
+		/// Gets the <see cref="AssemblyNameComparerFlags.ContentType"/> bit
+		/// </summary>
+		public bool CompareContentType {
+			get { return (flags & AssemblyNameComparerFlags.ContentType) != 0; }
 		}
 
 		/// <summary>
@@ -133,6 +128,8 @@ namespace dnlib.DotNet {
 				return v;
 			if (CompareCulture && (v = Utils.LocaleCompareTo(a.Culture, b.Culture)) != 0)
 				return v;
+			if (CompareContentType && (v = a.ContentType.CompareTo(b.ContentType)) != 0)
+				return v;
 
 			return 0;
 		}
@@ -153,7 +150,8 @@ namespace dnlib.DotNet {
 		/// <param name="requested">Requested assembly name</param>
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
-		/// <returns>-1 if both are equally close, 0 if a is closest, 1 if b is closest</returns>
+		/// <returns>-1 if both are equally close, 0 if <paramref name="a"/> is closest, 1 if
+		/// <paramref name="b"/> is closest</returns>
 		public int CompareClosest(IAssembly requested, IAssembly a, IAssembly b) {
 			if (a == b)
 				return 0;
@@ -167,6 +165,7 @@ namespace dnlib.DotNet {
 			//	2. Public key token
 			//	3. Version
 			//	4. Locale
+			//	5. Content type
 
 			if (CompareName) {
 				// If the name only matches one of a or b, return that one.
@@ -234,6 +233,15 @@ namespace dnlib.DotNet {
 					return 1;
 			}
 
+			if (CompareContentType) {
+				bool ca = requested.ContentType == a.ContentType;
+				bool cb = requested.ContentType == b.ContentType;
+				if (ca && !cb)
+					return 0;
+				if (!ca && cb)
+					return 1;
+			}
+
 			return -1;
 		}
 
@@ -256,6 +264,8 @@ namespace dnlib.DotNet {
 				hash += PublicKeyBase.GetHashCodeToken(a.PublicKeyOrToken);
 			if (CompareCulture)
 				hash += Utils.GetHashCodeLocale(a.Culture);
+			if (CompareContentType)
+				hash += (int)a.ContentType;
 
 			return hash;
 		}

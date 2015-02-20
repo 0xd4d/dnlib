@@ -510,7 +510,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="TypeAttributes.Forwarder"/> bit
+		/// Gets/sets the <see cref="TypeAttributes.Forwarder"/> bit. See also <see cref="MovedToAnotherAssembly"/>
 		/// </summary>
 		public bool IsForwarder {
 			get { return ((TypeAttributes)attributes & TypeAttributes.Forwarder) != 0; }
@@ -533,18 +533,74 @@ namespace dnlib.DotNet {
 			set { ModifyAttributes(value, TypeAttributes.HasSecurity); }
 		}
 
+		const int MAX_LOOP_ITERS = 50;
+
+		/// <summary>
+		/// <c>true</c> if this type has been moved to another assembly
+		/// </summary>
+		public bool MovedToAnotherAssembly {
+			get {
+				ExportedType et = this;
+				for (int i = 0; i < MAX_LOOP_ITERS; i++) {
+					var impl = et.Implementation;
+					if (impl is AssemblyRef)
+						return et.IsForwarder;
+
+					et = impl as ExportedType;
+					if (et == null)
+						break;
+				}
+				return false;
+			}
+		}
+
 		/// <summary>
 		/// Resolves the type
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
 		public TypeDef Resolve() {
+			return Resolve(null);
+		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <param name="sourceModule">Source module or <c>null</c></param>
+		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
+		public TypeDef Resolve(ModuleDef sourceModule) {
 			if (module == null)
 				return null;
-			var etAsm = module.Context.AssemblyResolver.Resolve(DefinitionAssembly, module);
-			if (etAsm == null)
-				return null;
 
-			return etAsm.Find(this.FullName, false);
+			return Resolve(sourceModule, this);
+		}
+
+		static TypeDef Resolve(ModuleDef sourceModule, ExportedType et) {
+			for (int i = 0; i < MAX_LOOP_ITERS; i++) {
+				if (et == null || et.module == null)
+					break;
+				var resolver = et.module.Context.AssemblyResolver;
+				var etAsm = resolver.Resolve(et.DefinitionAssembly, sourceModule ?? et.module);
+				if (etAsm == null)
+					break;
+
+				var td = etAsm.Find(et.FullName, false);
+				if (td != null)
+					return td;
+
+				et = FindExportedType(etAsm, et);
+			}
+
+			return null;
+		}
+
+		static ExportedType FindExportedType(AssemblyDef asm, ExportedType et) {
+			foreach (var mod in asm.Modules.GetSafeEnumerable()) {
+				foreach (var et2 in mod.ExportedTypes.GetSafeEnumerable()) {
+					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(et, et2))
+						return et2;
+				}
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -557,6 +613,58 @@ namespace dnlib.DotNet {
 			if (type != null)
 				return type;
 			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", this, DefinitionAssembly));
+		}
+
+		/// <summary>
+		/// Converts this instance to a <see cref="TypeRef"/>
+		/// </summary>
+		/// <returns>A new <see cref="TypeRef"/> instance</returns>
+		public TypeRef ToTypeRef() {
+			TypeRef result = null, prev = null;
+			var mod = module;
+			IImplementation impl = this;
+			for (int i = 0; i < MAX_LOOP_ITERS && impl != null; i++) {
+				var et = impl as ExportedType;
+				if (et != null) {
+					var newTr = mod.UpdateRowId(new TypeRefUser(mod, et.TypeNamespace, et.TypeName));
+					if (result == null)
+						result = newTr;
+					if (prev != null)
+						prev.ResolutionScope = newTr;
+
+					prev = newTr;
+					impl = et.Implementation;
+					continue;
+				}
+
+				var asmRef = impl as AssemblyRef;
+				if (asmRef != null) {
+					// prev is never null when we're here
+					prev.ResolutionScope = asmRef;
+					return result;
+				}
+
+				var file = impl as FileDef;
+				if (file != null) {
+					// prev is never null when we're here
+					prev.ResolutionScope = FindModule(mod, file);
+					return result;
+				}
+
+				break;
+			}
+			return result;
+		}
+
+		static ModuleDef FindModule(ModuleDef module, FileDef file) {
+			if (module == null || file == null)
+				return null;
+			if (UTF8String.CaseInsensitiveEquals(module.Name, file.Name))
+				return module;
+			var asm = module.Assembly;
+			if (asm == null)
+				return null;
+			return asm.FindModule(file.Name);
 		}
 
 		/// <inheritdoc/>

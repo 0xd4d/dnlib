@@ -196,7 +196,7 @@ namespace dnlib.DotNet.Writer {
 
 			uint encodedToken = helper.ToEncodedToken(tdr);
 			if (encodedToken > 0x1FFFFFFF) {
-				helper.Error("Encoded token is too big");
+				helper.Error("Encoded token doesn't fit in 29 bits");
 				encodedToken = 0;
 			}
 			WriteCompressedUInt32(encodedToken);

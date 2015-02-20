@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 	sealed class DbiFunction : ISymbolMethod {
 		public uint Token { get; internal set; }
 		public string Name { get; private set; }
-		public uint Address { get; private set; }
+		public PdbAddress Address { get; private set; }
 		public DbiScope Root { get; private set; }
 		public IList<DbiSourceLine> Lines { get; internal set; }
 
@@ -20,14 +20,12 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var len = stream.ReadUInt32();
 			stream.Position += 8;
 			Token = stream.ReadUInt32();
-			Address = stream.ReadUInt32();
-			if (stream.ReadUInt32() != 1)
-				throw new PdbException("Segment != 1");
-			stream.Position++;
+			Address = PdbAddress.ReadAddress(stream);
+			stream.Position += 1 + 2;
 			Name = PdbReader.ReadCString(stream);
 
 			stream.Position = recEnd;
-			Root = new DbiScope("", Address, len);
+			Root = new DbiScope("", Address.Offset, len);
 			Root.Read(new RecursionCounter(), stream, end);
 			FixOffsets(new RecursionCounter(), Root);
 		}
@@ -36,8 +34,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!counter.Increment())
 				return;
 
-			scope.BeginOffset -= Address;
-			scope.EndOffset -= Address;
+			scope.BeginOffset -= Address.Offset;
+			scope.EndOffset -= Address.Offset;
 			foreach (var child in scope.Children)
 				FixOffsets(counter, child);
 

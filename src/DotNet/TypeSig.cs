@@ -493,6 +493,35 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the next field or <c>null</c>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns></returns>
+		public static TypeSig GetNext(this TypeSig self) {
+			return self == null ? null : self.Next;
+		}
+
+		/// <summary>
+		/// Gets the <see cref="TypeSig.IsValueType"/> value or <c>false</c> if
+		/// <paramref name="self"/> is <c>null</c>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns></returns>
+		public static bool GetIsValueType(this TypeSig self) {
+			return self == null ? false : self.IsValueType;
+		}
+
+		/// <summary>
+		/// Gets the <see cref="TypeSig.IsPrimitive"/> value or <c>false</c> if
+		/// <paramref name="self"/> is <c>null</c>
+		/// </summary>
+		/// <param name="self">this</param>
+		/// <returns></returns>
+		public static bool GetIsPrimitive(this TypeSig self) {
+			return self == null ? false : self.IsPrimitive;
+		}
+
+		/// <summary>
 		/// Gets the element type
 		/// </summary>
 		/// <param name="a">this</param>

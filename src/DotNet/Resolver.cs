@@ -62,16 +62,24 @@ using dnlib.Threading;
 		}
 
 		TypeDef ResolveExportedType(IList<ModuleDef> modules, TypeRef typeRef, ModuleDef sourceModule) {
-			var exportedType = FindExportedType(modules, typeRef);
-			if (exportedType == null)
-				return null;
+			for (int i = 0; i < 30; i++) {
+				var exportedType = FindExportedType(modules, typeRef);
+				if (exportedType == null)
+					return null;
 
-			var asmResolver = modules[0].Context.AssemblyResolver;
-			var etAsm = asmResolver.Resolve(exportedType.DefinitionAssembly, sourceModule ?? typeRef.Module);
-			if (etAsm == null)
-				return null;
+				var asmResolver = modules[0].Context.AssemblyResolver;
+				var etAsm = asmResolver.Resolve(exportedType.DefinitionAssembly, sourceModule ?? typeRef.Module);
+				if (etAsm == null)
+					return null;
 
-			return etAsm.Find(typeRef);
+				var td = etAsm.Find(typeRef);
+				if (td != null)
+					return td;
+
+				modules = etAsm.Modules;
+			}
+
+			return null;
 		}
 
 		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
