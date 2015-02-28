@@ -1840,6 +1840,18 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets all <see cref="TypeRef"/>s
+		/// </summary>
+		public IEnumerable<TypeRef> GetTypeRefs() {
+			for (uint rid = 1; ; rid++) {
+				var mr = ResolveTypeRef(rid);
+				if (mr == null)
+					break;
+				yield return mr;
+			}
+		}
+
+		/// <summary>
 		/// Finds an assembly reference by name. If there's more than one, pick the one with
 		/// the greatest version number.
 		/// </summary>
