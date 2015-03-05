@@ -1164,6 +1164,98 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Compare members
+		/// </summary>
+		/// <param name="a">Member #1</param>
+		/// <param name="b">Member #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(IMemberRef a, IMemberRef b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result;
+			IType ta, tb;
+			IField fa, fb;
+			IMethod ma, mb;
+			PropertyDef pa, pb;
+			EventDef ea, eb;
+
+			if ((ta = a as IType) != null && (tb = b as IType) != null)
+				result = Equals(ta, tb);
+			else if ((fa = a as IField) != null && (fb = b as IField) != null)
+				result = Equals(fa, fb);
+			else if ((ma = a as IMethod) != null && (mb = b as IMethod) != null)
+				result = Equals(ma, mb);
+			else if ((pa = a as PropertyDef) != null && (pb = b as PropertyDef) != null)
+				result = Equals(pa, pb);
+			else if ((ea = a as EventDef) != null && (eb = b as EventDef) != null)
+				result = Equals(ea, eb);
+			else
+				result = false;
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Gets the hash code of a member
+		/// </summary>
+		/// <param name="a">The member</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(IMemberRef a) {
+			if (a == null)
+				return 0;
+			if (!recursionCounter.Increment())
+				return 0;
+
+			int result;
+			IType ta;
+			IField fa;
+			IMethod ma;
+			PropertyDef pa;
+			EventDef ea;
+
+			if ((ta = a as IType) != null)
+				result = GetHashCode(ta);
+			else if ((fa = a as IField) != null)
+				result = GetHashCode(fa);
+			else if ((ma = a as IMethod) != null)
+				result = GetHashCode(ma);
+			else if ((pa = a as PropertyDef) != null)
+				result = GetHashCode(pa);
+			else if ((ea = a as EventDef) != null)
+				result = GetHashCode(ea);
+			else
+				result = 0;		// Should never be reached
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(ITypeDefOrRef a, ITypeDefOrRef b) {
+			return Equals((IType)a, (IType)b);
+		}
+
+		/// <summary>
+		/// Gets the hash code of a type
+		/// </summary>
+		/// <param name="a">The type</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(ITypeDefOrRef a) {
+			return GetHashCode((IType)a);
+		}
+
+		/// <summary>
 		/// Compares types
 		/// </summary>
 		/// <param name="a">Type #1</param>
