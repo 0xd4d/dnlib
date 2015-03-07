@@ -461,6 +461,11 @@ namespace dnlib.DotNet {
 		CompareEventDeclaringType = 8,
 
 		/// <summary>
+		/// Compares method / field / property / event declaring types
+		/// </summary>
+		CompareDeclaringTypes = CompareMethodFieldDeclaringType | ComparePropertyDeclaringType | CompareEventDeclaringType,
+
+		/// <summary>
 		/// Compares parameters after a sentinel in method sigs. Should not be enabled when
 		/// comparing <see cref="MethodSig"/>s against <see cref="MethodInfo"/>s since it's
 		/// not possible to get those sentinel params from a <see cref="MethodInfo"/>.
@@ -551,6 +556,12 @@ namespace dnlib.DotNet {
 		/// a <see cref="MemberRef"/>
 		/// </summary>
 		PrivateScopeMethodIsComparable = 0x20000,
+
+		/// <summary>
+		/// A field that is <see cref="FieldAttributes.PrivateScope"/> and a method that is
+		/// <see cref="MethodAttributes.PrivateScope"/> can compare equal to a <see cref="MemberRef"/>
+		/// </summary>
+		PrivateScopeIsComparable = PrivateScopeFieldIsComparable | PrivateScopeMethodIsComparable,
 
 		/// <summary>
 		/// Raw (bit by bit) comparison of signatures. This matches what the CLR does when it
