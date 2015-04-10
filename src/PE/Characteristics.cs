@@ -15,11 +15,13 @@ namespace dnlib.PE {
 		/// <summary>Line nunbers stripped from file.</summary>
 		LineNumsStripped	= 0x0004,
 		/// <summary>Local symbols stripped from file.</summary>
-		LocalsSymsStripped	= 0x0008,
+		LocalSymsStripped	= 0x0008,
 		/// <summary>Agressively trim working set</summary>
 		AggressiveWsTrim	= 0x0010,
 		/// <summary>App can handle >2gb addresses</summary>
 		LargeAddressAware	= 0x0020,
+		/// <summary/>
+		Reserved1			= 0x0040,
 		/// <summary>Bytes of machine word are reversed.</summary>
 		BytesReversedLo		= 0x0080,
 		/// <summary>32 bit word machine.</summary>

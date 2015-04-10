@@ -7,7 +7,17 @@ namespace dnlib.PE {
 	/// IMAGE_OPTIONAL_HEADER.DllCharacteristics
 	/// </summary>
 	[Flags]
-	public enum DllCharacteristics {
+	public enum DllCharacteristics : ushort {
+		/// <summary/>
+		Reserved1			= 0x0001,
+		/// <summary/>
+		Reserved2			= 0x0002,
+		/// <summary/>
+		Reserved3			= 0x0004,
+		/// <summary/>
+		Reserved4			= 0x0008,
+		/// <summary/>
+		Reserved5			= 0x0010,
 		/// <summary>Image can handle a high entropy 64-bit virtual address space.</summary>
 		HighEntropyVA		= 0x0020,
 		/// <summary>DLL can move.</summary>
@@ -26,6 +36,8 @@ namespace dnlib.PE {
 		AppContainer		= 0x1000,
 		/// <summary>Driver uses WDM model</summary>
 		WdmDriver			= 0x2000,
+		/// <summary>Image supports Control Flow Guard.</summary>
+		GuardCf				= 0x4000,
 		/// <summary/>
 		TerminalServerAware	= 0x8000,
 	}
