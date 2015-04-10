@@ -430,6 +430,10 @@ namespace dnlib.DotNet.Writer {
 		internal sealed class Rows<T> where T : class {
 			Dictionary<T, uint> dict = new Dictionary<T, uint>();
 
+			public int Count {
+				get { return dict.Count; }
+			}
+
 			public bool TryGetRid(T value, out uint rid) {
 				if (value == null) {
 					rid = 0;
@@ -693,6 +697,11 @@ namespace dnlib.DotNet.Writer {
 		/// field value and create a new Field RVA.
 		/// </summary>
 		internal bool KeepFieldRVA { get; set; }
+
+		/// <summary>
+		/// Gets the number of methods that will be written.
+		/// </summary>
+		protected abstract int NumberOfMethods { get; }
 
 		/// <summary>
 		/// Constructor
@@ -1164,7 +1173,9 @@ namespace dnlib.DotNet.Writer {
 		void Create() {
 			Initialize();
 			allTypeDefs = GetAllTypeDefs();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateTypeDefRids);
 			AllocateTypeDefRids();
+			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids);
 			AllocateMemberDefRids();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefRidsAllocated);
 
@@ -1179,6 +1190,7 @@ namespace dnlib.DotNet.Writer {
 			if (module.Assembly != null)
 				AddAssembly(module.Assembly, AssemblyPublicKey);
 
+			Listener.OnMetaDataEvent(this, MetaDataEvent.BeforeSortTables);
 			SortTables();
 			InitializeGenericParamConstraintTable();
 			Listener.OnMetaDataEvent(this, MetaDataEvent.MostTablesSorted);
@@ -1209,7 +1221,18 @@ namespace dnlib.DotNet.Writer {
 		/// aren't written either.
 		/// </summary>
 		void InitializeTypeDefsAndMemberDefs() {
+			int numTypes = allTypeDefs.Count;
+			int typeNum = 0;
+			int notifyNum = 0;
+			const int numNotifyEvents = 5; // InitializeTypeDefsAndMemberDefs0 - InitializeTypeDefsAndMemberDefs4
+			int notifyAfter = numTypes / numNotifyEvents;
+
 			foreach (var type in allTypeDefs) {
+				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
+					Listener.OnMetaDataEvent(this, MetaDataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
+					notifyAfter += numTypes / numNotifyEvents;
+				}
+
 				if (type == null) {
 					Error("TypeDef is null");
 					continue;
@@ -1304,6 +1327,8 @@ namespace dnlib.DotNet.Writer {
 					}
 				}
 			}
+			while (notifyNum < numNotifyEvents)
+				Listener.OnMetaDataEvent(this, MetaDataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1311,7 +1336,18 @@ namespace dnlib.DotNet.Writer {
 		/// <c>Property</c> and <c>Param</c> custom attributes.
 		/// </summary>
 		void WriteTypeDefAndMemberDefCustomAttributes() {
+			int numTypes = allTypeDefs.Count;
+			int typeNum = 0;
+			int notifyNum = 0;
+			const int numNotifyEvents = 5; // WriteTypeDefAndMemberDefCustomAttributes0 - WriteTypeDefAndMemberDefCustomAttributes4
+			int notifyAfter = numTypes / numNotifyEvents;
+
 			foreach (var type in allTypeDefs) {
+				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
+					Listener.OnMetaDataEvent(this, MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
+					notifyAfter += numTypes / numNotifyEvents;
+				}
+
 				if (type == null)
 					continue;
 				AddCustomAttributes(Table.TypeDef, GetRid(type), type);
@@ -1343,6 +1379,8 @@ namespace dnlib.DotNet.Writer {
 					AddCustomAttributes(Table.Property, GetRid(prop), prop);
 				}
 			}
+			while (notifyNum < numNotifyEvents)
+				Listener.OnMetaDataEvent(this, MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1482,13 +1520,27 @@ namespace dnlib.DotNet.Writer {
 		/// Writes all method bodies
 		/// </summary>
 		void WriteMethodBodies() {
+			int numMethods = NumberOfMethods;
+			int methodNum = 0;
+			int notifyNum = 0;
+			const int numNotifyEvents = 10; // WriteMethodBodies0 - WriteMethodBodies9
+			int notifyAfter = numMethods / numNotifyEvents;
+
 			bool keepMaxStack = KeepOldMaxStack;
 			foreach (var type in allTypeDefs) {
 				if (type == null)
 					continue;
 
 				foreach (var method in type.Methods) {
-					if (method == null || method.MethodBody == null)
+					if (method == null)
+						continue;
+
+					if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
+						Listener.OnMetaDataEvent(this, MetaDataEvent.WriteMethodBodies0 + notifyNum++);
+						notifyAfter += numMethods / numNotifyEvents;
+					}
+
+					if (method.MethodBody == null)
 						continue;
 
 					var cilBody = method.Body;
@@ -1511,6 +1563,8 @@ namespace dnlib.DotNet.Writer {
 					Error("Unsupported method body");
 				}
 			}
+			while (notifyNum < numNotifyEvents)
+				Listener.OnMetaDataEvent(this, MetaDataEvent.WriteMethodBodies0 + notifyNum++);
 		}
 
 		/// <summary>

@@ -21,6 +21,10 @@ namespace dnlib.DotNet.Writer {
 		readonly Rows<TypeSpec> typeSpecInfos = new Rows<TypeSpec>();
 		readonly Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
 
+		protected override int NumberOfMethods {
+			get { return methodDefInfos.Count; }
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -52,10 +56,21 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void AllocateMemberDefRids() {
+			int numTypes = allTypeDefs.Count;
+			int typeNum = 0;
+			int notifyNum = 0;
+			const int numNotifyEvents = 5; // AllocateMemberDefRids0 - AllocateMemberDefRids4
+			int notifyAfter = numTypes / numNotifyEvents;
+
 			uint fieldListRid = 1, methodListRid = 1;
 			uint eventListRid = 1, propertyListRid = 1;
 			uint paramListRid = 1;
 			foreach (var type in allTypeDefs) {
+				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
+					Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids0 + notifyNum++);
+					notifyAfter += numTypes / numNotifyEvents;
+				}
+
 				if (type == null)
 					continue;
 				uint typeRid = GetRid(type);
@@ -116,6 +131,8 @@ namespace dnlib.DotNet.Writer {
 					}
 				}
 			}
+			while (notifyNum < numNotifyEvents)
+				Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids0 + notifyNum++);
 		}
 
 		/// <inheritdoc/>
