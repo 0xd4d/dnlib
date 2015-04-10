@@ -107,31 +107,31 @@
 		MDMemberDefRidsAllocated,
 
 		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.MDInitializeTypeDefsAndMemberDefs0"/>.
+		/// Original event: <see cref="MetaDataEvent.InitializeTypeDefsAndMemberDefs0"/>.
 		/// Sent by the metadata writer so a UI can update its progress bar
 		/// </summary>
 		MDInitializeTypeDefsAndMemberDefs0,
 
 		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.MDInitializeTypeDefsAndMemberDefs1"/>.
+		/// Original event: <see cref="MetaDataEvent.InitializeTypeDefsAndMemberDefs1"/>.
 		/// Sent by the metadata writer so a UI can update its progress bar
 		/// </summary>
 		MDInitializeTypeDefsAndMemberDefs1,
 
 		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.MDInitializeTypeDefsAndMemberDefs2"/>.
+		/// Original event: <see cref="MetaDataEvent.InitializeTypeDefsAndMemberDefs2"/>.
 		/// Sent by the metadata writer so a UI can update its progress bar
 		/// </summary>
 		MDInitializeTypeDefsAndMemberDefs2,
 
 		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.MDInitializeTypeDefsAndMemberDefs3"/>.
+		/// Original event: <see cref="MetaDataEvent.InitializeTypeDefsAndMemberDefs3"/>.
 		/// Sent by the metadata writer so a UI can update its progress bar
 		/// </summary>
 		MDInitializeTypeDefsAndMemberDefs3,
 
 		/// <summary>
-		/// Original event: <see cref="MetaDataEvent.MDInitializeTypeDefsAndMemberDefs4"/>.
+		/// Original event: <see cref="MetaDataEvent.InitializeTypeDefsAndMemberDefs4"/>.
 		/// Sent by the metadata writer so a UI can update its progress bar
 		/// </summary>
 		MDInitializeTypeDefsAndMemberDefs4,
