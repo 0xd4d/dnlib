@@ -10,34 +10,27 @@ namespace dnlib.IO {
 	/// IImageStream for unmanaged memory
 	/// </summary>
 	[DebuggerDisplay("FO:{fileOffset} S:{Length} A:{startAddr}")]
-	public sealed unsafe class UnmanagedMemoryImageStream : IImageStream {
+	sealed unsafe class UnmanagedMemoryImageStream : IImageStream {
 		FileOffset fileOffset;
-		byte* startAddr;
-		byte* endAddr;
-		byte* currentAddr;
-		UnmanagedMemoryStreamCreator creator;
+		long startAddr;
+		long endAddr;
+		long currentAddr;
+		UnmanagedMemoryStreamCreator owner;
+		bool ownOwner;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="fileOffset">File offset of data</param>
-		/// <param name="addr">Address of data</param>
-		/// <param name="length">Length of data</param>
-		public unsafe UnmanagedMemoryImageStream(FileOffset fileOffset, IntPtr addr, long length)
-			: this(fileOffset, (byte*)addr, length) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
+		/// <param name="owner">Owner of memory</param>
 		/// <param name="fileOffset">File offset of data</param>
 		/// <param name="baseAddr">Address of data</param>
 		/// <param name="length">Length of data</param>
-		public unsafe UnmanagedMemoryImageStream(FileOffset fileOffset, byte* baseAddr, long length) {
+		public unsafe UnmanagedMemoryImageStream(UnmanagedMemoryStreamCreator owner, FileOffset fileOffset, long baseAddr, long length) {
 			this.fileOffset = fileOffset;
 			this.startAddr = baseAddr;
 			this.endAddr = baseAddr + length;
 			this.currentAddr = this.startAddr;
+			this.owner = owner;
 		}
 
 		/// <summary>
@@ -45,8 +38,8 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="creator">A <see cref="UnmanagedMemoryStreamCreator"/> instance</param>
 		internal UnmanagedMemoryImageStream(UnmanagedMemoryStreamCreator creator)
-			: this(0, creator.Address, creator.Length) {
-			this.creator = creator;
+			: this(creator, 0, 0, creator.Length) {
+			this.ownOwner = true;
 		}
 
 		/// <inheritdoc/>
@@ -58,7 +51,7 @@ namespace dnlib.IO {
 		/// Gets the start address of the memory this instance uses
 		/// </summary>
 		internal unsafe IntPtr StartAddress {
-			get { return new IntPtr(startAddr); }
+			get { return new IntPtr((byte*)owner.UnsafeUseAddress + startAddr); }
 		}
 
 		/// <inheritdoc/>
@@ -72,7 +65,7 @@ namespace dnlib.IO {
 			set {
 				if (IntPtr.Size == 4 && (ulong)value > int.MaxValue)
 					value = int.MaxValue;
-				byte* newAddr = startAddr + value;
+				long newAddr = startAddr + value;
 				if (newAddr < startAddr)
 					newAddr = endAddr;
 				currentAddr = newAddr;
@@ -86,7 +79,7 @@ namespace dnlib.IO {
 
 			long offs = Math.Min(Length, (long)offset);
 			long len = Math.Min(Length - offs, length);
-			return new UnmanagedMemoryImageStream((FileOffset)((long)fileOffset + (long)offset), startAddr + (long)offs, len);
+			return new UnmanagedMemoryImageStream(owner, (FileOffset)((long)fileOffset + (long)offset), startAddr + (long)offs, len);
 		}
 
 		/// <inheritdoc/>
@@ -95,7 +88,7 @@ namespace dnlib.IO {
 				throw new IOException("Invalid size");
 			size = (int)Math.Min(size, Length - Math.Min(Length, Position));
 			var newData = new byte[size];
-			Marshal.Copy(new IntPtr(currentAddr), newData, 0, size);
+			Marshal.Copy(new IntPtr((byte*)owner.Address + currentAddr), newData, 0, size);
 			currentAddr += size;
 			return newData;
 		}
@@ -105,48 +98,50 @@ namespace dnlib.IO {
 			if (length < 0)
 				throw new IOException("Invalid size");
 			length = (int)Math.Min(length, Length - Math.Min(Length, Position));
-			Marshal.Copy(new IntPtr(currentAddr), buffer, offset, length);
+			Marshal.Copy(new IntPtr((byte*)owner.Address + currentAddr), buffer, offset, length);
 			currentAddr += length;
 			return length;
 		}
 
 		/// <inheritdoc/>
 		public byte[] ReadBytesUntilByte(byte b) {
-			byte* pos = GetPositionOf(b);
-			if (pos == null)
+			long pos = GetPositionOf(b);
+			if (pos == -1)
 				return null;
 			return ReadBytes((int)(pos - currentAddr));
 		}
 
-		unsafe byte* GetPositionOf(byte b) {
-			byte* pos = currentAddr;
-			while (pos < endAddr) {
+		unsafe long GetPositionOf(byte b) {
+			byte* pos = (byte*)owner.Address + currentAddr;
+			byte* posStart = pos;
+			var endPos = (byte*)owner.Address + endAddr;
+			while (pos < endPos) {
 				if (*pos == b)
-					return pos;
+					return currentAddr + (pos - posStart);
 				pos++;
 			}
-			return null;
+			return -1;
 		}
 
 		/// <inheritdoc/>
 		public unsafe sbyte ReadSByte() {
 			if (currentAddr >= endAddr)
 				throw new IOException("Can't read one SByte");
-			return (sbyte)*currentAddr++;
+			return (sbyte)*((byte*)owner.Address + currentAddr++);
 		}
 
 		/// <inheritdoc/>
 		public unsafe byte ReadByte() {
 			if (currentAddr >= endAddr)
 				throw new IOException("Can't read one Byte");
-			return *currentAddr++;
+			return *((byte*)owner.Address + currentAddr++);
 		}
 
 		/// <inheritdoc/>
 		public unsafe short ReadInt16() {
 			if (currentAddr + 1 >= endAddr)
 				throw new IOException("Can't read one Int16");
-			short val = *(short*)currentAddr;
+			short val = *(short*)((byte*)owner.Address + currentAddr);
 			currentAddr += 2;
 			return val;
 		}
@@ -155,7 +150,7 @@ namespace dnlib.IO {
 		public unsafe ushort ReadUInt16() {
 			if (currentAddr + 1 >= endAddr)
 				throw new IOException("Can't read one UInt16");
-			ushort val = *(ushort*)currentAddr;
+			ushort val = *(ushort*)((byte*)owner.Address + currentAddr);
 			currentAddr += 2;
 			return val;
 		}
@@ -164,7 +159,7 @@ namespace dnlib.IO {
 		public unsafe int ReadInt32() {
 			if (currentAddr + 3 >= endAddr)
 				throw new IOException("Can't read one Int32");
-			int val = *(int*)currentAddr;
+			int val = *(int*)((byte*)owner.Address + currentAddr);
 			currentAddr += 4;
 			return val;
 		}
@@ -173,7 +168,7 @@ namespace dnlib.IO {
 		public unsafe uint ReadUInt32() {
 			if (currentAddr + 3 >= endAddr)
 				throw new IOException("Can't read one UInt32");
-			uint val = *(uint*)currentAddr;
+			uint val = *(uint*)((byte*)owner.Address + currentAddr);
 			currentAddr += 4;
 			return val;
 		}
@@ -182,7 +177,7 @@ namespace dnlib.IO {
 		public unsafe long ReadInt64() {
 			if (currentAddr + 7 >= endAddr)
 				throw new IOException("Can't read one Int64");
-			long val = *(long*)currentAddr;
+			long val = *(long*)((byte*)owner.Address + currentAddr);
 			currentAddr += 8;
 			return val;
 		}
@@ -191,7 +186,7 @@ namespace dnlib.IO {
 		public unsafe ulong ReadUInt64() {
 			if (currentAddr + 7 >= endAddr)
 				throw new IOException("Can't read one UInt64");
-			ulong val = *(ulong*)currentAddr;
+			ulong val = *(ulong*)((byte*)owner.Address + currentAddr);
 			currentAddr += 8;
 			return val;
 		}
@@ -200,7 +195,7 @@ namespace dnlib.IO {
 		public unsafe float ReadSingle() {
 			if (currentAddr + 3 >= endAddr)
 				throw new IOException("Can't read one Single");
-			var val = *(float*)currentAddr;
+			var val = *(float*)((byte*)owner.Address + currentAddr);
 			currentAddr += 4;
 			return val;
 		}
@@ -209,7 +204,7 @@ namespace dnlib.IO {
 		public unsafe double ReadDouble() {
 			if (currentAddr + 7 >= endAddr)
 				throw new IOException("Can't read one Double");
-			var val = *(double*)currentAddr;
+			var val = *(double*)((byte*)owner.Address + currentAddr);
 			currentAddr += 8;
 			return val;
 		}
@@ -220,7 +215,7 @@ namespace dnlib.IO {
 				throw new IOException("Not enough space to read the string");
 			if (currentAddr + chars * 2 < currentAddr || (chars != 0 && currentAddr + chars * 2 - 1 >= endAddr))
 				throw new IOException("Not enough space to read the string");
-			var s = new string((char*)currentAddr, 0, chars);
+			var s = new string((char*)((byte*)owner.Address + currentAddr), 0, chars);
 			currentAddr += chars * 2;
 			return s;
 		}
@@ -228,12 +223,12 @@ namespace dnlib.IO {
 		/// <inheritdoc/>
 		public void Dispose() {
 			fileOffset = 0;
-			startAddr = null;
-			endAddr = null;
-			currentAddr = null;
-			if (creator != null)
-				creator.Dispose();
-			creator = null;
+			startAddr = 0;
+			endAddr = 0;
+			currentAddr = 0;
+			if (ownOwner && owner != null)
+				owner.Dispose();
+			owner = null;
 		}
 	}
 }

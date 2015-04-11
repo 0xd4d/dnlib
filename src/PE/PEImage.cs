@@ -336,5 +336,12 @@ namespace dnlib.PE {
 		public IImageStream CreateFullStream() {
 			return imageStreamCreator.CreateFull();
 		}
+
+		/// <inheritdoc/>
+		public void UnsafeDisableMemoryMappedIO() {
+			var creator = imageStreamCreator as MemoryMappedFileStreamCreator;
+			if (creator != null)
+				creator.UnsafeDisableMemoryMappedIO();
+		}
 	}
 }

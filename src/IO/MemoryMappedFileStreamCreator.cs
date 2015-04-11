@@ -221,23 +221,58 @@ namespace dnlib.IO {
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
-			var origData = Interlocked.Exchange(ref data, IntPtr.Zero);
-			if (origData != IntPtr.Zero) {
-				dataLength = 0;
-				switch (osType) {
-				case OSType.Windows:
-					Windows.Dispose(origData);
-					break;
+			FreeMemoryMappedIoData();
+			base.Dispose(disposing);
+		}
 
-				case OSType.Unix:
-					Unix.Dispose(origData, origDataLength);
-					break;
+		/// <summary>
+		/// Call this to disable memory mapped I/O. This must only be called if no other code is
+		/// trying to access the memory since that could lead to an exception.
+		/// </summary>
+		public void UnsafeDisableMemoryMappedIO() {
+			if (dataAry != null)
+				return;
+			if (unsafeUseAddress)
+				throw new InvalidOperationException("Can't convert to non-memory mapped I/O because the PDB reader uses the address. Use the managed PDB reader instead.");
+			var newAry = new byte[Length];
+			Marshal.Copy(data, newAry, 0, newAry.Length);
+			FreeMemoryMappedIoData();
+			dataLength = newAry.Length;
+			dataAry = newAry;
+			gcHandle = GCHandle.Alloc(dataAry, GCHandleType.Pinned);
+			this.data = gcHandle.AddrOfPinnedObject();
+		}
+		GCHandle gcHandle;
+		byte[] dataAry;
 
-				default:
-					throw new InvalidOperationException("Shouldn't be here");
+		void FreeMemoryMappedIoData() {
+			if (dataAry == null) {
+				var origData = Interlocked.Exchange(ref data, IntPtr.Zero);
+				if (origData != IntPtr.Zero) {
+					dataLength = 0;
+					switch (osType) {
+					case OSType.Windows:
+						Windows.Dispose(origData);
+						break;
+
+					case OSType.Unix:
+						Unix.Dispose(origData, origDataLength);
+						break;
+
+					default:
+						throw new InvalidOperationException("Shouldn't be here");
+					}
 				}
 			}
-			base.Dispose(disposing);
+
+			if (gcHandle.IsAllocated) {
+				try {
+					gcHandle.Free();
+				}
+				catch (InvalidOperationException) {
+				}
+			}
+			dataAry = null;
 		}
 	}
 }

@@ -91,6 +91,13 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <returns>A new stream</returns>
 		IImageStream CreateFullStream();
+
+		/// <summary>
+		/// Call this to disable memory mapped I/O if it was used to open the file. This must only
+		/// be called if no other code is trying to access the memory since that could lead to an
+		/// exception.
+		/// </summary>
+		void UnsafeDisableMemoryMappedIO();
 	}
 
 	public static partial class PEExtensions {
