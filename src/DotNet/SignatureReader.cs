@@ -411,6 +411,7 @@ namespace dnlib.DotNet {
 			case CallingConvention.ThisCall:
 			case CallingConvention.FastCall:
 			case CallingConvention.VarArg:
+			case CallingConvention.NativeVarArg:
 				result = ReadMethod(callingConvention);
 				break;
 
@@ -431,7 +432,6 @@ namespace dnlib.DotNet {
 				break;
 
 			case CallingConvention.Unmanaged:
-			case CallingConvention.NativeVarArg:
 			default:
 				result = null;
 				break;

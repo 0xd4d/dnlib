@@ -2542,6 +2542,7 @@ namespace dnlib.DotNet {
 				case CallingConvention.FastCall:
 				case CallingConvention.VarArg:
 				case CallingConvention.Property:
+				case CallingConvention.NativeVarArg:
 					MethodBaseSig ma = a as MethodBaseSig, mb = b as MethodBaseSig;
 					result = ma != null && mb != null && Equals(ma, mb);
 					break;
@@ -2562,7 +2563,6 @@ namespace dnlib.DotNet {
 					break;
 
 				case CallingConvention.Unmanaged:
-				case CallingConvention.NativeVarArg:
 				default:
 					result = false;
 					break;
@@ -2593,6 +2593,7 @@ namespace dnlib.DotNet {
 			case CallingConvention.FastCall:
 			case CallingConvention.VarArg:
 			case CallingConvention.Property:
+			case CallingConvention.NativeVarArg:
 				MethodBaseSig ma = a as MethodBaseSig;
 				hash = ma == null ? 0 : GetHashCode(ma);
 				break;
@@ -2613,7 +2614,6 @@ namespace dnlib.DotNet {
 				break;
 
 			case CallingConvention.Unmanaged:
-			case CallingConvention.NativeVarArg:
 			default:
 				hash = GetHashCode_CallingConvention(a);
 				break;
