@@ -884,6 +884,11 @@ namespace dnlib.DotNet {
 		public PropertySig Clone() {
 			return new PropertySig(callingConvention, genParamCount, retType, parameters, paramsAfterSentinel);
 		}
+
+		/// <inheritdoc/>
+		public override string ToString() {
+			return FullNameCreator.PropertySigFullName(this);
+		}
 	}
 
 	/// <summary>

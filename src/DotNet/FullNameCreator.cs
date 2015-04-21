@@ -310,8 +310,40 @@ namespace dnlib.DotNet {
 		/// <param name="methodSig">Method sig</param>
 		/// <returns>Method sig full name</returns>
 		public static string MethodSigFullName(MethodSig methodSig) {
+			return MethodBaseSigFullName(methodSig);
+		}
+
+		/// <summary>
+		/// Returns the full name of a property sig
+		/// </summary>
+		/// <param name="propertySig">Property sig</param>
+		/// <returns>Property sig full name</returns>
+		public static string PropertySigFullName(PropertySig propertySig) {
+			return MethodBaseSigFullName(propertySig);
+		}
+
+		/// <summary>
+		/// Returns the full name of a property sig
+		/// </summary>
+		/// <param name="propertySig">Property sig</param>
+		/// <returns>Property sig full name</returns>
+		public static string MethodBaseSigFullName(MethodBaseSig sig) {
 			var fnc = new FullNameCreator(false, null);
-			fnc.CreateMethodFullName(null, null, methodSig, null);
+			fnc.CreateMethodFullName(null, null, sig, null);
+			return fnc.Result;
+		}
+
+		/// <summary>
+		/// Returns the full name of a sig
+		/// </summary>
+		/// <param name="declType">Declaring type or null</param>
+		/// <param name="name">Name or null</param>
+		/// <param name="sig">Method sig</param>
+		/// <param name="gppMethod">Owner method or null</param>
+		/// <returns>Sig full name</returns>
+		public static string MethodBaseSigFullName(string declType, string name, MethodBaseSig sig, MethodDef gppMethod) {
+			var fnc = new FullNameCreator(false, null);
+			fnc.CreateMethodFullName(declType, name, sig, gppMethod);
 			return fnc.Result;
 		}
 
