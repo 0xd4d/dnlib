@@ -325,7 +325,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns the full name of a property sig
 		/// </summary>
-		/// <param name="propertySig">Property sig</param>
+		/// <param name="sig">Property sig</param>
 		/// <returns>Property sig full name</returns>
 		public static string MethodBaseSigFullName(MethodBaseSig sig) {
 			var fnc = new FullNameCreator(false, null);
