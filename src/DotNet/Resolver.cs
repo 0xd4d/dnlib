@@ -110,6 +110,10 @@ using dnlib.Threading;
 			if (memberRef == null || parent == null)
 				return null;
 
+			var ts = parent as TypeSpec;
+			if (ts != null)
+				parent = ts.ScopeType;
+
 			var declaringTypeDef = parent as TypeDef;
 			if (declaringTypeDef != null)
 				return declaringTypeDef;
@@ -140,20 +144,6 @@ using dnlib.Threading;
 			var method = parent as MethodDef;
 			if (method != null)
 				return method.DeclaringType;
-
-			var ts = parent as TypeSpec;
-			if (ts != null) {
-				var git = ts.TypeSig as GenericInstSig;
-				if (git != null) {
-					var td = git.GenericType.TypeDef;
-					if (td != null)
-						return td;
-					var tr = git.GenericType.TypeRef;
-					if (tr != null)
-						return Resolve(tr, memberRef.Module);
-				}
-				return null;
-			}
 
 			return null;
 		}

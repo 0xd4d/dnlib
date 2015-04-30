@@ -50,6 +50,14 @@ namespace dnlib.IO {
 			get { return data; }
 		}
 
+		public IntPtr UnsafeUseAddress {
+			get {
+				unsafeUseAddress = true;
+				return data;
+			}
+		}
+		protected bool unsafeUseAddress;
+
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -84,12 +92,12 @@ namespace dnlib.IO {
 
 			long offs = Math.Min((long)dataLength, (long)offset);
 			long len = Math.Min((long)dataLength - offs, length);
-			return new UnmanagedMemoryImageStream(offset, (byte*)data.ToPointer() + (long)offs, len);
+			return new UnmanagedMemoryImageStream(this, offset, offs, len);
 		}
 
 		/// <inheritdoc/>
 		public IImageStream CreateFull() {
-			return new UnmanagedMemoryImageStream(0, data, dataLength);
+			return new UnmanagedMemoryImageStream(this, 0, 0, dataLength);
 		}
 
 		/// <inheritdoc/>

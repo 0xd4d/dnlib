@@ -461,6 +461,11 @@ namespace dnlib.DotNet {
 		CompareEventDeclaringType = 8,
 
 		/// <summary>
+		/// Compares method / field / property / event declaring types
+		/// </summary>
+		CompareDeclaringTypes = CompareMethodFieldDeclaringType | ComparePropertyDeclaringType | CompareEventDeclaringType,
+
+		/// <summary>
 		/// Compares parameters after a sentinel in method sigs. Should not be enabled when
 		/// comparing <see cref="MethodSig"/>s against <see cref="MethodInfo"/>s since it's
 		/// not possible to get those sentinel params from a <see cref="MethodInfo"/>.
@@ -551,6 +556,12 @@ namespace dnlib.DotNet {
 		/// a <see cref="MemberRef"/>
 		/// </summary>
 		PrivateScopeMethodIsComparable = 0x20000,
+
+		/// <summary>
+		/// A field that is <see cref="FieldAttributes.PrivateScope"/> and a method that is
+		/// <see cref="MethodAttributes.PrivateScope"/> can compare equal to a <see cref="MemberRef"/>
+		/// </summary>
+		PrivateScopeIsComparable = PrivateScopeFieldIsComparable | PrivateScopeMethodIsComparable,
 
 		/// <summary>
 		/// Raw (bit by bit) comparison of signatures. This matches what the CLR does when it
@@ -1161,6 +1172,98 @@ namespace dnlib.DotNet {
 
 			var td = b.Resolve();
 			return td != null && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
+		}
+
+		/// <summary>
+		/// Compare members
+		/// </summary>
+		/// <param name="a">Member #1</param>
+		/// <param name="b">Member #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(IMemberRef a, IMemberRef b) {
+			if (a == b)
+				return true;
+			if (a == null || b == null)
+				return false;
+			if (!recursionCounter.Increment())
+				return false;
+
+			bool result;
+			IType ta, tb;
+			IField fa, fb;
+			IMethod ma, mb;
+			PropertyDef pa, pb;
+			EventDef ea, eb;
+
+			if ((ta = a as IType) != null && (tb = b as IType) != null)
+				result = Equals(ta, tb);
+			else if ((fa = a as IField) != null && (fb = b as IField) != null)
+				result = Equals(fa, fb);
+			else if ((ma = a as IMethod) != null && (mb = b as IMethod) != null)
+				result = Equals(ma, mb);
+			else if ((pa = a as PropertyDef) != null && (pb = b as PropertyDef) != null)
+				result = Equals(pa, pb);
+			else if ((ea = a as EventDef) != null && (eb = b as EventDef) != null)
+				result = Equals(ea, eb);
+			else
+				result = false;
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Gets the hash code of a member
+		/// </summary>
+		/// <param name="a">The member</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(IMemberRef a) {
+			if (a == null)
+				return 0;
+			if (!recursionCounter.Increment())
+				return 0;
+
+			int result;
+			IType ta;
+			IField fa;
+			IMethod ma;
+			PropertyDef pa;
+			EventDef ea;
+
+			if ((ta = a as IType) != null)
+				result = GetHashCode(ta);
+			else if ((fa = a as IField) != null)
+				result = GetHashCode(fa);
+			else if ((ma = a as IMethod) != null)
+				result = GetHashCode(ma);
+			else if ((pa = a as PropertyDef) != null)
+				result = GetHashCode(pa);
+			else if ((ea = a as EventDef) != null)
+				result = GetHashCode(ea);
+			else
+				result = 0;		// Should never be reached
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		/// <summary>
+		/// Compares types
+		/// </summary>
+		/// <param name="a">Type #1</param>
+		/// <param name="b">Type #2</param>
+		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		public bool Equals(ITypeDefOrRef a, ITypeDefOrRef b) {
+			return Equals((IType)a, (IType)b);
+		}
+
+		/// <summary>
+		/// Gets the hash code of a type
+		/// </summary>
+		/// <param name="a">The type</param>
+		/// <returns>The hash code</returns>
+		public int GetHashCode(ITypeDefOrRef a) {
+			return GetHashCode((IType)a);
 		}
 
 		/// <summary>
@@ -2439,6 +2542,7 @@ namespace dnlib.DotNet {
 				case CallingConvention.FastCall:
 				case CallingConvention.VarArg:
 				case CallingConvention.Property:
+				case CallingConvention.NativeVarArg:
 					MethodBaseSig ma = a as MethodBaseSig, mb = b as MethodBaseSig;
 					result = ma != null && mb != null && Equals(ma, mb);
 					break;
@@ -2459,7 +2563,6 @@ namespace dnlib.DotNet {
 					break;
 
 				case CallingConvention.Unmanaged:
-				case CallingConvention.NativeVarArg:
 				default:
 					result = false;
 					break;
@@ -2490,6 +2593,7 @@ namespace dnlib.DotNet {
 			case CallingConvention.FastCall:
 			case CallingConvention.VarArg:
 			case CallingConvention.Property:
+			case CallingConvention.NativeVarArg:
 				MethodBaseSig ma = a as MethodBaseSig;
 				hash = ma == null ? 0 : GetHashCode(ma);
 				break;
@@ -2510,7 +2614,6 @@ namespace dnlib.DotNet {
 				break;
 
 			case CallingConvention.Unmanaged:
-			case CallingConvention.NativeVarArg:
 			default:
 				hash = GetHashCode_CallingConvention(a);
 				break;

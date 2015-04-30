@@ -1044,6 +1044,11 @@ namespace dnlib.DotNet {
 		protected static void AddOtherSearchPaths(IList<string> paths) {
 			AddOtherAssemblySearchPaths(paths, Environment.GetEnvironmentVariable("ProgramFiles"));
 			AddOtherAssemblySearchPaths(paths, Environment.GetEnvironmentVariable("ProgramFiles(x86)"));
+			var windir = Environment.GetEnvironmentVariable("WINDIR");
+			if (!string.IsNullOrEmpty(windir)) {
+				AddIfExists(paths, windir, @"Microsoft.NET\Framework\v1.1.4322");
+				AddIfExists(paths, windir, @"Microsoft.NET\Framework\v1.0.3705");
+			}
 		}
 
 		static void AddOtherAssemblySearchPaths(IList<string> paths, string path) {

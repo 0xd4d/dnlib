@@ -1297,7 +1297,7 @@ namespace dnlib.DotNet {
 		}
 
 		TypeDef CreateModuleType() {
-			var type = UpdateRowId(new TypeDefUser(null, "<Module>", null));
+			var type = UpdateRowId(new TypeDefUser(UTF8String.Empty, "<Module>", null));
 			type.Attributes = TypeAttributes.NotPublic | TypeAttributes.AutoLayout | TypeAttributes.Class | TypeAttributes.AnsiClass;
 			return type;
 		}

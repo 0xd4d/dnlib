@@ -63,7 +63,7 @@ namespace dnlib.DotNet {
 
 			var sb = new StringBuilder();
 
-			switch ((flags & AssemblyAttributes.PA_FullMask)) {
+			switch ((flags & AssemblyAttributes.PA_Mask)) {
 			case AssemblyAttributes.PA_None: sb.Append("PA_None"); break;
 			case AssemblyAttributes.PA_MSIL: sb.Append("PA_MSIL"); break;
 			case AssemblyAttributes.PA_x86: sb.Append("PA_x86"); break;
@@ -71,9 +71,11 @@ namespace dnlib.DotNet {
 			case AssemblyAttributes.PA_AMD64: sb.Append("PA_AMD64"); break;
 			case AssemblyAttributes.PA_ARM: sb.Append("PA_ARM"); break;
 			case AssemblyAttributes.PA_NoPlatform: sb.Append("PA_NoPlatform"); break;
-			case AssemblyAttributes.PA_Specified: sb.Append("PA_Specified"); break;
 			default: sb.Append("PA_UNKNOWN"); break;
 			}
+
+			if ((flags & AssemblyAttributes.PA_Specified) != 0)
+				sb.Append(" | PA_Specified");
 
 			if ((flags & AssemblyAttributes.PublicKey) != 0)
 				sb.Append(" | PublicKey");

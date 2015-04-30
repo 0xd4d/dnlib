@@ -37,10 +37,70 @@
 		BeginCreateTables,
 
 		/// <summary>
+		/// Before allocating all TypeDef RIDs
+		/// </summary>
+		AllocateTypeDefRids,
+
+		/// <summary>
+		/// Before allocating all MemberDef RIDs
+		/// </summary>
+		AllocateMemberDefRids,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		AllocateMemberDefRids0,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		AllocateMemberDefRids1,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		AllocateMemberDefRids2,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		AllocateMemberDefRids3,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		AllocateMemberDefRids4,
+
+		/// <summary>
 		/// The <c>rid</c>s of types, fields, methods, events, properties and parameters are
 		/// now known.
 		/// </summary>
 		MemberDefRidsAllocated,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		InitializeTypeDefsAndMemberDefs0,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		InitializeTypeDefsAndMemberDefs1,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		InitializeTypeDefsAndMemberDefs2,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		InitializeTypeDefsAndMemberDefs3,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		InitializeTypeDefsAndMemberDefs4,
 
 		/// <summary>
 		/// The tables and rows of all types, fields, methods, events, properties and parameters
@@ -50,10 +110,40 @@
 		MemberDefsInitialized,
 
 		/// <summary>
+		/// Before sorting most tables
+		/// </summary>
+		BeforeSortTables,
+
+		/// <summary>
 		/// Most of the tables that should be sorted have been sorted. The <c>CustomAttribute</c>
 		/// table is still unsorted since it's not been created yet.
 		/// </summary>
 		MostTablesSorted,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteTypeDefAndMemberDefCustomAttributes0,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteTypeDefAndMemberDefCustomAttributes1,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteTypeDefAndMemberDefCustomAttributes2,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteTypeDefAndMemberDefCustomAttributes3,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteTypeDefAndMemberDefCustomAttributes4,
 
 		/// <summary>
 		/// Custom attributes of all types, fields, methods, events, properties and parameters
@@ -75,6 +165,56 @@
 		/// All method bodies are about to be written
 		/// </summary>
 		BeginWriteMethodBodies,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies0,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies1,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies2,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies3,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies4,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies5,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies6,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies7,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies8,
+
+		/// <summary>
+		/// Sent by the metadata writer so a UI can update its progress bar
+		/// </summary>
+		WriteMethodBodies9,
 
 		/// <summary>
 		/// All method bodies have been written. Their RVAs are still not known.

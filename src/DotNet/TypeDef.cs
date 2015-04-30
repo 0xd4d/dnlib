@@ -1603,10 +1603,8 @@ namespace dnlib.DotNet {
 				return;
 
 			foreach (var prop in Properties.GetSafeEnumerable()) {
-				if (prop.GetMethod == method)
-					prop.GetMethod = null;
-				if (prop.SetMethod == method)
-					prop.SetMethod = null;
+				prop.GetMethods.Remove(method);
+				prop.SetMethods.Remove(method);
 				prop.OtherMethods.Remove(method);
 			}
 
