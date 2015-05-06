@@ -426,7 +426,8 @@ namespace dnlib.DotNet {
 
 				// Assume it's an enum that couldn't be resolved
 				realArgType = argType;
-				return ReadEnumValue(null);
+				result = ReadEnumValue(null);
+				break;
 
 			case SerializationType.Type:
 				realArgType = argType;
