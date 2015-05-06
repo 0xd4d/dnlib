@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 ﻿using System.Collections.Generic;
 using dnlib.Threading;
 using dnlib.IO;
@@ -288,7 +289,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A custom attribute constructor argument
 	/// </summary>
-	public struct CAArgument {
+	public struct CAArgument : ICloneable {
 		TypeSig type;
 		object value;
 
@@ -327,6 +328,29 @@ namespace dnlib.DotNet {
 			this.value = value;
 		}
 
+		object ICloneable.Clone() {
+			return Clone();
+		}
+
+		/// <summary>
+		/// Clones this instance and any <see cref="CAArgument"/>s and <see cref="CANamedArgument"/>s
+		/// referenced from this instance.
+		/// </summary>
+		/// <returns></returns>
+		public CAArgument Clone() {
+			var value = this.value;
+			if (value is CAArgument)
+				value = ((CAArgument)value).Clone();
+			else if (value is IList<CAArgument>) {
+				var args = (IList<CAArgument>)value;
+				var newArgs = ThreadSafeListCreator.Create<CAArgument>(args.Count);
+				foreach (var arg in args.GetSafeEnumerable())
+					newArgs.Add(arg.Clone());
+				value = newArgs;
+			}
+			return new CAArgument(type, value);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			object v = value;
@@ -337,7 +361,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A custom attribute field/property argument
 	/// </summary>
-	public sealed class CANamedArgument {
+	public sealed class CANamedArgument : ICloneable {
 		bool isField;
 		TypeSig type;
 		UTF8String name;
@@ -447,6 +471,18 @@ namespace dnlib.DotNet {
 			this.type = type;
 			this.name = name;
 			this.argument = argument;
+		}
+
+		object ICloneable.Clone() {
+			return Clone();
+		}
+
+		/// <summary>
+		/// Clones this instance and any <see cref="CAArgument"/>s referenced from this instance.
+		/// </summary>
+		/// <returns></returns>
+		public CANamedArgument Clone() {
+			return new CANamedArgument(isField, type, name, argument.Clone());
 		}
 
 		/// <inheritdoc/>
