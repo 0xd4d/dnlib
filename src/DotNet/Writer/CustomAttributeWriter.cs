@@ -488,6 +488,8 @@ namespace dnlib.DotNet.Writer {
 						var ts = value.Value as TypeSig;
 						if (ts != null)
 							WriteType(ts);
+						else if (value.Value == null)
+							WriteUTF8String(null);
 						else {
 							helper.Error("Custom attribute value is not a type");
 							WriteUTF8String(UTF8String.Empty);
