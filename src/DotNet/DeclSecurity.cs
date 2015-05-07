@@ -102,6 +102,39 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>Blob data or <c>null</c></returns>
 		public abstract byte[] GetBlob();
+
+		/// <summary>
+		/// Returns the .NET 1.x XML string or null if it's not a .NET 1.x format
+		/// </summary>
+		/// <returns></returns>
+		public string GetNet1xXmlString() {
+			return GetNet1xXmlStringInternal(SecurityAttributes);
+		}
+
+		internal static string GetNet1xXmlStringInternal(IList<SecurityAttribute> secAttrs) {
+			if (secAttrs == null || secAttrs.Count != 1)
+				return null;
+			var sa = secAttrs[0];
+			if (sa == null || sa.TypeFullName != "System.Security.Permissions.PermissionSetAttribute")
+				return null;
+			if (sa.NamedArguments.Count != 1)
+				return null;
+			var na = sa.NamedArguments[0];
+			if (na == null || !na.IsProperty || na.Name != "XML")
+				return null;
+			if (na.ArgumentType.GetElementType() != ElementType.String)
+				return null;
+			var arg = na.Argument;
+			if (arg.Type.GetElementType() != ElementType.String)
+				return null;
+			var utf8 = arg.Value as UTF8String;
+			if ((object)utf8 != null)
+				return utf8;
+			var s = arg.Value as string;
+			if (s != null)
+				return s;
+			return null;
+		}
 	}
 
 	/// <summary>

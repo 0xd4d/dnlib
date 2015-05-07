@@ -32,35 +32,10 @@ namespace dnlib.DotNet.Writer {
 			if (secAttrs == null)
 				secAttrs = new SecurityAttribute[0];
 
-			var xml = GetNet1xXmlString(secAttrs);
+			var xml = DeclSecurity.GetNet1xXmlStringInternal(secAttrs);
 			if (xml != null)
 				return WriteFormat1(xml);
 			return WriteFormat2(secAttrs);
-		}
-
-		string GetNet1xXmlString(IList<SecurityAttribute> secAttrs) {
-			if (secAttrs == null || secAttrs.Count != 1)
-				return null;
-			var sa = secAttrs[0];
-			if (sa == null || sa.TypeFullName != "System.Security.Permissions.PermissionSetAttribute")
-				return null;
-			if (sa.NamedArguments.Count != 1)
-				return null;
-			var na = sa.NamedArguments[0];
-			if (na == null || !na.IsProperty || na.Name != "XML")
-				return null;
-			if (na.ArgumentType.GetElementType() != ElementType.String)
-				return null;
-			var arg = na.Argument;
-			if (arg.Type.GetElementType() != ElementType.String)
-				return null;
-			var utf8 = arg.Value as UTF8String;
-			if ((object)utf8 != null)
-				return utf8;
-			var s = arg.Value as string;
-			if (s != null)
-				return s;
-			return null;
 		}
 
 		byte[] WriteFormat1(string xml) {
