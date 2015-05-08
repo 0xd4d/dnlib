@@ -226,7 +226,7 @@ namespace dnlib.DotNet.MD {
 
 				// RTSpecialName is ignored by the CLR. It's only the name that indicates
 				// whether it's been deleted.
-				if (stringsStream.ReadNoNull(row.Name) == DeletedName)
+				if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
 					continue;	// ignore this deleted row
 				list.Add(rid);
 			}
@@ -246,7 +246,7 @@ namespace dnlib.DotNet.MD {
 
 				// RTSpecialName is ignored by the CLR. It's only the name that indicates
 				// whether it's been deleted.
-				if (stringsStream.ReadNoNull(row.TypeName) == DeletedName)
+				if (stringsStream.ReadNoNull(row.TypeName).StartsWith(DeletedName))
 					continue;	// ignore this deleted row
 				list.Add(rid);
 			}
@@ -331,7 +331,7 @@ namespace dnlib.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.Flags & (uint)FieldAttributes.RTSpecialName) != 0) {
-						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
 							continue;	// ignore this deleted row
 					}
 				}
@@ -359,7 +359,7 @@ namespace dnlib.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.Flags & (uint)MethodAttributes.RTSpecialName) != 0) {
-						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
 							continue;	// ignore this deleted row
 					}
 				}
@@ -404,7 +404,7 @@ namespace dnlib.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.EventFlags & (uint)EventAttributes.RTSpecialName) != 0) {
-						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
 							continue;	// ignore this deleted row
 					}
 				}
@@ -432,7 +432,7 @@ namespace dnlib.DotNet.MD {
 					if (row == null)
 						continue;	// Should never happen since rid is valid
 					if ((row.PropFlags & (uint)PropertyAttributes.RTSpecialName) != 0) {
-						if (stringsStream.ReadNoNull(row.Name) == DeletedName)
+						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
 							continue;	// ignore this deleted row
 					}
 				}
