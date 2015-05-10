@@ -302,11 +302,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="GenericParamAttributes.NoSpecialConstraint"/> bit
+		/// <c>true</c> if there are no special constraints
 		/// </summary>
 		public bool HasNoSpecialConstraint {
-			get { return ((GenericParamAttributes)attributes & GenericParamAttributes.NoSpecialConstraint) != 0; }
-			set { ModifyAttributes(value, GenericParamAttributes.NoSpecialConstraint); }
+			get { return ((GenericParamAttributes)attributes & GenericParamAttributes.SpecialConstraintMask) == GenericParamAttributes.NoSpecialConstraint; }
 		}
 
 		/// <summary>

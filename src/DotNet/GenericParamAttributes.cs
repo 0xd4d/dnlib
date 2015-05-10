@@ -42,13 +42,17 @@ namespace dnlib.DotNet {
 			default: sb.Append("Variance_UNKNOWN"); break;
 			}
 
-			switch ((flags & GenericParamAttributes.SpecialConstraintMask)) {
-			case GenericParamAttributes.NoSpecialConstraint: sb.Append(" | NoSpecialConstraint"); break;
-			case GenericParamAttributes.ReferenceTypeConstraint: sb.Append(" | ReferenceTypeConstraint"); break;
-			case GenericParamAttributes.NotNullableValueTypeConstraint: sb.Append(" | NotNullableValueTypeConstraint"); break;
-			case GenericParamAttributes.DefaultConstructorConstraint: sb.Append(" | DefaultConstructorConstraint"); break;
-			default: sb.Append(" | SpecialConstraint_UNKNOWN"); break;
-			}
+			if ((flags & GenericParamAttributes.SpecialConstraintMask) == 0)
+				sb.Append(" | NoSpecialConstraint");
+
+			if ((flags & GenericParamAttributes.ReferenceTypeConstraint) != 0)
+				sb.Append(" | ReferenceTypeConstraint");
+
+			if ((flags & GenericParamAttributes.NotNullableValueTypeConstraint) != 0)
+				sb.Append(" | NotNullableValueTypeConstraint");
+
+			if ((flags & GenericParamAttributes.DefaultConstructorConstraint) != 0)
+				sb.Append(" | DefaultConstructorConstraint");
 
 			return sb.ToString();
 		}
