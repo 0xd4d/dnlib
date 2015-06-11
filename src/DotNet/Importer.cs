@@ -974,13 +974,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public MemberRef Import(IField field) {
+		public IField Import(IField field) {
 			if (field == null)
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
 
-			MemberRef result, mr;
+			IField result;
+			MemberRef mr;
 			FieldDef fd;
 
 			if ((fd = field as FieldDef) != null)
@@ -1024,13 +1025,15 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Imports a <see cref="FieldDef"/> as a <see cref="MemberRef"/>
+		/// Imports a <see cref="FieldDef"/> as an <see cref="IField"/>
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public MemberRef Import(FieldDef field) {
+		public IField Import(FieldDef field) {
 			if (field == null)
 				return null;
+			if (TryToUseFieldDefs && field.Module == module)
+				return field;
 			if (!recursionCounter.Increment())
 				return null;
 
@@ -1053,13 +1056,15 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Imports a <see cref="MethodDef"/> as a <see cref="MemberRef"/>
+		/// Imports a <see cref="MethodDef"/> as an <see cref="IMethod"/>
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
-		public MemberRef Import(MethodDef method) {
+		public IMethod Import(MethodDef method) {
 			if (method == null)
 				return null;
+			if (TryToUseMethodDefs && method.Module == module)
+				return method;
 			if (!recursionCounter.Increment())
 				return null;
 
