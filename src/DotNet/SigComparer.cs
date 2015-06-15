@@ -1197,7 +1197,7 @@ namespace dnlib.DotNet {
 
 			if ((ta = a as IType) != null && (tb = b as IType) != null)
 				result = Equals(ta, tb);
-			else if ((fa = a as IField) != null && (fb = b as IField) != null)
+			else if ((fa = a as IField) != null && (fb = b as IField) != null && fa.IsField && fb.IsField)
 				result = Equals(fa, fb);
 			else if ((ma = a as IMethod) != null && (mb = b as IMethod) != null)
 				result = Equals(ma, mb);
