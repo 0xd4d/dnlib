@@ -234,6 +234,7 @@ namespace dnlib.DotNet.Emit {
 				Local local;
 				switch (instr.OpCode.Code) {
 				case Code.Ldarg:
+				case Code.Ldarg_S:
 					arg = instr.Operand as Parameter;
 					if (arg == null)
 						break;
@@ -266,9 +267,14 @@ namespace dnlib.DotNet.Emit {
 					break;
 
 				case Code.Ldc_I4:
-					if (!(instr.Operand is int))
+				case Code.Ldc_I4_S:
+					int i4;
+					if (instr.Operand is int)
+						i4 = (int)instr.Operand;
+					else if (instr.Operand is sbyte)
+						i4 = (sbyte)instr.Operand;
+					else
 						break;
-					int i4 = (int)instr.Operand;
 					switch (i4) {
 					case 0:
 						instr.OpCode = OpCodes.Ldc_I4_0;
@@ -330,6 +336,7 @@ namespace dnlib.DotNet.Emit {
 					break;
 
 				case Code.Ldloc:
+				case Code.Ldloc_S:
 					local = instr.Operand as Local;
 					if (local == null)
 						break;
@@ -370,6 +377,7 @@ namespace dnlib.DotNet.Emit {
 					break;
 
 				case Code.Stloc:
+				case Code.Stloc_S:
 					local = instr.Operand as Local;
 					if (local == null)
 						break;
