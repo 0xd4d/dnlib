@@ -266,8 +266,11 @@ namespace dnlib.DotNet {
 
 		List<CANamedArgument> ReadNamedArguments(int numNamedArgs) {
 			var namedArgs = new List<CANamedArgument>(numNamedArgs);
-			for (int i = 0; i < numNamedArgs; i++)
+			for (int i = 0; i < numNamedArgs; i++) {
+				if (reader.Position == reader.Length)
+					break;
 				namedArgs.Add(ReadNamedArgument());
+			}
 			return namedArgs;
 		}
 
@@ -426,7 +429,8 @@ namespace dnlib.DotNet {
 
 				// Assume it's an enum that couldn't be resolved
 				realArgType = argType;
-				return ReadEnumValue(null);
+				result = ReadEnumValue(null);
+				break;
 
 			case SerializationType.Type:
 				realArgType = argType;

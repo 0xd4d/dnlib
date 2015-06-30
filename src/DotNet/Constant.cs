@@ -63,7 +63,7 @@ namespace dnlib.DotNet {
 		/// <param name="value">Value</param>
 		public ConstantUser(object value) {
 			this.type = GetElementType(value);
-			this.value = value == null ? 0 : value;
+			this.value = value;
 		}
 
 		/// <summary>

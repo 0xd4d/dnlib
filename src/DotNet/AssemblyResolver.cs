@@ -1066,6 +1066,8 @@ namespace dnlib.DotNet {
 			AddIfExists(paths, path, @"Microsoft SDKs\Silverlight\v5.0\Libraries\Server");
 			AddIfExists(paths, path, @"Microsoft.NET\SDK\CompactFramework\v2.0\WindowsCE");
 			AddIfExists(paths, path, @"Microsoft.NET\SDK\CompactFramework\v3.5\WindowsCE");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0");
@@ -1086,12 +1088,21 @@ namespace dnlib.DotNet {
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\Silverlight\v3.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\Silverlight\v4.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\Silverlight\v5.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\WindowsPhone\v8.1");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\Framework\WindowsPhoneApp\v8.1");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETCore\3.259.4.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETCore\3.259.3.1");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETCore\3.78.4.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETCore\3.78.3.1");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETCore\3.7.4.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETCore\3.3.1.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETFramework\v2.0\2.3.0.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.0.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.4.0.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETPortable\2.3.5.1");
+			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\.NETPortable\3.47.4.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\2.0\Runtime\v2.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\2.0\Runtime\v4.0");
 			AddIfExists(paths, path, @"Reference Assemblies\Microsoft\FSharp\3.0\Runtime\.NETPortable");
@@ -1113,6 +1124,8 @@ namespace dnlib.DotNet {
 			AddIfExists(paths, path, @"Microsoft Visual Studio 11.0\Common7\IDE\PrivateAssemblies");
 			AddIfExists(paths, path, @"Microsoft Visual Studio 12.0\Common7\IDE\PublicAssemblies");
 			AddIfExists(paths, path, @"Microsoft Visual Studio 12.0\Common7\IDE\PrivateAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 14.0\Common7\IDE\PublicAssemblies");
+			AddIfExists(paths, path, @"Microsoft Visual Studio 14.0\Common7\IDE\PrivateAssemblies");
 			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v2.0\References\Windows\x86");
 			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v2.0\References\Xbox360");
 			AddIfExists(paths, path, @"Microsoft XNA\XNA Game Studio\v3.0\References\Windows\x86");
@@ -1131,6 +1144,7 @@ namespace dnlib.DotNet {
 			AddIfExists(paths, path, @"Microsoft SQL Server\90\SDK\Assemblies");
 			AddIfExists(paths, path, @"Microsoft SQL Server\100\SDK\Assemblies");
 			AddIfExists(paths, path, @"Microsoft SQL Server\110\SDK\Assemblies");
+			AddIfExists(paths, path, @"Microsoft SQL Server\120\SDK\Assemblies");
 			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET MVC 2\Assemblies");
 			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET MVC 3\Assemblies");
 			AddIfExists(paths, path, @"Microsoft ASP.NET\ASP.NET MVC 4\Assemblies");
