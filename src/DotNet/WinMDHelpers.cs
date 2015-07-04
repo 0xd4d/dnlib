@@ -288,7 +288,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Converts WinMD type <paramref name="td"/> to a CLR type. Returns <c>null</c>
+		/// Converts WinMD type <paramref name="tr"/> to a CLR type. Returns <c>null</c>
 		/// if it's not a CLR compatible WinMD type.
 		/// </summary>
 		/// <param name="module">Owner module or <c>null</c></param>
@@ -300,7 +300,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Converts WinMD type <paramref name="td"/> to a CLR type. Returns <c>null</c>
+		/// Converts WinMD type <paramref name="tr"/> to a CLR type. Returns <c>null</c>
 		/// if it's not a CLR compatible WinMD type.
 		/// </summary>
 		/// <param name="module">Owner module or <c>null</c></param>
@@ -326,7 +326,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Converts WinMD type <paramref name="td"/> to a CLR type. Returns <c>null</c>
+		/// Converts WinMD type <paramref name="et"/> to a CLR type. Returns <c>null</c>
 		/// if it's not a CLR compatible WinMD type.
 		/// </summary>
 		/// <param name="module">Owner module or <c>null</c></param>
@@ -348,6 +348,7 @@ namespace dnlib.DotNet {
 			return new ExportedTypeUser(module, 0, pc.ClrClass.Namespace, pc.ClrClass.Name, et.Attributes, CreateAssembly(module, pc.ContractAssembly));
 		}
 
+		/// <summary>
 		/// Converts WinMD type <paramref name="ts"/> to a CLR type. Returns <c>null</c>
 		/// if it's not a CLR compatible WinMD type.
 		/// </summary>
@@ -446,7 +447,7 @@ namespace dnlib.DotNet {
 		static readonly UTF8String IDisposableName = new UTF8String("IDisposable");
 
 		/// <summary>
-		/// Converts WinMD method <paramref name="mr"/> to a CLR member reference. Returns
+		/// Converts WinMD method <paramref name="md"/> to a CLR member reference. Returns
 		/// <c>null</c> if it's not a CLR compatible WinMD method
 		/// </summary>
 		/// <param name="module">Owner module or <c>null</c></param>
