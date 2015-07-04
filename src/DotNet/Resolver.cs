@@ -12,6 +12,17 @@ using dnlib.Threading;
 		readonly IAssemblyResolver assemblyResolver;
 
 		/// <summary>
+		/// <c>true</c> to project WinMD types to CLR types, eg. <c>Windows.UI.Xaml.Interop.TypeName</c>
+		/// gets converted to <c>System.Type</c> before trying to resolve the type. This is enabled
+		/// by default.
+		/// </summary>
+		public bool ProjectWinMDRefs {
+			get { return projectWinMDRefs; }
+			set { projectWinMDRefs = value; }
+		}
+		bool projectWinMDRefs = true;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="assemblyResolver">The assembly resolver</param>
@@ -25,6 +36,9 @@ using dnlib.Threading;
 		public TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule) {
 			if (typeRef == null)
 				return null;
+
+			if (ProjectWinMDRefs)
+				typeRef = WinMDHelpers.ToCLR(typeRef.Module ?? sourceModule, typeRef) ?? typeRef;
 
 			var nonNestedTypeRef = TypeRef.GetNonNestedTypeRef(typeRef);
 			if (nonNestedTypeRef == null)
@@ -98,6 +112,8 @@ using dnlib.Threading;
 		public IMemberForwarded Resolve(MemberRef memberRef) {
 			if (memberRef == null)
 				return null;
+			if (ProjectWinMDRefs)
+				memberRef = WinMDHelpers.ToCLR(memberRef.Module, memberRef);
 			var parent = memberRef.Class;
 			var method = parent as MethodDef;
 			if (method != null)

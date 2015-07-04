@@ -583,6 +583,11 @@ namespace dnlib.DotNet {
 		/// library is compared just like any other module/assembly.
 		/// </summary>
 		MscorlibIsNotSpecial = 0x100000,
+
+		/// <summary>
+		/// Don't project CLR compatible WinMD references back to the original CLR type/method before comparing
+		/// </summary>
+		DontProjectWinMDRefs = 0x200000,
 	}
 
 	/// <summary>
@@ -885,6 +890,19 @@ namespace dnlib.DotNet {
 					options |= SigComparerOptions.MscorlibIsNotSpecial;
 				else
 					options &= ~SigComparerOptions.MscorlibIsNotSpecial;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="SigComparerOptions.DontProjectWinMDRefs"/> bit
+		/// </summary>
+		public bool DontProjectWinMDRefs {
+			get { return (options & SigComparerOptions.DontProjectWinMDRefs) != 0; }
+			set {
+				if (value)
+					options |= SigComparerOptions.DontProjectWinMDRefs;
+				else
+					options &= ~SigComparerOptions.DontProjectWinMDRefs;
 			}
 		}
 
@@ -1407,6 +1425,16 @@ namespace dnlib.DotNet {
 			IModule bMod;
 			AssemblyRef bAsm;
 			TypeRef dtb;
+
+			if (!DontProjectWinMDRefs) {
+				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+				if (tra != null) {
+					result = Equals(tra, b);
+					goto exit;
+				}
+			}
+
 			var scope = b.ResolutionScope;
 
 			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b.Namespace))
@@ -1432,6 +1460,7 @@ namespace dnlib.DotNet {
 
 			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
+exit: ;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1464,6 +1493,15 @@ namespace dnlib.DotNet {
 			ExportedType dtb;
 			FileDef bFile;
 			AssemblyRef bAsm;
+			if (!DontProjectWinMDRefs) {
+				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+				if (tra != null) {
+					result = Equals(tra, b);
+					goto exit;
+				}
+			}
+
 			var scope = b.Implementation;
 
 			if (!Equals_TypeNames(a.Name, b.TypeName) || !Equals_TypeNamespaces(a.Namespace, b.TypeNamespace))
@@ -1487,6 +1525,7 @@ namespace dnlib.DotNet {
 
 			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
+exit: ;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1604,6 +1643,10 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
+			if (!DontProjectWinMDRefs) {
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+			}
 			bool result = Equals_TypeNames(a.Name, b.TypeName) &&
 					Equals_TypeNamespaces(a.Namespace, b.TypeNamespace) &&
 					EqualsScope(a, b);
@@ -1762,6 +1805,10 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
+			if (!DontProjectWinMDRefs) {
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+			}
 			bool result = Equals_TypeNames(a.Name, b.Name) &&
 					Equals_TypeNamespaces(a.Namespace, b.Namespace) &&
 					EqualsResolutionScope(a, b);
@@ -1784,6 +1831,9 @@ namespace dnlib.DotNet {
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
 			if (a == null)
 				return TypeRefCanReferenceGlobalType ? GetHashCodeGlobalType() : 0;
+			if (!DontProjectWinMDRefs)
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+
 			int hash;
 			hash = GetHashCode_TypeName(a.Name);
 			if (a.ResolutionScope is TypeRef)
@@ -1807,6 +1857,10 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
+			if (!DontProjectWinMDRefs) {
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+			}
 			bool result = Equals_TypeNames(a.TypeName, b.TypeName) &&
 					Equals_TypeNamespaces(a.TypeNamespace, b.TypeNamespace) &&
 					EqualsImplementation(a, b);
@@ -1829,6 +1883,8 @@ namespace dnlib.DotNet {
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
 			if (a == null)
 				return TypeRefCanReferenceGlobalType ? GetHashCodeGlobalType() : 0;
+			if (!DontProjectWinMDRefs)
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
 			int hash;
 			hash = GetHashCode_TypeName(a.TypeName);
 			if (a.Implementation is ExportedType)
@@ -1852,11 +1908,22 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = Equals_TypeNames(a.Name, b.Name) &&
+			bool result;
+
+			if (!DontProjectWinMDRefs) {
+				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				var trb = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b);
+				if (tra != null || trb != null) {
+					result = Equals((IType)tra ?? a, (IType)trb ?? b);
+					goto exit;
+				}
+			}
+			result = Equals_TypeNames(a.Name, b.Name) &&
 					Equals_TypeNamespaces(a.Namespace, b.Namespace) &&
 					Equals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.Module, b.Module));
 
+exit: ;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -1875,6 +1942,12 @@ namespace dnlib.DotNet {
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
 			if (a == null || a.IsGlobalModuleType)
 				return GetHashCodeGlobalType();
+			if (!DontProjectWinMDRefs) {
+				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				if (tra != null)
+					return GetHashCode(tra);
+			}
+
 			int hash;
 			hash = GetHashCode_TypeName(a.Name);
 			if (a.DeclaringType != null)
@@ -2199,6 +2272,11 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 			bool result;
+
+			if (!DontProjectWinMDRefs) {
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+			}
 
 			if (a.ElementType != b.ElementType) {
 				// Signatures must be identical. It's possible to have a U4 in a sig (short form
@@ -2619,6 +2697,7 @@ namespace dnlib.DotNet {
 				break;
 			}
 
+			recursionCounter.Decrement();
 			return hash;
 		}
 
@@ -2903,11 +2982,21 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = (PrivateScopeMethodIsComparable || !a.IsPrivateScope) &&
+			bool result;
+			if (!DontProjectWinMDRefs) {
+				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+				if (mra != null) {
+					result = Equals(mra, b);
+					goto exit;
+				}
+			}
+			result = (PrivateScopeMethodIsComparable || !a.IsPrivateScope) &&
 					Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.Class));
 
+exit: ;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -2926,10 +3015,20 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
+			bool result;
+			if (!DontProjectWinMDRefs) {
+				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				var mrb = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b);
+				if (mra != null || mrb != null) {
+					result = Equals((IMethod)mra ?? a, (IMethod)mrb ?? b);
+					goto exit;
+				}
+			}
+			result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
+exit: ;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -2945,6 +3044,12 @@ namespace dnlib.DotNet {
 			// ***********************************************************************
 			if (a == null)
 				return 0;
+			if (!DontProjectWinMDRefs) {
+				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				if (mra != null)
+					return GetHashCode(mra);
+			}
+
 			if (!recursionCounter.Increment())
 				return 0;
 
@@ -2971,6 +3076,10 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
+			if (!DontProjectWinMDRefs) {
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
+			}
 			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					Equals(a.Signature, b.Signature) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.Class, b.Class));
@@ -2992,6 +3101,9 @@ namespace dnlib.DotNet {
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
+
+			if (!DontProjectWinMDRefs)
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
 
 			int hash = GetHashCode_MethodFieldName(a.Name);
 			GenericInstSig git;
@@ -3453,12 +3565,22 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = !b.HasElementType &&
+			bool result;
+
+			if (!DontProjectWinMDRefs) {
+				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				if (tra != null) {
+					result = Equals(tra, b);
+					goto exit;
+				}
+			}
+			result = !b.HasElementType &&
 					Equals_TypeNames(a.Name, b.Name) &&
 					Equals_TypeNamespaces(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.Module, b.Module));
 
+exit: ;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -3502,6 +3624,9 @@ namespace dnlib.DotNet {
 			TypeRef dta;
 			IModule aMod;
 			AssemblyRef aAsm;
+			if (!DontProjectWinMDRefs)
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+
 			var scope = a.ResolutionScope;
 
 			if (!b.IsTypeDef())
@@ -3786,6 +3911,9 @@ namespace dnlib.DotNet {
 			ExportedType dta;
 			FileDef aFile;
 			AssemblyRef aAsm;
+			if (!DontProjectWinMDRefs)
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
+
 			var scope = a.Implementation;
 
 			if (!b.IsTypeDef())
@@ -4235,14 +4363,24 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return false;
 
+			bool result;
+			if (!DontProjectWinMDRefs) {
+				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
+				if (mra != null) {
+					result = Equals(mra, b);
+					goto exit;
+				}
+			}
+
 			var amSig = a.MethodSig;
-			bool result = Equals_MethodFieldNames(a.Name, b.Name) &&
+			result = Equals_MethodFieldNames(a.Name, b.Name) &&
 					amSig != null &&
 					((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 					(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
 					Equals(amSig, b) &&
 					(!CompareMethodFieldDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
+exit: ;
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -4305,6 +4443,8 @@ namespace dnlib.DotNet {
 				return false;
 			bool result;
 
+			if (!DontProjectWinMDRefs)
+				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
 			if (b.IsGenericMethod && !b.IsGenericMethodDefinition) {
 				// 'a' must be a method ref in a generic type. This comparison must match
 				// the MethodSpec vs MethodBase comparison code.

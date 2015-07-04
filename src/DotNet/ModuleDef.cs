@@ -541,7 +541,125 @@ namespace dnlib.DotNet {
 		/// Gets/sets the runtime version which is stored in the MetaData header.
 		/// See <see cref="MDHeaderRuntimeVersion"/>.
 		/// </summary>
-		public string RuntimeVersion { get; set; }
+		/// <remarks>Not thread safe</remarks>
+		public string RuntimeVersion {
+			get { return runtimeVersion; }
+			set {
+				if (runtimeVersion != value) {
+					runtimeVersion = value;
+					cachedWinMDStatus = null;
+					runtimeVersionWinMD = null;
+					winMDVersion = null;
+				}
+			}
+		}
+		string runtimeVersion;
+
+		/// <summary>
+		/// Gets the WinMD status
+		/// </summary>
+		/// <remarks>Not thread safe</remarks>
+		public WinMDStatus WinMDStatus {
+			get {
+				var cval = cachedWinMDStatus;
+				if (cval != null)
+					return cval.Value;
+				cachedWinMDStatus = cval = CalculateWinMDStatus(RuntimeVersion);
+				return cval.Value;
+			}
+		}
+		WinMDStatus? cachedWinMDStatus;
+
+		/// <summary>
+		/// <c>true</c> if this is a WinMD file
+		/// </summary>
+		public bool IsWinMD {
+			get { return WinMDStatus != WinMDStatus.None; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is a managed WinMD file
+		/// </summary>
+		public bool IsManagedWinMD {
+			get { return WinMDStatus == WinMDStatus.Managed; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if this is a pure (non-managed) WinMD file
+		/// </summary>
+		public bool IsPureWinMD {
+			get { return WinMDStatus == WinMDStatus.Pure; }
+		}
+
+		/// <summary>
+		/// Gets the CLR runtime version of the managed WinMD file or <c>null</c> if none. This is
+		/// similar to <see cref="RuntimeVersion"/> for normal non-WinMD files.
+		/// </summary>
+		/// <remarks>Not thread safe</remarks>
+		public string RuntimeVersionWinMD {
+			get {
+				var rtver = runtimeVersionWinMD;
+				if (rtver != null)
+					return rtver;
+				runtimeVersionWinMD = rtver = CalculateRuntimeVersionWinMD(RuntimeVersion);
+				return rtver;
+			}
+		}
+		string runtimeVersionWinMD;
+
+		/// <summary>
+		/// Gets the WinMD version or <c>null</c> if none
+		/// </summary>
+		/// <remarks>Not thread safe</remarks>
+		public string WinMDVersion {
+			get {
+				var ver = winMDVersion;
+				if (ver != null)
+					return ver;
+				winMDVersion = ver = CalculateWinMDVersion(RuntimeVersion);
+				return ver;
+			}
+		}
+		string winMDVersion;
+
+		static WinMDStatus CalculateWinMDStatus(string version) {
+			if (version == null)
+				return WinMDStatus.None;
+			if (!version.StartsWith("WindowsRuntime ", StringComparison.Ordinal))
+				return WinMDStatus.None;
+
+			return version.IndexOf(';') < 0 ? WinMDStatus.Pure : WinMDStatus.Managed;
+		}
+
+		static string CalculateRuntimeVersionWinMD(string version) {
+			// Original parser code:
+			// CoreCLR file: src/md/winmd/adapter.cpp
+			// Func: WinMDAdapter::Create(IMDCommon *pRawMDCommon, /*[out]*/ WinMDAdapter **ppAdapter)
+			if (version == null)
+				return null;
+			if (!version.StartsWith("WindowsRuntime ", StringComparison.Ordinal))
+				return null;
+			int index = version.IndexOf(';');
+			if (index < 0)
+				return null;
+			var s = version.Substring(index + 1);
+			if (s.StartsWith("CLR", StringComparison.OrdinalIgnoreCase))
+				s = s.Substring(3);
+			s = s.TrimStart(' ');
+
+			return s;
+		}
+
+		static string CalculateWinMDVersion(string version) {
+			if (version == null)
+				return null;
+			if (!version.StartsWith("WindowsRuntime ", StringComparison.Ordinal))
+				return null;
+			int index = version.IndexOf(';');
+			if (index < 0)
+				return version;
+			return version.Substring(0, index);
+		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="RuntimeVersion"/> is the CLR v1.0 string (only the major

@@ -21,7 +21,8 @@ namespace dnlib.DotNet {
 		static readonly ModuleDef nullModule = new ModuleDefUser();
 
 		// DLL files are searched before EXE files
-		static readonly string[] assemblyExtensions = new string[] { ".dll", ".exe", ".winmd" };
+		static readonly string[] assemblyExtensions = new string[] { ".dll", ".exe" };
+		static readonly string[] winMDAssemblyExtensions = new string[] { ".winmd" };
 
 		static readonly List<GacInfo> gacInfos;
 		static readonly List<string> extraMonoPaths;
@@ -461,7 +462,8 @@ namespace dnlib.DotNet {
 		IEnumerable<string> FindAssemblies2(IAssembly assembly, IEnumerable<string> paths) {
 			if (paths != null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
-				foreach (var ext in assemblyExtensions) {
+				var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
+				foreach (var ext in exts) {
 					foreach (var path in paths.GetSafeEnumerable()) {
 						var fullPath = Path.Combine(path, asmSimpleName + ext);
 						if (File.Exists(fullPath))
@@ -613,7 +615,8 @@ namespace dnlib.DotNet {
 		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 			var searchPaths = GetSearchPaths(sourceModule);
-			foreach (var ext in assemblyExtensions) {
+			var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
+			foreach (var ext in exts) {
 				foreach (var path in searchPaths.GetSafeEnumerable()) {
 					for (int i = 0; i < 2; i++) {
 						string path2;
