@@ -733,8 +733,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="paths">A list that gets updated with the new paths</param>
 		protected static void AddOtherSearchPaths(IList<string> paths) {
-			AddOtherAssemblySearchPaths(paths, Environment.GetEnvironmentVariable("ProgramFiles"));
-			AddOtherAssemblySearchPaths(paths, Environment.GetEnvironmentVariable("ProgramFiles(x86)"));
+			var dirPF = Environment.GetEnvironmentVariable("ProgramFiles");
+			AddOtherAssemblySearchPaths(paths, dirPF);
+			var dirPFx86 = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
+			if (!StringComparer.OrdinalIgnoreCase.Equals(dirPF, dirPFx86))
+				AddOtherAssemblySearchPaths(paths, dirPFx86);
+
 			var windir = Environment.GetEnvironmentVariable("WINDIR");
 			if (!string.IsNullOrEmpty(windir)) {
 				AddIfExists(paths, windir, @"Microsoft.NET\Framework\v1.1.4322");
