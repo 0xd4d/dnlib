@@ -113,7 +113,7 @@ using dnlib.Threading;
 			if (memberRef == null)
 				return null;
 			if (ProjectWinMDRefs)
-				memberRef = WinMDHelpers.ToCLR(memberRef.Module, memberRef);
+				memberRef = WinMDHelpers.ToCLR(memberRef.Module, memberRef) ?? memberRef;
 			var parent = memberRef.Class;
 			var method = parent as MethodDef;
 			if (method != null)
