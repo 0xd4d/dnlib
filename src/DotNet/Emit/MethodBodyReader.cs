@@ -45,6 +45,7 @@ namespace dnlib.DotNet.Emit {
 	public sealed class MethodBodyReader : MethodBodyReaderBase {
 		readonly IInstructionOperandResolver opResolver;
 		bool hasReadHeader;
+		byte headerSize;
 		ushort flags;
 		ushort maxStack;
 		uint codeSize;
@@ -319,12 +320,13 @@ namespace dnlib.DotNet.Emit {
 				maxStack = 8;
 				codeSize = (uint)(b >> 2);
 				localVarSigTok = 0;
+				headerSize = 1;
 				break;
 
 			case 3:
 				// Fat header. Can have locals and exception handlers
 				flags = (ushort)((reader.ReadByte() << 8) | b);
-				uint headerSize = (uint)flags >> 12;
+				headerSize = (byte)(flags >> 12);
 				maxStack = reader.ReadUInt16();
 				codeSize = reader.ReadUInt32();
 				localVarSigTok = reader.ReadUInt32();
@@ -334,6 +336,7 @@ namespace dnlib.DotNet.Emit {
 				reader.Position += -12 + headerSize * 4;
 				if (headerSize < 3)
 					flags &= 0xFFF7;
+				headerSize *= 4;
 				break;
 
 			default:
@@ -482,6 +485,7 @@ namespace dnlib.DotNet.Emit {
 			// Set init locals if it's a tiny method or if the init locals bit is set (fat header)
 			bool initLocals = flags == 2 || (flags & 0x10) != 0;
 			var cilBody = new CilBody(initLocals, instructions, exceptionHandlers, locals);
+			cilBody.HeaderSize = headerSize;
 			cilBody.MaxStack = maxStack;
 			cilBody.LocalVarSigTok = localVarSigTok;
 			instructions = null;

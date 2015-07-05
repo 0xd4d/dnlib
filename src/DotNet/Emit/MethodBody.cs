@@ -53,12 +53,18 @@ namespace dnlib.DotNet.Emit {
 	public sealed class CilBody : MethodBody {
 		bool keepOldMaxStack;
 		bool initLocals;
+		byte headerSize;
 		ushort maxStack;
 		uint localVarSigTok;
 		readonly ThreadSafe.IList<Instruction> instructions;
 		readonly ThreadSafe.IList<ExceptionHandler> exceptionHandlers;
 		readonly LocalList localList;
 		PdbScope pdbScope;
+
+		/// <summary>
+		/// Size of a small header
+		/// </summary>
+		public const byte SMALL_HEADER_SIZE = 1;
 
 		/// <summary>
 		/// Gets/sets a flag indicating whether the original max stack value should be used.
@@ -74,6 +80,29 @@ namespace dnlib.DotNet.Emit {
 		public bool InitLocals {
 			get { return initLocals; }
 			set { initLocals = value; }
+		}
+
+		/// <summary>
+		/// Gets/sets the size in bytes of the method body header. The instructions immediately follow
+		/// the header.
+		/// </summary>
+		public byte HeaderSize {
+			get { return headerSize; }
+			set { headerSize = value; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it was a small body header (<see cref="HeaderSize"/> is <c>1</c>)
+		/// </summary>
+		public bool IsSmallHeader {
+			get { return headerSize == SMALL_HEADER_SIZE; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if it was a big body header
+		/// </summary>
+		public bool IsBigHeader {
+			get { return headerSize != SMALL_HEADER_SIZE; }
 		}
 
 		/// <summary>
