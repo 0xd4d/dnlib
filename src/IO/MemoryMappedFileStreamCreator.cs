@@ -30,6 +30,13 @@ namespace dnlib.IO {
 			Unix,
 		}
 
+		[Serializable]
+		sealed class MemoryMappedIONotSupportedException : IOException {
+			public MemoryMappedIONotSupportedException(string s)
+				: base(s) {
+			}
+		}
+
 		static class Windows {
 			const uint GENERIC_READ = 0x80000000;
 			const uint FILE_SHARE_READ = 0x00000001;
@@ -72,10 +79,10 @@ namespace dnlib.IO {
 
 					using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY | (mapAsImage ? SEC_IMAGE : 0), 0, 0, null)) {
 						if (fileMapping.IsInvalid)
-							throw new IOException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", creator.theFileName, Marshal.GetLastWin32Error()));
 						creator.data = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
 						if (creator.data == IntPtr.Zero)
-							throw new IOException(string.Format("Could not map file {0}. Error: {1:X8}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1:X8}", creator.theFileName, Marshal.GetLastWin32Error()));
 						creator.dataLength = fileSize;
 						creator.osType = OSType.Windows;
 					}
@@ -118,11 +125,11 @@ namespace dnlib.IO {
 
 					var size = lseek(fd, new off_t(0), SEEK_END);
 					if (size == new off_t(-1))
-						throw new IOException(string.Format("Could not get length of {0} (lseek failed): {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+						throw new MemoryMappedIONotSupportedException(string.Format("Could not get length of {0} (lseek failed): {1}", creator.theFileName, Marshal.GetLastWin32Error()));
 
 					var data = mmap(IntPtr.Zero, size, PROT_READ, MAP_PRIVATE, fd, IntPtr.Zero);
-					if (data == new IntPtr(-1))
-						throw new IOException(string.Format("Could not map file {0}. Error: {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+					if (data == new IntPtr(-1) || data == IntPtr.Zero)
+						throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1}", creator.theFileName, Marshal.GetLastWin32Error()));
 					creator.data = data;
 					creator.dataLength = size.ToInt64();
 					creator.origDataLength = creator.dataLength;
@@ -196,6 +203,10 @@ namespace dnlib.IO {
 					throw new ArgumentException("mapAsImage == true is not supported on this OS");
 				}
 				return creator;
+			}
+			catch (MemoryMappedIONotSupportedException ex) {
+				Debug.WriteLine(string.Format("mmap'd IO didn't work: {0}", ex.Message));
+				//TODO: The lseek() and mmap() fails on MacOS.
 			}
 			catch (EntryPointNotFoundException) {
 			}

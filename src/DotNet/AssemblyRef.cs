@@ -459,7 +459,7 @@ namespace dnlib.DotNet {
 			this.publicKeyOrToken = assembly.PublicKeyOrToken;
 			this.name = UTF8String.IsNullOrEmpty(assembly.Name) ? UTF8String.Empty : assembly.Name;
 			this.culture = assembly.Culture;
-			this.attributes = (int)(publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None);
+			this.attributes = (int)((publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None) | assembly.ContentType);
 		}
 	}
 

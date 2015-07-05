@@ -767,7 +767,7 @@ namespace dnlib.DotNet {
 			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
-			return module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture));
+			return module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture) { Attributes = defAsm.Attributes });
 		}
 
 		/// <summary>
@@ -1082,13 +1082,15 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Imports a <see cref="FieldDef"/> as a <see cref="MemberRef"/>
+		/// Imports a <see cref="FieldDef"/> as an <see cref="IField"/>
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
 		public IField Import(FieldDef field) {
 			if (field == null)
 				return null;
+			if (TryToUseFieldDefs && field.Module == module)
+				return field;
 			if (!recursionCounter.Increment())
 				return null;
 
@@ -1117,13 +1119,15 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Imports a <see cref="MethodDef"/> as a <see cref="MemberRef"/>
+		/// Imports a <see cref="MethodDef"/> as an <see cref="IMethod"/>
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
 		public IMethod Import(MethodDef method) {
 			if (method == null)
 				return null;
+			if (TryToUseMethodDefs && method.Module == module)
+				return method;
 			if (!recursionCounter.Increment())
 				return null;
 
