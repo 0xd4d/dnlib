@@ -237,6 +237,13 @@ namespace dnlib.IO {
 		}
 
 		/// <summary>
+		/// <c>true</c> if memory mapped I/O is enabled
+		/// </summary>
+		public bool IsMemoryMappedIO {
+			get { return dataAry == null; }
+		}
+
+		/// <summary>
 		/// Call this to disable memory mapped I/O. This must only be called if no other code is
 		/// trying to access the memory since that could lead to an exception.
 		/// </summary>
