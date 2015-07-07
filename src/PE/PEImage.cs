@@ -343,5 +343,13 @@ namespace dnlib.PE {
 			if (creator != null)
 				creator.UnsafeDisableMemoryMappedIO();
 		}
+
+		/// <inheritdoc/>
+		public bool IsMemoryMappedIO {
+			get {
+				var creator = imageStreamCreator as MemoryMappedFileStreamCreator;
+				return creator == null ? false : creator.IsMemoryMappedIO;
+			}
+		}
 	}
 }

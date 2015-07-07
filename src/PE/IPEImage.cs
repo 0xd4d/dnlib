@@ -98,6 +98,11 @@ namespace dnlib.PE {
 		/// exception.
 		/// </summary>
 		void UnsafeDisableMemoryMappedIO();
+
+		/// <summary>
+		/// <c>true</c> if memory mapped I/O is enabled
+		/// </summary>
+		bool IsMemoryMappedIO { get; }
 	}
 
 	public static partial class PEExtensions {
