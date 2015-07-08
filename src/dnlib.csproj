@@ -215,6 +215,16 @@
     <Compile Include="DotNet\Resolver.cs" />
     <Compile Include="DotNet\Resource.cs" />
     <Compile Include="DotNet\ResourceCollection.cs" />
+    <Compile Include="DotNet\Resources\BuiltInResourceData.cs" />
+    <Compile Include="DotNet\Resources\IResourceData.cs" />
+    <Compile Include="DotNet\Resources\ResourceDataCreator.cs" />
+    <Compile Include="DotNet\Resources\ResourceElement.cs" />
+    <Compile Include="DotNet\Resources\ResourceElementSet.cs" />
+    <Compile Include="DotNet\Resources\ResourceReader.cs" />
+    <Compile Include="DotNet\Resources\ResourceTypeCode.cs" />
+    <Compile Include="DotNet\Resources\ResourceWriter.cs" />
+    <Compile Include="DotNet\Resources\UserResourceData.cs" />
+    <Compile Include="DotNet\Resources\UserResourceType.cs" />
     <Compile Include="DotNet\SecurityAction.cs" />
     <Compile Include="DotNet\SecurityAttribute.cs" />
     <Compile Include="DotNet\SerializationType.cs" />
