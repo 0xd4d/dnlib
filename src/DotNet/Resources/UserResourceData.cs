@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Runtime.Serialization;
+using dnlib.IO;
 
 namespace dnlib.DotNet.Resources {
 	/// <summary>
@@ -24,6 +25,12 @@ namespace dnlib.DotNet.Resources {
 			get { return type.Code; }
 		}
 
+		/// <inheritdoc/>
+		public FileOffset StartOffset { get; set; }
+
+		/// <inheritdoc/>
+		public FileOffset EndOffset { get; set; }
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -41,6 +48,13 @@ namespace dnlib.DotNet.Resources {
 	/// </summary>
 	public sealed class BinaryResourceData : UserResourceData {
 		byte[] data;
+
+		/// <summary>
+		/// Gets the raw data
+		/// </summary>
+		public byte[] Data {
+			get { return data; }
+		}
 
 		/// <summary>
 		/// Constructor

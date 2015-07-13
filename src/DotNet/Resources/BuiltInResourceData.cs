@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization;
+using dnlib.IO;
 
 namespace dnlib.DotNet.Resources {
 	/// <summary>
@@ -24,6 +25,12 @@ namespace dnlib.DotNet.Resources {
 			get { return code; }
 		}
 
+		/// <inheritdoc/>
+		public FileOffset StartOffset { get; set; }
+
+		/// <inheritdoc/>
+		public FileOffset EndOffset { get; set; }
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -38,7 +45,7 @@ namespace dnlib.DotNet.Resources {
 		public void WriteData(BinaryWriter writer, IFormatter formatter) {
 			switch (code) {
 			case ResourceTypeCode.Null:
-				return;
+				break;
 
 			case ResourceTypeCode.String:
 				writer.Write((string)data);

@@ -214,12 +214,22 @@ namespace dnlib.DotNet.Resources {
 		/// Creates serialized data
 		/// </summary>
 		/// <param name="value">Serialized data</param>
+		/// <param name="type">Type of serialized data</param>
+		/// <returns></returns>
+		public BinaryResourceData CreateSerialized(byte[] value, UserResourceType type) {
+			return new BinaryResourceData(CreateUserResourceType(type.Name, true), value);
+		}
+
+		/// <summary>
+		/// Creates serialized data
+		/// </summary>
+		/// <param name="value">Serialized data</param>
 		/// <returns></returns>
 		public BinaryResourceData CreateSerialized(byte[] value) {
 			string assemblyName, typeName;
 			if (!GetSerializedTypeAndAssemblyName(value, out assemblyName, out typeName))
 				throw new ApplicationException("Could not get serialized type name");
-			string fullName = string.Format("{0},{1}", typeName, assemblyName);
+			string fullName = string.Format("{0}, {1}", typeName, assemblyName);
 			return new BinaryResourceData(CreateUserResourceType(fullName), value);
 		}
 
@@ -262,52 +272,55 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="fullName">Full name of type</param>
 		/// <returns></returns>
 		public UserResourceType CreateUserResourceType(string fullName) {
+			return CreateUserResourceType(fullName, false);
+		}
+
+		/// <summary>
+		/// Creates a user type. If the type already exists, the existing value is returned.
+		/// </summary>
+		/// <param name="fullName">Full name of type</param>
+		/// <param name="useFullName">Use <paramref name="fullName"/> without converting it to a
+		/// type in an existing assembly reference</param>
+		/// <returns></returns>
+		UserResourceType CreateUserResourceType(string fullName, bool useFullName) {
 			UserResourceType type;
 			if (dict.TryGetValue(fullName, out type))
 				return type;
 
-			var newFullName = GetRealTypeFullName(fullName);
+			var newFullName = useFullName ? fullName : GetRealTypeFullName(fullName);
 			type = new UserResourceType(newFullName, ResourceTypeCode.UserTypes + dict.Count);
 			dict[fullName] = type;
 			dict[newFullName] = type;
 			return type;
 		}
 
-		static void SplitTypeFullName(string fullName, out string typeName, out string assemblyName) {
-			int index = fullName.IndexOf(',');
-			if (index < 0) {
-				typeName = fullName;
-				assemblyName = null;
-			}
-			else {
-				typeName = fullName.Substring(0, index);
-				assemblyName = fullName.Substring(index + 1).Trim();
-			}
-		}
-
 		string GetRealTypeFullName(string fullName) {
+			var tr = TypeNameParser.ParseReflection(module, fullName, null);
+			if (tr == null)
+				return fullName;
+			var asmRef = tr.DefinitionAssembly;
+			if (asmRef == null)
+				return fullName;
+
 			var newFullName = fullName;
 
-			string typeName, assemblyName;
-			SplitTypeFullName(fullName, out typeName, out assemblyName);
+			string assemblyName = GetRealAssemblyName(asmRef);
 			if (!string.IsNullOrEmpty(assemblyName))
-				assemblyName = GetRealAssemblyName(assemblyName);
-			if (!string.IsNullOrEmpty(assemblyName))
-				newFullName = string.Format("{0}, {1}", typeName, assemblyName);
+				newFullName = string.Format("{0}, {1}", tr.ReflectionFullName, assemblyName);
 
 			return newFullName;
 		}
 
-		string GetRealAssemblyName(string assemblyName) {
+		string GetRealAssemblyName(IAssembly asm) {
+			string assemblyName = asm.FullName;
 			string newAsmName;
 			if (!asmNameToAsmFullName.TryGetValue(assemblyName, out newAsmName))
-				asmNameToAsmFullName[assemblyName] = newAsmName = TryGetRealAssemblyName(assemblyName);
+				asmNameToAsmFullName[assemblyName] = newAsmName = TryGetRealAssemblyName(asm);
 			return newAsmName;
 		}
 
-		string TryGetRealAssemblyName(string assemblyName) {
-			var simpleName = GetAssemblySimpleName(assemblyName);
-
+		string TryGetRealAssemblyName(IAssembly asm) {
+			var simpleName = asm.Name;
 			if (simpleName == module.CorLibTypes.AssemblyRef.Name)
 				return module.CorLibTypes.AssemblyRef.FullName;
 
@@ -329,13 +342,6 @@ namespace dnlib.DotNet.Resources {
 		/// <returns></returns>
 		protected virtual string GetAssemblyFullName(string simpleName) {
 			return null;
-		}
-
-		static string GetAssemblySimpleName(string name) {
-			int i = name.IndexOf(',');
-			if (i < 0)
-				return name;
-			return name.Substring(0, i);
 		}
 
 		/// <summary>

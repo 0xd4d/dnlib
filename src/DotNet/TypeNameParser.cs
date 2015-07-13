@@ -183,7 +183,7 @@ namespace dnlib.DotNet {
 		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
-		/// <param name="gpContext">Generic parameter context</param>/// 
+		/// <param name="gpContext">Generic parameter context</param>
 		protected TypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper, GenericParamContext gpContext) {
 			this.ownerModule = ownerModule;
 			this.reader = new StringReader(typeFullName ?? string.Empty);
