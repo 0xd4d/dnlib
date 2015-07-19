@@ -146,6 +146,7 @@
     <Compile Include="DotNet\ManifestResourceAttributes.cs" />
     <Compile Include="DotNet\MarshalBlobReader.cs" />
     <Compile Include="DotNet\MarshalType.cs" />
+    <Compile Include="DotNet\MemberFinder.cs" />
     <Compile Include="DotNet\MemberMDInitializer.cs" />
     <Compile Include="DotNet\MemberRef.cs" />
     <Compile Include="DotNet\MethodAttributes.cs" />
