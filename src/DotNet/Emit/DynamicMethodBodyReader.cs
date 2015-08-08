@@ -223,6 +223,7 @@ namespace dnlib.DotNet.Emit {
 			else
 				method.Signature = MethodSig.CreateInstance(retType, pms.ToArray());
 
+			method.Parameters.UpdateParameterTypes();
 			method.ImplAttributes = MethodImplAttributes.IL;
 			method.Attributes = MethodAttributes.PrivateScope;
 			if (isStatic)
