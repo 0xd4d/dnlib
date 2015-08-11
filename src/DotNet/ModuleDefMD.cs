@@ -305,6 +305,35 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance
+		/// </summary>
+		/// <param name="peImage">PE image</param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(IPEImage peImage) {
+			return Load(MetaDataCreator.Load(peImage), (ModuleCreationOptions)null);
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance
+		/// </summary>
+		/// <param name="peImage">PE image</param>
+		/// <param name="context">Module context or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(IPEImage peImage, ModuleContext context) {
+			return Load(MetaDataCreator.Load(peImage), new ModuleCreationOptions(context));
+		}
+
+		/// <summary>
+		/// Creates a <see cref="ModuleDefMD"/> instance
+		/// </summary>
+		/// <param name="peImage">PE image</param>
+		/// <param name="options">Module creation options or <c>null</c></param>
+		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		public static ModuleDefMD Load(IPEImage peImage, ModuleCreationOptions options) {
+			return Load(MetaDataCreator.Load(peImage), options);
+		}
+
+		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
 		/// </summary>
 		/// <param name="addr">Address of a .NET module/assembly</param>
