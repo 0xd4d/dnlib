@@ -17,7 +17,7 @@ namespace dnlib.DotNet.MD {
 		readonly uint reserved1;
 		readonly uint stringLength;
 		readonly string versionString;
-		readonly uint offset2ndPart;
+		readonly FileOffset offset2ndPart;
 		readonly StorageFlags flags;
 		readonly byte reserved2;
 		readonly ushort streams;
@@ -66,6 +66,13 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
+		/// Returns the offset of <c>STORAGEHEADER</c>
+		/// </summary>
+		public FileOffset StorageHeaderOffset {
+			get { return offset2ndPart; }
+		}
+
+		/// <summary>
 		/// Returns the flags (reserved)
 		/// </summary>
 		public StorageFlags Flags {
@@ -111,7 +118,7 @@ namespace dnlib.DotNet.MD {
 			this.reserved1 = reader.ReadUInt32();
 			this.stringLength = reader.ReadUInt32();
 			this.versionString = ReadString(reader, stringLength);
-			this.offset2ndPart = (uint)(reader.Position - startOffset);
+			this.offset2ndPart = reader.FileOffset + reader.Position;
 			this.flags = (StorageFlags)reader.ReadByte();
 			this.reserved2 = reader.ReadByte();
 			this.streams = reader.ReadUInt16();
