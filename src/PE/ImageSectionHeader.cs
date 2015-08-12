@@ -1,8 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using dnlib.IO;
 

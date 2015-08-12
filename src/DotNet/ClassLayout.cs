@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using dnlib.Utils;
+using System;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet {

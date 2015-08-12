@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.IO;
@@ -11,20 +11,12 @@ using System.Threading;
 using dnlib.PE;
 using dnlib.Utils;
 using dnlib.IO;
-using dnlib.DotNet;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb;
-using dnlib.Threading;
 using dnlib.W32Resources;
 
 using DNW = dnlib.DotNet.Writer;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet {
 	/// <summary>

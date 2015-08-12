@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using dnlib.Threading;
+using System;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;

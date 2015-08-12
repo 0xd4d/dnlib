@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using dnlib.DotNet;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Resources {

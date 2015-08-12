@@ -5,7 +5,6 @@ using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Dss {

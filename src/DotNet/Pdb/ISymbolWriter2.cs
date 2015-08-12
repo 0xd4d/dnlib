@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics.SymbolStore;
-using System.Runtime.InteropServices.ComTypes;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb {

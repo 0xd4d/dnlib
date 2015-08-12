@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using SR = System.Reflection;
 using System.Reflection.Emit;
 using System.IO;
-using dnlib.DotNet;
-using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.IO;
 

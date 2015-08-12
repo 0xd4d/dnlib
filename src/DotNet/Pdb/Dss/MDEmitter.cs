@@ -2,11 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using dnlib.DotNet.Writer;
-
-using MD = dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	/// <summary>
