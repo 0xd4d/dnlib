@@ -54,5 +54,19 @@ namespace dnlib.DotNet.MD {
 			this.name = name;
 			this.columns = columns;
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="table">Table type</param>
+		/// <param name="name">Table name</param>
+		/// <param name="columns">All columns</param>
+		/// <param name="rowSize">Row size</param>
+		public TableInfo(Table table, string name, IList<ColumnInfo> columns, int rowSize) {
+			this.table = table;
+			this.name = name;
+			this.columns = columns;
+			this.rowSize = rowSize;
+		}
 	}
 }
