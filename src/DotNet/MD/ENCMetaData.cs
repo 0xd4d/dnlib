@@ -20,6 +20,11 @@ namespace dnlib.DotNet.MD {
 #endif
 
 		/// <inheritdoc/>
+		public override bool IsCompressed {
+			get { return false; }
+		}
+
+		/// <inheritdoc/>
 		public ENCMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
 			: base(peImage, cor20Header, mdHeader) {
 		}

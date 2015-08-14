@@ -13,6 +13,11 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	sealed class CompressedMetaData : MetaData {
 		/// <inheritdoc/>
+		public override bool IsCompressed {
+			get { return true; }
+		}
+
+		/// <inheritdoc/>
 		public CompressedMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
 			: base(peImage, cor20Header, mdHeader) {
 		}

@@ -15,6 +15,13 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	public interface IMetaData : IDisposable {
 		/// <summary>
+		/// <c>true</c> if the compressed (normal) metadata is used, <c>false</c> if the non-compressed
+		/// (Edit N' Continue) metadata is used. This can be <c>false</c> even if the table stream
+		/// is <c>#~</c> but that's very uncommon.
+		/// </summary>
+		bool IsCompressed { get; }
+
+		/// <summary>
 		/// Gets the .NET header
 		/// </summary>
 		ImageCor20Header ImageCor20Header { get; }
