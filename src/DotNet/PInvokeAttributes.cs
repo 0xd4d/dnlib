@@ -1,14 +1,12 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// P/Invoke attributes, see CorHdr.h/CorPinvokeMap
 	/// </summary>
-	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
+	[Flags]
 	public enum PInvokeAttributes : ushort {
 		/// <summary>Pinvoke is to use the member name as specified.</summary>
 		NoMangle			= 0x0001,
@@ -59,49 +57,5 @@ namespace dnlib.DotNet {
 		CallConvThiscall	= 0x0400,
 		/// <summary/>
 		CallConvFastcall	= 0x0500,
-	}
-
-	public static partial class Extensions {
-		internal static string ToString(PInvokeAttributes flags) {
-			var sb = new StringBuilder();
-
-			switch ((flags & PInvokeAttributes.CharSetMask)) {
-			case PInvokeAttributes.CharSetNotSpec: sb.Append("CharSetNotSpec"); break;
-			case PInvokeAttributes.CharSetAnsi: sb.Append("CharSetAnsi"); break;
-			case PInvokeAttributes.CharSetUnicode: sb.Append("CharSetUnicode"); break;
-			case PInvokeAttributes.CharSetAuto: sb.Append("CharSetAuto"); break;
-			}
-
-			if ((flags & PInvokeAttributes.NoMangle) != 0)
-				sb.Append(" | NoMangle");
-
-			switch ((flags & PInvokeAttributes.BestFitMask)) {
-			case PInvokeAttributes.BestFitUseAssem: sb.Append(" | BestFitUseAssem"); break;
-			case PInvokeAttributes.BestFitEnabled: sb.Append(" | BestFitEnabled"); break;
-			case PInvokeAttributes.BestFitDisabled: sb.Append(" | BestFitDisabled"); break;
-			default: sb.Append(" | BestFit_UNKNOWN"); break;
-			}
-
-			switch ((flags & PInvokeAttributes.ThrowOnUnmappableCharMask)) {
-			case PInvokeAttributes.ThrowOnUnmappableCharUseAssem: sb.Append(" | ThrowOnUnmappableCharUseAssem"); break;
-			case PInvokeAttributes.ThrowOnUnmappableCharEnabled: sb.Append(" | ThrowOnUnmappableCharEnabled"); break;
-			case PInvokeAttributes.ThrowOnUnmappableCharDisabled: sb.Append(" | ThrowOnUnmappableCharDisabled"); break;
-			default: sb.Append(" | ThrowOnUnmappableChar_UNKNOWN"); break;
-			}
-
-			if ((flags & PInvokeAttributes.SupportsLastError) != 0)
-				sb.Append(" | SupportsLastError");
-
-			switch ((flags & PInvokeAttributes.CallConvMask)) {
-			case PInvokeAttributes.CallConvWinapi: sb.Append(" | CallConvWinapi"); break;
-			case PInvokeAttributes.CallConvCdecl: sb.Append(" | CallConvCdecl"); break;
-			case PInvokeAttributes.CallConvStdcall: sb.Append(" | CallConvStdcall"); break;
-			case PInvokeAttributes.CallConvThiscall: sb.Append(" | CallConvThiscall"); break;
-			case PInvokeAttributes.CallConvFastcall: sb.Append(" | CallConvFastcall"); break;
-			default: sb.Append(" | CallConv_UNKNOWN"); break;
-			}
-
-			return sb.ToString();
-		}
 	}
 }

@@ -1,14 +1,12 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// TypeDef and ExportedType flags. See CorHdr.h/CorTypeAttr
 	/// </summary>
-	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
+	[Flags]
 	public enum TypeAttributes : uint {
 		/// <summary>Use this mask to retrieve the type visibility information.</summary>
 		VisibilityMask			= 0x00000007,
@@ -85,73 +83,5 @@ namespace dnlib.DotNet {
 		RTSpecialName			= 0x00000800,
 		/// <summary>Class has security associate with it.</summary>
 		HasSecurity				= 0x00040000,
-	}
-
-	public static partial class Extensions {
-		internal static string ToString(TypeAttributes flags) {
-			var sb = new StringBuilder();
-
-			switch ((flags & TypeAttributes.VisibilityMask)) {
-			case TypeAttributes.NotPublic: sb.Append("NotPublic"); break;
-			case TypeAttributes.Public: sb.Append("Public"); break;
-			case TypeAttributes.NestedPublic: sb.Append("NestedPublic"); break;
-			case TypeAttributes.NestedPrivate: sb.Append("NestedPrivate"); break;
-			case TypeAttributes.NestedFamily: sb.Append("NestedFamily"); break;
-			case TypeAttributes.NestedAssembly: sb.Append("NestedAssembly"); break;
-			case TypeAttributes.NestedFamANDAssem: sb.Append("NestedFamANDAssem"); break;
-			case TypeAttributes.NestedFamORAssem: sb.Append("NestedFamORAssem"); break;
-			}
-
-			switch ((flags & TypeAttributes.LayoutMask)) {
-			case TypeAttributes.AutoLayout: sb.Append(" | AutoLayout"); break;
-			case TypeAttributes.SequentialLayout: sb.Append(" | SequentialLayout"); break;
-			case TypeAttributes.ExplicitLayout: sb.Append(" | ExplicitLayout"); break;
-			default: sb.Append(" | Layout_UNKNOWN"); break;
-			}
-
-			if ((flags & TypeAttributes.Interface) != 0)
-				sb.Append(" | Interface");
-			else
-				sb.Append(" | Class");
-
-			if ((flags & TypeAttributes.Abstract) != 0)
-				sb.Append(" | Abstract");
-
-			if ((flags & TypeAttributes.Sealed) != 0)
-				sb.Append(" | Sealed");
-
-			if ((flags & TypeAttributes.SpecialName) != 0)
-				sb.Append(" | SpecialName");
-
-			if ((flags & TypeAttributes.Import) != 0)
-				sb.Append(" | Import");
-
-			if ((flags & TypeAttributes.Serializable) != 0)
-				sb.Append(" | Serializable");
-
-			if ((flags & TypeAttributes.WindowsRuntime) != 0)
-				sb.Append(" | WindowsRuntime");
-
-			switch ((flags & TypeAttributes.StringFormatMask)) {
-			case TypeAttributes.AnsiClass: sb.Append(" | AnsiClass"); break;
-			case TypeAttributes.UnicodeClass: sb.Append(" | UnicodeClass"); break;
-			case TypeAttributes.AutoClass: sb.Append(" | AutoClass"); break;
-			case TypeAttributes.CustomFormatClass: sb.Append(" | CustomFormatClass"); break;
-			}
-
-			if ((flags & TypeAttributes.BeforeFieldInit) != 0)
-				sb.Append(" | BeforeFieldInit");
-
-			if ((flags & TypeAttributes.Forwarder) != 0)
-				sb.Append(" | Forwarder");
-
-			if ((flags & TypeAttributes.RTSpecialName) != 0)
-				sb.Append(" | RTSpecialName");
-
-			if ((flags & TypeAttributes.HasSecurity) != 0)
-				sb.Append(" | HasSecurity");
-
-			return sb.ToString();
-		}
 	}
 }

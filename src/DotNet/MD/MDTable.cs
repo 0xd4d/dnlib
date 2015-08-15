@@ -9,12 +9,17 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// A MD table (eg. Method table)
 	/// </summary>
-	[DebuggerDisplay("DL:{imageStream.Length} R:{numRows} RS:{tableInfo.RowSize} C:{tableInfo.Columns.Count} {tableInfo.Name}")]
+	[DebuggerDisplay("DL:{imageStream.Length} R:{numRows} RS:{tableInfo.RowSize} C:{Count} {tableInfo.Name}")]
 	public sealed class MDTable : IDisposable, IFileSection {
 		readonly Table table;
 		uint numRows;
 		TableInfo tableInfo;
 		IImageStream imageStream;
+
+		// Fix for VS2015 expression evaluator: "The debugger is unable to evaluate this expression"
+		int Count {
+			get { return tableInfo.Columns.Count; }
+		}
 
 		/// <inheritdoc/>
 		public FileOffset StartOffset {
