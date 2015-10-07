@@ -67,6 +67,22 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="index">Column index</param>
+		/// <param name="name">The column name</param>
+		/// <param name="columnSize">Column size</param>
+		/// <param name="offset">Offset of column</param>
+		/// <param name="size">Size of column</param>
+		public ColumnInfo(byte index, string name, ColumnSize columnSize, byte offset, byte size) {
+			this.index = index;
+			this.name = name;
+			this.columnSize = columnSize;
+			this.offset = offset;
+			this.size = size;
+		}
+
+		/// <summary>
 		/// Reads the column
 		/// </summary>
 		/// <param name="reader">A reader positioned on this column</param>

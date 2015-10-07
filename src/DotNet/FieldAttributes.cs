@@ -1,14 +1,12 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Field flags, see CorHdr.h/CorFieldAttr
 	/// </summary>
-	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
+	[Flags]
 	public enum FieldAttributes : ushort {
 		/// <summary>member access mask - Use this mask to retrieve accessibility information.</summary>
 		FieldAccessMask		= 0x0007,
@@ -52,54 +50,5 @@ namespace dnlib.DotNet {
 		HasDefault			= 0x8000,
 		/// <summary>Field has RVA.</summary>
 		HasFieldRVA			= 0x0100,
-	}
-
-	public static partial class Extensions {
-		internal static string ToString(FieldAttributes flags) {
-			var sb = new StringBuilder();
-
-			switch ((flags & FieldAttributes.FieldAccessMask)) {
-			case FieldAttributes.PrivateScope: sb.Append("PrivateScope"); break;
-			case FieldAttributes.Private: sb.Append("Private"); break;
-			case FieldAttributes.FamANDAssem: sb.Append("FamANDAssem"); break;
-			case FieldAttributes.Assembly: sb.Append("Assembly"); break;
-			case FieldAttributes.Family: sb.Append("Family"); break;
-			case FieldAttributes.FamORAssem: sb.Append("FamORAssem"); break;
-			case FieldAttributes.Public: sb.Append("Public"); break;
-			default: sb.Append("FieldAccess_UNKNOWN"); break;
-			}
-
-			if ((flags & FieldAttributes.Static) != 0)
-				sb.Append(" | Static");
-
-			if ((flags & FieldAttributes.InitOnly) != 0)
-				sb.Append(" | InitOnly");
-
-			if ((flags & FieldAttributes.Literal) != 0)
-				sb.Append(" | Literal");
-
-			if ((flags & FieldAttributes.NotSerialized) != 0)
-				sb.Append(" | NotSerialized");
-
-			if ((flags & FieldAttributes.SpecialName) != 0)
-				sb.Append(" | SpecialName");
-
-			if ((flags & FieldAttributes.PinvokeImpl) != 0)
-				sb.Append(" | PinvokeImpl");
-
-			if ((flags & FieldAttributes.RTSpecialName) != 0)
-				sb.Append(" | RTSpecialName");
-
-			if ((flags & FieldAttributes.HasFieldMarshal) != 0)
-				sb.Append(" | HasFieldMarshal");
-
-			if ((flags & FieldAttributes.HasDefault) != 0)
-				sb.Append(" | HasDefault");
-
-			if ((flags & FieldAttributes.HasFieldRVA) != 0)
-				sb.Append(" | HasFieldRVA");
-
-			return sb.ToString();
-		}
 	}
 }

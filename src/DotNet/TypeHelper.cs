@@ -1,6 +1,5 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System.Collections.Generic;
 using dnlib.Threading;
 
 #if THREAD_SAFE

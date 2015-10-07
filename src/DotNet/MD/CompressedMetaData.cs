@@ -1,9 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using dnlib.DotNet.MD;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.Threading;
@@ -13,6 +12,11 @@ namespace dnlib.DotNet.MD {
 	/// Used when a #~ stream is present in the metadata
 	/// </summary>
 	sealed class CompressedMetaData : MetaData {
+		/// <inheritdoc/>
+		public override bool IsCompressed {
+			get { return true; }
+		}
+
 		/// <inheritdoc/>
 		public CompressedMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
 			: base(peImage, cor20Header, mdHeader) {

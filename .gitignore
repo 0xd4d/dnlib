@@ -7,3 +7,4 @@
 /Debug/
 /Release/
 /Examples/bin/
+*.tmp_proj

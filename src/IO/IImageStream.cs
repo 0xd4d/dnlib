@@ -1,8 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.IO;
-
 namespace dnlib.IO {
 	/// <summary>
 	/// Interface to access part of some data

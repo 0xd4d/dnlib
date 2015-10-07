@@ -1,9 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Reflection;
-using System.Text;
 
 namespace dnlib.DotNet {
 	/// <summary>

@@ -1,7 +1,5 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-﻿using System;
-
 namespace dnlib.DotNet.Pdb.Managed {
 	enum SymbolType : ushort {
 		S_COMPILE = 0x0001,

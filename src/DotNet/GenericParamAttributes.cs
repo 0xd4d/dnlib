@@ -1,14 +1,12 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Generic parameter flags. See CorHdr.h/CorGenericParamAttr
 	/// </summary>
-	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
+	[Flags]
 	public enum GenericParamAttributes : ushort {
 		/// <summary/>
 		VarianceMask			= 0x0003,
@@ -29,32 +27,5 @@ namespace dnlib.DotNet {
 		NotNullableValueTypeConstraint = 0x0008,
 		/// <summary>type argument must have a public default constructor</summary>
 		DefaultConstructorConstraint = 0x0010,
-	}
-
-	public static partial class Extensions {
-		internal static string ToString(GenericParamAttributes flags) {
-			var sb = new StringBuilder();
-
-			switch ((flags & GenericParamAttributes.VarianceMask)) {
-			case GenericParamAttributes.NonVariant: sb.Append("NonVariant"); break;
-			case GenericParamAttributes.Covariant: sb.Append("Covariant"); break;
-			case GenericParamAttributes.Contravariant: sb.Append("Contravariant"); break;
-			default: sb.Append("Variance_UNKNOWN"); break;
-			}
-
-			if ((flags & GenericParamAttributes.SpecialConstraintMask) == 0)
-				sb.Append(" | NoSpecialConstraint");
-
-			if ((flags & GenericParamAttributes.ReferenceTypeConstraint) != 0)
-				sb.Append(" | ReferenceTypeConstraint");
-
-			if ((flags & GenericParamAttributes.NotNullableValueTypeConstraint) != 0)
-				sb.Append(" | NotNullableValueTypeConstraint");
-
-			if ((flags & GenericParamAttributes.DefaultConstructorConstraint) != 0)
-				sb.Append(" | DefaultConstructorConstraint");
-
-			return sb.ToString();
-		}
 	}
 }

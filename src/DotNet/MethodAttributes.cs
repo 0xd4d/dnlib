@@ -1,14 +1,12 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Method attributes, see CorHdr.h/CorMethodAttr
 	/// </summary>
-	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
+	[Flags]
 	public enum MethodAttributes : ushort {
 		/// <summary>member access mask - Use this mask to retrieve accessibility information.</summary>
 		MemberAccessMask	= 0x0007,
@@ -65,65 +63,5 @@ namespace dnlib.DotNet {
 		HasSecurity			= 0x4000,
 		/// <summary>Method calls another method containing security code.</summary>
 		RequireSecObject	= 0x8000,
-	}
-
-	public static partial class Extensions {
-		internal static string ToString(MethodAttributes flags) {
-			var sb = new StringBuilder();
-
-			switch ((flags & MethodAttributes.MemberAccessMask)) {
-			case MethodAttributes.PrivateScope: sb.Append("PrivateScope"); break;
-			case MethodAttributes.Private: sb.Append("Private"); break;
-			case MethodAttributes.FamANDAssem: sb.Append("FamANDAssem"); break;
-			case MethodAttributes.Assembly: sb.Append("Assembly"); break;
-			case MethodAttributes.Family: sb.Append("Family"); break;
-			case MethodAttributes.FamORAssem: sb.Append("FamORAssem"); break;
-			case MethodAttributes.Public: sb.Append("Public"); break;
-			default: sb.Append("FieldAccess_UNKNOWN"); break;
-			}
-
-			if ((flags & MethodAttributes.Static) != 0)
-				sb.Append(" | Static");
-
-			if ((flags & MethodAttributes.Final) != 0)
-				sb.Append(" | Final");
-
-			if ((flags & MethodAttributes.Virtual) != 0)
-				sb.Append(" | Virtual");
-
-			if ((flags & MethodAttributes.HideBySig) != 0)
-				sb.Append(" | HideBySig");
-
-			if ((flags & MethodAttributes.NewSlot) != 0)
-				sb.Append(" | NewSlot");
-			else
-				sb.Append(" | ReuseSlot");
-
-			if ((flags & MethodAttributes.CheckAccessOnOverride) != 0)
-				sb.Append(" | CheckAccessOnOverride");
-
-			if ((flags & MethodAttributes.Abstract) != 0)
-				sb.Append(" | Abstract");
-
-			if ((flags & MethodAttributes.SpecialName) != 0)
-				sb.Append(" | SpecialName");
-
-			if ((flags & MethodAttributes.PinvokeImpl) != 0)
-				sb.Append(" | PinvokeImpl");
-
-			if ((flags & MethodAttributes.UnmanagedExport) != 0)
-				sb.Append(" | UnmanagedExport");
-
-			if ((flags & MethodAttributes.RTSpecialName) != 0)
-				sb.Append(" | RTSpecialName");
-
-			if ((flags & MethodAttributes.HasSecurity) != 0)
-				sb.Append(" | HasSecurity");
-
-			if ((flags & MethodAttributes.RequireSecObject) != 0)
-				sb.Append(" | RequireSecObject");
-
-			return sb.ToString();
-		}
 	}
 }

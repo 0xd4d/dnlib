@@ -1,8 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Threading;
-using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.PE;
 using dnlib.Threading;

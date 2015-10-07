@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.IO;
 
 namespace dnlib.DotNet.Writer {

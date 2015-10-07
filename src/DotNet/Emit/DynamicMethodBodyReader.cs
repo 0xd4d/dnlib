@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using SR = System.Reflection;
 using System.Reflection.Emit;
 using System.IO;
-using dnlib.DotNet;
-using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.IO;
 
@@ -223,6 +221,7 @@ namespace dnlib.DotNet.Emit {
 			else
 				method.Signature = MethodSig.CreateInstance(retType, pms.ToArray());
 
+			method.Parameters.UpdateParameterTypes();
 			method.ImplAttributes = MethodImplAttributes.IL;
 			method.Attributes = MethodAttributes.PrivateScope;
 			if (isStatic)

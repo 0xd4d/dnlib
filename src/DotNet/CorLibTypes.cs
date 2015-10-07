@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-
 namespace dnlib.DotNet {
 	sealed class CorLibTypes : ICorLibTypes {
 		readonly ModuleDef module;

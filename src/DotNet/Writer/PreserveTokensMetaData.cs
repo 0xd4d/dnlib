@@ -1,9 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using dnlib.Utils;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Writer {

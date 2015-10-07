@@ -1,15 +1,13 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Assembly flags from Assembly.Flags column.
 	/// </summary>
 	/// <remarks>See CorHdr.h/CorAssemblyFlags</remarks>
-	[Flags, DebuggerDisplay("{Extensions.ToString(this),nq}")]
+	[Flags]
 	public enum AssemblyAttributes : uint {
 		/// <summary>No flags set</summary>
 		None						= 0,
@@ -54,48 +52,5 @@ namespace dnlib.DotNet {
 		ContentType_WindowsRuntime	= 0x0200,
 		/// <summary>Bits describing ContentType</summary>
 		ContentType_Mask			= 0x0E00,
-	}
-
-	public static partial class Extensions {
-		internal static string ToString(AssemblyAttributes flags) {
-			if (flags == AssemblyAttributes.None)
-				return "None";
-
-			var sb = new StringBuilder();
-
-			switch ((flags & AssemblyAttributes.PA_Mask)) {
-			case AssemblyAttributes.PA_None: sb.Append("PA_None"); break;
-			case AssemblyAttributes.PA_MSIL: sb.Append("PA_MSIL"); break;
-			case AssemblyAttributes.PA_x86: sb.Append("PA_x86"); break;
-			case AssemblyAttributes.PA_IA64: sb.Append("PA_IA64"); break;
-			case AssemblyAttributes.PA_AMD64: sb.Append("PA_AMD64"); break;
-			case AssemblyAttributes.PA_ARM: sb.Append("PA_ARM"); break;
-			case AssemblyAttributes.PA_NoPlatform: sb.Append("PA_NoPlatform"); break;
-			default: sb.Append("PA_UNKNOWN"); break;
-			}
-
-			if ((flags & AssemblyAttributes.PA_Specified) != 0)
-				sb.Append(" | PA_Specified");
-
-			if ((flags & AssemblyAttributes.PublicKey) != 0)
-				sb.Append(" | PublicKey");
-
-			if ((flags & AssemblyAttributes.EnableJITcompileTracking) != 0)
-				sb.Append(" | EnableJITcompileTracking");
-
-			if ((flags & AssemblyAttributes.DisableJITcompileOptimizer) != 0)
-				sb.Append(" | DisableJITcompileOptimizer");
-
-			if ((flags & AssemblyAttributes.Retargetable) != 0)
-				sb.Append(" | Retargetable");
-
-			switch ((flags & AssemblyAttributes.ContentType_Mask)) {
-			case AssemblyAttributes.ContentType_Default: sb.Append(" | ContentType_Default"); break;
-			case AssemblyAttributes.ContentType_WindowsRuntime: sb.Append(" | ContentType_WindowsRuntime"); break;
-			default: sb.Append(" | ContentType_UNKNOWN"); break;
-			}
-
-			return sb.ToString();
-		}
 	}
 }

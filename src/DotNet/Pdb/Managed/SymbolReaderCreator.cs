@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Security;
-using dnlib.DotNet.MD;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {

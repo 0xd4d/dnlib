@@ -6,8 +6,6 @@ using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 
-using MD = dnlib.DotNet.MD;
-
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// PDB writer

@@ -1,7 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System.Diagnostics;
-using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb {
 	/// <summary>

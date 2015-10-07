@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using System.Diagnostics.SymbolStore;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using dnlib.DotNet.MD;
 using dnlib.IO;

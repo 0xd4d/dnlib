@@ -7,9 +7,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
-// offset is an off_t which is either 32-bit or 64-bit depending on a #define macro. Assume it's a pointer size...
-using off_t = System.IntPtr;
-
 namespace dnlib.IO {
 	/// <summary>
 	/// Maps a file into memory using MapViewOfFile() and creates streams
@@ -105,12 +102,16 @@ namespace dnlib.IO {
 			[DllImport("libc")]
 			static extern int close(int fd);
 
-			[DllImport("libc", SetLastError = true)]
-			static extern off_t lseek(int fd, off_t offset, int whence);
+			[DllImport("libc", EntryPoint = "lseek", SetLastError = true)]
+			static extern int lseek32(int fd, int offset, int whence);
+			[DllImport("libc", EntryPoint = "lseek", SetLastError = true)]
+			static extern long lseek64(int fd, long offset, int whence);
 			const int SEEK_END = 2;
 
-			[DllImport("libc", SetLastError = true)]
-			static extern IntPtr mmap(IntPtr addr, IntPtr length, int prot, int flags, int fd, off_t offset);
+			[DllImport("libc", EntryPoint = "mmap", SetLastError = true)]
+			static extern IntPtr mmap32(IntPtr addr, IntPtr length, int prot, int flags, int fd, int offset);
+			[DllImport("libc", EntryPoint = "mmap", SetLastError = true)]
+			static extern IntPtr mmap64(IntPtr addr, IntPtr length, int prot, int flags, int fd, long offset);
 			const int PROT_READ = 1;
 			const int MAP_PRIVATE = 0x02;
 
@@ -123,15 +124,30 @@ namespace dnlib.IO {
 					if (fd < 0)
 						throw new IOException(string.Format("Could not open file {0} for reading. Error: {1}", creator.theFileName, fd));
 
-					var size = lseek(fd, new off_t(0), SEEK_END);
-					if (size == new off_t(-1))
-						throw new MemoryMappedIONotSupportedException(string.Format("Could not get length of {0} (lseek failed): {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+					long size;
+					IntPtr data;
 
-					var data = mmap(IntPtr.Zero, size, PROT_READ, MAP_PRIVATE, fd, IntPtr.Zero);
-					if (data == new IntPtr(-1) || data == IntPtr.Zero)
-						throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+					if (IntPtr.Size == 4) {
+						size = lseek32(fd, 0, SEEK_END);
+						if (size == -1)
+							throw new MemoryMappedIONotSupportedException(string.Format("Could not get length of {0} (lseek failed): {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+
+						data = mmap32(IntPtr.Zero, (IntPtr)size, PROT_READ, MAP_PRIVATE, fd, 0);
+						if (data == new IntPtr(-1) || data == IntPtr.Zero)
+							throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+					}
+					else {
+						size = lseek64(fd, 0, SEEK_END);
+						if (size == -1)
+							throw new MemoryMappedIONotSupportedException(string.Format("Could not get length of {0} (lseek failed): {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+
+						data = mmap64(IntPtr.Zero, (IntPtr)size, PROT_READ, MAP_PRIVATE, fd, 0);
+						if (data == new IntPtr(-1) || data == IntPtr.Zero)
+							throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+					}
+
 					creator.data = data;
-					creator.dataLength = size.ToInt64();
+					creator.dataLength = size;
 					creator.origDataLength = creator.dataLength;
 					creator.osType = OSType.Unix;
 				}
@@ -206,7 +222,6 @@ namespace dnlib.IO {
 			}
 			catch (MemoryMappedIONotSupportedException ex) {
 				Debug.WriteLine(string.Format("mmap'd IO didn't work: {0}", ex.Message));
-				//TODO: The lseek() and mmap() fails on MacOS.
 			}
 			catch (EntryPointNotFoundException) {
 			}

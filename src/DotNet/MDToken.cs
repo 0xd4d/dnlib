@@ -193,7 +193,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return string.Format("{0}", token);
+			return string.Format("{0:X8}", token);
 		}
 	}
 }

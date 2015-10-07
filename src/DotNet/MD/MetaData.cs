@@ -182,6 +182,9 @@ namespace dnlib.DotNet.MD {
 		SortedTable propertyMapSortedTable;
 
 		/// <inheritdoc/>
+		public abstract bool IsCompressed { get; }
+
+		/// <inheritdoc/>
 		public ImageCor20Header ImageCor20Header {
 			get { return cor20Header; }
 		}

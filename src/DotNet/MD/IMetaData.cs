@@ -1,8 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using dnlib.PE;
-using dnlib.Threading;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;
@@ -15,6 +14,13 @@ namespace dnlib.DotNet.MD {
 	/// Interface to access the .NET metadata
 	/// </summary>
 	public interface IMetaData : IDisposable {
+		/// <summary>
+		/// <c>true</c> if the compressed (normal) metadata is used, <c>false</c> if the non-compressed
+		/// (Edit N' Continue) metadata is used. This can be <c>false</c> even if the table stream
+		/// is <c>#~</c> but that's very uncommon.
+		/// </summary>
+		bool IsCompressed { get; }
+
 		/// <summary>
 		/// Gets the .NET header
 		/// </summary>
