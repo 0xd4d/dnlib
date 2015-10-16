@@ -122,6 +122,11 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
+		/// <summary>Reset <see cref="Constant"/></summary>
+		protected void ResetConstant() {
+			constant_isInitialized = false;
+		}
+
 		/// <summary>
 		/// Gets all custom attributes
 		/// </summary>
@@ -241,6 +246,11 @@ namespace dnlib.DotNet {
 		protected ThreadSafe.IList<MethodDef> setMethods;
 		/// <summary/>
 		protected ThreadSafe.IList<MethodDef> otherMethods;
+
+		/// <summary>Reset <see cref="GetMethods"/>, <see cref="SetMethods"/>, <see cref="OtherMethods"/></summary>
+		protected void ResetMethods() {
+			otherMethods = null;
+		}
 
 		/// <summary>
 		/// <c>true</c> if there are no methods attached to this property

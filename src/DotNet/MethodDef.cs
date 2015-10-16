@@ -220,6 +220,11 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
+		/// <summary>Reset <see cref="ImplMap"/></summary>
+		protected void ResetImplMap() {
+			implMap_isInitialized = false;
+		}
+
 		/// <summary>
 		/// Gets/sets the method body. See also <see cref="Body"/>
 		/// </summary>
@@ -259,9 +264,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Frees the method body if it has been loaded.
+		/// Frees the method body if it has been loaded. This does nothing if <see cref="CanFreeMethodBody"/>
+		/// returns <c>false</c>.
 		/// </summary>
 		public void FreeMethodBody() {
+			if (!CanFreeMethodBody)
+				return;
 			if (!methodBody_isInitialized)
 				return;
 #if THREAD_SAFE
@@ -277,6 +285,13 @@ namespace dnlib.DotNet {
 		/// <summary>Called to initialize <see cref="methodBody"/></summary>
 		protected virtual MethodBody GetMethodBody_NoLock() {
 			return null;
+		}
+
+		/// <summary>
+		/// true if <see cref="FreeMethodBody()"/> can free the method body
+		/// </summary>
+		protected virtual bool CanFreeMethodBody {
+			get { return true; }
 		}
 
 		/// <summary>

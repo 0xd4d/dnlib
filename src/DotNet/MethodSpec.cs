@@ -8,7 +8,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the MethodSpec table
 	/// </summary>
-	public abstract class MethodSpec : IHasCustomAttribute, IMethod {
+	public abstract class MethodSpec : IHasCustomAttribute, IMethod, IContainsGenericParameter {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -207,6 +207,10 @@ namespace dnlib.DotNet {
 			get { return false; }
 		}
 
+		bool IContainsGenericParameter.ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -245,7 +249,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the MethodSpec table
 	/// </summary>
-	sealed class MethodSpecMD : MethodSpec, IMDTokenProviderMD, IContainsGenericParameter {
+	sealed class MethodSpecMD : MethodSpec, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
@@ -261,10 +265,6 @@ namespace dnlib.DotNet {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MethodSpec, origRid);
 			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
-		}
-
-		bool IContainsGenericParameter.ContainsGenericParameter {
-			get { return TypeHelper.ContainsGenericParameter(this); }
 		}
 
 		/// <summary>

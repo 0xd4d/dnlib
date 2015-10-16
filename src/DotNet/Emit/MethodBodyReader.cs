@@ -6,23 +6,21 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
-	/// Resolves instruction operands
+	/// Reads strings from #US heap
 	/// </summary>
-	public interface IInstructionOperandResolver {
-		/// <summary>
-		/// Resolves a token
-		/// </summary>
-		/// <param name="token">The metadata token</param>
-		/// <param name="gpContext">Generic parameter context</param>
-		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		IMDTokenProvider ResolveToken(uint token, GenericParamContext gpContext);
-
+	public interface IStringResolver {
 		/// <summary>
 		/// Reads a string from the #US heap
 		/// </summary>
 		/// <param name="token">String token</param>
 		/// <returns>A string</returns>
 		string ReadUserString(uint token);
+	}
+
+	/// <summary>
+	/// Resolves instruction operands
+	/// </summary>
+	public interface IInstructionOperandResolver : ITokenResolver, IStringResolver {
 	}
 
 	public static partial class Extensions {

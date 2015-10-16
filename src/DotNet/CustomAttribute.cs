@@ -1,7 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using dnlib.Threading;
 using dnlib.IO;
 
@@ -20,7 +20,7 @@ namespace dnlib.DotNet {
 		byte[] rawData;
 		readonly ThreadSafe.IList<CAArgument> arguments;
 		readonly ThreadSafe.IList<CANamedArgument> namedArguments;
-		readonly IBinaryReader blobReader;
+		IBinaryReader blobReader;
 
 		/// <summary>
 		/// Gets/sets the custom attribute constructor
@@ -271,14 +271,27 @@ namespace dnlib.DotNet {
 		public byte[] GetBlob() {
 			if (rawData != null)
 				return rawData;
-			if (blobReader != null) {
+			if (blob != null)
+				return blob;
 #if THREAD_SAFE
-				lock (this)
+			if (blobReader != null) {
+				lock (this) {
 #endif
-					return blobReader.ReadAllBytes();
+					if (blobReader != null) {
+						blob = blobReader.ReadAllBytes();
+						blobReader.Dispose();
+						blobReader = null;
+						return blob;
+					}
+#if THREAD_SAFE
+				}
 			}
-			return new byte[0];
+#endif
+			if (blob != null)
+				return blob;
+			return blob = new byte[0];
 		}
+		byte[] blob;
 
 		/// <inheritdoc/>
 		public override string ToString() {

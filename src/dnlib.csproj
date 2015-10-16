@@ -100,6 +100,7 @@
     <Compile Include="DotNet\IDecrypters.cs" />
     <Compile Include="DotNet\ILogger.cs" />
     <Compile Include="DotNet\IResolver.cs" />
+    <Compile Include="DotNet\ITokenResolver.cs" />
     <Compile Include="DotNet\IType.cs" />
     <Compile Include="DotNet\ITypeDefFinder.cs" />
     <Compile Include="DotNet\IVariable.cs" />
@@ -160,6 +161,7 @@
     <Compile Include="DotNet\ModuleDef.cs" />
     <Compile Include="DotNet\ModuleDefMD.cs" />
     <Compile Include="DotNet\ModuleKind.cs" />
+    <Compile Include="DotNet\ModuleLoader.cs" />
     <Compile Include="DotNet\ModuleRef.cs" />
     <Compile Include="DotNet\NativeType.cs" />
     <Compile Include="DotNet\NullResolver.cs" />
@@ -338,6 +340,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Threading\Extensions.cs" />
+    <Compile Include="Threading\ICancellationToken.cs" />
     <Compile Include="Threading\IThreadSafeList.cs" />
     <Compile Include="Threading\Lock.cs" />
     <Compile Include="Threading\ThreadSafeListCreator.cs" />

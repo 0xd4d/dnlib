@@ -600,8 +600,8 @@ namespace dnlib.DotNet {
 			PropertyDefs[pd] = true;
 			Add(pd.Type);
 			Add(pd.CustomAttributes);
-			Add(pd.GetMethod);
-			Add(pd.SetMethod);
+			Add(pd.GetMethods);
+			Add(pd.SetMethods);
 			Add(pd.OtherMethods);
 			Add(pd.DeclaringType);
 		}

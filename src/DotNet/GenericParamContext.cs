@@ -16,6 +16,13 @@ namespace dnlib.DotNet {
 		public readonly MethodDef Method;
 
 		/// <summary>
+		/// true if <see cref="Type"/> and <see cref="Method"/> are both <c>null</c>
+		/// </summary>
+		public bool IsEmpty {
+			get { return Type == null && Method == null; }
+		}
+
+		/// <summary>
 		/// Creates a new <see cref="GenericParamContext"/> instance and initializes the
 		/// <see cref="Type"/> field to <paramref name="method"/>'s <see cref="MethodDef.DeclaringType"/>
 		/// and the <see cref="Method"/> field to <paramref name="method"/>.

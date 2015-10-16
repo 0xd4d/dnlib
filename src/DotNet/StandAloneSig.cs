@@ -8,7 +8,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the StandAloneSig table
 	/// </summary>
-	public abstract class StandAloneSig : IHasCustomAttribute {
+	public abstract class StandAloneSig : IHasCustomAttribute, IContainsGenericParameter {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -77,6 +77,11 @@ namespace dnlib.DotNet {
 			get { return signature as LocalSig; }
 			set { signature = value; }
 		}
+
+		/// <inheritdoc/>
+		public bool ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
 	}
 
 	/// <summary>
@@ -109,7 +114,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the StandAloneSig table
 	/// </summary>
-	sealed class StandAloneSigMD : StandAloneSig, IMDTokenProviderMD, IContainsGenericParameter {
+	sealed class StandAloneSigMD : StandAloneSig, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
@@ -125,10 +130,6 @@ namespace dnlib.DotNet {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.StandAloneSig, origRid);
 			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
-		}
-
-		public bool ContainsGenericParameter {
-			get { return TypeHelper.ContainsGenericParameter(this); }
 		}
 
 		/// <summary>

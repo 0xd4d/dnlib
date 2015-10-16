@@ -169,7 +169,7 @@ namespace dnlib.DotNet {
 		protected AssemblyDef assembly;
 
 		/// <summary>
-		/// Gets a list of all non-nested <see cref="TypeDef"/>s
+		/// Gets a list of all non-nested <see cref="TypeDef"/>s. See also <see cref="GetTypes()"/>
 		/// </summary>
 		public ThreadSafe.IList<TypeDef> Types {
 			get {
@@ -1350,6 +1350,23 @@ namespace dnlib.DotNet {
 			ctx.AssemblyResolver = asmRes;
 			ctx.Resolver = res;
 			return ctx;
+		}
+
+		/// <summary>
+		/// Load everything in this module. All types, fields, asm refs, etc are loaded, all their
+		/// properties are read to make sure everything is cached.
+		/// </summary>
+		public void LoadEverything() {
+			LoadEverything(null);
+		}
+
+		/// <summary>
+		/// Load everything in this module. All types, fields, asm refs, etc are loaded, all their
+		/// properties are read to make sure everything is cached.
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token or <c>null</c></param>
+		public void LoadEverything(ICancellationToken cancellationToken) {
+			ModuleLoader.LoadAll(this, cancellationToken);
 		}
 
 		/// <inheritdoc/>

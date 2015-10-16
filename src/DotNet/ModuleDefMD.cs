@@ -1999,7 +1999,7 @@ namespace dnlib.DotNet {
 		/// <returns>Returns originak <paramref name="body"/> value</returns>
 		CilBody InitializeBodyFromPdb(CilBody body, uint rid) {
 			if (pdbState != null)
-				pdbState.Initialize(body, rid);
+				pdbState.InitializeDontCall(body, rid);
 			return body;
 		}
 
