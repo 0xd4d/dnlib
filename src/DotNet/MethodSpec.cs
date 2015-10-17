@@ -147,8 +147,12 @@ namespace dnlib.DotNet {
 				var memberRef = m as MemberRef;
 				if (memberRef != null) {
 					var methodSig = memberRef.MethodSig;
-					if (methodSig != null)
-						return FullNameCreator.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, null, methodGenArgs);
+					if (methodSig != null) {
+						var tsOwner = memberRef.Class as TypeSpec;
+						var gis = tsOwner == null ? null : tsOwner.TypeSig as GenericInstSig;
+						var typeGenArgs = gis == null ? null : gis.GenericArguments;
+						return FullNameCreator.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, typeGenArgs, methodGenArgs);
+					}
 				}
 
 				return string.Empty;

@@ -399,6 +399,26 @@ namespace dnlib.DotNet {
 			get { return TypeHelper.ContainsGenericParameter(this); }
 		}
 
+		/// <summary>
+		/// Gets a <see cref="GenericParamContext"/> that can be used as signature context
+		/// </summary>
+		/// <param name="gpContext">Context passed to the constructor</param>
+		/// <param name="class">Field/method class owner</param>
+		/// <returns></returns>
+		protected static GenericParamContext GetSignatureGenericParamContext(GenericParamContext gpContext, IMemberRefParent @class) {
+			TypeDef type = null;
+			MethodDef method = gpContext.Method;
+
+			var ts = @class as TypeSpec;
+			if (ts != null) {
+				var gis = ts.TypeSig as GenericInstSig;
+				if (gis != null)
+					type = gis.GenericType.ToTypeDefOrRef().ResolveTypeDef();
+			}
+
+			return new GenericParamContext(type, method);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -520,7 +540,7 @@ namespace dnlib.DotNet {
 			uint signature = readerModule.TablesStream.ReadMemberRefRow(origRid, out @class, out name);
 			this.name = readerModule.StringsStream.ReadNoNull(name);
 			this.@class = readerModule.ResolveMemberRefParent(@class, gpContext);
-			this.signature = readerModule.ReadSignature(signature, gpContext);
+			this.signature = readerModule.ReadSignature(signature, GetSignatureGenericParamContext(gpContext, this.@class));
 		}
 	}
 }

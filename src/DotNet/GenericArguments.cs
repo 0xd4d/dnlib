@@ -115,7 +115,7 @@ namespace dnlib.DotNet {
 				var newSig = methodArgsStack.Resolve(genericMVar.Number);
 				if (newSig == null || newSig == sig)
 					return sig;
-				sig = newSig;
+				return newSig;
 			}
 
 			var genericVar = sig as GenericVar;
@@ -123,7 +123,7 @@ namespace dnlib.DotNet {
 				var newSig = typeArgsStack.Resolve(genericVar.Number);
 				if (newSig == null || newSig == sig)
 					return sig;
-				sig = newSig;
+				return newSig;
 			}
 
 			return sig;
