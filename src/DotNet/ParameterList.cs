@@ -103,7 +103,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">The method with all parameters</param>
 		/// <param name="declaringType"><paramref name="method"/>'s declaring type</param>
-		internal ParameterList(MethodDef method, TypeDef declaringType) {
+		public ParameterList(MethodDef method, TypeDef declaringType) {
 			this.method = method;
 			this.parameters = new List<Parameter>();
 			this.methodSigIndexBase = -1;

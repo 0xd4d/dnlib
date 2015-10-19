@@ -130,12 +130,34 @@ namespace dnlib.DotNet {
 		/// Reads a custom attribute
 		/// </summary>
 		/// <param name="module">Owner module</param>
+		/// <param name="caBlob">CA blob</param>
+		/// <param name="ctor">Custom attribute constructor</param>
+		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
+		public static CustomAttribute Read(ModuleDef module, byte[] caBlob, ICustomAttributeType ctor) {
+			return Read(module, MemoryImageStream.Create(caBlob), ctor, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a custom attribute
+		/// </summary>
+		/// <param name="module">Owner module</param>
 		/// <param name="stream">A stream positioned at the the first byte of the CA blob</param>
 		/// <param name="ctor">Custom attribute constructor</param>
-		/// <returns>A new <see cref="CustomAttribute"/> instance or <c>null</c> if one of the
-		/// args is <c>null</c> or if we failed to parse the CA blob</returns>
+		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
 		public static CustomAttribute Read(ModuleDef module, IBinaryReader stream, ICustomAttributeType ctor) {
 			return Read(module, stream, ctor, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Reads a custom attribute
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="caBlob">CA blob</param>
+		/// <param name="ctor">Custom attribute constructor</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
+		public static CustomAttribute Read(ModuleDef module, byte[] caBlob, ICustomAttributeType ctor, GenericParamContext gpContext) {
+			return Read(module, MemoryImageStream.Create(caBlob), ctor, gpContext);
 		}
 
 		/// <summary>
@@ -145,20 +167,20 @@ namespace dnlib.DotNet {
 		/// <param name="stream">A stream positioned at the the first byte of the CA blob</param>
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		/// <returns>A new <see cref="CustomAttribute"/> instance or <c>null</c> if one of the
-		/// args is <c>null</c> or if we failed to parse the CA blob</returns>
+		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
 		public static CustomAttribute Read(ModuleDef module, IBinaryReader stream, ICustomAttributeType ctor, GenericParamContext gpContext) {
-			if (stream == null || ctor == null)
-				return null;
-			try {
-				using (var reader = new CustomAttributeReader(module, stream, gpContext))
+			using (var reader = new CustomAttributeReader(module, stream, gpContext)) {
+				try {
+					if (stream == null || ctor == null)
+						return reader.CreateRaw(ctor);
 					return reader.Read(ctor);
-			}
-			catch (CABlobParserException) {
-				return null;
-			}
-			catch (IOException) {
-				return null;
+				}
+				catch (CABlobParserException) {
+					return reader.CreateRaw(ctor);
+				}
+				catch (IOException) {
+					return reader.CreateRaw(ctor);
+				}
 			}
 		}
 

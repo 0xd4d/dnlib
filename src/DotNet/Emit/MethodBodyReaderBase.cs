@@ -165,7 +165,7 @@ namespace dnlib.DotNet.Emit {
 		protected Instruction GetInstruction(uint offset) {
 			// The instructions are sorted and all Offset fields are correct. Do a binary search.
 			int lo = 0, hi = instructions.Count - 1;
-			while (lo <= hi) {
+			while (lo <= hi && hi != -1) {
 				int i = (lo + hi) / 2;
 				var instr = instructions[i];
 				if (instr.Offset == offset)

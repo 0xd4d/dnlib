@@ -9,7 +9,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the MemberRef table
 	/// </summary>
-	public abstract class MemberRef : IHasCustomAttribute, IMethodDefOrRef, ICustomAttributeType, IField {
+	public abstract class MemberRef : IHasCustomAttribute, IMethodDefOrRef, ICustomAttributeType, IField, IContainsGenericParameter {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -142,7 +142,10 @@ namespace dnlib.DotNet {
 		}
 
 		TypeRefUser CreateDefaultGlobalTypeRef(ModuleRef mr) {
-			return new TypeRefUser(module, string.Empty, "<Module>", mr);
+			var tr = new TypeRefUser(module, string.Empty, "<Module>", mr);
+			if (module != null)
+				module.UpdateRowId(tr);
+			return tr;
 		}
 
 		bool IIsTypeOrMethod.IsType {
@@ -392,6 +395,30 @@ namespace dnlib.DotNet {
 			throw new MemberRefResolveException(string.Format("Could not resolve method: {0} ({1})", this, this.GetDefinitionAssembly()));
 		}
 
+		bool IContainsGenericParameter.ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
+
+		/// <summary>
+		/// Gets a <see cref="GenericParamContext"/> that can be used as signature context
+		/// </summary>
+		/// <param name="gpContext">Context passed to the constructor</param>
+		/// <param name="class">Field/method class owner</param>
+		/// <returns></returns>
+		protected static GenericParamContext GetSignatureGenericParamContext(GenericParamContext gpContext, IMemberRefParent @class) {
+			TypeDef type = null;
+			MethodDef method = gpContext.Method;
+
+			var ts = @class as TypeSpec;
+			if (ts != null) {
+				var gis = ts.TypeSig as GenericInstSig;
+				if (gis != null)
+					type = gis.GenericType.ToTypeDefOrRef().ResolveTypeDef();
+			}
+
+			return new GenericParamContext(type, method);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -472,7 +499,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the MemberRef table
 	/// </summary>
-	sealed class MemberRefMD : MemberRef, IMDTokenProviderMD, IContainsGenericParameter {
+	sealed class MemberRefMD : MemberRef, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
@@ -488,10 +515,6 @@ namespace dnlib.DotNet {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.MemberRef, origRid);
 			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
-		}
-
-		bool IContainsGenericParameter.ContainsGenericParameter {
-			get { return TypeHelper.ContainsGenericParameter(this); }
 		}
 
 		/// <summary>
@@ -517,7 +540,7 @@ namespace dnlib.DotNet {
 			uint signature = readerModule.TablesStream.ReadMemberRefRow(origRid, out @class, out name);
 			this.name = readerModule.StringsStream.ReadNoNull(name);
 			this.@class = readerModule.ResolveMemberRefParent(@class, gpContext);
-			this.signature = readerModule.ReadSignature(signature, gpContext);
+			this.signature = readerModule.ReadSignature(signature, GetSignatureGenericParamContext(gpContext, this.@class));
 		}
 	}
 }

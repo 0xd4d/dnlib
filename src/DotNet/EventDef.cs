@@ -180,6 +180,11 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<MethodDef> otherMethods;
 
+		/// <summary>Reset <see cref="AddMethod"/>, <see cref="InvokeMethod"/>, <see cref="RemoveMethod"/>, <see cref="OtherMethods"/></summary>
+		protected void ResetMethods() {
+			otherMethods = null;
+		}
+
 		/// <summary>
 		/// <c>true</c> if there are no methods attached to this event
 		/// </summary>

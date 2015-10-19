@@ -300,6 +300,11 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
+		/// <summary>Reset <see cref="BaseType"/></summary>
+		protected void ResetBaseType() {
+			baseType_isInitialized = false;
+		}
+
 		/// <summary>
 		/// From column TypeDef.FieldList
 		/// </summary>
@@ -1903,6 +1908,54 @@ namespace dnlib.DotNet {
 			return false;
 		}
 
+		/// <summary>
+		/// FInd a method implementation method
+		/// </summary>
+		/// <param name="mdr">Method</param>
+		/// <returns></returns>
+		protected MethodDef FindMethodImplMethod(IMethodDefOrRef mdr) {
+			// Check common case first
+			var md = mdr as MethodDef;
+			if (md != null)
+				return md;
+
+			// Must be a member ref
+			var mr = mdr as MemberRef;
+			if (mr == null)
+				return null;
+
+			// If Class is MethodDef, then it should be a vararg method
+			var parent = mr.Class;
+			md = parent as MethodDef;
+			if (md != null)
+				return md;
+
+			// If it's a TypeSpec, it must be a generic instance type
+			for (int i = 0; i < 10; i++) {
+				var ts = parent as TypeSpec;
+				if (ts == null)
+					break;
+
+				var gis = ts.TypeSig as GenericInstSig;
+				if (gis == null || gis.GenericType == null)
+					return null;
+				parent = gis.GenericType.TypeDefOrRef;
+			}
+
+			var td = parent as TypeDef;
+			if (td == null) {
+				// If it's a TypeRef, resolve it as if it is a reference to a type in the
+				// current module, even if its ResolutionScope happens to be some other
+				// assembly/module (that's what the CLR does)
+				var tr = parent as TypeRef;
+				if (tr != null && Module != null)
+					td = Module.Find(tr);
+			}
+			if (td == null)
+				return null;
+			return td.FindMethod(mr.Name, mr.MethodSig);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
@@ -2159,49 +2212,6 @@ namespace dnlib.DotNet {
 				overrides.Add(new MethodOverrideTokens(methodBody.MDToken.Raw, methodDecl.MDToken.Raw));
 			}
 			Interlocked.CompareExchange(ref methodRidToOverrides, newMethodRidToOverrides, null);
-		}
-
-		MethodDef FindMethodImplMethod(IMethodDefOrRef mdr) {
-			// Check common case first
-			var md = mdr as MethodDef;
-			if (md != null)
-				return md;
-
-			// Must be a member ref
-			var mr = mdr as MemberRef;
-			if (mr == null)
-				return null;
-
-			// If Class is MethodDef, then it should be a vararg method
-			var parent = mr.Class;
-			md = parent as MethodDef;
-			if (md != null)
-				return md;
-
-			// If it's a TypeSpec, it must be a generic instance type
-			for (int i = 0; i < 10; i++) {
-				var ts = parent as TypeSpec;
-				if (ts == null)
-					break;
-
-				var gis = ts.TypeSig as GenericInstSig;
-				if (gis == null || gis.GenericType == null)
-					return null;
-				parent = gis.GenericType.TypeDefOrRef;
-			}
-
-			var td = parent as TypeDef;
-			if (td == null) {
-				// If it's a TypeRef, resolve it as if it is a reference to a type in the
-				// current module, even if its ResolutionScope happens to be some other
-				// assembly/module (that's what the CLR does)
-				var tr = parent as TypeRef;
-				if (tr != null && Module != null)
-					td = Module.Find(tr);
-			}
-			if (td == null)
-				return null;
-			return td.FindMethod(mr.Name, mr.MethodSig);
 		}
 
 		/// <summary>

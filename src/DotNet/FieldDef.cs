@@ -182,6 +182,11 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
+		/// <summary>Reset <see cref="MarshalType"/></summary>
+		protected void ResetMarshalType() {
+			marshalType_isInitialized = false;
+		}
+
 		/// <summary>
 		/// Gets/sets the field RVA
 		/// </summary>
@@ -223,6 +228,11 @@ namespace dnlib.DotNet {
 		/// <summary>Called to initialize <see cref="rva"/></summary>
 		protected virtual RVA GetRVA_NoLock() {
 			return 0;
+		}
+
+		/// <summary>Reset <see cref="RVA"/></summary>
+		protected void ResetRVA() {
+			rva_isInitialized = false;
 		}
 
 		/// <summary>
@@ -267,6 +277,11 @@ namespace dnlib.DotNet {
 		/// <summary>Called to initialize <see cref="initialValue"/></summary>
 		protected virtual byte[] GetInitialValue_NoLock() {
 			return null;
+		}
+
+		/// <summary>Reset <see cref="InitialValue"/></summary>
+		protected void ResetInitialValue() {
+			initialValue_isInitialized = false;
 		}
 
 		/// <inheritdoc/>
@@ -349,6 +364,11 @@ namespace dnlib.DotNet {
 		/// <summary>Called to initialize <see cref="constant"/></summary>
 		protected virtual Constant GetConstant_NoLock() {
 			return null;
+		}
+
+		/// <summary>Reset <see cref="Constant"/></summary>
+		protected void ResetConstant() {
+			constant_isInitialized = false;
 		}
 
 		/// <inheritdoc/>
@@ -728,19 +748,31 @@ namespace dnlib.DotNet {
 		/// <param name="size">Updated with size</param>
 		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
 		protected bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, out uint size) {
+			return GetFieldSize(declaringType, fieldSig, GetPointerSize(declaringType), out size);
+		}
+
+		/// <summary>
+		/// Gets the size of this field in bytes or <c>0</c> if unknown.
+		/// </summary>
+		/// <param name="declaringType">The declaring type of <c>this</c></param>
+		/// <param name="fieldSig">The field signature of <c>this</c></param>
+		/// <param name="ptrSize">Size of a pointer</param>
+		/// <param name="size">Updated with size</param>
+		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
+		protected bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, int ptrSize, out uint size) {
 			size = 0;
 			if (fieldSig == null)
 				return false;
-			return GetClassSize(declaringType, fieldSig.Type, out size);
+			return GetClassSize(declaringType, fieldSig.Type, ptrSize, out size);
 		}
 
-		bool GetClassSize(TypeDef declaringType, TypeSig ts, out uint size) {
+		bool GetClassSize(TypeDef declaringType, TypeSig ts, int ptrSize, out uint size) {
 			size = 0;
 			ts = ts.RemovePinnedAndModifiers();
 			if (ts == null)
 				return false;
 
-			int size2 = ts.ElementType.GetPrimitiveSize(GetPointerSize(declaringType));
+			int size2 = ts.ElementType.GetPrimitiveSize(ptrSize);
 			if (size2 >= 0) {
 				size = (uint)size2;
 				return true;

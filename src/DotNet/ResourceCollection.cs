@@ -11,14 +11,14 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		internal ResourceCollection() {
+		public ResourceCollection() {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="listener">List listener</param>
-		internal ResourceCollection(IListListener<Resource> listener)
+		public ResourceCollection(IListListener<Resource> listener)
 			: base(listener) {
 		}
 
@@ -28,7 +28,7 @@ namespace dnlib.DotNet {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		internal ResourceCollection(int length, object context, MFunc<object, uint, Resource> readOriginalValue)
+		public ResourceCollection(int length, object context, MFunc<object, uint, Resource> readOriginalValue)
 			: base(length, context, readOriginalValue) {
 		}
 

@@ -298,7 +298,7 @@ namespace dnlib.DotNet.Writer {
 
 		static bool ToDouble(object o, out double result) {
 			if (o == null) {
-				result = Double.NaN;
+				result = double.NaN;
 				return false;
 			}
 
@@ -352,7 +352,7 @@ namespace dnlib.DotNet.Writer {
 				return true;
 			}
 
-			result = Double.NaN;
+			result = double.NaN;
 			return false;
 		}
 
