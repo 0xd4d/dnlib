@@ -427,7 +427,9 @@ namespace dnlib.DotNet.Writer {
 			writer.Write((ushort)(peOptions.Machine ?? module.Machine));
 			writer.Write((ushort)(origSections.Count + sections.Count));
 			WriteUInt32(writer, peOptions.TimeDateStamp);
-			writer.BaseStream.Position += 10;
+			WriteUInt32(writer, peOptions.PointerToSymbolTable);
+			WriteUInt32(writer, peOptions.NumberOfSymbols);
+			writer.BaseStream.Position += 2;    // sizeof(SizeOfOptionalHeader)
 			writer.Write((ushort)(peOptions.Characteristics ?? GetCharacteristics()));
 
 			// Update optional header
