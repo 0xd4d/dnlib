@@ -42,6 +42,16 @@ namespace dnlib.DotNet.Writer {
 		public uint? TimeDateStamp;
 
 		/// <summary>
+		/// IMAGE_FILE_HEADER.PointerToSymbolTable value
+		/// </summary>
+		public uint? PointerToSymbolTable;
+
+		/// <summary>
+		/// IMAGE_FILE_HEADER.NumberOfSymbols value
+		/// </summary>
+		public uint? NumberOfSymbols;
+
+		/// <summary>
 		/// IMAGE_FILE_HEADER.Characteristics value. <see cref="dnlib.PE.Characteristics.Dll"/> bit
 		/// is ignored and set/cleared depending on whether it's a EXE or a DLL file.
 		/// </summary>
@@ -337,8 +347,8 @@ namespace dnlib.DotNet.Writer {
 			writer.Write((ushort)GetMachine());
 			writer.Write((ushort)sections.Count);
 			writer.Write(options.TimeDateStamp ?? PEHeadersOptions.CreateNewTimeDateStamp());
-			writer.Write(0);
-			writer.Write(0);
+			writer.Write(options.PointerToSymbolTable ?? 0);
+			writer.Write(options.NumberOfSymbols ?? 0);
 			writer.Write((ushort)(Use32BitOptionalHeader() ? 0xE0U : 0xF0));
 			writer.Write((ushort)GetCharacteristics());
 

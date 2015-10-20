@@ -550,7 +550,8 @@ namespace dnlib.DotNet {
 			case ResourceType.Embedded:
 				var er = (EmbeddedResource)obj;
 				// Make sure data is cached
-				er.Data = MemoryImageStream.Create(er.GetClonedResourceStream().ReadAllBytes());
+				if (!(er.Data is MemoryImageStream))
+					er.Data = MemoryImageStream.Create(er.GetClonedResourceStream().ReadAllBytes());
 				break;
 
 			case ResourceType.AssemblyLinked:
@@ -687,7 +688,7 @@ namespace dnlib.DotNet {
 			if (obj == null)
 				return;
 			var data = obj.Data;
-			if (data != null)
+			if (data != null && !(data is MemoryImageStream))
 				obj.Data = MemoryImageStream.Create(data.ReadAllBytes());
 		}
 

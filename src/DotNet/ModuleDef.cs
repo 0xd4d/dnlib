@@ -1475,7 +1475,7 @@ namespace dnlib.DotNet {
 		/// <param name="rid">Row ID</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public ModuleDefMD2(ModuleDefMD readerModule, uint rid) {
+		internal ModuleDefMD2(ModuleDefMD readerModule, uint rid) {
 			if (rid == 1 && readerModule == null)
 				readerModule = (ModuleDefMD)this;
 #if DEBUG
