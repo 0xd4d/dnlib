@@ -708,6 +708,22 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// <c>true</c> if it's a delegate (it derives from <see cref="System.MulticastDelegate"/>)
+		/// </summary>
+		public bool IsDelegate {
+			get {
+				var baseType = BaseType;
+				if (baseType == null)
+					return false;
+				if (baseType.Namespace != "System")
+					return false;
+				if (baseType.TypeName != "MulticastDelegate")
+					return false;
+				return baseType.DefinitionAssembly.IsCorLib();
+			}
+		}
+
+		/// <summary>
 		/// <c>true</c> if this is a nested type (it has a declaring type)
 		/// </summary>
 		public bool IsNested {

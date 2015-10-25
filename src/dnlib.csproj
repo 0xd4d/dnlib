@@ -236,6 +236,7 @@
     <Compile Include="DotNet\StandAloneSig.cs" />
     <Compile Include="DotNet\StrongNameKey.cs" />
     <Compile Include="DotNet\StrongNameSigner.cs" />
+    <Compile Include="DotNet\TIAHelper.cs" />
     <Compile Include="DotNet\TypeAttributes.cs" />
     <Compile Include="DotNet\TypeDef.cs" />
     <Compile Include="DotNet\TypeDefFinder.cs" />
