@@ -140,7 +140,7 @@ namespace dnlib.DotNet.MD {
 			/// <returns>The row or 0 if not found</returns>
 			int BinarySearch(uint key) {
 				int lo = 1, hi = rows.Length - 1;
-				while (lo <= hi) {
+				while (lo <= hi && hi != -1) {
 					int curr = (lo + hi) / 2;
 					uint key2 = rows[curr].key;
 					if (key == key2)

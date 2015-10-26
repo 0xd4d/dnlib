@@ -30,7 +30,8 @@ namespace dnlib.IO {
 		byte[] ReadBytes(int size);
 
 		/// <summary>
-		/// Reads <paramref name="length"/> bytes to <paramref name="buffer"/>
+		/// Reads <paramref name="length"/> bytes to <paramref name="buffer"/> and increments
+		/// <see cref="Position"/> by the number of bytes read.
 		/// </summary>
 		/// <param name="buffer">Buffer</param>
 		/// <param name="offset">Offset in buffer where to place all read bytes</param>

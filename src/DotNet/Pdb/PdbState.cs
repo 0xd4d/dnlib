@@ -174,7 +174,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="body">Method body</param>
 		/// <param name="methodRid">Method row ID</param>
-		public void Initialize(CilBody body, uint methodRid) {
+		public void InitializeDontCall(CilBody body, uint methodRid) {
 			if (reader == null || body == null)
 				return;
 			var token = new SymbolToken((int)(0x06000000 + methodRid));

@@ -21,7 +21,7 @@ namespace dnlib.DotNet {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		internal CustomAttributeCollection(int length, object context, MFunc<object, uint, CustomAttribute> readOriginalValue)
+		public CustomAttributeCollection(int length, object context, MFunc<object, uint, CustomAttribute> readOriginalValue)
 			: base(length, context, readOriginalValue) {
 		}
 

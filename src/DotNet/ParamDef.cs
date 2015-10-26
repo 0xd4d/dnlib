@@ -128,6 +128,11 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
+		/// <summary>Reset <see cref="MarshalType"/></summary>
+		protected void ResetMarshalType() {
+			marshalType_isInitialized = false;
+		}
+
 		/// <inheritdoc/>
 		public Constant Constant {
 			get {
@@ -167,6 +172,11 @@ namespace dnlib.DotNet {
 		/// <summary>Called to initialize <see cref="constant"/></summary>
 		protected virtual Constant GetConstant_NoLock() {
 			return null;
+		}
+
+		/// <summary>Reset <see cref="Constant"/></summary>
+		protected void ResetConstant() {
+			constant_isInitialized = false;
 		}
 
 		/// <summary>

@@ -11,7 +11,7 @@ namespace dnlib.Utils {
 	/// Gets notified of list events
 	/// </summary>
 	/// <typeparam name="TListValue">List value</typeparam>
-	interface IListListener<TListValue> {
+	public interface IListListener<TListValue> {
 		/// <summary>
 		/// Called before a new value is lazily added to the list.
 		/// </summary>
@@ -254,7 +254,7 @@ namespace dnlib.Utils {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		internal LazyList()
+		public LazyList()
 			: this(null) {
 		}
 
@@ -262,7 +262,7 @@ namespace dnlib.Utils {
 		/// Constructor
 		/// </summary>
 		/// <param name="listener">List listener</param>
-		internal LazyList(IListListener<TValue> listener) {
+		public LazyList(IListListener<TValue> listener) {
 			this.listener = listener;
 			this.list = new List<Element>();
 		}
@@ -273,7 +273,7 @@ namespace dnlib.Utils {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		internal LazyList(int length, object context, MFunc<object, uint, TValue> readOriginalValue)
+		public LazyList(int length, object context, MFunc<object, uint, TValue> readOriginalValue)
 			: this(length, null, context, readOriginalValue) {
 		}
 
@@ -284,7 +284,7 @@ namespace dnlib.Utils {
 		/// <param name="listener">List listener</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		internal LazyList(int length, IListListener<TValue> listener, object context, MFunc<object, uint, TValue> readOriginalValue) {
+		public LazyList(int length, IListListener<TValue> listener, object context, MFunc<object, uint, TValue> readOriginalValue) {
 			this.listener = listener;
 			this.context = context;
 			this.readOriginalValue = readOriginalValue;

@@ -23,7 +23,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
-	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder, IDnlibDef {
+	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder, IDnlibDef, ITokenResolver {
 		/// <summary>Default characteristics</summary>
 		protected const Characteristics DefaultCharacteristics = Characteristics.ExecutableImage | Characteristics._32BitMachine;
 
@@ -79,6 +79,15 @@ namespace dnlib.DotNet {
 		public int ResolutionScopeTag {
 			get { return 0; }
 		}
+
+		/// <summary>
+		/// Gets/sets a user value. This is never used by dnlib. This property isn't thread safe.
+		/// </summary>
+		public object Tag {
+			get { return tag; }
+			set { tag = value; }
+		}
+		object tag;
 
 		/// <inheritdoc/>
 		public ScopeType ScopeType {
@@ -169,7 +178,7 @@ namespace dnlib.DotNet {
 		protected AssemblyDef assembly;
 
 		/// <summary>
-		/// Gets a list of all non-nested <see cref="TypeDef"/>s
+		/// Gets a list of all non-nested <see cref="TypeDef"/>s. See also <see cref="GetTypes()"/>
 		/// </summary>
 		public ThreadSafe.IList<TypeDef> Types {
 			get {
@@ -1352,9 +1361,154 @@ namespace dnlib.DotNet {
 			return ctx;
 		}
 
+		/// <summary>
+		/// Load everything in this module. All types, fields, asm refs, etc are loaded, all their
+		/// properties are read to make sure everything is cached.
+		/// </summary>
+		public void LoadEverything() {
+			LoadEverything(null);
+		}
+
+		/// <summary>
+		/// Load everything in this module. All types, fields, asm refs, etc are loaded, all their
+		/// properties are read to make sure everything is cached.
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token or <c>null</c></param>
+		public virtual void LoadEverything(ICancellationToken cancellationToken) {
+			ModuleLoader.LoadAll(this, cancellationToken);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			return FullName;
+		}
+
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="mdToken">The metadata token</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="mdToken"/> is invalid</returns>
+		public IMDTokenProvider ResolveToken(MDToken mdToken) {
+			return ResolveToken(mdToken.Raw, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="mdToken">The metadata token</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="mdToken"/> is invalid</returns>
+		public IMDTokenProvider ResolveToken(MDToken mdToken, GenericParamContext gpContext) {
+			return ResolveToken(mdToken.Raw, gpContext);
+		}
+
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="token">The metadata token</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
+		public IMDTokenProvider ResolveToken(uint token) {
+			return ResolveToken(token, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="token">The metadata token</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
+		public virtual IMDTokenProvider ResolveToken(uint token, GenericParamContext gpContext) {
+			return null;
+		}
+
+		/// <summary>
+		/// Gets all <see cref="AssemblyRef"/>s
+		/// </summary>
+		public IEnumerable<AssemblyRef> GetAssemblyRefs() {
+			for (uint rid = 1; ; rid++) {
+				var asmRef = ResolveToken(new MDToken(Table.AssemblyRef, rid).Raw) as AssemblyRef;
+				if (asmRef == null)
+					break;
+				yield return asmRef;
+			}
+		}
+
+		/// <summary>
+		/// Gets all <see cref="ModuleRef"/>s
+		/// </summary>
+		public IEnumerable<ModuleRef> GetModuleRefs() {
+			for (uint rid = 1; ; rid++) {
+				var modRef = ResolveToken(new MDToken(Table.ModuleRef, rid).Raw) as ModuleRef;
+				if (modRef == null)
+					break;
+				yield return modRef;
+			}
+		}
+
+		/// <summary>
+		/// Gets all <see cref="MemberRef"/>s. <see cref="MemberRef"/>s with generic parameters
+		/// aren't cached and a new copy is always returned.
+		/// </summary>
+		public IEnumerable<MemberRef> GetMemberRefs() {
+			return GetMemberRefs(new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Gets all <see cref="MemberRef"/>s. <see cref="MemberRef"/>s with generic parameters
+		/// aren't cached and a new copy is always returned.
+		/// </summary>
+		/// <param name="gpContext">Generic parameter context</param>
+		public IEnumerable<MemberRef> GetMemberRefs(GenericParamContext gpContext) {
+			for (uint rid = 1; ; rid++) {
+				var mr = ResolveToken(new MDToken(Table.MemberRef, rid).Raw, gpContext) as MemberRef;
+				if (mr == null)
+					break;
+				yield return mr;
+			}
+		}
+
+		/// <summary>
+		/// Gets all <see cref="TypeRef"/>s
+		/// </summary>
+		public IEnumerable<TypeRef> GetTypeRefs() {
+			for (uint rid = 1; ; rid++) {
+				var mr = ResolveToken(new MDToken(Table.TypeRef, rid).Raw) as TypeRef;
+				if (mr == null)
+					break;
+				yield return mr;
+			}
+		}
+
+		/// <summary>
+		/// Finds an assembly reference by name. If there's more than one, pick the one with
+		/// the greatest version number.
+		/// </summary>
+		/// <param name="simpleName">Simple name of assembly (eg. "mscorlib")</param>
+		/// <returns>The found <see cref="AssemblyRef"/> or <c>null</c> if there's no such
+		/// assembly reference.</returns>
+		public AssemblyRef GetAssemblyRef(UTF8String simpleName) {
+			AssemblyRef found = null;
+			foreach (var asmRef in GetAssemblyRefs()) {
+				if (asmRef.Name != simpleName)
+					continue;
+				if (IsGreaterAssemblyRefVersion(found, asmRef))
+					found = asmRef;
+			}
+			return found;
+		}
+
+		/// <summary>
+		/// Compare asm refs' version
+		/// </summary>
+		/// <param name="found">First asm ref</param>
+		/// <param name="newOne">New asm ref</param>
+		/// <returns></returns>
+		protected static bool IsGreaterAssemblyRefVersion(AssemblyRef found, AssemblyRef newOne) {
+			if (found == null)
+				return true;
+			var foundVer = found.Version;
+			var newVer = newOne.Version;
+			return foundVer == null || (newVer != null && newVer >= foundVer);
 		}
 	}
 
@@ -1458,7 +1612,7 @@ namespace dnlib.DotNet {
 		/// <param name="rid">Row ID</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public ModuleDefMD2(ModuleDefMD readerModule, uint rid) {
+		internal ModuleDefMD2(ModuleDefMD readerModule, uint rid) {
 			if (rid == 1 && readerModule == null)
 				readerModule = (ModuleDefMD)this;
 #if DEBUG

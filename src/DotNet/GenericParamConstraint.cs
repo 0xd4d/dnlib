@@ -8,7 +8,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the GenericParamConstraint table
 	/// </summary>
-	public abstract class GenericParamConstraint : IHasCustomAttribute {
+	public abstract class GenericParamConstraint : IHasCustomAttribute, IContainsGenericParameter {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -71,6 +71,10 @@ namespace dnlib.DotNet {
 		public bool HasCustomAttributes {
 			get { return CustomAttributes.Count > 0; }
 		}
+
+		bool IContainsGenericParameter.ContainsGenericParameter {
+			get { return TypeHelper.ContainsGenericParameter(this); }
+		}
 	}
 
 	/// <summary>
@@ -95,7 +99,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the GenericParamConstraint table
 	/// </summary>
-	sealed class GenericParamConstraintMD : GenericParamConstraint, IMDTokenProviderMD, IContainsGenericParameter {
+	sealed class GenericParamConstraintMD : GenericParamConstraint, IMDTokenProviderMD {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
@@ -111,10 +115,6 @@ namespace dnlib.DotNet {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.GenericParamConstraint, origRid);
 			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
-		}
-
-		bool IContainsGenericParameter.ContainsGenericParameter {
-			get { return TypeHelper.ContainsGenericParameter(this); }
 		}
 
 		/// <summary>

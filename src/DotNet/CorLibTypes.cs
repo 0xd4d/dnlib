@@ -1,7 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
 namespace dnlib.DotNet {
-	sealed class CorLibTypes : ICorLibTypes {
+	/// <summary>
+	/// Default implementation of <see cref="ICorLibTypes"/>
+	/// </summary>
+	public sealed class CorLibTypes : ICorLibTypes {
 		readonly ModuleDef module;
 		CorLibTypeSig typeVoid;
 		CorLibTypeSig typeBoolean;

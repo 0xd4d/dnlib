@@ -346,6 +346,37 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
 		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature, GenericParamContext gpContext) {
+			byte[] extraData;
+			return ReadTypeSig(helper, corLibTypes, signature, gpContext, out extraData);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="TypeSig"/> signature
+		/// </summary>
+		/// <param name="helper">Token resolver</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
+		/// <param name="signature">The signature data</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="extraData">If there's any extra data after the signature, it's saved
+		/// here, else this will be <c>null</c></param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext, out byte[] extraData) {
+			return ReadTypeSig(helper, corLibTypes, MemoryImageStream.Create(signature), gpContext, out extraData);
+		}
+
+		/// <summary>
+		/// Reads a <see cref="TypeSig"/> signature
+		/// </summary>
+		/// <param name="helper">Token resolver</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
+		/// <param name="signature">The signature reader which will be owned by us</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="extraData">If there's any extra data after the signature, it's saved
+		/// here, else this will be <c>null</c></param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="signature"/> is invalid.</returns>
+		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, IBinaryReader signature, GenericParamContext gpContext, out byte[] extraData) {
 			try {
 				using (var reader = new SignatureReader(helper, corLibTypes, signature, gpContext)) {
 					TypeSig ts;
@@ -353,12 +384,15 @@ namespace dnlib.DotNet {
 						ts = reader.ReadType();
 					}
 					catch (IOException) {
+						reader.reader.Position = 0;
 						ts = null;
 					}
+					extraData = reader.GetExtraData();
 					return ts;
 				}
 			}
 			catch {
+				extraData = null;
 				return null;
 			}
 		}
