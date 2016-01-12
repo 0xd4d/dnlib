@@ -308,7 +308,7 @@ namespace dnlib.DotNet {
 		public TypeDef Resolve(ModuleDef sourceModule) {
 			if (module == null)
 				return null;
-			return module.Context.Resolver.Resolve(this, sourceModule);
+			return module.Context.Resolver.Resolve(this, sourceModule ?? module);
 		}
 
 		/// <summary>
