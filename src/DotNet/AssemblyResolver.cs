@@ -40,6 +40,7 @@ namespace dnlib.DotNet {
 		bool findExactMatch;
 		bool enableFrameworkRedirect;
 		bool enableTypeDefCache;
+		bool useGac = true;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
@@ -171,6 +172,14 @@ namespace dnlib.DotNet {
 		public bool EnableTypeDefCache {
 			get { return enableTypeDefCache; }
 			set { enableTypeDefCache = value; }
+		}
+
+		/// <summary>
+		/// true to search the Global Assembly Cache. Default value is true.
+		/// </summary>
+		public bool UseGAC {
+			get { return useGac; }
+			set { useGac = value; }
 		}
 
 		/// <summary>
@@ -511,8 +520,10 @@ namespace dnlib.DotNet {
 					yield return path;
 			}
 			else {
-				foreach (var path in FindAssembliesGac(assembly, sourceModule, matchExactly))
-					yield return path;
+				if (UseGAC) {
+					foreach (var path in FindAssembliesGac(assembly, sourceModule, matchExactly))
+						yield return path;
+				}
 			}
 			foreach (var path in FindAssembliesModuleSearchPaths(assembly, sourceModule, matchExactly))
 				yield return path;
