@@ -39,7 +39,7 @@ namespace dnlib.DotNet {
 		readonly ThreadSafe.IList<string> postSearchPaths = ThreadSafeListCreator.Create<string>();
 		bool findExactMatch;
 		bool enableFrameworkRedirect;
-		bool enableTypeDefCache;
+		bool enableTypeDefCache = true;
 		bool useGac = true;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -167,7 +167,8 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// If <c>true</c>, all modules in newly resolved assemblies will have their
-		/// <see cref="ModuleDef.EnableTypeDefFindCache"/> property set to <c>true</c>.
+		/// <see cref="ModuleDef.EnableTypeDefFindCache"/> property set to <c>true</c>. This is
+		/// enabled by default since these modules shouldn't be modified by the user.
 		/// </summary>
 		public bool EnableTypeDefCache {
 			get { return enableTypeDefCache; }
