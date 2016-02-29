@@ -348,7 +348,7 @@ namespace dnlib.DotNet {
 		public string FullName {
 			get {
 				var dt = declaringType2;
-				return FullNameCreator.PropertyFullName(dt == null ? null : dt.FullName, name, type);
+				return FullNameCreator.PropertyFullName(dt == null ? null : dt.FullName, name, type, null, null);
 			}
 		}
 

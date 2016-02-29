@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Emit {
 
 			case OperandType.InlineSig:
 				sb.Append(extra);
-				sb.Append(FullNameCreator.MethodFullName(null, (UTF8String)null, op as MethodSig));
+				sb.Append(FullNameCreator.MethodFullName(null, (UTF8String)null, op as MethodSig, null, null, null, null));
 				break;
 
 			case OperandType.InlineString:

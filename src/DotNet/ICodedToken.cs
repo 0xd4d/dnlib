@@ -1048,31 +1048,28 @@ namespace dnlib.DotNet {
 		internal static bool IsPrimitive(this IType tdr) {
 			if (tdr == null)
 				return false;
+			if (!tdr.DefinitionAssembly.IsCorLib())
+				return false;
 
-			switch (tdr.Name) {
-			case "Boolean":
-			case "Char":
-			case "SByte":
-			case "Byte":
-			case "Int16":
-			case "UInt16":
-			case "Int32":
-			case "UInt32":
-			case "Int64":
-			case "UInt64":
-			case "Single":
-			case "Double":
-			case "IntPtr":
-			case "UIntPtr":
-				break;
+			switch (tdr.FullName) {
+			case "System.Boolean":
+			case "System.Char":
+			case "System.SByte":
+			case "System.Byte":
+			case "System.Int16":
+			case "System.UInt16":
+			case "System.Int32":
+			case "System.UInt32":
+			case "System.Int64":
+			case "System.UInt64":
+			case "System.Single":
+			case "System.Double":
+			case "System.IntPtr":
+			case "System.UIntPtr":
+				return true;
 			default:
 				return false;
 			}
-
-			if (tdr.Namespace != "System")
-				return false;
-
-			return tdr.DefinitionAssembly.IsCorLib();
 		}
 	}
 }

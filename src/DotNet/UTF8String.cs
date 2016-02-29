@@ -173,7 +173,7 @@ namespace dnlib.DotNet {
 				return -1;
 			if (sb == null)
 				return 1;
-			return sa.ToUpperInvariant().CompareTo(sb.ToUpperInvariant());
+			return StringComparer.OrdinalIgnoreCase.Compare(sa, sb);
 		}
 
 		/// <summary>

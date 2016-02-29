@@ -263,7 +263,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return FullNameCreator.FullName(type == null ? null : type, false);
+			return FullNameCreator.FullName(type == null ? null : type, false, null, null, null, null);
 		}
 	}
 
@@ -672,7 +672,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return FullNameCreator.MethodSigFullName(this);
+			return FullNameCreator.MethodBaseSigFullName(this, null);
 		}
 	}
 
@@ -887,7 +887,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return FullNameCreator.PropertySigFullName(this);
+			return FullNameCreator.MethodBaseSigFullName(this, null);
 		}
 	}
 

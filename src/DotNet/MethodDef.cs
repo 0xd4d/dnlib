@@ -496,7 +496,7 @@ namespace dnlib.DotNet {
 		public string FullName {
 			get {
 				var dt = declaringType2;
-				return FullNameCreator.MethodFullName(dt == null ? null : dt.FullName, name, MethodSig, null, null, this);
+				return FullNameCreator.MethodFullName(dt == null ? null : dt.FullName, name, MethodSig, null, null, this, null);
 			}
 		}
 

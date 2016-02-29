@@ -141,7 +141,7 @@ namespace dnlib.DotNet {
 				var methodDef = m as MethodDef;
 				if (methodDef != null) {
 					var declaringType = methodDef.DeclaringType;
-					return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, methodDef.Name, methodDef.MethodSig, null, methodGenArgs);
+					return FullNameCreator.MethodFullName(declaringType == null ? null : declaringType.FullName, methodDef.Name, methodDef.MethodSig, null, methodGenArgs, null, null);
 				}
 
 				var memberRef = m as MemberRef;
@@ -151,7 +151,7 @@ namespace dnlib.DotNet {
 						var tsOwner = memberRef.Class as TypeSpec;
 						var gis = tsOwner == null ? null : tsOwner.TypeSig as GenericInstSig;
 						var typeGenArgs = gis == null ? null : gis.GenericArguments;
-						return FullNameCreator.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, typeGenArgs, methodGenArgs);
+						return FullNameCreator.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, typeGenArgs, methodGenArgs, null, null);
 					}
 				}
 

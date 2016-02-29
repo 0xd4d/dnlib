@@ -156,37 +156,37 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public string TypeName {
-			get { return FullNameCreator.Name(this, false); }
+			get { return FullNameCreator.Name(this, false, null); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionName {
-			get { return FullNameCreator.Name(this, true); }
+			get { return FullNameCreator.Name(this, true, null); }
 		}
 
 		/// <inheritdoc/>
 		string IType.Namespace {
-			get { return FullNameCreator.Namespace(this, false); }
+			get { return FullNameCreator.Namespace(this, false, null); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionNamespace {
-			get { return FullNameCreator.Namespace(this, true); }
+			get { return FullNameCreator.Namespace(this, true, null); }
 		}
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return FullNameCreator.FullName(this, false); }
+			get { return FullNameCreator.FullName(this, false, null, null); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			get { return FullNameCreator.FullName(this, true); }
+			get { return FullNameCreator.FullName(this, true, null, null); }
 		}
 
 		/// <inheritdoc/>
 		public string AssemblyQualifiedName {
-			get { return FullNameCreator.AssemblyQualifiedName(this); }
+			get { return FullNameCreator.AssemblyQualifiedName(this, null, null); }
 		}
 
 		/// <inheritdoc/>
