@@ -181,21 +181,11 @@ namespace dnlib.DotNet {
 		/// Converts <paramref name="type"/> to a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="type">The type</param>
-		/// <returns>A <see cref="TypeSig"/> instance or <c>null</c> if <paramref name="type"/>
-		/// is invalid</returns>
-		public static TypeSig ToTypeSig(this ITypeDefOrRef type) {
-			return ToTypeSig(type, true);
-		}
-
-		/// <summary>
-		/// Converts <paramref name="type"/> to a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="type">The type</param>
 		/// <param name="checkValueType"><c>true</c> if we should try to figure out whether
 		/// <paramref name="type"/> is a <see cref="ValueType"/></param>
 		/// <returns>A <see cref="TypeSig"/> instance or <c>null</c> if <paramref name="type"/>
 		/// is invalid</returns>
-		public static TypeSig ToTypeSig(this ITypeDefOrRef type, bool checkValueType) {
+		public static TypeSig ToTypeSig(this ITypeDefOrRef type, bool checkValueType = true) {
 			if (type == null)
 				return null;
 
@@ -376,23 +366,13 @@ namespace dnlib.DotNet {
 		/// Returns the base type of <paramref name="tdr"/>
 		/// </summary>
 		/// <param name="tdr">The type</param>
-		/// <returns>The base type or <c>null</c> if there's no base type, or if
-		/// we couldn't resolve a <see cref="TypeRef"/></returns>
-		public static ITypeDefOrRef GetBaseType(this ITypeDefOrRef tdr) {
-			return tdr.GetBaseType(false);
-		}
-
-		/// <summary>
-		/// Returns the base type of <paramref name="tdr"/>
-		/// </summary>
-		/// <param name="tdr">The type</param>
 		/// <param name="throwOnResolveFailure"><c>true</c> if we should throw if we can't
 		/// resolve a <see cref="TypeRef"/>. <c>false</c> if we should ignore the error and
 		/// just return <c>null</c>.</param>
 		/// <returns>The base type or <c>null</c> if there's no base type, or if
 		/// <paramref name="throwOnResolveFailure"/> is <c>true</c> and we couldn't resolve
 		/// a <see cref="TypeRef"/></returns>
-		public static ITypeDefOrRef GetBaseType(this ITypeDefOrRef tdr, bool throwOnResolveFailure) {
+		public static ITypeDefOrRef GetBaseType(this ITypeDefOrRef tdr, bool throwOnResolveFailure = false) {
 			var td = tdr as TypeDef;
 			if (td != null)
 				return td.BaseType;

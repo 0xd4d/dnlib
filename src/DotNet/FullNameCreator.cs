@@ -175,29 +175,10 @@ namespace dnlib.DotNet {
 		/// Returns the assembly qualified full name of a <see cref="IType"/>
 		/// </summary>
 		/// <param name="type">The <c>IType</c></param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(IType type) {
-			return AssemblyQualifiedNameSB(type, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="IType"/>
-		/// </summary>
-		/// <param name="type">The <c>IType</c></param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(IType type, IFullNameCreatorHelper helper) {
-			return AssemblyQualifiedNameSB(type, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="IType"/>
-		/// </summary>
-		/// <param name="type">The <c>IType</c></param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(IType type, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string AssemblyQualifiedName(IType type, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return AssemblyQualifiedNameSB(type, helper, sb).ToString();
 		}
 
@@ -238,33 +219,10 @@ namespace dnlib.DotNet {
 		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
 		/// <param name="name">Name of property</param>
 		/// <param name="propertySig">Property signature</param>
-		/// <returns>Property full name</returns>
-		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig) {
-			return PropertyFullNameSB(declaringType, name, propertySig, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a property
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of property</param>
-		/// <param name="propertySig">Property signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <returns>Property full name</returns>
-		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs) {
-			return PropertyFullNameSB(declaringType, name, propertySig, typeGenArgs, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a property
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of property</param>
-		/// <param name="propertySig">Property signature</param>
 		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Property full name</returns>
-		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs, StringBuilder sb) {
+		public static string PropertyFullName(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs = null, StringBuilder sb = null) {
 			return PropertyFullNameSB(declaringType, name, propertySig, typeGenArgs, sb).ToString();
 		}
 
@@ -289,29 +247,6 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Returns the full name of an event
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of event</param>
-		/// <param name="typeDefOrRef">Event type</param>
-		/// <returns>Event full name</returns>
-		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef) {
-			return EventFullNameSB(declaringType, name, typeDefOrRef, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a property
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of property</param>
-		/// <param name="typeDefOrRef">Event type</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <returns>Property full name</returns>
-		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs) {
-			return EventFullNameSB(declaringType, name, typeDefOrRef, typeGenArgs, null).ToString();
-		}
-
-		/// <summary>
 		/// Returns the full name of a property
 		/// </summary>
 		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
@@ -320,7 +255,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Property full name</returns>
-		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs, StringBuilder sb) {
+		public static string EventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs = null, StringBuilder sb = null) {
 			return EventFullNameSB(declaringType, name, typeDefOrRef, typeGenArgs, sb).ToString();
 		}
 
@@ -350,56 +285,10 @@ namespace dnlib.DotNet {
 		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
 		/// <param name="name">Name of field</param>
 		/// <param name="fieldSig">Field signature</param>
-		/// <returns>Field full name</returns>
-		public static string FieldFullName(string declaringType, UTF8String name, FieldSig fieldSig) {
-			return FieldFullNameSB(declaringType, UTF8String.ToSystemString(name), fieldSig, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a field
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of field</param>
-		/// <param name="fieldSig">Field signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <returns>Field full name</returns>
-		public static string FieldFullName(string declaringType, UTF8String name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
-			return FieldFullNameSB(declaringType, UTF8String.ToSystemString(name), fieldSig, typeGenArgs, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a field
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of field</param>
-		/// <param name="fieldSig">Field signature</param>
-		/// <returns>Field full name</returns>
-		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig) {
-			return FieldFullNameSB(declaringType, name, fieldSig, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a field
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of field</param>
-		/// <param name="fieldSig">Field signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <returns>Field full name</returns>
-		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs) {
-			return FieldFullNameSB(declaringType, name, fieldSig, typeGenArgs, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a field
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of field</param>
-		/// <param name="fieldSig">Field signature</param>
 		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Field full name</returns>
-		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs, StringBuilder sb) {
+		public static string FieldFullName(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs = null, StringBuilder sb = null) {
 			return FieldFullNameSB(declaringType, name, fieldSig, typeGenArgs, sb).ToString();
 		}
 
@@ -429,98 +318,12 @@ namespace dnlib.DotNet {
 		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
 		/// <param name="name">Name of method or <c>null</c> if none</param>
 		/// <param name="methodSig">Method signature</param>
-		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, UTF8String name, MethodSig methodSig) {
-			return MethodFullNameSB(declaringType, UTF8String.ToSystemString(name), methodSig, null, null, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a method
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of method or <c>null</c> if none</param>
-		/// <param name="methodSig">Method signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, UTF8String name, MethodSig methodSig, IList<TypeSig> typeGenArgs) {
-			return MethodFullNameSB(declaringType, UTF8String.ToSystemString(name), methodSig, typeGenArgs, null, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a method
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of method or <c>null</c> if none</param>
-		/// <param name="methodSig">Method signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <param name="methodGenArgs">Method generic arguments or <c>null</c> if none</param>
-		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, UTF8String name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
-			return MethodFullNameSB(declaringType, UTF8String.ToSystemString(name), methodSig, typeGenArgs, methodGenArgs, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a method
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of method or <c>null</c> if none</param>
-		/// <param name="methodSig">Method signature</param>
-		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, string name, MethodSig methodSig) {
-			return MethodFullNameSB(declaringType, name, methodSig, null, null, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a method
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of method or <c>null</c> if none</param>
-		/// <param name="methodSig">Method signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs) {
-			return MethodFullNameSB(declaringType, name, methodSig, typeGenArgs, null, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a method
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of method or <c>null</c> if none</param>
-		/// <param name="methodSig">Method signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <param name="methodGenArgs">Method generic arguments or <c>null</c> if none</param>
-		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
-			return MethodFullNameSB(declaringType, name, methodSig, typeGenArgs, methodGenArgs, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a method
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of method or <c>null</c> if none</param>
-		/// <param name="methodSig">Method signature</param>
-		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
-		/// <param name="methodGenArgs">Method generic arguments or <c>null</c> if none</param>
-		/// <param name="gppMethod">Generic parameter owner method or <c>null</c></param>
-		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, MethodDef gppMethod) {
-			return MethodFullNameSB(declaringType, name, methodSig, typeGenArgs, methodGenArgs, gppMethod, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a method
-		/// </summary>
-		/// <param name="declaringType">Declaring type full name or <c>null</c> if none</param>
-		/// <param name="name">Name of method or <c>null</c> if none</param>
-		/// <param name="methodSig">Method signature</param>
 		/// <param name="typeGenArgs">Type generic arguments or <c>null</c> if none</param>
 		/// <param name="methodGenArgs">Method generic arguments or <c>null</c> if none</param>
 		/// <param name="gppMethod">Generic parameter owner method or <c>null</c></param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Method full name</returns>
-		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, MethodDef gppMethod, StringBuilder sb) {
+		public static string MethodFullName(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs = null, IList<TypeSig> methodGenArgs = null, MethodDef gppMethod = null, StringBuilder sb = null) {
 			return MethodFullNameSB(declaringType, name, methodSig, typeGenArgs, methodGenArgs, gppMethod, sb).ToString();
 		}
 
@@ -548,39 +351,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Returns the full name of a method sig
-		/// </summary>
-		/// <param name="methodSig">Method sig</param>
-		/// <returns>Method sig full name</returns>
-		public static string MethodSigFullName(MethodSig methodSig) {
-			return MethodBaseSigFullNameSB(methodSig, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a property sig
-		/// </summary>
-		/// <param name="propertySig">Property sig</param>
-		/// <returns>Property sig full name</returns>
-		public static string PropertySigFullName(PropertySig propertySig) {
-			return MethodBaseSigFullNameSB(propertySig, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a property sig
-		/// </summary>
-		/// <param name="sig">Property sig</param>
-		/// <returns>Property sig full name</returns>
-		public static string MethodBaseSigFullName(MethodBaseSig sig) {
-			return MethodBaseSigFullNameSB(sig, null).ToString();
-		}
-
-		/// <summary>
 		/// Returns the full name of a property sig
 		/// </summary>
 		/// <param name="sig">Property sig</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Property sig full name</returns>
-		public static string MethodBaseSigFullName(MethodBaseSig sig, StringBuilder sb) {
+		public static string MethodBaseSigFullName(MethodBaseSig sig, StringBuilder sb = null) {
 			return MethodBaseSigFullNameSB(sig, sb).ToString();
 		}
 
@@ -603,21 +379,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name or null</param>
 		/// <param name="sig">Method sig</param>
 		/// <param name="gppMethod">Owner method or null</param>
-		/// <returns>Sig full name</returns>
-		public static string MethodBaseSigFullName(string declType, string name, MethodBaseSig sig, MethodDef gppMethod) {
-			return MethodBaseSigFullNameSB(declType, name, sig, gppMethod, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a sig
-		/// </summary>
-		/// <param name="declType">Declaring type or null</param>
-		/// <param name="name">Name or null</param>
-		/// <param name="sig">Method sig</param>
-		/// <param name="gppMethod">Owner method or null</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Sig full name</returns>
-		public static string MethodBaseSigFullName(string declType, string name, MethodBaseSig sig, MethodDef gppMethod, StringBuilder sb) {
+		public static string MethodBaseSigFullName(string declType, string name, MethodBaseSig sig, MethodDef gppMethod, StringBuilder sb = null) {
 			return MethodBaseSigFullNameSB(declType, name, sig, gppMethod, sb).ToString();
 		}
 
@@ -641,19 +405,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The namespace</returns>
-		public static string Namespace(TypeRef typeRef, bool isReflection) {
-			return NamespaceSB(typeRef, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the namespace of a <see cref="TypeRef"/>
-		/// </summary>
-		/// <param name="typeRef">The <c>TypeRef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
-		public static string Namespace(TypeRef typeRef, bool isReflection, StringBuilder sb) {
+		public static string Namespace(TypeRef typeRef, bool isReflection, StringBuilder sb = null) {
 			return NamespaceSB(typeRef, isReflection, sb).ToString();
 		}
 
@@ -675,19 +429,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The name</returns>
-		public static string Name(TypeRef typeRef, bool isReflection) {
-			return NameSB(typeRef, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the name of a <see cref="TypeRef"/>
-		/// </summary>
-		/// <param name="typeRef">The <c>TypeRef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
-		public static string Name(TypeRef typeRef, bool isReflection, StringBuilder sb) {
+		public static string Name(TypeRef typeRef, bool isReflection, StringBuilder sb = null) {
 			return NameSB(typeRef, isReflection, sb).ToString();
 		}
 
@@ -709,31 +453,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeRef typeRef, bool isReflection) {
-			return FullNameSB(typeRef, isReflection, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeRef"/>
-		/// </summary>
-		/// <param name="typeRef">The <c>TypeRef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeRef typeRef, bool isReflection, IFullNameCreatorHelper helper) {
-			return FullNameSB(typeRef, isReflection, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeRef"/>
-		/// </summary>
-		/// <param name="typeRef">The <c>TypeRef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeRef typeRef, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string FullName(TypeRef typeRef, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return FullNameSB(typeRef, isReflection, helper, sb).ToString();
 		}
 
@@ -755,29 +478,10 @@ namespace dnlib.DotNet {
 		/// Returns the assembly qualified full name of a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="typeRef">The <c>TypeRef</c></param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeRef typeRef) {
-			return AssemblyQualifiedNameSB(typeRef, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeRef"/>
-		/// </summary>
-		/// <param name="typeRef">The <c>TypeRef</c></param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeRef typeRef, IFullNameCreatorHelper helper) {
-			return AssemblyQualifiedNameSB(typeRef, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeRef"/>
-		/// </summary>
-		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeRef typeRef, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string AssemblyQualifiedName(TypeRef typeRef, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return AssemblyQualifiedNameSB(typeRef, helper, sb).ToString();
 		}
 
@@ -826,19 +530,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeDef">The <c>TypeDef</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The namespace</returns>
-		public static string Namespace(TypeDef typeDef, bool isReflection) {
-			return NamespaceSB(typeDef, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the namespace of a <see cref="TypeDef"/>
-		/// </summary>
-		/// <param name="typeDef">The <c>TypeDef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
-		public static string Namespace(TypeDef typeDef, bool isReflection, StringBuilder sb) {
+		public static string Namespace(TypeDef typeDef, bool isReflection, StringBuilder sb = null) {
 			return NamespaceSB(typeDef, isReflection, sb).ToString();
 		}
 
@@ -860,19 +554,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeDef">The <c>TypeDef</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The name</returns>
-		public static string Name(TypeDef typeDef, bool isReflection) {
-			return NameSB(typeDef, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the name of a <see cref="TypeDef"/>
-		/// </summary>
-		/// <param name="typeDef">The <c>TypeDef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
-		public static string Name(TypeDef typeDef, bool isReflection, StringBuilder sb) {
+		public static string Name(TypeDef typeDef, bool isReflection, StringBuilder sb = null) {
 			return NameSB(typeDef, isReflection, sb).ToString();
 		}
 
@@ -894,31 +578,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeDef">The <c>TypeDef</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeDef typeDef, bool isReflection) {
-			return FullNameSB(typeDef, isReflection, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeDef"/>
-		/// </summary>
-		/// <param name="typeDef">The <c>TypeDef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeDef typeDef, bool isReflection, IFullNameCreatorHelper helper) {
-			return FullNameSB(typeDef, isReflection, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeDef"/>
-		/// </summary>
-		/// <param name="typeDef">The <c>TypeDef</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeDef typeDef, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string FullName(TypeDef typeDef, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return FullNameSB(typeDef, isReflection, helper, sb).ToString();
 		}
 
@@ -940,29 +603,10 @@ namespace dnlib.DotNet {
 		/// Returns the assembly qualified full name of a <see cref="TypeDef"/>
 		/// </summary>
 		/// <param name="typeDef">The <c>TypeDef</c></param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeDef typeDef) {
-			return AssemblyQualifiedNameSB(typeDef, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeDef"/>
-		/// </summary>
-		/// <param name="typeDef">The <c>TypeDef</c></param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeDef typeDef, IFullNameCreatorHelper helper) {
-			return AssemblyQualifiedNameSB(typeDef, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeDef"/>
-		/// </summary>
-		/// <param name="typeDef">The <c>TypeDef</c></param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeDef typeDef, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string AssemblyQualifiedName(TypeDef typeDef, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return AssemblyQualifiedNameSB(typeDef, helper, sb).ToString();
 		}
 
@@ -1002,19 +646,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The namespace</returns>
-		public static string Namespace(TypeSpec typeSpec, bool isReflection) {
-			return NamespaceSB(typeSpec, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the namespace of a <see cref="TypeSpec"/>
-		/// </summary>
-		/// <param name="typeSpec">The <c>TypeSpec</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
-		public static string Namespace(TypeSpec typeSpec, bool isReflection, StringBuilder sb) {
+		public static string Namespace(TypeSpec typeSpec, bool isReflection, StringBuilder sb = null) {
 			return NamespaceSB(typeSpec, isReflection, sb).ToString();
 		}
 
@@ -1036,19 +670,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The name</returns>
-		public static string Name(TypeSpec typeSpec, bool isReflection) {
-			return NameSB(typeSpec, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the name of a <see cref="TypeSpec"/>
-		/// </summary>
-		/// <param name="typeSpec">The <c>TypeSpec</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
-		public static string Name(TypeSpec typeSpec, bool isReflection, StringBuilder sb) {
+		public static string Name(TypeSpec typeSpec, bool isReflection, StringBuilder sb = null) {
 			return NameSB(typeSpec, isReflection, sb).ToString();
 		}
 
@@ -1070,31 +694,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeSpec typeSpec, bool isReflection) {
-			return FullNameSB(typeSpec, isReflection, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeSpec"/>
-		/// </summary>
-		/// <param name="typeSpec">The <c>TypeSpec</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeSpec typeSpec, bool isReflection, IFullNameCreatorHelper helper) {
-			return FullNameSB(typeSpec, isReflection, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeSpec"/>
-		/// </summary>
-		/// <param name="typeSpec">The <c>TypeSpec</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeSpec typeSpec, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string FullName(TypeSpec typeSpec, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return FullNameSB(typeSpec, isReflection, helper, sb).ToString();
 		}
 
@@ -1116,29 +719,10 @@ namespace dnlib.DotNet {
 		/// Returns the assembly qualified full name of a <see cref="TypeSpec"/>
 		/// </summary>
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSpec typeSpec) {
-			return AssemblyQualifiedNameSB(typeSpec, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeSpec"/>
-		/// </summary>
-		/// <param name="typeSpec">The <c>TypeSpec</c></param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSpec typeSpec, IFullNameCreatorHelper helper) {
-			return AssemblyQualifiedNameSB(typeSpec, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeSpec"/>
-		/// </summary>
-		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSpec typeSpec, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string AssemblyQualifiedName(TypeSpec typeSpec, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return AssemblyQualifiedNameSB(typeSpec, helper, sb).ToString();
 		}
 
@@ -1196,19 +780,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The namespace</returns>
-		public static string Namespace(TypeSig typeSig, bool isReflection) {
-			return NamespaceSB(typeSig, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the namespace of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The type sig</param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
-		public static string Namespace(TypeSig typeSig, bool isReflection, StringBuilder sb) {
+		public static string Namespace(TypeSig typeSig, bool isReflection, StringBuilder sb = null) {
 			return NamespaceSB(typeSig, isReflection, sb).ToString();
 		}
 
@@ -1230,19 +804,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The name</returns>
-		public static string Name(TypeSig typeSig, bool isReflection) {
-			return NameSB(typeSig, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the name of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The type sig</param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
-		public static string Name(TypeSig typeSig, bool isReflection, StringBuilder sb) {
+		public static string Name(TypeSig typeSig, bool isReflection, StringBuilder sb = null) {
 			return NameSB(typeSig, isReflection, sb).ToString();
 		}
 
@@ -1264,58 +828,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeSig">The type sig</param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeSig typeSig, bool isReflection) {
-			return FullNameSB(typeSig, isReflection, null, null, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The type sig</param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper) {
-			return FullNameSB(typeSig, isReflection, helper, null, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The type sig</param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <param name="typeGenArgs">Type generic args or <c>null</c> if none</param>
-		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeSig typeSig, bool isReflection, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
-			return FullNameSB(typeSig, isReflection, null, typeGenArgs, methodGenArgs, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The type sig</param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <param name="helper">Helps print the name</param>
-		/// <param name="typeGenArgs">Type generic args or <c>null</c> if none</param>
-		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
-		/// <returns>The full name</returns>
-		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs) {
-			return FullNameSB(typeSig, isReflection, helper, typeGenArgs, methodGenArgs, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The type sig</param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="typeGenArgs">Type generic args or <c>null</c> if none</param>
 		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, StringBuilder sb) {
+		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper = null, IList<TypeSig> typeGenArgs = null, IList<TypeSig> methodGenArgs = null, StringBuilder sb = null) {
 			return FullNameSB(typeSig, isReflection, helper, typeGenArgs, methodGenArgs, sb).ToString();
 		}
 
@@ -1345,29 +863,10 @@ namespace dnlib.DotNet {
 		/// Returns the assembly qualified full name of a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="typeSig">The <c>TypeSig</c></param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSig typeSig) {
-			return AssemblyQualifiedNameSB(typeSig, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The <c>TypeSig</c></param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSig typeSig, IFullNameCreatorHelper helper) {
-			return AssemblyQualifiedNameSB(typeSig, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="TypeSig"/>
-		/// </summary>
-		/// <param name="typeSig">The <c>TypeSig</c></param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSig typeSig, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string AssemblyQualifiedName(TypeSig typeSig, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return AssemblyQualifiedNameSB(typeSig, helper, sb).ToString();
 		}
 
@@ -1425,19 +924,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The namespace</returns>
-		public static string Namespace(ExportedType exportedType, bool isReflection) {
-			return NamespaceSB(exportedType, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the namespace of a <see cref="ExportedType"/>
-		/// </summary>
-		/// <param name="exportedType">The <c>ExportedType</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
-		public static string Namespace(ExportedType exportedType, bool isReflection, StringBuilder sb) {
+		public static string Namespace(ExportedType exportedType, bool isReflection, StringBuilder sb = null) {
 			return NamespaceSB(exportedType, isReflection, sb).ToString();
 		}
 
@@ -1459,19 +948,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The name</returns>
-		public static string Name(ExportedType exportedType, bool isReflection) {
-			return NameSB(exportedType, isReflection, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the name of a <see cref="ExportedType"/>
-		/// </summary>
-		/// <param name="exportedType">The <c>ExportedType</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
-		public static string Name(ExportedType exportedType, bool isReflection, StringBuilder sb) {
+		public static string Name(ExportedType exportedType, bool isReflection, StringBuilder sb = null) {
 			return NameSB(exportedType, isReflection, sb).ToString();
 		}
 
@@ -1493,31 +972,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <returns>The full name</returns>
-		public static string FullName(ExportedType exportedType, bool isReflection) {
-			return FullNameSB(exportedType, isReflection, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="ExportedType"/>
-		/// </summary>
-		/// <param name="exportedType">The <c>ExportedType</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The full name</returns>
-		public static string FullName(ExportedType exportedType, bool isReflection, IFullNameCreatorHelper helper) {
-			return FullNameSB(exportedType, isReflection, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the full name of a <see cref="ExportedType"/>
-		/// </summary>
-		/// <param name="exportedType">The <c>ExportedType</c></param>
-		/// <param name="isReflection">Set if output should be compatible with reflection</param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(ExportedType exportedType, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string FullName(ExportedType exportedType, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return FullNameSB(exportedType, isReflection, helper, sb).ToString();
 		}
 
@@ -1539,29 +997,10 @@ namespace dnlib.DotNet {
 		/// Returns the assembly qualified full name of a <see cref="ExportedType"/>
 		/// </summary>
 		/// <param name="exportedType">The <c>ExportedType</c></param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(ExportedType exportedType) {
-			return AssemblyQualifiedNameSB(exportedType, null, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="ExportedType"/>
-		/// </summary>
-		/// <param name="exportedType">The <c>ExportedType</c></param>
-		/// <param name="helper">Helps print the name</param>
-		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(ExportedType exportedType, IFullNameCreatorHelper helper) {
-			return AssemblyQualifiedNameSB(exportedType, helper, null).ToString();
-		}
-
-		/// <summary>
-		/// Returns the assembly qualified full name of a <see cref="ExportedType"/>
-		/// </summary>
-		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(ExportedType exportedType, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static string AssemblyQualifiedName(ExportedType exportedType, IFullNameCreatorHelper helper = null, StringBuilder sb = null) {
 			return AssemblyQualifiedNameSB(exportedType, helper, sb).ToString();
 		}
 

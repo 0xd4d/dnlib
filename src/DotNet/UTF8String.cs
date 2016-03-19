@@ -51,7 +51,7 @@ namespace dnlib.DotNet {
 		public string String {
 			get {
 				if (asString == null)
-					Interlocked.CompareExchange(ref asString, ConvertFromUTF8(data), null);
+					asString = ConvertFromUTF8(data);
 				return asString;
 			}
 		}

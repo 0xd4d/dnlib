@@ -397,17 +397,6 @@ namespace dnlib.DotNet {
 		/// Creates an <see cref="AssemblyDef"/> instance from a file
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET assembly</param>
-		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
-		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
-		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(string fileName) {
-			return Load(fileName, (ModuleCreationOptions)null);
-		}
-
-		/// <summary>
-		/// Creates an <see cref="AssemblyDef"/> instance from a file
-		/// </summary>
-		/// <param name="fileName">File name of an existing .NET assembly</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
@@ -424,7 +413,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(string fileName, ModuleCreationOptions options) {
+		public static AssemblyDef Load(string fileName, ModuleCreationOptions options = null) {
 			if (fileName == null)
 				throw new ArgumentNullException("fileName");
 			ModuleDef module = null;
@@ -440,17 +429,6 @@ namespace dnlib.DotNet {
 					module.Dispose();
 				throw;
 			}
-		}
-
-		/// <summary>
-		/// Creates an <see cref="AssemblyDef"/> instance from a byte[]
-		/// </summary>
-		/// <param name="data">Contents of a .NET assembly</param>
-		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
-		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
-		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(byte[] data) {
-			return Load(data, (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -473,7 +451,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(byte[] data, ModuleCreationOptions options) {
+		public static AssemblyDef Load(byte[] data, ModuleCreationOptions options = null) {
 			if (data == null)
 				throw new ArgumentNullException("data");
 			ModuleDef module = null;
@@ -489,17 +467,6 @@ namespace dnlib.DotNet {
 					module.Dispose();
 				throw;
 			}
-		}
-
-		/// <summary>
-		/// Creates an <see cref="AssemblyDef"/> instance from a memory location
-		/// </summary>
-		/// <param name="addr">Address of a .NET assembly</param>
-		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
-		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
-		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(IntPtr addr) {
-			return Load(addr, (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -522,7 +489,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(IntPtr addr, ModuleCreationOptions options) {
+		public static AssemblyDef Load(IntPtr addr, ModuleCreationOptions options = null) {
 			if (addr == IntPtr.Zero)
 				throw new ArgumentNullException("addr");
 			ModuleDef module = null;
@@ -538,19 +505,6 @@ namespace dnlib.DotNet {
 					module.Dispose();
 				throw;
 			}
-		}
-
-		/// <summary>
-		/// Creates an <see cref="AssemblyDef"/> instance from a stream
-		/// </summary>
-		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[])"/>.
-		/// It's better to use one of the other Load() methods.</remarks>
-		/// <param name="stream">The stream</param>
-		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
-		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
-		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(Stream stream) {
-			return Load(stream, (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -577,7 +531,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(Stream stream, ModuleCreationOptions options) {
+		public static AssemblyDef Load(Stream stream, ModuleCreationOptions options = null) {
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 			ModuleDef module = null;
@@ -655,16 +609,8 @@ namespace dnlib.DotNet {
 		/// Writes the assembly to a file on disk. If the file exists, it will be truncated.
 		/// </summary>
 		/// <param name="filename">Filename</param>
-		public void Write(string filename) {
-			Write(filename, null);
-		}
-
-		/// <summary>
-		/// Writes the assembly to a file on disk. If the file exists, it will be truncated.
-		/// </summary>
-		/// <param name="filename">Filename</param>
 		/// <param name="options">Writer options</param>
-		public void Write(string filename, ModuleWriterOptions options) {
+		public void Write(string filename, ModuleWriterOptions options = null) {
 			ManifestModule.Write(filename, options);
 		}
 
@@ -672,16 +618,8 @@ namespace dnlib.DotNet {
 		/// Writes the assembly to a stream.
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
-		public void Write(Stream dest) {
-			Write(dest, null);
-		}
-
-		/// <summary>
-		/// Writes the assembly to a stream.
-		/// </summary>
-		/// <param name="dest">Destination stream</param>
 		/// <param name="options">Writer options</param>
-		public void Write(Stream dest, ModuleWriterOptions options) {
+		public void Write(Stream dest, ModuleWriterOptions options = null) {
 			ManifestModule.Write(dest, options);
 		}
 

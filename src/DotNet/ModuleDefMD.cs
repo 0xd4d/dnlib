@@ -152,15 +152,6 @@ namespace dnlib.DotNet {
 		/// Creates a <see cref="ModuleDefMD"/> instance from a file
 		/// </summary>
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
-		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(string fileName) {
-			return Load(fileName, (ModuleCreationOptions)null);
-		}
-
-		/// <summary>
-		/// Creates a <see cref="ModuleDefMD"/> instance from a file
-		/// </summary>
-		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(string fileName, ModuleContext context) {
@@ -173,17 +164,8 @@ namespace dnlib.DotNet {
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options) {
+		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options = null) {
 			return Load(MetaDataCreator.Load(fileName), options);
-		}
-
-		/// <summary>
-		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
-		/// </summary>
-		/// <param name="data">Contents of a .NET module/assembly</param>
-		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(byte[] data) {
-			return Load(data, (ModuleCreationOptions)null);
 		}
 
 		/// <summary>
@@ -202,7 +184,7 @@ namespace dnlib.DotNet {
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options) {
+		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options = null) {
 			return Load(MetaDataCreator.Load(data), options);
 		}
 
@@ -350,7 +332,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a stream
 		/// </summary>
-		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[])"/>.
+		/// <remarks>This will read all bytes from the stream and call <see cref="Load(byte[],ModuleCreationOptions)"/>.
 		/// It's better to use one of the other Load() methods.</remarks>
 		/// <param name="stream">The stream (owned by caller)</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
