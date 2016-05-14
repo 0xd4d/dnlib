@@ -654,22 +654,48 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns></returns>
 		AssemblyRef CreateDefaultCorLibAssemblyRef() {
-			AssemblyRef asmRef;
 			var asm = Assembly;
 			if (asm != null && Find("System.Int32", false) != null)
-				asmRef = new AssemblyRefUser(asm);
-			else if (this.IsClr40)
-				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR40();
-			else if (this.IsClr20)
-				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR20();
-			else if (this.IsClr11)
-				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR11();
-			else if (this.IsClr10)
-				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR10();
-			else
-				asmRef = AssemblyRefUser.CreateMscorlibReferenceCLR40();
-			return UpdateRowId(asmRef);
+				return UpdateRowId(new AssemblyRefUser(asm));
+
+			var asmRef = GetAlternativeCorLibReference();
+			if (asmRef != null)
+				return UpdateRowId(asmRef);
+
+			if (this.IsClr40)
+				return UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR40());
+			if (this.IsClr20)
+				return UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR20());
+			if (this.IsClr11)
+				return UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR11());
+			if (this.IsClr10)
+				return UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR10());
+			return UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR40());
 		}
+
+		AssemblyRef GetAlternativeCorLibReference() {
+			foreach (var asmRef in GetAssemblyRefs()) {
+				if (IsAssemblyRef(asmRef, systemRuntimeName, contractsPublicKeyToken))
+					return asmRef;
+			}
+			foreach (var asmRef in GetAssemblyRefs()) {
+				if (IsAssemblyRef(asmRef, corefxName, contractsPublicKeyToken))
+					return asmRef;
+			}
+			return null;
+		}
+
+		static bool IsAssemblyRef(AssemblyRef asmRef, UTF8String name, PublicKeyToken token) {
+			if (asmRef.Name != name)
+				return false;
+			var pkot = asmRef.PublicKeyOrToken;
+			if (pkot == null)
+				return false;
+			return token.Equals(pkot.Token);
+		}
+		static readonly UTF8String systemRuntimeName = new UTF8String("System.Runtime");
+		static readonly UTF8String corefxName = new UTF8String("corefx");
+		static readonly PublicKeyToken contractsPublicKeyToken = new PublicKeyToken("b03f5f7f11d50a3a");
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
