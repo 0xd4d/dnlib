@@ -1545,8 +1545,6 @@ namespace dnlib.DotNet.Writer {
 
 					var cilBody = method.Body;
 					if (cilBody != null) {
-						if (cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)
-							continue;
 						var writer = new MethodBodyWriter(this, cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
 						writer.Write();
 						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok));
