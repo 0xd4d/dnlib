@@ -60,10 +60,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 			var buffer = new byte[sizeToRead];
 			Read(buffer, sizeToRead, pcbRead);
-			if (pcbRead != null)
+			if (pcbRead != IntPtr.Zero)
 				Marshal.WriteInt64(pcbRead, Marshal.ReadInt32(pcbRead));
 			pstm.Write(buffer, buffer.Length, pcbWritten);
-			if (pcbWritten != null)
+			if (pcbWritten != IntPtr.Zero)
 				Marshal.WriteInt64(pcbWritten, Marshal.ReadInt32(pcbWritten));
 		}
 
@@ -159,7 +159,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <inheritdoc/>
 		public void Write(byte[] pv, int cb, IntPtr pcbWritten) {
 			stream.Write(pv, 0, cb);
-			if (pcbWritten != null)
+			if (pcbWritten != IntPtr.Zero)
 				Marshal.WriteInt32(pcbWritten, cb);
 		}
 	}

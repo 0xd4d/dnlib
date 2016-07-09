@@ -101,9 +101,6 @@ namespace dnlib.DotNet {
 	/// Created from a row in the Constant table
 	/// </summary>
 	sealed class ConstantMD : Constant, IMDTokenProviderMD {
-		/// <summary>The module where this instance is located</summary>
-		readonly ModuleDefMD readerModule;
-
 		readonly uint origRid;
 
 		/// <inheritdoc/>
@@ -127,7 +124,6 @@ namespace dnlib.DotNet {
 #endif
 			this.origRid = rid;
 			this.rid = rid;
-			this.readerModule = readerModule;
 			uint value = readerModule.TablesStream.ReadConstantRow(origRid, out this.type);
 			this.value = GetValue(this.type, readerModule.BlobStream.ReadNoNull(value));
 		}

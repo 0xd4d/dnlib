@@ -117,7 +117,7 @@ namespace dnlib.DotNet {
 				var name = ReadUTF8String();
 				// Use CA search rules. Some tools don't write the fully qualified name.
 				var attrRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(name), new CAAssemblyRefFinder(module), gpContext);
-				int blobLength = (int)reader.ReadCompressedUInt32();
+				/*int blobLength = (int)*/reader.ReadCompressedUInt32();
 				int numNamedArgs = (int)reader.ReadCompressedUInt32();
 				var namedArgs = CustomAttributeReader.ReadNamedArguments(module, reader, numNamedArgs, gpContext);
 				if (namedArgs == null)

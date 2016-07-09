@@ -141,8 +141,8 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Constructor
-		/// <param name="module">Owner module</param>
 		/// </summary>
+		/// <param name="module">Owner module</param>
 		/// <param name="name">Module name</param>
 		public ModuleRefUser(ModuleDef module, UTF8String name) {
 			this.module = module;

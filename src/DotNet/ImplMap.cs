@@ -301,9 +301,6 @@ namespace dnlib.DotNet {
 	/// Created from a row in the ImplMap table
 	/// </summary>
 	sealed class ImplMapMD : ImplMap, IMDTokenProviderMD {
-		/// <summary>The module where this instance is located</summary>
-		readonly ModuleDefMD readerModule;
-
 		readonly uint origRid;
 
 		/// <inheritdoc/>
@@ -327,7 +324,6 @@ namespace dnlib.DotNet {
 #endif
 			this.origRid = rid;
 			this.rid = rid;
-			this.readerModule = readerModule;
 			uint name;
 			uint scope = readerModule.TablesStream.ReadImplMapRow(origRid, out this.attributes, out name);
 			this.name = readerModule.StringsStream.ReadNoNull(name);

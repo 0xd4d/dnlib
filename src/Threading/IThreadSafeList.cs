@@ -21,7 +21,7 @@ namespace dnlib.Threading.Collections {
 		/// </summary>
 		/// <param name="item">Item</param>
 		/// <returns>Index of <paramref name="item"/> or <c>-1</c> if it's not present in the list</returns>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		int IndexOf_NoLock(T item);
 
 		/// <summary>
@@ -30,7 +30,7 @@ namespace dnlib.Threading.Collections {
 		/// </summary>
 		/// <param name="index">Index</param>
 		/// <param name="item">Item to insert</param>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		void Insert_NoLock(int index, T item);
 
 		/// <summary>
@@ -38,7 +38,7 @@ namespace dnlib.Threading.Collections {
 		/// <paramref name="index"/>
 		/// </summary>
 		/// <param name="index"></param>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		void RemoveAt_NoLock(int index);
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace dnlib.Threading.Collections {
 		/// </summary>
 		/// <param name="index">Index</param>
 		/// <returns>Value</returns>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		T Get_NoLock(int index);
 
 		/// <summary>
@@ -54,7 +54,7 @@ namespace dnlib.Threading.Collections {
 		/// </summary>
 		/// <param name="index">Index</param>
 		/// <param name="value">Value</param>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		void Set_NoLock(int index, T value);
 
 		/// <summary>
@@ -62,13 +62,13 @@ namespace dnlib.Threading.Collections {
 		/// list.
 		/// </summary>
 		/// <param name="item">Item</param>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		void Add_NoLock(T item);
 
 		/// <summary>
 		/// Must only be called when the list lock is held. Clears the list.
 		/// </summary>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		void Clear_NoLock();
 
 		/// <summary>
@@ -77,7 +77,7 @@ namespace dnlib.Threading.Collections {
 		/// </summary>
 		/// <param name="item">Item</param>
 		/// <returns><c>true</c> if <paramref name="item"/> exists in the list, else <c>false</c></returns>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		bool Contains_NoLock(T item);
 
 		/// <summary>
@@ -85,20 +85,20 @@ namespace dnlib.Threading.Collections {
 		/// </summary>
 		/// <param name="array">Destination array</param>
 		/// <param name="arrayIndex">Destination array index</param>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		void CopyTo_NoLock(T[] array, int arrayIndex);
 
 		/// <summary>
 		/// Must only be called when the list lock is held. Returns the size of the list.
 		/// </summary>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		int Count_NoLock { get; }
 
 		/// <summary>
 		/// Must only be called when the list lock is held. Returns <c>true</c> if the list is
 		/// read-only, <c>false</c> if it's writable.
 		/// </summary>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		bool IsReadOnly_NoLock { get; }
 
 		/// <summary>
@@ -108,14 +108,14 @@ namespace dnlib.Threading.Collections {
 		/// <param name="item">Item</param>
 		/// <returns><c>true</c> if <paramref name="item"/> was removed, <c>false</c> if
 		/// <paramref name="item"/> was never inserted in the list.</returns>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		bool Remove_NoLock(T item);
 
 		/// <summary>
 		/// Must only be called when the list lock is held. Gets the enumerator.
 		/// </summary>
 		/// <returns>A new enumerator instance</returns>
-		/// <seealso cref="ExecuteLocked"/>
+		/// <seealso cref="ExecuteLocked{TArgType, TRetType}(TArgType, ExecuteLockedDelegate{T, TArgType, TRetType})"/>
 		IEnumerator<T> GetEnumerator_NoLock();
 
 		/// <summary>
