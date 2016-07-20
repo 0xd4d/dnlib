@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
@@ -8,6 +8,7 @@ using dnlib.DotNet.Pdb;
 using dnlib.PE;
 using dnlib.W32Resources;
 using dnlib.DotNet.MD;
+using System.Diagnostics;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -23,6 +24,7 @@ namespace dnlib.DotNet.Writer {
 		Win32Resources win32Resources;
 		StrongNameKey strongNameKey;
 		StrongNamePublicKey strongNamePublicKey;
+		bool delaySign;
 
 		/// <summary>
 		/// Gets/sets the listener
@@ -82,6 +84,16 @@ namespace dnlib.DotNet.Writer {
 		public Win32Resources Win32Resources {
 			get { return win32Resources; }
 			set { win32Resources = value; }
+		}
+
+		/// <summary>
+		/// true to delay sign the assembly. Initialize <see cref="StrongNamePublicKey"/> to the
+		/// public key to use, and don't initialize <see cref="StrongNameKey"/>. To generate the
+		/// public key from your strong name key file, execute <c>sn -p mykey.snk mypublickey.snk</c>
+		/// </summary>
+		public bool DelaySign {
+			get { return delaySign; }
+			set { delaySign = value; }
 		}
 
 		/// <summary>
@@ -492,7 +504,12 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		public void Write(Stream dest) {
-			if (TheOptions.StrongNameKey != null || TheOptions.StrongNamePublicKey != null)
+			if (TheOptions.DelaySign) {
+				Debug.Assert(TheOptions.StrongNamePublicKey != null, "Options.StrongNamePublicKey must be initialized when delay signing the assembly");
+				Debug.Assert(TheOptions.StrongNameKey == null, "Options.StrongNameKey must be null when delay signing the assembly");
+				TheOptions.Cor20HeaderOptions.Flags &= ~ComImageFlags.StrongNameSigned;
+			}
+			else if (TheOptions.StrongNameKey != null || TheOptions.StrongNamePublicKey != null)
 				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
 			Listener = TheOptions.Listener ?? DummyModuleWriterListener.Instance;
@@ -521,7 +538,11 @@ namespace dnlib.DotNet.Writer {
 		/// set or wants to sign the assembly.
 		/// </summary>
 		protected void CreateStrongNameSignature() {
-			if (TheOptions.StrongNameKey != null)
+			if (TheOptions.DelaySign && TheOptions.StrongNamePublicKey != null) {
+				int len = TheOptions.StrongNamePublicKey.CreatePublicKey().Length - 0x20;
+				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
+			}
+			else if (TheOptions.StrongNameKey != null)
 				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
 			else if (Module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(Module.Assembly.PublicKey)) {
 				int len = Module.Assembly.PublicKey.Data.Length - 0x20;

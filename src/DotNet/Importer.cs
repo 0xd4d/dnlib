@@ -87,48 +87,18 @@ namespace dnlib.DotNet {
 		ImporterOptions options;
 		ImportResolver resolver;
 
-		/// <summary>
-		/// Gets/sets the <see cref="ImporterOptions.TryToUseTypeDefs"/> bit
-		/// </summary>
-		public bool TryToUseTypeDefs {
+		bool TryToUseTypeDefs {
 			get { return (options & ImporterOptions.TryToUseTypeDefs) != 0; }
-			set {
-				if (value)
-					options |= ImporterOptions.TryToUseTypeDefs;
-				else
-					options &= ~ImporterOptions.TryToUseTypeDefs;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="ImporterOptions.TryToUseMethodDefs"/> bit
-		/// </summary>
-		public bool TryToUseMethodDefs {
+		bool TryToUseMethodDefs {
 			get { return (options & ImporterOptions.TryToUseMethodDefs) != 0; }
-			set {
-				if (value)
-					options |= ImporterOptions.TryToUseMethodDefs;
-				else
-					options &= ~ImporterOptions.TryToUseMethodDefs;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="ImporterOptions.TryToUseFieldDefs"/> bit
-		/// </summary>
-		public bool TryToUseFieldDefs {
+		bool TryToUseFieldDefs {
 			get { return (options & ImporterOptions.TryToUseFieldDefs) != 0; }
-			set {
-				if (value)
-					options |= ImporterOptions.TryToUseFieldDefs;
-				else
-					options &= ~ImporterOptions.TryToUseFieldDefs;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="ImporterOptions.FixSignature"/> bit
-		/// </summary>
 		bool FixSignature {
 			get { return (options & ImporterOptions.FixSignature) != 0; }
 			set {

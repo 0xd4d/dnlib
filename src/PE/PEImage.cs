@@ -196,10 +196,21 @@ namespace dnlib.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="data">The PE file data</param>
+		/// <param name="filename">Filename or null</param>
+		/// <param name="imageLayout">Image layout</param>
+		/// <param name="verify">Verify PE file data</param>
+		public PEImage(byte[] data, string filename, ImageLayout imageLayout, bool verify)
+			: this(new MemoryStreamCreator(data) { FileName = filename }, imageLayout, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="data">The PE file data</param>
 		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(byte[] data, ImageLayout imageLayout, bool verify)
-			: this(new MemoryStreamCreator(data), imageLayout, verify) {
+			: this(data, null, imageLayout, verify) {
 		}
 
 		/// <summary>
@@ -208,7 +219,17 @@ namespace dnlib.PE {
 		/// <param name="data">The PE file data</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(byte[] data, bool verify)
-			: this(data, ImageLayout.File, verify) {
+			: this(data, null, ImageLayout.File, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="data">The PE file data</param>
+		/// <param name="filename">Filename or null</param>
+		/// <param name="verify">Verify PE file data</param>
+		public PEImage(byte[] data, string filename, bool verify)
+			: this(data, filename, ImageLayout.File, verify) {
 		}
 
 		/// <summary>
@@ -216,7 +237,16 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <param name="data">The PE file data</param>
 		public PEImage(byte[] data)
-			: this(data, true) {
+			: this(data, null, true) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="data">The PE file data</param>
+		/// <param name="filename">Filename or null</param>
+		public PEImage(byte[] data, string filename)
+			: this(data, filename, true) {
 		}
 
 		/// <summary>

@@ -717,7 +717,7 @@ namespace dnlib.DotNet {
 		public string FullName {
 			get {
 				var dt = declaringType2;
-				return FullNameCreator.FieldFullName(dt == null ? null : dt.FullName, name, FieldSig);
+				return FullNameCreator.FieldFullName(dt == null ? null : dt.FullName, name, FieldSig, null, null);
 			}
 		}
 

@@ -58,7 +58,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DotNet\AccessChecker.cs" />
     <Compile Include="DotNet\AllTypesHelper.cs" />
     <Compile Include="DotNet\AssemblyAttributes.cs" />
     <Compile Include="DotNet\AssemblyDef.cs" />

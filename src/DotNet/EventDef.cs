@@ -257,7 +257,7 @@ namespace dnlib.DotNet {
 		public string FullName {
 			get {
 				var dt = declaringType2;
-				return FullNameCreator.EventFullName(dt == null ? null : dt.FullName, name, eventType);
+				return FullNameCreator.EventFullName(dt == null ? null : dt.FullName, name, eventType, null, null);
 			}
 		}
 

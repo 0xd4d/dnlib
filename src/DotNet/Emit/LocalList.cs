@@ -271,6 +271,28 @@ namespace dnlib.DotNet.Emit {
 			this.typeSig = typeSig;
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="typeSig">The type</param>
+		/// <param name="name">Name of local</param>
+		public Local(TypeSig typeSig, string name) {
+			this.typeSig = typeSig;
+			this.name = name;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="typeSig">The type</param>
+		/// <param name="name">Name of local</param>
+		/// <param name="index">Index, should only be used if you don't add it to the locals list</param>
+		public Local(TypeSig typeSig, string name, int index) {
+			this.typeSig = typeSig;
+			this.name = name;
+			this.index = index;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			var n = name;

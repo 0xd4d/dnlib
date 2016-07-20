@@ -1,7 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Text;
 using dnlib.Threading;
 
 namespace dnlib.DotNet {
@@ -15,6 +16,7 @@ namespace dnlib.DotNet {
 		Dictionary<ITypeDefOrRef, TypeDef> typeRefCache = new Dictionary<ITypeDefOrRef, TypeDef>(new TypeEqualityComparer(TypeComparerOptions));
 		Dictionary<string, TypeDef> normalNameCache = new Dictionary<string, TypeDef>(StringComparer.Ordinal);
 		Dictionary<string, TypeDef> reflectionNameCache = new Dictionary<string, TypeDef>(StringComparer.Ordinal);
+		readonly StringBuilder sb = new StringBuilder();
 		IEnumerator<TypeDef> typeEnumerator;
 		readonly IEnumerable<TypeDef> rootTypes;
 #if THREAD_SAFE
@@ -165,7 +167,10 @@ namespace dnlib.DotNet {
 			// Build the cache lazily
 			while (true) {
 				cachedType = GetNextTypeDefCache();
-				if (cachedType == null || cachedType.ReflectionFullName == fullName)
+				if (cachedType == null)
+					return cachedType;
+				sb.Length = 0;
+				if (FullNameCreator.FullName(cachedType, true, null, sb) == fullName)
 					return cachedType;
 			}
 		}
@@ -178,7 +183,10 @@ namespace dnlib.DotNet {
 			// Build the cache lazily
 			while (true) {
 				cachedType = GetNextTypeDefCache();
-				if (cachedType == null || cachedType.FullName == fullName)
+				if (cachedType == null)
+					return cachedType;
+				sb.Length = 0;
+				if (FullNameCreator.FullName(cachedType, false, null, sb) == fullName)
 					return cachedType;
 			}
 		}
@@ -197,7 +205,10 @@ namespace dnlib.DotNet {
 			InitializeTypeEnumerator();
 			while (true) {
 				var type = GetNextTypeDef();
-				if (type == null || type.ReflectionFullName == fullName)
+				if (type == null)
+					return type;
+				sb.Length = 0;
+				if (FullNameCreator.FullName(type, true, null, sb) == fullName)
 					return type;
 			}
 		}
@@ -206,7 +217,10 @@ namespace dnlib.DotNet {
 			InitializeTypeEnumerator();
 			while (true) {
 				var type = GetNextTypeDef();
-				if (type == null || type.FullName == fullName)
+				if (type == null)
+					return type;
+				sb.Length = 0;
+				if (FullNameCreator.FullName(type, false, null, sb) == fullName)
 					return type;
 			}
 		}
@@ -241,9 +255,11 @@ namespace dnlib.DotNet {
 			if (!typeRefCache.ContainsKey(type))
 				typeRefCache[type] = type;
 			string fn;
-			if (!normalNameCache.ContainsKey(fn = type.FullName))
+			sb.Length = 0;
+			if (!normalNameCache.ContainsKey(fn = FullNameCreator.FullName(type, false, null, sb)))
 				normalNameCache[fn] = type;
-			if (!reflectionNameCache.ContainsKey(fn = type.ReflectionFullName))
+			sb.Length = 0;
+			if (!reflectionNameCache.ContainsKey(fn = FullNameCreator.FullName(type, true, null, sb)))
 				reflectionNameCache[fn] = type;
 
 			return type;

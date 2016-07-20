@@ -1340,19 +1340,10 @@ namespace dnlib.DotNet {
 		/// Creates a new <see cref="ModuleContext"/> instance. There should normally only be one
 		/// instance shared by all <see cref="ModuleDef"/>s.
 		/// </summary>
-		/// <returns>A new <see cref="ModuleContext"/> instance</returns>
-		public static ModuleContext CreateModuleContext() {
-			return CreateModuleContext(true);
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="ModuleContext"/> instance. There should normally only be one
-		/// instance shared by all <see cref="ModuleDef"/>s.
-		/// </summary>
 		/// <param name="addOtherSearchPaths">If <c>true</c>, add other common assembly search
 		/// paths, not just the module search paths and the GAC.</param>
 		/// <returns>A new <see cref="ModuleContext"/> instance</returns>
-		public static ModuleContext CreateModuleContext(bool addOtherSearchPaths) {
+		public static ModuleContext CreateModuleContext(bool addOtherSearchPaths = true) {
 			var ctx = new ModuleContext();
 			var asmRes = new AssemblyResolver(ctx, addOtherSearchPaths);
 			var res = new Resolver(asmRes);
@@ -1365,16 +1356,8 @@ namespace dnlib.DotNet {
 		/// Load everything in this module. All types, fields, asm refs, etc are loaded, all their
 		/// properties are read to make sure everything is cached.
 		/// </summary>
-		public void LoadEverything() {
-			LoadEverything(null);
-		}
-
-		/// <summary>
-		/// Load everything in this module. All types, fields, asm refs, etc are loaded, all their
-		/// properties are read to make sure everything is cached.
-		/// </summary>
 		/// <param name="cancellationToken">Cancellation token or <c>null</c></param>
-		public virtual void LoadEverything(ICancellationToken cancellationToken) {
+		public virtual void LoadEverything(ICancellationToken cancellationToken = null) {
 			ModuleLoader.LoadAll(this, cancellationToken);
 		}
 
@@ -1400,6 +1383,25 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="mdToken"/> is invalid</returns>
 		public IMDTokenProvider ResolveToken(MDToken mdToken, GenericParamContext gpContext) {
 			return ResolveToken(mdToken.Raw, gpContext);
+		}
+
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="token">The metadata token</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
+		public IMDTokenProvider ResolveToken(int token) {
+			return ResolveToken((uint)token, new GenericParamContext());
+		}
+
+		/// <summary>
+		/// Resolves a token
+		/// </summary>
+		/// <param name="token">The metadata token</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
+		public IMDTokenProvider ResolveToken(int token, GenericParamContext gpContext) {
+			return ResolveToken((uint)token, gpContext);
 		}
 
 		/// <summary>

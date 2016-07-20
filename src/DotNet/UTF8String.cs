@@ -51,7 +51,7 @@ namespace dnlib.DotNet {
 		public string String {
 			get {
 				if (asString == null)
-					Interlocked.CompareExchange(ref asString, ConvertFromUTF8(data), null);
+					asString = ConvertFromUTF8(data);
 				return asString;
 			}
 		}
@@ -173,7 +173,7 @@ namespace dnlib.DotNet {
 				return -1;
 			if (sb == null)
 				return 1;
-			return sa.ToUpperInvariant().CompareTo(sb.ToUpperInvariant());
+			return StringComparer.OrdinalIgnoreCase.Compare(sa, sb);
 		}
 
 		/// <summary>

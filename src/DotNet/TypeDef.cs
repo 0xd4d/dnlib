@@ -1,12 +1,13 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
 using dnlib.Threading;
+using System.Text;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;
@@ -71,37 +72,37 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		string IType.TypeName {
-			get { return FullNameCreator.Name(this, false); }
+			get { return FullNameCreator.Name(this, false, null); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionName {
-			get { return FullNameCreator.Name(this, true); }
+			get { return FullNameCreator.Name(this, true, null); }
 		}
 
 		/// <inheritdoc/>
 		string IType.Namespace {
-			get { return FullNameCreator.Namespace(this, false); }
+			get { return FullNameCreator.Namespace(this, false, null); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionNamespace {
-			get { return FullNameCreator.Namespace(this, true); }
+			get { return FullNameCreator.Namespace(this, true, null); }
 		}
 
 		/// <inheritdoc/>
 		public string FullName {
-			get { return FullNameCreator.FullName(this, false); }
+			get { return FullNameCreator.FullName(this, false, null, null); }
 		}
 
 		/// <inheritdoc/>
 		public string ReflectionFullName {
-			get { return FullNameCreator.FullName(this, true); }
+			get { return FullNameCreator.FullName(this, true, null, null); }
 		}
 
 		/// <inheritdoc/>
 		public string AssemblyQualifiedName {
-			get { return FullNameCreator.AssemblyQualifiedName(this); }
+			get { return FullNameCreator.AssemblyQualifiedName(this, null, null); }
 		}
 
 		/// <inheritdoc/>
@@ -678,32 +679,65 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
+				if ((Attributes & (TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.ClassSemanticsMask)) != (TypeAttributes.Sealed | TypeAttributes.Class))
+					return false;
 				var baseType = BaseType;
 				if (baseType == null)
 					return false;
-				if (baseType.Namespace != "System")
-					return false;
-				if (baseType.TypeName != "ValueType" && baseType.TypeName != "Enum")
-					return false;
 				if (!baseType.DefinitionAssembly.IsCorLib())
 					return false;
-				return !(FullName == "System.Enum" && DefinitionAssembly.IsCorLib());
+
+				// PERF: Don't allocate a System.String by calling FullName etc.
+				UTF8String baseName, baseNamespace;
+				var baseTr = baseType as TypeRef;
+				if (baseTr != null) {
+					baseName = baseTr.Name;
+					baseNamespace = baseTr.Namespace;
+				}
+				else {
+					var baseTd = baseType as TypeDef;
+					if (baseTd == null)
+						return false;
+					baseName = baseTd.Name;
+					baseNamespace = baseTd.Namespace;
+				}
+
+				if (baseNamespace != systemString)
+					return false;
+				if (baseName != valueTypeString && baseName != enumString)
+					return false;
+
+				if (!DefinitionAssembly.IsCorLib())
+					return true;
+				return !(Name == enumString && Namespace == systemString);
 			}
 		}
+		static readonly UTF8String systemString = new UTF8String("System");
+		static readonly UTF8String enumString = new UTF8String("Enum");
+		static readonly UTF8String valueTypeString = new UTF8String("ValueType");
+		static readonly UTF8String multicastDelegateString = new UTF8String("MulticastDelegate");
 
 		/// <summary>
 		/// <c>true</c> if it's an enum
 		/// </summary>
 		public bool IsEnum {
 			get {
+				if ((Attributes & (TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.ClassSemanticsMask)) != (TypeAttributes.Sealed | TypeAttributes.Class))
+					return false;
 				var baseType = BaseType;
 				if (baseType == null)
 					return false;
-				if (baseType.Namespace != "System")
+				if (!baseType.DefinitionAssembly.IsCorLib())
 					return false;
-				if (baseType.TypeName != "Enum")
-					return false;
-				return baseType.DefinitionAssembly.IsCorLib();
+
+				// PERF: Don't allocate a System.String by calling FullName etc.
+				var baseTr = baseType as TypeRef;
+				if (baseTr != null)
+					return baseTr.Namespace == systemString && baseTr.Name == enumString;
+				var baseTd = baseType as TypeDef;
+				if (baseTd != null)
+					return baseTd.Namespace == systemString && baseTd.Name == enumString;
+				return false;
 			}
 		}
 
@@ -712,14 +746,22 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsDelegate {
 			get {
+				if ((Attributes & (TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.ClassSemanticsMask)) != (TypeAttributes.Sealed | TypeAttributes.Class))
+					return false;
 				var baseType = BaseType;
 				if (baseType == null)
 					return false;
-				if (baseType.Namespace != "System")
+				if (!baseType.DefinitionAssembly.IsCorLib())
 					return false;
-				if (baseType.TypeName != "MulticastDelegate")
-					return false;
-				return baseType.DefinitionAssembly.IsCorLib();
+
+				// PERF: Don't allocate a System.String by calling FullName etc.
+				var baseTr = baseType as TypeRef;
+				if (baseTr != null)
+					return baseTr.Namespace == systemString && baseTr.Name == multicastDelegateString;
+				var baseTd = baseType as TypeDef;
+				if (baseTd != null)
+					return baseTd.Namespace == systemString && baseTd.Name == multicastDelegateString;
+				return false;
 			}
 		}
 
