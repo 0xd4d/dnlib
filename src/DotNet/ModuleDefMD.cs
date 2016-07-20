@@ -689,14 +689,6 @@ namespace dnlib.DotNet {
 			return UpdateRowId(asmRef);
 		}
 
-		static bool IsGreaterAssemblyRefVersion(AssemblyRef found, AssemblyRef newOne) {
-			if (found == null)
-				return true;
-			var foundVer = found.Version;
-			var newVer = newOne.Version;
-			return foundVer == null || (newVer != null && newVer >= foundVer);
-		}
-
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
 			// Call base first since it will dispose of all the resources, which will
@@ -708,25 +700,6 @@ namespace dnlib.DotNet {
 					md.Dispose();
 				metaData = null;
 			}
-		}
-
-		/// <summary>
-		/// Resolves a token
-		/// </summary>
-		/// <param name="mdToken">The metadata token</param>
-		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="mdToken"/> is invalid</returns>
-		public IMDTokenProvider ResolveToken(MDToken mdToken) {
-			return ResolveToken(mdToken.Raw, new GenericParamContext());
-		}
-
-		/// <summary>
-		/// Resolves a token
-		/// </summary>
-		/// <param name="mdToken">The metadata token</param>
-		/// <param name="gpContext">Generic parameter context</param>
-		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="mdToken"/> is invalid</returns>
-		public IMDTokenProvider ResolveToken(MDToken mdToken, GenericParamContext gpContext) {
-			return ResolveToken(mdToken.Raw, gpContext);
 		}
 
 		/// <summary>
@@ -752,18 +725,9 @@ namespace dnlib.DotNet {
 		/// Resolves a token
 		/// </summary>
 		/// <param name="token">The metadata token</param>
-		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		public IMDTokenProvider ResolveToken(uint token) {
-			return ResolveToken(token, new GenericParamContext());
-		}
-
-		/// <summary>
-		/// Resolves a token
-		/// </summary>
-		/// <param name="token">The metadata token</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		public IMDTokenProvider ResolveToken(uint token, GenericParamContext gpContext) {
+		public override IMDTokenProvider ResolveToken(uint token, GenericParamContext gpContext) {
 			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
 			case Table.Module:			return ResolveModule(rid);
@@ -1657,7 +1621,7 @@ namespace dnlib.DotNet {
 		/// <returns>Base directory or <c>null</c> if unknown or if an error occurred</returns>
 		string GetBaseDirectoryOfImage() {
 			var imageFileName = Location;
-			if (imageFileName == null)
+			if (string.IsNullOrEmpty(imageFileName))
 				return null;
 			try {
 				return Path.GetDirectoryName(imageFileName);
@@ -1812,82 +1776,6 @@ namespace dnlib.DotNet {
 			if ((cor20Header.Flags & ComImageFlags.NativeEntryPoint) != 0)
 				return null;
 			return ResolveToken(cor20Header.EntryPointToken_or_RVA) as IManagedEntryPoint;
-		}
-
-		/// <summary>
-		/// Gets all <see cref="AssemblyRef"/>s
-		/// </summary>
-		public IEnumerable<AssemblyRef> GetAssemblyRefs() {
-			for (uint rid = 1; ; rid++) {
-				var asmRef = ResolveAssemblyRef(rid);
-				if (asmRef == null)
-					break;
-				yield return asmRef;
-			}
-		}
-
-		/// <summary>
-		/// Gets all <see cref="ModuleRef"/>s
-		/// </summary>
-		public IEnumerable<ModuleRef> GetModuleRefs() {
-			for (uint rid = 1; ; rid++) {
-				var modRef = ResolveModuleRef(rid);
-				if (modRef == null)
-					break;
-				yield return modRef;
-			}
-		}
-
-		/// <summary>
-		/// Gets all <see cref="MemberRef"/>s. <see cref="MemberRef"/>s with generic parameters
-		/// aren't cached and a new copy is always returned.
-		/// </summary>
-		public IEnumerable<MemberRef> GetMemberRefs() {
-			return GetMemberRefs(new GenericParamContext());
-		}
-
-		/// <summary>
-		/// Gets all <see cref="MemberRef"/>s. <see cref="MemberRef"/>s with generic parameters
-		/// aren't cached and a new copy is always returned.
-		/// </summary>
-		/// <param name="gpContext">Generic parameter context</param>
-		public IEnumerable<MemberRef> GetMemberRefs(GenericParamContext gpContext) {
-			for (uint rid = 1; ; rid++) {
-				var mr = ResolveMemberRef(rid, gpContext);
-				if (mr == null)
-					break;
-				yield return mr;
-			}
-		}
-
-		/// <summary>
-		/// Gets all <see cref="TypeRef"/>s
-		/// </summary>
-		public IEnumerable<TypeRef> GetTypeRefs() {
-			for (uint rid = 1; ; rid++) {
-				var mr = ResolveTypeRef(rid);
-				if (mr == null)
-					break;
-				yield return mr;
-			}
-		}
-
-		/// <summary>
-		/// Finds an assembly reference by name. If there's more than one, pick the one with
-		/// the greatest version number.
-		/// </summary>
-		/// <param name="simpleName">Simple name of assembly (eg. "mscorlib")</param>
-		/// <returns>The found <see cref="AssemblyRef"/> or <c>null</c> if there's no such
-		/// assembly reference.</returns>
-		public AssemblyRef GetAssemblyRef(UTF8String simpleName) {
-			AssemblyRef found = null;
-			foreach (var asmRef in GetAssemblyRefs()) {
-				if (asmRef.Name != simpleName)
-					continue;
-				if (IsGreaterAssemblyRefVersion(found, asmRef))
-					found = asmRef;
-			}
-			return found;
 		}
 
 		/// <summary>

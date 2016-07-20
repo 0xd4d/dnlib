@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -588,6 +588,12 @@ namespace dnlib.DotNet {
 		/// Don't project CLR compatible WinMD references back to the original CLR type/method before comparing
 		/// </summary>
 		DontProjectWinMDRefs = 0x200000,
+
+		/// <summary>
+		/// Don't check type equivalence when comparing types. Starting with .NET 4.0, two different
+		/// types can be considered equivalent if eg. a TypeIdentifierAttribute is used.
+		/// </summary>
+		DontCheckTypeEquivalence = 0x400000,
 	}
 
 	/// <summary>
@@ -610,300 +616,98 @@ namespace dnlib.DotNet {
 		RecursionCounter recursionCounter;
 		SigComparerOptions options;
 		GenericArguments genericArguments;
-		ModuleDef sourceModule;
+		readonly ModuleDef sourceModule;
 
-		/// <summary>
-		/// Gets/sets the options
-		/// </summary>
-		public SigComparerOptions Options {
-			get { return options; }
-			set { options = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.DontCompareTypeScope"/> bit
-		/// </summary>
-		public bool DontCompareTypeScope {
+		bool DontCompareTypeScope {
 			get { return (options & SigComparerOptions.DontCompareTypeScope) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.DontCompareTypeScope;
-				else
-					options &= ~SigComparerOptions.DontCompareTypeScope;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CompareMethodFieldDeclaringType"/> bit
-		/// </summary>
-		public bool CompareMethodFieldDeclaringType {
+		bool CompareMethodFieldDeclaringType {
 			get { return (options & SigComparerOptions.CompareMethodFieldDeclaringType) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CompareMethodFieldDeclaringType;
-				else
-					options &= ~SigComparerOptions.CompareMethodFieldDeclaringType;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.ComparePropertyDeclaringType"/> bit
-		/// </summary>
-		public bool ComparePropertyDeclaringType {
+		bool ComparePropertyDeclaringType {
 			get { return (options & SigComparerOptions.ComparePropertyDeclaringType) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.ComparePropertyDeclaringType;
-				else
-					options &= ~SigComparerOptions.ComparePropertyDeclaringType;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CompareEventDeclaringType"/> bit
-		/// </summary>
-		public bool CompareEventDeclaringType {
+		bool CompareEventDeclaringType {
 			get { return (options & SigComparerOptions.CompareEventDeclaringType) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CompareEventDeclaringType;
-				else
-					options &= ~SigComparerOptions.CompareEventDeclaringType;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CompareSentinelParams"/> bit
-		/// </summary>
-		public bool CompareSentinelParams {
+		bool CompareSentinelParams {
 			get { return (options & SigComparerOptions.CompareSentinelParams) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CompareSentinelParams;
-				else
-					options &= ~SigComparerOptions.CompareSentinelParams;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CompareAssemblyPublicKeyToken"/> bit
-		/// </summary>
-		public bool CompareAssemblyPublicKeyToken {
+		bool CompareAssemblyPublicKeyToken {
 			get { return (options & SigComparerOptions.CompareAssemblyPublicKeyToken) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CompareAssemblyPublicKeyToken;
-				else
-					options &= ~SigComparerOptions.CompareAssemblyPublicKeyToken;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CompareAssemblyVersion"/> bit
-		/// </summary>
-		public bool CompareAssemblyVersion {
+		bool CompareAssemblyVersion {
 			get { return (options & SigComparerOptions.CompareAssemblyVersion) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CompareAssemblyVersion;
-				else
-					options &= ~SigComparerOptions.CompareAssemblyVersion;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CompareAssemblyLocale"/> bit
-		/// </summary>
-		public bool CompareAssemblyLocale {
+		bool CompareAssemblyLocale {
 			get { return (options & SigComparerOptions.CompareAssemblyLocale) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CompareAssemblyLocale;
-				else
-					options &= ~SigComparerOptions.CompareAssemblyLocale;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.TypeRefCanReferenceGlobalType"/> bit
-		/// </summary>
-		public bool TypeRefCanReferenceGlobalType {
+		bool TypeRefCanReferenceGlobalType {
 			get { return (options & SigComparerOptions.TypeRefCanReferenceGlobalType) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.TypeRefCanReferenceGlobalType;
-				else
-					options &= ~SigComparerOptions.TypeRefCanReferenceGlobalType;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.DontCompareReturnType"/> bit
-		/// </summary>
-		public bool DontCompareReturnType {
+		bool DontCompareReturnType {
 			get { return (options & SigComparerOptions.DontCompareReturnType) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.DontCompareReturnType;
-				else
-					options &= ~SigComparerOptions.DontCompareReturnType;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.SubstituteGenericParameters"/> bit
-		/// </summary>
-		public bool SubstituteGenericParameters {
+		bool SubstituteGenericParameters {
 			get { return (options & SigComparerOptions.SubstituteGenericParameters) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.SubstituteGenericParameters;
-				else
-					options &= ~SigComparerOptions.SubstituteGenericParameters;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveTypeNamespaces"/> bit
-		/// </summary>
-		public bool CaseInsensitiveTypeNamespaces {
+		bool CaseInsensitiveTypeNamespaces {
 			get { return (options & SigComparerOptions.CaseInsensitiveTypeNamespaces) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CaseInsensitiveTypeNamespaces;
-				else
-					options &= ~SigComparerOptions.CaseInsensitiveTypeNamespaces;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveTypeNames"/> bit
-		/// </summary>
-		public bool CaseInsensitiveTypeNames {
+		bool CaseInsensitiveTypeNames {
 			get { return (options & SigComparerOptions.CaseInsensitiveTypeNames) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CaseInsensitiveTypeNames;
-				else
-					options &= ~SigComparerOptions.CaseInsensitiveTypeNames;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveMethodFieldNames"/> bit
-		/// </summary>
-		public bool CaseInsensitiveMethodFieldNames {
+		bool CaseInsensitiveMethodFieldNames {
 			get { return (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CaseInsensitiveMethodFieldNames;
-				else
-					options &= ~SigComparerOptions.CaseInsensitiveMethodFieldNames;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitivePropertyNames"/> bit
-		/// </summary>
-		public bool CaseInsensitivePropertyNames {
+		bool CaseInsensitivePropertyNames {
 			get { return (options & SigComparerOptions.CaseInsensitivePropertyNames) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CaseInsensitivePropertyNames;
-				else
-					options &= ~SigComparerOptions.CaseInsensitivePropertyNames;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.CaseInsensitiveEventNames"/> bit
-		/// </summary>
-		public bool CaseInsensitiveEventNames {
+		bool CaseInsensitiveEventNames {
 			get { return (options & SigComparerOptions.CaseInsensitiveEventNames) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.CaseInsensitiveEventNames;
-				else
-					options &= ~SigComparerOptions.CaseInsensitiveEventNames;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.PrivateScopeFieldIsComparable"/> bit
-		/// </summary>
-		public bool PrivateScopeFieldIsComparable {
+		bool PrivateScopeFieldIsComparable {
 			get { return (options & SigComparerOptions.PrivateScopeFieldIsComparable) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.PrivateScopeFieldIsComparable;
-				else
-					options &= ~SigComparerOptions.PrivateScopeFieldIsComparable;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.PrivateScopeMethodIsComparable"/> bit
-		/// </summary>
-		public bool PrivateScopeMethodIsComparable {
+		bool PrivateScopeMethodIsComparable {
 			get { return (options & SigComparerOptions.PrivateScopeMethodIsComparable) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.PrivateScopeMethodIsComparable;
-				else
-					options &= ~SigComparerOptions.PrivateScopeMethodIsComparable;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.RawSignatureCompare"/> bit
-		/// </summary>
-		public bool RawSignatureCompare {
+		bool RawSignatureCompare {
 			get { return (options & SigComparerOptions.RawSignatureCompare) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.RawSignatureCompare;
-				else
-					options &= ~SigComparerOptions.RawSignatureCompare;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.IgnoreModifiers"/> bit
-		/// </summary>
-		public bool IgnoreModifiers {
+		bool IgnoreModifiers {
 			get { return (options & SigComparerOptions.IgnoreModifiers) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.IgnoreModifiers;
-				else
-					options &= ~SigComparerOptions.IgnoreModifiers;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.MscorlibIsNotSpecial"/> bit
-		/// </summary>
-		public bool MscorlibIsNotSpecial {
+		bool MscorlibIsNotSpecial {
 			get { return (options & SigComparerOptions.MscorlibIsNotSpecial) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.MscorlibIsNotSpecial;
-				else
-					options &= ~SigComparerOptions.MscorlibIsNotSpecial;
-			}
 		}
 
-		/// <summary>
-		/// Gets/sets the <see cref="SigComparerOptions.DontProjectWinMDRefs"/> bit
-		/// </summary>
-		public bool DontProjectWinMDRefs {
+		bool DontProjectWinMDRefs {
 			get { return (options & SigComparerOptions.DontProjectWinMDRefs) != 0; }
-			set {
-				if (value)
-					options |= SigComparerOptions.DontProjectWinMDRefs;
-				else
-					options &= ~SigComparerOptions.DontProjectWinMDRefs;
-			}
+		}
+
+		bool DontCheckTypeEquivalence {
+			get { return (options & SigComparerOptions.DontCheckTypeEquivalence) != 0; }
 		}
 
 		/// <summary>
@@ -1121,7 +925,13 @@ namespace dnlib.DotNet {
 			// Could be an exported type. Resolve it and check again.
 
 			var td = b.Resolve(sourceModule);
-			return td != null && Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
+			if (td == null)
+				return false;
+			if (!DontCheckTypeEquivalence) {
+				if (TIAHelper.Equivalent(a, td))
+					return true;
+			}
+			return Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
 		}
 
 		bool Equals(TypeDef a, FileDef bFile, ExportedType b) {
@@ -1130,6 +940,16 @@ namespace dnlib.DotNet {
 
 			var td = b.Resolve();
 			return td != null && Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
+		}
+
+		bool TypeDefScopeEquals(TypeDef a, TypeDef b) {
+			if (a == null || b == null)
+				return false;
+			if (!DontCheckTypeEquivalence) {
+				if (TIAHelper.Equivalent(a, b))
+					return true;
+			}
+			return Equals(a.Module, b.Module);
 		}
 
 		bool Equals(TypeRef a, IModule ma, TypeRef b, IModule mb) {
@@ -1452,6 +1272,12 @@ namespace dnlib.DotNet {
 			else if ((bAsm = scope as AssemblyRef) != null) {
 				var aMod = a.Module;
 				result = aMod != null && Equals(aMod.Assembly, bAsm, b);
+				if (!result) {
+					if (!DontCheckTypeEquivalence) {
+						var tdb = b.Resolve();
+						result = TypeDefScopeEquals(a, tdb);
+					}
+				}
 			}
 			else {
 				result = false;
@@ -1514,14 +1340,20 @@ exit: ;
 			}
 			else if (DontCompareTypeScope)
 				result = true;
-			else if ((bFile = scope as FileDef) != null)
-				result = Equals(a, bFile, b);
-			else if ((bAsm = scope as AssemblyRef) != null) {
-				var aMod = a.Module;
-				result = aMod != null && Equals(aMod.Assembly, bAsm, b);
+			else {
+				if ((bFile = scope as FileDef) != null)
+					result = Equals(a, bFile, b);
+				else if ((bAsm = scope as AssemblyRef) != null) {
+					var aMod = a.Module;
+					result = aMod != null && Equals(aMod.Assembly, bAsm, b);
+				}
+				else
+					result = false;
+				if (!result && !DontCheckTypeEquivalence) {
+					var tdb = b.Resolve();
+					result = TypeDefScopeEquals(a, tdb);
+				}
 			}
-			else
-				result = false;
 
 			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
@@ -1921,7 +1753,7 @@ exit: ;
 			result = Equals_TypeNames(a.Name, b.Name) &&
 					Equals_TypeNamespaces(a.Namespace, b.Namespace) &&
 					Equals(a.DeclaringType, b.DeclaringType) &&
-					(DontCompareTypeScope || Equals(a.Module, b.Module));
+					(DontCompareTypeScope || TypeDefScopeEquals(a, b));
 
 exit: ;
 			recursionCounter.Decrement();
@@ -2013,10 +1845,13 @@ exit: ;
 			IModule ma, mb;
 			AssemblyRef aa, ab;
 			ModuleDef modDef;
+			bool resolveCheck = true;
 
 			// if one of them is a TypeRef, the other one must be too
-			if ((ea = ra as TypeRef) != null | (eb = rb as TypeRef) != null)
+			if ((ea = ra as TypeRef) != null | (eb = rb as TypeRef) != null) {
 				result = Equals(ea, eb);
+				resolveCheck = false;
+			}
 			else if (DontCompareTypeScope)
 				result = true;
 			// only compare if both are modules
@@ -2037,8 +1872,18 @@ exit: ;
 				result = Equals(modDef.Assembly, aa, a);
 			else if (ab != null && (modDef = ra as ModuleDef) != null)
 				result = Equals(modDef.Assembly, ab, b);
-			else
+			else {
 				result = false;
+				resolveCheck = false;
+			}
+			if (!result && resolveCheck) {
+				if (!DontCheckTypeEquivalence) {
+					var td1 = a.Resolve();
+					var td2 = b.Resolve();
+					if (td1 != null && td2 != null)
+						result = TypeDefScopeEquals(td1, td2);
+				}
+			}
 
 			recursionCounter.Decrement();
 			return result;
@@ -2068,10 +1913,13 @@ exit: ;
 			ExportedType ea, eb;
 			FileDef fa, fb;
 			AssemblyRef aa, ab;
+			bool checkResolve = true;
 
 			// if one of them is an ExportedType, the other one must be too
-			if ((ea = ia as ExportedType) != null | (eb = ib as ExportedType) != null)
+			if ((ea = ia as ExportedType) != null | (eb = ib as ExportedType) != null) {
 				result = Equals(ea, eb);
+				checkResolve = false;
+			}
 			else if (DontCompareTypeScope)
 				result = true;
 			// only compare if both are files
@@ -2084,8 +1932,16 @@ exit: ;
 				result = Equals(a.DefinitionAssembly, ab, b);
 			else if (fb != null && aa != null)
 				result = Equals(b.DefinitionAssembly, aa, a);
-			else
+			else {
 				result = false;
+				checkResolve = false;
+			}
+			if (!result && checkResolve && !DontCheckTypeEquivalence) {
+				var td1 = a.Resolve();
+				var td2 = b.Resolve();
+				if (td1 != null && td2 != null)
+					result = TypeDefScopeEquals(td1, td2);
+			}
 
 			recursionCounter.Decrement();
 			return result;
@@ -2117,10 +1973,13 @@ exit: ;
 			IModule ma;
 			FileDef fb;
 			AssemblyRef aa, ab;
+			bool checkResolve = true;
 
 			// If one is a nested type, the other one must be too
-			if ((ea = ra as TypeRef) != null | (eb = ib as ExportedType) != null)
+			if ((ea = ra as TypeRef) != null | (eb = ib as ExportedType) != null) {
 				result = Equals(ea, eb);
+				checkResolve = false;
+			}
 			else if (DontCompareTypeScope)
 				result = true;
 			else if ((ma = ra as IModule) != null & (fb = ib as FileDef) != null)
@@ -2131,8 +1990,16 @@ exit: ;
 				result = Equals(a.DefinitionAssembly, ab, b);
 			else if (fb != null && aa != null)
 				result = Equals(b.DefinitionAssembly, aa, a);
-			else
+			else {
+				checkResolve = false;
 				result = false;
+			}
+			if (!result && checkResolve && !DontCheckTypeEquivalence) {
+				var td1 = a.Resolve();
+				var td2 = b.Resolve();
+				if (td1 != null && td2 != null)
+					result = TypeDefScopeEquals(td1, td2);
+			}
 
 			recursionCounter.Decrement();
 			return result;
