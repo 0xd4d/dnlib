@@ -1059,7 +1059,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public MemberRef Import(IField field) {
+		public IField Import(IField field) {
 			return (MemberRef)new Importer(this).Import(field);
 		}
 
@@ -1068,7 +1068,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public MemberRef Import(FieldDef field) {
+		public IField Import(FieldDef field) {
 			return (MemberRef)new Importer(this).Import(field);
 		}
 
@@ -1086,7 +1086,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
-		public MemberRef Import(MethodDef method) {
+		public IMethod Import(MethodDef method) {
 			return (MemberRef)new Importer(this).Import(method);
 		}
 
