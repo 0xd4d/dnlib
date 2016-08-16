@@ -679,7 +679,8 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
-				if ((Attributes & (TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.ClassSemanticsMask)) != (TypeAttributes.Sealed | TypeAttributes.Class))
+				// Don't include abstract since value types can be abstract without throwing at runtime
+				if ((Attributes & (TypeAttributes.Sealed | TypeAttributes.ClassSemanticsMask)) != (TypeAttributes.Sealed | TypeAttributes.Class))
 					return false;
 				var baseType = BaseType;
 				if (baseType == null)
@@ -722,7 +723,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsEnum {
 			get {
-				if ((Attributes & (TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.ClassSemanticsMask)) != (TypeAttributes.Sealed | TypeAttributes.Class))
+				// Don't include abstract since value types can be abstract without throwing at runtime
+				if ((Attributes & (TypeAttributes.Sealed | TypeAttributes.ClassSemanticsMask)) != (TypeAttributes.Sealed | TypeAttributes.Class))
 					return false;
 				var baseType = BaseType;
 				if (baseType == null)
