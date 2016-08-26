@@ -211,7 +211,7 @@ namespace dnlib.DotNet.Resources {
 
 			for (int i = 0; i < numReaders; i++) {
 				var resourceReaderFullName = reader.ReadString();
-				var resourceSetFullName = reader.ReadString();
+				/*var resourceSetFullName = */reader.ReadString();
 				if (Regex.IsMatch(resourceReaderFullName, @"^System\.Resources\.ResourceReader,\s*mscorlib,"))
 					validReader = true;
 			}

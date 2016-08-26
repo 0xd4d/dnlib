@@ -120,7 +120,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 				var nameId = stream.ReadUInt32();
 				var len = stream.ReadByte();
-				var type = stream.ReadByte();
+				/*var type = */stream.ReadByte();
 				var doc = reader.GetDocument(nameId);
 				documents.Add(id, doc);
 

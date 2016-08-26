@@ -25,10 +25,11 @@ namespace dnlib.DotNet {
 		static readonly string[] winMDAssemblyExtensions = new string[] { ".winmd" };
 
 		static readonly List<GacInfo> gacInfos;
-		static readonly List<string> extraMonoPaths;
+		static readonly string[] extraMonoPaths;
 		static readonly string[] monoVerDirs = new string[] {
-			"4.5", "4.0",
-			"3.5", "3.0", "2.0",
+			// The "-api" dirs are reference assembly dirs.
+			"4.5", @"4.5\Facades", "4.5-api", @"4.5-api\Facades", "4.0", "4.0-api",
+			"3.5", "3.5-api", "3.0", "3.0-api", "2.0", "2.0-api",
 			"1.1", "1.0",
 		};
 
@@ -64,7 +65,7 @@ namespace dnlib.DotNet {
 
 			if (Type.GetType("Mono.Runtime") != null) {
 				var dirs = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-				extraMonoPaths = new List<string>();
+				var extraMonoPathsList = new List<string>();
 				foreach (var prefix in FindMonoPrefixes()) {
 					var dir = Path.Combine(Path.Combine(Path.Combine(prefix, "lib"), "mono"), "gac");
 					if (dirs.ContainsKey(dir))
@@ -79,9 +80,11 @@ namespace dnlib.DotNet {
 
 					dir = Path.GetDirectoryName(dir);
 					foreach (var verDir in monoVerDirs) {
-						var dir2 = Path.Combine(dir, verDir);
+						var dir2 = dir;
+						foreach (var d in verDir.Split(new char[] { '\\' }))
+							dir2 = Path.Combine(dir2, d);
 						if (Directory.Exists(dir2))
-							extraMonoPaths.Add(dir2);
+							extraMonoPathsList.Add(dir2);
 					}
 				}
 
@@ -89,9 +92,10 @@ namespace dnlib.DotNet {
 				if (paths != null) {
 					foreach (var path in paths.Split(Path.PathSeparator)) {
 						if (path != string.Empty && Directory.Exists(path))
-							extraMonoPaths.Add(path);
+							extraMonoPathsList.Add(path);
 					}
 				}
+				extraMonoPaths = extraMonoPathsList.ToArray();
 			}
 			else {
 				var windir = Environment.GetEnvironmentVariable("WINDIR");

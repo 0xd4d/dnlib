@@ -70,9 +70,6 @@ namespace dnlib.DotNet {
 	/// Created from a row in the ClassLayout table
 	/// </summary>
 	sealed class ClassLayoutMD : ClassLayout, IMDTokenProviderMD {
-		/// <summary>The module where this instance is located</summary>
-		readonly ModuleDefMD readerModule;
-
 		readonly uint origRid;
 
 		/// <inheritdoc/>
@@ -96,7 +93,6 @@ namespace dnlib.DotNet {
 #endif
 			this.origRid = rid;
 			this.rid = rid;
-			this.readerModule = readerModule;
 			this.classSize = readerModule.TablesStream.ReadClassLayoutRow(origRid, out this.packingSize);
 		}
 	}

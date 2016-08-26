@@ -69,7 +69,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			stream.Position += 2;
 
 			uint pageSize = stream.ReadUInt32();
-			uint fpm = stream.ReadUInt32();
+			/*uint fpm = */stream.ReadUInt32();
 			uint pageCount = stream.ReadUInt32();
 			uint rootSize = stream.ReadUInt32();
 			stream.ReadUInt32();
@@ -157,7 +157,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			using (var nameData = stream.Create(stream.FileOffset + stream.Position, nameSize)) {
 				stream.Position += nameSize;
 
-				uint entryCount = stream.ReadUInt32();
+				/*uint entryCount = */stream.ReadUInt32();
 				uint entryCapacity = stream.ReadUInt32();
 				var entryOk = new BitArray(stream.ReadBytes(stream.ReadInt32() * 4));
 				if (stream.ReadUInt32() != 0)
