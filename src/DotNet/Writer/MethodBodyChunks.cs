@@ -78,6 +78,18 @@ namespace dnlib.DotNet.Writer {
 			return methodBody;
 		}
 
+		/// <summary>
+		/// Removes the specified method body from this chunk
+		/// </summary>
+		/// <param name="methodBody">The method body</param>
+		/// <returns><c>true</c> if the method body is removed</returns>
+		public bool Remove(MethodBody methodBody) {
+			if (setOffsetCalled)
+				throw new InvalidOperationException("SetOffset() has already been called");
+			var list = methodBody.IsFat ? fatMethods : tinyMethods;
+			return list.Remove(methodBody);
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			setOffsetCalled = true;

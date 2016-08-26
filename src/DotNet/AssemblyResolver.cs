@@ -351,6 +351,14 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Gets the cached assemblies in this resolver.
+		/// </summary>
+		/// <returns>The cached assemblies.</returns>
+		public IEnumerable<AssemblyDef> GetCachedAssemblies() {
+			return cachedAssemblies.Values;
+		}
+
 		static string GetAssemblyNameKey(IAssembly asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
 			return asmName.FullNameToken.ToUpperInvariant();
