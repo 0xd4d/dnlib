@@ -113,13 +113,25 @@ namespace dnlib.DotNet.Emit {
 			return new Instruction(opCode, value);
 		}
 
-		/// <summary>
-		/// Creates a new instruction with a <see cref="float"/> operand
+        /// <summary>
+		/// Creates a new instruction with a <see cref="ulong"/> operand
 		/// </summary>
 		/// <param name="opCode">The opcode</param>
 		/// <param name="value">The value</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
-		public static Instruction Create(OpCode opCode, float value) {
+		public static Instruction Create(OpCode opCode, ulong value) {
+            if (opCode.OperandType != OperandType.InlineI8)
+                throw new ArgumentException("Opcode does not have an uint64 operand", "opCode");
+            return new Instruction(opCode, (long)value);
+        }
+
+        /// <summary>
+        /// Creates a new instruction with a <see cref="float"/> operand
+        /// </summary>
+        /// <param name="opCode">The opcode</param>
+        /// <param name="value">The value</param>
+        /// <returns>A new <see cref="Instruction"/> instance</returns>
+        public static Instruction Create(OpCode opCode, float value) {
 			if (opCode.OperandType != OperandType.ShortInlineR)
 				throw new ArgumentException("Opcode does not have a real4 operand", "opCode");
 			return new Instruction(opCode, value);
@@ -565,10 +577,36 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
-		/// <summary>
-		/// Checks whether this is one of the <c>ldc.i4</c> instructions
+        /// <summary>
+		/// Checks whether this is one of the <c>ldc</c> instructions
 		/// </summary>
-		public bool IsLdcI4() {
+		public bool IsLdc() {
+            switch (OpCode.Code) {
+                case Code.Ldc_I4_M1:
+                case Code.Ldc_I4_0:
+                case Code.Ldc_I4_1:
+                case Code.Ldc_I4_2:
+                case Code.Ldc_I4_3:
+                case Code.Ldc_I4_4:
+                case Code.Ldc_I4_5:
+                case Code.Ldc_I4_6:
+                case Code.Ldc_I4_7:
+                case Code.Ldc_I4_8:
+                case Code.Ldc_I4_S:
+                case Code.Ldc_I4:
+                case Code.Ldc_I8:
+                case Code.Ldc_R4:
+                case Code.Ldc_R8:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks whether this is one of the <c>ldc.i4</c> instructions
+        /// </summary>
+        public bool IsLdcI4() {
 			switch (OpCode.Code) {
 			case Code.Ldc_I4_M1:
 			case Code.Ldc_I4_0:
