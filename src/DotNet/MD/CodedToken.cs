@@ -78,6 +78,17 @@ namespace dnlib.DotNet.MD {
 			Table.TypeDef, Table.Method,
 		});
 
+		/// <summary>HasCustomDebugInformation coded token</summary>
+		public static readonly CodedToken HasCustomDebugInformation = new CodedToken(5, new Table[27] {
+			Table.Method, Table.Field, Table.TypeRef, Table.TypeDef,
+			Table.Param, Table.InterfaceImpl, Table.MemberRef, Table.Module,
+			Table.DeclSecurity, Table.Property, Table.Event, Table.StandAloneSig,
+			Table.ModuleRef, Table.TypeSpec, Table.Assembly, Table.AssemblyRef,
+			Table.File, Table.ExportedType, Table.ManifestResource, Table.GenericParam,
+			Table.GenericParamConstraint, Table.MethodSpec, Table.Document, Table.LocalScope,
+			Table.LocalVariable, Table.LocalConstant, Table.ImportScope,
+		});
+
 		readonly Table[] tableTypes;
 		readonly int bits;
 		readonly int mask;

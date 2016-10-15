@@ -1715,6 +1715,14 @@ namespace dnlib.DotNet.Writer {
 				case Table.NestedClass:
 				case Table.GenericParam:
 				case Table.GenericParamConstraint:
+				case Table.Document:
+				case Table.MethodDebugInformation:
+				case Table.LocalScope:
+				case Table.LocalVariable:
+				case Table.LocalConstant:
+				case Table.ImportScope:
+				case Table.StateMachineMethod:
+				case Table.CustomDebugInformation:
 				default:
 					break;
 				}

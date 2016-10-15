@@ -95,6 +95,22 @@
 		MethodSpec,
 		/// <summary>RID into GenericParamConstraint table</summary>
 		GenericParamConstraint,
+		/// <summary>RID into Document table</summary>
+		Document = 0x30,
+		/// <summary>RID into MethodDebugInformation table</summary>
+		MethodDebugInformation,
+		/// <summary>RID into LocalScope table</summary>
+		LocalScope,
+		/// <summary>RID into LocalVariable table</summary>
+		LocalVariable,
+		/// <summary>RID into LocalConstant table</summary>
+		LocalConstant,
+		/// <summary>RID into ImportScope table</summary>
+		ImportScope,
+		/// <summary>RID into StateMachineMethod table</summary>
+		StateMachineMethod,
+		/// <summary>RID into CustomDebugInformation table</summary>
+		CustomDebugInformation,
 		/// <summary>8-bit byte</summary>
 		Byte = 0x40,
 		/// <summary>16-bit signed int</summary>
@@ -137,5 +153,7 @@
 		ResolutionScope,
 		/// <summary>TypeOrMethodDef encoded token</summary>
 		TypeOrMethodDef,
+		/// <summary>HasCustomDebugInformation encoded token</summary>
+		HasCustomDebugInformation,
 	}
 }

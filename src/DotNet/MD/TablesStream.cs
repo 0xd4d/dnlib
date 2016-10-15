@@ -71,6 +71,14 @@ namespace dnlib.DotNet.MD {
 		public MDTable GenericParamTable { get; private set; }
 		public MDTable MethodSpecTable { get; private set; }
 		public MDTable GenericParamConstraintTable { get; private set; }
+		public MDTable Document { get; private set; }
+		public MDTable MethodDebugInformation { get; private set; }
+		public MDTable LocalScope { get; private set; }
+		public MDTable LocalVariable { get; private set; }
+		public MDTable LocalConstant { get; private set; }
+		public MDTable ImportScope { get; private set; }
+		public MDTable StateMachineMethod { get; private set; }
+		public MDTable CustomDebugInformation { get; private set; }
 #pragma warning restore
 
 #if THREAD_SAFE
@@ -305,6 +313,14 @@ namespace dnlib.DotNet.MD {
 			GenericParamTable = mdTables[(int)Table.GenericParam];
 			MethodSpecTable = mdTables[(int)Table.MethodSpec];
 			GenericParamConstraintTable = mdTables[(int)Table.GenericParamConstraint];
+			Document = mdTables[(int)Table.Document];
+			MethodDebugInformation = mdTables[(int)Table.MethodDebugInformation];
+			LocalScope = mdTables[(int)Table.LocalScope];
+			LocalVariable = mdTables[(int)Table.LocalVariable];
+			LocalConstant = mdTables[(int)Table.LocalConstant];
+			ImportScope = mdTables[(int)Table.ImportScope];
+			StateMachineMethod = mdTables[(int)Table.StateMachineMethod];
+			CustomDebugInformation = mdTables[(int)Table.CustomDebugInformation];
 		}
 
 		/// <inheritdoc/>

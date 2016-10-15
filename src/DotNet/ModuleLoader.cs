@@ -281,6 +281,14 @@ namespace dnlib.DotNet {
 			case Table.AssemblyRefProcessor:
 			case Table.AssemblyRefOS:
 			case Table.NestedClass:
+			case Table.Document:
+			case Table.MethodDebugInformation:
+			case Table.LocalScope:
+			case Table.LocalVariable:
+			case Table.LocalConstant:
+			case Table.ImportScope:
+			case Table.StateMachineMethod:
+			case Table.CustomDebugInformation:
 				break;
 
 			default:

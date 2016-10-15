@@ -95,5 +95,22 @@
 		MethodSpec,
 		/// <summary>GenericParamConstraint table (2Ch)</summary>
 		GenericParamConstraint,
+
+		/// <summary>(Portable PDB) Document table (30h)</summary>
+		Document = 0x30,
+		/// <summary>(Portable PDB) MethodDebugInformation table (31h)</summary>
+		MethodDebugInformation,
+		/// <summary>(Portable PDB) LocalScope table (32h)</summary>
+		LocalScope,
+		/// <summary>(Portable PDB) LocalVariable table (33h)</summary>
+		LocalVariable,
+		/// <summary>(Portable PDB) LocalConstant table (34h)</summary>
+		LocalConstant,
+		/// <summary>(Portable PDB) ImportScope table (35h)</summary>
+		ImportScope,
+		/// <summary>(Portable PDB) StateMachineMethod table (36h)</summary>
+		StateMachineMethod,
+		/// <summary>(Portable PDB) CustomDebugInformation table (37h)</summary>
+		CustomDebugInformation,
 	}
 }

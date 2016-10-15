@@ -39,11 +39,11 @@ namespace dnlib.DotNet.MD {
 		}
 
 		int GetSize(ColumnSize columnSize) {
-			if (ColumnSize.Module <= columnSize && columnSize <= ColumnSize.GenericParamConstraint) {
+			if (ColumnSize.Module <= columnSize && columnSize <= ColumnSize.CustomDebugInformation) {
 				int table = (int)(columnSize - ColumnSize.Module);
 				return rowCounts[table] > 0xFFFF ? 4 : 2;
 			}
-			else if (ColumnSize.TypeDefOrRef <= columnSize && columnSize <= ColumnSize.TypeOrMethodDef) {
+			else if (ColumnSize.TypeDefOrRef <= columnSize && columnSize <= ColumnSize.HasCustomDebugInformation) {
 				CodedToken info;
 				switch (columnSize) {
 				case ColumnSize.TypeDefOrRef:		info = CodedToken.TypeDefOrRef; break;
@@ -59,6 +59,7 @@ namespace dnlib.DotNet.MD {
 				case ColumnSize.CustomAttributeType:info = CodedToken.CustomAttributeType; break;
 				case ColumnSize.ResolutionScope:	info = CodedToken.ResolutionScope; break;
 				case ColumnSize.TypeOrMethodDef:	info = CodedToken.TypeOrMethodDef; break;
+				case ColumnSize.HasCustomDebugInformation:info = CodedToken.HasCustomDebugInformation; break;
 				default: throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));
 				}
 				uint maxRows = 0;
@@ -106,9 +107,10 @@ namespace dnlib.DotNet.MD {
 		/// <returns>All table infos (not completely initialized)</returns>
 		public TableInfo[] CreateTables(byte majorVersion, byte minorVersion, out int maxPresentTables) {
 			// The three extra generics tables aren't used by CLR 1.x
-			maxPresentTables = (majorVersion == 1 && minorVersion == 0) ? (int)Table.NestedClass + 1 : (int)Table.GenericParamConstraint + 1;
+			const int normalMaxTables = (int)Table.CustomDebugInformation + 1;
+			maxPresentTables = (majorVersion == 1 && minorVersion == 0) ? (int)Table.NestedClass + 1 : normalMaxTables;
 
-			var tableInfos = new TableInfo[(int)Table.GenericParamConstraint + 1];
+			var tableInfos = new TableInfo[normalMaxTables];
 
 			tableInfos[(int)Table.Module] = new TableInfo(Table.Module, "Module", new ColumnInfo[] {
 				new ColumnInfo(0, "Generation", ColumnSize.UInt16),
@@ -340,6 +342,49 @@ namespace dnlib.DotNet.MD {
 			tableInfos[(int)Table.GenericParamConstraint] = new TableInfo(Table.GenericParamConstraint, "GenericParamConstraint", new ColumnInfo[] {
 				new ColumnInfo(0, "Owner", ColumnSize.GenericParam),
 				new ColumnInfo(1, "Constraint", ColumnSize.TypeDefOrRef),
+			});
+			tableInfos[0x2D] = new TableInfo((Table)0x2D, string.Empty, new ColumnInfo[] { });
+			tableInfos[0x2E] = new TableInfo((Table)0x2E, string.Empty, new ColumnInfo[] { });
+			tableInfos[0x2F] = new TableInfo((Table)0x2F, string.Empty, new ColumnInfo[] { });
+			tableInfos[(int)Table.Document] = new TableInfo(Table.Document, "Document", new ColumnInfo[] {
+				new ColumnInfo(0, "Name", ColumnSize.Blob),
+				new ColumnInfo(1, "HashAlgorithm", ColumnSize.GUID),
+				new ColumnInfo(2, "Hash", ColumnSize.Blob),
+				new ColumnInfo(3, "Language", ColumnSize.GUID),
+			});
+			tableInfos[(int)Table.MethodDebugInformation] = new TableInfo(Table.MethodDebugInformation, "MethodDebugInformation", new ColumnInfo[] {
+				new ColumnInfo(0, "Document", ColumnSize.Document),
+				new ColumnInfo(1, "SequencePoints", ColumnSize.Blob),
+			});
+			tableInfos[(int)Table.LocalScope] = new TableInfo(Table.LocalScope, "LocalScope", new ColumnInfo[] {
+				new ColumnInfo(0, "Method", ColumnSize.Method),
+				new ColumnInfo(1, "ImportScope", ColumnSize.ImportScope),
+				new ColumnInfo(2, "VariableList", ColumnSize.LocalVariable),
+				new ColumnInfo(3, "ConstantList", ColumnSize.LocalConstant),
+				new ColumnInfo(4, "StartOffset", ColumnSize.UInt32),
+				new ColumnInfo(5, "Length", ColumnSize.UInt32),
+			});
+			tableInfos[(int)Table.LocalVariable] = new TableInfo(Table.LocalVariable, "LocalVariable", new ColumnInfo[] {
+				new ColumnInfo(0, "Attributes", ColumnSize.UInt16),
+				new ColumnInfo(1, "Index", ColumnSize.UInt16),
+				new ColumnInfo(2, "Name", ColumnSize.Strings),
+			});
+			tableInfos[(int)Table.LocalConstant] = new TableInfo(Table.LocalConstant, "LocalConstant", new ColumnInfo[] {
+				new ColumnInfo(0, "Name", ColumnSize.Strings),
+				new ColumnInfo(1, "Signature", ColumnSize.Blob),
+			});
+			tableInfos[(int)Table.ImportScope] = new TableInfo(Table.ImportScope, "ImportScope", new ColumnInfo[] {
+				new ColumnInfo(0, "Parent", ColumnSize.ImportScope),
+				new ColumnInfo(1, "Imports", ColumnSize.Blob),
+			});
+			tableInfos[(int)Table.StateMachineMethod] = new TableInfo(Table.StateMachineMethod, "StateMachineMethod", new ColumnInfo[] {
+				new ColumnInfo(0, "MoveNextMethod", ColumnSize.Method),
+				new ColumnInfo(1, "KickoffMethod", ColumnSize.Method),
+			});
+			tableInfos[(int)Table.CustomDebugInformation] = new TableInfo(Table.CustomDebugInformation, "CustomDebugInformation", new ColumnInfo[] {
+				new ColumnInfo(0, "Parent", ColumnSize.HasCustomDebugInformation),
+				new ColumnInfo(1, "Kind", ColumnSize.GUID),
+				new ColumnInfo(2, "Value", ColumnSize.Blob),
 			});
 			return this.tableInfos = tableInfos;
 		}
