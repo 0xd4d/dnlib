@@ -41,7 +41,8 @@ namespace dnlib.DotNet.MD {
 		int GetSize(ColumnSize columnSize) {
 			if (ColumnSize.Module <= columnSize && columnSize <= ColumnSize.CustomDebugInformation) {
 				int table = (int)(columnSize - ColumnSize.Module);
-				return rowCounts[table] > 0xFFFF ? 4 : 2;
+				uint count = table >= rowCounts.Count ? 0 : rowCounts[table];
+				return count > 0xFFFF ? 4 : 2;
 			}
 			else if (ColumnSize.TypeDefOrRef <= columnSize && columnSize <= ColumnSize.HasCustomDebugInformation) {
 				CodedToken info;
@@ -64,7 +65,8 @@ namespace dnlib.DotNet.MD {
 				}
 				uint maxRows = 0;
 				foreach (var tableType in info.TableTypes) {
-					var tableRows = rowCounts[(int)tableType];
+					int index = (int)tableType;
+					var tableRows = index >= rowCounts.Count ? 0 : rowCounts[index];
 					if (tableRows > maxRows)
 						maxRows = tableRows;
 				}
