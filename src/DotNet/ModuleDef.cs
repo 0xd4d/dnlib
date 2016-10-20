@@ -480,6 +480,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// true if it's the core library module, false if it's not the core library module,
+		/// and null if it's not known.
+		/// </summary>
+		public bool? IsCoreLibraryModule { get; set; }
+
+		/// <summary>
 		/// Gets/sets the Win32 resources
 		/// </summary>
 		public Win32Resources Win32Resources {

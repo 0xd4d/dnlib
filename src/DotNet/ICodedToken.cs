@@ -153,15 +153,35 @@ namespace dnlib.DotNet {
 	public static partial class Extensions {
 		/// <summary>
 		/// Checks whether <paramref name="asm"/> appears to be the core library (eg.
-		/// mscorlib, System.Runtime or corefx)
+		/// mscorlib, System.Runtime or corefx).
+		/// 
+		/// If <paramref name="asm"/> is a reference to a private corlib (eg. System.Private.CoreLib),
+		/// this method returns false unless <paramref name="asm"/> is an <see cref="AssemblyDef"/>
+		/// whose manifest (first) module defines <c>System.Object</c>. This check is performed in
+		/// the constructor and the result can be found in <see cref="ModuleDef.IsCoreLibraryModule"/>.
+		/// 
+		/// Note that this method also returns true if it appears to be a 'public' corlib,
+		/// eg. mscorlib, etc, even if it internally possibly references a private corlib.
 		/// </summary>
 		/// <param name="asm">The assembly</param>
 		public static bool IsCorLib(this IAssembly asm) {
+			var asmDef = asm as AssemblyDef;
+			if (asmDef != null) {
+				var manifestModule = asmDef.ManifestModule;
+				if (manifestModule != null) {
+					var isCorModule = manifestModule.IsCoreLibraryModule;
+					if (isCorModule != null)
+						return isCorModule.Value;
+				}
+			}
+
 			string asmName;
 			return asm != null &&
 				UTF8String.IsNullOrEmpty(asm.Culture) &&
 				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name)).Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ||
+				// This name could change but since CoreCLR is used a lot, it's worth supporting
+				asmName.Equals("System.Private.CoreLib", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("corefx", StringComparison.OrdinalIgnoreCase));
 		}
 

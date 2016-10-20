@@ -643,8 +643,10 @@ namespace dnlib.DotNet {
 
 			// If we've loaded mscorlib itself, it won't have any AssemblyRefs to itself.
 			var asm = Assembly;
-			if (asm != null && asm.IsCorLib())
+			if (asm != null && (asm.IsCorLib() || Find("System.Object", false) != null)) {
+				IsCoreLibraryModule = true;
 				return UpdateRowId(new AssemblyRefUser(asm));
+			}
 
 			return corLibAsmRef;
 		}
@@ -654,10 +656,6 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns></returns>
 		AssemblyRef CreateDefaultCorLibAssemblyRef() {
-			var asm = Assembly;
-			if (asm != null && Find("System.Int32", false) != null)
-				return UpdateRowId(new AssemblyRefUser(asm));
-
 			var asmRef = GetAlternativeCorLibReference();
 			if (asmRef != null)
 				return UpdateRowId(asmRef);
