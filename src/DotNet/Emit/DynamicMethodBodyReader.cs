@@ -47,6 +47,7 @@ namespace dnlib.DotNet.Emit {
 		readonly List<object> tokens;
 		readonly IList<object> ehInfos;
 		readonly byte[] ehHeader;
+		readonly string methodName;
 
 		class ReflectionFieldInfo {
 			SR.FieldInfo fieldInfo;
@@ -110,6 +111,7 @@ namespace dnlib.DotNet.Emit {
 			this.module = module;
 			this.importer = new Importer(module, ImporterOptions.TryToUseDefs, gpContext);
 			this.gpContext = gpContext;
+			this.methodName = null;
 
 			if (obj == null)
 				throw new ArgumentNullException("obj");
@@ -128,6 +130,7 @@ namespace dnlib.DotNet.Emit {
 			}
 
 			if (obj is DynamicMethod) {
+				methodName = ((DynamicMethod)obj).Name;
 				obj = dmResolverFieldInfo.Read(obj);
 				if (obj == null)
 					throw new Exception("No resolver found");
@@ -345,6 +348,7 @@ namespace dnlib.DotNet.Emit {
 			exceptionHandlers = null;
 			locals = null;
 			method.Body = cilBody;
+			method.Name = methodName;
 			return method;
 		}
 
