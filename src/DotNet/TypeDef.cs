@@ -1799,6 +1799,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnRemove(int index, TypeDef value) {
 			value.DeclaringType2 = null;
+			value.Module2 = null;
 		}
 
 		/// <inheritdoc/>
