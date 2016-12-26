@@ -657,8 +657,10 @@ namespace dnlib.DotNet.Writer {
 
 				long pos = writer.BaseStream.Position;
 				writer.BaseStream.Position = ToWriterOffset(vtable.RVA);
-				if (writer.BaseStream.Position == 0)
-					Error("Could not convert RVA to file offset");
+				if (writer.BaseStream.Position == 0) {
+					if (vtable.RVA != 0 || vtable.Methods.Count > 0)
+						Error("Could not convert RVA to file offset");
+				}
 				else {
 					foreach (var method in vtable.Methods) {
 						writer.Write(GetMethodToken(method));
