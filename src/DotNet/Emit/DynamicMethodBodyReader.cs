@@ -275,7 +275,7 @@ namespace dnlib.DotNet.Emit {
 						eh.HandlerType = (ExceptionHandlerType)reader.ReadUInt16();
 						int offs = reader.ReadUInt16();
 						eh.TryStart = GetInstructionThrow((uint)offs);
-                        eh.TryEnd = GetInstruction((uint)(reader.ReadByte() + offs));
+						eh.TryEnd = GetInstruction((uint)(reader.ReadByte() + offs));
 						offs = reader.ReadUInt16();
 						eh.HandlerStart = GetInstructionThrow((uint)offs);
 						eh.HandlerEnd = GetInstruction((uint)(reader.ReadByte() + offs));
