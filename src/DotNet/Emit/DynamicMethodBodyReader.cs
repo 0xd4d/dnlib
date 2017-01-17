@@ -267,18 +267,18 @@ namespace dnlib.DotNet.Emit {
 				if ((b & 0x40) == 0) { // DynamicResolver only checks bit 6
 					// Calculate num ehs exactly the same way that DynamicResolver does
 					int numHandlers = (ushort)((reader.ReadByte() - 2) / 12);
-					reader.ReadInt16();
+					reader.ReadUInt16();
 					for (int i = 0; i < numHandlers; i++) {
 						if (reader.BaseStream.Position + 12 > reader.BaseStream.Length)
 							break;
 						var eh = new ExceptionHandler();
-						eh.HandlerType = (ExceptionHandlerType)reader.ReadInt16();
+						eh.HandlerType = (ExceptionHandlerType)reader.ReadUInt16();
 						int offs = reader.ReadUInt16();
 						eh.TryStart = GetInstructionThrow((uint)offs);
-						eh.TryEnd = GetInstruction((uint)(reader.ReadSByte() + offs));
+                        eh.TryEnd = GetInstruction((uint)(reader.ReadByte() + offs));
 						offs = reader.ReadUInt16();
 						eh.HandlerStart = GetInstructionThrow((uint)offs);
-						eh.HandlerEnd = GetInstruction((uint)(reader.ReadSByte() + offs));
+						eh.HandlerEnd = GetInstruction((uint)(reader.ReadByte() + offs));
 
 						if (eh.HandlerType == ExceptionHandlerType.Catch)
 							eh.CatchType = ReadToken(reader.ReadUInt32()) as ITypeDefOrRef;
@@ -297,13 +297,13 @@ namespace dnlib.DotNet.Emit {
 						if (reader.BaseStream.Position + 24 > reader.BaseStream.Length)
 							break;
 						var eh = new ExceptionHandler();
-						eh.HandlerType = (ExceptionHandlerType)reader.ReadInt32();
-						int offs = reader.ReadInt32();
+						eh.HandlerType = (ExceptionHandlerType)reader.ReadUInt32();
+						var offs = reader.ReadUInt32();
 						eh.TryStart = GetInstructionThrow((uint)offs);
-						eh.TryEnd = GetInstruction((uint)(reader.ReadInt32() + offs));
-						offs = reader.ReadInt32();
+						eh.TryEnd = GetInstruction((uint)(reader.ReadUInt32() + offs));
+						offs = reader.ReadUInt32();
 						eh.HandlerStart = GetInstructionThrow((uint)offs);
-						eh.HandlerEnd = GetInstruction((uint)(reader.ReadInt32() + offs));
+						eh.HandlerEnd = GetInstruction((uint)(reader.ReadUInt32() + offs));
 
 						if (eh.HandlerType == ExceptionHandlerType.Catch)
 							eh.CatchType = ReadToken(reader.ReadUInt32()) as ITypeDefOrRef;
