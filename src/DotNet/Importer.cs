@@ -593,7 +593,7 @@ namespace dnlib.DotNet {
 				fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
 			}
 			else {
-				var fieldSig = new FieldSig(ImportAsTypeSig(fieldInfo.FieldType));
+				var fieldSig = new FieldSig(ImportAsTypeSig(fieldInfo.FieldType, fieldInfo.GetRequiredCustomModifiers(), fieldInfo.GetOptionalCustomModifiers()));
 				fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
 			}
 			var field = TryResolveField(fieldRef);
