@@ -16,6 +16,14 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <PublicSign>true</PublicSign>
+    <!-- Workaround for https://github.com/dotnet/sdk/issues/335 -->
+    <FrameworkPathOverride Condition="Exists('/usr/lib/mono/2.0-api')">/usr/lib/mono/2.0-api</FrameworkPathOverride>
+    <FrameworkPathOverride Condition="Exists('/usr/local/lib/mono/2.0-api')">/usr/local/lib/mono/2.0-api</FrameworkPathOverride>
+    <FrameworkPathOverride Condition="Exists('/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api')">/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api</FrameworkPathOverride>
+    <FrameworkPathOverride Condition="Exists('/usr/local/Cellar/mono/4.6.2.16/lib/mono/2.0-api')">/usr/local/Cellar/mono/4.6.2.16/lib/mono/2.0-api</FrameworkPathOverride>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -360,7 +368,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.XML" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\LICENSE.txt">
