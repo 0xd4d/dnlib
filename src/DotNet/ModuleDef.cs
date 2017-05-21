@@ -1213,6 +1213,16 @@ namespace dnlib.DotNet {
 		/// can be 32-bit or 64-bit</param>
 		/// <returns>Size of a pointer (4 or 8)</returns>
 		public int GetPointerSize(int defaultPointerSize) {
+			return GetPointerSize(defaultPointerSize, defaultPointerSize);
+		}
+
+		/// <summary>
+		/// Returns the size of a pointer
+		/// </summary>
+		/// <param name="defaultPointerSize">Default pointer size</param>
+		/// <param name="prefer32bitPointerSize">Pointer size if it's prefer-32-bit (should usually be 4)</param>
+		/// <returns></returns>
+		public int GetPointerSize(int defaultPointerSize, int prefer32bitPointerSize) {
 			var machine = Machine;
 			if (machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64)
 				return 8;
@@ -1247,7 +1257,7 @@ namespace dnlib.DotNet {
 
 			case ComImageFlags._32BitRequired | ComImageFlags._32BitPreferred:
 				// Platform neutral but prefers to be 32-bit
-				return defaultPointerSize;
+				return prefer32bitPointerSize;
 			}
 
 			return defaultPointerSize;
