@@ -276,6 +276,22 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the <see cref="ParamAttributes.Lcid"/> bit
+		/// </summary>
+		public bool IsLcid {
+			get { return ((ParamAttributes)attributes & ParamAttributes.Lcid) != 0; }
+			set { ModifyAttributes(value, ParamAttributes.Lcid); }
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="ParamAttributes.Retval"/> bit
+		/// </summary>
+		public bool IsRetval {
+			get { return ((ParamAttributes)attributes & ParamAttributes.Retval) != 0; }
+			set { ModifyAttributes(value, ParamAttributes.Retval); }
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.Optional"/> bit
 		/// </summary>
 		public bool IsOptional {
