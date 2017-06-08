@@ -475,9 +475,20 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the global (aka. &lt;Module&gt;) type or <c>null</c> if there are no types
 		/// </summary>
-		public TypeDef GlobalType {
-			get { return Types.Get(0, null); }
-		}
+        public TypeDef GlobalType {
+            get {
+                var globalType = Types.Get(0, null);
+
+                // The global type shouldn't have a namespace or a base type. If this is the case, the real global type was most likely stripped
+                // during prior obfuscation, so we return null here.
+                if (globalType.Namespace.Length > 0 && globalType.BaseType != null)
+                {
+                    return null;
+                }
+
+                return globalType;
+            }
+        }
 
 		/// <summary>
 		/// true if it's the core library module, false if it's not the core library module,
