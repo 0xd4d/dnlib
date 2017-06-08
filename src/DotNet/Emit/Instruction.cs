@@ -112,6 +112,18 @@ namespace dnlib.DotNet.Emit {
 				throw new ArgumentException("Opcode does not have an int64 operand", "opCode");
 			return new Instruction(opCode, value);
 		}
+		
+		/// <summary>
+		/// Creates a new instruction with a <see cref="ulong"/> operand
+		/// </summary>
+		/// <param name="opCode">The opcode</param>
+		/// <param name="value">The value</param>
+		/// <returns>A new <see cref="Instruction"/> instance</returns>
+		public static Instruction Create(OpCode opCode, ulong value) {
+			if (opCode.OperandType != OperandType.InlineI8)
+				throw new ArgumentException("Opcode does not have an uint64 operand", "opCode");
+			return new Instruction(opCode, (long)value);
+		}
 
 		/// <summary>
 		/// Creates a new instruction with a <see cref="float"/> operand
