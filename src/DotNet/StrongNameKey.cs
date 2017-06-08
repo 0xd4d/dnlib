@@ -43,6 +43,10 @@ namespace dnlib.DotNet {
 		/// RSA signature algorithm
 		/// </summary>
 		CALG_RSA_SIGN = 0x00002400,
+        /// <summary>
+        /// KEY exchange RSA algorithm (found in SNK files)
+        /// </summary>
+		CALG_RSA_EXCH = 0x0000A400,
 	}
 
 	static class StrongNameUtils {
@@ -204,8 +208,10 @@ namespace dnlib.DotNet {
 				if (reader.ReadByte() != 2)
 					throw new InvalidKeyException("Invalid version");
 				reader.ReadUInt16();	// reserved
-				if ((SignatureAlgorithm)reader.ReadUInt32() != SignatureAlgorithm.CALG_RSA_SIGN)
-					throw new InvalidKeyException("Not RSA sign");
+                var publicKeySignatureAlgorithm = reader.ReadUInt32();
+                if ((SignatureAlgorithm)publicKeySignatureAlgorithm != SignatureAlgorithm.CALG_RSA_SIGN
+                &&  (SignatureAlgorithm)publicKeySignatureAlgorithm != SignatureAlgorithm.CALG_RSA_EXCH)
+                    throw new InvalidKeyException(string.Format("Not RSA sign (0x{0:x8})", publicKeySignatureAlgorithm));
 
 				// Read RSAPUBKEY
 				if (reader.ReadUInt32() != RSA1_SIG)	// magic = RSA1
@@ -639,8 +645,10 @@ namespace dnlib.DotNet {
 				if (reader.ReadByte() != 2)
 					throw new InvalidKeyException("Invalid version");
 				reader.ReadUInt16();	// reserved
-				if ((SignatureAlgorithm)reader.ReadUInt32() != SignatureAlgorithm.CALG_RSA_SIGN)
-					throw new InvalidKeyException("Not RSA sign");
+                var publicKeySignatureAlgorithm = reader.ReadUInt32();
+                if ((SignatureAlgorithm)publicKeySignatureAlgorithm != SignatureAlgorithm.CALG_RSA_SIGN
+                &&  (SignatureAlgorithm)publicKeySignatureAlgorithm != SignatureAlgorithm.CALG_RSA_EXCH)
+                    throw new InvalidKeyException(string.Format("Not RSA sign (0x{0:x8})", publicKeySignatureAlgorithm));
 
 				// Read RSAPUBKEY
 				if (reader.ReadUInt32() != RSA2_SIG)	// magic = RSA2
