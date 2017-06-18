@@ -97,6 +97,8 @@ namespace dnlib.DotNet {
 		IInspectable		= 0x2E,
 		/// <summary>hstring</summary>
 		HString				= 0x2F,
+		/// <summary>UTF-8 encoded string</summary>
+		LPUTF8Str			= 0x30,
 		/// <summary>first invalid element type</summary>
 		Max					= 0x50,
 		/// <summary>Value wasn't present in the blob</summary>
