@@ -22,6 +22,7 @@ namespace dnlib.DotNet.Pdb {
 		readonly SequencePointHelper seqPointsHelper = new SequencePointHelper();
 		readonly Dictionary<Instruction, uint> instrToOffset;
 		readonly PdbCustomDebugInfoWriterContext customDebugInfoWriterContext;
+		readonly int localsEndScopeIncValue;
 
 		/// <summary>
 		/// Gets/sets the logger
@@ -73,6 +74,7 @@ namespace dnlib.DotNet.Pdb {
 			this.module = metaData.Module;
 			this.instrToOffset = new Dictionary<Instruction, uint>();
 			this.customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
+			this.localsEndScopeIncValue = pdbState.IsVisualBasicModule ? 1 : 0;
 		}
 
 		/// <summary>
@@ -369,7 +371,7 @@ namespace dnlib.DotNet.Pdb {
 				writer.UsingNamespace(ns);
 			foreach (var childScope in scope.Scopes)
 				WriteScope(ref info, childScope, recursionCounter + 1);
-			writer.CloseScope(endOffset);
+			writer.CloseScope(startOffset == 0 && endOffset == info.BodySize ? endOffset : endOffset - localsEndScopeIncValue);
 		}
 
 		void AddLocals(MethodDef method, IList<Local> locals, uint startOffset, uint endOffset) {

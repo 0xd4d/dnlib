@@ -1175,7 +1175,7 @@ namespace dnlib.DotNet {
 		/// Creates a new <see cref="dnlib.DotNet.Pdb.PdbState"/>
 		/// </summary>
 		public void CreatePdbState() {
-			SetPdbState(new PdbState());
+			SetPdbState(new PdbState(this));
 		}
 
 		/// <summary>

@@ -15,6 +15,13 @@ namespace dnlib.DotNet.Pdb {
 		readonly ISymbolReader reader;
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
 		MethodDef userEntryPoint;
+		ThreeState isVisualBasicModule;
+
+		enum ThreeState {
+			Unknown,
+			No,
+			Yes,
+		}
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -62,7 +69,19 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
+		[Obsolete("Use PdbState(ModuleDef) constructor")]
 		public PdbState() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">Module</param>
+		public PdbState(ModuleDef module) {
+			if (module == null)
+				throw new ArgumentNullException("module");
+			this.isVisualBasicModule = CalculateIsVisualBasicModule(module);
+			Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
 		}
 
 		/// <summary>
@@ -76,6 +95,9 @@ namespace dnlib.DotNet.Pdb {
 			if (module == null)
 				throw new ArgumentNullException("module");
 			this.reader = reader;
+
+			this.isVisualBasicModule = CalculateIsVisualBasicModule(module);
+			Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
 
 			this.userEntryPoint = module.ResolveToken(reader.UserEntryPoint.GetToken()) as MethodDef;
 
@@ -180,10 +202,22 @@ namespace dnlib.DotNet.Pdb {
 			InitializeMethodBody(null, null, body, methodRid);
 		}
 
+		internal bool IsVisualBasicModule {
+			get {
+				Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
+				return isVisualBasicModule == ThreeState.Yes;
+			}
+		}
+
 		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body, uint methodRid) {
 			Debug.Assert((module == null) == (ownerMethod == null));
 			if (reader == null || body == null)
 				return;
+
+			if (isVisualBasicModule == ThreeState.Unknown)
+				isVisualBasicModule = CalculateIsVisualBasicModule(module);
+			Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
+
 			var token = new SymbolToken((int)(0x06000000 + methodRid));
 			ISymbolMethod method;
 #if THREAD_SAFE
@@ -213,6 +247,27 @@ namespace dnlib.DotNet.Pdb {
 			} finally { theLock.ExitWriteLock(); }
 #endif
 		}
+
+		ThreeState CalculateIsVisualBasicModule(ModuleDef module) {
+			if (module == null)
+				return ThreeState.No;
+			foreach (var asmRef in module.GetAssemblyRefs()) {
+				if (asmRef.Name == nameAssemblyVisualBasic)
+					return ThreeState.Yes;
+			}
+
+			// The VB runtime can also be embedded, and if so, it seems that "Microsoft.VisualBasic.Embedded"
+			// attribute is added to the assembly's custom attributes.
+			var asm = module.Assembly;
+			if (asm != null) {
+				var ca = asm.CustomAttributes.Find("Microsoft.VisualBasic.Embedded");
+				if (ca != null)
+					return ThreeState.Yes;
+			}
+
+			return ThreeState.No;
+		}
+		static readonly UTF8String nameAssemblyVisualBasic = new UTF8String("Microsoft.VisualBasic");
 
 		PdbAsyncMethod CreateAsyncMethod(ModuleDefMD module, MethodDef method, CilBody body, ISymbolMethod2 symMethod) {
 			var kickoffToken = new MDToken(symMethod.KickoffMethod);
@@ -314,7 +369,7 @@ namespace dnlib.DotNet.Pdb {
 			public int ChildrenIndex;
 		}
 
-		static PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, ISymbolScope symScope) {
+		PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, ISymbolScope symScope) {
 			if (symScope == null)
 				return null;
 
@@ -323,9 +378,10 @@ namespace dnlib.DotNet.Pdb {
 			var state = new CreateScopeState() { SymScope = symScope };
 recursive_call:
 			int instrIndex = 0;
+			int endIsInclusiveValue = isVisualBasicModule == ThreeState.Yes ? 1 : 0;
 			state.PdbScope = new PdbScope() {
 				Start = GetInstruction(body.Instructions, state.SymScope.StartOffset, ref instrIndex),
-				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset, ref instrIndex),
+				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
 			};
 
 			foreach (var symLocal in state.SymScope.GetLocals()) {
@@ -333,8 +389,10 @@ recursive_call:
 					continue;
 
 				int localIndex = symLocal.AddressField1;
-				if ((uint)localIndex >= (uint)body.Variables.Count)
+				if ((uint)localIndex >= (uint)body.Variables.Count) {
+					// VB sometimes creates a PDB local without a metadata local
 					continue;
+				}
 				var local = body.Variables[localIndex];
 				local.Name = symLocal.Name;
 				var attributes = symLocal.Attributes;
