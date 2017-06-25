@@ -368,7 +368,7 @@ namespace dnlib.DotNet.Pdb {
 
 		/// <summary>
 		/// Gets/sets the name of the local. The name must have at most 64 characters and no char can be NUL (0x0000).
-		/// If null is written, <see cref="Local.Name"/> is returned instead.
+		/// If null is written, <see cref="dnlib.DotNet.Emit.Local.Name"/> is returned instead.
 		/// </summary>
 		public string Name {
 			get {
@@ -527,7 +527,7 @@ namespace dnlib.DotNet.Pdb {
 		Instruction scopeStart, scopeEnd;
 
 		/// <summary>
-		/// Gets/sets the name of the local. If null is written, <see cref="Local.Name"/> is returned instead.
+		/// Gets/sets the name of the local. If null is written, <see cref="dnlib.DotNet.Emit.Local.Name"/> is returned instead.
 		/// </summary>
 		public string Name {
 			get {
