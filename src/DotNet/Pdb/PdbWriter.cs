@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
@@ -13,11 +14,14 @@ namespace dnlib.DotNet.Pdb {
 	/// <remarks>This class is not thread safe because it's a writer class</remarks>
 	public sealed class PdbWriter : IDisposable {
 		ISymbolWriter2 writer;
+		ISymbolWriter3 writer3;
 		readonly PdbState pdbState;
 		readonly ModuleDef module;
 		readonly MetaData metaData;
 		readonly Dictionary<PdbDocument, ISymbolDocumentWriter> pdbDocs = new Dictionary<PdbDocument, ISymbolDocumentWriter>();
 		readonly SequencePointHelper seqPointsHelper = new SequencePointHelper();
+		readonly Dictionary<Instruction, uint> instrToOffset;
+		readonly PdbCustomDebugInfoWriterContext customDebugInfoWriterContext;
 
 		/// <summary>
 		/// Gets/sets the logger
@@ -27,10 +31,11 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="writer">Symbol writer</param>
+		/// <param name="writer">Symbol writer, it should implement <see cref="ISymbolWriter3"/></param>
 		/// <param name="pdbState">PDB state</param>
 		/// <param name="metaData">Meta data</param>
-		public PdbWriter(ISymbolWriter2 writer, PdbState pdbState, MetaData metaData) {
+		public PdbWriter(ISymbolWriter2 writer, PdbState pdbState, MetaData metaData)
+			: this(pdbState, metaData) {
 			if (writer == null)
 				throw new ArgumentNullException("writer");
 			if (pdbState == null)
@@ -38,10 +43,36 @@ namespace dnlib.DotNet.Pdb {
 			if (metaData == null)
 				throw new ArgumentNullException("metaData");
 			this.writer = writer;
+			this.writer3 = writer as ISymbolWriter3;
+			Debug.Assert(writer3 != null, "Symbol writer doesn't implement interface ISymbolWriter3");
+			writer.Initialize(metaData);
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="writer">Symbol writer</param>
+		/// <param name="pdbState">PDB state</param>
+		/// <param name="metaData">Meta data</param>
+		public PdbWriter(ISymbolWriter3 writer, PdbState pdbState, MetaData metaData)
+			: this(pdbState, metaData) {
+			if (writer == null)
+				throw new ArgumentNullException("writer");
+			if (pdbState == null)
+				throw new ArgumentNullException("pdbState");
+			if (metaData == null)
+				throw new ArgumentNullException("metaData");
+			this.writer = writer;
+			this.writer3 = writer;
+			writer.Initialize(metaData);
+		}
+
+		PdbWriter(PdbState pdbState, MetaData metaData) {
 			this.pdbState = pdbState;
 			this.metaData = metaData;
 			this.module = metaData.Module;
-			writer.Initialize(metaData);
+			this.instrToOffset = new Dictionary<Instruction, uint>();
+			this.customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
 		}
 
 		/// <summary>
@@ -83,7 +114,7 @@ namespace dnlib.DotNet.Pdb {
 			if (body == null)
 				return false;
 
-			if (body.HasScope)
+			if (body.HasPdbMethod)
 				return true;
 
 			foreach (var local in body.Variables) {
@@ -160,6 +191,36 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
+		struct CurrentMethod {
+			readonly PdbWriter pdbWriter;
+			public readonly MethodDef Method;
+			readonly Dictionary<Instruction, uint> toOffset;
+			public readonly uint BodySize;
+
+			public CurrentMethod(PdbWriter pdbWriter, MethodDef method, Dictionary<Instruction, uint> toOffset) {
+				this.pdbWriter = pdbWriter;
+				Method = method;
+				this.toOffset = toOffset;
+				toOffset.Clear();
+				uint offset = 0;
+				foreach (var instr in method.Body.Instructions) {
+					toOffset[instr] = offset;
+					offset += (uint)instr.GetSize();
+				}
+				BodySize = offset;
+			}
+
+			public int GetOffset(Instruction instr) {
+				if (instr == null)
+					return (int)BodySize;
+				uint offset;
+				if (toOffset.TryGetValue(instr, out offset))
+					return (int)offset;
+				pdbWriter.Error("Instruction was removed from the body but is referenced from PdbScope: {0}", instr);
+				return (int)BodySize;
+			}
+		}
+
 		void Write(MethodDef method) {
 			uint rid = metaData.GetRid(method);
 			if (rid == 0) {
@@ -167,48 +228,148 @@ namespace dnlib.DotNet.Pdb {
 				return;
 			}
 
+			var info = new CurrentMethod(this, method, instrToOffset);
 			var body = method.Body;
-			uint methodSize = GetSizeOfBody(body);
+			var symbolToken = new SymbolToken((int)new MDToken(MD.Table.Method, metaData.GetRid(method)).Raw);
+			writer.OpenMethod(symbolToken);
+			seqPointsHelper.Write(this, info.Method.Body.Instructions);
 
-			writer.OpenMethod(new SymbolToken((int)new MDToken(MD.Table.Method, metaData.GetRid(method)).Raw));
-			writer.OpenScope(0);
-			AddLocals(method, body.Variables, 0, methodSize);
-			seqPointsHelper.Write(this, body.Instructions);
-			foreach (var scope in GetScopes(body.Scope)) {
-				foreach (var ns in scope.Namespaces)
-					writer.UsingNamespace(ns);
+			var pdbMethod = body.PdbMethod;
+			var scope = pdbMethod.Scope;
+			if (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0) {
+				if (scope.Scopes.Count == 0) {
+					// We must open at least one sub scope (the sym writer creates the 'method' scope
+					// which covers the whole method) or the native PDB reader will fail to read all
+					// sequence points.
+					writer.OpenScope(0);
+					writer.CloseScope((int)info.BodySize);
+				}
+				else {
+					foreach (var childScope in scope.Scopes)
+						WriteScope(ref info, childScope, 0);
+				}
 			}
-			writer.CloseScope((int)methodSize);
+			else {
+				Debug.Fail("Root scope isn't empty");
+				WriteScope(ref info, scope, 0);
+			}
+
+			if (pdbMethod.CustomDebugInfos.Count != 0) {
+				customDebugInfoWriterContext.Logger = GetLogger();
+				var cdiData = PdbCustomDebugInfoWriter.Write(metaData, method, customDebugInfoWriterContext, pdbMethod.CustomDebugInfos);
+				if (cdiData != null)
+					writer.SetSymAttribute(symbolToken, "MD2", cdiData);
+			}
+
+			var asyncMethod = pdbMethod.AsyncMethod;
+			if (asyncMethod != null) {
+				if (writer3 == null || !writer3.SupportsAsyncMethods)
+					Error("PDB symbol writer doesn't support writing async methods");
+				else
+					WriteAsyncMethod(ref info, asyncMethod);
+			}
+
 			writer.CloseMethod();
 		}
 
-		IEnumerable<PdbScope> GetScopes(PdbScope root) {
-			if (root == null)
-				return new PdbScope[0];
-			return GetScopes(new PdbScope[1] { root });
+		uint GetMethodToken(MethodDef method) {
+			uint rid = metaData.GetRid(method);
+			if (rid == 0)
+				Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, module);
+			return new MDToken(MD.Table.Method, rid).Raw;
 		}
 
-		IEnumerable<PdbScope> GetScopes(IEnumerable<PdbScope> scopes) {
-			var visited = new Dictionary<PdbScope, bool>();
-			var stack = new Stack<IEnumerator<PdbScope>>();
-			if (scopes != null)
-				stack.Push(scopes.GetEnumerator());
-			while (stack.Count > 0) {
-				var enumerator = stack.Pop();
-				while (enumerator.MoveNext()) {
-					var type = enumerator.Current;
-					if (visited.ContainsKey(type)) {
-						Error("PdbScope present more than once");
-						continue;
-					}
-					visited[type] = true;
-					yield return type;
-					if (type.Scopes.Count > 0) {
-						stack.Push(enumerator);
-						enumerator = type.Scopes.GetEnumerator();
+		void WriteAsyncMethod(ref CurrentMethod info, PdbAsyncMethod asyncMethod) {
+			if (asyncMethod.KickoffMethod == null) {
+				Error("KickoffMethod is null");
+				return;
+			}
+
+			uint kickoffMethod = GetMethodToken(asyncMethod.KickoffMethod);
+			writer3.DefineKickoffMethod(kickoffMethod);
+
+			if (asyncMethod.CatchHandlerInstruction != null) {
+				int catchHandlerILOffset = info.GetOffset(asyncMethod.CatchHandlerInstruction);
+				writer3.DefineCatchHandlerILOffset((uint)catchHandlerILOffset);
+			}
+
+			var stepInfos = asyncMethod.StepInfos;
+			var yieldOffsets = new uint[stepInfos.Count];
+			var breakpointOffset = new uint[stepInfos.Count];
+			var breakpointMethods = new uint[stepInfos.Count];
+			for (int i = 0; i < yieldOffsets.Length; i++) {
+				var stepInfo = stepInfos[i];
+				if (stepInfo.YieldInstruction == null) {
+					Error("YieldInstruction is null");
+					return;
+				}
+				if (stepInfo.BreakpointMethod == null) {
+					Error("BreakpointInstruction is null");
+					return;
+				}
+				if (stepInfo.BreakpointInstruction == null) {
+					Error("BreakpointInstruction is null");
+					return;
+				}
+				yieldOffsets[i] = (uint)info.GetOffset(stepInfo.YieldInstruction);
+				breakpointOffset[i] = (uint)GetExternalInstructionOffset(ref info, stepInfo.BreakpointMethod, stepInfo.BreakpointInstruction);
+				breakpointMethods[i] = GetMethodToken(stepInfo.BreakpointMethod);
+			}
+			writer3.DefineAsyncStepInfo(yieldOffsets, breakpointOffset, breakpointMethods);
+		}
+
+		int GetExternalInstructionOffset(ref CurrentMethod info, MethodDef method, Instruction instr) {
+			if (info.Method == method)
+				return info.GetOffset(instr);
+			var body = method.Body;
+			if (body == null) {
+				Error("Method body is null");
+				return 0;
+			}
+
+			var instrs = body.Instructions;
+			int offset = 0;
+			for (int i = 0; i < instrs.Count; i++) {
+				var currInstr = instrs[i];
+				if (currInstr == instr)
+					return offset;
+				offset += currInstr.GetSize();
+			}
+			if (instr == null)
+				return offset;
+			Error("Instruction has been removed but it's referenced by PDB info");
+			return 0;
+		}
+
+		void WriteScope(ref CurrentMethod info, PdbScope scope, int recursionCounter) {
+			if (recursionCounter >= 1000) {
+				Error("Too many PdbScopes");
+				return;
+			}
+
+			int startOffset = info.GetOffset(scope.Start);
+			int endOffset = info.GetOffset(scope.End);
+			writer.OpenScope(startOffset);
+			AddLocals(info.Method, scope.Variables, (uint)startOffset, (uint)endOffset);
+			if (scope.Constants.Count > 0) {
+				if (writer3 == null)
+					Error("Symbol writer doesn't implement ISymbolWriter3: no constants can be written to the PDB file");
+				else {
+					var constants = scope.Constants;
+					var sig = new FieldSig();
+					for (int i = 0; i < constants.Count; i++) {
+						var constant = constants[i];
+						sig.Type = constant.Type;
+						var token = metaData.GetToken(sig);
+						writer3.DefineConstant2(constant.Name, constant.Value ?? 0, token.Raw);
 					}
 				}
 			}
+			foreach (var ns in scope.Namespaces)
+				writer.UsingNamespace(ns);
+			foreach (var childScope in scope.Scopes)
+				WriteScope(ref info, childScope, recursionCounter + 1);
+			writer.CloseScope(endOffset);
 		}
 
 		void AddLocals(MethodDef method, IList<Local> locals, uint startOffset, uint endOffset) {
@@ -225,13 +386,6 @@ namespace dnlib.DotNet.Pdb {
 				writer.DefineLocalVariable2(local.Name ?? string.Empty, (uint)local.PdbAttributes,
 								token, 1, (uint)local.Index, 0, 0, startOffset, endOffset);
 			}
-		}
-
-		uint GetSizeOfBody(CilBody body) {
-			uint offset = 0;
-			foreach (var instr in body.Instructions)
-				offset += (uint)instr.GetSize();
-			return offset;
 		}
 
 		int GetUserEntryPointToken() {

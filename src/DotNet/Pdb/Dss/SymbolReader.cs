@@ -104,10 +104,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public byte[] GetSymAttribute(SymbolToken parent, string name) {
 			uint bufSize;
 			reader.GetSymAttribute((uint)parent.GetToken(), name, 0, out bufSize, null);
+			if (bufSize == 0)
+				return emptyBytes;
 			var buffer = new byte[bufSize];
 			reader.GetSymAttribute((uint)parent.GetToken(), name, (uint)buffer.Length, out bufSize, buffer);
 			return buffer;
 		}
+		static readonly byte[] emptyBytes = new byte[0];
 
 		public ISymbolVariable[] GetVariables(SymbolToken parent) {
 			uint numVars;

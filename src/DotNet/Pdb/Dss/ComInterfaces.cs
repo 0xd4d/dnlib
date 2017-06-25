@@ -91,6 +91,19 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 	[ComVisible(true),
 	ComImport,
+	Guid("B20D55B3-532E-4906-87E7-25BD5734ABD2"),
+	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	interface ISymUnmanagedAsyncMethod {
+		bool IsAsyncMethod();
+		uint GetKickoffMethod();
+		bool HasCatchHandlerILOffset();
+		uint GetCatchHandlerILOffset();
+		uint GetAsyncStepInfoCount();
+		void GetAsyncStepInfo([In] uint cStepInfo, [Out] out uint pcStepInfo, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] yieldOffsets, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] breakpointOffset, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] breakpointMethod);
+	}
+
+	[ComVisible(true),
+	ComImport,
 	Guid("9F60EEBE-2D9A-3F7C-BF58-80BC991C60BB"),
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	interface ISymUnmanagedVariable {
@@ -128,6 +141,37 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void GetLocalCount([Out] out uint pRetVal);
 		void GetLocals([In] uint cLocals, [Out] out uint pcLocals, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] locals);
 		void GetNamespaces([In] uint cNameSpaces, [Out] out uint pcNameSpaces, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedNamespace[] namespaces);
+	}
+
+	[ComVisible(true),
+	ComImport,
+	Guid("AE932FBA-3FD8-4dba-8232-30A2309B02DB"),
+	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	interface ISymUnmanagedScope2 : ISymUnmanagedScope {
+#pragma warning disable 0108
+		void GetMethod([Out] out ISymUnmanagedMethod pRetVal);
+		void GetParent([Out] out ISymUnmanagedScope pRetVal);
+		void GetChildren([In] uint cChildren, [Out] out uint pcChildren, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedScope[] children);
+		void GetStartOffset([Out] out uint pRetVal);
+		void GetEndOffset([Out] out uint pRetVal);
+		void GetLocalCount([Out] out uint pRetVal);
+		void GetLocals([In] uint cLocals, [Out] out uint pcLocals, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] locals);
+		void GetNamespaces([In] uint cNameSpaces, [Out] out uint pcNameSpaces, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedNamespace[] namespaces);
+#pragma warning restore 0108
+
+		uint GetConstantCount();
+		void GetConstants([In] uint cConstants, [Out] out uint pcConstants, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedConstant[] constants);
+	}
+
+	[ComVisible(true),
+	ComImport,
+	Guid("48B25ED8-5BAD-41bc-9CEE-CD62FABC74E9"),
+	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	interface ISymUnmanagedConstant {
+		void GetName([In] uint cchName, [Out] out uint pcchName, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] szName);
+		void GetValue(out object pValue);
+		[PreserveSig]
+		int GetSignature([In] uint cSig, [Out] out uint pcSig, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[] sig);
 	}
 
 	[ComVisible(true),
@@ -332,4 +376,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void SetCheckSum([In] Guid algorithmId, [In] uint checkSumSize, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] checkSum);
 	}
 #pragma warning restore 1591
+
+	[ComVisible(true),
+	ComImport,
+	Guid("FC073774-1739-4232-BD56-A027294BEC15"),
+	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	interface ISymUnmanagedAsyncMethodPropertiesWriter {
+		void DefineKickoffMethod([In] uint kickoffMethod);
+		void DefineCatchHandlerILOffset([In] uint catchHandlerOffset);
+		void DefineAsyncStepInfo([In] uint count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] yieldOffsets, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] breakpointOffset, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] breakpointMethod);
+	}
 }

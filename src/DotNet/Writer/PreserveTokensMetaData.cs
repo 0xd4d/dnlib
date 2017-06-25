@@ -1175,6 +1175,17 @@ namespace dnlib.DotNet.Writer {
 			return rid;
 		}
 
+		/// <inheritdoc/>
+		protected override uint AddStandAloneSig(FieldSig fieldSig, uint origToken) {
+			if (!PreserveStandAloneSigRids || !IsValidStandAloneSigToken(origToken))
+				return base.AddStandAloneSig(fieldSig, origToken);
+
+			uint rid = AddStandAloneSig(fieldSig, origToken);
+			if (rid == 0)
+				return base.AddStandAloneSig(fieldSig, origToken);
+			return rid;
+		}
+
 		uint AddStandAloneSig(CallingConventionSig callConvSig, uint origToken) {
 			uint sig = GetSignature(callConvSig);
 			uint otherSig;

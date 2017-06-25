@@ -67,4 +67,45 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="metaData">Metadata</param>
 		void Initialize(MetaData metaData);
 	}
+
+	/// <summary>
+	/// Implements <see cref="ISymbolWriter"/> and adds a few extra methods we need that are part of
+	/// <c>ISymUnmanagedWriter</c> and <c>ISymUnmanagedWriter2</c> but not present in
+	/// <see cref="ISymbolWriter"/>.
+	/// </summary>
+	public interface ISymbolWriter3 : ISymbolWriter2 {
+		/// <summary>
+		/// Defines a constant
+		/// </summary>
+		/// <param name="name">Name of constant</param>
+		/// <param name="value">Constant value</param>
+		/// <param name="sigToken">StandAloneSig token of constant field type</param>
+		void DefineConstant2(string name, object value, uint sigToken);
+
+		/// <summary>
+		/// true if it supports <see cref="DefineKickoffMethod(uint)"/>, <see cref="DefineCatchHandlerILOffset(uint)"/>
+		/// and <see cref="DefineAsyncStepInfo(uint[], uint[], uint[])"/>
+		/// </summary>
+		bool SupportsAsyncMethods { get; }
+
+		/// <summary>
+		/// Defines an async kickoff method
+		/// </summary>
+		/// <param name="kickoffMethod">Kickoff method token</param>
+		void DefineKickoffMethod(uint kickoffMethod);
+
+		/// <summary>
+		/// Defines an async catch handler
+		/// </summary>
+		/// <param name="catchHandlerOffset">Catch handler IL offset</param>
+		void DefineCatchHandlerILOffset(uint catchHandlerOffset);
+
+		/// <summary>
+		/// Defines async step info
+		/// </summary>
+		/// <param name="yieldOffsets">Yield IL offsets</param>
+		/// <param name="breakpointOffset">Breakpoint method IL offset</param>
+		/// <param name="breakpointMethod">Breakpoint method</param>
+		void DefineAsyncStepInfo(uint[] yieldOffsets, uint[] breakpointOffset, uint[] breakpointMethod);
+	}
 }

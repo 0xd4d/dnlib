@@ -1,0 +1,36 @@
+﻿// dnlib: See LICENSE.txt for more info
+
+namespace dnlib.DotNet.Pdb.Managed {
+	enum NumericLeaf : ushort {
+		LF_NUMERIC			= 0x8000,
+		LF_CHAR				= 0x8000,
+		LF_SHORT			= 0x8001,
+		LF_USHORT			= 0x8002,
+		LF_LONG				= 0x8003,
+		LF_ULONG			= 0x8004,
+		LF_REAL32			= 0x8005,
+		LF_REAL64			= 0x8006,
+		LF_REAL80			= 0x8007,
+		LF_REAL128			= 0x8008,
+		LF_QUADWORD			= 0x8009,
+		LF_UQUADWORD		= 0x800A,
+		LF_REAL48			= 0x800B,
+		LF_COMPLEX32		= 0x800C,
+		LF_COMPLEX64		= 0x800D,
+		LF_COMPLEX80		= 0x800E,
+		LF_COMPLEX128		= 0x800F,
+		LF_VARSTRING		= 0x8010,
+		LF_RESERVED_8011	= 0x8011,
+		LF_RESERVED_8012	= 0x8012,
+		LF_RESERVED_8013	= 0x8013,
+		LF_RESERVED_8014	= 0x8014,
+		LF_RESERVED_8015	= 0x8015,
+		LF_RESERVED_8016	= 0x8016,
+		LF_OCTWORD			= 0x8017,
+		LF_UOCTWORD			= 0x8018,
+		LF_VARIANT			= 0x8019,
+		LF_DATE				= 0x801A,
+		LF_UTF8STRING		= 0x801B,
+		LF_REAL16			= 0x801C,
+	}
+}

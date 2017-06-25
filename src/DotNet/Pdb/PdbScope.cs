@@ -19,6 +19,7 @@ namespace dnlib.DotNet.Pdb {
 		readonly ThreadSafe.IList<PdbScope> scopes = ThreadSafeListCreator.Create<PdbScope>();
 		readonly ThreadSafe.IList<Local> locals = ThreadSafeListCreator.Create<Local>();
 		readonly ThreadSafe.IList<string> namespaces = ThreadSafeListCreator.Create<string>();
+		readonly ThreadSafe.IList<PdbConstant> constants = ThreadSafeListCreator.Create<PdbConstant>();
 
 		/// <summary>
 		/// Gets/sets the first instruction
@@ -70,6 +71,20 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public bool HasNamespaces {
 			get { return namespaces.Count > 0; }
+		}
+
+		/// <summary>
+		/// Gets all constants
+		/// </summary>
+		public ThreadSafe.IList<PdbConstant> Constants {
+			get { return constants; }
+		}
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Constants"/> is not empty
+		/// </summary>
+		public bool HasConstants {
+			get { return constants.Count > 0; }
 		}
 	}
 }

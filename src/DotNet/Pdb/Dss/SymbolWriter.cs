@@ -8,11 +8,16 @@ using System.Runtime.InteropServices;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Dss {
-	sealed class SymbolWriter : ISymbolWriter2 {
+	sealed class SymbolWriter : ISymbolWriter3 {
 		readonly ISymUnmanagedWriter2 writer;
+		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;
 		readonly string pdbFileName;
 		readonly Stream pdbStream;
 		bool closeCalled;
+
+		public bool SupportsAsyncMethods {
+			get { return asyncMethodWriter != null; }
+		}
 
 		/// <summary>
 		/// Constructor
@@ -25,6 +30,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (pdbFileName == null)
 				throw new ArgumentNullException("pdbFileName");
 			this.writer = writer;
+			this.asyncMethodWriter = writer as ISymUnmanagedAsyncMethodPropertiesWriter;
 			this.pdbFileName = pdbFileName;
 		}
 
@@ -42,6 +48,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 			this.writer = writer;
 			this.pdbStream = pdbStream;
 			this.pdbFileName = pdbFileName;
+		}
+
+		public void Abort() {
+			writer.Abort();
 		}
 
 		public void Close() {
@@ -63,6 +73,28 @@ namespace dnlib.DotNet.Pdb.Dss {
 			writer.CloseScope((uint)endOffset);
 		}
 
+		public void DefineAsyncStepInfo(uint[] yieldOffsets, uint[] breakpointOffset, uint[] breakpointMethod) {
+			if (asyncMethodWriter == null)
+				throw new InvalidOperationException();
+			if (yieldOffsets.Length != breakpointOffset.Length || yieldOffsets.Length != breakpointMethod.Length)
+				throw new ArgumentException();
+			asyncMethodWriter.DefineAsyncStepInfo((uint)yieldOffsets.Length, yieldOffsets, breakpointOffset, breakpointMethod);
+		}
+
+		public void DefineCatchHandlerILOffset(uint catchHandlerOffset) {
+			if (asyncMethodWriter == null)
+				throw new InvalidOperationException();
+			asyncMethodWriter.DefineCatchHandlerILOffset(catchHandlerOffset);
+		}
+
+		public void DefineConstant(string name, object value, byte[] signature) {
+			writer.DefineConstant(name, value, (uint)signature.Length, signature);
+		}
+
+		public void DefineConstant2(string name, object value, uint sigToken) {
+			writer.DefineConstant2(name, value, sigToken);
+		}
+
 		public ISymbolDocumentWriter DefineDocument(string url, Guid language, Guid languageVendor, Guid documentType) {
 			ISymUnmanagedDocumentWriter unDocWriter;
 			writer.DefineDocument(url, ref language, ref languageVendor, ref documentType, out unDocWriter);
@@ -75,6 +107,16 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		public void DefineGlobalVariable(string name, System.Reflection.FieldAttributes attributes, byte[] signature, SymAddressKind addrKind, int addr1, int addr2, int addr3) {
 			writer.DefineGlobalVariable(name, (uint)attributes, (uint)signature.Length, signature, (uint)addrKind, (uint)addr1, (uint)addr2, (uint)addr3);
+		}
+
+		public void DefineGlobalVariable2(string name, uint attributes, uint sigToken, uint addrKind, uint addr1, uint addr2, uint addr3) {
+			writer.DefineGlobalVariable2(name, attributes, sigToken, addrKind, addr1, addr2, addr3);
+		}
+
+		public void DefineKickoffMethod(uint kickoffMethod) {
+			if (asyncMethodWriter == null)
+				throw new InvalidOperationException();
+			asyncMethodWriter.DefineKickoffMethod(kickoffMethod);
 		}
 
 		public void DefineLocalVariable(string name, System.Reflection.FieldAttributes attributes, byte[] signature, SymAddressKind addrKind, int addr1, int addr2, int addr3, int startOffset, int endOffset) {
@@ -122,6 +164,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 			uint result;
 			writer.OpenScope((uint)startOffset, out result);
 			return (int)result;
+		}
+
+		public void RemapToken(uint oldToken, uint newToken) {
+			writer.RemapToken(oldToken, newToken);
 		}
 
 		public void SetMethodSourceRange(ISymbolDocumentWriter startDoc, int startLine, int startColumn, ISymbolDocumentWriter endDoc, int endLine, int endColumn) {

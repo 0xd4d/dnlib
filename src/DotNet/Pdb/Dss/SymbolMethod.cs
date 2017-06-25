@@ -1,14 +1,17 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 
 namespace dnlib.DotNet.Pdb.Dss {
-	sealed class SymbolMethod : ISymbolMethod {
+	sealed class SymbolMethod : ISymbolMethod2 {
 		readonly ISymUnmanagedMethod method;
+		readonly ISymUnmanagedAsyncMethod asyncMethod;
 
 		public SymbolMethod(ISymUnmanagedMethod method) {
 			this.method = method;
+			this.asyncMethod = method as ISymUnmanagedAsyncMethod;
 		}
 
 		public ISymbolScope RootScope {
@@ -124,6 +127,45 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 
 			return result;
+		}
+
+		public bool IsAsyncMethod {
+			get { return asyncMethod != null && asyncMethod.IsAsyncMethod(); }
+		}
+
+		public uint KickoffMethod {
+			get {
+				Debug.Assert(IsAsyncMethod);
+				if (asyncMethod == null)
+					throw new InvalidOperationException();
+				return asyncMethod.GetKickoffMethod();
+			}
+		}
+
+		public uint? CatchHandlerILOffset {
+			get {
+				Debug.Assert(IsAsyncMethod);
+				if (asyncMethod == null)
+					throw new InvalidOperationException();
+				if (!asyncMethod.HasCatchHandlerILOffset())
+					return null;
+				return asyncMethod.GetCatchHandlerILOffset();
+			}
+		}
+
+		public RawAsyncStepInfo[] GetAsyncStepInfos() {
+			Debug.Assert(IsAsyncMethod);
+			if (asyncMethod == null)
+				throw new InvalidOperationException();
+			var stepInfoCount = asyncMethod.GetAsyncStepInfoCount();
+			var yieldOffsets = new uint[stepInfoCount];
+			var breakpointOffsets = new uint[stepInfoCount];
+			var breakpointMethods = new uint[stepInfoCount];
+			asyncMethod.GetAsyncStepInfo(stepInfoCount, out stepInfoCount, yieldOffsets, breakpointOffsets, breakpointMethods);
+			var res = new RawAsyncStepInfo[stepInfoCount];
+			for (int i = 0; i < res.Length; i++)
+				res[i] = new RawAsyncStepInfo(yieldOffsets[i], breakpointOffsets[i], breakpointMethods[i]);
+			return res;
 		}
 	}
 }

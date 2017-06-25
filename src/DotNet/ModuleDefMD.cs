@@ -1852,7 +1852,7 @@ namespace dnlib.DotNet {
 			if (mDec != null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out mb)) {
 				var cilBody = mb as CilBody;
 				if (cilBody != null)
-					return InitializeBodyFromPdb(cilBody, method.OrigRid);
+					return InitializeBodyFromPdb(method, cilBody, method.OrigRid);
 				return mb;
 			}
 
@@ -1860,7 +1860,7 @@ namespace dnlib.DotNet {
 				return null;
 			var codeType = implAttrs & MethodImplAttributes.CodeTypeMask;
 			if (codeType == MethodImplAttributes.IL)
-				return InitializeBodyFromPdb(ReadCilBody(method.Parameters, rva, gpContext), method.OrigRid);
+				return InitializeBodyFromPdb(method, ReadCilBody(method.Parameters, rva, gpContext), method.OrigRid);
 			if (codeType == MethodImplAttributes.Native)
 				return new NativeMethodBody(rva);
 			return null;
@@ -1869,12 +1869,13 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Updates <paramref name="body"/> with the PDB info (if any)
 		/// </summary>
+		/// <param name="method">Owner method</param>
 		/// <param name="body">Method body</param>
 		/// <param name="rid">Method rid</param>
 		/// <returns>Returns originak <paramref name="body"/> value</returns>
-		CilBody InitializeBodyFromPdb(CilBody body, uint rid) {
+		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body, uint rid) {
 			if (pdbState != null)
-				pdbState.InitializeDontCall(body, rid);
+				pdbState.InitializeMethodBody(this, method, body, rid);
 			return body;
 		}
 

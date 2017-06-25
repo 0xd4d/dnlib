@@ -187,7 +187,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <summary>
 		/// If <see cref="PdbFileName"/> or <see cref="PdbStream"/> aren't enough, this can be used
-		/// to create a new <see cref="ISymbolWriter2"/> instance. <see cref="WritePdb"/> must be
+		/// to create a new <see cref="ISymbolWriter3"/> instance. <see cref="WritePdb"/> must be
 		/// <c>true</c> or this property is ignored.
 		/// </summary>
 		public CreatePdbSymbolWriterDelegate CreatePdbSymbolWriter { get; set; }

@@ -1,9 +1,10 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 
 namespace dnlib.DotNet.Pdb.Dss {
-	sealed class SymbolScope : ISymbolScope {
+	sealed class SymbolScope : ISymbolScope2 {
 		readonly ISymUnmanagedScope scope;
 
 		public SymbolScope(ISymUnmanagedScope scope) {
@@ -74,5 +75,59 @@ namespace dnlib.DotNet.Pdb.Dss {
 				nss[i] = new SymbolNamespace(unNss[i]);
 			return nss;
 		}
+
+		public PdbConstant[] GetConstants(ModuleDefMD module, GenericParamContext gpContext) {
+			var scope2 = scope as ISymUnmanagedScope2;
+			if (scope2 == null)
+				return emptySymbolConstants;
+			uint numCs;
+			scope2.GetConstants(0, out numCs, null);
+			if (numCs == 0)
+				return emptySymbolConstants;
+			var unCs = new ISymUnmanagedConstant[numCs];
+			scope2.GetConstants((uint)unCs.Length, out numCs, unCs);
+			var nss = new PdbConstant[numCs];
+			for (uint i = 0; i < numCs; i++) {
+				var unc = unCs[i];
+				var name = GetName(unc);
+				object value;
+				unc.GetValue(out value);
+				var sigBytes = GetSignatureBytes(unc);
+				TypeSig signature;
+				if (sigBytes.Length == 0)
+					signature = null;
+				else
+					signature = SignatureReader.ReadTypeSig(module, module.CorLibTypes, sigBytes, gpContext);
+				nss[i] = new PdbConstant(name, signature, value);
+			}
+			return nss;
+		}
+		static readonly PdbConstant[] emptySymbolConstants = new PdbConstant[0];
+
+		string GetName(ISymUnmanagedConstant unc) {
+			uint count;
+			unc.GetName(0, out count, null);
+			var chars = new char[count];
+			unc.GetName((uint)chars.Length, out count, chars);
+			if (chars.Length == 0)
+				return string.Empty;
+			return new string(chars, 0, chars.Length - 1);
+		}
+
+		byte[] GetSignatureBytes(ISymUnmanagedConstant unc) {
+			const int E_FAIL = unchecked((int)0x80004005);
+			const int E_NOTIMPL = unchecked((int)0x80004001);
+			uint bufSize;
+			int hr = unc.GetSignature(0, out bufSize, null);
+			if (bufSize == 0 || (hr < 0 && hr != E_FAIL && hr != E_NOTIMPL))
+				return emptyByteArray;
+			var buffer = new byte[bufSize];
+			hr = unc.GetSignature((uint)buffer.Length, out bufSize, buffer);
+			Debug.Assert(hr == 0);
+			if (hr != 0)
+				return emptyByteArray;
+			return buffer;
+		}
+		static readonly byte[] emptyByteArray = new byte[0];
 	}
 }

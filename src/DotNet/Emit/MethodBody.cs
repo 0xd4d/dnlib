@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using dnlib.DotNet.Pdb;
 using dnlib.PE;
 using dnlib.Threading;
@@ -59,7 +60,6 @@ namespace dnlib.DotNet.Emit {
 		readonly ThreadSafe.IList<Instruction> instructions;
 		readonly ThreadSafe.IList<ExceptionHandler> exceptionHandlers;
 		readonly LocalList localList;
-		PdbScope pdbScope;
 
 		/// <summary>
 		/// Size of a small header
@@ -164,19 +164,46 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// Gets/sets the PDB scope. This is <c>null</c> if no PDB has been loaded or if there's
-		/// no PDB scope for this method.
+		/// Gets/sets the PDB method. This is <c>null</c> if no PDB has been loaded or if there's
+		/// no PDB info for this method.
 		/// </summary>
+		public PdbMethod PdbMethod {
+			get { return pdbMethod; }
+			set { pdbMethod = value; }
+		}
+		PdbMethod pdbMethod;
+
+		/// <summary>
+		/// <c>true</c> if <see cref="PdbMethod"/> is not <c>null</c>
+		/// </summary>
+		public bool HasPdbMethod {
+			get { return PdbMethod != null; }
+		}
+
+		/// <summary>
+		/// Gets/sets the PDB scope
+		/// </summary>
+		[Obsolete("Use PdbMethod.Scope property instead")]
 		public PdbScope Scope {
-			get { return pdbScope; }
-			set { pdbScope = value; }
+			get {
+				var pdbMethod = this.pdbMethod;
+				return pdbMethod == null ? null : pdbMethod.Scope;
+			}
+			set {
+				var pdbMethod = this.pdbMethod;
+				if (pdbMethod == null && value != null)
+					this.pdbMethod = pdbMethod = new PdbMethod();
+				if (pdbMethod != null)
+					pdbMethod.Scope = value;
+			}
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Scope"/> is not <c>null</c>
 		/// </summary>
+		[Obsolete("Use HasPdbMethod to check if it has PDB info")]
 		public bool HasScope {
-			get { return pdbScope != null; }
+			get { return Scope != null; }
 		}
 
 		/// <summary>

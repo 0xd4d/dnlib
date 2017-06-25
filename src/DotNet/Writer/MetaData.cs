@@ -1597,6 +1597,10 @@ namespace dnlib.DotNet.Writer {
 			if (methodSig != null)
 				return new MDToken(Table.StandAloneSig, AddStandAloneSig(methodSig, methodSig.OriginalToken));
 
+			var fieldSig = o as FieldSig;
+			if (fieldSig != null)
+				return new MDToken(Table.StandAloneSig, AddStandAloneSig(fieldSig, 0));
+
 			if (o == null)
 				Error("Instruction operand is null");
 			else
@@ -1628,6 +1632,24 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			var row = new RawStandAloneSigRow(GetSignature(methodSig));
+			uint rid = tablesHeap.StandAloneSigTable.Add(row);
+			//TODO: Add custom attributes
+			return rid;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="StandAloneSig"/>
+		/// </summary>
+		/// <param name="fieldSig">FIeld signature</param>
+		/// <param name="origToken">Original <c>StandAloneSig</c> token or 0 if none</param>
+		/// <returns>Its new rid</returns>
+		protected virtual uint AddStandAloneSig(FieldSig fieldSig, uint origToken) {
+			if (fieldSig == null) {
+				Error("StandAloneSig: FieldSig is null");
+				return 0;
+			}
+
+			var row = new RawStandAloneSigRow(GetSignature(fieldSig));
 			uint rid = tablesHeap.StandAloneSigTable.Add(row);
 			//TODO: Add custom attributes
 			return rid;
