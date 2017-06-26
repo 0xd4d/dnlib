@@ -15,13 +15,7 @@ namespace dnlib.DotNet.Pdb {
 		readonly ISymbolReader reader;
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
 		MethodDef userEntryPoint;
-		ThreeState isVisualBasicModule;
-
-		enum ThreeState {
-			Unknown,
-			No,
-			Yes,
-		}
+		Compiler compiler;
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -80,8 +74,7 @@ namespace dnlib.DotNet.Pdb {
 		public PdbState(ModuleDef module) {
 			if (module == null)
 				throw new ArgumentNullException("module");
-			this.isVisualBasicModule = CalculateIsVisualBasicModule(module);
-			Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
+			this.compiler = CalculateCompiler(module);
 		}
 
 		/// <summary>
@@ -95,9 +88,7 @@ namespace dnlib.DotNet.Pdb {
 			if (module == null)
 				throw new ArgumentNullException("module");
 			this.reader = reader;
-
-			this.isVisualBasicModule = CalculateIsVisualBasicModule(module);
-			Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
+			this.compiler = CalculateCompiler(module);
 
 			this.userEntryPoint = module.ResolveToken(reader.UserEntryPoint.GetToken()) as MethodDef;
 
@@ -202,21 +193,16 @@ namespace dnlib.DotNet.Pdb {
 			InitializeMethodBody(null, null, body, methodRid);
 		}
 
-		internal bool IsVisualBasicModule {
-			get {
-				Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
-				return isVisualBasicModule == ThreeState.Yes;
-			}
+		internal Compiler GetCompiler(ModuleDef module) {
+			if (compiler == Compiler.Unknown)
+				compiler = CalculateCompiler(module);
+			return compiler;
 		}
 
 		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body, uint methodRid) {
 			Debug.Assert((module == null) == (ownerMethod == null));
 			if (reader == null || body == null)
 				return;
-
-			if (isVisualBasicModule == ThreeState.Unknown)
-				isVisualBasicModule = CalculateIsVisualBasicModule(module);
-			Debug.Assert(isVisualBasicModule != ThreeState.Unknown);
 
 			var token = new SymbolToken((int)(0x06000000 + methodRid));
 			ISymbolMethod method;
@@ -248,12 +234,12 @@ namespace dnlib.DotNet.Pdb {
 #endif
 		}
 
-		ThreeState CalculateIsVisualBasicModule(ModuleDef module) {
+		Compiler CalculateCompiler(ModuleDef module) {
 			if (module == null)
-				return ThreeState.No;
+				return Compiler.Other;
 			foreach (var asmRef in module.GetAssemblyRefs()) {
 				if (asmRef.Name == nameAssemblyVisualBasic)
-					return ThreeState.Yes;
+					return Compiler.VisualBasic;
 			}
 
 			// The VB runtime can also be embedded, and if so, it seems that "Microsoft.VisualBasic.Embedded"
@@ -262,10 +248,10 @@ namespace dnlib.DotNet.Pdb {
 			if (asm != null) {
 				var ca = asm.CustomAttributes.Find("Microsoft.VisualBasic.Embedded");
 				if (ca != null)
-					return ThreeState.Yes;
+					return Compiler.VisualBasic;
 			}
 
-			return ThreeState.No;
+			return Compiler.Other;
 		}
 		static readonly UTF8String nameAssemblyVisualBasic = new UTF8String("Microsoft.VisualBasic");
 
@@ -378,7 +364,7 @@ namespace dnlib.DotNet.Pdb {
 			var state = new CreateScopeState() { SymScope = symScope };
 recursive_call:
 			int instrIndex = 0;
-			int endIsInclusiveValue = isVisualBasicModule == ThreeState.Yes ? 1 : 0;
+			int endIsInclusiveValue = GetCompiler(module) == Compiler.VisualBasic ? 1 : 0;
 			state.PdbScope = new PdbScope() {
 				Start = GetInstruction(body.Instructions, state.SymScope.StartOffset, ref instrIndex),
 				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
@@ -530,5 +516,11 @@ do_return:
 			}
 			return null;
 		}
+	}
+
+	enum Compiler {
+		Unknown,
+		Other,
+		VisualBasic,
 	}
 }

@@ -74,7 +74,7 @@ namespace dnlib.DotNet.Pdb {
 			this.module = metaData.Module;
 			this.instrToOffset = new Dictionary<Instruction, uint>();
 			this.customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
-			this.localsEndScopeIncValue = pdbState.IsVisualBasicModule ? 1 : 0;
+			this.localsEndScopeIncValue = pdbState.GetCompiler(metaData.module) == Compiler.VisualBasic ? 1 : 0;
 		}
 
 		/// <summary>
