@@ -237,6 +237,7 @@ namespace dnlib.DotNet.Pdb {
 		Compiler CalculateCompiler(ModuleDef module) {
 			if (module == null)
 				return Compiler.Other;
+
 			foreach (var asmRef in module.GetAssemblyRefs()) {
 				if (asmRef.Name == nameAssemblyVisualBasic)
 					return Compiler.VisualBasic;
@@ -245,11 +246,8 @@ namespace dnlib.DotNet.Pdb {
 			// The VB runtime can also be embedded, and if so, it seems that "Microsoft.VisualBasic.Embedded"
 			// attribute is added to the assembly's custom attributes.
 			var asm = module.Assembly;
-			if (asm != null) {
-				var ca = asm.CustomAttributes.Find("Microsoft.VisualBasic.Embedded");
-				if (ca != null)
-					return Compiler.VisualBasic;
-			}
+			if (asm != null && asm.CustomAttributes.IsDefined("Microsoft.VisualBasic.Embedded"))
+				return Compiler.VisualBasic;
 
 			return Compiler.Other;
 		}

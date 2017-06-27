@@ -138,7 +138,6 @@ namespace dnlib.DotNet.Pdb {
 				if (count < 0)
 					return null;
 				var smScope = new PdbStateMachineHoistedLocalScopesCustomDebugInfo(count);
-				int maxEndOffset = -1;
 				for (int i = 0; i < count; i++) {
 					uint startOffset = reader.ReadUInt32();
 					uint endOffset = reader.ReadUInt32();
@@ -156,7 +155,6 @@ namespace dnlib.DotNet.Pdb {
 							return null;
 						smScope.Scopes.Add(new StateMachineHoistedLocalScope(start, end));
 					}
-					maxEndOffset = Math.Max(maxEndOffset, (int)endOffset + 1);
 				}
 				return smScope;
 
