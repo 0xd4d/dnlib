@@ -119,7 +119,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					case SymbolType.S_END:
 						break;
 					default:
-						Debug.Write("Unknown symbol type: " + type);
+						Debug.Fail("Unknown symbol type: " + type);
 						break;
 				}
 
@@ -165,7 +165,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			for (int i = 0; i < res.Length; i++) {
 				var info = constants[i];
 				TypeSig signature;
-				var saSig = module.ResolveToken(info.SignatureToken) as StandAloneSig;
+				var saSig = module.ResolveToken(info.SignatureToken, gpContext) as StandAloneSig;
 				var fieldSig = saSig == null ? null : saSig.Signature as FieldSig;
 				if (fieldSig == null) {
 					Debug.Fail("Constant without a signature");
