@@ -292,6 +292,10 @@ namespace dnlib.DotNet.Writer {
 
 			writer.Write((byte)sig.GetCallingConvention());
 			uint count = WriteCompressedUInt32((uint)sig.Locals.Count);
+			if (count >= 0x10000) {
+				// ldloc 0xFFFF is invalid, see the ldloc documentation
+				helper.Error("Too many locals, max number of locals is 65535 (0xFFFF)");
+			}
 			for (uint i = 0; i < count; i++)
 				Write(sig.Locals[(int)i]);
 
