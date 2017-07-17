@@ -94,7 +94,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddToCache(UTF8String s) {
-			if (Array.IndexOf(s.Data, 0) >= 0)
+			if (Array.IndexOf(s.Data, (byte)0) >= 0)
 				throw new ArgumentException("Strings in the #Strings heap can't contain 00h bytes");
 
 			uint offset;
