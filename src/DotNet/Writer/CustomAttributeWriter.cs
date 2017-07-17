@@ -19,6 +19,7 @@ namespace dnlib.DotNet.Writer {
 		RecursionCounter recursionCounter;
 		readonly MemoryStream outStream;
 		readonly BinaryWriter writer;
+		readonly bool disposeStream;
 		GenericArguments genericArguments;
 
 		/// <summary>
@@ -29,6 +30,13 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Custom attribute blob</returns>
 		public static byte[] Write(ICustomAttributeWriterHelper helper, CustomAttribute ca) {
 			using (var writer = new CustomAttributeWriter(helper)) {
+				writer.Write(ca);
+				return writer.GetResult();
+			}
+		}
+
+		internal static byte[] Write(ICustomAttributeWriterHelper helper, CustomAttribute ca, BinaryWriterContext context) {
+			using (var writer = new CustomAttributeWriter(helper, context)) {
 				writer.Write(ca);
 				return writer.GetResult();
 			}
@@ -47,12 +55,31 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
+		internal static byte[] Write(ICustomAttributeWriterHelper helper, IList<CANamedArgument> namedArgs, BinaryWriterContext context) {
+			using (var writer = new CustomAttributeWriter(helper, context)) {
+				writer.Write(namedArgs);
+				return writer.GetResult();
+			}
+		}
+
 		CustomAttributeWriter(ICustomAttributeWriterHelper helper) {
 			this.helper = helper;
 			this.recursionCounter = new RecursionCounter();
 			this.outStream = new MemoryStream();
 			this.writer = new BinaryWriter(outStream);
 			this.genericArguments = null;
+			this.disposeStream = true;
+		}
+
+		CustomAttributeWriter(ICustomAttributeWriterHelper helper, BinaryWriterContext context) {
+			this.helper = helper;
+			this.recursionCounter = new RecursionCounter();
+			this.outStream = context.OutStream;
+			this.writer = context.Writer;
+			this.genericArguments = null;
+			this.disposeStream = false;
+			outStream.SetLength(0);
+			outStream.Position = 0;
 		}
 
 		byte[] GetResult() {
@@ -742,6 +769,8 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void Dispose() {
+			if (!disposeStream)
+				return;
 			if (outStream != null)
 				outStream.Dispose();
 			if (writer != null)

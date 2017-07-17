@@ -10,8 +10,8 @@ namespace dnlib.DotNet.Writer {
 	/// can be placed in the fat method header's MaxStack field.
 	/// </summary>
 	public struct MaxStackCalculator {
-		readonly IList<Instruction> instructions;
-		readonly IList<ExceptionHandler> exceptionHandlers;
+		IList<Instruction> instructions;
+		IList<ExceptionHandler> exceptionHandlers;
 		readonly Dictionary<Instruction, int> stackHeights;
 		int errors;
 
@@ -38,6 +38,17 @@ namespace dnlib.DotNet.Writer {
 			return new MaxStackCalculator(instructions, exceptionHandlers).Calculate(out maxStack);
 		}
 
+		internal static MaxStackCalculator Create() {
+			return new MaxStackCalculator(true);
+		}
+
+		MaxStackCalculator(bool dummy) {
+			this.instructions = null;
+			this.exceptionHandlers = null;
+			this.stackHeights = new Dictionary<Instruction, int>();
+			this.errors = 0;
+		}
+
 		MaxStackCalculator(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
 			this.instructions = instructions;
 			this.exceptionHandlers = exceptionHandlers;
@@ -45,7 +56,14 @@ namespace dnlib.DotNet.Writer {
 			this.errors = 0;
 		}
 
-		bool Calculate(out uint maxStack) {
+		internal void Reset(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
+			this.instructions = instructions;
+			this.exceptionHandlers = exceptionHandlers;
+			stackHeights.Clear();
+			errors = 0;
+		}
+
+		internal bool Calculate(out uint maxStack) {
 			foreach (var eh in exceptionHandlers) {
 				if (eh == null)
 					continue;

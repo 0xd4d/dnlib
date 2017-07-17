@@ -11,6 +11,7 @@ namespace dnlib.DotNet.Writer {
 	public struct DeclSecurityWriter : ICustomAttributeWriterHelper {
 		readonly ModuleDef module;
 		readonly IWriterError helper;
+		readonly BinaryWriterContext context;
 
 		/// <summary>
 		/// Creates a <c>DeclSecurity</c> blob from <paramref name="secAttrs"/>
@@ -20,12 +21,17 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A <c>DeclSecurity</c> blob</returns>
 		public static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper) {
-			return new DeclSecurityWriter(module, helper).Write(secAttrs);
+			return new DeclSecurityWriter(module, helper, null).Write(secAttrs);
 		}
 
-		DeclSecurityWriter(ModuleDef module, IWriterError helper) {
+		internal static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper, BinaryWriterContext context) {
+			return new DeclSecurityWriter(module, helper, context).Write(secAttrs);
+		}
+
+		DeclSecurityWriter(ModuleDef module, IWriterError helper, BinaryWriterContext context) {
 			this.module = module;
 			this.helper = helper;
+			this.context = context;
 		}
 
 		byte[] Write(IList<SecurityAttribute> secAttrs) {
@@ -66,7 +72,9 @@ namespace dnlib.DotNet.Writer {
 						fqn = attrType.AssemblyQualifiedName;
 					Write(writer, fqn);
 
-					var namedArgsBlob = CustomAttributeWriter.Write(this, sa.NamedArguments);
+					var namedArgsBlob = context == null ?
+						CustomAttributeWriter.Write(this, sa.NamedArguments) :
+						CustomAttributeWriter.Write(this, sa.NamedArguments, context);
 					if (namedArgsBlob.Length > 0x1FFFFFFF) {
 						helper.Error("Named arguments blob size doesn't fit in 29 bits");
 						namedArgsBlob = new byte[0];

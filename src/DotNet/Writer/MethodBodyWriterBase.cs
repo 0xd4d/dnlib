@@ -10,18 +10,22 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public abstract class MethodBodyWriterBase {
 		/// <summary/>
-		protected readonly IList<Instruction> instructions;
+		protected IList<Instruction> instructions;
 		/// <summary/>
-		protected readonly IList<ExceptionHandler> exceptionHandlers;
+		protected IList<ExceptionHandler> exceptionHandlers;
 		readonly Dictionary<Instruction, uint> offsets = new Dictionary<Instruction, uint>();
 		uint firstInstructionOffset;
 		int errors;
+		MaxStackCalculator maxStackCalculator = MaxStackCalculator.Create();
 
 		/// <summary>
 		/// <c>true</c> if there was at least one error
 		/// </summary>
 		public bool ErrorDetected {
 			get { return errors > 0; }
+		}
+
+		internal MethodBodyWriterBase() {
 		}
 
 		/// <summary>
@@ -32,6 +36,14 @@ namespace dnlib.DotNet.Writer {
 		protected MethodBodyWriterBase(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
 			this.instructions = instructions;
 			this.exceptionHandlers = exceptionHandlers;
+		}
+
+		internal void Reset(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
+			this.instructions = instructions;
+			this.exceptionHandlers = exceptionHandlers;
+			offsets.Clear();
+			firstInstructionOffset = 0;
+			errors = 0;
 		}
 
 		/// <summary>
@@ -59,7 +71,8 @@ namespace dnlib.DotNet.Writer {
 			if (instructions.Count == 0)
 				return 0;
 			uint maxStack;
-			if (!MaxStackCalculator.GetMaxStack(instructions, exceptionHandlers, out maxStack)) {
+			maxStackCalculator.Reset(instructions, exceptionHandlers);
+			if (!maxStackCalculator.Calculate(out maxStack)) {
 				Error("Error calculating max stack value. If the method's obfuscated, set CilBody.KeepOldMaxStack or MetaDataOptions.Flags (KeepOldMaxStack, global option) to ignore this error. Otherwise fix your generated CIL code so it conforms to the ECMA standard.");
 				maxStack += 8;
 			}

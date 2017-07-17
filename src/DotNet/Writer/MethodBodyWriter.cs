@@ -32,8 +32,8 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MethodBodyWriter : MethodBodyWriterBase {
 		readonly ITokenCreator helper;
-		readonly CilBody cilBody;
-		readonly bool keepMaxStack;
+		CilBody cilBody;
+		bool keepMaxStack;
 		uint codeSize;
 		uint maxStack;
 		byte[] code;
@@ -85,6 +85,21 @@ namespace dnlib.DotNet.Writer {
 			this.helper = helper;
 			this.cilBody = cilBody;
 			this.keepMaxStack = keepMaxStack;
+		}
+
+		internal MethodBodyWriter(ITokenCreator helper) {
+			this.helper = helper;
+		}
+
+		internal void Reset(CilBody cilBody, bool keepMaxStack) {
+			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);
+			this.cilBody = cilBody;
+			this.keepMaxStack = keepMaxStack;
+			codeSize = 0;
+			maxStack = 0;
+			code = null;
+			extraSections = null;
+			localVarSigTok = 0;
 		}
 
 		/// <summary>
