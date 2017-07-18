@@ -3,6 +3,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace dnlib.IO {
 	/// <summary>
@@ -237,15 +238,16 @@ namespace dnlib.IO {
 		}
 
 		/// <inheritdoc/>
-		public string ReadString(int chars) {
+		public unsafe string ReadString(int chars) {
 			if ((uint)chars > (uint)int.MaxValue)
 				throw new IOException("Not enough space to read the string");
 			if (position + chars * 2 < position || (chars != 0 && position + chars * 2 - 1 >= dataEnd))
 				throw new IOException("Not enough space to read the string");
-			var array = new char[chars];
-			for (int i = 0; i < chars; i++)
-				array[i] = (char)(data[position++] | (data[position++] << 8));
-			return new string(array);
+			string res;
+			fixed (byte* p = data)
+				res = new string((char*)(p + position), 0, chars);
+			position += chars * 2;
+			return res;
 		}
 
 		/// <inheritdoc/>

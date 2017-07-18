@@ -608,7 +608,7 @@ namespace dnlib.DotNet {
 			var asm = ownerModule.Assembly;
 			if (asm == null)
 				return null;
-			if (asmRef.FullName != asm.GetFullNameWithPublicKey() && asmRef.FullName != asm.GetFullNameWithPublicKeyToken())
+			if (!(AssemblyNameComparer.CompareAll.Equals(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
 				return null;
 			var td = typeRef.Resolve();
 			return td != null && td.Module == ownerModule ? td : null;
