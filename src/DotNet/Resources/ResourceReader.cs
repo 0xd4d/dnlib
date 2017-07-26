@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using dnlib.IO;
@@ -15,9 +16,24 @@ namespace dnlib.DotNet.Resources {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		public ResourceReaderException() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		/// <param name="msg">Message</param>
 		public ResourceReaderException(string msg)
 			: base(msg) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		public ResourceReaderException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 

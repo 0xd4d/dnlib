@@ -3,6 +3,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace dnlib.DotNet {
@@ -32,6 +33,15 @@ namespace dnlib.DotNet {
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
 		public TypeNameParserException(string message, Exception innerException)
 			: base(message, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected TypeNameParserException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 

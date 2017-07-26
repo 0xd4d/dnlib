@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -29,6 +30,15 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="innerException">Other exception</param>
 		public ModuleWriterException(string message, Exception innerException)
 			: base(message, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected ModuleWriterException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 }

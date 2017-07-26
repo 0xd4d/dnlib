@@ -1,6 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Runtime.Serialization;
 using System.Threading;
 
 namespace dnlib.Threading {
@@ -12,6 +13,10 @@ namespace dnlib.Threading {
 
 		public LockException(string msg)
 			: base(msg) {
+		}
+
+		protected LockException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 

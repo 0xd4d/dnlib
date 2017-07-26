@@ -1,6 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace dnlib.DotNet.Pdb.Managed {
 	/// <summary>
@@ -8,6 +9,12 @@ namespace dnlib.DotNet.Pdb.Managed {
 	/// </summary>
 	[Serializable]
 	public sealed class PdbException : Exception {
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbException() {
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -22,6 +29,15 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// <param name="innerException">Inner exception</param>
 		public PdbException(Exception innerException)
 			: base("Failed to read PDB: " + innerException.Message, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		public PdbException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 }

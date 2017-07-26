@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -29,6 +30,15 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="innerException">The inner exception or <c>null</c> if none</param>
 		public InvalidMethodException(string msg, Exception innerException)
 			: base(msg, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected InvalidMethodException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 }

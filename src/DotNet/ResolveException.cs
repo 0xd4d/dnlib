@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -29,6 +30,15 @@ namespace dnlib.DotNet {
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
 		public ResolveException(string message, Exception innerException)
 			: base(message, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected ResolveException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 
@@ -59,6 +69,15 @@ namespace dnlib.DotNet {
 		public AssemblyResolveException(string message, Exception innerException)
 			: base(message, innerException) {
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected AssemblyResolveException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+		}
 	}
 
 	/// <summary>
@@ -88,6 +107,15 @@ namespace dnlib.DotNet {
 		public TypeResolveException(string message, Exception innerException)
 			: base(message, innerException) {
 		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected TypeResolveException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+		}
 	}
 
 	/// <summary>
@@ -116,6 +144,15 @@ namespace dnlib.DotNet {
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
 		public MemberRefResolveException(string message, Exception innerException)
 			: base(message, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected MemberRefResolveException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 }

@@ -3,6 +3,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using dnlib.IO;
 using dnlib.Threading;
 
@@ -72,6 +73,15 @@ namespace dnlib.DotNet {
 		/// <param name="innerException">Other exception</param>
 		public CABlobParserException(string message, Exception innerException)
 			: base(message, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected CABlobParserException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 

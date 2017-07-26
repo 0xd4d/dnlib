@@ -2,6 +2,7 @@
 
 ﻿using System;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using dnlib.Threading;
 
@@ -32,6 +33,15 @@ namespace dnlib.DotNet {
 		/// <param name="innerException">Other exception</param>
 		public InvalidKeyException(string message, Exception innerException)
 			: base(message, innerException) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="info"></param>
+		/// <param name="context"></param>
+		protected InvalidKeyException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 

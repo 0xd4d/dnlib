@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
@@ -29,8 +30,15 @@ namespace dnlib.IO {
 
 		[Serializable]
 		sealed class MemoryMappedIONotSupportedException : IOException {
+			public MemoryMappedIONotSupportedException() {
+			}
+
 			public MemoryMappedIONotSupportedException(string s)
 				: base(s) {
+			}
+
+			public MemoryMappedIONotSupportedException(SerializationInfo info, StreamingContext context)
+				: base(info, context) {
 			}
 		}
 
