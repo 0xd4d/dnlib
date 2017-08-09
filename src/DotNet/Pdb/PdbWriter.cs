@@ -343,7 +343,7 @@ namespace dnlib.DotNet.Pdb {
 			}
 			if (instr == null)
 				return offset;
-			Error("Instruction has been removed but it's referenced by PDB info");
+			Error("Async method instruction has been removed but it's still being referenced by PDB info: BP Instruction: {0}, BP Method: {1} (0x{2:X8}), Current Method: {3} (0x{4:X8})", instr, method, method.MDToken.Raw, info.Method, info.Method.MDToken.Raw);
 			return 0;
 		}
 
