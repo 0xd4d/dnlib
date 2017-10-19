@@ -119,7 +119,6 @@ namespace dnlib.DotNet.Pdb.Managed {
 					case SymbolType.S_END:
 						break;
 					default:
-						Debug.Fail("Unknown symbol type: " + type);
 						break;
 				}
 
