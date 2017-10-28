@@ -1051,7 +1051,11 @@ namespace dnlib.DotNet {
 			return true;
 		}
 
-		static int ParseInt32(string s) => int.TryParse(s, out var res) ? res : 0;
+		static int ParseInt32(string s) {
+			int res;
+			return int.TryParse(s, out res) ? res : 0;
+		}
+
 		static bool TryParse(string s, out Version version) {
 			Match m;
 
