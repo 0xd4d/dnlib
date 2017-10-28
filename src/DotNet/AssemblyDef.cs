@@ -8,6 +8,7 @@ using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
 using dnlib.Threading;
+using System.Text.RegularExpressions;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;
@@ -736,6 +737,22 @@ namespace dnlib.DotNet {
 			return ca;
 		}
 
+		/// <summary>
+		/// Gets the original <c>System.Runtime.Versioning.TargetFrameworkAttribute</c> custom attribute information if possible.
+		/// It reads this from the original metadata and doesn't use <see cref="CustomAttributes"/>.
+		/// Returns false if the custom attribute isn't present or if it is invalid.
+		/// </summary>
+		/// <param name="framework">Framework name</param>
+		/// <param name="version">Version</param>
+		/// <param name="profile">Profile</param>
+		/// <returns></returns>
+		public virtual bool TryGetOriginalTargetFrameworkAttribute(out string framework, out Version version, out string profile) {
+			framework = null;
+			version = null;
+			profile = null;
+			return false;
+		}
+
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnLazyAdd(int index, ref ModuleDef module) {
 			if (module == null)
@@ -915,6 +932,149 @@ namespace dnlib.DotNet {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
 			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		public override bool TryGetOriginalTargetFrameworkAttribute(out string framework, out Version version, out string profile) {
+			if (!hasInitdTFA)
+				InitializeTargetFrameworkAttribute();
+			framework = tfaFramework;
+			version = tfaVersion;
+			profile = tfaProfile;
+			return tfaReturnValue;
+		}
+		volatile bool hasInitdTFA;
+		string tfaFramework;
+		Version tfaVersion;
+		string tfaProfile;
+		bool tfaReturnValue;
+
+		void InitializeTargetFrameworkAttribute() {
+			if (hasInitdTFA)
+				return;
+
+			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
+			var gpContext = new GenericParamContext();
+			for (int i = 0; i < list.Count; i++) {
+				var caRid = list[i];
+				var caRow = readerModule.TablesStream.ReadCustomAttributeRow(caRid);
+				if (caRow == null)
+					continue;
+				var caType = readerModule.ResolveCustomAttributeType(caRow.Type, gpContext);
+				UTF8String ns, name;
+				if (!TryGetName(caType, out ns, out name))
+					continue;
+				if (ns != nameSystemRuntimeVersioning || name != nameTargetFrameworkAttribute)
+					continue;
+				var ca = CustomAttributeReader.Read(readerModule, caType, caRow.Value, gpContext);
+				if (ca == null || ca.ConstructorArguments.Count != 1)
+					continue;
+				var s = ca.ConstructorArguments[0].Value as UTF8String;
+				if ((object)s == null)
+					continue;
+				string tmpFramework, tmpProfile;
+				Version tmpVersion;
+				if (TryCreateTargetFrameworkInfo(s, out tmpFramework, out tmpVersion, out tmpProfile)) {
+					tfaFramework = tmpFramework;
+					tfaVersion = tmpVersion;
+					tfaProfile = tmpProfile;
+					tfaReturnValue = true;
+					break;
+				}
+			}
+
+			hasInitdTFA = true;
+		}
+		static readonly UTF8String nameSystemRuntimeVersioning = new UTF8String("System.Runtime.Versioning");
+		static readonly UTF8String nameTargetFrameworkAttribute = new UTF8String("TargetFrameworkAttribute");
+
+		static bool TryGetName(ICustomAttributeType caType, out UTF8String ns, out UTF8String name) {
+			var type = (caType as MemberRef)?.DeclaringType ?? (caType as MethodDef)?.DeclaringType;
+			var tr = type as TypeRef;
+			if (tr != null) {
+				ns = tr.Namespace;
+				name = tr.Name;
+				return true;
+			}
+			var td = type as TypeDef;
+			if (td != null) {
+				ns = td.Namespace;
+				name = td.Name;
+				return true;
+			}
+			ns = null;
+			name = null;
+			return false;
+		}
+
+		static bool TryCreateTargetFrameworkInfo(string attrString, out string framework, out Version version, out string profile) {
+			framework = null;
+			version = null;
+			profile = null;
+
+			// See corclr/src/mscorlib/src/System/Runtime/Versioning/BinaryCompatibility.cs
+			var values = attrString.Split(new char[] { ',' });
+			if (values.Length < 2 || values.Length > 3)
+				return false;
+			var frameworkRes = values[0].Trim();
+			if (frameworkRes.Length == 0)
+				return false;
+
+			Version versionRes = null;
+			string profileRes = null;
+			for (int i = 1; i < values.Length; i++) {
+				var kvp = values[i].Split('=');
+				if (kvp.Length != 2)
+					return false;
+
+				var key = kvp[0].Trim();
+				var value = kvp[1].Trim();
+
+				if (key.Equals("Version", StringComparison.OrdinalIgnoreCase)) {
+					if (value.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+						value = value.Substring(1);
+					if (!TryParse(value, out versionRes))
+						return false;
+					versionRes = new Version(versionRes.Major, versionRes.Minor, versionRes.Build == -1 ? 0 : versionRes.Build, 0);
+				}
+				else if (key.Equals("Profile", StringComparison.OrdinalIgnoreCase)) {
+					if (!string.IsNullOrEmpty(value))
+						profileRes = value;
+				}
+			}
+			if (versionRes == null)
+				return false;
+
+			framework = frameworkRes;
+			version = versionRes;
+			profile = profileRes;
+			return true;
+		}
+
+		static int ParseInt32(string s) => int.TryParse(s, out var res) ? res : 0;
+		static bool TryParse(string s, out Version version) {
+			Match m;
+
+			m = Regex.Match(s, @"^(\d+)\.(\d+)$");
+			if (m.Groups.Count == 3) {
+				version = new Version(ParseInt32(m.Groups[1].Value), ParseInt32(m.Groups[2].Value));
+				return true;
+			}
+
+			m = Regex.Match(s, @"^(\d+)\.(\d+)\.(\d+)$");
+			if (m.Groups.Count == 4) {
+				version = new Version(ParseInt32(m.Groups[1].Value), ParseInt32(m.Groups[2].Value), ParseInt32(m.Groups[3].Value));
+				return true;
+			}
+
+			m = Regex.Match(s, @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$");
+			if (m.Groups.Count == 5) {
+				version = new Version(ParseInt32(m.Groups[1].Value), ParseInt32(m.Groups[2].Value), ParseInt32(m.Groups[3].Value), ParseInt32(m.Groups[4].Value));
+				return true;
+			}
+
+			version = null;
+			return false;
 		}
 
 		/// <summary>
