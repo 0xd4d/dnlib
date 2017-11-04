@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using dnlib.IO;
 using dnlib.PE;
@@ -20,6 +21,11 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public CompressedMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
 			: base(peImage, cor20Header, mdHeader) {
+		}
+
+		/// <inheritdoc/>
+		internal CompressedMetaData(MetaDataHeader mdHeader)
+			: base(mdHeader) {
 		}
 
 		static CompressedMetaData() {
@@ -46,21 +52,28 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override void InitializeInternal() {
-			var hotHeapVersion = GetHotHeapVersion(peImage.FileName, mdHeader.VersionString);
+		protected override void InitializeInternal(IImageStream mdStream) {
+			var hotHeapVersion = peImage == null ? HotHeapVersion.CLR20 : GetHotHeapVersion(peImage.FileName, mdHeader.VersionString);
 
+			bool disposeOfMdStream = false;
 			IImageStream imageStream = null, fullStream = null;
 			DotNetStream dns = null;
 			List<HotStream> hotStreams = null;
 			HotStream hotStream = null;
 			var newAllStreams = new List<DotNetStream>(allStreams);
 			try {
-				var mdRva = cor20Header.MetaData.VirtualAddress;
+				if (peImage != null) {
+					Debug.Assert(mdStream == null);
+					Debug.Assert(cor20Header != null);
+					var mdOffset = peImage.ToFileOffset(cor20Header.MetaData.VirtualAddress);
+					mdStream = peImage.CreateStream(mdOffset, cor20Header.MetaData.Size);
+					disposeOfMdStream = true;
+				}
+				else
+					Debug.Assert(mdStream != null);
 				for (int i = mdHeader.StreamHeaders.Count - 1; i >= 0; i--) {
 					var sh = mdHeader.StreamHeaders[i];
-					var rva = mdRva + sh.Offset;
-					var fileOffset = peImage.ToFileOffset(rva);
-					imageStream = peImage.CreateStream(fileOffset, sh.StreamSize);
+					imageStream = mdStream.Create((FileOffset)sh.Offset, sh.StreamSize);
 					switch (sh.Name) {
 					case "#Strings":
 						if (stringsStream == null) {
@@ -108,10 +121,12 @@ namespace dnlib.DotNet.MD {
 						break;
 
 					case "#!":
+						if (peImage == null)
+							break;
 						if (hotStreams == null)
 							hotStreams = new List<HotStream>();
 						fullStream = peImage.CreateFullStream();
-						hotStream = HotStream.Create(hotHeapVersion, imageStream, sh, fullStream, fileOffset);
+						hotStream = HotStream.Create(hotHeapVersion, imageStream, sh, fullStream, mdStream.FileOffset + sh.Offset);
 						fullStream = null;
 						hotStreams.Add(hotStream);
 						newAllStreams.Add(hotStream);
@@ -126,6 +141,8 @@ namespace dnlib.DotNet.MD {
 				}
 			}
 			finally {
+				if (disposeOfMdStream)
+					mdStream.Dispose();
 				if (imageStream != null)
 					imageStream.Dispose();
 				if (fullStream != null)
@@ -146,10 +163,12 @@ namespace dnlib.DotNet.MD {
 				InitializeHotStreams(hotStreams);
 			}
 
-			tablesStream.Initialize(peImage);
+			tablesStream.Initialize();
 		}
 
 		int GetPointerSize() {
+			if (peImage == null)
+				return 4;
 			return peImage.ImageNTHeaders.OptionalHeader.Magic == 0x10B ? 4 : 8;
 		}
 

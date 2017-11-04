@@ -3,16 +3,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
 using System.Text;
+using System.Threading;
+using dnlib.DotNet.Emit;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
 	/// <summary>
 	/// A managed PDB reader implementation for .NET modules.
 	/// </summary>
-	public sealed class PdbReader : ISymbolReader {
+	sealed class PdbReader : SymbolReader {
 		MsfStream[] streams;
 		Dictionary<string, uint> names;
 		Dictionary<uint, string> strings;
@@ -25,7 +28,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		const ushort STREAM_INVALID_INDEX = ushort.MaxValue;
 
 		Dictionary<string, DbiDocument> documents;
-		Dictionary<uint, DbiFunction> functions;
+		Dictionary<int, DbiFunction> functions;
 		uint entryPt;
 
 		/// <summary>
@@ -110,18 +113,20 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var tokenMapStream = ReadModules();
 
 			documents = new Dictionary<string, DbiDocument>(StringComparer.OrdinalIgnoreCase);
-			foreach (var module in modules)
+			foreach (var module in modules) {
 				if (IsValidStreamIndex(module.StreamId))
 					module.LoadFunctions(this, streams[module.StreamId].Content);
+			}
 
 			if (IsValidStreamIndex(tokenMapStream ?? STREAM_INVALID_INDEX))
 				ApplyRidMap(streams[tokenMapStream.Value].Content);
 
-			functions = new Dictionary<uint, DbiFunction>();
-			foreach (var module in modules)
+			functions = new Dictionary<int, DbiFunction>();
+			foreach (var module in modules) {
 				foreach (var func in module.Functions) {
 					functions.Add(func.Token, func);
 				}
+			}
 		}
 
 		bool IsValidStreamIndex(ushort index) {
@@ -289,12 +294,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 			for (int i = 0; i < map.Length; i++)
 				map[i] = stream.ReadUInt32();
 
-			foreach (var module in modules)
+			foreach (var module in modules) {
 				foreach (var func in module.Functions) {
-					var rid = func.Token & 0x00ffffff;
+					var rid = (uint)func.Token & 0x00ffffff;
 					rid = map[rid];
-					func.Token = (func.Token & 0xff000000) | rid;
+					func.token = (int)((func.Token & 0xff000000) | rid);
 				}
+			}
 
 			if (entryPt != 0) {
 				var rid = entryPt & 0x00ffffff;
@@ -312,64 +318,42 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return value;
 		}
 
-		#region ISymbolReader
-
-		ISymbolMethod ISymbolReader.GetMethod(SymbolToken method) {
+		public override SymbolMethod GetMethod(int method, int version) {
 			DbiFunction symMethod;
-			if (functions.TryGetValue((uint)method.GetToken(), out symMethod))
+			if (functions.TryGetValue(method, out symMethod))
 				return symMethod;
 			return null;
 		}
 
-		ISymbolDocument[] ISymbolReader.GetDocuments() {
-			var docs = new ISymbolDocument[documents.Count];
-			int i = 0;
-			foreach (var doc in documents.Values)
-				docs[i++] = doc;
-			return docs;
+		public override ReadOnlyCollection<SymbolDocument> Documents {
+			get {
+				if (documentsResult == null) {
+					var docs = new SymbolDocument[documents.Count];
+					int i = 0;
+					foreach (var doc in documents.Values)
+						docs[i++] = doc;
+					Interlocked.CompareExchange(ref documentsResult, new ReadOnlyCollection<SymbolDocument>(docs), null);
+				}
+				return documentsResult;
+			}
+		}
+		volatile ReadOnlyCollection<SymbolDocument> documentsResult;
+
+		public override int UserEntryPoint {
+			get { return (int)entryPt; }
 		}
 
-		SymbolToken ISymbolReader.UserEntryPoint {
-			get { return new SymbolToken((int)entryPt); }
-		}
-
-		ISymbolDocument ISymbolReader.GetDocument(string url, Guid language, Guid languageVendor, Guid documentType) {
-			throw new NotImplementedException();
-		}
-
-		ISymbolVariable[] ISymbolReader.GetGlobalVariables() {
-			throw new NotImplementedException();
-		}
-
-		ISymbolMethod ISymbolReader.GetMethod(SymbolToken method, int version) {
-			throw new NotImplementedException();
-		}
-
-		ISymbolMethod ISymbolReader.GetMethodFromDocumentPosition(ISymbolDocument document, int line, int column) {
-			throw new NotImplementedException();
-		}
-
-		ISymbolNamespace[] ISymbolReader.GetNamespaces() {
-			throw new NotImplementedException();
-		}
-
-		byte[] ISymbolReader.GetSymAttribute(SymbolToken parent, string name) {
+		public override void GetCustomDebugInfo(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+			const string CDI_NAME = "MD2";
 			DbiFunction func;
-			bool b = functions.TryGetValue((uint)parent.GetToken(), out func);
+			bool b = functions.TryGetValue(method.MDToken.ToInt32(), out func);
 			Debug.Assert(b);
 			if (!b)
-				return emptyByteArray;
-			var res = func.Root.GetSymAttribute(name);
-			if (res == null)
-				return emptyByteArray;
-			return res;
+				return;
+			var cdiData = func.Root.GetSymAttribute(CDI_NAME);
+			if (cdiData == null)
+				return;
+			PdbCustomDebugInfoReader.Read(method, body, result, cdiData);
 		}
-		static readonly byte[] emptyByteArray = new byte[0];
-
-		ISymbolVariable[] ISymbolReader.GetVariables(SymbolToken parent) {
-			throw new NotImplementedException();
-		}
-
-		#endregion
 	}
 }

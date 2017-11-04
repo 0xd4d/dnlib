@@ -2,6 +2,7 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
@@ -174,7 +175,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var func = funcs[found];
 			if (func.Lines != null)
 				return;
-			func.Lines = new List<DbiSourceLine>();
+			func.Lines = new List<SymbolSequencePoint>();
 
 			while (stream.Position < end) {
 				var document = documents[stream.ReadUInt32()];
@@ -189,18 +190,18 @@ namespace dnlib.DotNet.Pdb.Managed {
 				for (uint i = 0; i < count; i++) {
 					stream.Position = lineTablePos + i * LINE_ENTRY_SIZE;
 
-					var line = new DbiSourceLine {
+					var line = new SymbolSequencePoint {
 						Document = document
 					};
-					line.Offset = stream.ReadUInt32();
+					line.Offset = stream.ReadInt32();
 					var lineFlags = stream.ReadUInt32();
 
-					line.LineBegin = lineFlags & 0x00ffffff;
-					line.LineEnd = line.LineBegin + ((lineFlags >> 24) & 0x7F);
+					line.Line = (int)(lineFlags & 0x00ffffff);
+					line.EndLine = line.Line + (int)((lineFlags >> 24) & 0x7F);
 					if ((flags & 1) != 0) {
 						stream.Position = colTablePos + i * COL_ENTRY_SIZE;
-						line.ColumnBegin = stream.ReadUInt16();
-						line.ColumnEnd = stream.ReadUInt16();
+						line.Column = stream.ReadUInt16();
+						line.EndColumn = stream.ReadUInt16();
 					}
 
 					func.Lines.Add(line);

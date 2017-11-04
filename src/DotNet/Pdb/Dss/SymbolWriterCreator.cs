@@ -7,7 +7,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 	/// <summary>
 	/// Creates a <see cref="ISymbolWriter2"/>
 	/// </summary>
-	public static class SymbolWriterCreator {
+	static class SymbolWriterCreator {
 		static readonly Guid CLSID_CorSymWriter_SxS = new Guid(0x0AE2DEB0, 0xF901, 0x478B, 0xBB, 0x9F, 0x88, 0x1E, 0xE8, 0x06, 0x67, 0x88);
 
 		/// <summary>

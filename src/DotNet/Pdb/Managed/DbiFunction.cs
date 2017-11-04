@@ -2,17 +2,36 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
+using System.Threading;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
-	sealed class DbiFunction : ISymbolMethod2 {
-		public uint Token { get; internal set; }
+	sealed class DbiFunction : SymbolMethod {
+		public override int Token {
+			get { return token; }
+		}
+		internal int token;
+
 		public string Name { get; private set; }
 		public PdbAddress Address { get; private set; }
 		public DbiScope Root { get; private set; }
-		public IList<DbiSourceLine> Lines { get; internal set; }
+		public List<SymbolSequencePoint> Lines {
+			get { return lines; }
+			set {
+				lines = value;
+				sequencePoints = new ReadOnlyCollection<SymbolSequencePoint>(lines);
+			}
+		}
+		List<SymbolSequencePoint> lines;
+
+		static readonly ReadOnlyCollection<SymbolSequencePoint> emptySymbolSequencePoints = new ReadOnlyCollection<SymbolSequencePoint>(new SymbolSequencePoint[0]);
+
+		public DbiFunction() {
+			sequencePoints = emptySymbolSequencePoints;
+		}
 
 		public void Read(IImageStream stream, long recEnd) {
 			stream.Position += 4;
@@ -20,13 +39,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 			stream.Position += 4;
 			var len = stream.ReadUInt32();
 			stream.Position += 8;
-			Token = stream.ReadUInt32();
+			token = stream.ReadInt32();
 			Address = PdbAddress.ReadAddress(stream);
 			stream.Position += 1 + 2;
 			Name = PdbReader.ReadCString(stream);
 
 			stream.Position = recEnd;
-			Root = new DbiScope("", Address.Offset, len);
+			Root = new DbiScope(this, null, "", Address.Offset, len);
 			Root.Read(new RecursionCounter(), stream, end);
 			FixOffsets(new RecursionCounter(), Root);
 		}
@@ -35,100 +54,42 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!counter.Increment())
 				return;
 
-			scope.BeginOffset -= Address.Offset;
-			scope.EndOffset -= Address.Offset;
+			scope.startOffset -= (int)Address.Offset;
+			scope.endOffset -= (int)Address.Offset;
 			foreach (var child in scope.Children)
-				FixOffsets(counter, child);
+				FixOffsets(counter, (DbiScope)child);
 
 			counter.Decrement();
 		}
 
-		ISymbolScope ISymbolMethod.RootScope {
+		public override SymbolScope RootScope {
 			get { return Root; }
 		}
 
-		int ISymbolMethod.SequencePointCount {
-			get { return Lines == null ? 0 : Lines.Count; }
+		public override ReadOnlyCollection<SymbolSequencePoint> SequencePoints {
+			get { return sequencePoints; }
 		}
-
-		void ISymbolMethod.GetSequencePoints(int[] offsets, ISymbolDocument[] documents, int[] lines, int[] columns,
-			int[] endLines, int[] endColumns) {
-			int count = Lines == null ? 0 : Lines.Count;
-			if (offsets != null && offsets.Length != count)
-				throw new ArgumentException("Invalid array length: offsets");
-			if (documents != null && documents.Length != count)
-				throw new ArgumentException("Invalid array length: documents");
-			if (lines != null && lines.Length != count)
-				throw new ArgumentException("Invalid array length: lines");
-			if (columns != null && columns.Length != count)
-				throw new ArgumentException("Invalid array length: columns");
-			if (endLines != null && endLines.Length != count)
-				throw new ArgumentException("Invalid array length: endLines");
-			if (endColumns != null && endColumns.Length != count)
-				throw new ArgumentException("Invalid array length: endColumns");
-
-			if (count <= 0)
-				return;
-
-			int i = 0;
-			foreach (var line in Lines) {
-				offsets[i] = (int)line.Offset;
-				documents[i] = line.Document;
-				lines[i] = (int)line.LineBegin;
-				columns[i] = (int)line.ColumnBegin;
-				endLines[i] = (int)line.LineEnd;
-				endColumns[i] = (int)line.ColumnEnd;
-				i++;
-			}
-		}
-
-		ISymbolNamespace ISymbolMethod.GetNamespace() {
-			throw new NotImplementedException();
-		}
-
-		int ISymbolMethod.GetOffset(ISymbolDocument document, int line, int column) {
-			throw new NotImplementedException();
-		}
-
-		ISymbolVariable[] ISymbolMethod.GetParameters() {
-			throw new NotImplementedException();
-		}
-
-		int[] ISymbolMethod.GetRanges(ISymbolDocument document, int line, int column) {
-			throw new NotImplementedException();
-		}
-
-		ISymbolScope ISymbolMethod.GetScope(int offset) {
-			throw new NotImplementedException();
-		}
-
-		bool ISymbolMethod.GetSourceStartEnd(ISymbolDocument[] docs, int[] lines, int[] columns) {
-			throw new NotImplementedException();
-		}
-
-		SymbolToken ISymbolMethod.Token {
-			get { throw new NotImplementedException(); }
-		}
+		ReadOnlyCollection<SymbolSequencePoint> sequencePoints;
 
 		const string asyncMethodInfoAttributeName = "asyncMethodInfo";
-		public bool IsAsyncMethod {
+		public override bool IsAsyncMethod {
 			get {
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				return data != null && data.Length >= 0x0C;
 			}
 		}
 
-		uint ISymbolMethod2.KickoffMethod {
+		public override int KickoffMethod {
 			get {
 				Debug.Assert(IsAsyncMethod);
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				if (data == null)
 					throw new InvalidOperationException();
-				return BitConverter.ToUInt32(data, 0);
+				return BitConverter.ToInt32(data, 0);
 			}
 		}
 
-		uint? ISymbolMethod2.CatchHandlerILOffset {
+		public override uint? CatchHandlerILOffset {
 			get {
 				Debug.Assert(IsAsyncMethod);
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
@@ -139,7 +100,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		RawAsyncStepInfo[] ISymbolMethod2.GetAsyncStepInfos() {
+		public override ReadOnlyCollection<SymbolAsyncStepInfo> AsyncStepInfos {
+			get {
+				if (asyncStepInfos == null)
+					Interlocked.CompareExchange(ref asyncStepInfos, new ReadOnlyCollection<SymbolAsyncStepInfo>(CreateSymbolAsyncStepInfos()), null);
+				return asyncStepInfos;
+			}
+		}
+		volatile ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos;
+
+		SymbolAsyncStepInfo[] CreateSymbolAsyncStepInfos() {
 			Debug.Assert(IsAsyncMethod);
 			var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 			if (data == null)
@@ -148,16 +118,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 			int count = BitConverter.ToInt32(data, pos);
 			pos += 4;
 			if (pos + (long)count * 12 > data.Length)
-				return emptyRawAsyncStepInfo;
+				return emptySymbolAsyncStepInfos;
 			if (count == 0)
-				return emptyRawAsyncStepInfo;
-			var res = new RawAsyncStepInfo[count];
+				return emptySymbolAsyncStepInfos;
+			var res = new SymbolAsyncStepInfo[count];
 			for (int i = 0; i < res.Length; i++) {
-				res[i] = new RawAsyncStepInfo(BitConverter.ToUInt32(data, pos), BitConverter.ToUInt32(data, pos + 8), BitConverter.ToUInt32(data, pos + 4));
+				res[i] = new SymbolAsyncStepInfo(BitConverter.ToUInt32(data, pos), BitConverter.ToUInt32(data, pos + 8), BitConverter.ToUInt32(data, pos + 4));
 				pos += 12;
 			}
 			return res;
 		}
-		static readonly RawAsyncStepInfo[] emptyRawAsyncStepInfo = new RawAsyncStepInfo[0];
+		static readonly SymbolAsyncStepInfo[] emptySymbolAsyncStepInfos = new SymbolAsyncStepInfo[0];
 	}
 }

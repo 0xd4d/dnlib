@@ -2,9 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.Threading;
 
 namespace dnlib.DotNet.Pdb {
@@ -12,7 +13,7 @@ namespace dnlib.DotNet.Pdb {
 	/// PDB state for a <see cref="ModuleDef"/>
 	/// </summary>
 	public sealed class PdbState {
-		readonly ISymbolReader reader;
+		readonly SymbolReader reader;
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
 		MethodDef userEntryPoint;
 		Compiler compiler;
@@ -80,9 +81,9 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="reader">A <see cref="ISymbolReader"/> instance</param>
+		/// <param name="reader">A <see cref="SymbolReader"/> instance</param>
 		/// <param name="module">Owner module</param>
-		public PdbState(ISymbolReader reader, ModuleDefMD module) {
+		public PdbState(SymbolReader reader, ModuleDefMD module) {
 			if (reader == null)
 				throw new ArgumentNullException("reader");
 			if (module == null)
@@ -90,9 +91,9 @@ namespace dnlib.DotNet.Pdb {
 			this.reader = reader;
 			this.compiler = CalculateCompiler(module);
 
-			this.userEntryPoint = module.ResolveToken(reader.UserEntryPoint.GetToken()) as MethodDef;
+			this.userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;
 
-			foreach (var doc in reader.GetDocuments())
+			foreach (var doc in reader.Documents)
 				Add_NoLock(new PdbDocument(doc));
 		}
 
@@ -204,27 +205,23 @@ namespace dnlib.DotNet.Pdb {
 			if (reader == null || body == null)
 				return;
 
-			var token = new SymbolToken((int)(0x06000000 + methodRid));
-			ISymbolMethod method;
+			var token = (int)(0x06000000 + methodRid);
+			SymbolMethod method;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			method = reader.GetMethod(token);
+			method = reader.GetMethod(token, 1);
 			if (method != null) {
 				var pdbMethod = new PdbMethod();
 				pdbMethod.Scope = CreateScope(module, ownerMethod == null ? new GenericParamContext() : GenericParamContext.Create(ownerMethod), body, method.RootScope);
 				AddSequencePoints(body, method);
 
-				var method2 = method as ISymbolMethod2;
-				Debug.Assert(method2 != null);
-				if (module != null && method2 != null && method2.IsAsyncMethod)
-					pdbMethod.AsyncMethod = CreateAsyncMethod(module, ownerMethod, body, method2);
+				if (module != null && method.IsAsyncMethod)
+					pdbMethod.AsyncMethod = CreateAsyncMethod(module, ownerMethod, body, method);
 
 				if (ownerMethod != null) {
 					// Read the custom debug info last so eg. local names have been initialized
-					var cdiData = reader.GetSymAttribute(token, "MD2");
-					if (cdiData != null && cdiData.Length != 0)
-						PdbCustomDebugInfoReader.Read(ownerMethod, body, pdbMethod.CustomDebugInfos, cdiData);
+					reader.GetCustomDebugInfo(ownerMethod, body, pdbMethod.CustomDebugInfos);
 				}
 
 				body.PdbMethod = pdbMethod;
@@ -253,15 +250,15 @@ namespace dnlib.DotNet.Pdb {
 		}
 		static readonly UTF8String nameAssemblyVisualBasic = new UTF8String("Microsoft.VisualBasic");
 
-		PdbAsyncMethod CreateAsyncMethod(ModuleDefMD module, MethodDef method, CilBody body, ISymbolMethod2 symMethod) {
+		PdbAsyncMethod CreateAsyncMethod(ModuleDefMD module, MethodDef method, CilBody body, SymbolMethod symMethod) {
 			var kickoffToken = new MDToken(symMethod.KickoffMethod);
 			if (kickoffToken.Table != MD.Table.Method)
 				return null;
 			var kickoffMethod = module.ResolveMethod(kickoffToken.Rid);
 
-			var rawStepInfos = symMethod.GetAsyncStepInfos();
+			var asyncStepInfos = symMethod.AsyncStepInfos;
 
-			var asyncMethod = new PdbAsyncMethod(rawStepInfos.Length);
+			var asyncMethod = new PdbAsyncMethod(asyncStepInfos.Count);
 			asyncMethod.KickoffMethod = kickoffMethod;
 
 			var catchHandlerILOffset = symMethod.CatchHandlerILOffset;
@@ -270,7 +267,7 @@ namespace dnlib.DotNet.Pdb {
 				Debug.Assert(asyncMethod.CatchHandlerInstruction != null);
 			}
 
-			foreach (var rawInfo in rawStepInfos) {
+			foreach (var rawInfo in asyncStepInfos) {
 				var yieldInstruction = GetInstruction(body, rawInfo.YieldOffset);
 				Debug.Assert(yieldInstruction != null);
 				if (yieldInstruction == null)
@@ -320,40 +317,31 @@ namespace dnlib.DotNet.Pdb {
 			return null;
 		}
 
-		void AddSequencePoints(CilBody body, ISymbolMethod method) {
-			int numSeqs = method.SequencePointCount;
-			var offsets = new int[numSeqs];
-			var documents = new ISymbolDocument[numSeqs];
-			var lines = new int[numSeqs];
-			var columns = new int[numSeqs];
-			var endLines = new int[numSeqs];
-			var endColumns = new int[numSeqs];
-			method.GetSequencePoints(offsets, documents, lines, columns, endLines, endColumns);
-
+		void AddSequencePoints(CilBody body, SymbolMethod method) {
 			int instrIndex = 0;
-			for (int i = 0; i < numSeqs; i++) {
-				var instr = GetInstruction(body.Instructions, offsets[i], ref instrIndex);
+			foreach (var sp in method.SequencePoints) {
+				var instr = GetInstruction(body.Instructions, sp.Offset, ref instrIndex);
 				if (instr == null)
 					continue;
 				var seqPoint = new SequencePoint() {
-					Document = Add_NoLock(new PdbDocument(documents[i])),
-					StartLine = lines[i],
-					StartColumn = columns[i],
-					EndLine = endLines[i],
-					EndColumn = endColumns[i],
+					Document = Add_NoLock(new PdbDocument(sp.Document)),
+					StartLine = sp.Line,
+					StartColumn = sp.Column,
+					EndLine = sp.EndLine,
+					EndColumn = sp.EndColumn,
 				};
 				instr.SequencePoint = seqPoint;
 			}
 		}
 
 		struct CreateScopeState {
-			public ISymbolScope SymScope;
+			public SymbolScope SymScope;
 			public PdbScope PdbScope;
-			public ISymbolScope[] Children;
+			public ReadOnlyCollection<SymbolScope> Children;
 			public int ChildrenIndex;
 		}
 
-		PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, ISymbolScope symScope) {
+		PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, SymbolScope symScope) {
 			if (symScope == null)
 				return null;
 
@@ -368,11 +356,8 @@ recursive_call:
 				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
 			};
 
-			foreach (var symLocal in state.SymScope.GetLocals()) {
-				if (symLocal.AddressKind != SymAddressKind.ILOffset)
-					continue;
-
-				int localIndex = symLocal.AddressField1;
+			foreach (var symLocal in state.SymScope.Locals) {
+				int localIndex = symLocal.Index;
 				if ((uint)localIndex >= (uint)body.Variables.Count) {
 					// VB sometimes creates a PDB local without a metadata local
 					continue;
@@ -380,18 +365,19 @@ recursive_call:
 				var local = body.Variables[localIndex];
 				local.Name = symLocal.Name;
 				var attributes = symLocal.Attributes;
-				if (attributes is int)
-					local.PdbAttributes = (int)attributes;
+				int pdbAttributes = 0;
+				const int VAR_IS_COMP_GEN = 1;
+				if ((attributes & SymbolVariableAttributes.CompilerGenerated) != 0)
+					pdbAttributes |= VAR_IS_COMP_GEN;
+				local.PdbAttributes = pdbAttributes;
 				state.PdbScope.Variables.Add(local);
 			}
 
-			foreach (var ns in state.SymScope.GetNamespaces())
+			foreach (var ns in state.SymScope.Namespaces)
 				state.PdbScope.Namespaces.Add(ns.Name);
 
-			var scope2 = state.SymScope as ISymbolScope2;
-			Debug.Assert(scope2 != null);
-			if (scope2 != null && module != null) {
-				var constants = scope2.GetConstants(module, gpContext);
+			if (module != null) {
+				var constants = state.SymScope.GetConstants(module, gpContext);
 				for (int i = 0; i < constants.Length; i++) {
 					var constant = constants[i];
 					var type = constant.Type.RemovePinnedAndModifiers();
@@ -469,9 +455,9 @@ recursive_call:
 
 			// Here's the now somewhat obfuscated for loop
 			state.ChildrenIndex = 0;
-			state.Children = state.SymScope.GetChildren();
+			state.Children = state.SymScope.Children;
 do_return:
-			if (state.ChildrenIndex < state.Children.Length) {
+			if (state.ChildrenIndex < state.Children.Count) {
 				var child = state.Children[state.ChildrenIndex];
 				stack.Push(state);
 				state = new CreateScopeState() { SymScope = child };

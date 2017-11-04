@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 	/// Exception that is thrown when <see cref="PdbReader"/> encounters an error.
 	/// </summary>
 	[Serializable]
-	public sealed class PdbException : Exception {
+	sealed class PdbException : Exception {
 		/// <summary>
 		/// Constructor
 		/// </summary>

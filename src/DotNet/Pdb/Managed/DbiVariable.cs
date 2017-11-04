@@ -1,63 +1,38 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.Diagnostics.SymbolStore;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
-	sealed class DbiVariable : ISymbolVariable {
-		public uint Addr1 { get; private set; }
-		public string Name { get; private set; }
-		public ushort Flags { get; private set; }
+	sealed class DbiVariable : SymbolVariable {
+		public override string Name {
+			get { return name; }
+		}
+		string name;
+
+		public override SymbolVariableAttributes Attributes {
+			get { return attributes; }
+		}
+		SymbolVariableAttributes attributes;
+
+		public override int Index {
+			get { return index; }
+		}
+		int index;
 
 		public void Read(IImageStream stream) {
-			Addr1 = stream.ReadUInt32();
+			index = stream.ReadInt32();
 			stream.Position += 10;
-			Flags = stream.ReadUInt16();
-			Name = PdbReader.ReadCString(stream);
+			attributes = GetAttributes(stream.ReadUInt16());
+			name = PdbReader.ReadCString(stream);
 		}
 
-		#region ISymbolVariable
-
-		public int AddressField1 {
-			get { return (int)Addr1; }
+		static SymbolVariableAttributes GetAttributes(uint flags) {
+			SymbolVariableAttributes res = 0;
+			const int fCompGenx = 4;
+			if ((flags & fCompGenx) != 0)
+				res |= SymbolVariableAttributes.CompilerGenerated;
+			return res;
 		}
-
-		public SymAddressKind AddressKind {
-			get { return SymAddressKind.ILOffset; }
-		}
-
-		public object Attributes {
-			get {
-				const int fCompGenx = 4;
-				const int VAR_IS_COMP_GEN = 1;
-				if ((Flags & fCompGenx) != 0)
-					return VAR_IS_COMP_GEN;
-				else
-					return 0;
-			}
-		}
-
-		public int AddressField2 {
-			get { throw new NotImplementedException(); }
-		}
-
-		public int AddressField3 {
-			get { throw new NotImplementedException(); }
-		}
-
-		public int EndOffset {
-			get { throw new NotImplementedException(); }
-		}
-
-		public byte[] GetSignature() {
-			throw new NotImplementedException();
-		}
-
-		public int StartOffset {
-			get { throw new NotImplementedException(); }
-		}
-
-		#endregion
 	}
 }

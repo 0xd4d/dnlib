@@ -1,31 +1,69 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
 using System.Text;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
-	sealed class DbiScope : ISymbolScope2 {
-		public DbiScope(string name, uint offset, uint length) {
-			Name = name;
-			BeginOffset = offset;
-			EndOffset = offset + length;
+	sealed class DbiScope : SymbolScope {
+		readonly SymbolMethod method;
+		readonly SymbolScope parent;
+		internal int startOffset;
+		internal int endOffset;
+		readonly List<SymbolScope> childrenList;
+		readonly List<SymbolVariable> localsList;
+		readonly List<SymbolNamespace> namespacesList;
+		readonly ReadOnlyCollection<SymbolScope> children;
+		readonly ReadOnlyCollection<SymbolVariable> locals;
+		readonly ReadOnlyCollection<SymbolNamespace> namespaces;
 
-			Namespaces = new List<DbiNamespace>();
-			Variables = new List<DbiVariable>();
-			Children = new List<DbiScope>();
+		public override SymbolMethod Method {
+			get { return method; }
+		}
+
+		public override SymbolScope Parent {
+			get { return parent; }
+		}
+
+		public override int StartOffset {
+			get { return startOffset; }
+		}
+
+		public override int EndOffset {
+			get { return endOffset; }
+		}
+
+		public override ReadOnlyCollection<SymbolScope> Children {
+			get { return children; }
+		}
+
+		public override ReadOnlyCollection<SymbolVariable> Locals {
+			get { return locals; }
+		}
+
+		public override ReadOnlyCollection<SymbolNamespace> Namespaces {
+			get { return namespaces; }
+		}
+
+		public DbiScope(SymbolMethod method, SymbolScope parent, string name, uint offset, uint length) {
+			this.method = method;
+			this.parent = parent;
+			Name = name;
+			startOffset = (int)offset;
+			endOffset = (int)(offset + length);
+
+			childrenList = new List<SymbolScope>();
+			children = new ReadOnlyCollection<SymbolScope>(childrenList);
+			localsList = new List<SymbolVariable>();
+			locals = new ReadOnlyCollection<SymbolVariable>(localsList);
+			namespacesList = new List<SymbolNamespace>();
+			namespaces = new ReadOnlyCollection<SymbolNamespace>(namespacesList);
 		}
 
 		public string Name { get; private set; }
-		public uint BeginOffset { get; internal set; }
-		public uint EndOffset { get; internal set; }
-
-		public IList<DbiNamespace> Namespaces { get; private set; }
-		public IList<DbiVariable> Variables { get; private set; }
-		public IList<DbiScope> Children { get; private set; }
 
 		List<OemInfo> oemInfos;
 		List<ConstantInfo> constants;
@@ -77,16 +115,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 						var len = stream.ReadUInt32();
 						var addr = PdbAddress.ReadAddress(stream);
 						name = PdbReader.ReadCString(stream);
-						child = new DbiScope(name, addr.Offset, len);
+						child = new DbiScope(method, this, name, addr.Offset, len);
 						break;
 					}
 					case SymbolType.S_UNAMESPACE:
-						Namespaces.Add(new DbiNamespace(PdbReader.ReadCString(stream)));
+						namespacesList.Add(new DbiNamespace(PdbReader.ReadCString(stream)));
 						break;
 					case SymbolType.S_MANSLOT: {
 						var variable = new DbiVariable();
 						variable.Read(stream);
-						Variables.Add(variable);
+						localsList.Add(variable);
 						break;
 					}
 					case SymbolType.S_OEM:
@@ -125,7 +163,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				stream.Position = end;
 				if (child != null) {
 					child.Read(counter, stream, childEnd.Value);
-					Children.Add(child);
+					childrenList.Add(child);
 					child = null;
 				}
 			}
@@ -157,7 +195,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return true;
 		}
 
-		public PdbConstant[] GetConstants(ModuleDefMD module, GenericParamContext gpContext) {
+		public override PdbConstant[] GetConstants(ModuleDefMD module, GenericParamContext gpContext) {
 			if (constants == null)
 				return emptySymbolConstants;
 			var res = new PdbConstant[constants.Count];
@@ -187,46 +225,5 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 			return null;
 		}
-
-		#region ISymbolScope
-
-		int ISymbolScope.StartOffset {
-			get { return (int)BeginOffset; }
-		}
-
-		int ISymbolScope.EndOffset {
-			get { return (int)EndOffset; }
-		}
-
-		ISymbolScope[] ISymbolScope.GetChildren() {
-			var scopes = new ISymbolScope[Children.Count];
-			for (int i = 0; i < scopes.Length; i++)
-				scopes[i] = Children[i];
-			return scopes;
-		}
-
-		ISymbolVariable[] ISymbolScope.GetLocals() {
-			var vars = new ISymbolVariable[Variables.Count];
-			for (int i = 0; i < vars.Length; i++)
-				vars[i] = Variables[i];
-			return vars;
-		}
-
-		ISymbolNamespace[] ISymbolScope.GetNamespaces() {
-			var nss = new ISymbolNamespace[Namespaces.Count];
-			for (int i = 0; i < nss.Length; i++)
-				nss[i] = Namespaces[i];
-			return nss;
-		}
-
-		ISymbolMethod ISymbolScope.Method {
-			get { throw new NotImplementedException(); }
-		}
-
-		ISymbolScope ISymbolScope.Parent {
-			get { throw new NotImplementedException(); }
-		}
-
-		#endregion
 	}
 }

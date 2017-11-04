@@ -130,7 +130,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="peImage">The PE image</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Create(IPEImage peImage, bool verify) {
+		static MetaData Create(IPEImage peImage, bool verify) {
 			IImageStream cor20HeaderStream = null, mdHeaderStream = null;
 			MetaData md = null;
 			try {
@@ -166,7 +166,7 @@ namespace dnlib.DotNet.MD {
 				default:
 					throw new BadImageFormatException("No #~ or #- stream found");
 				}
-				md.Initialize();
+				md.Initialize(null);
 
 				return md;
 			}
@@ -180,6 +180,46 @@ namespace dnlib.DotNet.MD {
 					cor20HeaderStream.Dispose();
 				if (mdHeaderStream != null)
 					mdHeaderStream.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Create a <see cref="MetaData"/> instance
+		/// </summary>
+		/// <param name="mdStream">Metadata stream</param>
+		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
+		/// <returns>A new <see cref="MetaData"/> instance</returns>
+		internal static MetaData Create(IImageStream mdStream, bool verify) {
+			MetaData md = null;
+			try {
+				var mdHeader = new MetaDataHeader(mdStream, verify);
+				if (verify) {
+					foreach (var sh in mdHeader.StreamHeaders) {
+						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > mdStream.Length)
+							throw new BadImageFormatException("Invalid stream header");
+					}
+				}
+
+				switch (GetMetaDataType(mdHeader.StreamHeaders)) {
+				case MetaDataType.Compressed:
+					md = new CompressedMetaData(mdHeader);
+					break;
+
+				case MetaDataType.ENC:
+					md = new ENCMetaData(mdHeader);
+					break;
+
+				default:
+					throw new BadImageFormatException("No #~ or #- stream found");
+				}
+				md.Initialize(mdStream);
+
+				return md;
+			}
+			catch {
+				if (md != null)
+					md.Dispose();
+				throw;
 			}
 		}
 

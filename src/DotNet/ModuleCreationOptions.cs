@@ -1,8 +1,8 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System.Diagnostics.SymbolStore;
 using dnlib.IO;
 using dnlib.DotNet.Pdb;
+using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -65,10 +65,10 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
-	/// Creates a <see cref="ISymbolReader"/>
+	/// Creates a <see cref="SymbolReader"/>
 	/// </summary>
 	/// <param name="module">Module</param>
-	/// <returns>A <see cref="ISymbolReader"/> instance for (and now owned by)
+	/// <returns>A <see cref="SymbolReader"/> instance for (and now owned by)
 	/// <paramref name="module"/> or <c>null</c>.</returns>
-	public delegate ISymbolReader CreateSymbolReaderDelegate(ModuleDefMD module);
+	public delegate SymbolReader CreateSymbolReaderDelegate(ModuleDefMD module);
 }

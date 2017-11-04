@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
+using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
@@ -49,8 +50,8 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="symDoc">A <see cref="ISymbolDocument"/> instance</param>
-		public PdbDocument(ISymbolDocument symDoc) {
+		/// <param name="symDoc">A <see cref="SymbolDocument"/> instance</param>
+		public PdbDocument(SymbolDocument symDoc) {
 			if (symDoc == null)
 				throw new ArgumentNullException("symDoc");
 			this.Url = symDoc.URL;
@@ -58,7 +59,7 @@ namespace dnlib.DotNet.Pdb {
 			this.LanguageVendor = symDoc.LanguageVendor;
 			this.DocumentType = symDoc.DocumentType;
 			this.CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
-			this.CheckSum = symDoc.GetCheckSum();
+			this.CheckSum = symDoc.CheckSum;
 		}
 
 		/// <summary>

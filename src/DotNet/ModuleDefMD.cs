@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -17,6 +16,7 @@ using dnlib.DotNet.Pdb;
 using dnlib.W32Resources;
 
 using DNW = dnlib.DotNet.Writer;
+using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -423,7 +423,7 @@ namespace dnlib.DotNet {
 			LoadPdb(CreateSymbolReader(options));
 		}
 
-		ISymbolReader CreateSymbolReader(ModuleCreationOptions options) {
+		SymbolReader CreateSymbolReader(ModuleCreationOptions options) {
 			if (options.CreateSymbolReader != null) {
 				var symReader = options.CreateSymbolReader(this);
 				if (symReader != null)
@@ -447,8 +447,12 @@ namespace dnlib.DotNet {
 					return SymbolReaderCreator.Create(options.PdbImplementation, metaData, pdbStream);
 			}
 
-			if (options.TryToLoadPdbFromDisk && !string.IsNullOrEmpty(location))
-				return SymbolReaderCreator.Create(options.PdbImplementation, location);
+			if (options.TryToLoadPdbFromDisk) {
+				if (!string.IsNullOrEmpty(location))
+					return SymbolReaderCreator.CreateFromAssemblyFile(options.PdbImplementation, metaData, location);
+				else
+					return SymbolReaderCreator.Create(options.PdbImplementation, metaData);
+			}
 
 			return null;
 		}
@@ -457,7 +461,7 @@ namespace dnlib.DotNet {
 		/// Loads symbols using <paramref name="symbolReader"/>
 		/// </summary>
 		/// <param name="symbolReader">PDB symbol reader</param>
-		public void LoadPdb(ISymbolReader symbolReader) {
+		public void LoadPdb(SymbolReader symbolReader) {
 			if (symbolReader == null)
 				return;
 			if (pdbState != null)

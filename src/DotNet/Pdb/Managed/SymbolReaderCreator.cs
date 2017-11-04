@@ -1,51 +1,51 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Security;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
 	/// <summary>
-	/// Creates a <see cref="ISymbolReader"/> instance
+	/// Creates a <see cref="SymbolReader"/> instance
 	/// </summary>
-	public static class SymbolReaderCreator {
+	static class SymbolReaderCreator {
 		/// <summary>
-		/// Creates a new <see cref="ISymbolReader"/> instance
+		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="assemblyFileName">Path to assembly</param>
-		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c> if there's no PDB
+		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file.</returns>
-		public static ISymbolReader CreateFromAssemblyFile(string assemblyFileName) {
+		public static SymbolReader CreateFromAssemblyFile(string assemblyFileName) {
 			return Create(Path.ChangeExtension(assemblyFileName, "pdb"));
 		}
 
 		/// <summary>
-		/// Creates a new <see cref="ISymbolReader"/> instance
+		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbFileName">Path to PDB file</param>
-		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c> if there's no PDB
+		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk.</returns>
-		public static ISymbolReader Create(string pdbFileName) {
+		public static SymbolReader Create(string pdbFileName) {
 			return Create(OpenImageStream(pdbFileName));
 		}
 
 		/// <summary>
-		/// Creates a new <see cref="ISymbolReader"/> instance
+		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbData">PDB file data</param>
-		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c>.</returns>
-		public static ISymbolReader Create(byte[] pdbData) {
+		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c>.</returns>
+		public static SymbolReader Create(byte[] pdbData) {
 			return Create(MemoryImageStream.Create(pdbData));
 		}
 
 		/// <summary>
-		/// Creates a new <see cref="ISymbolReader"/> instance
+		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
-		/// <returns>A new <see cref="ISymbolReader"/> instance or <c>null</c>.</returns>
-		public static ISymbolReader Create(IImageStream pdbStream) {
+		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c>.</returns>
+		public static SymbolReader Create(IImageStream pdbStream) {
 			if (pdbStream == null)
 				return null;
 			try {
@@ -53,11 +53,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 				pdbReader.Read(pdbStream);
 				return pdbReader;
 			}
+			catch (PdbException) {
+			}
 			catch (IOException) {
-			}
-			catch (UnauthorizedAccessException) {
-			}
-			catch (SecurityException) {
 			}
 			finally {
 				if (pdbStream != null)

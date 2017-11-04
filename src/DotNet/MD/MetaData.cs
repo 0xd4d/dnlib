@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using dnlib.IO;
 using dnlib.PE;
 using dnlib.Threading;
 
@@ -264,11 +265,18 @@ namespace dnlib.DotNet.MD {
 			}
 		}
 
+		internal MetaData(MetaDataHeader mdHeader) {
+			this.allStreams = ThreadSafeListCreator.Create<DotNetStream>();
+			this.peImage = null;
+			this.cor20Header = null;
+			this.mdHeader = mdHeader;
+		}
+
 		/// <summary>
 		/// Initializes the metadata, tables, streams
 		/// </summary>
-		public void Initialize() {
-			InitializeInternal();
+		public void Initialize(IImageStream mdStream) {
+			InitializeInternal(mdStream);
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
@@ -290,9 +298,9 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Called by <see cref="Initialize()"/>
+		/// Called by <see cref="Initialize(IImageStream)"/>
 		/// </summary>
-		protected abstract void InitializeInternal();
+		protected abstract void InitializeInternal(IImageStream mdStream);
 
 		/// <inheritdoc/>
 		public virtual RidList GetTypeDefRidList() {

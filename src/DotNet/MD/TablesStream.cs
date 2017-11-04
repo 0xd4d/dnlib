@@ -219,8 +219,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Initializes MD tables
 		/// </summary>
-		/// <param name="peImage">The PEImage</param>
-		public void Initialize(IPEImage peImage) {
+		public void Initialize() {
 			if (initialized)
 				throw new Exception("Initialize() has already been called");
 			initialized = true;
@@ -254,14 +253,14 @@ namespace dnlib.DotNet.MD {
 
 			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes);
 
-			var currentRva = peImage.ToRVA(imageStream.FileOffset) + (uint)imageStream.Position;
+			var currentPos = (FileOffset)imageStream.Position;
 			foreach (var mdTable in mdTables) {
 				var dataLen = (long)mdTable.TableInfo.RowSize * (long)mdTable.Rows;
-				mdTable.ImageStream = peImage.CreateStream(currentRva, dataLen);
-				var newRva = currentRva + (uint)dataLen;
-				if (newRva < currentRva)
+				mdTable.ImageStream = imageStream.Create(currentPos, dataLen);
+				var newPos = currentPos + (uint)dataLen;
+				if (newPos < currentPos)
 					throw new BadImageFormatException("Too big MD table");
-				currentRva = newRva;
+				currentPos = newPos;
 			}
 
 			InitializeTables();
