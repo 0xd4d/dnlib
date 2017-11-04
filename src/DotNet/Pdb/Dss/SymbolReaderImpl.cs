@@ -53,7 +53,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile ReadOnlyCollection<SymbolDocument> documents;
 
-		public override SymbolMethod GetMethod(int method, int version) {
+		public override SymbolMethod GetMethod(ModuleDef module, int method, int version) {
 			ISymUnmanagedMethod unMethod;
 			int hr = reader.GetMethodByVersion((uint)method, version, out unMethod);
 			if (hr == E_FAIL)

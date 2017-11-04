@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <param name="assemblyFileName">Path to assembly</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk or if any of the COM methods fail.</returns>
-		public static SymbolReader Create(string assemblyFileName) {
+		public static SymbolReader CreateFromAssemblyFile(string assemblyFileName) {
 			try {
 				object mdDispObj;
 				Guid CLSID_CorMetaDataDispenser = new Guid(0xE5CB7A31, 0x7512, 0x11D2, 0x89, 0xCE, 0x0, 0x80, 0xC7, 0x92, 0xE5, 0xD8);
@@ -61,21 +61,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 			return null;
 		}
 
-		static IImageStream OpenImageStream(string fileName) {
-			try {
-				if (!File.Exists(fileName))
-					return null;
-				return ImageStreamCreator.CreateImageStream(fileName);
-			}
-			catch (IOException) {
-			}
-			catch (UnauthorizedAccessException) {
-			}
-			catch (SecurityException) {
-			}
-			return null;
-		}
-
 		/// <summary>
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
@@ -86,7 +71,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public static SymbolReader Create(IMetaData metaData, string pdbFileName) {
 			var mdStream = CreateMetaDataStream(metaData);
 			try {
-				return Create(mdStream, OpenImageStream(pdbFileName));
+				return Create(mdStream, ImageStreamUtils.OpenImageStream(pdbFileName));
 			}
 			catch {
 				if (mdStream != null)
@@ -143,7 +128,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// file on disk or if any of the COM methods fail.</returns>
 		public static SymbolReader Create(IImageStream mdStream, string pdbFileName) {
 			try {
-				return Create(mdStream, OpenImageStream(pdbFileName));
+				return Create(mdStream, ImageStreamUtils.OpenImageStream(pdbFileName));
 			}
 			catch {
 				if (mdStream != null)

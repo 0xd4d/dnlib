@@ -175,6 +175,7 @@
     <Compile Include="DotNet\NullResolver.cs" />
     <Compile Include="DotNet\Pdb\CustomDebugInfoConstants.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolReaderImpl.cs" />
+    <Compile Include="DotNet\Pdb\ImageStreamUtils.cs" />
     <Compile Include="DotNet\Pdb\ManagedSymbolReaderCreator.cs" />
     <Compile Include="DotNet\Pdb\Managed\NumericLeaf.cs" />
     <Compile Include="DotNet\Pdb\Managed\NumericReader.cs" />

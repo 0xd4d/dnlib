@@ -210,7 +210,7 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			method = reader.GetMethod(token, 1);
+			method = reader.GetMethod(module, token, 1);
 			if (method != null) {
 				var pdbMethod = new PdbMethod();
 				pdbMethod.Scope = CreateScope(module, ownerMethod == null ? new GenericParamContext() : GenericParamContext.Create(ownerMethod), body, method.RootScope);
@@ -375,6 +375,7 @@ recursive_call:
 
 			foreach (var ns in state.SymScope.Namespaces)
 				state.PdbScope.Namespaces.Add(ns.Name);
+			state.PdbScope.ImportScope = state.SymScope.ImportScope;
 
 			if (module != null) {
 				var constants = state.SymScope.GetConstants(module, gpContext);
@@ -499,6 +500,10 @@ do_return:
 				break;
 			}
 			return null;
+		}
+
+		internal void Dispose() {
+			reader.Dispose();
 		}
 	}
 

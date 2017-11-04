@@ -924,6 +924,10 @@ namespace dnlib.DotNet {
 				tdf.Dispose();
 				typeDefFinder = null;
 			}
+			var ps = pdbState;
+			if (ps != null)
+				ps.Dispose();
+			pdbState = null;
 		}
 
 		/// <summary>

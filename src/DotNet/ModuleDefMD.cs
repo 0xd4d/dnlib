@@ -538,7 +538,7 @@ namespace dnlib.DotNet {
 			var loc = location;
 			if (string.IsNullOrEmpty(loc))
 				return;
-			LoadPdb(SymbolReaderCreator.Create(pdbImpl, loc));
+			LoadPdb(SymbolReaderCreator.Create(pdbImpl, metaData, loc));
 		}
 
 		ModuleKind GetKind() {
@@ -1878,8 +1878,9 @@ namespace dnlib.DotNet {
 		/// <param name="rid">Method rid</param>
 		/// <returns>Returns originak <paramref name="body"/> value</returns>
 		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body, uint rid) {
-			if (pdbState != null)
-				pdbState.InitializeMethodBody(this, method, body, rid);
+			var ps = pdbState;
+			if (ps != null)
+				ps.InitializeMethodBody(this, method, body, rid);
 			return body;
 		}
 

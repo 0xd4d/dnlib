@@ -318,7 +318,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return value;
 		}
 
-		public override SymbolMethod GetMethod(int method, int version) {
+		public override SymbolMethod GetMethod(ModuleDef module, int method, int version) {
 			DbiFunction symMethod;
 			if (functions.TryGetValue(method, out symMethod))
 				return symMethod;

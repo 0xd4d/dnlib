@@ -1,8 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System;
 using System.IO;
-using System.Security;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
@@ -28,7 +26,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk.</returns>
 		public static SymbolReader Create(string pdbFileName) {
-			return Create(OpenImageStream(pdbFileName));
+			return Create(ImageStreamUtils.OpenImageStream(pdbFileName));
 		}
 
 		/// <summary>
@@ -60,21 +58,6 @@ namespace dnlib.DotNet.Pdb.Managed {
 			finally {
 				if (pdbStream != null)
 					pdbStream.Dispose();
-			}
-			return null;
-		}
-
-		static IImageStream OpenImageStream(string fileName) {
-			try {
-				if (!File.Exists(fileName))
-					return null;
-				return ImageStreamCreator.CreateImageStream(fileName);
-			}
-			catch (IOException) {
-			}
-			catch (UnauthorizedAccessException) {
-			}
-			catch (SecurityException) {
 			}
 			return null;
 		}

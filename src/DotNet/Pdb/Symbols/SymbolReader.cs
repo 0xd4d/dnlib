@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using dnlib.DotNet.Emit;
@@ -8,7 +9,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 	/// <summary>
 	/// Reads symbols from a PDB file
 	/// </summary>
-	public abstract class SymbolReader {
+	public abstract class SymbolReader : IDisposable {
 		/// <summary>
 		/// Gets the user entry point token or 0 if none
 		/// </summary>
@@ -20,12 +21,13 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		public abstract ReadOnlyCollection<SymbolDocument> Documents { get; }
 
 		/// <summary>
-		/// Gets a method
+		/// Gets a method or returns null if the method doesn't exist in the PDB file
 		/// </summary>
+		/// <param name="module">Module</param>
 		/// <param name="method">Method token</param>
 		/// <param name="version">Edit and continue version</param>
 		/// <returns></returns>
-		public abstract SymbolMethod GetMethod(int method, int version);
+		public abstract SymbolMethod GetMethod(ModuleDef module, int method, int version);
 
 		/// <summary>
 		/// Reads custom debug info
@@ -34,5 +36,11 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <param name="body">Method body</param>
 		/// <param name="result">Updated with custom debug info</param>
 		public abstract void GetCustomDebugInfo(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result);
+
+		/// <summary>
+		/// Cleans up resources
+		/// </summary>
+		public virtual void Dispose() {
+		}
 	}
 }
