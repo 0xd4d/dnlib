@@ -989,7 +989,14 @@ namespace dnlib.DotNet {
 		static readonly UTF8String nameTargetFrameworkAttribute = new UTF8String("TargetFrameworkAttribute");
 
 		static bool TryGetName(ICustomAttributeType caType, out UTF8String ns, out UTF8String name) {
-			var type = (caType as MemberRef)?.DeclaringType ?? (caType as MethodDef)?.DeclaringType;
+			ITypeDefOrRef type;
+			var mr = caType as MemberRef;
+			if (mr != null)
+				type = mr.DeclaringType;
+			else {
+				var md = caType as MethodDef;
+				type = md == null ? null : md.DeclaringType;
+			}
 			var tr = type as TypeRef;
 			if (tr != null) {
 				ns = tr.Namespace;
