@@ -23,7 +23,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
 	/// </summary>
-	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder, IDnlibDef, ITokenResolver {
+	public abstract class ModuleDef : IHasCustomAttribute, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder, IDnlibDef, ITokenResolver, ISignatureReaderHelper {
 		/// <summary>Default characteristics</summary>
 		protected const Characteristics DefaultCharacteristics = Characteristics.ExecutableImage | Characteristics._32BitMachine;
 
@@ -1531,6 +1531,17 @@ namespace dnlib.DotNet {
 			var foundVer = found.Version;
 			var newVer = newOne.Version;
 			return foundVer == null || (newVer != null && newVer >= foundVer);
+		}
+
+		ITypeDefOrRef ISignatureReaderHelper.ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext) {
+			uint token;
+			if (!CodedToken.TypeDefOrRef.Decode(codedToken, out token))
+				return null;
+			return ResolveToken(token) as ITypeDefOrRef;
+		}
+
+		TypeSig ISignatureReaderHelper.ConvertRTInternalAddress(IntPtr address) {
+			return null;
 		}
 	}
 

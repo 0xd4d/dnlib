@@ -48,6 +48,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 			get { return namespaces; }
 		}
 
+		public override PdbImportScope ImportScope {
+			get { return null; }
+		}
+
 		public DbiScope(SymbolMethod method, SymbolScope parent, string name, uint offset, uint length) {
 			this.method = method;
 			this.parent = parent;
@@ -195,7 +199,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return true;
 		}
 
-		public override PdbConstant[] GetConstants(ModuleDefMD module, GenericParamContext gpContext) {
+		public override PdbConstant[] GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constants == null)
 				return emptySymbolConstants;
 			var res = new PdbConstant[constants.Count];

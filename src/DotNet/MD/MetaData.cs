@@ -825,6 +825,10 @@ namespace dnlib.DotNet.MD {
 			return nonNestedTypes;
 		}
 
+		public RidList GetLocalScopeRidList(uint methodRid) {
+			return FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
+		}
+
 		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);

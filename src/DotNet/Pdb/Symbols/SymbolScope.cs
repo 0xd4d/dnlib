@@ -43,11 +43,16 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		public abstract ReadOnlyCollection<SymbolNamespace> Namespaces { get; }
 
 		/// <summary>
+		/// Gets the import scope or null if none
+		/// </summary>
+		public abstract PdbImportScope ImportScope { get; }
+
+		/// <summary>
 		/// Gets all the constants
 		/// </summary>
 		/// <param name="module">Owner module if a signature must be read from the #Blob</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns></returns>
-		public abstract PdbConstant[] GetConstants(ModuleDefMD module, GenericParamContext gpContext);
+		public abstract PdbConstant[] GetConstants(ModuleDef module, GenericParamContext gpContext);
 	}
 }

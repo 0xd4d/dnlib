@@ -1690,6 +1690,97 @@ using dnlib.PE;
 #endif
 		}
 
+		internal uint ReadMethodDebugInformationRow2(uint rid, out uint document) {
+			var table = MethodDebugInformationTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			document = columns[0].Read(reader);
+			return columns[1].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal uint ReadDocumentRow2(uint rid, out uint name, out uint hashAlgorithm, out uint hash) {
+			var table = DocumentTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			name = columns[0].Read(reader);
+			hashAlgorithm = columns[1].Read(reader);
+			hash = columns[2].Read(reader);
+			return columns[3].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal uint ReadLocalScopeRow2(uint rid, out uint importScope, out uint variableList, out uint constantList, out uint startOffset) {
+			var table = LocalScopeTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			reader.Position += columns[0].Size;
+			importScope = columns[1].Read(reader);
+			variableList = columns[2].Read(reader);
+			constantList = columns[3].Read(reader);
+			startOffset = reader.ReadUInt32();
+			return reader.ReadUInt32();
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal uint ReadImportScopeRow2(uint rid, out uint parent) {
+			var table = ImportScopeTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			parent = columns[0].Read(reader);
+			return columns[1].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal uint ReadLocalVariableRow2(uint rid, out ushort attributes, out ushort index) {
+			var table = LocalVariableTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			attributes = reader.ReadUInt16();
+			index = reader.ReadUInt16();
+			return columns[2].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal uint ReadLocalConstantRow2(uint rid, out uint name) {
+			var table = LocalConstantTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			name = columns[0].Read(reader);
+			return columns[1].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
 		/// <summary>
 		/// Reads a column
 		/// </summary>

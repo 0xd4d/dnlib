@@ -92,7 +92,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile ReadOnlyCollection<SymbolNamespace> namespaces;
 
-		public override PdbConstant[] GetConstants(ModuleDefMD module, GenericParamContext gpContext) {
+		public override PdbImportScope ImportScope {
+			get { return null; }
+		}
+
+		public override PdbConstant[] GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			var scope2 = scope as ISymUnmanagedScope2;
 			if (scope2 == null)
 				return emptySymbolConstants;

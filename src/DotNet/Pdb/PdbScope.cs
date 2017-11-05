@@ -60,7 +60,7 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <summary>
-		/// Gets all namespaces
+		/// Gets all namespaces (Windows PDBs). Portable PDBs use <see cref="ImportScope"/>
 		/// </summary>
 		public ThreadSafe.IList<string> Namespaces {
 			get { return namespaces; }
@@ -72,6 +72,11 @@ namespace dnlib.DotNet.Pdb {
 		public bool HasNamespaces {
 			get { return namespaces.Count > 0; }
 		}
+
+		/// <summary>
+		/// Gets/sets the import scope (Portable PDBs). Windows PDBs use <see cref="Namespaces"/>
+		/// </summary>
+		public PdbImportScope ImportScope { get; set; }
 
 		/// <summary>
 		/// Gets all constants

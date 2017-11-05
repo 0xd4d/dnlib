@@ -22,7 +22,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the Module table
 	/// </summary>
-	public sealed class ModuleDefMD : ModuleDefMD2, IInstructionOperandResolver, ISignatureReaderHelper {
+	public sealed class ModuleDefMD : ModuleDefMD2, IInstructionOperandResolver {
 		/// <summary>The file that contains all .NET metadata</summary>
 		MetaData metaData;
 		IMethodDecrypter methodDecrypter;
@@ -2043,10 +2043,6 @@ namespace dnlib.DotNet {
 				return BlobStream.Read(msRow.Instantiation);
 			}
 
-			return null;
-		}
-
-		TypeSig ISignatureReaderHelper.ConvertRTInternalAddress(IntPtr address) {
 			return null;
 		}
 	}

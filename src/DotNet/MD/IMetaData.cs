@@ -325,5 +325,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		RidList GetNonNestedClassRidList();
+
+		/// <summary>
+		/// Finds all <c>LocalScope</c> rids owned by <paramref name="methodRid"/>
+		/// </summary>
+		/// <param name="methodRid">Owner <c>Method</c> rid</param>
+		/// <returns>A <see cref="RidList"/> instance containing the valid <c>LocalScope</c> rids</returns>
+		RidList GetLocalScopeRidList(uint methodRid);
 	}
 }

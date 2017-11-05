@@ -8,23 +8,19 @@ using dnlib.IO;
 namespace dnlib.DotNet.Pdb.Portable {
 	static class SymbolReaderCreator {
 		public static SymbolReader TryCreate(IMetaData metaData, IImageStream pdbStream) {
-			if (metaData == null)
-				return null;
-			if (pdbStream == null)
-				return null;
 			try {
-				pdbStream.Position = 0;
-				if (pdbStream.ReadUInt32() != 0x424A5342)
-					return null;
-				pdbStream.Position = 0;
-				return null;//TODO:
+				if (metaData != null && pdbStream != null) {
+					pdbStream.Position = 0;
+					if (pdbStream.ReadUInt32() == 0x424A5342) {
+						pdbStream.Position = 0;
+						return new PortablePdbReader(metaData, pdbStream);
+					}
+				}
 			}
 			catch (IOException) {
 			}
-			finally {
-				if (pdbStream != null)
-					pdbStream.Dispose();
-			}
+			if (pdbStream != null)
+				pdbStream.Dispose();
 			return null;
 		}
 
