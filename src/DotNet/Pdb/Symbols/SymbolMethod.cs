@@ -23,19 +23,33 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		public abstract ReadOnlyCollection<SymbolSequencePoint> SequencePoints { get; }
 
 		/// <summary>
-		/// true if this is an async method
+		/// true if this is an iterator method
 		/// </summary>
-		public abstract bool IsAsyncMethod { get; }
+		public bool IsIteratorMethod {
+			get { return IteratorKickoffMethod != 0; }
+		}
 
 		/// <summary>
-		/// Gets the kick off method if it's an async method (<see cref="IsAsyncMethod"/>)
+		/// Gets the kick off method if it's an iterator method, otherwise 0
 		/// </summary>
-		public abstract int KickoffMethod { get; }
+		public abstract int IteratorKickoffMethod { get; }
+
+		/// <summary>
+		/// true if this is an async method
+		/// </summary>
+		public bool IsAsyncMethod {
+			get { return AsyncKickoffMethod != 0; }
+		}
+
+		/// <summary>
+		/// Gets the kick off method if it's an async method, otherwise 0
+		/// </summary>
+		public abstract int AsyncKickoffMethod { get; }
 
 		/// <summary>
 		/// Gets the catch handler IL offset if it's an async method (<see cref="IsAsyncMethod"/>)
 		/// </summary>
-		public abstract uint? CatchHandlerILOffset { get; }
+		public abstract uint? AsyncCatchHandlerILOffset { get; }
 
 		/// <summary>
 		/// Gets the async step infos if it's an async method (<see cref="IsAsyncMethod"/>)

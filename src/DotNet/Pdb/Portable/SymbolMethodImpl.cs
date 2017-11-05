@@ -8,9 +8,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 		readonly int token;
 		readonly SymbolScope rootScope;
 		readonly ReadOnlyCollection<SymbolSequencePoint> sequencePoints;
-		readonly bool isAsyncMethod;
-		readonly int kickoffMethod;
-		readonly uint? catchHandlerILOffset;
+		readonly int iteratorKickoffMethod;
+		readonly int asyncKickoffMethod;
+		readonly uint? asyncCatchHandlerILOffset;
 		readonly ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos;
 
 		public override int Token {
@@ -25,29 +25,29 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return sequencePoints; }
 		}
 
-		public override bool IsAsyncMethod {
-			get { return isAsyncMethod; }
+		public override int IteratorKickoffMethod {
+			get { return iteratorKickoffMethod; }
 		}
 
-		public override int KickoffMethod {
-			get { return kickoffMethod; }
+		public override int AsyncKickoffMethod {
+			get { return asyncKickoffMethod; }
 		}
 
-		public override uint? CatchHandlerILOffset {
-			get { return catchHandlerILOffset; }
+		public override uint? AsyncCatchHandlerILOffset {
+			get { return asyncCatchHandlerILOffset; }
 		}
 
 		public override ReadOnlyCollection<SymbolAsyncStepInfo> AsyncStepInfos {
 			get { return asyncStepInfos; }
 		}
 
-		public SymbolMethodImpl(int token, SymbolScope rootScope, ReadOnlyCollection<SymbolSequencePoint> sequencePoints, bool isAsyncMethod, int kickoffMethod, uint? catchHandlerILOffset, ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos) {
+		public SymbolMethodImpl(int token, SymbolScope rootScope, ReadOnlyCollection<SymbolSequencePoint> sequencePoints, int iteratorKickoffMethod, int asyncKickoffMethod, uint? asyncCatchHandlerILOffset, ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos) {
 			this.token = token;
 			this.rootScope = rootScope;
 			this.sequencePoints = sequencePoints;
-			this.isAsyncMethod = isAsyncMethod;
-			this.kickoffMethod = kickoffMethod;
-			this.catchHandlerILOffset = catchHandlerILOffset;
+			this.iteratorKickoffMethod = iteratorKickoffMethod;
+			this.asyncKickoffMethod = asyncKickoffMethod;
+			this.asyncCatchHandlerILOffset = asyncCatchHandlerILOffset;
 			this.asyncStepInfos = asyncStepInfos;
 		}
 	}

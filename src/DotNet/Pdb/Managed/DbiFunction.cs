@@ -71,30 +71,25 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 		ReadOnlyCollection<SymbolSequencePoint> sequencePoints;
 
-		const string asyncMethodInfoAttributeName = "asyncMethodInfo";
-		public override bool IsAsyncMethod {
-			get {
-				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
-				return data != null && data.Length >= 0x0C;
-			}
+		public override int IteratorKickoffMethod {
+			get { return 0; }
 		}
 
-		public override int KickoffMethod {
+		const string asyncMethodInfoAttributeName = "asyncMethodInfo";
+		public override int AsyncKickoffMethod {
 			get {
-				Debug.Assert(IsAsyncMethod);
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				if (data == null)
-					throw new InvalidOperationException();
+					return 0;
 				return BitConverter.ToInt32(data, 0);
 			}
 		}
 
-		public override uint? CatchHandlerILOffset {
+		public override uint? AsyncCatchHandlerILOffset {
 			get {
-				Debug.Assert(IsAsyncMethod);
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				if (data == null)
-					throw new InvalidOperationException();
+					return null;
 				uint token = BitConverter.ToUInt32(data, 4);
 				return token == uint.MaxValue ? (uint?)null : token;
 			}
@@ -110,10 +105,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 		volatile ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos;
 
 		SymbolAsyncStepInfo[] CreateSymbolAsyncStepInfos() {
-			Debug.Assert(IsAsyncMethod);
 			var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 			if (data == null)
-				throw new InvalidOperationException();
+				return emptySymbolAsyncStepInfos;
 			int pos = 8;
 			int count = BitConverter.ToInt32(data, pos);
 			pos += 4;

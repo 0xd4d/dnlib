@@ -88,24 +88,44 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return true;
 		}
 
-		public override SymbolMethod GetMethod(ModuleDef module, int method, int version) {
-			if (((uint)method >> MDToken.TABLE_SHIFT) != (uint)Table.Method)
-				return null;
+		public override SymbolMethod GetMethod(ModuleDef module, MethodDef method, int version) {
 			var mdTable = pdbMetaData.TablesStream.MethodDebugInformationTable;
-			uint methodRid = (uint)method & MDToken.RID_MASK;
+			uint methodRid = method.Rid;
 			if (!mdTable.IsValidRID(methodRid))
 				return null;
 
 			var sequencePoints = ReadSequencePoints(methodRid) ?? emptySymbolSequencePoints;
 			var rootScope = ReadScope(module, methodRid);
 
-			bool isAsyncMethod = false;//TODO:
-			int kickoffMethod = 0;//TODO:
-			uint? catchHandlerILOffset = null;//TODO:
-			var asyncStepInfos = new ReadOnlyCollection<SymbolAsyncStepInfo>(new SymbolAsyncStepInfo[0]);//TODO:
-			var symbolMethod = new SymbolMethodImpl(method, rootScope, sequencePoints, isAsyncMethod, kickoffMethod, catchHandlerILOffset, asyncStepInfos);
+			var kickoffMethod = GetKickoffMethod(methodRid);
+			bool isAsyncMethod = kickoffMethod != 0 && IsAsyncMethod(method);
+			bool isIteratorMethod = kickoffMethod != 0 && !isAsyncMethod;
+			int iteratorKickoffMethod = isIteratorMethod ? kickoffMethod : 0;
+			int asyncKickoffMethod = isAsyncMethod ? kickoffMethod : 0;
+			uint? asyncCatchHandlerILOffset = null;
+			var asyncStepInfos = emptySymbolAsyncStepInfos;
+			var symbolMethod = new SymbolMethodImpl(method.MDToken.ToInt32(), rootScope, sequencePoints, iteratorKickoffMethod, asyncKickoffMethod, asyncCatchHandlerILOffset, asyncStepInfos);
 			rootScope.method = symbolMethod;
 			return symbolMethod;
+		}
+		static readonly ReadOnlyCollection<SymbolAsyncStepInfo> emptySymbolAsyncStepInfos = new ReadOnlyCollection<SymbolAsyncStepInfo>(new SymbolAsyncStepInfo[0]);
+
+		static bool IsAsyncMethod(MethodDef method) {
+			foreach (var iface in method.DeclaringType.Interfaces) {
+				if (iface.Interface.Name != stringIAsyncStateMachine)
+					continue;
+				if (iface.Interface.FullName == "System.Runtime.CompilerServices.IAsyncStateMachine")
+					return true;
+			}
+			return false;
+		}
+		static readonly UTF8String stringIAsyncStateMachine = new UTF8String("IAsyncStateMachine");
+
+		int GetKickoffMethod(uint methodRid) {
+			uint rid = pdbMetaData.GetStateMachineMethodRid(methodRid);
+			if (rid == 0)
+				return 0;
+			return 0x06000000 + (int)pdbMetaData.TablesStream.ReadStateMachineMethodRow2(rid);
 		}
 
 		ReadOnlyCollection<SymbolSequencePoint> ReadSequencePoints(uint methodRid) {

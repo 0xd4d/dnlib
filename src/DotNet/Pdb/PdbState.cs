@@ -181,36 +181,22 @@ namespace dnlib.DotNet.Pdb {
 #endif
 		}
 
-		/// <summary>
-		/// Initializes a <see cref="CilBody"/> with information found in the PDB file. The
-		/// instructions in <paramref name="body"/> must have valid offsets. This method is
-		/// automatically called by <see cref="ModuleDefMD"/> and you don't need to explicitly call
-		/// it.
-		/// </summary>
-		/// <param name="body">Method body</param>
-		/// <param name="methodRid">Method row ID</param>
-		[Obsolete("Don't use this method, the body gets initialied by dnlib", true)]
-		public void InitializeDontCall(CilBody body, uint methodRid) {
-			InitializeMethodBody(null, null, body, methodRid);
-		}
-
 		internal Compiler GetCompiler(ModuleDef module) {
 			if (compiler == Compiler.Unknown)
 				compiler = CalculateCompiler(module);
 			return compiler;
 		}
 
-		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body, uint methodRid) {
+		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body) {
 			Debug.Assert((module == null) == (ownerMethod == null));
 			if (reader == null || body == null)
 				return;
 
-			var token = (int)(0x06000000 + methodRid);
 			SymbolMethod method;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			method = reader.GetMethod(module, token, 1);
+			method = reader.GetMethod(module, ownerMethod, 1);
 			if (method != null) {
 				var pdbMethod = new PdbMethod();
 				pdbMethod.Scope = CreateScope(module, ownerMethod == null ? new GenericParamContext() : GenericParamContext.Create(ownerMethod), body, method.RootScope);
@@ -218,6 +204,8 @@ namespace dnlib.DotNet.Pdb {
 
 				if (module != null && method.IsAsyncMethod)
 					pdbMethod.AsyncMethod = CreateAsyncMethod(module, ownerMethod, body, method);
+				if (module != null && method.IsIteratorMethod)
+					pdbMethod.IteratorMethod = CreateIteratorMethod(module, ownerMethod, body, method);
 
 				if (ownerMethod != null) {
 					// Read the custom debug info last so eg. local names have been initialized
@@ -251,7 +239,7 @@ namespace dnlib.DotNet.Pdb {
 		static readonly UTF8String nameAssemblyVisualBasic = new UTF8String("Microsoft.VisualBasic");
 
 		PdbAsyncMethod CreateAsyncMethod(ModuleDefMD module, MethodDef method, CilBody body, SymbolMethod symMethod) {
-			var kickoffToken = new MDToken(symMethod.KickoffMethod);
+			var kickoffToken = new MDToken(symMethod.AsyncKickoffMethod);
 			if (kickoffToken.Table != MD.Table.Method)
 				return null;
 			var kickoffMethod = module.ResolveMethod(kickoffToken.Rid);
@@ -261,7 +249,7 @@ namespace dnlib.DotNet.Pdb {
 			var asyncMethod = new PdbAsyncMethod(asyncStepInfos.Count);
 			asyncMethod.KickoffMethod = kickoffMethod;
 
-			var catchHandlerILOffset = symMethod.CatchHandlerILOffset;
+			var catchHandlerILOffset = symMethod.AsyncCatchHandlerILOffset;
 			if (catchHandlerILOffset != null) {
 				asyncMethod.CatchHandlerInstruction = GetInstruction(body, catchHandlerILOffset.Value);
 				Debug.Assert(asyncMethod.CatchHandlerInstruction != null);
@@ -297,6 +285,18 @@ namespace dnlib.DotNet.Pdb {
 			}
 
 			return asyncMethod;
+		}
+
+		PdbIteratorMethod CreateIteratorMethod(ModuleDefMD module, MethodDef method, CilBody body, SymbolMethod symMethod) {
+			var kickoffToken = new MDToken(symMethod.IteratorKickoffMethod);
+			if (kickoffToken.Table != MD.Table.Method)
+				return null;
+
+			var iteratorMethod = new PdbIteratorMethod();
+
+			iteratorMethod.KickoffMethod = module.ResolveMethod(kickoffToken.Rid);
+
+			return iteratorMethod;
 		}
 
 		Instruction GetInstruction(CilBody body, uint offset) {

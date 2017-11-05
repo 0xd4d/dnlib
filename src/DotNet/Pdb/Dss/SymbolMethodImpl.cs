@@ -72,24 +72,22 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile ReadOnlyCollection<SymbolSequencePoint> sequencePoints;
 
-		public override bool IsAsyncMethod {
-			get { return asyncMethod != null && asyncMethod.IsAsyncMethod(); }
+		public override int IteratorKickoffMethod {
+			get { return 0; }
 		}
 
-		public override int KickoffMethod {
+		public override int AsyncKickoffMethod {
 			get {
-				Debug.Assert(IsAsyncMethod);
-				if (asyncMethod == null)
-					throw new InvalidOperationException();
+				if (asyncMethod == null || !asyncMethod.IsAsyncMethod())
+					return 0;
 				return (int)asyncMethod.GetKickoffMethod();
 			}
 		}
 
-		public override uint? CatchHandlerILOffset {
+		public override uint? AsyncCatchHandlerILOffset {
 			get {
-				Debug.Assert(IsAsyncMethod);
-				if (asyncMethod == null)
-					throw new InvalidOperationException();
+				if (asyncMethod == null || !asyncMethod.IsAsyncMethod())
+					return null;
 				if (!asyncMethod.HasCatchHandlerILOffset())
 					return null;
 				return asyncMethod.GetCatchHandlerILOffset();
@@ -98,10 +96,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		public override ReadOnlyCollection<SymbolAsyncStepInfo> AsyncStepInfos {
 			get {
+				if (asyncMethod == null || !asyncMethod.IsAsyncMethod())
+					return null;
 				if (asyncStepInfos == null) {
-					Debug.Assert(IsAsyncMethod);
-					if (asyncMethod == null)
-						throw new InvalidOperationException();
 					var stepInfoCount = asyncMethod.GetAsyncStepInfoCount();
 					var yieldOffsets = new uint[stepInfoCount];
 					var breakpointOffsets = new uint[stepInfoCount];

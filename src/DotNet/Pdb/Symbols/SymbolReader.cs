@@ -24,10 +24,10 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// Gets a method or returns null if the method doesn't exist in the PDB file
 		/// </summary>
 		/// <param name="module">Module</param>
-		/// <param name="method">Method token</param>
+		/// <param name="method">Method</param>
 		/// <param name="version">Edit and continue version</param>
 		/// <returns></returns>
-		public abstract SymbolMethod GetMethod(ModuleDef module, int method, int version);
+		public abstract SymbolMethod GetMethod(ModuleDef module, MethodDef method, int version);
 
 		/// <summary>
 		/// Reads custom debug info

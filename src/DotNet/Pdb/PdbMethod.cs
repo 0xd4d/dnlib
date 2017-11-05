@@ -26,6 +26,11 @@ namespace dnlib.DotNet.Pdb {
 		public PdbAsyncMethod AsyncMethod { get; set; }
 
 		/// <summary>
+		/// Gets/sets the iterator method info or null if there's none
+		/// </summary>
+		public PdbIteratorMethod IteratorMethod { get; set; }
+
+		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
 		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {

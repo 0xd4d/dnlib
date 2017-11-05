@@ -332,5 +332,12 @@ namespace dnlib.DotNet.MD {
 		/// <param name="methodRid">Owner <c>Method</c> rid</param>
 		/// <returns>A <see cref="RidList"/> instance containing the valid <c>LocalScope</c> rids</returns>
 		RidList GetLocalScopeRidList(uint methodRid);
+
+		/// <summary>
+		/// Gets the <c>StateMachineMethod</c> rid or 0 if it's not a state machine method
+		/// </summary>
+		/// <param name="methodRid">Owner <c>Method</c> rid</param>
+		/// <returns></returns>
+		uint GetStateMachineMethodRid(uint methodRid);
 	}
 }

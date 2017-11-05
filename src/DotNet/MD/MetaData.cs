@@ -829,6 +829,11 @@ namespace dnlib.DotNet.MD {
 			return FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
 		}
 
+		public uint GetStateMachineMethodRid(uint methodRid) {
+			var list = FindAllRows(tablesStream.StateMachineMethodTable, 0, methodRid);
+			return list.Length == 0 ? 0 : list[0];
+		}
+
 		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);
