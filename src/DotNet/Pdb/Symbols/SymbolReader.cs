@@ -16,6 +16,11 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		public abstract void Initialize(ModuleDef module);
 
 		/// <summary>
+		/// Gets the PDB file kind
+		/// </summary>
+		public abstract PdbFileKind PdbFileKind { get; }
+
+		/// <summary>
 		/// Gets the user entry point token or 0 if none
 		/// </summary>
 		public abstract int UserEntryPoint { get; }

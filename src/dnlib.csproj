@@ -187,6 +187,7 @@
     <Compile Include="DotNet\Pdb\PdbCustomDebugInfo.cs" />
     <Compile Include="DotNet\Pdb\PdbCustomDebugInfoReader.cs" />
     <Compile Include="DotNet\Pdb\PdbCustomDebugInfoWriter.cs" />
+    <Compile Include="DotNet\Pdb\PdbFileKind.cs" />
     <Compile Include="DotNet\Pdb\PdbImport.cs" />
     <Compile Include="DotNet\Pdb\PdbIteratorMethod.cs" />
     <Compile Include="DotNet\Pdb\PdbLocal.cs" />

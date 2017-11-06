@@ -23,6 +23,11 @@ namespace dnlib.DotNet.Pdb {
 #endif
 
 		/// <summary>
+		/// Gets the PDB file kind
+		/// </summary>
+		public PdbFileKind PdbFileKind { get; private set; }
+
+		/// <summary>
 		/// Gets/sets the user entry point method.
 		/// </summary>
 		public MethodDef UserEntryPoint {
@@ -65,10 +70,12 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Module</param>
-		public PdbState(ModuleDef module) {
+		/// <param name="pdbFileKind">PDB file kind</param>
+		public PdbState(ModuleDef module, PdbFileKind pdbFileKind) {
 			if (module == null)
 				throw new ArgumentNullException("module");
 			this.compiler = CalculateCompiler(module);
+			PdbFileKind = pdbFileKind;
 		}
 
 		/// <summary>
@@ -83,6 +90,7 @@ namespace dnlib.DotNet.Pdb {
 				throw new ArgumentNullException("module");
 			this.reader = reader;
 			reader.Initialize(module);
+			PdbFileKind = reader.PdbFileKind;
 			this.compiler = CalculateCompiler(module);
 
 			this.userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;

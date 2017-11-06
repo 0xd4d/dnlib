@@ -21,6 +21,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 		readonly uint timestamp;
 		readonly uint entryPointToken;
 
+		public override PdbFileKind PdbFileKind {
+			get { return PdbFileKind.PortablePDB; }
+		}
+
 		public override int UserEntryPoint {
 			get { return (int)entryPointToken; }
 		}

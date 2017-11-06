@@ -31,6 +31,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 		Dictionary<int, DbiFunction> functions;
 		uint entryPt;
 
+		public override PdbFileKind PdbFileKind {
+			get { return PdbFileKind.WindowsPDB; }
+		}
+
 		/// <summary>
 		/// The age of PDB file.
 		/// </summary>

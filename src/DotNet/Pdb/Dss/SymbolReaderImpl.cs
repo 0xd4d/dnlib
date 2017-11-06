@@ -24,6 +24,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 			this.reader = reader;
 		}
 
+		public override PdbFileKind PdbFileKind {
+			get { return PdbFileKind.WindowsPDB; }
+		}
+
 		public override int UserEntryPoint {
 			get {
 				uint token;

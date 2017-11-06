@@ -1205,8 +1205,9 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Creates a new <see cref="dnlib.DotNet.Pdb.PdbState"/>
 		/// </summary>
-		public void CreatePdbState() {
-			SetPdbState(new PdbState(this));
+		/// <param name="pdbFileKind">PDB file kind</param>
+		public void CreatePdbState(PdbFileKind pdbFileKind) {
+			SetPdbState(new PdbState(this, pdbFileKind));
 		}
 
 		/// <summary>
