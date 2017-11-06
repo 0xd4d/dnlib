@@ -31,8 +31,8 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		internal ENCMetaData(MetaDataHeader mdHeader)
-			: base(mdHeader) {
+		internal ENCMetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb)
+			: base(mdHeader, isStandalonePortablePdb) {
 		}
 
 		/// <inheritdoc/>
@@ -116,7 +116,7 @@ namespace dnlib.DotNet.MD {
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
-			tablesStream.Initialize();
+			tablesStream.Initialize(null);
 
 			// The pointer tables are used iff row count != 0
 			hasFieldPtr = !tablesStream.FieldPtrTable.IsEmpty;

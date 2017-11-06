@@ -184,12 +184,12 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Create a <see cref="MetaData"/> instance
+		/// Create a standalone portable PDB <see cref="MetaData"/> instance
 		/// </summary>
 		/// <param name="mdStream">Metadata stream</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Create(IImageStream mdStream, bool verify) {
+		internal static MetaData CreateStandalonePortablePDB(IImageStream mdStream, bool verify) {
 			MetaData md = null;
 			try {
 				var mdHeader = new MetaDataHeader(mdStream, verify);
@@ -202,11 +202,11 @@ namespace dnlib.DotNet.MD {
 
 				switch (GetMetaDataType(mdHeader.StreamHeaders)) {
 				case MetaDataType.Compressed:
-					md = new CompressedMetaData(mdHeader);
+					md = new CompressedMetaData(mdHeader, true);
 					break;
 
 				case MetaDataType.ENC:
-					md = new ENCMetaData(mdHeader);
+					md = new ENCMetaData(mdHeader, true);
 					break;
 
 				default:

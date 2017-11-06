@@ -60,9 +60,21 @@ namespace dnlib.DotNet.MD {
 		protected TablesStream tablesStream;
 
 		/// <summary>
+		/// The #Pdb stream
+		/// </summary>
+		protected PdbStream pdbStream;
+
+		/// <summary>
 		/// All the streams that are present in the PE image
 		/// </summary>
 		protected ThreadSafe.IList<DotNetStream> allStreams;
+
+		/// <inheritdoc/>
+		public bool IsStandalonePortablePdb {
+			get { return isStandalonePortablePdb; }
+		}
+		/// <summary><c>true</c> if this is standalone Portable PDB metadata</summary>
+		protected readonly bool isStandalonePortablePdb;
 
 		uint[] fieldRidToTypeDefRid;
 		uint[] methodRidToTypeDefRid;
@@ -241,6 +253,11 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		public PdbStream PdbStream {
+			get { return pdbStream; }
+		}
+
+		/// <inheritdoc/>
 		public ThreadSafe.IList<DotNetStream> AllStreams {
 			get { return allStreams; }
 		}
@@ -257,6 +274,7 @@ namespace dnlib.DotNet.MD {
 				this.peImage = peImage;
 				this.cor20Header = cor20Header;
 				this.mdHeader = mdHeader;
+				isStandalonePortablePdb = false;
 			}
 			catch {
 				if (peImage != null)
@@ -265,11 +283,12 @@ namespace dnlib.DotNet.MD {
 			}
 		}
 
-		internal MetaData(MetaDataHeader mdHeader) {
+		internal MetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb) {
 			this.allStreams = ThreadSafeListCreator.Create<DotNetStream>();
 			this.peImage = null;
 			this.cor20Header = null;
 			this.mdHeader = mdHeader;
+			this.isStandalonePortablePdb = isStandalonePortablePdb;
 		}
 
 		/// <summary>
@@ -280,6 +299,8 @@ namespace dnlib.DotNet.MD {
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
+			if (isStandalonePortablePdb && pdbStream == null)
+				throw new BadImageFormatException("Missing #Pdb stream");
 			InitializeNonExistentHeaps();
 		}
 

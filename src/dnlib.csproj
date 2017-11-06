@@ -141,6 +141,7 @@
     <Compile Include="DotNet\MD\MetaData.cs" />
     <Compile Include="DotNet\MD\MetaDataCreator.cs" />
     <Compile Include="DotNet\MD\MetaDataHeader.cs" />
+    <Compile Include="DotNet\MD\PdbStream.cs" />
     <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
     <Compile Include="DotNet\MD\RawTableRows.cs" />
     <Compile Include="DotNet\MD\RidList.cs" />

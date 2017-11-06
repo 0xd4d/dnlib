@@ -22,6 +22,11 @@ namespace dnlib.DotNet.MD {
 		bool IsCompressed { get; }
 
 		/// <summary>
+		/// <c>true</c> if this is standalone Portable PDB metadata
+		/// </summary>
+		bool IsStandalonePortablePdb { get; }
+
+		/// <summary>
 		/// Gets the .NET header
 		/// </summary>
 		ImageCor20Header ImageCor20Header { get; }
@@ -75,6 +80,11 @@ namespace dnlib.DotNet.MD {
 		/// Returns the #~ or #- tables stream
 		/// </summary>
 		TablesStream TablesStream { get; }
+
+		/// <summary>
+		/// Returns the #Pdb stream or null if it's not a standalone portable PDB file
+		/// </summary>
+		PdbStream PdbStream { get; }
 
 		/// <summary>
 		/// Gets all streams

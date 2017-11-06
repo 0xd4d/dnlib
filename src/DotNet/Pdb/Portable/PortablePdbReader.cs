@@ -17,16 +17,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 		readonly IMetaData pdbMetaData;
 		SymbolDocument[] documents;
 
-		readonly Guid pdbId;
-		readonly uint timestamp;
-		readonly uint entryPointToken;
-
 		public override PdbFileKind PdbFileKind {
 			get { return PdbFileKind.PortablePDB; }
 		}
 
 		public override int UserEntryPoint {
-			get { return (int)entryPointToken; }
+			get { return pdbMetaData.PdbStream.EntryPoint.ToInt32(); }
 		}
 
 		public override IList<SymbolDocument> Documents {
@@ -35,29 +31,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public PortablePdbReader(IMetaData moduleMetaData, IImageStream pdbStream) {
 			this.moduleMetaData = moduleMetaData;
-			pdbMetaData = MetaDataCreator.Create(pdbStream, true);
-			var pdbHeap = GetPdbStream(pdbMetaData.AllStreams);
-			Debug.Assert(pdbHeap != null);
-			if (pdbHeap != null) {
-				using (var stream = pdbHeap.GetClonedImageStream()) {
-					pdbId = new Guid(stream.ReadBytes(16));
-					timestamp = stream.ReadUInt32();
-					entryPointToken = stream.ReadUInt32();
-				}
-			}
+			pdbMetaData = MetaDataCreator.CreateStandalonePortablePDB(pdbStream, true);
 		}
 
 		public override void Initialize(ModuleDef module) {
 			this.module = module;
 			documents = ReadDocuments();
-		}
-
-		static DotNetStream GetPdbStream(IList<DotNetStream> streams) {
-			foreach (var stream in streams) {
-				if (stream.Name == "#Pdb")
-					return stream;
-			}
-			return null;
 		}
 
 		static Guid GetLanguageVendor(Guid language) {

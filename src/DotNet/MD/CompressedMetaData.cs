@@ -24,8 +24,8 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		internal CompressedMetaData(MetaDataHeader mdHeader)
-			: base(mdHeader) {
+		internal CompressedMetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb)
+			: base(mdHeader, isStandalonePortablePdb) {
 		}
 
 		static CompressedMetaData() {
@@ -133,6 +133,15 @@ namespace dnlib.DotNet.MD {
 						hotStream = null;
 						imageStream = null;
 						continue;
+
+					case "#Pdb":
+						if (isStandalonePortablePdb && pdbStream == null) {
+							pdbStream = new PdbStream(imageStream, sh);
+							imageStream = null;
+							allStreams.Add(pdbStream);
+							continue;
+						}
+						break;
 					}
 					dns = new DotNetStream(imageStream, sh);
 					imageStream = null;
@@ -163,7 +172,10 @@ namespace dnlib.DotNet.MD {
 				InitializeHotStreams(hotStreams);
 			}
 
-			tablesStream.Initialize();
+			if (pdbStream != null)
+				tablesStream.Initialize(pdbStream.TypeSystemTableRows);
+			else
+				tablesStream.Initialize(null);
 		}
 
 		int GetPointerSize() {

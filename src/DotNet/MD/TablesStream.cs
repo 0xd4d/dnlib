@@ -219,7 +219,8 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Initializes MD tables
 		/// </summary>
-		public void Initialize() {
+		/// <param name="typeSystemTableRows">Type system table rows (from #Pdb stream)</param>
+		public void Initialize(uint[] typeSystemTableRows) {
 			if (initialized)
 				throw new Exception("Initialize() has already been called");
 			initialized = true;
@@ -235,6 +236,8 @@ namespace dnlib.DotNet.MD {
 			int maxPresentTables;
 			var dnTableSizes = new DotNetTableSizes();
 			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion, out maxPresentTables);
+			if (typeSystemTableRows != null)
+				maxPresentTables = DotNetTableSizes.normalMaxTables;
 			mdTables = new MDTable[tableInfos.Length];
 
 			ulong valid = validMask;
@@ -251,7 +254,18 @@ namespace dnlib.DotNet.MD {
 			if (HasExtraData)
 				extraData = imageStream.ReadUInt32();
 
-			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes);
+			var debugSizes = sizes;
+			if (typeSystemTableRows != null) {
+				debugSizes = new uint[sizes.Length];
+				for (int i = 0; i < 64; i++) {
+					if (DotNetTableSizes.IsSystemTable((Table)i))
+						debugSizes[i] = typeSystemTableRows[i];
+					else
+						debugSizes[i] = sizes[i];
+				}
+			}
+
+			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes, debugSizes);
 
 			var currentPos = (FileOffset)imageStream.Position;
 			foreach (var mdTable in mdTables) {

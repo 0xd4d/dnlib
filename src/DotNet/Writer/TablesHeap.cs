@@ -304,7 +304,8 @@ namespace dnlib.DotNet.Writer {
 
 			var dnTableSizes = new DotNetTableSizes();
 			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion);
-			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, GetRowCounts());
+			var rowCounts = GetRowCounts();
+			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, rowCounts, rowCounts);
 			for (int i = 0; i < Tables.Length; i++)
 				Tables[i].TableInfo = tableInfos[i];
 
