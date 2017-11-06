@@ -855,6 +855,13 @@ namespace dnlib.DotNet.MD {
 			return list.Length == 0 ? 0 : list[0];
 		}
 
+		public RidList GetCustomDebugInformationRidList(Table table, uint rid) {
+			uint codedToken;
+			if (!CodedToken.HasCustomDebugInformation.Encode(new MDToken(table, rid), out codedToken))
+				return RidList.Empty;
+			return FindAllRows(tablesStream.CustomDebugInformationTable, 0, codedToken);
+		}
+
 		/// <inheritdoc/>
 		public void Dispose() {
 			Dispose(true);

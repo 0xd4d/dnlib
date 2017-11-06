@@ -349,5 +349,13 @@ namespace dnlib.DotNet.MD {
 		/// <param name="methodRid">Owner <c>Method</c> rid</param>
 		/// <returns></returns>
 		uint GetStateMachineMethodRid(uint methodRid);
+
+		/// <summary>
+		/// Finds all <c>CustomDebugInformation</c> rids owned by <paramref name="rid"/> in table <paramref name="table"/>
+		/// </summary>
+		/// <param name="table">A <c>HasCustomDebugInformation</c> table</param>
+		/// <param name="rid">Owner rid</param>
+		/// <returns>A <see cref="RidList"/> instance containing the valid <c>CustomDebugInformation</c> rids</returns>
+		RidList GetCustomDebugInformationRidList(Table table, uint rid);
 	}
 }

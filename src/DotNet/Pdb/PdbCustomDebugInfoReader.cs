@@ -7,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.IO;
 using dnlib.Threading;
 
@@ -27,21 +29,9 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="result">Place all custom debug info in this list</param>
 		/// <param name="data">Custom debug info from the PDB file</param>
 		public static void Read(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result, byte[] data) {
-			Read(method, body, result, MemoryImageStream.Create(data));
-		}
-
-		/// <summary>
-		/// Reads custom debug info
-		/// </summary>
-		/// <param name="method">Method</param>
-		/// <param name="body">The method's body. Needs to be provided by the caller since we're called from
-		/// PDB-init code when the Body property hasn't been initialized yet</param>
-		/// <param name="result">Place all custom debug info in this list</param>
-		/// <param name="stream">Custom debug info from the PDB file</param>
-		public static void Read(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result, IBinaryReader stream) {
 			try {
-				using (var reader = new PdbCustomDebugInfoReader(method, body, result, stream))
-					reader.Read();
+				using (var reader = new PdbCustomDebugInfoReader(method, body, MemoryImageStream.Create(data)))
+					reader.Read(result);
 			}
 			catch (ArgumentException) {
 			}
@@ -51,19 +41,178 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
-		readonly MethodDef method;
-		readonly CilBody body;
-		readonly IList<PdbCustomDebugInfo> result;
+		public static PdbCustomDebugInfo ReadPortablePdb(ModuleDef module, TypeDef typeOpt, CilBody bodyOpt, GenericParamContext gpContext, Guid kind, byte[] data) {
+			try {
+				using (var reader = new PdbCustomDebugInfoReader(module, typeOpt, bodyOpt, gpContext, MemoryImageStream.Create(data))) {
+					var cdi = reader.ReadPortablePdb(kind);
+					Debug.Assert(reader.reader.Position == reader.reader.Length);
+					return cdi;
+				}
+			}
+			catch (ArgumentException) {
+			}
+			catch (OutOfMemoryException) {
+			}
+			catch (IOException) {
+			}
+			return null;
+		}
+
+		readonly ModuleDef module;
+		readonly TypeDef typeOpt;
+		readonly CilBody bodyOpt;
+		readonly GenericParamContext gpContext;
 		readonly IBinaryReader reader;
 
-		PdbCustomDebugInfoReader(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result, IBinaryReader reader) {
-			this.method = method;
-			this.body = body;
-			this.result = result;
+		PdbCustomDebugInfoReader(MethodDef method, CilBody body, IBinaryReader reader) {
+			module = method.Module;
+			typeOpt = method.DeclaringType;
+			bodyOpt = body;
+			gpContext = GenericParamContext.Create(method);
 			this.reader = reader;
 		}
 
-		void Read() {
+		PdbCustomDebugInfoReader(ModuleDef module, TypeDef typeOpt, CilBody bodyOpt, GenericParamContext gpContext, IBinaryReader reader) {
+			this.module = module;
+			this.typeOpt = typeOpt;
+			this.bodyOpt = bodyOpt;
+			this.gpContext = gpContext;
+			this.reader = reader;
+		}
+
+		PdbCustomDebugInfo ReadPortablePdb(Guid kind) {
+			if (kind == CustomDebugInfoGuids.AsyncMethodSteppingInformationBlob)
+				return ReadAsyncMethodSteppingInformationBlob();
+			if (kind == CustomDebugInfoGuids.DefaultNamespace)
+				return ReadDefaultNamespace();
+			if (kind == CustomDebugInfoGuids.DynamicLocalVariables)
+				return ReadDynamicLocalVariables(reader.Length);
+			if (kind == CustomDebugInfoGuids.EmbeddedSource)
+				return ReadEmbeddedSource();
+			if (kind == CustomDebugInfoGuids.EncLambdaAndClosureMap)
+				return ReadEncLambdaAndClosureMap(reader.Length);
+			if (kind == CustomDebugInfoGuids.EncLocalSlotMap)
+				return ReadEncLocalSlotMap(reader.Length);
+			if (kind == CustomDebugInfoGuids.SourceLink)
+				return ReadSourceLink();
+			if (kind == CustomDebugInfoGuids.StateMachineHoistedLocalScopes)
+				return ReadStateMachineHoistedLocalScopes_PortablePDB();
+			if (kind == CustomDebugInfoGuids.TupleElementNames)
+				return ReadTupleElementNames_PortablePDB();
+			Debug.Fail("Unknown custom debug info guid: " + kind.ToString());
+			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingBytes());
+		}
+
+		PdbCustomDebugInfo ReadAsyncMethodSteppingInformationBlob() {
+			if (bodyOpt == null)
+				return null;
+			uint catchHandlerOffset = reader.ReadUInt32() - 1;
+			Instruction catchHandler;
+			if (catchHandlerOffset == uint.MaxValue)
+				catchHandler = null;
+			else {
+				catchHandler = GetInstruction(catchHandlerOffset);
+				Debug.Assert(catchHandler != null);
+				if (catchHandler == null)
+					return null;
+			}
+			var asyncInfo = new PdbAsyncMethodSteppingInformationCustomDebugInfo();
+			asyncInfo.CatchHandler = catchHandler;
+			while (reader.Position < reader.Length) {
+				var yieldInstr = GetInstruction(reader.ReadUInt32());
+				Debug.Assert(yieldInstr != null);
+				if (yieldInstr == null)
+					return null;
+				uint resumeOffset = reader.ReadUInt32();
+				var moveNextRid = reader.ReadCompressedUInt32();
+				var moveNextToken = new MDToken(Table.Method, moveNextRid);
+				MethodDef moveNextMethod;
+				Instruction resumeInstr;
+				if (gpContext.Method != null && moveNextToken == gpContext.Method.MDToken) {
+					moveNextMethod = gpContext.Method;
+					resumeInstr = GetInstruction(resumeOffset);
+				}
+				else {
+					moveNextMethod = module.ResolveToken(moveNextToken, gpContext) as MethodDef;
+					Debug.Assert(moveNextMethod != null);
+					if (moveNextMethod == null)
+						return null;
+					resumeInstr = GetInstruction(moveNextMethod, resumeOffset);
+				}
+				Debug.Assert(resumeInstr != null);
+				if (resumeInstr == null)
+					return null;
+				asyncInfo.AsyncStepInfos.Add(new PdbAsyncStepInfo(yieldInstr, moveNextMethod, resumeInstr));
+			}
+			return asyncInfo;
+		}
+
+		PdbCustomDebugInfo ReadDefaultNamespace() {
+			var defaultNs = Encoding.UTF8.GetString(reader.ReadRemainingBytes());
+			return new PdbDefaultNamespaceCustomDebugInfo(defaultNs);
+		}
+
+		PdbCustomDebugInfo ReadDynamicLocalVariables(long recPosEnd) {
+			var flags = new bool[(int)reader.Length * 8];
+			int w = 0;
+			while (reader.Position < reader.Length) {
+				int b = reader.ReadByte();
+				for (int i = 1; i < 0x100; i <<= 1)
+					flags[w++] = (b & i) != 0;
+			}
+			return new PdbDynamicLocalVariablesCustomDebugInfo(flags);
+		}
+
+		PdbCustomDebugInfo ReadEmbeddedSource() {
+			return new PdbEmbeddedSourceCustomDebugInfo(reader.ReadRemainingBytes());
+		}
+
+		PdbCustomDebugInfo ReadEncLambdaAndClosureMap(long recPosEnd) {
+			var data = reader.ReadBytes((int)(recPosEnd - reader.Position));
+			return new PdbEditAndContinueLambdaMapCustomDebugInfo(data);
+		}
+
+		PdbCustomDebugInfo ReadEncLocalSlotMap(long recPosEnd) {
+			var data = reader.ReadBytes((int)(recPosEnd - reader.Position));
+			return new PdbEditAndContinueLocalSlotMapCustomDebugInfo(data);
+		}
+
+		PdbCustomDebugInfo ReadSourceLink() {
+			return new PdbSourceLinkCustomDebugInfo(reader.ReadRemainingBytes());
+		}
+
+		PdbCustomDebugInfo ReadStateMachineHoistedLocalScopes_PortablePDB() {
+			if (bodyOpt == null)
+				return null;
+			int count = (int)(reader.Length / 8);
+			var smScope = new PdbStateMachineHoistedLocalScopesCustomDebugInfo(count);
+			for (int i = 0; i < count; i++) {
+				uint startOffset = reader.ReadUInt32();
+				uint length = reader.ReadUInt32();
+				if (startOffset == 0 && length == 0)
+					smScope.Scopes.Add(new StateMachineHoistedLocalScope());
+				else {
+					var start = GetInstruction(startOffset);
+					var end = GetInstruction(startOffset + length);
+					Debug.Assert(start != null);
+					if (start == null)
+						return null;
+					smScope.Scopes.Add(new StateMachineHoistedLocalScope(start, end));
+				}
+			}
+			return smScope;
+		}
+
+		PdbCustomDebugInfo ReadTupleElementNames_PortablePDB() {
+			var tupleListRec = new PortablePdbTupleElementNamesCustomDebugInfo();
+			while (reader.Position < reader.Length) {
+				var name = ReadUTF8Z(reader.Length);
+				tupleListRec.Names.Add(name);
+			}
+			return tupleListRec;
+		}
+
+		void Read(IList<PdbCustomDebugInfo> result) {
 			if (reader.Length < 4)
 				return;
 			int version = reader.ReadByte();
@@ -122,18 +271,20 @@ namespace dnlib.DotNet.Pdb {
 				return usingCountRec;
 
 			case PdbCustomDebugInfoKind.ForwardMethodInfo:
-				method = this.method.Module.ResolveToken(reader.ReadUInt32(), GenericParamContext.Create(this.method)) as IMethodDefOrRef;
+				method = module.ResolveToken(reader.ReadUInt32(), gpContext) as IMethodDefOrRef;
 				if (method == null)
 					return null;
 				return new PdbForwardMethodInfoCustomDebugInfo(method);
 
 			case PdbCustomDebugInfoKind.ForwardModuleInfo:
-				method = this.method.Module.ResolveToken(reader.ReadUInt32(), GenericParamContext.Create(this.method)) as IMethodDefOrRef;
+				method = module.ResolveToken(reader.ReadUInt32(), gpContext) as IMethodDefOrRef;
 				if (method == null)
 					return null;
 				return new PdbForwardModuleInfoCustomDebugInfo(method);
 
 			case PdbCustomDebugInfoKind.StateMachineHoistedLocalScopes:
+				if (bodyOpt == null)
+					return null;
 				count = reader.ReadInt32();
 				if (count < 0)
 					return null;
@@ -168,6 +319,8 @@ namespace dnlib.DotNet.Pdb {
 				return new PdbStateMachineTypeNameCustomDebugInfo(type);
 
 			case PdbCustomDebugInfoKind.DynamicLocals:
+				if (bodyOpt == null)
+					return null;
 				count = reader.ReadInt32();
 				const int dynLocalRecSize = 64 + 4 + 4 + 2 * 64;
 				if (reader.Position + (long)(uint)count * dynLocalRecSize > recPosEnd)
@@ -188,14 +341,14 @@ namespace dnlib.DotNet.Pdb {
 
 					localIndex = reader.ReadInt32();
 					// 'const' locals have index -1 but they're encoded as 0 by Roslyn
-					if (localIndex != 0 && (uint)localIndex >= (uint)body.Variables.Count)
+					if (localIndex != 0 && (uint)localIndex >= (uint)bodyOpt.Variables.Count)
 						return null;
 
 					var nameEndPos = reader.Position + 2 * 64;
 					name = ReadUnicodeZ(nameEndPos, needZeroChar: false);
 					reader.Position = nameEndPos;
 
-					local = localIndex < body.Variables.Count ? body.Variables[localIndex] : null;
+					local = localIndex < bodyOpt.Variables.Count ? bodyOpt.Variables[localIndex] : null;
 					// Roslyn writes 0 to localIndex if it's a 'const' local, try to undo that now
 					if (localIndex == 0 && local != null && local.Name != name)
 						local = null;
@@ -208,14 +361,14 @@ namespace dnlib.DotNet.Pdb {
 				return dynLocListRec;
 
 			case PdbCustomDebugInfoKind.EditAndContinueLocalSlotMap:
-				data = reader.ReadBytes((int)(recPosEnd - reader.Position));
-				return new PdbEditAndContinueLocalSlotMapCustomDebugInfo(data);
+				return ReadEncLocalSlotMap(recPosEnd);
 
 			case PdbCustomDebugInfoKind.EditAndContinueLambdaMap:
-				data = reader.ReadBytes((int)(recPosEnd - reader.Position));
-				return new PdbEditAndContinueLambdaMapCustomDebugInfo(data);
+				return ReadEncLambdaAndClosureMap(recPosEnd);
 
 			case PdbCustomDebugInfoKind.TupleElementNames:
+				if (bodyOpt == null)
+					return null;
 				count = reader.ReadInt32();
 				if (count < 0)
 					return null;
@@ -251,9 +404,9 @@ namespace dnlib.DotNet.Pdb {
 							return null;
 					}
 					else {
-						if ((uint)localIndex >= (uint)body.Variables.Count)
+						if ((uint)localIndex >= (uint)bodyOpt.Variables.Count)
 							return null;
-						local = body.Variables[localIndex];
+						local = bodyOpt.Variables[localIndex];
 					}
 
 					if (local != null && local.Name == name)
@@ -273,7 +426,9 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		TypeDef GetNestedType(string name) {
-			foreach (var type in method.DeclaringType.NestedTypes.GetSafeEnumerable()) {
+			if (typeOpt == null)
+				return null;
+			foreach (var type in typeOpt.NestedTypes.GetSafeEnumerable()) {
 				if (UTF8String.IsNullOrEmpty(type.Namespace)) {
 					if (type.Name == name)
 						return type;
@@ -325,6 +480,27 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		Instruction GetInstruction(uint offset) {
+			var instructions = bodyOpt.Instructions;
+			int lo = 0, hi = instructions.Count - 1;
+			while (lo <= hi && hi != -1) {
+				int i = (lo + hi) / 2;
+				var instr = instructions[i];
+				if (instr.Offset == offset)
+					return instr;
+				if (offset < instr.Offset)
+					hi = i - 1;
+				else
+					lo = i + 1;
+			}
+			return null;
+		}
+
+		static Instruction GetInstruction(MethodDef method, uint offset) {
+			if (method == null)
+				return null;
+			var body = method.Body;
+			if (body == null)
+				return null;
 			var instructions = body.Instructions;
 			int lo = 0, hi = instructions.Count - 1;
 			while (lo <= hi && hi != -1) {

@@ -357,11 +357,33 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			Debug.Assert(method.Module == module);
-			//TODO: CustomDebugInformation table
+			GetCustomDebugInfos(method.MDToken.ToInt32(), GenericParamContext.Create(method), result, method, body);
 		}
 
 		public override void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
-			//TODO: CustomDebugInformation table
+			GetCustomDebugInfos(token, gpContext, result, null, null);
+		}
+
+		void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result, MethodDef methodOpt, CilBody bodyOpt) {
+			var mdToken = new MDToken(token);
+			var ridList = pdbMetaData.GetCustomDebugInformationRidList(mdToken.Table, mdToken.Rid);
+			if (ridList.Count == 0)
+				return;
+			var typeOpt = methodOpt == null ? null : methodOpt.DeclaringType;
+			for (int i = 0; i < ridList.Count; i++) {
+				var rid = ridList[i];
+				uint kind;
+				uint value = pdbMetaData.TablesStream.ReadCustomDebugInformationRow2(rid, out kind);
+				var guid = pdbMetaData.GuidStream.Read(kind);
+				var data = pdbMetaData.BlobStream.Read(value);
+				Debug.Assert(guid != null && data != null);
+				if (guid == null || data == null)
+					continue;
+				var cdi = PdbCustomDebugInfoReader.ReadPortablePdb(module, typeOpt, bodyOpt, gpContext, guid.Value, data);
+				Debug.Assert(cdi != null);
+				if (cdi != null)
+					result.Add(cdi);
+			}
 		}
 
 		public override void Dispose() {

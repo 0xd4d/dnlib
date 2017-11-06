@@ -60,6 +60,41 @@ namespace dnlib.DotNet.Pdb {
 		/// <see cref="PdbTupleElementNamesCustomDebugInfo"/>
 		/// </summary>
 		TupleElementNames,
+
+		/// <summary>
+		/// Unknown
+		/// </summary>
+		Unknown = int.MinValue,
+
+		/// <summary>
+		/// <see cref="PortablePdbTupleElementNamesCustomDebugInfo"/>
+		/// </summary>
+		TupleElementNames_PortablePdb,
+
+		/// <summary>
+		/// <see cref="PdbAsyncMethodSteppingInformationCustomDebugInfo"/>
+		/// </summary>
+		AsyncMethodSteppingInformation,
+
+		/// <summary>
+		/// <see cref="PdbDefaultNamespaceCustomDebugInfo"/>
+		/// </summary>
+		DefaultNamespace,
+
+		/// <summary>
+		/// <see cref="PdbDynamicLocalVariablesCustomDebugInfo"/>
+		/// </summary>
+		DynamicLocalVariables,
+
+		/// <summary>
+		/// <see cref="PdbEmbeddedSourceCustomDebugInfo"/>
+		/// </summary>
+		EmbeddedSource,
+
+		/// <summary>
+		/// <see cref="PdbSourceLinkCustomDebugInfo"/>
+		/// </summary>
+		SourceLink,
 	}
 
 	/// <summary>
@@ -70,6 +105,11 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets the custom debug info kind
 		/// </summary>
 		public abstract PdbCustomDebugInfoKind Kind { get; }
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public abstract Guid Guid { get; }
 	}
 
 	/// <summary>
@@ -78,6 +118,7 @@ namespace dnlib.DotNet.Pdb {
 	/// </summary>
 	public sealed class PdbUnknownCustomDebugInfo : PdbCustomDebugInfo {
 		readonly PdbCustomDebugInfoKind kind;
+		readonly Guid guid;
 		readonly byte[] data;
 
 		/// <summary>
@@ -85,6 +126,13 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind {
 			get { return kind; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return guid; }
 		}
 
 		/// <summary>
@@ -104,6 +152,20 @@ namespace dnlib.DotNet.Pdb {
 				throw new ArgumentNullException("data");
 			this.kind = kind;
 			this.data = data;
+			guid = Guid.Empty;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="guid">Custom debug info guid</param>
+		/// <param name="data">Raw custom debug info data</param>
+		public PdbUnknownCustomDebugInfo(Guid guid, byte[] data) {
+			if (data == null)
+				throw new ArgumentNullException("data");
+			this.kind = PdbCustomDebugInfoKind.Unknown;
+			this.data = data;
+			this.guid = guid;
 		}
 	}
 
@@ -118,6 +180,13 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind {
 			get { return PdbCustomDebugInfoKind.UsingGroups; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
 		}
 
 		/// <summary>
@@ -157,6 +226,13 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
+		}
+
+		/// <summary>
 		/// Gets/sets the referenced method
 		/// </summary>
 		public IMethodDefOrRef Method {
@@ -190,6 +266,13 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind {
 			get { return PdbCustomDebugInfoKind.ForwardModuleInfo; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
 		}
 
 		/// <summary>
@@ -262,6 +345,13 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.StateMachineHoistedLocalScopes; }
+		}
+
+		/// <summary>
 		/// Gets the scopes
 		/// </summary>
 		public ThreadSafe.IList<StateMachineHoistedLocalScope> Scopes {
@@ -296,6 +386,13 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
+		}
+
+		/// <summary>
 		/// Gets/sets the state machine type
 		/// </summary>
 		public TypeDef Type { get; set; }
@@ -326,6 +423,13 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind {
 			get { return PdbCustomDebugInfoKind.DynamicLocals; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
 		}
 
 		/// <summary>
@@ -433,6 +537,13 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.EncLocalSlotMap; }
+		}
+
+		/// <summary>
 		/// Gets the data. Spec: https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLocalSlotMap
 		/// </summary>
 		public byte[] Data {
@@ -464,6 +575,13 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.EncLambdaAndClosureMap; }
+		}
+
+		/// <summary>
 		/// Gets the data. Spec: https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLambdaAndClosureMap
 		/// </summary>
 		public byte[] Data {
@@ -492,6 +610,13 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind {
 			get { return PdbCustomDebugInfoKind.TupleElementNames; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
 		}
 
 		/// <summary>
@@ -598,6 +723,245 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="capacity">Initial capacity of <see cref="TupleElementNames"/></param>
 		public PdbTupleElementNames(int capacity) {
 			tupleElementNames = ThreadSafeListCreator.Create<string>(capacity);
+		}
+	}
+
+	/// <summary>
+	/// Contains tuple element names for local variables and constants
+	/// </summary>
+	public sealed class PortablePdbTupleElementNamesCustomDebugInfo : PdbCustomDebugInfo {
+		readonly ThreadSafe.IList<string> names;
+
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.TupleElementNames_PortablePdb"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.TupleElementNames_PortablePdb; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.TupleElementNames; }
+		}
+
+		/// <summary>
+		/// Gets the tuple element names
+		/// </summary>
+		public ThreadSafe.IList<string> Names {
+			get { return names; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PortablePdbTupleElementNamesCustomDebugInfo() {
+			names = ThreadSafeListCreator.Create<string>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="capacity">Initial capacity of <see cref="Names"/></param>
+		public PortablePdbTupleElementNamesCustomDebugInfo(int capacity) {
+			names = ThreadSafeListCreator.Create<string>(capacity);
+		}
+	}
+
+	/// <summary>
+	/// Async method stepping info
+	/// </summary>
+	public sealed class PdbAsyncMethodSteppingInformationCustomDebugInfo : PdbCustomDebugInfo {
+		readonly ThreadSafe.IList<PdbAsyncStepInfo> asyncStepInfos;
+
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.AsyncMethodSteppingInformation"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.AsyncMethodSteppingInformation; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.AsyncMethodSteppingInformationBlob; }
+		}
+
+		/// <summary>
+		/// Gets the catch handler instruction or null
+		/// </summary>
+		public Instruction CatchHandler { get; set; }
+
+		/// <summary>
+		/// Gets all async step infos
+		/// </summary>
+		public ThreadSafe.IList<PdbAsyncStepInfo> AsyncStepInfos {
+			get { return asyncStepInfos; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbAsyncMethodSteppingInformationCustomDebugInfo() {
+			asyncStepInfos = ThreadSafeListCreator.Create<PdbAsyncStepInfo>();
+		}
+	}
+
+	/// <summary>
+	/// Default namespace
+	/// </summary>
+	public sealed class PdbDefaultNamespaceCustomDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.DefaultNamespace"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.DefaultNamespace; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.DefaultNamespace; }
+		}
+
+		/// <summary>
+		/// Gets the default namespace
+		/// </summary>
+		public string Namespace { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbDefaultNamespaceCustomDebugInfo() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="defaultNamespace">Default namespace</param>
+		public PdbDefaultNamespaceCustomDebugInfo(string defaultNamespace) {
+			Namespace = defaultNamespace;
+		}
+	}
+
+	/// <summary>
+	/// Dynamic flags
+	/// </summary>
+	public sealed class PdbDynamicLocalVariablesCustomDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.DynamicLocalVariables"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.DynamicLocalVariables; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.DynamicLocalVariables; }
+		}
+
+		/// <summary>
+		/// Gets/sets the dynamic flags
+		/// </summary>
+		public bool[] Flags { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbDynamicLocalVariablesCustomDebugInfo() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="flags">Dynamic flags</param>
+		public PdbDynamicLocalVariablesCustomDebugInfo(bool[] flags) {
+			Flags = flags;
+		}
+	}
+
+	/// <summary>
+	/// Contains the source code
+	/// </summary>
+	public sealed class PdbEmbeddedSourceCustomDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.EmbeddedSource"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.EmbeddedSource; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.EmbeddedSource; }
+		}
+
+		/// <summary>
+		/// Gets the source code blob.
+		/// 
+		/// It's not decompressed and converted to a string because the encoding isn't specified.
+		/// 
+		/// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#embedded-source-c-and-vb-compilers
+		/// </summary>
+		public byte[] SourceCodeBlob { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbEmbeddedSourceCustomDebugInfo() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="sourceCodeBlob">Source code blob</param>
+		public PdbEmbeddedSourceCustomDebugInfo(byte[] sourceCodeBlob) {
+			SourceCodeBlob = sourceCodeBlob;
+		}
+	}
+
+	/// <summary>
+	/// Contains the source link file
+	/// </summary>
+	public sealed class PdbSourceLinkCustomDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.SourceLink"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.SourceLink; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return CustomDebugInfoGuids.SourceLink; }
+		}
+
+		/// <summary>
+		/// Gets the source link file contents
+		/// </summary>
+		public byte[] SourceLinkBlob { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbSourceLinkCustomDebugInfo() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="sourceLinkBlob">Source link file contents</param>
+		public PdbSourceLinkCustomDebugInfo(byte[] sourceLinkBlob) {
+			SourceLinkBlob = sourceLinkBlob;
 		}
 	}
 }

@@ -3,7 +3,6 @@
 // C# & Visual Basic compiler's Custom Debug Info is "documented" in source code only, see Roslyn classes:
 //	CustomDebugInfoReader, CustomDebugInfoWriter, CustomDebugInfoEncoder
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;

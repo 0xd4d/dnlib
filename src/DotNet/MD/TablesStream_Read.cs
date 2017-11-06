@@ -1795,6 +1795,21 @@ using dnlib.PE;
 #endif
 		}
 
+		internal uint ReadCustomDebugInformationRow2(uint rid, out uint kind) {
+			var table = CustomDebugInformationTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			reader.Position += columns[0].Size;
+			kind = columns[1].Read(reader);
+			return columns[2].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
 		/// <summary>
 		/// Reads a column
 		/// </summary>

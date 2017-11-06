@@ -177,6 +177,7 @@
     <Compile Include="DotNet\NullResolver.cs" />
     <Compile Include="DotNet\Pdb\CorSymVarFlag.cs" />
     <Compile Include="DotNet\Pdb\CustomDebugInfoConstants.cs" />
+    <Compile Include="DotNet\Pdb\CustomDebugInfoGuids.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolReaderImpl.cs" />
     <Compile Include="DotNet\Pdb\ImageStreamUtils.cs" />
     <Compile Include="DotNet\Pdb\ManagedSymbolReaderCreator.cs" />
