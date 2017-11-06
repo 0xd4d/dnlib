@@ -74,7 +74,7 @@ namespace dnlib.DotNet.Pdb {
 			this.module = metaData.Module;
 			this.instrToOffset = new Dictionary<Instruction, uint>();
 			this.customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
-			this.localsEndScopeIncValue = pdbState.GetCompiler(metaData.module) == Compiler.VisualBasic ? 1 : 0;
+			this.localsEndScopeIncValue = pdbState.Compiler == Compiler.VisualBasic ? 1 : 0;
 		}
 
 		/// <summary>
@@ -123,7 +123,7 @@ namespace dnlib.DotNet.Pdb {
 				// Don't check whether it's the empty string. Only check for null.
 				if (local.Name != null)
 					return true;
-				if (local.PdbAttributes != 0)
+				if (local.Attributes != 0)
 					return true;
 			}
 
@@ -260,9 +260,9 @@ namespace dnlib.DotNet.Pdb {
 				WriteScope(ref info, scope, 0);
 			}
 
-			if (pdbMethod.CustomDebugInfos.Count != 0) {
+			if (method.CustomDebugInfos.Count != 0) {
 				customDebugInfoWriterContext.Logger = GetLogger();
-				var cdiData = PdbCustomDebugInfoWriter.Write(metaData, method, customDebugInfoWriterContext, pdbMethod.CustomDebugInfos);
+				var cdiData = PdbCustomDebugInfoWriter.Write(metaData, method, customDebugInfoWriterContext, method.CustomDebugInfos);
 				if (cdiData != null)
 					writer.SetSymAttribute(symbolToken, "MD2", cdiData);
 			}
@@ -378,7 +378,7 @@ namespace dnlib.DotNet.Pdb {
 			writer.CloseScope(startOffset == 0 && endOffset == info.BodySize ? endOffset : endOffset - localsEndScopeIncValue);
 		}
 
-		void AddLocals(MethodDef method, IList<Local> locals, uint startOffset, uint endOffset) {
+		void AddLocals(MethodDef method, IList<PdbLocal> locals, uint startOffset, uint endOffset) {
 			if (locals.Count == 0)
 				return;
 			uint token = metaData.GetLocalVarSigToken(method);
@@ -387,11 +387,18 @@ namespace dnlib.DotNet.Pdb {
 				return;
 			}
 			foreach (var local in locals) {
-				if (local.Name == null && local.PdbAttributes == 0)
+				uint attrs = GetPdbLocalFlags(local.Attributes);
+				if (attrs == 0 && local.Name == null)
 					continue;
-				writer.DefineLocalVariable2(local.Name ?? string.Empty, (uint)local.PdbAttributes,
+				writer.DefineLocalVariable2(local.Name ?? string.Empty, attrs,
 								token, 1, (uint)local.Index, 0, 0, startOffset, endOffset);
 			}
+		}
+
+		static uint GetPdbLocalFlags(PdbLocalAttributes attributes) {
+			if ((attributes & PdbLocalAttributes.DebuggerHidden) != 0)
+				return (uint)CorSymVarFlag.VAR_IS_COMP_GEN;
+			return 0;
 		}
 
 		int GetUserEntryPointToken() {

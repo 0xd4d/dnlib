@@ -5,14 +5,15 @@ using dnlib.DotNet.Pdb.Symbols;
 namespace dnlib.DotNet.Pdb.Portable {
 	sealed class SymbolVariableImpl : SymbolVariable {
 		readonly string name;
-		readonly SymbolVariableAttributes attributes;
+		readonly PdbLocalAttributes attributes;
 		readonly int index;
+		readonly PdbCustomDebugInfo[] customDebugInfos;
 
 		public override string Name {
 			get { return name; }
 		}
 
-		public override SymbolVariableAttributes Attributes {
+		public override PdbLocalAttributes Attributes {
 			get { return attributes; }
 		}
 
@@ -20,10 +21,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return index; }
 		}
 
-		public SymbolVariableImpl(string name, SymbolVariableAttributes attributes, int index) {
+		public override PdbCustomDebugInfo[] CustomDebugInfos {
+			get { return customDebugInfos; }
+		}
+
+		public SymbolVariableImpl(string name, PdbLocalAttributes attributes, int index, PdbCustomDebugInfo[] customDebugInfos) {
 			this.name = name;
 			this.attributes = attributes;
 			this.index = index;
+			this.customDebugInfos = customDebugInfos;
 		}
 	}
 }

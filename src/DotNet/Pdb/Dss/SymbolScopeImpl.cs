@@ -1,6 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.Pdb.Symbols;
@@ -41,7 +41,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override ReadOnlyCollection<SymbolScope> Children {
+		public override IList<SymbolScope> Children {
 			get {
 				if (children == null) {
 					uint numScopes;
@@ -51,14 +51,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 					var scopes = new SymbolScope[numScopes];
 					for (uint i = 0; i < numScopes; i++)
 						scopes[i] = new SymbolScopeImpl(unScopes[i], method, this);
-					Interlocked.CompareExchange(ref children, new ReadOnlyCollection<SymbolScope>(scopes), null);
+					children = scopes;
 				}
 				return children;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolScope> children;
+		volatile SymbolScope[] children;
 
-		public override ReadOnlyCollection<SymbolVariable> Locals {
+		public override IList<SymbolVariable> Locals {
 			get {
 				if (locals == null) {
 					uint numVars;
@@ -68,14 +68,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 					var vars = new SymbolVariable[numVars];
 					for (uint i = 0; i < numVars; i++)
 						vars[i] = new SymbolVariableImpl(unVars[i]);
-					Interlocked.CompareExchange(ref locals, new ReadOnlyCollection<SymbolVariable>(vars), null);
+					locals = vars;
 				}
 				return locals;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolVariable> locals;
+		volatile SymbolVariable[] locals;
 
-		public override ReadOnlyCollection<SymbolNamespace> Namespaces {
+		public override IList<SymbolNamespace> Namespaces {
 			get {
 				if (namespaces == null) {
 					uint numNss;
@@ -85,18 +85,23 @@ namespace dnlib.DotNet.Pdb.Dss {
 					var nss = new SymbolNamespace[numNss];
 					for (uint i = 0; i < numNss; i++)
 						nss[i] = new SymbolNamespaceImpl(unNss[i]);
-					Interlocked.CompareExchange(ref namespaces, new ReadOnlyCollection<SymbolNamespace>(nss), null);
+					namespaces = nss;
 				}
 				return namespaces;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolNamespace> namespaces;
+		volatile SymbolNamespace[] namespaces;
+
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get { return emptyPdbCustomDebugInfos; }
+		}
+		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 
 		public override PdbImportScope ImportScope {
 			get { return null; }
 		}
 
-		public override PdbConstant[] GetConstants(ModuleDef module, GenericParamContext gpContext) {
+		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			var scope2 = scope as ISymUnmanagedScope2;
 			if (scope2 == null)
 				return emptySymbolConstants;

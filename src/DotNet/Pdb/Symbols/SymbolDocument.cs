@@ -36,5 +36,10 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// Gets the checksum
 		/// </summary>
 		public abstract byte[] CheckSum { get; }
+
+		/// <summary>
+		/// Gets the custom debug infos
+		/// </summary>
+		public abstract PdbCustomDebugInfo[] CustomDebugInfos { get; }
 	}
 }

@@ -13,7 +13,7 @@ namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// Import scope
 	/// </summary>
-	public sealed class PdbImportScope {
+	public sealed class PdbImportScope : IHasCustomDebugInformation {
 		readonly ThreadSafe.IList<PdbImport> imports = ThreadSafeListCreator.Create<PdbImport>();
 
 		/// <summary>
@@ -40,6 +40,24 @@ namespace dnlib.DotNet.Pdb {
 		public bool HasImports {
 			get { return imports.Count > 0; }
 		}
+
+		/// <inheritdoc/>
+		public int HasCustomDebugInformationTag {
+			get { return 26; }
+		}
+
+		/// <inheritdoc/>
+		public bool HasCustomDebugInfos {
+			get { return CustomDebugInfos.Count > 0; }
+		}
+
+		/// <summary>
+		/// Gets all custom debug infos
+		/// </summary>
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get { return customDebugInfos; }
+		}
+		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 	}
 
 	/// <summary>

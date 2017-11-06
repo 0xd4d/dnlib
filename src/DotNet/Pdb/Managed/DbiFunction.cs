@@ -2,8 +2,6 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
@@ -20,18 +18,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public DbiScope Root { get; private set; }
 		public List<SymbolSequencePoint> Lines {
 			get { return lines; }
-			set {
-				lines = value;
-				sequencePoints = new ReadOnlyCollection<SymbolSequencePoint>(lines);
-			}
+			set { lines = value; }
 		}
 		List<SymbolSequencePoint> lines;
-
-		static readonly ReadOnlyCollection<SymbolSequencePoint> emptySymbolSequencePoints = new ReadOnlyCollection<SymbolSequencePoint>(new SymbolSequencePoint[0]);
-
-		public DbiFunction() {
-			sequencePoints = emptySymbolSequencePoints;
-		}
 
 		public void Read(IImageStream stream, long recEnd) {
 			stream.Position += 4;
@@ -66,10 +55,15 @@ namespace dnlib.DotNet.Pdb.Managed {
 			get { return Root; }
 		}
 
-		public override ReadOnlyCollection<SymbolSequencePoint> SequencePoints {
-			get { return sequencePoints; }
+		public override IList<SymbolSequencePoint> SequencePoints {
+			get {
+				var l = lines;
+				if (l == null)
+					return emptySymbolSequencePoints;
+				return l;
+			}
 		}
-		ReadOnlyCollection<SymbolSequencePoint> sequencePoints;
+		static readonly SymbolSequencePoint[] emptySymbolSequencePoints = new SymbolSequencePoint[0];
 
 		public override int IteratorKickoffMethod {
 			get { return 0; }
@@ -95,14 +89,14 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		public override ReadOnlyCollection<SymbolAsyncStepInfo> AsyncStepInfos {
+		public override IList<SymbolAsyncStepInfo> AsyncStepInfos {
 			get {
 				if (asyncStepInfos == null)
-					Interlocked.CompareExchange(ref asyncStepInfos, new ReadOnlyCollection<SymbolAsyncStepInfo>(CreateSymbolAsyncStepInfos()), null);
+					asyncStepInfos = CreateSymbolAsyncStepInfos();
 				return asyncStepInfos;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos;
+		volatile SymbolAsyncStepInfo[] asyncStepInfos;
 
 		SymbolAsyncStepInfo[] CreateSymbolAsyncStepInfos() {
 			var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);

@@ -174,6 +174,7 @@
     <Compile Include="DotNet\ModuleRef.cs" />
     <Compile Include="DotNet\NativeType.cs" />
     <Compile Include="DotNet\NullResolver.cs" />
+    <Compile Include="DotNet\Pdb\CorSymVarFlag.cs" />
     <Compile Include="DotNet\Pdb\CustomDebugInfoConstants.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolReaderImpl.cs" />
     <Compile Include="DotNet\Pdb\ImageStreamUtils.cs" />
@@ -188,6 +189,8 @@
     <Compile Include="DotNet\Pdb\PdbCustomDebugInfoWriter.cs" />
     <Compile Include="DotNet\Pdb\PdbImport.cs" />
     <Compile Include="DotNet\Pdb\PdbIteratorMethod.cs" />
+    <Compile Include="DotNet\Pdb\PdbLocal.cs" />
+    <Compile Include="DotNet\Pdb\PdbLocalAttributes.cs" />
     <Compile Include="DotNet\Pdb\PdbMethod.cs" />
     <Compile Include="DotNet\Pdb\Portable\Constants.cs" />
     <Compile Include="DotNet\Pdb\Portable\DocumentNameReader.cs" />

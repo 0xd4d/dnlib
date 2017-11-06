@@ -3,13 +3,20 @@
 using System;
 using System.Threading;
 using dnlib.DotNet.MD;
+using dnlib.DotNet.Pdb;
 using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the ExportedType table
 	/// </summary>
-	public abstract class ExportedType : IHasCustomAttribute, IImplementation, IType {
+	public abstract class ExportedType : IHasCustomAttribute, IImplementation, IHasCustomDebugInformation, IType {
 		/// <summary>
 		/// The row id in its table
 		/// </summary>
@@ -65,6 +72,33 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
 			get { return CustomAttributes.Count > 0; }
+		}
+
+		/// <inheritdoc/>
+		public int HasCustomDebugInformationTag {
+			get { return 17; }
+		}
+
+		/// <inheritdoc/>
+		public bool HasCustomDebugInfos {
+			get { return CustomDebugInfos.Count > 0; }
+		}
+
+		/// <summary>
+		/// Gets all custom debug infos
+		/// </summary>
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get {
+				if (customDebugInfos == null)
+					InitializeCustomDebugInfos();
+				return customDebugInfos;
+			}
+		}
+		/// <summary/>
+		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		protected virtual void InitializeCustomDebugInfos() {
+			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
 		}
 
 		/// <inheritdoc/>
@@ -724,6 +758,13 @@ namespace dnlib.DotNet {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ExportedType, origRid);
 			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomDebugInfos() {
+			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(), list);
+			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}
 
 		/// <inheritdoc/>

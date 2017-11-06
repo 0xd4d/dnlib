@@ -32,6 +32,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public override byte[] CheckSum {
 			get { return checkSum; }
 		}
+		public override PdbCustomDebugInfo[] CustomDebugInfos {
+			get { return emptyPdbCustomDebugInfos; }
+		}
+		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 
 		public DbiDocument(string url) {
 			this.url = url;

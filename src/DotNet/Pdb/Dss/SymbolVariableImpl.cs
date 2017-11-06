@@ -18,14 +18,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override SymbolVariableAttributes Attributes {
+		public override PdbLocalAttributes Attributes {
 			get {
 				uint result;
 				variable.GetAttributes(out result);
-				const int VAR_IS_COMP_GEN = 1;
-				if ((result & VAR_IS_COMP_GEN) != 0)
-					return SymbolVariableAttributes.CompilerGenerated;
-				return SymbolVariableAttributes.None;
+				if ((result & (uint)CorSymVarFlag.VAR_IS_COMP_GEN) != 0)
+					return PdbLocalAttributes.DebuggerHidden;
+				return PdbLocalAttributes.None;
 			}
 		}
 
@@ -40,5 +39,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return new string(chars, 0, chars.Length - 1);
 			}
 		}
+
+		public override PdbCustomDebugInfo[] CustomDebugInfos {
+			get { return emptyPdbCustomDebugInfos; }
+		}
+		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 	}
 }

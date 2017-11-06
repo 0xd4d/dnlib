@@ -10,15 +10,20 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 		string name;
 
-		public override SymbolVariableAttributes Attributes {
+		public override PdbLocalAttributes Attributes {
 			get { return attributes; }
 		}
-		SymbolVariableAttributes attributes;
+		PdbLocalAttributes attributes;
 
 		public override int Index {
 			get { return index; }
 		}
 		int index;
+
+		public override PdbCustomDebugInfo[] CustomDebugInfos {
+			get { return emptyPdbCustomDebugInfos; }
+		}
+		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 
 		public void Read(IImageStream stream) {
 			index = stream.ReadInt32();
@@ -27,11 +32,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 			name = PdbReader.ReadCString(stream);
 		}
 
-		static SymbolVariableAttributes GetAttributes(uint flags) {
-			SymbolVariableAttributes res = 0;
+		static PdbLocalAttributes GetAttributes(uint flags) {
+			PdbLocalAttributes res = 0;
 			const int fCompGenx = 4;
 			if ((flags & fCompGenx) != 0)
-				res |= SymbolVariableAttributes.CompilerGenerated;
+				res |= PdbLocalAttributes.DebuggerHidden;
 			return res;
 		}
 	}

@@ -2,22 +2,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	sealed class SymbolScopeImpl : SymbolScope {
+		readonly PortablePdbReader owner;
 		internal SymbolMethod method;
 		readonly SymbolScopeImpl parent;
 		readonly int startOffset;
 		readonly int endOffset;
-		readonly ReadOnlyCollection<SymbolScope> children;
-		readonly ReadOnlyCollection<SymbolVariable> locals;
 		internal readonly List<SymbolScope> childrenList;
 		internal readonly List<SymbolVariable> localsList;
 		internal PdbImportScope importScope;
+		readonly PdbCustomDebugInfo[] customDebugInfos;
 
 		public override SymbolMethod Method {
 			get {
@@ -46,32 +45,36 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return endOffset; }
 		}
 
-		public override ReadOnlyCollection<SymbolScope> Children {
-			get { return children; }
+		public override IList<SymbolScope> Children {
+			get { return childrenList; }
 		}
 
-		public override ReadOnlyCollection<SymbolVariable> Locals {
-			get { return locals; }
+		public override IList<SymbolVariable> Locals {
+			get { return localsList; }
 		}
 
-		public override ReadOnlyCollection<SymbolNamespace> Namespaces {
+		public override IList<SymbolNamespace> Namespaces {
 			get { return emptySymbolNamespaces; }
 		}
-		static readonly ReadOnlyCollection<SymbolNamespace> emptySymbolNamespaces = new ReadOnlyCollection<SymbolNamespace>(new SymbolNamespace[0]);
+		static readonly SymbolNamespace[] emptySymbolNamespaces = new SymbolNamespace[0];
+
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get { return customDebugInfos; }
+		}
 
 		public override PdbImportScope ImportScope {
 			get { return importScope; }
 		}
 
-		public SymbolScopeImpl(SymbolScopeImpl parent, int startOffset, int endOffset) {
+		public SymbolScopeImpl(PortablePdbReader owner, SymbolScopeImpl parent, int startOffset, int endOffset, PdbCustomDebugInfo[] customDebugInfos) {
+			this.owner = owner;
 			method = null;
 			this.parent = parent;
 			this.startOffset = startOffset;
 			this.endOffset = endOffset;
 			childrenList = new List<SymbolScope>();
 			localsList = new List<SymbolVariable>();
-			children = new ReadOnlyCollection<SymbolScope>(childrenList);
-			locals = new ReadOnlyCollection<SymbolVariable>(localsList);
+			this.customDebugInfos = customDebugInfos;
 		}
 
 		IMetaData constantsMetaData;
@@ -84,7 +87,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.constantListEnd = constantListEnd;
 		}
 
-		public override PdbConstant[] GetConstants(ModuleDef module, GenericParamContext gpContext) {
+		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constantList >= constantListEnd)
 				return emptyPdbConstants;
 			Debug.Assert(constantsMetaData != null);
@@ -102,8 +105,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 					object value;
 					bool b = localConstantSigBlobReader.Read(out type, out value);
 					Debug.Assert(b);
-					if (b)
-						res[w++] = new PdbConstant(name, type, value);
+					if (b) {
+						var pdbConstant = new PdbConstant(name, type, value);
+						int token = new MDToken(Table.LocalConstant, rid).ToInt32();
+						owner.GetCustomDebugInfos(token, gpContext, pdbConstant.CustomDebugInfos);
+						res[w++] = pdbConstant;
+					}
 					Debug.Assert(stream.Position == stream.Length);
 				}
 			}

@@ -1,7 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using dnlib.DotNet.Pdb.Symbols;
@@ -16,9 +15,6 @@ namespace dnlib.DotNet.Pdb.Managed {
 		readonly List<SymbolScope> childrenList;
 		readonly List<SymbolVariable> localsList;
 		readonly List<SymbolNamespace> namespacesList;
-		readonly ReadOnlyCollection<SymbolScope> children;
-		readonly ReadOnlyCollection<SymbolVariable> locals;
-		readonly ReadOnlyCollection<SymbolNamespace> namespaces;
 
 		public override SymbolMethod Method {
 			get { return method; }
@@ -36,17 +32,22 @@ namespace dnlib.DotNet.Pdb.Managed {
 			get { return endOffset; }
 		}
 
-		public override ReadOnlyCollection<SymbolScope> Children {
-			get { return children; }
+		public override IList<SymbolScope> Children {
+			get { return childrenList; }
 		}
 
-		public override ReadOnlyCollection<SymbolVariable> Locals {
-			get { return locals; }
+		public override IList<SymbolVariable> Locals {
+			get { return localsList; }
 		}
 
-		public override ReadOnlyCollection<SymbolNamespace> Namespaces {
-			get { return namespaces; }
+		public override IList<SymbolNamespace> Namespaces {
+			get { return namespacesList; }
 		}
+
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get { return emptyPdbCustomDebugInfos; }
+		}
+		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 
 		public override PdbImportScope ImportScope {
 			get { return null; }
@@ -60,11 +61,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			endOffset = (int)(offset + length);
 
 			childrenList = new List<SymbolScope>();
-			children = new ReadOnlyCollection<SymbolScope>(childrenList);
 			localsList = new List<SymbolVariable>();
-			locals = new ReadOnlyCollection<SymbolVariable>(localsList);
 			namespacesList = new List<SymbolNamespace>();
-			namespaces = new ReadOnlyCollection<SymbolNamespace>(namespacesList);
 		}
 
 		public string Name { get; private set; }
@@ -199,7 +197,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return true;
 		}
 
-		public override PdbConstant[] GetConstants(ModuleDef module, GenericParamContext gpContext) {
+		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constants == null)
 				return emptySymbolConstants;
 			var res = new PdbConstant[constants.Count];

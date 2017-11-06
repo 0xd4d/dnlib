@@ -15,11 +15,17 @@ namespace dnlib.DotNet.Pdb {
 	/// A PDB scope
 	/// </summary>
 	[DebuggerDisplay("{Start} - {End}")]
-	public sealed class PdbScope {
+	public sealed class PdbScope : IHasCustomDebugInformation {
 		readonly ThreadSafe.IList<PdbScope> scopes = ThreadSafeListCreator.Create<PdbScope>();
-		readonly ThreadSafe.IList<Local> locals = ThreadSafeListCreator.Create<Local>();
+		readonly ThreadSafe.IList<PdbLocal> locals = ThreadSafeListCreator.Create<PdbLocal>();
 		readonly ThreadSafe.IList<string> namespaces = ThreadSafeListCreator.Create<string>();
 		readonly ThreadSafe.IList<PdbConstant> constants = ThreadSafeListCreator.Create<PdbConstant>();
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbScope() {
+		}
 
 		/// <summary>
 		/// Gets/sets the first instruction
@@ -48,7 +54,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all locals in this scope
 		/// </summary>
-		public ThreadSafe.IList<Local> Variables {
+		public ThreadSafe.IList<PdbLocal> Variables {
 			get { return locals; }
 		}
 
@@ -91,5 +97,23 @@ namespace dnlib.DotNet.Pdb {
 		public bool HasConstants {
 			get { return constants.Count > 0; }
 		}
+
+		/// <inheritdoc/>
+		public int HasCustomDebugInformationTag {
+			get { return 23; }
+		}
+
+		/// <inheritdoc/>
+		public bool HasCustomDebugInfos {
+			get { return CustomDebugInfos.Count > 0; }
+		}
+
+		/// <summary>
+		/// Gets all custom debug infos
+		/// </summary>
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get { return customDebugInfos; }
+		}
+		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 	}
 }

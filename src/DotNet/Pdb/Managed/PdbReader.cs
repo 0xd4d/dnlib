@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -20,6 +19,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		Dictionary<string, uint> names;
 		Dictionary<uint, string> strings;
 		List<DbiModule> modules;
+		ModuleDef module;
 
 		const int STREAM_ROOT = 0;
 		const int STREAM_NAMES = 1;
@@ -39,6 +39,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// The GUID of PDB file.
 		/// </summary>
 		public Guid Guid { get; private set; }
+
+		public override void Initialize(ModuleDef module) {
+			this.module = module;
+		}
 
 		/// <summary>
 		/// Read the PDB in the specified stream.
@@ -318,32 +322,32 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return value;
 		}
 
-		public override SymbolMethod GetMethod(ModuleDef module, MethodDef method, int version) {
+		public override SymbolMethod GetMethod(MethodDef method, int version) {
 			DbiFunction symMethod;
 			if (functions.TryGetValue(method.MDToken.ToInt32(), out symMethod))
 				return symMethod;
 			return null;
 		}
 
-		public override ReadOnlyCollection<SymbolDocument> Documents {
+		public override IList<SymbolDocument> Documents {
 			get {
 				if (documentsResult == null) {
 					var docs = new SymbolDocument[documents.Count];
 					int i = 0;
 					foreach (var doc in documents.Values)
 						docs[i++] = doc;
-					Interlocked.CompareExchange(ref documentsResult, new ReadOnlyCollection<SymbolDocument>(docs), null);
+					documentsResult = docs;
 				}
 				return documentsResult;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolDocument> documentsResult;
+		volatile SymbolDocument[] documentsResult;
 
 		public override int UserEntryPoint {
 			get { return (int)entryPt; }
 		}
 
-		public override void GetCustomDebugInfo(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			const string CDI_NAME = "MD2";
 			DbiFunction func;
 			bool b = functions.TryGetValue(method.MDToken.ToInt32(), out func);
@@ -354,6 +358,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (cdiData == null)
 				return;
 			PdbCustomDebugInfoReader.Read(method, body, result, cdiData);
+		}
+
+		public override void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
 		}
 	}
 }

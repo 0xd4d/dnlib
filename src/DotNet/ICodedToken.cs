@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using dnlib.DotNet.Pdb;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;
@@ -1021,6 +1022,26 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="GenericParameters"/> is not empty
 		/// </summary>
 		bool HasGenericParameters { get; }
+	}
+
+	/// <summary>
+	/// HasCustomDebugInformation interface
+	/// </summary>
+	public interface IHasCustomDebugInformation {
+		/// <summary>
+		/// The custom debug information tag
+		/// </summary>
+		int HasCustomDebugInformationTag { get; }
+
+		/// <summary>
+		/// Gets the custom debug infos
+		/// </summary>
+		ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos { get; }
+
+		/// <summary>
+		/// <c>true</c> if <see cref="CustomDebugInfos"/> is not empty
+		/// </summary>
+		bool HasCustomDebugInfos { get; }
 	}
 
 	public static partial class Extensions {

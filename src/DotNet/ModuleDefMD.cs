@@ -541,6 +541,13 @@ namespace dnlib.DotNet {
 			LoadPdb(SymbolReaderCreator.Create(pdbImpl, metaData, loc));
 		}
 
+		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
+			var ps = pdbState;
+			if (ps == null)
+				return;
+			ps.InitializeCustomDebugInfos(token, gpContext, result);
+		}
+
 		ModuleKind GetKind() {
 			if (TablesStream.AssemblyTable.Rows < 1)
 				return ModuleKind.NetModule;
@@ -1848,15 +1855,16 @@ namespace dnlib.DotNet {
 		/// <param name="method">Method</param>
 		/// <param name="rva">Method RVA</param>
 		/// <param name="implAttrs">Method impl attrs</param>
+		/// <param name="customDebugInfos">Updated with custom debug infos</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
-		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, GenericParamContext gpContext) {
+		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, IList<PdbCustomDebugInfo> customDebugInfos, GenericParamContext gpContext) {
 			MethodBody mb;
 			var mDec = methodDecrypter;
 			if (mDec != null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out mb)) {
 				var cilBody = mb as CilBody;
 				if (cilBody != null)
-					return InitializeBodyFromPdb(method, cilBody);
+					return InitializeBodyFromPdb(method, cilBody, customDebugInfos);
 				return mb;
 			}
 
@@ -1864,7 +1872,7 @@ namespace dnlib.DotNet {
 				return null;
 			var codeType = implAttrs & MethodImplAttributes.CodeTypeMask;
 			if (codeType == MethodImplAttributes.IL)
-				return InitializeBodyFromPdb(method, ReadCilBody(method.Parameters, rva, gpContext));
+				return InitializeBodyFromPdb(method, ReadCilBody(method.Parameters, rva, gpContext), customDebugInfos);
 			if (codeType == MethodImplAttributes.Native)
 				return new NativeMethodBody(rva);
 			return null;
@@ -1875,11 +1883,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">Owner method</param>
 		/// <param name="body">Method body</param>
+		/// <param name="customDebugInfos">Updated with custom debug infos</param>
 		/// <returns>Returns originak <paramref name="body"/> value</returns>
-		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body) {
+		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
 			var ps = pdbState;
 			if (ps != null)
-				ps.InitializeMethodBody(this, method, body);
+				ps.InitializeMethodBody(this, method, body, customDebugInfos);
 			return body;
 		}
 

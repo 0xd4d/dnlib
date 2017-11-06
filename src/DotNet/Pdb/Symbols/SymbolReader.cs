@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb.Symbols {
@@ -11,6 +10,12 @@ namespace dnlib.DotNet.Pdb.Symbols {
 	/// </summary>
 	public abstract class SymbolReader : IDisposable {
 		/// <summary>
+		/// Called by the owner module before any other methods and properties are called
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		public abstract void Initialize(ModuleDef module);
+
+		/// <summary>
 		/// Gets the user entry point token or 0 if none
 		/// </summary>
 		public abstract int UserEntryPoint { get; }
@@ -18,16 +23,15 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets all documents
 		/// </summary>
-		public abstract ReadOnlyCollection<SymbolDocument> Documents { get; }
+		public abstract IList<SymbolDocument> Documents { get; }
 
 		/// <summary>
 		/// Gets a method or returns null if the method doesn't exist in the PDB file
 		/// </summary>
-		/// <param name="module">Module</param>
 		/// <param name="method">Method</param>
 		/// <param name="version">Edit and continue version</param>
 		/// <returns></returns>
-		public abstract SymbolMethod GetMethod(ModuleDef module, MethodDef method, int version);
+		public abstract SymbolMethod GetMethod(MethodDef method, int version);
 
 		/// <summary>
 		/// Reads custom debug info
@@ -35,7 +39,15 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <param name="method">Method</param>
 		/// <param name="body">Method body</param>
 		/// <param name="result">Updated with custom debug info</param>
-		public abstract void GetCustomDebugInfo(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result);
+		public abstract void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result);
+
+		/// <summary>
+		/// Reads custom debug info
+		/// </summary>
+		/// <param name="token">Token of a <see cref="IHasCustomDebugInformation"/> instance</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="result">Updated with custom debug info</param>
+		public abstract void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result);
 
 		/// <summary>
 		/// Cleans up resources

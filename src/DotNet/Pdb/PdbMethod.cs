@@ -13,8 +13,6 @@ namespace dnlib.DotNet.Pdb {
 	/// A PDB method
 	/// </summary>
 	public sealed class PdbMethod {
-		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
-
 		/// <summary>
 		/// Gets/sets the root scope. It contains all scopes of the method, using namespaces, variables and constants
 		/// </summary>
@@ -31,17 +29,9 @@ namespace dnlib.DotNet.Pdb {
 		public PdbIteratorMethod IteratorMethod { get; set; }
 
 		/// <summary>
-		/// Gets all custom debug infos
-		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbMethod() {
-			customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 		}
 	}
 }

@@ -1,9 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.Utils;
 using dnlib.Threading;
+using dnlib.DotNet.Pdb;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;
@@ -228,7 +229,7 @@ namespace dnlib.DotNet.Emit {
 		TypeSig typeSig;
 		int index;
 		string name;
-		int pdbAttributes;
+		PdbLocalAttributes attributes;
 
 		/// <summary>
 		/// Gets/sets the type of the local
@@ -247,7 +248,7 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// Gets/sets the name
+		/// Gets the name. This property is obsolete, use <see cref="PdbLocal"/> to get/set the name stored in the PDB file.
 		/// </summary>
 		public string Name {
 			get { return name; }
@@ -255,12 +256,19 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// Gets/sets the PDB attributes. This seems to be a <c>CorSymVarFlag</c> enumeration.
-		/// It's <c>VAR_IS_COMP_GEN</c> (<c>1</c>) if it's a compiler-generated local.
+		/// Gets the attributes. This property is obsolete, use <see cref="PdbLocal"/> to get/set the attributes stored in the PDB file.
 		/// </summary>
-		public int PdbAttributes {
-			get { return pdbAttributes; }
-			set { pdbAttributes = value; }
+		public PdbLocalAttributes Attributes {
+			get { return attributes; }
+			set { attributes = value; }
+		}
+
+		internal void SetName(string name) {
+			this.name = name;
+		}
+
+		internal void SetAttributes(PdbLocalAttributes attributes) {
+			this.attributes = attributes;
 		}
 
 		/// <summary>

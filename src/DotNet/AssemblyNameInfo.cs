@@ -34,15 +34,6 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyAttributes"/>
 		/// </summary>
-		[Obsolete("Use Attributes property instead", false)]
-		public AssemblyAttributes Flags {
-			get { return flags; }
-			set { flags = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the <see cref="AssemblyAttributes"/>
-		/// </summary>
 		public AssemblyAttributes Attributes {
 			get { return flags; }
 			set { flags = value; }
@@ -62,15 +53,6 @@ namespace dnlib.DotNet {
 		public UTF8String Name {
 			get { return name; }
 			set { name = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the culture or <c>null</c> if none specified
-		/// </summary>
-		[Obsolete("Use Culture property instead", false)]
-		public UTF8String Locale {
-			get { return Culture; }
-			set { Culture = value; }
 		}
 
 		/// <summary>

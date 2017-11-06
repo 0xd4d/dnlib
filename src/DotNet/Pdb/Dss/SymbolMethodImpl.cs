@@ -1,8 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.Threading;
 using dnlib.DotNet.Pdb.Symbols;
@@ -37,7 +36,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile SymbolScope rootScope;
 
-		public override ReadOnlyCollection<SymbolSequencePoint> SequencePoints {
+		public override IList<SymbolSequencePoint> SequencePoints {
 			get {
 				if (sequencePoints == null) {
 					uint seqPointCount;
@@ -65,12 +64,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 							EndColumn = endColumns[i],
 						};
 					}
-					Interlocked.CompareExchange(ref sequencePoints, new ReadOnlyCollection<SymbolSequencePoint>(seqPoints), null);
+					sequencePoints = seqPoints;
 				}
 				return sequencePoints;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolSequencePoint> sequencePoints;
+		volatile SymbolSequencePoint[] sequencePoints;
 
 		public override int IteratorKickoffMethod {
 			get { return 0; }
@@ -94,7 +93,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override ReadOnlyCollection<SymbolAsyncStepInfo> AsyncStepInfos {
+		public override IList<SymbolAsyncStepInfo> AsyncStepInfos {
 			get {
 				if (asyncMethod == null || !asyncMethod.IsAsyncMethod())
 					return null;
@@ -107,11 +106,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 					var res = new SymbolAsyncStepInfo[stepInfoCount];
 					for (int i = 0; i < res.Length; i++)
 						res[i] = new SymbolAsyncStepInfo(yieldOffsets[i], breakpointOffsets[i], breakpointMethods[i]);
-					Interlocked.CompareExchange(ref asyncStepInfos, new ReadOnlyCollection<SymbolAsyncStepInfo>(res), null);
+					asyncStepInfos = res;
 				}
 				return asyncStepInfos;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos;
+		volatile SymbolAsyncStepInfo[] asyncStepInfos;
 	}
 }

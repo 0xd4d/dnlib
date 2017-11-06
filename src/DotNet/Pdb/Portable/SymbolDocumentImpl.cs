@@ -14,6 +14,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		/*readonly*/ Guid documentType;
 		/*readonly*/ Guid checkSumAlgorithmId;
 		readonly byte[] checkSum;
+		readonly PdbCustomDebugInfo[] customDebugInfos;
 
 		string GetDebuggerString() {
 			var sb = new StringBuilder();
@@ -61,13 +62,18 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return checkSum; }
 		}
 
-		public SymbolDocumentImpl(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum) {
+		public override PdbCustomDebugInfo[] CustomDebugInfos {
+			get { return customDebugInfos; }
+		}
+
+		public SymbolDocumentImpl(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum, PdbCustomDebugInfo[] customDebugInfos) {
 			this.url = url;
 			this.language = language;
 			this.languageVendor = languageVendor;
 			this.documentType = documentType;
 			this.checkSumAlgorithmId = checkSumAlgorithmId;
 			this.checkSum = checkSum;
+			this.customDebugInfos = customDebugInfos;
 		}
 	}
 }

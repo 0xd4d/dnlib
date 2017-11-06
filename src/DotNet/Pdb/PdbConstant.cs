@@ -1,10 +1,18 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
+
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// A constant in a method scope, eg. "const int SomeConstant = 123;"
 	/// </summary>
-	public struct PdbConstant {
+	public sealed class PdbConstant : IHasCustomDebugInformation {
 		string name;
 		TypeSig type;
 		object value;
@@ -36,6 +44,12 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		public PdbConstant() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		/// <param name="name">Name of constant</param>
 		/// <param name="type">Type of constant</param>
 		/// <param name="value">Constant value</param>
@@ -44,6 +58,24 @@ namespace dnlib.DotNet.Pdb {
 			this.type = type;
 			this.value = value;
 		}
+
+		/// <inheritdoc/>
+		public int HasCustomDebugInformationTag {
+			get { return 25; }
+		}
+
+		/// <inheritdoc/>
+		public bool HasCustomDebugInfos {
+			get { return CustomDebugInfos.Count > 0; }
+		}
+
+		/// <summary>
+		/// Gets all custom debug infos
+		/// </summary>
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get { return customDebugInfos; }
+		}
+		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 
 		/// <summary>
 		/// ToString()

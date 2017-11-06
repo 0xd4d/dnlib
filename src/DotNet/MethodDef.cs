@@ -7,6 +7,8 @@ using dnlib.PE;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
 using dnlib.Threading;
+using dnlib.DotNet.Pdb;
+using System.Diagnostics;
 
 #if THREAD_SAFE
 using ThreadSafe = dnlib.Threading.Collections;
@@ -18,7 +20,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Method table
 	/// </summary>
-	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IListListener<GenericParam>, IListListener<ParamDef>, IMemberDef {
+	public abstract class MethodDef : IHasCustomAttribute, IHasDeclSecurity, IMemberRefParent, IMethodDefOrRef, IMemberForwarded, ICustomAttributeType, ITypeOrMethodDef, IManagedEntryPoint, IHasCustomDebugInformation, IListListener<GenericParam>, IListListener<ParamDef>, IMemberDef {
 		internal static readonly UTF8String StaticConstructorName = ".cctor";
 		internal static readonly UTF8String InstanceConstructorName = ".ctor";
 
@@ -309,6 +311,33 @@ namespace dnlib.DotNet {
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() {
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+		}
+
+		/// <inheritdoc/>
+		public int HasCustomDebugInformationTag {
+			get { return 0; }
+		}
+
+		/// <inheritdoc/>
+		public bool HasCustomDebugInfos {
+			get { return CustomDebugInfos.Count > 0; }
+		}
+
+		/// <summary>
+		/// Gets all custom debug infos
+		/// </summary>
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get {
+				if (customDebugInfos == null)
+					InitializeCustomDebugInfos();
+				return customDebugInfos;
+			}
+		}
+		/// <summary/>
+		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		protected virtual void InitializeCustomDebugInfos() {
+			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
 		}
 
 		/// <summary>
@@ -1248,7 +1277,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override MethodBody GetMethodBody_NoLock() {
-			return readerModule.ReadMethodBody(this, origRva, origImplAttributes, new GenericParamContext(declaringType2, this));
+			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			var body = readerModule.ReadMethodBody(this, origRva, origImplAttributes, list, new GenericParamContext(declaringType2, this));
+			Debug.Assert(customDebugInfos == null);
+			Interlocked.CompareExchange(ref customDebugInfos, list, null);
+			return body;
 		}
 
 		/// <inheritdoc/>
@@ -1256,6 +1289,15 @@ namespace dnlib.DotNet {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Method, origRid);
 			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomDebugInfos() {
+			// The property will initialize CDIs
+			var body = Body;
+			Debug.Assert(customDebugInfos != null);
+			if (customDebugInfos == null)
+				Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
 		}
 
 		/// <inheritdoc/>

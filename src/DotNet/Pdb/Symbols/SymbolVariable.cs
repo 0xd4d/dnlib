@@ -15,27 +15,16 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets the attributes
 		/// </summary>
-		public abstract SymbolVariableAttributes Attributes { get; }
+		public abstract PdbLocalAttributes Attributes { get; }
 
 		/// <summary>
 		/// Gets the index of the variable
 		/// </summary>
 		public abstract int Index { get; }
-	}
-
-	/// <summary>
-	/// Variable flags
-	/// </summary>
-	[Flags]
-	public enum SymbolVariableAttributes {
-		/// <summary>
-		/// No bit is set
-		/// </summary>
-		None					= 0,
 
 		/// <summary>
-		/// It's a compiler generated variable
+		/// Gets all custom debug infos
 		/// </summary>
-		CompilerGenerated		= 0x00000001,
+		public abstract PdbCustomDebugInfo[] CustomDebugInfos { get; }
 	}
 }

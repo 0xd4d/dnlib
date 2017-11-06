@@ -3,14 +3,22 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
+using System.Threading;
 using dnlib.DotNet.Pdb.Symbols;
+using dnlib.Threading;
+
+#if THREAD_SAFE
+using ThreadSafe = dnlib.Threading.Collections;
+#else
+using ThreadSafe = System.Collections.Generic;
+#endif
 
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// A PDB document
 	/// </summary>
 	[DebuggerDisplay("{Url}")]
-	public sealed class PdbDocument {
+	public sealed class PdbDocument : IHasCustomDebugInformation {
 		/// <summary>
 		/// Gets/sets the document URL
 		/// </summary>
@@ -41,6 +49,24 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public byte[] CheckSum { get; set; }
 
+		/// <inheritdoc/>
+		public int HasCustomDebugInformationTag {
+			get { return 22; }
+		}
+
+		/// <inheritdoc/>
+		public bool HasCustomDebugInfos {
+			get { return CustomDebugInfos.Count > 0; }
+		}
+
+		/// <summary>
+		/// Gets all custom debug infos
+		/// </summary>
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get { return customDebugInfos; }
+		}
+		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -60,6 +86,8 @@ namespace dnlib.DotNet.Pdb {
 			this.DocumentType = symDoc.DocumentType;
 			this.CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
 			this.CheckSum = symDoc.CheckSum;
+			foreach (var cdi in symDoc.CustomDebugInfos)
+				customDebugInfos.Add(cdi);
 		}
 
 		/// <summary>

@@ -1,6 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 
 namespace dnlib.DotNet.Pdb.Symbols {
 	/// <summary>
@@ -20,7 +20,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets all sequence points
 		/// </summary>
-		public abstract ReadOnlyCollection<SymbolSequencePoint> SequencePoints { get; }
+		public abstract IList<SymbolSequencePoint> SequencePoints { get; }
 
 		/// <summary>
 		/// true if this is an iterator method
@@ -54,6 +54,6 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets the async step infos if it's an async method (<see cref="IsAsyncMethod"/>)
 		/// </summary>
-		public abstract ReadOnlyCollection<SymbolAsyncStepInfo> AsyncStepInfos { get; }
+		public abstract IList<SymbolAsyncStepInfo> AsyncStepInfos { get; }
 	}
 }

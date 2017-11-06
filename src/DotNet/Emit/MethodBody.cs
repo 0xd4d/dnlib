@@ -1,6 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-using System;
 using System.Collections.Generic;
 using dnlib.DotNet.Pdb;
 using dnlib.PE;
@@ -178,32 +177,6 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		public bool HasPdbMethod {
 			get { return PdbMethod != null; }
-		}
-
-		/// <summary>
-		/// Gets/sets the PDB scope
-		/// </summary>
-		[Obsolete("Use PdbMethod.Scope property instead")]
-		public PdbScope Scope {
-			get {
-				var pdbMethod = this.pdbMethod;
-				return pdbMethod == null ? null : pdbMethod.Scope;
-			}
-			set {
-				var pdbMethod = this.pdbMethod;
-				if (pdbMethod == null && value != null)
-					this.pdbMethod = pdbMethod = new PdbMethod();
-				if (pdbMethod != null)
-					pdbMethod.Scope = value;
-			}
-		}
-
-		/// <summary>
-		/// <c>true</c> if <see cref="Scope"/> is not <c>null</c>
-		/// </summary>
-		[Obsolete("Use HasPdbMethod to check if it has PDB info")]
-		public bool HasScope {
-			get { return Scope != null; }
 		}
 
 		/// <summary>

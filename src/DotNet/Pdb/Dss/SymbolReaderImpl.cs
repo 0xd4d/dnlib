@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Threading;
 using dnlib.DotNet.Emit;
@@ -10,6 +9,7 @@ using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolReaderImpl : SymbolReader {
+		ModuleDef module;
 		readonly ISymUnmanagedReader reader;
 
 		const int E_FAIL = unchecked((int)0x80004005);
@@ -36,7 +36,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override ReadOnlyCollection<SymbolDocument> Documents {
+		public override IList<SymbolDocument> Documents {
 			get {
 				if (documents == null) {
 					uint numDocs;
@@ -46,14 +46,18 @@ namespace dnlib.DotNet.Pdb.Dss {
 					var docs = new SymbolDocument[numDocs];
 					for (uint i = 0; i < numDocs; i++)
 						docs[i] = new SymbolDocumentImpl(unDocs[i]);
-					Interlocked.CompareExchange(ref documents, new ReadOnlyCollection<SymbolDocument>(docs), null);
+					documents = docs;
 				}
 				return documents;
 			}
 		}
-		volatile ReadOnlyCollection<SymbolDocument> documents;
+		volatile SymbolDocument[] documents;
 
-		public override SymbolMethod GetMethod(ModuleDef module, MethodDef method, int version) {
+		public override void Initialize(ModuleDef module) {
+			this.module = module;
+		}
+
+		public override SymbolMethod GetMethod(MethodDef method, int version) {
 			ISymUnmanagedMethod unMethod;
 			int hr = reader.GetMethodByVersion(method.MDToken.Raw, version, out unMethod);
 			if (hr == E_FAIL)
@@ -62,7 +66,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			return unMethod == null ? null : new SymbolMethodImpl(unMethod);
 		}
 
-		public override void GetCustomDebugInfo(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			const string CDI_NAME = "MD2";
 			uint bufSize;
 			reader.GetSymAttribute(method.MDToken.Raw, CDI_NAME, 0, out bufSize, null);
@@ -71,6 +75,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 			var cdiData = new byte[bufSize];
 			reader.GetSymAttribute(method.MDToken.Raw, CDI_NAME, (uint)cdiData.Length, out bufSize, cdiData);
 			PdbCustomDebugInfoReader.Read(method, body, result, cdiData);
+		}
+
+		public override void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
 		}
 	}
 }

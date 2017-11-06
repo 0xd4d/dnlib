@@ -1,17 +1,17 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	sealed class SymbolMethodImpl : SymbolMethod {
 		readonly int token;
 		readonly SymbolScope rootScope;
-		readonly ReadOnlyCollection<SymbolSequencePoint> sequencePoints;
+		readonly SymbolSequencePoint[] sequencePoints;
 		readonly int iteratorKickoffMethod;
 		readonly int asyncKickoffMethod;
 		readonly uint? asyncCatchHandlerILOffset;
-		readonly ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos;
+		readonly SymbolAsyncStepInfo[] asyncStepInfos;
 
 		public override int Token {
 			get { return token; }
@@ -21,7 +21,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return rootScope; }
 		}
 
-		public override ReadOnlyCollection<SymbolSequencePoint> SequencePoints {
+		public override IList<SymbolSequencePoint> SequencePoints {
 			get { return sequencePoints; }
 		}
 
@@ -37,11 +37,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return asyncCatchHandlerILOffset; }
 		}
 
-		public override ReadOnlyCollection<SymbolAsyncStepInfo> AsyncStepInfos {
+		public override IList<SymbolAsyncStepInfo> AsyncStepInfos {
 			get { return asyncStepInfos; }
 		}
 
-		public SymbolMethodImpl(int token, SymbolScope rootScope, ReadOnlyCollection<SymbolSequencePoint> sequencePoints, int iteratorKickoffMethod, int asyncKickoffMethod, uint? asyncCatchHandlerILOffset, ReadOnlyCollection<SymbolAsyncStepInfo> asyncStepInfos) {
+		public SymbolMethodImpl(int token, SymbolScope rootScope, SymbolSequencePoint[] sequencePoints, int iteratorKickoffMethod, int asyncKickoffMethod, uint? asyncCatchHandlerILOffset, SymbolAsyncStepInfo[] asyncStepInfos) {
 			this.token = token;
 			this.rootScope = rootScope;
 			this.sequencePoints = sequencePoints;

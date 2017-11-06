@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.Threading;
 
@@ -16,7 +16,7 @@ namespace dnlib.DotNet.Pdb {
 		readonly SymbolReader reader;
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
 		MethodDef userEntryPoint;
-		Compiler compiler;
+		readonly Compiler compiler;
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -62,13 +62,6 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <summary>
-		/// Default constructor
-		/// </summary>
-		[Obsolete("Use PdbState(ModuleDef) constructor")]
-		public PdbState() {
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Module</param>
@@ -89,6 +82,7 @@ namespace dnlib.DotNet.Pdb {
 			if (module == null)
 				throw new ArgumentNullException("module");
 			this.reader = reader;
+			reader.Initialize(module);
 			this.compiler = CalculateCompiler(module);
 
 			this.userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;
@@ -181,14 +175,11 @@ namespace dnlib.DotNet.Pdb {
 #endif
 		}
 
-		internal Compiler GetCompiler(ModuleDef module) {
-			if (compiler == Compiler.Unknown)
-				compiler = CalculateCompiler(module);
-			return compiler;
+		internal Compiler Compiler {
+			get { return compiler; }
 		}
 
-		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body) {
-			Debug.Assert((module == null) == (ownerMethod == null));
+		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
 			if (reader == null || body == null)
 				return;
 
@@ -196,21 +187,19 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			method = reader.GetMethod(module, ownerMethod, 1);
+			method = reader.GetMethod(ownerMethod, 1);
 			if (method != null) {
 				var pdbMethod = new PdbMethod();
-				pdbMethod.Scope = CreateScope(module, ownerMethod == null ? new GenericParamContext() : GenericParamContext.Create(ownerMethod), body, method.RootScope);
+				pdbMethod.Scope = CreateScope(module, GenericParamContext.Create(ownerMethod), body, method.RootScope);
 				AddSequencePoints(body, method);
 
-				if (module != null && method.IsAsyncMethod)
+				if (method.IsAsyncMethod)
 					pdbMethod.AsyncMethod = CreateAsyncMethod(module, ownerMethod, body, method);
-				if (module != null && method.IsIteratorMethod)
+				if (method.IsIteratorMethod)
 					pdbMethod.IteratorMethod = CreateIteratorMethod(module, ownerMethod, body, method);
 
-				if (ownerMethod != null) {
-					// Read the custom debug info last so eg. local names have been initialized
-					reader.GetCustomDebugInfo(ownerMethod, body, pdbMethod.CustomDebugInfos);
-				}
+				// Read the custom debug info last so eg. local names have been initialized
+				reader.GetCustomDebugInfos(ownerMethod, body, customDebugInfos);
 
 				body.PdbMethod = pdbMethod;
 			}
@@ -219,7 +208,7 @@ namespace dnlib.DotNet.Pdb {
 #endif
 		}
 
-		Compiler CalculateCompiler(ModuleDef module) {
+		static Compiler CalculateCompiler(ModuleDef module) {
 			if (module == null)
 				return Compiler.Other;
 
@@ -240,7 +229,7 @@ namespace dnlib.DotNet.Pdb {
 
 		PdbAsyncMethod CreateAsyncMethod(ModuleDefMD module, MethodDef method, CilBody body, SymbolMethod symMethod) {
 			var kickoffToken = new MDToken(symMethod.AsyncKickoffMethod);
-			if (kickoffToken.Table != MD.Table.Method)
+			if (kickoffToken.Table != Table.Method)
 				return null;
 			var kickoffMethod = module.ResolveMethod(kickoffToken.Rid);
 
@@ -268,8 +257,8 @@ namespace dnlib.DotNet.Pdb {
 				}
 				else {
 					var breakpointMethodToken = new MDToken(rawInfo.BreakpointMethod);
-					Debug.Assert(breakpointMethodToken.Table == MD.Table.Method);
-					if (breakpointMethodToken.Table != MD.Table.Method)
+					Debug.Assert(breakpointMethodToken.Table == Table.Method);
+					if (breakpointMethodToken.Table != Table.Method)
 						continue;
 					breakpointMethod = module.ResolveMethod(breakpointMethodToken.Rid);
 					Debug.Assert(breakpointMethod != null);
@@ -289,7 +278,7 @@ namespace dnlib.DotNet.Pdb {
 
 		PdbIteratorMethod CreateIteratorMethod(ModuleDefMD module, MethodDef method, CilBody body, SymbolMethod symMethod) {
 			var kickoffToken = new MDToken(symMethod.IteratorKickoffMethod);
-			if (kickoffToken.Table != MD.Table.Method)
+			if (kickoffToken.Table != Table.Method)
 				return null;
 
 			var iteratorMethod = new PdbIteratorMethod();
@@ -337,7 +326,7 @@ namespace dnlib.DotNet.Pdb {
 		struct CreateScopeState {
 			public SymbolScope SymScope;
 			public PdbScope PdbScope;
-			public ReadOnlyCollection<SymbolScope> Children;
+			public IList<SymbolScope> Children;
 			public int ChildrenIndex;
 		}
 
@@ -350,11 +339,13 @@ namespace dnlib.DotNet.Pdb {
 			var state = new CreateScopeState() { SymScope = symScope };
 recursive_call:
 			int instrIndex = 0;
-			int endIsInclusiveValue = GetCompiler(module) == Compiler.VisualBasic ? 1 : 0;
+			int endIsInclusiveValue = Compiler == Compiler.VisualBasic ? 1 : 0;
 			state.PdbScope = new PdbScope() {
 				Start = GetInstruction(body.Instructions, state.SymScope.StartOffset, ref instrIndex),
 				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
 			};
+			foreach (var cdi in state.SymScope.CustomDebugInfos)
+				state.PdbScope.CustomDebugInfos.Add(cdi);
 
 			foreach (var symLocal in state.SymScope.Locals) {
 				int localIndex = symLocal.Index;
@@ -363,95 +354,93 @@ recursive_call:
 					continue;
 				}
 				var local = body.Variables[localIndex];
-				local.Name = symLocal.Name;
+				var name = symLocal.Name;
+				local.SetName(name);
 				var attributes = symLocal.Attributes;
-				int pdbAttributes = 0;
-				const int VAR_IS_COMP_GEN = 1;
-				if ((attributes & SymbolVariableAttributes.CompilerGenerated) != 0)
-					pdbAttributes |= VAR_IS_COMP_GEN;
-				local.PdbAttributes = pdbAttributes;
-				state.PdbScope.Variables.Add(local);
+				local.SetAttributes(attributes);
+				var pdbLocal = new PdbLocal(local, name, attributes);
+				foreach (var cdi in symLocal.CustomDebugInfos)
+					pdbLocal.CustomDebugInfos.Add(cdi);
+				state.PdbScope.Variables.Add(pdbLocal);
 			}
 
 			foreach (var ns in state.SymScope.Namespaces)
 				state.PdbScope.Namespaces.Add(ns.Name);
 			state.PdbScope.ImportScope = state.SymScope.ImportScope;
 
-			if (module != null) {
-				var constants = state.SymScope.GetConstants(module, gpContext);
-				for (int i = 0; i < constants.Length; i++) {
-					var constant = constants[i];
-					var type = constant.Type.RemovePinnedAndModifiers();
-					if (type != null) {
-						// Fix a few values since they're stored as some other type in the PDB
-						switch (type.ElementType) {
-						case ElementType.Boolean:
-							if (constant.Value is short)
-								constant.Value = (short)constant.Value != 0;
+			var constants = state.SymScope.GetConstants(module, gpContext);
+			for (int i = 0; i < constants.Count; i++) {
+				var constant = constants[i];
+				var type = constant.Type.RemovePinnedAndModifiers();
+				if (type != null) {
+					// Fix a few values since they're stored as some other type in the PDB
+					switch (type.ElementType) {
+					case ElementType.Boolean:
+						if (constant.Value is short)
+							constant.Value = (short)constant.Value != 0;
+						break;
+					case ElementType.Char:
+						if (constant.Value is ushort)
+							constant.Value = (char)(ushort)constant.Value;
+						break;
+					case ElementType.I1:
+						if (constant.Value is short)
+							constant.Value = (sbyte)(short)constant.Value;
+						break;
+					case ElementType.U1:
+						if (constant.Value is short)
+							constant.Value = (byte)(short)constant.Value;
+						break;
+					case ElementType.I2:
+					case ElementType.U2:
+					case ElementType.I4:
+					case ElementType.U4:
+					case ElementType.I8:
+					case ElementType.U8:
+					case ElementType.R4:
+					case ElementType.R8:
+					case ElementType.Void:
+					case ElementType.Ptr:
+					case ElementType.ByRef:
+					case ElementType.TypedByRef:
+					case ElementType.I:
+					case ElementType.U:
+					case ElementType.FnPtr:
+					case ElementType.ValueType:
+						break;
+					case ElementType.String:
+						// "" is stored as null, and null is stored as (int)0
+						if (constant.Value is int && (int)constant.Value == 0)
+							constant.Value = null;
+						else if (constant.Value == null)
+							constant.Value = string.Empty;
+						break;
+					case ElementType.Object:
+					case ElementType.Class:
+					case ElementType.SZArray:
+					case ElementType.Array:
+					default:
+						if (constant.Value is int && (int)constant.Value == 0)
+							constant.Value = null;
+						break;
+					case ElementType.GenericInst:
+						var gis = (GenericInstSig)type;
+						if (gis.GenericType is ValueTypeSig)
 							break;
-						case ElementType.Char:
-							if (constant.Value is ushort)
-								constant.Value = (char)(ushort)constant.Value;
-							break;
-						case ElementType.I1:
-							if (constant.Value is short)
-								constant.Value = (sbyte)(short)constant.Value;
-							break;
-						case ElementType.U1:
-							if (constant.Value is short)
-								constant.Value = (byte)(short)constant.Value;
-							break;
-						case ElementType.I2:
-						case ElementType.U2:
-						case ElementType.I4:
-						case ElementType.U4:
-						case ElementType.I8:
-						case ElementType.U8:
-						case ElementType.R4:
-						case ElementType.R8:
-						case ElementType.Void:
-						case ElementType.Ptr:
-						case ElementType.ByRef:
-						case ElementType.TypedByRef:
-						case ElementType.I:
-						case ElementType.U:
-						case ElementType.FnPtr:
-						case ElementType.ValueType:
-							break;
-						case ElementType.String:
-							// "" is stored as null, and null is stored as (int)0
-							if (constant.Value is int && (int)constant.Value == 0)
-								constant.Value = null;
-							else if (constant.Value == null)
-								constant.Value = string.Empty;
-							break;
-						case ElementType.Object:
-						case ElementType.Class:
-						case ElementType.SZArray:
-						case ElementType.Array:
-						default:
-							if (constant.Value is int && (int)constant.Value == 0)
-								constant.Value = null;
-							break;
-						case ElementType.GenericInst:
-							var gis = (GenericInstSig)type;
-							if (gis.GenericType is ValueTypeSig)
+						goto case ElementType.Class;
+					case ElementType.Var:
+					case ElementType.MVar:
+						var gp = ((GenericSig)type).GenericParam;
+						if (gp != null) {
+							if (gp.HasNotNullableValueTypeConstraint)
 								break;
-							goto case ElementType.Class;
-						case ElementType.Var:
-						case ElementType.MVar:
-							var gp = ((GenericSig)type).GenericParam;
-							if (gp != null) {
-								if (gp.HasNotNullableValueTypeConstraint)
-									break;
-								if (gp.HasReferenceTypeConstraint)
-									goto case ElementType.Class;
-							}
-							break;
+							if (gp.HasReferenceTypeConstraint)
+								goto case ElementType.Class;
 						}
+						break;
 					}
-					state.PdbScope.Constants.Add(constant);
 				}
+				state.PdbScope.Constants.Add(constant);
 			}
 
 			// Here's the now somewhat obfuscated for loop
@@ -502,13 +491,17 @@ do_return:
 			return null;
 		}
 
+		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
+			Debug.Assert(token.Table != Table.Method, "Methods get initialized when reading the method bodies");
+			reader.GetCustomDebugInfos(token.ToInt32(), gpContext, result);
+		}
+
 		internal void Dispose() {
 			reader.Dispose();
 		}
 	}
 
 	enum Compiler {
-		Unknown,
 		Other,
 		VisualBasic,
 	}
