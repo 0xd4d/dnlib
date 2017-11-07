@@ -40,8 +40,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		static Guid GetLanguageVendor(Guid language) {
-			if (language == Constants.LanguageCSharp || language == Constants.LanguageVisualBasic || language == Constants.LanguageFSharp)
-				return Constants.LanguageVendorMicrosoft;
+			if (language == PdbDocumentConstants.LanguageCSharp || language == PdbDocumentConstants.LanguageVisualBasic || language == PdbDocumentConstants.LanguageFSharp)
+				return PdbDocumentConstants.LanguageVendorMicrosoft;
 			return Guid.Empty;
 		}
 
@@ -58,7 +58,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var url = nameReader.ReadDocumentName(nameOffset);
 				var language = pdbMetaData.GuidStream.Read(languageIndex) ?? Guid.Empty;
 				var languageVendor = GetLanguageVendor(language);
-				var documentType = Constants.DocumentTypeText;
+				var documentType = PdbDocumentConstants.DocumentTypeText;
 				var checkSumAlgorithmId = pdbMetaData.GuidStream.Read(hashAlgorithmIndex) ?? Guid.Empty;
 				var checkSum = pdbMetaData.BlobStream.ReadNoNull(hashOffset);
 

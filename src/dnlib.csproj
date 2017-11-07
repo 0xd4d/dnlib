@@ -185,12 +185,12 @@
     <Compile Include="DotNet\Pdb\Managed\PdbAddress.cs" />
     <Compile Include="DotNet\Pdb\PdbConstant.cs" />
     <Compile Include="DotNet\Pdb\PdbCustomDebugInfo.cs" />
+    <Compile Include="DotNet\Pdb\PdbDocumentConstants.cs" />
     <Compile Include="DotNet\Pdb\PdbFileKind.cs" />
     <Compile Include="DotNet\Pdb\PdbImport.cs" />
     <Compile Include="DotNet\Pdb\PdbLocal.cs" />
     <Compile Include="DotNet\Pdb\PdbLocalAttributes.cs" />
     <Compile Include="DotNet\Pdb\PdbMethod.cs" />
-    <Compile Include="DotNet\Pdb\Portable\Constants.cs" />
     <Compile Include="DotNet\Pdb\Portable\DocumentNameReader.cs" />
     <Compile Include="DotNet\Pdb\Portable\ImportScopeBlobReader.cs" />
     <Compile Include="DotNet\Pdb\Portable\ListCache.cs" />

@@ -18,18 +18,18 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		string GetDebuggerString() {
 			var sb = new StringBuilder();
-			if (language == Constants.LanguageCSharp)
+			if (language == PdbDocumentConstants.LanguageCSharp)
 				sb.Append("C#");
-			else if (language == Constants.LanguageVisualBasic)
+			else if (language == PdbDocumentConstants.LanguageVisualBasic)
 				sb.Append("VB");
-			else if (language == Constants.LanguageFSharp)
+			else if (language == PdbDocumentConstants.LanguageFSharp)
 				sb.Append("F#");
 			else
 				sb.Append(language.ToString());
 			sb.Append(", ");
-			if (checkSumAlgorithmId == Constants.HashSHA1)
+			if (checkSumAlgorithmId == PdbDocumentConstants.HashSHA1)
 				sb.Append("SHA-1");
-			else if (checkSumAlgorithmId == Constants.HashSHA256)
+			else if (checkSumAlgorithmId == PdbDocumentConstants.HashSHA256)
 				sb.Append("SHA-256");
 			else
 				sb.Append(checkSumAlgorithmId.ToString());
