@@ -13,6 +13,8 @@ For another application using dnlib, see [ConfuserEx](https://github.com/yck1509
 a look at its writer code which gets executed during the assembly writing
 process.
 
+Want to say thanks? Click the star at the top of the page.
+
 Compiling
 ---------
 
