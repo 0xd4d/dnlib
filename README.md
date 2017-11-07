@@ -104,15 +104,9 @@ To detect it at runtime, use this code:
 PDB files
 ---------
 
-Right after opening the module, call one of its `LoadPdb()` methods. You can
-also pass in a `ModuleCreationOptions` to `ModuleDefMD.Load()` and if one of
-the PDB options is enabled, the PDB file will be opened before `Load()`
-returns.
-
-```csharp
-    var mod = ModuleDefMD.Load(@"C:\myfile.dll");
-    mod.LoadPdb();	// Will load C:\myfile.pdb if it exists
-```
+PDB files are read from disk by default. You can change this behaviour by
+creating a `ModuleCreationOptions` and passing it in to the code that creates
+a module.
 
 To save a PDB file, create a `ModuleWriterOptions` /
 `NativeModuleWriterOptions` and set its `WritePdb` property to `true`. By

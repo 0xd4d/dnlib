@@ -36,8 +36,8 @@ namespace dnlib.DotNet {
 		public object PdbFileOrData { get; set; }
 
 		/// <summary>
-		/// If <c>true</c>, will load the PDB file from disk if present. You don't need to
-		/// initialize <see cref="CreateSymbolReader"/> or <see cref="PdbFileOrData"/>.
+		/// If <c>true</c>, will load the PDB file from disk if present. The default value is <c>true</c>.
+		/// You don't need to initialize <see cref="CreateSymbolReader"/> or <see cref="PdbFileOrData"/>.
 		/// </summary>
 		public bool TryToLoadPdbFromDisk { get; set; }
 
@@ -52,6 +52,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public ModuleCreationOptions() {
 			this.PdbImplementation = PdbImplType.Default;
+			this.TryToLoadPdbFromDisk = true;
 		}
 
 		/// <summary>
@@ -61,6 +62,7 @@ namespace dnlib.DotNet {
 		public ModuleCreationOptions(ModuleContext context) {
 			this.Context = context;
 			this.PdbImplementation = PdbImplType.Default;
+			this.TryToLoadPdbFromDisk = true;
 		}
 	}
 
