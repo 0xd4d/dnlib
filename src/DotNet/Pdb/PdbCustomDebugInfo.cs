@@ -61,6 +61,8 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		TupleElementNames,
 
+		// Values 0x00-0xFF are reserved for Windows PDB CDIs.
+
 		/// <summary>
 		/// Unknown
 		/// </summary>
@@ -70,11 +72,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <see cref="PortablePdbTupleElementNamesCustomDebugInfo"/>
 		/// </summary>
 		TupleElementNames_PortablePdb,
-
-		/// <summary>
-		/// <see cref="PdbAsyncMethodSteppingInformationCustomDebugInfo"/>
-		/// </summary>
-		AsyncMethodSteppingInformation,
 
 		/// <summary>
 		/// <see cref="PdbDefaultNamespaceCustomDebugInfo"/>
@@ -95,6 +92,16 @@ namespace dnlib.DotNet.Pdb {
 		/// <see cref="PdbSourceLinkCustomDebugInfo"/>
 		/// </summary>
 		SourceLink,
+
+		/// <summary>
+		/// <see cref="PdbAsyncMethodCustomDebugInfo"/>
+		/// </summary>
+		AsyncMethod,
+
+		/// <summary>
+		/// <see cref="PdbIteratorMethodCustomDebugInfo"/>
+		/// </summary>
+		IteratorMethod,
 	}
 
 	/// <summary>
@@ -771,15 +778,17 @@ namespace dnlib.DotNet.Pdb {
 
 	/// <summary>
 	/// Async method stepping info
+	/// 
+	/// It's internal and translated to a <see cref="PdbAsyncMethodCustomDebugInfo"/>
 	/// </summary>
-	public sealed class PdbAsyncMethodSteppingInformationCustomDebugInfo : PdbCustomDebugInfo {
+	internal sealed class PdbAsyncMethodSteppingInformationCustomDebugInfo : PdbCustomDebugInfo {
 		readonly ThreadSafe.IList<PdbAsyncStepInfo> asyncStepInfos;
 
 		/// <summary>
-		/// Returns <see cref="PdbCustomDebugInfoKind.AsyncMethodSteppingInformation"/>
+		/// Returns <see cref="PdbCustomDebugInfoKind.Unknown"/>
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind {
-			get { return PdbCustomDebugInfoKind.AsyncMethodSteppingInformation; }
+			get { return PdbCustomDebugInfoKind.Unknown; }
 		}
 
 		/// <summary>
@@ -962,6 +971,130 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="sourceLinkBlob">Source link file contents</param>
 		public PdbSourceLinkCustomDebugInfo(byte[] sourceLinkBlob) {
 			SourceLinkBlob = sourceLinkBlob;
+		}
+	}
+
+	/// <summary>
+	/// Async method info
+	/// </summary>
+	public sealed class PdbAsyncMethodCustomDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.AsyncMethod"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.AsyncMethod; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
+		}
+
+		readonly ThreadSafe.IList<PdbAsyncStepInfo> asyncStepInfos;
+
+		/// <summary>
+		/// Gets/sets the starting method that initiates the async operation
+		/// </summary>
+		public MethodDef KickoffMethod { get; set; }
+
+		/// <summary>
+		/// Gets/sets the instruction for the compiler generated catch handler that wraps an async method.
+		/// This can be null.
+		/// </summary>
+		public Instruction CatchHandlerInstruction { get; set; }
+
+		/// <summary>
+		/// Gets all step infos used by the debugger
+		/// </summary>
+		public ThreadSafe.IList<PdbAsyncStepInfo> StepInfos {
+			get { return asyncStepInfos; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbAsyncMethodCustomDebugInfo() {
+			asyncStepInfos = ThreadSafeListCreator.Create<PdbAsyncStepInfo>();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="stepInfosCapacity">Default capacity for <see cref="StepInfos"/></param>
+		public PdbAsyncMethodCustomDebugInfo(int stepInfosCapacity) {
+			asyncStepInfos = ThreadSafeListCreator.Create<PdbAsyncStepInfo>(stepInfosCapacity);
+		}
+	}
+
+	/// <summary>
+	/// Async step info used by debuggers
+	/// </summary>
+	public struct PdbAsyncStepInfo {
+		/// <summary>
+		/// The yield instruction
+		/// </summary>
+		public Instruction YieldInstruction;
+
+		/// <summary>
+		/// Resume method
+		/// </summary>
+		public MethodDef BreakpointMethod;
+
+		/// <summary>
+		/// Resume instruction (where the debugger puts a breakpoint)
+		/// </summary>
+		public Instruction BreakpointInstruction;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="yieldInstruction">The yield instruction</param>
+		/// <param name="breakpointMethod">Resume method</param>
+		/// <param name="breakpointInstruction">Resume instruction (where the debugger puts a breakpoint)</param>
+		public PdbAsyncStepInfo(Instruction yieldInstruction, MethodDef breakpointMethod, Instruction breakpointInstruction) {
+			YieldInstruction = yieldInstruction;
+			BreakpointMethod = breakpointMethod;
+			BreakpointInstruction = breakpointInstruction;
+		}
+	}
+
+	/// <summary>
+	/// Iterator method
+	/// </summary>
+	public sealed class PdbIteratorMethodCustomDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.AsyncMethod"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind {
+			get { return PdbCustomDebugInfoKind.AsyncMethod; }
+		}
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid {
+			get { return Guid.Empty; }
+		}
+
+		/// <summary>
+		/// Gets the kickoff method
+		/// </summary>
+		public MethodDef KickoffMethod { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbIteratorMethodCustomDebugInfo() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="kickoffMethod">Kickoff method</param>
+		public PdbIteratorMethodCustomDebugInfo(MethodDef kickoffMethod) {
+			KickoffMethod = kickoffMethod;
 		}
 	}
 }

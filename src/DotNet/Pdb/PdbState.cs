@@ -188,7 +188,7 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
-			if (reader == null || body == null)
+			if (reader == null)
 				return;
 
 			SymbolMethod method;
@@ -201,13 +201,8 @@ namespace dnlib.DotNet.Pdb {
 				pdbMethod.Scope = CreateScope(module, GenericParamContext.Create(ownerMethod), body, method.RootScope);
 				AddSequencePoints(body, method);
 
-				if (method.IsAsyncMethod)
-					pdbMethod.AsyncMethod = CreateAsyncMethod(module, ownerMethod, body, method);
-				if (method.IsIteratorMethod)
-					pdbMethod.IteratorMethod = CreateIteratorMethod(module, ownerMethod, body, method);
-
 				// Read the custom debug info last so eg. local names have been initialized
-				reader.GetCustomDebugInfos(ownerMethod, body, customDebugInfos);
+				method.GetCustomDebugInfos(ownerMethod, body, customDebugInfos);
 
 				body.PdbMethod = pdbMethod;
 			}
@@ -234,85 +229,6 @@ namespace dnlib.DotNet.Pdb {
 			return Compiler.Other;
 		}
 		static readonly UTF8String nameAssemblyVisualBasic = new UTF8String("Microsoft.VisualBasic");
-
-		PdbAsyncMethod CreateAsyncMethod(ModuleDefMD module, MethodDef method, CilBody body, SymbolMethod symMethod) {
-			var kickoffToken = new MDToken(symMethod.AsyncKickoffMethod);
-			if (kickoffToken.Table != Table.Method)
-				return null;
-			var kickoffMethod = module.ResolveMethod(kickoffToken.Rid);
-
-			var asyncStepInfos = symMethod.AsyncStepInfos;
-
-			var asyncMethod = new PdbAsyncMethod(asyncStepInfos.Count);
-			asyncMethod.KickoffMethod = kickoffMethod;
-
-			var catchHandlerILOffset = symMethod.AsyncCatchHandlerILOffset;
-			if (catchHandlerILOffset != null) {
-				asyncMethod.CatchHandlerInstruction = GetInstruction(body, catchHandlerILOffset.Value);
-				Debug.Assert(asyncMethod.CatchHandlerInstruction != null);
-			}
-
-			foreach (var rawInfo in asyncStepInfos) {
-				var yieldInstruction = GetInstruction(body, rawInfo.YieldOffset);
-				Debug.Assert(yieldInstruction != null);
-				if (yieldInstruction == null)
-					continue;
-				MethodDef breakpointMethod;
-				Instruction breakpointInstruction;
-				if (method.MDToken.Raw == rawInfo.BreakpointMethod) {
-					breakpointMethod = method;
-					breakpointInstruction = GetInstruction(body, rawInfo.BreakpointOffset);
-				}
-				else {
-					var breakpointMethodToken = new MDToken(rawInfo.BreakpointMethod);
-					Debug.Assert(breakpointMethodToken.Table == Table.Method);
-					if (breakpointMethodToken.Table != Table.Method)
-						continue;
-					breakpointMethod = module.ResolveMethod(breakpointMethodToken.Rid);
-					Debug.Assert(breakpointMethod != null);
-					if (breakpointMethod == null)
-						continue;
-					breakpointInstruction = GetInstruction(breakpointMethod.Body, rawInfo.BreakpointOffset);
-				}
-				Debug.Assert(breakpointInstruction != null);
-				if (breakpointInstruction == null)
-					continue;
-
-				asyncMethod.StepInfos.Add(new PdbAsyncStepInfo(yieldInstruction, breakpointMethod, breakpointInstruction));
-			}
-
-			return asyncMethod;
-		}
-
-		PdbIteratorMethod CreateIteratorMethod(ModuleDefMD module, MethodDef method, CilBody body, SymbolMethod symMethod) {
-			var kickoffToken = new MDToken(symMethod.IteratorKickoffMethod);
-			if (kickoffToken.Table != Table.Method)
-				return null;
-
-			var iteratorMethod = new PdbIteratorMethod();
-
-			iteratorMethod.KickoffMethod = module.ResolveMethod(kickoffToken.Rid);
-
-			return iteratorMethod;
-		}
-
-		Instruction GetInstruction(CilBody body, uint offset) {
-			if (body == null)
-				return null;
-			var instructions = body.Instructions;
-			int lo = 0, hi = instructions.Count - 1;
-			while (lo <= hi && hi != -1) {
-				int i = (lo + hi) / 2;
-				var instr = instructions[i];
-				if (instr.Offset == offset)
-					return instr;
-				if (offset < instr.Offset)
-					hi = i - 1;
-				else
-					lo = i + 1;
-			}
-			return null;
-		}
 
 		void AddSequencePoints(CilBody body, SymbolMethod method) {
 			int instrIndex = 0;
@@ -501,11 +417,13 @@ do_return:
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
 			Debug.Assert(token.Table != Table.Method, "Methods get initialized when reading the method bodies");
-			reader.GetCustomDebugInfos(token.ToInt32(), gpContext, result);
+			if (reader != null)
+				reader.GetCustomDebugInfos(token.ToInt32(), gpContext, result);
 		}
 
 		internal void Dispose() {
-			reader.Dispose();
+			if (reader != null)
+				reader.Dispose();
 		}
 	}
 

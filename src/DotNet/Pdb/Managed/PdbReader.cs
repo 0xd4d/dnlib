@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
@@ -132,6 +131,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			functions = new Dictionary<int, DbiFunction>();
 			foreach (var module in modules) {
 				foreach (var func in module.Functions) {
+					func.reader = this;
 					functions.Add(func.Token, func);
 				}
 			}
@@ -351,14 +351,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 			get { return (int)entryPt; }
 		}
 
-		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+		internal void GetCustomDebugInfos(DbiFunction symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			const string CDI_NAME = "MD2";
-			DbiFunction func;
-			bool b = functions.TryGetValue(method.MDToken.ToInt32(), out func);
-			Debug.Assert(b);
-			if (!b)
-				return;
-			var cdiData = func.Root.GetSymAttribute(CDI_NAME);
+			var asyncMethod = PseudoCustomDebugInfoFactory.TryCreateAsyncMethod(method.Module, method, body, symMethod.AsyncKickoffMethod, symMethod.AsyncStepInfos, symMethod.AsyncCatchHandlerILOffset);
+			if (asyncMethod != null)
+				result.Add(asyncMethod);
+
+			var cdiData = symMethod.Root.GetSymAttribute(CDI_NAME);
 			if (cdiData == null)
 				return;
 			PdbCustomDebugInfoReader.Read(method, body, result, cdiData);

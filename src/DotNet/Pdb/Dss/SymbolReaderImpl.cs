@@ -67,10 +67,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (hr == E_FAIL)
 				return null;
 			Marshal.ThrowExceptionForHR(hr);
-			return unMethod == null ? null : new SymbolMethodImpl(unMethod);
+			return unMethod == null ? null : new SymbolMethodImpl(this, unMethod);
 		}
 
-		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+		internal void GetCustomDebugInfos(SymbolMethodImpl symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+			var asyncMethod = PseudoCustomDebugInfoFactory.TryCreateAsyncMethod(method.Module, method, body, symMethod.AsyncKickoffMethod, symMethod.AsyncStepInfos, symMethod.AsyncCatchHandlerILOffset);
+			if (asyncMethod != null)
+				result.Add(asyncMethod);
+
 			const string CDI_NAME = "MD2";
 			uint bufSize;
 			reader.GetSymAttribute(method.MDToken.Raw, CDI_NAME, 0, out bufSize, null);

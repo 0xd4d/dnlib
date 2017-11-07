@@ -96,28 +96,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var rootScope = ReadScope(methodRid, gpContext);
 
 			var kickoffMethod = GetKickoffMethod(methodRid);
-			bool isAsyncMethod = kickoffMethod != 0 && IsAsyncMethod(method);
-			bool isIteratorMethod = kickoffMethod != 0 && !isAsyncMethod;
-			int iteratorKickoffMethod = isIteratorMethod ? kickoffMethod : 0;
-			int asyncKickoffMethod = isAsyncMethod ? kickoffMethod : 0;
-			uint? asyncCatchHandlerILOffset = null;
-			var asyncStepInfos = emptySymbolAsyncStepInfos;
-			var symbolMethod = new SymbolMethodImpl(method.MDToken.ToInt32(), rootScope, sequencePoints, iteratorKickoffMethod, asyncKickoffMethod, asyncCatchHandlerILOffset, asyncStepInfos);
+			var symbolMethod = new SymbolMethodImpl(this, method.MDToken.ToInt32(), rootScope, sequencePoints, kickoffMethod);
 			rootScope.method = symbolMethod;
 			return symbolMethod;
 		}
 		static readonly SymbolAsyncStepInfo[] emptySymbolAsyncStepInfos = new SymbolAsyncStepInfo[0];
-
-		static bool IsAsyncMethod(MethodDef method) {
-			foreach (var iface in method.DeclaringType.Interfaces) {
-				if (iface.Interface.Name != stringIAsyncStateMachine)
-					continue;
-				if (iface.Interface.FullName == "System.Runtime.CompilerServices.IAsyncStateMachine")
-					return true;
-			}
-			return false;
-		}
-		static readonly UTF8String stringIAsyncStateMachine = new UTF8String("IAsyncStateMachine");
 
 		int GetKickoffMethod(uint methodRid) {
 			uint rid = pdbMetaData.GetStateMachineMethodRid(methodRid);
@@ -355,16 +338,53 @@ namespace dnlib.DotNet.Pdb.Portable {
 			scope.SetConstants(pdbMetaData, constantList, constantListEnd);
 		}
 
-		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+		internal void GetCustomDebugInfos(SymbolMethodImpl symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			Debug.Assert(method.Module == module);
-			GetCustomDebugInfos(method.MDToken.ToInt32(), GenericParamContext.Create(method), result, method, body);
+			PdbAsyncMethodSteppingInformationCustomDebugInfo asyncStepInfo;
+			GetCustomDebugInfos(method.MDToken.ToInt32(), GenericParamContext.Create(method), result, method, body, out asyncStepInfo);
+			if (asyncStepInfo != null) {
+				var asyncMethod = TryCreateAsyncMethod(module, symMethod.KickoffMethod, asyncStepInfo.AsyncStepInfos, asyncStepInfo.CatchHandler);
+				Debug.Assert(asyncMethod != null);
+				if (asyncMethod != null)
+					result.Add(asyncMethod);
+			}
+			else if (symMethod.KickoffMethod != 0) {
+				var iteratorMethod = TryCreateIteratorMethod(module, symMethod.KickoffMethod);
+				Debug.Assert(iteratorMethod != null);
+				if (iteratorMethod != null)
+					result.Add(iteratorMethod);
+			}
+		}
+
+		PdbAsyncMethodCustomDebugInfo TryCreateAsyncMethod(ModuleDef module, int asyncKickoffMethod, IList<PdbAsyncStepInfo> asyncStepInfos, Instruction asyncCatchHandler) {
+			var kickoffToken = new MDToken(asyncKickoffMethod);
+			if (kickoffToken.Table != Table.Method)
+				return null;
+
+			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(asyncStepInfos.Count);
+			asyncMethod.KickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
+			asyncMethod.CatchHandlerInstruction = asyncCatchHandler;
+			foreach (var info in asyncStepInfos)
+				asyncMethod.StepInfos.Add(info);
+			return asyncMethod;
+		}
+
+		PdbIteratorMethodCustomDebugInfo TryCreateIteratorMethod(ModuleDef module, int iteratorKickoffMethod) {
+			var kickoffToken = new MDToken(iteratorKickoffMethod);
+			if (kickoffToken.Table != Table.Method)
+				return null;
+			var kickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
+			return new PdbIteratorMethodCustomDebugInfo(kickoffMethod);
 		}
 
 		public override void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
-			GetCustomDebugInfos(token, gpContext, result, null, null);
+			PdbAsyncMethodSteppingInformationCustomDebugInfo asyncStepInfo;
+			GetCustomDebugInfos(token, gpContext, result, null, null, out asyncStepInfo);
+			Debug.Assert(asyncStepInfo == null);
 		}
 
-		void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result, MethodDef methodOpt, CilBody bodyOpt) {
+		void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result, MethodDef methodOpt, CilBody bodyOpt, out PdbAsyncMethodSteppingInformationCustomDebugInfo asyncStepInfo) {
+			asyncStepInfo = null;
 			var mdToken = new MDToken(token);
 			var ridList = pdbMetaData.GetCustomDebugInformationRidList(mdToken.Table, mdToken.Rid);
 			if (ridList.Count == 0)
@@ -381,8 +401,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 					continue;
 				var cdi = PortablePdbCustomDebugInfoReader.Read(module, typeOpt, bodyOpt, gpContext, guid.Value, data);
 				Debug.Assert(cdi != null);
-				if (cdi != null)
-					result.Add(cdi);
+				if (cdi != null) {
+					var asyncStepInfoTmp = cdi as PdbAsyncMethodSteppingInformationCustomDebugInfo;
+					if (asyncStepInfoTmp != null) {
+						Debug.Assert(asyncStepInfo == null);
+						asyncStepInfo = asyncStepInfoTmp;
+					}
+					else
+						result.Add(cdi);
+				}
 			}
 		}
 

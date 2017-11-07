@@ -3,16 +3,19 @@
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.Threading;
+using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolMethodImpl : SymbolMethod {
+		readonly SymbolReaderImpl reader;
 		readonly ISymUnmanagedMethod method;
 		readonly ISymUnmanagedAsyncMethod asyncMethod;
 
-		public SymbolMethodImpl(ISymUnmanagedMethod method) {
+		public SymbolMethodImpl(SymbolReaderImpl reader, ISymUnmanagedMethod method) {
+			this.reader = reader;
 			this.method = method;
-			this.asyncMethod = method as ISymUnmanagedAsyncMethod;
+			asyncMethod = method as ISymUnmanagedAsyncMethod;
 		}
 
 		public override int Token {
@@ -70,11 +73,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile SymbolSequencePoint[] sequencePoints;
 
-		public override int IteratorKickoffMethod {
-			get { return 0; }
-		}
-
-		public override int AsyncKickoffMethod {
+		public int AsyncKickoffMethod {
 			get {
 				if (asyncMethod == null || !asyncMethod.IsAsyncMethod())
 					return 0;
@@ -82,7 +81,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override uint? AsyncCatchHandlerILOffset {
+		public uint? AsyncCatchHandlerILOffset {
 			get {
 				if (asyncMethod == null || !asyncMethod.IsAsyncMethod())
 					return null;
@@ -92,7 +91,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override IList<SymbolAsyncStepInfo> AsyncStepInfos {
+		public IList<SymbolAsyncStepInfo> AsyncStepInfos {
 			get {
 				if (asyncMethod == null || !asyncMethod.IsAsyncMethod())
 					return null;
@@ -111,5 +110,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 		volatile SymbolAsyncStepInfo[] asyncStepInfos;
+
+		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+			reader.GetCustomDebugInfos(this, method, body, result);
+		}
 	}
 }

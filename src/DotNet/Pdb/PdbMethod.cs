@@ -11,16 +11,6 @@ namespace dnlib.DotNet.Pdb {
 		public PdbScope Scope { get; set; }
 
 		/// <summary>
-		/// Gets/sets the async method info or null if there's none
-		/// </summary>
-		public PdbAsyncMethod AsyncMethod { get; set; }
-
-		/// <summary>
-		/// Gets/sets the iterator method info or null if there's none
-		/// </summary>
-		public PdbIteratorMethod IteratorMethod { get; set; }
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbMethod() {

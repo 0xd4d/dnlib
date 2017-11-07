@@ -1,17 +1,16 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
+using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	sealed class SymbolMethodImpl : SymbolMethod {
+		readonly PortablePdbReader reader;
 		readonly int token;
 		readonly SymbolScope rootScope;
 		readonly SymbolSequencePoint[] sequencePoints;
-		readonly int iteratorKickoffMethod;
-		readonly int asyncKickoffMethod;
-		readonly uint? asyncCatchHandlerILOffset;
-		readonly SymbolAsyncStepInfo[] asyncStepInfos;
+		readonly int kickoffMethod;
 
 		public override int Token {
 			get { return token; }
@@ -25,30 +24,20 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return sequencePoints; }
 		}
 
-		public override int IteratorKickoffMethod {
-			get { return iteratorKickoffMethod; }
+		public int KickoffMethod {
+			get { return kickoffMethod; }
 		}
 
-		public override int AsyncKickoffMethod {
-			get { return asyncKickoffMethod; }
-		}
-
-		public override uint? AsyncCatchHandlerILOffset {
-			get { return asyncCatchHandlerILOffset; }
-		}
-
-		public override IList<SymbolAsyncStepInfo> AsyncStepInfos {
-			get { return asyncStepInfos; }
-		}
-
-		public SymbolMethodImpl(int token, SymbolScope rootScope, SymbolSequencePoint[] sequencePoints, int iteratorKickoffMethod, int asyncKickoffMethod, uint? asyncCatchHandlerILOffset, SymbolAsyncStepInfo[] asyncStepInfos) {
+		public SymbolMethodImpl(PortablePdbReader reader, int token, SymbolScope rootScope, SymbolSequencePoint[] sequencePoints, int kickoffMethod) {
+			this.reader = reader;
 			this.token = token;
 			this.rootScope = rootScope;
 			this.sequencePoints = sequencePoints;
-			this.iteratorKickoffMethod = iteratorKickoffMethod;
-			this.asyncKickoffMethod = asyncKickoffMethod;
-			this.asyncCatchHandlerILOffset = asyncCatchHandlerILOffset;
-			this.asyncStepInfos = asyncStepInfos;
+			this.kickoffMethod = kickoffMethod;
+		}
+
+		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+			reader.GetCustomDebugInfos(this, method, body, result);
 		}
 	}
 }

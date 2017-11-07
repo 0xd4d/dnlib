@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
@@ -11,6 +12,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			get { return token; }
 		}
 		internal int token;
+
+		internal PdbReader reader;
 
 		public string Name { get; private set; }
 		public PdbAddress Address { get; private set; }
@@ -64,12 +67,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 		static readonly SymbolSequencePoint[] emptySymbolSequencePoints = new SymbolSequencePoint[0];
 
-		public override int IteratorKickoffMethod {
-			get { return 0; }
-		}
-
 		const string asyncMethodInfoAttributeName = "asyncMethodInfo";
-		public override int AsyncKickoffMethod {
+		public int AsyncKickoffMethod {
 			get {
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				if (data == null)
@@ -78,7 +77,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		public override uint? AsyncCatchHandlerILOffset {
+		public uint? AsyncCatchHandlerILOffset {
 			get {
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				if (data == null)
@@ -88,7 +87,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		public override IList<SymbolAsyncStepInfo> AsyncStepInfos {
+		public IList<SymbolAsyncStepInfo> AsyncStepInfos {
 			get {
 				if (asyncStepInfos == null)
 					asyncStepInfos = CreateSymbolAsyncStepInfos();
@@ -116,5 +115,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return res;
 		}
 		static readonly SymbolAsyncStepInfo[] emptySymbolAsyncStepInfos = new SymbolAsyncStepInfo[0];
+
+		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
+			reader.GetCustomDebugInfos(this, method, body, result);
+		}
 	}
 }

@@ -47,6 +47,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (pdbStream == null)
 				throw new ArgumentNullException("pdbStream");
 			this.writer = writer;
+			this.asyncMethodWriter = writer as ISymUnmanagedAsyncMethodPropertiesWriter;
 			this.pdbStream = pdbStream;
 			this.pdbFileName = pdbFileName;
 		}

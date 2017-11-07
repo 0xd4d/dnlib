@@ -41,14 +41,6 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Reads custom debug info
 		/// </summary>
-		/// <param name="method">Method</param>
-		/// <param name="body">Method body</param>
-		/// <param name="result">Updated with custom debug info</param>
-		public abstract void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result);
-
-		/// <summary>
-		/// Reads custom debug info
-		/// </summary>
 		/// <param name="token">Token of a <see cref="IHasCustomDebugInformation"/> instance</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="result">Updated with custom debug info</param>

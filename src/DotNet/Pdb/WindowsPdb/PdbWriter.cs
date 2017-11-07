@@ -99,6 +99,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		public void Write() {
 			writer.SetUserEntryPoint(new SymbolToken(GetUserEntryPointToken()));
 
+			var cdiBuilder = new List<PdbCustomDebugInfo>();
 			foreach (var type in module.GetTypes()) {
 				if (type == null)
 					continue;
@@ -107,7 +108,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						continue;
 					if (!ShouldAddMethod(method))
 						continue;
-					Write(method);
+					Write(method, cdiBuilder);
 				}
 			}
 		}
@@ -224,7 +225,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 		}
 
-		void Write(MethodDef method) {
+		void Write(MethodDef method, List<PdbCustomDebugInfo> cdiBuilder) {
 			uint rid = metaData.GetRid(method);
 			if (rid == 0) {
 				Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, module);
@@ -261,14 +262,15 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				WriteScope(ref info, scope, 0);
 			}
 
-			if (method.CustomDebugInfos.Count != 0) {
+			PdbAsyncMethodCustomDebugInfo asyncMethod;
+			GetPseudoCustomDebugInfos(method.CustomDebugInfos, cdiBuilder, out asyncMethod);
+			if (cdiBuilder.Count != 0) {
 				customDebugInfoWriterContext.Logger = GetLogger();
-				var cdiData = PdbCustomDebugInfoWriter.Write(metaData, method, customDebugInfoWriterContext, method.CustomDebugInfos);
+				var cdiData = PdbCustomDebugInfoWriter.Write(metaData, method, customDebugInfoWriterContext, cdiBuilder);
 				if (cdiData != null)
 					writer.SetSymAttribute(symbolToken, "MD2", cdiData);
 			}
 
-			var asyncMethod = pdbMethod.AsyncMethod;
 			if (asyncMethod != null) {
 				if (writer3 == null || !writer3.SupportsAsyncMethods)
 					Error("PDB symbol writer doesn't support writing async methods");
@@ -279,6 +281,28 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.CloseMethod();
 		}
 
+		void GetPseudoCustomDebugInfos(IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo asyncMethod) {
+			cdiBuilder.Clear();
+			asyncMethod = null;
+			foreach (var cdi in customDebugInfos) {
+				switch (cdi.Kind) {
+				case PdbCustomDebugInfoKind.AsyncMethod:
+					if (asyncMethod != null)
+						Error("Duplicate async method custom debug info");
+					else
+						asyncMethod = (PdbAsyncMethodCustomDebugInfo)cdi;
+					break;
+
+				default:
+					if ((uint)cdi.Kind > byte.MaxValue)
+						Error("Custom debug info {0} isn't supported by Windows PDB files", cdi.Kind);
+					else
+						cdiBuilder.Add(cdi);
+					break;
+				}
+			}
+		}
+
 		uint GetMethodToken(MethodDef method) {
 			uint rid = metaData.GetRid(method);
 			if (rid == 0)
@@ -286,7 +310,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return new MDToken(MD.Table.Method, rid).Raw;
 		}
 
-		void WriteAsyncMethod(ref CurrentMethod info, PdbAsyncMethod asyncMethod) {
+		void WriteAsyncMethod(ref CurrentMethod info, PdbAsyncMethodCustomDebugInfo asyncMethod) {
 			if (asyncMethod.KickoffMethod == null) {
 				Error("KickoffMethod is null");
 				return;
