@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using dnlib.DotNet.Emit;
-using dnlib.DotNet.MD;
 using dnlib.IO;
 using dnlib.Threading;
 
@@ -40,23 +39,6 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
-		public static PdbCustomDebugInfo ReadPortablePdb(ModuleDef module, TypeDef typeOpt, CilBody bodyOpt, GenericParamContext gpContext, Guid kind, byte[] data) {
-			try {
-				using (var reader = new PdbCustomDebugInfoReader(module, typeOpt, bodyOpt, gpContext, MemoryImageStream.Create(data))) {
-					var cdi = reader.ReadPortablePdb(kind);
-					Debug.Assert(reader.reader.Position == reader.reader.Length);
-					return cdi;
-				}
-			}
-			catch (ArgumentException) {
-			}
-			catch (OutOfMemoryException) {
-			}
-			catch (IOException) {
-			}
-			return null;
-		}
-
 		readonly ModuleDef module;
 		readonly TypeDef typeOpt;
 		readonly CilBody bodyOpt;
@@ -69,146 +51,6 @@ namespace dnlib.DotNet.Pdb {
 			bodyOpt = body;
 			gpContext = GenericParamContext.Create(method);
 			this.reader = reader;
-		}
-
-		PdbCustomDebugInfoReader(ModuleDef module, TypeDef typeOpt, CilBody bodyOpt, GenericParamContext gpContext, IBinaryReader reader) {
-			this.module = module;
-			this.typeOpt = typeOpt;
-			this.bodyOpt = bodyOpt;
-			this.gpContext = gpContext;
-			this.reader = reader;
-		}
-
-		PdbCustomDebugInfo ReadPortablePdb(Guid kind) {
-			if (kind == CustomDebugInfoGuids.AsyncMethodSteppingInformationBlob)
-				return ReadAsyncMethodSteppingInformationBlob();
-			if (kind == CustomDebugInfoGuids.DefaultNamespace)
-				return ReadDefaultNamespace();
-			if (kind == CustomDebugInfoGuids.DynamicLocalVariables)
-				return ReadDynamicLocalVariables(reader.Length);
-			if (kind == CustomDebugInfoGuids.EmbeddedSource)
-				return ReadEmbeddedSource();
-			if (kind == CustomDebugInfoGuids.EncLambdaAndClosureMap)
-				return ReadEncLambdaAndClosureMap(reader.Length);
-			if (kind == CustomDebugInfoGuids.EncLocalSlotMap)
-				return ReadEncLocalSlotMap(reader.Length);
-			if (kind == CustomDebugInfoGuids.SourceLink)
-				return ReadSourceLink();
-			if (kind == CustomDebugInfoGuids.StateMachineHoistedLocalScopes)
-				return ReadStateMachineHoistedLocalScopes_PortablePDB();
-			if (kind == CustomDebugInfoGuids.TupleElementNames)
-				return ReadTupleElementNames_PortablePDB();
-			Debug.Fail("Unknown custom debug info guid: " + kind.ToString());
-			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingBytes());
-		}
-
-		PdbCustomDebugInfo ReadAsyncMethodSteppingInformationBlob() {
-			if (bodyOpt == null)
-				return null;
-			uint catchHandlerOffset = reader.ReadUInt32() - 1;
-			Instruction catchHandler;
-			if (catchHandlerOffset == uint.MaxValue)
-				catchHandler = null;
-			else {
-				catchHandler = GetInstruction(catchHandlerOffset);
-				Debug.Assert(catchHandler != null);
-				if (catchHandler == null)
-					return null;
-			}
-			var asyncInfo = new PdbAsyncMethodSteppingInformationCustomDebugInfo();
-			asyncInfo.CatchHandler = catchHandler;
-			while (reader.Position < reader.Length) {
-				var yieldInstr = GetInstruction(reader.ReadUInt32());
-				Debug.Assert(yieldInstr != null);
-				if (yieldInstr == null)
-					return null;
-				uint resumeOffset = reader.ReadUInt32();
-				var moveNextRid = reader.ReadCompressedUInt32();
-				var moveNextToken = new MDToken(Table.Method, moveNextRid);
-				MethodDef moveNextMethod;
-				Instruction resumeInstr;
-				if (gpContext.Method != null && moveNextToken == gpContext.Method.MDToken) {
-					moveNextMethod = gpContext.Method;
-					resumeInstr = GetInstruction(resumeOffset);
-				}
-				else {
-					moveNextMethod = module.ResolveToken(moveNextToken, gpContext) as MethodDef;
-					Debug.Assert(moveNextMethod != null);
-					if (moveNextMethod == null)
-						return null;
-					resumeInstr = GetInstruction(moveNextMethod, resumeOffset);
-				}
-				Debug.Assert(resumeInstr != null);
-				if (resumeInstr == null)
-					return null;
-				asyncInfo.AsyncStepInfos.Add(new PdbAsyncStepInfo(yieldInstr, moveNextMethod, resumeInstr));
-			}
-			return asyncInfo;
-		}
-
-		PdbCustomDebugInfo ReadDefaultNamespace() {
-			var defaultNs = Encoding.UTF8.GetString(reader.ReadRemainingBytes());
-			return new PdbDefaultNamespaceCustomDebugInfo(defaultNs);
-		}
-
-		PdbCustomDebugInfo ReadDynamicLocalVariables(long recPosEnd) {
-			var flags = new bool[(int)reader.Length * 8];
-			int w = 0;
-			while (reader.Position < reader.Length) {
-				int b = reader.ReadByte();
-				for (int i = 1; i < 0x100; i <<= 1)
-					flags[w++] = (b & i) != 0;
-			}
-			return new PdbDynamicLocalVariablesCustomDebugInfo(flags);
-		}
-
-		PdbCustomDebugInfo ReadEmbeddedSource() {
-			return new PdbEmbeddedSourceCustomDebugInfo(reader.ReadRemainingBytes());
-		}
-
-		PdbCustomDebugInfo ReadEncLambdaAndClosureMap(long recPosEnd) {
-			var data = reader.ReadBytes((int)(recPosEnd - reader.Position));
-			return new PdbEditAndContinueLambdaMapCustomDebugInfo(data);
-		}
-
-		PdbCustomDebugInfo ReadEncLocalSlotMap(long recPosEnd) {
-			var data = reader.ReadBytes((int)(recPosEnd - reader.Position));
-			return new PdbEditAndContinueLocalSlotMapCustomDebugInfo(data);
-		}
-
-		PdbCustomDebugInfo ReadSourceLink() {
-			return new PdbSourceLinkCustomDebugInfo(reader.ReadRemainingBytes());
-		}
-
-		PdbCustomDebugInfo ReadStateMachineHoistedLocalScopes_PortablePDB() {
-			if (bodyOpt == null)
-				return null;
-			int count = (int)(reader.Length / 8);
-			var smScope = new PdbStateMachineHoistedLocalScopesCustomDebugInfo(count);
-			for (int i = 0; i < count; i++) {
-				uint startOffset = reader.ReadUInt32();
-				uint length = reader.ReadUInt32();
-				if (startOffset == 0 && length == 0)
-					smScope.Scopes.Add(new StateMachineHoistedLocalScope());
-				else {
-					var start = GetInstruction(startOffset);
-					var end = GetInstruction(startOffset + length);
-					Debug.Assert(start != null);
-					if (start == null)
-						return null;
-					smScope.Scopes.Add(new StateMachineHoistedLocalScope(start, end));
-				}
-			}
-			return smScope;
-		}
-
-		PdbCustomDebugInfo ReadTupleElementNames_PortablePDB() {
-			var tupleListRec = new PortablePdbTupleElementNamesCustomDebugInfo();
-			while (reader.Position < reader.Length) {
-				var name = ReadUTF8Z(reader.Length);
-				tupleListRec.Names.Add(name);
-			}
-			return tupleListRec;
 		}
 
 		void Read(IList<PdbCustomDebugInfo> result) {
@@ -360,10 +202,12 @@ namespace dnlib.DotNet.Pdb {
 				return dynLocListRec;
 
 			case PdbCustomDebugInfoKind.EditAndContinueLocalSlotMap:
-				return ReadEncLocalSlotMap(recPosEnd);
+				data = reader.ReadBytes((int)(recPosEnd - reader.Position));
+				return new PdbEditAndContinueLocalSlotMapCustomDebugInfo(data);
 
 			case PdbCustomDebugInfoKind.EditAndContinueLambdaMap:
-				return ReadEncLambdaAndClosureMap(recPosEnd);
+				data = reader.ReadBytes((int)(recPosEnd - reader.Position));
+				return new PdbEditAndContinueLambdaMapCustomDebugInfo(data);
 
 			case PdbCustomDebugInfoKind.TupleElementNames:
 				if (bodyOpt == null)
@@ -480,27 +324,6 @@ namespace dnlib.DotNet.Pdb {
 
 		Instruction GetInstruction(uint offset) {
 			var instructions = bodyOpt.Instructions;
-			int lo = 0, hi = instructions.Count - 1;
-			while (lo <= hi && hi != -1) {
-				int i = (lo + hi) / 2;
-				var instr = instructions[i];
-				if (instr.Offset == offset)
-					return instr;
-				if (offset < instr.Offset)
-					hi = i - 1;
-				else
-					lo = i + 1;
-			}
-			return null;
-		}
-
-		static Instruction GetInstruction(MethodDef method, uint offset) {
-			if (method == null)
-				return null;
-			var body = method.Body;
-			if (body == null)
-				return null;
-			var instructions = body.Instructions;
 			int lo = 0, hi = instructions.Count - 1;
 			while (lo <= hi && hi != -1) {
 				int i = (lo + hi) / 2;

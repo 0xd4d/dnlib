@@ -200,6 +200,7 @@
     <Compile Include="DotNet\Pdb\Portable\ImportScopeBlobReader.cs" />
     <Compile Include="DotNet\Pdb\Portable\ListCache.cs" />
     <Compile Include="DotNet\Pdb\Portable\LocalConstantSigBlobReader.cs" />
+    <Compile Include="DotNet\Pdb\Portable\PortablePdbCustomDebugInfoReader.cs" />
     <Compile Include="DotNet\Pdb\Portable\PortablePdbReader.cs" />
     <Compile Include="DotNet\Pdb\Portable\SymbolDocumentImpl.cs" />
     <Compile Include="DotNet\Pdb\Portable\SymbolMethodImpl.cs" />

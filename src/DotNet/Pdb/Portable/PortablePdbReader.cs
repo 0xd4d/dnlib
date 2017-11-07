@@ -379,7 +379,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				Debug.Assert(guid != null && data != null);
 				if (guid == null || data == null)
 					continue;
-				var cdi = PdbCustomDebugInfoReader.ReadPortablePdb(module, typeOpt, bodyOpt, gpContext, guid.Value, data);
+				var cdi = PortablePdbCustomDebugInfoReader.Read(module, typeOpt, bodyOpt, gpContext, guid.Value, data);
 				Debug.Assert(cdi != null);
 				if (cdi != null)
 					result.Add(cdi);
