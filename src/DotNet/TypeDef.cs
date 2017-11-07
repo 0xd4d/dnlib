@@ -7,7 +7,6 @@ using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
 using dnlib.Threading;
-using System.Text;
 using dnlib.DotNet.Pdb;
 
 #if THREAD_SAFE

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
 

@@ -2,7 +2,6 @@
 
 using System;
 using dnlib.IO;
-using dnlib.PE;
 using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {

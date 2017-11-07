@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
-using System.Threading;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.Threading;
 

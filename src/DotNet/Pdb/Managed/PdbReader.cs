@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using System.Threading;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;

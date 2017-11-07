@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;

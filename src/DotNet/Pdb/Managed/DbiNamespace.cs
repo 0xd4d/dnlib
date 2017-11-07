@@ -1,6 +1,5 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-﻿using System;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Managed {

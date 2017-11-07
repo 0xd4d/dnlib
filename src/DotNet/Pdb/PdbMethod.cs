@@ -1,13 +1,5 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
-
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// A PDB method
