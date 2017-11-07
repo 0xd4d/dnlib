@@ -175,11 +175,10 @@
     <Compile Include="DotNet\ModuleRef.cs" />
     <Compile Include="DotNet\NativeType.cs" />
     <Compile Include="DotNet\NullResolver.cs" />
-    <Compile Include="DotNet\Pdb\CorSymVarFlag.cs" />
-    <Compile Include="DotNet\Pdb\CustomDebugInfoConstants.cs" />
     <Compile Include="DotNet\Pdb\CustomDebugInfoGuids.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolReaderImpl.cs" />
     <Compile Include="DotNet\Pdb\ImageStreamUtils.cs" />
+    <Compile Include="DotNet\Pdb\IMAGE_DEBUG_DIRECTORY.cs" />
     <Compile Include="DotNet\Pdb\ManagedSymbolReaderCreator.cs" />
     <Compile Include="DotNet\Pdb\Managed\NumericLeaf.cs" />
     <Compile Include="DotNet\Pdb\Managed\NumericReader.cs" />
@@ -187,8 +186,6 @@
     <Compile Include="DotNet\Pdb\PdbAsyncMethod.cs" />
     <Compile Include="DotNet\Pdb\PdbConstant.cs" />
     <Compile Include="DotNet\Pdb\PdbCustomDebugInfo.cs" />
-    <Compile Include="DotNet\Pdb\PdbCustomDebugInfoReader.cs" />
-    <Compile Include="DotNet\Pdb\PdbCustomDebugInfoWriter.cs" />
     <Compile Include="DotNet\Pdb\PdbFileKind.cs" />
     <Compile Include="DotNet\Pdb\PdbImport.cs" />
     <Compile Include="DotNet\Pdb\PdbIteratorMethod.cs" />
@@ -215,6 +212,13 @@
     <Compile Include="DotNet\Pdb\Symbols\SymbolScope.cs" />
     <Compile Include="DotNet\Pdb\Symbols\SymbolSequencePoint.cs" />
     <Compile Include="DotNet\Pdb\Symbols\SymbolVariable.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\CorSymVarFlag.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\CustomDebugInfoConstants.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\ISymbolWriter2.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoReader.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoWriter.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\PdbWriter.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\SymbolWriterCreator.cs" />
     <Compile Include="DotNet\PInvokeAttributes.cs" />
     <Compile Include="DotNet\ParamAttributes.cs" />
     <Compile Include="DotNet\ParamDef.cs" />
@@ -233,7 +237,6 @@
     <Compile Include="DotNet\Pdb\Dss\SymbolVariableImpl.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolWriter.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolWriterCreator.cs" />
-    <Compile Include="DotNet\Pdb\ISymbolWriter2.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiDocument.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiFunction.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiModule.cs" />
@@ -250,10 +253,8 @@
     <Compile Include="DotNet\Pdb\PdbImplType.cs" />
     <Compile Include="DotNet\Pdb\PdbScope.cs" />
     <Compile Include="DotNet\Pdb\PdbState.cs" />
-    <Compile Include="DotNet\Pdb\PdbWriter.cs" />
     <Compile Include="DotNet\Pdb\SequencePoint.cs" />
     <Compile Include="DotNet\Pdb\SymbolReaderCreator.cs" />
-    <Compile Include="DotNet\Pdb\SymbolWriterCreator.cs" />
     <Compile Include="DotNet\PropertyAttributes.cs" />
     <Compile Include="DotNet\PropertyDef.cs" />
     <Compile Include="DotNet\PublicKey.cs" />

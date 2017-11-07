@@ -12,7 +12,7 @@ using dnlib.DotNet.Emit;
 using dnlib.IO;
 using dnlib.Threading;
 
-namespace dnlib.DotNet.Pdb {
+namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// <summary>
 	/// Reads custom debug infos produced by the C# and Visual Basic compilers. They're stored in PDB files
 	/// as PDB method custom attributes with the name "MD2".

@@ -1,6 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using dnlib.DotNet.Pdb.Symbols;
+using dnlib.DotNet.Pdb.WindowsPdb;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolVariableImpl : SymbolVariable {

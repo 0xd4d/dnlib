@@ -4,23 +4,7 @@ using System;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Writer;
 
-namespace dnlib.DotNet.Pdb {
-	/// <summary>
-	/// IMAGE_DEBUG_DIRECTORY
-	/// </summary>
-	public struct IMAGE_DEBUG_DIRECTORY {
-#pragma warning disable 1591
-		public uint Characteristics;
-		public uint TimeDateStamp;
-		public ushort MajorVersion;
-		public ushort MinorVersion;
-		public uint Type;
-		public uint SizeOfData;
-		public uint AddressOfRawData;
-		public uint PointerToRawData;
-#pragma warning restore 1591
-	}
-
+namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// <summary>
 	/// Implements <see cref="ISymbolWriter"/> and adds a few extra methods we need that are part of
 	/// <c>ISymUnmanagedWriter</c> and <c>ISymUnmanagedWriter2</c> but not present in

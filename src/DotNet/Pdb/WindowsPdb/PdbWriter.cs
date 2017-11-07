@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.Pdb.WindowsPdb;
 using dnlib.DotNet.Writer;
 
-namespace dnlib.DotNet.Pdb {
+namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// <summary>
 	/// PDB writer
 	/// </summary>

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
+using dnlib.DotNet.Pdb.WindowsPdb;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolReaderImpl : SymbolReader {

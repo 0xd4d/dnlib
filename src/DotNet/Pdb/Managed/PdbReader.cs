@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
+using dnlib.DotNet.Pdb.WindowsPdb;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {

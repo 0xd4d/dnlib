@@ -9,6 +9,7 @@ using dnlib.PE;
 using dnlib.W32Resources;
 using dnlib.DotNet.MD;
 using System.Diagnostics;
+using dnlib.DotNet.Pdb.WindowsPdb;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>

@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using dnlib.DotNet.Pdb.WindowsPdb;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	/// <summary>

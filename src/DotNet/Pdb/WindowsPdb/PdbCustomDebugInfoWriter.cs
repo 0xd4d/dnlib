@@ -10,7 +10,7 @@ using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 
-namespace dnlib.DotNet.Pdb {
+namespace dnlib.DotNet.Pdb.WindowsPdb {
 	sealed class PdbCustomDebugInfoWriterContext {
 		public ILogger Logger;
 		public readonly MemoryStream MemoryStream;

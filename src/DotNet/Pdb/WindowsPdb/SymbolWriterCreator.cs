@@ -2,11 +2,11 @@
 
 using System.IO;
 
-namespace dnlib.DotNet.Pdb {
+namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// <summary>
 	/// Creates a <see cref="ISymbolWriter2"/>
 	/// </summary>
-	public static class SymbolWriterCreator {
+	static class SymbolWriterCreator {
 		/// <summary>
 		/// Creates a new <see cref="ISymbolWriter2"/> instance
 		/// </summary>
