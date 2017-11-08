@@ -1,58 +1,47 @@
 // dnlib: See LICENSE.txt for more info
 
-using System;
-﻿using System.IO;
+using System.Collections.Generic;
+using System.IO;
 using dnlib.DotNet.Pdb;
 using dnlib.IO;
 using dnlib.PE;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
+	/// Debug directory entry
+	/// </summary>
+	public sealed class DebugDirectoryEntry {
+		/// <summary>
+		/// Gets the header
+		/// </summary>
+		public IMAGE_DEBUG_DIRECTORY DebugDirectory;
+
+		/// <summary>
+		/// Gets the data
+		/// </summary>
+		public readonly IChunk Chunk;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="chunk">Data</param>
+		public DebugDirectoryEntry(IChunk chunk) {
+			Chunk = chunk;
+		}
+	}
+
+	/// <summary>
 	/// Debug directory chunk
 	/// </summary>
 	public sealed class DebugDirectory : IChunk {
+		/// <summary>Default debug directory alignment</summary>
+		public const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
+		const int HEADER_SIZE = 28;
+
 		FileOffset offset;
 		RVA rva;
-		bool dontWriteAnything;
 		uint length;
-		internal IMAGE_DEBUG_DIRECTORY debugDirData;
-		uint timeDateStamp;
-		byte[] data;
-
-		/// <summary>
-		/// Size of <see cref="IMAGE_DEBUG_DIRECTORY"/>
-		/// </summary>
-		public const int HEADER_SIZE = 28;
-
-		/// <summary>
-		/// Gets/sets the time date stamp that should be written. This should be the same time date
-		/// stamp that is written to the PE header.
-		/// </summary>
-		public uint TimeDateStamp {
-			get { return timeDateStamp; }
-			set { timeDateStamp = value; }
-		}
-
-		/// <summary>
-		/// Gets/sets the raw debug data
-		/// </summary>
-		public byte[] Data {
-			get { return data; }
-			set { data = value; }
-		}
-
-		/// <summary>
-		/// Set it to <c>true</c> if eg. the PDB file couldn't be created. If <c>true</c>, the size
-		/// of this chunk will be 0.
-		/// </summary>
-		public bool DontWriteAnything {
-			get { return dontWriteAnything; }
-			set {
-				if (length != 0)
-					throw new InvalidOperationException("SetOffset() has already been called");
-				dontWriteAnything = value;
-			}
-		}
+		readonly List<DebugDirectoryEntry> entries;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
@@ -64,20 +53,39 @@ namespace dnlib.DotNet.Writer {
 			get { return rva; }
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public DebugDirectory() {
+			entries = new List<DebugDirectoryEntry>();
+		}
+
+		/// <summary>
+		/// Adds data
+		/// </summary>
+		/// <param name="chunk">Data</param>
+		/// <returns></returns>
+		public DebugDirectoryEntry Add(IChunk chunk) {
+			var entry = new DebugDirectoryEntry(chunk);
+			entries.Add(entry);
+			return entry;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
 
-			length = HEADER_SIZE;
-			if (data != null)	// Could be null if dontWriteAnything is true
-				length += (uint)data.Length;
+			length = HEADER_SIZE * (uint)entries.Count;
+			foreach (var entry in entries) {
+				length = Utils.AlignUp(length, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
+				entry.Chunk.SetOffset(offset + length, rva + length);
+				length += entry.Chunk.GetFileLength();
+			}
 		}
 
 		/// <inheritdoc/>
 		public uint GetFileLength() {
-			if (dontWriteAnything)
-				return 0;
 			return length;
 		}
 
@@ -88,18 +96,31 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			if (dontWriteAnything)
-				return;
+			uint offset = 0;
+			foreach (var entry in entries) {
+				var debugDirData = entry.DebugDirectory;
+				writer.Write(debugDirData.Characteristics);
+				writer.Write(debugDirData.TimeDateStamp);
+				writer.Write(debugDirData.MajorVersion);
+				writer.Write(debugDirData.MinorVersion);
+				writer.Write((uint)debugDirData.Type);
+				writer.Write(entry.Chunk.GetVirtualSize());
+				writer.Write((uint)entry.Chunk.RVA);
+				writer.Write((uint)entry.Chunk.FileOffset);
+				offset += HEADER_SIZE;
+			}
 
-			writer.Write(debugDirData.Characteristics);
-			writer.Write(timeDateStamp);
-			writer.Write(debugDirData.MajorVersion);
-			writer.Write(debugDirData.MinorVersion);
-			writer.Write(debugDirData.Type);
-			writer.Write(debugDirData.SizeOfData);
-			writer.Write((uint)rva + HEADER_SIZE);
-			writer.Write((uint)offset + HEADER_SIZE);
-			writer.Write(data);
+			foreach (var entry in entries) {
+				WriteAlign(writer, ref offset);
+				entry.Chunk.VerifyWriteTo(writer);
+				offset += entry.Chunk.GetFileLength();
+			}
+		}
+
+		static void WriteAlign(BinaryWriter writer, ref uint offs) {
+			uint align = Utils.AlignUp(offs, DEFAULT_DEBUGDIRECTORY_ALIGNMENT) - offs;
+			offs += align;
+			writer.WriteZeros((int)align);
 		}
 	}
 }

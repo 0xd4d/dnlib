@@ -46,7 +46,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Boolean;
 				value = reader.ReadBoolean();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -54,7 +54,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Char;
 				value = (char)reader.ReadUInt16();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.SByte;
 				value = reader.ReadSByte();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Byte;
 				value = reader.ReadByte();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -78,7 +78,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Int16;
 				value = reader.ReadInt16();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.UInt16;
 				value = reader.ReadUInt16();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -94,7 +94,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Int32;
 				value = reader.ReadInt32();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -102,7 +102,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.UInt32;
 				value = reader.ReadUInt32();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -110,7 +110,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Int64;
 				value = reader.ReadInt64();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -118,7 +118,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.UInt64;
 				value = reader.ReadUInt64();
 				if (reader.Position < reader.Length)
-					type = new ValueTypeSig(ReadTypeDefOrRef());
+					type = ReadTypeDefOrRefSig();
 				res = true;
 				break;
 
@@ -140,7 +140,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 				res = true;
 				break;
 
-
 			case ElementType.Ptr:
 				res = Read(out type, out value);
 				if (res)
@@ -160,7 +159,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				break;
 
 			case ElementType.ValueType:
-				type = new ValueTypeSig(tdr = ReadTypeDefOrRef());
+				tdr = ReadTypeDefOrRef();
+				type = tdr.ToTypeSig();
 				value = null;
 				if (GetName(tdr, out ns, out name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
 					if (name == stringDecimal) {
@@ -262,12 +262,25 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return false;
 		}
 
+		TypeSig ReadTypeDefOrRefSig() {
+			uint codedToken;
+			if (!reader.ReadCompressedUInt32(out codedToken))
+				return null;
+			ISignatureReaderHelper helper = module;
+			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);
+			return tdr.ToTypeSig();
+		}
+
 		ITypeDefOrRef ReadTypeDefOrRef() {
 			uint codedToken;
 			if (!reader.ReadCompressedUInt32(out codedToken))
 				return null;
 			ISignatureReaderHelper helper = module;
-			return helper.ResolveTypeDefOrRef(codedToken, gpContext);
+			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);
+			var corType = module.CorLibTypes.GetCorLibTypeSig(tdr);
+			if (corType != null)
+				return corType.TypeDefOrRef;
+			return tdr;
 		}
 
 		string ReadString() {

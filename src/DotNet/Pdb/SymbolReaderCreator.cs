@@ -93,7 +93,7 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
-		internal static SymbolReader Create(PdbImplType pdbImpl, MetaData metaData) {
+		internal static SymbolReader Create(PdbImplType pdbImpl, IMetaData metaData) {
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return null;

@@ -11,7 +11,8 @@ namespace dnlib.DotNet.Pdb {
 			try {
 				if (!File.Exists(fileName))
 					return null;
-				return ImageStreamCreator.CreateImageStream(fileName);
+				// Don't use memory mapped I/O
+				return MemoryImageStream.Create(File.ReadAllBytes(fileName));
 			}
 			catch (IOException) {
 			}

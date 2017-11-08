@@ -781,7 +781,7 @@ namespace dnlib.DotNet.Pdb {
 	/// 
 	/// It's internal and translated to a <see cref="PdbAsyncMethodCustomDebugInfo"/>
 	/// </summary>
-	internal sealed class PdbAsyncMethodSteppingInformationCustomDebugInfo : PdbCustomDebugInfo {
+	sealed class PdbAsyncMethodSteppingInformationCustomDebugInfo : PdbCustomDebugInfo {
 		readonly ThreadSafe.IList<PdbAsyncStepInfo> asyncStepInfos;
 
 		/// <summary>
@@ -1065,10 +1065,10 @@ namespace dnlib.DotNet.Pdb {
 	/// </summary>
 	public sealed class PdbIteratorMethodCustomDebugInfo : PdbCustomDebugInfo {
 		/// <summary>
-		/// Returns <see cref="PdbCustomDebugInfoKind.AsyncMethod"/>
+		/// Returns <see cref="PdbCustomDebugInfoKind.IteratorMethod"/>
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind {
-			get { return PdbCustomDebugInfoKind.AsyncMethod; }
+			get { return PdbCustomDebugInfoKind.IteratorMethod; }
 		}
 
 		/// <summary>

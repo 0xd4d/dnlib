@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Writer {
 	/// #GUID heap
 	/// </summary>
 	public sealed class GuidHeap : HeapBase, IOffsetHeap<Guid> {
-		readonly List<Guid> guids = new List<Guid>();
+		readonly Dictionary<Guid, uint> guids = new Dictionary<Guid, uint>();
 		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>
@@ -28,15 +28,13 @@ namespace dnlib.DotNet.Writer {
 			if (guid == null)
 				return 0;
 
-			// The number of GUIDs will almost always be 1 so there's no need for a dictionary.
-			// The only table that contains GUIDs is the Module table, and it has three GUID
-			// columns. Only one of them (Mvid) is normally set and the others are null.
-			int index = guids.IndexOf(guid.Value);
-			if (index >= 0)
-				return (uint)index + 1;
+			uint index;
+			if (guids.TryGetValue(guid.Value, out index))
+				return index;
 
-			guids.Add(guid.Value);
-			return (uint)guids.Count;
+			index = (uint)guids.Count + 1;
+			guids.Add(guid.Value, index);
+			return index;
 		}
 
 		/// <inheritdoc/>
@@ -47,10 +45,10 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override void WriteToImpl(BinaryWriter writer) {
 			uint offset = 0;
-			foreach (var guid in guids) {
+			foreach (var kv in guids) {
 				byte[] rawData;
 				if (userRawData == null || !userRawData.TryGetValue(offset, out rawData))
-					rawData = guid.ToByteArray();
+					rawData = kv.Key.ToByteArray();
 				writer.Write(rawData);
 				offset += 16;
 			}
@@ -73,8 +71,8 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
 			uint offset = 0;
-			foreach (var guid in guids) {
-				yield return new KeyValuePair<uint, byte[]>(offset, guid.ToByteArray());
+			foreach (var kv in guids) {
+				yield return new KeyValuePair<uint, byte[]>(offset, kv.Key.ToByteArray());
 				offset += 16;
 			}
 		}

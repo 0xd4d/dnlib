@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Emit;
-using dnlib.DotNet.Pdb.WindowsPdb;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.WindowsPdb {
@@ -13,7 +12,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// PDB writer
 	/// </summary>
 	/// <remarks>This class is not thread safe because it's a writer class</remarks>
-	public sealed class PdbWriter : IDisposable {
+	public sealed class WindowsPdbWriter : IDisposable {
 		ISymbolWriter2 writer;
 		ISymbolWriter3 writer3;
 		readonly PdbState pdbState;
@@ -36,7 +35,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="writer">Symbol writer, it should implement <see cref="ISymbolWriter3"/></param>
 		/// <param name="pdbState">PDB state</param>
 		/// <param name="metaData">Meta data</param>
-		public PdbWriter(ISymbolWriter2 writer, PdbState pdbState, MetaData metaData)
+		public WindowsPdbWriter(ISymbolWriter2 writer, PdbState pdbState, MetaData metaData)
 			: this(pdbState, metaData) {
 			if (writer == null)
 				throw new ArgumentNullException("writer");
@@ -56,7 +55,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="writer">Symbol writer</param>
 		/// <param name="pdbState">PDB state</param>
 		/// <param name="metaData">Meta data</param>
-		public PdbWriter(ISymbolWriter3 writer, PdbState pdbState, MetaData metaData)
+		public WindowsPdbWriter(ISymbolWriter3 writer, PdbState pdbState, MetaData metaData)
 			: this(pdbState, metaData) {
 			if (writer == null)
 				throw new ArgumentNullException("writer");
@@ -69,7 +68,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.Initialize(metaData);
 		}
 
-		PdbWriter(PdbState pdbState, MetaData metaData) {
+		WindowsPdbWriter(PdbState pdbState, MetaData metaData) {
 			this.pdbState = pdbState;
 			this.metaData = metaData;
 			this.module = metaData.Module;
@@ -145,7 +144,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			int[] endLines;
 			int[] endColumns;
 
-			public void Write(PdbWriter pdbWriter, IList<Instruction> instrs) {
+			public void Write(WindowsPdbWriter pdbWriter, IList<Instruction> instrs) {
 				checkedPdbDocs.Clear();
 				while (true) {
 					PdbDocument currPdbDoc = null;
@@ -196,12 +195,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		struct CurrentMethod {
-			readonly PdbWriter pdbWriter;
+			readonly WindowsPdbWriter pdbWriter;
 			public readonly MethodDef Method;
 			readonly Dictionary<Instruction, uint> toOffset;
 			public readonly uint BodySize;
 
-			public CurrentMethod(PdbWriter pdbWriter, MethodDef method, Dictionary<Instruction, uint> toOffset) {
+			public CurrentMethod(WindowsPdbWriter pdbWriter, MethodDef method, Dictionary<Instruction, uint> toOffset) {
 				this.pdbWriter = pdbWriter;
 				Method = method;
 				this.toOffset = toOffset;

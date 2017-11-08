@@ -98,6 +98,17 @@ namespace dnlib.DotNet.MD {
 							continue;
 						}
 						break;
+
+					case "#PDB":
+						// Case sensitive comparison since it's a stream that's not read by the CLR,
+						// only by other libraries eg. System.Reflection.Metadata.
+						if (isStandalonePortablePdb && pdbStream == null && sh.Name == "#Pdb") {
+							pdbStream = new PdbStream(imageStream, sh);
+							imageStream = null;
+							allStreams.Add(pdbStream);
+							continue;
+						}
+						break;
 					}
 					dns = new DotNetStream(imageStream, sh);
 					imageStream = null;
@@ -116,7 +127,11 @@ namespace dnlib.DotNet.MD {
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
-			tablesStream.Initialize(null);
+
+			if (pdbStream != null)
+				tablesStream.Initialize(pdbStream.TypeSystemTableRows);
+			else
+				tablesStream.Initialize(null);
 
 			// The pointer tables are used iff row count != 0
 			hasFieldPtr = !tablesStream.FieldPtrTable.IsEmpty;

@@ -428,7 +428,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteDataDirectory(null);	// Exception table
 			writer.WriteDataDirectory(null);	// Certificate table
 			writer.WriteDataDirectory(RelocDirectory);
-			writer.WriteDataDirectory(DebugDirectory, DebugDirectory.HEADER_SIZE);
+			writer.WriteDataDirectory(DebugDirectory);
 			writer.WriteDataDirectory(null);	// Architecture-specific data
 			writer.WriteDataDirectory(null);	// Global pointer register RVA
 			writer.WriteDataDirectory(null);	// Thread local storage

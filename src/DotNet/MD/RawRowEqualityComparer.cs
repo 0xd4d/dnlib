@@ -30,7 +30,11 @@ namespace dnlib.DotNet.MD {
 		IEqualityComparer<RawAssemblyRefOSRow>, IEqualityComparer<RawFileRow>,
 		IEqualityComparer<RawExportedTypeRow>, IEqualityComparer<RawManifestResourceRow>,
 		IEqualityComparer<RawNestedClassRow>, IEqualityComparer<RawGenericParamRow>,
-		IEqualityComparer<RawMethodSpecRow>, IEqualityComparer<RawGenericParamConstraintRow> {
+		IEqualityComparer<RawMethodSpecRow>, IEqualityComparer<RawGenericParamConstraintRow>,
+		IEqualityComparer<RawDocumentRow>, IEqualityComparer<RawMethodDebugInformationRow>,
+		IEqualityComparer<RawLocalScopeRow>, IEqualityComparer<RawLocalVariableRow>,
+		IEqualityComparer<RawLocalConstantRow>, IEqualityComparer<RawImportScopeRow>,
+		IEqualityComparer<RawStateMachineMethodRow>, IEqualityComparer<RawCustomDebugInformationRow> {
 
 		/// <summary>
 		/// Default instance
@@ -573,6 +577,102 @@ namespace dnlib.DotNet.MD {
 		public int GetHashCode(RawGenericParamConstraintRow obj) {
 			return (int)obj.Owner +
 				rol(obj.Constraint, 3);
+		}
+
+		public bool Equals(RawDocumentRow x, RawDocumentRow y) {
+			return x.Name == y.Name &&
+				x.HashAlgorithm == y.HashAlgorithm &&
+				x.Hash == y.Hash &&
+				x.Language == y.Language;
+		}
+
+		public int GetHashCode(RawDocumentRow obj) {
+			return (int)obj.Name +
+				rol(obj.HashAlgorithm, 3) +
+				rol(obj.Hash, 7) +
+				rol(obj.Language, 11);
+		}
+
+		public bool Equals(RawMethodDebugInformationRow x, RawMethodDebugInformationRow y) {
+			return x.Document == y.Document &&
+				x.SequencePoints == y.SequencePoints;
+		}
+
+		public int GetHashCode(RawMethodDebugInformationRow obj) {
+			return (int)obj.Document +
+				rol(obj.SequencePoints, 3);
+		}
+
+		public bool Equals(RawLocalScopeRow x, RawLocalScopeRow y) {
+			return x.Method == y.Method &&
+				x.ImportScope == y.ImportScope &&
+				x.VariableList == y.VariableList &&
+				x.ConstantList == y.ConstantList &&
+				x.StartOffset == y.StartOffset &&
+				x.Length == y.Length;
+		}
+
+		public int GetHashCode(RawLocalScopeRow obj) {
+			return (int)obj.Method +
+				rol(obj.ImportScope, 3) +
+				rol(obj.VariableList, 7) +
+				rol(obj.ConstantList, 11) +
+				rol(obj.StartOffset, 15) +
+				rol(obj.Length, 19);
+		}
+
+		public bool Equals(RawLocalVariableRow x, RawLocalVariableRow y) {
+			return x.Attributes == y.Attributes &&
+				x.Index == y.Index &&
+				x.Name == y.Name;
+		}
+
+		public int GetHashCode(RawLocalVariableRow obj) {
+			return obj.Attributes +
+				rol(obj.Index, 3) +
+				rol(obj.Name, 7);
+		}
+
+		public bool Equals(RawLocalConstantRow x, RawLocalConstantRow y) {
+			return x.Name == y.Name &&
+				x.Signature == y.Signature;
+		}
+
+		public int GetHashCode(RawLocalConstantRow obj) {
+			return (int)obj.Name +
+				rol(obj.Signature, 3);
+		}
+
+		public bool Equals(RawImportScopeRow x, RawImportScopeRow y) {
+			return x.Parent == y.Parent &&
+				x.Imports == y.Imports;
+		}
+
+		public int GetHashCode(RawImportScopeRow obj) {
+			return (int)obj.Parent +
+				rol(obj.Imports, 3);
+		}
+
+		public bool Equals(RawStateMachineMethodRow x, RawStateMachineMethodRow y) {
+			return x.MoveNextMethod == y.MoveNextMethod &&
+				x.KickoffMethod == y.KickoffMethod;
+		}
+
+		public int GetHashCode(RawStateMachineMethodRow obj) {
+			return (int)obj.MoveNextMethod +
+				rol(obj.KickoffMethod, 3);
+		}
+
+		public bool Equals(RawCustomDebugInformationRow x, RawCustomDebugInformationRow y) {
+			return x.Parent == y.Parent &&
+				x.Kind == y.Kind &&
+				x.Value == y.Value;
+		}
+
+		public int GetHashCode(RawCustomDebugInformationRow obj) {
+			return (int)obj.Parent +
+				rol(obj.Kind, 3) +
+				rol(obj.Value, 7);
 		}
 	}
 }

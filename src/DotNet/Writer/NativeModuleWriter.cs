@@ -253,7 +253,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(methodBodies, DEFAULT_METHODBODIES_ALIGNMENT);
 			textSection.Add(netResources, DEFAULT_NETRESOURCES_ALIGNMENT);
 			textSection.Add(metaData, DEFAULT_METADATA_ALIGNMENT);
-			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
+			textSection.Add(debugDirectory, DebugDirectory.DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			if (rsrcSection != null)
 				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 		}
@@ -341,6 +341,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long WriteFile() {
+			uint entryPointToken;
+			bool entryPointIsManagedOrNoEntryPoint = GetEntryPoint(out entryPointToken);
+
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePdb);
 			WritePdbFile();
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePdb);
@@ -367,7 +370,7 @@ namespace dnlib.DotNet.Writer {
 			var writer = new BinaryWriter(destStream);
 			WriteChunks(writer, chunks, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 			long imageLength = writer.BaseStream.Position - destStreamBaseOffset;
-			UpdateHeaderFields(writer);
+			UpdateHeaderFields(writer, entryPointIsManagedOrNoEntryPoint, entryPointToken);
 			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
@@ -411,7 +414,7 @@ namespace dnlib.DotNet.Writer {
 		/// Updates the PE header and COR20 header fields that need updating. All sections are
 		/// also updated, and the new ones are added.
 		/// </summary>
-		void UpdateHeaderFields(BinaryWriter writer) {
+		void UpdateHeaderFields(BinaryWriter writer, bool entryPointIsManagedOrNoEntryPoint, uint entryPointToken) {
 			long fileHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.FileHeader.StartOffset;
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
 			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
@@ -512,7 +515,7 @@ namespace dnlib.DotNet.Writer {
 
 			// Write a new debug directory
 			writer.BaseStream.Position = dataDirOffset + 6 * 8;
-			writer.WriteDataDirectory(debugDirectory, DebugDirectory.HEADER_SIZE);
+			writer.WriteDataDirectory(debugDirectory);
 
 			// Write a new Metadata data directory
 			writer.BaseStream.Position = dataDirOffset + 14 * 8;
@@ -534,9 +537,8 @@ namespace dnlib.DotNet.Writer {
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MajorRuntimeVersion);
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MinorRuntimeVersion);
 			writer.WriteDataDirectory(metaData);
-			uint entryPoint;
-			writer.Write((uint)GetComImageFlags(GetEntryPoint(out entryPoint)));
-			writer.Write(Options.Cor20HeaderOptions.EntryPoint ?? entryPoint);
+			writer.Write((uint)GetComImageFlags(entryPointIsManagedOrNoEntryPoint));
+			writer.Write(entryPointToken);
 			writer.WriteDataDirectory(netResources);
 			writer.WriteDataDirectory(strongNameSignature);
 			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.CodeManagerTable);
@@ -699,6 +701,12 @@ namespace dnlib.DotNet.Writer {
 		/// <returns><c>true</c> if it's a managed entry point or there's no entry point,
 		/// <c>false</c> if it's a native entry point</returns>
 		bool GetEntryPoint(out uint ep) {
+			var tok = Options.Cor20HeaderOptions.EntryPoint;
+			if (tok != null) {
+				ep = tok.Value;
+				return ep == 0 || ((Options.Cor20HeaderOptions.Flags ?? 0) & ComImageFlags.NativeEntryPoint) == 0;
+			}
+
 			var epMethod = module.ManagedEntryPoint as MethodDef;
 			if (epMethod != null) {
 				ep = new MDToken(Table.Method, metaData.GetRid(epMethod)).Raw;

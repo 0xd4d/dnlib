@@ -1,5 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using dnlib.PE;
+
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// IMAGE_DEBUG_DIRECTORY
@@ -10,7 +12,7 @@ namespace dnlib.DotNet.Pdb {
 		public uint TimeDateStamp;
 		public ushort MajorVersion;
 		public ushort MinorVersion;
-		public uint Type;
+		public ImageDebugType Type;
 		public uint SizeOfData;
 		public uint AddressOfRawData;
 		public uint PointerToRawData;

@@ -74,5 +74,10 @@
 		/// ECMA 2005 version string
 		/// </summary>
 		public const string ECMA_2005 = "Standard CLI 2005";
+
+		/// <summary>
+		/// Portable PDB v1.0
+		/// </summary>
+		public const string PORTABLE_PDB_V1_0 = "PDB v1.0";
 	}
 }

@@ -14,5 +14,10 @@ namespace dnlib.DotNet.Pdb {
 		/// Portable PDB
 		/// </summary>
 		PortablePDB,
+
+		/// <summary>
+		/// Embedded portable PDB
+		/// </summary>
+		EmbeddedPortablePDB,
 	}
 }

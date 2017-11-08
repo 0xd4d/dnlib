@@ -62,6 +62,11 @@ namespace dnlib.PE {
 		IList<ImageSectionHeader> ImageSectionHeaders { get; }
 
 		/// <summary>
+		/// Returns the debug directories
+		/// </summary>
+		IList<ImageDebugDirectory> ImageDebugDirectories { get; }
+
+		/// <summary>
 		/// Gets/sets the Win32 resources. This is <c>null</c> if there are no Win32 resources.
 		/// </summary>
 		Win32Resources Win32Resources { get; set; }

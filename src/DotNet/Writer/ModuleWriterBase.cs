@@ -10,6 +10,8 @@ using dnlib.W32Resources;
 using dnlib.DotNet.MD;
 using System.Diagnostics;
 using dnlib.DotNet.Pdb.WindowsPdb;
+using System.Text;
+using System.IO.Compression;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -187,11 +189,9 @@ namespace dnlib.DotNet.Writer {
 		public Stream PdbStream { get; set; }
 
 		/// <summary>
-		/// If <see cref="PdbFileName"/> or <see cref="PdbStream"/> aren't enough, this can be used
-		/// to create a new <see cref="ISymbolWriter3"/> instance. <see cref="WritePdb"/> must be
-		/// <c>true</c> or this property is ignored.
+		/// GUID used by some PDB writers, eg. portable PDB writer. It's initialized to a random GUID.
 		/// </summary>
-		public CreatePdbSymbolWriterDelegate CreatePdbSymbolWriter { get; set; }
+		public Guid PdbGuid { get; set; }
 
 		/// <summary>
 		/// Default constructor
@@ -199,6 +199,7 @@ namespace dnlib.DotNet.Writer {
 		protected ModuleWriterOptionsBase() {
 			ShareMethodBodies = true;
 			ModuleKind = ModuleKind.Windows;
+			PdbGuid = Guid.NewGuid();
 		}
 
 		/// <summary>
@@ -216,6 +217,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="listener">Module writer listener</param>
 		protected ModuleWriterOptionsBase(ModuleDef module, IModuleWriterListener listener) {
 			this.listener = listener;
+			PdbGuid = Guid.NewGuid();
 			ShareMethodBodies = true;
 			MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
 			ModuleKind = module.Kind;
@@ -327,13 +329,6 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
-	/// Creates a new <see cref="ISymbolWriter2"/> instance
-	/// </summary>
-	/// <param name="writer">Module writer</param>
-	/// <returns>A new <see cref="ISymbolWriter2"/> instance</returns>
-	public delegate ISymbolWriter2 CreatePdbSymbolWriterDelegate(ModuleWriterBase writer);
-
-	/// <summary>
 	/// Module writer base class
 	/// </summary>
 	public abstract class ModuleWriterBase : IMetaDataListener, ILogger {
@@ -351,8 +346,6 @@ namespace dnlib.DotNet.Writer {
 		protected const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
 		/// <summary>Default COR20 header alignment</summary>
 		protected const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
-		/// <summary>Default debug directory alignment</summary>
-		protected const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
 
 		/// <summary>See <see cref="DestinationStream"/></summary>
 		protected Stream destStream;
@@ -472,6 +465,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// null if we're not writing a PDB
+		/// </summary>
+		PdbState pdbState;
+
+		/// <summary>
 		/// Writes the module to a file
 		/// </summary>
 		/// <param name="fileName">File name. The file will be truncated if it exists.</param>
@@ -505,6 +503,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		public void Write(Stream dest) {
+			pdbState = TheOptions.WritePdb && Module.PdbState != null ? Module.PdbState : null;
 			if (TheOptions.DelaySign) {
 				Debug.Assert(TheOptions.StrongNamePublicKey != null, "Options.StrongNamePublicKey must be initialized when delay signing the assembly");
 				Debug.Assert(TheOptions.StrongNameKey == null, "Options.StrongNameKey must be null when delay signing the assembly");
@@ -563,7 +562,12 @@ namespace dnlib.DotNet.Writer {
 			methodBodies = new MethodBodyChunks(TheOptions.ShareMethodBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
 
-			metaData = MetaData.Create(module, constants, methodBodies, netResources, TheOptions.MetaDataOptions);
+			DebugMetaDataKind debugKind;
+			if (pdbState != null && (pdbState.PdbFileKind == PdbFileKind.PortablePDB || pdbState.PdbFileKind == PdbFileKind.EmbeddedPortablePDB))
+				debugKind = DebugMetaDataKind.Standalone;
+			else
+				debugKind = DebugMetaDataKind.None;
+			metaData = MetaData.Create(module, constants, methodBodies, netResources, TheOptions.MetaDataOptions, debugKind);
 			metaData.Logger = TheOptions.MetaDataLogger ?? this;
 			metaData.Listener = this;
 
@@ -630,7 +634,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		bool CanWritePdb() {
-			return TheOptions.WritePdb && Module.PdbState != null;
+			return pdbState != null;
 		}
 
 		/// <summary>
@@ -651,33 +655,52 @@ namespace dnlib.DotNet.Writer {
 			if (debugDirectory == null)
 				throw new InvalidOperationException("debugDirectory is null but WritePdb is true");
 
-			var pdbState = Module.PdbState;
 			if (pdbState == null) {
 				Error("TheOptions.WritePdb is true but module has no PdbState");
-				debugDirectory.DontWriteAnything = true;
 				return;
 			}
 
-			var symWriter = GetSymbolWriter2();
+			try {
+				switch (pdbState.PdbFileKind) {
+				case PdbFileKind.WindowsPDB:
+					WriteWindowsPdb(pdbState);
+					break;
+
+				case PdbFileKind.PortablePDB:
+					WritePortablePdb(pdbState, false);
+					break;
+
+				case PdbFileKind.EmbeddedPortablePDB:
+					WritePortablePdb(pdbState, true);
+					break;
+
+				default:
+					Error("Invalid PDB file kind {0}", pdbState.PdbFileKind);
+					break;
+				}
+			}
+			catch {
+				DeleteFileNoThrow(createdPdbFileName);
+				throw;
+			}
+		}
+
+		void WriteWindowsPdb(PdbState pdbState) {
+			var symWriter = GetWindowsPdbSymbolWriter();
 			if (symWriter == null) {
 				Error("Could not create a PDB symbol writer. A Windows OS might be required.");
-				debugDirectory.DontWriteAnything = true;
 				return;
 			}
 
-			var pdbWriter = new PdbWriter(symWriter, pdbState, metaData);
-			try {
+			using (var pdbWriter = new WindowsPdbWriter(symWriter, pdbState, metaData)) {
 				pdbWriter.Logger = TheOptions.Logger;
 				pdbWriter.Write();
 
-				debugDirectory.Data = pdbWriter.GetDebugInfo(out debugDirectory.debugDirData);
-				debugDirectory.TimeDateStamp = GetTimeDateStamp();
-				pdbWriter.Dispose();
-			}
-			catch {
-				pdbWriter.Dispose();
-				DeleteFileNoThrow(createdPdbFileName);
-				throw;
+				IMAGE_DEBUG_DIRECTORY idd;
+				var data = pdbWriter.GetDebugInfo(out idd);
+				var entry = debugDirectory.Add(new ByteArrayChunk(data));
+				entry.DebugDirectory = idd;
+				entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
 			}
 		}
 
@@ -689,13 +712,7 @@ namespace dnlib.DotNet.Writer {
 			return (uint)TheOptions.PEHeadersOptions.TimeDateStamp;
 		}
 
-		ISymbolWriter2 GetSymbolWriter2() {
-			if (TheOptions.CreatePdbSymbolWriter != null) {
-				var writer = TheOptions.CreatePdbSymbolWriter(this);
-				if (writer != null)
-					return writer;
-			}
-
+		ISymbolWriter2 GetWindowsPdbSymbolWriter() {
 			if (TheOptions.PdbStream != null) {
 				return SymbolWriterCreator.Create(TheOptions.PdbStream,
 							TheOptions.PdbFileName ??
@@ -719,14 +736,127 @@ namespace dnlib.DotNet.Writer {
 			return fs == null ? null : fs.Name;
 		}
 
+		static string GetModuleName(ModuleDef module) {
+			var name = module.Name ?? string.Empty;
+			if (string.IsNullOrEmpty(name))
+				return null;
+			if (name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".netmodule", StringComparison.OrdinalIgnoreCase))
+				return name;
+			return name + ".pdb";
+		}
+
 		string GetDefaultPdbFileName() {
-			var destFileName = GetStreamName(destStream);
+			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
 			if (string.IsNullOrEmpty(destFileName)) {
 				Error("TheOptions.WritePdb is true but it's not possible to guess the default PDB file name. Set PdbFileName to the name of the PDB file.");
 				return null;
 			}
 
 			return Path.ChangeExtension(destFileName, "pdb");
+		}
+
+		void WritePortablePdb(PdbState pdbState, bool isEmbeddedPortablePdb) {
+			bool ownsStream = false;
+			Stream pdbStream = null;
+			try {
+				MemoryStream embeddedMemoryStream = null;
+				if (isEmbeddedPortablePdb) {
+					pdbStream = embeddedMemoryStream = new MemoryStream();
+					ownsStream = true;
+				}
+				else
+					pdbStream = GetStandalonePortablePdbStream(out ownsStream);
+
+				var pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
+				if (isEmbeddedPortablePdb)
+					pdbFilename = Path.GetFileName(pdbFilename);
+
+				uint entryPointToken;
+				if (pdbState.UserEntryPoint == null)
+					entryPointToken = 0;
+				else
+					entryPointToken = new MDToken(Table.Method, metaData.GetRid(pdbState.UserEntryPoint)).Raw;
+
+				var pdbId = new byte[20];
+				var pdbIdWriter = new BinaryWriter(new MemoryStream(pdbId));
+				var pdbGuid = TheOptions.PdbGuid;
+				pdbIdWriter.Write(pdbGuid.ToByteArray());
+				pdbIdWriter.Write(GetTimeDateStamp());
+				Debug.Assert(pdbIdWriter.BaseStream.Position == pdbId.Length);
+
+				metaData.WritePortablePdb(pdbStream, entryPointToken, pdbId);
+
+				const uint age = 1;
+				var cvEntry = debugDirectory.Add(new ByteArrayChunk(GetCodeViewData(pdbGuid, age, pdbFilename)));
+				cvEntry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
+				cvEntry.DebugDirectory.MajorVersion = PortablePdbConstants.EmbeddedPortablePdb_FormatVersion;
+				cvEntry.DebugDirectory.MinorVersion = PortablePdbConstants.PortableCodeViewVersionMagic;
+				cvEntry.DebugDirectory.Type = ImageDebugType.CodeView;
+
+				if (isEmbeddedPortablePdb) {
+					Debug.Assert(embeddedMemoryStream != null);
+					var embedEntry = debugDirectory.Add(new ByteArrayChunk(CreateEmbeddedPortablePdbBlob(embeddedMemoryStream)));
+					embedEntry.DebugDirectory.TimeDateStamp = 0;
+					embedEntry.DebugDirectory.MajorVersion = PortablePdbConstants.EmbeddedPortablePdb_FormatVersion;
+					embedEntry.DebugDirectory.MinorVersion = PortablePdbConstants.EmbeddedPortablePdb_EmbeddedVersion;
+					embedEntry.DebugDirectory.Type = ImageDebugType.EmbeddedPortablePdb;
+				}
+			}
+			finally {
+				if (ownsStream && pdbStream != null)
+					pdbStream.Dispose();
+			}
+		}
+
+		static byte[] CreateEmbeddedPortablePdbBlob(MemoryStream portablePdbStream) {
+			var compressedData = Compress(portablePdbStream);
+			var data = new byte[4 + 4 + compressedData.Length];
+			var stream = new MemoryStream(data);
+			var writer = new BinaryWriter(stream);
+			writer.Write(0x4244504D);//"MPDB"
+			writer.Write((uint)portablePdbStream.Length);
+			writer.Write(compressedData);
+			Debug.Assert(stream.Position == data.Length);
+			return data;
+		}
+
+		static byte[] Compress(MemoryStream sourceStream) {
+			sourceStream.Position = 0;
+			var destStream = new MemoryStream();
+			using (var deflate = new DeflateStream(destStream, CompressionMode.Compress)) {
+				var source = sourceStream.ToArray();
+				deflate.Write(source, 0, source.Length);
+			}
+			return destStream.ToArray();
+		}
+
+		static byte[] GetCodeViewData(Guid guid, uint age, string filename) {
+			var stream = new MemoryStream();
+			var writer = new BinaryWriter(stream);
+			writer.Write(0x53445352);
+			writer.Write(guid.ToByteArray());
+			writer.Write(age);
+			writer.Write(Encoding.UTF8.GetBytes(filename));
+			writer.Write((byte)0);
+			return stream.ToArray();
+		}
+
+		Stream GetStandalonePortablePdbStream(out bool ownsStream) {
+			if (TheOptions.PdbStream != null) {
+				ownsStream = false;
+				return TheOptions.PdbStream;
+			}
+
+			if (!string.IsNullOrEmpty(TheOptions.PdbFileName))
+				createdPdbFileName = TheOptions.PdbFileName;
+			else
+				createdPdbFileName = GetDefaultPdbFileName();
+			if (createdPdbFileName == null) {
+				ownsStream = false;
+				return null;
+			}
+			ownsStream = true;
+			return File.Create(createdPdbFileName);
 		}
 
 		/// <inheritdoc/>

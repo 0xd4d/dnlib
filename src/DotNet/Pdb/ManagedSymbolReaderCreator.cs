@@ -23,10 +23,13 @@ namespace dnlib.DotNet.Pdb {
 			try {
 				// Embedded pdbs have priority
 				var res = Create(metaData);
-				if (res != null)
+				if (res != null) {
+					if (pdbStream != null)
+						pdbStream.Dispose();
 					return res;
+				}
 
-				return CreateCore(metaData, pdbStream);
+				return CreateCore(pdbStream);
 			}
 			catch {
 				if (pdbStream != null)
@@ -35,14 +38,14 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
-		static SymbolReader CreateCore(IMetaData metaData, IImageStream pdbStream) {
+		static SymbolReader CreateCore(IImageStream pdbStream) {
 			if (pdbStream == null)
 				return null;
 			try {
 				uint sig = pdbStream.ReadUInt32();
 				pdbStream.Position = 0;
 				if (sig == 0x424A5342)
-					return Portable.SymbolReaderCreator.TryCreate(metaData, pdbStream);
+					return Portable.SymbolReaderCreator.TryCreate(pdbStream, false);
 				return Managed.SymbolReaderCreator.Create(pdbStream);
 			}
 			catch (IOException) {

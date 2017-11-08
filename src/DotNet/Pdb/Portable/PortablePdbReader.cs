@@ -12,13 +12,13 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	sealed class PortablePdbReader : SymbolReader {
+		readonly PdbFileKind pdbFileKind;
 		ModuleDef module;
-		readonly IMetaData moduleMetaData;
 		readonly IMetaData pdbMetaData;
 		SymbolDocument[] documents;
 
 		public override PdbFileKind PdbFileKind {
-			get { return PdbFileKind.PortablePDB; }
+			get { return pdbFileKind; }
 		}
 
 		public override int UserEntryPoint {
@@ -29,8 +29,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			get { return documents; }
 		}
 
-		public PortablePdbReader(IMetaData moduleMetaData, IImageStream pdbStream) {
-			this.moduleMetaData = moduleMetaData;
+		public PortablePdbReader(IImageStream pdbStream, PdbFileKind pdbFileKind) {
+			this.pdbFileKind = pdbFileKind;
 			pdbMetaData = MetaDataCreator.CreateStandalonePortablePDB(pdbStream, true);
 		}
 
@@ -106,10 +106,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 			uint rid = pdbMetaData.GetStateMachineMethodRid(methodRid);
 			if (rid == 0)
 				return 0;
+			if (!pdbMetaData.TablesStream.StateMachineMethodTable.IsValidRID(rid))
+				return 0;
 			return 0x06000000 + (int)pdbMetaData.TablesStream.ReadStateMachineMethodRow2(rid);
 		}
 
 		SymbolSequencePoint[] ReadSequencePoints(uint methodRid) {
+			if (!pdbMetaData.TablesStream.MethodDebugInformationTable.IsValidRID(methodRid))
+				return null;
 			uint documentRid;
 			uint sequencePointsOffset = pdbMetaData.TablesStream.ReadMethodDebugInformationRow2(methodRid, out documentRid);
 			if (sequencePointsOffset == 0)
@@ -162,12 +166,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 						if (dlines == 0 && dcolumns == 0) {
 							// hidden-sequence-point-record
 
-							const int HIDDEN_LINE = 0xFEEFEE;
-							const int HIDDEN_COLUMN = 0;
-							symSeqPoint.Line = HIDDEN_LINE;
-							symSeqPoint.EndLine = HIDDEN_LINE;
-							symSeqPoint.Column = HIDDEN_COLUMN;
-							symSeqPoint.EndColumn = HIDDEN_COLUMN;
+							symSeqPoint.Line = SequencePointConstants.HIDDEN_LINE;
+							symSeqPoint.EndLine = SequencePointConstants.HIDDEN_LINE;
+							symSeqPoint.Column = SequencePointConstants.HIDDEN_COLUMN;
+							symSeqPoint.EndColumn = SequencePointConstants.HIDDEN_COLUMN;
 						}
 						else {
 							// sequence-point-record
@@ -273,6 +275,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (i >= MAX)
 					return null;
 				int token = new MDToken(Table.ImportScope, importScope).ToInt32();
+				if (!pdbMetaData.TablesStream.ImportScopeTable.IsValidRID(importScope))
+					return null;
 				uint imports = pdbMetaData.TablesStream.ReadImportScopeRow2(importScope, out importScope);
 				var scope = new PdbImportScope();
 				GetCustomDebugInfos(token, gpContext, scope.CustomDebugInfos);

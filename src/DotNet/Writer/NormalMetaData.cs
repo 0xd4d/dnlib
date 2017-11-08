@@ -24,16 +24,8 @@ namespace dnlib.DotNet.Writer {
 			get { return methodDefInfos.Count; }
 		}
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Module</param>
-		/// <param name="constants">Constants list</param>
-		/// <param name="methodBodies">Method bodies list</param>
-		/// <param name="netResources">.NET resources list</param>
-		/// <param name="options">Options</param>
-		public NormalMetaData(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options)
-			: base(module, constants, methodBodies, netResources, options) {
+		public NormalMetaData(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options, DebugMetaDataKind debugKind, bool isStandaloneDebugMetadata)
+			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
 		}
 
 		/// <inheritdoc/>
@@ -260,6 +252,7 @@ namespace dnlib.DotNet.Writer {
 			rid = tablesHeap.TypeRefTable.Add(row);
 			typeRefInfos.SetRid(tr, rid);
 			AddCustomAttributes(Table.TypeRef, rid, tr);
+			AddCustomDebugInformationList(Table.TypeRef, rid, tr);
 			return rid;
 		}
 
@@ -280,6 +273,7 @@ namespace dnlib.DotNet.Writer {
 			rid = tablesHeap.TypeSpecTable.Add(row);
 			typeSpecInfos.SetRid(ts, rid);
 			AddCustomAttributes(Table.TypeSpec, rid, ts);
+			AddCustomDebugInformationList(Table.TypeSpec, rid, ts);
 			return rid;
 		}
 
@@ -298,6 +292,7 @@ namespace dnlib.DotNet.Writer {
 			rid = tablesHeap.MemberRefTable.Add(row);
 			memberRefInfos.Add(mr, rid);
 			AddCustomAttributes(Table.MemberRef, rid, mr);
+			AddCustomDebugInformationList(Table.MemberRef, rid, mr);
 			return rid;
 		}
 
@@ -314,6 +309,7 @@ namespace dnlib.DotNet.Writer {
 			rid = tablesHeap.StandAloneSigTable.Add(row);
 			standAloneSigInfos.Add(sas, rid);
 			AddCustomAttributes(Table.StandAloneSig, rid, sas);
+			AddCustomDebugInformationList(Table.StandAloneSig, rid, sas);
 			return rid;
 		}
 
@@ -331,6 +327,7 @@ namespace dnlib.DotNet.Writer {
 			rid = tablesHeap.MethodSpecTable.Add(row);
 			methodSpecInfos.Add(ms, rid);
 			AddCustomAttributes(Table.MethodSpec, rid, ms);
+			AddCustomDebugInformationList(Table.MethodSpec, rid, ms);
 			return rid;
 		}
 	}

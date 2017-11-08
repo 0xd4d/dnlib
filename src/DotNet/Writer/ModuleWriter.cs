@@ -227,7 +227,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(methodBodies, DEFAULT_METHODBODIES_ALIGNMENT);
 			textSection.Add(netResources, DEFAULT_NETRESOURCES_ALIGNMENT);
 			textSection.Add(metaData, DEFAULT_METADATA_ALIGNMENT);
-			textSection.Add(debugDirectory, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
+			textSection.Add(debugDirectory, DebugDirectory.DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			textSection.Add(importDirectory, DEFAULT_IMPORTDIRECTORY_ALIGNMENT);
 			textSection.Add(startupStub, DEFAULT_STARTUPSTUB_ALIGNMENT);
 			if (rsrcSection != null)

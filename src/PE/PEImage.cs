@@ -2,9 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using dnlib.IO;
 using dnlib.Utils;
 using dnlib.W32Resources;
-using dnlib.IO;
 using dnlib.Threading;
 
 namespace dnlib.PE {
@@ -97,6 +98,16 @@ namespace dnlib.PE {
 		public IList<ImageSectionHeader> ImageSectionHeaders {
 			get { return peInfo.ImageSectionHeaders; }
 		}
+
+		/// <inheritdoc/>
+		public IList<ImageDebugDirectory> ImageDebugDirectories {
+			get {
+				if (imageDebugDirectories == null)
+					imageDebugDirectories = ReadImageDebugDirectories();
+				return imageDebugDirectories;
+			}
+		}
+		ImageDebugDirectory[] imageDebugDirectories;
 
 		/// <inheritdoc/>
 		public Win32Resources Win32Resources {
@@ -380,5 +391,33 @@ namespace dnlib.PE {
 				return creator == null ? false : creator.IsMemoryMappedIO;
 			}
 		}
+
+		ImageDebugDirectory[] ReadImageDebugDirectories() {
+			try {
+				if (6 >= ImageNTHeaders.OptionalHeader.DataDirectories.Length)
+					return emptyImageDebugDirectories;
+				var dataDir = ImageNTHeaders.OptionalHeader.DataDirectories[6];
+				if (dataDir.VirtualAddress == 0)
+					return emptyImageDebugDirectories;
+				using (var reader = imageStream.Clone()) {
+					if (dataDir.Size > reader.Length)
+						return emptyImageDebugDirectories;
+					int count = (int)(dataDir.Size / 0x1C);
+					if (count == 0)
+						return emptyImageDebugDirectories;
+					reader.Position = (long)ToFileOffset(dataDir.VirtualAddress);
+					if (reader.Position + dataDir.Size > reader.Length)
+						return emptyImageDebugDirectories;
+					var res = new ImageDebugDirectory[count];
+					for (int i = 0; i < res.Length; i++)
+						res[i] = new ImageDebugDirectory(reader, true);
+					return res;
+				}
+			}
+			catch (IOException) {
+			}
+			return emptyImageDebugDirectories;
+		}
+		static readonly ImageDebugDirectory[] emptyImageDebugDirectories = new ImageDebugDirectory[0];
 	}
 }

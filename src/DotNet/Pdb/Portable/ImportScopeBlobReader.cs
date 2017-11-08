@@ -9,7 +9,6 @@ using dnlib.IO;
 namespace dnlib.DotNet.Pdb.Portable {
 	// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#imports-blob
 	struct ImportScopeBlobReader {
-		const PdbImportDefinitionKind UNKNOWN_IMPORT_KIND = (PdbImportDefinitionKind)(-1);
 		readonly ModuleDef module;
 		readonly BlobStream blobStream;
 
@@ -28,7 +27,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return;
 			using (var stream = blobStream.CreateStream(imports)) {
 				while (stream.Position < stream.Length) {
-					var kind = ToPdbImportDefinitionKind(stream.ReadCompressedUInt32());
+					var kind = ImportDefinitionKindUtils.ToPdbImportDefinitionKind(stream.ReadCompressedUInt32());
 					string targetNamespace, alias;
 					AssemblyRef targetAssembly;
 					PdbImport import;
@@ -95,7 +94,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 						import = new PdbAliasType(alias, targetType);
 						break;
 
-					case UNKNOWN_IMPORT_KIND:
+					case ImportDefinitionKindUtils.UNKNOWN_IMPORT_KIND:
 						import = null;
 						break;
 
@@ -131,24 +130,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 		string ReadUTF8(uint offset) {
 			var bytes = blobStream.ReadNoNull(offset);
 			return Encoding.UTF8.GetString(bytes);
-		}
-
-		static PdbImportDefinitionKind ToPdbImportDefinitionKind(uint value) {
-			// See System.Reflection.Metadata.ImportDefinitionKind
-			switch (value) {
-			case 1:		return PdbImportDefinitionKind.ImportNamespace;
-			case 2:		return PdbImportDefinitionKind.ImportAssemblyNamespace;
-			case 3:		return PdbImportDefinitionKind.ImportType;
-			case 4:		return PdbImportDefinitionKind.ImportXmlNamespace;
-			case 5:		return PdbImportDefinitionKind.ImportAssemblyReferenceAlias;
-			case 6:		return PdbImportDefinitionKind.AliasAssemblyReference;
-			case 7:		return PdbImportDefinitionKind.AliasNamespace;
-			case 8:		return PdbImportDefinitionKind.AliasAssemblyNamespace;
-			case 9:		return PdbImportDefinitionKind.AliasType;
-			default:
-				Debug.Fail("Unknown import definition kind: 0x" + value.ToString("X"));
-				return UNKNOWN_IMPORT_KIND;
-			}
 		}
 	}
 }

@@ -1945,4 +1945,348 @@
 			}
 		}
 	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed Document table row
+	/// </summary>
+	public sealed class RawDocumentRow : IRawRow {
+		/// <summary/>
+		public uint Name;
+		/// <summary/>
+		public uint HashAlgorithm;
+		/// <summary/>
+		public uint Hash;
+		/// <summary/>
+		public uint Language;
+
+		/// <summary>Default constructor</summary>
+		public RawDocumentRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawDocumentRow(uint Name, uint HashAlgorithm, uint Hash, uint Language) {
+			this.Name = Name;
+			this.HashAlgorithm = HashAlgorithm;
+			this.Hash = Hash;
+			this.Language = Language;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Name;
+			case 1: return HashAlgorithm;
+			case 2: return Hash;
+			case 3: return Language;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Name = value; break;
+			case 1: HashAlgorithm = value; break;
+			case 2: Hash = value; break;
+			case 3: Language = value; break;
+			default: break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed MethodDebugInformation table row
+	/// </summary>
+	public sealed class RawMethodDebugInformationRow : IRawRow {
+		/// <summary/>
+		public uint Document;
+		/// <summary/>
+		public uint SequencePoints;
+
+		/// <summary>Default constructor</summary>
+		public RawMethodDebugInformationRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawMethodDebugInformationRow(uint Document, uint SequencePoints) {
+			this.Document = Document;
+			this.SequencePoints = SequencePoints;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Document;
+			case 1: return SequencePoints;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Document = value; break;
+			case 1: SequencePoints = value; break;
+			default: break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed LocalScope table row
+	/// </summary>
+	public sealed class RawLocalScopeRow : IRawRow {
+		/// <summary/>
+		public uint Method;
+		/// <summary/>
+		public uint ImportScope;
+		/// <summary/>
+		public uint VariableList;
+		/// <summary/>
+		public uint ConstantList;
+		/// <summary/>
+		public uint StartOffset;
+		/// <summary/>
+		public uint Length;
+
+		/// <summary>Default constructor</summary>
+		public RawLocalScopeRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawLocalScopeRow(uint Method, uint ImportScope, uint VariableList, uint ConstantList, uint StartOffset, uint Length) {
+			this.Method = Method;
+			this.ImportScope = ImportScope;
+			this.VariableList = VariableList;
+			this.ConstantList = ConstantList;
+			this.StartOffset = StartOffset;
+			this.Length = Length;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Method;
+			case 1: return ImportScope;
+			case 2: return VariableList;
+			case 3: return ConstantList;
+			case 4: return StartOffset;
+			case 5: return Length;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Method = value; break;
+			case 1: ImportScope = value; break;
+			case 2: VariableList = value; break;
+			case 3: ConstantList = value; break;
+			case 4: StartOffset = value; break;
+			case 5: Length = value; break;
+			default: break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed LocalVariable table row
+	/// </summary>
+	public sealed class RawLocalVariableRow : IRawRow {
+		/// <summary/>
+		public ushort Attributes;
+		/// <summary/>
+		public ushort Index;
+		/// <summary/>
+		public uint Name;
+
+		/// <summary>Default constructor</summary>
+		public RawLocalVariableRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawLocalVariableRow(ushort Attributes, ushort Index, uint Name) {
+			this.Attributes = Attributes;
+			this.Index = Index;
+			this.Name = Name;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Attributes;
+			case 1: return Index;
+			case 2: return Name;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Attributes = (ushort)value; break;
+			case 1: Index = (ushort)value; break;
+			case 2: Name = value; break;
+			default: break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed LocalConstant table row
+	/// </summary>
+	public sealed class RawLocalConstantRow : IRawRow {
+		/// <summary/>
+		public uint Name;
+		/// <summary/>
+		public uint Signature;
+
+		/// <summary>Default constructor</summary>
+		public RawLocalConstantRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawLocalConstantRow(uint Name, uint Signature) {
+			this.Name = Name;
+			this.Signature = Signature;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Name;
+			case 1: return Signature;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Name = value; break;
+			case 1: Signature = value; break;
+			default: break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed ImportScope table row
+	/// </summary>
+	public sealed class RawImportScopeRow : IRawRow {
+		/// <summary/>
+		public uint Parent;
+		/// <summary/>
+		public uint Imports;
+
+		/// <summary>Default constructor</summary>
+		public RawImportScopeRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawImportScopeRow(uint Parent, uint Imports) {
+			this.Parent = Parent;
+			this.Imports = Imports;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Parent;
+			case 1: return Imports;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Parent = value; break;
+			case 1: Imports = value; break;
+			default: break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed StateMachineMethod table row
+	/// </summary>
+	public sealed class RawStateMachineMethodRow : IRawRow {
+		/// <summary/>
+		public uint MoveNextMethod;
+		/// <summary/>
+		public uint KickoffMethod;
+
+		/// <summary>Default constructor</summary>
+		public RawStateMachineMethodRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawStateMachineMethodRow(uint MoveNextMethod, uint KickoffMethod) {
+			this.MoveNextMethod = MoveNextMethod;
+			this.KickoffMethod = KickoffMethod;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return MoveNextMethod;
+			case 1: return KickoffMethod;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: MoveNextMethod = value; break;
+			case 1: KickoffMethod = value; break;
+			default: break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Raw contents of an uncompressed CustomDebugInformation table row
+	/// </summary>
+	public sealed class RawCustomDebugInformationRow : IRawRow {
+		/// <summary/>
+		public uint Parent;
+		/// <summary/>
+		public uint Kind;
+		/// <summary/>
+		public uint Value;
+
+		/// <summary>Default constructor</summary>
+		public RawCustomDebugInformationRow() {
+		}
+
+		/// <summary>Constructor</summary>
+		public RawCustomDebugInformationRow(uint Parent, uint Kind, uint Value) {
+			this.Parent = Parent;
+			this.Kind = Kind;
+			this.Value = Value;
+		}
+
+		/// <inheritdoc/>
+		public uint Read(int index) {
+			switch (index) {
+			case 0: return Parent;
+			case 1: return Kind;
+			case 2: return Value;
+			default: return 0;
+			}
+		}
+
+		/// <inheritdoc/>
+		public void Write(int index, uint value) {
+			switch (index) {
+			case 0: Parent = value; break;
+			case 1: Kind = value; break;
+			case 2: Value = value; break;
+			default: break;
+			}
+		}
+	}
 }

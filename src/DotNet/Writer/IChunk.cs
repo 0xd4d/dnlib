@@ -77,20 +77,5 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(chunk.GetVirtualSize());
 			}
 		}
-
-		/// <summary>
-		/// Writes a data directory
-		/// </summary>
-		/// <param name="writer">Writer</param>
-		/// <param name="chunk">The data</param>
-		/// <param name="size">Fixed size of <paramref name="chunk"/></param>
-		internal static void WriteDataDirectory(this BinaryWriter writer, IChunk chunk, uint size) {
-			if (chunk == null || chunk.GetVirtualSize() == 0 || size == 0)
-				writer.Write(0UL);
-			else {
-				writer.Write((uint)chunk.RVA);
-				writer.Write(size);
-			}
-		}
 	}
 }

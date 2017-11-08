@@ -4,6 +4,8 @@ using System.IO;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.DotNet.MD;
+using System;
+using System.Collections.Generic;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -44,6 +46,21 @@ namespace dnlib.DotNet.Writer {
 		/// <see cref="PropertyDef"/>s.
 		/// </summary>
 		public bool? HasDeletedRows;
+
+		/// <summary>
+		/// Creates portable PDB v1.0 options
+		/// </summary>
+		/// <returns></returns>
+		public static TablesHeapOptions CreatePortablePdbV1_0() {
+			return new TablesHeapOptions {
+				Reserved1 = 0,
+				MajorVersion = 2,
+				MinorVersion = 0,
+				UseENC = null,
+				ExtraData = null,
+				HasDeletedRows = null,
+			};
+		}
 	}
 
 	/// <summary>
@@ -117,6 +134,14 @@ namespace dnlib.DotNet.Writer {
 		public readonly MDTable<RawGenericParamRow> GenericParamTable = new MDTable<RawGenericParamRow>(Table.GenericParam, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawMethodSpecRow> MethodSpecTable = new MDTable<RawMethodSpecRow>(Table.MethodSpec, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawGenericParamConstraintRow> GenericParamConstraintTable = new MDTable<RawGenericParamConstraintRow>(Table.GenericParamConstraint, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawDocumentRow> DocumentTable = new MDTable<RawDocumentRow>(Table.Document, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawMethodDebugInformationRow> MethodDebugInformationTable = new MDTable<RawMethodDebugInformationRow>(Table.MethodDebugInformation, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawLocalScopeRow> LocalScopeTable = new MDTable<RawLocalScopeRow>(Table.LocalScope, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawLocalVariableRow> LocalVariableTable = new MDTable<RawLocalVariableRow>(Table.LocalVariable, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawLocalConstantRow> LocalConstantTable = new MDTable<RawLocalConstantRow>(Table.LocalConstant, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawImportScopeRow> ImportScopeTable = new MDTable<RawImportScopeRow>(Table.ImportScope, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawStateMachineMethodRow> StateMachineMethodTable = new MDTable<RawStateMachineMethodRow>(Table.StateMachineMethod, RawRowEqualityComparer.Instance);
+		public readonly MDTable<RawCustomDebugInformationRow> CustomDebugInformationTable = new MDTable<RawCustomDebugInformationRow>(Table.CustomDebugInformation, RawRowEqualityComparer.Instance);
 #pragma warning restore
 
 		/// <summary>
@@ -259,7 +284,39 @@ namespace dnlib.DotNet.Writer {
 				GenericParamTable,
 				MethodSpecTable,
 				GenericParamConstraintTable,
+				new MDTable<RawDummyRow>((Table)0x2D, RawDummyRow.Comparer),
+				new MDTable<RawDummyRow>((Table)0x2E, RawDummyRow.Comparer),
+				new MDTable<RawDummyRow>((Table)0x2F, RawDummyRow.Comparer),
+				DocumentTable,
+				MethodDebugInformationTable,
+				LocalScopeTable,
+				LocalVariableTable,
+				LocalConstantTable,
+				ImportScopeTable,
+				StateMachineMethodTable,
+				CustomDebugInformationTable,
 			};
+		}
+
+		sealed class RawDummyRow : IRawRow {
+			public static readonly IEqualityComparer<RawDummyRow> Comparer = new RawDummyRowEqualityComparer();
+			sealed class RawDummyRowEqualityComparer : IEqualityComparer<RawDummyRow> {
+				public bool Equals(RawDummyRow x, RawDummyRow y) {
+					throw new NotSupportedException();
+				}
+
+				public int GetHashCode(RawDummyRow obj) {
+					throw new NotSupportedException();
+				}
+			}
+
+			public uint Read(int index) {
+				throw new NotSupportedException();
+			}
+
+			public void Write(int index, uint value) {
+				throw new NotSupportedException();
+			}
 		}
 
 		/// <inheritdoc/>
@@ -305,7 +362,7 @@ namespace dnlib.DotNet.Writer {
 			var dnTableSizes = new DotNetTableSizes();
 			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion);
 			var rowCounts = GetRowCounts();
-			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, rowCounts, rowCounts);
+			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, systemTables ?? rowCounts, rowCounts);
 			for (int i = 0; i < Tables.Length; i++)
 				Tables[i].TableInfo = tableInfos[i];
 
@@ -325,6 +382,32 @@ namespace dnlib.DotNet.Writer {
 				sizes[i] = (uint)Tables[i].Rows;
 			return sizes;
 		}
+
+		internal void GetSystemTableRows(out ulong mask, uint[] tables) {
+			if (tables.Length != 0x40)
+				throw new InvalidOperationException();
+			var tablesMask = GetValidMask();
+			ulong bit = 1;
+			mask = 0;
+			for (int i = 0; i < 0x40; i++, bit <<= 1) {
+				var table = (Table)i;
+				if (DotNetTableSizes.IsSystemTable(table)) {
+					if ((tablesMask & bit) != 0) {
+						tables[i] = (uint)Tables[i].Rows;
+						mask |= bit;
+					}
+					else
+						tables[i] = 0;
+				}
+				else
+					tables[i] = 0;
+			}
+		}
+
+		internal void SetSystemTableRows(uint[] systemTables) {
+			this.systemTables = (uint[])systemTables.Clone();
+		}
+		uint[] systemTables;
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
@@ -387,6 +470,14 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(GenericParamTable);
 			writer.Write(MethodSpecTable);
 			writer.Write(GenericParamConstraintTable);
+			writer.Write(DocumentTable);
+			writer.Write(MethodDebugInformationTable);
+			writer.Write(LocalScopeTable);
+			writer.Write(LocalVariableTable);
+			writer.Write(LocalConstantTable);
+			writer.Write(ImportScopeTable);
+			writer.Write(StateMachineMethodTable);
+			writer.Write(CustomDebugInformationTable);
 			writer.WriteZeros((int)(Utils.AlignUp(length, HeapBase.ALIGNMENT) - length));
 		}
 

@@ -23,9 +23,10 @@ namespace dnlib.DotNet.Pdb {
 #endif
 
 		/// <summary>
-		/// Gets the PDB file kind
+		/// Gets/sets the PDB file kind. You can change it from portable PDB to embedded portable PDB
+		/// and vice versa. Converting a Windows PDB to a portable PDB isn't supported.
 		/// </summary>
-		public PdbFileKind PdbFileKind { get; private set; }
+		public PdbFileKind PdbFileKind { get; set; }
 
 		/// <summary>
 		/// Gets/sets the user entry point method.

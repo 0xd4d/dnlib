@@ -1690,15 +1690,24 @@ using dnlib.PE;
 #endif
 		}
 
-		internal uint ReadMethodDebugInformationRow2(uint rid, out uint document) {
-			var table = MethodDebugInformationTable;
+		/// <summary>
+		/// Reads a raw <c>Document</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawDocumentRow ReadDocumentRow(uint rid) {
+			var table = DocumentTable;
+			if (table.IsInvalidRID(rid))
+				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
 			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
-			document = columns[0].Read(reader);
-			return columns[1].Read(reader);
+			return new RawDocumentRow(columns[0].Read(reader),
+				columns[1].Read(reader),
+				columns[2].Read(reader),
+				columns[3].Read(reader));
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
@@ -1715,6 +1724,66 @@ using dnlib.PE;
 			hashAlgorithm = columns[1].Read(reader);
 			hash = columns[2].Read(reader);
 			return columns[3].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Reads a raw <c>MethodDebugInformation</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawMethodDebugInformationRow ReadMethodDebugInformationRow(uint rid) {
+			var table = MethodDebugInformationTable;
+			if (table.IsInvalidRID(rid))
+				return null;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			return new RawMethodDebugInformationRow(columns[0].Read(reader),
+				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal uint ReadMethodDebugInformationRow2(uint rid, out uint document) {
+			var table = MethodDebugInformationTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			document = columns[0].Read(reader);
+			return columns[1].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Reads a raw <c>LocalScope</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawLocalScopeRow ReadLocalScopeRow(uint rid) {
+			var table = LocalScopeTable;
+			if (table.IsInvalidRID(rid))
+				return null;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			return new RawLocalScopeRow(columns[0].Read(reader),
+				columns[1].Read(reader),
+				columns[2].Read(reader),
+				columns[3].Read(reader),
+				reader.ReadUInt32(),
+				reader.ReadUInt32());
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
@@ -1738,15 +1807,23 @@ using dnlib.PE;
 #endif
 		}
 
-		internal uint ReadImportScopeRow2(uint rid, out uint parent) {
-			var table = ImportScopeTable;
+		/// <summary>
+		/// Reads a raw <c>LocalVariable</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawLocalVariableRow ReadLocalVariableRow(uint rid) {
+			var table = LocalVariableTable;
+			if (table.IsInvalidRID(rid))
+				return null;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
 			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
-			parent = columns[0].Read(reader);
-			return columns[1].Read(reader);
+			return new RawLocalVariableRow(reader.ReadUInt16(),
+				reader.ReadUInt16(),
+				columns[2].Read(reader));
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
@@ -1767,6 +1844,27 @@ using dnlib.PE;
 #endif
 		}
 
+		/// <summary>
+		/// Reads a raw <c>LocalConstant</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawLocalConstantRow ReadLocalConstantRow(uint rid) {
+			var table = LocalConstantTable;
+			if (table.IsInvalidRID(rid))
+				return null;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			return new RawLocalConstantRow(columns[0].Read(reader),
+				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
 		internal uint ReadLocalConstantRow2(uint rid, out uint name) {
 			var table = LocalConstantTable;
 #if THREAD_SAFE
@@ -1781,6 +1879,62 @@ using dnlib.PE;
 #endif
 		}
 
+		/// <summary>
+		/// Reads a raw <c>ImportScope</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawImportScopeRow ReadImportScopeRow(uint rid) {
+			var table = ImportScopeTable;
+			if (table.IsInvalidRID(rid))
+				return null;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			return new RawImportScopeRow(columns[0].Read(reader),
+				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		internal uint ReadImportScopeRow2(uint rid, out uint parent) {
+			var table = ImportScopeTable;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			parent = columns[0].Read(reader);
+			return columns[1].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Reads a raw <c>StateMachineMethod</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawStateMachineMethodRow ReadStateMachineMethodRow(uint rid) {
+			var table = StateMachineMethodTable;
+			if (table.IsInvalidRID(rid))
+				return null;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			return new RawStateMachineMethodRow(columns[0].Read(reader),
+				columns[1].Read(reader));
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
 		internal uint ReadStateMachineMethodRow2(uint rid) {
 			var table = StateMachineMethodTable;
 #if THREAD_SAFE
@@ -1790,6 +1944,28 @@ using dnlib.PE;
 			var columns = table.TableInfo.Columns;
 			reader.Position += columns[0].Size;
 			return columns[1].Read(reader);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+		}
+
+		/// <summary>
+		/// Reads a raw <c>CustomDebugInformation</c> row
+		/// </summary>
+		/// <param name="rid">Row ID</param>
+		/// <returns>The row or <c>null</c> if table doesn't exist or if <paramref name="rid"/> is invalid</returns>
+		public RawCustomDebugInformationRow ReadCustomDebugInformationRow(uint rid) {
+			var table = CustomDebugInformationTable;
+			if (table.IsInvalidRID(rid))
+				return null;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			var reader = GetReader_NoLock(table, rid);
+			var columns = table.TableInfo.Columns;
+			return new RawCustomDebugInformationRow(columns[0].Read(reader),
+				columns[1].Read(reader),
+				columns[2].Read(reader));
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif

@@ -57,6 +57,22 @@ namespace dnlib.DotNet.Writer {
 		/// Reserved and should be 0
 		/// </summary>
 		public byte? Reserved2;
+
+		/// <summary>
+		/// Creates portable PDB v1.0 options
+		/// </summary>
+		/// <returns></returns>
+		public static MetaDataHeaderOptions CreatePortablePdbV1_0() {
+			return new MetaDataHeaderOptions() {
+				Signature = DEFAULT_SIGNATURE,
+				MajorVersion = 1,
+				MinorVersion = 1,
+				Reserved1 = 0,
+				VersionString = MDHeaderRuntimeVersion.PORTABLE_PDB_V1_0,
+				StorageFlags = 0,
+				Reserved2 = 0,
+			};
+		}
 	}
 
 	/// <summary>
