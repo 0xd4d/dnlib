@@ -1,7 +1,7 @@
 dnlib: .NET assembly library
 https://github.com/0xd4d/dnlib
 
-Copyright (C) 2012-2015 de4dot@gmail.com
+Copyright (C) 2012-2017 de4dot@gmail.com
 
 Contributors
 ------------
