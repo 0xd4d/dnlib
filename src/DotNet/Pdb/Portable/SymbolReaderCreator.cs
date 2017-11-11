@@ -31,6 +31,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return null;
 			try {
 				var peImage = metaData.PEImage;
+				if (peImage == null)
+					return null;
 				var embeddedDir = TryGetEmbeddedDebugDirectory(peImage);
 				if (embeddedDir == null)
 					return null;

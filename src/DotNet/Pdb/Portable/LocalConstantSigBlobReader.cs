@@ -287,7 +287,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (reader.Position == reader.Length)
 				return string.Empty;
 			byte b = reader.ReadByte();
-			if (b == 0xFF)
+			if (b == 0xFF && reader.Position == reader.Length)
 				return null;
 			reader.Position--;
 			return Encoding.Unicode.GetString(reader.ReadRemainingBytes());

@@ -63,6 +63,15 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Adds data
 		/// </summary>
+		/// <param name="data">Data</param>
+		/// <returns></returns>
+		public DebugDirectoryEntry Add(byte[] data) {
+			return Add(new ByteArrayChunk(data));
+		}
+
+		/// <summary>
+		/// Adds data
+		/// </summary>
 		/// <param name="chunk">Data</param>
 		/// <returns></returns>
 		public DebugDirectoryEntry Add(IChunk chunk) {
@@ -98,13 +107,12 @@ namespace dnlib.DotNet.Writer {
 		public void WriteTo(BinaryWriter writer) {
 			uint offset = 0;
 			foreach (var entry in entries) {
-				var debugDirData = entry.DebugDirectory;
-				writer.Write(debugDirData.Characteristics);
-				writer.Write(debugDirData.TimeDateStamp);
-				writer.Write(debugDirData.MajorVersion);
-				writer.Write(debugDirData.MinorVersion);
-				writer.Write((uint)debugDirData.Type);
-				writer.Write(entry.Chunk.GetVirtualSize());
+				writer.Write(entry.DebugDirectory.Characteristics);
+				writer.Write(entry.DebugDirectory.TimeDateStamp);
+				writer.Write(entry.DebugDirectory.MajorVersion);
+				writer.Write(entry.DebugDirectory.MinorVersion);
+				writer.Write((uint)entry.DebugDirectory.Type);
+				writer.Write(entry.Chunk.GetFileLength());
 				writer.Write((uint)entry.Chunk.RVA);
 				writer.Write((uint)entry.Chunk.FileOffset);
 				offset += HEADER_SIZE;

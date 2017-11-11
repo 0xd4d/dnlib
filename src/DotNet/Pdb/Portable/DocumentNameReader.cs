@@ -12,7 +12,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 		readonly BlobStream blobStream;
 		readonly StringBuilder sb;
 
-		char prevSepChar;
+		char[] prevSepChars;
+		int prevSepCharsLength;
 		byte[] prevSepCharBytes;
 		int prevSepCharBytesCount;
 
@@ -21,7 +22,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.blobStream = blobStream;
 			sb = new StringBuilder();
 
-			prevSepChar = '\0';
+			prevSepChars = new char[2];
+			prevSepCharsLength = 0;
 			prevSepCharBytes = new byte[3];
 			prevSepCharBytesCount = 0;
 		}
@@ -29,12 +31,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public string ReadDocumentName(uint offset) {
 			sb.Length = 0;
 			using (var stream = blobStream.CreateStream(offset)) {
-				var sepChar = ReadSeparatorChar(stream);
+				int sepCharsLength;
+				var sepChars = ReadSeparatorChar(stream, out sepCharsLength);
 				bool needSep = false;
 				while (stream.Position < stream.Length) {
 					if (needSep)
-						sb.Append(sepChar);
-					needSep = sepChar != '\0';
+						sb.Append(sepChars, 0, sepCharsLength);
+					needSep = !(sepCharsLength == 1 && sepChars[0] == '\0');
 					var part = ReadDocumentNamePart(stream.ReadCompressedUInt32());
 					sb.Append(part);
 					if (sb.Length > MAX_NAME_LENGTH) {
@@ -56,7 +59,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return name;
 		}
 
-		char ReadSeparatorChar(IImageStream stream) {
+		char[] ReadSeparatorChar(IImageStream stream, out int charLength) {
 			if (prevSepCharBytesCount != 0 && prevSepCharBytesCount <= stream.Length) {
 				var pos = stream.Position;
 				bool ok = true;
@@ -66,14 +69,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 						break;
 					}
 				}
-				if (ok)
-					return prevSepChar;
+				if (ok) {
+					charLength = prevSepCharsLength;
+					return prevSepChars;
+				}
 				stream.Position = pos;
 			}
 
 			var decoder = Encoding.UTF8.GetDecoder();
 			var bytes = new byte[1];
-			var chars = new char[2];
 			prevSepCharBytesCount = 0;
 			for (int i = 0; ; i++) {
 				byte b = stream.ReadByte();
@@ -84,14 +88,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 					prevSepCharBytes[i] = b;
 				bytes[0] = b;
 				bool isLastByte = stream.Position + 1 == stream.Length;
-				int bytesUsed, charsUsed;
+				int bytesUsed;
 				bool completed;
-				decoder.Convert(bytes, 0, 1, chars, 0, 2, isLastByte, out bytesUsed, out charsUsed, out completed);
-				if (charsUsed > 0)
+				decoder.Convert(bytes, 0, 1, prevSepChars, 0, prevSepChars.Length, isLastByte, out bytesUsed, out prevSepCharsLength, out completed);
+				if (prevSepCharsLength > 0)
 					break;
 			}
-			prevSepChar = chars[0];
-			return prevSepChar;
+			charLength = prevSepCharsLength;
+			return prevSepChars;
 		}
 	}
 }

@@ -3137,6 +3137,10 @@ namespace dnlib.DotNet.Writer {
 		void AddStateMachineMethod(PdbCustomDebugInfo cdi, uint moveNextMethodToken, MethodDef kickoffMethod) {
 			Debug.Assert(new MDToken(moveNextMethodToken).Table == Table.Method);
 			Debug.Assert(debugMetaData != null);
+			if (kickoffMethod == null) {
+				Error("KickoffMethod is null");
+				return;
+			}
 			var row = new RawStateMachineMethodRow(new MDToken(moveNextMethodToken).Rid, GetRid(kickoffMethod));
 			debugMetaData.stateMachineMethodInfos.Add(cdi, row);
 		}
