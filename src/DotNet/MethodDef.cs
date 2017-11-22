@@ -1277,11 +1277,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override MethodBody GetMethodBody_NoLock() {
-			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
-			var body = readerModule.ReadMethodBody(this, origRva, origImplAttributes, list, new GenericParamContext(declaringType2, this));
-			Debug.Assert(customDebugInfos == null);
-			Interlocked.CompareExchange(ref customDebugInfos, list, null);
-			return body;
+			return readerModule.ReadMethodBody(this, origRva, origImplAttributes, new GenericParamContext(declaringType2, this));
 		}
 
 		/// <inheritdoc/>
@@ -1293,11 +1289,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			// The property will initialize CDIs
-			var body = Body;
-			Debug.Assert(customDebugInfos != null);
-			if (customDebugInfos == null)
-				Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
+			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			if (Interlocked.CompareExchange(ref customDebugInfos, list, null) == null) {
+				var body = Body;
+				readerModule.InitializeCustomDebugInfos(this, body, list);
+			}
 		}
 
 		/// <inheritdoc/>

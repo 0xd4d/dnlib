@@ -188,28 +188,26 @@ namespace dnlib.DotNet.Pdb {
 			get { return compiler; }
 		}
 
-		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
+		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body) {
 			if (reader == null)
 				return;
 
-			SymbolMethod method;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			method = reader.GetMethod(ownerMethod, 1);
+			var method = reader.GetMethod(ownerMethod, 1);
 			if (method != null) {
 				var pdbMethod = new PdbMethod();
 				pdbMethod.Scope = CreateScope(module, GenericParamContext.Create(ownerMethod), body, method.RootScope);
 				AddSequencePoints(body, method);
-
-				// Read the custom debug info last so eg. local names have been initialized
-				method.GetCustomDebugInfos(ownerMethod, body, customDebugInfos);
-
 				body.PdbMethod = pdbMethod;
 			}
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
+		}
+
+		internal void InitializeCustomDebugInfos(MethodDef ownerMethod, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
+			if (reader == null)
+				return;
+
+			var method = reader.GetMethod(ownerMethod, 1);
+			if (method != null)
+				method.GetCustomDebugInfos(ownerMethod, body, customDebugInfos);
 		}
 
 		static Compiler CalculateCompiler(ModuleDef module) {

@@ -1855,16 +1855,15 @@ namespace dnlib.DotNet {
 		/// <param name="method">Method</param>
 		/// <param name="rva">Method RVA</param>
 		/// <param name="implAttrs">Method impl attrs</param>
-		/// <param name="customDebugInfos">Updated with custom debug infos</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
-		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, IList<PdbCustomDebugInfo> customDebugInfos, GenericParamContext gpContext) {
+		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, GenericParamContext gpContext) {
 			MethodBody mb;
 			var mDec = methodDecrypter;
 			if (mDec != null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out mb)) {
 				var cilBody = mb as CilBody;
 				if (cilBody != null)
-					return InitializeBodyFromPdb(method, cilBody, customDebugInfos);
+					return InitializeBodyFromPdb(method, cilBody);
 				return mb;
 			}
 
@@ -1872,7 +1871,7 @@ namespace dnlib.DotNet {
 				return null;
 			var codeType = implAttrs & MethodImplAttributes.CodeTypeMask;
 			if (codeType == MethodImplAttributes.IL)
-				return InitializeBodyFromPdb(method, ReadCilBody(method.Parameters, rva, gpContext), customDebugInfos);
+				return InitializeBodyFromPdb(method, ReadCilBody(method.Parameters, rva, gpContext));
 			if (codeType == MethodImplAttributes.Native)
 				return new NativeMethodBody(rva);
 			return null;
@@ -1883,13 +1882,21 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">Owner method</param>
 		/// <param name="body">Method body</param>
-		/// <param name="customDebugInfos">Updated with custom debug infos</param>
 		/// <returns>Returns originak <paramref name="body"/> value</returns>
-		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
+		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body) {
 			var ps = pdbState;
 			if (ps != null)
-				ps.InitializeMethodBody(this, method, body, customDebugInfos);
+				ps.InitializeMethodBody(this, method, body);
 			return body;
+		}
+
+		internal void InitializeCustomDebugInfos(MethodDefMD method, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
+			if (body == null)
+				return;
+
+			var ps = pdbState;
+			if (ps != null)
+				ps.InitializeCustomDebugInfos(method, body, customDebugInfos);
 		}
 
 		/// <summary>
