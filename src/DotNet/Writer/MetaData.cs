@@ -2359,7 +2359,7 @@ namespace dnlib.DotNet.Writer {
 		/// Adds a generic parameter constraint
 		/// </summary>
 		/// <param name="gpRid">New rid of owner generic param</param>
-		/// <param name="gpc">Generic paramter constraint</param>
+		/// <param name="gpc">Generic parameter constraint</param>
 		protected void AddGenericParamConstraint(uint gpRid, GenericParamConstraint gpc) {
 			if (gpc == null) {
 				Error("GenericParamConstraint is null");

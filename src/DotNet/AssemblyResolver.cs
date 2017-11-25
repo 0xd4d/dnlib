@@ -90,7 +90,8 @@ namespace dnlib.DotNet {
 
 				var paths = Environment.GetEnvironmentVariable("MONO_PATH");
 				if (paths != null) {
-					foreach (var path in paths.Split(Path.PathSeparator)) {
+					foreach (var tmp in paths.Split(Path.PathSeparator)) {
+						var path = tmp.Trim();
 						if (path != string.Empty && Directory.Exists(path))
 							extraMonoPathsList.Add(path);
 					}
@@ -133,7 +134,8 @@ namespace dnlib.DotNet {
 
 			var prefixes = Environment.GetEnvironmentVariable("MONO_GAC_PREFIX");
 			if (!string.IsNullOrEmpty(prefixes)) {
-				foreach (var prefix in prefixes.Split(Path.PathSeparator)) {
+				foreach (var tmp in prefixes.Split(Path.PathSeparator)) {
+					var prefix = tmp.Trim();
 					if (prefix != string.Empty)
 						yield return prefix;
 				}
