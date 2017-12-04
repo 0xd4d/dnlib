@@ -4,12 +4,15 @@
     <Product>dnlib</Product>
     <RootNamespace>dnlib</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>dnlib</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>..\Debug\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>..\Release\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <None Include="Properties/AssemblyInfo.cs" />
