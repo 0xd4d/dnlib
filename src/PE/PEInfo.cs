@@ -106,7 +106,7 @@ namespace dnlib.PE {
 			return (FileOffset)rva;
 		}
 
-		static ulong alignUp(ulong val, uint alignment) {
+		static ulong AlignUp(ulong val, uint alignment) {
 			return (val + alignment - 1) & ~(ulong)(alignment - 1);
 		}
 
@@ -118,9 +118,9 @@ namespace dnlib.PE {
 		public long GetImageSize() {
 			var optHdr = ImageNTHeaders.OptionalHeader;
 			uint alignment = optHdr.SectionAlignment;
-			ulong len = alignUp(optHdr.SizeOfHeaders, alignment);
+			ulong len = AlignUp(optHdr.SizeOfHeaders, alignment);
 			foreach (var section in imageSectionHeaders) {
-				ulong len2 = alignUp((ulong)section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
+				ulong len2 = AlignUp((ulong)section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
 				if (len2 > len)
 					len = len2;
 			}
