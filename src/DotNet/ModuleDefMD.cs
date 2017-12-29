@@ -644,6 +644,16 @@ namespace dnlib.DotNet {
 
 			for (uint i = 1; i <= numAsmRefs; i++) {
 				var asmRef = ResolveAssemblyRef(i);
+				if (!UTF8String.ToSystemStringOrEmpty(asmRef.Name).Equals("netstandard", StringComparison.OrdinalIgnoreCase))
+					continue;
+				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
+					corLibAsmRef = asmRef;
+			}
+			if (corLibAsmRef != null)
+				return corLibAsmRef;
+
+			for (uint i = 1; i <= numAsmRefs; i++) {
+				var asmRef = ResolveAssemblyRef(i);
 				if (!UTF8String.ToSystemStringOrEmpty(asmRef.Name).Equals("mscorlib", StringComparison.OrdinalIgnoreCase))
 					continue;
 				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))

@@ -183,6 +183,7 @@ namespace dnlib.DotNet {
 				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ||
 				// This name could change but since CoreCLR is used a lot, it's worth supporting
 				asmName.Equals("System.Private.CoreLib", StringComparison.OrdinalIgnoreCase) ||
+				asmName.Equals("netstandard", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("corefx", StringComparison.OrdinalIgnoreCase));
 		}
 
