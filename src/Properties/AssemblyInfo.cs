@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("dnlib")]
-[assembly: AssemblyCopyright("Copyright (C) 2012-2017 de4dot@gmail.com")]
+[assembly: AssemblyCopyright("Copyright (C) 2012-2018 de4dot@gmail.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
