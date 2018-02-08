@@ -36,7 +36,8 @@ namespace dnlib.DotNet {
 		public object PdbFileOrData { get; set; }
 
 		/// <summary>
-		/// If <c>true</c>, will load the PDB file from disk if present. The default value is <c>true</c>.
+		/// If <c>true</c>, will load the PDB file from disk if present, or an embedded portable PDB file
+		/// stored in the PE file. The default value is <c>true</c>.
 		/// You don't need to initialize <see cref="CreateSymbolReader"/> or <see cref="PdbFileOrData"/>.
 		/// </summary>
 		public bool TryToLoadPdbFromDisk { get; set; }
