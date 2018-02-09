@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using dnlib.DotNet.MD;
@@ -41,7 +42,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (reader.ReadUInt32() != 0x4244504D)
 						return null;
 					uint uncompressedSize = reader.ReadUInt32();
-					if (uncompressedSize > int.MaxValue)
+					// If this fails, see the (hopefully) updated spec:
+					//		https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#embedded-portable-pdb-debug-directory-entry-type-17
+					bool newVersion = (uncompressedSize & 0x80000000) != 0;
+					Debug.Assert(!newVersion);
+					if (newVersion)
 						return null;
 					var decompressedBytes = new byte[uncompressedSize];
 					using (var deflateStream = new DeflateStream(new MemoryStream(reader.ReadRemainingBytes()), CompressionMode.Decompress)) {
