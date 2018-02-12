@@ -7,7 +7,7 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Initializes .NET table row sizes
 	/// </summary>
-	sealed class DotNetTableSizes {
+	public sealed class DotNetTableSizes {
 		bool bigStrings;
 		bool bigGuid;
 		bool bigBlob;
