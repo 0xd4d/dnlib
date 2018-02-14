@@ -254,6 +254,7 @@ namespace dnlib.DotNet {
 #endif
 				nativeEntryPoint = value;
 				managedEntryPoint = null;
+				Cor20HeaderFlags |= ComImageFlags.NativeEntryPoint;
 				nativeAndManagedEntryPoint_initialized = true;
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
@@ -276,6 +277,7 @@ namespace dnlib.DotNet {
 #endif
 				nativeEntryPoint = 0;
 				managedEntryPoint = value;
+				Cor20HeaderFlags &= ~ComImageFlags.NativeEntryPoint;
 				nativeAndManagedEntryPoint_initialized = true;
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
