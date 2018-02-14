@@ -9,3 +9,4 @@
 /Release/
 /Examples/bin/
 *.tmp_proj
+src/.idea/*
