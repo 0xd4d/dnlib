@@ -108,8 +108,12 @@ namespace dnlib.DotNet.Emit {
 			sigDoneFieldInfo.SetValue(sigHelper, true);
 			currSigFieldInfo.SetValue(sigHelper, locals.Length);
 			signatureFieldInfo.SetValue(sigHelper, locals);
-
-			var createdMethod = tb.CreateTypeInfo().GetMethod(METHOD_NAME, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+#if NETSTANDARD2_0
+			var type = tb.CreateTypeInfo();
+#else
+			var type = tb.CreateType();
+#endif
+			var createdMethod = type.GetMethod(METHOD_NAME, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
 			return createdMethod.GetMethodBody().LocalVariables[0].LocalType;
 		}
 
