@@ -4,6 +4,8 @@
 *.opensdf
 *.suo
 /.vs/
+/Debug/
+/Release/
 *.tmp_proj
 **/bin
 **/obj
