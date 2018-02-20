@@ -239,12 +239,15 @@ namespace dnlib.DotNet {
 		//TODO: works only on windows
 		[DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 		static extern IntPtr GetModuleHandle(string lpModuleName);
-#else
-		static IntPtr GetModuleHandle(System.Reflection.Module module)
-		{
-			return Marshal.GetHINSTANCE(mod);
-		}
 #endif
+		static IntPtr GetModuleHandle(System.Reflection.Module mod)
+		{
+#if NETSTANDARD2_0
+			return GetModuleHandle(mod.Assembly.Location);
+#else
+			return Marshal.GetHINSTANCE(mod);
+#endif
+		}
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
 		/// </summary>
@@ -253,7 +256,7 @@ namespace dnlib.DotNet {
 		/// <param name="imageLayout">Image layout of the module in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleCreationOptions options, ImageLayout imageLayout) {
-			IntPtr addr = GetModuleHandle(mod.Assembly.Location);
+			IntPtr addr = GetModuleHandle(mod);
 			if (addr == new IntPtr(-1))
 				throw new InvalidOperationException(string.Format("Module {0} has no HINSTANCE", mod));
 			return Load(addr, options, imageLayout);
