@@ -4,8 +4,6 @@
         <RootNamespace>dnlib</RootNamespace>
         <AssemblyName>dnlib</AssemblyName>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <SignAssembly>true</SignAssembly>
-        <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
         <OutputPath>..\$(Configuration)\bin</OutputPath>
         <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
