@@ -243,7 +243,7 @@ namespace dnlib.DotNet {
 
 			var addr = (IntPtr)GetHINSTANCE.Invoke(null, new [] { mod });
 			if(addr == new IntPtr(0) || addr == new IntPtr(-1))
-				throw new NotSupportedException("Module loading is not supported on current platform");
+				throw new ArgumentException("It is not possible to get address of module");
 
 			return addr;
 #else
