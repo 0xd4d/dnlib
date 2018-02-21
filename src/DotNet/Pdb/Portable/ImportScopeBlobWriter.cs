@@ -54,7 +54,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 				case PdbImportDefinitionKind.ImportType:
 					// <import> ::= ImportType <target-type>
-					writer.WriteCompressedUInt32(systemMetaData.GetToken(((PdbImportType)import).TargetType).Rid);
+					writer.WriteCompressedUInt32(GetTypeDefOrRefEncodedToken(((PdbImportType)import).TargetType));
 					break;
 
 				case PdbImportDefinitionKind.ImportXmlNamespace:
@@ -90,7 +90,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				case PdbImportDefinitionKind.AliasType:
 					// <import> ::= AliasType <alias> <target-type>
 					writer.WriteCompressedUInt32(WriteUTF8(((PdbAliasType)import).Alias));
-					writer.WriteCompressedUInt32(systemMetaData.GetToken(((PdbAliasType)import).TargetType).Rid);
+					writer.WriteCompressedUInt32(GetTypeDefOrRefEncodedToken(((PdbAliasType)import).TargetType));
 					break;
 
 				default:
@@ -98,6 +98,19 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return;
 				}
 			}
+		}
+
+		uint GetTypeDefOrRefEncodedToken(ITypeDefOrRef tdr) {
+			if (tdr == null) {
+				helper.Error("ITypeDefOrRef is null");
+				return 0;
+			}
+			var token = systemMetaData.GetToken(tdr);
+			uint codedToken;
+			if (MD.CodedToken.TypeDefOrRef.Encode(token, out codedToken))
+				return codedToken;
+			helper.Error(string.Format("Could not encode token 0x{0:X8}", token.Raw));
+			return 0;
 		}
 	}
 }
