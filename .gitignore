@@ -1,4 +1,5 @@
 *~
+*/obj/
 *.csproj.user
 *.sdf
 *.opensdf
@@ -6,6 +7,5 @@
 /.vs/
 /Debug/
 /Release/
+/Examples/bin/
 *.tmp_proj
-**/bin
-**/obj
