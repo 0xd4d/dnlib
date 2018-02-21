@@ -1649,10 +1649,33 @@ namespace dnlib.DotNet {
 		/// <param name="name">Property name</param>
 		/// <param name="sig">Property signature</param>
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
-		public PropertyDef FindPropertyCheckBaseType(UTF8String name, FieldSig sig) {
+		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig) {
+			return FindPropertyCheckBaseType(name, sig, 0, null);
+		}
+
+		/// <summary>
+		/// Finds a property by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Property name</param>
+		/// <param name="sig">Property signature</param>
+		/// <param name="options">Property signature comparison options</param>
+		/// <returns>The property or <c>null</c> if it wasn't found</returns>
+		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig, SigComparerOptions options) {
+			return FindPropertyCheckBaseType(name, sig, options, null);
+		}
+
+		/// <summary>
+		/// Finds a property by checking this type or any of its base types
+		/// </summary>
+		/// <param name="name">Property name</param>
+		/// <param name="sig">Property signature</param>
+		/// <param name="options">Property signature comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the property or <c>null</c></param>
+		/// <returns>The property or <c>null</c> if it wasn't found</returns>
+		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
 			while (td != null) {
-				var pd = td.FindProperty(name, sig);
+				var pd = td.FindProperty(name, sig, options, sourceModule);
 				if (pd != null)
 					return pd;
 				td = td.BaseType.ResolveTypeDef();
