@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>dnlib</RootNamespace>
@@ -6,6 +6,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
+        <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
         <OutputPath>..\$(Configuration)\bin</OutputPath>
         <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
