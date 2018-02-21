@@ -23,6 +23,7 @@ namespace dnlib.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 
+		readonly MetaData metadata;
 		internal readonly IMDTable mdTable;
 		readonly HotHeapVersion version;
 		readonly int hotTableHeaderSize;
@@ -70,9 +71,11 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
 		/// <param name="version">Hot heap version</param>
 		/// <param name="mdTable">The MD table</param>
-		internal HotTable(HotHeapVersion version, IMDTable mdTable) {
+		internal HotTable(MetaData metadata, HotHeapVersion version, IMDTable mdTable) {
+			this.metadata = metadata;
 			this.mdTable = mdTable;
 			this.version = version;
 
@@ -172,7 +175,7 @@ namespace dnlib.DotNet.Writer {
 
 			data = new byte[FullTableSize];
 			var writer = new BinaryWriter(new MemoryStream(data));
-			writer.Write(mdTable);
+			writer.Write(metadata, mdTable);
 			if (writer.BaseStream.Position != data.Length)
 				throw new InvalidOperationException("Didn't write all MD table data");
 		}
@@ -195,7 +198,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var rid in rids) {
 				memStream.Position = 0;
 				var row = mdTable.Get(rid);
-				writer.Write(mdTable, row);
+				writer.Write(metadata, mdTable, row);
 				partialData[rid] = memStream.ToArray();
 			}
 		}
@@ -335,13 +338,14 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// CLR 2.0 (.NET 2.0 - 3.5) hot table
 	/// </summary>
-	public sealed class HotTable20 : HotTable {
+	sealed class HotTable20 : HotTable {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
 		/// <param name="mdTable">The MD table</param>
-		public HotTable20(IMDTable mdTable)
-			: base(HotHeapVersion.CLR20, mdTable) {
+		public HotTable20(MetaData metadata, IMDTable mdTable)
+			: base(metadata, HotHeapVersion.CLR20, mdTable) {
 		}
 
 		/// <inheritdoc/>
@@ -400,15 +404,16 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// CLR 4.0 (.NET 4.0 - 4.5) partial hot table
 	/// </summary>
-	public sealed class HotTable40 : HotTable {
+	sealed class HotTable40 : HotTable {
 		uint indexesOffset;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
 		/// <param name="mdTable">The MD table</param>
-		public HotTable40(IMDTable mdTable)
-			: base(HotHeapVersion.CLR40, mdTable) {
+		public HotTable40(MetaData metadata, IMDTable mdTable)
+			: base(metadata, HotHeapVersion.CLR40, mdTable) {
 		}
 
 		/// <inheritdoc/>

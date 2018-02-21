@@ -392,7 +392,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the hot heap (<c>#!</c>)
 		/// </summary>
-		public HotHeap HotHeap {
+		HotHeap HotHeap {
 			get { return hotHeap; }
 			set { hotHeap = value; }
 		}
@@ -763,7 +763,7 @@ namespace dnlib.DotNet.Writer {
 			this.netResources = netResources;
 			this.options = options ?? new MetaDataOptions();
 			this.metaDataHeader = new MetaDataHeader(isStandaloneDebugMetadata ? this.options.DebugMetaDataHeaderOptions : this.options.MetaDataHeaderOptions);
-			this.tablesHeap = new TablesHeap(isStandaloneDebugMetadata ? this.options.DebugTablesHeapOptions : this.options.TablesHeapOptions);
+			this.tablesHeap = new TablesHeap(this, isStandaloneDebugMetadata ? this.options.DebugTablesHeapOptions : this.options.TablesHeapOptions);
 			this.stringsHeap = new StringsHeap();
 			this.usHeap = new USHeap();
 			this.guidHeap = new GuidHeap();
@@ -3411,6 +3411,7 @@ namespace dnlib.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 
+			stringsHeap.AddOptimizedStrings();
 			stringsHeap.SetReadOnly();
 			blobHeap.SetReadOnly();
 			guidHeap.SetReadOnly();

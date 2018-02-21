@@ -15,12 +15,13 @@ namespace dnlib.DotNet.Writer {
 	/// It's only used by the CLR when the compressed heap (<c>#~</c>) is present, not when
 	/// the ENC heap (<c>#-</c>) is present.
 	/// </summary>
-	public abstract class HotHeap : HeapBase {
+	abstract class HotHeap : HeapBase {
 		const uint HOT_HEAP_MAGIC = 0x484F4E44;	// "HOND"
 		const int MAX_TABLES = (int)Table.GenericParamConstraint + 1;
 		const uint HOT_HEAP_DIR_SIZE = 4 + MAX_TABLES * 4;
 		const uint HH_ALIGNMENT = 4;
 
+		protected readonly MetaData metadata;
 		uint totalLength;
 		readonly HotTable[] headers = new HotTable[MAX_TABLES];
 		readonly List<HotPool> hotPools = new List<HotPool>();
@@ -33,6 +34,14 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public override string Name {
 			get { return "#!"; }
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
+		protected HotHeap(MetaData metadata) {
+			this.metadata = metadata;
 		}
 
 		/// <summary>
@@ -50,19 +59,21 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Creates a hot heap instance
 		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
 		/// <param name="module">Target module</param>
-		public static HotHeap Create(ModuleDef module) {
-			return Create(GetHotHeapVersion(module));
+		public static HotHeap Create(MetaData metadata, ModuleDef module) {
+			return Create(metadata, GetHotHeapVersion(module));
 		}
 
 		/// <summary>
 		/// Creates a hot heap instance
 		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
 		/// <param name="version">Hot heap version</param>
-		public static HotHeap Create(HotHeapVersion version) {
+		public static HotHeap Create(MetaData metadata, HotHeapVersion version) {
 			switch (version) {
-			case HotHeapVersion.CLR20: return new HotHeap20();
-			case HotHeapVersion.CLR40: return new HotHeap40();
+			case HotHeapVersion.CLR20: return new HotHeap20(metadata);
+			case HotHeapVersion.CLR40: return new HotHeap40(metadata);
 			default: throw new ArgumentException("Invalid version");
 			}
 		}
@@ -204,15 +215,22 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// CLR 2.0 (.NET 2.0 - 3.5) hot heap (#!)
 	/// </summary>
-	public sealed class HotHeap20 : HotHeap {
+	sealed class HotHeap20 : HotHeap {
 		/// <inheritdoc/>
 		public override HotHeapVersion HotHeapVersion {
 			get { return HotHeapVersion.CLR20; }
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
+		public HotHeap20(MetaData metadata) : base(metadata) {
+		}
+
 		/// <inheritdoc/>
 		public override HotTable CreateHotTable(IMDTable mdTable) {
-			return new HotTable20(mdTable);
+			return new HotTable20(metadata, mdTable);
 		}
 
 		/// <inheritdoc/>
@@ -224,15 +242,22 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// CLR 4.0 (.NET 4.0 - 4.5) hot heap (#!)
 	/// </summary>
-	public sealed class HotHeap40 : HotHeap {
+	sealed class HotHeap40 : HotHeap {
 		/// <inheritdoc/>
 		public override HotHeapVersion HotHeapVersion {
 			get { return HotHeapVersion.CLR40; }
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
+		public HotHeap40(MetaData metadata) : base(metadata) {
+		}
+
 		/// <inheritdoc/>
 		public override HotTable CreateHotTable(IMDTable mdTable) {
-			return new HotTable40(mdTable);
+			return new HotTable40(metadata, mdTable);
 		}
 
 		/// <inheritdoc/>

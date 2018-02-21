@@ -74,6 +74,7 @@ namespace dnlib.DotNet.Writer {
 		bool bigGuid;
 		bool bigBlob;
 		bool hasDeletedRows;
+		readonly MetaData metadata;
 		readonly TablesHeapOptions options;
 		FileOffset offset;
 		RVA rva;
@@ -225,17 +226,12 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public TablesHeap()
-			: this(null) {
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="metadata">Metadata owner</param>
 		/// <param name="options">Options</param>
-		public TablesHeap(TablesHeapOptions options) {
+		public TablesHeap(MetaData metadata, TablesHeapOptions options) {
+			this.metadata = metadata;
 			this.options = options ?? new TablesHeapOptions();
 			this.hasDeletedRows = this.options.HasDeletedRows ?? false;
 			this.Tables = new IMDTable[] {
@@ -425,59 +421,59 @@ namespace dnlib.DotNet.Writer {
 			if (options.ExtraData.HasValue)
 				writer.Write(options.ExtraData.Value);
 
-			writer.Write(ModuleTable);
-			writer.Write(TypeRefTable);
-			writer.Write(TypeDefTable);
-			writer.Write(FieldPtrTable);
-			writer.Write(FieldTable);
-			writer.Write(MethodPtrTable);
-			writer.Write(MethodTable);
-			writer.Write(ParamPtrTable);
-			writer.Write(ParamTable);
-			writer.Write(InterfaceImplTable);
-			writer.Write(MemberRefTable);
-			writer.Write(ConstantTable);
-			writer.Write(CustomAttributeTable);
-			writer.Write(FieldMarshalTable);
-			writer.Write(DeclSecurityTable);
-			writer.Write(ClassLayoutTable);
-			writer.Write(FieldLayoutTable);
-			writer.Write(StandAloneSigTable);
-			writer.Write(EventMapTable);
-			writer.Write(EventPtrTable);
-			writer.Write(EventTable);
-			writer.Write(PropertyMapTable);
-			writer.Write(PropertyPtrTable);
-			writer.Write(PropertyTable);
-			writer.Write(MethodSemanticsTable);
-			writer.Write(MethodImplTable);
-			writer.Write(ModuleRefTable);
-			writer.Write(TypeSpecTable);
-			writer.Write(ImplMapTable);
-			writer.Write(FieldRVATable);
-			writer.Write(ENCLogTable);
-			writer.Write(ENCMapTable);
-			writer.Write(AssemblyTable);
-			writer.Write(AssemblyProcessorTable);
-			writer.Write(AssemblyOSTable);
-			writer.Write(AssemblyRefTable);
-			writer.Write(AssemblyRefProcessorTable);
-			writer.Write(AssemblyRefOSTable);
-			writer.Write(FileTable);
-			writer.Write(ExportedTypeTable);
-			writer.Write(ManifestResourceTable);
-			writer.Write(NestedClassTable);
-			writer.Write(GenericParamTable);
-			writer.Write(MethodSpecTable);
-			writer.Write(GenericParamConstraintTable);
-			writer.Write(DocumentTable);
-			writer.Write(MethodDebugInformationTable);
-			writer.Write(LocalScopeTable);
-			writer.Write(LocalVariableTable);
-			writer.Write(LocalConstantTable);
-			writer.Write(ImportScopeTable);
-			writer.Write(StateMachineMethodTable);
-			writer.Write(CustomDebugInformationTable);
+			writer.Write(metadata, ModuleTable);
+			writer.Write(metadata, TypeRefTable);
+			writer.Write(metadata, TypeDefTable);
+			writer.Write(metadata, FieldPtrTable);
+			writer.Write(metadata, FieldTable);
+			writer.Write(metadata, MethodPtrTable);
+			writer.Write(metadata, MethodTable);
+			writer.Write(metadata, ParamPtrTable);
+			writer.Write(metadata, ParamTable);
+			writer.Write(metadata, InterfaceImplTable);
+			writer.Write(metadata, MemberRefTable);
+			writer.Write(metadata, ConstantTable);
+			writer.Write(metadata, CustomAttributeTable);
+			writer.Write(metadata, FieldMarshalTable);
+			writer.Write(metadata, DeclSecurityTable);
+			writer.Write(metadata, ClassLayoutTable);
+			writer.Write(metadata, FieldLayoutTable);
+			writer.Write(metadata, StandAloneSigTable);
+			writer.Write(metadata, EventMapTable);
+			writer.Write(metadata, EventPtrTable);
+			writer.Write(metadata, EventTable);
+			writer.Write(metadata, PropertyMapTable);
+			writer.Write(metadata, PropertyPtrTable);
+			writer.Write(metadata, PropertyTable);
+			writer.Write(metadata, MethodSemanticsTable);
+			writer.Write(metadata, MethodImplTable);
+			writer.Write(metadata, ModuleRefTable);
+			writer.Write(metadata, TypeSpecTable);
+			writer.Write(metadata, ImplMapTable);
+			writer.Write(metadata, FieldRVATable);
+			writer.Write(metadata, ENCLogTable);
+			writer.Write(metadata, ENCMapTable);
+			writer.Write(metadata, AssemblyTable);
+			writer.Write(metadata, AssemblyProcessorTable);
+			writer.Write(metadata, AssemblyOSTable);
+			writer.Write(metadata, AssemblyRefTable);
+			writer.Write(metadata, AssemblyRefProcessorTable);
+			writer.Write(metadata, AssemblyRefOSTable);
+			writer.Write(metadata, FileTable);
+			writer.Write(metadata, ExportedTypeTable);
+			writer.Write(metadata, ManifestResourceTable);
+			writer.Write(metadata, NestedClassTable);
+			writer.Write(metadata, GenericParamTable);
+			writer.Write(metadata, MethodSpecTable);
+			writer.Write(metadata, GenericParamConstraintTable);
+			writer.Write(metadata, DocumentTable);
+			writer.Write(metadata, MethodDebugInformationTable);
+			writer.Write(metadata, LocalScopeTable);
+			writer.Write(metadata, LocalVariableTable);
+			writer.Write(metadata, LocalConstantTable);
+			writer.Write(metadata, ImportScopeTable);
+			writer.Write(metadata, StateMachineMethodTable);
+			writer.Write(metadata, CustomDebugInformationTable);
 			writer.WriteZeros((int)(Utils.AlignUp(length, HeapBase.ALIGNMENT) - length));
 		}
 
