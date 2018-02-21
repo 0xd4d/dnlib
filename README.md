@@ -8,10 +8,10 @@ mixed mode assemblies, doesn't read .NET assemblies the same way the [CLR](http:
 and many other missing features de4dot needed, dnlib was a necessity. The API
 is similar because it made porting de4dot to dnlib a lot easier.
 
-For another application using dnlib, see [ConfuserEx](https://github.com/yck1509/ConfuserEx/)
-(a .NET obfuscator). It uses many of the more advanced features of dnlib. Have
-a look at its writer code which gets executed during the assembly writing
-process.
+For other applications using dnlib, see [dnSpy](https://github.com/0xd4d/dnSpy) and
+[ConfuserEx](https://github.com/yck1509/ConfuserEx/) (a .NET obfuscator). They use
+many of the more advanced features of dnlib. Have a look at ConfuserEx' writer code
+which gets executed during the assembly writing process.
 
 Want to say thanks? Click the star at the top of the page.
 
