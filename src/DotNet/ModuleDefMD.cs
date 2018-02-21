@@ -240,7 +240,12 @@ namespace dnlib.DotNet {
 			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new [] { typeof(System.Reflection.Module) });
 			if(GetHINSTANCE == null)
 				throw new NotSupportedException("Module loading is not supported on current platform");
-			return (IntPtr)GetHINSTANCE.Invoke(null, new [] { mod });
+
+			var addr = (IntPtr)GetHINSTANCE.Invoke(null, new [] { mod });
+			if(addr == new IntPtr(0) || addr == new IntPtr(-1))
+				throw new NotSupportedException("Module loading is not supported on current platform");
+
+			return addr;
 #else
 			return Marshal.GetHINSTANCE(mod);
 #endif
