@@ -234,20 +234,20 @@ namespace dnlib.DotNet {
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context, ImageLayout imageLayout) {
 			return Load(mod, new ModuleCreationOptions(context), imageLayout);
 		}
-		
+
+		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
 #if NETSTANDARD2_0
-		//TODO: works only on windows
-		[DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-		static extern IntPtr GetModuleHandle(string lpModuleName);
-#endif
-		static IntPtr GetModuleHandle(System.Reflection.Module mod)
-		{
-#if NETSTANDARD2_0
-			return GetModuleHandle(mod.Assembly.Location);
+			var methods = typeof(Marshal).GetMethods();
+			foreach(var method in methods) {
+				if(!string.Equals(method.Name, "GetHINSTANCE")) continue;
+				return (IntPtr)method.Invoke(null, new [] { mod });
+			}
+			throw new NotSupportedException("Module loading is not supported on current platform");
 #else
 			return Marshal.GetHINSTANCE(mod);
 #endif
 		}
+
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
 		/// </summary>
