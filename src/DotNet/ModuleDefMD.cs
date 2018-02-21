@@ -237,12 +237,10 @@ namespace dnlib.DotNet {
 
 		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
 #if NETSTANDARD2_0
-			var methods = typeof(Marshal).GetMethods();
-			foreach(var method in methods) {
-				if(!string.Equals(method.Name, "GetHINSTANCE")) continue;
-				return (IntPtr)method.Invoke(null, new [] { mod });
-			}
-			throw new NotSupportedException("Module loading is not supported on current platform");
+			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new [] { typeof(System.Reflection.Module) });
+			if(GetHINSTANCE == null)
+				throw new NotSupportedException("Module loading is not supported on current platform");
+			return (IntPtr)GetHINSTANCE.Invoke(null, new [] { mod });
 #else
 			return Marshal.GetHINSTANCE(mod);
 #endif
