@@ -30,7 +30,11 @@ namespace dnlib.DotNet.Emit {
 
 		static MethodTableToTypeConverter() {
 			if (ptrFieldInfo == null) {
+#if NETSTANDARD2_0
+				var asmb = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynAsm"), AssemblyBuilderAccess.Run);
+#else
 				var asmb = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("DynAsm"), AssemblyBuilderAccess.Run);
+#endif
 				moduleBuilder = asmb.DefineDynamicModule("DynMod");
 			}
 		}
@@ -81,8 +85,12 @@ namespace dnlib.DotNet.Emit {
 			int maxStack = 8;
 			byte[] locals = GetLocalSignature(address);
 			setMethodBodyMethodInfo.Invoke(mb, new object[5] { code, maxStack, locals, null, null });
-
-			var createdMethod = tb.CreateType().GetMethod(METHOD_NAME, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+#if NETSTANDARD2_0
+			var type = tb.CreateTypeInfo();
+#else
+			var type = tb.CreateType();
+#endif
+			var createdMethod = type.GetMethod(METHOD_NAME, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
 			return createdMethod.GetMethodBody().LocalVariables[0].LocalType;
 		}
 
@@ -100,8 +108,12 @@ namespace dnlib.DotNet.Emit {
 			sigDoneFieldInfo.SetValue(sigHelper, true);
 			currSigFieldInfo.SetValue(sigHelper, locals.Length);
 			signatureFieldInfo.SetValue(sigHelper, locals);
-
-			var createdMethod = tb.CreateType().GetMethod(METHOD_NAME, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+#if NETSTANDARD2_0
+			var type = tb.CreateTypeInfo();
+#else
+			var type = tb.CreateType();
+#endif
+			var createdMethod = type.GetMethod(METHOD_NAME, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
 			return createdMethod.GetMethodBody().LocalVariables[0].LocalType;
 		}
 

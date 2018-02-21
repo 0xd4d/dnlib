@@ -235,6 +235,17 @@ namespace dnlib.DotNet {
 			return Load(mod, new ModuleCreationOptions(context), imageLayout);
 		}
 
+		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
+#if NETSTANDARD2_0
+			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new [] { typeof(System.Reflection.Module) });
+			if(GetHINSTANCE == null)
+				throw new NotSupportedException("Module loading is not supported on current platform");
+			return (IntPtr)GetHINSTANCE.Invoke(null, new [] { mod });
+#else
+			return Marshal.GetHINSTANCE(mod);
+#endif
+		}
+
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
 		/// </summary>
@@ -243,7 +254,7 @@ namespace dnlib.DotNet {
 		/// <param name="imageLayout">Image layout of the module in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleCreationOptions options, ImageLayout imageLayout) {
-			IntPtr addr = Marshal.GetHINSTANCE(mod);
+			IntPtr addr = GetModuleHandle(mod);
 			if (addr == new IntPtr(-1))
 				throw new InvalidOperationException(string.Format("Module {0} has no HINSTANCE", mod));
 			return Load(addr, options, imageLayout);
