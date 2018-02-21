@@ -272,6 +272,13 @@ namespace dnlib.DotNet.Writer {
 				PEHeadersOptions.MajorLinkerVersion = ntHeaders.OptionalHeader.MajorLinkerVersion;
 				PEHeadersOptions.MinorLinkerVersion = ntHeaders.OptionalHeader.MinorLinkerVersion;
 				PEHeadersOptions.ImageBase = ntHeaders.OptionalHeader.ImageBase;
+				PEHeadersOptions.MajorOperatingSystemVersion = ntHeaders.OptionalHeader.MajorOperatingSystemVersion;
+				PEHeadersOptions.MinorOperatingSystemVersion = ntHeaders.OptionalHeader.MinorOperatingSystemVersion;
+				PEHeadersOptions.MajorImageVersion = ntHeaders.OptionalHeader.MajorImageVersion;
+				PEHeadersOptions.MinorImageVersion = ntHeaders.OptionalHeader.MinorImageVersion;
+				PEHeadersOptions.MajorSubsystemVersion = ntHeaders.OptionalHeader.MajorSubsystemVersion;
+				PEHeadersOptions.MinorSubsystemVersion = ntHeaders.OptionalHeader.MinorSubsystemVersion;
+				PEHeadersOptions.Win32VersionValue = ntHeaders.OptionalHeader.Win32VersionValue;
 				AddCheckSum = ntHeaders.OptionalHeader.CheckSum != 0;
 			}
 
@@ -279,7 +286,7 @@ namespace dnlib.DotNet.Writer {
 				PEHeadersOptions.Characteristics &= ~Characteristics._32BitMachine;
 				PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
 			}
-			else
+			else if (modDefMD == null)
 				PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
 		}
 
