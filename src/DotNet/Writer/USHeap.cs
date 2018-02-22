@@ -103,6 +103,8 @@ namespace dnlib.DotNet.Writer {
 			cached.Add(s);
 			cachedDict[s] = offset = nextOffset;
 			nextOffset += (uint)GetRawDataSize(s);
+			if (offset > 0x00FFFFFF)
+				throw new ModuleWriterException("#US heap is too big");
 			return offset;
 		}
 
