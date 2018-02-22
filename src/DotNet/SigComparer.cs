@@ -3427,7 +3427,7 @@ exit: ;
 			// null always means the global type.
 			if (a == null)
 				return false;
-			if (b == null)
+			if ((object)b == null)
 				return a.IsGlobalModuleType;
 			if (!recursionCounter.Increment())
 				return false;
@@ -3456,7 +3456,7 @@ exit: ;
 			// b == null doesn't mean that b is the global type
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			return Equals(a, b);
 		}
@@ -3482,7 +3482,7 @@ exit: ;
 			// null always means the global type.
 			if (a == null)
 				return false;
-			if (b == null)
+			if ((object)b == null)
 				return false;	// Must use a ModuleRef to reference the global type, so always fail
 			if (!recursionCounter.Increment())
 				return false;
@@ -3546,7 +3546,7 @@ exit: ;
 			// null always means the global type.
 			if (a == null)
 				return false;
-			if (b == null)
+			if ((object)b == null)
 				return false;	// Must use a ModuleRef to reference the global type, so always fail
 			return Equals(a.TypeSig, b);
 		}
@@ -3583,7 +3583,7 @@ exit: ;
 		/// </summary>
 		/// <param name="a">The type</param>
 		static bool IsFnPtrElementType(Type a) {
-			if (a == null || !a.HasElementType)
+			if ((object)a == null || !a.HasElementType)
 				return false;
 			var et = a.GetElementType();
 			if (et == null || et.HasElementType)
@@ -3609,7 +3609,7 @@ exit: ;
 			// null always means the global type.
 			if (a == null)
 				return false;
-			if (b == null)
+			if ((object)b == null)
 				return false;	// Must use a ModuleRef to reference the global type, so always fail
 			if (!recursionCounter.Increment())
 				return false;
@@ -3697,13 +3697,13 @@ exit: ;
 			case ElementType.Var:
 				result = b.IsGenericParameter &&
 						b.GenericParameterPosition == (a as GenericSig).Number &&
-						b.DeclaringMethod == null;
+						(object)b.DeclaringMethod == null;
 				break;
 
 			case ElementType.MVar:
 				result = b.IsGenericParameter &&
 						b.GenericParameterPosition == (a as GenericSig).Number &&
-						b.DeclaringMethod != null;
+						(object)b.DeclaringMethod != null;
 				break;
 
 			case ElementType.GenericInst:
@@ -3769,7 +3769,7 @@ exit: ;
 			// null always means the global type.
 			if (a == null)
 				return false;
-			if (b == null)
+			if ((object)b == null)
 				return false;	// Must use a ModuleRef to reference the global type, so always fail
 			if (!recursionCounter.Increment())
 				return false;
@@ -3824,7 +3824,7 @@ exit: ;
 			// **************************************************************************
 			// IMPORTANT: This hash code must match the TypeSig/TypeDef/TypeRef hash code
 			// **************************************************************************
-			if (a == null)	// Could be global type
+			if ((object)a == null)	// Could be global type
 				return GetHashCode_TypeDef(a);
 			if (!recursionCounter.Increment())
 				return 0;
@@ -3972,7 +3972,7 @@ exit: ;
 
 			// A global method/field's declaring type is null. This is the reason we must
 			// return GetHashCodeGlobalType() here.
-			if (a == null)
+			if ((object)a == null)
 				return GetHashCodeGlobalType();
 			int hash;
 			hash = GetHashCode_TypeName(a.Name);
@@ -4022,7 +4022,7 @@ exit: ;
 		bool Equals(ModuleDef a, Module b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
 				return true;
@@ -4044,7 +4044,7 @@ exit: ;
 		bool Equals(FileDef a, Module b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 
 			// Use b.Name since it's the filename we want to compare, not b.ScopeName
@@ -4058,9 +4058,9 @@ exit: ;
 		/// <param name="b">Module #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		bool Equals(IModule a, Module b) {
-			if (a == b)
+			if ((object)a == b)
 				return true;
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
 				return true;
@@ -4076,9 +4076,9 @@ exit: ;
 		/// <param name="b">Assembly #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		bool Equals(IAssembly a, Assembly b) {
-			if (a == b)
+			if ((object)a == b)
 				return true;
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!MscorlibIsNotSpecial && IsCorLib(a) && IsCorLib(b))
 				return true;
@@ -4106,9 +4106,9 @@ exit: ;
 			if (!CompareMethodFieldDeclaringType)
 				return true;
 
-			if (a == b)
+			if ((object)a == b)
 				return true;
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4137,7 +4137,7 @@ exit: ;
 				return true;
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			return Equals(a.DeclaringType, b.DeclaringType);
 		}
@@ -4148,7 +4148,7 @@ exit: ;
 				return true;
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			return Equals(a.Class, b.DeclaringType, b.Module);
 		}
@@ -4159,7 +4159,7 @@ exit: ;
 				return true;
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			return DeclaringTypeEquals(a.Method, b);
 		}
@@ -4181,9 +4181,9 @@ exit: ;
 		/// <param name="b">Method #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(IMethod a, MethodBase b) {
-			if (a == b)
+			if ((object)a == b)
 				return true;
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4225,7 +4225,7 @@ exit: ;
 		public bool Equals(MethodDef a, MethodBase b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4271,7 +4271,7 @@ exit: ;
 		public bool Equals(MethodSig a, MethodBase b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4304,7 +4304,7 @@ exit: ;
 		public bool Equals(MemberRef a, MethodBase b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4383,13 +4383,13 @@ exit: ;
 				result = Equals((IType)ita, b);
 			else if ((moda = a as ModuleRef) != null) {
 				ModuleDef omoda = moda.Module;
-				result = b == null &&	// b == null => it's the global type
+				result = (object)b == null &&	// b == null => it's the global type
 						Equals(moda, bModule) &&
 						Equals(omoda == null ? null : omoda.Assembly, bModule.Assembly);
 			}
 			else if ((ma = a as MethodDef) != null)
 				result = Equals(ma.DeclaringType, b);
-			else if (b == null && (td = a as TypeDef) != null)
+			else if ((object)b == null && (td = a as TypeDef) != null)
 				result = td.IsGlobalModuleType;
 			else
 				result = false;
@@ -4417,7 +4417,7 @@ exit: ;
 		public bool Equals(MethodSpec a, MethodBase b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4446,7 +4446,7 @@ exit: ;
 		/// <param name="a">The <c>MethodBase</c></param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(MethodBase a) {
-			if (a == null)
+			if ((object)a == null)
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
@@ -4464,7 +4464,7 @@ exit: ;
 		}
 
 		int GetHashCode_MethodSig(MethodBase a) {
-			if (a == null)
+			if ((object)a == null)
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
@@ -4506,7 +4506,7 @@ exit: ;
 
 		int GetHashCode_ReturnType(MethodBase a) {
 			var mi = a as MethodInfo;
-			if (mi != null)
+			if ((object)mi != null)
 				return GetHashCode(mi.ReturnParameter, a.DeclaringType);
 			return GetHashCode(typeof(void));
 		}
@@ -4581,14 +4581,14 @@ exit: ;
 		bool ReturnTypeEquals(TypeSig a, MethodBase b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
 			bool result;
 			var mi = b as MethodInfo;
-			if (mi != null)
+			if ((object)mi != null)
 				result = Equals(a, mi.ReturnParameter, b.DeclaringType);
 			else if (b is ConstructorInfo)
 				result = IsSystemVoid(a);
@@ -4644,7 +4644,7 @@ exit: ;
 		bool Equals(TypeSig a, ParameterInfo b, Type declaringType) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4733,9 +4733,9 @@ exit: ;
 		/// <param name="b">Field #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(IField a, FieldInfo b) {
-			if (a == b)
+			if ((object)a == b)
 				return true;
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4774,7 +4774,7 @@ exit: ;
 		public bool Equals(FieldDef a, FieldInfo b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4790,7 +4790,7 @@ exit: ;
 		bool Equals(FieldSig a, FieldInfo b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4822,7 +4822,7 @@ exit: ;
 		public bool Equals(MemberRef a, FieldInfo b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4854,7 +4854,7 @@ exit: ;
 			// ************************************************************
 			// IMPORTANT: This hash code must match the MemberRef hash code
 			// ************************************************************
-			if (a == null)
+			if ((object)a == null)
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
@@ -4869,7 +4869,7 @@ exit: ;
 		}
 
 		int GetHashCode_FieldSig(FieldInfo a) {
-			if (a == null)
+			if ((object)a == null)
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
@@ -4890,7 +4890,7 @@ exit: ;
 		public bool Equals(PropertyDef a, PropertyInfo b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4906,7 +4906,7 @@ exit: ;
 		bool Equals(PropertySig a, PropertyInfo b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4928,7 +4928,7 @@ exit: ;
 			// **************************************************************
 			// IMPORTANT: This hash code must match the PropertyDef hash code
 			// **************************************************************
-			if (a == null)
+			if ((object)a == null)
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
@@ -4951,7 +4951,7 @@ exit: ;
 		public bool Equals(EventDef a, EventInfo b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
-			if (a == null || b == null)
+			if (a == null || (object)b == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4973,7 +4973,7 @@ exit: ;
 			// ***********************************************************
 			// IMPORTANT: This hash code must match the EventDef hash code
 			// ***********************************************************
-			if (a == null)
+			if ((object)a == null)
 				return 0;
 			if (!recursionCounter.Increment())
 				return 0;
