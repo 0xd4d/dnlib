@@ -1825,20 +1825,23 @@ namespace dnlib.DotNet.Writer {
 						if (cilBody != null) {
 							var pdbMethod = cilBody.PdbMethod;
 							if (pdbMethod != null) {
-								serializerMethodContext.SetBody(method);
-								scopeStack.Add(pdbMethod.Scope);
-								while (scopeStack.Count > 0) {
-									var scope = scopeStack[scopeStack.Count - 1];
-									scopeStack.RemoveAt(scopeStack.Count - 1);
-									scopeStack.AddRange(scope.Scopes);
-									uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
-									uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
-									methodScopeDebugInfos.Add(new MethodScopeDebugInfo() {
-										MethodRid = rid,
-										Scope = scope,
-										ScopeStart = scopeStart,
-										ScopeLength = scopeEnd - scopeStart,
-									});
+								// We don't need to write empty scopes
+								if (!IsEmptyRootScope(cilBody, pdbMethod.Scope)) {
+									serializerMethodContext.SetBody(method);
+									scopeStack.Add(pdbMethod.Scope);
+									while (scopeStack.Count > 0) {
+										var scope = scopeStack[scopeStack.Count - 1];
+										scopeStack.RemoveAt(scopeStack.Count - 1);
+										scopeStack.AddRange(scope.Scopes);
+										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
+										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
+										methodScopeDebugInfos.Add(new MethodScopeDebugInfo() {
+											MethodRid = rid,
+											Scope = scope,
+											ScopeStart = scopeStart,
+											ScopeLength = scopeEnd - scopeStart,
+										});
+									}
 								}
 							}
 						}
@@ -1882,6 +1885,27 @@ namespace dnlib.DotNet.Writer {
 				Free(ref serializerMethodContext);
 			while (notifyNum < numNotifyEvents)
 				Listener.OnMetaDataEvent(this, MetaDataEvent.WriteMethodBodies0 + notifyNum++);
+		}
+
+		static bool IsEmptyRootScope(CilBody cilBody, PdbScope scope) {
+			if (scope.Variables.Count != 0)
+				return false;
+			if (scope.Constants.Count != 0)
+				return false;
+			if (scope.Namespaces.Count != 0)
+				return false;
+			if (scope.ImportScope != null)
+				return false;
+			if (scope.Scopes.Count != 0)
+				return false;
+			if (scope.CustomDebugInfos.Count != 0)
+				return false;
+			if (scope.End != null)
+				return false;
+			if (cilBody.Instructions.Count != 0 && cilBody.Instructions[0] != scope.Start)
+				return false;
+
+			return true;
 		}
 
 		/// <summary>
