@@ -155,6 +155,12 @@ namespace dnlib.DotNet.Writer {
 		/// Always create the #Blob heap even if it's empty
 		/// </summary>
 		AlwaysCreateBlobHeap = 0x80000,
+
+		/// <summary>
+		/// Sort the InterfaceImpl table the same way Roslyn sorts it. Roslyn doesn't sort it
+		/// according to the ECMA spec, see https://github.com/dotnet/roslyn/issues/3905
+		/// </summary>
+		RoslynSortInterfaceImpl = 0x100000,
 	}
 
 	/// <summary>
@@ -470,12 +476,22 @@ namespace dnlib.DotNet.Writer {
 				toRid[data] = (uint)toRid.Count + 1;
 			}
 
-			public void Sort(Comparison<SortedRows<T, TRow>.Info> comparison) {
-				infos.Sort(comparison);
+			public void Sort(Comparison<Info> comparison) {
+				infos.Sort(CreateComparison(comparison));
 				toRid.Clear();
 				for (int i = 0; i < infos.Count; i++)
 					toRid[infos[i].data] = (uint)i + 1;
 				isSorted = true;
+			}
+
+			Comparison<Info> CreateComparison(Comparison<Info> comparison) {
+				return (a, b) => {
+					int c = comparison(a, b);
+					if (c != 0)
+						return c;
+					// Make sure it's a stable sort
+					return toRid[a.data].CompareTo(toRid[b.data]);
+				};
 			}
 
 			public uint Rid(T data) {
@@ -742,6 +758,19 @@ namespace dnlib.DotNet.Writer {
 					options.Flags |= MetaDataFlags.AlwaysCreateBlobHeap;
 				else
 					options.Flags &= ~MetaDataFlags.AlwaysCreateBlobHeap;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetaDataFlags.RoslynSortInterfaceImpl"/> bit
+		/// </summary>
+		public bool RoslynSortInterfaceImpl {
+			get { return (options.Flags & MetaDataFlags.RoslynSortInterfaceImpl) != 0; }
+			set {
+				if (value)
+					options.Flags |= MetaDataFlags.RoslynSortInterfaceImpl;
+				else
+					options.Flags &= ~MetaDataFlags.RoslynSortInterfaceImpl;
 			}
 		}
 
@@ -1620,11 +1649,15 @@ namespace dnlib.DotNet.Writer {
 					return a.row.Owner.CompareTo(b.row.Owner);
 				return a.row.Number.CompareTo(b.row.Number);
 			});
-			interfaceImplInfos.Sort((a, b) => {
-				if (a.row.Class != b.row.Class)
-					return a.row.Class.CompareTo(b.row.Class);
-				return a.row.Interface.CompareTo(b.row.Interface);
-			});
+			if (RoslynSortInterfaceImpl)
+				interfaceImplInfos.Sort((a, b) => a.row.Class.CompareTo(b.row.Class));
+			else {
+				interfaceImplInfos.Sort((a, b) => {
+					if (a.row.Class != b.row.Class)
+						return a.row.Class.CompareTo(b.row.Class);
+					return a.row.Interface.CompareTo(b.row.Interface);
+				});
+			}
 
 			tablesHeap.ClassLayoutTable.IsSorted = true;
 			tablesHeap.ConstantTable.IsSorted = true;
