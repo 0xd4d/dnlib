@@ -332,11 +332,15 @@ recursive_call:
 					case ElementType.ValueType:
 						break;
 					case ElementType.String:
-						// "" is stored as null, and null is stored as (int)0
-						if (constant.Value is int && (int)constant.Value == 0)
-							constant.Value = null;
-						else if (constant.Value == null)
-							constant.Value = string.Empty;
+						if (PdbFileKind == PdbFileKind.WindowsPDB) {
+							// "" is stored as null, and null is stored as (int)0
+							if (constant.Value is int && (int)constant.Value == 0)
+								constant.Value = null;
+							else if (constant.Value == null)
+								constant.Value = string.Empty;
+						}
+						else
+							Debug.Assert(PdbFileKind == PdbFileKind.PortablePDB || PdbFileKind == PdbFileKind.EmbeddedPortablePDB);
 						break;
 					case ElementType.Object:
 					case ElementType.Class:
