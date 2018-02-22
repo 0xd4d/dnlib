@@ -237,18 +237,18 @@ namespace dnlib.DotNet {
 
 		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
 #if NETSTANDARD2_0
-			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new [] { typeof(System.Reflection.Module) });
-			if(GetHINSTANCE == null)
-				throw new NotSupportedException("Module loading is not supported on current platform");
+			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new[] { typeof(System.Reflection.Module) });
+			if (GetHINSTANCE == null)
+				throw new NotSupportedException("System.Reflection.Module loading is not supported on current platform");
 
-			var addr = (IntPtr)GetHINSTANCE.Invoke(null, new [] { mod });
-			if(addr == new IntPtr(0) || addr == new IntPtr(-1))
+			var addr = (IntPtr)GetHINSTANCE.Invoke(null, new[] { mod });
+#else
+			var addr = Marshal.GetHINSTANCE(mod);
+#endif
+			if (addr == IntPtr.Zero || addr == new IntPtr(-1))
 				throw new ArgumentException("It is not possible to get address of module");
 
 			return addr;
-#else
-			return Marshal.GetHINSTANCE(mod);
-#endif
 		}
 
 		/// <summary>
