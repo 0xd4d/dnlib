@@ -524,7 +524,7 @@ namespace dnlib.DotNet.MD {
 			uint codedToken;
 			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(tablesStream.ConstantTable, 1, codedToken);
+			var list = FindAllRowsUnsorted(tablesStream.ConstantTable, 2, codedToken);
 			return list.Length == 0 ? 0 : list[0];
 		}
 

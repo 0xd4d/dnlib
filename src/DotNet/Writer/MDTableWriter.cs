@@ -17,23 +17,13 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="table">Table</param>
 		/// <param name="row">Row</param>
 		public static void Write(this BinaryWriter writer, MetaData metadata, IMDTable table, IRawRow row) {
-			if (table.Table == Table.Constant) {
-				var cols = table.TableInfo.Columns;
-				var row2 = (RawConstantRow)row;
-				writer.Write(row2.Type);
-				writer.Write(row2.Padding);
-				cols[1].Write(writer, row2.Parent);
-				cols[2].Write(writer, row2.Value);
-			}
-			else {
-				var cols = table.TableInfo.Columns;
-				var stringsHeap = metadata.StringsHeap;
-				foreach (var col in cols) {
-					if (col.ColumnSize == ColumnSize.Strings)
-						col.Write(writer, stringsHeap.GetOffset(row.Read(col.Index)));
-					else
-						col.Write(writer, row.Read(col.Index));
-				}
+			var cols = table.TableInfo.Columns;
+			var stringsHeap = metadata.StringsHeap;
+			foreach (var col in cols) {
+				if (col.ColumnSize == ColumnSize.Strings)
+					col.Write(writer, stringsHeap.GetOffset(row.Read(col.Index)));
+				else
+					col.Write(writer, row.Read(col.Index));
 			}
 		}
 
@@ -296,8 +286,8 @@ namespace dnlib.DotNet.Writer {
 			foreach (var row in table) {
 				writer.Write(row.Type);
 				writer.Write(row.Padding);
-				cols[1].Write(writer, row.Parent);
-				cols[2].Write(writer, row.Value);
+				cols[2].Write(writer, row.Parent);
+				cols[3].Write(writer, row.Value);
 			}
 		}
 

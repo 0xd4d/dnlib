@@ -36,7 +36,7 @@ namespace dnlib.DotNet.MD {
 					colInfo.Offset = colOffset;
 					var colSize = GetSize(colInfo.ColumnSize, rowCounts);
 					colInfo.Size = colSize;
-					colOffset += colSize + (colSize & 1);
+					colOffset += colSize;
 				}
 				tableInfo.RowSize = colOffset;
 			}
@@ -176,8 +176,9 @@ namespace dnlib.DotNet.MD {
 			});
 			tableInfos[(int)Table.Constant] = new TableInfo(Table.Constant, "Constant", new ColumnInfo[] {
 				new ColumnInfo(0, "Type", ColumnSize.Byte),
-				new ColumnInfo(1, "Parent", ColumnSize.HasConstant),
-				new ColumnInfo(2, "Value", ColumnSize.Blob),
+				new ColumnInfo(1, "Padding", ColumnSize.Byte),
+				new ColumnInfo(2, "Parent", ColumnSize.HasConstant),
+				new ColumnInfo(3, "Value", ColumnSize.Blob),
 			});
 			tableInfos[(int)Table.CustomAttribute] = new TableInfo(Table.CustomAttribute, "CustomAttribute", new ColumnInfo[] {
 				new ColumnInfo(0, "Parent", ColumnSize.HasCustomAttribute),

@@ -527,8 +527,9 @@
 		public uint Read(int index) {
 			switch (index) {
 			case 0: return Type;
-			case 1: return Parent;
-			case 2: return Value;
+			case 1: return Padding;
+			case 2: return Parent;
+			case 3: return Value;
 			default: return 0;
 			}
 		}
@@ -537,8 +538,9 @@
 		public void Write(int index, uint value) {
 			switch (index) {
 			case 0: Type = (byte)value; break;
-			case 1: Parent = value; break;
-			case 2: Value = value; break;
+			case 1: Padding = (byte)value; break;
+			case 2: Parent = value; break;
+			case 3: Value = value; break;
 			default: break;
 			}
 		}

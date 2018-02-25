@@ -477,8 +477,8 @@ using dnlib.PE;
 			var columns = table.TableInfo.Columns;
 			return new RawConstantRow(reader.ReadByte(),
 				reader.ReadByte(),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+				columns[2].Read(reader),
+				columns[3].Read(reader));
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
@@ -498,8 +498,8 @@ using dnlib.PE;
 			var reader = GetReader_NoLock(table, rid);
 			var columns = table.TableInfo.Columns;
 			type = (ElementType)reader.ReadByte();
-			reader.Position += 1 + columns[1].Size;
-			return columns[2].Read(reader);
+			reader.Position += 1 + columns[2].Size;
+			return columns[3].Read(reader);
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
