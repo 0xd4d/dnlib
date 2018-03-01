@@ -1004,9 +1004,10 @@ namespace dnlib.DotNet {
 		}
 
 		uint GetNextFreeRid(Table table) {
+			var lastUsedRids = this.lastUsedRids;
 			if ((uint)table >= lastUsedRids.Length)
 				return 0;
-			return (uint)Interlocked.Increment(ref lastUsedRids[(int)table]);
+			return (uint)Interlocked.Increment(ref lastUsedRids[(int)table]) & 0x00FFFFFF;
 		}
 
 		/// <summary>
