@@ -688,9 +688,9 @@ namespace dnlib.DotNet.Writer {
 				return new MDToken(Table.MethodSpec, metaData.GetRid(ms)).Raw;
 
 			if (method == null)
-				Error("VTable method is null");
-			else
-				Error("Invalid VTable method type: {0}", method.GetType());
+				return 0;
+
+			Error("Invalid VTable method type: {0}", method.GetType());
 			return 0;
 		}
 

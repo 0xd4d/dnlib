@@ -357,6 +357,16 @@ namespace dnlib.DotNet {
 			Interlocked.CompareExchange(ref overrides, ThreadSafeListCreator.Create<MethodOverride>(), null);
 		}
 
+		/// <summary>
+		/// Gets the export info or null if the method isn't exported to unmanaged code.
+		/// </summary>
+		public MethodExportInfo ExportInfo {
+			get { return exportInfo; }
+			set { exportInfo = value; }
+		}
+		/// <summary/>
+		protected MethodExportInfo exportInfo;
+
 		/// <inheritdoc/>
 		public bool HasCustomAttributes {
 			get { return CustomAttributes.Count > 0; }
@@ -1336,6 +1346,7 @@ namespace dnlib.DotNet {
 			this.declaringType2 = readerModule.GetOwnerType(this);
 			this.signature = readerModule.ReadSignature(signature, new GenericParamContext(declaringType2, this));
 			this.parameterList = new ParameterList(this, declaringType2);
+			this.exportInfo = readerModule.GetExportInfo(rid);
 		}
 
 		internal MethodDefMD InitializeAll() {

@@ -1940,6 +1940,17 @@ namespace dnlib.DotNet {
 			return USStream.ReadNoNull(token & 0x00FFFFFF);
 		}
 
+		internal MethodExportInfo GetExportInfo(uint methodRid) {
+			if (methodExportInfoProvider == null)
+				InitializeMethodExportInfoProvider();
+			return methodExportInfoProvider.GetMethodExportInfo(0x06000000 + methodRid);
+		}
+
+		void InitializeMethodExportInfoProvider() {
+			Interlocked.CompareExchange(ref methodExportInfoProvider, new MethodExportInfoProvider(this), null);
+		}
+		MethodExportInfoProvider methodExportInfoProvider;
+
 		/// <summary>
 		/// Writes the mixed-mode module to a file on disk. If the file exists, it will be overwritten.
 		/// </summary>

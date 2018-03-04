@@ -343,6 +343,7 @@ namespace dnlib.DotNet.Writer {
 		readonly SortedRows<PdbCustomDebugInfo, RawCustomDebugInformationRow> customDebugInfos = new SortedRows<PdbCustomDebugInfo, RawCustomDebugInformationRow>();
 		readonly List<BinaryWriterContext> binaryWriterContexts = new List<BinaryWriterContext>();
 		readonly List<SerializerMethodContext> serializerMethodContexts = new List<SerializerMethodContext>();
+		readonly List<MethodDef> exportedMethods = new List<MethodDef>();
 
 		/// <summary>
 		/// Gets/sets the listener
@@ -448,6 +449,13 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public PdbHeap PdbHeap {
 			get { return pdbHeap; }
+		}
+
+		/// <summary>
+		/// Gets all exported methods
+		/// </summary>
+		public List<MethodDef> ExportedMethods {
+			get { return exportedMethods; }
 		}
 
 		/// <summary>
@@ -1468,6 +1476,8 @@ namespace dnlib.DotNet.Writer {
 						Error("Method is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 						continue;
 					}
+					if (method.ExportInfo != null)
+						ExportedMethods.Add(method);
 					uint rid = GetRid(method);
 					var row = tablesHeap.MethodTable[rid];
 					row.ImplFlags = (ushort)method.ImplAttributes;
@@ -1606,10 +1616,8 @@ namespace dnlib.DotNet.Writer {
 					continue;
 				}
 				foreach (var method in vtable) {
-					if (method == null) {
-						Error("VTable method is null");
+					if (method == null)
 						continue;
-					}
 					AddMDTokenProvider(method);
 				}
 			}

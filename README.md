@@ -206,6 +206,20 @@ Enhanced strong name signing with key migration:
     mod.Write(@"C:\out\file.dll", opts);
 ```
 
+Exporting managed methods (DllExport)
+-------------------------------------
+
+dnlib supports exporting managed methods so the managed DLL file can be loaded by native code and then executed. .NET Framework supports this feature, but there's no guarantee that other CLRs (eg. .NET Core or Mono/Unity) support this feature.
+
+The `MethodDef` class has an `ExportInfo` property. If it gets initialized, the method gets exported when saving the module. At most 65536 (2^16) methods can be exported. This is a PE file limitation, not a dnlib limitation.
+
+The method's calling convention should also be changed to eg. stdcall, or cdecl, see `MethodDef.MethodSig.CallingConvention`. Exported methods should not be generic.
+
+Requirements:
+
+- The assembly platform must be x86, x64, IA-64 or ARM (ARM64 isn't supported at the moment). AnyCPU assemblies are not supported. This is as simple as changing (if needed) `ModuleWriterOptions.PEHeadersOptions.Machine` when saving the file. x86 files should set `32-bit required` flag and clear `32-bit preferred` flag in the COR20 header.
+- It must be a DLL file (see `ModuleWriterOptions.PEHeadersOptions.Characteristics`). The file will fail to load at runtime if it's an EXE file.
+
 Type classes
 ------------
 

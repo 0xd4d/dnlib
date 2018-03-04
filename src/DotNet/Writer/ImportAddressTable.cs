@@ -9,6 +9,7 @@ namespace dnlib.DotNet.Writer {
 	/// Import address table chunk
 	/// </summary>
 	public sealed class ImportAddressTable : IChunk {
+		readonly bool is64bit;
 		FileOffset offset;
 		RVA rva;
 
@@ -27,6 +28,16 @@ namespace dnlib.DotNet.Writer {
 			get { return rva; }
 		}
 
+		internal bool Enable { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="is64bit">true if it's a 64-bit PE file, false if it's a 32-bit PE file</param>
+		public ImportAddressTable(bool is64bit) {
+			this.is64bit = is64bit;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
@@ -35,7 +46,9 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public uint GetFileLength() {
-			return 8;
+			if (!Enable)
+				return 0;
+			return is64bit ? 16U : 8;
 		}
 
 		/// <inheritdoc/>
@@ -45,8 +58,16 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			writer.Write((uint)ImportDirectory.CorXxxMainRVA);
-			writer.Write(0);
+			if (!Enable)
+				return;
+			if (is64bit) {
+				writer.Write((ulong)(uint)ImportDirectory.CorXxxMainRVA);
+				writer.Write(0UL);
+			}
+			else {
+				writer.Write((uint)ImportDirectory.CorXxxMainRVA);
+				writer.Write(0);
+			}
 		}
 	}
 }

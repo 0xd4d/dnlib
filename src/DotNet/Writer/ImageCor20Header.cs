@@ -90,6 +90,8 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public StrongNameSignature StrongNameSignature { get; set; }
 
+		internal IChunk VtableFixups { get; set; }
+
 		/// <inheritdoc/>
 		public FileOffset FileOffset {
 			get { return offset; }
@@ -135,7 +137,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteDataDirectory(NetResources);
 			writer.WriteDataDirectory(StrongNameSignature);
 			writer.WriteDataDirectory(null);	// Code manager table
-			writer.WriteDataDirectory(null);	// Vtable fixups
+			writer.WriteDataDirectory(VtableFixups);
 			writer.WriteDataDirectory(null);	// Export address table jumps
 			writer.WriteDataDirectory(null);	// Managed native header
 		}

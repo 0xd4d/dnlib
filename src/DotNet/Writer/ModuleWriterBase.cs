@@ -607,10 +607,13 @@ namespace dnlib.DotNet.Writer {
 		protected void CalculateRvasAndFileOffsets(List<IChunk> chunks, FileOffset offset, RVA rva, uint fileAlignment, uint sectionAlignment) {
 			foreach (var chunk in chunks) {
 				chunk.SetOffset(offset, rva);
-				offset += chunk.GetFileLength();
-				rva += chunk.GetVirtualSize();
-				offset = offset.AlignUp(fileAlignment);
-				rva = rva.AlignUp(sectionAlignment);
+				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
+				if (chunk.GetVirtualSize() != 0) {
+					offset += chunk.GetFileLength();
+					rva += chunk.GetVirtualSize();
+					offset = offset.AlignUp(fileAlignment);
+					rva = rva.AlignUp(sectionAlignment);
+				}
 			}
 		}
 
@@ -624,10 +627,13 @@ namespace dnlib.DotNet.Writer {
 		protected void WriteChunks(BinaryWriter writer, List<IChunk> chunks, FileOffset offset, uint fileAlignment) {
 			foreach (var chunk in chunks) {
 				chunk.VerifyWriteTo(writer);
-				offset += chunk.GetFileLength();
-				var newOffset = offset.AlignUp(fileAlignment);
-				writer.WriteZeros((int)(newOffset - offset));
-				offset = newOffset;
+				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
+				if (chunk.GetVirtualSize() != 0) {
+					offset += chunk.GetFileLength();
+					var newOffset = offset.AlignUp(fileAlignment);
+					writer.WriteZeros((int)(newOffset - offset));
+					offset = newOffset;
+				}
 			}
 		}
 
@@ -711,7 +717,11 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		uint GetTimeDateStamp() {
+		/// <summary>
+		/// Gets the timestamp stored in the PE header
+		/// </summary>
+		/// <returns></returns>
+		protected uint GetTimeDateStamp() {
 			var td = TheOptions.PEHeadersOptions.TimeDateStamp;
 			if (td.HasValue)
 				return (uint)td;

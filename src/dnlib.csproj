@@ -61,6 +61,7 @@
     <Compile Include="DotNet\ClassLayout.cs" />
     <Compile Include="DotNet\Constant.cs" />
     <Compile Include="DotNet\CorLibTypes.cs" />
+    <Compile Include="DotNet\CpuArch.cs" />
     <Compile Include="DotNet\CustomAttribute.cs" />
     <Compile Include="DotNet\CustomAttributeCollection.cs" />
     <Compile Include="DotNet\CustomAttributeReader.cs" />
@@ -162,6 +163,8 @@
     <Compile Include="DotNet\MemberRef.cs" />
     <Compile Include="DotNet\MethodAttributes.cs" />
     <Compile Include="DotNet\MethodDef.cs" />
+    <Compile Include="DotNet\MethodExportInfo.cs" />
+    <Compile Include="DotNet\MethodExportInfoProvider.cs" />
     <Compile Include="DotNet\MethodImplAttributes.cs" />
     <Compile Include="DotNet\MethodOverride.cs" />
     <Compile Include="DotNet\MethodSemanticsAttributes.cs" />
@@ -326,6 +329,7 @@
     <Compile Include="DotNet\Writer\ImageCor20Header.cs" />
     <Compile Include="DotNet\Writer\ImportAddressTable.cs" />
     <Compile Include="DotNet\Writer\ImportDirectory.cs" />
+    <Compile Include="DotNet\Writer\ManagedExportsWriter.cs" />
     <Compile Include="DotNet\Writer\MDTable.cs" />
     <Compile Include="DotNet\Writer\MDTableWriter.cs" />
     <Compile Include="DotNet\Writer\MarshalBlobWriter.cs" />
