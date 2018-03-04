@@ -335,10 +335,6 @@ namespace dnlib.DotNet.Writer {
 				get { return methodNamesCount; }
 			}
 
-			public int TotalNamesCount {
-				get { return names.Count; }
-			}
-
 			struct NameInfo {
 				public readonly uint Offset;
 				public readonly byte[] Bytes;
@@ -411,8 +407,8 @@ namespace dnlib.DotNet.Writer {
 			public byte[] Data;
 			public uint namesBlobStreamOffset;
 			public uint moduleNameOffset;
-			public uint exportDirmoduleNameStreamOffset;
-			public uint exportDiraddressOfFunctionsStreamOffset;
+			public uint exportDirModuleNameStreamOffset;
+			public uint exportDirAddressOfFunctionsStreamOffset;
 			public uint addressOfFunctionsStreamOffset;
 			public uint addressOfNamesStreamOffset;
 			public uint addressOfNameOrdinalsStreamOffset;
@@ -462,6 +458,7 @@ namespace dnlib.DotNet.Writer {
 			sdataBytesInfo.moduleNameOffset = namesBlob.GetOtherNameOffset(moduleName);
 
 			sortedNameInfos.Sort((a, b) => CompareTo(a.NameBytes, b.NameBytes));
+			Debug.Assert(sortedNameInfos.Count == sdataBytesInfo.MethodNameOffsets.Length);
 
 			uint ordinalBase = uint.MaxValue;
 			foreach (var info in allMethodInfos) {
@@ -477,12 +474,12 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(0U); // Characteristics
 			writer.Write(timestamp);
 			writer.Write(0U); // MajorVersion, MinorVersion
-			sdataBytesInfo.exportDirmoduleNameStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.exportDirModuleNameStreamOffset = (uint)writer.BaseStream.Position;
 			writer.Write(0U); // Name
 			writer.Write(ordinalBase); // Base
 			writer.Write((uint)allMethodInfos.Count); // NumberOfFunctions
 			writer.Write(sdataBytesInfo.MethodNameOffsets.Length); // NumberOfNames
-			sdataBytesInfo.exportDiraddressOfFunctionsStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset = (uint)writer.BaseStream.Position;
 			writer.Write(0U); // AddressOfFunctions
 			writer.Write(0U); // AddressOfNames
 			writer.Write(0U); // AddressOfNameOrdinals
@@ -490,7 +487,7 @@ namespace dnlib.DotNet.Writer {
 			sdataBytesInfo.addressOfFunctionsStreamOffset = (uint)writer.BaseStream.Position;
 			WriteZeroes(writer, allMethodInfos.Count * 4);
 			sdataBytesInfo.addressOfNamesStreamOffset = (uint)writer.BaseStream.Position;
-			WriteZeroes(writer, namesBlob.TotalNamesCount * 4);
+			WriteZeroes(writer, sdataBytesInfo.MethodNameOffsets.Length * 4);
 			sdataBytesInfo.addressOfNameOrdinalsStreamOffset = (uint)writer.BaseStream.Position;
 			WriteZeroes(writer, sdataBytesInfo.MethodNameOffsets.Length * 2);
 			sdataBytesInfo.namesBlobStreamOffset = (uint)writer.BaseStream.Position;
@@ -512,10 +509,10 @@ namespace dnlib.DotNet.Writer {
 
 			var writer = new BinaryWriter(new MemoryStream(sdataBytesInfo.Data));
 
-			writer.BaseStream.Position = sdataBytesInfo.exportDirmoduleNameStreamOffset;
+			writer.BaseStream.Position = sdataBytesInfo.exportDirModuleNameStreamOffset;
 			writer.Write(namesBaseOffset + sdataBytesInfo.moduleNameOffset);
 
-			writer.BaseStream.Position = sdataBytesInfo.exportDiraddressOfFunctionsStreamOffset;
+			writer.BaseStream.Position = sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset;
 			writer.Write(rva + sdataBytesInfo.addressOfFunctionsStreamOffset); // AddressOfFunctions
 			if (sdataBytesInfo.MethodNameOffsets.Length != 0) {
 				writer.Write(rva + sdataBytesInfo.addressOfNamesStreamOffset); // AddressOfNames

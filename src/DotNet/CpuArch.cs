@@ -151,8 +151,7 @@ namespace dnlib.DotNet {
 			default:
 				throw new ArgumentOutOfRangeException();
 			}
-
-	}
+		}
 	}
 
 	sealed class X64CpuArch : CpuArch {
