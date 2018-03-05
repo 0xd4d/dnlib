@@ -1,17 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.PE;
 using dnlib.IO;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -20,7 +13,7 @@ namespace dnlib.DotNet {
 	[DebuggerDisplay("RVA = {RVA}, Count = {VTables.Count}")]
 	public sealed class VTableFixups : IEnumerable<VTable> {
 		RVA rva;
-		ThreadSafe.IList<VTable> vtables;
+		IList<VTable> vtables;
 
 		/// <summary>
 		/// Gets/sets the RVA of the vtable fixups
@@ -33,12 +26,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all <see cref="VTable"/>s
 		/// </summary>
-		public ThreadSafe.IList<VTable> VTables => vtables;
+		public IList<VTable> VTables => vtables;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public VTableFixups() => vtables = ThreadSafeListCreator.Create<VTable>();
+		public VTableFixups() => vtables = new List<VTable>();
 
 		/// <summary>
 		/// Constructor
@@ -49,11 +42,11 @@ namespace dnlib.DotNet {
 		void Initialize(ModuleDefMD module) {
 			var info = module.MetaData.ImageCor20Header.VTableFixups;
 			if (info.VirtualAddress == 0 || info.Size == 0) {
-				vtables = ThreadSafeListCreator.Create<VTable>();
+				vtables = new List<VTable>();
 				return;
 			}
 			rva = info.VirtualAddress;
-			vtables = ThreadSafeListCreator.Create<VTable>((int)info.Size / 8);
+			vtables = new List<VTable>((int)info.Size / 8);
 
 			var peImage = module.MetaData.PEImage;
 			using (var reader = peImage.CreateFullStream()) {
@@ -123,7 +116,7 @@ namespace dnlib.DotNet {
 	public sealed class VTable : IEnumerable<IMethod> {
 		RVA rva;
 		VTableFlags flags;
-		readonly ThreadSafe.IList<IMethod> methods;
+		readonly IList<IMethod> methods;
 
 		/// <summary>
 		/// Gets/sets the <see cref="RVA"/> of this vtable
@@ -154,12 +147,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the vtable methods
 		/// </summary>
-		public ThreadSafe.IList<IMethod> Methods => methods;
+		public IList<IMethod> Methods => methods;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public VTable() => methods = ThreadSafeListCreator.Create<IMethod>();
+		public VTable() => methods = new List<IMethod>();
 
 		/// <summary>
 		/// Constructor
@@ -167,7 +160,7 @@ namespace dnlib.DotNet {
 		/// <param name="flags">Flags</param>
 		public VTable(VTableFlags flags) {
 			this.flags = flags;
-			methods = ThreadSafeListCreator.Create<IMethod>();
+			methods = new List<IMethod>();
 		}
 
 		/// <summary>
@@ -179,7 +172,7 @@ namespace dnlib.DotNet {
 		public VTable(RVA rva, VTableFlags flags, int numSlots) {
 			this.rva = rva;
 			this.flags = flags;
-			methods = ThreadSafeListCreator.Create<IMethod>(numSlots);
+			methods = new List<IMethod>(numSlots);
 		}
 
 		/// <summary>
@@ -191,7 +184,7 @@ namespace dnlib.DotNet {
 		public VTable(RVA rva, VTableFlags flags, IEnumerable<IMethod> methods) {
 			this.rva = rva;
 			this.flags = flags;
-			this.methods = ThreadSafeListCreator.Create<IMethod>(methods);
+			this.methods = new List<IMethod>(methods);
 		}
 
 		/// <inheritdoc/>
@@ -204,7 +197,7 @@ namespace dnlib.DotNet {
 		public override string ToString() {
 			if (methods.Count == 0)
 				return $"{methods.Count} {(uint)rva:X8}";
-			return $"{methods.Count} {(uint)rva:X8} {methods.Get(0, null)}";
+			return $"{methods.Count} {(uint)rva:X8} {methods[0]}";
 		}
 	}
 }

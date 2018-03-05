@@ -1,10 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -493,7 +492,7 @@ namespace dnlib.DotNet {
 				var type = ReadType();
 				if (type is SentinelSig) {
 					if (methodSig.ParamsAfterSentinel == null)
-						methodSig.ParamsAfterSentinel = parameters = ThreadSafeListCreator.Create<TypeSig>((int)(numParams - i));
+						methodSig.ParamsAfterSentinel = parameters = new List<TypeSig>((int)(numParams - i));
 					i--;
 				}
 				else

@@ -7,12 +7,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using dnlib.Threading;
 
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
-
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Resolves assemblies
@@ -36,8 +30,8 @@ namespace dnlib.DotNet {
 		ModuleContext defaultModuleContext;
 		readonly Dictionary<ModuleDef, IList<string>> moduleSearchPaths = new Dictionary<ModuleDef, IList<string>>();
 		readonly Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.Ordinal);
-		readonly ThreadSafe.IList<string> preSearchPaths = ThreadSafeListCreator.Create<string>();
-		readonly ThreadSafe.IList<string> postSearchPaths = ThreadSafeListCreator.Create<string>();
+		readonly IList<string> preSearchPaths = new List<string>();
+		readonly IList<string> postSearchPaths = new List<string>();
 		bool findExactMatch;
 		bool enableFrameworkRedirect;
 		bool enableTypeDefCache = true;
@@ -192,12 +186,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets paths searched before trying the standard locations
 		/// </summary>
-		public ThreadSafe.IList<string> PreSearchPaths => preSearchPaths;
+		public IList<string> PreSearchPaths => preSearchPaths;
 
 		/// <summary>
 		/// Gets paths searched after trying the standard locations
 		/// </summary>
-		public ThreadSafe.IList<string> PostSearchPaths => postSearchPaths;
+		public IList<string> PostSearchPaths => postSearchPaths;
 
 		/// <summary>
 		/// Default constructor
@@ -268,7 +262,7 @@ namespace dnlib.DotNet {
 			if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
 				// This assembly was just resolved
 				if (enableTypeDefCache) {
-					foreach (var module in resolvedAssembly.Modules.GetSafeEnumerable()) {
+					foreach (var module in resolvedAssembly.Modules) {
 						if (module != null)
 							module.EnableTypeDefFindCache = true;
 					}
@@ -342,7 +336,7 @@ namespace dnlib.DotNet {
 			foreach (var asm in asms) {
 				if (asm == null)
 					continue;
-				foreach (var mod in asm.Modules.GetSafeEnumerable())
+				foreach (var mod in asm.Modules)
 					mod.Dispose();
 			}
 		}
@@ -388,7 +382,7 @@ namespace dnlib.DotNet {
 			if (paths == null)
 				return null;
 			var asmComparer = AssemblyNameComparer.CompareAll;
-			foreach (var path in paths.GetSafeEnumerable()) {
+			foreach (var path in paths) {
 				ModuleDefMD mod = null;
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
@@ -429,7 +423,7 @@ namespace dnlib.DotNet {
 			if (paths == null)
 				return closest;
 			var asmComparer = AssemblyNameComparer.CompareAll;
-			foreach (var path in paths.GetSafeEnumerable()) {
+			foreach (var path in paths) {
 				ModuleDefMD mod = null;
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
@@ -471,7 +465,7 @@ namespace dnlib.DotNet {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
 				foreach (var ext in exts) {
-					foreach (var path in paths.GetSafeEnumerable()) {
+					foreach (var path in paths) {
 						var fullPath = Path.Combine(path, asmSimpleName + ext);
 						if (File.Exists(fullPath))
 							yield return fullPath;
@@ -631,7 +625,7 @@ namespace dnlib.DotNet {
 			var searchPaths = GetSearchPaths(sourceModule);
 			var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
 			foreach (var ext in exts) {
-				foreach (var path in searchPaths.GetSafeEnumerable()) {
+				foreach (var path in searchPaths) {
 					for (int i = 0; i < 2; i++) {
 						string path2;
 						if (i == 0)

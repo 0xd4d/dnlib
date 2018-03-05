@@ -10,7 +10,6 @@ using System.IO;
 using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.IO;
-using dnlib.Threading;
 
 namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// <summary>
@@ -271,7 +270,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		TypeDef GetNestedType(string name) {
 			if (typeOpt == null)
 				return null;
-			foreach (var type in typeOpt.NestedTypes.GetSafeEnumerable()) {
+			foreach (var type in typeOpt.NestedTypes) {
 				if (UTF8String.IsNullOrEmpty(type.Namespace)) {
 					if (type.Name == name)
 						return type;

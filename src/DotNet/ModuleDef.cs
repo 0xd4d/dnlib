@@ -13,12 +13,6 @@ using dnlib.PE;
 using dnlib.Threading;
 using dnlib.W32Resources;
 
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
-
 namespace dnlib.DotNet {
 	/// <summary>
 	/// A high-level representation of a row in the Module table
@@ -164,7 +158,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
 				if (customDebugInfos == null)
 					InitializeCustomDebugInfos();
@@ -172,10 +166,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
-			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
+			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <summary>
 		/// Gets the module's assembly. To set this value, add this <see cref="ModuleDef"/>
@@ -191,7 +185,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets a list of all non-nested <see cref="TypeDef"/>s. See also <see cref="GetTypes()"/>
 		/// </summary>
-		public ThreadSafe.IList<TypeDef> Types {
+		public IList<TypeDef> Types {
 			get {
 				if (types == null)
 					InitializeTypes();
@@ -207,7 +201,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets a list of all <see cref="ExportedType"/>s
 		/// </summary>
-		public ThreadSafe.IList<ExportedType> ExportedTypes {
+		public IList<ExportedType> ExportedTypes {
 			get {
 				if (exportedTypes == null)
 					InitializeExportedTypes();
@@ -215,10 +209,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<ExportedType> exportedTypes;
+		protected IList<ExportedType> exportedTypes;
 		/// <summary>Initializes <see cref="exportedTypes"/></summary>
 		protected virtual void InitializeExportedTypes() =>
-			Interlocked.CompareExchange(ref exportedTypes, ThreadSafeListCreator.Create<ExportedType>(), null);
+			Interlocked.CompareExchange(ref exportedTypes, new List<ExportedType>(), null);
 
 		/// <summary>
 		/// Gets/sets the native entry point. Only one of <see cref="NativeEntryPoint"/> and
@@ -461,7 +455,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the global (aka. &lt;Module&gt;) type or <c>null</c> if there are no types
 		/// </summary>
-		public TypeDef GlobalType => Types.Get(0, null);
+		public TypeDef GlobalType => Types.Count == 0 ? null : Types[0];
 
 		/// <summary>
 		/// true if it's the core library module, false if it's not the core library module,
@@ -1192,7 +1186,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnClear() {
-			foreach (var type in Types.GetEnumerable_NoLock())
+			foreach (var type in types.GetEnumerable_NoLock())
 				type.Module2 = null;
 		}
 
@@ -1497,7 +1491,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			var list = new List<PdbCustomDebugInfo>();
 			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(), list);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}

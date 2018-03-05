@@ -1,16 +1,11 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
 using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -141,7 +136,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
 				if (customDebugInfos == null)
 					InitializeCustomDebugInfos();
@@ -149,10 +144,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
-			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
+			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <summary>
 		/// Gets/sets the first getter method. Writing <c>null</c> will clear all get methods.
@@ -161,7 +156,7 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods == null)
 					InitializePropertyMethods();
-				return getMethods.Get(0, null);
+				return getMethods.Count == 0 ? null : getMethods[0];
 			}
 			set {
 				if (otherMethods == null)
@@ -171,7 +166,7 @@ namespace dnlib.DotNet {
 				else if (getMethods.Count == 0)
 					getMethods.Add(value);
 				else
-					getMethods.Set(0, value);
+					getMethods[0] = value;
 			}
 		}
 
@@ -182,7 +177,7 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods == null)
 					InitializePropertyMethods();
-				return setMethods.Get(0, null);
+				return setMethods.Count == 0 ? null : setMethods[0];
 			}
 			set {
 				if (otherMethods == null)
@@ -192,14 +187,14 @@ namespace dnlib.DotNet {
 				else if (setMethods.Count == 0)
 					setMethods.Add(value);
 				else
-					setMethods.Set(0, value);
+					setMethods[0] = value;
 			}
 		}
 
 		/// <summary>
 		/// Gets all getter methods
 		/// </summary>
-		public ThreadSafe.IList<MethodDef> GetMethods {
+		public IList<MethodDef> GetMethods {
 			get {
 				if (otherMethods == null)
 					InitializePropertyMethods();
@@ -210,7 +205,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all setter methods
 		/// </summary>
-		public ThreadSafe.IList<MethodDef> SetMethods {
+		public IList<MethodDef> SetMethods {
 			get {
 				if (otherMethods == null)
 					InitializePropertyMethods();
@@ -221,7 +216,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the other methods
 		/// </summary>
-		public ThreadSafe.IList<MethodDef> OtherMethods {
+		public IList<MethodDef> OtherMethods {
 			get {
 				if (otherMethods == null)
 					InitializePropertyMethods();
@@ -245,17 +240,17 @@ namespace dnlib.DotNet {
 		/// and <see cref="setMethods"/>.
 		/// </summary>
 		protected virtual void InitializePropertyMethods_NoLock() {
-			getMethods = ThreadSafeListCreator.Create<MethodDef>();
-			setMethods = ThreadSafeListCreator.Create<MethodDef>();
-			otherMethods = ThreadSafeListCreator.Create<MethodDef>();
+			getMethods = new List<MethodDef>();
+			setMethods = new List<MethodDef>();
+			otherMethods = new List<MethodDef>();
 		}
 
 		/// <summary/>
-		protected ThreadSafe.IList<MethodDef> getMethods;
+		protected IList<MethodDef> getMethods;
 		/// <summary/>
-		protected ThreadSafe.IList<MethodDef> setMethods;
+		protected IList<MethodDef> setMethods;
 		/// <summary/>
-		protected ThreadSafe.IList<MethodDef> otherMethods;
+		protected IList<MethodDef> otherMethods;
 
 		/// <summary>Reset <see cref="GetMethods"/>, <see cref="SetMethods"/>, <see cref="OtherMethods"/></summary>
 		protected void ResetMethods() => otherMethods = null;
@@ -360,21 +355,10 @@ namespace dnlib.DotNet {
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, PropertyAttributes flags) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = attributes;
-				if (set)
-					newVal = origVal | (int)flags;
-				else
-					newVal = origVal & ~(int)flags;
-			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
-#else
 			if (set)
 				attributes |= (int)flags;
 			else
 				attributes &= ~(int)flags;
-#endif
 		}
 
 		/// <summary>
@@ -469,7 +453,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			var list = new List<PdbCustomDebugInfo>();
 			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(declaringType2), list);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}
@@ -514,13 +498,13 @@ namespace dnlib.DotNet {
 		protected override void InitializePropertyMethods_NoLock() {
 			if (otherMethods != null)
 				return;
-			ThreadSafe.IList<MethodDef> newOtherMethods;
-			ThreadSafe.IList<MethodDef> newGetMethods, newSetMethods;
+			IList<MethodDef> newOtherMethods;
+			IList<MethodDef> newGetMethods, newSetMethods;
 			var dt = declaringType2 as TypeDefMD;
 			if (dt == null) {
-				newGetMethods = ThreadSafeListCreator.Create<MethodDef>();
-				newSetMethods = ThreadSafeListCreator.Create<MethodDef>();
-				newOtherMethods = ThreadSafeListCreator.Create<MethodDef>();
+				newGetMethods = new List<MethodDef>();
+				newSetMethods = new List<MethodDef>();
+				newOtherMethods = new List<MethodDef>();
 			}
 			else
 				dt.InitializeProperty(this, out newGetMethods, out newSetMethods, out newOtherMethods);

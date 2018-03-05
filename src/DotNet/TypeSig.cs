@@ -1,15 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using dnlib.DotNet.MD;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 /*
 All TypeSig classes:
@@ -645,7 +638,7 @@ namespace dnlib.DotNet {
 				var gpp = genericParamProvider;
 				if (gpp == null)
 					return null;
-				foreach (var gp in gpp.GenericParameters.GetSafeEnumerable()) {
+				foreach (var gp in gpp.GenericParameters) {
 					if (gp.Number == number)
 						return gp;
 				}
@@ -796,7 +789,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class GenericInstSig : LeafSig {
 		ClassOrValueTypeSig genericType;
-		readonly ThreadSafe.IList<TypeSig> genericArgs;
+		readonly IList<TypeSig> genericArgs;
 
 		/// <inheritdoc/>
 		public override ElementType ElementType => ElementType.GenericInst;
@@ -812,12 +805,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the generic arguments (it's never <c>null</c>)
 		/// </summary>
-		public ThreadSafe.IList<TypeSig> GenericArguments => genericArgs;
+		public IList<TypeSig> GenericArguments => genericArgs;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public GenericInstSig() => genericArgs = ThreadSafeListCreator.Create<TypeSig>();
+		public GenericInstSig() => genericArgs = new List<TypeSig>();
 
 		/// <summary>
 		/// Constructor
@@ -825,7 +818,7 @@ namespace dnlib.DotNet {
 		/// <param name="genericType">The generic type</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType) {
 			this.genericType = genericType;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>();
+			genericArgs = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -835,7 +828,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArgCount">Number of generic arguments</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, uint genArgCount) {
 			this.genericType = genericType;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>((int)genArgCount);
+			genericArgs = new List<TypeSig>((int)genArgCount);
 		}
 
 		/// <summary>
@@ -854,7 +847,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArg1">Generic argument #1</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1) {
 			this.genericType = genericType;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1);
+			genericArgs = new List<TypeSig> { genArg1 };
 		}
 
 		/// <summary>
@@ -865,7 +858,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArg2">Generic argument #2</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1, TypeSig genArg2) {
 			this.genericType = genericType;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1, genArg2);
+			genericArgs = new List<TypeSig> { genArg1, genArg2 };
 		}
 
 		/// <summary>
@@ -877,7 +870,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArg3">Generic argument #3</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1, TypeSig genArg2, TypeSig genArg3) {
 			this.genericType = genericType;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1, genArg2, genArg3);
+			genericArgs = new List<TypeSig> { genArg1, genArg2, genArg3 };
 		}
 
 		/// <summary>
@@ -887,7 +880,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArgs">Generic arguments</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, params TypeSig[] genArgs) {
 			this.genericType = genericType;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArgs);
+			genericArgs = new List<TypeSig>(genArgs);
 		}
 
 		/// <summary>
@@ -897,7 +890,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArgs">Generic arguments</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, IList<TypeSig> genArgs) {
 			this.genericType = genericType;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArgs);
+			genericArgs = new List<TypeSig>(genArgs);
 		}
 	}
 
@@ -986,14 +979,14 @@ namespace dnlib.DotNet {
 		/// list that is re-created every time this method is called.
 		/// </summary>
 		/// <returns>A list of sizes</returns>
-		public abstract ThreadSafe.IList<uint> GetSizes();
+		public abstract IList<uint> GetSizes();
 
 		/// <summary>
 		/// Gets all lower bounds. If it's a <see cref="SZArraySig"/>, then it will be an empty
 		/// temporary list that is re-created every time this method is called.
 		/// </summary>
 		/// <returns>A list of lower bounds</returns>
-		public abstract ThreadSafe.IList<int> GetLowerBounds();
+		public abstract IList<int> GetLowerBounds();
 	}
 
 	/// <summary>
@@ -1002,8 +995,8 @@ namespace dnlib.DotNet {
 	/// <seealso cref="SZArraySig"/>
 	public sealed class ArraySig : ArraySigBase {
 		uint rank;
-		readonly ThreadSafe.IList<uint> sizes;
-		readonly ThreadSafe.IList<int> lowerBounds;
+		readonly IList<uint> sizes;
+		readonly IList<int> lowerBounds;
 
 		/// <inheritdoc/>
 		public override ElementType ElementType => ElementType.Array;
@@ -1019,12 +1012,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all sizes (max elements is <c>0x1FFFFFFF</c>)
 		/// </summary>
-		public ThreadSafe.IList<uint> Sizes => sizes;
+		public IList<uint> Sizes => sizes;
 
 		/// <summary>
 		/// Gets all lower bounds (max elements is <c>0x1FFFFFFF</c>)
 		/// </summary>
-		public ThreadSafe.IList<int> LowerBounds => lowerBounds;
+		public IList<int> LowerBounds => lowerBounds;
 
 		/// <summary>
 		/// Constructor
@@ -1032,8 +1025,8 @@ namespace dnlib.DotNet {
 		/// <param name="arrayType">Array type</param>
 		public ArraySig(TypeSig arrayType)
 			: base(arrayType) {
-			sizes = ThreadSafeListCreator.Create<uint>();
-			lowerBounds = ThreadSafeListCreator.Create<int>();
+			sizes = new List<uint>();
+			lowerBounds = new List<int>();
 		}
 
 		/// <summary>
@@ -1044,8 +1037,8 @@ namespace dnlib.DotNet {
 		public ArraySig(TypeSig arrayType, uint rank)
 			: base(arrayType) {
 			this.rank = rank;
-			sizes = ThreadSafeListCreator.Create<uint>();
-			lowerBounds = ThreadSafeListCreator.Create<int>();
+			sizes = new List<uint>();
+			lowerBounds = new List<int>();
 		}
 
 		/// <summary>
@@ -1067,8 +1060,8 @@ namespace dnlib.DotNet {
 		public ArraySig(TypeSig arrayType, uint rank, IEnumerable<uint> sizes, IEnumerable<int> lowerBounds)
 			: base(arrayType) {
 			this.rank = rank;
-			this.sizes = ThreadSafeListCreator.Create<uint>(sizes);
-			this.lowerBounds = ThreadSafeListCreator.Create<int>(lowerBounds);
+			this.sizes = new List<uint>(sizes);
+			this.lowerBounds = new List<int>(lowerBounds);
 		}
 
 		/// <summary>
@@ -1092,15 +1085,15 @@ namespace dnlib.DotNet {
 		internal ArraySig(TypeSig arrayType, uint rank, IList<uint> sizes, IList<int> lowerBounds)
 			: base(arrayType) {
 			this.rank = rank;
-			this.sizes = ThreadSafeListCreator.MakeThreadSafe(sizes);
-			this.lowerBounds = ThreadSafeListCreator.MakeThreadSafe(lowerBounds);
+			this.sizes = sizes;
+			this.lowerBounds = lowerBounds;
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<uint> GetSizes() => sizes;
+		public override IList<uint> GetSizes() => sizes;
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<int> GetLowerBounds() => lowerBounds;
+		public override IList<int> GetLowerBounds() => lowerBounds;
 	}
 
 	/// <summary>
@@ -1126,10 +1119,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<uint> GetSizes() => ThreadSafeListCreator.Create<uint>();
+		public override IList<uint> GetSizes() => Array2.Empty<uint>();
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<int> GetLowerBounds() => ThreadSafeListCreator.Create<int>();
+		public override IList<int> GetLowerBounds() => Array2.Empty<int>();
 	}
 
 	/// <summary>

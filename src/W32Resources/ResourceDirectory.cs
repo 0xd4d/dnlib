@@ -1,18 +1,11 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using dnlib.Utils;
 using dnlib.IO;
 using dnlib.PE;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.W32Resources {
 	/// <summary>
@@ -67,12 +60,12 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// Gets all directory entries
 		/// </summary>
-		public ThreadSafe.IList<ResourceDirectory> Directories => directories;
+		public IList<ResourceDirectory> Directories => directories;
 
 		/// <summary>
 		/// Gets all resource data
 		/// </summary>
-		public ThreadSafe.IList<ResourceData> Data => data;
+		public IList<ResourceData> Data => data;
 
 		/// <summary>
 		/// Constructor
@@ -88,7 +81,7 @@ namespace dnlib.W32Resources {
 		/// <param name="name">Name</param>
 		/// <returns>A <see cref="ResourceDirectory"/> or <c>null</c> if it wasn't found</returns>
 		public ResourceDirectory FindDirectory(ResourceName name) {
-			foreach (var dir in directories.GetSafeEnumerable()) {
+			foreach (var dir in directories) {
 				if (dir.Name == name)
 					return dir;
 			}
@@ -101,7 +94,7 @@ namespace dnlib.W32Resources {
 		/// <param name="name">Name</param>
 		/// <returns>A <see cref="ResourceData"/> or <c>null</c> if it wasn't found</returns>
 		public ResourceData FindData(ResourceName name) {
-			foreach (var d in data.GetSafeEnumerable()) {
+			foreach (var d in data) {
 				if (d.Name == name)
 					return d;
 			}

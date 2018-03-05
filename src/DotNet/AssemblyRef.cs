@@ -1,17 +1,11 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -145,7 +139,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
 				if (customDebugInfos == null)
 					InitializeCustomDebugInfos();
@@ -153,10 +147,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
-			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
+			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <inheritdoc/>
 		public string FullName => FullNameToken;
@@ -177,17 +171,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
-		void ModifyAttributes(AssemblyAttributes andMask, AssemblyAttributes orMask) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = attributes;
-				newVal = (origVal & (int)andMask) | (int)orMask;
-			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
-#else
+		void ModifyAttributes(AssemblyAttributes andMask, AssemblyAttributes orMask) =>
 			attributes = (attributes & (int)andMask) | (int)orMask;
-#endif
-		}
 
 		/// <summary>
 		/// Set or clear flags in <see cref="attributes"/>
@@ -196,21 +181,10 @@ namespace dnlib.DotNet {
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, AssemblyAttributes flags) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = attributes;
-				if (set)
-					newVal = origVal | (int)flags;
-				else
-					newVal = origVal & ~(int)flags;
-			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
-#else
 			if (set)
 				attributes |= (int)flags;
 			else
 				attributes &= ~(int)flags;
-#endif
 		}
 
 		/// <summary>
@@ -452,7 +426,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			var list = new List<PdbCustomDebugInfo>();
 			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(), list);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}

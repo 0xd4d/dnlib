@@ -42,7 +42,7 @@ namespace dnlib.Utils {
 		public TValue Value {
 			get {
 #if THREAD_SAFE
-				if (theLock != null) theLock.EnterWriteLock(); try {
+				theLock?.EnterWriteLock(); try {
 #endif
 				if (!isValueInitialized) {
 					value = readOriginalValue();
@@ -51,19 +51,19 @@ namespace dnlib.Utils {
 				}
 				return value;
 #if THREAD_SAFE
-				} finally { if (theLock != null) theLock.ExitWriteLock(); }
+				} finally { theLock?.ExitWriteLock(); }
 #endif
 			}
 			set {
 #if THREAD_SAFE
-				if (theLock != null) theLock.EnterWriteLock(); try {
+				theLock?.EnterWriteLock(); try {
 #endif
 				this.value = value;
 				readOriginalValue = null;
 				isUserValue = true;
 				isValueInitialized = true;
 #if THREAD_SAFE
-				} finally { if (theLock != null) theLock.ExitWriteLock(); }
+				} finally { theLock?.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -74,12 +74,11 @@ namespace dnlib.Utils {
 		public bool IsValueInitialized {
 #if THREAD_SAFE
 			get {
-				if (theLock != null)
-					theLock.EnterReadLock();
+				theLock?.EnterReadLock();
 				try {
 					return isValueInitialized;
 				}
-				finally { if (theLock != null) theLock.ExitReadLock(); }
+				finally { theLock?.ExitReadLock(); }
 			}
 #else
 			get => isValueInitialized;
@@ -92,12 +91,11 @@ namespace dnlib.Utils {
 		public bool IsUserValue {
 #if THREAD_SAFE
 			get {
-				if (theLock != null)
-					theLock.EnterReadLock();
+				theLock?.EnterReadLock();
 				try {
 					return isUserValue;
 				}
-				finally { if (theLock != null) theLock.ExitReadLock(); }
+				finally { theLock?.ExitReadLock(); }
 			}
 #else
 			get => isUserValue;

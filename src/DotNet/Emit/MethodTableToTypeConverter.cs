@@ -24,9 +24,7 @@ namespace dnlib.DotNet.Emit {
 		static readonly Dictionary<IntPtr, Type> addrToType = new Dictionary<IntPtr, Type>();
 		static ModuleBuilder moduleBuilder;
 		static int numNewTypes;
-#if THREAD_SAFE
-		static readonly Lock theLock = Lock.Create();
-#endif
+		static object lockObj = new object();
 
 		static MethodTableToTypeConverter() {
 			if (ptrFieldInfo == null) {
@@ -45,18 +43,14 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="address">Address of type</param>
 		/// <returns>The <see cref="Type"/> or <c>null</c></returns>
 		public static Type Convert(IntPtr address) {
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			if (addrToType.TryGetValue(address, out var type))
-				return type;
+			lock (lockObj) {
+				if (addrToType.TryGetValue(address, out var type))
+					return type;
 
-			type = GetTypeNET20(address) ?? GetTypeUsingTypeBuilder(address);
-			addrToType[address] = type;
-			return type;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
+				type = GetTypeNET20(address) ?? GetTypeUsingTypeBuilder(address);
+				addrToType[address] = type;
+				return type;
+			}
 		}
 
 		static Type GetTypeUsingTypeBuilder(IntPtr address) {

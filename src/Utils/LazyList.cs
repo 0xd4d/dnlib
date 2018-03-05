@@ -186,15 +186,11 @@ namespace dnlib.Utils {
 
 		/// <inheritdoc/>
 		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
-		public int Count_NoLock => list.Count;
+		internal int Count_NoLock => list.Count;
 
 		/// <inheritdoc/>
 		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
 		public bool IsReadOnly => false;
-
-		/// <inheritdoc/>
-		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
-		public bool IsReadOnly_NoLock => false;
 
 		/// <inheritdoc/>
 		public TValue this[int index] {
@@ -218,11 +214,9 @@ namespace dnlib.Utils {
 			}
 		}
 
-		/// <inheritdoc/>
-		public TValue Get_NoLock(int index) => list[index].GetValue_NoLock(index);
+		internal TValue Get_NoLock(int index) => list[index].GetValue_NoLock(index);
 
-		/// <inheritdoc/>
-		public void Set_NoLock(int index, TValue value) {
+		void Set_NoLock(int index, TValue value) {
 			if (listener != null) {
 				listener.OnRemove(index, list[index].GetValue_NoLock(index));
 				listener.OnAdd(index, value);
@@ -293,8 +287,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public int IndexOf_NoLock(TValue item) {
+		int IndexOf_NoLock(TValue item) {
 			for (int i = 0; i < list.Count; i++) {
 				if (list[i].GetValue_NoLock(i) == item)
 					return i;
@@ -313,8 +306,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public void Insert_NoLock(int index, TValue item) {
+		void Insert_NoLock(int index, TValue item) {
 			if (listener != null)
 				listener.OnAdd(index, item);
 			list.Insert(index, new Element(item));
@@ -334,8 +326,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public void RemoveAt_NoLock(int index) {
+		void RemoveAt_NoLock(int index) {
 			if (listener != null)
 				listener.OnRemove(index, list[index].GetValue_NoLock(index));
 			list.RemoveAt(index);
@@ -355,8 +346,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public void Add_NoLock(TValue item) {
+		void Add_NoLock(TValue item) {
 			int index = list.Count;
 			if (listener != null)
 				listener.OnAdd(index, item);
@@ -377,8 +367,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public void Clear_NoLock() {
+		void Clear_NoLock() {
 			if (listener != null)
 				listener.OnClear();
 			list.Clear();
@@ -391,9 +380,6 @@ namespace dnlib.Utils {
 		public bool Contains(TValue item) => IndexOf(item) >= 0;
 
 		/// <inheritdoc/>
-		public bool Contains_NoLock(TValue item) => IndexOf_NoLock(item) >= 0;
-
-		/// <inheritdoc/>
 		public void CopyTo(TValue[] array, int arrayIndex) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -404,8 +390,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public void CopyTo_NoLock(TValue[] array, int arrayIndex) {
+		void CopyTo_NoLock(TValue[] array, int arrayIndex) {
 			for (int i = 0; i < list.Count; i++)
 				array[arrayIndex + i] = list[i].GetValue_NoLock(i);
 		}
@@ -421,8 +406,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public bool Remove_NoLock(TValue item) {
+		bool Remove_NoLock(TValue item) {
 			int index = IndexOf_NoLock(item);
 			if (index < 0)
 				return false;
@@ -441,8 +425,7 @@ namespace dnlib.Utils {
 #endif
 		}
 
-		/// <inheritdoc/>
-		public bool IsInitialized_NoLock(int index) {
+		bool IsInitialized_NoLock(int index) {
 			if ((uint)index >= (uint)list.Count)
 				return false;
 			return list[index].IsInitialized_NoLock;
@@ -475,8 +458,7 @@ namespace dnlib.Utils {
 			}
 		}
 
-		/// <inheritdoc/>
-		public IEnumerator<TValue> GetEnumerator_NoLock() {
+		internal IEnumerable<TValue> GetEnumerable_NoLock() {
 			int id2 = id;
 			for (int i = 0; i < list.Count; i++) {
 				if (id != id2)
@@ -511,14 +493,5 @@ namespace dnlib.Utils {
 
 		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-#if THREAD_SAFE
-		/// <inheritdoc/>
-		public TRetType ExecuteLocked<TArgType, TRetType>(TArgType arg, ExecuteLockedDelegate<TValue, TArgType, TRetType> handler) {
-			theLock.EnterWriteLock(); try {
-				return handler(this, arg);
-			} finally { theLock.ExitWriteLock(); }
-		}
-#endif
 	}
 }

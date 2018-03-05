@@ -1,13 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using dnlib.DotNet.Pdb;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -886,7 +881,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the permission sets
 		/// </summary>
-		ThreadSafe.IList<DeclSecurity> DeclSecurities { get; }
+		IList<DeclSecurity> DeclSecurities { get; }
 
 		/// <summary>
 		/// <c>true</c> if <see cref="DeclSecurities"/> is not empty
@@ -986,7 +981,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the generic parameters
 		/// </summary>
-		ThreadSafe.IList<GenericParam> GenericParameters { get; }
+		IList<GenericParam> GenericParameters { get; }
 
 		/// <summary>
 		/// <c>true</c> if <see cref="GenericParameters"/> is not empty
@@ -1006,7 +1001,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the custom debug infos
 		/// </summary>
-		ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos { get; }
+		IList<PdbCustomDebugInfo> CustomDebugInfos { get; }
 
 		/// <summary>
 		/// <c>true</c> if <see cref="CustomDebugInfos"/> is not empty

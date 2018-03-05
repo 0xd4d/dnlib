@@ -1,7 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -16,7 +15,7 @@ namespace dnlib.DotNet {
 		public static void Initialize<T>(IEnumerable<T> coll) {
 			if (coll == null)
 				return;
-			foreach (var c in coll.GetSafeEnumerable()) {
+			foreach (var c in coll) {
 			}
 		}
 

@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
-using dnlib.Threading;
+using System.Collections.Generic;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -16,7 +15,7 @@ namespace dnlib.DotNet {
 			var visited = new Dictionary<TypeDef, bool>();
 			var stack = new Stack<IEnumerator<TypeDef>>();
 			if (types != null)
-				stack.Push(types.GetSafeEnumerable().GetEnumerator());
+				stack.Push(types.GetEnumerator());
 			while (stack.Count > 0) {
 				var enumerator = stack.Pop();
 				while (enumerator.MoveNext()) {
@@ -27,7 +26,7 @@ namespace dnlib.DotNet {
 					yield return type;
 					if (type.NestedTypes.Count > 0) {
 						stack.Push(enumerator);
-						enumerator = type.NestedTypes.GetSafeEnumerable().GetEnumerator();
+						enumerator = type.NestedTypes.GetEnumerator();
 					}
 				}
 			}

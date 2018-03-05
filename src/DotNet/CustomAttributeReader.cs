@@ -1,11 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using dnlib.IO;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -251,7 +250,7 @@ namespace dnlib.DotNet {
 				throw new CABlobParserException("Invalid CA blob prolog");
 
 			var ctorArgs = new List<CAArgument>(methodSig.Params.Count);
-			foreach (var arg in methodSig.Params.GetSafeEnumerable())
+			foreach (var arg in methodSig.Params)
 				ctorArgs.Add(ReadFixedArg(FixTypeSig(arg)));
 
 			// Some tools don't write the next ushort if there are no named arguments.
@@ -529,7 +528,7 @@ namespace dnlib.DotNet {
 			else if (arrayCount < 0)
 				throw new CABlobParserException("Array is too big");
 			else {
-				var array = ThreadSafeListCreator.Create<CAArgument>(arrayCount);
+				var array = new List<CAArgument>(arrayCount);
 				arg.Value = array;
 				for (int i = 0; i < arrayCount; i++)
 					array.Add(ReadFixedArg(FixTypeSig(arrayType.Next)));

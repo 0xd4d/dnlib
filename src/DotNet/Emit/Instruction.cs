@@ -1,9 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using dnlib.DotNet.Pdb;
-using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -168,7 +167,7 @@ namespace dnlib.DotNet.Emit {
 		public static Instruction Create(OpCode opCode, IList<Instruction> targets) {
 			if (opCode.OperandType != OperandType.InlineSwitch)
 				throw new ArgumentException("Opcode does not have a targets array operand", nameof(opCode));
-			return new Instruction(opCode, ThreadSafeListCreator.MakeThreadSafe(targets));
+			return new Instruction(opCode, targets);
 		}
 
 		/// <summary>
@@ -694,7 +693,9 @@ namespace dnlib.DotNet.Emit {
 				return null;
 			}
 
-			return locals.Get(index, null);
+			if ((uint)index < (uint)locals.Count)
+				return locals[index];
+			return null;
 		}
 
 		/// <summary>
@@ -728,7 +729,12 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="parameters">All parameters</param>
 		/// <returns>A parameter or <c>null</c> if it doesn't exist</returns>
-		public Parameter GetParameter(IList<Parameter> parameters) => parameters.Get(GetParameterIndex(), null);
+		public Parameter GetParameter(IList<Parameter> parameters) {
+			int i = GetParameterIndex();
+			if ((uint)i < (uint)parameters.Count)
+				return parameters[i];
+			return null;
+		}
 
 		/// <summary>
 		/// Returns an argument type
@@ -744,7 +750,9 @@ namespace dnlib.DotNet.Emit {
 				return declaringType.ToTypeSig();	//TODO: Should be ByRef if value type
 			if (methodSig.ImplicitThis)
 				index--;
-			return methodSig.Params.Get(index, null);
+			if ((uint)index < (uint)methodSig.Params.Count)
+				return methodSig.Params[index];
+			return null;
 		}
 
 		/// <summary>

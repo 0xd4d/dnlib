@@ -3,13 +3,6 @@
 using System.Collections.Generic;
 using dnlib.DotNet.Pdb;
 using dnlib.PE;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -54,8 +47,8 @@ namespace dnlib.DotNet.Emit {
 		byte headerSize;
 		ushort maxStack;
 		uint localVarSigTok;
-		readonly ThreadSafe.IList<Instruction> instructions;
-		readonly ThreadSafe.IList<ExceptionHandler> exceptionHandlers;
+		readonly IList<Instruction> instructions;
+		readonly IList<ExceptionHandler> exceptionHandlers;
 		readonly LocalList localList;
 
 		/// <summary>
@@ -122,7 +115,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the instructions
 		/// </summary>
-		public ThreadSafe.IList<Instruction> Instructions => instructions;
+		public IList<Instruction> Instructions => instructions;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ExceptionHandlers"/> is not empty
@@ -132,7 +125,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the exception handlers
 		/// </summary>
-		public ThreadSafe.IList<ExceptionHandler> ExceptionHandlers => exceptionHandlers;
+		public IList<ExceptionHandler> ExceptionHandlers => exceptionHandlers;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Variables"/> is not empty
@@ -164,8 +157,8 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		public CilBody() {
 			initLocals = true;
-			instructions = ThreadSafeListCreator.Create<Instruction>();
-			exceptionHandlers = ThreadSafeListCreator.Create<ExceptionHandler>();
+			instructions = new List<Instruction>();
+			exceptionHandlers = new List<ExceptionHandler>();
 			localList = new LocalList();
 		}
 
@@ -178,8 +171,8 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="locals">All locals. This instance will own the locals in the list.</param>
 		public CilBody(bool initLocals, IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers, IList<Local> locals) {
 			this.initLocals = initLocals;
-			this.instructions = ThreadSafeListCreator.MakeThreadSafe(instructions);
-			this.exceptionHandlers = ThreadSafeListCreator.MakeThreadSafe(exceptionHandlers);
+			this.instructions = instructions;
+			this.exceptionHandlers = exceptionHandlers;
 			localList = new LocalList(locals);
 		}
 

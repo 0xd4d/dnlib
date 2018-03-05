@@ -6,13 +6,6 @@ using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -50,7 +43,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column DeclSecurity.PermissionSet
 		/// </summary>
-		public ThreadSafe.IList<SecurityAttribute> SecurityAttributes {
+		public IList<SecurityAttribute> SecurityAttributes {
 			get {
 				if (securityAttributes == null)
 					InitializeSecurityAttributes();
@@ -58,10 +51,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<SecurityAttribute> securityAttributes;
+		protected IList<SecurityAttribute> securityAttributes;
 		/// <summary>Initializes <see cref="securityAttributes"/></summary>
 		protected virtual void InitializeSecurityAttributes() =>
-			Interlocked.CompareExchange(ref securityAttributes, ThreadSafeListCreator.Create<SecurityAttribute>(), null);
+			Interlocked.CompareExchange(ref securityAttributes, new List<SecurityAttribute>(), null);
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -91,7 +84,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
 				if (customDebugInfos == null)
 					InitializeCustomDebugInfos();
@@ -99,10 +92,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
-			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
+			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <summary>
 		/// <c>true</c> if <see cref="SecurityAttributes"/> is not empty
@@ -163,7 +156,7 @@ namespace dnlib.DotNet {
 		/// <param name="securityAttrs">The security attributes (now owned by this)</param>
 		public DeclSecurityUser(SecurityAction action, IList<SecurityAttribute> securityAttrs) {
 			this.action = action;
-			securityAttributes = ThreadSafeListCreator.MakeThreadSafe(securityAttrs);
+			securityAttributes = securityAttrs;
 		}
 
 		/// <inheritdoc/>
@@ -199,7 +192,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			var list = new List<PdbCustomDebugInfo>();
 			var gpContext = new GenericParamContext();
 			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), gpContext, list);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);

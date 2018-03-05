@@ -3,21 +3,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.Utils;
-using dnlib.Threading;
 using dnlib.DotNet.Pdb;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A collection of <see cref="Local"/>s
 	/// </summary>
 	[DebuggerDisplay("Count = {Count}")]
-	public sealed class LocalList : IListListener<Local>, ThreadSafe.IList<Local> {
+	public sealed class LocalList : IListListener<Local>, IList<Local> {
 		readonly LazyList<Local> locals;
 
 		/// <summary>
@@ -28,7 +21,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the list of locals
 		/// </summary>
-		public ThreadSafe.IList<Local> Locals => locals;
+		public IList<Local> Locals => locals;
 
 		/// <summary>
 		/// Gets the N'th local
@@ -50,7 +43,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="locals">All locals that will be owned by this instance</param>
 		public LocalList(IEnumerable<Local> locals) {
 			this.locals = new LazyList<Local>(this);
-			foreach (var local in locals.GetSafeEnumerable())
+			foreach (var local in locals)
 				this.locals.Add(local);
 		}
 
@@ -76,7 +69,7 @@ namespace dnlib.DotNet.Emit {
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnResize(int index) {
-			for (int i = index; i < locals.Count_NoLock(); i++)
+			for (int i = index; i < locals.Count_NoLock; i++)
 				locals.Get_NoLock(i).Index = i;
 		}
 
@@ -116,51 +109,6 @@ namespace dnlib.DotNet.Emit {
 		public IEnumerator<Local> GetEnumerator() => locals.GetEnumerator();
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => ((IEnumerable<Local>)this).GetEnumerator();
-
-#if THREAD_SAFE
-		/// <inheritdoc/>
-		public int IndexOf_NoLock(Local item) => locals.IndexOf_NoLock(item);
-
-		/// <inheritdoc/>
-		public void Insert_NoLock(int index, Local item) => locals.Insert_NoLock(index, item);
-
-		/// <inheritdoc/>
-		public void RemoveAt_NoLock(int index) => locals.RemoveAt_NoLock(index);
-
-		/// <inheritdoc/>
-		public Local Get_NoLock(int index) => locals.Get_NoLock(index);
-
-		/// <inheritdoc/>
-		public void Set_NoLock(int index, Local value) => locals.Set_NoLock(index, value);
-
-		/// <inheritdoc/>
-		public void Add_NoLock(Local item) => locals.Add_NoLock(item);
-
-		/// <inheritdoc/>
-		public void Clear_NoLock() => locals.Clear_NoLock();
-
-		/// <inheritdoc/>
-		public bool Contains_NoLock(Local item) => locals.Contains_NoLock(item);
-
-		/// <inheritdoc/>
-		public void CopyTo_NoLock(Local[] array, int arrayIndex) => locals.CopyTo_NoLock(array, arrayIndex);
-
-		/// <inheritdoc/>
-		public int Count_NoLock => locals.Count_NoLock;
-
-		/// <inheritdoc/>
-		public bool IsReadOnly_NoLock => locals.IsReadOnly_NoLock;
-
-		/// <inheritdoc/>
-		public bool Remove_NoLock(Local item) => locals.Remove_NoLock(item);
-
-		/// <inheritdoc/>
-		public IEnumerator<Local> GetEnumerator_NoLock() => locals.GetEnumerator_NoLock();
-
-		/// <inheritdoc/>
-		public TRetType ExecuteLocked<TArgType, TRetType>(TArgType arg, ExecuteLockedDelegate<Local, TArgType, TRetType> handler) =>
-			locals.ExecuteLocked<TArgType, TRetType>(arg, (tsList, arg2) => handler(this, arg2));
-#endif
 	}
 
 	/// <summary>

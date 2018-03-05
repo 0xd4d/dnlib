@@ -7,15 +7,9 @@ using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
-using dnlib.Threading;
 using System.Text.RegularExpressions;
 using dnlib.DotNet.Pdb;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
+using System.Collections.Generic;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -111,7 +105,7 @@ namespace dnlib.DotNet {
 		protected UTF8String culture;
 
 		/// <inheritdoc/>
-		public ThreadSafe.IList<DeclSecurity> DeclSecurities {
+		public IList<DeclSecurity> DeclSecurities {
 			get {
 				if (declSecurities == null)
 					InitializeDeclSecurities();
@@ -119,10 +113,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<DeclSecurity> declSecurities;
+		protected IList<DeclSecurity> declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
 		protected virtual void InitializeDeclSecurities() =>
-			Interlocked.CompareExchange(ref declSecurities, ThreadSafeListCreator.Create<DeclSecurity>(), null);
+			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
 
 		/// <inheritdoc/>
 		public PublicKeyBase PublicKeyOrToken => publicKey;
@@ -136,7 +130,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all modules. The first module is always the <see cref="ManifestModule"/>.
 		/// </summary>
-		public ThreadSafe.IList<ModuleDef> Modules {
+		public IList<ModuleDef> Modules {
 			get {
 				if (modules == null)
 					InitializeModules();
@@ -178,7 +172,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
 				if (customDebugInfos == null)
 					InitializeCustomDebugInfos();
@@ -186,10 +180,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
-			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
+			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 		/// <inheritdoc/>
 		public bool HasDeclSecurities => DeclSecurities.Count > 0;
 
@@ -202,7 +196,7 @@ namespace dnlib.DotNet {
 		/// Gets the manifest (main) module. This is always the first module in <see cref="Modules"/>.
 		/// <c>null</c> is returned if <see cref="Modules"/> is empty.
 		/// </summary>
-		public ModuleDef ManifestModule => Modules.Get(0, null);
+		public ModuleDef ManifestModule => Modules.Count == 0 ? null : Modules[0];
 
 		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
@@ -210,17 +204,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
-		void ModifyAttributes(AssemblyAttributes andMask, AssemblyAttributes orMask) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = attributes;
-				newVal = (origVal & (int)andMask) | (int)orMask;
-			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
-#else
+		void ModifyAttributes(AssemblyAttributes andMask, AssemblyAttributes orMask) =>
 			attributes = (attributes & (int)andMask) | (int)orMask;
-#endif
-		}
 
 		/// <summary>
 		/// Set or clear flags in <see cref="attributes"/>
@@ -229,21 +214,10 @@ namespace dnlib.DotNet {
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, AssemblyAttributes flags) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = attributes;
-				if (set)
-					newVal = origVal | (int)flags;
-				else
-					newVal = origVal & ~(int)flags;
-			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
-#else
 			if (set)
 				attributes |= (int)flags;
 			else
 				attributes &= ~(int)flags;
-#endif
 		}
 
 		/// <summary>
@@ -361,7 +335,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of module</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
 		public ModuleDef FindModule(UTF8String name) {
-			foreach (var module in Modules.GetSafeEnumerable()) {
+			foreach (var module in Modules) {
 				if (module == null)
 					continue;
 				if (UTF8String.CaseInsensitiveEquals(module.Name, name))
@@ -544,7 +518,7 @@ namespace dnlib.DotNet {
 		/// are separated by a <c>/</c> character.</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		public TypeDef Find(string fullName, bool isReflectionName) {
-			foreach (var module in Modules.GetSafeEnumerable()) {
+			foreach (var module in Modules) {
 				if (module == null)
 					continue;
 				var type = module.Find(fullName, isReflectionName);
@@ -562,7 +536,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		public TypeDef Find(TypeRef typeRef) {
-			foreach (var module in Modules.GetSafeEnumerable()) {
+			foreach (var module in Modules) {
 				if (module == null)
 					continue;
 				var type = module.Find(typeRef);
@@ -606,7 +580,7 @@ namespace dnlib.DotNet {
 			foreach (var ca in targetAsm.CustomAttributes.FindAll("System.Runtime.CompilerServices.InternalsVisibleToAttribute")) {
 				if (ca.ConstructorArguments.Count != 1)
 					continue;
-				var arg = ca.ConstructorArguments.Get(0, default);
+				var arg = ca.ConstructorArguments.Count == 0 ? default : ca.ConstructorArguments[0];
 				if (arg.Type.GetElementType() != ElementType.String)
 					continue;
 				var asmName = arg.Value as UTF8String;
@@ -643,19 +617,16 @@ namespace dnlib.DotNet {
 				return;
 
 			// Remove all existing attributes
-			var ca = CustomAttributes.ExecuteLocked<CustomAttribute, object, CustomAttribute>(null, (tsList, arg) => {
-				CustomAttribute foundCa = null;
-				for (int i = 0; i < tsList.Count_NoLock(); i++) {
-					var caTmp = tsList.Get_NoLock(i);
-					if (caTmp.TypeFullName != "System.Reflection.AssemblySignatureKeyAttribute")
-						continue;
-					tsList.RemoveAt_NoLock(i);
-					i--;
-					if (foundCa == null)
-						foundCa = caTmp;
-				}
-				return foundCa;
-			});
+			CustomAttribute ca = null;
+			for (int i = 0; i < CustomAttributes.Count; i++) {
+				var caTmp = CustomAttributes[i];
+				if (caTmp.TypeFullName != "System.Reflection.AssemblySignatureKeyAttribute")
+					continue;
+				CustomAttributes.RemoveAt(i);
+				i--;
+				if (ca == null)
+					ca = caTmp;
+			}
 
 			if (IsValidAssemblySignatureKeyAttribute(ca))
 				ca.NamedArguments.Clear();
@@ -669,9 +640,8 @@ namespace dnlib.DotNet {
 		}
 
 		bool IsValidAssemblySignatureKeyAttribute(CustomAttribute ca) {
-#if THREAD_SAFE
-			return false;
-#else
+			if (dnlib.Settings.IsThreadSafe)
+				return false;
 			if (ca == null)
 				return false;
 			var ctor = ca.Constructor;
@@ -687,7 +657,6 @@ namespace dnlib.DotNet {
 			if (ca.ConstructorArguments.Count != 2)
 				return false;
 			return true;
-#endif
 		}
 
 		CustomAttribute CreateAssemblySignatureKeyAttribute() {
@@ -748,7 +717,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnClear() {
-			foreach (var module in Modules.GetEnumerable_NoLock()) {
+			foreach (var module in modules.GetEnumerable_NoLock()) {
 				if (module != null)
 					module.Assembly = null;
 			}
@@ -894,7 +863,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			var list = new List<PdbCustomDebugInfo>();
 			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(), list);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}

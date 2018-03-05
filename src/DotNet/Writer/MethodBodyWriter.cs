@@ -124,7 +124,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		bool NeedFatHeader() {
-			//TODO: If locals has cust attrs, we also need a fat header
+			//TODO: If locals has cust attrs or custom debug infos, we also need a fat header
 			return codeSize > 0x3F ||
 					exceptionHandlers.Count > 0 ||
 					cilBody.HasVariables ||

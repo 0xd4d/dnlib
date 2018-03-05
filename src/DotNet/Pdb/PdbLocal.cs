@@ -1,13 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System.Collections.Generic;
 using dnlib.DotNet.Emit;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
@@ -74,7 +68,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
-		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+		public IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
+		readonly IList<PdbCustomDebugInfo> customDebugInfos = new List<PdbCustomDebugInfo>();
 	}
 }

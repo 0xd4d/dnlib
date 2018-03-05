@@ -1,15 +1,9 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using dnlib.IO;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -26,7 +20,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Module that will own the returned list</param>
 		/// <param name="sig"><c>#Blob</c> offset of <c>DeclSecurity</c> signature</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
-		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDefMD module, uint sig) => Read(module, module.BlobStream.CreateStream(sig), new GenericParamContext());
+		public static IList<SecurityAttribute> Read(ModuleDefMD module, uint sig) => Read(module, module.BlobStream.CreateStream(sig), new GenericParamContext());
 
 		/// <summary>
 		/// Reads a <c>DeclSecurity</c> blob
@@ -35,7 +29,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig"><c>#Blob</c> offset of <c>DeclSecurity</c> signature</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
-		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDefMD module, uint sig, GenericParamContext gpContext) => Read(module, module.BlobStream.CreateStream(sig), gpContext);
+		public static IList<SecurityAttribute> Read(ModuleDefMD module, uint sig, GenericParamContext gpContext) => Read(module, module.BlobStream.CreateStream(sig), gpContext);
 
 		/// <summary>
 		/// Reads a <c>DeclSecurity</c> blob
@@ -43,7 +37,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Module that will own the returned list</param>
 		/// <param name="blob"><c>DeclSecurity</c> blob</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
-		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, byte[] blob) => Read(module, MemoryImageStream.Create(blob), new GenericParamContext());
+		public static IList<SecurityAttribute> Read(ModuleDef module, byte[] blob) => Read(module, MemoryImageStream.Create(blob), new GenericParamContext());
 
 		/// <summary>
 		/// Reads a <c>DeclSecurity</c> blob
@@ -52,7 +46,7 @@ namespace dnlib.DotNet {
 		/// <param name="blob"><c>DeclSecurity</c> blob</param>
 		/// <param name="gpContext">Generic parameter context</param>/// 
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
-		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, byte[] blob, GenericParamContext gpContext) => Read(module, MemoryImageStream.Create(blob), gpContext);
+		public static IList<SecurityAttribute> Read(ModuleDef module, byte[] blob, GenericParamContext gpContext) => Read(module, MemoryImageStream.Create(blob), gpContext);
 
 		/// <summary>
 		/// Reads a <c>DeclSecurity</c> blob
@@ -60,7 +54,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Module that will own the returned list</param>
 		/// <param name="signature"><c>DeclSecurity</c> stream that will be owned by us</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
-		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, IBinaryReader signature) => Read(module, signature, new GenericParamContext());
+		public static IList<SecurityAttribute> Read(ModuleDef module, IBinaryReader signature) => Read(module, signature, new GenericParamContext());
 
 		/// <summary>
 		/// Reads a <c>DeclSecurity</c> blob
@@ -69,7 +63,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature"><c>DeclSecurity</c> stream that will be owned by us</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A list of <see cref="SecurityAttribute"/>s</returns>
-		public static ThreadSafe.IList<SecurityAttribute> Read(ModuleDef module, IBinaryReader signature, GenericParamContext gpContext) {
+		public static IList<SecurityAttribute> Read(ModuleDef module, IBinaryReader signature, GenericParamContext gpContext) {
 			using (var reader = new DeclSecurityReader(module, signature, gpContext))
 				return reader.Read();
 		}
@@ -80,10 +74,10 @@ namespace dnlib.DotNet {
 			this.gpContext = gpContext;
 		}
 
-		ThreadSafe.IList<SecurityAttribute> Read() {
+		IList<SecurityAttribute> Read() {
 			try {
 				if (reader.Position >= reader.Length)
-					return ThreadSafeListCreator.Create<SecurityAttribute>();
+					return new List<SecurityAttribute>();
 
 				if (reader.ReadByte() == '.')
 					return ReadBinaryFormat();
@@ -91,7 +85,7 @@ namespace dnlib.DotNet {
 				return ReadXmlFormat();
 			}
 			catch {
-				return ThreadSafeListCreator.Create<SecurityAttribute>();
+				return new List<SecurityAttribute>();
 			}
 		}
 
@@ -99,9 +93,9 @@ namespace dnlib.DotNet {
 		/// Reads the new (.NET 2.0+) DeclSecurity blob format
 		/// </summary>
 		/// <returns></returns>
-		ThreadSafe.IList<SecurityAttribute> ReadBinaryFormat() {
+		IList<SecurityAttribute> ReadBinaryFormat() {
 			int numAttrs = (int)reader.ReadCompressedUInt32();
-			var list = ThreadSafeListCreator.Create<SecurityAttribute>(numAttrs);
+			var list = new List<SecurityAttribute>(numAttrs);
 
 			for (int i = 0; i < numAttrs; i++) {
 				var name = ReadUTF8String();
@@ -122,10 +116,10 @@ namespace dnlib.DotNet {
 		/// Reads the old (.NET 1.x) DeclSecurity blob format
 		/// </summary>
 		/// <returns></returns>
-		ThreadSafe.IList<SecurityAttribute> ReadXmlFormat() {
+		IList<SecurityAttribute> ReadXmlFormat() {
 			var xml = Encoding.Unicode.GetString(reader.ReadAllBytes());
 			var sa = SecurityAttribute.CreateFromXml(module, xml);
-			return ThreadSafeListCreator.Create<SecurityAttribute>(sa);
+			return new List<SecurityAttribute> { sa };
 		}
 
 		UTF8String ReadUTF8String() {

@@ -1,8 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
-using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -101,7 +100,7 @@ namespace dnlib.DotNet.Emit {
 					for (int i = 0; i < targets.Count; i++) {
 						if (i != 0)
 							sb.Append(',');
-						AddInstructionTarget(sb, targets.Get(i, null));
+						AddInstructionTarget(sb, targets[i]);
 					}
 					sb.Append(')');
 				}

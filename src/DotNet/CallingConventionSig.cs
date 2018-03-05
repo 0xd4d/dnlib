@@ -1,13 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
+using System.Collections.Generic;
 
 /*
 All signature classes:
@@ -236,11 +229,11 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected TypeSig retType;
 		/// <summary/>
-		protected ThreadSafe.IList<TypeSig> parameters;
+		protected IList<TypeSig> parameters;
 		/// <summary/>
 		protected uint genParamCount;
 		/// <summary/>
-		protected ThreadSafe.IList<TypeSig> paramsAfterSentinel;
+		protected IList<TypeSig> paramsAfterSentinel;
 
 		/// <summary>
 		/// Gets/sets the calling convention
@@ -261,7 +254,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the parameters. This is never <c>null</c>
 		/// </summary>
-		public ThreadSafe.IList<TypeSig> Params => parameters;
+		public IList<TypeSig> Params => parameters;
 
 		/// <summary>
 		/// Gets/sets the generic param count
@@ -275,7 +268,7 @@ namespace dnlib.DotNet {
 		/// Gets the parameters that are present after the sentinel. Note that this is <c>null</c>
 		/// if there's no sentinel. It can still be empty even if it's not <c>null</c>.
 		/// </summary>
-		public ThreadSafe.IList<TypeSig> ParamsAfterSentinel {
+		public IList<TypeSig> ParamsAfterSentinel {
 			get => paramsAfterSentinel;
 			set => paramsAfterSentinel = value;
 		}
@@ -457,7 +450,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public MethodSig() => parameters = ThreadSafeListCreator.Create<TypeSig>();
+		public MethodSig() => parameters = new List<TypeSig>();
 
 		/// <summary>
 		/// Constructor
@@ -465,7 +458,7 @@ namespace dnlib.DotNet {
 		/// <param name="callingConvention">Calling convention</param>
 		public MethodSig(CallingConvention callingConvention) {
 			this.callingConvention = callingConvention;
-			parameters = ThreadSafeListCreator.Create<TypeSig>();
+			parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -476,7 +469,7 @@ namespace dnlib.DotNet {
 		public MethodSig(CallingConvention callingConvention, uint genParamCount) {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
-			parameters = ThreadSafeListCreator.Create<TypeSig>();
+			parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -489,7 +482,7 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>();
+			parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -503,7 +496,7 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argType1);
+			parameters = new List<TypeSig> { argType1 };
 		}
 
 		/// <summary>
@@ -518,7 +511,7 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argType1, argType2);
+			parameters = new List<TypeSig> { argType1, argType2 };
 		}
 
 		/// <summary>
@@ -534,7 +527,7 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argType1, argType2, argType3);
+			parameters = new List<TypeSig> { argType1, argType2, argType3 };
 		}
 
 		/// <summary>
@@ -548,7 +541,7 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argTypes);
+			parameters = new List<TypeSig>(argTypes);
 		}
 
 		/// <summary>
@@ -562,7 +555,7 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argTypes);
+			parameters = new List<TypeSig>(argTypes);
 		}
 
 		/// <summary>
@@ -577,8 +570,8 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argTypes);
-			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : ThreadSafeListCreator.Create<TypeSig>(paramsAfterSentinel);
+			parameters = new List<TypeSig>(argTypes);
+			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : new List<TypeSig>(paramsAfterSentinel);
 		}
 
 		/// <summary>
@@ -673,7 +666,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public PropertySig() {
 			callingConvention = CallingConvention.Property;
-			parameters = ThreadSafeListCreator.Create<TypeSig>();
+			parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -682,7 +675,7 @@ namespace dnlib.DotNet {
 		/// <param name="callingConvention">Calling convention (must have Property set)</param>
 		internal PropertySig(CallingConvention callingConvention) {
 			this.callingConvention = callingConvention;
-			parameters = ThreadSafeListCreator.Create<TypeSig>();
+			parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -691,7 +684,7 @@ namespace dnlib.DotNet {
 		/// <param name="hasThis"><c>true</c> if instance, <c>false</c> if static</param>
 		public PropertySig(bool hasThis) {
 			callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
-			parameters = ThreadSafeListCreator.Create<TypeSig>();
+			parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -702,7 +695,7 @@ namespace dnlib.DotNet {
 		public PropertySig(bool hasThis, TypeSig retType) {
 			callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>();
+			parameters = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -714,7 +707,7 @@ namespace dnlib.DotNet {
 		public PropertySig(bool hasThis, TypeSig retType, TypeSig argType1) {
 			callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argType1);
+			parameters = new List<TypeSig> { argType1 };
 		}
 
 		/// <summary>
@@ -727,7 +720,7 @@ namespace dnlib.DotNet {
 		public PropertySig(bool hasThis, TypeSig retType, TypeSig argType1, TypeSig argType2) {
 			callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argType1, argType2);
+			parameters = new List<TypeSig> { argType1, argType2 };
 		}
 
 		/// <summary>
@@ -741,7 +734,7 @@ namespace dnlib.DotNet {
 		public PropertySig(bool hasThis, TypeSig retType, TypeSig argType1, TypeSig argType2, TypeSig argType3) {
 			callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argType1, argType2, argType3);
+			parameters = new List<TypeSig> { argType1, argType2, argType3 };
 		}
 
 		/// <summary>
@@ -753,7 +746,7 @@ namespace dnlib.DotNet {
 		public PropertySig(bool hasThis, TypeSig retType, params TypeSig[] argTypes) {
 			callingConvention = CallingConvention.Property | (hasThis ? CallingConvention.HasThis : 0);
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argTypes);
+			parameters = new List<TypeSig>(argTypes);
 		}
 
 		/// <summary>
@@ -768,8 +761,8 @@ namespace dnlib.DotNet {
 			this.callingConvention = callingConvention;
 			this.genParamCount = genParamCount;
 			this.retType = retType;
-			parameters = ThreadSafeListCreator.Create<TypeSig>(argTypes);
-			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : ThreadSafeListCreator.Create<TypeSig>(paramsAfterSentinel);
+			parameters = new List<TypeSig>(argTypes);
+			this.paramsAfterSentinel = paramsAfterSentinel == null ? null : new List<TypeSig>(paramsAfterSentinel);
 		}
 
 		/// <summary>
@@ -785,19 +778,19 @@ namespace dnlib.DotNet {
 	/// A local variables signature
 	/// </summary>
 	public sealed class LocalSig : CallingConventionSig {
-		readonly ThreadSafe.IList<TypeSig> locals;
+		readonly IList<TypeSig> locals;
 
 		/// <summary>
 		/// All local types. This is never <c>null</c>.
 		/// </summary>
-		public ThreadSafe.IList<TypeSig> Locals => locals;
+		public IList<TypeSig> Locals => locals;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public LocalSig() {
 			callingConvention = CallingConvention.LocalSig;
-			locals = ThreadSafeListCreator.Create<TypeSig>();
+			locals = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -807,7 +800,7 @@ namespace dnlib.DotNet {
 		/// <param name="count">Number of locals</param>
 		internal LocalSig(CallingConvention callingConvention, uint count) {
 			this.callingConvention = callingConvention;
-			locals = ThreadSafeListCreator.Create<TypeSig>((int)count);
+			locals = new List<TypeSig>((int)count);
 		}
 
 		/// <summary>
@@ -816,7 +809,7 @@ namespace dnlib.DotNet {
 		/// <param name="local1">Local type #1</param>
 		public LocalSig(TypeSig local1) {
 			callingConvention = CallingConvention.LocalSig;
-			locals = ThreadSafeListCreator.Create<TypeSig>(local1);
+			locals = new List<TypeSig> { local1 };
 		}
 
 		/// <summary>
@@ -826,7 +819,7 @@ namespace dnlib.DotNet {
 		/// <param name="local2">Local type #2</param>
 		public LocalSig(TypeSig local1, TypeSig local2) {
 			callingConvention = CallingConvention.LocalSig;
-			locals = ThreadSafeListCreator.Create<TypeSig>(local1, local2);
+			locals = new List<TypeSig> { local1, local2 };
 		}
 
 		/// <summary>
@@ -837,7 +830,7 @@ namespace dnlib.DotNet {
 		/// <param name="local3">Local type #3</param>
 		public LocalSig(TypeSig local1, TypeSig local2, TypeSig local3) {
 			callingConvention = CallingConvention.LocalSig;
-			locals = ThreadSafeListCreator.Create<TypeSig>(local1, local2, local3);
+			locals = new List<TypeSig> { local1, local2, local3 };
 		}
 
 		/// <summary>
@@ -846,7 +839,7 @@ namespace dnlib.DotNet {
 		/// <param name="locals">All locals</param>
 		public LocalSig(params TypeSig[] locals) {
 			callingConvention = CallingConvention.LocalSig;
-			this.locals = ThreadSafeListCreator.Create<TypeSig>(locals);
+			this.locals = new List<TypeSig>(locals);
 		}
 
 		/// <summary>
@@ -855,7 +848,7 @@ namespace dnlib.DotNet {
 		/// <param name="locals">All locals</param>
 		public LocalSig(IList<TypeSig> locals) {
 			callingConvention = CallingConvention.LocalSig;
-			this.locals = ThreadSafeListCreator.Create<TypeSig>(locals);
+			this.locals = new List<TypeSig>(locals);
 		}
 
 		/// <summary>
@@ -865,7 +858,7 @@ namespace dnlib.DotNet {
 		/// <param name="dummy">Dummy</param>
 		internal LocalSig(IList<TypeSig> locals, bool dummy) {
 			callingConvention = CallingConvention.LocalSig;
-			this.locals = ThreadSafeListCreator.MakeThreadSafe(locals);
+			this.locals = locals;
 		}
 
 		/// <summary>
@@ -878,19 +871,19 @@ namespace dnlib.DotNet {
 	/// An instantiated generic method signature
 	/// </summary>
 	public sealed class GenericInstMethodSig : CallingConventionSig {
-		readonly ThreadSafe.IList<TypeSig> genericArgs;
+		readonly IList<TypeSig> genericArgs;
 
 		/// <summary>
 		/// Gets the generic arguments (must be instantiated types, i.e., closed types)
 		/// </summary>
-		public ThreadSafe.IList<TypeSig> GenericArguments => genericArgs;
+		public IList<TypeSig> GenericArguments => genericArgs;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public GenericInstMethodSig() {
 			callingConvention = CallingConvention.GenericInst;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>();
+			genericArgs = new List<TypeSig>();
 		}
 
 		/// <summary>
@@ -900,7 +893,7 @@ namespace dnlib.DotNet {
 		/// <param name="size">Number of generic args</param>
 		internal GenericInstMethodSig(CallingConvention callingConvention, uint size) {
 			this.callingConvention = callingConvention;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>((int)size);
+			genericArgs = new List<TypeSig>((int)size);
 		}
 
 		/// <summary>
@@ -909,7 +902,7 @@ namespace dnlib.DotNet {
 		/// <param name="arg1">Generic arg #1</param>
 		public GenericInstMethodSig(TypeSig arg1) {
 			callingConvention = CallingConvention.GenericInst;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(arg1);
+			genericArgs = new List<TypeSig> { arg1 };
 		}
 
 		/// <summary>
@@ -919,7 +912,7 @@ namespace dnlib.DotNet {
 		/// <param name="arg2">Generic arg #2</param>
 		public GenericInstMethodSig(TypeSig arg1, TypeSig arg2) {
 			callingConvention = CallingConvention.GenericInst;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(arg1, arg2);
+			genericArgs = new List<TypeSig> { arg1, arg2 };
 		}
 
 		/// <summary>
@@ -930,7 +923,7 @@ namespace dnlib.DotNet {
 		/// <param name="arg3">Generic arg #3</param>
 		public GenericInstMethodSig(TypeSig arg1, TypeSig arg2, TypeSig arg3) {
 			callingConvention = CallingConvention.GenericInst;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(arg1, arg2, arg3);
+			genericArgs = new List<TypeSig> { arg1, arg2, arg3 };
 		}
 
 		/// <summary>
@@ -939,7 +932,7 @@ namespace dnlib.DotNet {
 		/// <param name="args">Generic args</param>
 		public GenericInstMethodSig(params TypeSig[] args) {
 			callingConvention = CallingConvention.GenericInst;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(args);
+			genericArgs = new List<TypeSig>(args);
 		}
 
 		/// <summary>
@@ -948,7 +941,7 @@ namespace dnlib.DotNet {
 		/// <param name="args">Generic args</param>
 		public GenericInstMethodSig(IList<TypeSig> args) {
 			callingConvention = CallingConvention.GenericInst;
-			genericArgs = ThreadSafeListCreator.Create<TypeSig>(args);
+			genericArgs = new List<TypeSig>(args);
 		}
 
 		/// <summary>
@@ -977,7 +970,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="sig">this</param>
 		/// <returns>The parameters</returns>
-		public static IList<TypeSig> GetParams(this MethodBaseSig sig) => sig?.Params ?? ThreadSafeListCreator.Create<TypeSig>();
+		public static IList<TypeSig> GetParams(this MethodBaseSig sig) => sig?.Params ?? new List<TypeSig>();
 
 		/// <summary>
 		/// Gets the parameter count
@@ -1005,14 +998,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="sig">this</param>
 		/// <returns>All locals</returns>
-		public static IList<TypeSig> GetLocals(this LocalSig sig) => sig?.Locals ?? ThreadSafeListCreator.Create<TypeSig>();
+		public static IList<TypeSig> GetLocals(this LocalSig sig) => sig?.Locals ?? new List<TypeSig>();
 
 		/// <summary>
 		/// Gets the generic arguments
 		/// </summary>
 		/// <param name="sig">this</param>
 		/// <returns>All generic arguments</returns>
-		public static IList<TypeSig> GetGenericArguments(this GenericInstMethodSig sig) => sig?.GenericArguments ?? ThreadSafeListCreator.Create<TypeSig>();
+		public static IList<TypeSig> GetGenericArguments(this GenericInstMethodSig sig) => sig?.GenericArguments ?? new List<TypeSig>();
 
 		/// <summary>
 		/// Gets the <see cref="CallingConventionSig.IsDefault"/> property

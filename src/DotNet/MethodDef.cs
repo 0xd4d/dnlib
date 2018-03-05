@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.PE;
@@ -8,13 +8,7 @@ using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
 using dnlib.Threading;
 using dnlib.DotNet.Pdb;
-using System.Diagnostics;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
+using System.Collections.Generic;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -121,7 +115,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Method.ParamList
 		/// </summary>
-		public ThreadSafe.IList<ParamDef> ParamDefs {
+		public IList<ParamDef> ParamDefs {
 			get {
 				if (paramDefs == null)
 					InitializeParamDefs();
@@ -135,7 +129,7 @@ namespace dnlib.DotNet {
 			Interlocked.CompareExchange(ref paramDefs, new LazyList<ParamDef>(this), null);
 
 		/// <inheritdoc/>
-		public ThreadSafe.IList<GenericParam> GenericParameters {
+		public IList<GenericParam> GenericParameters {
 			get {
 				if (genericParameters == null)
 					InitializeGenericParameters();
@@ -149,7 +143,7 @@ namespace dnlib.DotNet {
 			Interlocked.CompareExchange(ref genericParameters, new LazyList<GenericParam>(this), null);
 
 		/// <inheritdoc/>
-		public ThreadSafe.IList<DeclSecurity> DeclSecurities {
+		public IList<DeclSecurity> DeclSecurities {
 			get {
 				if (declSecurities == null)
 					InitializeDeclSecurities();
@@ -157,10 +151,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<DeclSecurity> declSecurities;
+		protected IList<DeclSecurity> declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
 		protected virtual void InitializeDeclSecurities() =>
-			Interlocked.CompareExchange(ref declSecurities, ThreadSafeListCreator.Create<DeclSecurity>(), null);
+			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
 
 		/// <inheritdoc/>
 		public ImplMap ImplMap {
@@ -294,7 +288,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
+		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
 				if (customDebugInfos == null)
 					InitializeCustomDebugInfos();
@@ -302,15 +296,15 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
-			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
+			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <summary>
 		/// Gets the methods this method implements
 		/// </summary>
-		public ThreadSafe.IList<MethodOverride> Overrides {
+		public IList<MethodOverride> Overrides {
 			get {
 				if (overrides == null)
 					InitializeOverrides();
@@ -318,10 +312,10 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ThreadSafe.IList<MethodOverride> overrides;
+		protected IList<MethodOverride> overrides;
 		/// <summary>Initializes <see cref="overrides"/></summary>
 		protected virtual void InitializeOverrides() =>
-			Interlocked.CompareExchange(ref overrides, ThreadSafeListCreator.Create<MethodOverride>(), null);
+			Interlocked.CompareExchange(ref overrides, new List<MethodOverride>(), null);
 
 		/// <summary>
 		/// Gets the export info or null if the method isn't exported to unmanaged code.
@@ -538,21 +532,10 @@ namespace dnlib.DotNet {
 		void ModifyAttributes(bool set, MethodSemanticsAttributes flags) {
 			if ((semAttrs & SEMATTRS_INITD) == 0)
 				InitializeSemanticsAttributes();
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = semAttrs;
-				if (set)
-					newVal = origVal | (int)flags;
-				else
-					newVal = origVal & ~(int)flags;
-			} while (Interlocked.CompareExchange(ref semAttrs, newVal, origVal) != origVal);
-#else
 			if (set)
 				semAttrs |= (int)flags;
 			else
 				semAttrs &= ~(int)flags;
-#endif
 		}
 
 		/// <summary>
@@ -561,17 +544,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
-		void ModifyAttributes(MethodAttributes andMask, MethodAttributes orMask) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = attributes;
-				newVal = (origVal & (int)andMask) | (int)orMask;
-			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
-#else
+		void ModifyAttributes(MethodAttributes andMask, MethodAttributes orMask) =>
 			attributes = (attributes & (int)andMask) | (int)orMask;
-#endif
-		}
 
 		/// <summary>
 		/// Set or clear flags in <see cref="attributes"/>
@@ -580,21 +554,10 @@ namespace dnlib.DotNet {
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyAttributes(bool set, MethodAttributes flags) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = attributes;
-				if (set)
-					newVal = origVal | (int)flags;
-				else
-					newVal = origVal & ~(int)flags;
-			} while (Interlocked.CompareExchange(ref attributes, newVal, origVal) != origVal);
-#else
 			if (set)
 				attributes |= (int)flags;
 			else
 				attributes &= ~(int)flags;
-#endif
 		}
 
 		/// <summary>
@@ -603,17 +566,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="andMask">Value to <c>AND</c></param>
 		/// <param name="orMask">Value to OR</param>
-		void ModifyImplAttributes(MethodImplAttributes andMask, MethodImplAttributes orMask) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = implAttributes;
-				newVal = (origVal & (int)andMask) | (int)orMask;
-			} while (Interlocked.CompareExchange(ref implAttributes, newVal, origVal) != origVal);
-#else
+		void ModifyImplAttributes(MethodImplAttributes andMask, MethodImplAttributes orMask) =>
 			implAttributes = (implAttributes & (int)andMask) | (int)orMask;
-#endif
-		}
 
 		/// <summary>
 		/// Set or clear flags in <see cref="implAttributes"/>
@@ -622,21 +576,10 @@ namespace dnlib.DotNet {
 		/// be cleared</param>
 		/// <param name="flags">Flags to set or clear</param>
 		void ModifyImplAttributes(bool set, MethodImplAttributes flags) {
-#if THREAD_SAFE
-			int origVal, newVal;
-			do {
-				origVal = implAttributes;
-				if (set)
-					newVal = origVal | (int)flags;
-				else
-					newVal = origVal & ~(int)flags;
-			} while (Interlocked.CompareExchange(ref implAttributes, newVal, origVal) != origVal);
-#else
 			if (set)
 				implAttributes |= (int)flags;
 			else
 				implAttributes &= ~(int)flags;
-#endif
 		}
 
 		/// <summary>
@@ -988,7 +931,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnClear() {
-			foreach (var gp in GenericParameters.GetEnumerable_NoLock())
+			foreach (var gp in genericParameters.GetEnumerable_NoLock())
 				gp.Owner = null;
 		}
 
@@ -1018,7 +961,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ParamDef>.OnClear() {
-			foreach (var pd in ParamDefs.GetEnumerable_NoLock())
+			foreach (var pd in paramDefs.GetEnumerable_NoLock())
 				pd.DeclaringMethod = null;
 		}
 
@@ -1146,7 +1089,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+			var list = new List<PdbCustomDebugInfo>();
 			if (Interlocked.CompareExchange(ref customDebugInfos, list, null) == null) {
 				var body = Body;
 				readerModule.InitializeCustomDebugInfos(this, body, list);
@@ -1156,7 +1099,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeOverrides() {
 			var dt = declaringType2 as TypeDefMD;
-			var tmp = dt == null ? ThreadSafeListCreator.Create<MethodOverride>() : dt.GetMethodOverrides(this, new GenericParamContext(declaringType2, this));
+			var tmp = dt == null ? new List<MethodOverride>() : dt.GetMethodOverrides(this, new GenericParamContext(declaringType2, this));
 			Interlocked.CompareExchange(ref overrides, tmp, null);
 		}
 

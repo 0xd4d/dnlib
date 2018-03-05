@@ -2,12 +2,6 @@
 
 using System.Collections.Generic;
 
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
-
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Custom attribute interface. Implemented by <see cref="SecurityAttribute"/> and
@@ -27,7 +21,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets all named arguments (field and property values)
 		/// </summary>
-		ThreadSafe.IList<CANamedArgument> NamedArguments { get; }
+		IList<CANamedArgument> NamedArguments { get; }
 
 		/// <summary>
 		/// <c>true</c> if <see cref="NamedArguments"/> is not empty

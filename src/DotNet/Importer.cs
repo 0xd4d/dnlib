@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -335,12 +334,12 @@ namespace dnlib.DotNet {
 			// Assume all modifiers should be applied in the same order as in the lists.
 
 			if (requiredModifiers != null) {
-				foreach (var modifier in requiredModifiers.GetSafeEnumerable())
+				foreach (var modifier in requiredModifiers)
 					ts = new CModReqdSig(Import(modifier), ts);
 			}
 
 			if (optionalModifiers != null) {
-				foreach (var modifier in optionalModifiers.GetSafeEnumerable())
+				foreach (var modifier in optionalModifiers)
 					ts = new CModOptSig(Import(modifier), ts);
 			}
 
@@ -744,7 +743,7 @@ namespace dnlib.DotNet {
 			case ElementType.GenericInst:
 				var gis = (GenericInstSig)type;
 				var genArgs = new List<TypeSig>(gis.GenericArguments.Count);
-				foreach (var ga in gis.GenericArguments.GetSafeEnumerable())
+				foreach (var ga in gis.GenericArguments)
 					genArgs.Add(Import(ga));
 				result = new GenericInstSig(Import(gis.GenericType) as ClassOrValueTypeSig, genArgs);
 				break;
@@ -839,12 +838,12 @@ namespace dnlib.DotNet {
 
 		T Import<T>(T sig, T old) where T : MethodBaseSig {
 			sig.RetType = Import(old.RetType);
-			foreach (var p in old.Params.GetSafeEnumerable())
+			foreach (var p in old.Params)
 				sig.Params.Add(Import(p));
 			sig.GenParamCount = old.GenParamCount;
 			var paramsAfterSentinel = sig.ParamsAfterSentinel;
 			if (paramsAfterSentinel != null) {
-				foreach (var p in old.ParamsAfterSentinel.GetSafeEnumerable())
+				foreach (var p in old.ParamsAfterSentinel)
 					paramsAfterSentinel.Add(Import(p));
 			}
 			return sig;
@@ -879,7 +878,7 @@ namespace dnlib.DotNet {
 				return null;
 
 			var result = new LocalSig(sig.GetCallingConvention(), (uint)sig.Locals.Count);
-			foreach (var l in sig.Locals.GetSafeEnumerable())
+			foreach (var l in sig.Locals)
 				result.Locals.Add(Import(l));
 
 			recursionCounter.Decrement();
@@ -898,7 +897,7 @@ namespace dnlib.DotNet {
 				return null;
 
 			var result = new GenericInstMethodSig(sig.GetCallingConvention(), (uint)sig.GenericArguments.Count);
-			foreach (var l in sig.GenericArguments.GetSafeEnumerable())
+			foreach (var l in sig.GenericArguments)
 				result.GenericArguments.Add(Import(l));
 
 			recursionCounter.Decrement();

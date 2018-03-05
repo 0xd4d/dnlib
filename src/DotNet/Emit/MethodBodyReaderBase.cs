@@ -1,9 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using dnlib.IO;
-using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -78,7 +77,7 @@ namespace dnlib.DotNet.Emit {
 			locals.Clear();
 			if (newLocals == null)
 				return;
-			foreach (var typeSig in newLocals.GetSafeEnumerable())
+			foreach (var typeSig in newLocals)
 				locals.Add(new Local(typeSig));
 		}
 
@@ -90,7 +89,7 @@ namespace dnlib.DotNet.Emit {
 			locals.Clear();
 			if (newLocals == null)
 				return;
-			foreach (var local in newLocals.GetSafeEnumerable())
+			foreach (var local in newLocals)
 				locals.Add(new Local(local.Type));
 		}
 
@@ -444,14 +443,22 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="index">A parameter index</param>
 		/// <returns>A <see cref="Parameter"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
-		protected Parameter GetParameter(int index) => parameters.Get(index, null);
+		protected Parameter GetParameter(int index) {
+			if ((uint)index < (uint)parameters.Count)
+				return parameters[index];
+			return null;
+		}
 
 		/// <summary>
 		/// Returns a local
 		/// </summary>
 		/// <param name="index">A local index</param>
 		/// <returns>A <see cref="Local"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
-		protected Local GetLocal(int index) => locals.Get(index, null);
+		protected Local GetLocal(int index) {
+			if ((uint)index < (uint)locals.Count)
+				return locals[index];
+			return null;
+		}
 
 		/// <summary>
 		/// Add an exception handler if it appears valid

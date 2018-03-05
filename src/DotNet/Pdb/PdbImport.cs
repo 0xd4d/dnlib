@@ -1,20 +1,14 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System.Collections.Generic;
 using System.Diagnostics;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// Import scope
 	/// </summary>
 	public sealed class PdbImportScope : IHasCustomDebugInformation {
-		readonly ThreadSafe.IList<PdbImport> imports = ThreadSafeListCreator.Create<PdbImport>();
+		readonly IList<PdbImport> imports = new List<PdbImport>();
 
 		/// <summary>
 		/// Constructor
@@ -30,7 +24,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all imports
 		/// </summary>
-		public ThreadSafe.IList<PdbImport> Imports => imports;
+		public IList<PdbImport> Imports => imports;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Imports"/> is not empty
@@ -46,8 +40,8 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
-		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
+		public IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
+		readonly IList<PdbCustomDebugInfo> customDebugInfos = new List<PdbCustomDebugInfo>();
 	}
 
 	/// <summary>

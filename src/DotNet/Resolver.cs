@@ -2,9 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using dnlib.Threading;
 
-﻿namespace dnlib.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Resolves types, methods, fields
 	/// </summary>
@@ -92,8 +91,8 @@ using dnlib.Threading;
 		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
 			if (typeRef == null)
 				return null;
-			foreach (var module in modules.GetSafeEnumerable()) {
-				foreach (var exportedType in module.ExportedTypes.GetSafeEnumerable()) {
+			foreach (var module in modules) {
+				foreach (var exportedType in module.ExportedTypes) {
 					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef))
 						return exportedType;
 				}

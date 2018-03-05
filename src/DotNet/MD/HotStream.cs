@@ -7,13 +7,6 @@ using System.Runtime.ExceptionServices;
 using System.Security;
 using System.Threading;
 using dnlib.IO;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -25,7 +18,7 @@ namespace dnlib.DotNet.MD {
 		protected readonly long baseOffset;
 		protected readonly long endOffset;
 		protected HotTableStream hotTableStream;
-		protected ThreadSafe.IList<HotHeapStream> hotHeapStreams;
+		protected IList<HotHeapStream> hotHeapStreams;
 
 		/// <summary>
 		/// Gets the <see cref="dnlib.DotNet.MD.HotTableStream"/> or <c>null</c> if there's none
@@ -103,7 +96,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0
-		ThreadSafe.IList<HotHeapStream> CreateHotHeapStreams() {
+		IList<HotHeapStream> CreateHotHeapStreams() {
 			try {
 				return CreateHotHeapStreams2();
 			}
@@ -115,8 +108,8 @@ namespace dnlib.DotNet.MD {
 			}
 		}
 
-		ThreadSafe.IList<HotHeapStream> CreateHotHeapStreams2() {
-			var list = ThreadSafeListCreator.Create<HotHeapStream>();
+		IList<HotHeapStream> CreateHotHeapStreams2() {
+			var list = new List<HotHeapStream>();
 			try {
 				long dirBaseOffs = GetHotHeapDirectoryBaseOffset();
 				for (long offs = dirBaseOffs; offs + 8 <= endOffset - 8; offs += 8) {

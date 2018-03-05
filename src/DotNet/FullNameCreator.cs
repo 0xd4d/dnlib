@@ -1,8 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -1314,8 +1313,8 @@ namespace dnlib.DotNet {
 						if (!isReflection) {
 							const int NO_LOWER = int.MinValue;
 							const uint NO_SIZE = uint.MaxValue;
-							int lower = arraySig.LowerBounds.Get(i, NO_LOWER);
-							uint size = arraySig.Sizes.Get(i, NO_SIZE);
+								int lower = i < arraySig.LowerBounds.Count ? arraySig.LowerBounds[i] : NO_LOWER;
+								uint size = i < arraySig.Sizes.Count ? arraySig.Sizes[i] : NO_SIZE;
 							if (lower != NO_LOWER) {
 								sb.Append(lower);
 								sb.Append("..");
@@ -1392,7 +1391,7 @@ namespace dnlib.DotNet {
 					if (isReflection) {
 						sb.Append('[');
 						int i = -1;
-						foreach (var genArg in typeGenArgs.GetSafeEnumerable()) {
+						foreach (var genArg in typeGenArgs) {
 							i++;
 							if (i != 0)
 								sb.Append(',');
@@ -1418,7 +1417,7 @@ namespace dnlib.DotNet {
 					else {
 						sb.Append('<');
 						int i = -1;
-						foreach (var genArg in typeGenArgs.GetSafeEnumerable()) {
+						foreach (var genArg in typeGenArgs) {
 							i++;
 							if (i != 0)
 								sb.Append(',');
@@ -2135,7 +2134,7 @@ namespace dnlib.DotNet {
 				hasPrintedArgs = true;
 			}
 			int count = 0;
-			foreach (var arg in args.GetSafeEnumerable()) {
+			foreach (var arg in args) {
 				count++;
 				if (hasPrintedArgs)
 					sb.Append(',');

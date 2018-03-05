@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using dnlib.Utils;
 
 namespace dnlib.DotNet.Writer {
 	readonly struct SectionSizeInfo {

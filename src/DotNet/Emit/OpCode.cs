@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
-using dnlib.Threading;
+using System.Collections.Generic;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
@@ -134,7 +133,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="targets">The targets</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
-		public Instruction ToInstruction(IList<Instruction> targets) => Instruction.Create(this, ThreadSafeListCreator.MakeThreadSafe(targets));
+		public Instruction ToInstruction(IList<Instruction> targets) => Instruction.Create(this, targets);
 
 		/// <summary>
 		/// Creates a new instruction with a type operand

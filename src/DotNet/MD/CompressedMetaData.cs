@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using dnlib.IO;
 using dnlib.PE;
-using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -159,7 +158,7 @@ namespace dnlib.DotNet.MD {
 				if (hotStream != null)
 					hotStream.Dispose();
 				newAllStreams.Reverse();
-				allStreams = ThreadSafeListCreator.MakeThreadSafe(newAllStreams);
+				allStreams = newAllStreams;
 			}
 
 			if (tablesStream == null)

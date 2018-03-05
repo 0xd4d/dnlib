@@ -703,91 +703,91 @@ namespace dnlib.DotNet {
 		void Add<T>(IList<T> list) where T : IMDTokenProvider {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<TypeSig> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<CustomAttribute> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<SecurityAttribute> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<MethodOverride> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Load(item);
 		}
 
 		void Add(IList<CAArgument> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Load(item);
 		}
 
 		void Add(IList<CANamedArgument> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(ParameterList list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<Instruction> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<ExceptionHandler> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<Local> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<ResourceDirectory> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 
 		void Add(IList<ResourceData> list) {
 			if (list == null)
 				return;
-			foreach (var item in list.GetSafeEnumerable())
+			foreach (var item in list)
 				Add(item);
 		}
 

@@ -1,14 +1,8 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using dnlib.DotNet.Emit;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
@@ -170,7 +164,7 @@ namespace dnlib.DotNet.Pdb {
 	/// Contains sizes of using groups
 	/// </summary>
 	public sealed class PdbUsingGroupsCustomDebugInfo : PdbCustomDebugInfo {
-		readonly ThreadSafe.IList<ushort> usingCounts;
+		readonly IList<ushort> usingCounts;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.UsingGroups"/>
@@ -185,18 +179,18 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the using counts
 		/// </summary>
-		public ThreadSafe.IList<ushort> UsingCounts => usingCounts;
+		public IList<ushort> UsingCounts => usingCounts;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbUsingGroupsCustomDebugInfo() => usingCounts = ThreadSafeListCreator.Create<ushort>();
+		public PdbUsingGroupsCustomDebugInfo() => usingCounts = new List<ushort>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Initial capacity of <see cref="UsingCounts"/></param>
-		public PdbUsingGroupsCustomDebugInfo(int capacity) => usingCounts = ThreadSafeListCreator.Create<ushort>(capacity);
+		public PdbUsingGroupsCustomDebugInfo(int capacity) => usingCounts = new List<ushort>(capacity);
 	}
 
 	/// <summary>
@@ -308,7 +302,7 @@ namespace dnlib.DotNet.Pdb {
 	/// Contains local scopes for state machine hoisted local variables.
 	/// </summary>
 	public sealed class PdbStateMachineHoistedLocalScopesCustomDebugInfo : PdbCustomDebugInfo {
-		readonly ThreadSafe.IList<StateMachineHoistedLocalScope> scopes;
+		readonly IList<StateMachineHoistedLocalScope> scopes;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.StateMachineHoistedLocalScopes"/>
@@ -323,18 +317,18 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the scopes
 		/// </summary>
-		public ThreadSafe.IList<StateMachineHoistedLocalScope> Scopes => scopes;
+		public IList<StateMachineHoistedLocalScope> Scopes => scopes;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbStateMachineHoistedLocalScopesCustomDebugInfo() => scopes = ThreadSafeListCreator.Create<StateMachineHoistedLocalScope>();
+		public PdbStateMachineHoistedLocalScopesCustomDebugInfo() => scopes = new List<StateMachineHoistedLocalScope>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Initial capacity of <see cref="Scopes"/></param>
-		public PdbStateMachineHoistedLocalScopesCustomDebugInfo(int capacity) => scopes = ThreadSafeListCreator.Create<StateMachineHoistedLocalScope>(capacity);
+		public PdbStateMachineHoistedLocalScopesCustomDebugInfo(int capacity) => scopes = new List<StateMachineHoistedLocalScope>(capacity);
 	}
 
 	/// <summary>
@@ -373,7 +367,7 @@ namespace dnlib.DotNet.Pdb {
 	/// Contains dynamic flags for local variables and constants
 	/// </summary>
 	public sealed class PdbDynamicLocalsCustomDebugInfo : PdbCustomDebugInfo {
-		readonly ThreadSafe.IList<PdbDynamicLocal> locals;
+		readonly IList<PdbDynamicLocal> locals;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.DynamicLocals"/>
@@ -388,32 +382,32 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the dynamic locals
 		/// </summary>
-		public ThreadSafe.IList<PdbDynamicLocal> Locals => locals;
+		public IList<PdbDynamicLocal> Locals => locals;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbDynamicLocalsCustomDebugInfo() => locals = ThreadSafeListCreator.Create<PdbDynamicLocal>();
+		public PdbDynamicLocalsCustomDebugInfo() => locals = new List<PdbDynamicLocal>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Initial capacity of <see cref="Locals"/></param>
-		public PdbDynamicLocalsCustomDebugInfo(int capacity) => locals = ThreadSafeListCreator.Create<PdbDynamicLocal>(capacity);
+		public PdbDynamicLocalsCustomDebugInfo(int capacity) => locals = new List<PdbDynamicLocal>(capacity);
 	}
 
 	/// <summary>
 	/// Dynamic local info
 	/// </summary>
 	public sealed class PdbDynamicLocal {
-		readonly ThreadSafe.IList<byte> flags;
+		readonly IList<byte> flags;
 		string name;
 		Local local;
 
 		/// <summary>
 		/// Gets the dynamic flags
 		/// </summary>
-		public ThreadSafe.IList<byte> Flags => flags;
+		public IList<byte> Flags => flags;
 
 		/// <summary>
 		/// Gets/sets the name of the local. The name must have at most 64 characters and no char can be NUL (0x0000).
@@ -450,13 +444,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbDynamicLocal() => flags = ThreadSafeListCreator.Create<byte>();
+		public PdbDynamicLocal() => flags = new List<byte>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Initial capacity of <see cref="Flags"/></param>
-		public PdbDynamicLocal(int capacity) => flags = ThreadSafeListCreator.Create<byte>(capacity);
+		public PdbDynamicLocal(int capacity) => flags = new List<byte>(capacity);
 	}
 
 	/// <summary>
@@ -519,7 +513,7 @@ namespace dnlib.DotNet.Pdb {
 	/// Contains tuple element names for local variables and constants
 	/// </summary>
 	public sealed class PdbTupleElementNamesCustomDebugInfo : PdbCustomDebugInfo {
-		readonly ThreadSafe.IList<PdbTupleElementNames> names;
+		readonly IList<PdbTupleElementNames> names;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.TupleElementNames"/>
@@ -534,25 +528,25 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the tuple element names
 		/// </summary>
-		public ThreadSafe.IList<PdbTupleElementNames> Names => names;
+		public IList<PdbTupleElementNames> Names => names;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbTupleElementNamesCustomDebugInfo() => names = ThreadSafeListCreator.Create<PdbTupleElementNames>();
+		public PdbTupleElementNamesCustomDebugInfo() => names = new List<PdbTupleElementNames>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Initial capacity of <see cref="Names"/></param>
-		public PdbTupleElementNamesCustomDebugInfo(int capacity) => names = ThreadSafeListCreator.Create<PdbTupleElementNames>(capacity);
+		public PdbTupleElementNamesCustomDebugInfo(int capacity) => names = new List<PdbTupleElementNames>(capacity);
 	}
 
 	/// <summary>
 	/// Tuple element name info
 	/// </summary>
 	public sealed class PdbTupleElementNames {
-		readonly ThreadSafe.IList<string> tupleElementNames;
+		readonly IList<string> tupleElementNames;
 		string name;
 		Local local;
 		Instruction scopeStart, scopeEnd;
@@ -607,25 +601,25 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the tuple element names
 		/// </summary>
-		public ThreadSafe.IList<string> TupleElementNames => tupleElementNames;
+		public IList<string> TupleElementNames => tupleElementNames;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbTupleElementNames() => tupleElementNames = ThreadSafeListCreator.Create<string>();
+		public PdbTupleElementNames() => tupleElementNames = new List<string>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Initial capacity of <see cref="TupleElementNames"/></param>
-		public PdbTupleElementNames(int capacity) => tupleElementNames = ThreadSafeListCreator.Create<string>(capacity);
+		public PdbTupleElementNames(int capacity) => tupleElementNames = new List<string>(capacity);
 	}
 
 	/// <summary>
 	/// Contains tuple element names for local variables and constants
 	/// </summary>
 	public sealed class PortablePdbTupleElementNamesCustomDebugInfo : PdbCustomDebugInfo {
-		readonly ThreadSafe.IList<string> names;
+		readonly IList<string> names;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.TupleElementNames_PortablePdb"/>
@@ -640,18 +634,18 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the tuple element names
 		/// </summary>
-		public ThreadSafe.IList<string> Names => names;
+		public IList<string> Names => names;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PortablePdbTupleElementNamesCustomDebugInfo() => names = ThreadSafeListCreator.Create<string>();
+		public PortablePdbTupleElementNamesCustomDebugInfo() => names = new List<string>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Initial capacity of <see cref="Names"/></param>
-		public PortablePdbTupleElementNamesCustomDebugInfo(int capacity) => names = ThreadSafeListCreator.Create<string>(capacity);
+		public PortablePdbTupleElementNamesCustomDebugInfo(int capacity) => names = new List<string>(capacity);
 	}
 
 	/// <summary>
@@ -660,7 +654,7 @@ namespace dnlib.DotNet.Pdb {
 	/// It's internal and translated to a <see cref="PdbAsyncMethodCustomDebugInfo"/>
 	/// </summary>
 	sealed class PdbAsyncMethodSteppingInformationCustomDebugInfo : PdbCustomDebugInfo {
-		readonly ThreadSafe.IList<PdbAsyncStepInfo> asyncStepInfos;
+		readonly IList<PdbAsyncStepInfo> asyncStepInfos;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.Unknown"/>
@@ -680,12 +674,12 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all async step infos
 		/// </summary>
-		public ThreadSafe.IList<PdbAsyncStepInfo> AsyncStepInfos => asyncStepInfos;
+		public IList<PdbAsyncStepInfo> AsyncStepInfos => asyncStepInfos;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbAsyncMethodSteppingInformationCustomDebugInfo() => asyncStepInfos = ThreadSafeListCreator.Create<PdbAsyncStepInfo>();
+		public PdbAsyncMethodSteppingInformationCustomDebugInfo() => asyncStepInfos = new List<PdbAsyncStepInfo>();
 	}
 
 	/// <summary>
@@ -834,7 +828,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		public override Guid Guid => Guid.Empty;
 
-		readonly ThreadSafe.IList<PdbAsyncStepInfo> asyncStepInfos;
+		readonly IList<PdbAsyncStepInfo> asyncStepInfos;
 
 		/// <summary>
 		/// Gets/sets the starting method that initiates the async operation
@@ -850,18 +844,18 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all step infos used by the debugger
 		/// </summary>
-		public ThreadSafe.IList<PdbAsyncStepInfo> StepInfos => asyncStepInfos;
+		public IList<PdbAsyncStepInfo> StepInfos => asyncStepInfos;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbAsyncMethodCustomDebugInfo() => asyncStepInfos = ThreadSafeListCreator.Create<PdbAsyncStepInfo>();
+		public PdbAsyncMethodCustomDebugInfo() => asyncStepInfos = new List<PdbAsyncStepInfo>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="stepInfosCapacity">Default capacity for <see cref="StepInfos"/></param>
-		public PdbAsyncMethodCustomDebugInfo(int stepInfosCapacity) => asyncStepInfos = ThreadSafeListCreator.Create<PdbAsyncStepInfo>(stepInfosCapacity);
+		public PdbAsyncMethodCustomDebugInfo(int stepInfosCapacity) => asyncStepInfos = new List<PdbAsyncStepInfo>(stepInfosCapacity);
 	}
 
 	/// <summary>

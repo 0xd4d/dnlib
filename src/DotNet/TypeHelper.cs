@@ -1,12 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
+using System.Collections.Generic;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -343,14 +337,14 @@ namespace dnlib.DotNet {
 			return res;
 		}
 
-		bool ContainsGenericParameter(ThreadSafe.IList<TypeSig> types) {
+		bool ContainsGenericParameter(IList<TypeSig> types) {
 			if (types == null)
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
 			bool res = false;
-			foreach (var type in types.GetSafeEnumerable()) {
+			foreach (var type in types) {
 				if (ContainsGenericParameter(type)) {
 					res = true;
 					break;

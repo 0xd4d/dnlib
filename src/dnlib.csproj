@@ -405,10 +405,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Threading\Extensions.cs" />
     <Compile Include="Threading\ICancellationToken.cs" />
-    <Compile Include="Threading\IThreadSafeList.cs" />
     <Compile Include="Threading\Lock.cs" />
-    <Compile Include="Threading\ThreadSafeListCreator.cs" />
-    <Compile Include="Threading\ThreadSafeListWrapper.cs" />
     <Compile Include="Utils\ArrayEmpty.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\ILazyList.cs" />

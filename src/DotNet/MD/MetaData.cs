@@ -1,18 +1,11 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using dnlib.IO;
 using dnlib.PE;
-using dnlib.Threading;
-
-#if THREAD_SAFE
-using ThreadSafe = dnlib.Threading.Collections;
-#else
-using ThreadSafe = System.Collections.Generic;
-#endif
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -67,7 +60,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// All the streams that are present in the PE image
 		/// </summary>
-		protected ThreadSafe.IList<DotNetStream> allStreams;
+		protected IList<DotNetStream> allStreams;
 
 		/// <inheritdoc/>
 		public bool IsStandalonePortablePdb => isStandalonePortablePdb;
@@ -232,7 +225,7 @@ namespace dnlib.DotNet.MD {
 		public PdbStream PdbStream => pdbStream;
 
 		/// <inheritdoc/>
-		public ThreadSafe.IList<DotNetStream> AllStreams => allStreams;
+		public IList<DotNetStream> AllStreams => allStreams;
 
 		/// <summary>
 		/// Constructor
@@ -242,7 +235,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="mdHeader">The MD header</param>
 		protected MetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader) {
 			try {
-				allStreams = ThreadSafeListCreator.Create<DotNetStream>();
+				allStreams = new List<DotNetStream>();
 				this.peImage = peImage;
 				this.cor20Header = cor20Header;
 				this.mdHeader = mdHeader;
@@ -256,7 +249,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		internal MetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb) {
-			allStreams = ThreadSafeListCreator.Create<DotNetStream>();
+			allStreams = new List<DotNetStream>();
 			peImage = null;
 			cor20Header = null;
 			this.mdHeader = mdHeader;
@@ -827,7 +820,7 @@ namespace dnlib.DotNet.MD {
 			Dispose(tablesStream);
 			var as2 = allStreams;
 			if (as2 != null) {
-				foreach (var stream in as2.GetSafeEnumerable())
+				foreach (var stream in as2)
 					Dispose(stream);
 			}
 			peImage = null;
