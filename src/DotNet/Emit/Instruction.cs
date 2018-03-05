@@ -747,7 +747,7 @@ namespace dnlib.DotNet.Emit {
 				return null;
 			int index = GetParameterIndex();
 			if (index == 0 && methodSig.ImplicitThis)
-				return declaringType.ToTypeSig();	//TODO: Should be ByRef if value type
+				return declaringType?.IsValueType == true ? new ByRefSig(declaringType.ToTypeSig()) : declaringType.ToTypeSig();
 			if (methodSig.ImplicitThis)
 				index--;
 			if ((uint)index < (uint)methodSig.Params.Count)
