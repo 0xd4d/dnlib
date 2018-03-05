@@ -1,6 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet {
+using System;
+
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Public key / public key token base class
 	/// </summary>
@@ -101,7 +103,7 @@
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public static bool TokenEquals(PublicKeyBase a, PublicKeyBase b) => TokenCompareTo(a, b) == 0;
 
-		static readonly byte[] EmptyByteArray = new byte[0];
+		static readonly byte[] EmptyByteArray = Array2.Empty<byte>();
 		/// <summary>
 		/// Compares two <see cref="PublicKeyToken"/>s
 		/// </summary>

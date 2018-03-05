@@ -84,7 +84,7 @@ namespace dnlib.DotNet.Writer {
 		public uint Create(byte[] data) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
-			return AddToCache(data ?? new byte[0]);
+			return AddToCache(data ?? Array2.Empty<byte>());
 		}
 
 		uint AddToCache(byte[] data) {

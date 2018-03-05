@@ -366,19 +366,19 @@ namespace dnlib.PE {
 		ImageDebugDirectory[] ReadImageDebugDirectories() {
 			try {
 				if (6 >= ImageNTHeaders.OptionalHeader.DataDirectories.Length)
-					return emptyImageDebugDirectories;
+					return Array2.Empty<ImageDebugDirectory>();
 				var dataDir = ImageNTHeaders.OptionalHeader.DataDirectories[6];
 				if (dataDir.VirtualAddress == 0)
-					return emptyImageDebugDirectories;
+					return Array2.Empty<ImageDebugDirectory>();
 				using (var reader = imageStream.Clone()) {
 					if (dataDir.Size > reader.Length)
-						return emptyImageDebugDirectories;
+						return Array2.Empty<ImageDebugDirectory>();
 					int count = (int)(dataDir.Size / 0x1C);
 					if (count == 0)
-						return emptyImageDebugDirectories;
+						return Array2.Empty<ImageDebugDirectory>();
 					reader.Position = (long)ToFileOffset(dataDir.VirtualAddress);
 					if (reader.Position + dataDir.Size > reader.Length)
-						return emptyImageDebugDirectories;
+						return Array2.Empty<ImageDebugDirectory>();
 					var res = new ImageDebugDirectory[count];
 					for (int i = 0; i < res.Length; i++)
 						res[i] = new ImageDebugDirectory(reader, true);
@@ -387,8 +387,7 @@ namespace dnlib.PE {
 			}
 			catch (IOException) {
 			}
-			return emptyImageDebugDirectories;
+			return Array2.Empty<ImageDebugDirectory>();
 		}
-		static readonly ImageDebugDirectory[] emptyImageDebugDirectories = new ImageDebugDirectory[0];
 	}
 }

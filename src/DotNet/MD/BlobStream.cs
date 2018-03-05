@@ -1,13 +1,14 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using dnlib.IO;
+using System;
+using dnlib.IO;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the #Blob stream
 	/// </summary>
 	public sealed class BlobStream : HeapStream {
-		static readonly byte[] noData = new byte[0];
+		static readonly byte[] noData = Array2.Empty<byte>();
 
 		/// <inheritdoc/>
 		public BlobStream() {

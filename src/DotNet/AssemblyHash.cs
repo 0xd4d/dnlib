@@ -111,7 +111,7 @@ namespace dnlib.DotNet {
 		/// Computes the hash
 		/// </summary>
 		public byte[] ComputeHash() {
-			hasher.TransformFinalBlock(new byte[0], 0, 0);
+			hasher.TransformFinalBlock(Array2.Empty<byte>(), 0, 0);
 			return hasher.Hash;
 		}
 

@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.IO;
+using System;
+using System.IO;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -32,7 +33,7 @@ namespace dnlib.DotNet.Writer {
 		/// <see cref="GetHashCode"/> return value will be different if you modify the array). If
 		/// it's never inserted as a <c>key</c> in a dictionary, then the contents can be modified,
 		/// but shouldn't be resized after <see cref="SetOffset"/> has been called.</param>
-		public ByteArrayChunk(byte[] array) => this.array = array ?? new byte[0];
+		public ByteArrayChunk(byte[] array) => this.array = array ?? Array2.Empty<byte>();
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {

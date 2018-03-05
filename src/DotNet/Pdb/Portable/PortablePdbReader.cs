@@ -56,14 +56,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var token = new MDToken(Table.Document, i + 1).ToInt32();
 				custInfos.Clear();
 				GetCustomDebugInfos(token, gpContext, custInfos);
-				var custInfosArray = custInfos.Count == 0 ? emptyPdbCustomDebugInfos : custInfos.ToArray();
+				var custInfosArray = custInfos.Count == 0 ? Array2.Empty<PdbCustomDebugInfo>() : custInfos.ToArray();
 
 				docs[i] = new SymbolDocumentImpl(url, language, languageVendor, documentType, checkSumAlgorithmId, checkSum, custInfosArray);
 			}
 			ListCache<PdbCustomDebugInfo>.Free(ref custInfos);
 			return docs;
 		}
-		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 
 		bool TryGetSymbolDocument(uint rid, out SymbolDocument document) {
 			int index = (int)rid - 1;
@@ -82,7 +81,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (!mdTable.IsValidRID(methodRid))
 				return null;
 
-			var sequencePoints = ReadSequencePoints(methodRid) ?? emptySymbolSequencePoints;
+			var sequencePoints = ReadSequencePoints(methodRid) ?? Array2.Empty<SymbolSequencePoint>();
 			var gpContext = GenericParamContext.Create(method);
 			var rootScope = ReadScope(methodRid, gpContext);
 
@@ -91,7 +90,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 			rootScope.method = symbolMethod;
 			return symbolMethod;
 		}
-		static readonly SymbolAsyncStepInfo[] emptySymbolAsyncStepInfos = new SymbolAsyncStepInfo[0];
 
 		int GetKickoffMethod(uint methodRid) {
 			uint rid = pdbMetaData.GetStateMachineMethodRid(methodRid);
@@ -188,7 +186,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			return ListCache<SymbolSequencePoint>.FreeAndToArray(ref seqPointsBuilder);
 		}
-		static readonly SymbolSequencePoint[] emptySymbolSequencePoints = new SymbolSequencePoint[0];
 
 		SymbolScopeImpl ReadScope(uint methodRid, GenericParamContext gpContext) {
 			var scopesRidList = pdbMetaData.GetLocalScopeRidList(methodRid);
@@ -216,7 +213,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					Debug.Assert(parent != null || rootScopeOrNull == null);
 					custInfos.Clear();
 					GetCustomDebugInfos(token, gpContext, custInfos);
-					var customDebugInfos = custInfos.Count == 0 ? emptyPdbCustomDebugInfos : custInfos.ToArray();
+					var customDebugInfos = custInfos.Count == 0 ? Array2.Empty<PdbCustomDebugInfo>() : custInfos.ToArray();
 					var scope = new SymbolScopeImpl(this, parent, (int)startOffset, (int)endOffset, customDebugInfos);
 					if (rootScopeOrNull == null)
 						rootScopeOrNull = scope;
@@ -233,7 +230,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				ListCache<SymbolScopeImpl>.Free(ref stack);
 				ListCache<PdbCustomDebugInfo>.Free(ref custInfos);
 			}
-			return rootScopeOrNull ?? new SymbolScopeImpl(this, null, 0, int.MaxValue, emptyPdbCustomDebugInfos);
+			return rootScopeOrNull ?? new SymbolScopeImpl(this, null, 0, int.MaxValue, Array2.Empty<PdbCustomDebugInfo>());
 		}
 
 		void GetEndOfLists(uint scopeRid, out uint variableListEnd, out uint constantListEnd) {
@@ -295,7 +292,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				int token = new MDToken(Table.LocalVariable, rid).ToInt32();
 				custInfos.Clear();
 				GetCustomDebugInfos(token, gpContext, custInfos);
-				var customDebugInfos = custInfos.Count == 0 ? emptyPdbCustomDebugInfos : custInfos.ToArray();
+				var customDebugInfos = custInfos.Count == 0 ? Array2.Empty<PdbCustomDebugInfo>() : custInfos.ToArray();
 				var nameOffset = pdbMetaData.TablesStream.ReadLocalVariableRow2(rid, out ushort attributes, out ushort index);
 				var name = pdbMetaData.StringsStream.Read(nameOffset);
 				scope.localsList.Add(new SymbolVariableImpl(name, ToSymbolVariableAttributes(attributes), index, customDebugInfos));

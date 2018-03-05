@@ -260,7 +260,7 @@ namespace dnlib.DotNet {
 #endif
 			if (blob != null)
 				return blob;
-			return blob = new byte[0];
+			return blob = Array2.Empty<byte>();
 		}
 		byte[] blob;
 

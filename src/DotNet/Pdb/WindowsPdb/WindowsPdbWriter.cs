@@ -133,7 +133,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		sealed class SequencePointHelper {
 			readonly Dictionary<PdbDocument, bool> checkedPdbDocs = new Dictionary<PdbDocument, bool>();
-			int[] instrOffsets = new int[0];
+			int[] instrOffsets = Array2.Empty<int>();
 			int[] startLines;
 			int[] startColumns;
 			int[] endLines;

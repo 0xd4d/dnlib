@@ -57,7 +57,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override PdbCustomDebugInfo[] CustomDebugInfos => emptyPdbCustomDebugInfos;
-		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
+		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 	}
 }

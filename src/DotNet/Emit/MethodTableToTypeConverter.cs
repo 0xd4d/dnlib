@@ -64,7 +64,7 @@ namespace dnlib.DotNet.Emit {
 				return null;
 
 			var tb = moduleBuilder.DefineType(GetNextTypeName());
-			var mb = tb.DefineMethod(METHOD_NAME, SR.MethodAttributes.Static, typeof(void), new Type[0]);
+			var mb = tb.DefineMethod(METHOD_NAME, SR.MethodAttributes.Static, typeof(void), Array2.Empty<Type>());
 
 			try {
 				if (setMethodBodyMethodInfo != null)

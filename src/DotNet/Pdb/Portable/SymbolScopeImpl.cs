@@ -38,8 +38,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public override int EndOffset => endOffset;
 		public override IList<SymbolScope> Children => childrenList;
 		public override IList<SymbolVariable> Locals => localsList;
-		public override IList<SymbolNamespace> Namespaces => emptySymbolNamespaces;
-		static readonly SymbolNamespace[] emptySymbolNamespaces = new SymbolNamespace[0];
+		public override IList<SymbolNamespace> Namespaces => Array2.Empty<SymbolNamespace>();
 		public override IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
 		public override PdbImportScope ImportScope => importScope;
 
@@ -66,7 +65,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constantList >= constantListEnd)
-				return emptyPdbConstants;
+				return Array2.Empty<PdbConstant>();
 			Debug.Assert(constantsMetaData != null);
 
 			var res = new PdbConstant[constantListEnd - constantList];
@@ -92,6 +91,5 @@ namespace dnlib.DotNet.Pdb.Portable {
 				Array.Resize(ref res, w);
 			return res;
 		}
-		static readonly PdbConstant[] emptyPdbConstants = new PdbConstant[0];
 	}
 }

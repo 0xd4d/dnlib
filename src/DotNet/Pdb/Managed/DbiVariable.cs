@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
@@ -14,8 +15,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public override int Index => index;
 		int index;
 
-		public override PdbCustomDebugInfo[] CustomDebugInfos => emptyPdbCustomDebugInfos;
-		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
+		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 
 		public void Read(IImageStream stream) {
 			index = stream.ReadInt32();

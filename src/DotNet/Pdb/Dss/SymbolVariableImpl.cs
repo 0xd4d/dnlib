@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.DotNet.Pdb.WindowsPdb;
 
@@ -36,7 +37,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override PdbCustomDebugInfo[] CustomDebugInfos => emptyPdbCustomDebugInfos;
-		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
+		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 	}
 }

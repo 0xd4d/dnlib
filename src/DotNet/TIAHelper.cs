@@ -93,13 +93,12 @@ namespace dnlib.DotNet {
 				if (UTF8String.IsNullOrEmpty(ns))
 					identifier = name;
 				else if (UTF8String.IsNullOrEmpty(name))
-					identifier = new UTF8String(Concat(ns.Data, (byte)'.', empty));
+					identifier = new UTF8String(Concat(ns.Data, (byte)'.', Array2.Empty<byte>()));
 				else
 					identifier = new UTF8String(Concat(ns.Data, (byte)'.', name.Data));
 			}
 			return new Info(scope, identifier);
 		}
-		static readonly byte[] empty = new byte[0];
 
 		static byte[] Concat(byte[] a, byte b, byte[] c) {
 			var data = new byte[a.Length + 1 + c.Length];

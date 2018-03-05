@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.DotNet.Pdb.Symbols;
@@ -81,17 +82,16 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile SymbolNamespace[] namespaces;
 
-		public override IList<PdbCustomDebugInfo> CustomDebugInfos => emptyPdbCustomDebugInfos;
-		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 		public override PdbImportScope ImportScope => null;
 
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			var scope2 = scope as ISymUnmanagedScope2;
 			if (scope2 == null)
-				return emptySymbolConstants;
+				return Array2.Empty<PdbConstant>();
 			scope2.GetConstants(0, out uint numCs, null);
 			if (numCs == 0)
-				return emptySymbolConstants;
+				return Array2.Empty<PdbConstant>();
 			var unCs = new ISymUnmanagedConstant[numCs];
 			scope2.GetConstants((uint)unCs.Length, out numCs, unCs);
 			var nss = new PdbConstant[numCs];
@@ -109,7 +109,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 			return nss;
 		}
-		static readonly PdbConstant[] emptySymbolConstants = new PdbConstant[0];
 
 		string GetName(ISymUnmanagedConstant unc) {
 			unc.GetName(0, out uint count, null);
@@ -125,14 +124,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 			const int E_NOTIMPL = unchecked((int)0x80004001);
 			int hr = unc.GetSignature(0, out uint bufSize, null);
 			if (bufSize == 0 || (hr < 0 && hr != E_FAIL && hr != E_NOTIMPL))
-				return emptyByteArray;
+				return Array2.Empty<byte>();
 			var buffer = new byte[bufSize];
 			hr = unc.GetSignature((uint)buffer.Length, out bufSize, buffer);
 			Debug.Assert(hr == 0);
 			if (hr != 0)
-				return emptyByteArray;
+				return Array2.Empty<byte>();
 			return buffer;
 		}
-		static readonly byte[] emptyByteArray = new byte[0];
 	}
 }

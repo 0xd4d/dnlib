@@ -615,7 +615,7 @@ namespace dnlib.DotNet {
 
 		IEnumerable<string> GetDirs(string baseDir) {
 			if (!Directory.Exists(baseDir))
-				return emtpyStringArray;
+				return Array2.Empty<string>();
 			var dirs = new List<string>();
 			try {
 				foreach (var di in new DirectoryInfo(baseDir).GetDirectories())
@@ -625,7 +625,6 @@ namespace dnlib.DotNet {
 			}
 			return dirs;
 		}
-		static readonly string[] emtpyStringArray = new string[0];
 
 		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
@@ -677,13 +676,13 @@ namespace dnlib.DotNet {
 		/// <returns>A list of search paths</returns>
 		protected IEnumerable<string> GetModulePrivateSearchPaths(ModuleDef module) {
 			if (module == null)
-				return new string[0];
+				return Array2.Empty<string>();
 			var asm = module.Assembly;
 			if (asm == null)
-				return new string[0];
+				return Array2.Empty<string>();
 			module = asm.ManifestModule;
 			if (module == null)
-				return new string[0];	// Should never happen
+				return Array2.Empty<string>();  // Should never happen
 
 			string baseDir = null;
 			try {
@@ -699,7 +698,7 @@ namespace dnlib.DotNet {
 			}
 			if (baseDir != null)
 				return new List<string> { baseDir };
-			return new string[0];
+			return Array2.Empty<string>();
 		}
 
 		IEnumerable<string> GetPrivatePaths(string baseDir, string configFileName) {

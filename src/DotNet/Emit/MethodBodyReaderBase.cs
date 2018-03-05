@@ -322,7 +322,7 @@ namespace dnlib.DotNet.Emit {
 			long offsetAfterInstr = (long)instr.Offset + (long)instr.OpCode.Size + 4L + (long)num * 4;
 			if (offsetAfterInstr > uint.MaxValue || codeStartOffs + offsetAfterInstr > codeEndOffs) {
 				reader.Position = codeEndOffs;
-				return new uint[0];
+				return Array2.Empty<uint>();
 			}
 
 			var targets = new uint[num];

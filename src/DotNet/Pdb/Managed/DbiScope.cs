@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -23,8 +24,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public override IList<SymbolScope> Children => childrenList;
 		public override IList<SymbolVariable> Locals => localsList;
 		public override IList<SymbolNamespace> Namespaces => namespacesList;
-		public override IList<PdbCustomDebugInfo> CustomDebugInfos => emptyPdbCustomDebugInfos;
-		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 		public override PdbImportScope ImportScope => null;
 
 		public DbiScope(SymbolMethod method, SymbolScope parent, string name, uint offset, uint length) {
@@ -171,7 +171,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constants == null)
-				return emptySymbolConstants;
+				return Array2.Empty<PdbConstant>();
 			var res = new PdbConstant[constants.Count];
 			for (int i = 0; i < res.Length; i++) {
 				var info = constants[i];
@@ -188,7 +188,6 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 			return res;
 		}
-		static readonly PdbConstant[] emptySymbolConstants = new PdbConstant[0];
 
 		internal byte[] GetSymAttribute(string name) {
 			if (oemInfos == null)

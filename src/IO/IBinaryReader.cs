@@ -315,7 +315,7 @@ namespace dnlib.IO {
 		/// <returns>All remaining bytes</returns>
 		public static byte[] ReadRemainingBytes(this IBinaryReader reader) {
 			if (reader.Position >= reader.Length)
-				return new byte[0];
+				return Array2.Empty<byte>();
 			return reader.ReadBytes((int)(reader.Length - reader.Position));
 		}
 

@@ -408,6 +408,7 @@
     <Compile Include="Threading\Lock.cs" />
     <Compile Include="Threading\ThreadSafeListCreator.cs" />
     <Compile Include="Threading\ThreadSafeListWrapper.cs" />
+    <Compile Include="Utils\ArrayEmpty.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\ILazyList.cs" />
     <Compile Include="Utils\LazyList.cs" />

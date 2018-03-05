@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -34,7 +35,7 @@ namespace dnlib.DotNet.Writer {
 
 		byte[] Write(IList<SecurityAttribute> secAttrs) {
 			if (secAttrs == null)
-				secAttrs = new SecurityAttribute[0];
+				secAttrs = Array2.Empty<SecurityAttribute>();
 
 			var xml = DeclSecurity.GetNet1xXmlStringInternal(secAttrs);
 			if (xml != null)
@@ -73,7 +74,7 @@ namespace dnlib.DotNet.Writer {
 						CustomAttributeWriter.Write(this, sa.NamedArguments, context);
 					if (namedArgsBlob.Length > 0x1FFFFFFF) {
 						helper.Error("Named arguments blob size doesn't fit in 29 bits");
-						namedArgsBlob = new byte[0];
+						namedArgsBlob = Array2.Empty<byte>();
 					}
 					WriteCompressedUInt32(writer, (uint)namedArgsBlob.Length);
 					writer.Write(namedArgsBlob);

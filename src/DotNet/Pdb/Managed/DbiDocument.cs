@@ -20,8 +20,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public override Guid DocumentType => documentType;
 		public override Guid CheckSumAlgorithmId => checkSumAlgorithmId;
 		public override byte[] CheckSum => checkSum;
-		public override PdbCustomDebugInfo[] CustomDebugInfos => emptyPdbCustomDebugInfos;
-		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
+		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 
 		public DbiDocument(string url) {
 			this.url = url;

@@ -77,7 +77,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// Creates an empty <see cref="MemoryImageStream"/> instance
 		/// </summary>
-		public static MemoryImageStream CreateEmpty() => new MemoryImageStream(0, new byte[0], 0, 0);
+		public static MemoryImageStream CreateEmpty() => new MemoryImageStream(0, Array2.Empty<byte>(), 0, 0);
 
 		/// <inheritdoc/>
 		public IImageStream Create(FileOffset offset, long length) {

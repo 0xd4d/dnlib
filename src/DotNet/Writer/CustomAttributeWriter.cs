@@ -137,7 +137,7 @@ namespace dnlib.DotNet.Writer {
 		void Write(IList<CANamedArgument> namedArgs) {
 			if (namedArgs == null || namedArgs.Count > 0x1FFFFFFF) {
 				helper.Error("Too many custom attribute named arguments");
-				namedArgs = new CANamedArgument[0];
+				namedArgs = Array2.Empty<CANamedArgument>();
 			}
 			writer.WriteCompressedUInt32((uint)namedArgs.Count);
 			for (int i = 0; i < namedArgs.Count; i++)
