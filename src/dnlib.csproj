@@ -11,11 +11,12 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>dnlib</RootNamespace>
     <AssemblyName>dnlib</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
     <LangVersion>7.2</LangVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <PublicSign>true</PublicSign>
@@ -364,7 +365,6 @@
     <Compile Include="DotNet\Writer\UniqueChunkList.cs" />
     <Compile Include="DotNet\Writer\Win32ResourcesChunk.cs" />
     <Compile Include="DotNet\Writer\WriterUtils.cs" />
-    <Compile Include="ExtensionAttribute.cs" />
     <Compile Include="HandleProcessCorruptedStateExceptionsAttribute.cs" />
     <Compile Include="IO\BinaryReaderStream.cs" />
     <Compile Include="IO\FileOffset.cs" />
