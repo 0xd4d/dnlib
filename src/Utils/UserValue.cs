@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Diagnostics;
 using dnlib.Threading;
 
@@ -13,7 +14,7 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 		Lock theLock;
 #endif
-		MFunc<TValue> readOriginalValue;
+		Func<TValue> readOriginalValue;
 		TValue value;
 		bool isUserValue;
 		bool isValueInitialized;
@@ -30,7 +31,7 @@ namespace dnlib.Utils {
 		/// <summary>
 		/// Set a delegate instance that will return the original value
 		/// </summary>
-		public MFunc<TValue> ReadOriginalValue {
+		public Func<TValue> ReadOriginalValue {
 			set => readOriginalValue = value;
 		}
 

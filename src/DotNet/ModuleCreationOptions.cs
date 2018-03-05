@@ -3,6 +3,7 @@
 using dnlib.IO;
 using dnlib.DotNet.Pdb;
 using dnlib.DotNet.Pdb.Symbols;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -20,7 +21,7 @@ namespace dnlib.DotNet {
 		/// Set this if you want to decide how to create the PDB symbol reader. You don't need to
 		/// initialize <see cref="PdbFileOrData"/> or <see cref="TryToLoadPdbFromDisk"/>.
 		/// </summary>
-		public CreateSymbolReaderDelegate CreateSymbolReader { get; set; }
+		public Func<ModuleDefMD, SymbolReader> CreateSymbolReader { get; set; }
 
 		/// <summary>
 		/// Which PDB reader to use. Default is <see cref="PdbImplType.Default"/>.
@@ -66,12 +67,4 @@ namespace dnlib.DotNet {
 			TryToLoadPdbFromDisk = true;
 		}
 	}
-
-	/// <summary>
-	/// Creates a <see cref="SymbolReader"/>
-	/// </summary>
-	/// <param name="module">Module</param>
-	/// <returns>A <see cref="SymbolReader"/> instance for (and now owned by)
-	/// <paramref name="module"/> or <c>null</c>.</returns>
-	public delegate SymbolReader CreateSymbolReaderDelegate(ModuleDefMD module);
 }

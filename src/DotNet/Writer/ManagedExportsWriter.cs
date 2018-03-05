@@ -18,7 +18,7 @@ namespace dnlib.DotNet.Writer {
 		readonly RelocDirectory relocDirectory;
 		readonly MetaData metaData;
 		readonly PEHeaders peHeaders;
-		readonly LogError logError;
+		readonly Action<string, object[]> logError;
 		readonly VtableFixupsChunk vtableFixups;
 		readonly StubsChunk stubsChunk;
 		readonly SdataChunk sdataChunk;
@@ -97,9 +97,7 @@ namespace dnlib.DotNet.Writer {
 			public void WriteTo(BinaryWriter writer) => owner.WriteSdata(writer);
 		}
 
-		internal delegate void LogError(string format, params object[] args);
-
-		public ManagedExportsWriter(string moduleName, Machine machine, RelocDirectory relocDirectory, MetaData metaData, PEHeaders peHeaders, LogError logError) {
+		public ManagedExportsWriter(string moduleName, Machine machine, RelocDirectory relocDirectory, MetaData metaData, PEHeaders peHeaders, Action<string, object[]> logError) {
 			this.moduleName = moduleName;
 			this.machine = machine;
 			this.relocDirectory = relocDirectory;
@@ -138,11 +136,11 @@ namespace dnlib.DotNet.Writer {
 
 			// Only check for an unsupported machine when we know there's at least one exported method
 			if (cpuArch == null) {
-				logError("The module has exported methods but the CPU architecture isn't supported: {0} (0x{1:X4})", machine, (ushort)machine);
+				logError("The module has exported methods but the CPU architecture isn't supported: {0} (0x{1:X4})", new object[] { machine, (ushort)machine });
 				return;
 			}
 			if (methods.Count > 0x10000) {
-				logError("Too many methods have been exported. No more than 2^16 methods can be exported. Number of exported methods: {0}", methods.Count);
+				logError("Too many methods have been exported. No more than 2^16 methods can be exported. Number of exported methods: {0}", new object[] { methods.Count });
 				return;
 			}
 
@@ -346,7 +344,7 @@ namespace dnlib.DotNet.Writer {
 					name = info.Method.Name;
 				}
 				if (string.IsNullOrEmpty(name)) {
-					logError("Exported method name is null or empty, method: {0} (0x{1:X8})", info.Method, info.Method.MDToken.Raw);
+					logError("Exported method name is null or empty, method: {0} (0x{1:X8})", new object[] { info.Method, info.Method.MDToken.Raw });
 					continue;
 				}
 				info.NameOffset = namesBlob.GetMethodNameOffset(name, out info.NameBytes);

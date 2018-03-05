@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.IO;
 using dnlib.IO;
 using dnlib.PE;
@@ -13,7 +14,7 @@ namespace dnlib.DotNet.Writer {
 		readonly RelocDirectory relocDirectory;
 		readonly Machine machine;
 		readonly CpuArch cpuArch;
-		readonly LogError logError;
+		readonly Action<string, object[]> logError;
 		FileOffset offset;
 		RVA rva;
 
@@ -41,15 +42,13 @@ namespace dnlib.DotNet.Writer {
 		internal bool Enable { get; set; }
 		internal uint Alignment => cpuArch == null ? 1 : cpuArch.GetStubAlignment(stubType);
 
-		internal delegate void LogError(string format, params object[] args);
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="relocDirectory">Reloc directory</param>
 		/// <param name="machine">Machine</param>
 		/// <param name="logError">Error logger</param>
-		internal StartupStub(RelocDirectory relocDirectory, Machine machine, LogError logError) {
+		internal StartupStub(RelocDirectory relocDirectory, Machine machine, Action<string, object[]> logError) {
 			this.relocDirectory = relocDirectory;
 			this.machine = machine;
 			this.logError = logError;
@@ -65,7 +64,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 
 			if (cpuArch == null) {
-				logError("The module needs an unmanaged entry point but the CPU architecture isn't supported: {0} (0x{1:X4})", machine, (ushort)machine);
+				logError("The module needs an unmanaged entry point but the CPU architecture isn't supported: {0} (0x{1:X4})", new object[] { machine, (ushort)machine });
 				return;
 			}
 

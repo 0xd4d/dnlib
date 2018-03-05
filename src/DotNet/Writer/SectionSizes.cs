@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using dnlib.Utils;
 
 namespace dnlib.DotNet.Writer {
@@ -35,7 +36,7 @@ namespace dnlib.DotNet.Writer {
 		public readonly uint BaseOfData, BaseOfCode;
 		public readonly uint SizeOfCode, SizeOfInitdData, SizeOfUninitdData;
 
-		public SectionSizes(uint fileAlignment, uint sectionAlignment, uint headerLen, MFunc<IEnumerable<SectionSizeInfo>> getSectionSizeInfos) {
+		public SectionSizes(uint fileAlignment, uint sectionAlignment, uint headerLen, Func<IEnumerable<SectionSizeInfo>> getSectionSizeInfos) {
 			SizeOfHeaders = Utils.AlignUp(headerLen, fileAlignment);
 			SizeOfImage = Utils.AlignUp(SizeOfHeaders, sectionAlignment);
 			BaseOfData = 0;

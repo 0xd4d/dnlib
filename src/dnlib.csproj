@@ -411,7 +411,6 @@
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\ILazyList.cs" />
     <Compile Include="Utils\LazyList.cs" />
-    <Compile Include="Utils\MFunc.cs" />
     <Compile Include="Utils\SimpleLazyList.cs" />
     <Compile Include="Utils\UserValue.cs" />
     <Compile Include="W32Resources\ResourceData.cs" />

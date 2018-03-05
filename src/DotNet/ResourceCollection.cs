@@ -2,6 +2,7 @@
 
 using dnlib.Utils;
 using dnlib.Threading;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -28,7 +29,7 @@ namespace dnlib.DotNet {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public ResourceCollection(int length, object context, MFunc<object, uint, Resource> readOriginalValue)
+		public ResourceCollection(int length, object context, Func<object, uint, Resource> readOriginalValue)
 			: base(length, context, readOriginalValue) {
 		}
 

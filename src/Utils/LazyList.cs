@@ -68,7 +68,7 @@ namespace dnlib.Utils {
 		readonly object context;
 
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		readonly MFunc<object, uint, TValue> readOriginalValue;
+		readonly Func<object, uint, TValue> readOriginalValue;
 
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 		readonly List<Element> list;
@@ -253,7 +253,7 @@ namespace dnlib.Utils {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public LazyList(int length, object context, MFunc<object, uint, TValue> readOriginalValue)
+		public LazyList(int length, object context, Func<object, uint, TValue> readOriginalValue)
 			: this(length, null, context, readOriginalValue) {
 		}
 
@@ -264,7 +264,7 @@ namespace dnlib.Utils {
 		/// <param name="listener">List listener</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public LazyList(int length, IListListener<TValue> listener, object context, MFunc<object, uint, TValue> readOriginalValue) {
+		public LazyList(int length, IListListener<TValue> listener, object context, Func<object, uint, TValue> readOriginalValue) {
 			this.listener = listener;
 			this.context = context;
 			this.readOriginalValue = readOriginalValue;

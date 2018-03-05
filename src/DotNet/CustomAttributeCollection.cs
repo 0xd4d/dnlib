@@ -3,6 +3,7 @@
 ﻿using System.Collections.Generic;
 using dnlib.Utils;
 using dnlib.Threading;
+using System;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -21,7 +22,7 @@ namespace dnlib.DotNet {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public CustomAttributeCollection(int length, object context, MFunc<object, uint, CustomAttribute> readOriginalValue)
+		public CustomAttributeCollection(int length, object context, Func<object, uint, CustomAttribute> readOriginalValue)
 			: base(length, context, readOriginalValue) {
 		}
 
