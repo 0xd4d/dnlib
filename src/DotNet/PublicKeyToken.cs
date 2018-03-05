@@ -10,10 +10,10 @@
 		/// </summary>
 		public override PublicKeyToken Token => this;
 
-		/// <inheritdoc/>
-		public PublicKeyToken()
-			: base() {
-		}
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PublicKeyToken() : base((byte[])null) { }
 
 		/// <inheritdoc/>
 		public PublicKeyToken(byte[] data)

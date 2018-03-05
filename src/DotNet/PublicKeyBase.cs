@@ -10,17 +10,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// The key data
 		/// </summary>
-		protected byte[] data;
+		protected readonly byte[] data;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="Data"/> is <c>null</c> or empty
 		/// </summary>
-		public bool IsNullOrEmpty => IsNullOrEmpty_NoLock;
-
-		/// <summary>
-		/// The unlocked version of <see cref="IsNullOrEmpty"/>.
-		/// </summary>
-		protected bool IsNullOrEmpty_NoLock => data == null || data.Length == 0;
+		public bool IsNullOrEmpty => data == null || data.Length == 0;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="Data"/> is <c>null</c>
@@ -30,21 +25,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets key data
 		/// </summary>
-		public virtual byte[] Data {
-			get => data;
-			set => data = value;
-		}
+		public virtual byte[] Data => data;
 
 		/// <summary>
 		/// Gets the <see cref="PublicKeyToken"/>
 		/// </summary>
 		public abstract PublicKeyToken Token { get; }
-
-		/// <summary>
-		/// Default constructor
-		/// </summary>
-		protected PublicKeyBase() {
-		}
 
 		/// <summary>
 		/// Constructor

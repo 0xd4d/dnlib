@@ -1,65 +1,33 @@
 // dnlib: See LICENSE.txt for more info
 
-using dnlib.Threading;
+using System.Threading;
 
-﻿namespace dnlib.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Represents a public key
 	/// </summary>
 	public sealed class PublicKey : PublicKeyBase {
 		const AssemblyHashAlgorithm DEFAULT_ALGORITHM = AssemblyHashAlgorithm.SHA1;
 		PublicKeyToken publicKeyToken;
-#if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
-#endif
 
 		/// <summary>
 		/// Gets the <see cref="PublicKeyToken"/>
 		/// </summary>
 		public override PublicKeyToken Token {
 			get {
-#if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
-#endif
-				if (publicKeyToken == null && !IsNullOrEmpty_NoLock)
-					publicKeyToken = AssemblyHash.CreatePublicKeyToken(data);
+				if (publicKeyToken == null && !IsNullOrEmpty)
+					Interlocked.CompareExchange(ref publicKeyToken, AssemblyHash.CreatePublicKeyToken(data), null);
 				return publicKeyToken;
-#if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
-#endif
 			}
 		}
 
 		/// <inheritdoc/>
-		public override byte[] Data {
-			get {
-#if THREAD_SAFE
-				theLock.EnterReadLock(); try {
-#endif
-				return data;
-#if THREAD_SAFE
-				} finally { theLock.ExitReadLock(); }
-#endif
-			}
-			set {
-#if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
-#endif
-				if (data == value)
-					return;
-				data = value;
-				publicKeyToken = null;
-#if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
-#endif
-			}
-		}
+		public override byte[] Data => data;
 
 		/// <summary>
-		/// Default constructor
+		/// Constructor
 		/// </summary>
-		public PublicKey() {
-		}
+		public PublicKey() : base((byte[])null) { }
 
 		/// <summary>
 		/// Constructor

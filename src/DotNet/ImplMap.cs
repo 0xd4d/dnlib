@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet {

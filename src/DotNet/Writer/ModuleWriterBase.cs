@@ -342,7 +342,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="signaturePubKey">Signature public key</param>
 		public void InitializeEnhancedStrongNameSigning(ModuleDef module, StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey) {
 			InitializeStrongNameSigning(module, signatureKey);
-			StrongNameKey.HashAlgorithm = signaturePubKey.HashAlgorithm;
+			StrongNameKey = StrongNameKey.WithHashAlgorithm(signaturePubKey.HashAlgorithm);
 		}
 
 		/// <summary>
@@ -356,8 +356,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="identityKey">Identity strong name key pair</param>
 		/// <param name="identityPubKey">Identity public key</param>
 		public void InitializeEnhancedStrongNameSigning(ModuleDef module, StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey, StrongNameKey identityKey, StrongNamePublicKey identityPubKey) {
-			StrongNameKey = signatureKey;
-			StrongNameKey.HashAlgorithm = signaturePubKey.HashAlgorithm;
+			StrongNameKey = signatureKey.WithHashAlgorithm(signaturePubKey.HashAlgorithm);
 			StrongNamePublicKey = identityPubKey;
 			if (module.Assembly != null)
 				module.Assembly.UpdateOrCreateAssemblySignatureKeyAttribute(identityPubKey, identityKey, signaturePubKey);

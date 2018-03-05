@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using SR = System.Reflection;
-using dnlib.Threading;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
