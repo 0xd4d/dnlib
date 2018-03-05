@@ -118,9 +118,7 @@ namespace dnlib.PE {
 		/// <param name="rva">RVA</param>
 		/// <returns>A new stream</returns>
 		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
-		public static IImageStream CreateStream(this IPEImage self, RVA rva) {
-			return self.CreateStream(self.ToFileOffset(rva));
-		}
+		public static IImageStream CreateStream(this IPEImage self, RVA rva) => self.CreateStream(self.ToFileOffset(rva));
 
 		/// <summary>
 		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
@@ -131,9 +129,7 @@ namespace dnlib.PE {
 		/// <param name="length">Length of data</param>
 		/// <returns>A new stream</returns>
 		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
-		public static IImageStream CreateStream(this IPEImage self, RVA rva, long length) {
-			return self.CreateStream(self.ToFileOffset(rva), length);
-		}
+		public static IImageStream CreateStream(this IPEImage self, RVA rva, long length) => self.CreateStream(self.ToFileOffset(rva), length);
 
 		/// <summary>
 		/// Reads all bytes from the PE image. This may fail if the PE image has been loaded
@@ -154,9 +150,7 @@ namespace dnlib.PE {
 		/// <param name="name">Name</param>
 		/// <param name="langId">Language ID</param>
 		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
-		public static ResourceData FindWin32ResourceData(this IPEImage self, ResourceName type, ResourceName name, ResourceName langId) {
-			var w32Resources = self.Win32Resources;
-			return w32Resources == null ? null : w32Resources.Find(type, name, langId);
-		}
+		public static ResourceData FindWin32ResourceData(this IPEImage self, ResourceName type, ResourceName name, ResourceName langId) =>
+			self.Win32Resources?.Find(type, name, langId);
 	}
 }

@@ -8,9 +8,7 @@
 		/// <summary>
 		/// Gets the <see cref="PublicKeyToken"/>
 		/// </summary>
-		public override PublicKeyToken Token {
-			get { return this; }
-		}
+		public override PublicKeyToken Token => this;
 
 		/// <inheritdoc/>
 		public PublicKeyToken()
@@ -38,8 +36,6 @@
 		}
 
 		/// <inheritdoc/>
-		public override int GetHashCode() {
-			return Utils.GetHashCode(Data);
-		}
+		public override int GetHashCode() => Utils.GetHashCode(Data);
 	}
 }

@@ -17,74 +17,54 @@ namespace dnlib.DotNet.MD {
 		IImageStream imageStream;
 
 		// Fix for VS2015 expression evaluator: "The debugger is unable to evaluate this expression"
-		int Count {
-			get { return tableInfo.Columns.Count; }
-		}
+		int Count => tableInfo.Columns.Count;
 
 		/// <inheritdoc/>
-		public FileOffset StartOffset {
-			get { return imageStream.FileOffset; }
-		}
+		public FileOffset StartOffset => imageStream.FileOffset;
 
 		/// <inheritdoc/>
-		public FileOffset EndOffset {
-			get { return imageStream.FileOffset + imageStream.Length; }
-		}
+		public FileOffset EndOffset => imageStream.FileOffset + imageStream.Length;
 
 		/// <summary>
 		/// Gets the table
 		/// </summary>
-		public Table Table {
-			get { return table; }
-		}
+		public Table Table => table;
 
 		/// <summary>
 		/// Gets the name of this table
 		/// </summary>
-		public string Name {
-			get { return tableInfo.Name; }
-		}
+		public string Name => tableInfo.Name;
 
 		/// <summary>
 		/// Returns total number of rows
 		/// </summary>
-		public uint Rows {
-			get { return numRows; }
-		}
+		public uint Rows => numRows;
 
 		/// <summary>
 		/// Gets the total size in bytes of one row in this table
 		/// </summary>
-		public uint RowSize {
-			get { return (uint)tableInfo.RowSize; }
-		}
+		public uint RowSize => (uint)tableInfo.RowSize;
 
 		/// <summary>
 		/// Returns all the columns
 		/// </summary>
-		public IList<ColumnInfo> Columns {
-			get { return tableInfo.Columns; }
-		}
+		public IList<ColumnInfo> Columns => tableInfo.Columns;
 
 		/// <summary>
 		/// Returns <c>true</c> if there are no valid rows
 		/// </summary>
-		public bool IsEmpty {
-			get { return numRows == 0; }
-		}
+		public bool IsEmpty => numRows == 0;
 
 		/// <summary>
 		/// Returns info about this table
 		/// </summary>
-		public TableInfo TableInfo {
-			get { return tableInfo; }
-		}
+		public TableInfo TableInfo => tableInfo;
 
 		/// <summary>
 		/// The stream that can access all the rows in this table
 		/// </summary>
 		internal IImageStream ImageStream {
-			get { return imageStream; }
+			get => imageStream;
 			set {
 				var ims = imageStream;
 				if (ims == value)
@@ -107,25 +87,19 @@ namespace dnlib.DotNet.MD {
 			this.tableInfo = tableInfo;
 		}
 
-		internal IImageStream CloneImageStream() {
-			return imageStream.Clone();
-		}
+		internal IImageStream CloneImageStream() => imageStream.Clone();
 
 		/// <summary>
 		/// Checks whether the row <paramref name="rid"/> exists
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		public bool IsValidRID(uint rid) {
-			return rid != 0 && rid <= numRows;
-		}
+		public bool IsValidRID(uint rid) => rid != 0 && rid <= numRows;
 
 		/// <summary>
 		/// Checks whether the row <paramref name="rid"/> does not exist
 		/// </summary>
 		/// <param name="rid">Row ID</param>
-		public bool IsInvalidRID(uint rid) {
-			return rid == 0 || rid > numRows;
-		}
+		public bool IsInvalidRID(uint rid) => rid == 0 || rid > numRows;
 
 		/// <inheritdoc/>
 		public void Dispose() {

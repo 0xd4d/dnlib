@@ -219,8 +219,8 @@ namespace dnlib.DotNet.Emit {
 
 		static T ReadList<T>(IList<T> list, int index) {
 			if (list == null)
-				return default(T);
-			return list.Get(index, default(T));
+				return default;
+			return list.Get(index, default);
 		}
 
 		/// <summary>

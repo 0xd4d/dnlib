@@ -28,47 +28,35 @@ namespace dnlib.DotNet {
 		protected ModuleDef module;
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.ModuleRef, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.ModuleRef, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <inheritdoc/>
-		public int HasCustomAttributeTag {
-			get { return 12; }
-		}
+		public int HasCustomAttributeTag => 12;
 
 		/// <inheritdoc/>
-		public int MemberRefParentTag {
-			get { return 2; }
-		}
+		public int MemberRefParentTag => 2;
 
 		/// <inheritdoc/>
-		public int ResolutionScopeTag {
-			get { return 1; }
-		}
+		public int ResolutionScopeTag => 1;
 
 		/// <inheritdoc/>
-		public ScopeType ScopeType {
-			get { return ScopeType.ModuleRef; }
-		}
+		public ScopeType ScopeType => ScopeType.ModuleRef;
 
 		/// <inheritdoc/>
-		public string ScopeName {
-			get { return FullName; }
-		}
+		public string ScopeName => FullName;
 
 		/// <summary>
 		/// From column ModuleRef.Name
 		/// </summary>
 		public UTF8String Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 		/// <summary>Name</summary>
 		protected UTF8String name;
@@ -86,24 +74,17 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected CustomAttributeCollection customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
-		protected virtual void InitializeCustomAttributes() {
+		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
-		}
 
 		/// <inheritdoc/>
-		public bool HasCustomAttributes {
-			get { return CustomAttributes.Count > 0; }
-		}
+		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 12; }
-		}
+		public int HasCustomDebugInformationTag => 12;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
@@ -118,14 +99,11 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
-		protected virtual void InitializeCustomDebugInfos() {
+		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
-		}
 
 		/// <inheritdoc/>
-		public ModuleDef Module {
-			get { return module; }
-		}
+		public ModuleDef Module => module;
 
 		/// <summary>
 		/// Gets the definition module, i.e., the module which it references, or <c>null</c>
@@ -138,8 +116,7 @@ namespace dnlib.DotNet {
 				var n = name;
 				if (UTF8String.CaseInsensitiveEquals(n, module.Name))
 					return module;
-				var asm = DefinitionAssembly;
-				return asm == null ? null : asm.FindModule(n);
+				return DefinitionAssembly?.FindModule(n);
 			}
 		}
 
@@ -147,19 +124,13 @@ namespace dnlib.DotNet {
 		/// Gets the definition assembly, i.e., the assembly of the module it references, or
 		/// <c>null</c> if the assembly can't be found.
 		/// </summary>
-		public AssemblyDef DefinitionAssembly {
-			get { return module == null ? null : module.Assembly; }
-		}
+		public AssemblyDef DefinitionAssembly => module?.Assembly;
 
 		/// <inheritdoc/>
-		public string FullName {
-			get { return UTF8String.ToSystemStringOrEmpty(name); }
-		}
+		public string FullName => UTF8String.ToSystemStringOrEmpty(name);
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
-		}
+		public override string ToString() => FullName;
 	}
 
 	/// <summary>
@@ -195,9 +166,7 @@ namespace dnlib.DotNet {
 		readonly uint origRid;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
@@ -225,12 +194,12 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.ModuleRefTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("ModuleRef rid {0} does not exist", rid));
+				throw new BadImageFormatException($"ModuleRef rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			this.module = readerModule;
+			module = readerModule;
 			uint name = readerModule.TablesStream.ReadModuleRefRow2(origRid);
 			this.name = readerModule.StringsStream.ReadNoNull(name);
 		}

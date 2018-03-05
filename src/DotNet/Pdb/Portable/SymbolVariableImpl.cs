@@ -9,21 +9,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 		readonly int index;
 		readonly PdbCustomDebugInfo[] customDebugInfos;
 
-		public override string Name {
-			get { return name; }
-		}
-
-		public override PdbLocalAttributes Attributes {
-			get { return attributes; }
-		}
-
-		public override int Index {
-			get { return index; }
-		}
-
-		public override PdbCustomDebugInfo[] CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
+		public override string Name => name;
+		public override PdbLocalAttributes Attributes => attributes;
+		public override int Index => index;
+		public override PdbCustomDebugInfo[] CustomDebugInfos => customDebugInfos;
 
 		public SymbolVariableImpl(string name, PdbLocalAttributes attributes, int index, PdbCustomDebugInfo[] customDebugInfos) {
 			this.name = name;

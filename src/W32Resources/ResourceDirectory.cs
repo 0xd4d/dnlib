@@ -36,47 +36,43 @@ namespace dnlib.W32Resources {
 		/// Gets/sets the characteristics
 		/// </summary>
 		public uint Characteristics {
-			get { return characteristics; }
-			set { characteristics = value; }
+			get => characteristics;
+			set => characteristics = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the time date stamp
 		/// </summary>
 		public uint TimeDateStamp {
-			get { return timeDateStamp; }
-			set { timeDateStamp = value; }
+			get => timeDateStamp;
+			set => timeDateStamp = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the major version number
 		/// </summary>
 		public ushort MajorVersion {
-			get { return majorVersion; }
-			set { majorVersion = value; }
+			get => majorVersion;
+			set => majorVersion = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the minor version number
 		/// </summary>
 		public ushort MinorVersion {
-			get { return minorVersion; }
-			set { minorVersion = value; }
+			get => minorVersion;
+			set => minorVersion = value;
 		}
 
 		/// <summary>
 		/// Gets all directory entries
 		/// </summary>
-		public ThreadSafe.IList<ResourceDirectory> Directories {
-			get { return directories; }
-		}
+		public ThreadSafe.IList<ResourceDirectory> Directories => directories;
 
 		/// <summary>
 		/// Gets all resource data
 		/// </summary>
-		public ThreadSafe.IList<ResourceData> Data {
-			get { return data; }
-		}
+		public ThreadSafe.IList<ResourceData> Data => data;
 
 		/// <summary>
 		/// Constructor
@@ -142,8 +138,8 @@ namespace dnlib.W32Resources {
 		/// <param name="name">Name</param>
 		public ResourceDirectoryUser(ResourceName name)
 			: base(name) {
-			this.directories = new LazyList<ResourceDirectory>();
-			this.data = new LazyList<ResourceData>();
+			directories = new LazyList<ResourceDirectory>();
+			data = new LazyList<ResourceData>();
 		}
 	}
 
@@ -173,7 +169,7 @@ namespace dnlib.W32Resources {
 		/// </summary>
 		List<EntryInfo> dirInfos;
 
-		struct EntryInfo {
+		readonly struct EntryInfo {
 			public readonly ResourceName name;
 
 			/// <summary>Offset of resource directory / data</summary>
@@ -184,9 +180,7 @@ namespace dnlib.W32Resources {
 				this.offset = offset;
 			}
 
-			public override string ToString() {
-				return string.Format("{0:X8} {1}", offset, name);
-			}
+			public override string ToString() => $"{offset:X8} {name}";
 		}
 
 		/// <summary>
@@ -302,7 +296,7 @@ namespace dnlib.W32Resources {
 
 			ResourceData data;
 			if (reader.CanRead(16)) {
-				RVA rva = (RVA)reader.ReadUInt32();
+				var rva = (RVA)reader.ReadUInt32();
 				uint size = reader.ReadUInt32();
 				uint codePage = reader.ReadUInt32();
 				uint reserved = reader.ReadUInt32();

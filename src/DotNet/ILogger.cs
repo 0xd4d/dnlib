@@ -65,9 +65,8 @@ namespace dnlib.DotNet {
 		/// <param name="logger">this</param>
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
-		public static void Error(this ILogger logger, object sender, string message) {
+		public static void Error(this ILogger logger, object sender, string message) =>
 			logger.Log(sender, LoggerEvent.Error, "{0}", message);
-		}
 
 		/// <summary>
 		/// Log an error message
@@ -76,9 +75,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
-		public static void Error(this ILogger logger, object sender, string message, object arg1) {
+		public static void Error(this ILogger logger, object sender, string message, object arg1) =>
 			logger.Log(sender, LoggerEvent.Error, message, arg1);
-		}
 
 		/// <summary>
 		/// Log an error message
@@ -88,9 +86,8 @@ namespace dnlib.DotNet {
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
-		public static void Error(this ILogger logger, object sender, string message, object arg1, object arg2) {
+		public static void Error(this ILogger logger, object sender, string message, object arg1, object arg2) =>
 			logger.Log(sender, LoggerEvent.Error, message, arg1, arg2);
-		}
 
 		/// <summary>
 		/// Log an error message
@@ -101,9 +98,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
-		public static void Error(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) {
+		public static void Error(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) =>
 			logger.Log(sender, LoggerEvent.Error, message, arg1, arg2, arg3);
-		}
 
 		/// <summary>
 		/// Log an error message
@@ -115,9 +111,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
 		/// <param name="arg4">Message arg #4</param>
-		public static void Error(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) {
+		public static void Error(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) =>
 			logger.Log(sender, LoggerEvent.Error, message, arg1, arg2, arg3, arg4);
-		}
 
 		/// <summary>
 		/// Log an error message
@@ -126,9 +121,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="args">Message arguments</param>
-		public static void Error(this ILogger logger, object sender, string message, params object[] args) {
+		public static void Error(this ILogger logger, object sender, string message, params object[] args) =>
 			logger.Log(sender, LoggerEvent.Error, message, args);
-		}
 
 		/// <summary>
 		/// Log a warning message
@@ -136,9 +130,8 @@ namespace dnlib.DotNet {
 		/// <param name="logger">this</param>
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
-		public static void Warning(this ILogger logger, object sender, string message) {
+		public static void Warning(this ILogger logger, object sender, string message) =>
 			logger.Log(sender, LoggerEvent.Warning, "{0}", message);
-		}
 
 		/// <summary>
 		/// Log a warning message
@@ -147,9 +140,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
-		public static void Warning(this ILogger logger, object sender, string message, object arg1) {
+		public static void Warning(this ILogger logger, object sender, string message, object arg1) =>
 			logger.Log(sender, LoggerEvent.Warning, message, arg1);
-		}
 
 		/// <summary>
 		/// Log a warning message
@@ -159,9 +151,8 @@ namespace dnlib.DotNet {
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
-		public static void Warning(this ILogger logger, object sender, string message, object arg1, object arg2) {
+		public static void Warning(this ILogger logger, object sender, string message, object arg1, object arg2) =>
 			logger.Log(sender, LoggerEvent.Warning, message, arg1, arg2);
-		}
 
 		/// <summary>
 		/// Log a warning message
@@ -172,9 +163,7 @@ namespace dnlib.DotNet {
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
-		public static void Warning(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) {
-			logger.Log(sender, LoggerEvent.Warning, message, arg1, arg2, arg3);
-		}
+		public static void Warning(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) => logger.Log(sender, LoggerEvent.Warning, message, arg1, arg2, arg3);
 
 		/// <summary>
 		/// Log a warning message
@@ -186,9 +175,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
 		/// <param name="arg4">Message arg #4</param>
-		public static void Warning(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) {
+		public static void Warning(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) =>
 			logger.Log(sender, LoggerEvent.Warning, message, arg1, arg2, arg3, arg4);
-		}
 
 		/// <summary>
 		/// Log a warning message
@@ -197,9 +185,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="args">Message arguments</param>
-		public static void Warning(this ILogger logger, object sender, string message, params object[] args) {
+		public static void Warning(this ILogger logger, object sender, string message, params object[] args) =>
 			logger.Log(sender, LoggerEvent.Warning, message, args);
-		}
 
 		/// <summary>
 		/// Log an info message
@@ -207,9 +194,8 @@ namespace dnlib.DotNet {
 		/// <param name="logger">this</param>
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
-		public static void Info(this ILogger logger, object sender, string message) {
+		public static void Info(this ILogger logger, object sender, string message) =>
 			logger.Log(sender, LoggerEvent.Info, "{0}", message);
-		}
 
 		/// <summary>
 		/// Log an info message
@@ -218,9 +204,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
-		public static void Info(this ILogger logger, object sender, string message, object arg1) {
+		public static void Info(this ILogger logger, object sender, string message, object arg1) =>
 			logger.Log(sender, LoggerEvent.Info, message, arg1);
-		}
 
 		/// <summary>
 		/// Log an info message
@@ -230,9 +215,8 @@ namespace dnlib.DotNet {
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
-		public static void Info(this ILogger logger, object sender, string message, object arg1, object arg2) {
+		public static void Info(this ILogger logger, object sender, string message, object arg1, object arg2) =>
 			logger.Log(sender, LoggerEvent.Info, message, arg1, arg2);
-		}
 
 		/// <summary>
 		/// Log an info message
@@ -243,9 +227,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
-		public static void Info(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) {
+		public static void Info(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) =>
 			logger.Log(sender, LoggerEvent.Info, message, arg1, arg2, arg3);
-		}
 
 		/// <summary>
 		/// Log an info message
@@ -257,9 +240,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
 		/// <param name="arg4">Message arg #4</param>
-		public static void Info(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) {
+		public static void Info(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) =>
 			logger.Log(sender, LoggerEvent.Info, message, arg1, arg2, arg3, arg4);
-		}
 
 		/// <summary>
 		/// Log an info message
@@ -268,9 +250,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="args">Message arguments</param>
-		public static void Info(this ILogger logger, object sender, string message, params object[] args) {
+		public static void Info(this ILogger logger, object sender, string message, params object[] args) =>
 			logger.Log(sender, LoggerEvent.Info, message, args);
-		}
 
 		/// <summary>
 		/// Log a verbose message
@@ -278,9 +259,8 @@ namespace dnlib.DotNet {
 		/// <param name="logger">this</param>
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
-		public static void Verbose(this ILogger logger, object sender, string message) {
+		public static void Verbose(this ILogger logger, object sender, string message) =>
 			logger.Log(sender, LoggerEvent.Verbose, "{0}", message);
-		}
 
 		/// <summary>
 		/// Log a verbose message
@@ -289,9 +269,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
-		public static void Verbose(this ILogger logger, object sender, string message, object arg1) {
+		public static void Verbose(this ILogger logger, object sender, string message, object arg1) =>
 			logger.Log(sender, LoggerEvent.Verbose, message, arg1);
-		}
 
 		/// <summary>
 		/// Log a verbose message
@@ -301,9 +280,8 @@ namespace dnlib.DotNet {
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
-		public static void Verbose(this ILogger logger, object sender, string message, object arg1, object arg2) {
+		public static void Verbose(this ILogger logger, object sender, string message, object arg1, object arg2) =>
 			logger.Log(sender, LoggerEvent.Verbose, message, arg1, arg2);
-		}
 
 		/// <summary>
 		/// Log a verbose message
@@ -314,9 +292,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
-		public static void Verbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) {
+		public static void Verbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) =>
 			logger.Log(sender, LoggerEvent.Verbose, message, arg1, arg2, arg3);
-		}
 
 		/// <summary>
 		/// Log a verbose message
@@ -328,9 +305,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
 		/// <param name="arg4">Message arg #4</param>
-		public static void Verbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) {
+		public static void Verbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) =>
 			logger.Log(sender, LoggerEvent.Verbose, message, arg1, arg2, arg3, arg4);
-		}
 
 		/// <summary>
 		/// Log a verbose message
@@ -339,9 +315,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="args">Message arguments</param>
-		public static void Verbose(this ILogger logger, object sender, string message, params object[] args) {
+		public static void Verbose(this ILogger logger, object sender, string message, params object[] args) =>
 			logger.Log(sender, LoggerEvent.Verbose, message, args);
-		}
 
 		/// <summary>
 		/// Log a very verbose message
@@ -349,9 +324,8 @@ namespace dnlib.DotNet {
 		/// <param name="logger">this</param>
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
-		public static void VeryVerbose(this ILogger logger, object sender, string message) {
+		public static void VeryVerbose(this ILogger logger, object sender, string message) =>
 			logger.Log(sender, LoggerEvent.VeryVerbose, "{0}", message);
-		}
 
 		/// <summary>
 		/// Log a very verbose message
@@ -360,9 +334,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
-		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1) {
+		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1) =>
 			logger.Log(sender, LoggerEvent.VeryVerbose, message, arg1);
-		}
 
 		/// <summary>
 		/// Log a very verbose message
@@ -372,9 +345,8 @@ namespace dnlib.DotNet {
 		/// <param name="message">Message</param>
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
-		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1, object arg2) {
+		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1, object arg2) =>
 			logger.Log(sender, LoggerEvent.VeryVerbose, message, arg1, arg2);
-		}
 
 		/// <summary>
 		/// Log a very verbose message
@@ -385,9 +357,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg1">Message arg #1</param>
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
-		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) {
+		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3) =>
 			logger.Log(sender, LoggerEvent.VeryVerbose, message, arg1, arg2, arg3);
-		}
 
 		/// <summary>
 		/// Log a very verbose message
@@ -399,9 +370,8 @@ namespace dnlib.DotNet {
 		/// <param name="arg2">Message arg #2</param>
 		/// <param name="arg3">Message arg #3</param>
 		/// <param name="arg4">Message arg #4</param>
-		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) {
+		public static void VeryVerbose(this ILogger logger, object sender, string message, object arg1, object arg2, object arg3, object arg4) =>
 			logger.Log(sender, LoggerEvent.VeryVerbose, message, arg1, arg2, arg3, arg4);
-		}
 
 		/// <summary>
 		/// Log a very verbose message
@@ -410,9 +380,8 @@ namespace dnlib.DotNet {
 		/// <param name="sender">Sender or <c>null</c></param>
 		/// <param name="message">Message</param>
 		/// <param name="args">Message arguments</param>
-		public static void VeryVerbose(this ILogger logger, object sender, string message, params object[] args) {
+		public static void VeryVerbose(this ILogger logger, object sender, string message, params object[] args) =>
 			logger.Log(sender, LoggerEvent.VeryVerbose, message, args);
-		}
 	}
 
 	/// <summary>
@@ -443,10 +412,10 @@ namespace dnlib.DotNet {
 		public DummyLogger(Type exceptionToThrow) {
 			if (exceptionToThrow != null) {
 				if (!exceptionToThrow.IsSubclassOf(typeof(Exception)))
-					throw new ArgumentException(string.Format("Not a System.Exception sub class: {0}", exceptionToThrow.GetType()));
+					throw new ArgumentException($"Not a System.Exception sub class: {exceptionToThrow.GetType()}");
 				ctor = exceptionToThrow.GetConstructor(new Type[] { typeof(string) });
 				if (ctor == null)
-					throw new ArgumentException(string.Format("Exception type {0} doesn't have a public constructor that takes a string as the only argument", exceptionToThrow.GetType()));
+					throw new ArgumentException($"Exception type {exceptionToThrow.GetType()} doesn't have a public constructor that takes a string as the only argument");
 			}
 		}
 

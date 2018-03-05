@@ -45,11 +45,10 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="address">Address of type</param>
 		/// <returns>The <see cref="Type"/> or <c>null</c></returns>
 		public static Type Convert(IntPtr address) {
-			Type type;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (addrToType.TryGetValue(address, out type))
+			if (addrToType.TryGetValue(address, out var type))
 				return type;
 
 			type = GetTypeNET20(address) ?? GetTypeUsingTypeBuilder(address);
@@ -81,9 +80,9 @@ namespace dnlib.DotNet.Emit {
 
 		// .NET 4.5 and later have the documented SetMethodBody() method.
 		static Type GetTypeNET45(TypeBuilder tb, MethodBuilder mb, IntPtr address) {
-			byte[] code = new byte[1] { 0x2A };
+			var code = new byte[1] { 0x2A };
 			int maxStack = 8;
-			byte[] locals = GetLocalSignature(address);
+			var locals = GetLocalSignature(address);
 			setMethodBodyMethodInfo.Invoke(mb, new object[5] { code, maxStack, locals, null, null });
 #if NETSTANDARD2_0
 			var type = tb.CreateTypeInfo();
@@ -126,9 +125,7 @@ namespace dnlib.DotNet.Emit {
 			return Type.GetTypeFromHandle((RuntimeTypeHandle)th);
 		}
 
-		static string GetNextTypeName() {
-			return string.Format("Type{0}", numNewTypes++);
-		}
+		static string GetNextTypeName() => "Type" + numNewTypes++.ToString();
 
 		static byte[] GetLocalSignature(IntPtr mtAddr) {
 			ulong mtValue = (ulong)mtAddr.ToInt64();

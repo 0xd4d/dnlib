@@ -17,19 +17,13 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the data
 		/// </summary>
-		public IBinaryReader Data {
-			get { return data; }
-		}
+		public IBinaryReader Data => data;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Constructor
@@ -56,14 +50,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return (uint)data.Length;
-		}
+		public uint GetFileLength() => (uint)data.Length;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return virtualSize;
-		}
+		public uint GetVirtualSize() => virtualSize;
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {

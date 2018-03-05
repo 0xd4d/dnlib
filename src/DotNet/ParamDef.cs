@@ -29,37 +29,29 @@ namespace dnlib.DotNet {
 #endif
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.Param, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.Param, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <inheritdoc/>
-		public int HasConstantTag {
-			get { return 1; }
-		}
+		public int HasConstantTag => 1;
 
 		/// <inheritdoc/>
-		public int HasCustomAttributeTag {
-			get { return 4; }
-		}
+		public int HasCustomAttributeTag => 4;
 
 		/// <inheritdoc/>
-		public int HasFieldMarshalTag {
-			get { return 1; }
-		}
+		public int HasFieldMarshalTag => 1;
 
 		/// <summary>
 		/// Gets the declaring method
 		/// </summary>
 		public MethodDef DeclaringMethod {
-			get { return declaringMethod; }
-			internal set { declaringMethod = value; }
+			get => declaringMethod;
+			internal set => declaringMethod = value;
 		}
 		/// <summary/>
 		protected MethodDef declaringMethod;
@@ -68,8 +60,8 @@ namespace dnlib.DotNet {
 		/// From column Param.Flags
 		/// </summary>
 		public ParamAttributes Attributes {
-			get { return (ParamAttributes)attributes; }
-			set { attributes = (int)value; }
+			get => (ParamAttributes)attributes;
+			set => attributes = (int)value;
 		}
 		/// <summary>Attributes</summary>
 		protected int attributes;
@@ -78,8 +70,8 @@ namespace dnlib.DotNet {
 		/// From column Param.Sequence
 		/// </summary>
 		public ushort Sequence {
-			get { return sequence; }
-			set { sequence = value; }
+			get => sequence;
+			set => sequence = value;
 		}
 		/// <summary/>
 		protected ushort sequence;
@@ -88,8 +80,8 @@ namespace dnlib.DotNet {
 		/// From column Param.Name
 		/// </summary>
 		public UTF8String Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 		/// <summary>Name</summary>
 		protected UTF8String name;
@@ -131,14 +123,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="marshalType"/></summary>
-		protected virtual MarshalType GetMarshalType_NoLock() {
-			return null;
-		}
+		protected virtual MarshalType GetMarshalType_NoLock() => null;
 
 		/// <summary>Reset <see cref="MarshalType"/></summary>
-		protected void ResetMarshalType() {
-			marshalType_isInitialized = false;
-		}
+		protected void ResetMarshalType() => marshalType_isInitialized = false;
 
 		/// <inheritdoc/>
 		public Constant Constant {
@@ -177,14 +165,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="constant"/></summary>
-		protected virtual Constant GetConstant_NoLock() {
-			return null;
-		}
+		protected virtual Constant GetConstant_NoLock() => null;
 
 		/// <summary>Reset <see cref="Constant"/></summary>
-		protected void ResetConstant() {
-			constant_isInitialized = false;
-		}
+		protected void ResetConstant() => constant_isInitialized = false;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -199,24 +183,17 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected CustomAttributeCollection customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
-		protected virtual void InitializeCustomAttributes() {
+		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
-		}
 
 		/// <inheritdoc/>
-		public bool HasCustomAttributes {
-			get { return CustomAttributes.Count > 0; }
-		}
+		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 4; }
-		}
+		public int HasCustomDebugInformationTag => 4;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
@@ -231,16 +208,13 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
-		protected virtual void InitializeCustomDebugInfos() {
+		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
-		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
-		public bool HasConstant {
-			get { return Constant != null; }
-		}
+		public bool HasConstant => Constant != null;
 
 		/// <summary>
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
@@ -255,16 +229,14 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
-		public bool HasMarshalType {
-			get { return MarshalType != null; }
-		}
+		public bool HasMarshalType => MarshalType != null;
 
 		/// <inheritdoc/>
 		public string FullName {
 			get {
 				var n = name;
 				if (UTF8String.IsNullOrEmpty(n))
-					return string.Format("A_{0}", sequence);
+					return $"A_{sequence}";
 				return n.String;
 			}
 		}
@@ -297,56 +269,56 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="ParamAttributes.In"/> bit
 		/// </summary>
 		public bool IsIn {
-			get { return ((ParamAttributes)attributes & ParamAttributes.In) != 0; }
-			set { ModifyAttributes(value, ParamAttributes.In); }
+			get => ((ParamAttributes)attributes & ParamAttributes.In) != 0;
+			set => ModifyAttributes(value, ParamAttributes.In);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.Out"/> bit
 		/// </summary>
 		public bool IsOut {
-			get { return ((ParamAttributes)attributes & ParamAttributes.Out) != 0; }
-			set { ModifyAttributes(value, ParamAttributes.Out); }
+			get => ((ParamAttributes)attributes & ParamAttributes.Out) != 0;
+			set => ModifyAttributes(value, ParamAttributes.Out);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.Lcid"/> bit
 		/// </summary>
 		public bool IsLcid {
-			get { return ((ParamAttributes)attributes & ParamAttributes.Lcid) != 0; }
-			set { ModifyAttributes(value, ParamAttributes.Lcid); }
+			get => ((ParamAttributes)attributes & ParamAttributes.Lcid) != 0;
+			set => ModifyAttributes(value, ParamAttributes.Lcid);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.Retval"/> bit
 		/// </summary>
 		public bool IsRetval {
-			get { return ((ParamAttributes)attributes & ParamAttributes.Retval) != 0; }
-			set { ModifyAttributes(value, ParamAttributes.Retval); }
+			get => ((ParamAttributes)attributes & ParamAttributes.Retval) != 0;
+			set => ModifyAttributes(value, ParamAttributes.Retval);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.Optional"/> bit
 		/// </summary>
 		public bool IsOptional {
-			get { return ((ParamAttributes)attributes & ParamAttributes.Optional) != 0; }
-			set { ModifyAttributes(value, ParamAttributes.Optional); }
+			get => ((ParamAttributes)attributes & ParamAttributes.Optional) != 0;
+			set => ModifyAttributes(value, ParamAttributes.Optional);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.HasDefault"/> bit
 		/// </summary>
 		public bool HasDefault {
-			get { return ((ParamAttributes)attributes & ParamAttributes.HasDefault) != 0; }
-			set { ModifyAttributes(value, ParamAttributes.HasDefault); }
+			get => ((ParamAttributes)attributes & ParamAttributes.HasDefault) != 0;
+			set => ModifyAttributes(value, ParamAttributes.HasDefault);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ParamAttributes.HasFieldMarshal"/> bit
 		/// </summary>
 		public bool HasFieldMarshal {
-			get { return ((ParamAttributes)attributes & ParamAttributes.HasFieldMarshal) != 0; }
-			set { ModifyAttributes(value, ParamAttributes.HasFieldMarshal); }
+			get => ((ParamAttributes)attributes & ParamAttributes.HasFieldMarshal) != 0;
+			set => ModifyAttributes(value, ParamAttributes.HasFieldMarshal);
 		}
 	}
 
@@ -386,7 +358,7 @@ namespace dnlib.DotNet {
 		public ParamDefUser(UTF8String name, ushort sequence, ParamAttributes flags) {
 			this.name = name;
 			this.sequence = sequence;
-			this.attributes = (int)flags;
+			attributes = (int)flags;
 		}
 	}
 
@@ -400,19 +372,15 @@ namespace dnlib.DotNet {
 		readonly uint origRid;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
-		protected override MarshalType GetMarshalType_NoLock() {
-			return readerModule.ReadMarshalType(Table.Param, origRid, GenericParamContext.Create(declaringMethod));
-		}
+		protected override MarshalType GetMarshalType_NoLock() =>
+			readerModule.ReadMarshalType(Table.Param, origRid, GenericParamContext.Create(declaringMethod));
 
 		/// <inheritdoc/>
-		protected override Constant GetConstant_NoLock() {
-			return readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, origRid));
-		}
+		protected override Constant GetConstant_NoLock() =>
+			readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, origRid));
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
@@ -440,14 +408,14 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.ParamTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("Param rid {0} does not exist", rid));
+				throw new BadImageFormatException($"Param rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint name = readerModule.TablesStream.ReadParamRow(origRid, out this.attributes, out this.sequence);
+			uint name = readerModule.TablesStream.ReadParamRow(origRid, out attributes, out sequence);
 			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.declaringMethod = readerModule.GetOwner(this);
+			declaringMethod = readerModule.GetOwner(this);
 		}
 
 		internal ParamDefMD InitializeAll() {

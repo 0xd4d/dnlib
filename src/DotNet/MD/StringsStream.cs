@@ -44,8 +44,6 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="offset">Offset of string</param>
 		/// <returns>A <see cref="UTF8String"/> instance</returns>
-		public UTF8String ReadNoNull(uint offset) {
-			return Read(offset) ?? UTF8String.Empty;
-		}
+		public UTF8String ReadNoNull(uint offset) => Read(offset) ?? UTF8String.Empty;
 	}
 }

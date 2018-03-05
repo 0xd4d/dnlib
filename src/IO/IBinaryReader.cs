@@ -335,9 +335,7 @@ namespace dnlib.IO {
 		/// <param name="self">this</param>
 		/// <returns>The boolean</returns>
 		/// <exception cref="IOException">An I/O error occurs</exception>
-		public static bool ReadBoolean(this IBinaryReader self) {
-			return self.ReadByte() != 0;
-		}
+		public static bool ReadBoolean(this IBinaryReader self) => self.ReadByte() != 0;
 
 		/// <summary>
 		/// Reads a <see cref="Char"/> from the current position and increments <see cref="IBinaryReader.Position"/> by 2
@@ -345,9 +343,7 @@ namespace dnlib.IO {
 		/// <param name="self">this</param>
 		/// <returns>The char</returns>
 		/// <exception cref="IOException">An I/O error occurs</exception>
-		public static char ReadChar(this IBinaryReader self) {
-			return self.ReadChar(Encoding.UTF8);
-		}
+		public static char ReadChar(this IBinaryReader self) => self.ReadChar(Encoding.UTF8);
 
 		/// <summary>
 		/// Reads a <see cref="Char"/> from the current position and increments <see cref="IBinaryReader.Position"/> by 2
@@ -360,8 +356,8 @@ namespace dnlib.IO {
 			// This is slow but this method should rarely be called...
 			var decoder = encoding.GetDecoder();
 			bool twoBytes = encoding is UnicodeEncoding;
-			byte[] bytes = new byte[2];
-			char[] chars = new char[1];
+			var bytes = new byte[2];
+			var chars = new char[1];
 			while (true) {
 				bytes[0] = self.ReadByte();
 				if (twoBytes)
@@ -379,9 +375,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="reader">this</param>
 		/// <returns>The string</returns>
-		public static string ReadString(this IBinaryReader reader) {
-			return reader.ReadString(Encoding.UTF8);
-		}
+		public static string ReadString(this IBinaryReader reader) => reader.ReadString(Encoding.UTF8);
 
 		/// <summary>
 		/// Reads a <see cref="string"/> from the current position and increments
@@ -527,8 +521,7 @@ namespace dnlib.IO {
 		/// <param name="reader">The reader</param>
 		/// <returns>The value</returns>
 		public static uint ReadCompressedUInt32(this IBinaryReader reader) {
-			uint val;
-			if (!reader.ReadCompressedUInt32(out val))
+			if (!reader.ReadCompressedUInt32(out uint val))
 				throw new IOException("Could not read a compressed UInt32");
 			return val;
 		}
@@ -539,8 +532,7 @@ namespace dnlib.IO {
 		/// <param name="reader">The reader</param>
 		/// <returns>The value</returns>
 		public static int ReadCompressedInt32(this IBinaryReader reader) {
-			int val;
-			if (!reader.ReadCompressedInt32(out val))
+			if (!reader.ReadCompressedInt32(out int val))
 				throw new IOException("Could not read a compressed Int32");
 			return val;
 		}
@@ -568,9 +560,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="reader">this</param>
 		/// <returns>The decoded integer</returns>
-		public static int Read7BitEncodedInt32(this IBinaryReader reader) {
-			return (int)reader.Read7BitEncodedUInt32();
-		}
+		public static int Read7BitEncodedInt32(this IBinaryReader reader) => (int)reader.Read7BitEncodedUInt32();
 
 		/// <summary>
 		/// Creates a <see cref="Stream"/> using <paramref name="reader"/>. The created
@@ -579,9 +569,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="reader">this</param>
 		/// <returns>A new <see cref="Stream"/> instance</returns>
-		public static Stream CreateStream(this IBinaryReader reader) {
-			return new BinaryReaderStream(reader);
-		}
+		public static Stream CreateStream(this IBinaryReader reader) => new BinaryReaderStream(reader);
 
 		/// <summary>
 		/// Creates a <see cref="Stream"/> using <paramref name="reader"/>
@@ -590,27 +578,21 @@ namespace dnlib.IO {
 		/// <param name="ownsReader"><c>true</c> if the created <see cref="Stream"/> owns
 		/// <paramref name="reader"/></param>
 		/// <returns>A new <see cref="Stream"/> instance</returns>
-		public static Stream CreateStream(this IBinaryReader reader, bool ownsReader) {
-			return new BinaryReaderStream(reader, ownsReader);
-		}
+		public static Stream CreateStream(this IBinaryReader reader, bool ownsReader) => new BinaryReaderStream(reader, ownsReader);
 
 		/// <summary>
 		/// Checks whether we can read <paramref name="size"/> bytes
 		/// </summary>
 		/// <param name="reader">Reader</param>
 		/// <param name="size">Size in bytes</param>
-		public static bool CanRead(this IBinaryReader reader, int size) {
-			return (reader.Position + size <= reader.Length && reader.Position + size >= reader.Position) || size == 0;
-		}
+		public static bool CanRead(this IBinaryReader reader, int size) => (reader.Position + size <= reader.Length && reader.Position + size >= reader.Position) || size == 0;
 
 		/// <summary>
 		/// Checks whether we can read <paramref name="size"/> bytes
 		/// </summary>
 		/// <param name="reader">Reader</param>
 		/// <param name="size">Size in bytes</param>
-		public static bool CanRead(this IBinaryReader reader, uint size) {
-			return (reader.Position + size <= reader.Length && reader.Position + size >= reader.Position) || size == 0;
-		}
+		public static bool CanRead(this IBinaryReader reader, uint size) => (reader.Position + size <= reader.Length && reader.Position + size >= reader.Position) || size == 0;
 
 		/// <summary>
 		/// Writes <paramref name="reader"/>, starting at <paramref name="reader"/>'s current

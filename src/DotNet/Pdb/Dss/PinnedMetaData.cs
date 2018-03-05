@@ -17,16 +17,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <summary>
 		/// Gets the address
 		/// </summary>
-		public IntPtr Address {
-			get { return address; }
-		}
+		public IntPtr Address => address;
 
 		/// <summary>
 		/// Gets the size
 		/// </summary>
-		public int Size {
-			get { return (int)stream.Length; }
-		}
+		public int Size => (int)stream.Length;
 
 		/// <summary>
 		/// Constructor
@@ -35,22 +31,20 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public PinnedMetaData(IImageStream stream) {
 			this.stream = stream;
 
-			var umStream = stream as UnmanagedMemoryImageStream;
-			if (umStream != null) {
-				this.address = umStream.StartAddress;
+			if (stream is UnmanagedMemoryImageStream umStream) {
+				address = umStream.StartAddress;
 				GC.SuppressFinalize(this);	// no GCHandle so finalizer isn't needed
 			}
 			else {
-				var memStream = stream as MemoryImageStream;
-				if (memStream != null) {
-					this.streamData = memStream.DataArray;
-					this.gcHandle = GCHandle.Alloc(this.streamData, GCHandleType.Pinned);
-					this.address = new IntPtr(this.gcHandle.AddrOfPinnedObject().ToInt64() + memStream.DataOffset);
+				if (stream is MemoryImageStream memStream) {
+					streamData = memStream.DataArray;
+					gcHandle = GCHandle.Alloc(streamData, GCHandleType.Pinned);
+					address = new IntPtr(gcHandle.AddrOfPinnedObject().ToInt64() + memStream.DataOffset);
 				}
 				else {
-					this.streamData = stream.ReadAllBytes();
-					this.gcHandle = GCHandle.Alloc(this.streamData, GCHandleType.Pinned);
-					this.address = this.gcHandle.AddrOfPinnedObject();
+					streamData = stream.ReadAllBytes();
+					gcHandle = GCHandle.Alloc(streamData, GCHandleType.Pinned);
+					address = gcHandle.AddrOfPinnedObject();
 				}
 			}
 		}

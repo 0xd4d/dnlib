@@ -9,7 +9,7 @@ namespace dnlib.DotNet {
 	/// Strong name signs an assembly. It supports normal strong name signing and the new
 	/// (.NET 4.5) enhanced strong name signing.
 	/// </summary>
-	public struct StrongNameSigner {
+	public readonly struct StrongNameSigner {
 		readonly Stream stream;
 		readonly long baseOffset;
 
@@ -78,7 +78,7 @@ namespace dnlib.DotNet {
 			long snSigOffsetEnd = snSigOffset + snSigSize;
 
 			using (var hasher = new AssemblyHash(hashAlg)) {
-				byte[] buffer = new byte[0x8000];
+				var buffer = new byte[0x8000];
 
 				// Hash the DOS header. It's defined to be all data from the start of
 				// the file up to the NT headers.

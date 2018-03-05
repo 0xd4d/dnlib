@@ -23,32 +23,26 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the number of locals
 		/// </summary>
-		public int Count {
-			get { return locals.Count; }
-		}
+		public int Count => locals.Count;
 
 		/// <summary>
 		/// Gets the list of locals
 		/// </summary>
-		public ThreadSafe.IList<Local> Locals {
-			get { return locals; }
-		}
+		public ThreadSafe.IList<Local> Locals => locals;
 
 		/// <summary>
 		/// Gets the N'th local
 		/// </summary>
 		/// <param name="index">The local index</param>
 		public Local this[int index] {
-			get { return locals[index]; }
-			set { locals[index] = value; }
+			get => locals[index];
+			set => locals[index] = value;
 		}
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public LocalList() {
-			this.locals = new LazyList<Local>(this);
-		}
+		public LocalList() => locals = new LazyList<Local>(this);
 
 		/// <summary>
 		/// Constructor
@@ -75,14 +69,10 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<Local>.OnAdd(int index, Local value) {
-			value.Index = index;
-		}
+		void IListListener<Local>.OnAdd(int index, Local value) => value.Index = index;
 
 		/// <inheritdoc/>
-		void IListListener<Local>.OnRemove(int index, Local value) {
-			value.Index = -1;
-		}
+		void IListListener<Local>.OnRemove(int index, Local value) => value.Index = -1;
 
 		/// <inheritdoc/>
 		void IListListener<Local>.OnResize(int index) {
@@ -97,128 +87,79 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <inheritdoc/>
-		public int IndexOf(Local item) {
-			return locals.IndexOf(item);
-		}
+		public int IndexOf(Local item) => locals.IndexOf(item);
 
 		/// <inheritdoc/>
-		public void Insert(int index, Local item) {
-			locals.Insert(index, item);
-		}
+		public void Insert(int index, Local item) => locals.Insert(index, item);
 
 		/// <inheritdoc/>
-		public void RemoveAt(int index) {
-			locals.RemoveAt(index);
-		}
+		public void RemoveAt(int index) => locals.RemoveAt(index);
 
-		void ICollection<Local>.Add(Local item) {
-			locals.Add(item);
-		}
+		void ICollection<Local>.Add(Local item) => locals.Add(item);
 
 		/// <inheritdoc/>
-		public void Clear() {
-			locals.Clear();
-		}
+		public void Clear() => locals.Clear();
 
 		/// <inheritdoc/>
-		public bool Contains(Local item) {
-			return locals.Contains(item);
-		}
+		public bool Contains(Local item) => locals.Contains(item);
 
 		/// <inheritdoc/>
-		public void CopyTo(Local[] array, int arrayIndex) {
-			locals.CopyTo(array, arrayIndex);
-		}
+		public void CopyTo(Local[] array, int arrayIndex) => locals.CopyTo(array, arrayIndex);
 
 		/// <inheritdoc/>
-		public bool IsReadOnly {
-			get { return false; }
-		}
+		public bool IsReadOnly => false;
 
 		/// <inheritdoc/>
-		public bool Remove(Local item) {
-			return locals.Remove(item);
-		}
+		public bool Remove(Local item) => locals.Remove(item);
 
 		/// <inheritdoc/>
-		public IEnumerator<Local> GetEnumerator() {
-			return locals.GetEnumerator();
-		}
+		public IEnumerator<Local> GetEnumerator() => locals.GetEnumerator();
 
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-			return ((IEnumerable<Local>)this).GetEnumerator();
-		}
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => ((IEnumerable<Local>)this).GetEnumerator();
 
 #if THREAD_SAFE
 		/// <inheritdoc/>
-		public int IndexOf_NoLock(Local item) {
-			return locals.IndexOf_NoLock(item);
-		}
+		public int IndexOf_NoLock(Local item) => locals.IndexOf_NoLock(item);
 
 		/// <inheritdoc/>
-		public void Insert_NoLock(int index, Local item) {
-			locals.Insert_NoLock(index, item);
-		}
+		public void Insert_NoLock(int index, Local item) => locals.Insert_NoLock(index, item);
 
 		/// <inheritdoc/>
-		public void RemoveAt_NoLock(int index) {
-			locals.RemoveAt_NoLock(index);
-		}
+		public void RemoveAt_NoLock(int index) => locals.RemoveAt_NoLock(index);
 
 		/// <inheritdoc/>
-		public Local Get_NoLock(int index) {
-			return locals.Get_NoLock(index);
-		}
+		public Local Get_NoLock(int index) => locals.Get_NoLock(index);
 
 		/// <inheritdoc/>
-		public void Set_NoLock(int index, Local value) {
-			locals.Set_NoLock(index, value);
-		}
+		public void Set_NoLock(int index, Local value) => locals.Set_NoLock(index, value);
 
 		/// <inheritdoc/>
-		public void Add_NoLock(Local item) {
-			locals.Add_NoLock(item);
-		}
+		public void Add_NoLock(Local item) => locals.Add_NoLock(item);
 
 		/// <inheritdoc/>
-		public void Clear_NoLock() {
-			locals.Clear_NoLock();
-		}
+		public void Clear_NoLock() => locals.Clear_NoLock();
 
 		/// <inheritdoc/>
-		public bool Contains_NoLock(Local item) {
-			return locals.Contains_NoLock(item);
-		}
+		public bool Contains_NoLock(Local item) => locals.Contains_NoLock(item);
 
 		/// <inheritdoc/>
-		public void CopyTo_NoLock(Local[] array, int arrayIndex) {
-			locals.CopyTo_NoLock(array, arrayIndex);
-		}
+		public void CopyTo_NoLock(Local[] array, int arrayIndex) => locals.CopyTo_NoLock(array, arrayIndex);
 
 		/// <inheritdoc/>
-		public int Count_NoLock {
-			get { return locals.Count_NoLock; }
-		}
+		public int Count_NoLock => locals.Count_NoLock;
 
 		/// <inheritdoc/>
-		public bool IsReadOnly_NoLock {
-			get { return locals.IsReadOnly_NoLock; }
-		}
+		public bool IsReadOnly_NoLock => locals.IsReadOnly_NoLock;
 
 		/// <inheritdoc/>
-		public bool Remove_NoLock(Local item) {
-			return locals.Remove_NoLock(item);
-		}
+		public bool Remove_NoLock(Local item) => locals.Remove_NoLock(item);
 
 		/// <inheritdoc/>
-		public IEnumerator<Local> GetEnumerator_NoLock() {
-			return locals.GetEnumerator_NoLock();
-		}
+		public IEnumerator<Local> GetEnumerator_NoLock() => locals.GetEnumerator_NoLock();
 
 		/// <inheritdoc/>
-		public TRetType ExecuteLocked<TArgType, TRetType>(TArgType arg, ExecuteLockedDelegate<Local, TArgType, TRetType> handler) {
-			return locals.ExecuteLocked<TArgType, TRetType>(arg, (tsList, arg2) => handler(this, arg2));
-		}
+		public TRetType ExecuteLocked<TArgType, TRetType>(TArgType arg, ExecuteLockedDelegate<Local, TArgType, TRetType> handler) =>
+			locals.ExecuteLocked<TArgType, TRetType>(arg, (tsList, arg2) => handler(this, arg2));
 #endif
 	}
 
@@ -235,49 +176,42 @@ namespace dnlib.DotNet.Emit {
 		/// Gets/sets the type of the local
 		/// </summary>
 		public TypeSig Type {
-			get { return typeSig; }
-			set { typeSig = value; }
+			get => typeSig;
+			set => typeSig = value;
 		}
 
 		/// <summary>
 		/// Local index
 		/// </summary>
 		public int Index {
-			get { return index; }
-			internal set { index = value; }
+			get => index;
+			internal set => index = value;
 		}
 
 		/// <summary>
 		/// Gets the name. This property is obsolete, use <see cref="PdbLocal"/> to get/set the name stored in the PDB file.
 		/// </summary>
 		public string Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 
 		/// <summary>
 		/// Gets the attributes. This property is obsolete, use <see cref="PdbLocal"/> to get/set the attributes stored in the PDB file.
 		/// </summary>
 		public PdbLocalAttributes Attributes {
-			get { return attributes; }
-			set { attributes = value; }
+			get => attributes;
+			set => attributes = value;
 		}
 
-		internal void SetName(string name) {
-			this.name = name;
-		}
-
-		internal void SetAttributes(PdbLocalAttributes attributes) {
-			this.attributes = attributes;
-		}
+		internal void SetName(string name) => this.name = name;
+		internal void SetAttributes(PdbLocalAttributes attributes) => this.attributes = attributes;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="typeSig">The type</param>
-		public Local(TypeSig typeSig) {
-			this.typeSig = typeSig;
-		}
+		public Local(TypeSig typeSig) => this.typeSig = typeSig;
 
 		/// <summary>
 		/// Constructor
@@ -305,7 +239,7 @@ namespace dnlib.DotNet.Emit {
 		public override string ToString() {
 			var n = name;
 			if (string.IsNullOrEmpty(n))
-				return string.Format("V_{0}", Index);
+				return $"V_{Index}";
 			return n;
 		}
 	}

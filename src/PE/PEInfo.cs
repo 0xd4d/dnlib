@@ -15,23 +15,17 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Returns the DOS header
 		/// </summary>
-		public ImageDosHeader ImageDosHeader {
-			get { return imageDosHeader; }
-		}
+		public ImageDosHeader ImageDosHeader => imageDosHeader;
 
 		/// <summary>
 		/// Returns the NT headers
 		/// </summary>
-		public ImageNTHeaders ImageNTHeaders {
-			get { return imageNTHeaders; }
-		}
+		public ImageNTHeaders ImageNTHeaders => imageNTHeaders;
 
 		/// <summary>
 		/// Returns the section headers
 		/// </summary>
-		public ImageSectionHeader[] ImageSectionHeaders {
-			get { return imageSectionHeaders; }
-		}
+		public ImageSectionHeader[] ImageSectionHeaders => imageSectionHeaders;
 
 		/// <summary>
 		/// Constructor
@@ -41,17 +35,17 @@ namespace dnlib.PE {
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
 		public PEInfo(IImageStream reader, bool verify) {
 			reader.Position = 0;
-			this.imageDosHeader = new ImageDosHeader(reader, verify);
+			imageDosHeader = new ImageDosHeader(reader, verify);
 
-			if (verify && this.imageDosHeader.NTHeadersOffset == 0)
+			if (verify && imageDosHeader.NTHeadersOffset == 0)
 				throw new BadImageFormatException("Invalid NT headers offset");
-			reader.Position = this.imageDosHeader.NTHeadersOffset;
-			this.imageNTHeaders = new ImageNTHeaders(reader, verify);
+			reader.Position = imageDosHeader.NTHeadersOffset;
+			imageNTHeaders = new ImageNTHeaders(reader, verify);
 
-			reader.Position = (long)this.imageNTHeaders.OptionalHeader.StartOffset + this.imageNTHeaders.FileHeader.SizeOfOptionalHeader;
-			this.imageSectionHeaders = new ImageSectionHeader[this.imageNTHeaders.FileHeader.NumberOfSections];
-			for (int i = 0; i < this.imageSectionHeaders.Length; i++)
-				this.imageSectionHeaders[i] = new ImageSectionHeader(reader, verify);
+			reader.Position = (long)imageNTHeaders.OptionalHeader.StartOffset + imageNTHeaders.FileHeader.SizeOfOptionalHeader;
+			imageSectionHeaders = new ImageSectionHeader[imageNTHeaders.FileHeader.NumberOfSections];
+			for (int i = 0; i < imageSectionHeaders.Length; i++)
+				imageSectionHeaders[i] = new ImageSectionHeader(reader, verify);
 		}
 
 		/// <summary>
@@ -106,9 +100,7 @@ namespace dnlib.PE {
 			return (FileOffset)rva;
 		}
 
-		static ulong AlignUp(ulong val, uint alignment) {
-			return (val + alignment - 1) & ~(ulong)(alignment - 1);
-		}
+		static ulong AlignUp(ulong val, uint alignment) => (val + alignment - 1) & ~(ulong)(alignment - 1);
 
 		/// <summary>
 		/// Returns size of image rounded up to <see cref="IImageOptionalHeader.SectionAlignment"/>

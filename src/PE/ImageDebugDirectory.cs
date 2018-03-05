@@ -22,58 +22,42 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Gets the characteristics (reserved)
 		/// </summary>
-		public uint Characteristics {
-			get { return characteristics; }
-		}
+		public uint Characteristics => characteristics;
 
 		/// <summary>
 		/// Gets the timestamp
 		/// </summary>
-		public uint TimeDateStamp {
-			get { return timeDateStamp; }
-		}
+		public uint TimeDateStamp => timeDateStamp;
 
 		/// <summary>
 		/// Gets the major version
 		/// </summary>
-		public ushort MajorVersion {
-			get { return majorVersion; }
-		}
+		public ushort MajorVersion => majorVersion;
 
 		/// <summary>
 		/// Gets the minor version
 		/// </summary>
-		public ushort MinorVersion {
-			get { return minorVersion; }
-		}
+		public ushort MinorVersion => minorVersion;
 
 		/// <summary>
 		/// Gets the type
 		/// </summary>
-		public ImageDebugType Type {
-			get { return type; }
-		}
+		public ImageDebugType Type => type;
 
 		/// <summary>
 		/// Gets the size of data
 		/// </summary>
-		public uint SizeOfData {
-			get { return sizeOfData; }
-		}
+		public uint SizeOfData => sizeOfData;
 
 		/// <summary>
 		/// RVA of the data
 		/// </summary>
-		public RVA AddressOfRawData {
-			get { return (RVA)addressOfRawData; }
-		}
+		public RVA AddressOfRawData => (RVA)addressOfRawData;
 
 		/// <summary>
 		/// File offset of the data
 		/// </summary>
-		public FileOffset PointerToRawData {
-			get { return (FileOffset)pointerToRawData; }
-		}
+		public FileOffset PointerToRawData => (FileOffset)pointerToRawData;
 
 		/// <summary>
 		/// Constructor

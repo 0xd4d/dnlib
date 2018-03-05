@@ -33,8 +33,8 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the listener
 		/// </summary>
 		public IModuleWriterListener Listener {
-			get { return listener; }
-			set { listener = value; }
+			get => listener;
+			set => listener = value;
 		}
 
 		/// <summary>
@@ -43,8 +43,8 @@ namespace dnlib.DotNet.Writer {
 		/// create your own logger or use <see cref="DummyLogger.NoThrowInstance"/>.
 		/// </summary>
 		public ILogger Logger {
-			get { return logger; }
-			set { logger = value; }
+			get => logger;
+			set => logger = value;
 		}
 
 		/// <summary>
@@ -52,32 +52,32 @@ namespace dnlib.DotNet.Writer {
 		/// <see cref="Logger"/>.
 		/// </summary>
 		public ILogger MetaDataLogger {
-			get { return metaDataLogger; }
-			set { metaDataLogger = value; }
+			get => metaDataLogger;
+			set => metaDataLogger = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="PEHeaders"/> options. This is never <c>null</c>.
 		/// </summary>
 		public PEHeadersOptions PEHeadersOptions {
-			get { return peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions()); }
-			set { peHeadersOptions = value; }
+			get => peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions());
+			set => peHeadersOptions = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
 		/// </summary>
 		public Cor20HeaderOptions Cor20HeaderOptions {
-			get { return cor20HeaderOptions ?? (cor20HeaderOptions = new Cor20HeaderOptions()); }
-			set { cor20HeaderOptions = value; }
+			get => cor20HeaderOptions ?? (cor20HeaderOptions = new Cor20HeaderOptions());
+			set => cor20HeaderOptions = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MetaData"/> options. This is never <c>null</c>.
 		/// </summary>
 		public MetaDataOptions MetaDataOptions {
-			get { return metaDataOptions ?? (metaDataOptions = new MetaDataOptions()); }
-			set { metaDataOptions = value; }
+			get => metaDataOptions ?? (metaDataOptions = new MetaDataOptions());
+			set => metaDataOptions = value;
 		}
 
 		/// <summary>
@@ -85,8 +85,8 @@ namespace dnlib.DotNet.Writer {
 		/// Win32 resources if any.
 		/// </summary>
 		public Win32Resources Win32Resources {
-			get { return win32Resources; }
-			set { win32Resources = value; }
+			get => win32Resources;
+			set => win32Resources = value;
 		}
 
 		/// <summary>
@@ -95,8 +95,8 @@ namespace dnlib.DotNet.Writer {
 		/// public key from your strong name key file, execute <c>sn -p mykey.snk mypublickey.snk</c>
 		/// </summary>
 		public bool DelaySign {
-			get { return delaySign; }
-			set { delaySign = value; }
+			get => delaySign;
+			set => delaySign = value;
 		}
 
 		/// <summary>
@@ -109,8 +109,8 @@ namespace dnlib.DotNet.Writer {
 		/// to initialize this property if you use enhanced strong name signing.
 		/// </summary>
 		public StrongNameKey StrongNameKey {
-			get { return strongNameKey; }
-			set { strongNameKey = value; }
+			get => strongNameKey;
+			set => strongNameKey = value;
 		}
 
 		/// <summary>
@@ -122,8 +122,8 @@ namespace dnlib.DotNet.Writer {
 		/// to initialize this property if you use enhanced strong name signing.
 		/// </summary>
 		public StrongNamePublicKey StrongNamePublicKey {
-			get { return strongNamePublicKey; }
-			set { strongNamePublicKey = value; }
+			get => strongNamePublicKey;
+			set => strongNamePublicKey = value;
 		}
 
 		/// <summary>
@@ -161,12 +161,7 @@ namespace dnlib.DotNet.Writer {
 		/// <c>true</c> if it should be written as an EXE file, <c>false</c> if it should be
 		/// written as a DLL file.
 		/// </summary>
-		public bool IsExeFile {
-			get {
-				return ModuleKind != ModuleKind.Dll &&
-					ModuleKind != ModuleKind.NetModule;
-			}
-		}
+		public bool IsExeFile => ModuleKind != ModuleKind.Dll && ModuleKind != ModuleKind.NetModule;
 
 		/// <summary>
 		/// Set it to <c>true</c> to enable writing a PDB file. Default is <c>false</c> (a PDB file
@@ -388,58 +383,44 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the module writer listener
 		/// </summary>
 		protected IModuleWriterListener Listener {
-			get { return listener ?? DummyModuleWriterListener.Instance; }
-			set { listener = value; }
+			get => listener ?? DummyModuleWriterListener.Instance;
+			set => listener = value;
 		}
 
 		/// <summary>
 		/// Gets the destination stream
 		/// </summary>
-		public Stream DestinationStream {
-			get { return destStream; }
-		}
+		public Stream DestinationStream => destStream;
 
 		/// <summary>
 		/// Gets the constants
 		/// </summary>
-		public UniqueChunkList<ByteArrayChunk> Constants {
-			get { return constants; }
-		}
+		public UniqueChunkList<ByteArrayChunk> Constants => constants;
 
 		/// <summary>
 		/// Gets the method bodies
 		/// </summary>
-		public MethodBodyChunks MethodBodies {
-			get { return methodBodies; }
-		}
+		public MethodBodyChunks MethodBodies => methodBodies;
 
 		/// <summary>
 		/// Gets the .NET resources
 		/// </summary>
-		public NetResources NetResources {
-			get { return netResources; }
-		}
+		public NetResources NetResources => netResources;
 
 		/// <summary>
 		/// Gets the .NET metadata
 		/// </summary>
-		public MetaData MetaData {
-			get { return metaData; }
-		}
+		public MetaData MetaData => metaData;
 
 		/// <summary>
 		/// Gets the Win32 resources or <c>null</c> if there's none
 		/// </summary>
-		public Win32ResourcesChunk Win32Resources {
-			get { return win32Resources; }
-		}
+		public Win32ResourcesChunk Win32Resources => win32Resources;
 
 		/// <summary>
 		/// Gets the strong name signature or <c>null</c> if there's none
 		/// </summary>
-		public StrongNameSignature StrongNameSignature {
-			get { return strongNameSignature; }
-		}
+		public StrongNameSignature StrongNameSignature => strongNameSignature;
 
 		/// <summary>
 		/// Gets all <see cref="PESection"/>s
@@ -459,17 +440,13 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the debug directory or <c>null</c> if there's none
 		/// </summary>
-		public DebugDirectory DebugDirectory {
-			get { return debugDirectory; }
-		}
+		public DebugDirectory DebugDirectory => debugDirectory;
 
 		/// <summary>
 		/// <c>true</c> if <c>this</c> is a <see cref="NativeModuleWriter"/>, <c>false</c> if
 		/// <c>this</c> is a <see cref="ModuleWriter"/>.
 		/// </summary>
-		public bool IsNativeWriter {
-			get { return this is NativeModuleWriter; }
-		}
+		public bool IsNativeWriter => this is NativeModuleWriter;
 
 		/// <summary>
 		/// null if we're not writing a PDB
@@ -646,9 +623,7 @@ namespace dnlib.DotNet.Writer {
 			snSigner.WriteSignature(TheOptions.StrongNameKey, snSigOffset);
 		}
 
-		bool CanWritePdb() {
-			return pdbState != null;
-		}
+		bool CanWritePdb() => pdbState != null;
 
 		/// <summary>
 		/// Creates the debug directory if a PDB file should be written
@@ -709,8 +684,7 @@ namespace dnlib.DotNet.Writer {
 				pdbWriter.Logger = TheOptions.Logger;
 				pdbWriter.Write();
 
-				IMAGE_DEBUG_DIRECTORY idd;
-				var data = pdbWriter.GetDebugInfo(out idd);
+				var data = pdbWriter.GetDebugInfo(out var idd);
 				var entry = debugDirectory.Add(data);
 				entry.DebugDirectory = idd;
 				entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
@@ -748,10 +722,7 @@ namespace dnlib.DotNet.Writer {
 			return SymbolWriterCreator.Create(createdPdbFileName);
 		}
 
-		static string GetStreamName(Stream stream) {
-			var fs = stream as FileStream;
-			return fs == null ? null : fs.Name;
-		}
+		static string GetStreamName(Stream stream) => (stream as FileStream)?.Name;
 
 		static string GetModuleName(ModuleDef module) {
 			var name = module.Name ?? string.Empty;
@@ -1040,36 +1011,29 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		ILogger GetLogger() {
-			return TheOptions.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
-		}
+		ILogger GetLogger() => TheOptions.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 
 		/// <inheritdoc/>
-		void ILogger.Log(object sender, LoggerEvent loggerEvent, string format, params object[] args) {
+		void ILogger.Log(object sender, LoggerEvent loggerEvent, string format, params object[] args) =>
 			GetLogger().Log(this, loggerEvent, format, args);
-		}
 
 		/// <inheritdoc/>
-		bool ILogger.IgnoresEvent(LoggerEvent loggerEvent) {
-			return GetLogger().IgnoresEvent(loggerEvent);
-		}
+		bool ILogger.IgnoresEvent(LoggerEvent loggerEvent) => GetLogger().IgnoresEvent(loggerEvent);
 
 		/// <summary>
 		/// Logs an error message
 		/// </summary>
 		/// <param name="format">Format</param>
 		/// <param name="args">Format args</param>
-		protected void Error(string format, params object[] args) {
+		protected void Error(string format, params object[] args) =>
 			GetLogger().Log(this, LoggerEvent.Error, format, args);
-		}
 
 		/// <summary>
 		/// Logs a warning message
 		/// </summary>
 		/// <param name="format">Format</param>
 		/// <param name="args">Format args</param>
-		protected void Warning(string format, params object[] args) {
+		protected void Warning(string format, params object[] args) =>
 			GetLogger().Log(this, LoggerEvent.Warning, format, args);
-		}
 	}
 }

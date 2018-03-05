@@ -1994,9 +1994,8 @@ using dnlib.PE;
 		/// <param name="colIndex">Column index in <paramref name="table"/></param>
 		/// <param name="value">Result is put here or 0 if we return <c>false</c></param>
 		/// <returns><c>true</c> if we could read the column, <c>false</c> otherwise</returns>
-		public bool ReadColumn(MDTable table, uint rid, int colIndex, out uint value) {
-			return ReadColumn(table, rid, table.TableInfo.Columns[colIndex], out value);
-		}
+		public bool ReadColumn(MDTable table, uint rid, int colIndex, out uint value) =>
+			ReadColumn(table, rid, table.TableInfo.Columns[colIndex], out value);
 
 		/// <summary>
 		/// Reads a column

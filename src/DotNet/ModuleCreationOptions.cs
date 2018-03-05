@@ -52,8 +52,8 @@ namespace dnlib.DotNet {
 		/// Default constructor
 		/// </summary>
 		public ModuleCreationOptions() {
-			this.PdbImplementation = PdbImplType.Default;
-			this.TryToLoadPdbFromDisk = true;
+			PdbImplementation = PdbImplType.Default;
+			TryToLoadPdbFromDisk = true;
 		}
 
 		/// <summary>
@@ -61,9 +61,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="context">Module context</param>
 		public ModuleCreationOptions(ModuleContext context) {
-			this.Context = context;
-			this.PdbImplementation = PdbImplType.Default;
-			this.TryToLoadPdbFromDisk = true;
+			Context = context;
+			PdbImplementation = PdbImplType.Default;
+			TryToLoadPdbFromDisk = true;
 		}
 	}
 

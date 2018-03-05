@@ -7,7 +7,7 @@ using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#imports-blob
-	struct ImportScopeBlobWriter {
+	readonly struct ImportScopeBlobWriter {
 		readonly IWriterError helper;
 		readonly MetaData systemMetaData;
 		readonly BlobHeap blobHeap;
@@ -34,8 +34,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void Write(BinaryWriter writer, IList<PdbImport> imports) {
 			foreach (var import in imports) {
-				uint rawKind;
-				if (!ImportDefinitionKindUtils.ToImportDefinitionKind(import.Kind, out rawKind)) {
+				if (!ImportDefinitionKindUtils.ToImportDefinitionKind(import.Kind, out uint rawKind)) {
 					helper.Error("Unknown import definition kind: " + import.Kind.ToString());
 					return;
 				}
@@ -106,10 +105,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return 0;
 			}
 			var token = systemMetaData.GetToken(tdr);
-			uint codedToken;
-			if (MD.CodedToken.TypeDefOrRef.Encode(token, out codedToken))
+			if (MD.CodedToken.TypeDefOrRef.Encode(token, out uint codedToken))
 				return codedToken;
-			helper.Error(string.Format("Could not encode token 0x{0:X8}", token.Raw));
+			helper.Error($"Could not encode token 0x{token.Raw:X8}");
 			return 0;
 		}
 	}

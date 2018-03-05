@@ -31,59 +31,45 @@ namespace dnlib.DotNet.Writer {
 			public uint PoolOffset;
 			public readonly byte[] Data;
 			public DataInfo(uint heapOffset, byte[] data) {
-				this.HeapOffset = heapOffset;
-				this.Data = data;
+				HeapOffset = heapOffset;
+				Data = data;
 			}
 		}
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Gets the offset of the data relative to the start of this chunk. This is valid only
 		/// after <see cref="SetOffset(FileOffset,RVA)"/> has been called.
 		/// </summary>
-		public uint DataOffset {
-			get { return dataOffset; }
-		}
+		public uint DataOffset => dataOffset;
 
 		/// <summary>
 		/// Gets the offset of the indexes relative to the start of this chunk. This is valid only
 		/// after <see cref="SetOffset(FileOffset,RVA)"/> has been called.
 		/// </summary>
-		public uint IndexesOffset {
-			get { return indexesOffset; }
-		}
+		public uint IndexesOffset => indexesOffset;
 
 		/// <summary>
 		/// Gets the offset of the rids relative to the start of this chunk. This is valid only
 		/// after <see cref="SetOffset(FileOffset,RVA)"/> has been called.
 		/// </summary>
-		public uint RidsOffset {
-			get { return ridsOffset; }
-		}
+		public uint RidsOffset => ridsOffset;
 
 		/// <summary>
 		/// Gets the offset of the header relative to the start of this chunk. This is valid only
 		/// after <see cref="SetOffset(FileOffset,RVA)"/> has been called.
 		/// </summary>
-		public uint HeaderOffset {
-			get { return headerOffset; }
-		}
+		public uint HeaderOffset => headerOffset;
 
 		/// <summary>
 		/// Gets the pool type
 		/// </summary>
-		public HeapType HeapType {
-			get { return heapType; }
-		}
+		public HeapType HeapType => heapType;
 
 		/// <summary>
 		/// Constructor
@@ -91,7 +77,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="heapType">Pool type</param>
 		internal HotPool(HeapType heapType) {
 			this.heapType = heapType;
-			this.allData = new Dictionary<uint, byte[]>();
+			allData = new Dictionary<uint, byte[]>();
 		}
 
 		/// <summary>
@@ -140,9 +126,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Creates the data and shuffles it
 		/// </summary>
-		public void ShuffleData() {
-			ShuffleData(new Random());
-		}
+		public void ShuffleData() => ShuffleData(new Random());
 
 		/// <summary>
 		/// Creates the data and shuffles it
@@ -202,14 +186,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return totalLength;
-		}
+		public uint GetFileLength() => totalLength;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {

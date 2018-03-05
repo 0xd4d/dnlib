@@ -38,9 +38,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <param name="stream">Source stream</param>
 		/// <param name="name">Name of original file or <c>null</c> if unknown.</param>
 		public ImageStreamIStream(IImageStream stream, string name) {
-			if (stream == null)
-				throw new ArgumentNullException("stream");
-			this.stream = stream;
+			this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
 			this.name = name ?? string.Empty;
 		}
 
@@ -76,9 +74,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		/// <inheritdoc/>
-		public void LockRegion(long libOffset, long cb, int dwLockType) {
-			Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
-		}
+		public void LockRegion(long libOffset, long cb, int dwLockType) => Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
 
 		/// <inheritdoc/>
 		public void Read(byte[] pv, int cb, IntPtr pcbRead) {
@@ -122,9 +118,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		/// <inheritdoc/>
-		public void SetSize(long libNewSize) {
-			Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
-		}
+		public void SetSize(long libNewSize) => Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
 
 		enum STATFLAG {
 			DEFAULT = 0,
@@ -160,20 +154,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		/// <inheritdoc/>
-		public void UnlockRegion(long libOffset, long cb, int dwLockType) {
-			Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
-		}
+		public void UnlockRegion(long libOffset, long cb, int dwLockType) => Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
 
 		/// <inheritdoc/>
-		public void Write(byte[] pv, int cb, IntPtr pcbWritten) {
-			Marshal.ThrowExceptionForHR(STG_E_CANTSAVE);
-		}
+		public void Write(byte[] pv, int cb, IntPtr pcbWritten) => Marshal.ThrowExceptionForHR(STG_E_CANTSAVE);
 
 		/// <inheritdoc/>
 		public void Dispose() {
 			stream.Dispose();
-			var id = UserData as IDisposable;
-			if (id != null)
+			if (UserData is IDisposable id)
 				id.Dispose();
 		}
 	}

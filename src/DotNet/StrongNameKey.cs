@@ -85,31 +85,31 @@ namespace dnlib.DotNet {
 		/// Gets/sets the signature algorithm
 		/// </summary>
 		public SignatureAlgorithm SignatureAlgorithm {
-			get { return signatureAlgorithm; }
-			set { signatureAlgorithm = value; }
+			get => signatureAlgorithm;
+			set => signatureAlgorithm = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the hash algorithm
 		/// </summary>
 		public AssemblyHashAlgorithm HashAlgorithm {
-			get { return hashAlgorithm; }
-			set { hashAlgorithm = value; }
+			get => hashAlgorithm;
+			set => hashAlgorithm = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the modulus
 		/// </summary>
 		public byte[] Modulus {
-			get { return modulus; }
-			set { modulus = value; }
+			get => modulus;
+			set => modulus = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the public exponent
 		/// </summary>
 		public byte[] PublicExponent {
-			get { return publicExponent; }
+			get => publicExponent;
 			set {
 				if (value == null || value.Length != 4)
 					throw new ArgumentException("PublicExponent must be exactly 4 bytes");
@@ -169,9 +169,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="pk">Public key data</param>
 		/// <exception cref="InvalidKeyException">Strong name key is invalid</exception>
-		public StrongNamePublicKey(byte[] pk) {
-			Initialize(new BinaryReader(new MemoryStream(pk)));
-		}
+		public StrongNamePublicKey(byte[] pk) => Initialize(new BinaryReader(new MemoryStream(pk)));
 
 		/// <summary>
 		/// Constructor
@@ -188,18 +186,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="stream">Public key stream</param>
 		/// <exception cref="InvalidKeyException">Strong name key is invalid</exception>
-		public StrongNamePublicKey(Stream stream) {
-			Initialize(new BinaryReader(stream));
-		}
+		public StrongNamePublicKey(Stream stream) => Initialize(new BinaryReader(stream));
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">Public key reader</param>
 		/// <exception cref="InvalidKeyException">Strong name key is invalid</exception>
-		public StrongNamePublicKey(BinaryReader reader) {
-			Initialize(reader);
-		}
+		public StrongNamePublicKey(BinaryReader reader) => Initialize(reader);
 
 		void Initialize(BinaryReader reader) {
 			try {
@@ -233,9 +227,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Creates a public key blob
 		/// </summary>
-		public byte[] CreatePublicKey() {
-			return CreatePublicKey(signatureAlgorithm, hashAlgorithm, modulus, publicExponent);
-		}
+		public byte[] CreatePublicKey() => CreatePublicKey(signatureAlgorithm, hashAlgorithm, modulus, publicExponent);
 
 		internal static byte[] CreatePublicKey(SignatureAlgorithm sigAlg, AssemblyHashAlgorithm hashAlg, byte[] modulus, byte[] publicExponent) {
 			if (sigAlg != SignatureAlgorithm.CALG_RSA_SIGN)
@@ -257,9 +249,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return Utils.ToHex(CreatePublicKey(), false);
-		}
+		public override string ToString() => Utils.ToHex(CreatePublicKey(), false);
 	}
 
 	/// <summary>
@@ -380,12 +370,10 @@ namespace dnlib.DotNet {
 #endif
 			}
 			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				modulus = value;
+				modulus = value ?? throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -406,12 +394,10 @@ namespace dnlib.DotNet {
 #endif
 			}
 			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				prime1 = value;
+				prime1 = value ?? throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -432,12 +418,10 @@ namespace dnlib.DotNet {
 #endif
 			}
 			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				prime2 = value;
+				prime2 = value ?? throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -458,12 +442,10 @@ namespace dnlib.DotNet {
 #endif
 			}
 			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				exponent1 = value;
+				exponent1 = value ?? throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -484,12 +466,10 @@ namespace dnlib.DotNet {
 #endif
 			}
 			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				exponent2 = value;
+				exponent2 = value ?? throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -510,12 +490,10 @@ namespace dnlib.DotNet {
 #endif
 			}
 			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				coefficient = value;
+				coefficient = value ?? throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -536,12 +514,10 @@ namespace dnlib.DotNet {
 #endif
 			}
 			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				privateExponent = value;
+				privateExponent = value ?? throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -559,9 +535,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="keyData">Strong name key data</param>
 		/// <exception cref="InvalidKeyException">Strong name key is invalid</exception>
-		public StrongNameKey(byte[] keyData) {
-			Initialize(new BinaryReader(new MemoryStream(keyData)));
-		}
+		public StrongNameKey(byte[] keyData) => Initialize(new BinaryReader(new MemoryStream(keyData)));
 
 		/// <summary>
 		/// Constructor
@@ -578,18 +552,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="stream">Strong name key stream</param>
 		/// <exception cref="InvalidKeyException">Strong name key is invalid</exception>
-		public StrongNameKey(Stream stream) {
-			Initialize(new BinaryReader(stream));
-		}
+		public StrongNameKey(Stream stream) => Initialize(new BinaryReader(stream));
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">Strong name key reader</param>
 		/// <exception cref="InvalidKeyException">Strong name key is invalid</exception>
-		public StrongNameKey(BinaryReader reader) {
-			Initialize(reader);
-		}
+		public StrongNameKey(BinaryReader reader) => Initialize(reader);
 
 		/// <summary>
 		/// Initializes the public/private key pair data

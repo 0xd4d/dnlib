@@ -16,14 +16,10 @@ namespace dnlib.DotNet.Resources {
 		/// <summary>
 		/// Gets the data
 		/// </summary>
-		public object Data {
-			get { return data; }
-		}
+		public object Data => data;
 
 		/// <inheritdoc/>
-		public ResourceTypeCode Code {
-			get { return code; }
-		}
+		public ResourceTypeCode Code => code;
 
 		/// <inheritdoc/>
 		public FileOffset StartOffset { get; set; }
@@ -145,17 +141,17 @@ namespace dnlib.DotNet.Resources {
 			case ResourceTypeCode.Decimal:
 			case ResourceTypeCode.DateTime:
 			case ResourceTypeCode.TimeSpan:
-				return string.Format("{0}: '{1}'", code, data);
+				return $"{code}: '{data}'";
 
 			case ResourceTypeCode.ByteArray:
 			case ResourceTypeCode.Stream:
 				var ary = data as byte[];
 				if (ary != null)
-					return string.Format("{0}: Length: {1}", code, ary.Length);
-				return string.Format("{0}: '{1}'", code, data);
+					return $"{code}: Length: {ary.Length}";
+				return $"{code}: '{data}'";
 
 			default:
-				return string.Format("{0}: '{1}'", code, data);
+				return $"{code}: '{data}'";
 			}
 		}
 	}

@@ -90,7 +90,7 @@ namespace dnlib.DotNet.Writer {
 			case Table.CustomDebugInformation: writer.Write(metadata, (MDTable<RawCustomDebugInformationRow>)table); break;
 
 			default:
-				Debug.Fail(string.Format("Unknown table: {0}, add a new method overload", table.Table));
+				Debug.Fail($"Unknown table: {table.Table}, add a new method overload");
 				var cols = table.TableInfo.Columns;
 				var stringsHeap = metadata.StringsHeap;
 				foreach (var row in table.GetRawRows()) {

@@ -10,19 +10,16 @@ namespace dnlib.DotNet {
 	/// <c>System.Runtime.InteropServices.TypeIdentifierAttribute</c> helper code used by <see cref="SigComparer"/>
 	/// </summary>
 	static class TIAHelper {
-		struct Info : IEquatable<Info> {
+		readonly struct Info : IEquatable<Info> {
 			public readonly UTF8String Scope;
 			public readonly UTF8String Identifier;
 
 			public Info(UTF8String scope, UTF8String identifier) {
-				this.Scope = scope;
-				this.Identifier = identifier;
+				Scope = scope;
+				Identifier = identifier;
 			}
 
-			public bool Equals(Info other) {
-				return stricmp(Scope, other.Scope) &&
-					UTF8String.Equals(Identifier, other.Identifier);
-			}
+			public bool Equals(Info other) => stricmp(Scope, other.Scope) && UTF8String.Equals(Identifier, other.Identifier);
 
 			static bool stricmp(UTF8String a, UTF8String b) {
 				var da = (object)a == null ? null : a.Data;
@@ -65,8 +62,7 @@ namespace dnlib.DotNet {
 				}
 			}
 			else {
-				var mod = td.Module;
-				var asm = mod == null ? null : mod.Assembly;
+				var asm = td.Module?.Assembly;
 				if (asm == null)
 					return null;
 				bool isTypeLib = asm.CustomAttributes.IsDefined("System.Runtime.InteropServices.ImportedFromTypeLibAttribute") ||
@@ -80,8 +76,7 @@ namespace dnlib.DotNet {
 				if (td.IsInterface && td.IsImport)
 					gca = td.CustomAttributes.Find("System.Runtime.InteropServices.GuidAttribute");
 				else {
-					var mod = td.Module;
-					var asm = mod == null ? null : mod.Assembly;
+					var asm = td.Module?.Assembly;
 					if (asm == null)
 						return null;
 					gca = asm.CustomAttributes.Find("System.Runtime.InteropServices.GuidAttribute");

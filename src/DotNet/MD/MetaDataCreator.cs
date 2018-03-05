@@ -101,18 +101,14 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="peImage">The PE image</param>
 		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Load(IPEImage peImage) {
-			return Create(peImage, true);
-		}
+		internal static MetaData Load(IPEImage peImage) => Create(peImage, true);
 
 		/// <summary>
 		/// Create a <see cref="IMetaData"/> instance
 		/// </summary>
 		/// <param name="peImage">The PE image</param>
 		/// <returns>A new <see cref="IMetaData"/> instance</returns>
-		public static IMetaData CreateMetaData(IPEImage peImage) {
-			return Create(peImage, true);
-		}
+		public static IMetaData CreateMetaData(IPEImage peImage) => Create(peImage, true);
 
 		/// <summary>
 		/// Create a <see cref="IMetaData"/> instance
@@ -120,9 +116,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="peImage">The PE image</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="IMetaData"/> instance</returns>
-		public static IMetaData CreateMetaData(IPEImage peImage, bool verify) {
-			return Create(peImage, verify);
-		}
+		public static IMetaData CreateMetaData(IPEImage peImage, bool verify) => Create(peImage, verify);
 
 		/// <summary>
 		/// Create a <see cref="MetaData"/> instance

@@ -12,9 +12,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// </summary>
 		/// <param name="pdbFileName">PDB file name</param>
 		/// <returns>A new <see cref="ISymbolWriter2"/> instance</returns>
-		public static ISymbolWriter2 Create(string pdbFileName) {
-			return Dss.SymbolWriterCreator.Create(pdbFileName);
-		}
+		public static ISymbolWriter2 Create(string pdbFileName) => Dss.SymbolWriterCreator.Create(pdbFileName);
 
 		/// <summary>
 		/// Creates a new <see cref="ISymbolWriter2"/> instance
@@ -22,8 +20,6 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="pdbStream">PDB output stream</param>
 		/// <param name="pdbFileName">PDB file name</param>
 		/// <returns>A new <see cref="ISymbolWriter2"/> instance</returns>
-		public static ISymbolWriter2 Create(Stream pdbStream, string pdbFileName) {
-			return Dss.SymbolWriterCreator.Create(pdbStream, pdbFileName);
-		}
+		public static ISymbolWriter2 Create(Stream pdbStream, string pdbFileName) => Dss.SymbolWriterCreator.Create(pdbStream, pdbFileName);
 	}
 }

@@ -40,44 +40,32 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all child scopes
 		/// </summary>
-		public ThreadSafe.IList<PdbScope> Scopes {
-			get { return scopes; }
-		}
+		public ThreadSafe.IList<PdbScope> Scopes => scopes;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Scopes"/> is not empty
 		/// </summary>
-		public bool HasScopes {
-			get { return scopes.Count > 0; }
-		}
+		public bool HasScopes => scopes.Count > 0;
 
 		/// <summary>
 		/// Gets all locals in this scope
 		/// </summary>
-		public ThreadSafe.IList<PdbLocal> Variables {
-			get { return locals; }
-		}
+		public ThreadSafe.IList<PdbLocal> Variables => locals;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Variables"/> is not empty
 		/// </summary>
-		public bool HasVariables {
-			get { return locals.Count > 0; }
-		}
+		public bool HasVariables => locals.Count > 0;
 
 		/// <summary>
 		/// Gets all namespaces (Windows PDBs). Portable PDBs use <see cref="ImportScope"/>
 		/// </summary>
-		public ThreadSafe.IList<string> Namespaces {
-			get { return namespaces; }
-		}
+		public ThreadSafe.IList<string> Namespaces => namespaces;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Namespaces"/> is not empty
 		/// </summary>
-		public bool HasNamespaces {
-			get { return namespaces.Count > 0; }
-		}
+		public bool HasNamespaces => namespaces.Count > 0;
 
 		/// <summary>
 		/// Gets/sets the import scope (Portable PDBs). Windows PDBs use <see cref="Namespaces"/>
@@ -87,33 +75,23 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all constants
 		/// </summary>
-		public ThreadSafe.IList<PdbConstant> Constants {
-			get { return constants; }
-		}
+		public ThreadSafe.IList<PdbConstant> Constants => constants;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Constants"/> is not empty
 		/// </summary>
-		public bool HasConstants {
-			get { return constants.Count > 0; }
-		}
+		public bool HasConstants => constants.Count > 0;
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 23; }
-		}
+		public int HasCustomDebugInformationTag => 23;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
 		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 	}
 }

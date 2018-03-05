@@ -14,9 +14,7 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	sealed class CompressedMetaData : MetaData {
 		/// <inheritdoc/>
-		public override bool IsCompressed {
-			get { return true; }
-		}
+		public override bool IsCompressed => true;
 
 		/// <inheritdoc/>
 		public CompressedMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
@@ -248,29 +246,19 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override RidList GetFieldRidList(uint typeDefRid) {
-			return GetRidList(tablesStream.TypeDefTable, typeDefRid, 4, tablesStream.FieldTable);
-		}
+		public override RidList GetFieldRidList(uint typeDefRid) => GetRidList(tablesStream.TypeDefTable, typeDefRid, 4, tablesStream.FieldTable);
 
 		/// <inheritdoc/>
-		public override RidList GetMethodRidList(uint typeDefRid) {
-			return GetRidList(tablesStream.TypeDefTable, typeDefRid, 5, tablesStream.MethodTable);
-		}
+		public override RidList GetMethodRidList(uint typeDefRid) => GetRidList(tablesStream.TypeDefTable, typeDefRid, 5, tablesStream.MethodTable);
 
 		/// <inheritdoc/>
-		public override RidList GetParamRidList(uint methodRid) {
-			return GetRidList(tablesStream.MethodTable, methodRid, 5, tablesStream.ParamTable);
-		}
+		public override RidList GetParamRidList(uint methodRid) => GetRidList(tablesStream.MethodTable, methodRid, 5, tablesStream.ParamTable);
 
 		/// <inheritdoc/>
-		public override RidList GetEventRidList(uint eventMapRid) {
-			return GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
-		}
+		public override RidList GetEventRidList(uint eventMapRid) => GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
 
 		/// <inheritdoc/>
-		public override RidList GetPropertyRidList(uint propertyMapRid) {
-			return GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
-		}
+		public override RidList GetPropertyRidList(uint propertyMapRid) => GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
 
 		/// <summary>
 		/// Gets a rid list (eg. field list)
@@ -310,8 +298,7 @@ namespace dnlib.DotNet.MD {
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
-				uint key2;
-				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out key2))
+				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;

@@ -15,9 +15,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// Creates a <see cref="ISymUnmanagedWriter2"/> instance
 		/// </summary>
 		/// <returns>A new <see cref="ISymUnmanagedWriter2"/> instance</returns>
-		public static ISymUnmanagedWriter2 CreateSymUnmanagedWriter2() {
-			return (ISymUnmanagedWriter2)Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS));
-		}
+		public static ISymUnmanagedWriter2 CreateSymUnmanagedWriter2() =>
+			(ISymUnmanagedWriter2)Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS));
 
 		/// <summary>
 		/// Creates a new <see cref="ISymbolWriter2"/> instance
@@ -36,8 +35,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <param name="pdbStream">PDB output stream</param>
 		/// <param name="pdbFileName">PDB file name</param>
 		/// <returns>A new <see cref="ISymbolWriter2"/> instance</returns>
-		public static ISymbolWriter2 Create(Stream pdbStream, string pdbFileName) {
-			return new SymbolWriter(CreateSymUnmanagedWriter2(), pdbFileName, pdbStream);
-		}
+		public static ISymbolWriter2 Create(Stream pdbStream, string pdbFileName) =>
+			new SymbolWriter(CreateSymUnmanagedWriter2(), pdbFileName, pdbStream);
 	}
 }

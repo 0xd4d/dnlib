@@ -11,9 +11,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public ChunkList() {
-			this.chunks = new List<Elem>();
-		}
+		public ChunkList() => chunks = new List<Elem>();
 
 		/// <summary>
 		/// Add a <see cref="IChunk"/>

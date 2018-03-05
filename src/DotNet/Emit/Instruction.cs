@@ -40,9 +40,7 @@ namespace dnlib.DotNet.Emit {
 		/// Constructor
 		/// </summary>
 		/// <param name="opCode">Opcode</param>
-		public Instruction(OpCode opCode) {
-			this.OpCode = opCode;
-		}
+		public Instruction(OpCode opCode) => OpCode = opCode;
 
 		/// <summary>
 		/// Constructor
@@ -50,8 +48,8 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="opCode">Opcode</param>
 		/// <param name="operand">The operand</param>
 		public Instruction(OpCode opCode, object operand) {
-			this.OpCode = opCode;
-			this.Operand = operand;
+			OpCode = opCode;
+			Operand = operand;
 		}
 
 		/// <summary>
@@ -61,7 +59,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode) {
 			if (opCode.OperandType != OperandType.InlineNone)
-				throw new ArgumentException("Must be a no-operand opcode", "opCode");
+				throw new ArgumentException("Must be a no-operand opcode", nameof(opCode));
 			return new Instruction(opCode);
 		}
 
@@ -73,7 +71,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, byte value) {
 			if (opCode.Code != Code.Unaligned)
-				throw new ArgumentException("Opcode does not have a byte operand", "opCode");
+				throw new ArgumentException("Opcode does not have a byte operand", nameof(opCode));
 			return new Instruction(opCode, value);
 		}
 
@@ -85,7 +83,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, sbyte value) {
 			if (opCode.Code != Code.Ldc_I4_S)
-				throw new ArgumentException("Opcode does not have a sbyte operand", "opCode");
+				throw new ArgumentException("Opcode does not have a sbyte operand", nameof(opCode));
 			return new Instruction(opCode, value);
 		}
 
@@ -97,7 +95,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, int value) {
 			if (opCode.OperandType != OperandType.InlineI)
-				throw new ArgumentException("Opcode does not have an int32 operand", "opCode");
+				throw new ArgumentException("Opcode does not have an int32 operand", nameof(opCode));
 			return new Instruction(opCode, value);
 		}
 
@@ -109,7 +107,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, long value) {
 			if (opCode.OperandType != OperandType.InlineI8)
-				throw new ArgumentException("Opcode does not have an int64 operand", "opCode");
+				throw new ArgumentException("Opcode does not have an int64 operand", nameof(opCode));
 			return new Instruction(opCode, value);
 		}
 
@@ -121,7 +119,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, float value) {
 			if (opCode.OperandType != OperandType.ShortInlineR)
-				throw new ArgumentException("Opcode does not have a real4 operand", "opCode");
+				throw new ArgumentException("Opcode does not have a real4 operand", nameof(opCode));
 			return new Instruction(opCode, value);
 		}
 
@@ -133,7 +131,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, double value) {
 			if (opCode.OperandType != OperandType.InlineR)
-				throw new ArgumentException("Opcode does not have a real8 operand", "opCode");
+				throw new ArgumentException("Opcode does not have a real8 operand", nameof(opCode));
 			return new Instruction(opCode, value);
 		}
 
@@ -145,7 +143,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, string s) {
 			if (opCode.OperandType != OperandType.InlineString)
-				throw new ArgumentException("Opcode does not have a string operand", "opCode");
+				throw new ArgumentException("Opcode does not have a string operand", nameof(opCode));
 			return new Instruction(opCode, s);
 		}
 
@@ -157,7 +155,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, Instruction target) {
 			if (opCode.OperandType != OperandType.ShortInlineBrTarget && opCode.OperandType != OperandType.InlineBrTarget)
-				throw new ArgumentException("Opcode does not have an instruction operand", "opCode");
+				throw new ArgumentException("Opcode does not have an instruction operand", nameof(opCode));
 			return new Instruction(opCode, target);
 		}
 
@@ -169,7 +167,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, IList<Instruction> targets) {
 			if (opCode.OperandType != OperandType.InlineSwitch)
-				throw new ArgumentException("Opcode does not have a targets array operand", "opCode");
+				throw new ArgumentException("Opcode does not have a targets array operand", nameof(opCode));
 			return new Instruction(opCode, ThreadSafeListCreator.MakeThreadSafe(targets));
 		}
 
@@ -181,7 +179,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, ITypeDefOrRef type) {
 			if (opCode.OperandType != OperandType.InlineType && opCode.OperandType != OperandType.InlineTok)
-				throw new ArgumentException("Opcode does not have a type operand", "opCode");
+				throw new ArgumentException("Opcode does not have a type operand", nameof(opCode));
 			return new Instruction(opCode, type);
 		}
 
@@ -191,9 +189,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="opCode">The opcode</param>
 		/// <param name="type">The type</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
-		public static Instruction Create(OpCode opCode, CorLibTypeSig type) {
-			return Create(opCode, type.TypeDefOrRef);
-		}
+		public static Instruction Create(OpCode opCode, CorLibTypeSig type) => Create(opCode, type.TypeDefOrRef);
 
 		/// <summary>
 		/// Creates a new instruction with a method/field operand
@@ -203,7 +199,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, MemberRef mr) {
 			if (opCode.OperandType != OperandType.InlineField && opCode.OperandType != OperandType.InlineMethod && opCode.OperandType != OperandType.InlineTok)
-				throw new ArgumentException("Opcode does not have a field operand", "opCode");
+				throw new ArgumentException("Opcode does not have a field operand", nameof(opCode));
 			return new Instruction(opCode, mr);
 		}
 
@@ -215,7 +211,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, IField field) {
 			if (opCode.OperandType != OperandType.InlineField && opCode.OperandType != OperandType.InlineTok)
-				throw new ArgumentException("Opcode does not have a field operand", "opCode");
+				throw new ArgumentException("Opcode does not have a field operand", nameof(opCode));
 			return new Instruction(opCode, field);
 		}
 
@@ -227,7 +223,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, IMethod method) {
 			if (opCode.OperandType != OperandType.InlineMethod && opCode.OperandType != OperandType.InlineTok)
-				throw new ArgumentException("Opcode does not have a method operand", "opCode");
+				throw new ArgumentException("Opcode does not have a method operand", nameof(opCode));
 			return new Instruction(opCode, method);
 		}
 
@@ -239,7 +235,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, ITokenOperand token) {
 			if (opCode.OperandType != OperandType.InlineTok)
-				throw new ArgumentException("Opcode does not have a token operand", "opCode");
+				throw new ArgumentException("Opcode does not have a token operand", nameof(opCode));
 			return new Instruction(opCode, token);
 		}
 
@@ -251,7 +247,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, MethodSig methodSig) {
 			if (opCode.OperandType != OperandType.InlineSig)
-				throw new ArgumentException("Opcode does not have a method sig operand", "opCode");
+				throw new ArgumentException("Opcode does not have a method sig operand", nameof(opCode));
 			return new Instruction(opCode, methodSig);
 		}
 
@@ -263,7 +259,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, Parameter parameter) {
 			if (opCode.OperandType != OperandType.ShortInlineVar && opCode.OperandType != OperandType.InlineVar)
-				throw new ArgumentException("Opcode does not have a method parameter operand", "opCode");
+				throw new ArgumentException("Opcode does not have a method parameter operand", nameof(opCode));
 			return new Instruction(opCode, parameter);
 		}
 
@@ -275,7 +271,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction Create(OpCode opCode, Local local) {
 			if (opCode.OperandType != OperandType.ShortInlineVar && opCode.OperandType != OperandType.InlineVar)
-				throw new ArgumentException("Opcode does not have a method local operand", "opCode");
+				throw new ArgumentException("Opcode does not have a method local operand", nameof(opCode));
 			return new Instruction(opCode, local);
 		}
 
@@ -343,17 +339,13 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
-		static bool IsSystemVoid(TypeSig type) {
-			return type.RemovePinnedAndModifiers().GetElementType() == ElementType.Void;
-		}
+		static bool IsSystemVoid(TypeSig type) => type.RemovePinnedAndModifiers().GetElementType() == ElementType.Void;
 
 		/// <summary>
 		/// Updates <paramref name="stack"/> with the new stack size
 		/// </summary>
 		/// <param name="stack">Current stack size</param>
-		public void UpdateStack(ref int stack) {
-			UpdateStack(ref stack, false);
-		}
+		public void UpdateStack(ref int stack) => UpdateStack(ref stack, false);
 
 		/// <summary>
 		/// Updates <paramref name="stack"/> with the new stack size
@@ -362,8 +354,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="methodHasReturnValue"><c>true</c> if the method has a return value,
 		/// <c>false</c> otherwise</param>
 		public void UpdateStack(ref int stack, bool methodHasReturnValue) {
-			int pushes, pops;
-			CalculateStackUsage(methodHasReturnValue, out pushes, out pops);
+			CalculateStackUsage(methodHasReturnValue, out int pushes, out int pops);
 			if (pops == -1)
 				stack = 0;
 			else
@@ -376,9 +367,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="pushes">Updated with number of stack pushes</param>
 		/// <param name="pops">Updated with number of stack pops or <c>-1</c> if the stack should
 		/// be cleared.</param>
-		public void CalculateStackUsage(out int pushes, out int pops) {
-			CalculateStackUsage(false, out pushes, out pops);
-		}
+		public void CalculateStackUsage(out int pushes, out int pops) => CalculateStackUsage(false, out pushes, out pops);
 
 		/// <summary>
 		/// Calculates stack usage
@@ -405,8 +394,7 @@ namespace dnlib.DotNet.Emit {
 
 			MethodSig sig;
 			var op = Operand;
-			var method = op as IMethod;
-			if (method != null)
+			if (op is IMethod method)
 				sig = method.MethodSig;
 			else
 				sig = op as MethodSig;	// calli instruction
@@ -504,30 +492,22 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Checks whether it's one of the <c>leave</c> instructions
 		/// </summary>
-		public bool IsLeave() {
-			return OpCode == OpCodes.Leave || OpCode == OpCodes.Leave_S;
-		}
+		public bool IsLeave() => OpCode == OpCodes.Leave || OpCode == OpCodes.Leave_S;
 
 		/// <summary>
 		/// Checks whether it's one of the <c>br</c> instructions
 		/// </summary>
-		public bool IsBr() {
-			return OpCode == OpCodes.Br || OpCode == OpCodes.Br_S;
-		}
+		public bool IsBr() => OpCode == OpCodes.Br || OpCode == OpCodes.Br_S;
 
 		/// <summary>
 		/// Checks whether it's one of the <c>brfalse</c> instructions
 		/// </summary>
-		public bool IsBrfalse() {
-			return OpCode == OpCodes.Brfalse || OpCode == OpCodes.Brfalse_S;
-		}
+		public bool IsBrfalse() => OpCode == OpCodes.Brfalse || OpCode == OpCodes.Brfalse_S;
 
 		/// <summary>
 		/// Checks whether it's one of the <c>brtrue</c> instructions
 		/// </summary>
-		public bool IsBrtrue() {
-			return OpCode == OpCodes.Brtrue || OpCode == OpCodes.Brtrue_S;
-		}
+		public bool IsBrtrue() => OpCode == OpCodes.Brtrue || OpCode == OpCodes.Brtrue_S;
 
 		/// <summary>
 		/// Checks whether it's one of the conditional branch instructions (bcc, brtrue, brfalse)
@@ -609,7 +589,7 @@ namespace dnlib.DotNet.Emit {
 			case Code.Ldc_I4_S:	return (sbyte)Operand;
 			case Code.Ldc_I4:	return (int)Operand;
 			default:
-				throw new InvalidOperationException(string.Format("Not a ldc.i4 instruction: {0}", this));
+				throw new InvalidOperationException($"Not a ldc.i4 instruction: {this}");
 			}
 		}
 
@@ -748,9 +728,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="parameters">All parameters</param>
 		/// <returns>A parameter or <c>null</c> if it doesn't exist</returns>
-		public Parameter GetParameter(IList<Parameter> parameters) {
-			return parameters.Get(GetParameterIndex(), null);
-		}
+		public Parameter GetParameter(IList<Parameter> parameters) => parameters.Get(GetParameterIndex(), null);
 
 		/// <summary>
 		/// Returns an argument type
@@ -773,19 +751,16 @@ namespace dnlib.DotNet.Emit {
 		/// Clone this instance. The <see cref="Operand"/> and <see cref="SequencePoint"/> fields
 		/// are shared by this instance and the created instance.
 		/// </summary>
-		public Instruction Clone() {
-			return new Instruction {
+		public Instruction Clone() =>
+			new Instruction {
 				Offset = Offset,
 				OpCode = OpCode,
 				Operand = Operand,
 				SequencePoint = SequencePoint,
 			};
-		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return InstructionPrinter.ToString(this);
-		}
+		public override string ToString() => InstructionPrinter.ToString(this);
 	}
 
 	static partial class Extensions {
@@ -794,35 +769,27 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static OpCode GetOpCode(this Instruction self) {
-			return self == null ? OpCodes.UNKNOWN1 : self.OpCode;
-		}
+		public static OpCode GetOpCode(this Instruction self) => self?.OpCode ?? OpCodes.UNKNOWN1;
 
 		/// <summary>
 		/// Gets the operand or <c>null</c> if <paramref name="self"/> is <c>null</c>
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static object GetOperand(this Instruction self) {
-			return self == null ? null : self.Operand;
-		}
+		public static object GetOperand(this Instruction self) => self?.Operand;
 
 		/// <summary>
 		/// Gets the offset or 0 if <paramref name="self"/> is <c>null</c>
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static uint GetOffset(this Instruction self) {
-			return self == null ? 0 : self.Offset;
-		}
+		public static uint GetOffset(this Instruction self) => self?.Offset ?? 0;
 
 		/// <summary>
 		/// Gets the sequence point or <c>null</c> if <paramref name="self"/> is <c>null</c>
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static dnlib.DotNet.Pdb.SequencePoint GetSequencePoint(this Instruction self) {
-			return self == null ? null : self.SequencePoint;
-		}
+		public static dnlib.DotNet.Pdb.SequencePoint GetSequencePoint(this Instruction self) => self?.SequencePoint;
 	}
 }

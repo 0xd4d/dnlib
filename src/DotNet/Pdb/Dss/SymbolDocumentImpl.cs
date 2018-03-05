@@ -6,51 +6,40 @@ using dnlib.DotNet.Pdb.Symbols;
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolDocumentImpl : SymbolDocument {
 		readonly ISymUnmanagedDocument document;
-
-		public ISymUnmanagedDocument SymUnmanagedDocument {
-			get { return document; }
-		}
-
-		public SymbolDocumentImpl(ISymUnmanagedDocument document) {
-			this.document = document;
-		}
+		public ISymUnmanagedDocument SymUnmanagedDocument => document;
+		public SymbolDocumentImpl(ISymUnmanagedDocument document) => this.document = document;
 
 		public override Guid CheckSumAlgorithmId {
 			get {
-				Guid guid;
-				document.GetCheckSumAlgorithmId(out guid);
+				document.GetCheckSumAlgorithmId(out var guid);
 				return guid;
 			}
 		}
 
 		public override Guid DocumentType {
 			get {
-				Guid guid;
-				document.GetDocumentType(out guid);
+				document.GetDocumentType(out var guid);
 				return guid;
 			}
 		}
 
 		public override Guid Language {
 			get {
-				Guid guid;
-				document.GetLanguage(out guid);
+				document.GetLanguage(out var guid);
 				return guid;
 			}
 		}
 
 		public override Guid LanguageVendor {
 			get {
-				Guid guid;
-				document.GetLanguageVendor(out guid);
+				document.GetLanguageVendor(out var guid);
 				return guid;
 			}
 		}
 
 		public override string URL {
 			get {
-				uint count;
-				document.GetURL(0, out count, null);
+				document.GetURL(0, out uint count, null);
 				var chars = new char[count];
 				document.GetURL((uint)chars.Length, out count, chars);
 				if (chars.Length == 0)
@@ -61,17 +50,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		public override byte[] CheckSum {
 			get {
-				uint bufSize;
-				document.GetCheckSum(0, out bufSize, null);
+				document.GetCheckSum(0, out uint bufSize, null);
 				var buffer = new byte[bufSize];
 				document.GetCheckSum((uint)buffer.Length, out bufSize, buffer);
 				return buffer;
 			}
 		}
 
-		public override PdbCustomDebugInfo[] CustomDebugInfos {
-			get { return emptyPdbCustomDebugInfos; }
-		}
+		public override PdbCustomDebugInfo[] CustomDebugInfos => emptyPdbCustomDebugInfos;
 		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 	}
 }

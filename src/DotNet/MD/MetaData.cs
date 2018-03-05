@@ -70,9 +70,7 @@ namespace dnlib.DotNet.MD {
 		protected ThreadSafe.IList<DotNetStream> allStreams;
 
 		/// <inheritdoc/>
-		public bool IsStandalonePortablePdb {
-			get { return isStandalonePortablePdb; }
-		}
+		public bool IsStandalonePortablePdb => isStandalonePortablePdb;
 		/// <summary><c>true</c> if this is standalone Portable PDB metadata</summary>
 		protected readonly bool isStandalonePortablePdb;
 
@@ -96,7 +94,7 @@ namespace dnlib.DotNet.MD {
 			/// Remembers <c>rid</c> and key
 			/// </summary>
 			[DebuggerDisplay("{rid} {key}")]
-			struct RowInfo : IComparable<RowInfo> {
+			readonly struct RowInfo : IComparable<RowInfo> {
 				public readonly uint rid;
 				public readonly uint key;
 
@@ -198,69 +196,43 @@ namespace dnlib.DotNet.MD {
 		public abstract bool IsCompressed { get; }
 
 		/// <inheritdoc/>
-		public ImageCor20Header ImageCor20Header {
-			get { return cor20Header; }
-		}
+		public ImageCor20Header ImageCor20Header => cor20Header;
 
 		/// <inheritdoc/>
-		public ushort MajorVersion {
-			get { return mdHeader.MajorVersion; }
-		}
+		public ushort MajorVersion => mdHeader.MajorVersion;
 
 		/// <inheritdoc/>
-		public ushort MinorVersion {
-			get { return mdHeader.MinorVersion; }
-		}
+		public ushort MinorVersion => mdHeader.MinorVersion;
 
 		/// <inheritdoc/>
-		public string VersionString {
-			get { return mdHeader.VersionString; }
-		}
+		public string VersionString => mdHeader.VersionString;
 
 		/// <inheritdoc/>
-		public IPEImage PEImage {
-			get { return peImage; }
-		}
+		public IPEImage PEImage => peImage;
 
 		/// <inheritdoc/>
-		public MetaDataHeader MetaDataHeader {
-			get { return mdHeader; }
-		}
+		public MetaDataHeader MetaDataHeader => mdHeader;
 
 		/// <inheritdoc/>
-		public StringsStream StringsStream {
-			get { return stringsStream; }
-		}
+		public StringsStream StringsStream => stringsStream;
 
 		/// <inheritdoc/>
-		public USStream USStream {
-			get { return usStream; }
-		}
+		public USStream USStream => usStream;
 
 		/// <inheritdoc/>
-		public BlobStream BlobStream {
-			get { return blobStream; }
-		}
+		public BlobStream BlobStream => blobStream;
 
 		/// <inheritdoc/>
-		public GuidStream GuidStream {
-			get { return guidStream; }
-		}
+		public GuidStream GuidStream => guidStream;
 
 		/// <inheritdoc/>
-		public TablesStream TablesStream {
-			get { return tablesStream; }
-		}
+		public TablesStream TablesStream => tablesStream;
 
 		/// <inheritdoc/>
-		public PdbStream PdbStream {
-			get { return pdbStream; }
-		}
+		public PdbStream PdbStream => pdbStream;
 
 		/// <inheritdoc/>
-		public ThreadSafe.IList<DotNetStream> AllStreams {
-			get { return allStreams; }
-		}
+		public ThreadSafe.IList<DotNetStream> AllStreams => allStreams;
 
 		/// <summary>
 		/// Constructor
@@ -270,7 +242,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="mdHeader">The MD header</param>
 		protected MetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader) {
 			try {
-				this.allStreams = ThreadSafeListCreator.Create<DotNetStream>();
+				allStreams = ThreadSafeListCreator.Create<DotNetStream>();
 				this.peImage = peImage;
 				this.cor20Header = cor20Header;
 				this.mdHeader = mdHeader;
@@ -284,9 +256,9 @@ namespace dnlib.DotNet.MD {
 		}
 
 		internal MetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb) {
-			this.allStreams = ThreadSafeListCreator.Create<DotNetStream>();
-			this.peImage = null;
-			this.cor20Header = null;
+			allStreams = ThreadSafeListCreator.Create<DotNetStream>();
+			peImage = null;
+			cor20Header = null;
 			this.mdHeader = mdHeader;
 			this.isStandalonePortablePdb = isStandalonePortablePdb;
 		}
@@ -324,14 +296,10 @@ namespace dnlib.DotNet.MD {
 		protected abstract void InitializeInternal(IImageStream mdStream);
 
 		/// <inheritdoc/>
-		public virtual RidList GetTypeDefRidList() {
-			return new ContiguousRidList(1, tablesStream.TypeDefTable.Rows);
-		}
+		public virtual RidList GetTypeDefRidList() => new ContiguousRidList(1, tablesStream.TypeDefTable.Rows);
 
 		/// <inheritdoc/>
-		public virtual RidList GetExportedTypeRidList() {
-			return new ContiguousRidList(1, tablesStream.ExportedTypeTable.Rows);
-		}
+		public virtual RidList GetExportedTypeRidList() => new ContiguousRidList(1, tablesStream.ExportedTypeTable.Rows);
 
 		/// <inheritdoc/>
 		public abstract RidList GetFieldRidList(uint typeDefRid);
@@ -378,15 +346,13 @@ namespace dnlib.DotNet.MD {
 			uint endRid = startRid + 1;
 			var column = tableSource.TableInfo.Columns[keyColIndex];
 			for (; startRid > 1; startRid--) {
-				uint key2;
-				if (!tablesStream.ReadColumn_NoLock(tableSource, startRid - 1, column, out key2))
+				if (!tablesStream.ReadColumn_NoLock(tableSource, startRid - 1, column, out uint key2))
 					break;	// Should never happen since startRid is valid
 				if (key != key2)
 					break;
 			}
 			for (; endRid <= tableSource.Rows; endRid++) {
-				uint key2;
-				if (!tablesStream.ReadColumn_NoLock(tableSource, endRid, column, out key2))
+				if (!tablesStream.ReadColumn_NoLock(tableSource, endRid, column, out uint key2))
 					break;	// Should never happen since endRid is valid
 				if (key != key2)
 					break;
@@ -406,56 +372,45 @@ namespace dnlib.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>A <see cref="RidList"/> instance</returns>
-		protected virtual RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) {
-			return FindAllRows(tableSource, keyColIndex, key);
-		}
+		protected virtual RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) => FindAllRows(tableSource, keyColIndex, key);
 
 		/// <inheritdoc/>
-		public RidList GetInterfaceImplRidList(uint typeDefRid) {
-			return FindAllRowsUnsorted(tablesStream.InterfaceImplTable, 0, typeDefRid);
-		}
+		public RidList GetInterfaceImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.InterfaceImplTable, 0, typeDefRid);
 
 		/// <inheritdoc/>
 		public RidList GetGenericParamRidList(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.GenericParamTable, 2, codedToken);
 		}
 
 		/// <inheritdoc/>
-		public RidList GetGenericParamConstraintRidList(uint genericParamRid) {
-			return FindAllRowsUnsorted(tablesStream.GenericParamConstraintTable, 0, genericParamRid);
-		}
+		public RidList GetGenericParamConstraintRidList(uint genericParamRid) =>
+			FindAllRowsUnsorted(tablesStream.GenericParamConstraintTable, 0, genericParamRid);
 
 		/// <inheritdoc/>
 		public RidList GetCustomAttributeRidList(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.CustomAttributeTable, 0, codedToken);
 		}
 
 		/// <inheritdoc/>
 		public RidList GetDeclSecurityRidList(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.HasDeclSecurity.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.HasDeclSecurity.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.DeclSecurityTable, 1, codedToken);
 		}
 
 		/// <inheritdoc/>
 		public RidList GetMethodSemanticsRidList(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.HasSemantic.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.HasSemantic.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.MethodSemanticsTable, 2, codedToken);
 		}
 
 		/// <inheritdoc/>
-		public RidList GetMethodImplRidList(uint typeDefRid) {
-			return FindAllRowsUnsorted(tablesStream.MethodImplTable, 0, typeDefRid);
-		}
+		public RidList GetMethodImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.MethodImplTable, 0, typeDefRid);
 
 		/// <inheritdoc/>
 		public uint GetClassLayoutRid(uint typeDefRid) {
@@ -471,8 +426,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public uint GetFieldMarshalRid(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.FieldMarshalTable, 0, codedToken);
 			return list.Length == 0 ? 0 : list[0];
@@ -486,8 +440,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public uint GetImplMapRid(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.ImplMapTable, 1, codedToken);
 			return list.Length == 0 ? 0 : list[0];
@@ -521,8 +474,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public uint GetConstantRid(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.ConstantTable, 2, codedToken);
 			return list.Length == 0 ? 0 : list[0];
@@ -669,8 +621,7 @@ namespace dnlib.DotNet.MD {
 			tablesStream.theLock.EnterWriteLock(); try {
 #endif
 			for (uint rid = 1; rid <= gpTable.Rows; rid++) {
-				uint owner;
-				if (!tablesStream.ReadColumn_NoLock(gpTable, rid, ownerCol, out owner))
+				if (!tablesStream.ReadColumn_NoLock(gpTable, rid, ownerCol, out uint owner))
 					continue;
 				ownersDict[owner] = true;
 			}
@@ -683,8 +634,7 @@ namespace dnlib.DotNet.MD {
 			var owners = new List<uint>(ownersDict.Keys);
 			owners.Sort();
 			for (int i = 0; i < owners.Count; i++) {
-				uint ownerToken;
-				if (!CodedToken.TypeOrMethodDef.Decode(owners[i], out ownerToken))
+				if (!CodedToken.TypeOrMethodDef.Decode(owners[i], out uint ownerToken))
 					continue;
 				var ridList = GetGenericParamRidList(MDToken.ToTable(ownerToken), MDToken.ToRID(ownerToken));
 				for (uint j = 0; j < ridList.Length; j++) {
@@ -722,8 +672,7 @@ namespace dnlib.DotNet.MD {
 			tablesStream.theLock.EnterWriteLock(); try {
 #endif
 			for (uint rid = 1; rid <= gpcTable.Rows; rid++) {
-				uint owner;
-				if (!tablesStream.ReadColumn_NoLock(gpcTable, rid, ownerCol, out owner))
+				if (!tablesStream.ReadColumn_NoLock(gpcTable, rid, ownerCol, out uint owner))
 					continue;
 				ownersDict[owner] = true;
 			}
@@ -778,8 +727,7 @@ namespace dnlib.DotNet.MD {
 		public RidList GetNestedClassRidList(uint typeDefRid) {
 			if (typeDefRidToNestedClasses == null)
 				InitializeNestedClassesDictionary();
-			RandomRidList ridList;
-			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out ridList))
+			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out var ridList))
 				return ridList;
 			return RidList.Empty;
 		}
@@ -817,8 +765,7 @@ namespace dnlib.DotNet.MD {
 				var row = tablesStream.ReadNestedClassRow(GetNestedClassRid(nestedRid));
 				if (row == null)
 					continue;
-				RandomRidList ridList;
-				if (!newTypeDefRidToNestedClasses.TryGetValue(row.EnclosingClass, out ridList))
+				if (!newTypeDefRidToNestedClasses.TryGetValue(row.EnclosingClass, out var ridList))
 					newTypeDefRidToNestedClasses[row.EnclosingClass] = ridList = new RandomRidList();
 				ridList.Add(nestedRid);
 			}
@@ -846,9 +793,7 @@ namespace dnlib.DotNet.MD {
 			return nonNestedTypes;
 		}
 
-		public RidList GetLocalScopeRidList(uint methodRid) {
-			return FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
-		}
+		public RidList GetLocalScopeRidList(uint methodRid) => FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
 
 		public uint GetStateMachineMethodRid(uint methodRid) {
 			var list = FindAllRows(tablesStream.StateMachineMethodTable, 0, methodRid);
@@ -856,8 +801,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		public RidList GetCustomDebugInformationRidList(Table table, uint rid) {
-			uint codedToken;
-			if (!CodedToken.HasCustomDebugInformation.Encode(new MDToken(table, rid), out codedToken))
+			if (!CodedToken.HasCustomDebugInformation.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRows(tablesStream.CustomDebugInformationTable, 0, codedToken);
 		}

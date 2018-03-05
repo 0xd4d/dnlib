@@ -32,17 +32,13 @@ namespace dnlib.DotNet.Writer {
 		public abstract HotHeapVersion HotHeapVersion { get; }
 
 		/// <inheritdoc/>
-		public override string Name {
-			get { return "#!"; }
-		}
+		public override string Name => "#!";
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="metadata">Metadata owner</param>
-		protected HotHeap(MetaData metadata) {
-			this.metadata = metadata;
-		}
+		protected HotHeap(MetaData metadata) => this.metadata = metadata;
 
 		/// <summary>
 		/// Creates a <see cref="HotTable"/> instance
@@ -61,9 +57,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="metadata">Metadata owner</param>
 		/// <param name="module">Target module</param>
-		public static HotHeap Create(MetaData metadata, ModuleDef module) {
-			return Create(metadata, GetHotHeapVersion(module));
-		}
+		public static HotHeap Create(MetaData metadata, ModuleDef module) => Create(metadata, GetHotHeapVersion(module));
 
 		/// <summary>
 		/// Creates a hot heap instance
@@ -103,9 +97,7 @@ namespace dnlib.DotNet.Writer {
 		/// Adds a hot pool
 		/// </summary>
 		/// <param name="hotPool">The hot pool</param>
-		public void Add(HotPool hotPool) {
-			hotPools.Add(hotPool);
-		}
+		public void Add(HotPool hotPool) => hotPools.Add(hotPool);
 
 		/// <inheritdoc/>
 		public override void SetOffset(FileOffset offset, RVA rva) {
@@ -149,9 +141,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetRawLength() {
-			return totalLength;
-		}
+		public override uint GetRawLength() => totalLength;
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(BinaryWriter writer) {
@@ -217,9 +207,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	sealed class HotHeap20 : HotHeap {
 		/// <inheritdoc/>
-		public override HotHeapVersion HotHeapVersion {
-			get { return HotHeapVersion.CLR20; }
-		}
+		public override HotHeapVersion HotHeapVersion => HotHeapVersion.CLR20;
 
 		/// <summary>
 		/// Constructor
@@ -229,14 +217,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override HotTable CreateHotTable(IMDTable mdTable) {
-			return new HotTable20(metadata, mdTable);
-		}
+		public override HotTable CreateHotTable(IMDTable mdTable) => new HotTable20(metadata, mdTable);
 
 		/// <inheritdoc/>
-		public override HotPool CreateHotPool(HeapType heapType) {
-			return new HotPool20(heapType);
-		}
+		public override HotPool CreateHotPool(HeapType heapType) => new HotPool20(heapType);
 	}
 
 	/// <summary>
@@ -244,9 +228,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	sealed class HotHeap40 : HotHeap {
 		/// <inheritdoc/>
-		public override HotHeapVersion HotHeapVersion {
-			get { return HotHeapVersion.CLR40; }
-		}
+		public override HotHeapVersion HotHeapVersion => HotHeapVersion.CLR40;
 
 		/// <summary>
 		/// Constructor
@@ -256,13 +238,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override HotTable CreateHotTable(IMDTable mdTable) {
-			return new HotTable40(metadata, mdTable);
-		}
+		public override HotTable CreateHotTable(IMDTable mdTable) => new HotTable40(metadata, mdTable);
 
 		/// <inheritdoc/>
-		public override HotPool CreateHotPool(HeapType heapType) {
-			return new HotPool40(heapType);
-		}
+		public override HotPool CreateHotPool(HeapType heapType) => new HotPool40(heapType);
 	}
 }

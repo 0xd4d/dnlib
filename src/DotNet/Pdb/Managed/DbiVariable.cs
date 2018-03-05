@@ -5,24 +5,16 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
 	sealed class DbiVariable : SymbolVariable {
-		public override string Name {
-			get { return name; }
-		}
+		public override string Name => name;
 		string name;
 
-		public override PdbLocalAttributes Attributes {
-			get { return attributes; }
-		}
+		public override PdbLocalAttributes Attributes => attributes;
 		PdbLocalAttributes attributes;
 
-		public override int Index {
-			get { return index; }
-		}
+		public override int Index => index;
 		int index;
 
-		public override PdbCustomDebugInfo[] CustomDebugInfos {
-			get { return emptyPdbCustomDebugInfos; }
-		}
+		public override PdbCustomDebugInfo[] CustomDebugInfos => emptyPdbCustomDebugInfos;
 		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
 
 		public void Read(IImageStream stream) {

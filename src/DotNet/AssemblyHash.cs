@@ -8,7 +8,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Hashes some data according to a <see cref="AssemblyHashAlgorithm"/>
 	/// </summary>
-	struct AssemblyHash : IDisposable {
+	readonly struct AssemblyHash : IDisposable {
 		readonly HashAlgorithm hasher;
 
 		/// <summary>
@@ -78,9 +78,7 @@ namespace dnlib.DotNet {
 		/// Hash data
 		/// </summary>
 		/// <param name="data">Data</param>
-		public void Hash(byte[] data) {
-			Hash(data, 0, data.Length);
-		}
+		public void Hash(byte[] data) => Hash(data, 0, data.Length);
 
 		/// <summary>
 		/// Hash data
@@ -128,7 +126,7 @@ namespace dnlib.DotNet {
 			if (publicKeyData == null)
 				return new PublicKeyToken();
 			var hash = Hash(publicKeyData, AssemblyHashAlgorithm.SHA1);
-			byte[] pkt = new byte[8];
+			var pkt = new byte[8];
 			for (int i = 0; i < pkt.Length && i < hash.Length; i++)
 				pkt[i] = hash[hash.Length - i - 1];
 			return new PublicKeyToken(pkt);

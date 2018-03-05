@@ -13,17 +13,13 @@
 		/// </summary>
 		/// <param name="rva">this</param>
 		/// <param name="alignment">Alignment</param>
-		public static RVA AlignUp(this RVA rva, uint alignment) {
-			return (RVA)(((uint)rva + alignment - 1) & ~(alignment - 1));
-		}
+		public static RVA AlignUp(this RVA rva, uint alignment) => (RVA)(((uint)rva + alignment - 1) & ~(alignment - 1));
 
 		/// <summary>
 		/// Align up
 		/// </summary>
 		/// <param name="rva">this</param>
 		/// <param name="alignment">Alignment</param>
-		public static RVA AlignUp(this RVA rva, int alignment) {
-			return (RVA)(((uint)rva + alignment - 1) & ~(alignment - 1));
-		}
+		public static RVA AlignUp(this RVA rva, int alignment) => (RVA)(((uint)rva + alignment - 1) & ~(alignment - 1));
 	}
 }

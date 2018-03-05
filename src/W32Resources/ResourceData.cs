@@ -18,7 +18,7 @@ namespace dnlib.W32Resources {
 		/// Gets/sets the data reader. This instance owns the reader.
 		/// </summary>
 		public IBinaryReader Data {
-			get { return reader; }
+			get => reader;
 			set {
 				var oldValue = Interlocked.Exchange(ref reader, value);
 				if (oldValue != value && oldValue != null)
@@ -30,16 +30,16 @@ namespace dnlib.W32Resources {
 		/// Gets/sets the code page
 		/// </summary>
 		public uint CodePage {
-			get { return codePage; }
-			set { codePage = value; }
+			get => codePage;
+			set => codePage = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the reserved field
 		/// </summary>
 		public uint Reserved {
-			get { return reserved; }
-			set { reserved = value; }
+			get => reserved;
+			set => reserved = value;
 		}
 
 		/// <summary>
@@ -56,9 +56,7 @@ namespace dnlib.W32Resources {
 		/// <param name="reader">Raw data. This instance owns this reader.</param>
 		/// <param name="name">Name</param>
 		public ResourceData(ResourceName name, IBinaryReader reader)
-			: base(name) {
-			this.reader = reader;
-		}
+			: base(name) => this.reader = reader;
 
 		/// <summary>
 		/// Constructor
@@ -77,9 +75,7 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// Gets the data as a <see cref="Stream"/>. It shares the file position with <see cref="Data"/>
 		/// </summary>
-		public Stream ToDataStream() {
-			return Data.CreateStream();
-		}
+		public Stream ToDataStream() => Data.CreateStream();
 
 		/// <inheritdoc/>
 		public void Dispose() {

@@ -11,7 +11,7 @@ using dnlib.DotNet.MD;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
-	struct PortablePdbCustomDebugInfoReader : IDisposable {
+	readonly struct PortablePdbCustomDebugInfoReader : IDisposable {
 		public static PdbCustomDebugInfo Read(ModuleDef module, TypeDef typeOpt, CilBody bodyOpt, GenericParamContext gpContext, Guid kind, byte[] data) {
 			try {
 				using (var reader = new PortablePdbCustomDebugInfoReader(module, typeOpt, bodyOpt, gpContext, MemoryImageStream.Create(data))) {
@@ -126,9 +126,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbDynamicLocalVariablesCustomDebugInfo(flags);
 		}
 
-		PdbCustomDebugInfo ReadEmbeddedSource() {
-			return new PdbEmbeddedSourceCustomDebugInfo(reader.ReadRemainingBytes());
-		}
+		PdbCustomDebugInfo ReadEmbeddedSource() => new PdbEmbeddedSourceCustomDebugInfo(reader.ReadRemainingBytes());
 
 		PdbCustomDebugInfo ReadEncLambdaAndClosureMap(long recPosEnd) {
 			var data = reader.ReadBytes((int)(recPosEnd - reader.Position));
@@ -140,9 +138,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbEditAndContinueLocalSlotMapCustomDebugInfo(data);
 		}
 
-		PdbCustomDebugInfo ReadSourceLink() {
-			return new PdbSourceLinkCustomDebugInfo(reader.ReadRemainingBytes());
-		}
+		PdbCustomDebugInfo ReadSourceLink() => new PdbSourceLinkCustomDebugInfo(reader.ReadRemainingBytes());
 
 		PdbCustomDebugInfo ReadStateMachineHoistedLocalScopes() {
 			if (bodyOpt == null)
@@ -223,8 +219,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return null;
 		}
 
-		public void Dispose() {
-			reader.Dispose();
-		}
+		public void Dispose() => reader.Dispose();
 	}
 }

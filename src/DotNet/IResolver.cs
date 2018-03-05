@@ -40,9 +40,7 @@
 		/// <param name="self">this</param>
 		/// <param name="typeRef">The type</param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		public static TypeDef Resolve(this ITypeResolver self, TypeRef typeRef) {
-			return self.Resolve(typeRef, null);
-		}
+		public static TypeDef Resolve(this ITypeResolver self, TypeRef typeRef) => self.Resolve(typeRef, null);
 
 		/// <summary>
 		/// Resolves a type
@@ -51,9 +49,7 @@
 		/// <param name="typeRef">The type</param>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef typeRef) {
-			return self.ResolveThrow(typeRef, null);
-		}
+		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef typeRef) => self.ResolveThrow(typeRef, null);
 
 		/// <summary>
 		/// Resolves a type
@@ -67,7 +63,7 @@
 			var type = self.Resolve(typeRef, sourceModule);
 			if (type != null)
 				return type;
-			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", typeRef, typeRef == null ? null : typeRef.DefinitionAssembly));
+			throw new TypeResolveException($"Could not resolve type: {typeRef} ({typeRef?.DefinitionAssembly})");
 		}
 
 		/// <summary>
@@ -81,7 +77,7 @@
 			var memberDef = self.Resolve(memberRef);
 			if (memberDef != null)
 				return memberDef;
-			throw new MemberRefResolveException(string.Format("Could not resolve method/field: {0} ({1})", memberRef, memberRef == null ? null : memberRef.GetDefinitionAssembly()));
+			throw new MemberRefResolveException($"Could not resolve method/field: {memberRef} ({memberRef?.GetDefinitionAssembly()})");
 		}
 
 		/// <summary>
@@ -90,9 +86,7 @@
 		/// <param name="self">this</param>
 		/// <param name="memberRef">A field reference</param>
 		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
-		public static FieldDef ResolveField(this IMemberRefResolver self, MemberRef memberRef) {
-			return self.Resolve(memberRef) as FieldDef;
-		}
+		public static FieldDef ResolveField(this IMemberRefResolver self, MemberRef memberRef) => self.Resolve(memberRef) as FieldDef;
 
 		/// <summary>
 		/// Resolves a field
@@ -102,10 +96,9 @@
 		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
 		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
 		public static FieldDef ResolveFieldThrow(this IMemberRefResolver self, MemberRef memberRef) {
-			var field = self.Resolve(memberRef) as FieldDef;
-			if (field != null)
+			if (self.Resolve(memberRef) is FieldDef field)
 				return field;
-			throw new MemberRefResolveException(string.Format("Could not resolve field: {0} ({1})", memberRef, memberRef == null ? null : memberRef.GetDefinitionAssembly()));
+			throw new MemberRefResolveException($"Could not resolve field: {memberRef} ({memberRef?.GetDefinitionAssembly()})");
 		}
 
 		/// <summary>
@@ -114,9 +107,7 @@
 		/// <param name="self">this</param>
 		/// <param name="memberRef">A method reference</param>
 		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
-		public static MethodDef ResolveMethod(this IMemberRefResolver self, MemberRef memberRef) {
-			return self.Resolve(memberRef) as MethodDef;
-		}
+		public static MethodDef ResolveMethod(this IMemberRefResolver self, MemberRef memberRef) => self.Resolve(memberRef) as MethodDef;
 
 		/// <summary>
 		/// Resolves a method
@@ -126,10 +117,9 @@
 		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
 		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
 		public static MethodDef ResolveMethodThrow(this IMemberRefResolver self, MemberRef memberRef) {
-			var method = self.Resolve(memberRef) as MethodDef;
-			if (method != null)
+			if (self.Resolve(memberRef) is MethodDef method)
 				return method;
-			throw new MemberRefResolveException(string.Format("Could not resolve method: {0} ({1})", memberRef, memberRef == null ? null : memberRef.GetDefinitionAssembly()));
+			throw new MemberRefResolveException($"Could not resolve method: {memberRef} ({memberRef?.GetDefinitionAssembly()})");
 		}
 	}
 }

@@ -7,17 +7,14 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
 	static class ManagedSymbolReaderCreator {
-		public static SymbolReader CreateFromAssemblyFile(IMetaData metaData, string assemblyFileName) {
-			return Create(metaData, Path.ChangeExtension(assemblyFileName, "pdb"));
-		}
+		public static SymbolReader CreateFromAssemblyFile(IMetaData metaData, string assemblyFileName) =>
+			Create(metaData, Path.ChangeExtension(assemblyFileName, "pdb"));
 
-		public static SymbolReader Create(IMetaData metaData, string pdbFileName) {
-			return Create(metaData, ImageStreamUtils.OpenImageStream(pdbFileName));
-		}
+		public static SymbolReader Create(IMetaData metaData, string pdbFileName) =>
+			Create(metaData, ImageStreamUtils.OpenImageStream(pdbFileName));
 
-		public static SymbolReader Create(IMetaData metaData, byte[] pdbData) {
-			return Create(metaData, MemoryImageStream.Create(pdbData));
-		}
+		public static SymbolReader Create(IMetaData metaData, byte[] pdbData) =>
+			Create(metaData, MemoryImageStream.Create(pdbData));
 
 		public static SymbolReader Create(IMetaData metaData, IImageStream pdbStream) {
 			try {
@@ -55,8 +52,6 @@ namespace dnlib.DotNet.Pdb {
 			return null;
 		}
 
-		internal static SymbolReader Create(IMetaData metaData) {
-			return Portable.SymbolReaderCreator.TryCreate(metaData);
-		}
+		internal static SymbolReader Create(IMetaData metaData) => Portable.SymbolReaderCreator.TryCreate(metaData);
 	}
 }

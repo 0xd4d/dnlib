@@ -25,21 +25,15 @@ namespace dnlib.DotNet.Writer {
 		uint savedBytes;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Gets the number of bytes saved by re-using method bodies
 		/// </summary>
-		public uint SavedBytes {
-			get { return savedBytes; }
-		}
+		public uint SavedBytes => savedBytes;
 
 		/// <summary>
 		/// Constructor
@@ -47,7 +41,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="shareBodies"><c>true</c> if bodies can be shared</param>
 		public MethodBodyChunks(bool shareBodies) {
 			this.shareBodies = shareBodies;
-			this.alignFatBodies = true;
+			alignFatBodies = true;
 			if (shareBodies) {
 				tinyMethodsDict = new Dictionary<MethodBody, MethodBody>();
 				fatMethodsDict = new Dictionary<MethodBody, MethodBody>();
@@ -66,8 +60,7 @@ namespace dnlib.DotNet.Writer {
 				throw new InvalidOperationException("SetOffset() has already been called");
 			if (shareBodies) {
 				var dict = methodBody.IsFat ? fatMethodsDict : tinyMethodsDict;
-				MethodBody cached;
-				if (dict.TryGetValue(methodBody, out cached)) {
+				if (dict.TryGetValue(methodBody, out var cached)) {
 					savedBytes += (uint)methodBody.GetSizeOfMethodBody();
 					return cached;
 				}
@@ -111,14 +104,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return length;
-		}
+		public uint GetFileLength() => length;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {

@@ -30,9 +30,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <param name="stream">Source stream</param>
 		/// <param name="name">Name of original file or <c>null</c> if unknown.</param>
 		public StreamIStream(Stream stream, string name) {
-			if (stream == null)
-				throw new ArgumentNullException("stream");
-			this.stream = stream;
+			this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
 			this.name = name ?? string.Empty;
 		}
 
@@ -43,9 +41,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		/// <inheritdoc/>
-		public void Commit(int grfCommitFlags) {
-			stream.Flush();
-		}
+		public void Commit(int grfCommitFlags) => stream.Flush();
 
 		/// <inheritdoc/>
 		public void CopyTo(IStream pstm, long cb, IntPtr pcbRead, IntPtr pcbWritten) {
@@ -68,9 +64,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		/// <inheritdoc/>
-		public void LockRegion(long libOffset, long cb, int dwLockType) {
+		public void LockRegion(long libOffset, long cb, int dwLockType) =>
 			Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
-		}
 
 		/// <inheritdoc/>
 		public void Read(byte[] pv, int cb, IntPtr pcbRead) {
@@ -114,9 +109,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		/// <inheritdoc/>
-		public void SetSize(long libNewSize) {
-			stream.SetLength(libNewSize);
-		}
+		public void SetSize(long libNewSize) => stream.SetLength(libNewSize);
 
 		enum STATFLAG {
 			DEFAULT = 0,
@@ -152,9 +145,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		/// <inheritdoc/>
-		public void UnlockRegion(long libOffset, long cb, int dwLockType) {
+		public void UnlockRegion(long libOffset, long cb, int dwLockType) =>
 			Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
-		}
 
 		/// <inheritdoc/>
 		public void Write(byte[] pv, int cb, IntPtr pcbWritten) {

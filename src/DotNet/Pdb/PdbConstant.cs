@@ -21,24 +21,24 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets/sets the name
 		/// </summary>
 		public string Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the type of the constant
 		/// </summary>
 		public TypeSig Type {
-			get { return type; }
-			set { type = value; }
+			get => type;
+			set => type = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the value of the constant
 		/// </summary>
 		public object Value {
-			get { return value; }
-			set { this.value = value; }
+			get => value;
+			set => this.value = value;
 		}
 
 		/// <summary>
@@ -60,21 +60,15 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 25; }
-		}
+		public int HasCustomDebugInformationTag => 25;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
 		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 
 		/// <summary>

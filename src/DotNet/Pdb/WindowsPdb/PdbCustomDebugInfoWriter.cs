@@ -54,12 +54,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		PdbCustomDebugInfoWriter(MetaData metaData, MethodDef method, PdbCustomDebugInfoWriterContext context) {
 			this.metaData = metaData;
 			this.method = method;
-			this.logger = context.Logger;
-			this.memoryStream = context.MemoryStream;
-			this.writer = context.Writer;
-			this.instructionToOffsetDict = context.InstructionToOffsetDict;
-			this.bodySize = 0;
-			this.instructionToOffsetDictInitd = false;
+			logger = context.Logger;
+			memoryStream = context.MemoryStream;
+			writer = context.Writer;
+			instructionToOffsetDict = context.InstructionToOffsetDict;
+			bodySize = 0;
+			instructionToOffsetDictInitd = false;
 			memoryStream.SetLength(0);
 			memoryStream.Position = 0;
 		}
@@ -90,16 +90,13 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				Error("Instruction is null");
 				return uint.MaxValue;
 			}
-			uint offset;
-			if (instructionToOffsetDict.TryGetValue(instr, out offset))
+			if (instructionToOffsetDict.TryGetValue(instr, out uint offset))
 				return offset;
 			Error("Instruction is missing in body but it's still being referenced by PDB data. Method {0} (0x{1:X8}), instruction: {2}", method, method.MDToken.Raw, instr);
 			return uint.MaxValue;
 		}
 
-		void Error(string message, params object[] args) {
-			logger.Log(this, LoggerEvent.Error, message, args);
-		}
+		void Error(string message, params object[] args) => logger.Log(this, LoggerEvent.Error, message, args);
 
 		byte[] Write(IList<PdbCustomDebugInfo> customDebugInfos) {
 			if (customDebugInfos.Count == 0)
@@ -383,8 +380,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return 0;
 			}
 
-			var md = method as MethodDef;
-			if (md != null) {
+			if (method is MethodDef md) {
 				uint rid = metaData.GetRid(md);
 				if (rid == 0) {
 					Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, metaData.Module);
@@ -393,8 +389,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return new MDToken(md.MDToken.Table, rid).Raw;
 			}
 
-			var mr = method as MemberRef;
-			if (mr != null && mr.IsMethodRef)
+			if (method is MemberRef mr && mr.IsMethodRef)
 				return metaData.GetToken(mr).Raw;
 
 			Error("Not a method");

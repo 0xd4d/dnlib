@@ -31,8 +31,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public string ReadDocumentName(uint offset) {
 			sb.Length = 0;
 			using (var stream = blobStream.CreateStream(offset)) {
-				int sepCharsLength;
-				var sepChars = ReadSeparatorChar(stream, out sepCharsLength);
+				var sepChars = ReadSeparatorChar(stream, out int sepCharsLength);
 				bool needSep = false;
 				while (stream.Position < stream.Length) {
 					if (needSep)
@@ -50,8 +49,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		string ReadDocumentNamePart(uint offset) {
-			string name;
-			if (docNamePartDict.TryGetValue(offset, out name))
+			if (docNamePartDict.TryGetValue(offset, out var name))
 				return name;
 			var data = blobStream.ReadNoNull(offset);
 			name = Encoding.UTF8.GetString(data);
@@ -88,9 +86,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					prevSepCharBytes[i] = b;
 				bytes[0] = b;
 				bool isLastByte = stream.Position + 1 == stream.Length;
-				int bytesUsed;
-				bool completed;
-				decoder.Convert(bytes, 0, 1, prevSepChars, 0, prevSepChars.Length, isLastByte, out bytesUsed, out prevSepCharsLength, out completed);
+				decoder.Convert(bytes, 0, 1, prevSepChars, 0, prevSepChars.Length, isLastByte, out int bytesUsed, out prevSepCharsLength, out bool completed);
 				if (prevSepCharsLength > 0)
 					break;
 			}

@@ -162,9 +162,7 @@ namespace dnlib.DotNet.Writer {
 		/// Creates a new time date stamp using current time
 		/// </summary>
 		/// <returns>A new time date stamp</returns>
-		public static uint CreateNewTimeDateStamp() {
-			return (uint)(DateTime.UtcNow - Epoch).TotalSeconds;
-		}
+		public static uint CreateNewTimeDateStamp() => (uint)(DateTime.UtcNow - Epoch).TotalSeconds;
 		static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 	}
 
@@ -244,48 +242,38 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the image base
 		/// </summary>
-		public ulong ImageBase {
-			get { return imageBase; }
-		}
+		public ulong ImageBase => imageBase;
 
 		/// <summary>
 		/// Gets/sets a value indicating whether this is a EXE or a DLL file
 		/// </summary>
 		public bool IsExeFile {
-			get { return isExeFile; }
-			set { isExeFile = value; }
+			get => isExeFile;
+			set => isExeFile = value;
 		}
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Gets the section alignment
 		/// </summary>
-		public uint SectionAlignment {
-			get { return sectionAlignment; }
-		}
+		public uint SectionAlignment => sectionAlignment;
 
 		/// <summary>
 		/// Gets the file alignment
 		/// </summary>
-		public uint FileAlignment {
-			get { return fileAlignment; }
-		}
+		public uint FileAlignment => fileAlignment;
 
 		/// <summary>
 		/// Gets/sets the <see cref="PESection"/>s
 		/// </summary>
 		public IList<PESection> PESections {
-			get { return sections; }
-			set { sections = value; }
+			get => sections;
+			set => sections = value;
 		}
 
 		/// <summary>
@@ -301,8 +289,8 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="options">Options</param>
 		public PEHeaders(PEHeadersOptions options) {
 			this.options = options ?? new PEHeadersOptions();
-			this.sectionAlignment = this.options.SectionAlignment ?? 0x2000;
-			this.fileAlignment = this.options.FileAlignment ?? 0x200;
+			sectionAlignment = this.options.SectionAlignment ?? 0x2000;
+			fileAlignment = this.options.FileAlignment ?? 0x200;
 		}
 
 		/// <inheritdoc/>
@@ -333,14 +321,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return length;
-		}
+		public uint GetFileLength() => length;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		IEnumerable<SectionSizeInfo> GetSectionSizeInfos() {
 			foreach (var section in sections) {
@@ -482,9 +466,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(checkSum);
 		}
 
-		Machine GetMachine() {
-			return options.Machine ?? Machine.I386;
-		}
+		Machine GetMachine() => options.Machine ?? Machine.I386;
 
 		bool Use32BitOptionalHeader() {
 			var mach = GetMachine();

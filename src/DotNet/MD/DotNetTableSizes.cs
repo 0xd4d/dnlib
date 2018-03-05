@@ -13,9 +13,7 @@ namespace dnlib.DotNet.MD {
 		bool bigBlob;
 		TableInfo[] tableInfos;
 
-		internal static bool IsSystemTable(Table table) {
-			return table < Table.Document;
-		}
+		internal static bool IsSystemTable(Table table) => table < Table.Document;
 
 		/// <summary>
 		/// Initializes the table sizes
@@ -65,7 +63,7 @@ namespace dnlib.DotNet.MD {
 				case ColumnSize.ResolutionScope:	info = CodedToken.ResolutionScope; break;
 				case ColumnSize.TypeOrMethodDef:	info = CodedToken.TypeOrMethodDef; break;
 				case ColumnSize.HasCustomDebugInformation:info = CodedToken.HasCustomDebugInformation; break;
-				default: throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));
+				default: throw new InvalidOperationException($"Invalid ColumnSize: {columnSize}");
 				}
 				uint maxRows = 0;
 				foreach (var tableType in info.TableTypes) {
@@ -90,7 +88,7 @@ namespace dnlib.DotNet.MD {
 				case ColumnSize.Blob:	return bigBlob ? 4 : 2;
 				}
 			}
-			throw new InvalidOperationException(string.Format("Invalid ColumnSize: {0}", columnSize));
+			throw new InvalidOperationException($"Invalid ColumnSize: {columnSize}");
 		}
 
 		/// <summary>
@@ -99,10 +97,8 @@ namespace dnlib.DotNet.MD {
 		/// <param name="majorVersion">Major table version</param>
 		/// <param name="minorVersion">Minor table version</param>
 		/// <returns>All table infos (not completely initialized)</returns>
-		public TableInfo[] CreateTables(byte majorVersion, byte minorVersion) {
-			int maxPresentTables;
-			return CreateTables(majorVersion, minorVersion, out maxPresentTables);
-		}
+		public TableInfo[] CreateTables(byte majorVersion, byte minorVersion) =>
+			CreateTables(majorVersion, minorVersion, out int maxPresentTables);
 
 		internal const int normalMaxTables = (int)Table.CustomDebugInformation + 1;
 

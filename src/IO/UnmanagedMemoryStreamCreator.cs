@@ -31,24 +31,22 @@ namespace dnlib.IO {
 		/// The file name
 		/// </summary>
 		public string FileName {
-			get { return theFileName; }
-			set { theFileName = value; }
+			get => theFileName;
+			set => theFileName = value;
 		}
 
 		/// <summary>
 		/// Size of the data
 		/// </summary>
 		public long Length {
-			get { return dataLength; }
-			set { dataLength = value; }
+			get => dataLength;
+			set => dataLength = value;
 		}
 
 		/// <summary>
 		/// Returns the base address of the data
 		/// </summary>
-		public IntPtr Address {
-			get { return data; }
-		}
+		public IntPtr Address => data;
 
 		public IntPtr UnsafeUseAddress {
 			get {
@@ -80,7 +78,7 @@ namespace dnlib.IO {
 		/// <exception cref="ArgumentOutOfRangeException">If one of the args is invalid</exception>
 		public UnmanagedMemoryStreamCreator(IntPtr data, long dataLength) {
 			if (dataLength < 0)
-				throw new ArgumentOutOfRangeException("dataLength");
+				throw new ArgumentOutOfRangeException(nameof(dataLength));
 			this.data = data;
 			this.dataLength = dataLength;
 		}
@@ -96,9 +94,7 @@ namespace dnlib.IO {
 		}
 
 		/// <inheritdoc/>
-		public IImageStream CreateFull() {
-			return new UnmanagedMemoryImageStream(this, 0, 0, dataLength);
-		}
+		public IImageStream CreateFull() => new UnmanagedMemoryImageStream(this, 0, 0, dataLength);
 
 		/// <inheritdoc/>
 		public void Dispose() {

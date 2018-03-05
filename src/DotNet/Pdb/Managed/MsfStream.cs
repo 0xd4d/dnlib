@@ -6,7 +6,7 @@ using dnlib.IO;
 namespace dnlib.DotNet.Pdb.Managed {
 	sealed class MsfStream {
 		public MsfStream(IImageStream[] pages, uint length) {
-			byte[] buf = new byte[length];
+			var buf = new byte[length];
 			int offset = 0;
 			foreach (var page in pages) {
 				page.Position = 0;

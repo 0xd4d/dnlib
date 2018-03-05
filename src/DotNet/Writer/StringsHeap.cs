@@ -32,15 +32,11 @@ namespace dnlib.DotNet.Writer {
 			public readonly UTF8String Value;
 			public readonly uint StringsId;
 			public uint StringsOffset;
-			public override string ToString() {
-				return string.Format("{0:X8} {1:X4} {2}", StringsId, StringsOffset, Value.String);
-			}
+			public override string ToString() => $"{StringsId:X8} {StringsOffset:X4} {Value.String}";
 		}
 
 		/// <inheritdoc/>
-		public override string Name {
-			get { return "#Strings"; }
-		}
+		public override string Name => "#Strings";
 
 		/// <summary>
 		/// Populates strings from an existing <see cref="StringsStream"/> (eg. to preserve
@@ -142,11 +138,9 @@ namespace dnlib.DotNet.Writer {
 			if (UTF8String.IsNullOrEmpty(s))
 				return 0;
 
-			StringsOffsetInfo info;
-			if (toStringsOffsetInfo.TryGetValue(s, out info))
+			if (toStringsOffsetInfo.TryGetValue(s, out var info))
 				return info.StringsId;
-			uint offset;
-			if (cachedDict.TryGetValue(s, out offset))
+			if (cachedDict.TryGetValue(s, out uint offset))
 				return offset;
 
 			if (Array.IndexOf(s.Data, (byte)0) >= 0)
@@ -171,12 +165,11 @@ namespace dnlib.DotNet.Writer {
 				throw new ModuleWriterException("This method can only be called after all strings have been added and this heap is read-only");
 			if ((offsetId & STRINGS_ID_FLAG) == 0)
 				return offsetId;
-			StringsOffsetInfo info;
-			if (offsetIdToInfo.TryGetValue(offsetId, out info)) {
+			if (offsetIdToInfo.TryGetValue(offsetId, out var info)) {
 				Debug.Assert(info.StringsOffset != 0);
 				return info.StringsOffset;
 			}
-			throw new ArgumentOutOfRangeException("offsetId");
+			throw new ArgumentOutOfRangeException(nameof(offsetId));
 		}
 
 		/// <summary>
@@ -203,9 +196,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetRawLength() {
-			return nextOffset;
-		}
+		public override uint GetRawLength() => nextOffset;
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(BinaryWriter writer) {
@@ -216,8 +207,7 @@ namespace dnlib.DotNet.Writer {
 
 			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
-				byte[] rawData;
-				if (userRawData != null && userRawData.TryGetValue(offset, out rawData)) {
+				if (userRawData != null && userRawData.TryGetValue(offset, out var rawData)) {
 					if (rawData.Length != s.Data.Length + 1)
 						throw new InvalidOperationException("Invalid length of raw data");
 					writer.Write(rawData);
@@ -231,17 +221,13 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public int GetRawDataSize(UTF8String data) {
-			return data.Data.Length + 1;
-		}
+		public int GetRawDataSize(UTF8String data) => data.Data.Length + 1;
 
 		/// <inheritdoc/>
 		public void SetRawData(uint offset, byte[] rawData) {
-			if (rawData == null)
-				throw new ArgumentNullException("rawData");
 			if (userRawData == null)
 				userRawData = new Dictionary<uint, byte[]>();
-			userRawData[offset] = rawData;
+			userRawData[offset] = rawData ?? throw new ArgumentNullException(nameof(rawData));
 		}
 
 		/// <inheritdoc/>

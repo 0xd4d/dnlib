@@ -50,9 +50,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="flags">Flags</param>
-		public Cor20HeaderOptions(ComImageFlags flags) {
-			this.Flags = flags;
-		}
+		public Cor20HeaderOptions(ComImageFlags flags) => Flags = flags;
 
 		/// <summary>
 		/// Constructor
@@ -61,9 +59,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="minor">Minor runtime version (default is <see cref="DEFAULT_MINOR_RT_VER"/>)</param>
 		/// <param name="flags">Flags</param>
 		public Cor20HeaderOptions(ushort major, ushort minor, ComImageFlags flags) {
-			this.MajorRuntimeVersion = major;
-			this.MinorRuntimeVersion = minor;
-			this.Flags = flags;
+			MajorRuntimeVersion = major;
+			MinorRuntimeVersion = minor;
+			Flags = flags;
 		}
 	}
 
@@ -93,22 +91,16 @@ namespace dnlib.DotNet.Writer {
 		internal IChunk VtableFixups { get; set; }
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Options</param>
-		public ImageCor20Header(Cor20HeaderOptions options) {
-			this.options = options;
-		}
+		public ImageCor20Header(Cor20HeaderOptions options) => this.options = options;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -117,14 +109,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return 0x48;
-		}
+		public uint GetFileLength() => 0x48;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {

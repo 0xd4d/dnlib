@@ -64,27 +64,25 @@ namespace dnlib.DotNet.Writer {
 
 		CustomAttributeWriter(ICustomAttributeWriterHelper helper) {
 			this.helper = helper;
-			this.recursionCounter = new RecursionCounter();
-			this.outStream = new MemoryStream();
-			this.writer = new BinaryWriter(outStream);
-			this.genericArguments = null;
-			this.disposeStream = true;
+			recursionCounter = new RecursionCounter();
+			outStream = new MemoryStream();
+			writer = new BinaryWriter(outStream);
+			genericArguments = null;
+			disposeStream = true;
 		}
 
 		CustomAttributeWriter(ICustomAttributeWriterHelper helper, BinaryWriterContext context) {
 			this.helper = helper;
-			this.recursionCounter = new RecursionCounter();
-			this.outStream = context.OutStream;
-			this.writer = context.Writer;
-			this.genericArguments = null;
-			this.disposeStream = false;
+			recursionCounter = new RecursionCounter();
+			outStream = context.OutStream;
+			writer = context.Writer;
+			genericArguments = null;
+			disposeStream = false;
 			outStream.SetLength(0);
 			outStream.Position = 0;
 		}
 
-		byte[] GetResult() {
-			return outStream.ToArray();
-		}
+		byte[] GetResult() => outStream.ToArray();
 
 		void Write(CustomAttribute ca) {
 			if (ca == null) {
@@ -119,18 +117,9 @@ namespace dnlib.DotNet.Writer {
 			if (ca.NamedArguments.Count > ushort.MaxValue)
 				helper.Error("Custom attribute has too many named arguments");
 
-			// A generic custom attribute isn't allowed by most .NET languages (eg. C#) but
-			// the CLR probably supports it.
-			var mrCtor = ca.Constructor as MemberRef;
-			if (mrCtor != null) {
-				var owner = mrCtor.Class as TypeSpec;
-				if (owner != null) {
-					var gis = owner.TypeSig as GenericInstSig;
-					if (gis != null) {
-						genericArguments = new GenericArguments();
-						genericArguments.PushTypeArgs(gis.GenericArguments);
-					}
-				}
+			if (ca.Constructor is MemberRef mrCtor && mrCtor.Class is TypeSpec owner && owner.TypeSig is GenericInstSig gis) {
+				genericArguments = new GenericArguments();
+				genericArguments.PushTypeArgs(gis.GenericArguments);
 			}
 
 			writer.Write((ushort)1);
@@ -155,9 +144,7 @@ namespace dnlib.DotNet.Writer {
 				Write(namedArgs[i]);
 		}
 
-		TypeSig FixTypeSig(TypeSig type) {
-			return SubstituteGenericParameter(type.RemoveModifiers()).RemoveModifiers();
-		}
+		TypeSig FixTypeSig(TypeSig type) => SubstituteGenericParameter(type.RemoveModifiers()).RemoveModifiers();
 
 		TypeSig SubstituteGenericParameter(TypeSig type) {
 			if (genericArguments == null)
@@ -175,8 +162,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			var arrayType = argType as SZArraySig;
-			if (arrayType != null) {
+			if (argType is SZArraySig arrayType) {
 				var argsArray = value.Value as IList<CAArgument>;
 				if (argsArray == null && value.Value != null)
 					helper.Error("CAArgument.Value is not null or an array");
@@ -252,8 +238,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static ulong ToUInt64(object o) {
-			ulong result;
-			ToUInt64(o, out result);
+			ToUInt64(o, out ulong result);
 			return result;
 		}
 
@@ -318,8 +303,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static double ToDouble(object o) {
-			double result;
-			ToDouble(o, out result);
+			ToDouble(o, out double result);
 			return result;
 		}
 
@@ -512,8 +496,7 @@ namespace dnlib.DotNet.Writer {
 				tdr = ((TypeDefOrRefSig)argType).TypeDefOrRef;
 				if (CheckCorLibType(argType, "Type")) {
 					if (CheckCorLibType(value.Type, "Type")) {
-						var ts = value.Value as TypeSig;
-						if (ts != null)
+						if (value.Value is TypeSig ts)
 							WriteType(ts);
 						else if (value.Value == null)
 							WriteUTF8String(null);
@@ -621,8 +604,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if we couldn't resolve the
 		/// <see cref="TypeRef"/> or if <paramref name="type"/> is a type spec</returns>
 		static TypeDef GetTypeDef(TypeSig type) {
-			var tdr = type as TypeDefOrRefSig;
-			if (tdr != null) {
+			if (type is TypeDefOrRefSig tdr) {
 				var td = tdr.TypeDef;
 				if (td != null)
 					return td;
@@ -754,9 +736,7 @@ namespace dnlib.DotNet.Writer {
 			return tdr.TypeName == name && tdr.Namespace == "System";
 		}
 
-		static MethodSig GetMethodSig(ICustomAttributeType ctor) {
-			return ctor == null ? null : ctor.MethodSig;
-		}
+		static MethodSig GetMethodSig(ICustomAttributeType ctor) => ctor?.MethodSig;
 
 		void WriteUTF8String(UTF8String s) {
 			if ((object)s == null || s.Data == null)

@@ -67,33 +67,25 @@ namespace dnlib.DotNet.Writer {
 
 		SignatureWriter(ISignatureWriterHelper helper) {
 			this.helper = helper;
-			this.recursionCounter = new RecursionCounter();
-			this.outStream = new MemoryStream();
-			this.writer = new BinaryWriter(outStream);
-			this.disposeStream = true;
+			recursionCounter = new RecursionCounter();
+			outStream = new MemoryStream();
+			writer = new BinaryWriter(outStream);
+			disposeStream = true;
 		}
 
 		SignatureWriter(ISignatureWriterHelper helper, BinaryWriterContext context) {
 			this.helper = helper;
-			this.recursionCounter = new RecursionCounter();
-			this.outStream = context.OutStream;
-			this.writer = context.Writer;
-			this.disposeStream = false;
+			recursionCounter = new RecursionCounter();
+			outStream = context.OutStream;
+			writer = context.Writer;
+			disposeStream = false;
 			outStream.SetLength(0);
 			outStream.Position = 0;
 		}
 
-		byte[] GetResult() {
-			return outStream.ToArray();
-		}
-
-		uint WriteCompressedUInt32(uint value) {
-			return writer.WriteCompressedUInt32(helper, value);
-		}
-
-		int WriteCompressedInt32(int value) {
-			return writer.WriteCompressedInt32(helper, value);
-		}
+		byte[] GetResult() => outStream.ToArray();
+		uint WriteCompressedUInt32(uint value) => writer.WriteCompressedUInt32(helper, value);
+		int WriteCompressedInt32(int value) => writer.WriteCompressedInt32(helper, value);
 
 		void Write(TypeSig typeSig) {
 			const ElementType DEFAULT_ELEMENT_TYPE = ElementType.Boolean;

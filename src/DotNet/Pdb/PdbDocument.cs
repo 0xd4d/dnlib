@@ -48,21 +48,15 @@ namespace dnlib.DotNet.Pdb {
 		public byte[] CheckSum { get; set; }
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 22; }
-		}
+		public int HasCustomDebugInformationTag => 22;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
 		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 
 		/// <summary>
@@ -77,13 +71,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="symDoc">A <see cref="SymbolDocument"/> instance</param>
 		public PdbDocument(SymbolDocument symDoc) {
 			if (symDoc == null)
-				throw new ArgumentNullException("symDoc");
-			this.Url = symDoc.URL;
-			this.Language = symDoc.Language;
-			this.LanguageVendor = symDoc.LanguageVendor;
-			this.DocumentType = symDoc.DocumentType;
-			this.CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
-			this.CheckSum = symDoc.CheckSum;
+				throw new ArgumentNullException(nameof(symDoc));
+			Url = symDoc.URL;
+			Language = symDoc.Language;
+			LanguageVendor = symDoc.LanguageVendor;
+			DocumentType = symDoc.DocumentType;
+			CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
+			CheckSum = symDoc.CheckSum;
 			foreach (var cdi in symDoc.CustomDebugInfos)
 				customDebugInfos.Add(cdi);
 		}
@@ -98,18 +92,16 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="checkSumAlgorithmId">Checksum algorithm ID. See <see cref="PdbDocumentConstants"/></param>
 		/// <param name="checkSum">Checksum</param>
 		public PdbDocument(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum) {
-			this.Url = url;
-			this.Language = language;
-			this.LanguageVendor = languageVendor;
-			this.DocumentType = documentType;
-			this.CheckSumAlgorithmId = checkSumAlgorithmId;
-			this.CheckSum = checkSum;
+			Url = url;
+			Language = language;
+			LanguageVendor = languageVendor;
+			DocumentType = documentType;
+			CheckSumAlgorithmId = checkSumAlgorithmId;
+			CheckSum = checkSum;
 		}
 
 		/// <inheritdoc/>
-		public override int GetHashCode() {
-			return (Url ?? string.Empty).ToUpperInvariant().GetHashCode();
-		}
+		public override int GetHashCode() => (Url ?? string.Empty).ToUpperInvariant().GetHashCode();
 
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {

@@ -30,9 +30,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		Dictionary<int, DbiFunction> functions;
 		uint entryPt;
 
-		public override PdbFileKind PdbFileKind {
-			get { return PdbFileKind.WindowsPDB; }
-		}
+		public override PdbFileKind PdbFileKind => PdbFileKind.WindowsPDB;
 
 		/// <summary>
 		/// The age of PDB file.
@@ -43,9 +41,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// </summary>
 		public Guid Guid { get; private set; }
 
-		public override void Initialize(ModuleDef module) {
-			this.module = module;
-		}
+		public override void Initialize(ModuleDef module) => this.module = module;
 
 		/// <summary>
 		/// Read the PDB in the specified stream.
@@ -68,9 +64,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		static uint RoundUpDiv(uint value, uint divisor) {
-			return (value + divisor - 1) / divisor;
-		}
+		static uint RoundUpDiv(uint value, uint divisor) => (value + divisor - 1) / divisor;
 
 		void ReadInternal(IImageStream stream) {
 			stream.Position = 0;
@@ -137,13 +131,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		bool IsValidStreamIndex(ushort index) {
-			return index != STREAM_INVALID_INDEX && index < streams.Length;
-		}
+		bool IsValidStreamIndex(ushort index) => index != STREAM_INVALID_INDEX && index < streams.Length;
 
 		void ReadRootDirectory(MsfStream stream, IImageStream[] pages, uint pageSize) {
 			uint streamNum = stream.Content.ReadUInt32();
-			uint[] streamSizes = new uint[streamNum];
+			var streamSizes = new uint[streamNum];
 			for (int i = 0; i < streamSizes.Length; i++)
 				streamSizes[i] = stream.Content.ReadUInt32();
 
@@ -193,8 +185,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		void ReadStringTable() {
-			uint streamId;
-			if (!names.TryGetValue("/names", out streamId))
+			if (!names.TryGetValue("/names", out uint streamId))
 				throw new PdbException("String table not found");
 
 			var stream = streams[streamId].Content;
@@ -261,12 +252,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 		internal DbiDocument GetDocument(uint nameId) {
 			var name = strings[nameId];
 
-			DbiDocument doc;
-			if (!documents.TryGetValue(name, out doc)) {
+			if (!documents.TryGetValue(name, out var doc)) {
 				doc = new DbiDocument(name);
 
-				uint streamId;
-				if (names.TryGetValue("/src/files/" + name, out streamId))
+				if (names.TryGetValue("/src/files/" + name, out uint streamId))
 					doc.Read(streams[streamId].Content);
 				documents.Add(name, doc);
 			}
@@ -327,8 +316,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
-			DbiFunction symMethod;
-			if (functions.TryGetValue(method.MDToken.ToInt32(), out symMethod))
+			if (functions.TryGetValue(method.MDToken.ToInt32(), out var symMethod))
 				return symMethod;
 			return null;
 		}
@@ -347,9 +335,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 		volatile SymbolDocument[] documentsResult;
 
-		public override int UserEntryPoint {
-			get { return (int)entryPt; }
-		}
+		public override int UserEntryPoint => (int)entryPt;
 
 		internal void GetCustomDebugInfos(DbiFunction symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			const string CDI_NAME = "MD2";

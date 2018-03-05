@@ -13,9 +13,7 @@ namespace dnlib.DotNet.Writer {
 		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>
-		public override string Name {
-			get { return "#GUID"; }
-		}
+		public override string Name => "#GUID";
 
 		/// <summary>
 		/// Adds a guid to the #GUID heap
@@ -28,8 +26,7 @@ namespace dnlib.DotNet.Writer {
 			if (guid == null)
 				return 0;
 
-			uint index;
-			if (guids.TryGetValue(guid.Value, out index))
+			if (guids.TryGetValue(guid.Value, out uint index))
 				return index;
 
 			index = (uint)guids.Count + 1;
@@ -38,16 +35,13 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetRawLength() {
-			return (uint)guids.Count * 16;
-		}
+		public override uint GetRawLength() => (uint)guids.Count * 16;
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(BinaryWriter writer) {
 			uint offset = 0;
 			foreach (var kv in guids) {
-				byte[] rawData;
-				if (userRawData == null || !userRawData.TryGetValue(offset, out rawData))
+				if (userRawData == null || !userRawData.TryGetValue(offset, out var rawData))
 					rawData = kv.Key.ToByteArray();
 				writer.Write(rawData);
 				offset += 16;
@@ -55,9 +49,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public int GetRawDataSize(Guid data) {
-			return 16;
-		}
+		public int GetRawDataSize(Guid data) => 16;
 
 		/// <inheritdoc/>
 		public void SetRawData(uint offset, byte[] rawData) {

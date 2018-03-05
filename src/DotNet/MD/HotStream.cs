@@ -86,7 +86,7 @@ namespace dnlib.DotNet.MD {
 			: base(imageStream, streamHeader) {
 			this.fullStream = fullStream;
 			this.baseOffset = (long)baseOffset;
-			this.endOffset = (long)baseOffset + imageStream.Length;
+			endOffset = (long)baseOffset + imageStream.Length;
 		}
 
 		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0
@@ -121,9 +121,7 @@ namespace dnlib.DotNet.MD {
 				long dirBaseOffs = GetHotHeapDirectoryBaseOffset();
 				for (long offs = dirBaseOffs; offs + 8 <= endOffset - 8; offs += 8) {
 					fullStream.Position = offs;
-					HeapType heapType;
-					long hotHeapOffset;
-					ReadHotHeapDirectory(fullStream, dirBaseOffs, out heapType, out hotHeapOffset);
+					ReadHotHeapDirectory(fullStream, dirBaseOffs, out var heapType, out long hotHeapOffset);
 
 					IImageStream dataStream = null;
 					HotHeapStream hotHeapStream = null;
@@ -251,9 +249,8 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override HotHeapStream CreateHotHeapStream(HeapType heapType, IImageStream stream, long baseOffset) {
-			return new HotHeapStreamCLR20(heapType, stream, baseOffset);
-		}
+		protected override HotHeapStream CreateHotHeapStream(HeapType heapType, IImageStream stream, long baseOffset) =>
+			new HotHeapStreamCLR20(heapType, stream, baseOffset);
 	}
 
 	/// <summary>
@@ -299,8 +296,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override HotHeapStream CreateHotHeapStream(HeapType heapType, IImageStream stream, long baseOffset) {
-			return new HotHeapStreamCLR40(heapType, stream, baseOffset);
-		}
+		protected override HotHeapStream CreateHotHeapStream(HeapType heapType, IImageStream stream, long baseOffset) =>
+			new HotHeapStreamCLR40(heapType, stream, baseOffset);
 	}
 }

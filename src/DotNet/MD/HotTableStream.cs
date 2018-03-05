@@ -41,8 +41,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="rid">A valid row ID (i.e., &gt;= <c>1</c> and &lt;= number of rows)</param>
 		/// <returns>The reader (owned by us) or <c>null</c> if the row isn't present</returns>
 		public IImageStream GetTableReader(MDTable table, uint rid) {
-			long offset;
-			if (GetRowOffset(table, rid, out offset)) {
+			if (GetRowOffset(table, rid, out long offset)) {
 				fullStream.Position = offset;
 				return fullStream;
 			}

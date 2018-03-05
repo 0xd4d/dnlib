@@ -18,23 +18,17 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// The offset of the stream relative to the start of the MetaData header
 		/// </summary>
-		public uint Offset {
-			get { return offset; }
-		}
+		public uint Offset => offset;
 
 		/// <summary>
 		/// The size of the stream
 		/// </summary>
-		public uint StreamSize {
-			get { return streamSize; }
-		}
+		public uint StreamSize => streamSize;
 
 		/// <summary>
 		/// The name of the stream
 		/// </summary>
-		public string Name {
-			get { return name; }
-		}
+		public string Name => name;
 
 		/// <summary>
 		/// Constructor
@@ -44,9 +38,9 @@ namespace dnlib.DotNet.MD {
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
 		public StreamHeader(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
-			this.offset = reader.ReadUInt32();
-			this.streamSize = reader.ReadUInt32();
-			this.name = ReadString(reader, 32, verify);
+			offset = reader.ReadUInt32();
+			streamSize = reader.ReadUInt32();
+			name = ReadString(reader, 32, verify);
 			SetEndoffset(reader);
 			if (verify && offset + size < offset)
 				throw new BadImageFormatException("Invalid stream header");

@@ -39,8 +39,6 @@ namespace dnlib.IO {
 		/// <param name="self">this</param>
 		/// <param name="offset">Offset within the original data</param>
 		/// <returns>A new stream</returns>
-		public static IImageStream Create(this IImageStreamCreator self, FileOffset offset) {
-			return self.Create(offset, long.MaxValue);
-		}
+		public static IImageStream Create(this IImageStreamCreator self, FileOffset offset) => self.Create(offset, long.MaxValue);
 	}
 }

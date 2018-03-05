@@ -21,9 +21,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="data">Data</param>
 		/// <returns>A new <see cref="MemoryImageStream"/> instance</returns>
-		public static MemoryImageStream Create(byte[] data) {
-			return new MemoryImageStream(0, data, 0, data.Length);
-		}
+		public static MemoryImageStream Create(byte[] data) => new MemoryImageStream(0, data, 0, data.Length);
 
 		/// <summary>
 		/// Creates a new <see cref="MemoryImageStream"/> instance
@@ -32,9 +30,7 @@ namespace dnlib.IO {
 		/// <param name="offset">Start offset in <paramref name="data"/></param>
 		/// <param name="len">Length of data</param>
 		/// <returns>A new <see cref="MemoryImageStream"/> instance</returns>
-		public static MemoryImageStream Create(byte[] data, int offset, int len) {
-			return new MemoryImageStream(0, data, offset, len);
-		}
+		public static MemoryImageStream Create(byte[] data, int offset, int len) => new MemoryImageStream(0, data, offset, len);
 
 		/// <summary>
 		/// Constructor
@@ -47,37 +43,29 @@ namespace dnlib.IO {
 			this.fileOffset = fileOffset;
 			this.data = data;
 			this.dataOffset = dataOffset;
-			this.dataEnd = dataOffset + dataLength;
-			this.position = dataOffset;
+			dataEnd = dataOffset + dataLength;
+			position = dataOffset;
 		}
 
 		/// <summary>
 		/// Gets the data
 		/// </summary>
-		internal byte[] DataArray {
-			get { return data; }
-		}
+		internal byte[] DataArray => data;
 
 		/// <summary>
 		/// Gets the start of the data in <see cref="DataArray"/> used by this stream
 		/// </summary>
-		internal int DataOffset {
-			get { return dataOffset; }
-		}
+		internal int DataOffset => dataOffset;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return fileOffset; }
-		}
+		public FileOffset FileOffset => fileOffset;
 
 		/// <inheritdoc/>
-		public long Length {
-			get { return dataEnd - dataOffset; }
-		}
+		public long Length => dataEnd - dataOffset;
 
 		/// <inheritdoc/>
 		public long Position {
-			get { return position - dataOffset; }
+			get => position - dataOffset;
 			set {
 				long newPos = dataOffset + value;
 				if (newPos < dataOffset || newPos > int.MaxValue)
@@ -89,9 +77,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// Creates an empty <see cref="MemoryImageStream"/> instance
 		/// </summary>
-		public static MemoryImageStream CreateEmpty() {
-			return new MemoryImageStream(0, new byte[0], 0, 0);
-		}
+		public static MemoryImageStream CreateEmpty() => new MemoryImageStream(0, new byte[0], 0, 0);
 
 		/// <inheritdoc/>
 		public IImageStream Create(FileOffset offset, long length) {

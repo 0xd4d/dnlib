@@ -3,7 +3,7 @@
 ﻿using System.Collections.Generic;
 
 namespace dnlib.DotNet {
-	struct GenericArgumentsStack {
+	readonly struct GenericArgumentsStack {
 		readonly List<IList<TypeSig>> argsStack;
 		readonly bool isTypeVar;
 
@@ -12,7 +12,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="isTypeVar"><c>true</c> if it's for generic types, <c>false</c> if generic methods</param>
 		public GenericArgumentsStack(bool isTypeVar) {
-			this.argsStack = new List<IList<TypeSig>>();
+			argsStack = new List<IList<TypeSig>>();
 			this.isTypeVar = isTypeVar;
 		}
 
@@ -20,9 +20,7 @@ namespace dnlib.DotNet {
 		/// Pushes generic arguments
 		/// </summary>
 		/// <param name="args">The generic arguments</param>
-		public void Push(IList<TypeSig> args) {
-			argsStack.Add(args);
-		}
+		public void Push(IList<TypeSig> args) => argsStack.Add(args);
 
 		/// <summary>
 		/// Pops generic arguments
@@ -68,33 +66,25 @@ namespace dnlib.DotNet {
 		/// Pushes generic arguments
 		/// </summary>
 		/// <param name="typeArgs">The generic arguments</param>
-		public void PushTypeArgs(IList<TypeSig> typeArgs) {
-			typeArgsStack.Push(typeArgs);
-		}
+		public void PushTypeArgs(IList<TypeSig> typeArgs) => typeArgsStack.Push(typeArgs);
 
 		/// <summary>
 		/// Pops generic arguments
 		/// </summary>
 		/// <returns>The popped generic arguments</returns>
-		public IList<TypeSig> PopTypeArgs() {
-			return typeArgsStack.Pop();
-		}
+		public IList<TypeSig> PopTypeArgs() => typeArgsStack.Pop();
 
 		/// <summary>
 		/// Pushes generic arguments
 		/// </summary>
 		/// <param name="methodArgs">The generic arguments</param>
-		public void PushMethodArgs(IList<TypeSig> methodArgs) {
-			methodArgsStack.Push(methodArgs);
-		}
+		public void PushMethodArgs(IList<TypeSig> methodArgs) => methodArgsStack.Push(methodArgs);
 
 		/// <summary>
 		/// Pops generic arguments
 		/// </summary>
 		/// <returns>The popped generic arguments</returns>
-		public IList<TypeSig> PopMethodArgs() {
-			return methodArgsStack.Pop();
-		}
+		public IList<TypeSig> PopMethodArgs() => methodArgsStack.Pop();
 
 		/// <summary>
 		/// Replaces a generic type/method var with its generic argument (if any). If
@@ -110,16 +100,14 @@ namespace dnlib.DotNet {
 
 			var sig = typeSig;
 
-			var genericMVar = sig as GenericMVar;
-			if (genericMVar != null) {
+			if (sig is GenericMVar genericMVar) {
 				var newSig = methodArgsStack.Resolve(genericMVar.Number);
 				if (newSig == null || newSig == sig)
 					return sig;
 				return newSig;
 			}
 
-			var genericVar = sig as GenericVar;
-			if (genericVar != null) {
+			if (sig is GenericVar genericVar) {
 				var newSig = typeArgsStack.Resolve(genericVar.Number);
 				if (newSig == null || newSig == sig)
 					return sig;

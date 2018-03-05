@@ -230,13 +230,12 @@ namespace dnlib.Threading {
 		/// <param name="arg">Passed to <paramref name="handler"/></param>
 		/// <param name="handler">Handler that should execute when the lock is held</param>
 		/// <returns>The value <paramref name="handler"/> returns</returns>
-		public static TRetType ExecuteLocked<T, TArgType, TRetType>(this ThreadSafe.IList<T> tsList, TArgType arg, ExecuteLockedDelegate<T, TArgType, TRetType> handler) {
+		public static TRetType ExecuteLocked<T, TArgType, TRetType>(this ThreadSafe.IList<T> tsList, TArgType arg, ExecuteLockedDelegate<T, TArgType, TRetType> handler) =>
 #if THREAD_SAFE
-			return tsList.ExecuteLocked<TArgType, TRetType>(arg, handler);
+			tsList.ExecuteLocked<TArgType, TRetType>(arg, handler);
 #else
-			return handler(tsList, arg);
+			handler(tsList, arg);
 #endif
-		}
 
 #if THREAD_SAFE
 		/// <summary>
@@ -248,7 +247,7 @@ namespace dnlib.Threading {
 		/// <param name="startIndex">Start index</param>
 		/// <param name="endIndex">End index. <c>-1</c> means <see cref="ThreadSafe.IList{T}.Count_NoLock"/></param>
 		/// <param name="reverseOrder"><c>true</c> if we should iterate in the reverse order</param>
-		public static void Iterate<T>(this ThreadSafe.IList<T> tsList, int startIndex, int endIndex, bool reverseOrder, IterateDelegate<T> handler) {
+		public static void Iterate<T>(this ThreadSafe.IList<T> tsList, int startIndex, int endIndex, bool reverseOrder, IterateDelegate<T> handler) =>
 			tsList.ExecuteLocked<object, object>(null, (tsList2, arg) => {
 				if (reverseOrder) {
 					int i = (endIndex < 0 ? tsList2.Count_NoLock : endIndex) - 1;
@@ -266,7 +265,6 @@ namespace dnlib.Threading {
 				}
 				return null;
 			});
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="tsList"/> and calls <paramref name="handler"/>
@@ -274,9 +272,8 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="tsList">A thread-safe list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void Iterate<T>(this ThreadSafe.IList<T> tsList, IterateDelegate<T> handler) {
+		public static void Iterate<T>(this ThreadSafe.IList<T> tsList, IterateDelegate<T> handler) =>
 			tsList.Iterate(0, -1, false, handler);
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="tsList"/> and calls <paramref name="handler"/>
@@ -284,12 +281,11 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="tsList">A thread-safe list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void IterateAll<T>(this ThreadSafe.IList<T> tsList, IterateAllDelegate<T> handler) {
+		public static void IterateAll<T>(this ThreadSafe.IList<T> tsList, IterateAllDelegate<T> handler) =>
 			tsList.Iterate(0, -1, false, (tsList2, index, value) => {
 				handler(tsList2, index, value);
 				return true;
 			});
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="tsList"/> in the reverse order and calls
@@ -298,9 +294,8 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="tsList">A thread-safe list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void IterateReverse<T>(this ThreadSafe.IList<T> tsList, IterateDelegate<T> handler) {
+		public static void IterateReverse<T>(this ThreadSafe.IList<T> tsList, IterateDelegate<T> handler) =>
 			tsList.Iterate(0, -1, true, handler);
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="tsList"/> in the reverse order and calls
@@ -309,12 +304,11 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="tsList">A thread-safe list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void IterateAllReverse<T>(this ThreadSafe.IList<T> tsList, IterateAllDelegate<T> handler) {
+		public static void IterateAllReverse<T>(this ThreadSafe.IList<T> tsList, IterateAllDelegate<T> handler) =>
 			tsList.Iterate(0, -1, true, (tsList2, index, value) => {
 				handler(tsList2, index, value);
 				return true;
 			});
-		}
 #endif
 
 		/// <summary>
@@ -362,9 +356,8 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="list">A list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void Iterate<T>(this IList<T> list, ListIterateDelegate<T> handler) {
+		public static void Iterate<T>(this IList<T> list, ListIterateDelegate<T> handler) =>
 			list.Iterate(0, -1, false, handler);
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="list"/> and calls
@@ -374,12 +367,11 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="list">A list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void IterateAll<T>(this IList<T> list, ListIterateAllDelegate<T> handler) {
+		public static void IterateAll<T>(this IList<T> list, ListIterateAllDelegate<T> handler) =>
 			list.Iterate(0, -1, false, (list2, index, value) => {
 				handler(list2, index, value);
 				return true;
 			});
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="list"/> in the reverse order and calls
@@ -389,9 +381,8 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="list">A list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void IterateReverse<T>(this IList<T> list, ListIterateDelegate<T> handler) {
+		public static void IterateReverse<T>(this IList<T> list, ListIterateDelegate<T> handler) =>
 			list.Iterate(0, -1, true, handler);
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="list"/> in the reverse order and calls
@@ -401,12 +392,11 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="list">A list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void IterateAllReverse<T>(this IList<T> list, ListIterateAllDelegate<T> handler) {
+		public static void IterateAllReverse<T>(this IList<T> list, ListIterateAllDelegate<T> handler) =>
 			list.Iterate(0, -1, true, (list2, index, value) => {
 				handler(list2, index, value);
 				return true;
 			});
-		}
 
 		/// <summary>
 		/// Iterates over all elements in <paramref name="list"/> and calls
@@ -442,12 +432,11 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="list">A list</param>
 		/// <param name="handler">Called for each element</param>
-		public static void IterateAll<T>(this IEnumerable<T> list, EnumerableIterateAllDelegate<T> handler) {
+		public static void IterateAll<T>(this IEnumerable<T> list, EnumerableIterateAllDelegate<T> handler) =>
 			list.Iterate((index, value) => {
 				handler(index, value);
 				return true;
 			});
-		}
 
 		/// <summary>
 		/// Reads an element from the list. If <paramref name="list"/> implements
@@ -474,7 +463,7 @@ namespace dnlib.Threading {
 			catch (ArgumentOutOfRangeException) {
 			}
 #endif
-			value = default(T);
+			value = default;
 			return false;
 		}
 
@@ -488,10 +477,8 @@ namespace dnlib.Threading {
 		/// <param name="defaultValue">Default value if <paramref name="index"/> is invalid</param>
 		/// <returns>The value in the list or <paramref name="defaultValue"/> if
 		/// <paramref name="index"/> was invalid</returns>
-		public static T Get<T>(this IList<T> list, int index, T defaultValue) {
-			T value;
-			return list.Get(index, out value) ? value : defaultValue;
-		}
+		public static T Get<T>(this IList<T> list, int index, T defaultValue) =>
+			list.Get(index, out T value) ? value : defaultValue;
 
 		/// <summary>
 		/// Writes an element to the list. If <paramref name="list"/> implements
@@ -528,18 +515,16 @@ namespace dnlib.Threading {
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="tsList">A thread-safe list</param>
 		/// <returns>Number of elements in the list</returns>
-		public static int Count_NoLock<T>(this ThreadSafe.IList<T> tsList) {
-			return tsList.Count_NoLock;
-		}
+		public static int Count_NoLock<T>(this ThreadSafe.IList<T> tsList) =>
+			tsList.Count_NoLock;
 
 		/// <summary>
 		/// Calls <see cref="ThreadSafe.IList{T}.IsReadOnly_NoLock"/>
 		/// </summary>
 		/// <typeparam name="T">Type to store in list</typeparam>
 		/// <param name="tsList">A thread-safe list</param>
-		public static bool IsReadOnly_NoLock<T>(this ThreadSafe.IList<T> tsList) {
-			return tsList.IsReadOnly_NoLock;
-		}
+		public static bool IsReadOnly_NoLock<T>(this ThreadSafe.IList<T> tsList) =>
+			tsList.IsReadOnly_NoLock;
 #endif
 
 		/// <summary>

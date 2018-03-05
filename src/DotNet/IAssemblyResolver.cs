@@ -52,9 +52,7 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if <paramref name="module"/>'s assembly is cached, <c>false</c>
 		/// if it's not cached because some other assembly with the exact same full name has
 		/// already been cached or if <paramref name="module"/> or its assembly is <c>null</c>.</returns>
-		public static bool AddToCache(this IAssemblyResolver self, ModuleDef module) {
-			return module != null && self.AddToCache(module.Assembly);
-		}
+		public static bool AddToCache(this IAssemblyResolver self, ModuleDef module) => module != null && self.AddToCache(module.Assembly);
 
 		/// <summary>
 		/// Removes a module's assembly from the cache
@@ -64,9 +62,7 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if its assembly was removed, <c>false</c> if it wasn't removed
 		/// since it wasn't in the cache, it has no assembly, or <paramref name="module"/> was
 		/// <c>null</c></returns>
-		public static bool Remove(this IAssemblyResolver self, ModuleDef module) {
-			return module != null && self.Remove(module.Assembly);
-		}
+		public static bool Remove(this IAssemblyResolver self, ModuleDef module) => module != null && self.Remove(module.Assembly);
 
 		/// <summary>
 		/// Finds and returns an <see cref="AssemblyDef"/>
@@ -110,7 +106,7 @@ namespace dnlib.DotNet {
 			var asm = self.Resolve(assembly, sourceModule);
 			if (asm != null)
 				return asm;
-			throw new AssemblyResolveException(string.Format("Could not resolve assembly: {0}", assembly));
+			throw new AssemblyResolveException($"Could not resolve assembly: {assembly}");
 		}
 
 		/// <summary>
@@ -127,7 +123,7 @@ namespace dnlib.DotNet {
 			var asm = self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 			if (asm != null)
 				return asm;
-			throw new AssemblyResolveException(string.Format("Could not resolve assembly: {0}", assembly));
+			throw new AssemblyResolveException($"Could not resolve assembly: {assembly}");
 		}
 
 		/// <summary>
@@ -144,7 +140,7 @@ namespace dnlib.DotNet {
 			var asm = self.Resolve(new AssemblyNameInfo(asmFullName), sourceModule);
 			if (asm != null)
 				return asm;
-			throw new AssemblyResolveException(string.Format("Could not resolve assembly: {0}", asmFullName));
+			throw new AssemblyResolveException($"Could not resolve assembly: {asmFullName}");
 		}
 	}
 }

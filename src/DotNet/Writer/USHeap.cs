@@ -18,9 +18,7 @@ namespace dnlib.DotNet.Writer {
 		Dictionary<uint, byte[]> userRawData;
 
 		/// <inheritdoc/>
-		public override string Name {
-			get { return "#US"; }
-		}
+		public override string Name => "#US";
 
 		/// <summary>
 		/// Populates strings from an existing <see cref="USStream"/> (eg. to preserve
@@ -47,8 +45,7 @@ namespace dnlib.DotNet.Writer {
 			reader.Position = 1;
 			while (reader.Position < reader.Length) {
 				uint offset = (uint)reader.Position;
-				uint len;
-				if (!reader.ReadCompressedUInt32(out len)) {
+				if (!reader.ReadCompressedUInt32(out uint len)) {
 					if (offset == reader.Position)
 						reader.Position++;
 					continue;
@@ -81,8 +78,7 @@ namespace dnlib.DotNet.Writer {
 			if (s == null)
 				s = string.Empty;
 
-			uint offset;
-			if (cachedDict.TryGetValue(s, out offset))
+			if (cachedDict.TryGetValue(s, out uint offset))
 				return offset;
 			return AddToCache(s);
 		}
@@ -109,9 +105,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetRawLength() {
-			return nextOffset;
-		}
+		public override uint GetRawLength() => nextOffset;
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(BinaryWriter writer) {
@@ -123,8 +117,7 @@ namespace dnlib.DotNet.Writer {
 			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
 				int rawLen = GetRawDataSize(s);
-				byte[] rawData;
-				if (userRawData != null && userRawData.TryGetValue(offset, out rawData)) {
+				if (userRawData != null && userRawData.TryGetValue(offset, out var rawData)) {
 					if (rawData.Length != rawLen)
 						throw new InvalidOperationException("Invalid length of raw data");
 					writer.Write(rawData);
@@ -148,17 +141,13 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public int GetRawDataSize(string data) {
-			return Utils.GetCompressedUInt32Length((uint)data.Length * 2 + 1) + data.Length * 2 + 1;
-		}
+		public int GetRawDataSize(string data) => Utils.GetCompressedUInt32Length((uint)data.Length * 2 + 1) + data.Length * 2 + 1;
 
 		/// <inheritdoc/>
 		public void SetRawData(uint offset, byte[] rawData) {
-			if (rawData == null)
-				throw new ArgumentNullException("rawData");
 			if (userRawData == null)
 				userRawData = new Dictionary<uint, byte[]>();
-			userRawData[offset] = rawData;
+			userRawData[offset] = rawData ?? throw new ArgumentNullException(nameof(rawData));
 		}
 
 		/// <inheritdoc/>

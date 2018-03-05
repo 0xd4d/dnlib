@@ -38,33 +38,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return sb.ToString();
 		}
 
-		public override string URL {
-			get { return url; }
-		}
-
-		public override Guid Language {
-			get { return language; }
-		}
-
-		public override Guid LanguageVendor {
-			get { return languageVendor; }
-		}
-
-		public override Guid DocumentType {
-			get { return documentType; }
-		}
-
-		public override Guid CheckSumAlgorithmId {
-			get { return checkSumAlgorithmId; }
-		}
-
-		public override byte[] CheckSum {
-			get { return checkSum; }
-		}
-
-		public override PdbCustomDebugInfo[] CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
+		public override string URL => url;
+		public override Guid Language => language;
+		public override Guid LanguageVendor => languageVendor;
+		public override Guid DocumentType => documentType;
+		public override Guid CheckSumAlgorithmId => checkSumAlgorithmId;
+		public override byte[] CheckSum => checkSum;
+		public override PdbCustomDebugInfo[] CustomDebugInfos => customDebugInfos;
 
 		public SymbolDocumentImpl(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum, PdbCustomDebugInfo[] customDebugInfos) {
 			this.url = url;

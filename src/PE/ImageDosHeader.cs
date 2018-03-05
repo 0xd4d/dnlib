@@ -13,9 +13,7 @@ namespace dnlib.PE {
 		/// <summary>
 		/// File offset of the NT headers
 		/// </summary>
-		public uint NTHeadersOffset {
-			get { return ntHeadersOffset; }
-		}
+		public uint NTHeadersOffset => ntHeadersOffset;
 
 		/// <summary>
 		/// Constructor
@@ -29,7 +27,7 @@ namespace dnlib.PE {
 			if (verify && sig != 0x5A4D)
 				throw new BadImageFormatException("Invalid DOS signature");
 			reader.Position = (long)startOffset + 0x3C;
-			this.ntHeadersOffset = reader.ReadUInt32();
+			ntHeadersOffset = reader.ReadUInt32();
 			SetEndoffset(reader);
 		}
 	}

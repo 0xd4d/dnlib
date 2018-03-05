@@ -24,9 +24,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets the heap type
 		/// </summary>
-		public HeapType HeapType {
-			get { return heapType; }
-		}
+		public HeapType HeapType => heapType;
 
 		/// <summary>
 		/// Constructor
@@ -53,8 +51,7 @@ namespace dnlib.DotNet.MD {
 		/// be <c>(index - 1) * 16</c></param>
 		/// <returns>The reader (owned by us) or <c>null</c> if the data isn't present</returns>
 		public IImageStream GetBlobReader(uint originalHeapOffset) {
-			long dataOffset;
-			if (GetBlobOffset(originalHeapOffset, out dataOffset)) {
+			if (GetBlobOffset(originalHeapOffset, out long dataOffset)) {
 				reader.Position = dataOffset;
 				return reader;
 			}

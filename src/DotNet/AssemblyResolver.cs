@@ -53,10 +53,10 @@ namespace dnlib.DotNet {
 			public readonly IList<string> SubDirs;
 
 			public GacInfo(int version, string prefix, string path, IList<string> subDirs) {
-				this.Version = version;
-				this.Prefix = prefix;
-				this.Path = path;
-				this.SubDirs = subDirs;
+				Version = version;
+				Prefix = prefix;
+				Path = path;
+				SubDirs = subDirs;
 			}
 		}
 
@@ -146,8 +146,8 @@ namespace dnlib.DotNet {
 		/// Gets/sets the default <see cref="ModuleContext"/>
 		/// </summary>
 		public ModuleContext DefaultModuleContext {
-			get { return defaultModuleContext; }
-			set { defaultModuleContext = value; }
+			get => defaultModuleContext;
+			set => defaultModuleContext = value;
 		}
 
 		/// <summary>
@@ -156,8 +156,8 @@ namespace dnlib.DotNet {
 		/// assembly that is closest to the requested assembly.
 		/// </summary>
 		public bool FindExactMatch {
-			get { return findExactMatch; }
-			set { findExactMatch = value; }
+			get => findExactMatch;
+			set => findExactMatch = value;
 		}
 
 		/// <summary>
@@ -167,8 +167,8 @@ namespace dnlib.DotNet {
 		/// ignored if <see cref="FindExactMatch"/> is <c>true</c>.
 		/// </summary>
 		public bool EnableFrameworkRedirect {
-			get { return enableFrameworkRedirect; }
-			set { enableFrameworkRedirect = value; }
+			get => enableFrameworkRedirect;
+			set => enableFrameworkRedirect = value;
 		}
 
 		/// <summary>
@@ -177,31 +177,27 @@ namespace dnlib.DotNet {
 		/// enabled by default since these modules shouldn't be modified by the user.
 		/// </summary>
 		public bool EnableTypeDefCache {
-			get { return enableTypeDefCache; }
-			set { enableTypeDefCache = value; }
+			get => enableTypeDefCache;
+			set => enableTypeDefCache = value;
 		}
 
 		/// <summary>
 		/// true to search the Global Assembly Cache. Default value is true.
 		/// </summary>
 		public bool UseGAC {
-			get { return useGac; }
-			set { useGac = value; }
+			get => useGac;
+			set => useGac = value;
 		}
 
 		/// <summary>
 		/// Gets paths searched before trying the standard locations
 		/// </summary>
-		public ThreadSafe.IList<string> PreSearchPaths {
-			get { return preSearchPaths; }
-		}
+		public ThreadSafe.IList<string> PreSearchPaths => preSearchPaths;
 
 		/// <summary>
 		/// Gets paths searched after trying the standard locations
 		/// </summary>
-		public ThreadSafe.IList<string> PostSearchPaths {
-			get { return postSearchPaths; }
-		}
+		public ThreadSafe.IList<string> PostSearchPaths => postSearchPaths;
 
 		/// <summary>
 		/// Default constructor
@@ -226,7 +222,7 @@ namespace dnlib.DotNet {
 		/// paths, not just the module search paths and the GAC.</param>
 		public AssemblyResolver(ModuleContext defaultModuleContext, bool addOtherSearchPaths) {
 			this.defaultModuleContext = defaultModuleContext;
-			this.enableFrameworkRedirect = true;
+			enableFrameworkRedirect = true;
 			if (addOtherSearchPaths)
 				AddOtherSearchPaths(postSearchPaths);
 		}
@@ -242,7 +238,7 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			AssemblyDef resolvedAssembly = Resolve2(assembly, sourceModule);
+			var resolvedAssembly = Resolve2(assembly, sourceModule);
 			if (resolvedAssembly == null) {
 				string asmName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				string asmNameTrimmed = asmName.Trim();
@@ -266,9 +262,8 @@ namespace dnlib.DotNet {
 
 			var key1 = GetAssemblyNameKey(resolvedAssembly);
 			var key2 = GetAssemblyNameKey(assembly);
-			AssemblyDef asm1, asm2;
-			cachedAssemblies.TryGetValue(key1, out asm1);
-			cachedAssemblies.TryGetValue(key2, out asm2);
+			cachedAssemblies.TryGetValue(key1, out var asm1);
+			cachedAssemblies.TryGetValue(key2, out var asm2);
 
 			if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
 				// This assembly was just resolved
@@ -307,11 +302,10 @@ namespace dnlib.DotNet {
 			if (asm == null)
 				return false;
 			var asmKey = GetAssemblyNameKey(asm);
-			AssemblyDef cachedAsm;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (cachedAssemblies.TryGetValue(asmKey, out cachedAsm) && cachedAsm != null)
+			if (cachedAssemblies.TryGetValue(asmKey, out var cachedAsm) && cachedAsm != null)
 				return asm == cachedAsm;
 			cachedAssemblies[asmKey] = asm;
 			return true;
@@ -359,9 +353,7 @@ namespace dnlib.DotNet {
 		}
 
 		AssemblyDef Resolve2(IAssembly assembly, ModuleDef sourceModule) {
-			AssemblyDef resolvedAssembly;
-
-			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out resolvedAssembly))
+			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out var resolvedAssembly))
 				return resolvedAssembly;
 
 			var moduleContext = defaultModuleContext;
@@ -470,8 +462,7 @@ namespace dnlib.DotNet {
 		bool IsCached(AssemblyDef asm) {
 			if (asm == null)
 				return false;
-			AssemblyDef cachedAsm;
-			return cachedAssemblies.TryGetValue(GetAssemblyNameKey(asm), out cachedAsm) &&
+			return cachedAssemblies.TryGetValue(GetAssemblyNameKey(asm), out var cachedAsm) &&
 					cachedAsm == asm;
 		}
 
@@ -588,7 +579,7 @@ namespace dnlib.DotNet {
 				foreach (var subDir in gacInfo.SubDirs) {
 					var baseDir = Path.Combine(gacInfo.Path, subDir);
 					baseDir = Path.Combine(baseDir, asmSimpleName);
-					baseDir = Path.Combine(baseDir, string.Format("{0}{1}_{2}_{3}", gacInfo.Prefix, verString, cultureString, pktString));
+					baseDir = Path.Combine(baseDir, $"{gacInfo.Prefix}{verString}_{cultureString}_{pktString}");
 					var pathName = Path.Combine(baseDir, asmSimpleName + ".dll");
 					if (File.Exists(pathName))
 						yield return pathName;
@@ -661,11 +652,10 @@ namespace dnlib.DotNet {
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of all search paths to use for this module</returns>
 		IEnumerable<string> GetSearchPaths(ModuleDef module) {
-			ModuleDef keyModule = module;
+			var keyModule = module;
 			if (keyModule == null)
 				keyModule = nullModule;
-			IList<string> searchPaths;
-			if (moduleSearchPaths.TryGetValue(keyModule, out searchPaths))
+			if (moduleSearchPaths.TryGetValue(keyModule, out var searchPaths))
 				return searchPaths;
 			moduleSearchPaths[keyModule] = searchPaths = new List<string>(GetModuleSearchPaths(module));
 			return searchPaths;
@@ -678,9 +668,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of search paths</returns>
-		protected virtual IEnumerable<string> GetModuleSearchPaths(ModuleDef module) {
-			return GetModulePrivateSearchPaths(module);
-		}
+		protected virtual IEnumerable<string> GetModuleSearchPaths(ModuleDef module) => GetModulePrivateSearchPaths(module);
 
 		/// <summary>
 		/// Gets all private assembly search paths as found in the module's <c>.config</c> file.

@@ -17,22 +17,20 @@ namespace dnlib.DotNet {
 		protected uint rid;
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.ImplMap, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.ImplMap, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <summary>
 		/// From column ImplMap.MappingFlags
 		/// </summary>
 		public PInvokeAttributes Attributes {
-			get { return (PInvokeAttributes)attributes; }
-			set { attributes = (int)value; }
+			get => (PInvokeAttributes)attributes;
+			set => attributes = (int)value;
 		}
 		/// <summary>Attributes</summary>
 		protected int attributes;
@@ -41,8 +39,8 @@ namespace dnlib.DotNet {
 		/// From column ImplMap.ImportName
 		/// </summary>
 		public UTF8String Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 		/// <summary>Name</summary>
 		protected UTF8String name;
@@ -51,8 +49,8 @@ namespace dnlib.DotNet {
 		/// From column ImplMap.ImportScope
 		/// </summary>
 		public ModuleRef Module {
-			get { return module; }
-			set { module = value; }
+			get => module;
+			set => module = value;
 		}
 		/// <summary/>
 		protected ModuleRef module;
@@ -103,154 +101,124 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="PInvokeAttributes.NoMangle"/> bit
 		/// </summary>
 		public bool IsNoMangle {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.NoMangle) != 0; }
-			set { ModifyAttributes(value, PInvokeAttributes.NoMangle); }
+			get => ((PInvokeAttributes)attributes & PInvokeAttributes.NoMangle) != 0;
+			set => ModifyAttributes(value, PInvokeAttributes.NoMangle);
 		}
 
 		/// <summary>
 		/// Gets/sets the char set
 		/// </summary>
 		public PInvokeAttributes CharSet {
-			get { return (PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask; }
-			set { ModifyAttributes(~PInvokeAttributes.CharSetMask, value & PInvokeAttributes.CharSetMask); }
+			get => (PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask;
+			set => ModifyAttributes(~PInvokeAttributes.CharSetMask, value & PInvokeAttributes.CharSetMask);
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetNotSpec"/> is set
 		/// </summary>
-		public bool IsCharSetNotSpec {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetNotSpec; }
-		}
+		public bool IsCharSetNotSpec => ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetNotSpec;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetAnsi"/> is set
 		/// </summary>
-		public bool IsCharSetAnsi {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAnsi; }
-		}
+		public bool IsCharSetAnsi => ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAnsi;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetUnicode"/> is set
 		/// </summary>
-		public bool IsCharSetUnicode {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetUnicode; }
-		}
+		public bool IsCharSetUnicode => ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetUnicode;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CharSetAuto"/> is set
 		/// </summary>
-		public bool IsCharSetAuto {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAuto; }
-		}
+		public bool IsCharSetAuto => ((PInvokeAttributes)attributes & PInvokeAttributes.CharSetMask) == PInvokeAttributes.CharSetAuto;
 
 		/// <summary>
 		/// Gets/sets best fit
 		/// </summary>
 		public PInvokeAttributes BestFit {
-			get { return (PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask; }
-			set { ModifyAttributes(~PInvokeAttributes.BestFitMask, value & PInvokeAttributes.BestFitMask); }
+			get => (PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask;
+			set => ModifyAttributes(~PInvokeAttributes.BestFitMask, value & PInvokeAttributes.BestFitMask);
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitUseAssem"/> is set
 		/// </summary>
-		public bool IsBestFitUseAssem {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitUseAssem; }
-		}
+		public bool IsBestFitUseAssem => ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitUseAssem;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitEnabled"/> is set
 		/// </summary>
-		public bool IsBestFitEnabled {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitEnabled; }
-		}
+		public bool IsBestFitEnabled => ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitEnabled;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.BestFitDisabled"/> is set
 		/// </summary>
-		public bool IsBestFitDisabled {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitDisabled; }
-		}
+		public bool IsBestFitDisabled => ((PInvokeAttributes)attributes & PInvokeAttributes.BestFitMask) == PInvokeAttributes.BestFitDisabled;
 
 		/// <summary>
 		/// Gets/sets throw on unmappable char
 		/// </summary>
 		public PInvokeAttributes ThrowOnUnmappableChar {
-			get { return (PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask; }
-			set { ModifyAttributes(~PInvokeAttributes.ThrowOnUnmappableCharMask, value & PInvokeAttributes.ThrowOnUnmappableCharMask); }
+			get => (PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask;
+			set => ModifyAttributes(~PInvokeAttributes.ThrowOnUnmappableCharMask, value & PInvokeAttributes.ThrowOnUnmappableCharMask);
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharUseAssem"/> is set
 		/// </summary>
-		public bool IsThrowOnUnmappableCharUseAssem {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharUseAssem; }
-		}
+		public bool IsThrowOnUnmappableCharUseAssem => ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharUseAssem;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharEnabled"/> is set
 		/// </summary>
-		public bool IsThrowOnUnmappableCharEnabled {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharEnabled; }
-		}
+		public bool IsThrowOnUnmappableCharEnabled => ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharEnabled;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.ThrowOnUnmappableCharDisabled"/> is set
 		/// </summary>
-		public bool IsThrowOnUnmappableCharDisabled {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharDisabled; }
-		}
+		public bool IsThrowOnUnmappableCharDisabled => ((PInvokeAttributes)attributes & PInvokeAttributes.ThrowOnUnmappableCharMask) == PInvokeAttributes.ThrowOnUnmappableCharDisabled;
 
 		/// <summary>
 		/// Gets/sets the <see cref="PInvokeAttributes.SupportsLastError"/> bit
 		/// </summary>
 		public bool SupportsLastError {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.SupportsLastError) != 0; }
-			set { ModifyAttributes(value, PInvokeAttributes.SupportsLastError); }
+			get => ((PInvokeAttributes)attributes & PInvokeAttributes.SupportsLastError) != 0;
+			set => ModifyAttributes(value, PInvokeAttributes.SupportsLastError);
 		}
 
 		/// <summary>
 		/// Gets/sets calling convention
 		/// </summary>
 		public PInvokeAttributes CallConv {
-			get { return (PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask; }
-			set { ModifyAttributes(~PInvokeAttributes.CallConvMask, value & PInvokeAttributes.CallConvMask); }
+			get => (PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask;
+			set => ModifyAttributes(~PInvokeAttributes.CallConvMask, value & PInvokeAttributes.CallConvMask);
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvWinapi"/> is set
 		/// </summary>
-		public bool IsCallConvWinapi {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvWinapi; }
-		}
+		public bool IsCallConvWinapi => ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvWinapi;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvCdecl"/> is set
 		/// </summary>
-		public bool IsCallConvCdecl {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvCdecl; }
-		}
+		public bool IsCallConvCdecl => ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvCdecl;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvStdcall"/> is set
 		/// </summary>
-		public bool IsCallConvStdcall {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvStdcall; }
-		}
+		public bool IsCallConvStdcall => ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvStdcall;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvThiscall"/> is set
 		/// </summary>
-		public bool IsCallConvThiscall {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvThiscall; }
-		}
+		public bool IsCallConvThiscall => ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvThiscall;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PInvokeAttributes.CallConvFastcall"/> is set
 		/// </summary>
-		public bool IsCallConvFastcall {
-			get { return ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvFastcall; }
-		}
+		public bool IsCallConvFastcall => ((PInvokeAttributes)attributes & PInvokeAttributes.CallConvMask) == PInvokeAttributes.CallConvFastcall;
 
 		/// <summary>
 		/// Checks whether this <see cref="ImplMap"/> is a certain P/Invoke method
@@ -291,9 +259,9 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="flags">Flags</param>
 		public ImplMapUser(ModuleRef scope, UTF8String name, PInvokeAttributes flags) {
-			this.module = scope;
+			module = scope;
 			this.name = name;
-			this.attributes = (int)flags;
+			attributes = (int)flags;
 		}
 	}
 
@@ -304,9 +272,7 @@ namespace dnlib.DotNet {
 		readonly uint origRid;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <summary>
 		/// Constructor
@@ -320,14 +286,13 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.ImplMapTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("ImplMap rid {0} does not exist", rid));
+				throw new BadImageFormatException($"ImplMap rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
-			uint name;
-			uint scope = readerModule.TablesStream.ReadImplMapRow(origRid, out this.attributes, out name);
+			uint scope = readerModule.TablesStream.ReadImplMapRow(origRid, out attributes, out uint name);
 			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.module = readerModule.ResolveModuleRef(scope);
+			module = readerModule.ResolveModuleRef(scope);
 		}
 	}
 }

@@ -9,14 +9,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 	struct LocalConstantSigBlobReader {
 		readonly ModuleDef module;
 		readonly IImageStream reader;
-		/*readonly*/ GenericParamContext gpContext;
+		readonly GenericParamContext gpContext;
 		RecursionCounter recursionCounter;
 
 		public LocalConstantSigBlobReader(ModuleDef module, IImageStream reader, GenericParamContext gpContext) {
 			this.module = module;
 			this.reader = reader;
 			this.gpContext = gpContext;
-			recursionCounter = default(RecursionCounter);
+			recursionCounter = default;
 		}
 
 		public bool Read(out TypeSig type, out object value) {
@@ -243,15 +243,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 		static readonly UTF8String stringDateTime = new UTF8String("DateTime");
 
 		static bool GetName(ITypeDefOrRef tdr, out UTF8String @namespace, out UTF8String name) {
-			var tr = tdr as TypeRef;
-			if (tr != null) {
+			if (tdr is TypeRef tr) {
 				@namespace = tr.Namespace;
 				name = tr.Name;
 				return true;
 			}
 
-			var td = tdr as TypeDef;
-			if (td != null) {
+			if (tdr is TypeDef td) {
 				@namespace = td.Namespace;
 				name = td.Name;
 				return true;

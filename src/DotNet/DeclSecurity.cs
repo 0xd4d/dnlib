@@ -26,27 +26,23 @@ namespace dnlib.DotNet {
 		protected uint rid;
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.DeclSecurity, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.DeclSecurity, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <inheritdoc/>
-		public int HasCustomAttributeTag {
-			get { return 8; }
-		}
+		public int HasCustomAttributeTag => 8;
 
 		/// <summary>
 		/// From column DeclSecurity.Action
 		/// </summary>
 		public SecurityAction Action {
-			get { return action; }
-			set { action = value; }
+			get => action;
+			set => action = value;
 		}
 		/// <summary/>
 		protected SecurityAction action;
@@ -64,9 +60,8 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<SecurityAttribute> securityAttributes;
 		/// <summary>Initializes <see cref="securityAttributes"/></summary>
-		protected virtual void InitializeSecurityAttributes() {
+		protected virtual void InitializeSecurityAttributes() =>
 			Interlocked.CompareExchange(ref securityAttributes, ThreadSafeListCreator.Create<SecurityAttribute>(), null);
-		}
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -81,24 +76,17 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected CustomAttributeCollection customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
-		protected virtual void InitializeCustomAttributes() {
+		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
-		}
 
 		/// <inheritdoc/>
-		public bool HasCustomAttributes {
-			get { return CustomAttributes.Count > 0; }
-		}
+		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 8; }
-		}
+		public int HasCustomDebugInformationTag => 8;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
@@ -113,16 +101,13 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
-		protected virtual void InitializeCustomDebugInfos() {
+		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
-		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="SecurityAttributes"/> is not empty
 		/// </summary>
-		public bool HasSecurityAttributes {
-			get { return SecurityAttributes.Count > 0; }
-		}
+		public bool HasSecurityAttributes => SecurityAttributes.Count > 0;
 
 		/// <summary>
 		/// Gets the blob data or <c>null</c> if there's none
@@ -134,9 +119,7 @@ namespace dnlib.DotNet {
 		/// Returns the .NET 1.x XML string or null if it's not a .NET 1.x format
 		/// </summary>
 		/// <returns></returns>
-		public string GetNet1xXmlString() {
-			return GetNet1xXmlStringInternal(SecurityAttributes);
-		}
+		public string GetNet1xXmlString() => GetNet1xXmlStringInternal(SecurityAttributes);
 
 		internal static string GetNet1xXmlStringInternal(IList<SecurityAttribute> secAttrs) {
 			if (secAttrs == null || secAttrs.Count != 1)
@@ -157,8 +140,7 @@ namespace dnlib.DotNet {
 			var utf8 = arg.Value as UTF8String;
 			if ((object)utf8 != null)
 				return utf8;
-			var s = arg.Value as string;
-			if (s != null)
+			if (arg.Value is string s)
 				return s;
 			return null;
 		}
@@ -181,13 +163,11 @@ namespace dnlib.DotNet {
 		/// <param name="securityAttrs">The security attributes (now owned by this)</param>
 		public DeclSecurityUser(SecurityAction action, IList<SecurityAttribute> securityAttrs) {
 			this.action = action;
-			this.securityAttributes = ThreadSafeListCreator.MakeThreadSafe(securityAttrs);
+			securityAttributes = ThreadSafeListCreator.MakeThreadSafe(securityAttrs);
 		}
 
 		/// <inheritdoc/>
-		public override byte[] GetBlob() {
-			return null;
-		}
+		public override byte[] GetBlob() => null;
 	}
 
 	/// <summary>
@@ -201,9 +181,7 @@ namespace dnlib.DotNet {
 		readonly uint permissionSet;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
 		protected override void InitializeSecurityAttributes() {
@@ -239,17 +217,15 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.DeclSecurityTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("DeclSecurity rid {0} does not exist", rid));
+				throw new BadImageFormatException($"DeclSecurity rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			this.permissionSet = readerModule.TablesStream.ReadDeclSecurityRow(origRid, out this.action);
+			permissionSet = readerModule.TablesStream.ReadDeclSecurityRow(origRid, out action);
 		}
 
 		/// <inheritdoc/>
-		public override byte[] GetBlob() {
-			return readerModule.BlobStream.Read(permissionSet);
-		}
+		public override byte[] GetBlob() => readerModule.BlobStream.Read(permissionSet);
 	}
 }

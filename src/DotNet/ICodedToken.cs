@@ -166,8 +166,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="asm">The assembly</param>
 		public static bool IsCorLib(this IAssembly asm) {
-			var asmDef = asm as AssemblyDef;
-			if (asmDef != null) {
+			if (asm is AssemblyDef asmDef) {
 				var manifestModule = asmDef.ManifestModule;
 				if (manifestModule != null) {
 					var isCorModule = manifestModule.IsCoreLibraryModule;
@@ -222,15 +221,13 @@ namespace dnlib.DotNet {
 			if (td != null)
 				return CreateClassOrValueType(type, checkValueType ? td.IsValueType : false);
 
-			var tr = type as TypeRef;
-			if (tr != null) {
+			if (type is TypeRef tr) {
 				if (checkValueType)
 					td = tr.Resolve();
 				return CreateClassOrValueType(type, td == null ? false : td.IsValueType);
 			}
 
-			var ts = type as TypeSpec;
-			if (ts != null)
+			if (type is TypeSpec ts)
 				return ts.TypeSig;
 
 			return null;
@@ -380,9 +377,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="tdr">The type</param>
 		/// <returns>The base type or <c>null</c> if there's no base type</returns>
-		public static ITypeDefOrRef GetBaseTypeThrow(this ITypeDefOrRef tdr) {
-			return tdr.GetBaseType(true);
-		}
+		public static ITypeDefOrRef GetBaseTypeThrow(this ITypeDefOrRef tdr) => tdr.GetBaseType(true);
 
 		/// <summary>
 		/// Returns the base type of <paramref name="tdr"/>
@@ -395,14 +390,12 @@ namespace dnlib.DotNet {
 		/// <paramref name="throwOnResolveFailure"/> is <c>true</c> and we couldn't resolve
 		/// a <see cref="TypeRef"/></returns>
 		public static ITypeDefOrRef GetBaseType(this ITypeDefOrRef tdr, bool throwOnResolveFailure = false) {
-			var td = tdr as TypeDef;
-			if (td != null)
+			if (tdr is TypeDef td)
 				return td.BaseType;
 
-			var tr = tdr as TypeRef;
-			if (tr != null) {
+			if (tdr is TypeRef tr) {
 				td = throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve();
-				return td == null ? null : td.BaseType;
+				return td?.BaseType;
 			}
 
 			var ts = tdr as TypeSpec;
@@ -410,14 +403,10 @@ namespace dnlib.DotNet {
 				return null;
 
 			var git = ts.TypeSig.ToGenericInstSig();
-			if (git != null) {
-				var genType = git.GenericType;
-				tdr = genType == null ? null : genType.TypeDefOrRef;
-			}
-			else {
-				var sig = ts.TypeSig.ToTypeDefOrRefSig();
-				tdr = sig == null ? null : sig.TypeDefOrRef;
-			}
+			if (git != null)
+				tdr = git.GenericType?.TypeDefOrRef;
+			else
+				tdr = ts.TypeSig.ToTypeDefOrRefSig()?.TypeDefOrRef;
 
 			td = tdr as TypeDef;
 			if (td != null)
@@ -426,7 +415,7 @@ namespace dnlib.DotNet {
 			tr = tdr as TypeRef;
 			if (tr != null) {
 				td = throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve();
-				return td == null ? null : td.BaseType;
+				return td?.BaseType;
 			}
 
 			return null;
@@ -439,12 +428,10 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if input was <c>null</c> or if we
 		/// couldn't resolve the reference.</returns>
 		public static TypeDef ResolveTypeDef(this ITypeDefOrRef tdr) {
-			var td = tdr as TypeDef;
-			if (td != null)
+			if (tdr is TypeDef td)
 				return td;
 
-			var tr = tdr as TypeRef;
-			if (tr != null)
+			if (tdr is TypeRef tr)
 				return tr.Resolve();
 
 			if (tdr == null)
@@ -469,12 +456,10 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="TypeDef"/> instance.</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		public static TypeDef ResolveTypeDefThrow(this ITypeDefOrRef tdr) {
-			var td = tdr as TypeDef;
-			if (td != null)
+			if (tdr is TypeDef td)
 				return td;
 
-			var tr = tdr as TypeRef;
-			if (tr != null)
+			if (tdr is TypeRef tr)
 				return tr.ResolveThrow();
 
 			if (tdr == null)
@@ -489,7 +474,7 @@ namespace dnlib.DotNet {
 			if (tr != null)
 				return tr.ResolveThrow();
 
-			throw new TypeResolveException(string.Format("Could not resolve type: {0} ({1})", tdr, tdr == null ? null : tdr.DefinitionAssembly));
+			throw new TypeResolveException($"Could not resolve type: {tdr} ({tdr?.DefinitionAssembly})");
 		}
 
 		/// <summary>
@@ -501,12 +486,10 @@ namespace dnlib.DotNet {
 		/// <c>null</c> or if it wasn't possible to resolve it (the field doesn't exist or its
 		/// assembly couldn't be loaded)</returns>
 		public static FieldDef ResolveFieldDef(this IField field) {
-			var fd = field as FieldDef;
-			if (fd != null)
+			if (field is FieldDef fd)
 				return fd;
 
-			var mr = field as MemberRef;
-			if (mr != null)
+			if (field is MemberRef mr)
 				return mr.ResolveField();
 
 			return null;
@@ -519,15 +502,13 @@ namespace dnlib.DotNet {
 		/// <param name="field">Field to resolve</param>
 		/// <returns>The <see cref="FieldDef"/></returns>
 		public static FieldDef ResolveFieldDefThrow(this IField field) {
-			var fd = field as FieldDef;
-			if (fd != null)
+			if (field is FieldDef fd)
 				return fd;
 
-			var mr = field as MemberRef;
-			if (mr != null)
+			if (field is MemberRef mr)
 				return mr.ResolveFieldThrow();
 
-			throw new MemberRefResolveException(string.Format("Could not resolve field: {0}", field));
+			throw new MemberRefResolveException($"Could not resolve field: {field}");
 		}
 
 		/// <summary>
@@ -541,16 +522,13 @@ namespace dnlib.DotNet {
 		/// <c>null</c> or if it wasn't possible to resolve it (the method doesn't exist or its
 		/// assembly couldn't be loaded)</returns>
 		public static MethodDef ResolveMethodDef(this IMethod method) {
-			var md = method as MethodDef;
-			if (md != null)
+			if (method is MethodDef md)
 				return md;
 
-			var mr = method as MemberRef;
-			if (mr != null)
+			if (method is MemberRef mr)
 				return mr.ResolveMethod();
 
-			var ms = method as MethodSpec;
-			if (ms != null) {
+			if (method is MethodSpec ms) {
 				md = ms.Method as MethodDef;
 				if (md != null)
 					return md;
@@ -572,16 +550,13 @@ namespace dnlib.DotNet {
 		/// <param name="method">Method to resolve</param>
 		/// <returns>The <see cref="MethodDef"/></returns>
 		public static MethodDef ResolveMethodDefThrow(this IMethod method) {
-			var md = method as MethodDef;
-			if (md != null)
+			if (method is MethodDef md)
 				return md;
 
-			var mr = method as MemberRef;
-			if (mr != null)
+			if (method is MemberRef mr)
 				return mr.ResolveMethodThrow();
 
-			var ms = method as MethodSpec;
-			if (ms != null) {
+			if (method is MethodSpec ms) {
 				md = ms.Method as MethodDef;
 				if (md != null)
 					return md;
@@ -591,7 +566,7 @@ namespace dnlib.DotNet {
 					return mr.ResolveMethodThrow();
 			}
 
-			throw new MemberRefResolveException(string.Format("Could not resolve method: {0}", method));
+			throw new MemberRefResolveException($"Could not resolve method: {method}");
 		}
 
 		/// <summary>
@@ -604,20 +579,14 @@ namespace dnlib.DotNet {
 				return null;
 			var parent = mr.Class;
 
-			var tdr = parent as ITypeDefOrRef;
-			if (tdr != null)
+			if (parent is ITypeDefOrRef tdr)
 				return tdr.DefinitionAssembly;
 
-			if (parent is ModuleRef) {
-				var mod = mr.Module;
-				return mod == null ? null : mod.Assembly;
-			}
+			if (parent is ModuleRef)
+				return mr.Module?.Assembly;
 
-			var md = parent as MethodDef;
-			if (md != null) {
-				var declType = md.DeclaringType;
-				return declType == null ? null : declType.DefinitionAssembly;
-			}
+			if (parent is MethodDef md)
+				return md.DeclaringType?.DefinitionAssembly;
 
 			return null;
 		}
@@ -1053,8 +1022,7 @@ namespace dnlib.DotNet {
 		public static ITypeDefOrRef ToTypeDefOrRef(this TypeSig sig) {
 			if (sig == null)
 				return null;
-			var tdrSig = sig as TypeDefOrRefSig;
-			if (tdrSig != null)
+			if (sig is TypeDefOrRefSig tdrSig)
 				return tdrSig.TypeDefOrRef;
 			var module = sig.Module;
 			if (module == null)

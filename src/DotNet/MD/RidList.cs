@@ -49,19 +49,13 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets the start rid
 		/// </summary>
-		public uint StartRID {
-			get { return startRid; }
-		}
+		public uint StartRID => startRid;
 
 		/// <inheritdoc/>
-		public override uint Length {
-			get { return length; }
-		}
+		public override uint Length => length;
 
 		/// <inheritdoc/>
-		public override int Count {
-			get { return (int)length; }
-		}
+		public override int Count => (int)length;
 
 		/// <inheritdoc/>
 		public override uint this[uint index] {
@@ -73,9 +67,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override uint this[int index] {
-			get { return this[(uint)index]; }
-		}
+		public override uint this[int index] => this[(uint)index];
 
 		/// <summary>
 		/// Constructor
@@ -96,14 +88,10 @@ namespace dnlib.DotNet.MD {
 		readonly IList<uint> indexToRid;
 
 		/// <inheritdoc/>
-		public override uint Length {
-			get { return (uint)indexToRid.Count; }
-		}
+		public override uint Length => (uint)indexToRid.Count;
 
 		/// <inheritdoc/>
-		public override int Count {
-			get { return indexToRid.Count; }
-		}
+		public override int Count => indexToRid.Count;
 
 		/// <inheritdoc/>
 		public override uint this[uint index] {
@@ -115,31 +103,23 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override uint this[int index] {
-			get { return this[(uint)index]; }
-		}
+		public override uint this[int index] => this[(uint)index];
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public RandomRidList() {
-			this.indexToRid = new List<uint>();
-		}
+		public RandomRidList() => indexToRid = new List<uint>();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="capacity">Approximate number of rids that will be returned</param>
-		public RandomRidList(int capacity) {
-			this.indexToRid = new List<uint>(capacity);
-		}
+		public RandomRidList(int capacity) => indexToRid = new List<uint>(capacity);
 
 		/// <summary>
 		/// Add a new rid that should be returned
 		/// </summary>
 		/// <param name="rid">The rid</param>
-		public void Add(uint rid) {
-			indexToRid.Add(rid);
-		}
+		public void Add(uint rid) => indexToRid.Add(rid);
 	}
 }

@@ -23,27 +23,23 @@ namespace dnlib.DotNet {
 		protected uint rid;
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.StandAloneSig, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.StandAloneSig, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <inheritdoc/>
-		public int HasCustomAttributeTag {
-			get { return 11; }
-		}
+		public int HasCustomAttributeTag => 11;
 
 		/// <summary>
 		/// From column StandAloneSig.Signature
 		/// </summary>
 		public CallingConventionSig Signature {
-			get { return signature; }
-			set { signature = value; }
+			get => signature;
+			set => signature = value;
 		}
 		/// <summary/>
 		protected CallingConventionSig signature;
@@ -61,24 +57,17 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected CustomAttributeCollection customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
-		protected virtual void InitializeCustomAttributes() {
+		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
-		}
 
 		/// <inheritdoc/>
-		public bool HasCustomAttributes {
-			get { return CustomAttributes.Count > 0; }
-		}
+		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 11; }
-		}
+		public int HasCustomDebugInformationTag => 11;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
@@ -93,30 +82,27 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
-		protected virtual void InitializeCustomDebugInfos() {
+		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
-		}
 
 		/// <summary>
 		/// Gets/sets the method sig
 		/// </summary>
 		public MethodSig MethodSig {
-			get { return signature as MethodSig; }
-			set { signature = value; }
+			get => signature as MethodSig;
+			set => signature = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the locals sig
 		/// </summary>
 		public LocalSig LocalSig {
-			get { return signature as LocalSig; }
-			set { signature = value; }
+			get => signature as LocalSig;
+			set => signature = value;
 		}
 
 		/// <inheritdoc/>
-		public bool ContainsGenericParameter {
-			get { return TypeHelper.ContainsGenericParameter(this); }
-		}
+		public bool ContainsGenericParameter => TypeHelper.ContainsGenericParameter(this);
 	}
 
 	/// <summary>
@@ -133,17 +119,13 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="localSig">A locals sig</param>
-		public StandAloneSigUser(LocalSig localSig) {
-			this.signature = localSig;
-		}
+		public StandAloneSigUser(LocalSig localSig) => signature = localSig;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="methodSig">A method sig</param>
-		public StandAloneSigUser(MethodSig methodSig) {
-			this.signature = methodSig;
-		}
+		public StandAloneSigUser(MethodSig methodSig) => signature = methodSig;
 	}
 
 	/// <summary>
@@ -157,9 +139,7 @@ namespace dnlib.DotNet {
 		readonly GenericParamContext gpContext;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
@@ -188,9 +168,9 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.StandAloneSigTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("StandAloneSig rid {0} does not exist", rid));
+				throw new BadImageFormatException($"StandAloneSig rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;

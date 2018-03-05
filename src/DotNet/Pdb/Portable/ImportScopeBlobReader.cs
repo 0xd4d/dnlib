@@ -8,7 +8,7 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#imports-blob
-	struct ImportScopeBlobReader {
+	readonly struct ImportScopeBlobReader {
 		readonly ModuleDef module;
 		readonly BlobStream blobStream;
 
@@ -111,8 +111,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		ITypeDefOrRef TryReadType(uint codedToken) {
-			uint token;
-			bool b = CodedToken.TypeDefOrRef.Decode(codedToken, out token);
+			bool b = CodedToken.TypeDefOrRef.Decode(codedToken, out uint token);
 			Debug.Assert(b);
 			if (!b)
 				return null;

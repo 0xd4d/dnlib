@@ -19,51 +19,37 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.Machine field
 		/// </summary>
-		public Machine Machine {
-			get { return machine; }
-		}
+		public Machine Machine => machine;
 
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.NumberOfSections field
 		/// </summary>
-		public int NumberOfSections {
-			get { return numberOfSections; }
-		}
+		public int NumberOfSections => numberOfSections;
 
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.TimeDateStamp field
 		/// </summary>
-		public uint TimeDateStamp {
-			get { return timeDateStamp; }
-		}
+		public uint TimeDateStamp => timeDateStamp;
 
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.PointerToSymbolTable field
 		/// </summary>
-		public uint PointerToSymbolTable {
-			get { return pointerToSymbolTable; }
-		}
+		public uint PointerToSymbolTable => pointerToSymbolTable;
 
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.NumberOfSymbols field
 		/// </summary>
-		public uint NumberOfSymbols {
-			get { return numberOfSymbols; }
-		}
+		public uint NumberOfSymbols => numberOfSymbols;
 
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.SizeOfOptionalHeader field
 		/// </summary>
-		public uint SizeOfOptionalHeader {
-			get { return sizeOfOptionalHeader; }
-		}
+		public uint SizeOfOptionalHeader => sizeOfOptionalHeader;
 
 		/// <summary>
 		/// Returns the IMAGE_FILE_HEADER.Characteristics field
 		/// </summary>
-		public Characteristics Characteristics {
-			get { return characteristics; }
-		}
+		public Characteristics Characteristics => characteristics;
 
 		/// <summary>
 		/// Constructor
@@ -73,15 +59,15 @@ namespace dnlib.PE {
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
 		public ImageFileHeader(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
-			this.machine = (Machine)reader.ReadUInt16();
-			this.numberOfSections = reader.ReadUInt16();
-			this.timeDateStamp = reader.ReadUInt32();
-			this.pointerToSymbolTable = reader.ReadUInt32();
-			this.numberOfSymbols = reader.ReadUInt32();
-			this.sizeOfOptionalHeader = reader.ReadUInt16();
-			this.characteristics = (Characteristics)reader.ReadUInt16();
+			machine = (Machine)reader.ReadUInt16();
+			numberOfSections = reader.ReadUInt16();
+			timeDateStamp = reader.ReadUInt32();
+			pointerToSymbolTable = reader.ReadUInt32();
+			numberOfSymbols = reader.ReadUInt32();
+			sizeOfOptionalHeader = reader.ReadUInt16();
+			characteristics = (Characteristics)reader.ReadUInt16();
 			SetEndoffset(reader);
-			if (verify && this.sizeOfOptionalHeader == 0)
+			if (verify && sizeOfOptionalHeader == 0)
 				throw new BadImageFormatException("Invalid SizeOfOptionalHeader");
 		}
 	}

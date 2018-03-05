@@ -43,219 +43,157 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.Magic field
 		/// </summary>
-		public ushort Magic {
-			get { return magic; }
-		}
+		public ushort Magic => magic;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MajorLinkerVersion field
 		/// </summary>
-		public byte MajorLinkerVersion {
-			get { return majorLinkerVersion; }
-		}
+		public byte MajorLinkerVersion => majorLinkerVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MinorLinkerVersion field
 		/// </summary>
-		public byte MinorLinkerVersion {
-			get { return minorLinkerVersion; }
-		}
+		public byte MinorLinkerVersion => minorLinkerVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfCode field
 		/// </summary>
-		public uint SizeOfCode {
-			get { return sizeOfCode; }
-		}
+		public uint SizeOfCode => sizeOfCode;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfInitializedData field
 		/// </summary>
-		public uint SizeOfInitializedData {
-			get { return sizeOfInitializedData; }
-		}
+		public uint SizeOfInitializedData => sizeOfInitializedData;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfUninitializedData field
 		/// </summary>
-		public uint SizeOfUninitializedData {
-			get { return sizeOfUninitializedData; }
-		}
+		public uint SizeOfUninitializedData => sizeOfUninitializedData;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.AddressOfEntryPoint field
 		/// </summary>
-		public RVA AddressOfEntryPoint {
-			get { return addressOfEntryPoint; }
-		}
+		public RVA AddressOfEntryPoint => addressOfEntryPoint;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.BaseOfCode field
 		/// </summary>
-		public RVA BaseOfCode {
-			get { return baseOfCode; }
-		}
+		public RVA BaseOfCode => baseOfCode;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.BaseOfData field
 		/// </summary>
-		public RVA BaseOfData {
-			get { return baseOfData; }
-		}
+		public RVA BaseOfData => baseOfData;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.ImageBase field
 		/// </summary>
-		public ulong ImageBase {
-			get { return imageBase; }
-		}
+		public ulong ImageBase => imageBase;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SectionAlignment field
 		/// </summary>
-		public uint SectionAlignment {
-			get { return sectionAlignment; }
-		}
+		public uint SectionAlignment => sectionAlignment;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.FileAlignment field
 		/// </summary>
-		public uint FileAlignment {
-			get { return fileAlignment; }
-		}
+		public uint FileAlignment => fileAlignment;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MajorOperatingSystemVersion field
 		/// </summary>
-		public ushort MajorOperatingSystemVersion {
-			get { return majorOperatingSystemVersion; }
-		}
+		public ushort MajorOperatingSystemVersion => majorOperatingSystemVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MinorOperatingSystemVersion field
 		/// </summary>
-		public ushort MinorOperatingSystemVersion {
-			get { return minorOperatingSystemVersion; }
-		}
+		public ushort MinorOperatingSystemVersion => minorOperatingSystemVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MajorImageVersion field
 		/// </summary>
-		public ushort MajorImageVersion {
-			get { return majorImageVersion; }
-		}
+		public ushort MajorImageVersion => majorImageVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MinorImageVersion field
 		/// </summary>
-		public ushort MinorImageVersion {
-			get { return minorImageVersion; }
-		}
+		public ushort MinorImageVersion => minorImageVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MajorSubsystemVersion field
 		/// </summary>
-		public ushort MajorSubsystemVersion {
-			get { return majorSubsystemVersion; }
-		}
+		public ushort MajorSubsystemVersion => majorSubsystemVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.MinorSubsystemVersion field
 		/// </summary>
-		public ushort MinorSubsystemVersion {
-			get { return minorSubsystemVersion; }
-		}
+		public ushort MinorSubsystemVersion => minorSubsystemVersion;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.Win32VersionValue field
 		/// </summary>
-		public uint Win32VersionValue {
-			get { return win32VersionValue; }
-		}
+		public uint Win32VersionValue => win32VersionValue;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfImage field
 		/// </summary>
-		public uint SizeOfImage {
-			get { return sizeOfImage; }
-		}
+		public uint SizeOfImage => sizeOfImage;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfHeaders field
 		/// </summary>
-		public uint SizeOfHeaders {
-			get { return sizeOfHeaders; }
-		}
+		public uint SizeOfHeaders => sizeOfHeaders;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.CheckSum field
 		/// </summary>
-		public uint CheckSum {
-			get { return checkSum; }
-		}
+		public uint CheckSum => checkSum;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.Subsystem field
 		/// </summary>
-		public Subsystem Subsystem {
-			get { return subsystem; }
-		}
+		public Subsystem Subsystem => subsystem;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.DllCharacteristics field
 		/// </summary>
-		public DllCharacteristics DllCharacteristics {
-			get { return dllCharacteristics; }
-		}
+		public DllCharacteristics DllCharacteristics => dllCharacteristics;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfStackReserve field
 		/// </summary>
-		public ulong SizeOfStackReserve {
-			get { return sizeOfStackReserve; }
-		}
+		public ulong SizeOfStackReserve => sizeOfStackReserve;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfStackCommit field
 		/// </summary>
-		public ulong SizeOfStackCommit {
-			get { return sizeOfStackCommit; }
-		}
+		public ulong SizeOfStackCommit => sizeOfStackCommit;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfHeapReserve field
 		/// </summary>
-		public ulong SizeOfHeapReserve {
-			get { return sizeOfHeapReserve; }
-		}
+		public ulong SizeOfHeapReserve => sizeOfHeapReserve;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.SizeOfHeapCommit field
 		/// </summary>
-		public ulong SizeOfHeapCommit {
-			get { return sizeOfHeapCommit; }
-		}
+		public ulong SizeOfHeapCommit => sizeOfHeapCommit;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.LoaderFlags field
 		/// </summary>
-		public uint LoaderFlags {
-			get { return loaderFlags; }
-		}
+		public uint LoaderFlags => loaderFlags;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes field
 		/// </summary>
-		public uint NumberOfRvaAndSizes {
-			get { return numberOfRvaAndSizes; }
-		}
+		public uint NumberOfRvaAndSizes => numberOfRvaAndSizes;
 
 		/// <summary>
 		/// Returns the IMAGE_OPTIONAL_HEADER.DataDirectories field
 		/// </summary>
-		public ImageDataDirectory[] DataDirectories {
-			get { return dataDirectories; }
-		}
+		public ImageDataDirectory[] DataDirectories => dataDirectories;
 
 		/// <summary>
 		/// Constructor
@@ -270,36 +208,36 @@ namespace dnlib.PE {
 			if (verify && reader.Position + totalSize > reader.Length)
 				throw new BadImageFormatException("Invalid optional header size");
 			SetStartOffset(reader);
-			this.magic = reader.ReadUInt16();
-			this.majorLinkerVersion = reader.ReadByte();
-			this.minorLinkerVersion = reader.ReadByte();
-			this.sizeOfCode = reader.ReadUInt32();
-			this.sizeOfInitializedData = reader.ReadUInt32();
-			this.sizeOfUninitializedData = reader.ReadUInt32();
-			this.addressOfEntryPoint = (RVA)reader.ReadUInt32();
-			this.baseOfCode = (RVA)reader.ReadUInt32();
-			this.baseOfData = (RVA)reader.ReadUInt32();
-			this.imageBase = reader.ReadUInt32();
-			this.sectionAlignment = reader.ReadUInt32();
-			this.fileAlignment = reader.ReadUInt32();
-			this.majorOperatingSystemVersion = reader.ReadUInt16();
-			this.minorOperatingSystemVersion = reader.ReadUInt16();
-			this.majorImageVersion = reader.ReadUInt16();
-			this.minorImageVersion = reader.ReadUInt16();
-			this.majorSubsystemVersion = reader.ReadUInt16();
-			this.minorSubsystemVersion = reader.ReadUInt16();
-			this.win32VersionValue = reader.ReadUInt32();
-			this.sizeOfImage = reader.ReadUInt32();
-			this.sizeOfHeaders = reader.ReadUInt32();
-			this.checkSum = reader.ReadUInt32();
-			this.subsystem = (Subsystem)reader.ReadUInt16();
-			this.dllCharacteristics = (DllCharacteristics)reader.ReadUInt16();
-			this.sizeOfStackReserve = reader.ReadUInt32();
-			this.sizeOfStackCommit = reader.ReadUInt32();
-			this.sizeOfHeapReserve = reader.ReadUInt32();
-			this.sizeOfHeapCommit = reader.ReadUInt32();
-			this.loaderFlags = reader.ReadUInt32();
-			this.numberOfRvaAndSizes = reader.ReadUInt32();
+			magic = reader.ReadUInt16();
+			majorLinkerVersion = reader.ReadByte();
+			minorLinkerVersion = reader.ReadByte();
+			sizeOfCode = reader.ReadUInt32();
+			sizeOfInitializedData = reader.ReadUInt32();
+			sizeOfUninitializedData = reader.ReadUInt32();
+			addressOfEntryPoint = (RVA)reader.ReadUInt32();
+			baseOfCode = (RVA)reader.ReadUInt32();
+			baseOfData = (RVA)reader.ReadUInt32();
+			imageBase = reader.ReadUInt32();
+			sectionAlignment = reader.ReadUInt32();
+			fileAlignment = reader.ReadUInt32();
+			majorOperatingSystemVersion = reader.ReadUInt16();
+			minorOperatingSystemVersion = reader.ReadUInt16();
+			majorImageVersion = reader.ReadUInt16();
+			minorImageVersion = reader.ReadUInt16();
+			majorSubsystemVersion = reader.ReadUInt16();
+			minorSubsystemVersion = reader.ReadUInt16();
+			win32VersionValue = reader.ReadUInt32();
+			sizeOfImage = reader.ReadUInt32();
+			sizeOfHeaders = reader.ReadUInt32();
+			checkSum = reader.ReadUInt32();
+			subsystem = (Subsystem)reader.ReadUInt16();
+			dllCharacteristics = (DllCharacteristics)reader.ReadUInt16();
+			sizeOfStackReserve = reader.ReadUInt32();
+			sizeOfStackCommit = reader.ReadUInt32();
+			sizeOfHeapReserve = reader.ReadUInt32();
+			sizeOfHeapCommit = reader.ReadUInt32();
+			loaderFlags = reader.ReadUInt32();
+			numberOfRvaAndSizes = reader.ReadUInt32();
 			for (int i = 0; i < dataDirectories.Length; i++) {
 				uint len = (uint)(reader.Position - startOffset);
 				if (len + 8 <= totalSize)

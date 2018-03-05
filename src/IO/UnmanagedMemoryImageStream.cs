@@ -27,9 +27,9 @@ namespace dnlib.IO {
 		/// <param name="length">Length of data</param>
 		public unsafe UnmanagedMemoryImageStream(UnmanagedMemoryStreamCreator owner, FileOffset fileOffset, long baseAddr, long length) {
 			this.fileOffset = fileOffset;
-			this.startAddr = baseAddr;
-			this.endAddr = baseAddr + length;
-			this.currentAddr = this.startAddr;
+			startAddr = baseAddr;
+			endAddr = baseAddr + length;
+			currentAddr = startAddr;
 			this.owner = owner;
 		}
 
@@ -38,30 +38,22 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="creator">A <see cref="UnmanagedMemoryStreamCreator"/> instance</param>
 		internal UnmanagedMemoryImageStream(UnmanagedMemoryStreamCreator creator)
-			: this(creator, 0, 0, creator.Length) {
-			this.ownOwner = true;
-		}
+			: this(creator, 0, 0, creator.Length) => ownOwner = true;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return fileOffset; }
-		}
+		public FileOffset FileOffset => fileOffset;
 
 		/// <summary>
 		/// Gets the start address of the memory this instance uses
 		/// </summary>
-		internal unsafe IntPtr StartAddress {
-			get { return new IntPtr((byte*)owner.UnsafeUseAddress + startAddr); }
-		}
+		internal unsafe IntPtr StartAddress => new IntPtr((byte*)owner.UnsafeUseAddress + startAddr);
 
 		/// <inheritdoc/>
-		public unsafe long Length {
-			get { return endAddr - startAddr; }
-		}
+		public unsafe long Length => endAddr - startAddr;
 
 		/// <inheritdoc/>
 		public unsafe long Position {
-			get { return currentAddr - startAddr; }
+			get => currentAddr - startAddr;
 			set {
 				if (IntPtr.Size == 4 && (ulong)value > int.MaxValue)
 					value = int.MaxValue;

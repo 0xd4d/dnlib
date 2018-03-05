@@ -186,9 +186,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawFieldPtrRow(uint Field) {
-			this.Field = Field;
-		}
+		public RawFieldPtrRow(uint Field) => this.Field = Field;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -262,9 +260,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawMethodPtrRow(uint Method) {
-			this.Method = Method;
-		}
+		public RawMethodPtrRow(uint Method) => this.Method = Method;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -353,9 +349,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawParamPtrRow(uint Param) {
-			this.Param = Param;
-		}
+		public RawParamPtrRow(uint Param) => this.Param = Param;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -763,9 +757,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawStandAloneSigRow(uint Signature) {
-			this.Signature = Signature;
-		}
+		public RawStandAloneSigRow(uint Signature) => this.Signature = Signature;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -834,9 +826,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawEventPtrRow(uint Event) {
-			this.Event = Event;
-		}
+		public RawEventPtrRow(uint Event) => this.Event = Event;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -948,9 +938,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawPropertyPtrRow(uint Property) {
-			this.Property = Property;
-		}
+		public RawPropertyPtrRow(uint Property) => this.Property = Property;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -1110,9 +1098,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawModuleRefRow(uint Name) {
-			this.Name = Name;
-		}
+		public RawModuleRefRow(uint Name) => this.Name = Name;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -1143,9 +1129,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawTypeSpecRow(uint Signature) {
-			this.Signature = Signature;
-		}
+		public RawTypeSpecRow(uint Signature) => this.Signature = Signature;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -1300,9 +1284,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawENCMapRow(uint Token) {
-			this.Token = Token;
-		}
+		public RawENCMapRow(uint Token) => this.Token = Token;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {
@@ -1406,9 +1388,7 @@
 		}
 
 		/// <summary>Constructor</summary>
-		public RawAssemblyProcessorRow(uint Processor) {
-			this.Processor = Processor;
-		}
+		public RawAssemblyProcessorRow(uint Processor) => this.Processor = Processor;
 
 		/// <inheritdoc/>
 		public uint Read(int index) {

@@ -6,7 +6,7 @@ using System.Text;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
-	struct LocalConstantSigBlobWriter {
+	readonly struct LocalConstantSigBlobWriter {
 		readonly IWriterError helper;
 		readonly MetaData systemMetaData;
 
@@ -80,7 +80,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					var tdr = ((ValueTypeSig)type).TypeDefOrRef;
 					var td = tdr.ResolveTypeDef();
 					if (td == null)
-						helper.Error(string.Format("Couldn't resolve type 0x{0:X8}", tdr == null ? 0 : tdr.MDToken.Raw));
+						helper.Error($"Couldn't resolve type 0x{tdr?.MDToken.Raw ?? 0:X8}");
 					else if (td.IsEnum) {
 						var underlyingType = td.GetEnumUnderlyingType().RemovePinnedAndModifiers();
 						switch (underlyingType.GetElementType()) {
@@ -106,9 +106,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 					}
 					else {
 						WriteTypeDefOrRef(writer, tdr);
-						UTF8String ns, name;
 						bool valueWritten = false;
-						if (GetName(tdr, out ns, out name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
+						if (GetName(tdr, out var ns, out var name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
 							if (name == stringDecimal) {
 								if (value is decimal) {
 									var bits = decimal.GetBits((decimal)value);
@@ -188,15 +187,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 		static readonly UTF8String stringDateTime = new UTF8String("DateTime");
 
 		static bool GetName(ITypeDefOrRef tdr, out UTF8String @namespace, out UTF8String name) {
-			var tr = tdr as TypeRef;
-			if (tr != null) {
+			if (tdr is TypeRef tr) {
 				@namespace = tr.Namespace;
 				name = tr.Name;
 				return true;
 			}
 
-			var td = tdr as TypeDef;
-			if (td != null) {
+			if (tdr is TypeDef td) {
 				@namespace = td.Namespace;
 				name = td.Name;
 				return true;
@@ -305,8 +302,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		void WriteTypeDefOrRef(BinaryWriter writer, ITypeDefOrRef tdr) {
-			uint codedToken;
-			if (!MD.CodedToken.TypeDefOrRef.Encode(systemMetaData.GetToken(tdr), out codedToken)) {
+			if (!MD.CodedToken.TypeDefOrRef.Encode(systemMetaData.GetToken(tdr), out uint codedToken)) {
 				helper.Error("Couldn't encode a TypeDefOrRef");
 				return;
 			}

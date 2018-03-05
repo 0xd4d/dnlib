@@ -81,7 +81,7 @@ namespace dnlib.W32Resources {
 
 		/// <inheritdoc/>
 		public override ResourceDirectory Root {
-			get { return root; }
+			get => root;
 			set {
 				var oldValue = Interlocked.Exchange(ref root, value);
 				if (oldValue != value && oldValue != null)
@@ -120,7 +120,7 @@ namespace dnlib.W32Resources {
 
 		/// <inheritdoc/>
 		public override ResourceDirectory Root {
-			get { return root.Value; }
+			get => root.Value;
 			set {
 				IDisposable origValue = null;
 				if (root.IsValueInitialized) {
@@ -138,9 +138,7 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// Gets the resource reader
 		/// </summary>
-		internal IBinaryReader ResourceReader {
-			get { return rsrcReader; }
-		}
+		internal IBinaryReader ResourceReader => rsrcReader;
 
 		/// <summary>
 		/// Constructor
@@ -177,8 +175,8 @@ namespace dnlib.W32Resources {
 		/// the .rsrc section) or <c>null</c> if we should create one from the resource data
 		/// directory in the optional header. This instance owns the reader.</param>
 		public Win32ResourcesPE(IPEImage peImage, IBinaryReader rsrcReader) {
-			this.rvaConverter = peImage;
-			this.dataReader = peImage.CreateFullStream();
+			rvaConverter = peImage;
+			dataReader = peImage.CreateFullStream();
 			if (rsrcReader != null)
 				this.rsrcReader = rsrcReader;
 			else {

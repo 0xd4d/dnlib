@@ -73,21 +73,20 @@ namespace dnlib.IO {
 			public static void Mmap(MemoryMappedFileStreamCreator creator, bool mapAsImage) {
 				using (var fileHandle = CreateFile(creator.theFileName, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
 					if (fileHandle.IsInvalid)
-						throw new IOException(string.Format("Could not open file {0} for reading. Error: {1:X8}", creator.theFileName, Marshal.GetLastWin32Error()));
+						throw new IOException($"Could not open file {creator.theFileName} for reading. Error: {Marshal.GetLastWin32Error():X8}");
 
-					uint sizeHi;
-					uint sizeLo = GetFileSize(fileHandle, out sizeHi);
+					uint sizeLo = GetFileSize(fileHandle, out uint sizeHi);
 					int hr;
 					if (sizeLo == INVALID_FILE_SIZE && (hr = Marshal.GetLastWin32Error()) != NO_ERROR)
-						throw new IOException(string.Format("Could not get file size. File: {0}, error: {1:X8}", creator.theFileName, hr));
+						throw new IOException($"Could not get file size. File: {creator.theFileName}, error: {hr:X8}");
 					var fileSize = ((long)sizeHi << 32) | sizeLo;
 
 					using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY | (mapAsImage ? SEC_IMAGE : 0), 0, 0, null)) {
 						if (fileMapping.IsInvalid)
-							throw new MemoryMappedIONotSupportedException(string.Format("Could not create a file mapping object. File: {0}, error: {1:X8}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException($"Could not create a file mapping object. File: {creator.theFileName}, error: {Marshal.GetLastWin32Error():X8}");
 						creator.data = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
 						if (creator.data == IntPtr.Zero)
-							throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1:X8}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException($"Could not map file {creator.theFileName}. Error: {Marshal.GetLastWin32Error():X8}");
 						creator.dataLength = fileSize;
 						creator.osType = OSType.Windows;
 					}
@@ -130,7 +129,7 @@ namespace dnlib.IO {
 				int fd = open(creator.theFileName, O_RDONLY);
 				try {
 					if (fd < 0)
-						throw new IOException(string.Format("Could not open file {0} for reading. Error: {1}", creator.theFileName, fd));
+						throw new IOException($"Could not open file {creator.theFileName} for reading. Error: {fd}");
 
 					long size;
 					IntPtr data;
@@ -138,20 +137,20 @@ namespace dnlib.IO {
 					if (IntPtr.Size == 4) {
 						size = lseek32(fd, 0, SEEK_END);
 						if (size == -1)
-							throw new MemoryMappedIONotSupportedException(string.Format("Could not get length of {0} (lseek failed): {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException($"Could not get length of {creator.theFileName} (lseek failed): {Marshal.GetLastWin32Error()}");
 
 						data = mmap32(IntPtr.Zero, (IntPtr)size, PROT_READ, MAP_PRIVATE, fd, 0);
 						if (data == new IntPtr(-1) || data == IntPtr.Zero)
-							throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException($"Could not map file {creator.theFileName}. Error: {Marshal.GetLastWin32Error()}");
 					}
 					else {
 						size = lseek64(fd, 0, SEEK_END);
 						if (size == -1)
-							throw new MemoryMappedIONotSupportedException(string.Format("Could not get length of {0} (lseek failed): {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException($"Could not get length of {creator.theFileName} (lseek failed): {Marshal.GetLastWin32Error()}");
 
 						data = mmap64(IntPtr.Zero, (IntPtr)size, PROT_READ, MAP_PRIVATE, fd, 0);
 						if (data == new IntPtr(-1) || data == IntPtr.Zero)
-							throw new MemoryMappedIONotSupportedException(string.Format("Could not map file {0}. Error: {1}", creator.theFileName, Marshal.GetLastWin32Error()));
+							throw new MemoryMappedIONotSupportedException($"Could not map file {creator.theFileName}. Error: {Marshal.GetLastWin32Error()}");
 					}
 
 					creator.data = data;
@@ -229,7 +228,7 @@ namespace dnlib.IO {
 				return creator;
 			}
 			catch (MemoryMappedIONotSupportedException ex) {
-				Debug.WriteLine(string.Format("mmap'd IO didn't work: {0}", ex.Message));
+				Debug.WriteLine($"mmap'd IO didn't work: {ex.Message}");
 			}
 			catch (EntryPointNotFoundException) {
 			}
@@ -262,9 +261,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// <c>true</c> if memory mapped I/O is enabled
 		/// </summary>
-		public bool IsMemoryMappedIO {
-			get { return dataAry == null; }
-		}
+		public bool IsMemoryMappedIO => dataAry == null;
 
 		/// <summary>
 		/// Call this to disable memory mapped I/O. This must only be called if no other code is
@@ -281,7 +278,7 @@ namespace dnlib.IO {
 			dataLength = newAry.Length;
 			dataAry = newAry;
 			gcHandle = GCHandle.Alloc(dataAry, GCHandleType.Pinned);
-			this.data = gcHandle.AddrOfPinnedObject();
+			data = gcHandle.AddrOfPinnedObject();
 		}
 		GCHandle gcHandle;
 		byte[] dataAry;

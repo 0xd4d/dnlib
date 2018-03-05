@@ -25,9 +25,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="chunk">Data</param>
-		public DebugDirectoryEntry(IChunk chunk) {
-			Chunk = chunk;
-		}
+		public DebugDirectoryEntry(IChunk chunk) => Chunk = chunk;
 	}
 
 	/// <summary>
@@ -44,30 +42,22 @@ namespace dnlib.DotNet.Writer {
 		readonly List<DebugDirectoryEntry> entries;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public DebugDirectory() {
-			entries = new List<DebugDirectoryEntry>();
-		}
+		public DebugDirectory() => entries = new List<DebugDirectoryEntry>();
 
 		/// <summary>
 		/// Adds data
 		/// </summary>
 		/// <param name="data">Data</param>
 		/// <returns></returns>
-		public DebugDirectoryEntry Add(byte[] data) {
-			return Add(new ByteArrayChunk(data));
-		}
+		public DebugDirectoryEntry Add(byte[] data) => Add(new ByteArrayChunk(data));
 
 		/// <summary>
 		/// Adds data
@@ -94,14 +84,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return length;
-		}
+		public uint GetFileLength() => length;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {

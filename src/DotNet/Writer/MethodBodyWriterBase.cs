@@ -21,9 +21,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// <c>true</c> if there was at least one error
 		/// </summary>
-		public bool ErrorDetected {
-			get { return errors > 0; }
-		}
+		public bool ErrorDetected => errors > 0;
 
 		internal MethodBodyWriterBase() {
 		}
@@ -70,9 +68,8 @@ namespace dnlib.DotNet.Writer {
 		protected uint GetMaxStack() {
 			if (instructions.Count == 0)
 				return 0;
-			uint maxStack;
 			maxStackCalculator.Reset(instructions, exceptionHandlers);
-			if (!maxStackCalculator.Calculate(out maxStack)) {
+			if (!maxStackCalculator.Calculate(out uint maxStack)) {
 				Error("Error calculating max stack value. If the method's obfuscated, set CilBody.KeepOldMaxStack or MetaDataOptions.Flags (KeepOldMaxStack, global option) to ignore this error. Otherwise fix your generated CIL code so it conforms to the ECMA standard.");
 				maxStack += 8;
 			}
@@ -90,8 +87,7 @@ namespace dnlib.DotNet.Writer {
 				Error("Instruction is null");
 				return 0;
 			}
-			uint offset;
-			if (offsets.TryGetValue(instr, out offset))
+			if (offsets.TryGetValue(instr, out uint offset))
 				return offset;
 			Error("Found some other method's instruction or a removed instruction. You probably removed an instruction that is the target of a branch instruction or an instruction that's the first/last instruction in an exception handler.");
 			return 0;
@@ -117,9 +113,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="instr">The instruction</param>
 		/// <returns>Size of the instruction in bytes</returns>
-		protected virtual uint GetSizeOfInstruction(Instruction instr) {
-			return (uint)instr.GetSize();
-		}
+		protected virtual uint GetSizeOfInstruction(Instruction instr) => (uint)instr.GetSize();
 
 		/// <summary>
 		/// Writes all instructions to <paramref name="writer"/> at its current offset
@@ -142,9 +136,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">The instruction writer</param>
 		/// <returns>Current offset, relative to the first written instruction</returns>
-		protected uint ToInstructionOffset(BinaryWriter writer) {
-			return (uint)writer.BaseStream.Position - firstInstructionOffset;
-		}
+		protected uint ToInstructionOffset(BinaryWriter writer) => (uint)writer.BaseStream.Position - firstInstructionOffset;
 
 		/// <summary>
 		/// Writes an instruction

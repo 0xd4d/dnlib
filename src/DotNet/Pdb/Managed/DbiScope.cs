@@ -16,42 +16,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 		readonly List<SymbolVariable> localsList;
 		readonly List<SymbolNamespace> namespacesList;
 
-		public override SymbolMethod Method {
-			get { return method; }
-		}
-
-		public override SymbolScope Parent {
-			get { return parent; }
-		}
-
-		public override int StartOffset {
-			get { return startOffset; }
-		}
-
-		public override int EndOffset {
-			get { return endOffset; }
-		}
-
-		public override IList<SymbolScope> Children {
-			get { return childrenList; }
-		}
-
-		public override IList<SymbolVariable> Locals {
-			get { return localsList; }
-		}
-
-		public override IList<SymbolNamespace> Namespaces {
-			get { return namespacesList; }
-		}
-
-		public override IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return emptyPdbCustomDebugInfos; }
-		}
+		public override SymbolMethod Method => method;
+		public override SymbolScope Parent => parent;
+		public override int StartOffset => startOffset;
+		public override int EndOffset => endOffset;
+		public override IList<SymbolScope> Children => childrenList;
+		public override IList<SymbolVariable> Locals => localsList;
+		public override IList<SymbolNamespace> Namespaces => namespacesList;
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos => emptyPdbCustomDebugInfos;
 		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
-
-		public override PdbImportScope ImportScope {
-			get { return null; }
-		}
+		public override PdbImportScope ImportScope => null;
 
 		public DbiScope(SymbolMethod method, SymbolScope parent, string name, uint offset, uint length) {
 			this.method = method;
@@ -70,10 +44,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 		List<OemInfo> oemInfos;
 		List<ConstantInfo> constants;
 
-		struct ConstantInfo {
-			public string Name;
-			public uint SignatureToken;
-			public object Value;
+		readonly struct ConstantInfo {
+			public readonly string Name;
+			public readonly uint SignatureToken;
+			public readonly object Value;
 			public ConstantInfo(string name, uint signatureToken, object value) {
 				Name = name;
 				SignatureToken = signatureToken;
@@ -81,16 +55,14 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		internal struct OemInfo {
+		internal readonly struct OemInfo {
 			public readonly string Name;
 			public readonly byte[] Data;
 			public OemInfo(string name, byte[] data) {
 				Name = name;
 				Data = data;
 			}
-			public override string ToString() {
-				return Name + " = (" + Data.Length.ToString() + " bytes)";
-			}
+			public override string ToString() => Name + " = (" + Data.Length.ToString() + " bytes)";
 		}
 
 		static readonly byte[] dotNetOemGuid = new byte[] {

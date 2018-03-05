@@ -26,17 +26,13 @@ namespace dnlib.IO {
 		/// <param name="self">this</param>
 		/// <param name="offset">Offset relative to the beginning of the stream</param>
 		/// <returns>A new stream</returns>
-		public static IImageStream Create(this IImageStream self, FileOffset offset) {
-			return self.Create(offset, long.MaxValue);
-		}
+		public static IImageStream Create(this IImageStream self, FileOffset offset) => self.Create(offset, long.MaxValue);
 
 		/// <summary>
 		/// Clones this <see cref="IImageStream"/>
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns>A new <see cref="IImageStream"/> instance</returns>
-		public static IImageStream Clone(this IImageStream self) {
-			return self.Create(0, long.MaxValue);
-		}
+		public static IImageStream Clone(this IImageStream self) => self.Create(0, long.MaxValue);
 	}
 }

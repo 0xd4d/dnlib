@@ -49,9 +49,7 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		public abstract uint GetStubCodeOffset(StubType stubType);
 
-		public static bool TryGetCpuArch(Machine machine, out CpuArch cpuArch) {
-			return toCpuArch.TryGetValue(machine, out cpuArch);
-		}
+		public static bool TryGetCpuArch(Machine machine, out CpuArch cpuArch) => toCpuArch.TryGetValue(machine, out cpuArch);
 
 		/// <summary>
 		/// Gets the RVA of the func field that the stub jumps to

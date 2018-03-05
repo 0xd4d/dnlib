@@ -48,25 +48,17 @@ namespace dnlib.DotNet.Writer {
 		/// <c>true</c> if we can write a partial table, <c>false</c> if we must write
 		/// the full table.
 		/// </summary>
-		public bool CanWritePartialTable {
-			get {
-				return data == null && rids != null && rids.Count <= MAX_ROWS;
-			}
-		}
+		public bool CanWritePartialTable => data == null && rids != null && rids.Count <= MAX_ROWS;
 
 		/// <summary>
 		/// Gets the full size of the table
 		/// </summary>
-		uint FullTableSize {
-			get { return (uint)(mdTable.Rows * mdTable.TableInfo.RowSize); }
-		}
+		uint FullTableSize => (uint)(mdTable.Rows * mdTable.TableInfo.RowSize);
 
 		/// <summary>
 		/// Gets the table type
 		/// </summary>
-		public Table Table {
-			get { return mdTable.Table; }
-		}
+		public Table Table => mdTable.Table;
 
 		/// <summary>
 		/// Constructor
@@ -90,18 +82,14 @@ namespace dnlib.DotNet.Writer {
 				throw new ArgumentException("Invalid hot heap version");
 			}
 
-			this.alignedHotTableHeaderSize = Utils.AlignUp(this.hotTableHeaderSize, HT_ALIGNMENT);
+			alignedHotTableHeaderSize = Utils.AlignUp(hotTableHeaderSize, HT_ALIGNMENT);
 		}
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -127,19 +115,13 @@ namespace dnlib.DotNet.Writer {
 		/// Calculates the total size required to write a full table. It is only called if
 		/// the full table will be written.
 		/// </summary>
-		uint CalculateFullTableLength() {
-			return (uint)alignedHotTableHeaderSize + FullTableSize;
-		}
+		uint CalculateFullTableLength() => (uint)alignedHotTableHeaderSize + FullTableSize;
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return totalLength;
-		}
+		public uint GetFileLength() => totalLength;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <summary>
 		/// Adds a row. This method must be called to write a partial table. If too many rows
@@ -330,9 +312,7 @@ namespace dnlib.DotNet.Writer {
 		/// Writes the second level table
 		/// </summary>
 		/// <param name="writer">Writer</param>
-		internal void WriteSecondLevelTable(BinaryWriter writer) {
-			writer.Write(secondLevelTable);
-		}
+		internal void WriteSecondLevelTable(BinaryWriter writer) => writer.Write(secondLevelTable);
 	}
 
 	/// <summary>

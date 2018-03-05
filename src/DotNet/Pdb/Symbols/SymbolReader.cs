@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb.Symbols {
 	/// <summary>

@@ -27,22 +27,19 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// file on disk or if any of the COM methods fail.</returns>
 		public static SymbolReader CreateFromAssemblyFile(string assemblyFileName) {
 			try {
-				object mdDispObj;
-				Guid CLSID_CorMetaDataDispenser = new Guid(0xE5CB7A31, 0x7512, 0x11D2, 0x89, 0xCE, 0x0, 0x80, 0xC7, 0x92, 0xE5, 0xD8);
-				Guid IID_IMetaDataDispenser = new Guid(0x809C652E, 0x7396, 0x11D2, 0x97, 0x71, 0x00, 0xA0, 0xC9, 0xB4, 0xD5, 0x0C);
-				int hr = CoCreateInstance(ref CLSID_CorMetaDataDispenser, IntPtr.Zero, 1, ref IID_IMetaDataDispenser, out mdDispObj);
+				var CLSID_CorMetaDataDispenser = new Guid(0xE5CB7A31, 0x7512, 0x11D2, 0x89, 0xCE, 0x0, 0x80, 0xC7, 0x92, 0xE5, 0xD8);
+				var IID_IMetaDataDispenser = new Guid(0x809C652E, 0x7396, 0x11D2, 0x97, 0x71, 0x00, 0xA0, 0xC9, 0xB4, 0xD5, 0x0C);
+				int hr = CoCreateInstance(ref CLSID_CorMetaDataDispenser, IntPtr.Zero, 1, ref IID_IMetaDataDispenser, out object mdDispObj);
 				if (hr < 0)
 					return null;
 
-				object mdImportObj;
 				var mdDisp = (IMetaDataDispenser)mdDispObj;
-				Guid IID_IMetaDataImport = new Guid(0x7DAC8207, 0xD3AE, 0x4C75, 0x9B, 0x67, 0x92, 0x80, 0x1A, 0x49, 0x7D, 0x44);
-				mdDisp.OpenScope(assemblyFileName, 0, ref IID_IMetaDataImport, out mdImportObj);
+				var IID_IMetaDataImport = new Guid(0x7DAC8207, 0xD3AE, 0x4C75, 0x9B, 0x67, 0x92, 0x80, 0x1A, 0x49, 0x7D, 0x44);
+				mdDisp.OpenScope(assemblyFileName, 0, ref IID_IMetaDataImport, out object mdImportObj);
 				Marshal.FinalReleaseComObject(mdDispObj);
 
-				ISymUnmanagedReader symReader;
 				var binder = (ISymUnmanagedBinder)Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_CorSymBinder_SxS));
-				hr = binder.GetReaderForFile((IMetaDataImport)mdImportObj, assemblyFileName, null, out symReader);
+				hr = binder.GetReaderForFile((IMetaDataImport)mdImportObj, assemblyFileName, null, out var symReader);
 				Marshal.FinalReleaseComObject(mdImportObj);
 				Marshal.FinalReleaseComObject(binder);
 				if (hr >= 0)
@@ -175,24 +172,21 @@ namespace dnlib.DotNet.Pdb.Dss {
 				if (pdbStream == null || mdStream == null)
 					return null;
 
-				object mdDispObj;
-				Guid CLSID_CorMetaDataDispenser = new Guid(0xE5CB7A31, 0x7512, 0x11D2, 0x89, 0xCE, 0x0, 0x80, 0xC7, 0x92, 0xE5, 0xD8);
-				Guid IID_IMetaDataDispenser = new Guid(0x809C652E, 0x7396, 0x11D2, 0x97, 0x71, 0x00, 0xA0, 0xC9, 0xB4, 0xD5, 0x0C);
-				int hr = CoCreateInstance(ref CLSID_CorMetaDataDispenser, IntPtr.Zero, 1, ref IID_IMetaDataDispenser, out mdDispObj);
+				var CLSID_CorMetaDataDispenser = new Guid(0xE5CB7A31, 0x7512, 0x11D2, 0x89, 0xCE, 0x0, 0x80, 0xC7, 0x92, 0xE5, 0xD8);
+				var IID_IMetaDataDispenser = new Guid(0x809C652E, 0x7396, 0x11D2, 0x97, 0x71, 0x00, 0xA0, 0xC9, 0xB4, 0xD5, 0x0C);
+				int hr = CoCreateInstance(ref CLSID_CorMetaDataDispenser, IntPtr.Zero, 1, ref IID_IMetaDataDispenser, out object mdDispObj);
 				if (hr < 0)
 					return null;
 
-				object mdImportObj;
 				var mdDisp = (IMetaDataDispenser)mdDispObj;
-				Guid IID_IMetaDataImport = new Guid(0x7DAC8207, 0xD3AE, 0x4C75, 0x9B, 0x67, 0x92, 0x80, 0x1A, 0x49, 0x7D, 0x44);
+				var IID_IMetaDataImport = new Guid(0x7DAC8207, 0xD3AE, 0x4C75, 0x9B, 0x67, 0x92, 0x80, 0x1A, 0x49, 0x7D, 0x44);
 				pinnedMd = new PinnedMetaData(mdStream);
-				mdDisp.OpenScopeOnMemory(pinnedMd.Address, (uint)pinnedMd.Size, 0x10, ref IID_IMetaDataImport, out mdImportObj);
+				mdDisp.OpenScopeOnMemory(pinnedMd.Address, (uint)pinnedMd.Size, 0x10, ref IID_IMetaDataImport, out object mdImportObj);
 				Marshal.FinalReleaseComObject(mdDispObj);
 
-				ISymUnmanagedReader symReader;
 				var binder = (ISymUnmanagedBinder)Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_CorSymBinder_SxS));
 				stream = new ImageStreamIStream(pdbStream, null) { UserData = pinnedMd };
-				hr = binder.GetReaderFromStream((IMetaDataImport)mdImportObj, stream, out symReader);
+				hr = binder.GetReaderFromStream((IMetaDataImport)mdImportObj, stream, out var symReader);
 				Marshal.FinalReleaseComObject(mdImportObj);
 				Marshal.FinalReleaseComObject(binder);
 				if (hr >= 0) {

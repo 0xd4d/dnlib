@@ -21,8 +21,6 @@ namespace dnlib.DotNet {
 		/// <param name="self">This</param>
 		/// <param name="token">The metadata token</param>
 		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		public static IMDTokenProvider ResolveToken(this ITokenResolver self, uint token) {
-			return self.ResolveToken(token, new GenericParamContext());
-		}
+		public static IMDTokenProvider ResolveToken(this ITokenResolver self, uint token) => self.ResolveToken(token, new GenericParamContext());
 	}
 }

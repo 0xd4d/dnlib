@@ -77,9 +77,8 @@ namespace dnlib.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
-			return ParseReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
-		}
+		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) =>
+			ParseReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
@@ -102,9 +101,8 @@ namespace dnlib.DotNet {
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance or <c>null</c> if parsing failed</returns>
-		public static ITypeDefOrRef ParseReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
-			return ParseReflection(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
-		}
+		public static ITypeDefOrRef ParseReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) =>
+			ParseReflection(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
@@ -131,9 +129,8 @@ namespace dnlib.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
-			return ParseAsTypeSigReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
-		}
+		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) =>
+			ParseAsTypeSigReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
@@ -156,9 +153,8 @@ namespace dnlib.DotNet {
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if parsing failed</returns>
-		public static TypeSig ParseAsTypeSigReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) {
-			return ParseAsTypeSigReflection(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
-		}
+		public static TypeSig ParseAsTypeSigReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper) =>
+			ParseAsTypeSigReflection(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
@@ -196,7 +192,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		protected TypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper, GenericParamContext gpContext) {
 			this.ownerModule = ownerModule;
-			this.reader = new StringReader(typeFullName ?? string.Empty);
+			reader = new StringReader(typeFullName ?? string.Empty);
 			this.typeNameParserHelper = typeNameParserHelper;
 			this.gpContext = gpContext;
 		}
@@ -206,9 +202,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="IType"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		internal ITypeDefOrRef Parse() {
-			return ownerModule.UpdateRowId(ParseAsTypeSig().ToTypeDefOrRef());
-		}
+		internal ITypeDefOrRef Parse() => ownerModule.UpdateRowId(ParseAsTypeSig().ToTypeDefOrRef());
 
 		/// <summary>
 		/// Parses a type name and creates a <see cref="TypeSig"/>
@@ -229,9 +223,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Decrement recursion counter
 		/// </summary>
-		protected void RecursionDecrement() {
-			recursionCounter.Decrement();
-		}
+		protected void RecursionDecrement() => recursionCounter.Decrement();
 
 		/// <inheritdoc/>
 		public void Dispose() {
@@ -254,9 +246,7 @@ namespace dnlib.DotNet {
 		internal abstract class TSpec {
 			public readonly ElementType etype;
 
-			protected TSpec(ElementType etype) {
-				this.etype = etype;
-			}
+			protected TSpec(ElementType etype) => this.etype = etype;
 		}
 
 		internal sealed class SZArraySpec : TSpec {
@@ -364,10 +354,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="TypeRef"/> instance</returns>
 		protected TypeRef ReadTypeRefNoAssembly() {
-			string ns, name;
 			// White space is important here. Any white space before the comma/EOF must be
 			// parsed as part of the name.
-			GetNamespaceAndName(ReadId(false), out ns, out name);
+			GetNamespaceAndName(ReadId(false), out var ns, out var name);
 			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, ns, name));
 		}
 
@@ -384,22 +373,17 @@ namespace dnlib.DotNet {
 		}
 
 		internal TypeSig ToTypeSig(ITypeDefOrRef type) {
-			var td = type as TypeDef;
-			if (td != null)
+			if (type is TypeDef td)
 				return ToTypeSig(td, td.IsValueType);
-			var tr = type as TypeRef;
-			if (tr != null)
+			if (type is TypeRef tr)
 				return ToTypeSig(tr, IsValueType(tr));
-			var ts = type as TypeSpec;
-			if (ts != null)
+			if (type is TypeSpec ts)
 				return ts.TypeSig;
 			Verify(false, "Unknown type");
 			return null;
 		}
 
-		static TypeSig ToTypeSig(ITypeDefOrRef type, bool isValueType) {
-			return isValueType ? (TypeSig)new ValueTypeSig(type) : new ClassSig(type);
-		}
+		static TypeSig ToTypeSig(ITypeDefOrRef type, bool isValueType) => isValueType ? (TypeSig)new ValueTypeSig(type) : new ClassSig(type);
 
 		internal AssemblyRef FindAssemblyRef(TypeRef nonNestedTypeRef) {
 			AssemblyRef asmRef = null;
@@ -413,9 +397,7 @@ namespace dnlib.DotNet {
 			return AssemblyRef.CurrentAssembly;
 		}
 
-		internal bool IsValueType(TypeRef typeRef) {
-			return typeRef != null && typeRef.IsValueType;
-		}
+		internal bool IsValueType(TypeRef typeRef) => typeRef != null && typeRef.IsValueType;
 
 		internal static void Verify(bool b, string msg) {
 			if (!b)
@@ -471,9 +453,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		internal string ReadId() {
-			return ReadId(true);
-		}
+		internal string ReadId() => ReadId(true);
 
 		internal string ReadId(bool ignoreWhiteSpace) {
 			SkipWhite();
@@ -488,16 +468,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Peeks the next char. -1 if no more chars.
 		/// </summary>
-		protected int PeekChar() {
-			return reader.Peek();
-		}
+		protected int PeekChar() => reader.Peek();
 
 		/// <summary>
 		/// Gets the next char or -1 if no more chars
 		/// </summary>
-		protected int ReadChar() {
-			return reader.Read();
-		}
+		protected int ReadChar() => reader.Read();
 
 		/// <summary>
 		/// Gets the next ID char or <c>-1</c> if no more ID chars
@@ -536,9 +512,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="asmFullName">Full assembly name</param>
 		/// <returns>A new <see cref="AssemblyRef"/> instance or <c>null</c> if parsing failed</returns>
-		public static AssemblyRef ParseAssemblyRef(string asmFullName) {
-			return ParseAssemblyRef(asmFullName, new GenericParamContext());
-		}
+		public static AssemblyRef ParseAssemblyRef(string asmFullName) => ParseAssemblyRef(asmFullName, new GenericParamContext());
 
 		/// <summary>
 		/// Parses an assembly name
@@ -584,7 +558,7 @@ namespace dnlib.DotNet {
 				result = CreateTypeSig(tspecs, currentSig);
 			}
 			else {
-				TypeRef typeRef = ReadTypeRefAndNestedNoAssembly('+');
+				var typeRef = ReadTypeRefAndNestedNoAssembly('+');
 				var tspecs = ReadTSpecs();
 				var nonNestedTypeRef = TypeRef.GetNonNestedTypeRef(typeRef);
 				AssemblyRef asmRef;

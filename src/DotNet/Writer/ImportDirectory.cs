@@ -28,34 +28,26 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the RVA of _CorDllMain/_CorExeMain in the import lookup table
 		/// </summary>
-		public RVA CorXxxMainRVA {
-			get { return corXxxMainRVA; }
-		}
+		public RVA CorXxxMainRVA => corXxxMainRVA;
 
 		/// <summary>
 		/// Gets RVA of _CorExeMain/_CorDllMain in the IAT
 		/// </summary>
-		public RVA IatCorXxxMainRVA {
-			get { return ImportAddressTable.RVA; }
-		}
+		public RVA IatCorXxxMainRVA => ImportAddressTable.RVA;
 
 		/// <summary>
 		/// Gets/sets a value indicating whether this is a EXE or a DLL file
 		/// </summary>
 		public bool IsExeFile {
-			get { return isExeFile; }
-			set { isExeFile = value; }
+			get => isExeFile;
+			set => isExeFile = value;
 		}
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		internal bool Enable { get; set; }
 
@@ -65,9 +57,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="is64bit">true if it's a 64-bit PE file, false if it's a 32-bit PE file</param>
-		public ImportDirectory(bool is64bit) {
-			this.is64bit = is64bit;
-		}
+		public ImportDirectory(bool is64bit) => this.is64bit = is64bit;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -95,9 +85,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {

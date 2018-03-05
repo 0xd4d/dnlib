@@ -17,7 +17,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// Reads custom debug infos produced by the C# and Visual Basic compilers. They're stored in PDB files
 	/// as PDB method custom attributes with the name "MD2".
 	/// </summary>
-	struct PdbCustomDebugInfoReader : IDisposable {
+	readonly struct PdbCustomDebugInfoReader : IDisposable {
 		/// <summary>
 		/// Reads custom debug info
 		/// </summary>
@@ -338,8 +338,6 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return null;
 		}
 
-		public void Dispose() {
-			reader.Dispose();
-		}
+		public void Dispose() => reader.Dispose();
 	}
 }

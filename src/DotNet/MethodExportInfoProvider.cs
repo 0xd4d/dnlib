@@ -33,9 +33,8 @@ namespace dnlib.DotNet {
 			if (exportHdr.VirtualAddress == 0 || exportHdr.Size < 0x28)
 				return;
 
-			CpuArch cpuArch;
-			if (!CpuArch.TryGetCpuArch(peImage.ImageNTHeaders.FileHeader.Machine, out cpuArch)) {
-				Debug.Fail(string.Format("Exported methods: Unsupported machine: {0}", peImage.ImageNTHeaders.FileHeader.Machine));
+			if (!CpuArch.TryGetCpuArch(peImage.ImageNTHeaders.FileHeader.Machine, out var cpuArch)) {
+				Debug.Fail($"Exported methods: Unsupported machine: {peImage.ImageNTHeaders.FileHeader.Machine}");
 				return;
 			}
 
@@ -55,9 +54,8 @@ namespace dnlib.DotNet {
 					int slotSize = is64bit ? 8 : 4;
 					while (numSlots-- > 0 && reader.CanRead(slotSize)) {
 						var tokenPos = reader.Position;
-						MethodExportInfo exportInfo;
 						uint token = reader.ReadUInt32();
-						bool b = offsetToInfo.TryGetValue(tokenPos, out exportInfo);
+						bool b = offsetToInfo.TryGetValue(tokenPos, out var exportInfo);
 						Debug.Assert(token == 0 || b);
 						if (b) {
 							exportInfo = new MethodExportInfo(exportInfo.Name, exportInfo.Ordinal, exportOptions);
@@ -100,9 +98,8 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < allInfos.Length; i++) {
 				var currOffset = reader.Position;
 				var nextOffset = reader.Position + 4;
-				uint funcRva;
 				reader.Position = (long)peImage.ToFileOffset((RVA)reader.ReadUInt32());
-				bool rvaValid = cpuArch.TryGetExportedRvaFromStub(reader, peImage, out funcRva);
+				bool rvaValid = cpuArch.TryGetExportedRvaFromStub(reader, peImage, out uint funcRva);
 				long funcOffset = rvaValid ? (long)peImage.ToFileOffset((RVA)funcRva) : 0;
 				var exportInfo = new MethodExportInfo((ushort)(ordinalBase + (uint)i));
 				if (funcOffset != 0)
@@ -154,8 +151,7 @@ namespace dnlib.DotNet {
 		public MethodExportInfo GetMethodExportInfo(uint token) {
 			if (toInfo.Count == 0)
 				return null;
-			MethodExportInfo info;
-			if (toInfo.TryGetValue(token, out info))
+			if (toInfo.TryGetValue(token, out var info))
 				return new MethodExportInfo(info.Name, info.Ordinal, info.Options);
 			return null;
 		}

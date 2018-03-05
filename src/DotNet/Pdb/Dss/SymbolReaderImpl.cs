@@ -18,20 +18,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">An unmanaged symbol reader</param>
-		public SymbolReaderImpl(ISymUnmanagedReader reader) {
-			if (reader == null)
-				throw new ArgumentNullException("reader");
-			this.reader = reader;
-		}
+		public SymbolReaderImpl(ISymUnmanagedReader reader) =>
+			this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
 
-		public override PdbFileKind PdbFileKind {
-			get { return PdbFileKind.WindowsPDB; }
-		}
+		public override PdbFileKind PdbFileKind => PdbFileKind.WindowsPDB;
 
 		public override int UserEntryPoint {
 			get {
-				uint token;
-				int hr = reader.GetUserEntryPoint(out token);
+				int hr = reader.GetUserEntryPoint(out uint token);
 				if (hr == E_FAIL)
 					token = 0;
 				else
@@ -43,8 +37,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override IList<SymbolDocument> Documents {
 			get {
 				if (documents == null) {
-					uint numDocs;
-					reader.GetDocuments(0, out numDocs, null);
+					reader.GetDocuments(0, out uint numDocs, null);
 					var unDocs = new ISymUnmanagedDocument[numDocs];
 					reader.GetDocuments((uint)unDocs.Length, out numDocs, unDocs);
 					var docs = new SymbolDocument[numDocs];
@@ -57,13 +50,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile SymbolDocument[] documents;
 
-		public override void Initialize(ModuleDef module) {
-			this.module = module;
-		}
+		public override void Initialize(ModuleDef module) => this.module = module;
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
-			ISymUnmanagedMethod unMethod;
-			int hr = reader.GetMethodByVersion(method.MDToken.Raw, version, out unMethod);
+			int hr = reader.GetMethodByVersion(method.MDToken.Raw, version, out var unMethod);
 			if (hr == E_FAIL)
 				return null;
 			Marshal.ThrowExceptionForHR(hr);
@@ -76,8 +66,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				result.Add(asyncMethod);
 
 			const string CDI_NAME = "MD2";
-			uint bufSize;
-			reader.GetSymAttribute(method.MDToken.Raw, CDI_NAME, 0, out bufSize, null);
+			reader.GetSymAttribute(method.MDToken.Raw, CDI_NAME, 0, out uint bufSize, null);
 			if (bufSize == 0)
 				return;
 			var cdiData = new byte[bufSize];

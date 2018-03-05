@@ -93,9 +93,7 @@ namespace dnlib.Utils {
 			/// <summary>
 			/// <c>true</c> if it has been initialized, <c>false</c> otherwise
 			/// </summary>
-			public virtual bool IsInitialized_NoLock {
-				get { return true; }
-			}
+			public virtual bool IsInitialized_NoLock => true;
 
 			/// <summary>
 			/// Default constructor
@@ -107,31 +105,23 @@ namespace dnlib.Utils {
 			/// Constructor that should be used when new elements are inserted into <see cref="LazyList{T}"/>
 			/// </summary>
 			/// <param name="data">User data</param>
-			public Element(TValue data) {
-				this.value = data;
-			}
+			public Element(TValue data) => value = data;
 
 			/// <summary>
 			/// Gets the value
 			/// </summary>
 			/// <param name="index">Index in the list</param>
-			public virtual TValue GetValue_NoLock(int index) {
-				return value;
-			}
+			public virtual TValue GetValue_NoLock(int index) => value;
 
 			/// <summary>
 			/// Sets the value
 			/// </summary>
 			/// <param name="index">Index in the list</param>
 			/// <param name="value">New value</param>
-			public virtual void SetValue_NoLock(int index, TValue value) {
-				this.value = value;
-			}
+			public virtual void SetValue_NoLock(int index, TValue value) => this.value = value;
 
 			/// <inheritdoc/>
-			public override string ToString() {
-				return value == null ? string.Empty : value.ToString();
-			}
+			public override string ToString() => value?.ToString() ?? string.Empty;
 		}
 
 		/// <summary>
@@ -143,9 +133,7 @@ namespace dnlib.Utils {
 			LazyList<TValue> lazyList;
 
 			/// <inheritdoc/>
-			public override bool IsInitialized_NoLock {
-				get { return lazyList == null; }
-			}
+			public override bool IsInitialized_NoLock => lazyList == null;
 
 			/// <inheritdoc/>
 			public override TValue GetValue_NoLock(int index) {
@@ -198,21 +186,15 @@ namespace dnlib.Utils {
 
 		/// <inheritdoc/>
 		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
-		public int Count_NoLock {
-			get { return list.Count; }
-		}
+		public int Count_NoLock => list.Count;
 
 		/// <inheritdoc/>
 		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
-		public bool IsReadOnly {
-			get { return false; }
-		}
+		public bool IsReadOnly => false;
 
 		/// <inheritdoc/>
 		[DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
-		public bool IsReadOnly_NoLock {
-			get { return false; }
-		}
+		public bool IsReadOnly_NoLock => false;
 
 		/// <inheritdoc/>
 		public TValue this[int index] {
@@ -237,9 +219,7 @@ namespace dnlib.Utils {
 		}
 
 		/// <inheritdoc/>
-		public TValue Get_NoLock(int index) {
-			return list[index].GetValue_NoLock(index);
-		}
+		public TValue Get_NoLock(int index) => list[index].GetValue_NoLock(index);
 
 		/// <inheritdoc/>
 		public void Set_NoLock(int index, TValue value) {
@@ -264,7 +244,7 @@ namespace dnlib.Utils {
 		/// <param name="listener">List listener</param>
 		public LazyList(IListListener<TValue> listener) {
 			this.listener = listener;
-			this.list = new List<Element>();
+			list = new List<Element>();
 		}
 
 		/// <summary>
@@ -288,14 +268,12 @@ namespace dnlib.Utils {
 			this.listener = listener;
 			this.context = context;
 			this.readOriginalValue = readOriginalValue;
-			this.list = new List<Element>(length);
+			list = new List<Element>(length);
 			for (int i = 0; i < length; i++)
 				list.Add(new LazyElement(i, this));
 		}
 
-		TValue ReadOriginalValue_NoLock(LazyElement elem) {
-			return ReadOriginalValue_NoLock(list.IndexOf(elem), elem.origIndex);
-		}
+		TValue ReadOriginalValue_NoLock(LazyElement elem) => ReadOriginalValue_NoLock(list.IndexOf(elem), elem.origIndex);
 
 		TValue ReadOriginalValue_NoLock(int index, uint origIndex) {
 			var newValue = readOriginalValue(context, origIndex);
@@ -410,14 +388,10 @@ namespace dnlib.Utils {
 		}
 
 		/// <inheritdoc/>
-		public bool Contains(TValue item) {
-			return IndexOf(item) >= 0;
-		}
+		public bool Contains(TValue item) => IndexOf(item) >= 0;
 
 		/// <inheritdoc/>
-		public bool Contains_NoLock(TValue item) {
-			return IndexOf_NoLock(item) >= 0;
-		}
+		public bool Contains_NoLock(TValue item) => IndexOf_NoLock(item) >= 0;
 
 		/// <inheritdoc/>
 		public void CopyTo(TValue[] array, int arrayIndex) {
@@ -536,9 +510,7 @@ namespace dnlib.Utils {
 		}
 
 		/// <inheritdoc/>
-		IEnumerator IEnumerable.GetEnumerator() {
-			return GetEnumerator();
-		}
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 #if THREAD_SAFE
 		/// <inheritdoc/>

@@ -108,9 +108,8 @@ namespace dnlib.DotNet.Writer {
 			/// Constructor
 			/// </summary>
 			/// <param name="peSection">PE section</param>
-			public OrigSection(ImageSectionHeader peSection) {
-				this.PESection = peSection;
-			}
+			public OrigSection(ImageSectionHeader peSection) =>
+				PESection = peSection;
 
 			/// <inheritdoc/>
 			public void Dispose() {
@@ -123,62 +122,48 @@ namespace dnlib.DotNet.Writer {
 			/// <inheritdoc/>
 			public override string ToString() {
 				uint offs = Chunk.Data is IImageStream ? (uint)((IImageStream)Chunk.Data).FileOffset : 0;
-				return string.Format("{0} FO:{1:X8} L:{2:X8}", PESection.DisplayName, offs, (uint)Chunk.Data.Length);
+				return $"{PESection.DisplayName} FO:{offs:X8} L:{(uint)Chunk.Data.Length:X8}";
 			}
 		}
 
 		/// <summary>
 		/// Gets the module
 		/// </summary>
-		public ModuleDefMD ModuleDefMD {
-			get { return module; }
-		}
+		public ModuleDefMD ModuleDefMD => module;
 
 		/// <inheritdoc/>
-		public override ModuleDef Module {
-			get { return module; }
-		}
+		public override ModuleDef Module => module;
 
 		/// <inheritdoc/>
-		public override ModuleWriterOptionsBase TheOptions {
-			get { return Options; }
-		}
+		public override ModuleWriterOptionsBase TheOptions => Options;
 
 		/// <summary>
 		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
 		public NativeModuleWriterOptions Options {
-			get { return options ?? (options = new NativeModuleWriterOptions(module)); }
-			set { options = value; }
+			get => options ?? (options = new NativeModuleWriterOptions(module));
+			set => options = value;
 		}
 
 		/// <summary>
 		/// Gets all <see cref="PESection"/>s
 		/// </summary>
-		public override List<PESection> Sections {
-			get { return sections; }
-		}
+		public override List<PESection> Sections => sections;
 
 		/// <summary>
 		/// Gets the original PE sections and their data
 		/// </summary>
-		public List<OrigSection> OrigSections {
-			get { return origSections; }
-		}
+		public List<OrigSection> OrigSections => origSections;
 
 		/// <summary>
 		/// Gets the <c>.text</c> section
 		/// </summary>
-		public override PESection TextSection {
-			get { return textSection; }
-		}
+		public override PESection TextSection => textSection;
 
 		/// <summary>
 		/// Gets the <c>.rsrc</c> section or <c>null</c> if there's none
 		/// </summary>
-		public override PESection RsrcSection {
-			get { return rsrcSection; }
-		}
+		public override PESection RsrcSection => rsrcSection;
 
 		/// <summary>
 		/// Constructor
@@ -188,7 +173,7 @@ namespace dnlib.DotNet.Writer {
 		public NativeModuleWriter(ModuleDefMD module, NativeModuleWriterOptions options) {
 			this.module = module;
 			this.options = options;
-			this.peImage = module.MetaData.PEImage;
+			peImage = module.MetaData.PEImage;
 		}
 
 		/// <inheritdoc/>
@@ -341,8 +326,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long WriteFile() {
-			uint entryPointToken;
-			bool entryPointIsManagedOrNoEntryPoint = GetEntryPoint(out entryPointToken);
+			bool entryPointIsManagedOrNoEntryPoint = GetEntryPoint(out uint entryPointToken);
 
 			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePdb);
 			WritePdbFile();
@@ -393,9 +377,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// <c>true</c> if image is 64-bit
 		/// </summary>
-		bool Is64Bit() {
-			return peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader64;
-		}
+		bool Is64Bit() => peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader64;
 
 		Characteristics GetCharacteristics() {
 			var ch = module.Characteristics;
@@ -675,16 +657,13 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint GetMethodToken(IMethod method) {
-			var md = method as MethodDef;
-			if (md != null)
+			if (method is MethodDef md)
 				return new MDToken(Table.Method, metaData.GetRid(md)).Raw;
 
-			var mr = method as MemberRef;
-			if (mr != null)
+			if (method is MemberRef mr)
 				return new MDToken(Table.MemberRef, metaData.GetRid(mr)).Raw;
 
-			var ms = method as MethodSpec;
-			if (ms != null)
+			if (method is MethodSpec ms)
 				return new MDToken(Table.MethodSpec, metaData.GetRid(ms)).Raw;
 
 			if (method == null)
@@ -707,13 +686,11 @@ namespace dnlib.DotNet.Writer {
 				return ep == 0 || ((Options.Cor20HeaderOptions.Flags ?? 0) & ComImageFlags.NativeEntryPoint) == 0;
 			}
 
-			var epMethod = module.ManagedEntryPoint as MethodDef;
-			if (epMethod != null) {
+			if (module.ManagedEntryPoint is MethodDef epMethod) {
 				ep = new MDToken(Table.Method, metaData.GetRid(epMethod)).Raw;
 				return true;
 			}
-			var file = module.ManagedEntryPoint as FileDef;
-			if (file != null) {
+			if (module.ManagedEntryPoint is FileDef file) {
 				ep = new MDToken(Table.File, metaData.GetRid(file)).Raw;
 				return true;
 			}

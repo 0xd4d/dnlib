@@ -47,57 +47,37 @@ namespace dnlib.PE {
 
 		sealed class FilePEType : IPEType {
 			/// <inheritdoc/>
-			public RVA ToRVA(PEInfo peInfo, FileOffset offset) {
-				return peInfo.ToRVA(offset);
-			}
+			public RVA ToRVA(PEInfo peInfo, FileOffset offset) => peInfo.ToRVA(offset);
 
 			/// <inheritdoc/>
-			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) {
-				return peInfo.ToFileOffset(rva);
-			}
+			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) => peInfo.ToFileOffset(rva);
 		}
 
 		sealed class MemoryPEType : IPEType {
 			/// <inheritdoc/>
-			public RVA ToRVA(PEInfo peInfo, FileOffset offset) {
-				return (RVA)offset;
-			}
+			public RVA ToRVA(PEInfo peInfo, FileOffset offset) => (RVA)offset;
 
 			/// <inheritdoc/>
-			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) {
-				return (FileOffset)rva;
-			}
+			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) => (FileOffset)rva;
 		}
 
 		/// <inheritdoc/>
-		public bool IsFileImageLayout {
-			get { return peType is FilePEType; }
-		}
+		public bool IsFileImageLayout => peType is FilePEType;
 
 		/// <inheritdoc/>
-		public bool MayHaveInvalidAddresses {
-			get { return !IsFileImageLayout; }
-		}
+		public bool MayHaveInvalidAddresses => !IsFileImageLayout;
 
 		/// <inheritdoc/>
-		public string FileName {
-			get { return imageStreamCreator.FileName; }
-		}
+		public string FileName => imageStreamCreator.FileName;
 
 		/// <inheritdoc/>
-		public ImageDosHeader ImageDosHeader {
-			get { return peInfo.ImageDosHeader; }
-		}
+		public ImageDosHeader ImageDosHeader => peInfo.ImageDosHeader;
 
 		/// <inheritdoc/>
-		public ImageNTHeaders ImageNTHeaders {
-			get { return peInfo.ImageNTHeaders; }
-		}
+		public ImageNTHeaders ImageNTHeaders => peInfo.ImageNTHeaders;
 
 		/// <inheritdoc/>
-		public IList<ImageSectionHeader> ImageSectionHeaders {
-			get { return peInfo.ImageSectionHeaders; }
-		}
+		public IList<ImageSectionHeader> ImageSectionHeaders => peInfo.ImageSectionHeaders;
 
 		/// <inheritdoc/>
 		public IList<ImageDebugDirectory> ImageDebugDirectories {
@@ -111,7 +91,7 @@ namespace dnlib.PE {
 
 		/// <inheritdoc/>
 		public Win32Resources Win32Resources {
-			get { return win32Resources.Value; }
+			get => win32Resources.Value;
 			set {
 				IDisposable origValue = null;
 				if (win32Resources.IsValueInitialized) {
@@ -135,9 +115,9 @@ namespace dnlib.PE {
 		public PEImage(IImageStreamCreator imageStreamCreator, ImageLayout imageLayout, bool verify) {
 			try {
 				this.imageStreamCreator = imageStreamCreator;
-				this.peType = ConvertImageLayout(imageLayout);
+				peType = ConvertImageLayout(imageLayout);
 				ResetReader();
-				this.peInfo = new PEInfo(imageStream, verify);
+				peInfo = new PEInfo(imageStream, verify);
 				Initialize();
 			}
 			catch {
@@ -334,14 +314,10 @@ namespace dnlib.PE {
 		}
 
 		/// <inheritdoc/>
-		public RVA ToRVA(FileOffset offset) {
-			return peType.ToRVA(peInfo, offset);
-		}
+		public RVA ToRVA(FileOffset offset) => peType.ToRVA(peInfo, offset);
 
 		/// <inheritdoc/>
-		public FileOffset ToFileOffset(RVA rva) {
-			return peType.ToFileOffset(peInfo, rva);
-		}
+		public FileOffset ToFileOffset(RVA rva) => peType.ToFileOffset(peInfo, rva);
 
 		/// <inheritdoc/>
 		public void Dispose() {
@@ -362,25 +338,20 @@ namespace dnlib.PE {
 		/// <inheritdoc/>
 		public IImageStream CreateStream(FileOffset offset) {
 			if ((long)offset > imageStreamCreator.Length)
-				throw new ArgumentOutOfRangeException("offset");
+				throw new ArgumentOutOfRangeException(nameof(offset));
 			long length = imageStreamCreator.Length - (long)offset;
 			return CreateStream(offset, length);
 		}
 
 		/// <inheritdoc/>
-		public IImageStream CreateStream(FileOffset offset, long length) {
-			return imageStreamCreator.Create(offset, length);
-		}
+		public IImageStream CreateStream(FileOffset offset, long length) => imageStreamCreator.Create(offset, length);
 
 		/// <inheritdoc/>
-		public IImageStream CreateFullStream() {
-			return imageStreamCreator.CreateFull();
-		}
+		public IImageStream CreateFullStream() => imageStreamCreator.CreateFull();
 
 		/// <inheritdoc/>
 		public void UnsafeDisableMemoryMappedIO() {
-			var creator = imageStreamCreator as MemoryMappedFileStreamCreator;
-			if (creator != null)
+			if (imageStreamCreator is MemoryMappedFileStreamCreator creator)
 				creator.UnsafeDisableMemoryMappedIO();
 		}
 

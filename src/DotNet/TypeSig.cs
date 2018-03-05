@@ -60,25 +60,19 @@ namespace dnlib.DotNet {
 		public abstract ElementType ElementType { get; }
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.TypeSpec, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.TypeSpec, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <inheritdoc/>
-		bool IIsTypeOrMethod.IsMethod {
-			get { return false; }
-		}
+		bool IIsTypeOrMethod.IsMethod => false;
 
 		/// <inheritdoc/>
-		bool IIsTypeOrMethod.IsType {
-			get { return true; }
-		}
+		bool IIsTypeOrMethod.IsType => true;
 
 		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
@@ -105,230 +99,160 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public bool IsPrimitive {
-			get { return ElementType.IsPrimitive(); }
-		}
+		public bool IsPrimitive => ElementType.IsPrimitive();
 
 		/// <inheritdoc/>
-		public string TypeName {
-			get { return FullNameCreator.Name(this, false, null); }
-		}
+		public string TypeName => FullNameCreator.Name(this, false, null);
 
 		/// <inheritdoc/>
 		UTF8String IFullName.Name {
-			get { return new UTF8String(FullNameCreator.Name(this, false, null)); }
-			set { throw new NotSupportedException(); }
+			get => new UTF8String(FullNameCreator.Name(this, false, null));
+			set => throw new NotSupportedException();
 		}
 
 		/// <inheritdoc/>
-		public string ReflectionName {
-			get { return FullNameCreator.Name(this, true, null); }
-		}
+		public string ReflectionName => FullNameCreator.Name(this, true, null);
 
 		/// <inheritdoc/>
-		public string Namespace {
-			get { return FullNameCreator.Namespace(this, false, null); }
-		}
+		public string Namespace => FullNameCreator.Namespace(this, false, null);
 
 		/// <inheritdoc/>
-		public string ReflectionNamespace {
-			get { return FullNameCreator.Namespace(this, true, null); }
-		}
+		public string ReflectionNamespace => FullNameCreator.Namespace(this, true, null);
 
 		/// <inheritdoc/>
-		public string FullName {
-			get { return FullNameCreator.FullName(this, false, null, null, null, null); }
-		}
+		public string FullName => FullNameCreator.FullName(this, false, null, null, null, null);
 
 		/// <inheritdoc/>
-		public string ReflectionFullName {
-			get { return FullNameCreator.FullName(this, true, null, null, null, null); }
-		}
+		public string ReflectionFullName => FullNameCreator.FullName(this, true, null, null, null, null);
 
 		/// <inheritdoc/>
-		public string AssemblyQualifiedName {
-			get { return FullNameCreator.AssemblyQualifiedName(this, null, null); }
-		}
+		public string AssemblyQualifiedName => FullNameCreator.AssemblyQualifiedName(this, null, null);
 
 		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly {
-			get { return FullNameCreator.DefinitionAssembly(this); }
-		}
+		public IAssembly DefinitionAssembly => FullNameCreator.DefinitionAssembly(this);
 
 		/// <inheritdoc/>
-		public IScope Scope {
-			get { return FullNameCreator.Scope(this); }
-		}
+		public IScope Scope => FullNameCreator.Scope(this);
 
 		/// <inheritdoc/>
-		public ITypeDefOrRef ScopeType {
-			get { return FullNameCreator.ScopeType(this); }
-		}
+		public ITypeDefOrRef ScopeType => FullNameCreator.ScopeType(this);
 
 		/// <inheritdoc/>
-		public ModuleDef Module {
-			get { return FullNameCreator.OwnerModule(this); }
-		}
+		public ModuleDef Module => FullNameCreator.OwnerModule(this);
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="TypeDefOrRefSig"/>
 		/// </summary>
-		public bool IsTypeDefOrRef {
-			get { return this is TypeDefOrRefSig; }
-		}
+		public bool IsTypeDefOrRef => this is TypeDefOrRefSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="CorLibTypeSig"/>
 		/// </summary>
-		public bool IsCorLibType {
-			get { return this is CorLibTypeSig; }
-		}
+		public bool IsCorLibType => this is CorLibTypeSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ClassSig"/>
 		/// </summary>
-		public bool IsClassSig {
-			get { return this is ClassSig; }
-		}
+		public bool IsClassSig => this is ClassSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ValueTypeSig"/>
 		/// </summary>
-		public bool IsValueTypeSig {
-			get { return this is ValueTypeSig; }
-		}
+		public bool IsValueTypeSig => this is ValueTypeSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="GenericSig"/>
 		/// </summary>
-		public bool IsGenericParameter {
-			get { return this is GenericSig; }
-		}
+		public bool IsGenericParameter => this is GenericSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="GenericVar"/>
 		/// </summary>
-		public bool IsGenericTypeParameter {
-			get { return this is GenericVar; }
-		}
+		public bool IsGenericTypeParameter => this is GenericVar;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="GenericMVar"/>
 		/// </summary>
-		public bool IsGenericMethodParameter {
-			get { return this is GenericMVar; }
-		}
+		public bool IsGenericMethodParameter => this is GenericMVar;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="SentinelSig"/>
 		/// </summary>
-		public bool IsSentinel {
-			get { return this is SentinelSig; }
-		}
+		public bool IsSentinel => this is SentinelSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="FnPtrSig"/>
 		/// </summary>
-		public bool IsFunctionPointer {
-			get { return this is FnPtrSig; }
-		}
+		public bool IsFunctionPointer => this is FnPtrSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="GenericInstSig"/>
 		/// </summary>
-		public bool IsGenericInstanceType {
-			get { return this is GenericInstSig; }
-		}
+		public bool IsGenericInstanceType => this is GenericInstSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="PtrSig"/>
 		/// </summary>
-		public bool IsPointer {
-			get { return this is PtrSig; }
-		}
+		public bool IsPointer => this is PtrSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ByRefSig"/>
 		/// </summary>
-		public bool IsByRef {
-			get { return this is ByRefSig; }
-		}
+		public bool IsByRef => this is ByRefSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ArraySig"/> or a <see cref="SZArraySig"/>
 		/// </summary>
-		public bool IsSingleOrMultiDimensionalArray {
-			get { return this is ArraySigBase; }
-		}
+		public bool IsSingleOrMultiDimensionalArray => this is ArraySigBase;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ArraySig"/>
 		/// </summary>
-		public bool IsArray {
-			get { return this is ArraySig; }
-		}
+		public bool IsArray => this is ArraySig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="SZArraySig"/>
 		/// </summary>
-		public bool IsSZArray {
-			get { return this is SZArraySig; }
-		}
+		public bool IsSZArray => this is SZArraySig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ModifierSig"/>
 		/// </summary>
-		public bool IsModifier {
-			get { return this is ModifierSig; }
-		}
+		public bool IsModifier => this is ModifierSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="CModReqdSig"/>
 		/// </summary>
-		public bool IsRequiredModifier {
-			get { return this is CModReqdSig; }
-		}
+		public bool IsRequiredModifier => this is CModReqdSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="CModOptSig"/>
 		/// </summary>
-		public bool IsOptionalModifier {
-			get { return this is CModOptSig; }
-		}
+		public bool IsOptionalModifier => this is CModOptSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="PinnedSig"/>
 		/// </summary>
-		public bool IsPinned {
-			get { return this is PinnedSig; }
-		}
+		public bool IsPinned => this is PinnedSig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ValueArraySig"/>
 		/// </summary>
-		public bool IsValueArray {
-			get { return this is ValueArraySig; }
-		}
+		public bool IsValueArray => this is ValueArraySig;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="ModuleSig"/>
 		/// </summary>
-		public bool IsModuleSig {
-			get { return this is ModuleSig; }
-		}
+		public bool IsModuleSig => this is ModuleSig;
 
 		/// <summary>
 		/// <c>true</c> if this <see cref="TypeSig"/> contains a <see cref="GenericVar"/> or a
 		/// <see cref="GenericMVar"/>.
 		/// </summary>
-		public bool ContainsGenericParameter {
-			get { return TypeHelper.ContainsGenericParameter(this); }
-		}
+		public bool ContainsGenericParameter => TypeHelper.ContainsGenericParameter(this);
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
-		}
+		public override string ToString() => FullName;
 	}
 
 	public static partial class Extensions {
@@ -378,9 +302,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="TypeDefOrRefSig"/> or <c>null</c> if it's not a
 		/// <see cref="TypeDefOrRefSig"/></returns>
-		public static TypeDefOrRefSig ToTypeDefOrRefSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as TypeDefOrRefSig;
-		}
+		public static TypeDefOrRefSig ToTypeDefOrRefSig(this TypeSig type) => type.RemovePinnedAndModifiers() as TypeDefOrRefSig;
 
 		/// <summary>
 		/// Returns a <see cref="ClassOrValueTypeSig"/>
@@ -388,9 +310,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ClassOrValueTypeSig"/> or <c>null</c> if it's not a
 		/// <see cref="ClassOrValueTypeSig"/></returns>
-		public static ClassOrValueTypeSig ToClassOrValueTypeSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as ClassOrValueTypeSig;
-		}
+		public static ClassOrValueTypeSig ToClassOrValueTypeSig(this TypeSig type) => type.RemovePinnedAndModifiers() as ClassOrValueTypeSig;
 
 		/// <summary>
 		/// Returns a <see cref="ValueTypeSig"/>
@@ -398,9 +318,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ValueTypeSig"/> or <c>null</c> if it's not a
 		/// <see cref="ValueTypeSig"/></returns>
-		public static ValueTypeSig ToValueTypeSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as ValueTypeSig;
-		}
+		public static ValueTypeSig ToValueTypeSig(this TypeSig type) => type.RemovePinnedAndModifiers() as ValueTypeSig;
 
 		/// <summary>
 		/// Returns a <see cref="ClassSig"/>
@@ -408,9 +326,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ClassSig"/> or <c>null</c> if it's not a
 		/// <see cref="ClassSig"/></returns>
-		public static ClassSig ToClassSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as ClassSig;
-		}
+		public static ClassSig ToClassSig(this TypeSig type) => type.RemovePinnedAndModifiers() as ClassSig;
 
 		/// <summary>
 		/// Returns a <see cref="GenericSig"/>
@@ -418,9 +334,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericSig"/> or <c>null</c> if it's not a
 		/// <see cref="GenericSig"/></returns>
-		public static GenericSig ToGenericSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as GenericSig;
-		}
+		public static GenericSig ToGenericSig(this TypeSig type) => type.RemovePinnedAndModifiers() as GenericSig;
 
 		/// <summary>
 		/// Returns a <see cref="GenericVar"/>
@@ -428,9 +342,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericVar"/> or <c>null</c> if it's not a
 		/// <see cref="GenericVar"/></returns>
-		public static GenericVar ToGenericVar(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as GenericVar;
-		}
+		public static GenericVar ToGenericVar(this TypeSig type) => type.RemovePinnedAndModifiers() as GenericVar;
 
 		/// <summary>
 		/// Returns a <see cref="GenericMVar"/>
@@ -438,9 +350,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericMVar"/> or <c>null</c> if it's not a
 		/// <see cref="GenericMVar"/></returns>
-		public static GenericMVar ToGenericMVar(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as GenericMVar;
-		}
+		public static GenericMVar ToGenericMVar(this TypeSig type) => type.RemovePinnedAndModifiers() as GenericMVar;
 
 		/// <summary>
 		/// Returns a <see cref="GenericInstSig"/>
@@ -448,9 +358,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="GenericInstSig"/> or <c>null</c> if it's not a
 		/// <see cref="GenericInstSig"/></returns>
-		public static GenericInstSig ToGenericInstSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as GenericInstSig;
-		}
+		public static GenericInstSig ToGenericInstSig(this TypeSig type) => type.RemovePinnedAndModifiers() as GenericInstSig;
 
 		/// <summary>
 		/// Returns a <see cref="PtrSig"/>
@@ -458,9 +366,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="PtrSig"/> or <c>null</c> if it's not a
 		/// <see cref="PtrSig"/></returns>
-		public static PtrSig ToPtrSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as PtrSig;
-		}
+		public static PtrSig ToPtrSig(this TypeSig type) => type.RemovePinnedAndModifiers() as PtrSig;
 
 		/// <summary>
 		/// Returns a <see cref="ByRefSig"/>
@@ -468,9 +374,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ByRefSig"/> or <c>null</c> if it's not a
 		/// <see cref="ByRefSig"/></returns>
-		public static ByRefSig ToByRefSig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as ByRefSig;
-		}
+		public static ByRefSig ToByRefSig(this TypeSig type) => type.RemovePinnedAndModifiers() as ByRefSig;
 
 		/// <summary>
 		/// Returns a <see cref="ArraySig"/>
@@ -478,9 +382,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="ArraySig"/> or <c>null</c> if it's not a
 		/// <see cref="ArraySig"/></returns>
-		public static ArraySig ToArraySig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as ArraySig;
-		}
+		public static ArraySig ToArraySig(this TypeSig type) => type.RemovePinnedAndModifiers() as ArraySig;
 
 		/// <summary>
 		/// Returns a <see cref="SZArraySig"/>
@@ -488,18 +390,14 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="SZArraySig"/> or <c>null</c> if it's not a
 		/// <see cref="SZArraySig"/></returns>
-		public static SZArraySig ToSZArraySig(this TypeSig type) {
-			return type.RemovePinnedAndModifiers() as SZArraySig;
-		}
+		public static SZArraySig ToSZArraySig(this TypeSig type) => type.RemovePinnedAndModifiers() as SZArraySig;
 
 		/// <summary>
 		/// Gets the next field or <c>null</c>
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static TypeSig GetNext(this TypeSig self) {
-			return self == null ? null : self.Next;
-		}
+		public static TypeSig GetNext(this TypeSig self) => self?.Next;
 
 		/// <summary>
 		/// Gets the <see cref="TypeSig.IsValueType"/> value or <c>false</c> if
@@ -507,9 +405,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static bool GetIsValueType(this TypeSig self) {
-			return self == null ? false : self.IsValueType;
-		}
+		public static bool GetIsValueType(this TypeSig self) => self == null ? false : self.IsValueType;
 
 		/// <summary>
 		/// Gets the <see cref="TypeSig.IsPrimitive"/> value or <c>false</c> if
@@ -517,55 +413,42 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static bool GetIsPrimitive(this TypeSig self) {
-			return self == null ? false : self.IsPrimitive;
-		}
+		public static bool GetIsPrimitive(this TypeSig self) => self == null ? false : self.IsPrimitive;
 
 		/// <summary>
 		/// Gets the element type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>The element type</returns>
-		public static ElementType GetElementType(this TypeSig a) {
-			return a == null ? ElementType.End : a.ElementType;
-		}
+		public static ElementType GetElementType(this TypeSig a) => a == null ? ElementType.End : a.ElementType;
 
 		/// <summary>
 		/// Gets the full name of the type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>Full name of the type</returns>
-		public static string GetFullName(this TypeSig a) {
-			return a == null ? string.Empty : a.FullName;
-		}
+		public static string GetFullName(this TypeSig a) => a == null ? string.Empty : a.FullName;
 
 		/// <summary>
 		/// Gets the name of the type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>Name of the type</returns>
-		public static string GetName(this TypeSig a) {
-			return a == null ? string.Empty : a.TypeName;
-		}
+		public static string GetName(this TypeSig a) => a == null ? string.Empty : a.TypeName;
 
 		/// <summary>
 		/// Gets the namespace of the type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>Namespace of the type</returns>
-		public static string GetNamespace(this TypeSig a) {
-			return a == null ? string.Empty : a.Namespace;
-		}
+		public static string GetNamespace(this TypeSig a) => a == null ? string.Empty : a.Namespace;
 
 		/// <summary>
 		/// Returns the <see cref="TypeRef"/> if it is a <see cref="TypeDefOrRefSig"/>.
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>A <see cref="TypeRef"/> or <c>null</c> if none found</returns>
-		public static TypeRef TryGetTypeRef(this TypeSig a) {
-			var tdr = a.RemovePinnedAndModifiers() as TypeDefOrRefSig;
-			return tdr == null ? null : tdr.TypeRef;
-		}
+		public static TypeRef TryGetTypeRef(this TypeSig a) => (a.RemovePinnedAndModifiers() as TypeDefOrRefSig)?.TypeRef;
 
 		/// <summary>
 		/// Returns the <see cref="TypeDef"/> if it is a <see cref="TypeDefOrRefSig"/>.
@@ -573,20 +456,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if none found</returns>
-		public static TypeDef TryGetTypeDef(this TypeSig a) {
-			var tdr = a.RemovePinnedAndModifiers() as TypeDefOrRefSig;
-			return tdr == null ? null : tdr.TypeDef;
-		}
+		public static TypeDef TryGetTypeDef(this TypeSig a) => (a.RemovePinnedAndModifiers() as TypeDefOrRefSig)?.TypeDef;
 
 		/// <summary>
 		/// Returns the <see cref="TypeSpec"/> if it is a <see cref="TypeDefOrRefSig"/>.
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>A <see cref="TypeSpec"/> or <c>null</c> if none found</returns>
-		public static TypeSpec TryGetTypeSpec(this TypeSig a) {
-			var tdr = a.RemovePinnedAndModifiers() as TypeDefOrRefSig;
-			return tdr == null ? null : tdr.TypeSpec;
-		}
+		public static TypeSpec TryGetTypeSpec(this TypeSig a) => (a.RemovePinnedAndModifiers() as TypeDefOrRefSig)?.TypeSpec;
 	}
 
 	/// <summary>
@@ -596,9 +473,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public abstract class LeafSig : TypeSig {
 		/// <inheritdoc/>
-		public sealed override TypeSig Next {
-			get { return null; }
-		}
+		public sealed override TypeSig Next => null;
 	}
 
 	/// <summary>
@@ -610,60 +485,44 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the the <c>TypeDefOrRef</c>
 		/// </summary>
-		public ITypeDefOrRef TypeDefOrRef {
-			get { return typeDefOrRef; }
-		}
+		public ITypeDefOrRef TypeDefOrRef => typeDefOrRef;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeRef"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeRef {
-			get { return TypeRef != null; }
-		}
+		public bool IsTypeRef => TypeRef != null;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeDef"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeDef {
-			get { return TypeDef != null; }
-		}
+		public bool IsTypeDef => TypeDef != null;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeSpec"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeSpec {
-			get { return TypeSpec != null; }
-		}
+		public bool IsTypeSpec => TypeSpec != null;
 
 		/// <summary>
 		/// Gets the <see cref="TypeRef"/> or <c>null</c> if it's not a <see cref="TypeRef"/>
 		/// </summary>
-		public TypeRef TypeRef {
-			get { return typeDefOrRef as TypeRef; }
-		}
+		public TypeRef TypeRef => typeDefOrRef as TypeRef;
 
 		/// <summary>
 		/// Gets the <see cref="TypeDef"/> or <c>null</c> if it's not a <see cref="TypeDef"/>
 		/// </summary>
-		public TypeDef TypeDef {
-			get { return typeDefOrRef as TypeDef; }
-		}
+		public TypeDef TypeDef => typeDefOrRef as TypeDef;
 
 		/// <summary>
 		/// Gets the <see cref="TypeSpec"/> or <c>null</c> if it's not a <see cref="TypeSpec"/>
 		/// </summary>
-		public TypeSpec TypeSpec {
-			get { return typeDefOrRef as TypeSpec; }
-		}
+		public TypeSpec TypeSpec => typeDefOrRef as TypeSpec;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="typeDefOrRef">A <see cref="TypeRef"/>, <see cref="TypeDef"/> or
 		/// a <see cref="TypeSpec"/></param>
-		protected TypeDefOrRefSig(ITypeDefOrRef typeDefOrRef) {
-			this.typeDefOrRef = typeDefOrRef;
-		}
+		protected TypeDefOrRefSig(ITypeDefOrRef typeDefOrRef) => this.typeDefOrRef = typeDefOrRef;
 	}
 
 	/// <summary>
@@ -675,9 +534,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the element type
 		/// </summary>
-		public override ElementType ElementType {
-			get { return elementType; }
-		}
+		public override ElementType ElementType => elementType;
 
 		/// <summary>
 		/// Constructor
@@ -711,9 +568,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class ValueTypeSig : ClassOrValueTypeSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.ValueType; }
-		}
+		public override ElementType ElementType => ElementType.ValueType;
 
 		/// <summary>
 		/// Constructor
@@ -729,9 +584,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class ClassSig : ClassOrValueTypeSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Class; }
-		}
+		public override ElementType ElementType => ElementType.Class;
 
 		/// <summary>
 		/// Constructor
@@ -753,48 +606,36 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="TypeDef"/> or <see cref="MethodDef"/>
 		/// </summary>
-		public bool HasOwner {
-			get { return genericParamProvider != null; }
-		}
+		public bool HasOwner => genericParamProvider != null;
 
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="TypeDef"/> (<see cref="OwnerType"/> is
 		/// not <c>null</c>)
 		/// </summary>
-		public bool HasOwnerType {
-			get { return OwnerType != null; }
-		}
+		public bool HasOwnerType => OwnerType != null;
 
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="MethodDef"/> (<see cref="OwnerMethod"/> is
 		/// not <c>null</c>)
 		/// </summary>
-		public bool HasOwnerMethod {
-			get { return OwnerMethod != null; }
-		}
+		public bool HasOwnerMethod => OwnerMethod != null;
 
 		/// <summary>
 		/// Gets the owner type or <c>null</c> if the owner is a <see cref="MethodDef"/> or if it
 		/// has no owner.
 		/// </summary>
-		public TypeDef OwnerType {
-			get { return genericParamProvider as TypeDef; }
-		}
+		public TypeDef OwnerType => genericParamProvider as TypeDef;
 
 		/// <summary>
 		/// Gets the owner method or <c>null</c> if the owner is a <see cref="TypeDef"/> or if it
 		/// has no owner.
 		/// </summary>
-		public MethodDef OwnerMethod {
-			get { return genericParamProvider as MethodDef; }
-		}
+		public MethodDef OwnerMethod => genericParamProvider as MethodDef;
 
 		/// <summary>
 		/// Gets the generic param number
 		/// </summary>
-		public uint Number {
-			get { return number; }
-		}
+		public uint Number => number;
 
 		/// <summary>
 		/// Gets the corresponding <see cref="dnlib.DotNet.GenericParam"/> or <c>null</c> if none exists.
@@ -836,16 +677,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns <c>true</c> if it's a <c>MVar</c> element type
 		/// </summary>
-		public bool IsMethodVar {
-			get { return !isTypeVar; }
-		}
+		public bool IsMethodVar => !isTypeVar;
 
 		/// <summary>
 		/// Returns <c>true</c> if it's a <c>Var</c> element type
 		/// </summary>
-		public bool IsTypeVar {
-			get { return isTypeVar; }
-		}
+		public bool IsTypeVar => isTypeVar;
 	}
 
 	/// <summary>
@@ -853,9 +690,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class GenericVar : GenericSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Var; }
-		}
+		public override ElementType ElementType => ElementType.Var;
 
 		/// <inheritdoc/>
 		public GenericVar(uint number)
@@ -891,9 +726,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class GenericMVar : GenericSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.MVar; }
-		}
+		public override ElementType ElementType => ElementType.MVar;
 
 		/// <inheritdoc/>
 		public GenericMVar(uint number)
@@ -929,9 +762,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class SentinelSig : LeafSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Sentinel; }
-		}
+		public override ElementType ElementType => ElementType.Sentinel;
 	}
 
 	/// <summary>
@@ -941,31 +772,23 @@ namespace dnlib.DotNet {
 		readonly CallingConventionSig signature;
 
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.FnPtr; }
-		}
+		public override ElementType ElementType => ElementType.FnPtr;
 
 		/// <summary>
 		/// Gets the signature
 		/// </summary>
-		public CallingConventionSig Signature {
-			get { return signature; }
-		}
+		public CallingConventionSig Signature => signature;
 
 		/// <summary>
 		/// Gets the <see cref="MethodSig"/>
 		/// </summary>
-		public MethodSig MethodSig {
-			get { return signature as MethodSig; }
-		}
+		public MethodSig MethodSig => signature as MethodSig;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="signature">The method signature</param>
-		public FnPtrSig(CallingConventionSig signature) {
-			this.signature = signature;
-		}
+		public FnPtrSig(CallingConventionSig signature) => this.signature = signature;
 	}
 
 	/// <summary>
@@ -976,31 +799,25 @@ namespace dnlib.DotNet {
 		readonly ThreadSafe.IList<TypeSig> genericArgs;
 
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.GenericInst; }
-		}
+		public override ElementType ElementType => ElementType.GenericInst;
 
 		/// <summary>
 		/// Gets the generic type
 		/// </summary>
 		public ClassOrValueTypeSig GenericType {
-			get { return genericType; }
-			set { genericType = value; }
+			get => genericType;
+			set => genericType = value;
 		}
 
 		/// <summary>
 		/// Gets the generic arguments (it's never <c>null</c>)
 		/// </summary>
-		public ThreadSafe.IList<TypeSig> GenericArguments {
-			get { return genericArgs; }
-		}
+		public ThreadSafe.IList<TypeSig> GenericArguments => genericArgs;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public GenericInstSig() {
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>();
-		}
+		public GenericInstSig() => genericArgs = ThreadSafeListCreator.Create<TypeSig>();
 
 		/// <summary>
 		/// Constructor
@@ -1008,7 +825,7 @@ namespace dnlib.DotNet {
 		/// <param name="genericType">The generic type</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType) {
 			this.genericType = genericType;
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>();
+			genericArgs = ThreadSafeListCreator.Create<TypeSig>();
 		}
 
 		/// <summary>
@@ -1018,7 +835,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArgCount">Number of generic arguments</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, uint genArgCount) {
 			this.genericType = genericType;
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>((int)genArgCount);
+			genericArgs = ThreadSafeListCreator.Create<TypeSig>((int)genArgCount);
 		}
 
 		/// <summary>
@@ -1037,7 +854,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArg1">Generic argument #1</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1) {
 			this.genericType = genericType;
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1);
+			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1);
 		}
 
 		/// <summary>
@@ -1048,7 +865,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArg2">Generic argument #2</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1, TypeSig genArg2) {
 			this.genericType = genericType;
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1, genArg2);
+			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1, genArg2);
 		}
 
 		/// <summary>
@@ -1060,7 +877,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArg3">Generic argument #3</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, TypeSig genArg1, TypeSig genArg2, TypeSig genArg3) {
 			this.genericType = genericType;
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1, genArg2, genArg3);
+			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArg1, genArg2, genArg3);
 		}
 
 		/// <summary>
@@ -1070,7 +887,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArgs">Generic arguments</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, params TypeSig[] genArgs) {
 			this.genericType = genericType;
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArgs);
+			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArgs);
 		}
 
 		/// <summary>
@@ -1080,7 +897,7 @@ namespace dnlib.DotNet {
 		/// <param name="genArgs">Generic arguments</param>
 		public GenericInstSig(ClassOrValueTypeSig genericType, IList<TypeSig> genArgs) {
 			this.genericType = genericType;
-			this.genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArgs);
+			genericArgs = ThreadSafeListCreator.Create<TypeSig>(genArgs);
 		}
 	}
 
@@ -1091,17 +908,13 @@ namespace dnlib.DotNet {
 		readonly TypeSig nextSig;
 
 		/// <inheritdoc/>
-		public sealed override TypeSig Next {
-			get { return nextSig; }
-		}
+		public sealed override TypeSig Next => nextSig;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="nextSig">Next sig</param>
-		protected NonLeafSig(TypeSig nextSig) {
-			this.nextSig = nextSig;
-		}
+		protected NonLeafSig(TypeSig nextSig) => this.nextSig = nextSig;
 	}
 
 	/// <summary>
@@ -1109,9 +922,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class PtrSig : NonLeafSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Ptr; }
-		}
+		public override ElementType ElementType => ElementType.Ptr;
 
 		/// <summary>
 		/// Constructor
@@ -1127,9 +938,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class ByRefSig : NonLeafSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.ByRef; }
-		}
+		public override ElementType ElementType => ElementType.ByRef;
 
 		/// <summary>
 		/// Constructor
@@ -1157,18 +966,14 @@ namespace dnlib.DotNet {
 		/// and <c>false</c> if it's a single-dimensional array (i.e., <see cref="SZArraySig"/>)
 		/// </summary>
 		/// <seealso cref="IsSingleDimensional"/>
-		public bool IsMultiDimensional {
-			get { return ElementType == ElementType.Array; }
-		}
+		public bool IsMultiDimensional => ElementType == ElementType.Array;
 
 		/// <summary>
 		/// <c>true</c> if it's a single-dimensional array (i.e., <see cref="SZArraySig"/>),
 		/// and <c>false</c> if it's a multi-dimensional array (i.e., <see cref="ArraySig"/>)
 		/// </summary>
 		/// <see cref="IsMultiDimensional"/>
-		public bool IsSingleDimensional {
-			get { return ElementType == ElementType.SZArray; }
-		}
+		public bool IsSingleDimensional => ElementType == ElementType.SZArray;
 
 		/// <summary>
 		/// Gets/sets the rank (number of dimensions). This can only be set if
@@ -1201,31 +1006,25 @@ namespace dnlib.DotNet {
 		readonly ThreadSafe.IList<int> lowerBounds;
 
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Array; }
-		}
+		public override ElementType ElementType => ElementType.Array;
 
 		/// <summary>
 		/// Gets/sets the rank (max value is <c>0x1FFFFFFF</c>)
 		/// </summary>
 		public override uint Rank {
-			get { return rank; }
-			set { rank = value; }
+			get => rank;
+			set => rank = value;
 		}
 
 		/// <summary>
 		/// Gets all sizes (max elements is <c>0x1FFFFFFF</c>)
 		/// </summary>
-		public ThreadSafe.IList<uint> Sizes {
-			get { return sizes; }
-		}
+		public ThreadSafe.IList<uint> Sizes => sizes;
 
 		/// <summary>
 		/// Gets all lower bounds (max elements is <c>0x1FFFFFFF</c>)
 		/// </summary>
-		public ThreadSafe.IList<int> LowerBounds {
-			get { return lowerBounds; }
-		}
+		public ThreadSafe.IList<int> LowerBounds => lowerBounds;
 
 		/// <summary>
 		/// Constructor
@@ -1233,8 +1032,8 @@ namespace dnlib.DotNet {
 		/// <param name="arrayType">Array type</param>
 		public ArraySig(TypeSig arrayType)
 			: base(arrayType) {
-			this.sizes = ThreadSafeListCreator.Create<uint>();
-			this.lowerBounds = ThreadSafeListCreator.Create<int>();
+			sizes = ThreadSafeListCreator.Create<uint>();
+			lowerBounds = ThreadSafeListCreator.Create<int>();
 		}
 
 		/// <summary>
@@ -1245,8 +1044,8 @@ namespace dnlib.DotNet {
 		public ArraySig(TypeSig arrayType, uint rank)
 			: base(arrayType) {
 			this.rank = rank;
-			this.sizes = ThreadSafeListCreator.Create<uint>();
-			this.lowerBounds = ThreadSafeListCreator.Create<int>();
+			sizes = ThreadSafeListCreator.Create<uint>();
+			lowerBounds = ThreadSafeListCreator.Create<int>();
 		}
 
 		/// <summary>
@@ -1298,14 +1097,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<uint> GetSizes() {
-			return sizes;
-		}
+		public override ThreadSafe.IList<uint> GetSizes() => sizes;
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<int> GetLowerBounds() {
-			return lowerBounds;
-		}
+		public override ThreadSafe.IList<int> GetLowerBounds() => lowerBounds;
 	}
 
 	/// <summary>
@@ -1314,14 +1109,12 @@ namespace dnlib.DotNet {
 	/// <seealso cref="ArraySig"/>
 	public sealed class SZArraySig : ArraySigBase {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.SZArray; }
-		}
+		public override ElementType ElementType => ElementType.SZArray;
 
 		/// <inheritdoc/>
 		public override uint Rank {
-			get { return 1; }
-			set { throw new NotSupportedException(); }
+			get => 1;
+			set => throw new NotSupportedException();
 		}
 
 		/// <summary>
@@ -1333,14 +1126,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<uint> GetSizes() {
-			return ThreadSafeListCreator.Create<uint>();
-		}
+		public override ThreadSafe.IList<uint> GetSizes() => ThreadSafeListCreator.Create<uint>();
 
 		/// <inheritdoc/>
-		public override ThreadSafe.IList<int> GetLowerBounds() {
-			return ThreadSafeListCreator.Create<int>();
-		}
+		public override ThreadSafe.IList<int> GetLowerBounds() => ThreadSafeListCreator.Create<int>();
 	}
 
 	/// <summary>
@@ -1352,9 +1141,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns the modifier type
 		/// </summary>
-		public ITypeDefOrRef Modifier {
-			get { return modifier; }
-		}
+		public ITypeDefOrRef Modifier => modifier;
 
 		/// <summary>
 		/// Constructor
@@ -1362,9 +1149,7 @@ namespace dnlib.DotNet {
 		/// <param name="modifier">Modifier type</param>
 		/// <param name="nextSig">The next element type</param>
 		protected ModifierSig(ITypeDefOrRef modifier, TypeSig nextSig)
-			: base(nextSig) {
-			this.modifier = modifier;
-		}
+			: base(nextSig) => this.modifier = modifier;
 	}
 
 	/// <summary>
@@ -1372,9 +1157,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class CModReqdSig : ModifierSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.CModReqd; }
-		}
+		public override ElementType ElementType => ElementType.CModReqd;
 
 		/// <inheritdoc/>
 		public CModReqdSig(ITypeDefOrRef modifier, TypeSig nextSig)
@@ -1387,9 +1170,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class CModOptSig : ModifierSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.CModOpt; }
-		}
+		public override ElementType ElementType => ElementType.CModOpt;
 
 		/// <inheritdoc/>
 		public CModOptSig(ITypeDefOrRef modifier, TypeSig nextSig)
@@ -1402,9 +1183,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class PinnedSig : NonLeafSig {
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Pinned; }
-		}
+		public override ElementType ElementType => ElementType.Pinned;
 
 		/// <summary>
 		/// Constructor
@@ -1422,16 +1201,14 @@ namespace dnlib.DotNet {
 		uint size;
 
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.ValueArray; }
-		}
+		public override ElementType ElementType => ElementType.ValueArray;
 
 		/// <summary>
 		/// Gets/sets the size
 		/// </summary>
 		public uint Size {
-			get { return size; }
-			set { size = value; }
+			get => size;
+			set => size = value;
 		}
 
 		/// <summary>
@@ -1440,9 +1217,7 @@ namespace dnlib.DotNet {
 		/// <param name="nextSig">The next element type</param>
 		/// <param name="size">Size of the array</param>
 		public ValueArraySig(TypeSig nextSig, uint size)
-			: base(nextSig) {
-			this.size = size;
-		}
+			: base(nextSig) => this.size = size;
 	}
 
 	/// <summary>
@@ -1452,16 +1227,14 @@ namespace dnlib.DotNet {
 		uint index;
 
 		/// <inheritdoc/>
-		public override ElementType ElementType {
-			get { return ElementType.Module; }
-		}
+		public override ElementType ElementType => ElementType.Module;
 
 		/// <summary>
 		/// Gets/sets the index
 		/// </summary>
 		public uint Index {
-			get { return index; }
-			set { index = value; }
+			get => index;
+			set => index = value;
 		}
 
 		/// <summary>
@@ -1470,8 +1243,6 @@ namespace dnlib.DotNet {
 		/// <param name="index">Index</param>
 		/// <param name="nextSig">The next element type</param>
 		public ModuleSig(uint index, TypeSig nextSig)
-			: base(nextSig) {
-			this.index = index;
-		}
+			: base(nextSig) => this.index = index;
 	}
 }

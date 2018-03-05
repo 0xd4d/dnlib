@@ -67,9 +67,8 @@ namespace dnlib.DotNet {
 		/// not a generic method definition, i.e., a MethodSpec.
 		/// </summary>
 		/// <param name="mb">The method</param>
-		public static bool IsGenericButNotGenericMethodDefinition(this MethodBase mb) {
-			return mb != null && !mb.IsGenericMethodDefinition && mb.IsGenericMethod;
-		}
+		public static bool IsGenericButNotGenericMethodDefinition(this MethodBase mb) =>
+			mb != null && !mb.IsGenericMethodDefinition && mb.IsGenericMethod;
 
 		/// <summary>
 		/// Checks whether a parameter/prop/event type should be treated as if it is really a
@@ -80,21 +79,15 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="declaringType">Declaring type of method/event/property</param>
 		/// <param name="t">Parameter/property/event type</param>
-		internal static bool MustTreatTypeAsGenericInstType(this Type declaringType, Type t) {
-			return declaringType != null &&
-				declaringType.IsGenericTypeDefinition &&
-				t == declaringType;
-		}
+		internal static bool MustTreatTypeAsGenericInstType(this Type declaringType, Type t) =>
+			declaringType != null && declaringType.IsGenericTypeDefinition && t == declaringType;
 
 		/// <summary>
 		/// Checks whether <paramref name="type"/> is a type definition and not a type spec
 		/// (eg. pointer or generic type instantiation)
 		/// </summary>
 		/// <param name="type">this</param>
-		public static bool IsTypeDef(this Type type) {
-			return type != null &&
-				!type.HasElementType &&
-				(!type.IsGenericType || type.IsGenericTypeDefinition);
-		}
+		public static bool IsTypeDef(this Type type) =>
+			type != null && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
 	}
 }

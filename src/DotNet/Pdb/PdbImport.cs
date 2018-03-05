@@ -30,33 +30,23 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets all imports
 		/// </summary>
-		public ThreadSafe.IList<PdbImport> Imports {
-			get { return imports; }
-		}
+		public ThreadSafe.IList<PdbImport> Imports => imports;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Imports"/> is not empty
 		/// </summary>
-		public bool HasImports {
-			get { return imports.Count > 0; }
-		}
+		public bool HasImports => imports.Count > 0;
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 26; }
-		}
+		public int HasCustomDebugInformationTag => 26;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
 		/// </summary>
-		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
+		public ThreadSafe.IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
 		readonly ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos = ThreadSafeListCreator.Create<PdbCustomDebugInfo>();
 	}
 
@@ -97,9 +87,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.ImportNamespace"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.ImportNamespace; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.ImportNamespace;
 
 		/// <summary>
 		/// Gets the target namespace
@@ -116,15 +104,11 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		/// <param name="targetNamespace"></param>
-		public PdbImportNamespace(string targetNamespace) {
-			TargetNamespace = targetNamespace;
-		}
+		public PdbImportNamespace(string targetNamespace) => TargetNamespace = targetNamespace;
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1}", Kind, TargetNamespace);
-		}
+		string GetDebuggerString() => $"{Kind}: {TargetNamespace}";
 	}
 
 	/// <summary>
@@ -135,9 +119,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.ImportAssemblyNamespace"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.ImportAssemblyNamespace; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.ImportAssemblyNamespace;
 
 		/// <summary>
 		/// Gets the target assembly
@@ -167,9 +149,7 @@ namespace dnlib.DotNet.Pdb {
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1} {2}", Kind, TargetAssembly, TargetNamespace);
-		}
+		string GetDebuggerString() => $"{Kind}: {TargetAssembly} {TargetNamespace}";
 	}
 
 	/// <summary>
@@ -180,9 +160,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.ImportType"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.ImportType; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.ImportType;
 
 		/// <summary>
 		/// Gets the target type
@@ -199,15 +177,11 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		/// <param name="targetType"></param>
-		public PdbImportType(ITypeDefOrRef targetType) {
-			TargetType = targetType;
-		}
+		public PdbImportType(ITypeDefOrRef targetType) => TargetType = targetType;
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1}", Kind, TargetType);
-		}
+		string GetDebuggerString() => $"{Kind}: {TargetType}";
 	}
 
 	/// <summary>
@@ -218,9 +192,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.ImportXmlNamespace"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.ImportXmlNamespace; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.ImportXmlNamespace;
 
 		/// <summary>
 		/// Gets the alias
@@ -250,9 +222,7 @@ namespace dnlib.DotNet.Pdb {
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1} = {2}", Kind, Alias, TargetNamespace);
-		}
+		string GetDebuggerString() => $"{Kind}: {Alias} = {TargetNamespace}";
 	}
 
 	/// <summary>
@@ -263,9 +233,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.ImportAssemblyReferenceAlias"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.ImportAssemblyReferenceAlias; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.ImportAssemblyReferenceAlias;
 
 		/// <summary>
 		/// Gets the alias
@@ -282,15 +250,11 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		/// <param name="alias"></param>
-		public PdbImportAssemblyReferenceAlias(string alias) {
-			Alias = alias;
-		}
+		public PdbImportAssemblyReferenceAlias(string alias) => Alias = alias;
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1}", Kind, Alias);
-		}
+		string GetDebuggerString() => $"{Kind}: {Alias}";
 	}
 
 	/// <summary>
@@ -301,9 +265,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.AliasAssemblyReference"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.AliasAssemblyReference; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.AliasAssemblyReference;
 
 		/// <summary>
 		/// Gets the alias
@@ -333,9 +295,7 @@ namespace dnlib.DotNet.Pdb {
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1} = {2}", Kind, Alias, TargetAssembly);
-		}
+		string GetDebuggerString() => $"{Kind}: {Alias} = {TargetAssembly}";
 	}
 
 	/// <summary>
@@ -346,9 +306,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.AliasNamespace"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.AliasNamespace; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.AliasNamespace;
 
 		/// <summary>
 		/// Gets the alias
@@ -378,9 +336,7 @@ namespace dnlib.DotNet.Pdb {
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1} = {2}", Kind, Alias, TargetNamespace);
-		}
+		string GetDebuggerString() => $"{Kind}: {Alias} = {TargetNamespace}";
 	}
 
 	/// <summary>
@@ -391,9 +347,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.AliasAssemblyNamespace"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.AliasAssemblyNamespace; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.AliasAssemblyNamespace;
 
 		/// <summary>
 		/// Gets the alias
@@ -430,9 +384,7 @@ namespace dnlib.DotNet.Pdb {
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1} = {2} {3}", Kind, Alias, TargetAssembly, TargetNamespace);
-		}
+		string GetDebuggerString() => $"{Kind}: {Alias} = {TargetAssembly} {TargetNamespace}";
 	}
 
 	/// <summary>
@@ -443,9 +395,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Returns <see cref="PdbImportDefinitionKind.AliasType"/>
 		/// </summary>
-		public sealed override PdbImportDefinitionKind Kind {
-			get { return PdbImportDefinitionKind.AliasType; }
-		}
+		public sealed override PdbImportDefinitionKind Kind => PdbImportDefinitionKind.AliasType;
 
 		/// <summary>
 		/// Gets the alias
@@ -475,8 +425,6 @@ namespace dnlib.DotNet.Pdb {
 
 		internal sealed override void PreventNewClasses() { }
 
-		string GetDebuggerString() {
-			return string.Format("{0}: {1} = {2}", Kind, Alias, TargetType);
-		}
+		string GetDebuggerString() => $"{Kind}: {Alias} = {TargetType}";
 	}
 }

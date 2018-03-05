@@ -25,8 +25,8 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="chunkComparer">Compares the chunk type</param>
 		public UniqueChunkList(IEqualityComparer<T> chunkComparer) {
-			this.chunks = new List<Elem>();
-			this.dict = new Dictionary<Elem, Elem>(new ElemEqualityComparer(chunkComparer));
+			chunks = new List<Elem>();
+			dict = new Dictionary<Elem, Elem>(new ElemEqualityComparer(chunkComparer));
 		}
 
 		/// <inheritdoc/>
@@ -47,8 +47,7 @@ namespace dnlib.DotNet.Writer {
 			if (chunk == null)
 				return null;
 			var elem = new Elem(chunk, alignment);
-			Elem other;
-			if (dict.TryGetValue(elem, out other))
+			if (dict.TryGetValue(elem, out var other))
 				return other.chunk;
 			dict[elem] = elem;
 			chunks.Add(elem);

@@ -32,8 +32,8 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets/sets the user entry point method.
 		/// </summary>
 		public MethodDef UserEntryPoint {
-			get { return userEntryPoint; }
-			set { userEntryPoint = value; }
+			get => userEntryPoint;
+			set => userEntryPoint = value;
 		}
 
 		/// <summary>
@@ -74,8 +74,8 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="pdbFileKind">PDB file kind</param>
 		public PdbState(ModuleDef module, PdbFileKind pdbFileKind) {
 			if (module == null)
-				throw new ArgumentNullException("module");
-			this.compiler = CalculateCompiler(module);
+				throw new ArgumentNullException(nameof(module));
+			compiler = CalculateCompiler(module);
 			PdbFileKind = pdbFileKind;
 		}
 
@@ -85,16 +85,14 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="reader">A <see cref="SymbolReader"/> instance</param>
 		/// <param name="module">Owner module</param>
 		public PdbState(SymbolReader reader, ModuleDefMD module) {
-			if (reader == null)
-				throw new ArgumentNullException("reader");
 			if (module == null)
-				throw new ArgumentNullException("module");
-			this.reader = reader;
+				throw new ArgumentNullException(nameof(module));
+			this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
 			reader.Initialize(module);
 			PdbFileKind = reader.PdbFileKind;
-			this.compiler = CalculateCompiler(module);
+			compiler = CalculateCompiler(module);
 
-			this.userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;
+			userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;
 
 			foreach (var doc in reader.Documents)
 				Add_NoLock(new PdbDocument(doc));
@@ -117,8 +115,7 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		PdbDocument Add_NoLock(PdbDocument doc) {
-			PdbDocument orig;
-			if (docDict.TryGetValue(doc, out orig))
+			if (docDict.TryGetValue(doc, out var orig))
 				return orig;
 			docDict.Add(doc, doc);
 			return doc;
@@ -149,8 +146,7 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			PdbDocument orig;
-			docDict.TryGetValue(doc, out orig);
+			docDict.TryGetValue(doc, out var orig);
 			return orig;
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
@@ -161,9 +157,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Removes all documents
 		/// </summary>
 		/// <returns></returns>
-		public void RemoveAllDocuments() {
-			RemoveAllDocuments(false);
-		}
+		public void RemoveAllDocuments() => RemoveAllDocuments(false);
 
 		/// <summary>
 		/// Removes all documents and optionally returns them
@@ -184,9 +178,7 @@ namespace dnlib.DotNet.Pdb {
 #endif
 		}
 
-		internal Compiler Compiler {
-			get { return compiler; }
-		}
+		internal Compiler Compiler => compiler;
 
 		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body) {
 			if (reader == null)

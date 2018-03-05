@@ -16,38 +16,32 @@ namespace dnlib.DotNet.Writer {
 		/// Gets the name
 		/// </summary>
 		public string Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 
 		/// <summary>
 		/// Gets the Characteristics
 		/// </summary>
 		public uint Characteristics {
-			get { return characteristics; }
-			set { characteristics = value; }
+			get => characteristics;
+			set => characteristics = value;
 		}
 
 		/// <summary>
 		/// <c>true</c> if this is a code section
 		/// </summary>
-		public bool IsCode {
-			get { return (characteristics & 0x20) != 0; }
-		}
+		public bool IsCode => (characteristics & 0x20) != 0;
 
 		/// <summary>
 		/// <c>true</c> if this is an initialized data section
 		/// </summary>
-		public bool IsInitializedData {
-			get { return (characteristics & 0x40) != 0; }
-		}
+		public bool IsInitializedData => (characteristics & 0x40) != 0;
 
 		/// <summary>
 		/// <c>true</c> if this is an uninitialized data section
 		/// </summary>
-		public bool IsUninitializedData {
-			get { return (characteristics & 0x80) != 0; }
-		}
+		public bool IsUninitializedData => (characteristics & 0x80) != 0;
 
 		/// <summary>
 		/// Constructor

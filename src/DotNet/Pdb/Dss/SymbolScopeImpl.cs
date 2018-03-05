@@ -16,26 +16,19 @@ namespace dnlib.DotNet.Pdb.Dss {
 			this.parent = parent;
 		}
 
-		public override SymbolMethod Method {
-			get { return method; }
-		}
-
-		public override SymbolScope Parent {
-			get { return parent; }
-		}
+		public override SymbolMethod Method => method;
+		public override SymbolScope Parent => parent;
 
 		public override int StartOffset {
 			get {
-				uint result;
-				scope.GetStartOffset(out result);
+				scope.GetStartOffset(out uint result);
 				return (int)result;
 			}
 		}
 
 		public override int EndOffset {
 			get {
-				uint result;
-				scope.GetEndOffset(out result);
+				scope.GetEndOffset(out uint result);
 				return (int)result;
 			}
 		}
@@ -43,8 +36,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override IList<SymbolScope> Children {
 			get {
 				if (children == null) {
-					uint numScopes;
-					scope.GetChildren(0, out numScopes, null);
+					scope.GetChildren(0, out uint numScopes, null);
 					var unScopes = new ISymUnmanagedScope[numScopes];
 					scope.GetChildren((uint)unScopes.Length, out numScopes, unScopes);
 					var scopes = new SymbolScope[numScopes];
@@ -60,8 +52,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override IList<SymbolVariable> Locals {
 			get {
 				if (locals == null) {
-					uint numVars;
-					scope.GetLocals(0, out numVars, null);
+					scope.GetLocals(0, out uint numVars, null);
 					var unVars = new ISymUnmanagedVariable[numVars];
 					scope.GetLocals((uint)unVars.Length, out numVars, unVars);
 					var vars = new SymbolVariable[numVars];
@@ -77,8 +68,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override IList<SymbolNamespace> Namespaces {
 			get {
 				if (namespaces == null) {
-					uint numNss;
-					scope.GetNamespaces(0, out numNss, null);
+					scope.GetNamespaces(0, out uint numNss, null);
 					var unNss = new ISymUnmanagedNamespace[numNss];
 					scope.GetNamespaces((uint)unNss.Length, out numNss, unNss);
 					var nss = new SymbolNamespace[numNss];
@@ -91,21 +81,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 		volatile SymbolNamespace[] namespaces;
 
-		public override IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return emptyPdbCustomDebugInfos; }
-		}
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos => emptyPdbCustomDebugInfos;
 		static readonly PdbCustomDebugInfo[] emptyPdbCustomDebugInfos = new PdbCustomDebugInfo[0];
-
-		public override PdbImportScope ImportScope {
-			get { return null; }
-		}
+		public override PdbImportScope ImportScope => null;
 
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			var scope2 = scope as ISymUnmanagedScope2;
 			if (scope2 == null)
 				return emptySymbolConstants;
-			uint numCs;
-			scope2.GetConstants(0, out numCs, null);
+			scope2.GetConstants(0, out uint numCs, null);
 			if (numCs == 0)
 				return emptySymbolConstants;
 			var unCs = new ISymUnmanagedConstant[numCs];
@@ -114,8 +98,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			for (uint i = 0; i < numCs; i++) {
 				var unc = unCs[i];
 				var name = GetName(unc);
-				object value;
-				unc.GetValue(out value);
+				unc.GetValue(out object value);
 				var sigBytes = GetSignatureBytes(unc);
 				TypeSig signature;
 				if (sigBytes.Length == 0)
@@ -129,8 +112,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		static readonly PdbConstant[] emptySymbolConstants = new PdbConstant[0];
 
 		string GetName(ISymUnmanagedConstant unc) {
-			uint count;
-			unc.GetName(0, out count, null);
+			unc.GetName(0, out uint count, null);
 			var chars = new char[count];
 			unc.GetName((uint)chars.Length, out count, chars);
 			if (chars.Length == 0)
@@ -141,8 +123,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		byte[] GetSignatureBytes(ISymUnmanagedConstant unc) {
 			const int E_FAIL = unchecked((int)0x80004005);
 			const int E_NOTIMPL = unchecked((int)0x80004001);
-			uint bufSize;
-			int hr = unc.GetSignature(0, out bufSize, null);
+			int hr = unc.GetSignature(0, out uint bufSize, null);
 			if (bufSize == 0 || (hr < 0 && hr != E_FAIL && hr != E_NOTIMPL))
 				return emptyByteArray;
 			var buffer = new byte[bufSize];

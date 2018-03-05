@@ -33,38 +33,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		public override SymbolScope Parent {
-			get { return parent; }
-		}
-
-		public override int StartOffset {
-			get { return startOffset; }
-		}
-
-		public override int EndOffset {
-			get { return endOffset; }
-		}
-
-		public override IList<SymbolScope> Children {
-			get { return childrenList; }
-		}
-
-		public override IList<SymbolVariable> Locals {
-			get { return localsList; }
-		}
-
-		public override IList<SymbolNamespace> Namespaces {
-			get { return emptySymbolNamespaces; }
-		}
+		public override SymbolScope Parent => parent;
+		public override int StartOffset => startOffset;
+		public override int EndOffset => endOffset;
+		public override IList<SymbolScope> Children => childrenList;
+		public override IList<SymbolVariable> Locals => localsList;
+		public override IList<SymbolNamespace> Namespaces => emptySymbolNamespaces;
 		static readonly SymbolNamespace[] emptySymbolNamespaces = new SymbolNamespace[0];
-
-		public override IList<PdbCustomDebugInfo> CustomDebugInfos {
-			get { return customDebugInfos; }
-		}
-
-		public override PdbImportScope ImportScope {
-			get { return importScope; }
-		}
+		public override IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
+		public override PdbImportScope ImportScope => importScope;
 
 		public SymbolScopeImpl(PortablePdbReader owner, SymbolScopeImpl parent, int startOffset, int endOffset, PdbCustomDebugInfo[] customDebugInfos) {
 			this.owner = owner;
@@ -96,14 +73,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			int w = 0;
 			for (int i = 0; i < res.Length; i++) {
 				uint rid = constantList + (uint)i;
-				uint nameOffset;
-				uint signature = constantsMetaData.TablesStream.ReadLocalConstantRow2(rid, out nameOffset);
+				uint signature = constantsMetaData.TablesStream.ReadLocalConstantRow2(rid, out uint nameOffset);
 				var name = constantsMetaData.StringsStream.Read(nameOffset);
 				using (var stream = constantsMetaData.BlobStream.CreateStream(signature)) {
 					var localConstantSigBlobReader = new LocalConstantSigBlobReader(module, stream, gpContext);
-					TypeSig type;
-					object value;
-					bool b = localConstantSigBlobReader.Read(out type, out value);
+					bool b = localConstantSigBlobReader.Read(out var type, out object value);
 					Debug.Assert(b);
 					if (b) {
 						var pdbConstant = new PdbConstant(name, type, value);

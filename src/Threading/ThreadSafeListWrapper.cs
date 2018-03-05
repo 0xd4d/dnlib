@@ -134,69 +134,43 @@ namespace dnlib.Threading {
 		}
 
 		/// <inheritdoc/>
-		public int Count_NoLock {
-			get { return list.Count; }
-		}
+		public int Count_NoLock => list.Count;
 
 		/// <inheritdoc/>
-		public bool IsReadOnly_NoLock {
-			get { return list.IsReadOnly; }
-		}
+		public bool IsReadOnly_NoLock => list.IsReadOnly;
 
 		/// <inheritdoc/>
-		public int IndexOf_NoLock(T item) {
-			return list.IndexOf(item);
-		}
+		public int IndexOf_NoLock(T item) => list.IndexOf(item);
 
 		/// <inheritdoc/>
-		public void Insert_NoLock(int index, T item) {
-			list.Insert(index, item);
-		}
+		public void Insert_NoLock(int index, T item) => list.Insert(index, item);
 
 		/// <inheritdoc/>
-		public void RemoveAt_NoLock(int index) {
-			list.RemoveAt(index);
-		}
+		public void RemoveAt_NoLock(int index) => list.RemoveAt(index);
 
 		/// <inheritdoc/>
-		public T Get_NoLock(int index) {
-			return list[index];
-		}
+		public T Get_NoLock(int index) => list[index];
 
 		/// <inheritdoc/>
-		public void Set_NoLock(int index, T value) {
-			list[index] = value;
-		}
+		public void Set_NoLock(int index, T value) => list[index] = value;
 
 		/// <inheritdoc/>
-		public void Add_NoLock(T item) {
-			list.Add(item);
-		}
+		public void Add_NoLock(T item) => list.Add(item);
 
 		/// <inheritdoc/>
-		public void Clear_NoLock() {
-			list.Clear();
-		}
+		public void Clear_NoLock() => list.Clear();
 
 		/// <inheritdoc/>
-		public bool Contains_NoLock(T item) {
-			return list.Contains(item);
-		}
+		public bool Contains_NoLock(T item) => list.Contains(item);
 
 		/// <inheritdoc/>
-		public void CopyTo_NoLock(T[] array, int arrayIndex) {
-			list.CopyTo(array, arrayIndex);
-		}
+		public void CopyTo_NoLock(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 
 		/// <inheritdoc/>
-		public bool Remove_NoLock(T item) {
-			return list.Remove(item);
-		}
+		public bool Remove_NoLock(T item) => list.Remove(item);
 
 		/// <inheritdoc/>
-		public IEnumerator<T> GetEnumerator_NoLock() {
-			return list.GetEnumerator();
-		}
+		public IEnumerator<T> GetEnumerator_NoLock() => list.GetEnumerator();
 
 		/// <inheritdoc/>
 		public TRetType ExecuteLocked<TArgType, TRetType>(TArgType arg, ExecuteLockedDelegate<T, TArgType, TRetType> handler) {

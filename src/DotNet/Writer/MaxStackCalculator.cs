@@ -22,8 +22,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="exceptionHandlers">All exception handlers</param>
 		/// <returns>Max stack value</returns>
 		public static uint GetMaxStack(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
-			uint maxStack;
-			new MaxStackCalculator(instructions, exceptionHandlers).Calculate(out maxStack);
+			new MaxStackCalculator(instructions, exceptionHandlers).Calculate(out uint maxStack);
 			return maxStack;
 		}
 
@@ -34,26 +33,23 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="exceptionHandlers">All exception handlers</param>
 		/// <param name="maxStack">Updated with max stack value</param>
 		/// <returns><c>true</c> if no errors were detected, <c>false</c> otherwise</returns>
-		public static bool GetMaxStack(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers, out uint maxStack) {
-			return new MaxStackCalculator(instructions, exceptionHandlers).Calculate(out maxStack);
-		}
+		public static bool GetMaxStack(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers, out uint maxStack) =>
+			new MaxStackCalculator(instructions, exceptionHandlers).Calculate(out maxStack);
 
-		internal static MaxStackCalculator Create() {
-			return new MaxStackCalculator(true);
-		}
+		internal static MaxStackCalculator Create() => new MaxStackCalculator(true);
 
 		MaxStackCalculator(bool dummy) {
-			this.instructions = null;
-			this.exceptionHandlers = null;
-			this.stackHeights = new Dictionary<Instruction, int>();
-			this.errors = 0;
+			instructions = null;
+			exceptionHandlers = null;
+			stackHeights = new Dictionary<Instruction, int>();
+			errors = 0;
 		}
 
 		MaxStackCalculator(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
 			this.instructions = instructions;
 			this.exceptionHandlers = exceptionHandlers;
-			this.stackHeights = new Dictionary<Instruction, int>();
-			this.errors = 0;
+			stackHeights = new Dictionary<Instruction, int>();
+			errors = 0;
 		}
 
 		internal void Reset(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
@@ -94,8 +90,7 @@ namespace dnlib.DotNet.Writer {
 						errors++;
 				}
 				else {
-					int pushes, pops;
-					instr.CalculateStackUsage(out pushes, out pops);
+					instr.CalculateStackUsage(out int pushes, out int pops);
 					if (pops == -1)
 						stack = 0;
 					else {
@@ -125,8 +120,7 @@ namespace dnlib.DotNet.Writer {
 
 				case FlowControl.Cond_Branch:
 					if (instr.OpCode.Code == Code.Switch) {
-						var targets = instr.Operand as IList<Instruction>;
-						if (targets != null) {
+						if (instr.Operand is IList<Instruction> targets) {
 							foreach (var target in targets)
 								WriteStack(target, stack);
 						}
@@ -154,8 +148,7 @@ namespace dnlib.DotNet.Writer {
 				errors++;
 				return stack;
 			}
-			int stack2;
-			if (stackHeights.TryGetValue(instr, out stack2)) {
+			if (stackHeights.TryGetValue(instr, out int stack2)) {
 				if (stack != stack2)
 					errors++;
 				return stack2;

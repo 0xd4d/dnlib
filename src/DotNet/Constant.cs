@@ -15,22 +15,20 @@ namespace dnlib.DotNet {
 		protected uint rid;
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.Constant, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.Constant, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <summary>
 		/// From column Constant.Type
 		/// </summary>
 		public ElementType Type {
-			get { return type; }
-			set { type = value; }
+			get => type;
+			set => type = value;
 		}
 		/// <summary/>
 		protected ElementType type;
@@ -39,8 +37,8 @@ namespace dnlib.DotNet {
 		/// From column Constant.Value
 		/// </summary>
 		public object Value {
-			get { return value; }
-			set { this.value = value; }
+			get => value;
+			set => this.value = value;
 		}
 		/// <summary/>
 		protected object value;
@@ -61,7 +59,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public ConstantUser(object value) {
-			this.type = GetElementType(value);
+			type = GetElementType(value);
 			this.value = value;
 		}
 
@@ -104,9 +102,7 @@ namespace dnlib.DotNet {
 		readonly uint origRid;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <summary>
 		/// Constructor
@@ -120,12 +116,12 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.ConstantTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("Constant rid {0} does not exist", rid));
+				throw new BadImageFormatException($"Constant rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
-			uint value = readerModule.TablesStream.ReadConstantRow(origRid, out this.type);
-			this.value = GetValue(this.type, readerModule.BlobStream.ReadNoNull(value));
+			uint value = readerModule.TablesStream.ReadConstantRow(origRid, out type);
+			this.value = GetValue(type, readerModule.BlobStream.ReadNoNull(value));
 		}
 
 		static object GetValue(ElementType etype, byte[] data) {

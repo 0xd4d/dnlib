@@ -28,27 +28,18 @@ namespace dnlib.DotNet.Writer {
 		public PEHeaders PEHeaders { get; set; }
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Gets the address of the JMP instruction
 		/// </summary>
-		public RVA EntryPointRVA {
-			get { return rva + (cpuArch == null ? 0 : cpuArch.GetStubCodeOffset(stubType)); }
-		}
+		public RVA EntryPointRVA => rva + (cpuArch == null ? 0 : cpuArch.GetStubCodeOffset(stubType));
 
 		internal bool Enable { get; set; }
-
-		internal uint Alignment {
-			get { return cpuArch == null ? 1 : cpuArch.GetStubAlignment(stubType); }
-		}
+		internal uint Alignment => cpuArch == null ? 1 : cpuArch.GetStubAlignment(stubType);
 
 		internal delegate void LogError(string format, params object[] args);
 
@@ -91,9 +82,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {

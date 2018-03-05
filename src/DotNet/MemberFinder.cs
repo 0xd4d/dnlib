@@ -136,7 +136,7 @@ namespace dnlib.DotNet {
 				case ObjectType.TypeSig:		Add((TypeSig)o); break;
 				case ObjectType.TypeSpec:		Add((TypeSpec)o); break;
 				case ObjectType.ExportedType:	Add((ExportedType)o); break;
-				default: throw new InvalidOperationException(string.Format("Unknown type: {0}", o.GetType()));
+				default: throw new InvalidOperationException($"Unknown type: {o.GetType()}");
 				}
 			}
 		}
@@ -146,8 +146,7 @@ namespace dnlib.DotNet {
 			if (o == null)
 				return ObjectType.Unknown;
 			var type = o.GetType();
-			ObjectType mrType;
-			if (toObjectType.TryGetValue(type, out mrType))
+			if (toObjectType.TryGetValue(type, out var mrType))
 				return mrType;
 			mrType = GetObjectType2(o);
 			toObjectType[type] = mrType;
@@ -200,26 +199,22 @@ namespace dnlib.DotNet {
 			if (sig == null)
 				return;
 
-			var fs = sig as FieldSig;
-			if (fs != null) {
+			if (sig is FieldSig fs) {
 				Add(fs);
 				return;
 			}
 
-			var mbs = sig as MethodBaseSig;
-			if (mbs != null) {
+			if (sig is MethodBaseSig mbs) {
 				Add(mbs);
 				return;
 			}
 
-			var ls = sig as LocalSig;
-			if (ls != null) {
+			if (sig is LocalSig ls) {
 				Add(ls);
 				return;
 			}
 
-			var gims = sig as GenericInstMethodSig;
-			if (gims != null) {
+			if (sig is GenericInstMethodSig gims) {
 				Add(gims);
 				return;
 			}
@@ -322,20 +317,17 @@ namespace dnlib.DotNet {
 		}
 
 		void Add(ITypeDefOrRef tdr) {
-			var td = tdr as TypeDef;
-			if (td != null) {
+			if (tdr is TypeDef td) {
 				Add(td);
 				return;
 			}
 
-			var tr = tdr as TypeRef;
-			if (tr != null) {
+			if (tdr is TypeRef tr) {
 				Add(tr);
 				return;
 			}
 
-			var ts = tdr as TypeSpec;
-			if (ts != null) {
+			if (tdr is TypeSpec ts) {
 				Add(ts);
 				return;
 			}
@@ -449,8 +441,7 @@ namespace dnlib.DotNet {
 		}
 
 		void Add(MethodBody mb) {
-			var cb = mb as CilBody;
-			if (cb != null)
+			if (mb is CilBody cb)
 				Add(cb);
 		}
 

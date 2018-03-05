@@ -23,7 +23,7 @@ namespace dnlib.Utils {
 		/// Sets the lock that protects the data
 		/// </summary>
 		public Lock Lock {
-			set { theLock = value; }
+			set => theLock = value;
 		}
 #endif
 
@@ -31,7 +31,7 @@ namespace dnlib.Utils {
 		/// Set a delegate instance that will return the original value
 		/// </summary>
 		public MFunc<TValue> ReadOriginalValue {
-			set { readOriginalValue = value; }
+			set => readOriginalValue = value;
 		}
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace dnlib.Utils {
 				finally { if (theLock != null) theLock.ExitReadLock(); }
 			}
 #else
-			get { return isValueInitialized; }
+			get => isValueInitialized;
 #endif
 		}
 
@@ -99,7 +99,7 @@ namespace dnlib.Utils {
 				finally { if (theLock != null) theLock.ExitReadLock(); }
 			}
 #else
-			get { return isUserValue; }
+			get => isUserValue;
 #endif
 		}
 	}

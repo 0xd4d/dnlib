@@ -13,9 +13,7 @@ namespace dnlib.DotNet.Writer {
 		uint bodySize;
 		bool dictInitd;
 
-		public bool HasBody {
-			get { return body != null; }
-		}
+		public bool HasBody => body != null;
 
 		public SerializerMethodContext(IWriterError helper) {
 			toOffset = new Dictionary<Instruction, uint>();
@@ -26,7 +24,7 @@ namespace dnlib.DotNet.Writer {
 			if (this.method != method) {
 				toOffset.Clear();
 				this.method = method;
-				this.body = method == null ? null : method.Body;
+				body = method?.Body;
 				dictInitd = false;
 			}
 		}
@@ -40,16 +38,13 @@ namespace dnlib.DotNet.Writer {
 			}
 			if (instr == null)
 				return bodySize;
-			uint offset;
-			if (toOffset.TryGetValue(instr, out offset))
+			if (toOffset.TryGetValue(instr, out uint offset))
 				return offset;
 			helper.Error("Couldn't find an instruction, maybe it was removed. It's still being referenced by some code or by the PDB");
 			return bodySize;
 		}
 
-		public bool IsSameMethod(MethodDef method) {
-			return this.method == method;
-		}
+		public bool IsSameMethod(MethodDef method) => this.method == method;
 
 		void InitializeDict() {
 			Debug.Assert(body != null);

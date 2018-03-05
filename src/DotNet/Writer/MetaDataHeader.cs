@@ -62,8 +62,8 @@ namespace dnlib.DotNet.Writer {
 		/// Creates portable PDB v1.0 options
 		/// </summary>
 		/// <returns></returns>
-		public static MetaDataHeaderOptions CreatePortablePdbV1_0() {
-			return new MetaDataHeaderOptions() {
+		public static MetaDataHeaderOptions CreatePortablePdbV1_0() =>
+			new MetaDataHeaderOptions() {
 				Signature = DEFAULT_SIGNATURE,
 				MajorVersion = 1,
 				MinorVersion = 1,
@@ -72,7 +72,6 @@ namespace dnlib.DotNet.Writer {
 				StorageFlags = 0,
 				Reserved2 = 0,
 			};
-		}
 	}
 
 	/// <summary>
@@ -86,21 +85,17 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Gets/sets the heaps
 		/// </summary>
 		public IList<IHeap> Heaps {
-			get { return heaps; }
-			set { heaps = value; }
+			get => heaps;
+			set => heaps = value;
 		}
 
 		/// <summary>
@@ -114,9 +109,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Options</param>
-		public MetaDataHeader(MetaDataHeaderOptions options) {
-			this.options = options ?? new MetaDataHeaderOptions();
-		}
+		public MetaDataHeader(MetaDataHeaderOptions options) => this.options = options ?? new MetaDataHeaderOptions();
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -135,14 +128,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return length;
-		}
+		public uint GetFileLength() => length;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
@@ -162,17 +151,12 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(heap.GetFileLength());
 				writer.Write(s = GetAsciizName(heap.Name));
 				if (s.Length > 32)
-					throw new ModuleWriterException(string.Format("Heap name '{0}' is > 32 bytes", heap.Name));
+					throw new ModuleWriterException($"Heap name '{heap.Name}' is > 32 bytes");
 				writer.WriteZeros(Utils.AlignUp(s.Length, 4) - s.Length);
 			}
 		}
 
-		byte[] GetVersionString() {
-			return Encoding.UTF8.GetBytes((options.VersionString ?? MetaDataHeaderOptions.DEFAULT_VERSION_STRING) + "\0");
-		}
-
-		byte[] GetAsciizName(string s) {
-			return Encoding.ASCII.GetBytes(s + "\0");
-		}
+		byte[] GetVersionString() => Encoding.UTF8.GetBytes((options.VersionString ?? MetaDataHeaderOptions.DEFAULT_VERSION_STRING) + "\0");
+		byte[] GetAsciizName(string s) => Encoding.ASCII.GetBytes(s + "\0");
 	}
 }

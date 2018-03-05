@@ -39,57 +39,41 @@ namespace dnlib.DotNet {
 		protected ParameterList parameterList;
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.Method, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.Method, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <inheritdoc/>
-		public int HasCustomAttributeTag {
-			get { return 0; }
-		}
+		public int HasCustomAttributeTag => 0;
 
 		/// <inheritdoc/>
-		public int HasDeclSecurityTag {
-			get { return 1; }
-		}
+		public int HasDeclSecurityTag => 1;
 
 		/// <inheritdoc/>
-		public int MemberRefParentTag {
-			get { return 3; }
-		}
+		public int MemberRefParentTag => 3;
 
 		/// <inheritdoc/>
-		public int MethodDefOrRefTag {
-			get { return 0; }
-		}
+		public int MethodDefOrRefTag => 0;
 
 		/// <inheritdoc/>
-		public int MemberForwardedTag {
-			get { return 1; }
-		}
+		public int MemberForwardedTag => 1;
 
 		/// <inheritdoc/>
-		public int CustomAttributeTypeTag {
-			get { return 2; }
-		}
+		public int CustomAttributeTypeTag => 2;
 
 		/// <inheritdoc/>
-		public int TypeOrMethodDefTag {
-			get { return 1; }
-		}
+		public int TypeOrMethodDefTag => 1;
 
 		/// <summary>
 		/// From column Method.RVA
 		/// </summary>
 		public RVA RVA {
-			get { return rva; }
-			set { rva = value; }
+			get => rva;
+			set => rva = value;
 		}
 		/// <summary/>
 		protected RVA rva;
@@ -98,8 +82,8 @@ namespace dnlib.DotNet {
 		/// From column Method.ImplFlags
 		/// </summary>
 		public MethodImplAttributes ImplAttributes {
-			get { return (MethodImplAttributes)implAttributes; }
-			set { implAttributes = (int)value; }
+			get => (MethodImplAttributes)implAttributes;
+			set => implAttributes = (int)value;
 		}
 		/// <summary>Implementation attributes</summary>
 		protected int implAttributes;
@@ -108,8 +92,8 @@ namespace dnlib.DotNet {
 		/// From column Method.Flags
 		/// </summary>
 		public MethodAttributes Attributes {
-			get { return (MethodAttributes)attributes; }
-			set { attributes = (int)value; }
+			get => (MethodAttributes)attributes;
+			set => attributes = (int)value;
 		}
 		/// <summary>Attributes</summary>
 		protected int attributes;
@@ -118,8 +102,8 @@ namespace dnlib.DotNet {
 		/// From column Method.Name
 		/// </summary>
 		public UTF8String Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 		/// <summary>Name</summary>
 		protected UTF8String name;
@@ -128,8 +112,8 @@ namespace dnlib.DotNet {
 		/// From column Method.Signature
 		/// </summary>
 		public CallingConventionSig Signature {
-			get { return signature; }
-			set { signature = value; }
+			get => signature;
+			set => signature = value;
 		}
 		/// <summary/>
 		protected CallingConventionSig signature;
@@ -147,9 +131,8 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected LazyList<ParamDef> paramDefs;
 		/// <summary>Initializes <see cref="paramDefs"/></summary>
-		protected virtual void InitializeParamDefs() {
+		protected virtual void InitializeParamDefs() =>
 			Interlocked.CompareExchange(ref paramDefs, new LazyList<ParamDef>(this), null);
-		}
 
 		/// <inheritdoc/>
 		public ThreadSafe.IList<GenericParam> GenericParameters {
@@ -162,9 +145,8 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected LazyList<GenericParam> genericParameters;
 		/// <summary>Initializes <see cref="genericParameters"/></summary>
-		protected virtual void InitializeGenericParameters() {
+		protected virtual void InitializeGenericParameters() =>
 			Interlocked.CompareExchange(ref genericParameters, new LazyList<GenericParam>(this), null);
-		}
 
 		/// <inheritdoc/>
 		public ThreadSafe.IList<DeclSecurity> DeclSecurities {
@@ -177,9 +159,8 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<DeclSecurity> declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
-		protected virtual void InitializeDeclSecurities() {
+		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, ThreadSafeListCreator.Create<DeclSecurity>(), null);
-		}
 
 		/// <inheritdoc/>
 		public ImplMap ImplMap {
@@ -218,14 +199,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="implMap"/></summary>
-		protected virtual ImplMap GetImplMap_NoLock() {
-			return null;
-		}
+		protected virtual ImplMap GetImplMap_NoLock() => null;
 
 		/// <summary>Reset <see cref="ImplMap"/></summary>
-		protected void ResetImplMap() {
-			implMap_isInitialized = false;
-		}
+		protected void ResetImplMap() => implMap_isInitialized = false;
 
 		/// <summary>
 		/// Gets/sets the method body. See also <see cref="Body"/>
@@ -285,16 +262,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="methodBody"/></summary>
-		protected virtual MethodBody GetMethodBody_NoLock() {
-			return null;
-		}
+		protected virtual MethodBody GetMethodBody_NoLock() => null;
 
 		/// <summary>
 		/// true if <see cref="FreeMethodBody()"/> can free the method body
 		/// </summary>
-		protected virtual bool CanFreeMethodBody {
-			get { return true; }
-		}
+		protected virtual bool CanFreeMethodBody => true;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -309,19 +282,14 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected CustomAttributeCollection customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
-		protected virtual void InitializeCustomAttributes() {
+		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
-		}
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 0; }
-		}
+		public int HasCustomDebugInformationTag => 0;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
@@ -336,9 +304,8 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
-		protected virtual void InitializeCustomDebugInfos() {
+		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
-		}
 
 		/// <summary>
 		/// Gets the methods this method implements
@@ -353,42 +320,35 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<MethodOverride> overrides;
 		/// <summary>Initializes <see cref="overrides"/></summary>
-		protected virtual void InitializeOverrides() {
+		protected virtual void InitializeOverrides() =>
 			Interlocked.CompareExchange(ref overrides, ThreadSafeListCreator.Create<MethodOverride>(), null);
-		}
 
 		/// <summary>
 		/// Gets the export info or null if the method isn't exported to unmanaged code.
 		/// </summary>
 		public MethodExportInfo ExportInfo {
-			get { return exportInfo; }
-			set { exportInfo = value; }
+			get => exportInfo;
+			set => exportInfo = value;
 		}
 		/// <summary/>
 		protected MethodExportInfo exportInfo;
 
 		/// <inheritdoc/>
-		public bool HasCustomAttributes {
-			get { return CustomAttributes.Count > 0; }
-		}
+		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
-		public bool HasDeclSecurities {
-			get { return DeclSecurities.Count > 0; }
-		}
+		public bool HasDeclSecurities => DeclSecurities.Count > 0;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ParamDefs"/> is not empty
 		/// </summary>
-		public bool HasParamDefs {
-			get { return ParamDefs.Count > 0; }
-		}
+		public bool HasParamDefs => ParamDefs.Count > 0;
 
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
 		public TypeDef DeclaringType {
-			get { return declaringType2; }
+			get => declaringType2;
 			set {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
@@ -401,9 +361,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType {
-			get { return declaringType2; }
-		}
+		ITypeDefOrRef IMemberRef.DeclaringType => declaringType2;
 
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
@@ -411,71 +369,28 @@ namespace dnlib.DotNet {
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
 		public TypeDef DeclaringType2 {
-			get { return declaringType2; }
-			set { declaringType2 = value; }
+			get => declaringType2;
+			set => declaringType2 = value;
 		}
 		/// <summary/>
 		protected TypeDef declaringType2;
 
 		/// <inheritdoc/>
-		public ModuleDef Module {
-			get {
-				var dt = declaringType2;
-				return dt == null ? null : dt.Module;
-			}
-		}
+		public ModuleDef Module => declaringType2?.Module;
 
-		bool IIsTypeOrMethod.IsType {
-			get { return false; }
-		}
-
-		bool IIsTypeOrMethod.IsMethod {
-			get { return true; }
-		}
-
-		bool IMemberRef.IsField {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsTypeSpec {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsTypeRef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsTypeDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsMethodSpec {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsMethodDef {
-			get { return true; }
-		}
-
-		bool IMemberRef.IsMemberRef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsFieldDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsPropertyDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsEventDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsGenericParam {
-			get { return false; }
-		}
+		bool IIsTypeOrMethod.IsType => false;
+		bool IIsTypeOrMethod.IsMethod => true;
+		bool IMemberRef.IsField => false;
+		bool IMemberRef.IsTypeSpec => false;
+		bool IMemberRef.IsTypeRef => false;
+		bool IMemberRef.IsTypeDef => false;
+		bool IMemberRef.IsMethodSpec => false;
+		bool IMemberRef.IsMethodDef => true;
+		bool IMemberRef.IsMemberRef => false;
+		bool IMemberRef.IsFieldDef => false;
+		bool IMemberRef.IsPropertyDef => false;
+		bool IMemberRef.IsEventDef => false;
+		bool IMemberRef.IsGenericParam => false;
 
 		/// <summary>
 		/// Gets/sets the CIL method body. See also <see cref="FreeMethodBody()"/>
@@ -486,7 +401,7 @@ namespace dnlib.DotNet {
 					InitializeMethodBody();
 				return methodBody as CilBody;
 			}
-			set { MethodBody = value; }
+			set => MethodBody = value;
 		}
 
 		/// <summary>
@@ -498,61 +413,46 @@ namespace dnlib.DotNet {
 					InitializeMethodBody();
 				return methodBody as NativeMethodBody;
 			}
-			set { MethodBody = value; }
+			set => MethodBody = value;
 		}
 
 		/// <summary>
 		/// <c>true</c> if there's at least one <see cref="GenericParam"/> in <see cref="GenericParameters"/>
 		/// </summary>
-		public bool HasGenericParameters {
-			get { return GenericParameters.Count > 0; }
-		}
+		public bool HasGenericParameters => GenericParameters.Count > 0;
 
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="Body"/>
 		/// </summary>
-		public bool HasBody {
-			get { return Body != null; }
-		}
+		public bool HasBody => Body != null;
 
 		/// <summary>
 		/// <c>true</c> if there's at least one <see cref="MethodOverride"/> in <see cref="Overrides"/>
 		/// </summary>
-		public bool HasOverrides {
-			get { return Overrides.Count > 0; }
-		}
+		public bool HasOverrides => Overrides.Count > 0;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ImplMap"/> is not <c>null</c>
 		/// </summary>
-		public bool HasImplMap {
-			get { return ImplMap != null; }
-		}
+		public bool HasImplMap => ImplMap != null;
 
 		/// <summary>
 		/// Gets the full name
 		/// </summary>
-		public string FullName {
-			get {
-				var dt = declaringType2;
-				return FullNameCreator.MethodFullName(dt == null ? null : dt.FullName, name, MethodSig, null, null, this, null);
-			}
-		}
+		public string FullName => FullNameCreator.MethodFullName(declaringType2?.FullName, name, MethodSig, null, null, this, null);
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSig"/>
 		/// </summary>
 		public MethodSig MethodSig {
-			get { return signature as MethodSig; }
-			set { signature = value; }
+			get => signature as MethodSig;
+			set => signature = value;
 		}
 
 		/// <summary>
 		/// Gets the parameters
 		/// </summary>
-		public ParameterList Parameters {
-			get { return parameterList; }
-		}
+		public ParameterList Parameters => parameterList;
 
 		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
@@ -596,10 +496,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the method return type
 		/// </summary>
 		public TypeSig ReturnType {
-			get {
-				var ms = MethodSig;
-				return ms == null ? null : ms.RetType;
-			}
+			get => MethodSig?.RetType;
 			set {
 				var ms = MethodSig;
 				if (ms != null)
@@ -610,9 +507,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if the method returns a value (i.e., return type is not <see cref="System.Void"/>)
 		/// </summary>
-		public bool HasReturnType {
-			get { return ReturnType.RemovePinnedAndModifiers().GetElementType() != ElementType.Void; }
-		}
+		public bool HasReturnType => ReturnType.RemovePinnedAndModifiers().GetElementType() != ElementType.Void;
 
 		/// <summary>
 		/// Gets/sets the method semantics attributes. If you remove/add a method to a property or
@@ -625,16 +520,14 @@ namespace dnlib.DotNet {
 					InitializeSemanticsAttributes();
 				return (MethodSemanticsAttributes)semAttrs;
 			}
-			set { semAttrs = (ushort)value | SEMATTRS_INITD; }
+			set => semAttrs = (ushort)value | SEMATTRS_INITD;
 		}
 		/// <summary>Set when <see cref="semAttrs"/> has been initialized</summary>
 		protected internal static int SEMATTRS_INITD = unchecked((int)0x80000000);
 		/// <summary/>
 		protected internal int semAttrs;
 		/// <summary>Initializes <see cref="semAttrs"/></summary>
-		protected virtual void InitializeSemanticsAttributes() {
-			semAttrs = 0 | SEMATTRS_INITD;
-		}
+		protected virtual void InitializeSemanticsAttributes() => semAttrs = 0 | SEMATTRS_INITD;
 
 		/// <summary>
 		/// Set or clear flags in <see cref="semAttrs"/>
@@ -750,359 +643,327 @@ namespace dnlib.DotNet {
 		/// Gets/sets the method access
 		/// </summary>
 		public MethodAttributes Access {
-			get { return (MethodAttributes)attributes & MethodAttributes.MemberAccessMask; }
-			set { ModifyAttributes(~MethodAttributes.MemberAccessMask, value & MethodAttributes.MemberAccessMask); }
+			get => (MethodAttributes)attributes & MethodAttributes.MemberAccessMask;
+			set => ModifyAttributes(~MethodAttributes.MemberAccessMask, value & MethodAttributes.MemberAccessMask);
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.PrivateScope"/> is set
 		/// </summary>
-		public bool IsCompilerControlled {
-			get { return IsPrivateScope; }
-		}
+		public bool IsCompilerControlled => IsPrivateScope;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.PrivateScope"/> is set
 		/// </summary>
-		public bool IsPrivateScope {
-			get { return ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.PrivateScope; }
-		}
+		public bool IsPrivateScope => ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.PrivateScope;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Private"/> is set
 		/// </summary>
-		public bool IsPrivate {
-			get { return ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private; }
-		}
+		public bool IsPrivate => ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.FamANDAssem"/> is set
 		/// </summary>
-		public bool IsFamilyAndAssembly {
-			get { return ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem; }
-		}
+		public bool IsFamilyAndAssembly => ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Assembly"/> is set
 		/// </summary>
-		public bool IsAssembly {
-			get { return ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly; }
-		}
+		public bool IsAssembly => ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Family"/> is set
 		/// </summary>
-		public bool IsFamily {
-			get { return ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Family; }
-		}
+		public bool IsFamily => ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Family;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.FamORAssem"/> is set
 		/// </summary>
-		public bool IsFamilyOrAssembly {
-			get { return ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem; }
-		}
+		public bool IsFamilyOrAssembly => ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodAttributes.Public"/> is set
 		/// </summary>
-		public bool IsPublic {
-			get { return ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public; }
-		}
+		public bool IsPublic => ((MethodAttributes)attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.Static"/> bit
 		/// </summary>
 		public bool IsStatic {
-			get { return ((MethodAttributes)attributes & MethodAttributes.Static) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.Static); }
+			get => ((MethodAttributes)attributes & MethodAttributes.Static) != 0;
+			set => ModifyAttributes(value, MethodAttributes.Static);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.Final"/> bit
 		/// </summary>
 		public bool IsFinal {
-			get { return ((MethodAttributes)attributes & MethodAttributes.Final) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.Final); }
+			get => ((MethodAttributes)attributes & MethodAttributes.Final) != 0;
+			set => ModifyAttributes(value, MethodAttributes.Final);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.Virtual"/> bit
 		/// </summary>
 		public bool IsVirtual {
-			get { return ((MethodAttributes)attributes & MethodAttributes.Virtual) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.Virtual); }
+			get => ((MethodAttributes)attributes & MethodAttributes.Virtual) != 0;
+			set => ModifyAttributes(value, MethodAttributes.Virtual);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.HideBySig"/> bit
 		/// </summary>
 		public bool IsHideBySig {
-			get { return ((MethodAttributes)attributes & MethodAttributes.HideBySig) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.HideBySig); }
+			get => ((MethodAttributes)attributes & MethodAttributes.HideBySig) != 0;
+			set => ModifyAttributes(value, MethodAttributes.HideBySig);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.NewSlot"/> bit
 		/// </summary>
 		public bool IsNewSlot {
-			get { return ((MethodAttributes)attributes & MethodAttributes.NewSlot) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.NewSlot); }
+			get => ((MethodAttributes)attributes & MethodAttributes.NewSlot) != 0;
+			set => ModifyAttributes(value, MethodAttributes.NewSlot);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.ReuseSlot"/> bit
 		/// </summary>
 		public bool IsReuseSlot {
-			get { return ((MethodAttributes)attributes & MethodAttributes.NewSlot) == 0; }
-			set { ModifyAttributes(!value, MethodAttributes.NewSlot); }
+			get => ((MethodAttributes)attributes & MethodAttributes.NewSlot) == 0;
+			set => ModifyAttributes(!value, MethodAttributes.NewSlot);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.CheckAccessOnOverride"/> bit
 		/// </summary>
 		public bool IsCheckAccessOnOverride {
-			get { return ((MethodAttributes)attributes & MethodAttributes.CheckAccessOnOverride) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.CheckAccessOnOverride); }
+			get => ((MethodAttributes)attributes & MethodAttributes.CheckAccessOnOverride) != 0;
+			set => ModifyAttributes(value, MethodAttributes.CheckAccessOnOverride);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.Abstract"/> bit
 		/// </summary>
 		public bool IsAbstract {
-			get { return ((MethodAttributes)attributes & MethodAttributes.Abstract) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.Abstract); }
+			get => ((MethodAttributes)attributes & MethodAttributes.Abstract) != 0;
+			set => ModifyAttributes(value, MethodAttributes.Abstract);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.SpecialName"/> bit
 		/// </summary>
 		public bool IsSpecialName {
-			get { return ((MethodAttributes)attributes & MethodAttributes.SpecialName) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.SpecialName); }
+			get => ((MethodAttributes)attributes & MethodAttributes.SpecialName) != 0;
+			set => ModifyAttributes(value, MethodAttributes.SpecialName);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.PinvokeImpl"/> bit
 		/// </summary>
 		public bool IsPinvokeImpl {
-			get { return ((MethodAttributes)attributes & MethodAttributes.PinvokeImpl) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.PinvokeImpl); }
+			get => ((MethodAttributes)attributes & MethodAttributes.PinvokeImpl) != 0;
+			set => ModifyAttributes(value, MethodAttributes.PinvokeImpl);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.UnmanagedExport"/> bit
 		/// </summary>
 		public bool IsUnmanagedExport {
-			get { return ((MethodAttributes)attributes & MethodAttributes.UnmanagedExport) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.UnmanagedExport); }
+			get => ((MethodAttributes)attributes & MethodAttributes.UnmanagedExport) != 0;
+			set => ModifyAttributes(value, MethodAttributes.UnmanagedExport);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.RTSpecialName"/> bit
 		/// </summary>
 		public bool IsRuntimeSpecialName {
-			get { return ((MethodAttributes)attributes & MethodAttributes.RTSpecialName) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.RTSpecialName); }
+			get => ((MethodAttributes)attributes & MethodAttributes.RTSpecialName) != 0;
+			set => ModifyAttributes(value, MethodAttributes.RTSpecialName);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.HasSecurity"/> bit
 		/// </summary>
 		public bool HasSecurity {
-			get { return ((MethodAttributes)attributes & MethodAttributes.HasSecurity) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.HasSecurity); }
+			get => ((MethodAttributes)attributes & MethodAttributes.HasSecurity) != 0;
+			set => ModifyAttributes(value, MethodAttributes.HasSecurity);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodAttributes.RequireSecObject"/> bit
 		/// </summary>
 		public bool IsRequireSecObject {
-			get { return ((MethodAttributes)attributes & MethodAttributes.RequireSecObject) != 0; }
-			set { ModifyAttributes(value, MethodAttributes.RequireSecObject); }
+			get => ((MethodAttributes)attributes & MethodAttributes.RequireSecObject) != 0;
+			set => ModifyAttributes(value, MethodAttributes.RequireSecObject);
 		}
 
 		/// <summary>
 		/// Gets/sets the code type
 		/// </summary>
 		public MethodImplAttributes CodeType {
-			get { return (MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask; }
-			set { ModifyImplAttributes(~MethodImplAttributes.CodeTypeMask, value & MethodImplAttributes.CodeTypeMask); }
+			get => (MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask;
+			set => ModifyImplAttributes(~MethodImplAttributes.CodeTypeMask, value & MethodImplAttributes.CodeTypeMask);
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.IL"/> is set
 		/// </summary>
-		public bool IsIL {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.IL; }
-		}
+		public bool IsIL => ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.IL;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.Native"/> is set
 		/// </summary>
-		public bool IsNative {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Native; }
-		}
+		public bool IsNative => ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Native;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.OPTIL"/> is set
 		/// </summary>
-		public bool IsOPTIL {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.OPTIL; }
-		}
+		public bool IsOPTIL => ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.OPTIL;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MethodImplAttributes.Runtime"/> is set
 		/// </summary>
-		public bool IsRuntime {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Runtime; }
-		}
+		public bool IsRuntime => ((MethodImplAttributes)implAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Runtime;
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.Unmanaged"/> bit
 		/// </summary>
 		public bool IsUnmanaged {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.Unmanaged) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.Unmanaged); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.Unmanaged) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.Unmanaged);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.Managed"/> bit
 		/// </summary>
 		public bool IsManaged {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.Unmanaged) == 0; }
-			set { ModifyImplAttributes(!value, MethodImplAttributes.Unmanaged); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.Unmanaged) == 0;
+			set => ModifyImplAttributes(!value, MethodImplAttributes.Unmanaged);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.ForwardRef"/> bit
 		/// </summary>
 		public bool IsForwardRef {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.ForwardRef) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.ForwardRef); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.ForwardRef) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.ForwardRef);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.PreserveSig"/> bit
 		/// </summary>
 		public bool IsPreserveSig {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.PreserveSig) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.PreserveSig); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.PreserveSig) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.PreserveSig);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.InternalCall"/> bit
 		/// </summary>
 		public bool IsInternalCall {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.InternalCall) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.InternalCall); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.InternalCall) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.InternalCall);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.Synchronized"/> bit
 		/// </summary>
 		public bool IsSynchronized {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.Synchronized) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.Synchronized); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.Synchronized) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.Synchronized);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.NoInlining"/> bit
 		/// </summary>
 		public bool IsNoInlining {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.NoInlining) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.NoInlining); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.NoInlining) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.NoInlining);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.AggressiveInlining"/> bit
 		/// </summary>
 		public bool IsAggressiveInlining {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.AggressiveInlining) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.AggressiveInlining); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.AggressiveInlining) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.AggressiveInlining);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodImplAttributes.NoOptimization"/> bit
 		/// </summary>
 		public bool IsNoOptimization {
-			get { return ((MethodImplAttributes)implAttributes & MethodImplAttributes.NoOptimization) != 0; }
-			set { ModifyImplAttributes(value, MethodImplAttributes.NoOptimization); }
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.NoOptimization) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.NoOptimization);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSemanticsAttributes.Setter"/> bit
 		/// </summary>
 		public bool IsSetter {
-			get { return (SemanticsAttributes & MethodSemanticsAttributes.Setter) != 0; }
-			set { ModifyAttributes(value, MethodSemanticsAttributes.Setter); }
+			get => (SemanticsAttributes & MethodSemanticsAttributes.Setter) != 0;
+			set => ModifyAttributes(value, MethodSemanticsAttributes.Setter);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSemanticsAttributes.Getter"/> bit
 		/// </summary>
 		public bool IsGetter {
-			get { return (SemanticsAttributes & MethodSemanticsAttributes.Getter) != 0; }
-			set { ModifyAttributes(value, MethodSemanticsAttributes.Getter); }
+			get => (SemanticsAttributes & MethodSemanticsAttributes.Getter) != 0;
+			set => ModifyAttributes(value, MethodSemanticsAttributes.Getter);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSemanticsAttributes.Other"/> bit
 		/// </summary>
 		public bool IsOther {
-			get { return (SemanticsAttributes & MethodSemanticsAttributes.Other) != 0; }
-			set { ModifyAttributes(value, MethodSemanticsAttributes.Other); }
+			get => (SemanticsAttributes & MethodSemanticsAttributes.Other) != 0;
+			set => ModifyAttributes(value, MethodSemanticsAttributes.Other);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSemanticsAttributes.AddOn"/> bit
 		/// </summary>
 		public bool IsAddOn {
-			get { return (SemanticsAttributes & MethodSemanticsAttributes.AddOn) != 0; }
-			set { ModifyAttributes(value, MethodSemanticsAttributes.AddOn); }
+			get => (SemanticsAttributes & MethodSemanticsAttributes.AddOn) != 0;
+			set => ModifyAttributes(value, MethodSemanticsAttributes.AddOn);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSemanticsAttributes.RemoveOn"/> bit
 		/// </summary>
 		public bool IsRemoveOn {
-			get { return (SemanticsAttributes & MethodSemanticsAttributes.RemoveOn) != 0; }
-			set { ModifyAttributes(value, MethodSemanticsAttributes.RemoveOn); }
+			get => (SemanticsAttributes & MethodSemanticsAttributes.RemoveOn) != 0;
+			set => ModifyAttributes(value, MethodSemanticsAttributes.RemoveOn);
 		}
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSemanticsAttributes.Fire"/> bit
 		/// </summary>
 		public bool IsFire {
-			get { return (SemanticsAttributes & MethodSemanticsAttributes.Fire) != 0; }
-			set { ModifyAttributes(value, MethodSemanticsAttributes.Fire); }
+			get => (SemanticsAttributes & MethodSemanticsAttributes.Fire) != 0;
+			set => ModifyAttributes(value, MethodSemanticsAttributes.Fire);
 		}
 
 		/// <summary>
 		/// <c>true</c> if this is the static type constructor
 		/// </summary>
-		public bool IsStaticConstructor {
-			get { return IsRuntimeSpecialName && UTF8String.Equals(name, StaticConstructorName); }
-		}
+		public bool IsStaticConstructor => IsRuntimeSpecialName && UTF8String.Equals(name, StaticConstructorName);
 
 		/// <summary>
 		/// <c>true</c> if this is an instance constructor
 		/// </summary>
-		public bool IsInstanceConstructor {
-			get { return IsRuntimeSpecialName && UTF8String.Equals(name, InstanceConstructorName); }
-		}
+		public bool IsInstanceConstructor => IsRuntimeSpecialName && UTF8String.Equals(name, InstanceConstructorName);
 
 		/// <summary>
 		/// <c>true</c> if this is a static or an instance constructor
 		/// </summary>
-		public bool IsConstructor {
-			get { return IsStaticConstructor || IsInstanceConstructor; }
-		}
+		public bool IsConstructor => IsStaticConstructor || IsInstanceConstructor;
 
 		/// <inheritdoc/>
-		void IListListener<GenericParam>.OnLazyAdd(int index, ref GenericParam value) {
-			OnLazyAdd2(index, ref value);
-		}
+		void IListListener<GenericParam>.OnLazyAdd(int index, ref GenericParam value) => OnLazyAdd2(index, ref value);
 
 		internal virtual void OnLazyAdd2(int index, ref GenericParam value) {
 #if DEBUG
@@ -1119,9 +980,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<GenericParam>.OnRemove(int index, GenericParam value) {
-			value.Owner = null;
-		}
+		void IListListener<GenericParam>.OnRemove(int index, GenericParam value) => value.Owner = null;
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnResize(int index) {
@@ -1134,9 +993,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<ParamDef>.OnLazyAdd(int index, ref ParamDef value) {
-			OnLazyAdd2(index, ref value);
-		}
+		void IListListener<ParamDef>.OnLazyAdd(int index, ref ParamDef value) => OnLazyAdd2(index, ref value);
 
 		internal virtual void OnLazyAdd2(int index, ref ParamDef value) {
 #if DEBUG
@@ -1153,9 +1010,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		void IListListener<ParamDef>.OnRemove(int index, ParamDef value) {
-			value.DeclaringMethod = null;
-		}
+		void IListListener<ParamDef>.OnRemove(int index, ParamDef value) => value.DeclaringMethod = null;
 
 		/// <inheritdoc/>
 		void IListListener<ParamDef>.OnResize(int index) {
@@ -1168,9 +1023,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
-		}
+		public override string ToString() => FullName;
 	}
 
 	/// <summary>
@@ -1181,10 +1034,10 @@ namespace dnlib.DotNet {
 		/// Default constructor
 		/// </summary>
 		public MethodDefUser() {
-			this.paramDefs = new LazyList<ParamDef>(this);
-			this.genericParameters = new LazyList<GenericParam>(this);
-			this.parameterList = new ParameterList(this, null);
-			this.semAttrs = 0 | SEMATTRS_INITD;
+			paramDefs = new LazyList<ParamDef>(this);
+			genericParameters = new LazyList<GenericParam>(this);
+			parameterList = new ParameterList(this, null);
+			semAttrs = 0 | SEMATTRS_INITD;
 		}
 
 		/// <summary>
@@ -1233,13 +1086,13 @@ namespace dnlib.DotNet {
 		/// <param name="flags">Flags</param>
 		public MethodDefUser(UTF8String name, MethodSig methodSig, MethodImplAttributes implFlags, MethodAttributes flags) {
 			this.name = name;
-			this.signature = methodSig;
-			this.paramDefs = new LazyList<ParamDef>(this);
-			this.genericParameters = new LazyList<GenericParam>(this);
-			this.implAttributes = (int)implFlags;
-			this.attributes = (int)flags;
-			this.parameterList = new ParameterList(this, null);
-			this.semAttrs = 0 | SEMATTRS_INITD;
+			signature = methodSig;
+			paramDefs = new LazyList<ParamDef>(this);
+			genericParameters = new LazyList<GenericParam>(this);
+			implAttributes = (int)implFlags;
+			attributes = (int)flags;
+			parameterList = new ParameterList(this, null);
+			semAttrs = 0 | SEMATTRS_INITD;
 		}
 	}
 
@@ -1255,9 +1108,7 @@ namespace dnlib.DotNet {
 		readonly MethodImplAttributes origImplAttributes;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
 		protected override void InitializeParamDefs() {
@@ -1281,14 +1132,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override ImplMap GetImplMap_NoLock() {
-			return readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, origRid));
-		}
+		protected override ImplMap GetImplMap_NoLock() => readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Method, origRid));
 
 		/// <inheritdoc/>
-		protected override MethodBody GetMethodBody_NoLock() {
-			return readerModule.ReadMethodBody(this, origRva, origImplAttributes, new GenericParamContext(declaringType2, this));
-		}
+		protected override MethodBody GetMethodBody_NoLock() => readerModule.ReadMethodBody(this, origRva, origImplAttributes, new GenericParamContext(declaringType2, this));
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
@@ -1315,8 +1162,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeSemanticsAttributes() {
-			var dt = DeclaringType as TypeDefMD;
-			if (dt != null)
+			if (DeclaringType is TypeDefMD dt)
 				dt.InitializeMethodSemanticsAttributes();
 			semAttrs |= SEMATTRS_INITD;
 		}
@@ -1333,20 +1179,19 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.MethodTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("Method rid {0} does not exist", rid));
+				throw new BadImageFormatException($"Method rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint name;
-			uint signature = readerModule.TablesStream.ReadMethodRow(origRid, out this.rva, out this.implAttributes, out this.attributes, out name);
+			uint signature = readerModule.TablesStream.ReadMethodRow(origRid, out rva, out implAttributes, out attributes, out uint name);
 			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.origRva = rva;
-			this.origImplAttributes = (MethodImplAttributes)implAttributes;
-			this.declaringType2 = readerModule.GetOwnerType(this);
+			origRva = rva;
+			origImplAttributes = (MethodImplAttributes)implAttributes;
+			declaringType2 = readerModule.GetOwnerType(this);
 			this.signature = readerModule.ReadSignature(signature, new GenericParamContext(declaringType2, this));
-			this.parameterList = new ParameterList(this, declaringType2);
-			this.exportInfo = readerModule.GetExportInfo(rid);
+			parameterList = new ParameterList(this, declaringType2);
+			exportInfo = readerModule.GetExportInfo(rid);
 		}
 
 		internal MethodDefMD InitializeAll() {

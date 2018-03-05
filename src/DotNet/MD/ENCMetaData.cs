@@ -21,9 +21,7 @@ namespace dnlib.DotNet.MD {
 #endif
 
 		/// <inheritdoc/>
-		public override bool IsCompressed {
-			get { return false; }
-		}
+		public override bool IsCompressed => false;
 
 		/// <inheritdoc/>
 		public ENCMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
@@ -190,8 +188,7 @@ namespace dnlib.DotNet.MD {
 		uint ToFieldRid(uint listRid) {
 			if (!hasFieldPtr)
 				return listRid;
-			uint listValue;
-			return tablesStream.ReadColumn(tablesStream.FieldPtrTable, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.FieldPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -202,8 +199,7 @@ namespace dnlib.DotNet.MD {
 		uint ToMethodRid(uint listRid) {
 			if (!hasMethodPtr)
 				return listRid;
-			uint listValue;
-			return tablesStream.ReadColumn(tablesStream.MethodPtrTable, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.MethodPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -214,8 +210,7 @@ namespace dnlib.DotNet.MD {
 		uint ToParamRid(uint listRid) {
 			if (!hasParamPtr)
 				return listRid;
-			uint listValue;
-			return tablesStream.ReadColumn(tablesStream.ParamPtrTable, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.ParamPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -226,8 +221,7 @@ namespace dnlib.DotNet.MD {
 		uint ToEventRid(uint listRid) {
 			if (!hasEventPtr)
 				return listRid;
-			uint listValue;
-			return tablesStream.ReadColumn(tablesStream.EventPtrTable, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.EventPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -238,8 +232,7 @@ namespace dnlib.DotNet.MD {
 		uint ToPropertyRid(uint listRid) {
 			if (!hasPropertyPtr)
 				return listRid;
-			uint listValue;
-			return tablesStream.ReadColumn(tablesStream.PropertyPtrTable, listRid, 0, out listValue) ? listValue : 0;
+			return tablesStream.ReadColumn(tablesStream.PropertyPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <inheritdoc/>
@@ -409,8 +402,7 @@ namespace dnlib.DotNet.MD {
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
-				uint key2;
-				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out key2))
+				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;
@@ -439,8 +431,7 @@ namespace dnlib.DotNet.MD {
 				return 0;
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
-				uint key2;
-				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out key2))
+				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;

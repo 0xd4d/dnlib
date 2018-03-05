@@ -15,37 +15,30 @@ namespace dnlib.DotNet {
 	}
 
 	static class WinMDHelpers {
-		struct ClassName : IEquatable<ClassName> {
+		readonly struct ClassName : IEquatable<ClassName> {
 			public readonly UTF8String Namespace;
 			public readonly UTF8String Name;
 			// Not used when comparing for equality etc
 			public readonly bool IsValueType;
 
 			public ClassName(UTF8String ns, UTF8String name, bool isValueType = false) {
-				this.Namespace = ns;
-				this.Name = name;
-				this.IsValueType = isValueType;
+				Namespace = ns;
+				Name = name;
+				IsValueType = isValueType;
 			}
 
 			public ClassName(string ns, string name, bool isValueType = false) {
-				this.Namespace = ns;
-				this.Name = name;
-				this.IsValueType = isValueType;
+				Namespace = ns;
+				Name = name;
+				IsValueType = isValueType;
 			}
 
-			public static bool operator ==(ClassName a, ClassName b) {
-				return a.Equals(b);
-			}
+			public static bool operator ==(ClassName a, ClassName b) => a.Equals(b);
+			public static bool operator !=(ClassName a, ClassName b) => !a.Equals(b);
 
-			public static bool operator !=(ClassName a, ClassName b) {
-				return !a.Equals(b);
-			}
-
-			public bool Equals(ClassName other) {
+			public bool Equals(ClassName other) =>
 				// Don't check IsValueType
-				return UTF8String.Equals(Namespace, other.Namespace) &&
-					UTF8String.Equals(Name, other.Name);
-			}
+				UTF8String.Equals(Namespace, other.Namespace) && UTF8String.Equals(Name, other.Name);
 
 			public override bool Equals(object obj) {
 				if (!(obj is ClassName))
@@ -53,14 +46,11 @@ namespace dnlib.DotNet {
 				return Equals((ClassName)obj);
 			}
 
-			public override int GetHashCode() {
+			public override int GetHashCode() =>
 				// Don't use IsValueType
-				return UTF8String.GetHashCode(Namespace) ^ UTF8String.GetHashCode(Name);
-			}
+				UTF8String.GetHashCode(Namespace) ^ UTF8String.GetHashCode(Name);
 
-			public override string ToString() {
-				return string.Format("{0}.{1}", Namespace, Name);
-			}
+			public override string ToString() => $"{Namespace}.{Name}";
 		}
 
 		sealed class ProjectedClass {
@@ -70,15 +60,13 @@ namespace dnlib.DotNet {
 			public readonly ClrAssembly ContractAssembly;
 
 			public ProjectedClass(string mdns, string mdname, string clrns, string clrname, ClrAssembly clrAsm, ClrAssembly contractAsm, bool winMDValueType, bool clrValueType) {
-				this.WinMDClass = new ClassName(mdns, mdname, winMDValueType);
-				this.ClrClass = new ClassName(clrns, clrname, clrValueType);
-				this.ClrAssembly = clrAsm;
-				this.ContractAssembly = contractAsm;
+				WinMDClass = new ClassName(mdns, mdname, winMDValueType);
+				ClrClass = new ClassName(clrns, clrname, clrValueType);
+				ClrAssembly = clrAsm;
+				ContractAssembly = contractAsm;
 			}
 
-			public override string ToString() {
-				return string.Format("{0} <-> {1}, {2}", WinMDClass, ClrClass, CreateAssembly(null, ContractAssembly));
-			}
+			public override string ToString() => $"{WinMDClass} <-> {ClrClass}, {CreateAssembly(null, ContractAssembly)}";
 		}
 
 		// See https://github.com/dotnet/coreclr/blob/master/src/inc/winrtprojectedtypes.h
@@ -172,8 +160,7 @@ namespace dnlib.DotNet {
 		}
 
 		static AssemblyRef ToCLR(ModuleDef module, ref UTF8String ns, ref UTF8String name) {
-			ProjectedClass pc;
-			if (!winMDToCLR.TryGetValue(new ClassName(ns, name), out pc))
+			if (!winMDToCLR.TryGetValue(new ClassName(ns, name), out var pc))
 				return null;
 
 			ns = pc.ClrClass.Namespace;
@@ -182,14 +169,12 @@ namespace dnlib.DotNet {
 		}
 
 		static AssemblyRef CreateAssembly(ModuleDef module, ClrAssembly clrAsm) {
-			var mscorlib = module == null ? null : module.CorLibTypes.AssemblyRef;
-
+			var mscorlib = module?.CorLibTypes.AssemblyRef;
 			var asm = new AssemblyRefUser(GetName(clrAsm), contractAsmVersion, new PublicKeyToken(GetPublicKeyToken(clrAsm)), UTF8String.Empty);
 
 			if (mscorlib != null && mscorlib.Name == mscorlibName && mscorlib.Version != invalidWinMDVersion)
 				asm.Version = mscorlib.Version;
-			var mod = module as ModuleDefMD;
-			if (mod != null) {
+			if (module is ModuleDefMD mod) {
 				Version ver = null;
 				foreach (var asmRef in mod.GetAssemblyRefs()) {
 					if (asmRef.IsContentTypeWindowsRuntime)
@@ -258,10 +243,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="td">Type</param>
 		/// <returns></returns>
-		public static TypeRef ToCLR(ModuleDef module, TypeDef td) {
-			bool isClrValueType;
-			return ToCLR(module, td, out isClrValueType);
-		}
+		public static TypeRef ToCLR(ModuleDef module, TypeDef td) => ToCLR(module, td, out bool isClrValueType);
 
 		/// <summary>
 		/// Converts WinMD type <paramref name="td"/> to a CLR type. Returns <c>null</c>
@@ -279,8 +261,7 @@ namespace dnlib.DotNet {
 			if (asm == null || !asm.IsContentTypeWindowsRuntime)
 				return null;
 
-			ProjectedClass pc;
-			if (!winMDToCLR.TryGetValue(new ClassName(td.Namespace, td.Name), out pc))
+			if (!winMDToCLR.TryGetValue(new ClassName(td.Namespace, td.Name), out var pc))
 				return null;
 
 			isClrValueType = pc.ClrClass.IsValueType;
@@ -294,10 +275,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="tr">Type</param>
 		/// <returns></returns>
-		public static TypeRef ToCLR(ModuleDef module, TypeRef tr) {
-			bool isClrValueType;
-			return ToCLR(module, tr, out isClrValueType);
-		}
+		public static TypeRef ToCLR(ModuleDef module, TypeRef tr) => ToCLR(module, tr, out bool isClrValueType);
 
 		/// <summary>
 		/// Converts WinMD type <paramref name="tr"/> to a CLR type. Returns <c>null</c>
@@ -317,8 +295,7 @@ namespace dnlib.DotNet {
 			if (tr.DeclaringType != null)
 				return null;
 
-			ProjectedClass pc;
-			if (!winMDToCLR.TryGetValue(new ClassName(tr.Namespace, tr.Name), out pc))
+			if (!winMDToCLR.TryGetValue(new ClassName(tr.Namespace, tr.Name), out var pc))
 				return null;
 
 			isClrValueType = pc.ClrClass.IsValueType;
@@ -341,8 +318,7 @@ namespace dnlib.DotNet {
 			if (et.DeclaringType != null)
 				return null;
 
-			ProjectedClass pc;
-			if (!winMDToCLR.TryGetValue(new ClassName(et.TypeNamespace, et.TypeName), out pc))
+			if (!winMDToCLR.TryGetValue(new ClassName(et.TypeNamespace, et.TypeName), out var pc))
 				return null;
 
 			return new ExportedTypeUser(module, 0, pc.ClrClass.Namespace, pc.ClrClass.Name, et.Attributes, CreateAssembly(module, pc.ContractAssembly));
@@ -364,10 +340,9 @@ namespace dnlib.DotNet {
 
 			var tdr = ((ClassOrValueTypeSig)ts).TypeDefOrRef;
 
-			TypeDef td;
 			TypeRef tr, newTr;
 			bool isClrValueType;
-			if ((td = tdr as TypeDef) != null) {
+			if (tdr is TypeDef td) {
 				newTr = ToCLR(module, td, out isClrValueType);
 				if (newTr == null)
 					return null;
@@ -406,9 +381,8 @@ namespace dnlib.DotNet {
 
 			var cl = mr.Class;
 			IMemberRefParent newCl;
-			TypeRef tr;
 			TypeSpec ts;
-			if ((tr = cl as TypeRef) != null) {
+			if (cl is TypeRef tr) {
 				var newTr = ToCLR(module, tr);
 				if (newTr == null || !IsIDisposable(newTr))
 					return null;
@@ -423,8 +397,7 @@ namespace dnlib.DotNet {
 				if (tr == null)
 					return null;
 
-				bool isClrValueType;
-				var newTr = ToCLR(module, tr, out isClrValueType);
+				var newTr = ToCLR(module, tr, out bool isClrValueType);
 				if (newTr == null || !IsIDisposable(newTr))
 					return null;
 
@@ -440,9 +413,7 @@ namespace dnlib.DotNet {
 		static readonly UTF8String CloseName = new UTF8String("Close");
 		static readonly UTF8String DisposeName = new UTF8String("Dispose");
 
-		static bool IsIDisposable(TypeRef tr) {
-			return tr.Name == IDisposableName && tr.Namespace == IDisposableNamespace;
-		}
+		static bool IsIDisposable(TypeRef tr) => tr.Name == IDisposableName && tr.Namespace == IDisposableNamespace;
 		static readonly UTF8String IDisposableNamespace = new UTF8String("System");
 		static readonly UTF8String IDisposableName = new UTF8String("IDisposable");
 

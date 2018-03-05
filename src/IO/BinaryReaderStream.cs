@@ -31,39 +31,29 @@ namespace dnlib.IO {
 		}
 
 		/// <inheritdoc/>
-		public override bool CanRead {
-			get { return true; }
-		}
+		public override bool CanRead => true;
 
 		/// <inheritdoc/>
-		public override bool CanSeek {
-			get { return true; }
-		}
+		public override bool CanSeek => true;
 
 		/// <inheritdoc/>
-		public override bool CanWrite {
-			get { return false; }
-		}
+		public override bool CanWrite => false;
 
 		/// <inheritdoc/>
 		public override void Flush() {
 		}
 
 		/// <inheritdoc/>
-		public override long Length {
-			get { return reader.Length; }
-		}
+		public override long Length => reader.Length;
 
 		/// <inheritdoc/>
 		public override long Position {
-			get { return reader.Position; }
-			set { reader.Position = value; }
+			get => reader.Position;
+			set => reader.Position = value;
 		}
 
 		/// <inheritdoc/>
-		public override int Read(byte[] buffer, int offset, int count) {
-			return reader.Read(buffer, offset, count);
-		}
+		public override int Read(byte[] buffer, int offset, int count) => reader.Read(buffer, offset, count);
 
 		/// <inheritdoc/>
 		public override int ReadByte() {
@@ -86,14 +76,10 @@ namespace dnlib.IO {
 		}
 
 		/// <inheritdoc/>
-		public override void SetLength(long value) {
-			throw new NotImplementedException();
-		}
+		public override void SetLength(long value) => throw new NotImplementedException();
 
 		/// <inheritdoc/>
-		public override void Write(byte[] buffer, int offset, int count) {
-			throw new NotImplementedException();
-		}
+		public override void Write(byte[] buffer, int offset, int count) => throw new NotImplementedException();
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {

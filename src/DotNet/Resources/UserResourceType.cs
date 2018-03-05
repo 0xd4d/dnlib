@@ -11,16 +11,12 @@ namespace dnlib.DotNet.Resources {
 		/// <summary>
 		/// Full name including assembly of type
 		/// </summary>
-		public string Name {
-			get { return name; }
-		}
+		public string Name => name;
 
 		/// <summary>
 		/// User type code
 		/// </summary>
-		public ResourceTypeCode Code {
-			get { return code; }
-		}
+		public ResourceTypeCode Code => code;
 
 		/// <summary>
 		/// Constructor
@@ -33,8 +29,6 @@ namespace dnlib.DotNet.Resources {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0:X2} {1}", (int)code, name);
-		}
+		public override string ToString() => $"{(int)code:X2} {name}";
 	}
 }

@@ -37,38 +37,36 @@ namespace dnlib.DotNet {
 		ManifestResourceAttributes flags;
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.ManifestResource, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.ManifestResource, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the offset of the resource
 		/// </summary>
 		public uint? Offset {
-			get { return offset; }
-			set { offset = value; }
+			get => offset;
+			set => offset = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
 		public UTF8String Name {
-			get { return name; }
-			set { name = value; }
+			get => name;
+			set => name = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the flags
 		/// </summary>
 		public ManifestResourceAttributes Attributes {
-			get { return flags; }
-			set { flags = value; }
+			get => flags;
+			set => flags = value;
 		}
 
 		/// <summary>
@@ -80,23 +78,19 @@ namespace dnlib.DotNet {
 		/// Gets/sets the visibility
 		/// </summary>
 		public ManifestResourceAttributes Visibility {
-			get { return flags & ManifestResourceAttributes.VisibilityMask; }
-			set { flags = (flags & ~ManifestResourceAttributes.VisibilityMask) | (value & ManifestResourceAttributes.VisibilityMask); }
+			get => flags & ManifestResourceAttributes.VisibilityMask;
+			set => flags = (flags & ~ManifestResourceAttributes.VisibilityMask) | (value & ManifestResourceAttributes.VisibilityMask);
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ManifestResourceAttributes.Public"/> is set
 		/// </summary>
-		public bool IsPublic {
-			get { return (flags & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Public; }
-		}
+		public bool IsPublic => (flags & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Public;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ManifestResourceAttributes.Private"/> is set
 		/// </summary>
-		public bool IsPrivate {
-			get { return (flags & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Private; }
-		}
+		public bool IsPrivate => (flags & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Private;
 
 		/// <summary>
 		/// Constructor
@@ -132,9 +126,7 @@ namespace dnlib.DotNet {
 #endif
 
 		/// <inheritdoc/>
-		public override ResourceType ResourceType {
-			get { return ResourceType.Embedded; }
-		}
+		public override ResourceType ResourceType => ResourceType.Embedded;
 
 		/// <summary>
 		/// Gets/sets the resource data. It's never <c>null</c>.
@@ -151,7 +143,7 @@ namespace dnlib.DotNet {
 			}
 			set {
 				if (value == null)
-					throw new ArgumentNullException("value");
+					throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
@@ -200,11 +192,7 @@ namespace dnlib.DotNet {
 		/// <param name="dataStream">Resource data</param>
 		/// <param name="flags">Resource flags</param>
 		public EmbeddedResource(UTF8String name, IImageStream dataStream, ManifestResourceAttributes flags)
-			: base(name, flags) {
-			if (dataStream == null)
-				throw new ArgumentNullException("dataStream");
-			this.dataStream = dataStream;
-		}
+			: base(name, flags) => this.dataStream = dataStream ?? throw new ArgumentNullException(nameof(dataStream));
 
 		/// <summary>
 		/// Creates a new resource stream that can access the same data as the original
@@ -225,9 +213,7 @@ namespace dnlib.DotNet {
 		/// Gets the resource data as a <see cref="Stream"/>
 		/// </summary>
 		/// <returns>A stream</returns>
-		public Stream GetResourceStream() {
-			return GetClonedResourceStream().CreateStream(true);
-		}
+		public Stream GetResourceStream() => GetClonedResourceStream().CreateStream(true);
 
 		/// <summary>
 		/// Gets the resource data as a byte array
@@ -260,10 +246,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			var ds = dataStream;
-			return string.Format("{0} - size: {1}", UTF8String.ToSystemStringOrEmpty(Name), ds == null ? 0 : ds.Length);
-		}
+		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - size: {(dataStream?.Length ?? 0)}";
 	}
 
 	/// <summary>
@@ -273,20 +256,14 @@ namespace dnlib.DotNet {
 		AssemblyRef asmRef;
 
 		/// <inheritdoc/>
-		public override ResourceType ResourceType {
-			get { return ResourceType.AssemblyLinked; }
-		}
+		public override ResourceType ResourceType => ResourceType.AssemblyLinked;
 
 		/// <summary>
 		/// Gets/sets the assembly reference
 		/// </summary>
 		public AssemblyRef Assembly {
-			get { return asmRef; }
-			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
-				asmRef = value;
-			}
+			get => asmRef;
+			set => asmRef = value ?? throw new ArgumentNullException(nameof(value));
 		}
 
 		/// <summary>
@@ -296,16 +273,10 @@ namespace dnlib.DotNet {
 		/// <param name="asmRef">Assembly reference</param>
 		/// <param name="flags">Resource flags</param>
 		public AssemblyLinkedResource(UTF8String name, AssemblyRef asmRef, ManifestResourceAttributes flags)
-			: base(name, flags) {
-			if (asmRef == null)
-				throw new ArgumentNullException("asmRef");
-			this.asmRef = asmRef;
-		}
+			: base(name, flags) => this.asmRef = asmRef ?? throw new ArgumentNullException(nameof(asmRef));
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} - assembly: {1}", UTF8String.ToSystemStringOrEmpty(Name), asmRef.FullName);
-		}
+		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - assembly: {asmRef.FullName}";
 	}
 
 	/// <summary>
@@ -315,36 +286,28 @@ namespace dnlib.DotNet {
 		FileDef file;
 
 		/// <inheritdoc/>
-		public override ResourceType ResourceType {
-			get { return ResourceType.Linked; }
-		}
+		public override ResourceType ResourceType => ResourceType.Linked;
 
 		/// <summary>
 		/// Gets/sets the file
 		/// </summary>
 		public FileDef File {
-			get { return file; }
-			set {
-				if (value == null)
-					throw new ArgumentNullException("value");
-				file = value;
-			}
+			get => file;
+			set => file = value ?? throw new ArgumentNullException(nameof(value));
 		}
 
 		/// <summary>
 		/// Gets/sets the hash
 		/// </summary>
 		public byte[] Hash {
-			get { return file.HashValue; }
-			set { file.HashValue = value; }
+			get => file.HashValue;
+			set => file.HashValue = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the file name
 		/// </summary>
-		public UTF8String FileName {
-			get { return file == null ? UTF8String.Empty : file.Name; }
-		}
+		public UTF8String FileName => file == null ? UTF8String.Empty : file.Name;
 
 		/// <summary>
 		/// Constructor
@@ -353,13 +316,9 @@ namespace dnlib.DotNet {
 		/// <param name="file">The file</param>
 		/// <param name="flags">Resource flags</param>
 		public LinkedResource(UTF8String name, FileDef file, ManifestResourceAttributes flags)
-			: base(name, flags) {
-			this.file = file;
-		}
+			: base(name, flags) => this.file = file;
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} - file: {1}", UTF8String.ToSystemStringOrEmpty(Name), UTF8String.ToSystemStringOrEmpty(FileName));
-		}
+		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - file: {UTF8String.ToSystemStringOrEmpty(FileName)}";
 	}
 }

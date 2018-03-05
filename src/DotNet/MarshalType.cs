@@ -15,22 +15,16 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the <see cref="dnlib.DotNet.NativeType"/>
 		/// </summary>
-		public NativeType NativeType {
-			get { return nativeType; }
-		}
+		public NativeType NativeType => nativeType;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="nativeType">Native type</param>
-		public MarshalType(NativeType nativeType) {
-			this.nativeType = nativeType;
-		}
+		public MarshalType(NativeType nativeType) => this.nativeType = nativeType;
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return nativeType.ToString();
-		}
+		public override string ToString() => nativeType.ToString();
 	}
 
 	/// <summary>
@@ -43,8 +37,8 @@ namespace dnlib.DotNet {
 		/// Gets/sets the raw data
 		/// </summary>
 		public byte[] Data {
-			get { return data; }
-			set { data = value; }
+			get => data;
+			set => data = value;
 		}
 
 		/// <summary>
@@ -52,9 +46,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="data">Raw data</param>
 		public RawMarshalType(byte[] data)
-			: base(NativeType.RawBlob) {
-			this.data = data;
-		}
+			: base(NativeType.RawBlob) => this.data = data;
 	}
 
 	/// <summary>
@@ -67,16 +59,14 @@ namespace dnlib.DotNet {
 		/// Gets/sets the size
 		/// </summary>
 		public int Size {
-			get { return size; }
-			set { size = value; }
+			get => size;
+			set => size = value;
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Size"/> is valid
 		/// </summary>
-		public bool IsSizeValid {
-			get { return size >= 0; }
-		}
+		public bool IsSizeValid => size >= 0;
 
 		/// <summary>
 		/// Default constructor
@@ -90,15 +80,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="size">Size</param>
 		public FixedSysStringMarshalType(int size)
-			: base(NativeType.FixedSysString) {
-			this.size = size;
-		}
+			: base(NativeType.FixedSysString) => this.size = size;
 
 		/// <inheritdoc/>
 		public override string ToString() {
 			if (IsSizeValid)
-				return string.Format("{0} ({1})", nativeType, size);
-			return string.Format("{0} (<no size>)", nativeType);
+				return $"{nativeType} ({size})";
+			return $"{nativeType} (<no size>)";
 		}
 	}
 
@@ -113,31 +101,27 @@ namespace dnlib.DotNet {
 		/// Gets/sets the variant type
 		/// </summary>
 		public VariantType VariantType {
-			get { return vt; }
-			set { vt = value; }
+			get => vt;
+			set => vt = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the user-defined sub type (it's usually <c>null</c>)
 		/// </summary>
 		public ITypeDefOrRef UserDefinedSubType {
-			get { return userDefinedSubType; }
-			set { userDefinedSubType = value; }
+			get => userDefinedSubType;
+			set => userDefinedSubType = value;
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="VariantType"/> is valid
 		/// </summary>
-		public bool IsVariantTypeValid {
-			get { return vt != VariantType.NotInitialized; }
-		}
+		public bool IsVariantTypeValid => vt != VariantType.NotInitialized;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="UserDefinedSubType"/> is valid
 		/// </summary>
-		public bool IsUserDefinedSubTypeValid {
-			get { return userDefinedSubType != null; }
-		}
+		public bool IsUserDefinedSubTypeValid => userDefinedSubType != null;
 
 		/// <summary>
 		/// Default constructor
@@ -177,8 +161,8 @@ namespace dnlib.DotNet {
 		public override string ToString() {
 			var udt = userDefinedSubType;
 			if (udt != null)
-				return string.Format("{0} ({1}, {2})", nativeType, vt, udt);
-			return string.Format("{0} ({1})", nativeType, vt);
+				return $"{nativeType} ({vt}, {udt})";
+			return $"{nativeType} ({vt})";
 		}
 	}
 
@@ -193,31 +177,27 @@ namespace dnlib.DotNet {
 		/// Gets/sets the element type
 		/// </summary>
 		public NativeType ElementType {
-			get { return elementType; }
-			set { elementType = value; }
+			get => elementType;
+			set => elementType = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the size
 		/// </summary>
 		public int Size {
-			get { return size; }
-			set { size = value; }
+			get => size;
+			set => size = value;
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ElementType"/> is valid
 		/// </summary>
-		public bool IsElementTypeValid {
-			get { return elementType != NativeType.NotInitialized; }
-		}
+		public bool IsElementTypeValid => elementType != NativeType.NotInitialized;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Size"/> is valid
 		/// </summary>
-		public bool IsSizeValid {
-			get { return size >= 0; }
-		}
+		public bool IsSizeValid => size >= 0;
 
 		/// <summary>
 		/// Default constructor
@@ -246,9 +226,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} ({1}, {2})", nativeType, size, elementType);
-		}
+		public override string ToString() => $"{nativeType} ({size}, {elementType})";
 	}
 
 	/// <summary>
@@ -264,61 +242,53 @@ namespace dnlib.DotNet {
 		/// Gets/sets the element type
 		/// </summary>
 		public NativeType ElementType {
-			get { return elementType; }
-			set { elementType = value; }
+			get => elementType;
+			set => elementType = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the parameter number
 		/// </summary>
 		public int ParamNumber {
-			get { return paramNum; }
-			set { paramNum = value; }
+			get => paramNum;
+			set => paramNum = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the size of the array
 		/// </summary>
 		public int Size {
-			get { return numElems; }
-			set { numElems = value; }
+			get => numElems;
+			set => numElems = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the flags
 		/// </summary>
 		public int Flags {
-			get { return flags; }
-			set { flags = value; }
+			get => flags;
+			set => flags = value;
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ElementType"/> is valid
 		/// </summary>
-		public bool IsElementTypeValid {
-			get { return elementType != NativeType.NotInitialized; }
-		}
+		public bool IsElementTypeValid => elementType != NativeType.NotInitialized;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="ParamNumber"/> is valid
 		/// </summary>
-		public bool IsParamNumberValid {
-			get { return paramNum >= 0; }
-		}
+		public bool IsParamNumberValid => paramNum >= 0;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Size"/> is valid
 		/// </summary>
-		public bool IsSizeValid {
-			get { return numElems >= 0; }
-		}
+		public bool IsSizeValid => numElems >= 0;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Flags"/> is valid
 		/// </summary>
-		public bool IsFlagsValid {
-			get { return flags >= 0; }
-		}
+		public bool IsFlagsValid => flags >= 0;
 
 		const int ntaSizeParamIndexSpecified = 1;
 
@@ -326,17 +296,13 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <c>ntaSizeParamIndexSpecified</c> bit is set, <c>false</c> if it's not
 		/// set or if <see cref="Flags"/> is invalid.
 		/// </summary>
-		public bool IsSizeParamIndexSpecified {
-			get { return IsFlagsValid && (flags & ntaSizeParamIndexSpecified) != 0; }
-		}
+		public bool IsSizeParamIndexSpecified => IsFlagsValid && (flags & ntaSizeParamIndexSpecified) != 0;
 
 		/// <summary>
 		/// <c>true</c> if <c>ntaSizeParamIndexSpecified</c> bit is not set, <c>false</c> if it's
 		/// set or if <see cref="Flags"/> is invalid.
 		/// </summary>
-		public bool IsSizeParamIndexNotSpecified {
-			get { return IsFlagsValid && (flags & ntaSizeParamIndexSpecified) == 0; }
-		}
+		public bool IsSizeParamIndexNotSpecified => IsFlagsValid && (flags & ntaSizeParamIndexSpecified) == 0;
 
 		/// <summary>
 		/// Default constructor
@@ -388,9 +354,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} ({1}, {2}, {3}, {4})", nativeType, elementType, paramNum, numElems, flags);
-		}
+		public override string ToString() => $"{nativeType} ({elementType}, {paramNum}, {numElems}, {flags})";
 	}
 
 	/// <summary>
@@ -406,32 +370,32 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <c>GUID</c> string
 		/// </summary>
 		public UTF8String Guid {
-			get { return guid; }
-			set { guid = value; }
+			get => guid;
+			set => guid = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the native type name string
 		/// </summary>
 		public UTF8String NativeTypeName {
-			get { return nativeTypeName; }
-			set { nativeTypeName = value; }
+			get => nativeTypeName;
+			set => nativeTypeName = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the custom marshaler
 		/// </summary>
 		public ITypeDefOrRef CustomMarshaler {
-			get { return custMarshaler; }
-			set { custMarshaler = value; }
+			get => custMarshaler;
+			set => custMarshaler = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the cookie string
 		/// </summary>
 		public UTF8String Cookie {
-			get { return cookie; }
-			set { cookie = value; }
+			get => cookie;
+			set => cookie = value;
 		}
 
 		/// <summary>
@@ -484,9 +448,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} ({1}, {2}, {3}, {4})", nativeType, guid, nativeTypeName, custMarshaler, cookie);
-		}
+		public override string ToString() => $"{nativeType} ({guid}, {nativeTypeName}, {custMarshaler}, {cookie})";
 	}
 
 	/// <summary>
@@ -500,16 +462,14 @@ namespace dnlib.DotNet {
 		/// Gets/sets the IID parameter index
 		/// </summary>
 		public int IidParamIndex {
-			get { return iidParamIndex; }
-			set { iidParamIndex = value; }
+			get => iidParamIndex;
+			set => iidParamIndex = value;
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="IidParamIndex"/> is valid
 		/// </summary>
-		public bool IsIidParamIndexValid {
-			get { return iidParamIndex >= 0; }
-		}
+		public bool IsIidParamIndexValid => iidParamIndex >= 0;
 
 		/// <summary>
 		/// Constructor
@@ -534,8 +494,6 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return string.Format("{0} ({1})", nativeType, iidParamIndex);
-		}
+		public override string ToString() => $"{nativeType} ({iidParamIndex})";
 	}
 }

@@ -85,130 +85,100 @@ namespace dnlib.DotNet.MD {
 #endif
 
 		internal HotTableStream HotTableStream {
-			set { hotTableStream = value; }
+			set => hotTableStream = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the column reader
 		/// </summary>
 		public IColumnReader ColumnReader {
-			get { return columnReader; }
-			set { columnReader = value; }
+			get => columnReader;
+			set => columnReader = value;
 		}
 
 		/// <summary>
 		/// Gets/sets the <c>Method</c> table reader
 		/// </summary>
 		public IRowReader<RawMethodRow> MethodRowReader {
-			get { return methodRowReader; }
-			set { methodRowReader = value; }
+			get => methodRowReader;
+			set => methodRowReader = value;
 		}
 
 		/// <summary>
 		/// Gets the reserved field
 		/// </summary>
-		public uint Reserved1 {
-			get { return reserved1; }
-		}
+		public uint Reserved1 => reserved1;
 
 		/// <summary>
 		/// Gets the version. The major version is in the upper 8 bits, and the minor version
 		/// is in the lower 8 bits.
 		/// </summary>
-		public ushort Version {
-			get { return (ushort)((majorVersion << 8) | minorVersion); }
-		}
+		public ushort Version => (ushort)((majorVersion << 8) | minorVersion);
 
 		/// <summary>
 		/// Gets <see cref="MDStreamFlags"/>
 		/// </summary>
-		public MDStreamFlags Flags {
-			get { return flags; }
-		}
+		public MDStreamFlags Flags => flags;
 
 		/// <summary>
 		/// Gets the reserved log2 rid field
 		/// </summary>
-		public byte Log2Rid {
-			get { return log2Rid; }
-		}
+		public byte Log2Rid => log2Rid;
 
 		/// <summary>
 		/// Gets the valid mask
 		/// </summary>
-		public ulong ValidMask {
-			get { return validMask; }
-		}
+		public ulong ValidMask => validMask;
 
 		/// <summary>
 		/// Gets the sorted mask
 		/// </summary>
-		public ulong SortedMask {
-			get { return sortedMask; }
-		}
+		public ulong SortedMask => sortedMask;
 
 		/// <summary>
 		/// Gets the extra data
 		/// </summary>
-		public uint ExtraData {
-			get { return extraData; }
-		}
+		public uint ExtraData => extraData;
 
 		/// <summary>
 		/// Gets the MD tables
 		/// </summary>
-		public MDTable[] MDTables {
-			get { return mdTables; }
-		}
+		public MDTable[] MDTables => mdTables;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.BigStrings"/> bit
 		/// </summary>
-		public bool HasBigStrings {
-			get { return (flags & MDStreamFlags.BigStrings) != 0; }
-		}
+		public bool HasBigStrings => (flags & MDStreamFlags.BigStrings) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.BigGUID"/> bit
 		/// </summary>
-		public bool HasBigGUID {
-			get { return (flags & MDStreamFlags.BigGUID) != 0; }
-		}
+		public bool HasBigGUID => (flags & MDStreamFlags.BigGUID) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.BigBlob"/> bit
 		/// </summary>
-		public bool HasBigBlob {
-			get { return (flags & MDStreamFlags.BigBlob) != 0; }
-		}
+		public bool HasBigBlob => (flags & MDStreamFlags.BigBlob) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.Padding"/> bit
 		/// </summary>
-		public bool HasPadding {
-			get { return (flags & MDStreamFlags.Padding) != 0; }
-		}
+		public bool HasPadding => (flags & MDStreamFlags.Padding) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.DeltaOnly"/> bit
 		/// </summary>
-		public bool HasDeltaOnly {
-			get { return (flags & MDStreamFlags.DeltaOnly) != 0; }
-		}
+		public bool HasDeltaOnly => (flags & MDStreamFlags.DeltaOnly) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.ExtraData"/> bit
 		/// </summary>
-		public bool HasExtraData {
-			get { return (flags & MDStreamFlags.ExtraData) != 0; }
-		}
+		public bool HasExtraData => (flags & MDStreamFlags.ExtraData) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.HasDelete"/> bit
 		/// </summary>
-		public bool HasDelete {
-			get { return (flags & MDStreamFlags.HasDelete) != 0; }
-		}
+		public bool HasDelete => (flags & MDStreamFlags.HasDelete) != 0;
 
 		/// <inheritdoc/>
 		public TablesStream(IImageStream imageStream, StreamHeader streamHeader)
@@ -232,9 +202,8 @@ namespace dnlib.DotNet.MD {
 			validMask = imageStream.ReadUInt64();
 			sortedMask = imageStream.ReadUInt64();
 
-			int maxPresentTables;
 			var dnTableSizes = new DotNetTableSizes();
-			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion, out maxPresentTables);
+			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion, out int maxPresentTables);
 			if (typeSystemTableRows != null)
 				maxPresentTables = DotNetTableSizes.normalMaxTables;
 			mdTables = new MDTable[tableInfos.Length];
@@ -367,9 +336,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="table">The table type</param>
 		/// <returns><c>true</c> if the table exists</returns>
-		public bool HasTable(Table table) {
-			return (uint)table < (uint)mdTables.Length;
-		}
+		public bool HasTable(Table table) => (uint)table < (uint)mdTables.Length;
 
 		/// <summary>
 		/// Checks whether table <paramref name="table"/> is sorted

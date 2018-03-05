@@ -7,7 +7,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Returns types without getting stuck in an infinite loop
 	/// </summary>
-	public struct AllTypesHelper {
+	public readonly struct AllTypesHelper {
 		/// <summary>
 		/// Gets a list of all types and nested types
 		/// </summary>

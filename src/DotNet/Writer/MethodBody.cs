@@ -20,56 +20,40 @@ namespace dnlib.DotNet.Writer {
 		uint localVarSigTok;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Gets the code
 		/// </summary>
-		public byte[] Code {
-			get { return code; }
-		}
+		public byte[] Code => code;
 
 		/// <summary>
 		/// Gets the extra sections (exception handlers) or <c>null</c>
 		/// </summary>
-		public byte[] ExtraSections {
-			get { return extraSections; }
-		}
+		public byte[] ExtraSections => extraSections;
 
 		/// <summary>
 		/// Gets the token of the locals
 		/// </summary>
-		public uint LocalVarSigTok {
-			get { return localVarSigTok; }
-		}
+		public uint LocalVarSigTok => localVarSigTok;
 
 		/// <summary>
 		/// <c>true</c> if it's a fat body
 		/// </summary>
-		public bool IsFat {
-			get { return !isTiny; }
-		}
+		public bool IsFat => !isTiny;
 
 		/// <summary>
 		/// <c>true</c> if it's a tiny body
 		/// </summary>
-		public bool IsTiny {
-			get { return isTiny; }
-		}
+		public bool IsTiny => isTiny;
 
 		/// <summary>
 		/// <c>true</c> if there's an extra section
 		/// </summary>
-		public bool HasExtraSections {
-			get { return extraSections != null && extraSections.Length > 0; }
-		}
+		public bool HasExtraSections => extraSections != null && extraSections.Length > 0;
 
 		/// <summary>
 		/// Constructor
@@ -95,7 +79,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="extraSections">Extra sections or <c>null</c></param>
 		/// <param name="localVarSigTok">Token of locals</param>
 		public MethodBody(byte[] code, byte[] extraSections, uint localVarSigTok) {
-			this.isTiny = (code[0] & 3) == 2;
+			isTiny = (code[0] & 3) == 2;
 			this.code = code;
 			this.extraSections = extraSections;
 			this.localVarSigTok = localVarSigTok;
@@ -119,7 +103,7 @@ namespace dnlib.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 			if (HasExtraSections) {
-				RVA rva2 = rva + (uint)code.Length;
+				var rva2 = rva + (uint)code.Length;
 				rva2 = rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT);
 				rva2 += (uint)extraSections.Length;
 				length = (uint)rva2 - (uint)rva;
@@ -129,29 +113,23 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return length;
-		}
+		public uint GetFileLength() => length;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			writer.Write(code);
 			if (HasExtraSections) {
-				RVA rva2 = rva + (uint)code.Length;
+				var rva2 = rva + (uint)code.Length;
 				writer.WriteZeros((int)rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT) - (int)rva2);
 				writer.Write(extraSections);
 			}
 		}
 
 		/// <inheritdoc/>
-		public override int GetHashCode() {
-			return Utils.GetHashCode(code) + Utils.GetHashCode(extraSections);
-		}
+		public override int GetHashCode() => Utils.GetHashCode(code) + Utils.GetHashCode(extraSections);
 
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {

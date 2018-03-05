@@ -11,7 +11,7 @@ namespace dnlib.DotNet {
 		static readonly Dictionary<string, FrameworkRedirectInfo> frmRedir2;
 		static readonly Dictionary<string, FrameworkRedirectInfo> frmRedir4;
 
-		struct FrameworkRedirectInfo {
+		readonly struct FrameworkRedirectInfo {
 			public readonly PublicKeyToken publicKeyToken;
 			public readonly Version redirectVersion;
 
@@ -308,8 +308,7 @@ namespace dnlib.DotNet {
 			if (!sourceModule.IsClr20 && !sourceModule.IsClr40)
 				return;
 
-			FrameworkRedirectInfo redirect;
-			if (!(sourceModule.IsClr20 ? frmRedir2 : frmRedir4).TryGetValue(assembly.Name, out redirect))
+			if (!(sourceModule.IsClr20 ? frmRedir2 : frmRedir4).TryGetValue(assembly.Name, out var redirect))
 				return;
 			if (PublicKeyBase.TokenCompareTo(assembly.PublicKeyOrToken, redirect.publicKeyToken) != 0)
 				return;

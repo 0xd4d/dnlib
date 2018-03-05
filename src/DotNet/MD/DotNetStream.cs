@@ -22,50 +22,38 @@ namespace dnlib.DotNet.MD {
 		StreamHeader streamHeader;
 
 		/// <inheritdoc/>
-		public FileOffset StartOffset {
-			get { return imageStream.FileOffset; }
-		}
+		public FileOffset StartOffset => imageStream.FileOffset;
 
 		/// <inheritdoc/>
-		public FileOffset EndOffset {
-			get { return imageStream.FileOffset + imageStream.Length; }
-		}
+		public FileOffset EndOffset => imageStream.FileOffset + imageStream.Length;
 
 		/// <summary>
 		/// Gets the length of the internal .NET blob stream
 		/// </summary>
-		public long ImageStreamLength {
-			get { return imageStream.Length; }
-		}
+		public long ImageStreamLength => imageStream.Length;
 
 		/// <summary>
 		/// Gets the stream header
 		/// </summary>
-		public StreamHeader StreamHeader {
-			get { return streamHeader; }
-		}
+		public StreamHeader StreamHeader => streamHeader;
 
 		/// <summary>
 		/// Gets the name of the stream
 		/// </summary>
-		public string Name {
-			get { return streamHeader == null ? string.Empty : streamHeader.Name; }
-		}
+		public string Name => streamHeader == null ? string.Empty : streamHeader.Name;
 
 		/// <summary>
 		/// Returns a cloned <see cref="IImageStream"/> of the internal .NET blob stream.
 		/// </summary>
 		/// <returns>A new <see cref="IImageStream"/> instance</returns>
-		public IImageStream GetClonedImageStream() {
-			return imageStream.Clone();
-		}
+		public IImageStream GetClonedImageStream() => imageStream.Clone();
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public DotNetStream() {
-			this.imageStream = MemoryImageStream.CreateEmpty();
-			this.streamHeader = null;
+			imageStream = MemoryImageStream.CreateEmpty();
+			streamHeader = null;
 		}
 
 		/// <summary>
@@ -103,18 +91,14 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">The index</param>
 		/// <returns><c>true</c> if the index is valid</returns>
-		public virtual bool IsValidIndex(uint index) {
-			return IsValidOffset(index);
-		}
+		public virtual bool IsValidIndex(uint index) => IsValidOffset(index);
 
 		/// <summary>
 		/// Check whether an offset is within the stream
 		/// </summary>
 		/// <param name="offset">Stream offset</param>
 		/// <returns><c>true</c> if the offset is valid</returns>
-		public bool IsValidOffset(uint offset) {
-			return offset == 0 || offset < imageStream.Length;
-		}
+		public bool IsValidOffset(uint offset) => offset == 0 || offset < imageStream.Length;
 
 		/// <summary>
 		/// Check whether an offset is within the stream
@@ -142,7 +126,7 @@ namespace dnlib.DotNet.MD {
 		/// Gets/sets the <see cref="HotHeapStream"/> instance
 		/// </summary>
 		internal HotHeapStream HotHeapStream {
-			set { hotHeapStream = value; }
+			set => hotHeapStream = value;
 		}
 
 		/// <inheritdoc/>
@@ -161,7 +145,7 @@ namespace dnlib.DotNet.MD {
 		/// be the offset of the GUID, not its index</param>
 		/// <returns>The heap reader</returns>
 		protected IImageStream GetReader_NoLock(uint offset) {
-			var stream = hotHeapStream == null ? null : hotHeapStream.GetBlobReader(offset);
+			var stream = hotHeapStream?.GetBlobReader(offset);
 			if (stream == null) {
 				stream = imageStream;
 				stream.Position = offset;

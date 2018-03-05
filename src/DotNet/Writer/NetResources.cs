@@ -19,30 +19,22 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <summary>
 		/// Gets offset of next resource. This offset is relative to the start of
 		/// the .NET resources and is always aligned.
 		/// </summary>
-		public uint NextOffset {
-			get { return length; }
-		}
+		public uint NextOffset => length;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="alignment">Alignment of all resources</param>
-		public NetResources(uint alignment) {
-			this.alignment = alignment;
-		}
+		public NetResources(uint alignment) => this.alignment = alignment;
 
 		/// <summary>
 		/// Adds a resource
@@ -73,18 +65,14 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return length;
-		}
+		public uint GetFileLength() => length;
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			RVA rva2 = rva;
+			var rva2 = rva;
 			foreach (var resourceData in resources) {
 				writer.Write(resourceData.GetFileLength());
 				resourceData.VerifyWriteTo(writer);

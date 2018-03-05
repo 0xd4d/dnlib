@@ -4,7 +4,7 @@
 using dnlib.Utils;
 
 namespace dnlib.DotNet.Writer {
-	struct SectionSizeInfo {
+	readonly struct SectionSizeInfo {
 		/// <summary>
 		/// Length of section
 		/// </summary>
@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Calculates the optional header section sizes
 	/// </summary>
-	struct SectionSizes {
+	readonly struct SectionSizes {
 		public readonly uint SizeOfHeaders;
 		public readonly uint SizeOfImage;
 		public readonly uint BaseOfData, BaseOfCode;

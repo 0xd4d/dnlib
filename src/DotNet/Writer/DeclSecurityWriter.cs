@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Writes <c>DeclSecurity</c> blobs
 	/// </summary>
-	public struct DeclSecurityWriter : ICustomAttributeWriterHelper {
+	public readonly struct DeclSecurityWriter : ICustomAttributeWriterHelper {
 		readonly ModuleDef module;
 		readonly IWriterError helper;
 		readonly BinaryWriterContext context;
@@ -20,13 +20,11 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="secAttrs">List of <see cref="SecurityAttribute"/>s</param>
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A <c>DeclSecurity</c> blob</returns>
-		public static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper) {
-			return new DeclSecurityWriter(module, helper, null).Write(secAttrs);
-		}
+		public static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper) =>
+			new DeclSecurityWriter(module, helper, null).Write(secAttrs);
 
-		internal static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper, BinaryWriterContext context) {
-			return new DeclSecurityWriter(module, helper, context).Write(secAttrs);
-		}
+		internal static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper, BinaryWriterContext context) =>
+			new DeclSecurityWriter(module, helper, context).Write(secAttrs);
 
 		DeclSecurityWriter(ModuleDef module, IWriterError helper, BinaryWriterContext context) {
 			this.module = module;
@@ -44,9 +42,7 @@ namespace dnlib.DotNet.Writer {
 			return WriteFormat2(secAttrs);
 		}
 
-		byte[] WriteFormat1(string xml) {
-			return Encoding.Unicode.GetBytes(xml);
-		}
+		byte[] WriteFormat1(string xml) => Encoding.Unicode.GetBytes(xml);
 
 		byte[] WriteFormat2(IList<SecurityAttribute> secAttrs) {
 			using (var stream = new MemoryStream())
@@ -87,20 +83,9 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		uint WriteCompressedUInt32(BinaryWriter writer, uint value) {
-			return writer.WriteCompressedUInt32(helper, value);
-		}
-
-		void Write(BinaryWriter writer, UTF8String s) {
-			writer.Write(helper, s);
-		}
-
-		void IWriterError.Error(string message) {
-			helper.Error(message);
-		}
-
-		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) {
-			return FullNameCreator.MustUseAssemblyName(module, type);
-		}
+		uint WriteCompressedUInt32(BinaryWriter writer, uint value) => writer.WriteCompressedUInt32(helper, value);
+		void Write(BinaryWriter writer, UTF8String s) => writer.Write(helper, s);
+		void IWriterError.Error(string message) => helper.Error(message);
+		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) => FullNameCreator.MustUseAssemblyName(module, type);
 	}
 }

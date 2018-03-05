@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Resources {
 	/// <summary>
 	/// Reads .NET resources
 	/// </summary>
-	public struct ResourceReader {
+	public readonly struct ResourceReader {
 		readonly IBinaryReader reader;
 		readonly long baseFileOffset;
 		readonly ResourceDataCreator resourceDataCreator;
@@ -58,11 +58,11 @@ namespace dnlib.DotNet.Resources {
 
 		ResourceReader(ModuleDef module, IBinaryReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
 			this.reader = reader;
-			this.resourceDataCreator = new ResourceDataCreator(module);
+			resourceDataCreator = new ResourceDataCreator(module);
 			this.createResourceDataDelegate = createResourceDataDelegate;
 
 			var stream = reader as IImageStream;
-			this.baseFileOffset = stream == null ? 0 : (long)stream.FileOffset;
+			baseFileOffset = stream == null ? 0 : (long)stream.FileOffset;
 		}
 
 		/// <summary>
@@ -70,9 +70,8 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <param name="reader">Reader</param>
 		/// <returns></returns>
-		public static bool CouldBeResourcesFile(IBinaryReader reader) {
-			return reader.CanRead(4) && reader.ReadUInt32() == 0xBEEFCACE;
-		}
+		public static bool CouldBeResourcesFile(IBinaryReader reader) =>
+			reader.CanRead(4) && reader.ReadUInt32() == 0xBEEFCACE;
 
 		/// <summary>
 		/// Reads a .NET resource
@@ -80,9 +79,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="module">Owner module</param>
 		/// <param name="reader">Data of resource</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ModuleDef module, IBinaryReader reader) {
-			return Read(module, reader, null);
-		}
+		public static ResourceElementSet Read(ModuleDef module, IBinaryReader reader) => Read(module, reader, null);
 
 		/// <summary>
 		/// Reads a .NET resource
@@ -91,27 +88,26 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ModuleDef module, IBinaryReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
-			return new ResourceReader(module, reader, createResourceDataDelegate).Read();
-		}
+		public static ResourceElementSet Read(ModuleDef module, IBinaryReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
+			new ResourceReader(module, reader, createResourceDataDelegate).Read();
 
 		ResourceElementSet Read() {
-			ResourceElementSet resources = new ResourceElementSet();
+			var resources = new ResourceElementSet();
 
 			uint sig = reader.ReadUInt32();
 			if (sig != 0xBEEFCACE)
-				throw new ResourceReaderException(string.Format("Invalid resource sig: {0:X8}", sig));
+				throw new ResourceReaderException($"Invalid resource sig: {sig:X8}");
 			if (!CheckReaders())
 				throw new ResourceReaderException("Invalid resource reader");
 			int version = reader.ReadInt32();
 			if (version != 2)//TODO: Support version 1
-				throw new ResourceReaderException(string.Format("Invalid resource version: {0}", version));
+				throw new ResourceReaderException($"Invalid resource version: {version}");
 			int numResources = reader.ReadInt32();
 			if (numResources < 0)
-				throw new ResourceReaderException(string.Format("Invalid number of resources: {0}", numResources));
+				throw new ResourceReaderException($"Invalid number of resources: {numResources}");
 			int numUserTypes = reader.ReadInt32();
 			if (numUserTypes < 0)
-				throw new ResourceReaderException(string.Format("Invalid number of user types: {0}", numUserTypes));
+				throw new ResourceReaderException($"Invalid number of user types: {numUserTypes}");
 
 			var userTypes = new List<UserResourceType>();
 			for (int i = 0; i < numUserTypes; i++)
@@ -148,8 +144,8 @@ namespace dnlib.DotNet.Resources {
 				long nextDataOffset = i == infos.Count - 1 ? end : infos[i + 1].offset;
 				int size = (int)(nextDataOffset - info.offset);
 				element.ResourceData = ReadResourceData(userTypes, size);
-				element.ResourceData.StartOffset = this.baseFileOffset + (FileOffset)info.offset;
-				element.ResourceData.EndOffset = this.baseFileOffset + (FileOffset)reader.Position;
+				element.ResourceData.StartOffset = baseFileOffset + (FileOffset)info.offset;
+				element.ResourceData.EndOffset = baseFileOffset + (FileOffset)reader.Position;
 
 				resources.Add(element);
 			}
@@ -164,9 +160,7 @@ namespace dnlib.DotNet.Resources {
 				this.name = name;
 				this.offset = offset;
 			}
-			public override string ToString() {
-				return string.Format("{0:X8} - {1}", offset, name);
-			}
+			public override string ToString() => $"{offset:X8} - {name}";
 		}
 
 		IResourceData ReadResourceData(List<UserResourceType> userTypes, int size) {
@@ -194,7 +188,7 @@ namespace dnlib.DotNet.Resources {
 			default:
 				int userTypeIndex = (int)(code - (uint)ResourceTypeCode.UserTypes);
 				if (userTypeIndex < 0 || userTypeIndex >= userTypes.Count)
-					throw new ResourceReaderException(string.Format("Invalid resource data code: {0}", code));
+					throw new ResourceReaderException($"Invalid resource data code: {code}");
 				var userType = userTypes[userTypeIndex];
 				var serializedData = reader.ReadBytes(size);
 				if (createResourceDataDelegate != null) {
@@ -220,10 +214,10 @@ namespace dnlib.DotNet.Resources {
 
 			int numReaders = reader.ReadInt32();
 			if (numReaders < 0)
-				throw new ResourceReaderException(string.Format("Invalid number of readers: {0}", numReaders));
+				throw new ResourceReaderException($"Invalid number of readers: {numReaders}");
 			int readersSize = reader.ReadInt32();
 			if (readersSize < 0)
-				throw new ResourceReaderException(string.Format("Invalid readers size: {0:X8}", readersSize));
+				throw new ResourceReaderException($"Invalid readers size: {readersSize:X8}");
 
 			for (int i = 0; i < numReaders; i++) {
 				var resourceReaderFullName = reader.ReadString();

@@ -21,9 +21,7 @@ namespace dnlib.Utils {
 		/// <summary>
 		/// Gets the length of this list
 		/// </summary>
-		public uint Length {
-			get { return length; }
-		}
+		public uint Length => length;
 
 		/// <summary>
 		/// Access the list
@@ -50,7 +48,7 @@ namespace dnlib.Utils {
 		public SimpleLazyList(uint length, MFunc<uint, T> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;
-			this.elements = new T[length];
+			elements = new T[length];
 		}
 	}
 
@@ -70,9 +68,7 @@ namespace dnlib.Utils {
 		/// <summary>
 		/// Gets the length of this list
 		/// </summary>
-		public uint Length {
-			get { return length; }
-		}
+		public uint Length => length;
 
 		/// <summary>
 		/// Access the list
@@ -105,7 +101,7 @@ namespace dnlib.Utils {
 		public SimpleLazyList2(uint length, MFunc<uint, GenericParamContext, T> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;
-			this.elements = new T[length];
+			elements = new T[length];
 		}
 	}
 }

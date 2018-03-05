@@ -89,8 +89,6 @@ using dnlib.Threading;
 		}
 
 		/// <inheritdoc/>
-		public override int GetHashCode() {
-			return Utils.GetHashCode(Data);
-		}
+		public override int GetHashCode() => Utils.GetHashCode(Data);
 	}
 }

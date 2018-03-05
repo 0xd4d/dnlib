@@ -19,34 +19,24 @@ namespace dnlib.DotNet.Writer {
 		protected bool isReadOnly;
 
 		/// <inheritdoc/>
-		public FileOffset FileOffset {
-			get { return offset; }
-		}
+		public FileOffset FileOffset => offset;
 
 		/// <inheritdoc/>
-		public RVA RVA {
-			get { return rva; }
-		}
+		public RVA RVA => rva;
 
 		/// <inheritdoc/>
 		public abstract string Name { get; }
 
 		/// <inheritdoc/>
-		public bool IsEmpty {
-			get { return GetRawLength() <= 1; }
-		}
+		public bool IsEmpty => GetRawLength() <= 1;
 
 		/// <summary>
 		/// <c>true</c> if offsets require 4 bytes instead of 2 bytes.
 		/// </summary>
-		public bool IsBig {
-			get { return GetFileLength() > 0xFFFF; }
-		}
+		public bool IsBig => GetFileLength() > 0xFFFF;
 
 		/// <inheritdoc/>
-		public void SetReadOnly() {
-			isReadOnly = true;
-		}
+		public void SetReadOnly() => isReadOnly = true;
 
 		/// <inheritdoc/>
 		public virtual void SetOffset(FileOffset offset, RVA rva) {
@@ -55,14 +45,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() {
-			return Utils.AlignUp(GetRawLength(), ALIGNMENT);
-		}
+		public uint GetFileLength() => Utils.AlignUp(GetRawLength(), ALIGNMENT);
 
 		/// <inheritdoc/>
-		public uint GetVirtualSize() {
-			return GetFileLength();
-		}
+		public uint GetVirtualSize() => GetFileLength();
 
 		/// <summary>
 		/// Gets the raw length of the heap
@@ -83,8 +69,6 @@ namespace dnlib.DotNet.Writer {
 		protected abstract void WriteToImpl(BinaryWriter writer);
 
 		/// <inheritdoc/>
-		public override string ToString() {
-			return Name;
-		}
+		public override string ToString() => Name;
 	}
 }

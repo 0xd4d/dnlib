@@ -20,14 +20,12 @@ namespace dnlib.IO {
 		/// The file name
 		/// </summary>
 		public string FileName {
-			get { return theFileName; }
-			set { theFileName = value; }
+			get => theFileName;
+			set => theFileName = value;
 		}
 
 		/// <inheritdoc/>
-		public long Length {
-			get { return dataLength; }
-		}
+		public long Length => dataLength;
 
 		/// <summary>
 		/// Constructor
@@ -46,14 +44,14 @@ namespace dnlib.IO {
 		/// <exception cref="ArgumentOutOfRangeException">If one of the args is invalid</exception>
 		public MemoryStreamCreator(byte[] data, int offset, int length) {
 			if (offset < 0)
-				throw new ArgumentOutOfRangeException("offset");
+				throw new ArgumentOutOfRangeException(nameof(offset));
 			if (length < 0 || offset + length < offset)
-				throw new ArgumentOutOfRangeException("length");
+				throw new ArgumentOutOfRangeException(nameof(length));
 			if (offset + length > data.Length)
-				throw new ArgumentOutOfRangeException("length");
+				throw new ArgumentOutOfRangeException(nameof(length));
 			this.data = data;
-			this.dataOffset = offset;
-			this.dataLength = length;
+			dataOffset = offset;
+			dataLength = length;
 		}
 
 		/// <inheritdoc/>
@@ -67,9 +65,7 @@ namespace dnlib.IO {
 		}
 
 		/// <inheritdoc/>
-		public IImageStream CreateFull() {
-			return new MemoryImageStream(0, data, dataOffset, dataLength);
-		}
+		public IImageStream CreateFull() => new MemoryImageStream(0, data, dataOffset, dataLength);
 
 		/// <inheritdoc/>
 		public void Dispose() {

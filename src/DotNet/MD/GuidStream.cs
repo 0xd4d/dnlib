@@ -18,9 +18,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public override bool IsValidIndex(uint index) {
-			return index == 0 || (index <= 0x10000000 && IsValidOffset((index - 1) * 16, 16));
-		}
+		public override bool IsValidIndex(uint index) => index == 0 || (index <= 0x10000000 && IsValidOffset((index - 1) * 16, 16));
 
 		/// <summary>
 		/// Read a <see cref="Guid"/>

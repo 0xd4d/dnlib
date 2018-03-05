@@ -27,30 +27,22 @@ namespace dnlib.DotNet {
 #endif
 
 		/// <inheritdoc/>
-		public MDToken MDToken {
-			get { return new MDToken(Table.TypeSpec, rid); }
-		}
+		public MDToken MDToken => new MDToken(Table.TypeSpec, rid);
 
 		/// <inheritdoc/>
 		public uint Rid {
-			get { return rid; }
-			set { rid = value; }
+			get => rid;
+			set => rid = value;
 		}
 
 		/// <inheritdoc/>
-		public int TypeDefOrRefTag {
-			get { return 2; }
-		}
+		public int TypeDefOrRefTag => 2;
 
 		/// <inheritdoc/>
-		public int HasCustomAttributeTag {
-			get { return 13; }
-		}
+		public int HasCustomAttributeTag => 13;
 
 		/// <inheritdoc/>
-		public int MemberRefParentTag {
-			get { return 4; }
-		}
+		public int MemberRefParentTag => 4;
 
 		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters {
@@ -78,12 +70,10 @@ namespace dnlib.DotNet {
 			get {
 				var sig = TypeSig.RemovePinnedAndModifiers();
 
-				var gis = sig as GenericInstSig;
-				if (gis != null)
+				if (sig is GenericInstSig gis)
 					sig = gis.GenericType;
 
-				var tdr = sig as TypeDefOrRefSig;
-				if (tdr != null) {
+				if (sig is TypeDefOrRefSig tdr) {
 					if (tdr.IsTypeDef || tdr.IsTypeRef)
 						return tdr.TypeDefOrRef.DeclaringType;
 					return null;	// If it's another TypeSpec, just stop. Don't want possible inf recursion.
@@ -93,57 +83,19 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		bool IIsTypeOrMethod.IsType {
-			get { return true; }
-		}
-
-		bool IIsTypeOrMethod.IsMethod {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsField {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsTypeSpec {
-			get { return true; }
-		}
-
-		bool IMemberRef.IsTypeRef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsTypeDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsMethodSpec {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsMethodDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsMemberRef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsFieldDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsPropertyDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsEventDef {
-			get { return false; }
-		}
-
-		bool IMemberRef.IsGenericParam {
-			get { return false; }
-		}
+		bool IIsTypeOrMethod.IsType => true;
+		bool IIsTypeOrMethod.IsMethod => false;
+		bool IMemberRef.IsField => false;
+		bool IMemberRef.IsTypeSpec => true;
+		bool IMemberRef.IsTypeRef => false;
+		bool IMemberRef.IsTypeDef => false;
+		bool IMemberRef.IsMethodSpec => false;
+		bool IMemberRef.IsMethodDef => false;
+		bool IMemberRef.IsMemberRef => false;
+		bool IMemberRef.IsFieldDef => false;
+		bool IMemberRef.IsPropertyDef => false;
+		bool IMemberRef.IsEventDef => false;
+		bool IMemberRef.IsGenericParam => false;
 
 		/// <inheritdoc/>
 		public bool IsValueType {
@@ -162,64 +114,40 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public string TypeName {
-			get { return FullNameCreator.Name(this, false, null); }
-		}
+		public string TypeName => FullNameCreator.Name(this, false, null);
 
 		/// <inheritdoc/>
-		public string ReflectionName {
-			get { return FullNameCreator.Name(this, true, null); }
-		}
+		public string ReflectionName => FullNameCreator.Name(this, true, null);
 
 		/// <inheritdoc/>
-		string IType.Namespace {
-			get { return FullNameCreator.Namespace(this, false, null); }
-		}
+		string IType.Namespace => FullNameCreator.Namespace(this, false, null);
 
 		/// <inheritdoc/>
-		public string ReflectionNamespace {
-			get { return FullNameCreator.Namespace(this, true, null); }
-		}
+		public string ReflectionNamespace => FullNameCreator.Namespace(this, true, null);
 
 		/// <inheritdoc/>
-		public string FullName {
-			get { return FullNameCreator.FullName(this, false, null, null); }
-		}
+		public string FullName => FullNameCreator.FullName(this, false, null, null);
 
 		/// <inheritdoc/>
-		public string ReflectionFullName {
-			get { return FullNameCreator.FullName(this, true, null, null); }
-		}
+		public string ReflectionFullName => FullNameCreator.FullName(this, true, null, null);
 
 		/// <inheritdoc/>
-		public string AssemblyQualifiedName {
-			get { return FullNameCreator.AssemblyQualifiedName(this, null, null); }
-		}
+		public string AssemblyQualifiedName => FullNameCreator.AssemblyQualifiedName(this, null, null);
 
 		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly {
-			get { return FullNameCreator.DefinitionAssembly(this); }
-		}
+		public IAssembly DefinitionAssembly => FullNameCreator.DefinitionAssembly(this);
 
 		/// <inheritdoc/>
-		public IScope Scope {
-			get { return FullNameCreator.Scope(this); }
-		}
+		public IScope Scope => FullNameCreator.Scope(this);
 
 		/// <inheritdoc/>
-		public ITypeDefOrRef ScopeType {
-			get { return FullNameCreator.ScopeType(this); }
-		}
+		public ITypeDefOrRef ScopeType => FullNameCreator.ScopeType(this);
 
 		/// <inheritdoc/>
-		public bool ContainsGenericParameter {
-			get { return TypeHelper.ContainsGenericParameter(this); }
-		}
+		public bool ContainsGenericParameter => TypeHelper.ContainsGenericParameter(this);
 
 		/// <inheritdoc/>
-		public ModuleDef Module {
-			get { return FullNameCreator.OwnerModule(this); }
-		}
+		public ModuleDef Module => FullNameCreator.OwnerModule(this);
 
 		/// <summary>
 		/// From column TypeSpec.Signature
@@ -297,25 +225,18 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected CustomAttributeCollection customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
-		protected virtual void InitializeCustomAttributes() {
+		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
-		}
 
 		/// <inheritdoc/>
-		public bool HasCustomAttributes {
-			get { return CustomAttributes.Count > 0; }
-		}
+		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 
 		/// <inheritdoc/>
-		public int HasCustomDebugInformationTag {
-			get { return 13; }
-		}
+		public int HasCustomDebugInformationTag => 13;
 
 		/// <inheritdoc/>
-		public bool HasCustomDebugInfos {
-			get { return CustomDebugInfos.Count > 0; }
-		}
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Gets all custom debug infos
@@ -330,13 +251,10 @@ namespace dnlib.DotNet {
 		/// <summary/>
 		protected ThreadSafe.IList<PdbCustomDebugInfo> customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
-		protected virtual void InitializeCustomDebugInfos() {
+		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, ThreadSafeListCreator.Create<PdbCustomDebugInfo>(), null);
-		}
 		/// <inheritdoc/>
-		public override string ToString() {
-			return FullName;
-		}
+		public override string ToString() => FullName;
 	}
 
 	/// <summary>
@@ -355,8 +273,8 @@ namespace dnlib.DotNet {
 		/// <param name="typeSig">A type sig</param>
 		public TypeSpecUser(TypeSig typeSig) {
 			this.typeSig = typeSig;
-			this.extraData = null;
-			this.typeSigAndExtraData_isInitialized = true;
+			extraData = null;
+			typeSigAndExtraData_isInitialized = true;
 		}
 	}
 
@@ -372,9 +290,7 @@ namespace dnlib.DotNet {
 		readonly uint signatureOffset;
 
 		/// <inheritdoc/>
-		public uint OrigRid {
-			get { return origRid; }
-		}
+		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
 		protected override TypeSig GetTypeSigAndExtraData_NoLock(out byte[] extraData) {
@@ -411,13 +327,13 @@ namespace dnlib.DotNet {
 			if (readerModule == null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.TypeSpecTable.IsInvalidRID(rid))
-				throw new BadImageFormatException(string.Format("TypeSpec rid {0} does not exist", rid));
+				throw new BadImageFormatException($"TypeSpec rid {rid} does not exist");
 #endif
-			this.origRid = rid;
+			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
-			this.signatureOffset = readerModule.TablesStream.ReadTypeSpecRow2(origRid);
+			signatureOffset = readerModule.TablesStream.ReadTypeSpecRow2(origRid);
 		}
 	}
 }

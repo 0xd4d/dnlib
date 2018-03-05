@@ -21,8 +21,8 @@
 		/// <param name="methodBody">Method body</param>
 		/// <param name="methodDeclaration">The method <paramref name="methodBody"/> implements</param>
 		public MethodOverride(IMethodDefOrRef methodBody, IMethodDefOrRef methodDeclaration) {
-			this.MethodBody = methodBody;
-			this.MethodDeclaration = methodDeclaration;
+			MethodBody = methodBody;
+			MethodDeclaration = methodDeclaration;
 		}
 	}
 }

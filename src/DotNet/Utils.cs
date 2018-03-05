@@ -16,14 +16,10 @@ namespace dnlib.DotNet {
 		public static readonly ByteArrayEqualityComparer Instance = new ByteArrayEqualityComparer();
 
 		/// <inheritdoc/>
-		public bool Equals(byte[] x, byte[] y) {
-			return Utils.Equals(x, y);
-		}
+		public bool Equals(byte[] x, byte[] y) => Utils.Equals(x, y);
 
 		/// <inheritdoc/>
-		public int GetHashCode(byte[] obj) {
-			return Utils.GetHashCode(obj);
-		}
+		public int GetHashCode(byte[] obj) => Utils.GetHashCode(obj);
 	}
 
 	static class Utils {
@@ -164,9 +160,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool Equals(byte[] a, byte[] b) {
-			return CompareTo(a, b) == 0;
-		}
+		internal static bool Equals(byte[] a, byte[] b) => CompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Gets the hash code of a byte array
@@ -219,9 +213,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
 		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool Equals(Version a, Version b) {
-			return CompareTo(a, b) == 0;
-		}
+		internal static bool Equals(Version a, Version b) => CompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Creates a new <see cref="Version"/> instance with no undefined version values (eg.
@@ -235,9 +227,7 @@ namespace dnlib.DotNet {
 			return new Version(a.Major, a.Minor, GetDefaultVersionValue(a.Build), GetDefaultVersionValue(a.Revision));
 		}
 
-		static int GetDefaultVersionValue(int val) {
-			return val == -1 ? 0 : val;
-		}
+		static int GetDefaultVersionValue(int val) => val == -1 ? 0 : val;
 
 		/// <summary>
 		/// Parses a version string
@@ -260,9 +250,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		internal static int LocaleCompareTo(UTF8String a, UTF8String b) {
-			return GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
-		}
+		internal static int LocaleCompareTo(UTF8String a, UTF8String b) => GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
 
 		/// <summary>
 		/// Compares two locales (cultures)
@@ -270,9 +258,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool LocaleEquals(UTF8String a, UTF8String b) {
-			return LocaleCompareTo(a, b) == 0;
-		}
+		internal static bool LocaleEquals(UTF8String a, UTF8String b) => LocaleCompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Compares two locales (cultures)
@@ -280,9 +266,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		internal static int LocaleCompareTo(UTF8String a, string b) {
-			return GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
-		}
+		internal static int LocaleCompareTo(UTF8String a, string b) => GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
 
 		/// <summary>
 		/// Compares two locales (cultures)
@@ -290,22 +274,16 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool LocaleEquals(UTF8String a, string b) {
-			return LocaleCompareTo(a, b) == 0;
-		}
+		internal static bool LocaleEquals(UTF8String a, string b) => LocaleCompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Gets the hash code of a locale
 		/// </summary>
 		/// <param name="a">Value</param>
 		/// <returns>The hash code</returns>
-		internal static int GetHashCodeLocale(UTF8String a) {
-			return GetCanonicalLocale(a).GetHashCode();
-		}
+		internal static int GetHashCodeLocale(UTF8String a) => GetCanonicalLocale(a).GetHashCode();
 
-		static string GetCanonicalLocale(UTF8String locale) {
-			return GetCanonicalLocale(UTF8String.ToSystemStringOrEmpty(locale));
-		}
+		static string GetCanonicalLocale(UTF8String locale) => GetCanonicalLocale(UTF8String.ToSystemStringOrEmpty(locale));
 
 		static string GetCanonicalLocale(string locale) {
 			var s = locale.ToUpperInvariant();
@@ -319,18 +297,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="v">Value</param>
 		/// <param name="alignment">Alignment</param>
-		public static uint AlignUp(uint v, uint alignment) {
-			return (v + alignment - 1) & ~(alignment - 1);
-		}
+		public static uint AlignUp(uint v, uint alignment) => (v + alignment - 1) & ~(alignment - 1);
 
 		/// <summary>
 		/// Align up
 		/// </summary>
 		/// <param name="v">Value</param>
 		/// <param name="alignment">Alignment</param>
-		public static int AlignUp(int v, uint alignment) {
-			return (int)AlignUp((uint)v, alignment);
-		}
+		public static int AlignUp(int v, uint alignment) => (int)AlignUp((uint)v, alignment);
 
 		/// <summary>
 		/// Gets length of compressed integer

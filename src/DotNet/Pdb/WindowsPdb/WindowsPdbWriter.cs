@@ -37,14 +37,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="metaData">Meta data</param>
 		public WindowsPdbWriter(ISymbolWriter2 writer, PdbState pdbState, MetaData metaData)
 			: this(pdbState, metaData) {
-			if (writer == null)
-				throw new ArgumentNullException("writer");
 			if (pdbState == null)
-				throw new ArgumentNullException("pdbState");
+				throw new ArgumentNullException(nameof(pdbState));
 			if (metaData == null)
-				throw new ArgumentNullException("metaData");
-			this.writer = writer;
-			this.writer3 = writer as ISymbolWriter3;
+				throw new ArgumentNullException(nameof(metaData));
+			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
+			writer3 = writer as ISymbolWriter3;
 			Debug.Assert(writer3 != null, "Symbol writer doesn't implement interface ISymbolWriter3");
 			writer.Initialize(metaData);
 		}
@@ -57,24 +55,22 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="metaData">Meta data</param>
 		public WindowsPdbWriter(ISymbolWriter3 writer, PdbState pdbState, MetaData metaData)
 			: this(pdbState, metaData) {
-			if (writer == null)
-				throw new ArgumentNullException("writer");
 			if (pdbState == null)
-				throw new ArgumentNullException("pdbState");
+				throw new ArgumentNullException(nameof(pdbState));
 			if (metaData == null)
-				throw new ArgumentNullException("metaData");
-			this.writer = writer;
-			this.writer3 = writer;
+				throw new ArgumentNullException(nameof(metaData));
+			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
+			writer3 = writer;
 			writer.Initialize(metaData);
 		}
 
 		WindowsPdbWriter(PdbState pdbState, MetaData metaData) {
 			this.pdbState = pdbState;
 			this.metaData = metaData;
-			this.module = metaData.Module;
-			this.instrToOffset = new Dictionary<Instruction, uint>();
-			this.customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
-			this.localsEndScopeIncValue = pdbState.Compiler == Compiler.VisualBasic ? 1 : 0;
+			module = metaData.Module;
+			instrToOffset = new Dictionary<Instruction, uint>();
+			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
+			localsEndScopeIncValue = pdbState.Compiler == Compiler.VisualBasic ? 1 : 0;
 		}
 
 		/// <summary>
@@ -83,8 +79,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="pdbDoc">PDB document</param>
 		/// <returns>A <see cref="ISymbolDocumentWriter"/> instance</returns>
 		ISymbolDocumentWriter Add(PdbDocument pdbDoc) {
-			ISymbolDocumentWriter docWriter;
-			if (pdbDocs.TryGetValue(pdbDoc, out docWriter))
+			if (pdbDocs.TryGetValue(pdbDoc, out var docWriter))
 				return docWriter;
 			docWriter = writer.DefineDocument(pdbDoc.Url, pdbDoc.Language, pdbDoc.LanguageVendor, pdbDoc.DocumentType);
 			docWriter.SetCheckSum(pdbDoc.CheckSumAlgorithmId, pdbDoc.CheckSum);
@@ -216,8 +211,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			public int GetOffset(Instruction instr) {
 				if (instr == null)
 					return (int)BodySize;
-				uint offset;
-				if (toOffset.TryGetValue(instr, out offset))
+				if (toOffset.TryGetValue(instr, out uint offset))
 					return (int)offset;
 				pdbWriter.Error("Instruction was removed from the body but is referenced from PdbScope: {0}", instr);
 				return (int)BodySize;
@@ -261,8 +255,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				WriteScope(ref info, scope, 0);
 			}
 
-			PdbAsyncMethodCustomDebugInfo asyncMethod;
-			GetPseudoCustomDebugInfos(method.CustomDebugInfos, cdiBuilder, out asyncMethod);
+			GetPseudoCustomDebugInfos(method.CustomDebugInfos, cdiBuilder, out var asyncMethod);
 			if (cdiBuilder.Count != 0) {
 				customDebugInfoWriterContext.Logger = GetLogger();
 				var cdiData = PdbCustomDebugInfoWriter.Write(metaData, method, customDebugInfoWriterContext, cdiBuilder);
@@ -443,24 +436,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// </summary>
 		/// <param name="idd">Updated with new values</param>
 		/// <returns>Debug data</returns>
-		public byte[] GetDebugInfo(out IMAGE_DEBUG_DIRECTORY idd) {
-			return writer.GetDebugInfo(out idd);
-		}
+		public byte[] GetDebugInfo(out IMAGE_DEBUG_DIRECTORY idd) => writer.GetDebugInfo(out idd);
 
 		/// <summary>
 		/// Closes the PDB writer
 		/// </summary>
-		public void Close() {
-			writer.Close();
-		}
+		public void Close() => writer.Close();
 
-		ILogger GetLogger() {
-			return Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
-		}
+		ILogger GetLogger() => Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 
-		void Error(string message, params object[] args) {
-			GetLogger().Log(this, LoggerEvent.Error, message, args);
-		}
+		void Error(string message, params object[] args) => GetLogger().Log(this, LoggerEvent.Error, message, args);
 
 		/// <inheritdoc/>
 		public void Dispose() {

@@ -20,7 +20,7 @@ namespace dnlib.DotNet.Emit {
 
 			var sb = new StringBuilder();
 
-			sb.Append(string.Format("IL_{0:X4}: ", instr.Offset));
+			sb.Append($"IL_{instr.Offset:X4}: ");
 			sb.Append(instr.OpCode.Name);
 			AddOperandString(sb, instr, " ");
 
@@ -43,9 +43,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="sb">Place result here</param>
 		/// <param name="instr">The instruction</param>
-		public static void AddOperandString(StringBuilder sb, Instruction instr) {
-			AddOperandString(sb, instr, string.Empty);
-		}
+		public static void AddOperandString(StringBuilder sb, Instruction instr) => AddOperandString(sb, instr, string.Empty);
 
 		/// <summary>
 		/// Add an instruction's operand to <paramref name="sb"/>
@@ -81,7 +79,7 @@ namespace dnlib.DotNet.Emit {
 			case OperandType.InlineR:
 			case OperandType.ShortInlineI:
 			case OperandType.ShortInlineR:
-				sb.Append(string.Format("{0}{1}", extra, op));
+				sb.Append($"{extra}{op}");
 				break;
 
 			case OperandType.InlineSig:
@@ -129,7 +127,7 @@ namespace dnlib.DotNet.Emit {
 			if (targetInstr == null)
 				sb.Append("null");
 			else
-				sb.Append(string.Format("IL_{0:X4}", targetInstr.Offset));
+				sb.Append($"IL_{targetInstr.Offset:X4}");
 		}
 
 		static void EscapeString(StringBuilder sb, string s, bool addQuotes) {
@@ -152,7 +150,7 @@ namespace dnlib.DotNet.Emit {
 					case '\t': sb.Append(@"\t"); break;
 					case '\v': sb.Append(@"\v"); break;
 					default:
-						sb.Append(string.Format(@"\u{0:X4}", (int)c));
+						sb.Append($@"\u{(int)c:X4}");
 						break;
 					}
 				}

@@ -24,9 +24,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="fileName">Filename</param>
 		/// <returns>A new <see cref="ImageStreamCreator"/> instance</returns>
-		public static IImageStreamCreator Create(string fileName) {
-			return Create(fileName, false);
-		}
+		public static IImageStreamCreator Create(string fileName) => Create(fileName, false);
 
 		/// <summary>
 		/// Creates a <see cref="IImageStreamCreator"/>. It will be a
@@ -57,9 +55,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="fileName">Filename</param>
 		/// <returns>A new <see cref="IImageStream"/> instance</returns>
-		public static IImageStream CreateImageStream(string fileName) {
-			return CreateImageStream(fileName, false);
-		}
+		public static IImageStream CreateImageStream(string fileName) => CreateImageStream(fileName, false);
 
 		/// <summary>
 		/// Creates a <see cref="IImageStream"/>
