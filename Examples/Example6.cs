@@ -8,12 +8,12 @@ using dnlib.PE;
 
 namespace dnlib.Examples {
 	/// <summary>
-	/// This example shows how to create a module writer listener that gets notified of various
+	/// This example shows how to add a module writer listener that gets notified of various
 	/// events. This listener just adds a new PE section to the image and prints the new RIDs.
 	/// It also shows how to add some dummy .NET heaps, and simple obfuscation that will break
 	/// most libraries that open .NET assemblies.
 	/// </summary>
-	public class Example6 : IModuleWriterListener {
+	public class Example6 {
 		public static void Run() {
 			new Example6().DoIt();
 		}
@@ -28,7 +28,7 @@ namespace dnlib.Examples {
 			var opts = new ModuleWriterOptions(mod);
 
 			// Add a listener that gets notified during the writing process
-			opts.Listener = this;
+			opts.WriterEvent += OnWriterEvent;
 
 			// This is normally 16 but setting it to a value less than 14 will fool some
 			// apps into thinking that there's no .NET metadata available
@@ -103,12 +103,12 @@ namespace dnlib.Examples {
 		}
 
 		// Gets notified during module writing
-		public void OnWriterEvent(ModuleWriterBase writer, ModuleWriterEvent evt) {
-			switch (evt) {
+		void OnWriterEvent(object sender, ModuleWriterEventArgs e) {
+			switch (e.Event) {
 			case ModuleWriterEvent.PESectionsCreated:
 				// Add a PE section
 				var sect1 = new PESection(".dummy", 0x40000040);
-				writer.Sections.Add(sect1);
+				e.Writer.Sections.Add(sect1);
 				// Let's add data
 				sect1.Add(new ByteArrayChunk(new byte[123]), 4);
 				sect1.Add(new ByteArrayChunk(new byte[10]), 4);
@@ -117,15 +117,15 @@ namespace dnlib.Examples {
 			case ModuleWriterEvent.MDEndCreateTables:
 				// All types, methods etc have gotten their new RIDs. Let's print the new values
 				Console.WriteLine("Old -> new type and method tokens");
-				foreach (var type in writer.Module.GetTypes()) {
+				foreach (var type in e.Writer.Module.GetTypes()) {
 					Console.WriteLine("TYPE: {0:X8} -> {1:X8} {2}",
 						type.MDToken.Raw,
-						new MDToken(Table.TypeDef, writer.MetaData.GetRid(type)).Raw,
+						new MDToken(Table.TypeDef, e.Writer.MetaData.GetRid(type)).Raw,
 						type.FullName);
 					foreach (var method in type.Methods)
 						Console.WriteLine("  METH: {0:X8} -> {1:X8} {2}",
 							method.MDToken.Raw,
-							new MDToken(Table.Method, writer.MetaData.GetRid(method)).Raw,
+							new MDToken(Table.Method, e.Writer.MetaData.GetRid(method)).Raw,
 							method.FullName);
 				}
 				break;

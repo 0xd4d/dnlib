@@ -15,6 +15,31 @@ using System.IO.Compression;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
+	/// Module writer event args
+	/// </summary>
+	public sealed class ModuleWriterEventArgs : EventArgs {
+		/// <summary>
+		/// Gets the writer (<see cref="ModuleWriter"/> or <see cref="NativeModuleWriter"/>)
+		/// </summary>
+		public ModuleWriterBase Writer { get; }
+
+		/// <summary>
+		/// Gets the event
+		/// </summary>
+		public ModuleWriterEvent Event { get; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="event">Event</param>
+		public ModuleWriterEventArgs(ModuleWriterBase writer, ModuleWriterEvent @event) {
+			Writer = writer ?? throw new ArgumentNullException(nameof(writer));
+			Event = @event;
+		}
+	}
+
+	/// <summary>
 	/// Common module writer options base class
 	/// </summary>
 	public class ModuleWriterOptionsBase {
@@ -32,10 +57,19 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the listener
 		/// </summary>
+		[Obsolete("Use event " + nameof(WriterEvent) + " instead of " + nameof(IModuleWriterListener), error: false)]
 		public IModuleWriterListener Listener {
 			get => listener;
 			set => listener = value;
 		}
+
+		/// <summary>
+		/// Raised at various times when writing the file. The listener has a chance to modify the
+		/// the file, eg. add extra metadata, encrypt methods, etc.
+		/// </summary>
+		public event EventHandler<ModuleWriterEventArgs> WriterEvent;
+
+		internal void RaiseEvent(object sender, ModuleWriterEventArgs e) => WriterEvent?.Invoke(sender, e);
 
 		/// <summary>
 		/// Gets/sets the logger. If this is <c>null</c>, any errors result in a
@@ -363,7 +397,6 @@ namespace dnlib.DotNet.Writer {
 		protected Win32ResourcesChunk win32Resources;
 		/// <summary>Offset where the module is written. Usually 0.</summary>
 		protected long destStreamBaseOffset;
-		IModuleWriterListener listener;
 		/// <summary>Debug directory</summary>
 		protected DebugDirectory debugDirectory;
 
@@ -378,14 +411,6 @@ namespace dnlib.DotNet.Writer {
 		/// Returns the module writer options
 		/// </summary>
 		public abstract ModuleWriterOptionsBase TheOptions { get; }
-
-		/// <summary>
-		/// Gets/sets the module writer listener
-		/// </summary>
-		protected IModuleWriterListener Listener {
-			get => listener ?? DummyModuleWriterListener.Instance;
-			set => listener = value;
-		}
 
 		/// <summary>
 		/// Gets the destination stream
@@ -496,13 +521,21 @@ namespace dnlib.DotNet.Writer {
 			else if (TheOptions.StrongNameKey != null || TheOptions.StrongNamePublicKey != null)
 				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
-			Listener = TheOptions.Listener ?? DummyModuleWriterListener.Instance;
+			AddLegacyListener();
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
-			Listener.OnWriterEvent(this, ModuleWriterEvent.Begin);
+			OnWriterEvent(ModuleWriterEvent.Begin);
 			var imageLength = WriteImpl();
 			destStream.Position = destStreamBaseOffset + imageLength;
-			Listener.OnWriterEvent(this, ModuleWriterEvent.End);
+			OnWriterEvent(ModuleWriterEvent.End);
+		}
+
+		void AddLegacyListener() {
+#pragma warning disable 0618 // Type or member is obsolete
+			var listener = TheOptions.Listener;
+#pragma warning restore 0618 // Type or member is obsolete
+			if (listener != null)
+				TheOptions.WriterEvent += (s, e) => listener.OnWriterEvent(e.Writer, e.Event);
 		}
 
 		/// <summary>
@@ -511,7 +544,7 @@ namespace dnlib.DotNet.Writer {
 		public abstract ModuleDef Module { get; }
 
 		/// <summary>
-		/// Writes the module to <see cref="destStream"/>. <see cref="Listener"/> and
+		/// Writes the module to <see cref="destStream"/>. Event listeners and
 		/// <see cref="destStream"/> have been initialized when this method is called.
 		/// </summary>
 		/// <returns>Number of bytes written</returns>
@@ -851,165 +884,171 @@ namespace dnlib.DotNet.Writer {
 		void IMetaDataListener.OnMetaDataEvent(MetaData metaData, MetaDataEvent evt) {
 			switch (evt) {
 			case MetaDataEvent.BeginCreateTables:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginCreateTables);
+				OnWriterEvent(ModuleWriterEvent.MDBeginCreateTables);
 				break;
 
 			case MetaDataEvent.AllocateTypeDefRids:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDAllocateTypeDefRids);
+				OnWriterEvent(ModuleWriterEvent.MDAllocateTypeDefRids);
 				break;
 
 			case MetaDataEvent.AllocateMemberDefRids:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDAllocateMemberDefRids);
+				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids);
 				break;
 
 			case MetaDataEvent.AllocateMemberDefRids0:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDAllocateMemberDefRids0);
+				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids0);
 				break;
 
 			case MetaDataEvent.AllocateMemberDefRids1:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDAllocateMemberDefRids1);
+				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids1);
 				break;
 
 			case MetaDataEvent.AllocateMemberDefRids2:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDAllocateMemberDefRids2);
+				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids2);
 				break;
 
 			case MetaDataEvent.AllocateMemberDefRids3:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDAllocateMemberDefRids3);
+				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids3);
 				break;
 
 			case MetaDataEvent.AllocateMemberDefRids4:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDAllocateMemberDefRids4);
+				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids4);
 				break;
 
 			case MetaDataEvent.MemberDefRidsAllocated:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefRidsAllocated);
+				OnWriterEvent(ModuleWriterEvent.MDMemberDefRidsAllocated);
 				break;
 
 			case MetaDataEvent.InitializeTypeDefsAndMemberDefs0:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs0);
+				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs0);
 				break;
 
 			case MetaDataEvent.InitializeTypeDefsAndMemberDefs1:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs1);
+				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs1);
 				break;
 
 			case MetaDataEvent.InitializeTypeDefsAndMemberDefs2:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs2);
+				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs2);
 				break;
 
 			case MetaDataEvent.InitializeTypeDefsAndMemberDefs3:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs3);
+				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs3);
 				break;
 
 			case MetaDataEvent.InitializeTypeDefsAndMemberDefs4:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs4);
+				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs4);
 				break;
 
 			case MetaDataEvent.MemberDefsInitialized:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefsInitialized);
+				OnWriterEvent(ModuleWriterEvent.MDMemberDefsInitialized);
 				break;
 
 			case MetaDataEvent.BeforeSortTables:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDBeforeSortTables);
+				OnWriterEvent(ModuleWriterEvent.MDBeforeSortTables);
 				break;
 
 			case MetaDataEvent.MostTablesSorted:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDMostTablesSorted);
+				OnWriterEvent(ModuleWriterEvent.MDMostTablesSorted);
 				break;
 
 			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes0:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes0);
+				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes0);
 				break;
 
 			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes1:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes1);
+				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes1);
 				break;
 
 			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes2:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes2);
+				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes2);
 				break;
 
 			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes3:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes3);
+				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes3);
 				break;
 
 			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes4:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes4);
+				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes4);
 				break;
 
 			case MetaDataEvent.MemberDefCustomAttributesWritten:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDMemberDefCustomAttributesWritten);
+				OnWriterEvent(ModuleWriterEvent.MDMemberDefCustomAttributesWritten);
 				break;
 
 			case MetaDataEvent.BeginAddResources:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginAddResources);
+				OnWriterEvent(ModuleWriterEvent.MDBeginAddResources);
 				break;
 
 			case MetaDataEvent.EndAddResources:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDEndAddResources);
+				OnWriterEvent(ModuleWriterEvent.MDEndAddResources);
 				break;
 
 			case MetaDataEvent.BeginWriteMethodBodies:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDBeginWriteMethodBodies);
+				OnWriterEvent(ModuleWriterEvent.MDBeginWriteMethodBodies);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies0:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies0);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies0);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies1:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies1);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies1);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies2:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies2);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies2);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies3:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies3);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies3);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies4:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies4);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies4);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies5:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies5);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies5);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies6:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies6);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies6);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies7:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies7);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies7);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies8:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies8);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies8);
 				break;
 
 			case MetaDataEvent.WriteMethodBodies9:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDWriteMethodBodies9);
+				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies9);
 				break;
 
 			case MetaDataEvent.EndWriteMethodBodies:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDEndWriteMethodBodies);
+				OnWriterEvent(ModuleWriterEvent.MDEndWriteMethodBodies);
 				break;
 
 			case MetaDataEvent.OnAllTablesSorted:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDOnAllTablesSorted);
+				OnWriterEvent(ModuleWriterEvent.MDOnAllTablesSorted);
 				break;
 
 			case MetaDataEvent.EndCreateTables:
-				Listener.OnWriterEvent(this, ModuleWriterEvent.MDEndCreateTables);
+				OnWriterEvent(ModuleWriterEvent.MDEndCreateTables);
 				break;
 
 			default:
 				break;
 			}
 		}
+
+		/// <summary>
+		/// Raises a writer event
+		/// </summary>
+		/// <param name="evt">Event</param>
+		protected void OnWriterEvent(ModuleWriterEvent evt) => TheOptions.RaiseEvent(this, new ModuleWriterEventArgs(this, evt));
 
 		ILogger GetLogger() => TheOptions.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 

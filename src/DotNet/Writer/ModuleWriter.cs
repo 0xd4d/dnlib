@@ -155,13 +155,13 @@ namespace dnlib.DotNet.Writer {
 
 		void Initialize() {
 			CreateSections();
-			Listener.OnWriterEvent(this, ModuleWriterEvent.PESectionsCreated);
+			OnWriterEvent(ModuleWriterEvent.PESectionsCreated);
 
 			CreateChunks();
-			Listener.OnWriterEvent(this, ModuleWriterEvent.ChunksCreated);
+			OnWriterEvent(ModuleWriterEvent.ChunksCreated);
 
 			AddChunksToSections();
-			Listener.OnWriterEvent(this, ModuleWriterEvent.ChunksAddedToSections);
+			OnWriterEvent(ModuleWriterEvent.ChunksAddedToSections);
 		}
 
 		/// <inheritdoc/>
@@ -229,11 +229,11 @@ namespace dnlib.DotNet.Writer {
 			if (managedExportsWriter.HasExports)
 				needStartupStub = true;
 
-			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePdb);
+			OnWriterEvent(ModuleWriterEvent.BeginWritePdb);
 			WritePdbFile();
-			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePdb);
+			OnWriterEvent(ModuleWriterEvent.EndWritePdb);
 
-			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
+			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 			var chunks = new List<IChunk>();
 			chunks.Add(peHeaders);
 			if (!managedExportsWriter.HasExports)
@@ -249,25 +249,25 @@ namespace dnlib.DotNet.Writer {
 				chunks.Add(section);
 			peHeaders.PESections = sections;
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peHeaders.FileAlignment, peHeaders.SectionAlignment);
-			Listener.OnWriterEvent(this, ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
+			OnWriterEvent(ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
 
 			InitializeChunkProperties();
 
-			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWriteChunks);
+			OnWriterEvent(ModuleWriterEvent.BeginWriteChunks);
 			var writer = new BinaryWriter(destStream);
 			WriteChunks(writer, chunks, 0, peHeaders.FileAlignment);
 			long imageLength = writer.BaseStream.Position - destStreamBaseOffset;
-			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWriteChunks);
+			OnWriterEvent(ModuleWriterEvent.EndWriteChunks);
 
-			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginStrongNameSign);
+			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);
 			if (Options.StrongNameKey != null)
 				StrongNameSign((long)strongNameSignature.FileOffset);
-			Listener.OnWriterEvent(this, ModuleWriterEvent.EndStrongNameSign);
+			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);
 
-			Listener.OnWriterEvent(this, ModuleWriterEvent.BeginWritePEChecksum);
+			OnWriterEvent(ModuleWriterEvent.BeginWritePEChecksum);
 			if (Options.AddCheckSum)
 				peHeaders.WriteCheckSum(writer, imageLength);
-			Listener.OnWriterEvent(this, ModuleWriterEvent.EndWritePEChecksum);
+			OnWriterEvent(ModuleWriterEvent.EndWritePEChecksum);
 
 			return imageLength;
 		}
