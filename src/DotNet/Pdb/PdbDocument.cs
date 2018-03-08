@@ -95,14 +95,14 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <inheritdoc/>
-		public override int GetHashCode() => (Url ?? string.Empty).ToUpperInvariant().GetHashCode();
+		public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(Url ?? string.Empty);
 
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {
 			var other = obj as PdbDocument;
 			if (other == null)
 				return false;
-			return (Url ?? string.Empty).Equals(other.Url ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+			return StringComparer.OrdinalIgnoreCase.Equals(Url ?? string.Empty, other.Url ?? string.Empty);
 		}
 	}
 }

@@ -120,7 +120,7 @@ namespace dnlib.DotNet {
 		protected override bool TryGetExportedRvaFromStubCore(IBinaryReader reader, IPEImage peImage, out uint funcRva) {
 			funcRva = 0;
 
-			// FF25xxxxxxxx	jmp DWORD PTR [xxxxxxxx]
+			// FF25xxxxxxxx		jmp DWORD PTR [xxxxxxxx]
 			if (reader.ReadUInt16() != 0x25FF)
 				return false;
 			funcRva = reader.ReadUInt32() - (uint)peImage.ImageNTHeaders.OptionalHeader.ImageBase;
