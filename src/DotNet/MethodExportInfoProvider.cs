@@ -100,9 +100,10 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < allInfos.Length; i++) {
 				var currOffset = reader.Position;
 				var nextOffset = reader.Position + 4;
-				uint funcRva;
-				reader.Position = (long)peImage.ToFileOffset((RVA)reader.ReadUInt32());
-				bool rvaValid = cpuArch.TryGetExportedRvaFromStub(reader, peImage, out funcRva);
+				uint funcRva = 0;
+				var rva = (RVA)reader.ReadUInt32();
+				reader.Position = (long)peImage.ToFileOffset(rva);
+				bool rvaValid = rva != 0 && cpuArch.TryGetExportedRvaFromStub(reader, peImage, out funcRva);
 				long funcOffset = rvaValid ? (long)peImage.ToFileOffset((RVA)funcRva) : 0;
 				var exportInfo = new MethodExportInfo((ushort)(ordinalBase + (uint)i));
 				if (funcOffset != 0)
