@@ -213,7 +213,15 @@ dnlib supports exporting managed methods so the managed DLL file can be loaded b
 
 The `MethodDef` class has an `ExportInfo` property. If it gets initialized, the method gets exported when saving the module. At most 65536 (2^16) methods can be exported. This is a PE file limitation, not a dnlib limitation.
 
-The method's calling convention should also be changed to eg. stdcall, or cdecl, see `MethodDef.MethodSig.CallingConvention`. Exported methods should not be generic.
+Exported methods should not be generic.
+
+The method's calling convention should be changed to eg. stdcall, or cdecl, by adding an optional modifier to `MethodDef.MethodSig.RetType`. It must be a `System.Runtime.CompilerServices.CallConvCdecl`, `System.Runtime.CompilerServices.CallConvStdcall`, `System.Runtime.CompilerServices.CallConvThiscall`, or a `System.Runtime.CompilerServices.CallConvFastcall`, eg.:
+
+```C#
+var type = method.MethodSig.RetType;
+type = new CModOptSig(module.CorLibTypes.GetTypeRef("System.Runtime.CompilerServices", "CallConvCdecl"), type);
+method.MethodSig.RetType = type;
+```
 
 Requirements:
 

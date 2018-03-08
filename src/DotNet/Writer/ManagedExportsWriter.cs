@@ -25,7 +25,8 @@ namespace dnlib.DotNet.Writer {
 		readonly ExportDir exportDir;
 		readonly List<VTableInfo> vtables;
 		readonly List<MethodInfo> allMethodInfos;
-		readonly List<MethodInfo> sortedNameInfos;
+		readonly List<MethodInfo> sortedOrdinalMethodInfos;
+		readonly List<MethodInfo> sortedNameMethodInfos;
 		readonly CpuArch cpuArch;
 		uint exportDirOffset;
 
@@ -110,7 +111,8 @@ namespace dnlib.DotNet.Writer {
 			exportDir = new ExportDir(this);
 			vtables = new List<VTableInfo>();
 			allMethodInfos = new List<MethodInfo>();
-			sortedNameInfos = new List<MethodInfo>();
+			sortedOrdinalMethodInfos = new List<MethodInfo>();
+			sortedNameMethodInfos = new List<MethodInfo>();
 			// The error is reported later when we know that there's at least one exported method
 			CpuArch.TryGetCpuArch(machine, out cpuArch);
 		}
@@ -150,15 +152,14 @@ namespace dnlib.DotNet.Writer {
 		sealed class MethodInfo {
 			public readonly MethodDef Method;
 			public readonly uint StubChunkOffset;
-			public readonly int Index;
+			public int FunctionIndex;
 			public uint ManagedVtblOffset;
 			public uint NameOffset;
 			public int NameIndex;
 			public byte[] NameBytes;
-			public MethodInfo(MethodDef method, uint stubChunkOffset, int index) {
+			public MethodInfo(MethodDef method, uint stubChunkOffset) {
 				Method = method;
 				StubChunkOffset = stubChunkOffset;
-				Index = index;
 			}
 		}
 
@@ -176,7 +177,6 @@ namespace dnlib.DotNet.Writer {
 			var dict = new Dictionary<int, List<VTableInfo>>();
 			var baseFlags = Is64Bit ? VTableFlags._64Bit : VTableFlags._32Bit;
 			uint stubOffset = 0;
-			int index = 0;
 			uint stubAlignment = cpuArch.GetStubAlignment(stubType);
 			uint stubCodeOffset = cpuArch.GetStubCodeOffset(stubType);
 			uint stubSize = cpuArch.GetStubSize(stubType);
@@ -198,11 +198,10 @@ namespace dnlib.DotNet.Writer {
 					dict.Add((int)flags, list = new List<VTableInfo>());
 				if (list.Count == 0 || list[list.Count - 1].Methods.Count >= ushort.MaxValue)
 					list.Add(new VTableInfo(flags));
-				var info = new MethodInfo(method, stubOffset + stubCodeOffset, index);
+				var info = new MethodInfo(method, stubOffset + stubCodeOffset);
 				allMethodInfos.Add(info);
 				list[list.Count - 1].Methods.Add(info);
 				stubOffset = (stubOffset + stubSize + stubAlignment - 1) & ~(stubAlignment - 1);
-				index++;
 			}
 
 			foreach (var kv in dict)
@@ -335,35 +334,59 @@ namespace dnlib.DotNet.Writer {
 
 			var namesBlob = new NamesBlob(1 == 2);
 			int nameIndex = 0;
+			bool error = false;
 			foreach (var info in allMethodInfos) {
 				var exportInfo = info.Method.ExportInfo;
 				var name = exportInfo.Name;
 				if (name == null) {
-					if (exportInfo.Ordinal != null)
+					if (exportInfo.Ordinal != null) {
+						sortedOrdinalMethodInfos.Add(info);
 						continue;
+					}
 					name = info.Method.Name;
 				}
 				if (string.IsNullOrEmpty(name)) {
+					error = true;
 					logError("Exported method name is null or empty, method: {0} (0x{1:X8})", new object[] { info.Method, info.Method.MDToken.Raw });
 					continue;
 				}
 				info.NameOffset = namesBlob.GetMethodNameOffset(name, out info.NameBytes);
 				info.NameIndex = nameIndex++;
-				sortedNameInfos.Add(info);
+				sortedNameMethodInfos.Add(info);
 			}
+			Debug.Assert(error || sortedOrdinalMethodInfos.Count + sortedNameMethodInfos.Count == allMethodInfos.Count);
 			sdataBytesInfo.MethodNameOffsets = namesBlob.GetMethodNameOffsets();
+			Debug.Assert(sortedNameMethodInfos.Count == sdataBytesInfo.MethodNameOffsets.Length);
 			sdataBytesInfo.moduleNameOffset = namesBlob.GetOtherNameOffset(moduleName);
 
-			sortedNameInfos.Sort((a, b) => CompareTo(a.NameBytes, b.NameBytes));
-			Debug.Assert(sortedNameInfos.Count == sdataBytesInfo.MethodNameOffsets.Length);
+			sortedOrdinalMethodInfos.Sort((a, b) => a.Method.ExportInfo.Ordinal.Value.CompareTo(b.Method.ExportInfo.Ordinal.Value));
+			sortedNameMethodInfos.Sort((a, b) => CompareTo(a.NameBytes, b.NameBytes));
 
-			uint ordinalBase = uint.MaxValue;
-			foreach (var info in allMethodInfos) {
-				if (info.Method.ExportInfo.Ordinal != null)
-					ordinalBase = Math.Min(ordinalBase, info.Method.ExportInfo.Ordinal.Value);
-			}
-			if (ordinalBase == uint.MaxValue)
+			int ordinalBase, nextFreeOrdinal;
+			if (sortedOrdinalMethodInfos.Count == 0) {
 				ordinalBase = 0;
+				nextFreeOrdinal = 0;
+			}
+			else {
+				ordinalBase = sortedOrdinalMethodInfos[0].Method.ExportInfo.Ordinal.Value;
+				nextFreeOrdinal = sortedOrdinalMethodInfos[sortedOrdinalMethodInfos.Count - 1].Method.ExportInfo.Ordinal.Value + 1;
+			}
+			int nameFuncBaseIndex = nextFreeOrdinal - ordinalBase;
+			int lastFuncIndex = 0;
+			for (int i = 0; i < sortedOrdinalMethodInfos.Count; i++) {
+				int index = sortedOrdinalMethodInfos[i].Method.ExportInfo.Ordinal.Value - ordinalBase;
+				sortedOrdinalMethodInfos[i].FunctionIndex = index;
+				lastFuncIndex = index;
+			}
+			for (int i = 0; i < sortedNameMethodInfos.Count; i++) {
+				lastFuncIndex = nameFuncBaseIndex + i;
+				sortedNameMethodInfos[i].FunctionIndex = lastFuncIndex;
+			}
+			int funcSize = lastFuncIndex + 1;
+			if (funcSize > 0x10000) {
+				logError("Exported function array is too big", Array2.Empty<object>());
+				return;
+			}
 
 			// Write IMAGE_EXPORT_DIRECTORY
 			Debug.Assert((writer.BaseStream.Position & 3) == 0);
@@ -374,7 +397,7 @@ namespace dnlib.DotNet.Writer {
 			sdataBytesInfo.exportDirModuleNameStreamOffset = (uint)writer.BaseStream.Position;
 			writer.Write(0U); // Name
 			writer.Write(ordinalBase); // Base
-			writer.Write((uint)allMethodInfos.Count); // NumberOfFunctions
+			writer.Write((uint)funcSize); // NumberOfFunctions
 			writer.Write(sdataBytesInfo.MethodNameOffsets.Length); // NumberOfNames
 			sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset = (uint)writer.BaseStream.Position;
 			writer.Write(0U); // AddressOfFunctions
@@ -382,7 +405,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(0U); // AddressOfNameOrdinals
 
 			sdataBytesInfo.addressOfFunctionsStreamOffset = (uint)writer.BaseStream.Position;
-			WriteZeroes(writer, allMethodInfos.Count * 4);
+			WriteZeroes(writer, funcSize * 4);
 			sdataBytesInfo.addressOfNamesStreamOffset = (uint)writer.BaseStream.Position;
 			WriteZeroes(writer, sdataBytesInfo.MethodNameOffsets.Length * 4);
 			sdataBytesInfo.addressOfNameOrdinalsStreamOffset = (uint)writer.BaseStream.Position;
@@ -418,19 +441,31 @@ namespace dnlib.DotNet.Writer {
 
 			uint funcBaseRva = (uint)stubsChunk.RVA;
 			writer.BaseStream.Position = sdataBytesInfo.addressOfFunctionsStreamOffset;
-			foreach (var info in allMethodInfos)
+			int currentFuncIndex = 0;
+			foreach (var info in sortedOrdinalMethodInfos) {
+				int zeroes = info.FunctionIndex - currentFuncIndex;
+				if (zeroes < 0)
+					throw new InvalidOperationException();
+				while (zeroes-- > 0)
+					writer.Write(0);
 				writer.Write(funcBaseRva + info.StubChunkOffset);
+				currentFuncIndex = info.FunctionIndex + 1;
+			}
+			foreach (var info in sortedNameMethodInfos) {
+				if (info.FunctionIndex != currentFuncIndex++)
+					throw new InvalidOperationException();
+				writer.Write(funcBaseRva + info.StubChunkOffset);
+			}
 
 			var nameOffsets = sdataBytesInfo.MethodNameOffsets;
 			if (nameOffsets.Length != 0) {
 				writer.BaseStream.Position = sdataBytesInfo.addressOfNamesStreamOffset;
-				foreach (var info in sortedNameInfos)
+				foreach (var info in sortedNameMethodInfos)
 					writer.Write(namesBaseOffset + nameOffsets[info.NameIndex]);
 
 				writer.BaseStream.Position = sdataBytesInfo.addressOfNameOrdinalsStreamOffset;
-				Debug.Assert(allMethodInfos.Count <= 0x10000);// Verified elsewhere
-				foreach (var info in sortedNameInfos)
-					writer.Write((ushort)info.Index);
+				foreach (var info in sortedNameMethodInfos)
+					writer.Write((ushort)info.FunctionIndex);
 			}
 		}
 
