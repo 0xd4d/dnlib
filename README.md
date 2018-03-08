@@ -18,9 +18,11 @@ Want to say thanks? Click the star at the top of the page.
 Compiling
 ---------
 
-You must have Visual Studio 2008 or later. The solution file was created by
-Visual Studio 2010, so if you use VS2008, open the solution file and change the
-version number so VS2008 can read it.
+v3.0 requires VS2017 (C#7.2) or later to build it.
+
+An [older v2.1 branch](https://github.com/0xd4d/dnlib/tree/v2.1_VS2010) can be used to build with older VS versions. This branch won't get any new updates.
+
+There are two project files, one for .NET Framework 3.5 or later (`src/dnlib.csproj`) and another one for netstandard 2.0 (`src/dnlib.netstandard.csproj`).
 
 Examples
 --------
