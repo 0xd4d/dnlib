@@ -1056,21 +1056,21 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeParamDefs() {
 			var list = readerModule.MetaData.GetParamRidList(origRid);
-			var tmp = new LazyList<ParamDef>(list.Count, this, list, (list2, index) => readerModule.ResolveParam(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<ParamDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveParam(list2[index]));
 			Interlocked.CompareExchange(ref paramDefs, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeGenericParameters() {
 			var list = readerModule.MetaData.GetGenericParamRidList(Table.Method, origRid);
-			var tmp = new LazyList<GenericParam>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<GenericParam, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParam(list2[index]));
 			Interlocked.CompareExchange(ref genericParameters, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
 			var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Method, origRid);
-			var tmp = new LazyList<DeclSecurity>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
@@ -1083,7 +1083,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Method, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[(int)index]));
+			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

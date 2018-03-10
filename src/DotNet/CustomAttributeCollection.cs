@@ -8,7 +8,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Stores <see cref="CustomAttribute"/>s
 	/// </summary>
-	public class CustomAttributeCollection : LazyList<CustomAttribute> {
+	public class CustomAttributeCollection : LazyList<CustomAttribute, object> {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -21,7 +21,7 @@ namespace dnlib.DotNet {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public CustomAttributeCollection(int length, object context, Func<object, uint, CustomAttribute> readOriginalValue)
+		public CustomAttributeCollection(int length, object context, Func<object, int, CustomAttribute> readOriginalValue)
 			: base(length, context, readOriginalValue) {
 		}
 

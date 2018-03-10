@@ -233,8 +233,8 @@ namespace dnlib.W32Resources {
 					dirInfos.Add(new EntryInfo(name, dataOrDirectory & 0x7FFFFFFF));
 			}
 
-			directories = new LazyList<ResourceDirectory>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory((int)i));
-			data = new LazyList<ResourceData>(dataInfos.Count, null, (ctx, i) => ReadResourceData((int)i));
+			directories = new LazyList<ResourceDirectory, object>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory(i));
+			data = new LazyList<ResourceData, object>(dataInfos.Count, null, (ctx, i) => ReadResourceData(i));
 		}
 
 		/// <summary>

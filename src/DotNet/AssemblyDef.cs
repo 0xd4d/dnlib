@@ -833,19 +833,19 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
 			var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, origRid);
-			var tmp = new LazyList<DeclSecurity>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeModules() {
 			var list = readerModule.GetModuleRidList();
-			var tmp = new LazyList<ModuleDef>(list.Count + 1, this, list, (list2, index) => {
+			var tmp = new LazyList<ModuleDef, RidList>(list.Count + 1, this, list, (list2, index) => {
 				ModuleDef module;
 				if (index == 0)
 					module = readerModule;
 				else
-					module = readerModule.ReadModule(((RidList)list2)[(int)index - 1], this);
+					module = readerModule.ReadModule(list2[index - 1], this);
 				if (module == null)
 					module = new ModuleDefUser("INVALID", Guid.NewGuid());
 				module.Assembly = this;
@@ -857,7 +857,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[(int)index]));
+			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

@@ -1891,35 +1891,35 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeFields() {
 			var list = readerModule.MetaData.GetFieldRidList(origRid);
-			var tmp = new LazyList<FieldDef>(list.Count, this, list, (list2, index) => readerModule.ResolveField(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<FieldDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveField(list2[index]));
 			Interlocked.CompareExchange(ref fields, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeMethods() {
 			var list = readerModule.MetaData.GetMethodRidList(origRid);
-			var tmp = new LazyList<MethodDef>(list.Count, this, list, (list2, index) => readerModule.ResolveMethod(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<MethodDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveMethod(list2[index]));
 			Interlocked.CompareExchange(ref methods, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeGenericParameters() {
 			var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, origRid);
-			var tmp = new LazyList<GenericParam>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParam(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<GenericParam, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParam(list2[index]));
 			Interlocked.CompareExchange(ref genericParameters, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeInterfaces() {
 			var list = readerModule.MetaData.GetInterfaceImplRidList(origRid);
-			var tmp = new LazyList<InterfaceImpl>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(((RidList)list2)[(int)index], new GenericParamContext(this)));
+			var tmp = new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this)));
 			Interlocked.CompareExchange(ref interfaces, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
 			var list = readerModule.MetaData.GetDeclSecurityRidList(Table.TypeDef, origRid);
-			var tmp = new LazyList<DeclSecurity>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
@@ -1946,7 +1946,7 @@ namespace dnlib.DotNet {
 		protected override void InitializeEvents() {
 			var mapRid = readerModule.MetaData.GetEventMapRid(origRid);
 			var list = readerModule.MetaData.GetEventRidList(mapRid);
-			var tmp = new LazyList<EventDef>(list.Count, this, list, (list2, index) => readerModule.ResolveEvent(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<EventDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveEvent(list2[index]));
 			Interlocked.CompareExchange(ref events, tmp, null);
 		}
 
@@ -1954,21 +1954,21 @@ namespace dnlib.DotNet {
 		protected override void InitializeProperties() {
 			var mapRid = readerModule.MetaData.GetPropertyMapRid(origRid);
 			var list = readerModule.MetaData.GetPropertyRidList(mapRid);
-			var tmp = new LazyList<PropertyDef>(list.Count, this, list, (list2, index) => readerModule.ResolveProperty(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<PropertyDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveProperty(list2[index]));
 			Interlocked.CompareExchange(ref properties, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeNestedTypes() {
 			var list = readerModule.MetaData.GetNestedClassRidList(origRid);
-			var tmp = new LazyList<TypeDef>(list.Count, this, list, (list2, index) => readerModule.ResolveTypeDef(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<TypeDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveTypeDef(list2[index]));
 			Interlocked.CompareExchange(ref nestedTypes, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeDef, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[(int)index]));
+			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

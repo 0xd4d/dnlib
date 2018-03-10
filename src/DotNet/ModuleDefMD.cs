@@ -106,21 +106,21 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeTypes() {
 			var list = MetaData.GetNonNestedClassRidList();
-			var tmp = new LazyList<TypeDef>(list.Count, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[(int)index]));
+			var tmp = new LazyList<TypeDef, RidList>(list.Count, this, list, (list2, index) => ResolveTypeDef(list2[index]));
 			Interlocked.CompareExchange(ref types, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeExportedTypes() {
 			var list = MetaData.GetExportedTypeRidList();
-			var tmp = new LazyList<ExportedType>(list.Count, list, (list2, i) => ResolveExportedType(((RidList)list2)[(int)i]));
+			var tmp = new LazyList<ExportedType, RidList>(list.Count, list, (list2, i) => ResolveExportedType(list2[i]));
 			Interlocked.CompareExchange(ref exportedTypes, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeResources() {
 			var table = TablesStream.ManifestResourceTable;
-			var tmp = new ResourceCollection((int)table.Rows, null, (ctx, i) => CreateResource(i + 1));
+			var tmp = new ResourceCollection((int)table.Rows, null, (ctx, i) => CreateResource((uint)i + 1));
 			Interlocked.CompareExchange(ref resources, tmp, null);
 		}
 
