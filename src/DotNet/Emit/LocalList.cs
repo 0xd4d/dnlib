@@ -106,8 +106,8 @@ namespace dnlib.DotNet.Emit {
 		public bool Remove(Local item) => locals.Remove(item);
 
 		/// <inheritdoc/>
-		public IEnumerator<Local> GetEnumerator() => locals.GetEnumerator();
-
+		public LazyList<Local>.Enumerator GetEnumerator() => locals.GetEnumerator();
+		IEnumerator<Local> IEnumerable<Local>.GetEnumerator() => locals.GetEnumerator();
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => ((IEnumerable<Local>)this).GetEnumerator();
 	}
 

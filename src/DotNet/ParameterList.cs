@@ -284,18 +284,64 @@ namespace dnlib.DotNet {
 		bool ICollection<Parameter>.IsReadOnly => true;
 		bool ICollection<Parameter>.Remove(Parameter item) => throw new NotSupportedException();
 
-		IEnumerator<Parameter> IEnumerable<Parameter>.GetEnumerator() {
+		/// <summary>
+		/// Enumerator
+		/// </summary>
+		public struct Enumerator : IEnumerator<Parameter> {
+			readonly ParameterList list;
+			List<Parameter>.Enumerator listEnumerator;
+			Parameter current;
+
+			internal Enumerator(ParameterList list) {
+				this.list = list;
+				current = default;
 #if THREAD_SAFE
-			theLock.EnterReadLock(); try {
+				list.theLock.EnterReadLock(); try {
 #endif
-			return parameters.GetEnumerator();
+				listEnumerator = list.parameters.GetEnumerator();
 #if THREAD_SAFE
+				} finally { list.theLock.ExitReadLock(); }
+#endif
 			}
-			finally { theLock.ExitReadLock(); }
+
+			/// <summary>
+			/// Gets the current value
+			/// </summary>
+			public Parameter Current => current;
+			Parameter IEnumerator<Parameter>.Current => current;
+			object System.Collections.IEnumerator.Current => current;
+
+			/// <summary>
+			/// Moves to the next element in the collection
+			/// </summary>
+			/// <returns></returns>
+			public bool MoveNext() {
+#if THREAD_SAFE
+				list.theLock.EnterWriteLock(); try {
 #endif
+				var res = listEnumerator.MoveNext();
+				current = listEnumerator.Current;
+				return res;
+#if THREAD_SAFE
+				} finally { list.theLock.ExitWriteLock(); }
+#endif
+			}
+
+			/// <summary>
+			/// Disposes the enumerator
+			/// </summary>
+			public void Dispose() => listEnumerator.Dispose();
+
+			void System.Collections.IEnumerator.Reset() => throw new NotSupportedException();
 		}
 
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => ((IEnumerable<Parameter>)this).GetEnumerator();
+		/// <summary>
+		/// Gets the list enumerator
+		/// </summary>
+		/// <returns></returns>
+		public Enumerator GetEnumerator() => new Enumerator(this);
+		IEnumerator<Parameter> IEnumerable<Parameter>.GetEnumerator() => GetEnumerator();
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 	}
 
 	/// <summary>

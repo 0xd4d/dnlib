@@ -21,9 +21,9 @@ namespace dnlib.W32Resources {
 		/// <summary>See <see cref="MinorVersion"/></summary>
 		protected ushort minorVersion;
 		/// <summary>See <see cref="Directories"/></summary>
-		protected ILazyList<ResourceDirectory> directories;
+		private protected LazyList<ResourceDirectory> directories;
 		/// <summary>See <see cref="Data"/></summary>
-		protected ILazyList<ResourceData> data;
+		private protected LazyList<ResourceData> data;
 
 		/// <summary>
 		/// Gets/sets the characteristics

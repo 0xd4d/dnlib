@@ -414,8 +414,7 @@ namespace dnlib.Utils {
 			return true;
 		}
 
-		/// <inheritdoc/>
-		public bool IsInitialized(int index) {
+		internal bool IsInitialized(int index) {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
@@ -431,32 +430,76 @@ namespace dnlib.Utils {
 			return list[index].IsInitialized_NoLock;
 		}
 
-		/// <inheritdoc/>
-		public IEnumerator<TValue> GetEnumerator() {
-			int id2;
+		/// <summary>
+		/// Enumerator
+		/// </summary>
+		public struct Enumerator : IEnumerator<TValue> {
+			readonly LazyList<TValue> list;
+			readonly int id;
+			int index;
+			TValue current;
+
+			internal Enumerator(LazyList<TValue> list) {
+				this.list = list;
+				index = 0;
+				current = default;
 #if THREAD_SAFE
-			theLock.EnterReadLock(); try {
+				list.theLock.EnterReadLock(); try {
 #endif
-			id2 = id;
+				id = list.id;
 #if THREAD_SAFE
-			} finally { theLock.ExitReadLock(); }
+				} finally { list.theLock.ExitReadLock(); }
 #endif
-			for (int i = 0; ; i++) {
-				TValue value;
-#if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
-#endif
-				if (id != id2)
-					throw new InvalidOperationException("List was modified");
-				if (i >= list.Count)
-					break;
-				value = list[i].GetValue_NoLock(i);
-#if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
-#endif
-				yield return value;
 			}
+
+			/// <summary>
+			/// Gets the current value
+			/// </summary>
+			public TValue Current => current;
+			object IEnumerator.Current => current;
+
+			/// <summary>
+			/// Moves to the next element in the collection
+			/// </summary>
+			/// <returns></returns>
+			public bool MoveNext() {
+#if THREAD_SAFE
+				list.theLock.EnterWriteLock(); try {
+#endif
+				if (list.id == id && index < list.Count_NoLock) {
+					current = list.list[index].GetValue_NoLock(index);
+					index++;
+					return true;
+				}
+				else
+					return MoveNextDoneOrThrow_NoLock();
+#if THREAD_SAFE
+				} finally { list.theLock.ExitWriteLock(); }
+#endif
+			}
+
+			bool MoveNextDoneOrThrow_NoLock() {
+				if (list.id != id)
+					throw new InvalidOperationException("List was modified");
+				current = default;
+				return false;
+			}
+
+			/// <summary>
+			/// Disposes the enumerator
+			/// </summary>
+			public void Dispose() { }
+
+			void IEnumerator.Reset() => throw new NotSupportedException();
 		}
+
+		/// <summary>
+		/// Gets the list enumerator
+		/// </summary>
+		/// <returns></returns>
+		public Enumerator GetEnumerator() => new Enumerator(this);
+
+		IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => GetEnumerator();
 
 		internal IEnumerable<TValue> GetEnumerable_NoLock() {
 			int id2 = id;
@@ -467,8 +510,7 @@ namespace dnlib.Utils {
 			}
 		}
 
-		/// <inheritdoc/>
-		public List<TValue> GetInitializedElements(bool clearList) {
+		internal List<TValue> GetInitializedElements(bool clearList) {
 			List<TValue> newList;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
