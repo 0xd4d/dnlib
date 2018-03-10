@@ -145,7 +145,7 @@ namespace dnlib.DotNet.MD {
 			if (!hasDeletedRows)
 				return base.GetTypeDefRidList();
 			uint rows = tablesStream.TypeDefTable.Rows;
-			var list = new RandomRidList((int)rows);
+			var list = new List<uint>((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
 				var row = tablesStream.ReadTypeDefRow(rid);
 				if (row == null)
@@ -157,7 +157,7 @@ namespace dnlib.DotNet.MD {
 					continue;	// ignore this deleted row
 				list.Add(rid);
 			}
-			return list;
+			return RidList.Create(list);
 		}
 
 		/// <inheritdoc/>
@@ -165,7 +165,7 @@ namespace dnlib.DotNet.MD {
 			if (!hasDeletedRows)
 				return base.GetExportedTypeRidList();
 			uint rows = tablesStream.ExportedTypeTable.Rows;
-			var list = new RandomRidList((int)rows);
+			var list = new List<uint>((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
 				var row = tablesStream.ReadExportedTypeRow(rid);
 				if (row == null)
@@ -177,7 +177,7 @@ namespace dnlib.DotNet.MD {
 					continue;	// ignore this deleted row
 				list.Add(rid);
 			}
-			return list;
+			return RidList.Create(list);
 		}
 
 		/// <summary>
@@ -238,12 +238,12 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public override RidList GetFieldRidList(uint typeDefRid) {
 			var list = GetRidList(tablesStream.TypeDefTable, typeDefRid, 4, tablesStream.FieldTable);
-			if (list.Length == 0 || (!hasFieldPtr && !hasDeletedRows))
+			if (list.Count == 0 || (!hasFieldPtr && !hasDeletedRows))
 				return list;
 
 			var destTable = tablesStream.FieldTable;
-			var newList = new RandomRidList((int)list.Length);
-			for (uint i = 0; i < list.Length; i++) {
+			var newList = new List<uint>(list.Count);
+			for (int i = 0; i < list.Count; i++) {
 				var rid = ToFieldRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
 					continue;
@@ -260,18 +260,18 @@ namespace dnlib.DotNet.MD {
 				// It's a valid non-deleted rid so add it
 				newList.Add(rid);
 			}
-			return newList;
+			return RidList.Create(newList);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetMethodRidList(uint typeDefRid) {
 			var list = GetRidList(tablesStream.TypeDefTable, typeDefRid, 5, tablesStream.MethodTable);
-			if (list.Length == 0 || (!hasMethodPtr && !hasDeletedRows))
+			if (list.Count == 0 || (!hasMethodPtr && !hasDeletedRows))
 				return list;
 
 			var destTable = tablesStream.MethodTable;
-			var newList = new RandomRidList((int)list.Length);
-			for (uint i = 0; i < list.Length; i++) {
+			var newList = new List<uint>(list.Count);
+			for (int i = 0; i < list.Count; i++) {
 				var rid = ToMethodRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
 					continue;
@@ -288,35 +288,35 @@ namespace dnlib.DotNet.MD {
 				// It's a valid non-deleted rid so add it
 				newList.Add(rid);
 			}
-			return newList;
+			return RidList.Create(newList);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetParamRidList(uint methodRid) {
 			var list = GetRidList(tablesStream.MethodTable, methodRid, 5, tablesStream.ParamTable);
-			if (list.Length == 0 || !hasParamPtr)
+			if (list.Count == 0 || !hasParamPtr)
 				return list;
 
 			var destTable = tablesStream.ParamTable;
-			var newList = new RandomRidList((int)list.Length);
-			for (uint i = 0; i < list.Length; i++) {
+			var newList = new List<uint>(list.Count);
+			for (int i = 0; i < list.Count; i++) {
 				var rid = ToParamRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
 					continue;
 				newList.Add(rid);
 			}
-			return newList;
+			return RidList.Create(newList);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetEventRidList(uint eventMapRid) {
 			var list = GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
-			if (list.Length == 0 || (!hasEventPtr && !hasDeletedRows))
+			if (list.Count == 0 || (!hasEventPtr && !hasDeletedRows))
 				return list;
 
 			var destTable = tablesStream.EventTable;
-			var newList = new RandomRidList((int)list.Length);
-			for (uint i = 0; i < list.Length; i++) {
+			var newList = new List<uint>(list.Count);
+			for (int i = 0; i < list.Count; i++) {
 				var rid = ToEventRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
 					continue;
@@ -333,18 +333,18 @@ namespace dnlib.DotNet.MD {
 				// It's a valid non-deleted rid so add it
 				newList.Add(rid);
 			}
-			return newList;
+			return RidList.Create(newList);
 		}
 
 		/// <inheritdoc/>
 		public override RidList GetPropertyRidList(uint propertyMapRid) {
 			var list = GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
-			if (list.Length == 0 || (!hasPropertyPtr && !hasDeletedRows))
+			if (list.Count == 0 || (!hasPropertyPtr && !hasDeletedRows))
 				return list;
 
 			var destTable = tablesStream.PropertyTable;
-			var newList = new RandomRidList((int)list.Length);
-			for (uint i = 0; i < list.Length; i++) {
+			var newList = new List<uint>(list.Count);
+			for (int i = 0; i < list.Count; i++) {
 				var rid = ToPropertyRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
 					continue;
@@ -361,7 +361,7 @@ namespace dnlib.DotNet.MD {
 				// It's a valid non-deleted rid so add it
 				newList.Add(rid);
 			}
-			return newList;
+			return RidList.Create(newList);
 		}
 
 		/// <summary>
@@ -393,7 +393,7 @@ namespace dnlib.DotNet.MD {
 				endRid = startRid;
 			if (endRid > lastRid)
 				endRid = lastRid;
-			return new ContiguousRidList(startRid, endRid - startRid);
+			return RidList.Create(startRid, endRid - startRid);
 		}
 
 		/// <inheritdoc/>

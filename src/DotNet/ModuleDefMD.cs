@@ -17,6 +17,7 @@ using dnlib.W32Resources;
 
 using DNW = dnlib.DotNet.Writer;
 using dnlib.DotNet.Pdb.Symbols;
+using System.Runtime.CompilerServices;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -28,7 +29,7 @@ namespace dnlib.DotNet {
 		IMethodDecrypter methodDecrypter;
 		IStringDecrypter stringDecrypter;
 
-		RandomRidList moduleRidList;
+		StrongBox<RidList> moduleRidList;
 
 		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
 		SimpleLazyList<TypeRefMD> listTypeRefMD;
@@ -105,14 +106,14 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeTypes() {
 			var list = MetaData.GetNonNestedClassRidList();
-			var tmp = new LazyList<TypeDef>((int)list.Length, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[index]));
+			var tmp = new LazyList<TypeDef>(list.Count, this, list, (list2, index) => ResolveTypeDef(((RidList)list2)[(int)index]));
 			Interlocked.CompareExchange(ref types, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeExportedTypes() {
 			var list = MetaData.GetExportedTypeRidList();
-			var tmp = new LazyList<ExportedType>((int)list.Length, list, (list2, i) => ResolveExportedType(((RidList)list2)[i]));
+			var tmp = new LazyList<ExportedType>(list.Count, list, (list2, i) => ResolveExportedType(((RidList)list2)[(int)i]));
 			Interlocked.CompareExchange(ref exportedTypes, tmp, null);
 		}
 
@@ -1407,14 +1408,14 @@ namespace dnlib.DotNet {
 		internal RidList GetModuleRidList() {
 			if (moduleRidList == null)
 				InitializeModuleList();
-			return moduleRidList;
+			return moduleRidList.Value;
 		}
 
 		void InitializeModuleList() {
 			if (moduleRidList != null)
 				return;
 			uint rows = TablesStream.FileTable.Rows;
-			var newModuleRidList = new RandomRidList((int)rows);
+			var newModuleRidList = new List<uint>((int)rows);
 
 			var baseDir = GetBaseDirectoryOfImage();
 			for (uint fileRid = 1; fileRid <= rows; fileRid++) {
@@ -1427,7 +1428,7 @@ namespace dnlib.DotNet {
 				if (pathName != null)
 					newModuleRidList.Add(fileRid);
 			}
-			Interlocked.CompareExchange(ref moduleRidList, newModuleRidList, null);
+			Interlocked.CompareExchange(ref moduleRidList, new StrongBox<RidList>(RidList.Create(newModuleRidList)), null);
 		}
 
 		/// <summary>

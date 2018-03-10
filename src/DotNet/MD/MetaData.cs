@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using dnlib.IO;
 using dnlib.PE;
@@ -74,8 +75,8 @@ namespace dnlib.DotNet.MD {
 		uint[] gpRidToOwnerRid;
 		uint[] gpcRidToOwnerRid;
 		uint[] paramRidToOwnerRid;
-		Dictionary<uint, RandomRidList> typeDefRidToNestedClasses;
-		RandomRidList nonNestedTypes;
+		Dictionary<uint, List<uint>> typeDefRidToNestedClasses;
+		StrongBox<RidList> nonNestedTypes;
 
 		/// <summary>
 		/// Sorts a table by key column
@@ -176,10 +177,10 @@ namespace dnlib.DotNet.MD {
 					if (key != rows[endIndex].key)
 						break;
 				}
-				var list = new RandomRidList(endIndex - startIndex);
+				var list = new List<uint>(endIndex - startIndex);
 				for (int i = startIndex; i < endIndex; i++)
 					list.Add(rows[i].rid);
-				return list;
+				return RidList.Create(list);
 			}
 		}
 		SortedTable eventMapSortedTable;
@@ -289,10 +290,10 @@ namespace dnlib.DotNet.MD {
 		protected abstract void InitializeInternal(IImageStream mdStream);
 
 		/// <inheritdoc/>
-		public virtual RidList GetTypeDefRidList() => new ContiguousRidList(1, tablesStream.TypeDefTable.Rows);
+		public virtual RidList GetTypeDefRidList() => RidList.Create(1, tablesStream.TypeDefTable.Rows);
 
 		/// <inheritdoc/>
-		public virtual RidList GetExportedTypeRidList() => new ContiguousRidList(1, tablesStream.ExportedTypeTable.Rows);
+		public virtual RidList GetExportedTypeRidList() => RidList.Create(1, tablesStream.ExportedTypeTable.Rows);
 
 		/// <inheritdoc/>
 		public abstract RidList GetFieldRidList(uint typeDefRid);
@@ -350,7 +351,7 @@ namespace dnlib.DotNet.MD {
 				if (key != key2)
 					break;
 			}
-			return new ContiguousRidList(startRid, endRid - startRid);
+			return RidList.Create(startRid, endRid - startRid);
 #if THREAD_SAFE
 			} finally { tablesStream.theLock.ExitWriteLock(); }
 #endif
@@ -408,13 +409,13 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public uint GetClassLayoutRid(uint typeDefRid) {
 			var list = FindAllRowsUnsorted(tablesStream.ClassLayoutTable, 2, typeDefRid);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetFieldLayoutRid(uint fieldRid) {
 			var list = FindAllRowsUnsorted(tablesStream.FieldLayoutTable, 1, fieldRid);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
@@ -422,13 +423,13 @@ namespace dnlib.DotNet.MD {
 			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.FieldMarshalTable, 0, codedToken);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetFieldRVARid(uint fieldRid) {
 			var list = FindAllRowsUnsorted(tablesStream.FieldRVATable, 1, fieldRid);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
@@ -436,13 +437,13 @@ namespace dnlib.DotNet.MD {
 			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.ImplMapTable, 1, codedToken);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
 		public uint GetNestedClassRid(uint typeDefRid) {
 			var list = FindAllRowsUnsorted(tablesStream.NestedClassTable, 0, typeDefRid);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
@@ -453,7 +454,7 @@ namespace dnlib.DotNet.MD {
 			if (eventMapSortedTable == null)
 				Interlocked.CompareExchange(ref eventMapSortedTable, new SortedTable(tablesStream.EventMapTable, 0), null);
 			var list = eventMapSortedTable.FindAllRows(typeDefRid);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
@@ -462,7 +463,7 @@ namespace dnlib.DotNet.MD {
 			if (propertyMapSortedTable == null)
 				Interlocked.CompareExchange(ref propertyMapSortedTable, new SortedTable(tablesStream.PropertyMapTable, 0), null);
 			var list = propertyMapSortedTable.FindAllRows(typeDefRid);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
@@ -470,7 +471,7 @@ namespace dnlib.DotNet.MD {
 			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.ConstantTable, 2, codedToken);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		/// <inheritdoc/>
@@ -488,10 +489,10 @@ namespace dnlib.DotNet.MD {
 				return;
 			var newFieldRidToTypeDefRid = new uint[tablesStream.FieldTable.Rows];
 			var ownerList = GetTypeDefRidList();
-			for (uint i = 0; i < ownerList.Length; i++) {
+			for (int i = 0; i < ownerList.Count; i++) {
 				var ownerRid = ownerList[i];
 				var fieldList = GetFieldRidList(ownerRid);
-				for (uint j = 0; j < fieldList.Length; j++) {
+				for (int j = 0; j < fieldList.Count; j++) {
 					uint ridIndex = fieldList[j] - 1;
 					if (newFieldRidToTypeDefRid[ridIndex] != 0)
 						continue;
@@ -516,10 +517,10 @@ namespace dnlib.DotNet.MD {
 				return;
 			var newMethodRidToTypeDefRid = new uint[tablesStream.MethodTable.Rows];
 			var ownerList = GetTypeDefRidList();
-			for (uint i = 0; i < ownerList.Length; i++) {
+			for (int i = 0; i < ownerList.Count; i++) {
 				var ownerRid = ownerList[i];
 				var methodList = GetMethodRidList(ownerRid);
-				for (uint j = 0; j < methodList.Length; j++) {
+				for (int j = 0; j < methodList.Count; j++) {
 					uint ridIndex = methodList[j] - 1;
 					if (newMethodRidToTypeDefRid[ridIndex] != 0)
 						continue;
@@ -544,10 +545,10 @@ namespace dnlib.DotNet.MD {
 				return;
 			var newEventRidToTypeDefRid = new uint[tablesStream.EventTable.Rows];
 			var ownerList = GetTypeDefRidList();
-			for (uint i = 0; i < ownerList.Length; i++) {
+			for (int i = 0; i < ownerList.Count; i++) {
 				var ownerRid = ownerList[i];
 				var eventList = GetEventRidList(GetEventMapRid(ownerRid));
-				for (uint j = 0; j < eventList.Length; j++) {
+				for (int j = 0; j < eventList.Count; j++) {
 					uint ridIndex = eventList[j] - 1;
 					if (newEventRidToTypeDefRid[ridIndex] != 0)
 						continue;
@@ -572,10 +573,10 @@ namespace dnlib.DotNet.MD {
 				return;
 			var newPropertyRidToTypeDefRid = new uint[tablesStream.PropertyTable.Rows];
 			var ownerList = GetTypeDefRidList();
-			for (uint i = 0; i < ownerList.Length; i++) {
+			for (int i = 0; i < ownerList.Count; i++) {
 				var ownerRid = ownerList[i];
 				var propertyList = GetPropertyRidList(GetPropertyMapRid(ownerRid));
-				for (uint j = 0; j < propertyList.Length; j++) {
+				for (int j = 0; j < propertyList.Count; j++) {
 					uint ridIndex = propertyList[j] - 1;
 					if (newPropertyRidToTypeDefRid[ridIndex] != 0)
 						continue;
@@ -630,7 +631,7 @@ namespace dnlib.DotNet.MD {
 				if (!CodedToken.TypeOrMethodDef.Decode(owners[i], out uint ownerToken))
 					continue;
 				var ridList = GetGenericParamRidList(MDToken.ToTable(ownerToken), MDToken.ToRID(ownerToken));
-				for (uint j = 0; j < ridList.Length; j++) {
+				for (int j = 0; j < ridList.Count; j++) {
 					uint ridIndex = ridList[j] - 1;
 					if (newGpRidToOwnerRid[ridIndex] != 0)
 						continue;
@@ -678,7 +679,7 @@ namespace dnlib.DotNet.MD {
 			for (int i = 0; i < owners.Count; i++) {
 				uint ownerToken = owners[i];
 				var ridList = GetGenericParamConstraintRidList(ownerToken);
-				for (uint j = 0; j < ridList.Length; j++) {
+				for (int j = 0; j < ridList.Count; j++) {
 					uint ridIndex = ridList[j] - 1;
 					if (newGpcRidToOwnerRid[ridIndex] != 0)
 						continue;
@@ -706,7 +707,7 @@ namespace dnlib.DotNet.MD {
 			var table = tablesStream.MethodTable;
 			for (uint rid = 1; rid <= table.Rows; rid++) {
 				var ridList = GetParamRidList(rid);
-				for (uint j = 0; j < ridList.Length; j++) {
+				for (int j = 0; j < ridList.Count; j++) {
 					uint ridIndex = ridList[j] - 1;
 					if (newParamRidToOwnerRid[ridIndex] != 0)
 						continue;
@@ -721,7 +722,7 @@ namespace dnlib.DotNet.MD {
 			if (typeDefRidToNestedClasses == null)
 				InitializeNestedClassesDictionary();
 			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out var ridList))
-				return ridList;
+				return RidList.Create(ridList);
 			return RidList.Empty;
 		}
 
@@ -731,9 +732,9 @@ namespace dnlib.DotNet.MD {
 
 			Dictionary<uint, bool> validTypeDefRids = null;
 			var typeDefRidList = GetTypeDefRidList();
-			if (typeDefRidList.Length != destTable.Rows) {
-				validTypeDefRids = new Dictionary<uint, bool>((int)typeDefRidList.Length);
-				for (uint i = 0; i < typeDefRidList.Length; i++)
+			if ((uint)typeDefRidList.Count != destTable.Rows) {
+				validTypeDefRids = new Dictionary<uint, bool>(typeDefRidList.Count);
+				for (int i = 0; i < typeDefRidList.Count; i++)
 					validTypeDefRids[typeDefRidList[i]] = true;
 			}
 
@@ -753,17 +754,17 @@ namespace dnlib.DotNet.MD {
 				nestedRids.Add(row.NestedClass);
 			}
 
-			var newTypeDefRidToNestedClasses = new Dictionary<uint, RandomRidList>();
+			var newTypeDefRidToNestedClasses = new Dictionary<uint, List<uint>>();
 			foreach (var nestedRid in nestedRids) {
 				var row = tablesStream.ReadNestedClassRow(GetNestedClassRid(nestedRid));
 				if (row == null)
 					continue;
 				if (!newTypeDefRidToNestedClasses.TryGetValue(row.EnclosingClass, out var ridList))
-					newTypeDefRidToNestedClasses[row.EnclosingClass] = ridList = new RandomRidList();
+					newTypeDefRidToNestedClasses[row.EnclosingClass] = ridList = new List<uint>();
 				ridList.Add(nestedRid);
 			}
 
-			var newNonNestedTypes = new RandomRidList((int)(destTable.Rows - nestedRidsDict.Count));
+			var newNonNestedTypes = new List<uint>((int)(destTable.Rows - nestedRidsDict.Count));
 			for (uint rid = 1; rid <= destTable.Rows; rid++) {
 				if (validTypeDefRids != null && !validTypeDefRids.ContainsKey(rid))
 					continue;
@@ -772,7 +773,7 @@ namespace dnlib.DotNet.MD {
 				newNonNestedTypes.Add(rid);
 			}
 
-			Interlocked.CompareExchange(ref nonNestedTypes, newNonNestedTypes, null);
+			Interlocked.CompareExchange(ref nonNestedTypes, new StrongBox<RidList>(RidList.Create(newNonNestedTypes)), null);
 
 			// Initialize this one last since it's tested by the callers of this method
 			Interlocked.CompareExchange(ref typeDefRidToNestedClasses, newTypeDefRidToNestedClasses, null);
@@ -783,14 +784,14 @@ namespace dnlib.DotNet.MD {
 			// InitializeNestedClassesDictionary() writes to typeDefRidToNestedClasses last.
 			if (typeDefRidToNestedClasses == null)
 				InitializeNestedClassesDictionary();
-			return nonNestedTypes;
+			return nonNestedTypes.Value;
 		}
 
 		public RidList GetLocalScopeRidList(uint methodRid) => FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
 
 		public uint GetStateMachineMethodRid(uint methodRid) {
 			var list = FindAllRows(tablesStream.StateMachineMethodTable, 0, methodRid);
-			return list.Length == 0 ? 0 : list[0];
+			return list.Count == 0 ? 0 : list[0];
 		}
 
 		public RidList GetCustomDebugInformationRidList(Table table, uint rid) {

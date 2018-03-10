@@ -165,7 +165,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
 			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.ModuleRef, origRid);
-			var tmp = new CustomAttributeCollection((int)list.Length, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[index]));
+			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(((RidList)list2)[(int)index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

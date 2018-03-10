@@ -288,7 +288,7 @@ namespace dnlib.DotNet.MD {
 				endRid = startRid;
 			if (endRid > lastRid)
 				endRid = lastRid;
-			return new ContiguousRidList(startRid, endRid - startRid);
+			return RidList.Create(startRid, endRid - startRid);
 		}
 
 		/// <inheritdoc/>
