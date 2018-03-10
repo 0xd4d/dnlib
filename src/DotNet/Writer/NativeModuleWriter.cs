@@ -382,9 +382,9 @@ namespace dnlib.DotNet.Writer {
 		Characteristics GetCharacteristics() {
 			var ch = module.Characteristics;
 			if (Is64Bit())
-				ch &= ~Characteristics._32BitMachine;
+				ch &= ~Characteristics.Bit32Machine;
 			else
-				ch |= Characteristics._32BitMachine;
+				ch |= Characteristics.Bit32Machine;
 			if (Options.IsExeFile)
 				ch &= ~Characteristics.Dll;
 			else

@@ -175,7 +175,7 @@ namespace dnlib.DotNet.Writer {
 
 		void Initialize(List<MethodDef> methods, uint timestamp) {
 			var dict = new Dictionary<int, List<VTableInfo>>();
-			var baseFlags = Is64Bit ? VTableFlags._64Bit : VTableFlags._32Bit;
+			var baseFlags = Is64Bit ? VTableFlags.Bit64 : VTableFlags.Bit32;
 			uint stubOffset = 0;
 			uint stubAlignment = cpuArch.GetStubAlignment(stubType);
 			uint stubCodeOffset = cpuArch.GetStubCodeOffset(stubType);
@@ -327,7 +327,7 @@ namespace dnlib.DotNet.Writer {
 				foreach (var info in vtbl.Methods) {
 					info.ManagedVtblOffset = (uint)writer.BaseStream.Position;
 					writer.Write(0x06000000 + metaData.GetRid(info.Method));
-					if ((vtbl.Flags & VTableFlags._64Bit) != 0)
+					if ((vtbl.Flags & VTableFlags.Bit64) != 0)
 						writer.Write(0U);
 				}
 			}

@@ -87,12 +87,24 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// 32-bit vtable slots
 		/// </summary>
-		_32Bit				= 0x01,
+		[Obsolete("Use " + nameof(Bit32), error: false)]
+		_32Bit				= Bit32,
+
+		/// <summary>
+		/// 32-bit vtable slots
+		/// </summary>
+		Bit32				= 0x01,
 
 		/// <summary>
 		/// 64-bit vtable slots
 		/// </summary>
-		_64Bit				= 0x02,
+		[Obsolete("Use " + nameof(Bit64), error: false)]
+		_64Bit				= Bit64,
+
+		/// <summary>
+		/// 64-bit vtable slots
+		/// </summary>
+		Bit64				= 0x02,
 
 		/// <summary>
 		/// Transition from unmanaged code
@@ -137,12 +149,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if each vtable slot is 32 bits in size
 		/// </summary>
-		public bool Is32Bit => (flags & VTableFlags._32Bit) != 0;
+		public bool Is32Bit => (flags & VTableFlags.Bit32) != 0;
 
 		/// <summary>
 		/// <c>true</c> if each vtable slot is 64 bits in size
 		/// </summary>
-		public bool Is64Bit => (flags & VTableFlags._64Bit) != 0;
+		public bool Is64Bit => (flags & VTableFlags.Bit64) != 0;
 
 		/// <summary>
 		/// Gets the vtable methods

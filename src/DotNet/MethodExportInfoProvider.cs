@@ -46,7 +46,7 @@ namespace dnlib.DotNet {
 					var tableRva = (RVA)reader.ReadUInt32();
 					int numSlots = reader.ReadUInt16();
 					var flags = (VTableFlags)reader.ReadUInt16();
-					bool is64bit = (flags & VTableFlags._64Bit) != 0;
+					bool is64bit = (flags & VTableFlags.Bit64) != 0;
 					var exportOptions = ToMethodExportInfoOptions(flags);
 
 					var pos = reader.Position;

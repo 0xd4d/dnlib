@@ -312,11 +312,11 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			if (Is64Bit) {
-				PEHeadersOptions.Characteristics &= ~Characteristics._32BitMachine;
+				PEHeadersOptions.Characteristics &= ~Characteristics.Bit32Machine;
 				PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
 			}
 			else if (modDefMD == null)
-				PEHeadersOptions.Characteristics |= Characteristics._32BitMachine;
+				PEHeadersOptions.Characteristics |= Characteristics.Bit32Machine;
 		}
 
 		/// <summary>

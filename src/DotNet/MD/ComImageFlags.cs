@@ -16,7 +16,13 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// See COMIMAGE_FLAGS_32BITREQUIRED in the Windows SDK
 		/// </summary>
-		_32BitRequired = 2,
+		[Obsolete("Use " + nameof(Bit32Required), error: false)]
+		_32BitRequired = Bit32Required,
+
+		/// <summary>
+		/// See COMIMAGE_FLAGS_32BITREQUIRED in the Windows SDK
+		/// </summary>
+		Bit32Required = 2,
 
 		/// <summary>
 		/// Set if a native header exists (COMIMAGE_FLAGS_IL_LIBRARY)
@@ -41,6 +47,12 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// See COMIMAGE_FLAGS_32BITPREFERRED in the Windows SDK
 		/// </summary>
-		_32BitPreferred = 0x20000,
+		[Obsolete("Use " + nameof(Bit32Preferred), error: false)]
+		_32BitPreferred = Bit32Preferred,
+
+		/// <summary>
+		/// See COMIMAGE_FLAGS_32BITPREFERRED in the Windows SDK
+		/// </summary>
+		Bit32Preferred = 0x20000,
 	}
 }

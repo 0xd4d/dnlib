@@ -19,7 +19,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public abstract class ModuleDef : IHasCustomAttribute, IHasCustomDebugInformation, IResolutionScope, IDisposable, IListListener<TypeDef>, IModule, ITypeDefFinder, IDnlibDef, ITokenResolver, ISignatureReaderHelper {
 		/// <summary>Default characteristics</summary>
-		protected const Characteristics DefaultCharacteristics = Characteristics.ExecutableImage | Characteristics._32BitMachine;
+		protected const Characteristics DefaultCharacteristics = Characteristics.ExecutableImage | Characteristics.Bit32Machine;
 
 		/// <summary>Default DLL characteristics</summary>
 		protected const DllCharacteristics DefaultDllCharacteristics = DllCharacteristics.TerminalServerAware | DllCharacteristics.NoSeh | DllCharacteristics.NxCompat | DllCharacteristics.DynamicBase;
@@ -808,11 +808,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="ComImageFlags._32BitRequired"/> bit
+		/// Gets/sets the <see cref="ComImageFlags.Bit32Required"/> bit
 		/// </summary>
 		public bool Is32BitRequired {
-			get => ((ComImageFlags)cor20HeaderFlags & ComImageFlags._32BitRequired) != 0;
-			set => ModifyComImageFlags(value, ComImageFlags._32BitRequired);
+			get => ((ComImageFlags)cor20HeaderFlags & ComImageFlags.Bit32Required) != 0;
+			set => ModifyComImageFlags(value, ComImageFlags.Bit32Required);
 		}
 
 		/// <summary>
@@ -832,11 +832,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="ComImageFlags._32BitPreferred"/> bit
+		/// Gets/sets the <see cref="ComImageFlags.Bit32Preferred"/> bit
 		/// </summary>
 		public bool Is32BitPreferred {
-			get => ((ComImageFlags)cor20HeaderFlags & ComImageFlags._32BitPreferred) != 0;
-			set => ModifyComImageFlags(value, ComImageFlags._32BitPreferred);
+			get => ((ComImageFlags)cor20HeaderFlags & ComImageFlags.Bit32Preferred) != 0;
+			set => ModifyComImageFlags(value, ComImageFlags.Bit32Preferred);
 		}
 
 		/// <inheritdoc/>
@@ -1138,20 +1138,20 @@ namespace dnlib.DotNet {
 				return 4;
 
 			// 32-bit Preferred flag is new in .NET 4.5. See CorHdr.h in Windows SDK for more info
-			switch (flags & (ComImageFlags._32BitRequired | ComImageFlags._32BitPreferred)) {
+			switch (flags & (ComImageFlags.Bit32Required | ComImageFlags.Bit32Preferred)) {
 			case 0:
 				// Machine and ILOnly flag should be checked
 				break;
 
-			case ComImageFlags._32BitPreferred:
+			case ComImageFlags.Bit32Preferred:
 				// Illegal
 				break;
 
-			case ComImageFlags._32BitRequired:
+			case ComImageFlags.Bit32Required:
 				// x86 image (32-bit process)
 				return 4;
 
-			case ComImageFlags._32BitRequired | ComImageFlags._32BitPreferred:
+			case ComImageFlags.Bit32Required | ComImageFlags.Bit32Preferred:
 				// Platform neutral but prefers to be 32-bit
 				return prefer32bitPointerSize;
 			}

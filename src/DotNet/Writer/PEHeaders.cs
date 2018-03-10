@@ -484,7 +484,7 @@ namespace dnlib.DotNet.Writer {
 
 		Characteristics GetDefaultCharacteristics() {
 			if (Use32BitOptionalHeader())
-				return Characteristics._32BitMachine | Characteristics.ExecutableImage;
+				return Characteristics.Bit32Machine | Characteristics.ExecutableImage;
 			return Characteristics.ExecutableImage | Characteristics.LargeAddressAware;
 		}
 	}
