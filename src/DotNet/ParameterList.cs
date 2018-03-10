@@ -4,12 +4,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.Threading;
+using dnlib.Utils;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// A list of all method parameters
 	/// </summary>
 	[DebuggerDisplay("Count = {Count}")]
+	[DebuggerTypeProxy(typeof(CollectionDebugView<>))]
 	public sealed class ParameterList : IList<Parameter> {
 		readonly MethodDef method;
 		readonly List<Parameter> parameters;

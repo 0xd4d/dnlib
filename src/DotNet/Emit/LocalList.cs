@@ -10,6 +10,7 @@ namespace dnlib.DotNet.Emit {
 	/// A collection of <see cref="Local"/>s
 	/// </summary>
 	[DebuggerDisplay("Count = {Count}")]
+	[DebuggerTypeProxy(typeof(CollectionDebugView<>))]
 	public sealed class LocalList : IListListener<Local>, IList<Local> {
 		readonly LazyList<Local> locals;
 

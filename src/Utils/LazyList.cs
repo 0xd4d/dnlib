@@ -63,6 +63,7 @@ namespace dnlib.Utils {
 	/// </summary>
 	/// <typeparam name="TValue">Type to store in list</typeparam>
 	[DebuggerDisplay("Count = {Count}")]
+	[DebuggerTypeProxy(typeof(CollectionDebugView<>))]
 	public class LazyList<TValue> : ILazyList<TValue> where TValue : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		readonly object context;

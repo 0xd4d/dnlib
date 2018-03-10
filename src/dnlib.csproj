@@ -407,6 +407,7 @@
     <Compile Include="Threading\ICancellationToken.cs" />
     <Compile Include="Threading\Lock.cs" />
     <Compile Include="Utils\ArrayEmpty.cs" />
+    <Compile Include="Utils\CollectionDebugView.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\ILazyList.cs" />
     <Compile Include="Utils\LazyList.cs" />
