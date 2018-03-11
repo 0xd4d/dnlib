@@ -29,6 +29,7 @@ v3.0 breaking changes
 - VS2017, C# 7.2 is required to compile it
 - It targets .NET Framework 3.5 or later and netstandard 2.0 or later (.NET Framework 2.0 and 3.0 aren't supported)
 - `*MetaData*` -> `*Metadata*`
+- `IMetaData` interface is an abstract class `Metadata`
 - `_32Bit*` -> `Bit32*`
 - Raw table rows, eg. `RawMethodRow`
 	- They are immutable structs and the methods to read them have been renamed from eg. `ReadMethodRow` -> `TryReadMethodRow`
