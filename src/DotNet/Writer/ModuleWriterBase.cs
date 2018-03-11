@@ -64,7 +64,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Raised at various times when writing the file. The listener has a chance to modify the
+		/// Raised at various times when writing the file. The listener has a chance to modify
 		/// the file, eg. add extra metadata, encrypt methods, etc.
 		/// </summary>
 		public event EventHandler<ModuleWriterEventArgs> WriterEvent;

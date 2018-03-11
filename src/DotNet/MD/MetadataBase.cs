@@ -185,8 +185,7 @@ namespace dnlib.DotNet.MD {
 		SortedTable propertyMapSortedTable;
 
 		public override ImageCor20Header ImageCor20Header => cor20Header;
-		public override ushort MajorVersion => mdHeader.MajorVersion;
-		public override ushort MinorVersion => mdHeader.MinorVersion;
+		public override uint Version => ((uint)mdHeader.MajorVersion << 16) | mdHeader.MinorVersion;
 		public override string VersionString => mdHeader.VersionString;
 		public override IPEImage PEImage => peImage;
 		public override MetadataHeader MetadataHeader => mdHeader;

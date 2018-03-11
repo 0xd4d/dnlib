@@ -27,14 +27,10 @@ namespace dnlib.DotNet.MD {
 		public abstract ImageCor20Header ImageCor20Header { get; }
 
 		/// <summary>
-		/// Gets the major version number found in the metadata header
+		/// Gets the version found in the metadata header. The major version number is in the high 16 bits
+		/// and the lower version number is in the low 16 bits.
 		/// </summary>
-		public abstract ushort MajorVersion { get; }
-
-		/// <summary>
-		/// Gets the minor version number found in the metadata header
-		/// </summary>
-		public abstract ushort MinorVersion { get; }
+		public abstract uint Version { get; }
 
 		/// <summary>
 		/// Gets the version string found in the metadata header
