@@ -16,7 +16,7 @@ namespace dnlib.DotNet.MD {
 		readonly string name;
 
 		/// <summary>
-		/// The offset of the stream relative to the start of the MetaData header
+		/// The offset of the stream relative to the start of the metadata header
 		/// </summary>
 		public uint Offset => offset;
 

@@ -73,7 +73,7 @@ namespace dnlib.DotNet.Writer {
 		bool bigGuid;
 		bool bigBlob;
 		bool hasDeletedRows;
-		readonly MetaData metadata;
+		readonly Metadata metadata;
 		readonly TablesHeapOptions options;
 		FileOffset offset;
 		RVA rva;
@@ -221,7 +221,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="metadata">Metadata owner</param>
 		/// <param name="options">Options</param>
-		public TablesHeap(MetaData metadata, TablesHeapOptions options) {
+		public TablesHeap(Metadata metadata, TablesHeapOptions options) {
 			this.metadata = metadata;
 			this.options = options ?? new TablesHeapOptions();
 			hasDeletedRows = this.options.HasDeletedRows ?? false;

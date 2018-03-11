@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 	/// <summary>
 	/// Pins a metadata stream in memory
 	/// </summary>
-	sealed class PinnedMetaData : IDisposable {
+	sealed class PinnedMetadata : IDisposable {
 		GCHandle gcHandle;
 		readonly IImageStream stream;
 		readonly byte[] streamData;
@@ -28,7 +28,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// Constructor
 		/// </summary>
 		/// <param name="stream">Metadata stream</param>
-		public PinnedMetaData(IImageStream stream) {
+		public PinnedMetadata(IImageStream stream) {
 			this.stream = stream;
 
 			if (stream is UnmanagedMemoryImageStream umStream) {
@@ -49,7 +49,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		~PinnedMetaData() {
+		~PinnedMetadata() {
 			Dispose(false);
 		}
 

@@ -6,7 +6,7 @@ using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet {
 	/// <summary>
-	/// MetaData token
+	/// Metadata token
 	/// </summary>
 	[DebuggerDisplay("{Table} {Rid}")]
 	public readonly struct MDToken : IEquatable<MDToken>, IComparable<MDToken> {

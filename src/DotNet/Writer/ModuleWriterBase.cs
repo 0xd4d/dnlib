@@ -46,9 +46,9 @@ namespace dnlib.DotNet.Writer {
 		IModuleWriterListener listener;
 		PEHeadersOptions peHeadersOptions;
 		Cor20HeaderOptions cor20HeaderOptions;
-		MetaDataOptions metaDataOptions;
+		MetadataOptions metadataOptions;
 		ILogger logger;
-		ILogger metaDataLogger;
+		ILogger metadataLogger;
 		Win32Resources win32Resources;
 		StrongNameKey strongNameKey;
 		StrongNamePublicKey strongNamePublicKey;
@@ -82,12 +82,12 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaData"/> writer logger. If this is <c>null</c>, use
+		/// Gets/sets the <see cref="Metadata"/> writer logger. If this is <c>null</c>, use
 		/// <see cref="Logger"/>.
 		/// </summary>
-		public ILogger MetaDataLogger {
-			get => metaDataLogger;
-			set => metaDataLogger = value;
+		public ILogger MetadataLogger {
+			get => metadataLogger;
+			set => metadataLogger = value;
 		}
 
 		/// <summary>
@@ -107,11 +107,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaData"/> options. This is never <c>null</c>.
+		/// Gets/sets the <see cref="Metadata"/> options. This is never <c>null</c>.
 		/// </summary>
-		public MetaDataOptions MetaDataOptions {
-			get => metaDataOptions ?? (metaDataOptions = new MetaDataOptions());
-			set => metaDataOptions = value;
+		public MetadataOptions MetadataOptions {
+			get => metadataOptions ?? (metadataOptions = new MetadataOptions());
+			set => metadataOptions = value;
 		}
 
 		/// <summary>
@@ -248,7 +248,7 @@ namespace dnlib.DotNet.Writer {
 			this.listener = listener;
 			PdbGuid = Guid.NewGuid();
 			ShareMethodBodies = true;
-			MetaDataOptions.MetaDataHeaderOptions.VersionString = module.RuntimeVersion;
+			MetadataOptions.MetadataHeaderOptions.VersionString = module.RuntimeVersion;
 			ModuleKind = module.Kind;
 			PEHeadersOptions.Machine = module.Machine;
 			PEHeadersOptions.Characteristics = module.Characteristics;
@@ -277,26 +277,26 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			if (module.TablesHeaderVersion != null) {
-				MetaDataOptions.TablesHeapOptions.MajorVersion = (byte)(module.TablesHeaderVersion.Value >> 8);
-				MetaDataOptions.TablesHeapOptions.MinorVersion = (byte)module.TablesHeaderVersion.Value;
+				MetadataOptions.TablesHeapOptions.MajorVersion = (byte)(module.TablesHeaderVersion.Value >> 8);
+				MetadataOptions.TablesHeapOptions.MinorVersion = (byte)module.TablesHeaderVersion.Value;
 			}
 			else if (module.IsClr1x) {
 				// Generics aren't supported
-				MetaDataOptions.TablesHeapOptions.MajorVersion = 1;
-				MetaDataOptions.TablesHeapOptions.MinorVersion = 0;
+				MetadataOptions.TablesHeapOptions.MajorVersion = 1;
+				MetadataOptions.TablesHeapOptions.MinorVersion = 0;
 			}
 			else {
 				// Generics are supported
-				MetaDataOptions.TablesHeapOptions.MajorVersion = 2;
-				MetaDataOptions.TablesHeapOptions.MinorVersion = 0;
+				MetadataOptions.TablesHeapOptions.MajorVersion = 2;
+				MetadataOptions.TablesHeapOptions.MinorVersion = 0;
 			}
 
 			// Some tools crash if #GUID is missing so always create it by default
-			MetaDataOptions.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
+			MetadataOptions.Flags |= MetadataFlags.AlwaysCreateGuidHeap;
 
 			var modDefMD = module as ModuleDefMD;
 			if (modDefMD != null) {
-				var ntHeaders = modDefMD.MetaData.PEImage.ImageNTHeaders;
+				var ntHeaders = modDefMD.Metadata.PEImage.ImageNTHeaders;
 				PEHeadersOptions.TimeDateStamp = ntHeaders.FileHeader.TimeDateStamp;
 				PEHeadersOptions.MajorLinkerVersion = ntHeaders.OptionalHeader.MajorLinkerVersion;
 				PEHeadersOptions.MinorLinkerVersion = ntHeaders.OptionalHeader.MinorLinkerVersion;
@@ -366,7 +366,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Module writer base class
 	/// </summary>
-	public abstract class ModuleWriterBase : IMetaDataListener, ILogger {
+	public abstract class ModuleWriterBase : IMetadataListener, ILogger {
 		/// <summary>Default alignment of all constants</summary>
 		protected internal const uint DEFAULT_CONSTANTS_ALIGNMENT = 8;
 		/// <summary>Default alignment of all method bodies</summary>
@@ -390,8 +390,8 @@ namespace dnlib.DotNet.Writer {
 		protected MethodBodyChunks methodBodies;
 		/// <summary>See <see cref="NetResources"/></summary>
 		protected NetResources netResources;
-		/// <summary>See <see cref="MetaData"/></summary>
-		protected MetaData metaData;
+		/// <summary>See <see cref="Metadata"/></summary>
+		protected Metadata metadata;
 		/// <summary>See <see cref="Win32Resources"/></summary>
 		protected Win32ResourcesChunk win32Resources;
 		/// <summary>Offset where the module is written. Usually 0.</summary>
@@ -434,7 +434,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the .NET metadata
 		/// </summary>
-		public MetaData MetaData => metaData;
+		public Metadata Metadata => metadata;
 
 		/// <summary>
 		/// Gets the Win32 resources or <c>null</c> if there's none
@@ -573,27 +573,27 @@ namespace dnlib.DotNet.Writer {
 		/// the metadata, and Win32 resources)
 		/// </summary>
 		/// <param name="module"></param>
-		protected void CreateMetaDataChunks(ModuleDef module) {
+		protected void CreateMetadataChunks(ModuleDef module) {
 			constants = new UniqueChunkList<ByteArrayChunk>();
 			methodBodies = new MethodBodyChunks(TheOptions.ShareMethodBodies);
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
 
-			DebugMetaDataKind debugKind;
+			DebugMetadataKind debugKind;
 			if (pdbState != null && (pdbState.PdbFileKind == PdbFileKind.PortablePDB || pdbState.PdbFileKind == PdbFileKind.EmbeddedPortablePDB))
-				debugKind = DebugMetaDataKind.Standalone;
+				debugKind = DebugMetadataKind.Standalone;
 			else
-				debugKind = DebugMetaDataKind.None;
-			metaData = MetaData.Create(module, constants, methodBodies, netResources, TheOptions.MetaDataOptions, debugKind);
-			metaData.Logger = TheOptions.MetaDataLogger ?? this;
-			metaData.Listener = this;
+				debugKind = DebugMetadataKind.None;
+			metadata = Metadata.Create(module, constants, methodBodies, netResources, TheOptions.MetadataOptions, debugKind);
+			metadata.Logger = TheOptions.MetadataLogger ?? this;
+			metadata.Listener = this;
 
 			// StrongNamePublicKey is used if the user wants to override the assembly's
 			// public key or when enhanced strong naming the assembly.
 			var pk = TheOptions.StrongNamePublicKey;
 			if (pk != null)
-				metaData.AssemblyPublicKey = pk.CreatePublicKey();
+				metadata.AssemblyPublicKey = pk.CreatePublicKey();
 			else if (TheOptions.StrongNameKey != null)
-				metaData.AssemblyPublicKey = TheOptions.StrongNameKey.PublicKey;
+				metadata.AssemblyPublicKey = TheOptions.StrongNameKey.PublicKey;
 
 			var w32Resources = GetWin32Resources();
 			if (w32Resources != null)
@@ -712,7 +712,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			using (var pdbWriter = new WindowsPdbWriter(symWriter, pdbState, metaData)) {
+			using (var pdbWriter = new WindowsPdbWriter(symWriter, pdbState, metadata)) {
 				pdbWriter.Logger = TheOptions.Logger;
 				pdbWriter.Write();
 
@@ -795,7 +795,7 @@ namespace dnlib.DotNet.Writer {
 				if (pdbState.UserEntryPoint == null)
 					entryPointToken = 0;
 				else
-					entryPointToken = new MDToken(Table.Method, metaData.GetRid(pdbState.UserEntryPoint)).Raw;
+					entryPointToken = new MDToken(Table.Method, metadata.GetRid(pdbState.UserEntryPoint)).Raw;
 
 				var pdbId = new byte[20];
 				var pdbIdWriter = new BinaryWriter(new MemoryStream(pdbId));
@@ -804,7 +804,7 @@ namespace dnlib.DotNet.Writer {
 				pdbIdWriter.Write(GetTimeDateStamp());
 				Debug.Assert(pdbIdWriter.BaseStream.Position == pdbId.Length);
 
-				metaData.WritePortablePdb(pdbStream, entryPointToken, pdbId);
+				metadata.WritePortablePdb(pdbStream, entryPointToken, pdbId);
 
 				const uint age = 1;
 				var cvEntry = debugDirectory.Add(GetCodeViewData(pdbGuid, age, pdbFilename));
@@ -880,161 +880,161 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		void IMetaDataListener.OnMetaDataEvent(MetaData metaData, MetaDataEvent evt) {
+		void IMetadataListener.OnMetadataEvent(Metadata metadata, MetadataEvent evt) {
 			switch (evt) {
-			case MetaDataEvent.BeginCreateTables:
+			case MetadataEvent.BeginCreateTables:
 				OnWriterEvent(ModuleWriterEvent.MDBeginCreateTables);
 				break;
 
-			case MetaDataEvent.AllocateTypeDefRids:
+			case MetadataEvent.AllocateTypeDefRids:
 				OnWriterEvent(ModuleWriterEvent.MDAllocateTypeDefRids);
 				break;
 
-			case MetaDataEvent.AllocateMemberDefRids:
+			case MetadataEvent.AllocateMemberDefRids:
 				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids);
 				break;
 
-			case MetaDataEvent.AllocateMemberDefRids0:
+			case MetadataEvent.AllocateMemberDefRids0:
 				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids0);
 				break;
 
-			case MetaDataEvent.AllocateMemberDefRids1:
+			case MetadataEvent.AllocateMemberDefRids1:
 				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids1);
 				break;
 
-			case MetaDataEvent.AllocateMemberDefRids2:
+			case MetadataEvent.AllocateMemberDefRids2:
 				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids2);
 				break;
 
-			case MetaDataEvent.AllocateMemberDefRids3:
+			case MetadataEvent.AllocateMemberDefRids3:
 				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids3);
 				break;
 
-			case MetaDataEvent.AllocateMemberDefRids4:
+			case MetadataEvent.AllocateMemberDefRids4:
 				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids4);
 				break;
 
-			case MetaDataEvent.MemberDefRidsAllocated:
+			case MetadataEvent.MemberDefRidsAllocated:
 				OnWriterEvent(ModuleWriterEvent.MDMemberDefRidsAllocated);
 				break;
 
-			case MetaDataEvent.InitializeTypeDefsAndMemberDefs0:
+			case MetadataEvent.InitializeTypeDefsAndMemberDefs0:
 				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs0);
 				break;
 
-			case MetaDataEvent.InitializeTypeDefsAndMemberDefs1:
+			case MetadataEvent.InitializeTypeDefsAndMemberDefs1:
 				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs1);
 				break;
 
-			case MetaDataEvent.InitializeTypeDefsAndMemberDefs2:
+			case MetadataEvent.InitializeTypeDefsAndMemberDefs2:
 				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs2);
 				break;
 
-			case MetaDataEvent.InitializeTypeDefsAndMemberDefs3:
+			case MetadataEvent.InitializeTypeDefsAndMemberDefs3:
 				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs3);
 				break;
 
-			case MetaDataEvent.InitializeTypeDefsAndMemberDefs4:
+			case MetadataEvent.InitializeTypeDefsAndMemberDefs4:
 				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs4);
 				break;
 
-			case MetaDataEvent.MemberDefsInitialized:
+			case MetadataEvent.MemberDefsInitialized:
 				OnWriterEvent(ModuleWriterEvent.MDMemberDefsInitialized);
 				break;
 
-			case MetaDataEvent.BeforeSortTables:
+			case MetadataEvent.BeforeSortTables:
 				OnWriterEvent(ModuleWriterEvent.MDBeforeSortTables);
 				break;
 
-			case MetaDataEvent.MostTablesSorted:
+			case MetadataEvent.MostTablesSorted:
 				OnWriterEvent(ModuleWriterEvent.MDMostTablesSorted);
 				break;
 
-			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes0:
+			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0:
 				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes0);
 				break;
 
-			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes1:
+			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes1:
 				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes1);
 				break;
 
-			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes2:
+			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes2:
 				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes2);
 				break;
 
-			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes3:
+			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes3:
 				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes3);
 				break;
 
-			case MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes4:
+			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes4:
 				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes4);
 				break;
 
-			case MetaDataEvent.MemberDefCustomAttributesWritten:
+			case MetadataEvent.MemberDefCustomAttributesWritten:
 				OnWriterEvent(ModuleWriterEvent.MDMemberDefCustomAttributesWritten);
 				break;
 
-			case MetaDataEvent.BeginAddResources:
+			case MetadataEvent.BeginAddResources:
 				OnWriterEvent(ModuleWriterEvent.MDBeginAddResources);
 				break;
 
-			case MetaDataEvent.EndAddResources:
+			case MetadataEvent.EndAddResources:
 				OnWriterEvent(ModuleWriterEvent.MDEndAddResources);
 				break;
 
-			case MetaDataEvent.BeginWriteMethodBodies:
+			case MetadataEvent.BeginWriteMethodBodies:
 				OnWriterEvent(ModuleWriterEvent.MDBeginWriteMethodBodies);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies0:
+			case MetadataEvent.WriteMethodBodies0:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies0);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies1:
+			case MetadataEvent.WriteMethodBodies1:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies1);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies2:
+			case MetadataEvent.WriteMethodBodies2:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies2);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies3:
+			case MetadataEvent.WriteMethodBodies3:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies3);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies4:
+			case MetadataEvent.WriteMethodBodies4:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies4);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies5:
+			case MetadataEvent.WriteMethodBodies5:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies5);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies6:
+			case MetadataEvent.WriteMethodBodies6:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies6);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies7:
+			case MetadataEvent.WriteMethodBodies7:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies7);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies8:
+			case MetadataEvent.WriteMethodBodies8:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies8);
 				break;
 
-			case MetaDataEvent.WriteMethodBodies9:
+			case MetadataEvent.WriteMethodBodies9:
 				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies9);
 				break;
 
-			case MetaDataEvent.EndWriteMethodBodies:
+			case MetadataEvent.EndWriteMethodBodies:
 				OnWriterEvent(ModuleWriterEvent.MDEndWriteMethodBodies);
 				break;
 
-			case MetaDataEvent.OnAllTablesSorted:
+			case MetadataEvent.OnAllTablesSorted:
 				OnWriterEvent(ModuleWriterEvent.MDOnAllTablesSorted);
 				break;
 
-			case MetaDataEvent.EndCreateTables:
+			case MetadataEvent.EndCreateTables:
 				OnWriterEvent(ModuleWriterEvent.MDEndCreateTables);
 				break;
 

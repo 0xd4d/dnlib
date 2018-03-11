@@ -9,9 +9,9 @@ using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
-	/// <see cref="MetaDataHeader"/> options
+	/// <see cref="MetadataHeader"/> options
 	/// </summary>
-	public sealed class MetaDataHeaderOptions {
+	public sealed class MetadataHeaderOptions {
 		/// <summary>
 		/// Default version string
 		/// </summary>
@@ -62,8 +62,8 @@ namespace dnlib.DotNet.Writer {
 		/// Creates portable PDB v1.0 options
 		/// </summary>
 		/// <returns></returns>
-		public static MetaDataHeaderOptions CreatePortablePdbV1_0() =>
-			new MetaDataHeaderOptions() {
+		public static MetadataHeaderOptions CreatePortablePdbV1_0() =>
+			new MetadataHeaderOptions() {
 				Signature = DEFAULT_SIGNATURE,
 				MajorVersion = 1,
 				MinorVersion = 1,
@@ -75,11 +75,11 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
-	/// Meta data header. IMAGE_COR20_HEADER.MetaData points to this header.
+	/// Meta data header. IMAGE_COR20_HEADER.Metadata points to this header.
 	/// </summary>
-	public sealed class MetaDataHeader : IChunk {
+	public sealed class MetadataHeader : IChunk {
 		IList<IHeap> heaps;
-		readonly MetaDataHeaderOptions options;
+		readonly MetadataHeaderOptions options;
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -101,7 +101,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public MetaDataHeader()
+		public MetadataHeader()
 			: this(null) {
 		}
 
@@ -109,7 +109,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Options</param>
-		public MetaDataHeader(MetaDataHeaderOptions options) => this.options = options ?? new MetaDataHeaderOptions();
+		public MetadataHeader(MetadataHeaderOptions options) => this.options = options ?? new MetadataHeaderOptions();
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -135,7 +135,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
-			writer.Write(options.Signature ?? MetaDataHeaderOptions.DEFAULT_SIGNATURE);
+			writer.Write(options.Signature ?? MetadataHeaderOptions.DEFAULT_SIGNATURE);
 			writer.Write(options.MajorVersion ?? 1);
 			writer.Write(options.MinorVersion ?? 1);
 			writer.Write(options.Reserved1 ?? 0);
@@ -156,7 +156,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		byte[] GetVersionString() => Encoding.UTF8.GetBytes((options.VersionString ?? MetaDataHeaderOptions.DEFAULT_VERSION_STRING) + "\0");
+		byte[] GetVersionString() => Encoding.UTF8.GetBytes((options.VersionString ?? MetadataHeaderOptions.DEFAULT_VERSION_STRING) + "\0");
 		byte[] GetAsciizName(string s) => Encoding.ASCII.GetBytes(s + "\0");
 	}
 }

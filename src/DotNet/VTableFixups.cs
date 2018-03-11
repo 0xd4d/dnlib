@@ -40,7 +40,7 @@ namespace dnlib.DotNet {
 		public VTableFixups(ModuleDefMD module) => Initialize(module);
 
 		void Initialize(ModuleDefMD module) {
-			var info = module.MetaData.ImageCor20Header.VTableFixups;
+			var info = module.Metadata.ImageCor20Header.VTableFixups;
 			if (info.VirtualAddress == 0 || info.Size == 0) {
 				vtables = new List<VTable>();
 				return;
@@ -48,7 +48,7 @@ namespace dnlib.DotNet {
 			rva = info.VirtualAddress;
 			vtables = new List<VTable>((int)info.Size / 8);
 
-			var peImage = module.MetaData.PEImage;
+			var peImage = module.Metadata.PEImage;
 			using (var reader = peImage.CreateFullStream()) {
 				reader.Position = (long)peImage.ToFileOffset(info.VirtualAddress);
 				long endPos = reader.Position + info.Size;

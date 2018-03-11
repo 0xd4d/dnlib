@@ -9,19 +9,19 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Low level access to a .NET file's metadata
 	/// </summary>
-	public static class MetaDataCreator {
-		enum MetaDataType {
+	public static class MetadataCreator {
+		enum MetadataType {
 			Unknown,
 			Compressed,	// #~ (normal)
 			ENC,		// #- (edit and continue)
 		}
 
 		/// <summary>
-		/// Create a <see cref="MetaData"/> instance
+		/// Create a <see cref="MetadataBase"/> instance
 		/// </summary>
 		/// <param name="fileName">The file to load</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Load(string fileName) {
+		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
+		internal static MetadataBase Load(string fileName) {
 			IPEImage peImage = null;
 			try {
 				return Load(peImage = new PEImage(fileName));
@@ -34,11 +34,11 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Create a <see cref="MetaData"/> instance
+		/// Create a <see cref="MetadataBase"/> instance
 		/// </summary>
 		/// <param name="data">The .NET file data</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Load(byte[] data) {
+		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
+		internal static MetadataBase Load(byte[] data) {
 			IPEImage peImage = null;
 			try {
 				return Load(peImage = new PEImage(data));
@@ -51,11 +51,11 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Create a <see cref="MetaData"/> instance
+		/// Create a <see cref="MetadataBase"/> instance
 		/// </summary>
 		/// <param name="addr">Address of a .NET file in memory</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Load(IntPtr addr) {
+		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
+		internal static MetadataBase Load(IntPtr addr) {
 			IPEImage peImage = null;
 
 			// We don't know what layout it is. Memory is more common so try that first.
@@ -79,12 +79,12 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Create a <see cref="MetaData"/> instance
+		/// Create a <see cref="MetadataBase"/> instance
 		/// </summary>
 		/// <param name="addr">Address of a .NET file in memory</param>
 		/// <param name="imageLayout">Image layout of the file in memory</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Load(IntPtr addr, ImageLayout imageLayout) {
+		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
+		internal static MetadataBase Load(IntPtr addr, ImageLayout imageLayout) {
 			IPEImage peImage = null;
 			try {
 				return Load(peImage = new PEImage(addr, imageLayout, true));
@@ -97,36 +97,36 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Create a <see cref="MetaData"/> instance
+		/// Create a <see cref="MetadataBase"/> instance
 		/// </summary>
 		/// <param name="peImage">The PE image</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData Load(IPEImage peImage) => Create(peImage, true);
+		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
+		internal static MetadataBase Load(IPEImage peImage) => Create(peImage, true);
 
 		/// <summary>
-		/// Create a <see cref="IMetaData"/> instance
+		/// Create a <see cref="Metadata"/> instance
 		/// </summary>
 		/// <param name="peImage">The PE image</param>
-		/// <returns>A new <see cref="IMetaData"/> instance</returns>
-		public static IMetaData CreateMetaData(IPEImage peImage) => Create(peImage, true);
+		/// <returns>A new <see cref="Metadata"/> instance</returns>
+		public static Metadata CreateMetadata(IPEImage peImage) => Create(peImage, true);
 
 		/// <summary>
-		/// Create a <see cref="IMetaData"/> instance
+		/// Create a <see cref="Metadata"/> instance
 		/// </summary>
 		/// <param name="peImage">The PE image</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
-		/// <returns>A new <see cref="IMetaData"/> instance</returns>
-		public static IMetaData CreateMetaData(IPEImage peImage, bool verify) => Create(peImage, verify);
+		/// <returns>A new <see cref="Metadata"/> instance</returns>
+		public static Metadata CreateMetadata(IPEImage peImage, bool verify) => Create(peImage, verify);
 
 		/// <summary>
-		/// Create a <see cref="MetaData"/> instance
+		/// Create a <see cref="MetadataBase"/> instance
 		/// </summary>
 		/// <param name="peImage">The PE image</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		static MetaData Create(IPEImage peImage, bool verify) {
+		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
+		static MetadataBase Create(IPEImage peImage, bool verify) {
 			IImageStream cor20HeaderStream = null, mdHeaderStream = null;
-			MetaData md = null;
+			MetadataBase md = null;
 			try {
 				var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
 				if (dotNetDir.VirtualAddress == 0)
@@ -134,13 +134,13 @@ namespace dnlib.DotNet.MD {
 				if (dotNetDir.Size < 0x48)
 					throw new BadImageFormatException(".NET data directory size < 0x48");
 				var cor20Header = new ImageCor20Header(cor20HeaderStream = peImage.CreateStream(dotNetDir.VirtualAddress, 0x48), verify);
-				if (cor20Header.MetaData.VirtualAddress == 0)
-					throw new BadImageFormatException(".NET MetaData RVA is 0");
-				if (cor20Header.MetaData.Size < 16)
-					throw new BadImageFormatException(".NET MetaData size is too small");
-				var mdSize = cor20Header.MetaData.Size;
-				var mdRva = cor20Header.MetaData.VirtualAddress;
-				var mdHeader = new MetaDataHeader(mdHeaderStream = peImage.CreateStream(mdRva, mdSize), verify);
+				if (cor20Header.Metadata.VirtualAddress == 0)
+					throw new BadImageFormatException(".NET metadata RVA is 0");
+				if (cor20Header.Metadata.Size < 16)
+					throw new BadImageFormatException(".NET metadata size is too small");
+				var mdSize = cor20Header.Metadata.Size;
+				var mdRva = cor20Header.Metadata.VirtualAddress;
+				var mdHeader = new MetadataHeader(mdHeaderStream = peImage.CreateStream(mdRva, mdSize), verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
 						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > mdSize)
@@ -148,13 +148,13 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 
-				switch (GetMetaDataType(mdHeader.StreamHeaders)) {
-				case MetaDataType.Compressed:
-					md = new CompressedMetaData(peImage, cor20Header, mdHeader);
+				switch (GetMetadataType(mdHeader.StreamHeaders)) {
+				case MetadataType.Compressed:
+					md = new CompressedMetadata(peImage, cor20Header, mdHeader);
 					break;
 
-				case MetaDataType.ENC:
-					md = new ENCMetaData(peImage, cor20Header, mdHeader);
+				case MetadataType.ENC:
+					md = new ENCMetadata(peImage, cor20Header, mdHeader);
 					break;
 
 				default:
@@ -178,15 +178,15 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Create a standalone portable PDB <see cref="MetaData"/> instance
+		/// Create a standalone portable PDB <see cref="MetadataBase"/> instance
 		/// </summary>
 		/// <param name="mdStream">Metadata stream</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		internal static MetaData CreateStandalonePortablePDB(IImageStream mdStream, bool verify) {
-			MetaData md = null;
+		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
+		internal static MetadataBase CreateStandalonePortablePDB(IImageStream mdStream, bool verify) {
+			MetadataBase md = null;
 			try {
-				var mdHeader = new MetaDataHeader(mdStream, verify);
+				var mdHeader = new MetadataHeader(mdStream, verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
 						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > mdStream.Length)
@@ -194,13 +194,13 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 
-				switch (GetMetaDataType(mdHeader.StreamHeaders)) {
-				case MetaDataType.Compressed:
-					md = new CompressedMetaData(mdHeader, true);
+				switch (GetMetadataType(mdHeader.StreamHeaders)) {
+				case MetadataType.Compressed:
+					md = new CompressedMetadata(mdHeader, true);
 					break;
 
-				case MetaDataType.ENC:
-					md = new ENCMetaData(mdHeader, true);
+				case MetadataType.ENC:
+					md = new ENCMetadata(mdHeader, true);
 					break;
 
 				default:
@@ -217,20 +217,20 @@ namespace dnlib.DotNet.MD {
 			}
 		}
 
-		static MetaDataType GetMetaDataType(IList<StreamHeader> streamHeaders) {
-			MetaDataType? mdType = null;
+		static MetadataType GetMetadataType(IList<StreamHeader> streamHeaders) {
+			MetadataType? mdType = null;
 			foreach (var sh in streamHeaders) {
 				if (mdType == null) {
 					if (sh.Name == "#~")
-						mdType = MetaDataType.Compressed;
+						mdType = MetadataType.Compressed;
 					else if (sh.Name == "#-")
-						mdType = MetaDataType.ENC;
+						mdType = MetadataType.ENC;
 				}
 				if (sh.Name == "#Schema")
-					mdType = MetaDataType.ENC;
+					mdType = MetadataType.ENC;
 			}
 			if (mdType == null)
-				return MetaDataType.Unknown;
+				return MetadataType.Unknown;
 			return mdType.Value;
 		}
 	}

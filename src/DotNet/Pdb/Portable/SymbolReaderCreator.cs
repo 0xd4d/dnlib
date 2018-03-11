@@ -27,11 +27,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return null;
 		}
 
-		public static SymbolReader TryCreate(IMetaData metaData) {
-			if (metaData == null)
+		public static SymbolReader TryCreate(Metadata metadata) {
+			if (metadata == null)
 				return null;
 			try {
-				var peImage = metaData.PEImage;
+				var peImage = metadata.PEImage;
 				if (peImage == null)
 					return null;
 				var embeddedDir = TryGetEmbeddedDebugDirectory(peImage);

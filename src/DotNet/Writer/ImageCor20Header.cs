@@ -74,9 +74,9 @@ namespace dnlib.DotNet.Writer {
 		Cor20HeaderOptions options;
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaData"/>
+		/// Gets/sets the <see cref="Metadata"/>
 		/// </summary>
-		public MetaData MetaData { get; set; }
+		public Metadata Metadata { get; set; }
 
 		/// <summary>
 		/// Gets/sets the .NET resources
@@ -119,7 +119,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(0x48);	// cb
 			writer.Write(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);
 			writer.Write(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
-			writer.WriteDataDirectory(MetaData);
+			writer.WriteDataDirectory(Metadata);
 			writer.Write((uint)(options.Flags ?? ComImageFlags.ILOnly));
 			writer.Write(options.EntryPoint ?? 0);
 			writer.WriteDataDirectory(NetResources);

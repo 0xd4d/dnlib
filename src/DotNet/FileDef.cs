@@ -117,19 +117,19 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="FileAttributes.ContainsMetaData"/> bit
+		/// Gets/sets the <see cref="FileAttributes.ContainsMetadata"/> bit
 		/// </summary>
-		public bool ContainsMetaData {
-			get => ((FileAttributes)attributes & FileAttributes.ContainsNoMetaData) == 0;
-			set => ModifyAttributes(!value, FileAttributes.ContainsNoMetaData);
+		public bool ContainsMetadata {
+			get => ((FileAttributes)attributes & FileAttributes.ContainsNoMetadata) == 0;
+			set => ModifyAttributes(!value, FileAttributes.ContainsNoMetadata);
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="FileAttributes.ContainsNoMetaData"/> bit
+		/// Gets/sets the <see cref="FileAttributes.ContainsNoMetadata"/> bit
 		/// </summary>
-		public bool ContainsNoMetaData {
-			get => ((FileAttributes)attributes & FileAttributes.ContainsNoMetaData) != 0;
-			set => ModifyAttributes(value, FileAttributes.ContainsNoMetaData);
+		public bool ContainsNoMetadata {
+			get => ((FileAttributes)attributes & FileAttributes.ContainsNoMetadata) != 0;
+			set => ModifyAttributes(value, FileAttributes.ContainsNoMetadata);
 		}
 
 		/// <inheritdoc/>
@@ -176,7 +176,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.File, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.File, origRid);
 			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}

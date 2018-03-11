@@ -11,7 +11,7 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Used when a #- stream is present in the metadata
 	/// </summary>
-	sealed class ENCMetaData : MetaData {
+	sealed class ENCMetadata : MetadataBase {
 		static readonly UTF8String DeletedName = "_Deleted";
 		bool hasMethodPtr, hasFieldPtr, hasParamPtr, hasEventPtr, hasPropertyPtr;
 		bool hasDeletedRows;
@@ -24,12 +24,12 @@ namespace dnlib.DotNet.MD {
 		public override bool IsCompressed => false;
 
 		/// <inheritdoc/>
-		public ENCMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
+		public ENCMetadata(IPEImage peImage, ImageCor20Header cor20Header, MetadataHeader mdHeader)
 			: base(peImage, cor20Header, mdHeader) {
 		}
 
 		/// <inheritdoc/>
-		internal ENCMetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb)
+		internal ENCMetadata(MetadataHeader mdHeader, bool isStandalonePortablePdb)
 			: base(mdHeader, isStandalonePortablePdb) {
 		}
 
@@ -42,8 +42,8 @@ namespace dnlib.DotNet.MD {
 				if (peImage != null) {
 					Debug.Assert(mdStream == null);
 					Debug.Assert(cor20Header != null);
-					var mdOffset = peImage.ToFileOffset(cor20Header.MetaData.VirtualAddress);
-					mdStream = peImage.CreateStream(mdOffset, cor20Header.MetaData.Size);
+					var mdOffset = peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
+					mdStream = peImage.CreateStream(mdOffset, cor20Header.Metadata.Size);
 					disposeOfMdStream = true;
 				}
 				else

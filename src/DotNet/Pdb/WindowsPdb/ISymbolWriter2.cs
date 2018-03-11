@@ -48,8 +48,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <summary>
 		/// Initializes this instance. This must be called before any other method.
 		/// </summary>
-		/// <param name="metaData">Metadata</param>
-		void Initialize(MetaData metaData);
+		/// <param name="metadata">Metadata</param>
+		void Initialize(Metadata metadata);
 	}
 
 	/// <summary>

@@ -1891,45 +1891,45 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeFields() {
-			var list = readerModule.MetaData.GetFieldRidList(origRid);
+			var list = readerModule.Metadata.GetFieldRidList(origRid);
 			var tmp = new LazyList<FieldDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveField(list2[index]));
 			Interlocked.CompareExchange(ref fields, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeMethods() {
-			var list = readerModule.MetaData.GetMethodRidList(origRid);
+			var list = readerModule.Metadata.GetMethodRidList(origRid);
 			var tmp = new LazyList<MethodDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveMethod(list2[index]));
 			Interlocked.CompareExchange(ref methods, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeGenericParameters() {
-			var list = readerModule.MetaData.GetGenericParamRidList(Table.TypeDef, origRid);
+			var list = readerModule.Metadata.GetGenericParamRidList(Table.TypeDef, origRid);
 			var tmp = new LazyList<GenericParam, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParam(list2[index]));
 			Interlocked.CompareExchange(ref genericParameters, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeInterfaces() {
-			var list = readerModule.MetaData.GetInterfaceImplRidList(origRid);
+			var list = readerModule.Metadata.GetInterfaceImplRidList(origRid);
 			var tmp = new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this)));
 			Interlocked.CompareExchange(ref interfaces, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
-			var list = readerModule.MetaData.GetDeclSecurityRidList(Table.TypeDef, origRid);
+			var list = readerModule.Metadata.GetDeclSecurityRidList(Table.TypeDef, origRid);
 			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
 		/// <inheritdoc/>
-		protected override ClassLayout GetClassLayout_NoLock() => readerModule.ResolveClassLayout(readerModule.MetaData.GetClassLayoutRid(origRid));
+		protected override ClassLayout GetClassLayout_NoLock() => readerModule.ResolveClassLayout(readerModule.Metadata.GetClassLayoutRid(origRid));
 
 		/// <inheritdoc/>
 		protected override TypeDef GetDeclaringType2_NoLock() {
-			if (!readerModule.TablesStream.TryReadNestedClassRow(readerModule.MetaData.GetNestedClassRid(origRid), out var row))
+			if (!readerModule.TablesStream.TryReadNestedClassRow(readerModule.Metadata.GetNestedClassRid(origRid), out var row))
 				return null;
 			return readerModule.ResolveTypeDef(row.EnclosingClass);
 		}
@@ -1946,30 +1946,30 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeEvents() {
-			var mapRid = readerModule.MetaData.GetEventMapRid(origRid);
-			var list = readerModule.MetaData.GetEventRidList(mapRid);
+			var mapRid = readerModule.Metadata.GetEventMapRid(origRid);
+			var list = readerModule.Metadata.GetEventRidList(mapRid);
 			var tmp = new LazyList<EventDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveEvent(list2[index]));
 			Interlocked.CompareExchange(ref events, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeProperties() {
-			var mapRid = readerModule.MetaData.GetPropertyMapRid(origRid);
-			var list = readerModule.MetaData.GetPropertyRidList(mapRid);
+			var mapRid = readerModule.Metadata.GetPropertyMapRid(origRid);
+			var list = readerModule.Metadata.GetPropertyRidList(mapRid);
 			var tmp = new LazyList<PropertyDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveProperty(list2[index]));
 			Interlocked.CompareExchange(ref properties, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeNestedTypes() {
-			var list = readerModule.MetaData.GetNestedClassRidList(origRid);
+			var list = readerModule.Metadata.GetNestedClassRidList(origRid);
 			var tmp = new LazyList<TypeDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveTypeDef(list2[index]));
 			Interlocked.CompareExchange(ref nestedTypes, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.TypeDef, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.TypeDef, origRid);
 			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
@@ -2049,7 +2049,7 @@ namespace dnlib.DotNet {
 		void InitializeMethodOverrides() {
 			var newMethodRidToOverrides = new Dictionary<uint, IList<MethodOverrideTokens>>();
 
-			var ridList = readerModule.MetaData.GetMethodImplRidList(origRid);
+			var ridList = readerModule.Metadata.GetMethodImplRidList(origRid);
 			for (int i = 0; i < ridList.Count; i++) {
 				if (!readerModule.TablesStream.TryReadMethodImplRow(ridList[i], out var row))
 					continue;
@@ -2079,10 +2079,10 @@ namespace dnlib.DotNet {
 		/// that are property or event handlers get updated.
 		/// </summary>
 		internal void InitializeMethodSemanticsAttributes() {
-			var mapRid = readerModule.MetaData.GetPropertyMapRid(origRid);
-			var list = readerModule.MetaData.GetPropertyRidList(mapRid);
+			var mapRid = readerModule.Metadata.GetPropertyMapRid(origRid);
+			var list = readerModule.Metadata.GetPropertyRidList(mapRid);
 			for (int i = 0; i < list.Count; i++) {
-				var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, list[i]);
+				var ridList = readerModule.Metadata.GetMethodSemanticsRidList(Table.Property, list[i]);
 				for (int j = 0; j < ridList.Count; j++) {
 					if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[j], out var row))
 						continue;
@@ -2094,10 +2094,10 @@ namespace dnlib.DotNet {
 				}
 			}
 
-			mapRid = readerModule.MetaData.GetEventMapRid(origRid);
-			list = readerModule.MetaData.GetEventRidList(mapRid);
+			mapRid = readerModule.Metadata.GetEventMapRid(origRid);
+			list = readerModule.Metadata.GetEventRidList(mapRid);
 			for (int i = 0; i < list.Count; i++) {
-				var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, list[i]);
+				var ridList = readerModule.Metadata.GetMethodSemanticsRidList(Table.Event, list[i]);
 				for (int j = 0; j < ridList.Count; j++) {
 					if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[j], out var row))
 						continue;
@@ -2124,7 +2124,7 @@ namespace dnlib.DotNet {
 			if (prop == null)
 				return;
 
-			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, prop.OrigRid);
+			var ridList = readerModule.Metadata.GetMethodSemanticsRidList(Table.Property, prop.OrigRid);
 			for (int i = 0; i < ridList.Count; i++) {
 				if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[i], out var row))
 					continue;
@@ -2172,7 +2172,7 @@ namespace dnlib.DotNet {
 			if (evt == null)
 				return;
 
-			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, evt.OrigRid);
+			var ridList = readerModule.Metadata.GetMethodSemanticsRidList(Table.Event, evt.OrigRid);
 			for (int i = 0; i < ridList.Count; i++) {
 				if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[i], out var row))
 					continue;

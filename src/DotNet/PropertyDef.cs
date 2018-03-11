@@ -443,11 +443,11 @@ namespace dnlib.DotNet {
 		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
-		protected override Constant GetConstant_NoLock() => readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Property, origRid));
+		protected override Constant GetConstant_NoLock() => readerModule.ResolveConstant(readerModule.Metadata.GetConstantRid(Table.Property, origRid));
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Property, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Property, origRid);
 			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}

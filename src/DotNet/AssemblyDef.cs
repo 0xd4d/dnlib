@@ -833,7 +833,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
-			var list = readerModule.MetaData.GetDeclSecurityRidList(Table.Assembly, origRid);
+			var list = readerModule.Metadata.GetDeclSecurityRidList(Table.Assembly, origRid);
 			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
@@ -857,7 +857,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Assembly, origRid);
 			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
@@ -888,7 +888,7 @@ namespace dnlib.DotNet {
 			if (hasInitdTFA)
 				return;
 
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Assembly, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Assembly, origRid);
 			var gpContext = new GenericParamContext();
 			for (int i = 0; i < list.Count; i++) {
 				var caRid = list[i];

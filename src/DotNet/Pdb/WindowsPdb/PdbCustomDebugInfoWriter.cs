@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// as PDB method custom attributes with the name "MD2".
 	/// </summary>
 	struct PdbCustomDebugInfoWriter {
-		readonly MetaData metaData;
+		readonly Metadata metadata;
 		readonly MethodDef method;
 		readonly ILogger logger;
 		readonly MemoryStream memoryStream;
@@ -41,18 +41,18 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <summary>
 		/// Returns the raw custom debug info or null if there was an error
 		/// </summary>
-		/// <param name="metaData">Metadata</param>
+		/// <param name="metadata">Metadata</param>
 		/// <param name="context">Writer context</param>
 		/// <param name="method">Method</param>
 		/// <param name="customDebugInfos">Custom debug infos to write</param>
 		/// <returns></returns>
-		public static byte[] Write(MetaData metaData, MethodDef method, PdbCustomDebugInfoWriterContext context, IList<PdbCustomDebugInfo> customDebugInfos) {
-			var writer = new PdbCustomDebugInfoWriter(metaData, method, context);
+		public static byte[] Write(Metadata metadata, MethodDef method, PdbCustomDebugInfoWriterContext context, IList<PdbCustomDebugInfo> customDebugInfos) {
+			var writer = new PdbCustomDebugInfoWriter(metadata, method, context);
 			return writer.Write(customDebugInfos);
 		}
 
-		PdbCustomDebugInfoWriter(MetaData metaData, MethodDef method, PdbCustomDebugInfoWriterContext context) {
-			this.metaData = metaData;
+		PdbCustomDebugInfoWriter(Metadata metadata, MethodDef method, PdbCustomDebugInfoWriterContext context) {
+			this.metadata = metadata;
 			this.method = method;
 			logger = context.Logger;
 			memoryStream = context.MemoryStream;
@@ -381,16 +381,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 
 			if (method is MethodDef md) {
-				uint rid = metaData.GetRid(md);
+				uint rid = metadata.GetRid(md);
 				if (rid == 0) {
-					Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, metaData.Module);
+					Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, metadata.Module);
 					return 0;
 				}
 				return new MDToken(md.MDToken.Table, rid).Raw;
 			}
 
 			if (method is MemberRef mr && mr.IsMethodRef)
-				return metaData.GetToken(mr).Raw;
+				return metadata.GetToken(mr).Raw;
 
 			Error("Not a method");
 			return 0;

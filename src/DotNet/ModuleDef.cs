@@ -527,7 +527,7 @@ namespace dnlib.DotNet {
 		public DllCharacteristics DllCharacteristics { get; set; }
 
 		/// <summary>
-		/// Gets/sets the runtime version which is stored in the MetaData header.
+		/// Gets/sets the runtime version which is stored in the metadata header.
 		/// See <see cref="MDHeaderRuntimeVersion"/>.
 		/// </summary>
 		/// <remarks>Not thread safe</remarks>
@@ -1485,7 +1485,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Module, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Module, origRid);
 			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}

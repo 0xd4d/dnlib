@@ -14,10 +14,10 @@ using dnlib.DotNet.Pdb.Portable;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
-	/// <see cref="MetaData"/> flags
+	/// <see cref="Metadata"/> flags
 	/// </summary>
 	[Flags]
-	public enum MetaDataFlags : uint {
+	public enum MetadataFlags : uint {
 		/// <summary>
 		/// Preserves all rids in the <c>TypeRef</c> table
 		/// </summary>
@@ -164,29 +164,29 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
-	/// <see cref="MetaData"/> options
+	/// <see cref="Metadata"/> options
 	/// </summary>
-	public sealed class MetaDataOptions {
-		MetaDataHeaderOptions metaDataHeaderOptions;
-		MetaDataHeaderOptions debugMetaDataHeaderOptions;
+	public sealed class MetadataOptions {
+		MetadataHeaderOptions metadataHeaderOptions;
+		MetadataHeaderOptions debugMetadataHeaderOptions;
 		TablesHeapOptions tablesHeapOptions;
 		List<IHeap> otherHeaps;
 		List<IHeap> otherHeapsEnd;
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataHeader"/> options. This is never <c>null</c>.
+		/// Gets/sets the <see cref="MetadataHeader"/> options. This is never <c>null</c>.
 		/// </summary>
-		public MetaDataHeaderOptions MetaDataHeaderOptions {
-			get => metaDataHeaderOptions ?? (metaDataHeaderOptions = new MetaDataHeaderOptions());
-			set => metaDataHeaderOptions = value;
+		public MetadataHeaderOptions MetadataHeaderOptions {
+			get => metadataHeaderOptions ?? (metadataHeaderOptions = new MetadataHeaderOptions());
+			set => metadataHeaderOptions = value;
 		}
 
 		/// <summary>
-		/// Gets/sets the debug (portable PDB) <see cref="MetaDataHeader"/> options. This is never <c>null</c>.
+		/// Gets/sets the debug (portable PDB) <see cref="MetadataHeader"/> options. This is never <c>null</c>.
 		/// </summary>
-		public MetaDataHeaderOptions DebugMetaDataHeaderOptions {
-			get => debugMetaDataHeaderOptions ?? (debugMetaDataHeaderOptions = MetaDataHeaderOptions.CreatePortablePdbV1_0());
-			set => debugMetaDataHeaderOptions = value;
+		public MetadataHeaderOptions DebugMetadataHeaderOptions {
+			get => debugMetadataHeaderOptions ?? (debugMetadataHeaderOptions = MetadataHeaderOptions.CreatePortablePdbV1_0());
+			set => debugMetadataHeaderOptions = value;
 		}
 
 		/// <summary>
@@ -208,7 +208,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Various options
 		/// </summary>
-		public MetaDataFlags Flags;
+		public MetadataFlags Flags;
 
 		/// <summary>
 		/// Any additional heaps that should be added to the beginning of the heaps list
@@ -223,29 +223,29 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public MetaDataOptions() {
+		public MetadataOptions() {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="flags">Flags</param>
-		public MetaDataOptions(MetaDataFlags flags) => Flags = flags;
+		public MetadataOptions(MetadataFlags flags) => Flags = flags;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="mdhOptions">Meta data header options</param>
-		public MetaDataOptions(MetaDataHeaderOptions mdhOptions) => metaDataHeaderOptions = mdhOptions;
+		public MetadataOptions(MetadataHeaderOptions mdhOptions) => metadataHeaderOptions = mdhOptions;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="mdhOptions">Meta data header options</param>
 		/// <param name="flags">Flags</param>
-		public MetaDataOptions(MetaDataHeaderOptions mdhOptions, MetaDataFlags flags) {
+		public MetadataOptions(MetadataHeaderOptions mdhOptions, MetadataFlags flags) {
 			Flags = flags;
-			metaDataHeaderOptions = mdhOptions;
+			metadataHeaderOptions = mdhOptions;
 		}
 	}
 
@@ -261,7 +261,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Portable PDB metadata kind
 	/// </summary>
-	public enum DebugMetaDataKind {
+	public enum DebugMetadataKind {
 		/// <summary>
 		/// No debugging metadata
 		/// </summary>
@@ -276,20 +276,20 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET meta data
 	/// </summary>
-	public abstract class MetaData : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
+	public abstract class Metadata : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
 		uint length;
 		FileOffset offset;
 		RVA rva;
-		readonly MetaDataOptions options;
-		IMetaDataListener listener;
+		readonly MetadataOptions options;
+		IMetadataListener listener;
 		ILogger logger;
-		readonly NormalMetaData debugMetaData;
+		readonly NormalMetadata debugMetadata;
 		readonly bool isStandaloneDebugMetadata;
 		internal readonly ModuleDef module;
 		internal readonly UniqueChunkList<ByteArrayChunk> constants;
 		internal readonly MethodBodyChunks methodBodies;
 		internal readonly NetResources netResources;
-		internal readonly MetaDataHeader metaDataHeader;
+		internal readonly MetadataHeader metadataHeader;
 		internal readonly PdbHeap pdbHeap;
 		internal readonly TablesHeap tablesHeap;
 		internal readonly StringsHeap stringsHeap;
@@ -339,8 +339,8 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the listener
 		/// </summary>
-		public IMetaDataListener Listener {
-			get => listener ?? (listener = DummyMetaDataListener.Instance);
+		public IMetadataListener Listener {
+			get => listener ?? (listener = DummyMetadataListener.Instance);
 			set => listener = value;
 		}
 
@@ -375,7 +375,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the MD header
 		/// </summary>
-		public MetaDataHeader MetaDataHeader => metaDataHeader;
+		public MetadataHeader MetadataHeader => metadataHeader;
 
 		/// <summary>
 		/// Gets the tables heap. Access to this heap is not recommended, but is useful if you
@@ -491,7 +491,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="MetaData"/> instance
+		/// Creates a <see cref="Metadata"/> instance
 		/// </summary>
 		/// <param name="module">Module</param>
 		/// <param name="constants">Constants list</param>
@@ -499,13 +499,13 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="netResources">.NET resources list</param>
 		/// <param name="options">Options</param>
 		/// <param name="debugKind">Debug metadata kind</param>
-		/// <returns>A new <see cref="MetaData"/> instance</returns>
-		public static MetaData Create(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options = null, DebugMetaDataKind debugKind = DebugMetaDataKind.None) {
+		/// <returns>A new <see cref="Metadata"/> instance</returns>
+		public static Metadata Create(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options = null, DebugMetadataKind debugKind = DebugMetadataKind.None) {
 			if (options == null)
-				options = new MetaDataOptions();
-			if ((options.Flags & MetaDataFlags.PreserveRids) != 0 && module is ModuleDefMD)
-				return new PreserveTokensMetaData(module, constants, methodBodies, netResources, options, debugKind, false);
-			return new NormalMetaData(module, constants, methodBodies, netResources, options, debugKind, false);
+				options = new MetadataOptions();
+			if ((options.Flags & MetadataFlags.PreserveRids) != 0 && module is ModuleDefMD)
+				return new PreserveTokensMetadata(module, constants, methodBodies, netResources, options, debugKind, false);
+			return new NormalMetadata(module, constants, methodBodies, netResources, options, debugKind, false);
 		}
 
 		/// <inheritdoc/>
@@ -515,187 +515,187 @@ namespace dnlib.DotNet.Writer {
 		public RVA RVA => rva;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveTypeRefRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveTypeRefRids"/> bit
 		/// </summary>
-		public bool PreserveTypeRefRids => (options.Flags & MetaDataFlags.PreserveTypeRefRids) != 0;
+		public bool PreserveTypeRefRids => (options.Flags & MetadataFlags.PreserveTypeRefRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveTypeDefRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveTypeDefRids"/> bit
 		/// </summary>
-		public bool PreserveTypeDefRids => (options.Flags & MetaDataFlags.PreserveTypeDefRids) != 0;
+		public bool PreserveTypeDefRids => (options.Flags & MetadataFlags.PreserveTypeDefRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveFieldRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveFieldRids"/> bit
 		/// </summary>
-		public bool PreserveFieldRids => (options.Flags & MetaDataFlags.PreserveFieldRids) != 0;
+		public bool PreserveFieldRids => (options.Flags & MetadataFlags.PreserveFieldRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveMethodRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveMethodRids"/> bit
 		/// </summary>
-		public bool PreserveMethodRids => (options.Flags & MetaDataFlags.PreserveMethodRids) != 0;
+		public bool PreserveMethodRids => (options.Flags & MetadataFlags.PreserveMethodRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveParamRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveParamRids"/> bit
 		/// </summary>
-		public bool PreserveParamRids => (options.Flags & MetaDataFlags.PreserveParamRids) != 0;
+		public bool PreserveParamRids => (options.Flags & MetadataFlags.PreserveParamRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveMemberRefRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveMemberRefRids"/> bit
 		/// </summary>
-		public bool PreserveMemberRefRids => (options.Flags & MetaDataFlags.PreserveMemberRefRids) != 0;
+		public bool PreserveMemberRefRids => (options.Flags & MetadataFlags.PreserveMemberRefRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveStandAloneSigRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveStandAloneSigRids"/> bit
 		/// </summary>
-		public bool PreserveStandAloneSigRids => (options.Flags & MetaDataFlags.PreserveStandAloneSigRids) != 0;
+		public bool PreserveStandAloneSigRids => (options.Flags & MetadataFlags.PreserveStandAloneSigRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveEventRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveEventRids"/> bit
 		/// </summary>
-		public bool PreserveEventRids => (options.Flags & MetaDataFlags.PreserveEventRids) != 0;
+		public bool PreserveEventRids => (options.Flags & MetadataFlags.PreserveEventRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreservePropertyRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreservePropertyRids"/> bit
 		/// </summary>
-		public bool PreservePropertyRids => (options.Flags & MetaDataFlags.PreservePropertyRids) != 0;
+		public bool PreservePropertyRids => (options.Flags & MetadataFlags.PreservePropertyRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveTypeSpecRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveTypeSpecRids"/> bit
 		/// </summary>
-		public bool PreserveTypeSpecRids => (options.Flags & MetaDataFlags.PreserveTypeSpecRids) != 0;
+		public bool PreserveTypeSpecRids => (options.Flags & MetadataFlags.PreserveTypeSpecRids) != 0;
 
 		/// <summary>
-		/// Gets the <see cref="MetaDataFlags.PreserveMethodSpecRids"/> bit
+		/// Gets the <see cref="MetadataFlags.PreserveMethodSpecRids"/> bit
 		/// </summary>
-		public bool PreserveMethodSpecRids => (options.Flags & MetaDataFlags.PreserveMethodSpecRids) != 0;
+		public bool PreserveMethodSpecRids => (options.Flags & MetadataFlags.PreserveMethodSpecRids) != 0;
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.PreserveStringsOffsets"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.PreserveStringsOffsets"/> bit
 		/// </summary>
 		public bool PreserveStringsOffsets {
-			get => (options.Flags & MetaDataFlags.PreserveStringsOffsets) != 0;
+			get => (options.Flags & MetadataFlags.PreserveStringsOffsets) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.PreserveStringsOffsets;
+					options.Flags |= MetadataFlags.PreserveStringsOffsets;
 				else
-					options.Flags &= ~MetaDataFlags.PreserveStringsOffsets;
+					options.Flags &= ~MetadataFlags.PreserveStringsOffsets;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.PreserveUSOffsets"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.PreserveUSOffsets"/> bit
 		/// </summary>
 		public bool PreserveUSOffsets {
-			get => (options.Flags & MetaDataFlags.PreserveUSOffsets) != 0;
+			get => (options.Flags & MetadataFlags.PreserveUSOffsets) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.PreserveUSOffsets;
+					options.Flags |= MetadataFlags.PreserveUSOffsets;
 				else
-					options.Flags &= ~MetaDataFlags.PreserveUSOffsets;
+					options.Flags &= ~MetadataFlags.PreserveUSOffsets;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.PreserveBlobOffsets"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.PreserveBlobOffsets"/> bit
 		/// </summary>
 		public bool PreserveBlobOffsets {
-			get => (options.Flags & MetaDataFlags.PreserveBlobOffsets) != 0;
+			get => (options.Flags & MetadataFlags.PreserveBlobOffsets) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.PreserveBlobOffsets;
+					options.Flags |= MetadataFlags.PreserveBlobOffsets;
 				else
-					options.Flags &= ~MetaDataFlags.PreserveBlobOffsets;
+					options.Flags &= ~MetadataFlags.PreserveBlobOffsets;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.PreserveExtraSignatureData"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.PreserveExtraSignatureData"/> bit
 		/// </summary>
 		public bool PreserveExtraSignatureData {
-			get => (options.Flags & MetaDataFlags.PreserveExtraSignatureData) != 0;
+			get => (options.Flags & MetadataFlags.PreserveExtraSignatureData) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.PreserveExtraSignatureData;
+					options.Flags |= MetadataFlags.PreserveExtraSignatureData;
 				else
-					options.Flags &= ~MetaDataFlags.PreserveExtraSignatureData;
+					options.Flags &= ~MetadataFlags.PreserveExtraSignatureData;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.KeepOldMaxStack"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.KeepOldMaxStack"/> bit
 		/// </summary>
 		public bool KeepOldMaxStack {
-			get => (options.Flags & MetaDataFlags.KeepOldMaxStack) != 0;
+			get => (options.Flags & MetadataFlags.KeepOldMaxStack) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.KeepOldMaxStack;
+					options.Flags |= MetadataFlags.KeepOldMaxStack;
 				else
-					options.Flags &= ~MetaDataFlags.KeepOldMaxStack;
+					options.Flags &= ~MetadataFlags.KeepOldMaxStack;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateGuidHeap"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.AlwaysCreateGuidHeap"/> bit
 		/// </summary>
 		public bool AlwaysCreateGuidHeap {
-			get => (options.Flags & MetaDataFlags.AlwaysCreateGuidHeap) != 0;
+			get => (options.Flags & MetadataFlags.AlwaysCreateGuidHeap) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.AlwaysCreateGuidHeap;
+					options.Flags |= MetadataFlags.AlwaysCreateGuidHeap;
 				else
-					options.Flags &= ~MetaDataFlags.AlwaysCreateGuidHeap;
+					options.Flags &= ~MetadataFlags.AlwaysCreateGuidHeap;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateStringsHeap"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.AlwaysCreateStringsHeap"/> bit
 		/// </summary>
 		public bool AlwaysCreateStringsHeap {
-			get => (options.Flags & MetaDataFlags.AlwaysCreateStringsHeap) != 0;
+			get => (options.Flags & MetadataFlags.AlwaysCreateStringsHeap) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.AlwaysCreateStringsHeap;
+					options.Flags |= MetadataFlags.AlwaysCreateStringsHeap;
 				else
-					options.Flags &= ~MetaDataFlags.AlwaysCreateStringsHeap;
+					options.Flags &= ~MetadataFlags.AlwaysCreateStringsHeap;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateUSHeap"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.AlwaysCreateUSHeap"/> bit
 		/// </summary>
 		public bool AlwaysCreateUSHeap {
-			get => (options.Flags & MetaDataFlags.AlwaysCreateUSHeap) != 0;
+			get => (options.Flags & MetadataFlags.AlwaysCreateUSHeap) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.AlwaysCreateUSHeap;
+					options.Flags |= MetadataFlags.AlwaysCreateUSHeap;
 				else
-					options.Flags &= ~MetaDataFlags.AlwaysCreateUSHeap;
+					options.Flags &= ~MetadataFlags.AlwaysCreateUSHeap;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.AlwaysCreateBlobHeap"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.AlwaysCreateBlobHeap"/> bit
 		/// </summary>
 		public bool AlwaysCreateBlobHeap {
-			get => (options.Flags & MetaDataFlags.AlwaysCreateBlobHeap) != 0;
+			get => (options.Flags & MetadataFlags.AlwaysCreateBlobHeap) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.AlwaysCreateBlobHeap;
+					options.Flags |= MetadataFlags.AlwaysCreateBlobHeap;
 				else
-					options.Flags &= ~MetaDataFlags.AlwaysCreateBlobHeap;
+					options.Flags &= ~MetadataFlags.AlwaysCreateBlobHeap;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the <see cref="MetaDataFlags.RoslynSortInterfaceImpl"/> bit
+		/// Gets/sets the <see cref="MetadataFlags.RoslynSortInterfaceImpl"/> bit
 		/// </summary>
 		public bool RoslynSortInterfaceImpl {
-			get => (options.Flags & MetaDataFlags.RoslynSortInterfaceImpl) != 0;
+			get => (options.Flags & MetadataFlags.RoslynSortInterfaceImpl) != 0;
 			set {
 				if (value)
-					options.Flags |= MetaDataFlags.RoslynSortInterfaceImpl;
+					options.Flags |= MetadataFlags.RoslynSortInterfaceImpl;
 				else
-					options.Flags &= ~MetaDataFlags.RoslynSortInterfaceImpl;
+					options.Flags &= ~MetadataFlags.RoslynSortInterfaceImpl;
 			}
 		}
 
@@ -710,13 +710,13 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		protected abstract int NumberOfMethods { get; }
 
-		internal MetaData(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options, DebugMetaDataKind debugKind, bool isStandaloneDebugMetadata) {
+		internal Metadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata) {
 			this.module = module;
 			this.constants = constants;
 			this.methodBodies = methodBodies;
 			this.netResources = netResources;
-			this.options = options ?? new MetaDataOptions();
-			metaDataHeader = new MetaDataHeader(isStandaloneDebugMetadata ? this.options.DebugMetaDataHeaderOptions : this.options.MetaDataHeaderOptions);
+			this.options = options ?? new MetadataOptions();
+			metadataHeader = new MetadataHeader(isStandaloneDebugMetadata ? this.options.DebugMetadataHeaderOptions : this.options.MetadataHeaderOptions);
 			tablesHeap = new TablesHeap(this, isStandaloneDebugMetadata ? this.options.DebugTablesHeapOptions : this.options.TablesHeapOptions);
 			stringsHeap = new StringsHeap();
 			usHeap = new USHeap();
@@ -726,13 +726,13 @@ namespace dnlib.DotNet.Writer {
 
 			this.isStandaloneDebugMetadata = isStandaloneDebugMetadata;
 			switch (debugKind) {
-			case DebugMetaDataKind.None:
+			case DebugMetadataKind.None:
 				break;
 
-			case DebugMetaDataKind.Standalone:
+			case DebugMetadataKind.Standalone:
 				Debug.Assert(!isStandaloneDebugMetadata);
 				//TODO: Refactor this into a smaller class
-				debugMetaData = new NormalMetaData(module, constants, methodBodies, netResources, options, DebugMetaDataKind.None, true);
+				debugMetadata = new NormalMetadata(module, constants, methodBodies, netResources, options, DebugMetadataKind.None, true);
 				break;
 
 			default:
@@ -1043,9 +1043,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="doc">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetRid(PdbDocument doc) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
-			debugMetaData.pdbDocumentInfos.TryGetRid(doc, out uint rid);
+			debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid);
 			return rid;
 		}
 
@@ -1055,9 +1055,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="scope">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetRid(PdbScope scope) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
-			debugMetaData.localScopeInfos.TryGetRid(scope, out uint rid);
+			debugMetadata.localScopeInfos.TryGetRid(scope, out uint rid);
 			return rid;
 		}
 
@@ -1067,9 +1067,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="local">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetRid(PdbLocal local) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
-			debugMetaData.localVariableInfos.TryGetRid(local, out uint rid);
+			debugMetadata.localVariableInfos.TryGetRid(local, out uint rid);
 			return rid;
 		}
 
@@ -1079,10 +1079,10 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="constant">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetRid(PdbConstant constant) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
 
-			debugMetaData.localConstantInfos.TryGetRid(constant, out uint rid);
+			debugMetadata.localConstantInfos.TryGetRid(constant, out uint rid);
 			return rid;
 		}
 
@@ -1092,9 +1092,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="importScope">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetRid(PdbImportScope importScope) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
-			debugMetaData.importScopeInfos.TryGetRid(importScope, out uint rid);
+			debugMetadata.importScopeInfos.TryGetRid(importScope, out uint rid);
 			return rid;
 		}
 
@@ -1104,9 +1104,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="asyncMethod">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetStateMachineMethodRid(PdbAsyncMethodCustomDebugInfo asyncMethod) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
-			debugMetaData.stateMachineMethodInfos.TryGetRid(asyncMethod, out uint rid);
+			debugMetadata.stateMachineMethodInfos.TryGetRid(asyncMethod, out uint rid);
 			return rid;
 		}
 
@@ -1116,9 +1116,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="iteratorMethod">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetStateMachineMethodRid(PdbIteratorMethodCustomDebugInfo iteratorMethod) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
-			debugMetaData.stateMachineMethodInfos.TryGetRid(iteratorMethod, out uint rid);
+			debugMetadata.stateMachineMethodInfos.TryGetRid(iteratorMethod, out uint rid);
 			return rid;
 		}
 
@@ -1128,9 +1128,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="cdi">Value</param>
 		/// <returns>Its new rid or <c>0</c></returns>
 		public uint GetCustomDebugInfoRid(PdbCustomDebugInfo cdi) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return 0;
-			debugMetaData.customDebugInfos.TryGetRid(cdi, out uint rid);
+			debugMetadata.customDebugInfos.TryGetRid(cdi, out uint rid);
 			return rid;
 		}
 
@@ -1200,7 +1200,7 @@ namespace dnlib.DotNet.Writer {
 		/// Creates the .NET metadata tables
 		/// </summary>
 		public void CreateTables() {
-			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginCreateTables);
+			Listener.OnMetadataEvent(this, MetadataEvent.BeginCreateTables);
 
 			if (module.Types.Count == 0 || module.Types[0] == null)
 				throw new ModuleWriterException("Missing global <Module> type");
@@ -1257,17 +1257,17 @@ namespace dnlib.DotNet.Writer {
 			Debug.Assert(!isStandaloneDebugMetadata);
 			Initialize();
 			allTypeDefs = GetAllTypeDefs();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateTypeDefRids);
+			Listener.OnMetadataEvent(this, MetadataEvent.AllocateTypeDefRids);
 			AllocateTypeDefRids();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids);
+			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids);
 			AllocateMemberDefRids();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefRidsAllocated);
+			Listener.OnMetadataEvent(this, MetadataEvent.MemberDefRidsAllocated);
 
 			AddModule(module);
 			AddPdbDocuments();
 			InitializeMethodDebugInformation();
 			InitializeTypeDefsAndMemberDefs();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefsInitialized);
+			Listener.OnMetadataEvent(this, MetadataEvent.MemberDefsInitialized);
 
 			InitializeVTableFixups();
 
@@ -1276,28 +1276,28 @@ namespace dnlib.DotNet.Writer {
 			if (module.Assembly != null)
 				AddAssembly(module.Assembly, AssemblyPublicKey);
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.BeforeSortTables);
+			Listener.OnMetadataEvent(this, MetadataEvent.BeforeSortTables);
 			SortTables();
 			InitializeGenericParamConstraintTable();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.MostTablesSorted);
+			Listener.OnMetadataEvent(this, MetadataEvent.MostTablesSorted);
 
 			WriteTypeDefAndMemberDefCustomAttributesAndCustomDebugInfos();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.MemberDefCustomAttributesWritten);
+			Listener.OnMetadataEvent(this, MetadataEvent.MemberDefCustomAttributesWritten);
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginAddResources);
+			Listener.OnMetadataEvent(this, MetadataEvent.BeginAddResources);
 			AddResources(module.Resources);
-			Listener.OnMetaDataEvent(this, MetaDataEvent.EndAddResources);
+			Listener.OnMetadataEvent(this, MetadataEvent.EndAddResources);
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.BeginWriteMethodBodies);
+			Listener.OnMetadataEvent(this, MetadataEvent.BeginWriteMethodBodies);
 			WriteMethodBodies();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.EndWriteMethodBodies);
+			Listener.OnMetadataEvent(this, MetadataEvent.EndWriteMethodBodies);
 
 			BeforeSortingCustomAttributes();
 			InitializeCustomAttributeAndCustomDebugInfoTables();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.OnAllTablesSorted);
+			Listener.OnMetadataEvent(this, MetadataEvent.OnAllTablesSorted);
 
 			EverythingInitialized();
-			Listener.OnMetaDataEvent(this, MetaDataEvent.EndCreateTables);
+			Listener.OnMetadataEvent(this, MetadataEvent.EndCreateTables);
 		}
 
 		/// <summary>
@@ -1315,7 +1315,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					Listener.OnMetaDataEvent(this, MetaDataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
+					Listener.OnMetadataEvent(this, MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
 					notifyAfter += numTypes / numNotifyEvents;
 				}
 
@@ -1404,7 +1404,7 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetaDataEvent(this, MetaDataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
+				Listener.OnMetadataEvent(this, MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1421,7 +1421,7 @@ namespace dnlib.DotNet.Writer {
 			uint rid;
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					Listener.OnMetaDataEvent(this, MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
+					Listener.OnMetadataEvent(this, MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
 					notifyAfter += numTypes / numNotifyEvents;
 				}
 
@@ -1468,7 +1468,7 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetaDataEvent(this, MetaDataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
+				Listener.OnMetadataEvent(this, MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1616,16 +1616,16 @@ namespace dnlib.DotNet.Writer {
 			foreach (var info in customAttributeInfos.infos)
 				tablesHeap.CustomAttributeTable.Create(info.row);
 
-			if (debugMetaData != null) {
-				debugMetaData.stateMachineMethodInfos.Sort((a, b) => a.row.MoveNextMethod.CompareTo(b.row.MoveNextMethod));
-				debugMetaData.tablesHeap.StateMachineMethodTable.IsSorted = true;
-				foreach (var info in debugMetaData.stateMachineMethodInfos.infos)
-					debugMetaData.tablesHeap.StateMachineMethodTable.Create(info.row);
+			if (debugMetadata != null) {
+				debugMetadata.stateMachineMethodInfos.Sort((a, b) => a.row.MoveNextMethod.CompareTo(b.row.MoveNextMethod));
+				debugMetadata.tablesHeap.StateMachineMethodTable.IsSorted = true;
+				foreach (var info in debugMetadata.stateMachineMethodInfos.infos)
+					debugMetadata.tablesHeap.StateMachineMethodTable.Create(info.row);
 
-				debugMetaData.customDebugInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
-				debugMetaData.tablesHeap.CustomDebugInformationTable.IsSorted = true;
-				foreach (var info in debugMetaData.customDebugInfos.infos)
-					debugMetaData.tablesHeap.CustomDebugInformationTable.Create(info.row);
+				debugMetadata.customDebugInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
+				debugMetadata.tablesHeap.CustomDebugInformationTable.IsSorted = true;
+				foreach (var info in debugMetadata.customDebugInfos.infos)
+					debugMetadata.tablesHeap.CustomDebugInformationTable.Create(info.row);
 			}
 		}
 
@@ -1650,7 +1650,7 @@ namespace dnlib.DotNet.Writer {
 			List<MethodScopeDebugInfo> methodScopeDebugInfos;
 			List<PdbScope> scopeStack;
 			SerializerMethodContext serializerMethodContext;
-			if (debugMetaData == null) {
+			if (debugMetadata == null) {
 				methodScopeDebugInfos = null;
 				scopeStack = null;
 				serializerMethodContext = null;
@@ -1672,7 +1672,7 @@ namespace dnlib.DotNet.Writer {
 						continue;
 
 					if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-						Listener.OnMetaDataEvent(this, MetaDataEvent.WriteMethodBodies0 + notifyNum++);
+						Listener.OnMetadataEvent(this, MetadataEvent.WriteMethodBodies0 + notifyNum++);
 						notifyAfter += numMethods / numNotifyEvents;
 					}
 
@@ -1697,7 +1697,7 @@ namespace dnlib.DotNet.Writer {
 							Error("Unsupported method body");
 					}
 
-					if (debugMetaData != null) {
+					if (debugMetadata != null) {
 						if (cilBody != null) {
 							var pdbMethod = cilBody.PdbMethod;
 							if (pdbMethod != null) {
@@ -1726,7 +1726,7 @@ namespace dnlib.DotNet.Writer {
 					AddCustomDebugInformationList(method, rid, localVarSigTok);
 				}
 			}
-			if (debugMetaData != null) {
+			if (debugMetadata != null) {
 				methodScopeDebugInfos.Sort((a, b) => {
 					int c = a.MethodRid.CompareTo(b.MethodRid);
 					if (c != 0)
@@ -1737,12 +1737,12 @@ namespace dnlib.DotNet.Writer {
 					return b.ScopeLength.CompareTo(a.ScopeLength);
 				});
 				foreach (var info in methodScopeDebugInfos) {
-					uint localScopeRid = (uint)debugMetaData.localScopeInfos.infos.Count + 1;
+					uint localScopeRid = (uint)debugMetadata.localScopeInfos.infos.Count + 1;
 					var row = new RawLocalScopeRow(info.MethodRid, AddImportScope(info.Scope.ImportScope),
-						(uint)debugMetaData.tablesHeap.LocalVariableTable.Rows + 1,
-						(uint)debugMetaData.tablesHeap.LocalConstantTable.Rows + 1,
+						(uint)debugMetadata.tablesHeap.LocalVariableTable.Rows + 1,
+						(uint)debugMetadata.tablesHeap.LocalConstantTable.Rows + 1,
 						info.ScopeStart, info.ScopeLength);
-					debugMetaData.localScopeInfos.Add(info.Scope, row);
+					debugMetadata.localScopeInfos.Add(info.Scope, row);
 					foreach (var local in info.Scope.Variables)
 						AddLocalVariable(local);
 					foreach (var constant in info.Scope.Constants)
@@ -1750,14 +1750,14 @@ namespace dnlib.DotNet.Writer {
 					AddCustomDebugInformationList(Table.LocalScope, localScopeRid, info.Scope.CustomDebugInfos);
 				}
 
-				debugMetaData.tablesHeap.LocalScopeTable.IsSorted = true;
-				foreach (var info in debugMetaData.localScopeInfos.infos)
-					debugMetaData.tablesHeap.LocalScopeTable.Create(info.row);
+				debugMetadata.tablesHeap.LocalScopeTable.IsSorted = true;
+				foreach (var info in debugMetadata.localScopeInfos.infos)
+					debugMetadata.tablesHeap.LocalScopeTable.Create(info.row);
 			}
 			if (serializerMethodContext != null)
 				Free(ref serializerMethodContext);
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetaDataEvent(this, MetaDataEvent.WriteMethodBodies0 + notifyNum++);
+				Listener.OnMetadataEvent(this, MetadataEvent.WriteMethodBodies0 + notifyNum++);
 		}
 
 		static bool IsEmptyRootScope(CilBody cilBody, PdbScope scope) {
@@ -2801,7 +2801,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformationList(MethodDef method, uint rid, uint localVarSigToken) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return;
 			var serializerMethodContext = AllocSerializerMethodContext();
 			serializerMethodContext.SetBody(method);
@@ -2812,7 +2812,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddMethodDebugInformation(MethodDef method, uint rid, uint localVarSigToken) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			var body = method.Body;
 			if (body == null)
 				return;
@@ -2893,15 +2893,15 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			var seqPointsBlob = outStream.ToArray();
-			var row = new RawMethodDebugInformationRow(singleDoc == null ? 0 : AddPdbDocument(singleDoc), debugMetaData.blobHeap.Add(seqPointsBlob));
-			debugMetaData.tablesHeap.MethodDebugInformationTable[rid] = row;
-			debugMetaData.methodDebugInformationInfosUsed = true;
+			var row = new RawMethodDebugInformationRow(singleDoc == null ? 0 : AddPdbDocument(singleDoc), debugMetadata.blobHeap.Add(seqPointsBlob));
+			debugMetadata.tablesHeap.MethodDebugInformationTable[rid] = row;
+			debugMetadata.methodDebugInformationInfosUsed = true;
 			Free(ref bwctx);
 		}
 
 		uint VerifyGetRid(PdbDocument doc) {
-			Debug.Assert(debugMetaData != null);
-			if (!debugMetaData.pdbDocumentInfos.TryGetRid(doc, out uint rid)) {
+			Debug.Assert(debugMetadata != null);
+			if (!debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid)) {
 				Error("PDB document has been removed");
 				return 0;
 			}
@@ -2942,7 +2942,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="hcdi">Onwer</param>
 		protected void AddCustomDebugInformationList(Table table, uint rid, IHasCustomDebugInformation hcdi) {
 			Debug.Assert(table != Table.Method);
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return;
 			if (hcdi.CustomDebugInfos.Count == 0)
 				return;
@@ -2954,7 +2954,7 @@ namespace dnlib.DotNet.Writer {
 
 		void AddCustomDebugInformationList(Table table, uint rid, IList<PdbCustomDebugInfo> cdis) {
 			Debug.Assert(table != Table.Method);
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return;
 			if (cdis.Count == 0)
 				return;
@@ -2965,7 +2965,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformationCore(SerializerMethodContext serializerMethodContext, Table table, uint rid, IList<PdbCustomDebugInfo> cdis) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			Debug.Assert(cdis.Count != 0);
 
 			var token = new MDToken(table, rid);
@@ -2986,7 +2986,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformation(SerializerMethodContext serializerMethodContext, uint token, uint encodedToken, PdbCustomDebugInfo cdi) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 
 			switch (cdi.Kind) {
 			case PdbCustomDebugInfoKind.UsingGroups:
@@ -3030,63 +3030,63 @@ namespace dnlib.DotNet.Writer {
 
 		void AddStateMachineMethod(PdbCustomDebugInfo cdi, uint moveNextMethodToken, MethodDef kickoffMethod) {
 			Debug.Assert(new MDToken(moveNextMethodToken).Table == Table.Method);
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			if (kickoffMethod == null) {
 				Error("KickoffMethod is null");
 				return;
 			}
 			var row = new RawStateMachineMethodRow(new MDToken(moveNextMethodToken).Rid, GetRid(kickoffMethod));
-			debugMetaData.stateMachineMethodInfos.Add(cdi, row);
+			debugMetadata.stateMachineMethodInfos.Add(cdi, row);
 		}
 
 		void AddCustomDebugInformationCore(SerializerMethodContext serializerMethodContext, uint encodedToken, PdbCustomDebugInfo cdi, Guid cdiGuid) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 
 			var bwctx = AllocBinaryWriterContext();
 			var cdiBlob = PortablePdbCustomDebugInfoWriter.Write(this, serializerMethodContext, this, cdi, bwctx);
 			Debug.Assert(cdiGuid != Guid.Empty);
 			Free(ref bwctx);
 			var row = new RawCustomDebugInformationRow(encodedToken,
-						debugMetaData.guidHeap.Add(cdiGuid),
-						debugMetaData.blobHeap.Add(cdiBlob));
-			debugMetaData.customDebugInfos.Add(cdi, row);
+						debugMetadata.guidHeap.Add(cdiGuid),
+						debugMetadata.blobHeap.Add(cdiBlob));
+			debugMetadata.customDebugInfos.Add(cdi, row);
 		}
 
 		void InitializeMethodDebugInformation() {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return;
 			int numMethods = NumberOfMethods;
 			for (int i = 0; i < numMethods; i++)
-				debugMetaData.tablesHeap.MethodDebugInformationTable.Create(new RawMethodDebugInformationRow());
+				debugMetadata.tablesHeap.MethodDebugInformationTable.Create(new RawMethodDebugInformationRow());
 		}
 
 		void AddPdbDocuments() {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				return;
 			foreach (var doc in module.PdbState.Documents)
 				AddPdbDocument(doc);
 		}
 
 		uint AddPdbDocument(PdbDocument doc) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			if (doc == null) {
 				Error("PdbDocument is null");
 				return 0;
 			}
-			if (debugMetaData.pdbDocumentInfos.TryGetRid(doc, out uint rid))
+			if (debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid))
 				return rid;
 			var row = new RawDocumentRow(GetDocumentNameBlobOffset(doc.Url),
-							debugMetaData.guidHeap.Add(doc.CheckSumAlgorithmId),
-							debugMetaData.blobHeap.Add(doc.CheckSum),
-							debugMetaData.guidHeap.Add(doc.Language));
-			rid = debugMetaData.tablesHeap.DocumentTable.Add(row);
-			debugMetaData.pdbDocumentInfos.Add(doc, rid);
+							debugMetadata.guidHeap.Add(doc.CheckSumAlgorithmId),
+							debugMetadata.blobHeap.Add(doc.CheckSum),
+							debugMetadata.guidHeap.Add(doc.Language));
+			rid = debugMetadata.tablesHeap.DocumentTable.Add(row);
+			debugMetadata.pdbDocumentInfos.Add(doc, rid);
 			AddCustomDebugInformationList(Table.Document, rid, doc.CustomDebugInfos);
 			return rid;
 		}
 
 		uint GetDocumentNameBlobOffset(string name) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			if (name == null) {
 				Error("Document name is null");
 				name = string.Empty;
@@ -3104,11 +3104,11 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(directorySeparatorCharUtf8);
 			for (int i = 0; i < parts.Length; i++) {
 				var part = parts[i];
-				uint partOffset = debugMetaData.blobHeap.Add(Encoding.UTF8.GetBytes(part));
+				uint partOffset = debugMetadata.blobHeap.Add(Encoding.UTF8.GetBytes(part));
 				writer.WriteCompressedUInt32(partOffset);
 			}
 
-			var res = debugMetaData.blobHeap.Add(outStream.ToArray());
+			var res = debugMetadata.blobHeap.Add(outStream.ToArray());
 			Free(ref bwctx);
 			return res;
 		}
@@ -3116,47 +3116,47 @@ namespace dnlib.DotNet.Writer {
 		static readonly char[] directorySeparatorCharArray = new char[] { Path.DirectorySeparatorChar };
 
 		uint AddImportScope(PdbImportScope scope) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			if (scope == null)
 				return 0;
-			if (debugMetaData.importScopeInfos.TryGetRid(scope, out uint rid)) {
+			if (debugMetadata.importScopeInfos.TryGetRid(scope, out uint rid)) {
 				if (rid == 0)
 					Error("PdbImportScope has an infinite Parent loop");
 				return rid;
 			}
-			debugMetaData.importScopeInfos.Add(scope, 0);   // Prevent inf recursion
+			debugMetadata.importScopeInfos.Add(scope, 0);   // Prevent inf recursion
 
 			var bwctx = AllocBinaryWriterContext();
 			var outStream = bwctx.OutStream;
 			var writer = bwctx.Writer;
 			outStream.SetLength(0);
 			outStream.Position = 0;
-			ImportScopeBlobWriter.Write(this, this, writer, debugMetaData.blobHeap, scope.Imports);
+			ImportScopeBlobWriter.Write(this, this, writer, debugMetadata.blobHeap, scope.Imports);
 			var importsData = outStream.ToArray();
 			Free(ref bwctx);
 
-			var row = new RawImportScopeRow(AddImportScope(scope.Parent), debugMetaData.blobHeap.Add(importsData));
-			rid = debugMetaData.tablesHeap.ImportScopeTable.Add(row);
-			debugMetaData.importScopeInfos.SetRid(scope, rid);
+			var row = new RawImportScopeRow(AddImportScope(scope.Parent), debugMetadata.blobHeap.Add(importsData));
+			rid = debugMetadata.tablesHeap.ImportScopeTable.Add(row);
+			debugMetadata.importScopeInfos.SetRid(scope, rid);
 
 			AddCustomDebugInformationList(Table.ImportScope, rid, scope.CustomDebugInfos);
 			return rid;
 		}
 
 		void AddLocalVariable(PdbLocal local) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			if (local == null) {
 				Error("PDB local is null");
 				return;
 			}
-			var row = new RawLocalVariableRow((ushort)local.Attributes, (ushort)local.Index, debugMetaData.stringsHeap.Add(local.Name));
-			uint rid = debugMetaData.tablesHeap.LocalVariableTable.Create(row);
-			debugMetaData.localVariableInfos.Add(local, rid);
+			var row = new RawLocalVariableRow((ushort)local.Attributes, (ushort)local.Index, debugMetadata.stringsHeap.Add(local.Name));
+			uint rid = debugMetadata.tablesHeap.LocalVariableTable.Create(row);
+			debugMetadata.localVariableInfos.Add(local, rid);
 			AddCustomDebugInformationList(Table.LocalVariable, rid, local.CustomDebugInfos);
 		}
 
 		void AddLocalConstant(PdbConstant constant) {
-			Debug.Assert(debugMetaData != null);
+			Debug.Assert(debugMetadata != null);
 			if (constant == null) {
 				Error("PDB constant is null");
 				return;
@@ -3171,9 +3171,9 @@ namespace dnlib.DotNet.Writer {
 			var signature = outStream.ToArray();
 			Free(ref bwctx);
 
-			var row = new RawLocalConstantRow(debugMetaData.stringsHeap.Add(constant.Name), debugMetaData.blobHeap.Add(signature));
-			uint rid = debugMetaData.tablesHeap.LocalConstantTable.Create(row);
-			debugMetaData.localConstantInfos.Add(constant, rid);
+			var row = new RawLocalConstantRow(debugMetadata.stringsHeap.Add(constant.Name), debugMetadata.blobHeap.Add(signature));
+			uint rid = debugMetadata.tablesHeap.LocalConstantTable.Create(row);
+			debugMetadata.localConstantInfos.Add(constant, rid);
 			AddCustomDebugInformationList(Table.LocalConstant, rid, constant.CustomDebugInfos);
 		}
 
@@ -3184,24 +3184,24 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="entryPointToken">Entry point token</param>
 		/// <param name="pdbId">PDB ID, exactly 20 bytes</param>
 		internal void WritePortablePdb(Stream output, uint entryPointToken, byte[] pdbId) {
-			if (debugMetaData == null)
+			if (debugMetadata == null)
 				throw new InvalidOperationException();
 			if (pdbId.Length != 20)
 				throw new InvalidOperationException();
-			var pdbHeap = debugMetaData.PdbHeap;
+			var pdbHeap = debugMetadata.PdbHeap;
 			pdbHeap.EntryPoint = entryPointToken;
 			for (int i = 0; i < pdbId.Length; i++)
 				pdbHeap.PdbId[i] = pdbId[i];
 
 			tablesHeap.GetSystemTableRows(out ulong systemTablesMask, pdbHeap.TypeSystemTableRows);
-			debugMetaData.tablesHeap.SetSystemTableRows(pdbHeap.TypeSystemTableRows);
-			if (!debugMetaData.methodDebugInformationInfosUsed)
-				debugMetaData.tablesHeap.MethodDebugInformationTable.Reset();
+			debugMetadata.tablesHeap.SetSystemTableRows(pdbHeap.TypeSystemTableRows);
+			if (!debugMetadata.methodDebugInformationInfosUsed)
+				debugMetadata.tablesHeap.MethodDebugInformationTable.Reset();
 			pdbHeap.ReferencedTypeSystemTables = systemTablesMask;
 			var writer = new BinaryWriter(output);
-			debugMetaData.SetOffset(0, 0);
-			debugMetaData.GetFileLength();
-			debugMetaData.VerifyWriteTo(writer);
+			debugMetadata.SetOffset(0, 0);
+			debugMetadata.GetFileLength();
+			debugMetadata.VerifyWriteTo(writer);
 		}
 
 		/// <inheritdoc/>
@@ -3235,7 +3235,7 @@ namespace dnlib.DotNet.Writer {
 		/// rid and raw row, but doesn't initialize the raw row.
 		/// Initializes <c>TypeDef</c> columns: <c>FieldList</c>, <c>MethodList</c>.
 		/// Initializes <c>Method</c> column: <c>ParamList</c>.
-		/// Initializes <see cref="MetaData.eventMapInfos"/> and <see cref="MetaData.propertyMapInfos"/>.
+		/// Initializes <see cref="Metadata.eventMapInfos"/> and <see cref="Metadata.propertyMapInfos"/>.
 		/// </summary>
 		protected abstract void AllocateMemberDefRids();
 
@@ -3306,14 +3306,14 @@ namespace dnlib.DotNet.Writer {
 			tablesHeap.BigBlob = blobHeap.IsBig;
 			tablesHeap.BigGuid = guidHeap.IsBig;
 
-			metaDataHeader.Heaps = GetHeaps();
+			metadataHeader.Heaps = GetHeaps();
 
-			metaDataHeader.SetOffset(offset, rva);
-			uint len = metaDataHeader.GetFileLength();
+			metadataHeader.SetOffset(offset, rva);
+			uint len = metadataHeader.GetFileLength();
 			offset += len;
 			rva += len;
 
-			foreach (var heap in metaDataHeader.Heaps) {
+			foreach (var heap in metadataHeader.Heaps) {
 				offset = offset.AlignUp(HEAP_ALIGNMENT);
 				rva = rva.AlignUp(HEAP_ALIGNMENT);
 				heap.SetOffset(offset, rva);
@@ -3374,10 +3374,10 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public void WriteTo(BinaryWriter writer) {
 			var rva2 = rva;
-			metaDataHeader.VerifyWriteTo(writer);
-			rva2 += metaDataHeader.GetFileLength();
+			metadataHeader.VerifyWriteTo(writer);
+			rva2 += metadataHeader.GetFileLength();
 
-			foreach (var heap in metaDataHeader.Heaps) {
+			foreach (var heap in metadataHeader.Heaps) {
 				writer.WriteZeros((int)(rva2.AlignUp(HEAP_ALIGNMENT) - rva2));
 				rva2 = rva2.AlignUp(HEAP_ALIGNMENT);
 				heap.VerifyWriteTo(writer);

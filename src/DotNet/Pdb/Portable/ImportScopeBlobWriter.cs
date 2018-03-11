@@ -9,17 +9,17 @@ namespace dnlib.DotNet.Pdb.Portable {
 	// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#imports-blob
 	readonly struct ImportScopeBlobWriter {
 		readonly IWriterError helper;
-		readonly MetaData systemMetaData;
+		readonly Metadata systemMetadata;
 		readonly BlobHeap blobHeap;
 
-		ImportScopeBlobWriter(IWriterError helper, MetaData systemMetaData, BlobHeap blobHeap) {
+		ImportScopeBlobWriter(IWriterError helper, Metadata systemMetadata, BlobHeap blobHeap) {
 			this.helper = helper;
-			this.systemMetaData = systemMetaData;
+			this.systemMetadata = systemMetadata;
 			this.blobHeap = blobHeap;
 		}
 
-		public static void Write(IWriterError helper, MetaData systemMetaData, BinaryWriter writer, BlobHeap blobHeap, IList<PdbImport> imports) {
-			var blobWriter = new ImportScopeBlobWriter(helper, systemMetaData, blobHeap);
+		public static void Write(IWriterError helper, Metadata systemMetadata, BinaryWriter writer, BlobHeap blobHeap, IList<PdbImport> imports) {
+			var blobWriter = new ImportScopeBlobWriter(helper, systemMetadata, blobHeap);
 			blobWriter.Write(writer, imports);
 		}
 
@@ -47,7 +47,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 				case PdbImportDefinitionKind.ImportAssemblyNamespace:
 					// <import> ::= ImportAssemblyNamespace <target-assembly> <target-namespace>
-					writer.WriteCompressedUInt32(systemMetaData.GetToken(((PdbImportAssemblyNamespace)import).TargetAssembly).Rid);
+					writer.WriteCompressedUInt32(systemMetadata.GetToken(((PdbImportAssemblyNamespace)import).TargetAssembly).Rid);
 					writer.WriteCompressedUInt32(WriteUTF8(((PdbImportAssemblyNamespace)import).TargetNamespace));
 					break;
 
@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				case PdbImportDefinitionKind.AliasAssemblyReference:
 					// <import> ::= AliasAssemblyReference <alias> <target-assembly>
 					writer.WriteCompressedUInt32(WriteUTF8(((PdbAliasAssemblyReference)import).Alias));
-					writer.WriteCompressedUInt32(systemMetaData.GetToken(((PdbAliasAssemblyReference)import).TargetAssembly).Rid);
+					writer.WriteCompressedUInt32(systemMetadata.GetToken(((PdbAliasAssemblyReference)import).TargetAssembly).Rid);
 					break;
 
 				case PdbImportDefinitionKind.AliasNamespace:
@@ -82,7 +82,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				case PdbImportDefinitionKind.AliasAssemblyNamespace:
 					// <import> ::= AliasAssemblyNamespace <alias> <target-assembly> <target-namespace>
 					writer.WriteCompressedUInt32(WriteUTF8(((PdbAliasAssemblyNamespace)import).Alias));
-					writer.WriteCompressedUInt32(systemMetaData.GetToken(((PdbAliasAssemblyNamespace)import).TargetAssembly).Rid);
+					writer.WriteCompressedUInt32(systemMetadata.GetToken(((PdbAliasAssemblyNamespace)import).TargetAssembly).Rid);
 					writer.WriteCompressedUInt32(WriteUTF8(((PdbAliasAssemblyNamespace)import).TargetNamespace));
 					break;
 
@@ -104,7 +104,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				helper.Error("ITypeDefOrRef is null");
 				return 0;
 			}
-			var token = systemMetaData.GetToken(tdr);
+			var token = systemMetadata.GetToken(tdr);
 			if (MD.CodedToken.TypeDefOrRef.Encode(token, out uint codedToken))
 				return codedToken;
 			helper.Error($"Could not encode token 0x{token.Raw:X8}");

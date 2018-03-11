@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Writer {
 				return 0;
 			maxStackCalculator.Reset(instructions, exceptionHandlers);
 			if (!maxStackCalculator.Calculate(out uint maxStack)) {
-				Error("Error calculating max stack value. If the method's obfuscated, set CilBody.KeepOldMaxStack or MetaDataOptions.Flags (KeepOldMaxStack, global option) to ignore this error. Otherwise fix your generated CIL code so it conforms to the ECMA standard.");
+				Error("Error calculating max stack value. If the method's obfuscated, set CilBody.KeepOldMaxStack or MetadataOptions.Flags (KeepOldMaxStack, global option) to ignore this error. Otherwise fix your generated CIL code so it conforms to the ECMA standard.");
 				maxStack += 8;
 			}
 			return maxStack;

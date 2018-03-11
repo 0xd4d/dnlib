@@ -17,7 +17,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		ISymbolWriter3 writer3;
 		readonly PdbState pdbState;
 		readonly ModuleDef module;
-		readonly MetaData metaData;
+		readonly Metadata metadata;
 		readonly Dictionary<PdbDocument, ISymbolDocumentWriter> pdbDocs = new Dictionary<PdbDocument, ISymbolDocumentWriter>();
 		readonly SequencePointHelper seqPointsHelper = new SequencePointHelper();
 		readonly Dictionary<Instruction, uint> instrToOffset;
@@ -34,17 +34,17 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// </summary>
 		/// <param name="writer">Symbol writer, it should implement <see cref="ISymbolWriter3"/></param>
 		/// <param name="pdbState">PDB state</param>
-		/// <param name="metaData">Meta data</param>
-		public WindowsPdbWriter(ISymbolWriter2 writer, PdbState pdbState, MetaData metaData)
-			: this(pdbState, metaData) {
+		/// <param name="metadata">Meta data</param>
+		public WindowsPdbWriter(ISymbolWriter2 writer, PdbState pdbState, Metadata metadata)
+			: this(pdbState, metadata) {
 			if (pdbState == null)
 				throw new ArgumentNullException(nameof(pdbState));
-			if (metaData == null)
-				throw new ArgumentNullException(nameof(metaData));
+			if (metadata == null)
+				throw new ArgumentNullException(nameof(metadata));
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
 			writer3 = writer as ISymbolWriter3;
 			Debug.Assert(writer3 != null, "Symbol writer doesn't implement interface ISymbolWriter3");
-			writer.Initialize(metaData);
+			writer.Initialize(metadata);
 		}
 
 		/// <summary>
@@ -52,22 +52,22 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// </summary>
 		/// <param name="writer">Symbol writer</param>
 		/// <param name="pdbState">PDB state</param>
-		/// <param name="metaData">Meta data</param>
-		public WindowsPdbWriter(ISymbolWriter3 writer, PdbState pdbState, MetaData metaData)
-			: this(pdbState, metaData) {
+		/// <param name="metadata">Meta data</param>
+		public WindowsPdbWriter(ISymbolWriter3 writer, PdbState pdbState, Metadata metadata)
+			: this(pdbState, metadata) {
 			if (pdbState == null)
 				throw new ArgumentNullException(nameof(pdbState));
-			if (metaData == null)
-				throw new ArgumentNullException(nameof(metaData));
+			if (metadata == null)
+				throw new ArgumentNullException(nameof(metadata));
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
 			writer3 = writer;
-			writer.Initialize(metaData);
+			writer.Initialize(metadata);
 		}
 
-		WindowsPdbWriter(PdbState pdbState, MetaData metaData) {
+		WindowsPdbWriter(PdbState pdbState, Metadata metadata) {
 			this.pdbState = pdbState;
-			this.metaData = metaData;
-			module = metaData.Module;
+			this.metadata = metadata;
+			module = metadata.Module;
 			instrToOffset = new Dictionary<Instruction, uint>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
 			localsEndScopeIncValue = pdbState.Compiler == Compiler.VisualBasic ? 1 : 0;
@@ -219,7 +219,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		void Write(MethodDef method, List<PdbCustomDebugInfo> cdiBuilder) {
-			uint rid = metaData.GetRid(method);
+			uint rid = metadata.GetRid(method);
 			if (rid == 0) {
 				Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, module);
 				return;
@@ -227,7 +227,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			var info = new CurrentMethod(this, method, instrToOffset);
 			var body = method.Body;
-			var symbolToken = new SymbolToken((int)new MDToken(MD.Table.Method, metaData.GetRid(method)).Raw);
+			var symbolToken = new SymbolToken((int)new MDToken(MD.Table.Method, metadata.GetRid(method)).Raw);
 			writer.OpenMethod(symbolToken);
 			seqPointsHelper.Write(this, info.Method.Body.Instructions);
 
@@ -258,7 +258,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			GetPseudoCustomDebugInfos(method.CustomDebugInfos, cdiBuilder, out var asyncMethod);
 			if (cdiBuilder.Count != 0) {
 				customDebugInfoWriterContext.Logger = GetLogger();
-				var cdiData = PdbCustomDebugInfoWriter.Write(metaData, method, customDebugInfoWriterContext, cdiBuilder);
+				var cdiData = PdbCustomDebugInfoWriter.Write(metadata, method, customDebugInfoWriterContext, cdiBuilder);
 				if (cdiData != null)
 					writer.SetSymAttribute(symbolToken, "MD2", cdiData);
 			}
@@ -296,7 +296,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		uint GetMethodToken(MethodDef method) {
-			uint rid = metaData.GetRid(method);
+			uint rid = metadata.GetRid(method);
 			if (rid == 0)
 				Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, module);
 			return new MDToken(MD.Table.Method, rid).Raw;
@@ -383,7 +383,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					for (int i = 0; i < constants.Count; i++) {
 						var constant = constants[i];
 						sig.Type = constant.Type;
-						var token = metaData.GetToken(sig);
+						var token = metadata.GetToken(sig);
 						writer3.DefineConstant2(constant.Name, constant.Value ?? 0, token.Raw);
 					}
 				}
@@ -398,7 +398,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		void AddLocals(MethodDef method, IList<PdbLocal> locals, uint startOffset, uint endOffset) {
 			if (locals.Count == 0)
 				return;
-			uint token = metaData.GetLocalVarSigToken(method);
+			uint token = metadata.GetLocalVarSigToken(method);
 			if (token == 0) {
 				Error("Method {0} ({1:X8}) has no local signature token", method, method.MDToken.Raw);
 				return;
@@ -422,7 +422,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			var ep = pdbState.UserEntryPoint;
 			if (ep == null)
 				return 0;
-			uint rid = metaData.GetRid(ep);
+			uint rid = metadata.GetRid(ep);
 			if (rid == 0) {
 				Error("PDB user entry point method {0} ({1:X8}) is not defined in this module ({2})", ep, ep.MDToken.Raw, module);
 				return 0;

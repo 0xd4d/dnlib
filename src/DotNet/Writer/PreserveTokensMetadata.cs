@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Preserves metadata tokens
 	/// </summary>
-	sealed class PreserveTokensMetaData : MetaData {
+	sealed class PreserveTokensMetadata : Metadata {
 		readonly ModuleDefMD mod;
 		readonly Rows<TypeRef> typeRefInfos = new Rows<TypeRef>();
 		readonly Dictionary<TypeDef, uint> typeToRid = new Dictionary<TypeDef, uint>();
@@ -188,7 +188,7 @@ namespace dnlib.DotNet.Writer {
 
 		protected override int NumberOfMethods => methodDefInfos.Count;
 
-		public PreserveTokensMetaData(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options, DebugMetaDataKind debugKind, bool isStandaloneDebugMetadata)
+		public PreserveTokensMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
 			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
 			mod = module as ModuleDefMD;
 			if (mod == null)
@@ -523,7 +523,7 @@ namespace dnlib.DotNet.Writer {
 		protected override void AllocateMemberDefRids() {
 			FindMemberDefs();
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids0);
+			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids0);
 
 			for (int i = 1; i <= fieldDefInfos.TableSize; i++) {
 				if ((uint)i != tablesHeap.FieldTable.Create(new RawFieldRow()))
@@ -556,7 +556,7 @@ namespace dnlib.DotNet.Writer {
 			SortEvents();
 			SortProperties();
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids1);
+			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids1);
 
 			if (fieldDefInfos.NeedPtrTable) {
 				for (int i = 0; i < fieldDefInfos.Count; i++) {
@@ -602,14 +602,14 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids2);
+			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids2);
 
 			InitializeMethodAndFieldList();
 			InitializeParamList();
 			InitializeEventMap();
 			InitializePropertyMap();
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids3);
+			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids3);
 
 			// We must re-use deleted event/property rows after we've initialized
 			// the event/prop map tables.
@@ -618,7 +618,7 @@ namespace dnlib.DotNet.Writer {
 			if (propertyDefInfos.NeedPtrTable)
 				ReUseDeletedPropertyRows();
 
-			Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids4);
+			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids4);
 
 			InitializeTypeRefTableRows();
 			InitializeTypeSpecTableRows();

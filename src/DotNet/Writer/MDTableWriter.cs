@@ -14,7 +14,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawModuleRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawModuleRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -33,7 +33,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawTypeRefRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawTypeRefRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawTypeDefRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawTypeDefRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawFieldPtrRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawFieldPtrRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -84,7 +84,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawFieldRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawFieldRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -101,7 +101,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawMethodPtrRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawMethodPtrRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -115,7 +115,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawMethodRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawMethodRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -135,7 +135,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawParamPtrRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawParamPtrRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -149,7 +149,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawParamRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawParamRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -166,7 +166,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawInterfaceImplRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawInterfaceImplRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -181,7 +181,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawMemberRefRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawMemberRefRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -198,7 +198,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawConstantRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawConstantRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -215,7 +215,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawCustomAttributeRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawCustomAttributeRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -231,7 +231,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawFieldMarshalRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawFieldMarshalRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -246,7 +246,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawDeclSecurityRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawDeclSecurityRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -262,7 +262,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawClassLayoutRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawClassLayoutRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -278,7 +278,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawFieldLayoutRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawFieldLayoutRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -293,7 +293,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawStandAloneSigRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawStandAloneSigRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -307,7 +307,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawEventMapRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawEventMapRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -322,7 +322,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawEventPtrRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawEventPtrRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -336,7 +336,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawEventRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawEventRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -353,7 +353,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawPropertyMapRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawPropertyMapRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -368,7 +368,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawPropertyPtrRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawPropertyPtrRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -382,7 +382,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawPropertyRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawPropertyRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -399,7 +399,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawMethodSemanticsRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawMethodSemanticsRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -415,7 +415,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawMethodImplRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawMethodImplRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -431,7 +431,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawModuleRefRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawModuleRefRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -446,7 +446,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawTypeSpecRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawTypeSpecRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -460,7 +460,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawImplMapRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawImplMapRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -478,7 +478,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawFieldRVARow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawFieldRVARow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -493,7 +493,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawENCLogRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawENCLogRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
 				writer.Write(row.Token);
@@ -507,7 +507,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawENCMapRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawENCMapRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
 				writer.Write(row.Token);
@@ -520,7 +520,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawAssemblyRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawAssemblyRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -543,7 +543,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawAssemblyProcessorRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawAssemblyProcessorRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
 				writer.Write(row.Processor);
@@ -556,7 +556,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawAssemblyOSRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawAssemblyOSRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
 				writer.Write(row.OSPlatformId);
@@ -571,7 +571,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawAssemblyRefRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawAssemblyRefRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -594,7 +594,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawAssemblyRefProcessorRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawAssemblyRefProcessorRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -609,7 +609,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawAssemblyRefOSRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawAssemblyRefOSRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -626,7 +626,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawFileRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawFileRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -643,7 +643,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawExportedTypeRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawExportedTypeRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -662,7 +662,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawManifestResourceRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawManifestResourceRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -680,7 +680,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawNestedClassRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawNestedClassRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -695,7 +695,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawGenericParamRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawGenericParamRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			if (cols.Count >= 5) {
@@ -725,7 +725,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawMethodSpecRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawMethodSpecRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -740,7 +740,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawGenericParamConstraintRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawGenericParamConstraintRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -755,7 +755,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawDocumentRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawDocumentRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -772,7 +772,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawMethodDebugInformationRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawMethodDebugInformationRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -787,7 +787,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawLocalScopeRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawLocalScopeRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -806,7 +806,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawLocalVariableRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawLocalVariableRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -823,7 +823,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawLocalConstantRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawLocalConstantRow> table) {
 			var cols = table.TableInfo.Columns;
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
@@ -839,7 +839,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawImportScopeRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawImportScopeRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -854,7 +854,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawStateMachineMethodRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawStateMachineMethodRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
@@ -869,7 +869,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Writer</param>
 		/// <param name="metadata">Metadata</param>
 		/// <param name="table">Table</param>
-		public static void Write(this BinaryWriter writer, MetaData metadata, MDTable<RawCustomDebugInformationRow> table) {
+		public static void Write(this BinaryWriter writer, Metadata metadata, MDTable<RawCustomDebugInformationRow> table) {
 			var cols = table.TableInfo.Columns;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];

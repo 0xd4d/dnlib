@@ -9,8 +9,8 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Represents the .NET metadata header
 	/// </summary>
-	/// <remarks><c>IMAGE_COR20_HEADER.MetaData</c> points to this header</remarks>
-	public sealed class MetaDataHeader : FileSection {
+	/// <remarks><c>IMAGE_COR20_HEADER.Metadata</c> points to this header</remarks>
+	public sealed class MetadataHeader : FileSection {
 		readonly uint signature;
 		readonly ushort majorVersion;
 		readonly ushort minorVersion;
@@ -84,15 +84,15 @@ namespace dnlib.DotNet.MD {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public MetaDataHeader(IImageStream reader, bool verify) {
+		public MetadataHeader(IImageStream reader, bool verify) {
 			SetStartOffset(reader);
 			signature = reader.ReadUInt32();
 			if (verify && signature != 0x424A5342)
-				throw new BadImageFormatException("Invalid MetaData header signature");
+				throw new BadImageFormatException("Invalid metadata header signature");
 			majorVersion = reader.ReadUInt16();
 			minorVersion = reader.ReadUInt16();
 			if (verify && !((majorVersion == 1 && minorVersion == 1) || (majorVersion == 0 && minorVersion >= 19)))
-				throw new BadImageFormatException($"Unknown MetaData header version: {majorVersion}.{minorVersion}");
+				throw new BadImageFormatException($"Unknown metadata header version: {majorVersion}.{minorVersion}");
 			reserved1 = reader.ReadUInt32();
 			stringLength = reader.ReadUInt32();
 			versionString = ReadString(reader, stringLength);

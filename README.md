@@ -535,7 +535,7 @@ The low level classes are in the `dnlib.DotNet.MD` namespace.
 Open an existing .NET module/assembly and you get a ModuleDefMD. It has several
 properties, eg. `StringsStream` is the #Strings stream.
 
-The `MetaData` property gives you full access to the metadata.
+The `Metadata` property gives you full access to the metadata.
 
 To get a list of all valid TypeDef rids (row IDs), use this code:
 
@@ -543,7 +543,7 @@ To get a list of all valid TypeDef rids (row IDs), use this code:
     using dnlib.DotNet.MD;
     // ...
     ModuleDefMD mod = ModuleDefMD.Load(...);
-    RidList typeDefRids = mod.MetaData.GetTypeDefRidList();
+    RidList typeDefRids = mod.Metadata.GetTypeDefRidList();
     for (int i = 0; i < typeDefRids.Count; i++)
     	Console.WriteLine("rid: {0}", typeDefRids[i]);
 ```

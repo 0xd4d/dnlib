@@ -7,7 +7,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Does not preserve metadata tokens
 	/// </summary>
-	sealed class NormalMetaData : MetaData {
+	sealed class NormalMetadata : Metadata {
 		readonly Rows<TypeRef> typeRefInfos = new Rows<TypeRef>();
 		readonly Rows<TypeDef> typeDefInfos = new Rows<TypeDef>();
 		readonly Rows<FieldDef> fieldDefInfos = new Rows<FieldDef>();
@@ -22,7 +22,7 @@ namespace dnlib.DotNet.Writer {
 
 		protected override int NumberOfMethods => methodDefInfos.Count;
 
-		public NormalMetaData(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetaDataOptions options, DebugMetaDataKind debugKind, bool isStandaloneDebugMetadata)
+		public NormalMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
 			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
 		}
 
@@ -56,7 +56,7 @@ namespace dnlib.DotNet.Writer {
 			uint paramListRid = 1;
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids0 + notifyNum++);
+					Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids0 + notifyNum++);
 					notifyAfter += numTypes / numNotifyEvents;
 				}
 
@@ -121,7 +121,7 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetaDataEvent(this, MetaDataEvent.AllocateMemberDefRids0 + notifyNum++);
+				Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids0 + notifyNum++);
 		}
 
 		/// <inheritdoc/>

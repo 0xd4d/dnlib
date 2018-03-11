@@ -8,15 +8,15 @@ using dnlib.DotNet.Writer;
 namespace dnlib.DotNet.Pdb.Portable {
 	readonly struct LocalConstantSigBlobWriter {
 		readonly IWriterError helper;
-		readonly MetaData systemMetaData;
+		readonly Metadata systemMetadata;
 
-		LocalConstantSigBlobWriter(IWriterError helper, MetaData systemMetaData) {
+		LocalConstantSigBlobWriter(IWriterError helper, Metadata systemMetadata) {
 			this.helper = helper;
-			this.systemMetaData = systemMetaData;
+			this.systemMetadata = systemMetadata;
 		}
 
-		public static void Write(IWriterError helper, MetaData systemMetaData, BinaryWriter writer, TypeSig type, object value) {
-			var sigWriter = new LocalConstantSigBlobWriter(helper, systemMetaData);
+		public static void Write(IWriterError helper, Metadata systemMetadata, BinaryWriter writer, TypeSig type, object value) {
+			var sigWriter = new LocalConstantSigBlobWriter(helper, systemMetadata);
 			sigWriter.Write(writer, type, value);
 		}
 
@@ -302,7 +302,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		void WriteTypeDefOrRef(BinaryWriter writer, ITypeDefOrRef tdr) {
-			if (!MD.CodedToken.TypeDefOrRef.Encode(systemMetaData.GetToken(tdr), out uint codedToken)) {
+			if (!MD.CodedToken.TypeDefOrRef.Encode(systemMetadata.GetToken(tdr), out uint codedToken)) {
 				helper.Error("Couldn't encode a TypeDefOrRef");
 				return;
 			}

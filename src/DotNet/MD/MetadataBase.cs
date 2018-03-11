@@ -12,7 +12,7 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Common base class for #~ and #- metadata classes
 	/// </summary>
-	abstract class MetaData : IMetaData {
+	abstract class MetadataBase : Metadata {
 		/// <summary>
 		/// The PE image
 		/// </summary>
@@ -26,7 +26,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// The MD header
 		/// </summary>
-		protected MetaDataHeader mdHeader;
+		protected MetadataHeader mdHeader;
 
 		/// <summary>
 		/// The #Strings stream
@@ -63,8 +63,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		protected IList<DotNetStream> allStreams;
 
-		/// <inheritdoc/>
-		public bool IsStandalonePortablePdb => isStandalonePortablePdb;
+		public override bool IsStandalonePortablePdb => isStandalonePortablePdb;
 		/// <summary><c>true</c> if this is standalone Portable PDB metadata</summary>
 		protected readonly bool isStandalonePortablePdb;
 
@@ -102,7 +101,6 @@ namespace dnlib.DotNet.MD {
 					this.key = key;
 				}
 
-				/// <inheritdoc/>
 				public int CompareTo(RowInfo other) {
 					if (key < other.key)
 						return -1;
@@ -186,47 +184,19 @@ namespace dnlib.DotNet.MD {
 		SortedTable eventMapSortedTable;
 		SortedTable propertyMapSortedTable;
 
-		/// <inheritdoc/>
-		public abstract bool IsCompressed { get; }
-
-		/// <inheritdoc/>
-		public ImageCor20Header ImageCor20Header => cor20Header;
-
-		/// <inheritdoc/>
-		public ushort MajorVersion => mdHeader.MajorVersion;
-
-		/// <inheritdoc/>
-		public ushort MinorVersion => mdHeader.MinorVersion;
-
-		/// <inheritdoc/>
-		public string VersionString => mdHeader.VersionString;
-
-		/// <inheritdoc/>
-		public IPEImage PEImage => peImage;
-
-		/// <inheritdoc/>
-		public MetaDataHeader MetaDataHeader => mdHeader;
-
-		/// <inheritdoc/>
-		public StringsStream StringsStream => stringsStream;
-
-		/// <inheritdoc/>
-		public USStream USStream => usStream;
-
-		/// <inheritdoc/>
-		public BlobStream BlobStream => blobStream;
-
-		/// <inheritdoc/>
-		public GuidStream GuidStream => guidStream;
-
-		/// <inheritdoc/>
-		public TablesStream TablesStream => tablesStream;
-
-		/// <inheritdoc/>
-		public PdbStream PdbStream => pdbStream;
-
-		/// <inheritdoc/>
-		public IList<DotNetStream> AllStreams => allStreams;
+		public override ImageCor20Header ImageCor20Header => cor20Header;
+		public override ushort MajorVersion => mdHeader.MajorVersion;
+		public override ushort MinorVersion => mdHeader.MinorVersion;
+		public override string VersionString => mdHeader.VersionString;
+		public override IPEImage PEImage => peImage;
+		public override MetadataHeader MetadataHeader => mdHeader;
+		public override StringsStream StringsStream => stringsStream;
+		public override USStream USStream => usStream;
+		public override BlobStream BlobStream => blobStream;
+		public override GuidStream GuidStream => guidStream;
+		public override TablesStream TablesStream => tablesStream;
+		public override PdbStream PdbStream => pdbStream;
+		public override IList<DotNetStream> AllStreams => allStreams;
 
 		/// <summary>
 		/// Constructor
@@ -234,7 +204,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="peImage">The PE image</param>
 		/// <param name="cor20Header">The .NET header</param>
 		/// <param name="mdHeader">The MD header</param>
-		protected MetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader) {
+		protected MetadataBase(IPEImage peImage, ImageCor20Header cor20Header, MetadataHeader mdHeader) {
 			try {
 				allStreams = new List<DotNetStream>();
 				this.peImage = peImage;
@@ -249,7 +219,7 @@ namespace dnlib.DotNet.MD {
 			}
 		}
 
-		internal MetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb) {
+		internal MetadataBase(MetadataHeader mdHeader, bool isStandalonePortablePdb) {
 			allStreams = new List<DotNetStream>();
 			peImage = null;
 			cor20Header = null;
@@ -289,26 +259,8 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		protected abstract void InitializeInternal(IImageStream mdStream);
 
-		/// <inheritdoc/>
-		public virtual RidList GetTypeDefRidList() => RidList.Create(1, tablesStream.TypeDefTable.Rows);
-
-		/// <inheritdoc/>
-		public virtual RidList GetExportedTypeRidList() => RidList.Create(1, tablesStream.ExportedTypeTable.Rows);
-
-		/// <inheritdoc/>
-		public abstract RidList GetFieldRidList(uint typeDefRid);
-
-		/// <inheritdoc/>
-		public abstract RidList GetMethodRidList(uint typeDefRid);
-
-		/// <inheritdoc/>
-		public abstract RidList GetParamRidList(uint methodRid);
-
-		/// <inheritdoc/>
-		public abstract RidList GetEventRidList(uint eventMapRid);
-
-		/// <inheritdoc/>
-		public abstract RidList GetPropertyRidList(uint propertyMapRid);
+		public override RidList GetTypeDefRidList() => RidList.Create(1, tablesStream.TypeDefTable.Rows);
+		public override RidList GetExportedTypeRidList() => RidList.Create(1, tablesStream.ExportedTypeTable.Rows);
 
 		/// <summary>
 		/// Binary searches the table for a <c>rid</c> whose key column at index
@@ -368,86 +320,72 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A <see cref="RidList"/> instance</returns>
 		protected virtual RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) => FindAllRows(tableSource, keyColIndex, key);
 
-		/// <inheritdoc/>
-		public RidList GetInterfaceImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.InterfaceImplTable, 0, typeDefRid);
+		public override RidList GetInterfaceImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.InterfaceImplTable, 0, typeDefRid);
 
-		/// <inheritdoc/>
-		public RidList GetGenericParamRidList(Table table, uint rid) {
+		public override RidList GetGenericParamRidList(Table table, uint rid) {
 			if (!CodedToken.TypeOrMethodDef.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.GenericParamTable, 2, codedToken);
 		}
 
-		/// <inheritdoc/>
-		public RidList GetGenericParamConstraintRidList(uint genericParamRid) =>
+		public override RidList GetGenericParamConstraintRidList(uint genericParamRid) =>
 			FindAllRowsUnsorted(tablesStream.GenericParamConstraintTable, 0, genericParamRid);
 
-		/// <inheritdoc/>
-		public RidList GetCustomAttributeRidList(Table table, uint rid) {
+		public override RidList GetCustomAttributeRidList(Table table, uint rid) {
 			if (!CodedToken.HasCustomAttribute.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.CustomAttributeTable, 0, codedToken);
 		}
 
-		/// <inheritdoc/>
-		public RidList GetDeclSecurityRidList(Table table, uint rid) {
+		public override RidList GetDeclSecurityRidList(Table table, uint rid) {
 			if (!CodedToken.HasDeclSecurity.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.DeclSecurityTable, 1, codedToken);
 		}
 
-		/// <inheritdoc/>
-		public RidList GetMethodSemanticsRidList(Table table, uint rid) {
+		public override RidList GetMethodSemanticsRidList(Table table, uint rid) {
 			if (!CodedToken.HasSemantic.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRowsUnsorted(tablesStream.MethodSemanticsTable, 2, codedToken);
 		}
 
-		/// <inheritdoc/>
-		public RidList GetMethodImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.MethodImplTable, 0, typeDefRid);
+		public override RidList GetMethodImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.MethodImplTable, 0, typeDefRid);
 
-		/// <inheritdoc/>
-		public uint GetClassLayoutRid(uint typeDefRid) {
+		public override uint GetClassLayoutRid(uint typeDefRid) {
 			var list = FindAllRowsUnsorted(tablesStream.ClassLayoutTable, 2, typeDefRid);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetFieldLayoutRid(uint fieldRid) {
+		override public uint GetFieldLayoutRid(uint fieldRid) {
 			var list = FindAllRowsUnsorted(tablesStream.FieldLayoutTable, 1, fieldRid);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetFieldMarshalRid(Table table, uint rid) {
+		public override uint GetFieldMarshalRid(Table table, uint rid) {
 			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.FieldMarshalTable, 0, codedToken);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetFieldRVARid(uint fieldRid) {
+		public override uint GetFieldRVARid(uint fieldRid) {
 			var list = FindAllRowsUnsorted(tablesStream.FieldRVATable, 1, fieldRid);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetImplMapRid(Table table, uint rid) {
+		public override uint GetImplMapRid(Table table, uint rid) {
 			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.ImplMapTable, 1, codedToken);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetNestedClassRid(uint typeDefRid) {
+		public override uint GetNestedClassRid(uint typeDefRid) {
 			var list = FindAllRowsUnsorted(tablesStream.NestedClassTable, 0, typeDefRid);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetEventMapRid(uint typeDefRid) {
+		public override uint GetEventMapRid(uint typeDefRid) {
 			// The EventMap and PropertyMap tables can only be trusted to be sorted if it's
 			// an NGen image and it's the normal #- stream. The IsSorted bit must not be used
 			// to check whether the tables are sorted. See coreclr: md/inc/metamodel.h / IsVerified()
@@ -457,8 +395,7 @@ namespace dnlib.DotNet.MD {
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetPropertyMapRid(uint typeDefRid) {
+		public override uint GetPropertyMapRid(uint typeDefRid) {
 			// Always unsorted, see comment in GetEventMapRid() above
 			if (propertyMapSortedTable == null)
 				Interlocked.CompareExchange(ref propertyMapSortedTable, new SortedTable(tablesStream.PropertyMapTable, 0), null);
@@ -466,16 +403,14 @@ namespace dnlib.DotNet.MD {
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetConstantRid(Table table, uint rid) {
+		public override uint GetConstantRid(Table table, uint rid) {
 			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
 			var list = FindAllRowsUnsorted(tablesStream.ConstantTable, 2, codedToken);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		/// <inheritdoc/>
-		public uint GetOwnerTypeOfField(uint fieldRid) {
+		public override uint GetOwnerTypeOfField(uint fieldRid) {
 			if (fieldRidToTypeDefRid == null)
 				InitializeInverseFieldOwnerRidList();
 			uint index = fieldRid - 1;
@@ -502,8 +437,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref fieldRidToTypeDefRid, newFieldRidToTypeDefRid, null);
 		}
 
-		/// <inheritdoc/>
-		public uint GetOwnerTypeOfMethod(uint methodRid) {
+		public override uint GetOwnerTypeOfMethod(uint methodRid) {
 			if (methodRidToTypeDefRid == null)
 				InitializeInverseMethodOwnerRidList();
 			uint index = methodRid - 1;
@@ -530,8 +464,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref methodRidToTypeDefRid, newMethodRidToTypeDefRid, null);
 		}
 
-		/// <inheritdoc/>
-		public uint GetOwnerTypeOfEvent(uint eventRid) {
+		public override uint GetOwnerTypeOfEvent(uint eventRid) {
 			if (eventRidToTypeDefRid == null)
 				InitializeInverseEventOwnerRidList();
 			uint index = eventRid - 1;
@@ -558,8 +491,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref eventRidToTypeDefRid, newEventRidToTypeDefRid, null);
 		}
 
-		/// <inheritdoc/>
-		public uint GetOwnerTypeOfProperty(uint propertyRid) {
+		public override uint GetOwnerTypeOfProperty(uint propertyRid) {
 			if (propertyRidToTypeDefRid == null)
 				InitializeInversePropertyOwnerRidList();
 			uint index = propertyRid - 1;
@@ -586,8 +518,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref propertyRidToTypeDefRid, newPropertyRidToTypeDefRid, null);
 		}
 
-		/// <inheritdoc/>
-		public uint GetOwnerOfGenericParam(uint gpRid) {
+		public override uint GetOwnerOfGenericParam(uint gpRid) {
 			// Don't use GenericParam.Owner column. If the GP table is sorted, it's
 			// possible to have two blocks of GPs with the same owner. Only one of the
 			// blocks is the "real" generic params for the owner. Of course, rarely
@@ -641,8 +572,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref gpRidToOwnerRid, newGpRidToOwnerRid, null);
 		}
 
-		/// <inheritdoc/>
-		public uint GetOwnerOfGenericParamConstraint(uint gpcRid) {
+		public override uint GetOwnerOfGenericParamConstraint(uint gpcRid) {
 			// Don't use GenericParamConstraint.Owner column for the same reason
 			// as described in GetOwnerOfGenericParam().
 
@@ -689,8 +619,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref gpcRidToOwnerRid, newGpcRidToOwnerRid, null);
 		}
 
-		/// <inheritdoc/>
-		public uint GetOwnerOfParam(uint paramRid) {
+		public override uint GetOwnerOfParam(uint paramRid) {
 			if (paramRidToOwnerRid == null)
 				InitializeInverseParamOwnerRidList();
 			uint index = paramRid - 1;
@@ -717,8 +646,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref paramRidToOwnerRid, newParamRidToOwnerRid, null);
 		}
 
-		/// <inheritdoc/>
-		public RidList GetNestedClassRidList(uint typeDefRid) {
+		public override RidList GetNestedClassRidList(uint typeDefRid) {
 			if (typeDefRidToNestedClasses == null)
 				InitializeNestedClassesDictionary();
 			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out var ridList))
@@ -777,7 +705,7 @@ namespace dnlib.DotNet.MD {
 			Interlocked.CompareExchange(ref typeDefRidToNestedClasses, newTypeDefRidToNestedClasses, null);
 		}
 
-		public RidList GetNonNestedClassRidList() {
+		public override RidList GetNonNestedClassRidList() {
 			// Check typeDefRidToNestedClasses and not nonNestedTypes since
 			// InitializeNestedClassesDictionary() writes to typeDefRidToNestedClasses last.
 			if (typeDefRidToNestedClasses == null)
@@ -785,21 +713,20 @@ namespace dnlib.DotNet.MD {
 			return nonNestedTypes.Value;
 		}
 
-		public RidList GetLocalScopeRidList(uint methodRid) => FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
+		public override RidList GetLocalScopeRidList(uint methodRid) => FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
 
-		public uint GetStateMachineMethodRid(uint methodRid) {
+		public override uint GetStateMachineMethodRid(uint methodRid) {
 			var list = FindAllRows(tablesStream.StateMachineMethodTable, 0, methodRid);
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		public RidList GetCustomDebugInformationRidList(Table table, uint rid) {
+		public override RidList GetCustomDebugInformationRidList(Table table, uint rid) {
 			if (!CodedToken.HasCustomDebugInformation.Encode(new MDToken(table, rid), out uint codedToken))
 				return RidList.Empty;
 			return FindAllRows(tablesStream.CustomDebugInformationTable, 0, codedToken);
 		}
 
-		/// <inheritdoc/>
-		public void Dispose() {
+		public override void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}

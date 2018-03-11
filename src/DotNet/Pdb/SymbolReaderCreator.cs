@@ -14,17 +14,17 @@ namespace dnlib.DotNet.Pdb {
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metaData">.NET metadata</param>
+		/// <param name="metadata">.NET metadata</param>
 		/// <param name="assemblyFileName">Path to assembly</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk or if it's not possible to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader CreateFromAssemblyFile(PdbImplType pdbImpl, IMetaData metaData, string assemblyFileName) {
+		public static SymbolReader CreateFromAssemblyFile(PdbImplType pdbImpl, Metadata metadata, string assemblyFileName) {
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return Dss.SymbolReaderCreator.CreateFromAssemblyFile(assemblyFileName);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.CreateFromAssemblyFile(metaData, assemblyFileName);
+				return ManagedSymbolReaderCreator.CreateFromAssemblyFile(metadata, assemblyFileName);
 
 			default: throw new InvalidOperationException();
 			}
@@ -34,17 +34,17 @@ namespace dnlib.DotNet.Pdb {
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metaData">.NET metadata</param>
+		/// <param name="metadata">.NET metadata</param>
 		/// <param name="pdbFileName">Path to PDB file</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk or if it's not possible to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader Create(PdbImplType pdbImpl, IMetaData metaData, string pdbFileName) {
+		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, string pdbFileName) {
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
-				return Dss.SymbolReaderCreator.Create(metaData, pdbFileName);
+				return Dss.SymbolReaderCreator.Create(metadata, pdbFileName);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metaData, pdbFileName);
+				return ManagedSymbolReaderCreator.Create(metadata, pdbFileName);
 
 			default: throw new InvalidOperationException();
 			}
@@ -54,17 +54,17 @@ namespace dnlib.DotNet.Pdb {
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metaData">.NET metadata</param>
+		/// <param name="metadata">.NET metadata</param>
 		/// <param name="pdbData">PDB file data</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if it's not possible
 		/// to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader Create(PdbImplType pdbImpl, IMetaData metaData, byte[] pdbData) {
+		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, byte[] pdbData) {
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
-				return Dss.SymbolReaderCreator.Create(metaData, pdbData);
+				return Dss.SymbolReaderCreator.Create(metadata, pdbData);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metaData, pdbData);
+				return ManagedSymbolReaderCreator.Create(metadata, pdbData);
 
 			default: throw new InvalidOperationException();
 			}
@@ -74,17 +74,17 @@ namespace dnlib.DotNet.Pdb {
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metaData">.NET metadata</param>
+		/// <param name="metadata">.NET metadata</param>
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if it's not possible
 		/// to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader Create(PdbImplType pdbImpl, IMetaData metaData, IImageStream pdbStream) {
+		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, IImageStream pdbStream) {
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
-				return Dss.SymbolReaderCreator.Create(metaData, pdbStream);
+				return Dss.SymbolReaderCreator.Create(metadata, pdbStream);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metaData, pdbStream);
+				return ManagedSymbolReaderCreator.Create(metadata, pdbStream);
 
 			default:
 				if (pdbStream != null)
@@ -93,13 +93,13 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
-		internal static SymbolReader Create(PdbImplType pdbImpl, IMetaData metaData) {
+		internal static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata) {
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return null;
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metaData);
+				return ManagedSymbolReaderCreator.Create(metadata);
 
 			default:
 				throw new InvalidOperationException();

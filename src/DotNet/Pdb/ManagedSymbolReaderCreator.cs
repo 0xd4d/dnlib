@@ -7,19 +7,19 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
 	static class ManagedSymbolReaderCreator {
-		public static SymbolReader CreateFromAssemblyFile(IMetaData metaData, string assemblyFileName) =>
-			Create(metaData, Path.ChangeExtension(assemblyFileName, "pdb"));
+		public static SymbolReader CreateFromAssemblyFile(Metadata metadata, string assemblyFileName) =>
+			Create(metadata, Path.ChangeExtension(assemblyFileName, "pdb"));
 
-		public static SymbolReader Create(IMetaData metaData, string pdbFileName) =>
-			Create(metaData, ImageStreamUtils.OpenImageStream(pdbFileName));
+		public static SymbolReader Create(Metadata metadata, string pdbFileName) =>
+			Create(metadata, ImageStreamUtils.OpenImageStream(pdbFileName));
 
-		public static SymbolReader Create(IMetaData metaData, byte[] pdbData) =>
-			Create(metaData, MemoryImageStream.Create(pdbData));
+		public static SymbolReader Create(Metadata metadata, byte[] pdbData) =>
+			Create(metadata, MemoryImageStream.Create(pdbData));
 
-		public static SymbolReader Create(IMetaData metaData, IImageStream pdbStream) {
+		public static SymbolReader Create(Metadata metadata, IImageStream pdbStream) {
 			try {
 				// Embedded pdbs have priority
-				var res = Create(metaData);
+				var res = Create(metadata);
 				if (res != null) {
 					if (pdbStream != null)
 						pdbStream.Dispose();
@@ -52,6 +52,6 @@ namespace dnlib.DotNet.Pdb {
 			return null;
 		}
 
-		internal static SymbolReader Create(IMetaData metaData) => Portable.SymbolReaderCreator.TryCreate(metaData);
+		internal static SymbolReader Create(Metadata metadata) => Portable.SymbolReaderCreator.TryCreate(metadata);
 	}
 }

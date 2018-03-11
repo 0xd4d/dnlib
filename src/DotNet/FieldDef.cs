@@ -755,7 +755,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Field, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Field, origRid);
 			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
@@ -769,7 +769,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override uint? GetFieldOffset_NoLock() {
-			if (readerModule.TablesStream.TryReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(origRid), out var row))
+			if (readerModule.TablesStream.TryReadFieldLayoutRow(readerModule.Metadata.GetFieldLayoutRid(origRid), out var row))
 				return row.OffSet;
 			return null;
 		}
@@ -793,11 +793,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override ImplMap GetImplMap_NoLock() =>
-			readerModule.ResolveImplMap(readerModule.MetaData.GetImplMapRid(Table.Field, origRid));
+			readerModule.ResolveImplMap(readerModule.Metadata.GetImplMapRid(Table.Field, origRid));
 
 		/// <inheritdoc/>
 		protected override Constant GetConstant_NoLock() =>
-			readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Field, origRid));
+			readerModule.ResolveConstant(readerModule.Metadata.GetConstantRid(Table.Field, origRid));
 
 		/// <summary>
 		/// Constructor
@@ -845,7 +845,7 @@ namespace dnlib.DotNet {
 				rva = 0;
 				return false;
 			}
-			if (!readerModule.TablesStream.TryReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(origRid), out var row)) {
+			if (!readerModule.TablesStream.TryReadFieldRVARow(readerModule.Metadata.GetFieldRVARid(origRid), out var row)) {
 				rva = 0;
 				return false;
 			}

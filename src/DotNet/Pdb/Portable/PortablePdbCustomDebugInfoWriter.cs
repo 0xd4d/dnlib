@@ -12,19 +12,19 @@ namespace dnlib.DotNet.Pdb.Portable {
 	readonly struct PortablePdbCustomDebugInfoWriter {
 		readonly IPortablePdbCustomDebugInfoWriterHelper helper;
 		readonly SerializerMethodContext methodContext;
-		readonly MetaData systemMetaData;
+		readonly Metadata systemMetadata;
 		readonly MemoryStream outStream;
 		readonly BinaryWriter writer;
 
-		public static byte[] Write(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, MetaData systemMetaData, PdbCustomDebugInfo cdi, BinaryWriterContext context) {
-			var writer = new PortablePdbCustomDebugInfoWriter(helper, methodContext, systemMetaData, context);
+		public static byte[] Write(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, PdbCustomDebugInfo cdi, BinaryWriterContext context) {
+			var writer = new PortablePdbCustomDebugInfoWriter(helper, methodContext, systemMetadata, context);
 			return writer.Write(cdi);
 		}
 
-		PortablePdbCustomDebugInfoWriter(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, MetaData systemMetaData, BinaryWriterContext context) {
+		PortablePdbCustomDebugInfoWriter(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, BinaryWriterContext context) {
 			this.helper = helper;
 			this.methodContext = methodContext;
-			this.systemMetaData = systemMetaData;
+			this.systemMetadata = systemMetadata;
 			outStream = context.OutStream;
 			writer = context.Writer;
 			outStream.SetLength(0);
@@ -235,7 +235,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					resumeOffset = methodContext.GetOffset(info.BreakpointInstruction);
 				else
 					resumeOffset = GetOffsetSlow(info.BreakpointMethod, info.BreakpointInstruction);
-				uint resumeMethodRid = systemMetaData.GetRid(info.BreakpointMethod);
+				uint resumeMethodRid = systemMetadata.GetRid(info.BreakpointMethod);
 				writer.Write(yieldOffset);
 				writer.Write(resumeOffset);
 				writer.WriteCompressedUInt32(resumeMethodRid);

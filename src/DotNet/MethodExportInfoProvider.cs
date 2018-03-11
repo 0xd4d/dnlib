@@ -24,11 +24,11 @@ namespace dnlib.DotNet {
 		}
 
 		void Initialize(ModuleDefMD module) {
-			var vtblHdr = module.MetaData.ImageCor20Header.VTableFixups;
+			var vtblHdr = module.Metadata.ImageCor20Header.VTableFixups;
 			if (vtblHdr.VirtualAddress == 0 || vtblHdr.Size == 0)
 				return;
 
-			var peImage = module.MetaData.PEImage;
+			var peImage = module.Metadata.PEImage;
 			var exportHdr = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[0];
 			if (exportHdr.VirtualAddress == 0 || exportHdr.Size < 0x28)
 				return;

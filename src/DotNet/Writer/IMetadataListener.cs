@@ -4,33 +4,33 @@
 	/// <summary>
 	/// Gets notified of various events when writing the metadata
 	/// </summary>
-	public interface IMetaDataListener {
+	public interface IMetadataListener {
 		/// <summary>
-		/// Called by <see cref="MetaData"/>
+		/// Called by <see cref="Metadata"/>
 		/// </summary>
-		/// <param name="metaData">The metadata</param>
+		/// <param name="metadata">The metadata</param>
 		/// <param name="evt">Type of metadata event</param>
-		void OnMetaDataEvent(MetaData metaData, MetaDataEvent evt);
+		void OnMetadataEvent(Metadata metadata, MetadataEvent evt);
 	}
 
 	/// <summary>
-	/// A <see cref="IMetaDataListener"/> which does nothing
+	/// A <see cref="IMetadataListener"/> which does nothing
 	/// </summary>
-	public sealed class DummyMetaDataListener : IMetaDataListener {
+	public sealed class DummyMetadataListener : IMetadataListener {
 		/// <summary>
 		/// An instance of this dummy listener
 		/// </summary>
-		public static readonly DummyMetaDataListener Instance = new DummyMetaDataListener();
+		public static readonly DummyMetadataListener Instance = new DummyMetadataListener();
 
 		/// <inheritdoc/>
-		public void OnMetaDataEvent(MetaData metaData, MetaDataEvent evt) {
+		public void OnMetadataEvent(Metadata metadata, MetadataEvent evt) {
 		}
 	}
 
 	/// <summary>
-	/// All <see cref="MetaData"/> events
+	/// All <see cref="Metadata"/> events
 	/// </summary>
-	public enum MetaDataEvent {
+	public enum MetadataEvent {
 		/// <summary>
 		/// Creating the tables has just begun
 		/// </summary>

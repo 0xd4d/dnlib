@@ -149,7 +149,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override long WriteImpl() {
 			Initialize();
-			metaData.CreateTables();
+			metadata.CreateTables();
 			return WriteFile();
 		}
 
@@ -193,8 +193,8 @@ namespace dnlib.DotNet.Writer {
 			CreateStrongNameSignature();
 
 			imageCor20Header = new ImageCor20Header(Options.Cor20HeaderOptions);
-			CreateMetaDataChunks(module);
-			managedExportsWriter = new ManagedExportsWriter(UTF8String.ToSystemStringOrEmpty(module.Name), machine, relocDirectory, metaData, peHeaders, (format, args) => Error(format, args));
+			CreateMetadataChunks(module);
+			managedExportsWriter = new ManagedExportsWriter(UTF8String.ToSystemStringOrEmpty(module.Name), machine, relocDirectory, metadata, peHeaders, (format, args) => Error(format, args));
 
 			CreateDebugDirectory();
 
@@ -214,7 +214,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(constants, DEFAULT_CONSTANTS_ALIGNMENT);
 			textSection.Add(methodBodies, DEFAULT_METHODBODIES_ALIGNMENT);
 			textSection.Add(netResources, DEFAULT_NETRESOURCES_ALIGNMENT);
-			textSection.Add(metaData, DEFAULT_METADATA_ALIGNMENT);
+			textSection.Add(metadata, DEFAULT_METADATA_ALIGNMENT);
 			textSection.Add(debugDirectory, DebugDirectory.DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			textSection.Add(importDirectory, pointerAlignment);
 			textSection.Add(startupStub, startupStub.Alignment);
@@ -225,7 +225,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long WriteFile() {
-			managedExportsWriter.AddExportedMethods(metaData.ExportedMethods, GetTimeDateStamp());
+			managedExportsWriter.AddExportedMethods(metadata.ExportedMethods, GetTimeDateStamp());
 			if (managedExportsWriter.HasExports)
 				needStartupStub = true;
 
@@ -286,7 +286,7 @@ namespace dnlib.DotNet.Writer {
 			peHeaders.Win32Resources = win32Resources;
 			peHeaders.RelocDirectory = relocDirectory;
 			peHeaders.DebugDirectory = debugDirectory;
-			imageCor20Header.MetaData = metaData;
+			imageCor20Header.Metadata = metadata;
 			imageCor20Header.NetResources = netResources;
 			imageCor20Header.StrongNameSignature = strongNameSignature;
 			managedExportsWriter.InitializeChunkProperties();
@@ -294,10 +294,10 @@ namespace dnlib.DotNet.Writer {
 
 		uint GetEntryPoint() {
 			if (module.ManagedEntryPoint is MethodDef methodEntryPoint)
-				return new MDToken(Table.Method, metaData.GetRid(methodEntryPoint)).Raw;
+				return new MDToken(Table.Method, metadata.GetRid(methodEntryPoint)).Raw;
 
 			if (module.ManagedEntryPoint is FileDef fileEntryPoint)
-				return new MDToken(Table.File, metaData.GetRid(fileEntryPoint)).Raw;
+				return new MDToken(Table.File, metadata.GetRid(fileEntryPoint)).Raw;
 
 			uint nativeEntryPoint = (uint)module.NativeEntryPoint;
 			if (nativeEntryPoint != 0)

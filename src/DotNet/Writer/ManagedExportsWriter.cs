@@ -16,7 +16,7 @@ namespace dnlib.DotNet.Writer {
 		readonly string moduleName;
 		readonly Machine machine;
 		readonly RelocDirectory relocDirectory;
-		readonly MetaData metaData;
+		readonly Metadata metadata;
 		readonly PEHeaders peHeaders;
 		readonly Action<string, object[]> logError;
 		readonly VtableFixupsChunk vtableFixups;
@@ -98,11 +98,11 @@ namespace dnlib.DotNet.Writer {
 			public void WriteTo(BinaryWriter writer) => owner.WriteSdata(writer);
 		}
 
-		public ManagedExportsWriter(string moduleName, Machine machine, RelocDirectory relocDirectory, MetaData metaData, PEHeaders peHeaders, Action<string, object[]> logError) {
+		public ManagedExportsWriter(string moduleName, Machine machine, RelocDirectory relocDirectory, Metadata metadata, PEHeaders peHeaders, Action<string, object[]> logError) {
 			this.moduleName = moduleName;
 			this.machine = machine;
 			this.relocDirectory = relocDirectory;
-			this.metaData = metaData;
+			this.metadata = metadata;
 			this.peHeaders = peHeaders;
 			this.logError = logError;
 			vtableFixups = new VtableFixupsChunk(this);
@@ -326,7 +326,7 @@ namespace dnlib.DotNet.Writer {
 				vtbl.SdataChunkOffset = (uint)writer.BaseStream.Position;
 				foreach (var info in vtbl.Methods) {
 					info.ManagedVtblOffset = (uint)writer.BaseStream.Position;
-					writer.Write(0x06000000 + metaData.GetRid(info.Method));
+					writer.Write(0x06000000 + metadata.GetRid(info.Method));
 					if ((vtbl.Flags & VTableFlags.Bit64) != 0)
 						writer.Write(0U);
 				}

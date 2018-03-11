@@ -25,7 +25,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class ModuleDefMD : ModuleDefMD2, IInstructionOperandResolver {
 		/// <summary>The file that contains all .NET metadata</summary>
-		MetaData metaData;
+		MetadataBase metadata;
 		IMethodDecrypter methodDecrypter;
 		IStringDecrypter stringDecrypter;
 
@@ -76,43 +76,43 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns the .NET metadata interface
 		/// </summary>
-		public IMetaData MetaData => metaData;
+		public Metadata Metadata => metadata;
 
 		/// <summary>
 		/// Returns the #~ or #- tables stream
 		/// </summary>
-		public TablesStream TablesStream => metaData.TablesStream;
+		public TablesStream TablesStream => metadata.TablesStream;
 
 		/// <summary>
 		/// Returns the #Strings stream
 		/// </summary>
-		public StringsStream StringsStream => metaData.StringsStream;
+		public StringsStream StringsStream => metadata.StringsStream;
 
 		/// <summary>
 		/// Returns the #Blob stream
 		/// </summary>
-		public BlobStream BlobStream => metaData.BlobStream;
+		public BlobStream BlobStream => metadata.BlobStream;
 
 		/// <summary>
 		/// Returns the #GUID stream
 		/// </summary>
-		public GuidStream GuidStream => metaData.GuidStream;
+		public GuidStream GuidStream => metadata.GuidStream;
 
 		/// <summary>
 		/// Returns the #US stream
 		/// </summary>
-		public USStream USStream => metaData.USStream;
+		public USStream USStream => metadata.USStream;
 
 		/// <inheritdoc/>
 		protected override void InitializeTypes() {
-			var list = MetaData.GetNonNestedClassRidList();
+			var list = Metadata.GetNonNestedClassRidList();
 			var tmp = new LazyList<TypeDef, RidList>(list.Count, this, list, (list2, index) => ResolveTypeDef(list2[index]));
 			Interlocked.CompareExchange(ref types, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeExportedTypes() {
-			var list = MetaData.GetExportedTypeRidList();
+			var list = Metadata.GetExportedTypeRidList();
 			var tmp = new LazyList<ExportedType, RidList>(list.Count, list, (list2, i) => ResolveExportedType(list2[i]));
 			Interlocked.CompareExchange(ref exportedTypes, tmp, null);
 		}
@@ -125,11 +125,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override Win32Resources GetWin32Resources_NoLock() => metaData.PEImage.Win32Resources;
+		protected override Win32Resources GetWin32Resources_NoLock() => metadata.PEImage.Win32Resources;
 
 		/// <inheritdoc/>
 		protected override VTableFixups GetVTableFixups_NoLock() {
-			var vtableFixupsInfo = metaData.ImageCor20Header.VTableFixups;
+			var vtableFixupsInfo = metadata.ImageCor20Header.VTableFixups;
 			if (vtableFixupsInfo.VirtualAddress == 0 || vtableFixupsInfo.Size == 0)
 				return null;
 			return new VTableFixups(this);
@@ -149,7 +149,7 @@ namespace dnlib.DotNet {
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options = null) => Load(MetaDataCreator.Load(fileName), options);
+		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options = null) => Load(MetadataCreator.Load(fileName), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
@@ -165,7 +165,7 @@ namespace dnlib.DotNet {
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options = null) => Load(MetaDataCreator.Load(data), options);
+		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options = null) => Load(MetadataCreator.Load(data), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
@@ -241,7 +241,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr) => Load(MetaDataCreator.Load(addr), (ModuleCreationOptions)null);
+		public static ModuleDefMD Load(IntPtr addr) => Load(MetadataCreator.Load(addr), (ModuleCreationOptions)null);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -249,7 +249,7 @@ namespace dnlib.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) => Load(MetaDataCreator.Load(addr), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) => Load(MetadataCreator.Load(addr), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -257,14 +257,14 @@ namespace dnlib.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options) => Load(MetaDataCreator.Load(addr), options);
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options) => Load(MetadataCreator.Load(addr), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
 		/// </summary>
 		/// <param name="peImage">PE image</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage) => Load(MetaDataCreator.Load(peImage), (ModuleCreationOptions)null);
+		public static ModuleDefMD Load(IPEImage peImage) => Load(MetadataCreator.Load(peImage), (ModuleCreationOptions)null);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
@@ -272,7 +272,7 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage, ModuleContext context) => Load(MetaDataCreator.Load(peImage), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IPEImage peImage, ModuleContext context) => Load(MetadataCreator.Load(peImage), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
@@ -280,7 +280,7 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage, ModuleCreationOptions options) => Load(MetaDataCreator.Load(peImage), options);
+		public static ModuleDefMD Load(IPEImage peImage, ModuleCreationOptions options) => Load(MetadataCreator.Load(peImage), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -289,7 +289,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) => Load(MetaDataCreator.Load(addr, imageLayout), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) => Load(MetadataCreator.Load(addr, imageLayout), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -298,7 +298,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options, ImageLayout imageLayout) => Load(MetaDataCreator.Load(addr, imageLayout), options);
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options, ImageLayout imageLayout) => Load(MetadataCreator.Load(addr, imageLayout), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a stream
@@ -343,41 +343,41 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="MetaData"/>
+		/// Creates a <see cref="ModuleDefMD"/> instance from a <see cref="Metadata"/>
 		/// </summary>
-		/// <param name="metaData">The metadata</param>
+		/// <param name="metadata">The metadata</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
-		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="metaData"/></returns>
-		internal static ModuleDefMD Load(MetaData metaData, ModuleCreationOptions options) => new ModuleDefMD(metaData, options);
+		/// <returns>A new <see cref="ModuleDefMD"/> instance that now owns <paramref name="metadata"/></returns>
+		internal static ModuleDefMD Load(MetadataBase metadata, ModuleCreationOptions options) => new ModuleDefMD(metadata, options);
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="metaData">The metadata</param>
+		/// <param name="metadata">The metadata</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
-		/// <exception cref="ArgumentNullException">If <paramref name="metaData"/> is <c>null</c></exception>
-		ModuleDefMD(MetaData metaData, ModuleCreationOptions options)
+		/// <exception cref="ArgumentNullException">If <paramref name="metadata"/> is <c>null</c></exception>
+		ModuleDefMD(MetadataBase metadata, ModuleCreationOptions options)
 			: base(null, 1) {
 #if DEBUG
-			if (metaData == null)
-				throw new ArgumentNullException("metaData");
+			if (metadata == null)
+				throw new ArgumentNullException(nameof(metadata));
 #endif
 			if (options == null)
 				options = ModuleCreationOptions.Default;
-			this.metaData = metaData;
+			this.metadata = metadata;
 			context = options.Context;
 			Initialize();
 			InitializeFromRawRow();
-			location = metaData.PEImage.FileName ?? string.Empty;
+			location = metadata.PEImage.FileName ?? string.Empty;
 
 			Kind = GetKind();
-			Characteristics = MetaData.PEImage.ImageNTHeaders.FileHeader.Characteristics;
-			DllCharacteristics = MetaData.PEImage.ImageNTHeaders.OptionalHeader.DllCharacteristics;
-			RuntimeVersion = MetaData.VersionString;
-			Machine = MetaData.PEImage.ImageNTHeaders.FileHeader.Machine;
-			Cor20HeaderFlags = MetaData.ImageCor20Header.Flags;
-			Cor20HeaderRuntimeVersion = (uint)(MetaData.ImageCor20Header.MajorRuntimeVersion << 16) | MetaData.ImageCor20Header.MinorRuntimeVersion;
-			TablesHeaderVersion = MetaData.TablesStream.Version;
+			Characteristics = Metadata.PEImage.ImageNTHeaders.FileHeader.Characteristics;
+			DllCharacteristics = Metadata.PEImage.ImageNTHeaders.OptionalHeader.DllCharacteristics;
+			RuntimeVersion = Metadata.VersionString;
+			Machine = Metadata.PEImage.ImageNTHeaders.FileHeader.Machine;
+			Cor20HeaderFlags = Metadata.ImageCor20Header.Flags;
+			Cor20HeaderRuntimeVersion = (uint)(Metadata.ImageCor20Header.MajorRuntimeVersion << 16) | Metadata.ImageCor20Header.MinorRuntimeVersion;
+			TablesHeaderVersion = Metadata.TablesStream.Version;
 			corLibTypes = new CorLibTypes(this, options.CorLibAssemblyRef ?? FindCorLibAssemblyRef() ?? CreateDefaultCorLibAssemblyRef());
 			InitializePdb(options);
 		}
@@ -398,23 +398,23 @@ namespace dnlib.DotNet {
 			if (options.PdbFileOrData != null) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
-					var symReader = SymbolReaderCreator.Create(options.PdbImplementation, metaData, pdbFileName);
+					var symReader = SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbFileName);
 					if (symReader != null)
 						return symReader;
 				}
 
 				if (options.PdbFileOrData is byte[] pdbData)
-					return SymbolReaderCreator.Create(options.PdbImplementation, metaData, pdbData);
+					return SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbData);
 
 				if (options.PdbFileOrData is IImageStream pdbStream)
-					return SymbolReaderCreator.Create(options.PdbImplementation, metaData, pdbStream);
+					return SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbStream);
 			}
 
 			if (options.TryToLoadPdbFromDisk) {
 				if (!string.IsNullOrEmpty(location))
-					return SymbolReaderCreator.CreateFromAssemblyFile(options.PdbImplementation, metaData, location);
+					return SymbolReaderCreator.CreateFromAssemblyFile(options.PdbImplementation, metadata, location);
 				else
-					return SymbolReaderCreator.Create(options.PdbImplementation, metaData);
+					return SymbolReaderCreator.Create(options.PdbImplementation, metadata);
 			}
 
 			return null;
@@ -446,7 +446,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
 		/// <param name="pdbFileName">PDB file name</param>
-		public void LoadPdb(PdbImplType pdbImpl, string pdbFileName) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metaData, pdbFileName));
+		public void LoadPdb(PdbImplType pdbImpl, string pdbFileName) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbFileName));
 
 		/// <summary>
 		/// Loads symbols from a byte array
@@ -459,7 +459,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
 		/// <param name="pdbData">PDB data</param>
-		public void LoadPdb(PdbImplType pdbImpl, byte[] pdbData) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metaData, pdbData));
+		public void LoadPdb(PdbImplType pdbImpl, byte[] pdbData) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbData));
 
 		/// <summary>
 		/// Loads symbols from a stream
@@ -472,7 +472,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
-		public void LoadPdb(PdbImplType pdbImpl, IImageStream pdbStream) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metaData, pdbStream));
+		public void LoadPdb(PdbImplType pdbImpl, IImageStream pdbStream) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbStream));
 
 		/// <summary>
 		/// Loads symbols if a PDB file is available
@@ -487,7 +487,7 @@ namespace dnlib.DotNet {
 			var loc = location;
 			if (string.IsNullOrEmpty(loc))
 				return;
-			LoadPdb(SymbolReaderCreator.Create(pdbImpl, metaData, loc));
+			LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, loc));
 		}
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
@@ -501,7 +501,7 @@ namespace dnlib.DotNet {
 			if (TablesStream.AssemblyTable.Rows < 1)
 				return ModuleKind.NetModule;
 
-			var peImage = MetaData.PEImage;
+			var peImage = Metadata.PEImage;
 			if ((peImage.ImageNTHeaders.FileHeader.Characteristics & Characteristics.Dll) != 0)
 				return ModuleKind.Dll;
 
@@ -516,7 +516,7 @@ namespace dnlib.DotNet {
 		}
 
 		void Initialize() {
-			var ts = metaData.TablesStream;
+			var ts = metadata.TablesStream;
 
 			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == 1 ? this : new ModuleDefMD2(this, rid2));
 			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.TypeRefTable.Rows, rid2 => new TypeRefMD(this, rid2));
@@ -667,13 +667,13 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
 			// Call base first since it will dispose of all the resources, which will
-			// eventually use metaData that we will dispose
+			// eventually use metadata that we will dispose
 			base.Dispose(disposing);
 			if (disposing) {
-				var md = metaData;
+				var md = metadata;
 				if (md != null)
 					md.Dispose();
-				metaData = null;
+				metadata = null;
 			}
 		}
 
@@ -1279,7 +1279,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="MarshalType"/> instance or <c>null</c> if there's no field
 		/// marshal for this owner.</returns>
 		internal MarshalType ReadMarshalType(Table table, uint rid, GenericParamContext gpContext) {
-			if (!TablesStream.TryReadFieldMarshalRow(MetaData.GetFieldMarshalRid(table, rid), out var row))
+			if (!TablesStream.TryReadFieldMarshalRow(Metadata.GetFieldMarshalRid(table, rid), out var row))
 				return null;
 			return MarshalBlobReader.Read(this, row.NativeType, gpContext);
 		}
@@ -1310,8 +1310,8 @@ namespace dnlib.DotNet {
 			// If we create a partial stream starting from rva, then position will be 0 and always
 			// 4-byte aligned. All fat method bodies should be 4-byte aligned, but the CLR doesn't
 			// seem to verify it. We must parse the method exactly the way the CLR parses it.
-			using (var reader = metaData.PEImage.CreateFullStream()) {
-				reader.Position = (long)metaData.PEImage.ToFileOffset(rva);
+			using (var reader = metadata.PEImage.CreateFullStream()) {
+				reader.Position = (long)metadata.PEImage.ToFileOffset(rva);
 				return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext);
 			}
 		}
@@ -1321,49 +1321,49 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
-		internal TypeDef GetOwnerType(FieldDefMD field) => ResolveTypeDef(MetaData.GetOwnerTypeOfField(field.OrigRid));
+		internal TypeDef GetOwnerType(FieldDefMD field) => ResolveTypeDef(Metadata.GetOwnerTypeOfField(field.OrigRid));
 
 		/// <summary>
 		/// Returns the owner type of a method
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
-		internal TypeDef GetOwnerType(MethodDefMD method) => ResolveTypeDef(MetaData.GetOwnerTypeOfMethod(method.OrigRid));
+		internal TypeDef GetOwnerType(MethodDefMD method) => ResolveTypeDef(Metadata.GetOwnerTypeOfMethod(method.OrigRid));
 
 		/// <summary>
 		/// Returns the owner type of an event
 		/// </summary>
 		/// <param name="evt">The event</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
-		internal TypeDef GetOwnerType(EventDefMD evt) => ResolveTypeDef(MetaData.GetOwnerTypeOfEvent(evt.OrigRid));
+		internal TypeDef GetOwnerType(EventDefMD evt) => ResolveTypeDef(Metadata.GetOwnerTypeOfEvent(evt.OrigRid));
 
 		/// <summary>
 		/// Returns the owner type of a property
 		/// </summary>
 		/// <param name="property">The property</param>
 		/// <returns>The owner type or <c>null</c> if none</returns>
-		internal TypeDef GetOwnerType(PropertyDefMD property) => ResolveTypeDef(MetaData.GetOwnerTypeOfProperty(property.OrigRid));
+		internal TypeDef GetOwnerType(PropertyDefMD property) => ResolveTypeDef(Metadata.GetOwnerTypeOfProperty(property.OrigRid));
 
 		/// <summary>
 		/// Returns the owner type/method of a generic param
 		/// </summary>
 		/// <param name="gp">The generic param</param>
 		/// <returns>The owner type/method or <c>null</c> if none</returns>
-		internal ITypeOrMethodDef GetOwner(GenericParamMD gp) => ResolveTypeOrMethodDef(MetaData.GetOwnerOfGenericParam(gp.OrigRid));
+		internal ITypeOrMethodDef GetOwner(GenericParamMD gp) => ResolveTypeOrMethodDef(Metadata.GetOwnerOfGenericParam(gp.OrigRid));
 
 		/// <summary>
 		/// Returns the owner generic param of a generic param constraint
 		/// </summary>
 		/// <param name="gpc">The generic param constraint</param>
 		/// <returns>The owner generic param or <c>null</c> if none</returns>
-		internal GenericParam GetOwner(GenericParamConstraintMD gpc) => ResolveGenericParam(MetaData.GetOwnerOfGenericParamConstraint(gpc.OrigRid));
+		internal GenericParam GetOwner(GenericParamConstraintMD gpc) => ResolveGenericParam(Metadata.GetOwnerOfGenericParamConstraint(gpc.OrigRid));
 
 		/// <summary>
 		/// Returns the owner method of a param
 		/// </summary>
 		/// <param name="pd">The param</param>
 		/// <returns>The owner method or <c>null</c> if none</returns>
-		internal MethodDef GetOwner(ParamDefMD pd) => ResolveMethod(MetaData.GetOwnerOfParam(pd.OrigRid));
+		internal MethodDef GetOwner(ParamDefMD pd) => ResolveMethod(Metadata.GetOwnerOfParam(pd.OrigRid));
 
 		/// <summary>
 		/// Reads a module
@@ -1376,7 +1376,7 @@ namespace dnlib.DotNet {
 			var fileDef = ResolveFile(fileRid);
 			if (fileDef == null)
 				return null;
-			if (!fileDef.ContainsMetaData)
+			if (!fileDef.ContainsMetadata)
 				return null;
 			var fileName = GetValidFilename(GetBaseDirectoryOfImage(), UTF8String.ToSystemString(fileDef.Name));
 			if (fileName == null)
@@ -1421,7 +1421,7 @@ namespace dnlib.DotNet {
 				var fileDef = ResolveFile(fileRid);
 				if (fileDef == null)
 					continue;	// Should never happen
-				if (!fileDef.ContainsMetaData)
+				if (!fileDef.ContainsMetadata)
 					continue;
 				var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
 				if (pathName != null)
@@ -1512,8 +1512,8 @@ namespace dnlib.DotNet {
 		IImageStream CreateResourceStream(uint offset) {
 			IImageStream fs = null, imageStream = null;
 			try {
-				var peImage = metaData.PEImage;
-				var cor20Header = metaData.ImageCor20Header;
+				var peImage = metadata.PEImage;
+				var cor20Header = metadata.ImageCor20Header;
 				var resources = cor20Header.Resources;
 				if (resources.VirtualAddress == 0 || resources.Size == 0)
 					return MemoryImageStream.CreateEmpty();
@@ -1585,7 +1585,7 @@ namespace dnlib.DotNet {
 		public byte[] ReadDataAt(RVA rva, int size) {
 			if (size < 0)
 				return null;
-			var peImage = MetaData.PEImage;
+			var peImage = Metadata.PEImage;
 			using (var reader = peImage.CreateStream(rva, size)) {
 				if (reader.Length < size)
 					return null;
@@ -1597,7 +1597,7 @@ namespace dnlib.DotNet {
 		/// Gets the native entry point or 0 if none
 		/// </summary>
 		public RVA GetNativeEntryPoint() {
-			var cor20Header = MetaData.ImageCor20Header;
+			var cor20Header = Metadata.ImageCor20Header;
 			if ((cor20Header.Flags & ComImageFlags.NativeEntryPoint) == 0)
 				return 0;
 			return (RVA)cor20Header.EntryPointToken_or_RVA;
@@ -1607,7 +1607,7 @@ namespace dnlib.DotNet {
 		/// Gets the managed entry point (a Method or a File) or null if none
 		/// </summary>
 		public IManagedEntryPoint GetManagedEntryPoint() {
-			var cor20Header = MetaData.ImageCor20Header;
+			var cor20Header = Metadata.ImageCor20Header;
 			if ((cor20Header.Flags & ComImageFlags.NativeEntryPoint) != 0)
 				return null;
 			return ResolveToken(cor20Header.EntryPointToken_or_RVA) as IManagedEntryPoint;

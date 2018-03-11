@@ -10,30 +10,30 @@ namespace dnlib.DotNet.Pdb.Dss {
 	/// Pass this instance to <see cref="ISymUnmanagedWriter.Initialize"/> when writing the PDB file
 	/// </summary>
 	sealed class MDEmitter : IMetaDataImport, IMetaDataEmit {
-		readonly MetaData metaData;
+		readonly Metadata metadata;
 		readonly Dictionary<uint, TypeDef> tokenToTypeDef;
 		readonly Dictionary<uint, MethodDef> tokenToMethodDef;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="metaData">Metadata</param>
-		public MDEmitter(MetaData metaData) {
-			this.metaData = metaData;
+		/// <param name="metadata">Metadata</param>
+		public MDEmitter(Metadata metadata) {
+			this.metadata = metadata;
 
 			// We could get these from the metadata tables but it's just easier to get name,
 			// declaring type etc using TypeDef and MethodDef.
 
-			tokenToTypeDef = new Dictionary<uint, TypeDef>(metaData.TablesHeap.TypeDefTable.Rows);
-			tokenToMethodDef = new Dictionary<uint, MethodDef>(metaData.TablesHeap.MethodTable.Rows);
-			foreach (var type in metaData.Module.GetTypes()) {
+			tokenToTypeDef = new Dictionary<uint, TypeDef>(metadata.TablesHeap.TypeDefTable.Rows);
+			tokenToMethodDef = new Dictionary<uint, MethodDef>(metadata.TablesHeap.MethodTable.Rows);
+			foreach (var type in metadata.Module.GetTypes()) {
 				if (type == null)
 					continue;
-				tokenToTypeDef.Add(new MDToken(MD.Table.TypeDef, metaData.GetRid(type)).Raw, type);
+				tokenToTypeDef.Add(new MDToken(MD.Table.TypeDef, metadata.GetRid(type)).Raw, type);
 				foreach (var method in type.Methods) {
 					if (method == null)
 						continue;
-					tokenToMethodDef.Add(new MDToken(MD.Table.Method, metaData.GetRid(method)).Raw, method);
+					tokenToMethodDef.Add(new MDToken(MD.Table.Method, metadata.GetRid(method)).Raw, method);
 				}
 			}
 		}
@@ -42,10 +42,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if ((mb >> 24) != 0x06)
 				throw new ArgumentException();
 			var method = tokenToMethodDef[mb];
-			var row = metaData.TablesHeap.MethodTable[mb & 0x00FFFFFF];
+			var row = metadata.TablesHeap.MethodTable[mb & 0x00FFFFFF];
 
 			if (pClass != null)
-				*pClass = new MDToken(MD.Table.TypeDef, metaData.GetRid(method.DeclaringType)).Raw;
+				*pClass = new MDToken(MD.Table.TypeDef, metadata.GetRid(method.DeclaringType)).Raw;
 			if (pdwAttr != null)
 				*pdwAttr = row.Flags;
 			if (ppvSigBlob != null)
@@ -73,7 +73,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if ((td >> 24) != 0x02)
 				throw new ArgumentException();
 			var type = tokenToTypeDef[td];
-			var row = metaData.TablesHeap.TypeDefTable[td & 0x00FFFFFF];
+			var row = metadata.TablesHeap.TypeDefTable[td & 0x00FFFFFF];
 			if (pdwTypeDefFlags != null)
 				*pdwTypeDefFlags = row.Flags;
 			if (ptkExtends != null)
@@ -100,7 +100,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				if (declType == null)
 					*ptdEnclosingClass = 0;
 				else
-					*ptdEnclosingClass = new MDToken(MD.Table.TypeDef, metaData.GetRid(declType)).Raw;
+					*ptdEnclosingClass = new MDToken(MD.Table.TypeDef, metadata.GetRid(declType)).Raw;
 			}
 		}
 

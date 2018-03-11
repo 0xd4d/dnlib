@@ -12,7 +12,7 @@ namespace dnlib.DotNet.MD {
 		readonly uint cb;
 		readonly ushort majorRuntimeVersion;
 		readonly ushort minorRuntimeVersion;
-		readonly ImageDataDirectory metaData;
+		readonly ImageDataDirectory metadata;
 		readonly ComImageFlags flags;
 		readonly uint entryPointToken_or_RVA;
 		readonly ImageDataDirectory resources;
@@ -43,9 +43,9 @@ namespace dnlib.DotNet.MD {
 		public ushort MinorRuntimeVersion => minorRuntimeVersion;
 
 		/// <summary>
-		/// Returns the IMAGE_COR20_HEADER.MetaData field
+		/// Returns the IMAGE_COR20_HEADER.Metadata field
 		/// </summary>
-		public ImageDataDirectory MetaData => metaData;
+		public ImageDataDirectory Metadata => metadata;
 
 		/// <summary>
 		/// Returns the IMAGE_COR20_HEADER.Flags field
@@ -100,7 +100,7 @@ namespace dnlib.DotNet.MD {
 				throw new BadImageFormatException("Invalid IMAGE_COR20_HEADER.cb value");
 			majorRuntimeVersion = reader.ReadUInt16();
 			minorRuntimeVersion = reader.ReadUInt16();
-			metaData = new ImageDataDirectory(reader, verify);
+			metadata = new ImageDataDirectory(reader, verify);
 			flags = (ComImageFlags)reader.ReadUInt32();
 			entryPointToken_or_RVA = reader.ReadUInt32();
 			resources = new ImageDataDirectory(reader, verify);

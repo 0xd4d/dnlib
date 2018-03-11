@@ -53,12 +53,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.customDebugInfos = customDebugInfos;
 		}
 
-		IMetaData constantsMetaData;
+		Metadata constantsMetadata;
 		uint constantList;
 		uint constantListEnd;
 
-		internal void SetConstants(IMetaData metaData, uint constantList, uint constantListEnd) {
-			constantsMetaData = metaData;
+		internal void SetConstants(Metadata metadata, uint constantList, uint constantListEnd) {
+			constantsMetadata = metadata;
 			this.constantList = constantList;
 			this.constantListEnd = constantListEnd;
 		}
@@ -66,16 +66,16 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constantList >= constantListEnd)
 				return Array2.Empty<PdbConstant>();
-			Debug.Assert(constantsMetaData != null);
+			Debug.Assert(constantsMetadata != null);
 
 			var res = new PdbConstant[constantListEnd - constantList];
 			int w = 0;
 			for (int i = 0; i < res.Length; i++) {
 				uint rid = constantList + (uint)i;
-				bool b = constantsMetaData.TablesStream.TryReadLocalConstantRow(rid, out var row);
+				bool b = constantsMetadata.TablesStream.TryReadLocalConstantRow(rid, out var row);
 				Debug.Assert(b);
-				var name = constantsMetaData.StringsStream.Read(row.Name);
-				using (var stream = constantsMetaData.BlobStream.CreateStream(row.Signature)) {
+				var name = constantsMetadata.StringsStream.Read(row.Name);
+				using (var stream = constantsMetadata.BlobStream.CreateStream(row.Signature)) {
 					var localConstantSigBlobReader = new LocalConstantSigBlobReader(module, stream, gpContext);
 					b = localConstantSigBlobReader.Read(out var type, out object value);
 					Debug.Assert(b);

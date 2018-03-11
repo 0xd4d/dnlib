@@ -10,17 +10,17 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Used when a #~ stream is present in the metadata
 	/// </summary>
-	sealed class CompressedMetaData : MetaData {
+	sealed class CompressedMetadata : MetadataBase {
 		/// <inheritdoc/>
 		public override bool IsCompressed => true;
 
 		/// <inheritdoc/>
-		public CompressedMetaData(IPEImage peImage, ImageCor20Header cor20Header, MetaDataHeader mdHeader)
+		public CompressedMetadata(IPEImage peImage, ImageCor20Header cor20Header, MetadataHeader mdHeader)
 			: base(peImage, cor20Header, mdHeader) {
 		}
 
 		/// <inheritdoc/>
-		internal CompressedMetaData(MetaDataHeader mdHeader, bool isStandalonePortablePdb)
+		internal CompressedMetadata(MetadataHeader mdHeader, bool isStandalonePortablePdb)
 			: base(mdHeader, isStandalonePortablePdb) {
 		}
 
@@ -34,8 +34,8 @@ namespace dnlib.DotNet.MD {
 				if (peImage != null) {
 					Debug.Assert(mdStream == null);
 					Debug.Assert(cor20Header != null);
-					var mdOffset = peImage.ToFileOffset(cor20Header.MetaData.VirtualAddress);
-					mdStream = peImage.CreateStream(mdOffset, cor20Header.MetaData.Size);
+					var mdOffset = peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
+					mdStream = peImage.CreateStream(mdOffset, cor20Header.Metadata.Size);
 					disposeOfMdStream = true;
 				}
 				else

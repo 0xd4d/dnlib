@@ -364,11 +364,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override Constant GetConstant_NoLock() =>
-			readerModule.ResolveConstant(readerModule.MetaData.GetConstantRid(Table.Param, origRid));
+			readerModule.ResolveConstant(readerModule.Metadata.GetConstantRid(Table.Param, origRid));
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.MetaData.GetCustomAttributeRidList(Table.Param, origRid);
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Param, origRid);
 			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}

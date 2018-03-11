@@ -43,7 +43,7 @@ namespace dnlib.DotNet.Writer {
 
 			// C++ .NET mixed mode assemblies sometimes/often call Module.ResolveMethod(),
 			// so method metadata tokens must be preserved.
-			MetaDataOptions.Flags |= MetaDataFlags.PreserveAllMethodRids;
+			MetadataOptions.Flags |= MetadataFlags.PreserveAllMethodRids;
 		}
 	}
 
@@ -173,7 +173,7 @@ namespace dnlib.DotNet.Writer {
 		public NativeModuleWriter(ModuleDefMD module, NativeModuleWriterOptions options) {
 			this.module = module;
 			this.options = options;
-			peImage = module.MetaData.PEImage;
+			peImage = module.Metadata.PEImage;
 		}
 
 		/// <inheritdoc/>
@@ -198,9 +198,9 @@ namespace dnlib.DotNet.Writer {
 
 			// It's not safe to create new Field RVAs so re-use them all. The user can override
 			// this by setting field.RVA = 0 when creating a new field.InitialValue.
-			metaData.KeepFieldRVA = true;
+			metadata.KeepFieldRVA = true;
 
-			metaData.CreateTables();
+			metadata.CreateTables();
 			return WriteFile();
 		}
 
@@ -223,7 +223,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void CreateChunks() {
-			CreateMetaDataChunks(module);
+			CreateMetadataChunks(module);
 
 			CreateDebugDirectory();
 
@@ -237,7 +237,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(constants, DEFAULT_CONSTANTS_ALIGNMENT);
 			textSection.Add(methodBodies, DEFAULT_METHODBODIES_ALIGNMENT);
 			textSection.Add(netResources, DEFAULT_NETRESOURCES_ALIGNMENT);
-			textSection.Add(metaData, DEFAULT_METADATA_ALIGNMENT);
+			textSection.Add(metadata, DEFAULT_METADATA_ALIGNMENT);
 			textSection.Add(debugDirectory, DebugDirectory.DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 			if (rsrcSection != null)
 				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
@@ -518,15 +518,15 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(0x48);		// cb
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MajorRuntimeVersion);
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MinorRuntimeVersion);
-			writer.WriteDataDirectory(metaData);
+			writer.WriteDataDirectory(metadata);
 			writer.Write((uint)GetComImageFlags(entryPointIsManagedOrNoEntryPoint));
 			writer.Write(entryPointToken);
 			writer.WriteDataDirectory(netResources);
 			writer.WriteDataDirectory(strongNameSignature);
-			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.CodeManagerTable);
-			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.VTableFixups);
-			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.ExportAddressTableJumps);
-			WriteDataDirectory(writer, module.MetaData.ImageCor20Header.ManagedNativeHeader);
+			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.CodeManagerTable);
+			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.VTableFixups);
+			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.ExportAddressTableJumps);
+			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.ManagedNativeHeader);
 
 			UpdateVTableFixups(writer);
 		}
@@ -658,13 +658,13 @@ namespace dnlib.DotNet.Writer {
 
 		uint GetMethodToken(IMethod method) {
 			if (method is MethodDef md)
-				return new MDToken(Table.Method, metaData.GetRid(md)).Raw;
+				return new MDToken(Table.Method, metadata.GetRid(md)).Raw;
 
 			if (method is MemberRef mr)
-				return new MDToken(Table.MemberRef, metaData.GetRid(mr)).Raw;
+				return new MDToken(Table.MemberRef, metadata.GetRid(mr)).Raw;
 
 			if (method is MethodSpec ms)
-				return new MDToken(Table.MethodSpec, metaData.GetRid(ms)).Raw;
+				return new MDToken(Table.MethodSpec, metadata.GetRid(ms)).Raw;
 
 			if (method == null)
 				return 0;
@@ -687,11 +687,11 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			if (module.ManagedEntryPoint is MethodDef epMethod) {
-				ep = new MDToken(Table.Method, metaData.GetRid(epMethod)).Raw;
+				ep = new MDToken(Table.Method, metadata.GetRid(epMethod)).Raw;
 				return true;
 			}
 			if (module.ManagedEntryPoint is FileDef file) {
-				ep = new MDToken(Table.File, metaData.GetRid(file)).Raw;
+				ep = new MDToken(Table.File, metadata.GetRid(file)).Raw;
 				return true;
 			}
 			ep = (uint)module.NativeEntryPoint;

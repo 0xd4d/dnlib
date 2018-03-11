@@ -156,11 +156,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public void DefineLocalVariable2(string name, uint attributes, uint sigToken, uint addrKind, uint addr1, uint addr2, uint addr3, uint startOffset, uint endOffset) =>
 			writer.DefineLocalVariable2(name, attributes, sigToken, addrKind, addr1, addr2, addr3, startOffset, endOffset);
 
-		public void Initialize(MetaData metaData) {
+		public void Initialize(Metadata metadata) {
 			if (pdbStream != null)
-				writer.Initialize(new MDEmitter(metaData), pdbFileName, new StreamIStream(pdbStream), true);
+				writer.Initialize(new MDEmitter(metadata), pdbFileName, new StreamIStream(pdbStream), true);
 			else if (!string.IsNullOrEmpty(pdbFileName))
-				writer.Initialize(new MDEmitter(metaData), pdbFileName, null, true);
+				writer.Initialize(new MDEmitter(metadata), pdbFileName, null, true);
 			else
 				throw new InvalidOperationException();
 		}
