@@ -20,7 +20,6 @@ namespace dnlib.DotNet.MD {
 		uint extraData;
 		MDTable[] mdTables;
 
-		HotTableStream hotTableStream;
 		IColumnReader columnReader;
 		IRowReader<RawMethodRow> methodRowReader;
 
@@ -83,10 +82,6 @@ namespace dnlib.DotNet.MD {
 #if THREAD_SAFE
 		internal readonly Lock theLock = Lock.Create();
 #endif
-
-		internal HotTableStream HotTableStream {
-			set => hotTableStream = value;
-		}
 
 		/// <summary>
 		/// Gets/sets the column reader

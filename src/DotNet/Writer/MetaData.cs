@@ -290,7 +290,6 @@ namespace dnlib.DotNet.Writer {
 		internal readonly MethodBodyChunks methodBodies;
 		internal readonly NetResources netResources;
 		internal readonly MetaDataHeader metaDataHeader;
-		internal HotHeap hotHeap;
 		internal readonly PdbHeap pdbHeap;
 		internal readonly TablesHeap tablesHeap;
 		internal readonly StringsHeap stringsHeap;
@@ -377,14 +376,6 @@ namespace dnlib.DotNet.Writer {
 		/// Gets the MD header
 		/// </summary>
 		public MetaDataHeader MetaDataHeader => metaDataHeader;
-
-		/// <summary>
-		/// Gets/sets the hot heap (<c>#!</c>)
-		/// </summary>
-		HotHeap HotHeap {
-			get => hotHeap;
-			set => hotHeap = value;
-		}
 
 		/// <summary>
 		/// Gets the tables heap. Access to this heap is not recommended, but is useful if you
@@ -3366,15 +3357,6 @@ namespace dnlib.DotNet.Writer {
 			else {
 				if (options.OtherHeaps != null)
 					heaps.AddRange(options.OtherHeaps);
-
-				// The #! heap must be added before the other heaps or the CLR can
-				// sometimes flag an error. Eg., it can check whether a pointer is valid.
-				// It does this by comparing the pointer to the last valid address for
-				// the particular heap. If this pointer really is in the #! heap and the
-				// #! heap is at an address > than the other heap, then the CLR will think
-				// it's an invalid pointer.
-				if (hotHeap != null)  // Don't check whether it's empty
-					heaps.Add(hotHeap);
 
 				heaps.Add(tablesHeap);
 				if (!stringsHeap.IsEmpty || AlwaysCreateStringsHeap)

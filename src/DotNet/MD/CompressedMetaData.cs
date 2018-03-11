@@ -25,38 +25,11 @@ namespace dnlib.DotNet.MD {
 			: base(mdHeader, isStandalonePortablePdb) {
 		}
 
-		static CompressedMetaData() {
-			var windir = Environment.GetEnvironmentVariable("WINDIR");
-			if (!string.IsNullOrEmpty(windir)) {
-				var baseDir = Path.Combine(windir, "assembly");
-				nativeImages40 = Path.Combine(baseDir, "NativeImages_v4.0.30319");
-			}
-		}
-
-		static string nativeImages40;
-		static HotHeapVersion GetHotHeapVersion(string fileName, string version) {
-			// Some .NET 2.0 assemblies are stored in the 4.0 GAC. The version is not easily
-			// detectable from the data in the image so check the path.
-			if (nativeImages40 != null && fileName != null && fileName.StartsWith(nativeImages40, StringComparison.OrdinalIgnoreCase))
-				return HotHeapVersion.CLR40;
-
-			if (version.StartsWith(MDHeaderRuntimeVersion.MS_CLR_20_PREFIX))
-				return HotHeapVersion.CLR20;
-			if (version.StartsWith(MDHeaderRuntimeVersion.MS_CLR_40_PREFIX))
-				return HotHeapVersion.CLR40;
-
-			return HotHeapVersion.CLR40;
-		}
-
 		/// <inheritdoc/>
 		protected override void InitializeInternal(IImageStream mdStream) {
-			var hotHeapVersion = peImage == null ? HotHeapVersion.CLR20 : GetHotHeapVersion(peImage.FileName, mdHeader.VersionString);
-
 			bool disposeOfMdStream = false;
 			IImageStream imageStream = null, fullStream = null;
 			DotNetStream dns = null;
-			List<HotStream> hotStreams = null;
-			HotStream hotStream = null;
 			var newAllStreams = new List<DotNetStream>(allStreams);
 			try {
 				if (peImage != null) {
@@ -117,20 +90,6 @@ namespace dnlib.DotNet.MD {
 						}
 						break;
 
-					case "#!":
-						if (peImage == null)
-							break;
-						if (hotStreams == null)
-							hotStreams = new List<HotStream>();
-						fullStream = peImage.CreateFullStream();
-						hotStream = HotStream.Create(hotHeapVersion, imageStream, sh, fullStream, mdStream.FileOffset + sh.Offset);
-						fullStream = null;
-						hotStreams.Add(hotStream);
-						newAllStreams.Add(hotStream);
-						hotStream = null;
-						imageStream = null;
-						continue;
-
 					case "#Pdb":
 						if (isStandalonePortablePdb && pdbStream == null) {
 							pdbStream = new PdbStream(imageStream, sh);
@@ -155,8 +114,6 @@ namespace dnlib.DotNet.MD {
 					fullStream.Dispose();
 				if (dns != null)
 					dns.Dispose();
-				if (hotStream != null)
-					hotStream.Dispose();
 				newAllStreams.Reverse();
 				allStreams = newAllStreams;
 			}
@@ -164,84 +121,10 @@ namespace dnlib.DotNet.MD {
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
 
-			if (hotStreams != null) {
-				hotStreams.Reverse();
-				InitializeHotStreams(hotStreams);
-			}
-
 			if (pdbStream != null)
 				tablesStream.Initialize(pdbStream.TypeSystemTableRows);
 			else
 				tablesStream.Initialize(null);
-		}
-
-		int GetPointerSize() {
-			if (peImage == null)
-				return 4;
-			return peImage.ImageNTHeaders.OptionalHeader.Magic == 0x10B ? 4 : 8;
-		}
-
-		void InitializeHotStreams(IList<HotStream> hotStreams) {
-			if (hotStreams == null || hotStreams.Count == 0)
-				return;
-
-			// If this is a 32-bit image, make sure that we emulate this by masking
-			// all base offsets to 32 bits.
-			long offsetMask = GetPointerSize() == 8 ? -1L : uint.MaxValue;
-
-			// It's always the last one found that is used
-			var hotTable = hotStreams[hotStreams.Count - 1].HotTableStream;
-			if (hotTable != null) {
-				hotTable.Initialize(offsetMask);
-				tablesStream.HotTableStream = hotTable;
-			}
-
-			HotHeapStream hotStrings = null, hotBlob = null, hotGuid = null, hotUs = null;
-			for (int i = hotStreams.Count - 1; i >= 0; i--) {
-				var hotStream = hotStreams[i];
-				var hotHeapStreams = hotStream.HotHeapStreams;
-				if (hotHeapStreams == null)
-					continue;
-
-				// It's always the last one found that is used
-				for (int j = hotHeapStreams.Count - 1; j >= 0; j--) {
-					var hotHeap = hotHeapStreams[j];
-					switch (hotHeap.HeapType) {
-					case HeapType.Strings:
-						if (hotStrings == null) {
-							hotHeap.Initialize(offsetMask);
-							hotStrings = hotHeap;
-						}
-						break;
-
-					case HeapType.Guid:
-						if (hotGuid == null) {
-							hotHeap.Initialize(offsetMask);
-							hotGuid = hotHeap;
-						}
-						break;
-
-					case HeapType.Blob:
-						if (hotBlob == null) {
-							hotHeap.Initialize(offsetMask);
-							hotBlob = hotHeap;
-						}
-						break;
-
-					case HeapType.US:
-						if (hotUs == null) {
-							hotHeap.Initialize(offsetMask);
-							hotUs = hotHeap;
-						}
-						break;
-					}
-				}
-			}
-			InitializeNonExistentHeaps();
-			stringsStream.HotHeapStream = hotStrings;
-			guidStream.HotHeapStream = hotGuid;
-			blobStream.HotHeapStream = hotBlob;
-			usStream.HotHeapStream = hotUs;
 		}
 
 		/// <inheritdoc/>

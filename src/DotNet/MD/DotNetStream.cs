@@ -117,17 +117,9 @@ namespace dnlib.DotNet.MD {
 	/// Base class of #US, #Strings, #Blob, and #GUID classes
 	/// </summary>
 	public abstract class HeapStream : DotNetStream {
-		HotHeapStream hotHeapStream;
 #if THREAD_SAFE
 		internal readonly Lock theLock = Lock.Create();
 #endif
-
-		/// <summary>
-		/// Gets/sets the <see cref="HotHeapStream"/> instance
-		/// </summary>
-		internal HotHeapStream HotHeapStream {
-			set => hotHeapStream = value;
-		}
 
 		/// <inheritdoc/>
 		protected HeapStream() {
@@ -145,23 +137,9 @@ namespace dnlib.DotNet.MD {
 		/// be the offset of the GUID, not its index</param>
 		/// <returns>The heap reader</returns>
 		protected IImageStream GetReader_NoLock(uint offset) {
-			var stream = hotHeapStream?.GetBlobReader(offset);
-			if (stream == null) {
-				stream = imageStream;
-				stream.Position = offset;
-			}
+			var stream = imageStream;
+			stream.Position = offset;
 			return stream;
-		}
-
-		/// <inheritdoc/>
-		protected override void Dispose(bool disposing) {
-			if (disposing) {
-				var hhs = hotHeapStream;
-				if (hhs != null)
-					hhs.Dispose();
-				hotHeapStream = null;
-			}
-			base.Dispose(disposing);
 		}
 	}
 }

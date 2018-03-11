@@ -7,13 +7,7 @@ using dnlib.PE;
 ﻿namespace dnlib.DotNet.MD {
 	public partial class TablesStream {
 		IBinaryReader GetReader_NoLock(MDTable table, uint rid) {
-			IBinaryReader reader;
-			if (hotTableStream != null) {
-				reader = hotTableStream.GetTableReader(table, rid);
-				if (reader != null)
-					return reader;
-			}
-			reader = table.ImageStream;
+			var reader = table.ImageStream;
 			reader.Position = (rid - 1) * table.TableInfo.RowSize;
 			return reader;
 		}
