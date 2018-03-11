@@ -16,7 +16,7 @@ namespace dnlib.Examples {
 			var mod = ModuleDefMD.Load(typeof(int).Module);
 
 			// Get PE image interface
-			var peImage = mod.MetaData.PEImage;
+			var peImage = mod.Metadata.PEImage;
 
 			// Print some info
 			Console.WriteLine("Machine: {0}", peImage.ImageNTHeaders.FileHeader.Machine);

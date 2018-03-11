@@ -36,15 +36,15 @@ namespace dnlib.Examples {
 
 			// Add extra data. This will break most libraries that open .NET assemblies.
 			// Any value can be written here.
-			opts.MetaDataOptions.TablesHeapOptions.ExtraData = 0x12345678;
+			opts.MetadataOptions.TablesHeapOptions.ExtraData = 0x12345678;
 
 			// Add a few dummy heaps
-			opts.MetaDataOptions.OtherHeaps.Add(new MyHeap("#US "));
-			opts.MetaDataOptions.OtherHeaps.Add(new MyHeap("#Strings "));
-			opts.MetaDataOptions.OtherHeaps.Add(new MyHeap("#Strimgs"));
-			opts.MetaDataOptions.OtherHeaps.Add(new MyHeap("#GU1D"));
-			opts.MetaDataOptions.OtherHeapsEnd.Add(new MyHeap("#US "));
-			opts.MetaDataOptions.OtherHeapsEnd.Add(new MyHeap("#Strings "));
+			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#US "));
+			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#Strings "));
+			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#Strimgs"));
+			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#GU1D"));
+			opts.MetadataOptions.OtherHeapsEnd.Add(new MyHeap("#US "));
+			opts.MetadataOptions.OtherHeapsEnd.Add(new MyHeap("#Strings "));
 
 			// Write the module. The listener will get notified, see OnWriterEvent() below
 			mod.Write(destFileName, opts);
@@ -120,12 +120,12 @@ namespace dnlib.Examples {
 				foreach (var type in e.Writer.Module.GetTypes()) {
 					Console.WriteLine("TYPE: {0:X8} -> {1:X8} {2}",
 						type.MDToken.Raw,
-						new MDToken(Table.TypeDef, e.Writer.MetaData.GetRid(type)).Raw,
+						new MDToken(Table.TypeDef, e.Writer.Metadata.GetRid(type)).Raw,
 						type.FullName);
 					foreach (var method in type.Methods)
 						Console.WriteLine("  METH: {0:X8} -> {1:X8} {2}",
 							method.MDToken.Raw,
-							new MDToken(Table.Method, e.Writer.MetaData.GetRid(method)).Raw,
+							new MDToken(Table.Method, e.Writer.Metadata.GetRid(method)).Raw,
 							method.FullName);
 				}
 				break;
