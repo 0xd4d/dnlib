@@ -18,11 +18,26 @@ Want to say thanks? Click the star at the top of the page.
 Compiling
 ---------
 
-v3.0 requires VS2017 (C#7.2) or later to build it.
+v3.0 requires VS2017 (C#7.2) or later to build it. See below for breaking changes going from 2.1 to 3.0
 
 An [older v2.1 branch](https://github.com/0xd4d/dnlib/tree/v2.1_VS2010) can be used to build with older VS versions. This branch won't get any new updates.
 
 There are two project files, one for .NET Framework 3.5 or later (`src/dnlib.csproj`) and another one for netstandard 2.0 (`src/dnlib.netstandard.csproj`).
+
+v3.0 breaking changes
+---------------------
+- VS2017, C# 7.2 is required to compile it
+- It targets .NET Framework 3.5 or later and netstandard 2.0 or later (.NET Framework 2.0 and 3.0 aren't supported)
+- `*MetaData*` -> `*Metadata*`
+- `_32Bit*` -> `Bit32*`
+- Raw table rows, eg. `RawMethodRow`
+	- They are immutable structs and the methods to read them have been renamed from eg. `ReadMethodRow` -> `TryReadMethodRow`
+	- An indexer replaces their `Read()` method
+	- The `IRawRow` interface has been removed
+- The `Constant` table info (`TableInfo`) has an extra padding byte column
+- `ModuleWriterOptionsBase.Listener` is obsolete, use the new event `ModuleWriterOptionsBase.WriterEvent` instead
+- `StrongNameKey`, `PublicKey`, `PublicKeyToken` are immutable classes
+- `RidList` is a struct
 
 Examples
 --------
