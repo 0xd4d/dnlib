@@ -147,8 +147,7 @@ namespace dnlib.DotNet.MD {
 			uint rows = tablesStream.TypeDefTable.Rows;
 			var list = new List<uint>((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
-				var row = tablesStream.ReadTypeDefRow(rid);
-				if (row == null)
+				if (!tablesStream.TryReadTypeDefRow(rid, out var row))
 					continue;	// Should never happen since rid is valid
 
 				// RTSpecialName is ignored by the CLR. It's only the name that indicates
@@ -167,8 +166,7 @@ namespace dnlib.DotNet.MD {
 			uint rows = tablesStream.ExportedTypeTable.Rows;
 			var list = new List<uint>((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
-				var row = tablesStream.ReadExportedTypeRow(rid);
-				if (row == null)
+				if (!tablesStream.TryReadExportedTypeRow(rid, out var row))
 					continue;	// Should never happen since rid is valid
 
 				// RTSpecialName is ignored by the CLR. It's only the name that indicates
@@ -188,7 +186,7 @@ namespace dnlib.DotNet.MD {
 		uint ToFieldRid(uint listRid) {
 			if (!hasFieldPtr)
 				return listRid;
-			return tablesStream.ReadColumn(tablesStream.FieldPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn(tablesStream.FieldPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -199,7 +197,7 @@ namespace dnlib.DotNet.MD {
 		uint ToMethodRid(uint listRid) {
 			if (!hasMethodPtr)
 				return listRid;
-			return tablesStream.ReadColumn(tablesStream.MethodPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn(tablesStream.MethodPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -210,7 +208,7 @@ namespace dnlib.DotNet.MD {
 		uint ToParamRid(uint listRid) {
 			if (!hasParamPtr)
 				return listRid;
-			return tablesStream.ReadColumn(tablesStream.ParamPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn(tablesStream.ParamPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -221,7 +219,7 @@ namespace dnlib.DotNet.MD {
 		uint ToEventRid(uint listRid) {
 			if (!hasEventPtr)
 				return listRid;
-			return tablesStream.ReadColumn(tablesStream.EventPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn(tablesStream.EventPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -232,7 +230,7 @@ namespace dnlib.DotNet.MD {
 		uint ToPropertyRid(uint listRid) {
 			if (!hasPropertyPtr)
 				return listRid;
-			return tablesStream.ReadColumn(tablesStream.PropertyPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn(tablesStream.PropertyPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <inheritdoc/>
@@ -249,8 +247,7 @@ namespace dnlib.DotNet.MD {
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
-					var row = tablesStream.ReadFieldRow(rid);
-					if (row == null)
+					if (!tablesStream.TryReadFieldRow(rid, out var row))
 						continue;	// Should never happen since rid is valid
 					if ((row.Flags & (uint)FieldAttributes.RTSpecialName) != 0) {
 						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
@@ -277,8 +274,7 @@ namespace dnlib.DotNet.MD {
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
-					var row = tablesStream.ReadMethodRow(rid);
-					if (row == null)
+					if (!tablesStream.TryReadMethodRow(rid, out var row))
 						continue;	// Should never happen since rid is valid
 					if ((row.Flags & (uint)MethodAttributes.RTSpecialName) != 0) {
 						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
@@ -322,8 +318,7 @@ namespace dnlib.DotNet.MD {
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
-					var row = tablesStream.ReadEventRow(rid);
-					if (row == null)
+					if (!tablesStream.TryReadEventRow(rid, out var row))
 						continue;	// Should never happen since rid is valid
 					if ((row.EventFlags & (uint)EventAttributes.RTSpecialName) != 0) {
 						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
@@ -350,8 +345,7 @@ namespace dnlib.DotNet.MD {
 					continue;
 				if (hasDeletedRows) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
-					var row = tablesStream.ReadPropertyRow(rid);
-					if (row == null)
+					if (!tablesStream.TryReadPropertyRow(rid, out var row))
 						continue;	// Should never happen since rid is valid
 					if ((row.PropFlags & (uint)PropertyAttributes.RTSpecialName) != 0) {
 						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
@@ -379,9 +373,9 @@ namespace dnlib.DotNet.MD {
 #if THREAD_SAFE
 			tablesStream.theLock.EnterWriteLock(); try {
 #endif
-			if (!tablesStream.ReadColumn_NoLock(tableSource, tableSourceRid, column, out startRid))
+			if (!tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid, column, out startRid))
 				return RidList.Empty;
-			hasNext = tablesStream.ReadColumn_NoLock(tableSource, tableSourceRid + 1, column, out nextListRid);
+			hasNext = tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid + 1, column, out nextListRid);
 #if THREAD_SAFE
 			} finally { tablesStream.theLock.ExitWriteLock(); }
 #endif
@@ -402,7 +396,7 @@ namespace dnlib.DotNet.MD {
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
-				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
+				if (!tablesStream.TryReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;
@@ -431,7 +425,7 @@ namespace dnlib.DotNet.MD {
 				return 0;
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
-				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
+				if (!tablesStream.TryReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -375,10 +376,11 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			module = readerModule;
-			uint @namespace = readerModule.TablesStream.ReadTypeRefRow(origRid, out uint resolutionScope, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.@namespace = readerModule.StringsStream.ReadNoNull(@namespace);
-			resolutionScopeCodedToken = resolutionScope;
+			bool b = readerModule.TablesStream.TryReadTypeRefRow(origRid, out var row);
+			Debug.Assert(b);
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
+			@namespace = readerModule.StringsStream.ReadNoNull(row.Namespace);
+			resolutionScopeCodedToken = row.ResolutionScope;
 		}
 	}
 }

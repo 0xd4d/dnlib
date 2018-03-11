@@ -21,13 +21,13 @@
 	/// Reads table rows
 	/// </summary>
 	/// <typeparam name="TRow">Raw row</typeparam>
-	public interface IRowReader<TRow> where TRow : class, IRawRow {
+	public interface IRowReader<TRow> where TRow : struct {
 		/// <summary>
-		/// Reads a table row
+		/// Reads a table row or returns false if the row should be read from the original table
 		/// </summary>
 		/// <param name="rid">Row id</param>
-		/// <returns>The table row or <c>null</c> if its row should be read from the original
-		/// table</returns>
-		TRow ReadRow(uint rid);
+		/// <param name="row">The row</param>
+		/// <returns></returns>
+		bool TryReadRow(uint rid, out TRow row);
 	}
 }

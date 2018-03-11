@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -328,7 +329,9 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
-			signatureOffset = readerModule.TablesStream.ReadTypeSpecRow2(origRid);
+			bool b = readerModule.TablesStream.TryReadTypeSpecRow(origRid, out var row);
+			Debug.Assert(b);
+			signatureOffset = row.Signature;
 		}
 	}
 }

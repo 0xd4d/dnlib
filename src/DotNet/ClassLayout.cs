@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet {
@@ -89,7 +90,10 @@ namespace dnlib.DotNet {
 #endif
 			origRid = rid;
 			this.rid = rid;
-			classSize = readerModule.TablesStream.ReadClassLayoutRow(origRid, out packingSize);
+			bool b = readerModule.TablesStream.TryReadClassLayoutRow(origRid, out var row);
+			Debug.Assert(b);
+			classSize = row.ClassSize;
+			packingSize = row.PackingSize;
 		}
 	}
 }

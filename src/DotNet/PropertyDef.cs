@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -475,10 +476,12 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint type = readerModule.TablesStream.ReadPropertyRow(origRid, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadPropertyRow(origRid, out var row);
+			Debug.Assert(b);
+			attributes = row.PropFlags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			declaringType2 = readerModule.GetOwnerType(this);
-			this.type = readerModule.ReadSignature(type, new GenericParamContext(declaringType2));
+			type = readerModule.ReadSignature(row.Type, new GenericParamContext(declaringType2));
 		}
 
 		internal PropertyDefMD InitializeAll() {

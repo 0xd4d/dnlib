@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -194,8 +195,9 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			module = readerModule;
-			uint name = readerModule.TablesStream.ReadModuleRefRow2(origRid);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadModuleRefRow(origRid, out var row);
+			Debug.Assert(b);
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
 		}
 	}
 }

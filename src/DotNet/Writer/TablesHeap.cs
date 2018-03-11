@@ -285,7 +285,7 @@ namespace dnlib.DotNet.Writer {
 			};
 		}
 
-		sealed class RawDummyRow : IRawRow {
+		struct RawDummyRow {
 			public static readonly IEqualityComparer<RawDummyRow> Comparer = new RawDummyRowEqualityComparer();
 			sealed class RawDummyRowEqualityComparer : IEqualityComparer<RawDummyRow> {
 				public bool Equals(RawDummyRow x, RawDummyRow y) => throw new NotSupportedException();

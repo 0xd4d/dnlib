@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using dnlib.DotNet.MD;
@@ -448,15 +449,18 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint hashValue = readerModule.TablesStream.ReadAssemblyRefRow(origRid, out version, out attributes, out uint publicKeyOrToken, out uint name, out uint culture);
-			var pkData = readerModule.BlobStream.Read(publicKeyOrToken);
+			bool b = readerModule.TablesStream.TryReadAssemblyRefRow(origRid, out var row);
+			Debug.Assert(b);
+			version = new Version(row.MajorVersion, row.MinorVersion, row.BuildNumber, row.RevisionNumber);
+			attributes = (int)row.Flags;
+			var pkData = readerModule.BlobStream.Read(row.PublicKeyOrToken);
 			if ((attributes & (uint)AssemblyAttributes.PublicKey) != 0)
-				this.publicKeyOrToken = new PublicKey(pkData);
+				publicKeyOrToken = new PublicKey(pkData);
 			else
-				this.publicKeyOrToken = new PublicKeyToken(pkData);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.culture = readerModule.StringsStream.ReadNoNull(culture);
-			this.hashValue = readerModule.BlobStream.Read(hashValue);
+				publicKeyOrToken = new PublicKeyToken(pkData);
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
+			culture = readerModule.StringsStream.ReadNoNull(row.Locale);
+			hashValue = readerModule.BlobStream.Read(row.HashValue);
 		}
 	}
 }

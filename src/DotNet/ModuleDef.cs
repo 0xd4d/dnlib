@@ -12,6 +12,7 @@ using dnlib.DotNet.Writer;
 using dnlib.PE;
 using dnlib.Threading;
 using dnlib.W32Resources;
+using System.Diagnostics;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -1540,11 +1541,13 @@ namespace dnlib.DotNet {
 		/// Initialize fields from the raw <c>Module</c> row
 		/// </summary>
 		protected void InitializeFromRawRow() {
-			uint encBaseId = readerModule.TablesStream.ReadModuleRow(origRid, out generation, out uint name, out uint mvid, out uint encId);
-			this.mvid = readerModule.GuidStream.Read(mvid);
-			this.encId = readerModule.GuidStream.Read(encId);
-			this.encBaseId = readerModule.GuidStream.Read(encBaseId);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadModuleRow(origRid, out var row);
+			Debug.Assert(b);
+			generation = row.Generation;
+			mvid = readerModule.GuidStream.Read(row.Mvid);
+			encId = readerModule.GuidStream.Read(row.EncId);
+			encBaseId = readerModule.GuidStream.Read(row.EncBaseId);
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			if (origRid == 1)
 				assembly = readerModule.ResolveAssembly(origRid);
 		}

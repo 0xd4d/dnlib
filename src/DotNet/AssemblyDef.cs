@@ -10,6 +10,7 @@ using dnlib.DotNet.Writer;
 using System.Text.RegularExpressions;
 using dnlib.DotNet.Pdb;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -891,8 +892,7 @@ namespace dnlib.DotNet {
 			var gpContext = new GenericParamContext();
 			for (int i = 0; i < list.Count; i++) {
 				var caRid = list[i];
-				var caRow = readerModule.TablesStream.ReadCustomAttributeRow(caRid);
-				if (caRow == null)
+				if (!readerModule.TablesStream.TryReadCustomAttributeRow(caRid, out var caRow))
 					continue;
 				var caType = readerModule.ResolveCustomAttributeType(caRow.Type, gpContext);
 				if (!TryGetName(caType, out var ns, out var name))
@@ -1030,10 +1030,14 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			if (rid != 1)
 				modules = new LazyList<ModuleDef>(this);
-			uint culture = readerModule.TablesStream.ReadAssemblyRow(origRid, out hashAlgorithm, out version, out attributes, out uint publicKey, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.culture = readerModule.StringsStream.ReadNoNull(culture);
-			this.publicKey = new PublicKey(readerModule.BlobStream.Read(publicKey));
+			bool b = readerModule.TablesStream.TryReadAssemblyRow(origRid, out var row);
+			Debug.Assert(b);
+			hashAlgorithm = (AssemblyHashAlgorithm)row.HashAlgId;
+			version = new Version(row.MajorVersion, row.MinorVersion, row.BuildNumber, row.RevisionNumber);
+			attributes = (int)row.Flags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
+			culture = readerModule.StringsStream.ReadNoNull(row.Locale);
+			publicKey = new PublicKey(readerModule.BlobStream.Read(row.PublicKey));
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -204,9 +205,11 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint hashValue = readerModule.TablesStream.ReadFileRow(origRid, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.hashValue = readerModule.BlobStream.Read(hashValue);
+			bool b = readerModule.TablesStream.TryReadFileRow(origRid, out var row);
+			Debug.Assert(b);
+			attributes = (int)row.Flags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
+			hashValue = readerModule.BlobStream.Read(row.HashValue);
 		}
 	}
 }

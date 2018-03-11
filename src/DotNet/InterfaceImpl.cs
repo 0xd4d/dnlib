@@ -147,8 +147,9 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
-			uint @interface = readerModule.TablesStream.ReadInterfaceImplRow2(origRid);
-			this.@interface = readerModule.ResolveTypeDefOrRef(@interface, gpContext);
+			bool b = readerModule.TablesStream.TryReadInterfaceImplRow(origRid, out var row);
+			Debug.Assert(b);
+			@interface = readerModule.ResolveTypeDefOrRef(row.Interface, gpContext);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -155,8 +156,9 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
-			uint constraint = readerModule.TablesStream.ReadGenericParamConstraintRow2(origRid);
-			this.constraint = readerModule.ResolveTypeDefOrRef(constraint, gpContext);
+			bool b = readerModule.TablesStream.TryReadGenericParamConstraintRow(origRid, out var row);
+			Debug.Assert(b);
+			constraint = readerModule.ResolveTypeDefOrRef(row.Constraint, gpContext);
 			owner = readerModule.GetOwner(this);
 		}
 

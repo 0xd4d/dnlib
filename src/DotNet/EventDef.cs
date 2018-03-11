@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -380,10 +381,12 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint eventType = readerModule.TablesStream.ReadEventRow(origRid, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadEventRow(origRid, out var row);
+			Debug.Assert(b);
+			attributes = row.EventFlags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			declaringType2 = readerModule.GetOwnerType(this);
-			this.eventType = readerModule.ResolveTypeDefOrRef(eventType, new GenericParamContext(declaringType2));
+			eventType = readerModule.ResolveTypeDefOrRef(row.EventType, new GenericParamContext(declaringType2));
 		}
 
 		internal EventDefMD InitializeAll() {

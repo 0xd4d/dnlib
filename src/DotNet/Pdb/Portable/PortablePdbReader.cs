@@ -45,13 +45,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
 			var gpContext = new GenericParamContext();
 			for (int i = 0; i < docs.Length; i++) {
-				uint languageIndex = pdbMetaData.TablesStream.ReadDocumentRow2((uint)i + 1, out uint nameOffset, out uint hashAlgorithmIndex, out uint hashOffset);
-				var url = nameReader.ReadDocumentName(nameOffset);
-				var language = pdbMetaData.GuidStream.Read(languageIndex) ?? Guid.Empty;
+				bool b = pdbMetaData.TablesStream.TryReadDocumentRow((uint)i + 1, out var row);
+				Debug.Assert(b);
+				var url = nameReader.ReadDocumentName(row.Name);
+				var language = pdbMetaData.GuidStream.Read(row.Language) ?? Guid.Empty;
 				var languageVendor = GetLanguageVendor(language);
 				var documentType = PdbDocumentConstants.DocumentTypeText;
-				var checkSumAlgorithmId = pdbMetaData.GuidStream.Read(hashAlgorithmIndex) ?? Guid.Empty;
-				var checkSum = pdbMetaData.BlobStream.ReadNoNull(hashOffset);
+				var checkSumAlgorithmId = pdbMetaData.GuidStream.Read(row.HashAlgorithm) ?? Guid.Empty;
+				var checkSum = pdbMetaData.BlobStream.ReadNoNull(row.Hash);
 
 				var token = new MDToken(Table.Document, i + 1).ToInt32();
 				custInfos.Clear();
@@ -95,20 +96,22 @@ namespace dnlib.DotNet.Pdb.Portable {
 			uint rid = pdbMetaData.GetStateMachineMethodRid(methodRid);
 			if (rid == 0)
 				return 0;
-			if (!pdbMetaData.TablesStream.StateMachineMethodTable.IsValidRID(rid))
+			if (!pdbMetaData.TablesStream.TryReadStateMachineMethodRow(rid, out var row))
 				return 0;
-			return 0x06000000 + (int)pdbMetaData.TablesStream.ReadStateMachineMethodRow2(rid);
+			return 0x06000000 + (int)row.KickoffMethod;
 		}
 
 		SymbolSequencePoint[] ReadSequencePoints(uint methodRid) {
 			if (!pdbMetaData.TablesStream.MethodDebugInformationTable.IsValidRID(methodRid))
 				return null;
-			uint sequencePointsOffset = pdbMetaData.TablesStream.ReadMethodDebugInformationRow2(methodRid, out uint documentRid);
-			if (sequencePointsOffset == 0)
+			if (!pdbMetaData.TablesStream.TryReadMethodDebugInformationRow(methodRid, out var row))
 				return null;
+			if (row.SequencePoints == 0)
+				return null;
+			uint documentRid = row.Document;
 
 			var seqPointsBuilder = ListCache<SymbolSequencePoint>.AllocList();
-			using (var seqPointsStream = pdbMetaData.BlobStream.CreateStream(sequencePointsOffset)) {
+			using (var seqPointsStream = pdbMetaData.BlobStream.CreateStream(row.SequencePoints)) {
 				uint localSig = seqPointsStream.ReadCompressedUInt32();
 				if (documentRid == 0)
 					documentRid = seqPointsStream.ReadCompressedUInt32();
@@ -197,8 +200,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				for (int i = 0; i < scopesRidList.Count; i++) {
 					var rid = scopesRidList[i];
 					int token = new MDToken(Table.LocalScope, rid).ToInt32();
-					uint length = pdbMetaData.TablesStream.ReadLocalScopeRow2(rid, out uint importScope, out uint variableList, out uint constantList, out uint startOffset);
-					uint endOffset = startOffset + length;
+					bool b = pdbMetaData.TablesStream.TryReadLocalScopeRow(rid, out var row);
+					Debug.Assert(b);
+					uint startOffset = row.StartOffset;
+					uint endOffset = startOffset + row.Length;
 
 					SymbolScopeImpl parent = null;
 					while (stack.Count > 0) {
@@ -221,10 +226,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (parent != null)
 						parent.childrenList.Add(scope);
 
-					scope.importScope = ReadPdbImportScope(ref importScopeBlobReader, importScope, gpContext);
+					scope.importScope = ReadPdbImportScope(ref importScopeBlobReader, row.ImportScope, gpContext);
 					GetEndOfLists(rid, out uint variableListEnd, out uint constantListEnd);
-					ReadVariables(scope, gpContext, variableList, variableListEnd);
-					ReadConstants(scope, constantList, constantListEnd);
+					ReadVariables(scope, gpContext, row.VariableList, variableListEnd);
+					ReadConstants(scope, row.ConstantList, constantListEnd);
 				}
 
 				ListCache<SymbolScopeImpl>.Free(ref stack);
@@ -234,16 +239,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		void GetEndOfLists(uint scopeRid, out uint variableListEnd, out uint constantListEnd) {
-			var localScopeTable = pdbMetaData.TablesStream.LocalScopeTable;
 			var nextRid = scopeRid + 1;
-			if (!localScopeTable.IsValidRID(nextRid)) {
+			if (!pdbMetaData.TablesStream.TryReadLocalScopeRow(nextRid, out var row)) {
 				variableListEnd = pdbMetaData.TablesStream.LocalVariableTable.Rows + 1;
 				constantListEnd = pdbMetaData.TablesStream.LocalConstantTable.Rows + 1;
 			}
 			else {
-				pdbMetaData.TablesStream.ReadLocalScopeRow2(nextRid, out uint nextImportScope, out uint nextVariableList, out uint nextConstantList, out uint nextStartOffset);
-				variableListEnd = nextVariableList;
-				constantListEnd = nextConstantList;
+				variableListEnd = row.VariableList;
+				constantListEnd = row.ConstantList;
 			}
 		}
 
@@ -258,17 +261,17 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (i >= MAX)
 					return null;
 				int token = new MDToken(Table.ImportScope, importScope).ToInt32();
-				if (!pdbMetaData.TablesStream.ImportScopeTable.IsValidRID(importScope))
+				if (!pdbMetaData.TablesStream.TryReadImportScopeRow(importScope, out var row))
 					return null;
-				uint imports = pdbMetaData.TablesStream.ReadImportScopeRow2(importScope, out importScope);
 				var scope = new PdbImportScope();
 				GetCustomDebugInfos(token, gpContext, scope.CustomDebugInfos);
 				if (result == null)
 					result = scope;
 				if (prevScope != null)
 					prevScope.Parent = scope;
-				importScopeBlobReader.Read(imports, scope.Imports);
+				importScopeBlobReader.Read(row.Imports, scope.Imports);
 				prevScope = scope;
+				importScope = row.Parent;
 			}
 
 			return result;
@@ -293,9 +296,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				custInfos.Clear();
 				GetCustomDebugInfos(token, gpContext, custInfos);
 				var customDebugInfos = custInfos.Count == 0 ? Array2.Empty<PdbCustomDebugInfo>() : custInfos.ToArray();
-				var nameOffset = pdbMetaData.TablesStream.ReadLocalVariableRow2(rid, out ushort attributes, out ushort index);
-				var name = pdbMetaData.StringsStream.Read(nameOffset);
-				scope.localsList.Add(new SymbolVariableImpl(name, ToSymbolVariableAttributes(attributes), index, customDebugInfos));
+				bool b = pdbMetaData.TablesStream.TryReadLocalVariableRow(rid, out var row);
+				Debug.Assert(b);
+				var name = pdbMetaData.StringsStream.Read(row.Name);
+				scope.localsList.Add(new SymbolVariableImpl(name, ToSymbolVariableAttributes(row.Attributes), row.Index, customDebugInfos));
 			}
 			ListCache<PdbCustomDebugInfo>.Free(ref custInfos);
 		}
@@ -376,9 +380,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var typeOpt = methodOpt?.DeclaringType;
 			for (int i = 0; i < ridList.Count; i++) {
 				var rid = ridList[i];
-				uint value = pdbMetaData.TablesStream.ReadCustomDebugInformationRow2(rid, out uint kind);
-				var guid = pdbMetaData.GuidStream.Read(kind);
-				var data = pdbMetaData.BlobStream.Read(value);
+				if (!pdbMetaData.TablesStream.TryReadCustomDebugInformationRow(rid, out var row))
+					continue;
+				var guid = pdbMetaData.GuidStream.Read(row.Kind);
+				var data = pdbMetaData.BlobStream.Read(row.Value);
 				Debug.Assert(guid != null && data != null);
 				if (guid == null || data == null)
 					continue;

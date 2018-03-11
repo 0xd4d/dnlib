@@ -72,11 +72,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 			int w = 0;
 			for (int i = 0; i < res.Length; i++) {
 				uint rid = constantList + (uint)i;
-				uint signature = constantsMetaData.TablesStream.ReadLocalConstantRow2(rid, out uint nameOffset);
-				var name = constantsMetaData.StringsStream.Read(nameOffset);
-				using (var stream = constantsMetaData.BlobStream.CreateStream(signature)) {
+				bool b = constantsMetaData.TablesStream.TryReadLocalConstantRow(rid, out var row);
+				Debug.Assert(b);
+				var name = constantsMetaData.StringsStream.Read(row.Name);
+				using (var stream = constantsMetaData.BlobStream.CreateStream(row.Signature)) {
 					var localConstantSigBlobReader = new LocalConstantSigBlobReader(module, stream, gpContext);
-					bool b = localConstantSigBlobReader.Read(out var type, out object value);
+					b = localConstantSigBlobReader.Read(out var type, out object value);
 					Debug.Assert(b);
 					if (b) {
 						var pdbConstant = new PdbConstant(name, type, value);

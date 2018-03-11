@@ -226,9 +226,12 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint implementation = readerModule.TablesStream.ReadManifestResourceRow(origRid, out offset, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.implementation = readerModule.ResolveImplementation(implementation);
+			bool b = readerModule.TablesStream.TryReadManifestResourceRow(origRid, out var row);
+			Debug.Assert(b);
+			offset = row.Offset;
+			attributes = (int)row.Flags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
+			implementation = readerModule.ResolveImplementation(row.Implementation);
 		}
 	}
 }

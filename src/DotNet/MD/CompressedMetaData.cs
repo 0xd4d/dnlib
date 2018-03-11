@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -157,9 +156,9 @@ namespace dnlib.DotNet.MD {
 #if THREAD_SAFE
 			tablesStream.theLock.EnterWriteLock(); try {
 #endif
-			if (!tablesStream.ReadColumn_NoLock(tableSource, tableSourceRid, column, out startRid))
+			if (!tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid, column, out startRid))
 				return RidList.Empty;
-			hasNext = tablesStream.ReadColumn_NoLock(tableSource, tableSourceRid + 1, column, out nextListRid);
+			hasNext = tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid + 1, column, out nextListRid);
 #if THREAD_SAFE
 			} finally { tablesStream.theLock.ExitWriteLock(); }
 #endif
@@ -180,7 +179,7 @@ namespace dnlib.DotNet.MD {
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
-				if (!tablesStream.ReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
+				if (!tablesStream.TryReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;

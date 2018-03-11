@@ -215,7 +215,10 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			permissionSet = readerModule.TablesStream.ReadDeclSecurityRow(origRid, out action);
+			bool b = readerModule.TablesStream.TryReadDeclSecurityRow(origRid, out var row);
+			Debug.Assert(b);
+			permissionSet = row.PermissionSet;
+			action = (SecurityAction)row.Action;
 		}
 
 		/// <inheritdoc/>

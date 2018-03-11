@@ -64,8 +64,8 @@ namespace dnlib.DotNet.Writer {
 					continue;
 				uint typeRid = GetRid(type);
 				var typeRow = tablesHeap.TypeDefTable[typeRid];
-				typeRow.FieldList = fieldListRid;
-				typeRow.MethodList = methodListRid;
+				typeRow = new RawTypeDefRow(typeRow.Flags, typeRow.Name, typeRow.Namespace, typeRow.Extends, fieldListRid, methodListRid);
+				tablesHeap.TypeDefTable[typeRid] = typeRow;
 
 				foreach (var field in type.Fields) {
 					if (field == null)

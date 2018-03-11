@@ -398,11 +398,14 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint kind = readerModule.TablesStream.ReadGenericParamRow(origRid, out number, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadGenericParamRow(origRid, out var row);
+			Debug.Assert(b);
+			number = row.Number;
+			attributes = row.Flags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			owner = readerModule.GetOwner(this);
-			if (kind != 0)
-				this.kind = readerModule.ResolveTypeDefOrRef(kind, GetGenericParamContext(owner));
+			if (row.Kind != 0)
+				kind = readerModule.ResolveTypeDefOrRef(row.Kind, GetGenericParamContext(owner));
 		}
 
 		internal GenericParamMD InitializeAll() {

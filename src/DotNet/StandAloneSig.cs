@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -168,8 +169,9 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
-			uint signature = readerModule.TablesStream.ReadStandAloneSigRow2(origRid);
-			this.signature = readerModule.ReadSignature(signature, gpContext);
+			bool b = readerModule.TablesStream.TryReadStandAloneSigRow(origRid, out var row);
+			Debug.Assert(b);
+			signature = readerModule.ReadSignature(row.Signature, gpContext);
 		}
 	}
 }

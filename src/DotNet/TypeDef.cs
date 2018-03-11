@@ -8,6 +8,7 @@ using dnlib.DotNet.MD;
 using dnlib.DotNet.Emit;
 using dnlib.Threading;
 using dnlib.DotNet.Pdb;
+using System.Diagnostics;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -1928,8 +1929,9 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override TypeDef GetDeclaringType2_NoLock() {
-			uint enclosingClass = readerModule.TablesStream.ReadNestedClassRow2(readerModule.MetaData.GetNestedClassRid(origRid));
-			return enclosingClass == 0 ? null : readerModule.ResolveTypeDef(enclosingClass);
+			if (!readerModule.TablesStream.TryReadNestedClassRow(readerModule.MetaData.GetNestedClassRid(origRid), out var row))
+				return null;
+			return readerModule.ResolveTypeDef(row.EnclosingClass);
 		}
 
 		TypeDef DeclaringType2_NoLock {
@@ -1999,9 +2001,12 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			extendsCodedToken = readerModule.TablesStream.ReadTypeDefRow(origRid, out attributes, out uint name, out uint @namespace);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
-			this.@namespace = readerModule.StringsStream.ReadNoNull(@namespace);
+			bool b = readerModule.TablesStream.TryReadTypeDefRow(origRid, out var row);
+			Debug.Assert(b);
+			extendsCodedToken = row.Extends;
+			attributes = (int)row.Flags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
+			@namespace = readerModule.StringsStream.ReadNoNull(row.Namespace);
 		}
 
 		/// <summary>
@@ -2046,10 +2051,11 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodImplRidList(origRid);
 			for (int i = 0; i < ridList.Count; i++) {
-				uint methodDeclToken = readerModule.TablesStream.ReadMethodImplRow(ridList[i], out uint methodBodyToken);
+				if (!readerModule.TablesStream.TryReadMethodImplRow(ridList[i], out var row))
+					continue;
 
-				var methodBody = readerModule.ResolveMethodDefOrRef(methodBodyToken);
-				var methodDecl = readerModule.ResolveMethodDefOrRef(methodDeclToken);
+				var methodBody = readerModule.ResolveMethodDefOrRef(row.MethodBody);
+				var methodDecl = readerModule.ResolveMethodDefOrRef(row.MethodDeclaration);
 				if (methodBody == null || methodDecl == null)
 					continue;	// Should only happen if some obfuscator added invalid metadata
 
@@ -2078,12 +2084,13 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < list.Count; i++) {
 				var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, list[i]);
 				for (int j = 0; j < ridList.Count; j++) {
-					uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[j], out var semantics);
-					var method = readerModule.ResolveMethod(methodToken);
+					if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[j], out var row))
+						continue;
+					var method = readerModule.ResolveMethod(row.Method);
 					if (method == null)
 						continue;
 
-					Interlocked.CompareExchange(ref method.semAttrs, (int)semantics | MethodDef.SEMATTRS_INITD, 0);
+					Interlocked.CompareExchange(ref method.semAttrs, row.Semantic | MethodDef.SEMATTRS_INITD, 0);
 				}
 			}
 
@@ -2092,12 +2099,13 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < list.Count; i++) {
 				var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, list[i]);
 				for (int j = 0; j < ridList.Count; j++) {
-					uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[j], out var semantics);
-					var method = readerModule.ResolveMethod(methodToken);
+					if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[j], out var row))
+						continue;
+					var method = readerModule.ResolveMethod(row.Method);
 					if (method == null)
 						continue;
 
-					Interlocked.CompareExchange(ref method.semAttrs, (int)semantics | MethodDef.SEMATTRS_INITD, 0);
+					Interlocked.CompareExchange(ref method.semAttrs, row.Semantic | MethodDef.SEMATTRS_INITD, 0);
 				}
 			}
 		}
@@ -2118,13 +2126,14 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Property, prop.OrigRid);
 			for (int i = 0; i < ridList.Count; i++) {
-				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out var semantics);
-				var method = readerModule.ResolveMethod(methodToken);
+				if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[i], out var row))
+					continue;
+				var method = readerModule.ResolveMethod(row.Method);
 				if (method == null || method.DeclaringType != prop.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
-				switch (semantics) {
+				switch ((MethodSemanticsAttributes)row.Semantic) {
 				case MethodSemanticsAttributes.Setter:
 					if (!setMethods.Contains(method))
 						setMethods.Add(method);
@@ -2165,13 +2174,14 @@ namespace dnlib.DotNet {
 
 			var ridList = readerModule.MetaData.GetMethodSemanticsRidList(Table.Event, evt.OrigRid);
 			for (int i = 0; i < ridList.Count; i++) {
-				uint methodToken = readerModule.TablesStream.ReadMethodSemanticsRow(ridList[i], out var semantics);
-				var method = readerModule.ResolveMethod(methodToken);
+				if (!readerModule.TablesStream.TryReadMethodSemanticsRow(ridList[i], out var row))
+					continue;
+				var method = readerModule.ResolveMethod(row.Method);
 				if (method == null || method.DeclaringType != evt.DeclaringType)
 					continue;
 
 				// It's documented to be flags, but ignore those with more than one bit set
-				switch (semantics) {
+				switch ((MethodSemanticsAttributes)row.Semantic) {
 				case MethodSemanticsAttributes.AddOn:
 					if (addMethod == null)
 						addMethod = method;

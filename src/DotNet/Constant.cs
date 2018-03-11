@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics;
 using System.Text;
 using dnlib.DotNet.MD;
 
@@ -120,8 +121,10 @@ namespace dnlib.DotNet {
 #endif
 			origRid = rid;
 			this.rid = rid;
-			uint value = readerModule.TablesStream.ReadConstantRow(origRid, out type);
-			this.value = GetValue(type, readerModule.BlobStream.ReadNoNull(value));
+			bool b = readerModule.TablesStream.TryReadConstantRow(origRid, out var row);
+			Debug.Assert(b);
+			type = (ElementType)row.Type;
+			value = GetValue(type, readerModule.BlobStream.ReadNoNull(row.Value));
 		}
 
 		static object GetValue(ElementType etype, byte[] data) {

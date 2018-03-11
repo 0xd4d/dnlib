@@ -9,6 +9,7 @@ using dnlib.DotNet.Emit;
 using dnlib.Threading;
 using dnlib.DotNet.Pdb;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -1127,12 +1128,16 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint signature = readerModule.TablesStream.ReadMethodRow(origRid, out rva, out implAttributes, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadMethodRow(origRid, out var row);
+			Debug.Assert(b);
+			rva = (RVA)row.RVA;
+			implAttributes = row.ImplFlags;
+			attributes = row.Flags;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			origRva = rva;
 			origImplAttributes = (MethodImplAttributes)implAttributes;
 			declaringType2 = readerModule.GetOwnerType(this);
-			this.signature = readerModule.ReadSignature(signature, new GenericParamContext(declaringType2, this));
+			signature = readerModule.ReadSignature(row.Signature, new GenericParamContext(declaringType2, this));
 			parameterList = new ParameterList(this, declaringType2);
 			exportInfo = readerModule.GetExportInfo(rid);
 		}

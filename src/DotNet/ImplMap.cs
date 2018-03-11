@@ -269,9 +269,11 @@ namespace dnlib.DotNet {
 #endif
 			origRid = rid;
 			this.rid = rid;
-			uint scope = readerModule.TablesStream.ReadImplMapRow(origRid, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
-			module = readerModule.ResolveModuleRef(scope);
+			bool b = readerModule.TablesStream.TryReadImplMapRow(origRid, out var row);
+			Debug.Assert(b);
+			attributes = row.MappingFlags;
+			name = readerModule.StringsStream.ReadNoNull(row.ImportName);
+			module = readerModule.ResolveModuleRef(row.ImportScope);
 		}
 	}
 }

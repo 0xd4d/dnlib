@@ -397,8 +397,11 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint name = readerModule.TablesStream.ReadParamRow(origRid, out attributes, out sequence);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadParamRow(origRid, out var row);
+			Debug.Assert(b);
+			attributes = row.Flags;
+			sequence = row.Sequence;
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			declaringMethod = readerModule.GetOwner(this);
 		}
 

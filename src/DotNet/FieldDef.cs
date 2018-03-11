@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -767,8 +768,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override uint? GetFieldOffset_NoLock() =>
-			readerModule.TablesStream.ReadFieldLayoutRow2(readerModule.MetaData.GetFieldLayoutRid(origRid));
+		protected override uint? GetFieldOffset_NoLock() {
+			if (readerModule.TablesStream.TryReadFieldLayoutRow(readerModule.MetaData.GetFieldLayoutRid(origRid), out var row))
+				return row.OffSet;
+			return null;
+		}
 
 		/// <inheritdoc/>
 		protected override MarshalType GetMarshalType_NoLock() =>
@@ -812,11 +816,13 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			this.readerModule = readerModule;
-			uint signature = readerModule.TablesStream.ReadFieldRow(origRid, out attributes, out uint name);
-			this.name = readerModule.StringsStream.ReadNoNull(name);
+			bool b = readerModule.TablesStream.TryReadFieldRow(origRid, out var row);
+			Debug.Assert(b);
+			name = readerModule.StringsStream.ReadNoNull(row.Name);
+			attributes = row.Flags;
 			origAttributes = (FieldAttributes)attributes;
 			declaringType2 = readerModule.GetOwnerType(this);
-			this.signature = readerModule.ReadSignature(signature, new GenericParamContext(declaringType2));
+			signature = readerModule.ReadSignature(row.Signature, new GenericParamContext(declaringType2));
 		}
 
 		internal FieldDefMD InitializeAll() {
@@ -839,7 +845,12 @@ namespace dnlib.DotNet {
 				rva = 0;
 				return false;
 			}
-			return readerModule.TablesStream.ReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(origRid), out rva);
+			if (!readerModule.TablesStream.TryReadFieldRVARow(readerModule.MetaData.GetFieldRVARid(origRid), out var row)) {
+				rva = 0;
+				return false;
+			}
+			rva = (RVA)row.RVA;
+			return true;
 		}
 
 		byte[] ReadInitialValue_NoLock(RVA rva) {

@@ -422,15 +422,15 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		internal byte[] AssemblyPublicKey { get; set; }
 
-		internal sealed class SortedRows<T, TRow> where T : class where TRow : class {
+		internal sealed class SortedRows<T, TRow> where T : class where TRow : struct {
 			public List<Info> infos = new List<Info>();
 			Dictionary<T, uint> toRid = new Dictionary<T, uint>();
 			bool isSorted;
 
-			public readonly struct Info {
+			public struct Info {
 				public readonly T data;
-				public readonly TRow row;
-				public Info(T data, TRow row) {
+				public /*readonly*/ TRow row;
+				public Info(T data, ref TRow row) {
 					this.data = data;
 					this.row = row;
 				}
@@ -439,7 +439,7 @@ namespace dnlib.DotNet.Writer {
 			public void Add(T data, TRow row) {
 				if (isSorted)
 					throw new ModuleWriterException($"Adding a row after it's been sorted. Table: {row.GetType()}");
-				infos.Add(new Info(data, row));
+				infos.Add(new Info(data, ref row));
 				toRid[data] = (uint)toRid.Count + 1;
 			}
 
@@ -1224,14 +1224,18 @@ namespace dnlib.DotNet.Writer {
 			foreach (var kv in methodToBody) {
 				var method = kv.Key;
 				var body = kv.Value;
-				var row = tablesHeap.MethodTable[GetRid(method)];
-				row.RVA = (uint)body.RVA;
+				uint rid = GetRid(method);
+				var row = tablesHeap.MethodTable[rid];
+				row = new RawMethodRow((uint)body.RVA, row.ImplFlags, row.Flags, row.Name, row.Signature, row.ParamList);
+				tablesHeap.MethodTable[rid] = row;
 			}
 			foreach (var kv in methodToNativeBody) {
 				var method = kv.Key;
 				var body = kv.Value;
-				var row = tablesHeap.MethodTable[GetRid(method)];
-				row.RVA = (uint)body.RVA;
+				uint rid = GetRid(method);
+				var row = tablesHeap.MethodTable[rid];
+				row = new RawMethodRow((uint)body.RVA, row.ImplFlags, row.Flags, row.Name, row.Signature, row.ParamList);
+				tablesHeap.MethodTable[rid] = row;
 			}
 		}
 
@@ -1242,8 +1246,10 @@ namespace dnlib.DotNet.Writer {
 			foreach (var kv in fieldToInitialValue) {
 				var field = kv.Key;
 				var iv = kv.Value;
-				var row = tablesHeap.FieldRVATable[fieldRVAInfos.Rid(field)];
-				row.RVA = (uint)iv.RVA;
+				uint rid = fieldRVAInfos.Rid(field);
+				var row = tablesHeap.FieldRVATable[rid];
+				row = new RawFieldRVARow((uint)iv.RVA, row.Field);
+				tablesHeap.FieldRVATable[rid] = row;
 			}
 		}
 
@@ -1319,10 +1325,8 @@ namespace dnlib.DotNet.Writer {
 				}
 				uint typeRid = GetRid(type);
 				var typeRow = tablesHeap.TypeDefTable[typeRid];
-				typeRow.Flags = (uint)type.Attributes;
-				typeRow.Name = stringsHeap.Add(type.Name);
-				typeRow.Namespace = stringsHeap.Add(type.Namespace);
-				typeRow.Extends = type.BaseType == null ? 0 : AddTypeDefOrRef(type.BaseType);
+				typeRow = new RawTypeDefRow((uint)type.Attributes, stringsHeap.Add(type.Name), stringsHeap.Add(type.Namespace), type.BaseType == null ? 0 : AddTypeDefOrRef(type.BaseType), typeRow.FieldList, typeRow.MethodList);
+				tablesHeap.TypeDefTable[typeRid] = typeRow;
 				AddGenericParams(new MDToken(Table.TypeDef, typeRid), type.GenericParameters);
 				AddDeclSecurities(new MDToken(Table.TypeDef, typeRid), type.DeclSecurities);
 				AddInterfaceImpls(typeRid, type.Interfaces);
@@ -1335,10 +1339,8 @@ namespace dnlib.DotNet.Writer {
 						continue;
 					}
 					uint rid = GetRid(field);
-					var row = tablesHeap.FieldTable[rid];
-					row.Flags = (ushort)field.Attributes;
-					row.Name = stringsHeap.Add(field.Name);
-					row.Signature = GetSignature(field.Signature);
+					var row = new RawFieldRow((ushort)field.Attributes, stringsHeap.Add(field.Name), GetSignature(field.Signature));
+					tablesHeap.FieldTable[rid] = row;
 					AddFieldLayout(field);
 					AddFieldMarshal(new MDToken(Table.Field, rid), field);
 					AddFieldRVA(field);
@@ -1355,10 +1357,8 @@ namespace dnlib.DotNet.Writer {
 						ExportedMethods.Add(method);
 					uint rid = GetRid(method);
 					var row = tablesHeap.MethodTable[rid];
-					row.ImplFlags = (ushort)method.ImplAttributes;
-					row.Flags = (ushort)method.Attributes;
-					row.Name = stringsHeap.Add(method.Name);
-					row.Signature = GetSignature(method.Signature);
+					row = new RawMethodRow(row.RVA, (ushort)method.ImplAttributes, (ushort)method.Attributes, stringsHeap.Add(method.Name), GetSignature(method.Signature), row.ParamList);
+					tablesHeap.MethodTable[rid] = row;
 					AddGenericParams(new MDToken(Table.Method, rid), method.GenericParameters);
 					AddDeclSecurities(new MDToken(Table.Method, rid), method.DeclSecurities);
 					AddImplMap(new MDToken(Table.Method, rid), method);
@@ -1369,10 +1369,8 @@ namespace dnlib.DotNet.Writer {
 							continue;
 						}
 						uint pdRid = GetRid(pd);
-						var pdRow = tablesHeap.ParamTable[pdRid];
-						pdRow.Flags = (ushort)pd.Attributes;
-						pdRow.Sequence = pd.Sequence;
-						pdRow.Name = stringsHeap.Add(pd.Name);
+						var pdRow = new RawParamRow((ushort)pd.Attributes, pd.Sequence, stringsHeap.Add(pd.Name));
+						tablesHeap.ParamTable[pdRid] = pdRow;
 						AddConstant(new MDToken(Table.Param, pdRid), pd);
 						AddFieldMarshal(new MDToken(Table.Param, pdRid), pd);
 					}
@@ -1385,10 +1383,8 @@ namespace dnlib.DotNet.Writer {
 							continue;
 						}
 						uint rid = GetRid(evt);
-						var row = tablesHeap.EventTable[rid];
-						row.EventFlags = (ushort)evt.Attributes;
-						row.Name = stringsHeap.Add(evt.Name);
-						row.EventType = AddTypeDefOrRef(evt.EventType);
+						var row = new RawEventRow((ushort)evt.Attributes, stringsHeap.Add(evt.Name), AddTypeDefOrRef(evt.EventType));
+						tablesHeap.EventTable[rid] = row;
 						AddMethodSemantics(evt);
 					}
 				}
@@ -1400,10 +1396,8 @@ namespace dnlib.DotNet.Writer {
 							continue;
 						}
 						uint rid = GetRid(prop);
-						var row = tablesHeap.PropertyTable[rid];
-						row.PropFlags = (ushort)prop.Attributes;
-						row.Name = stringsHeap.Add(prop.Name);
-						row.Type = GetSignature(prop.Type);
+						var row = new RawPropertyRow((ushort)prop.Attributes, stringsHeap.Add(prop.Name), GetSignature(prop.Type));
+						tablesHeap.PropertyTable[rid] = row;
 						AddConstant(new MDToken(Table.Property, rid), prop);
 						AddMethodSemantics(prop);
 					}
@@ -1743,15 +1737,12 @@ namespace dnlib.DotNet.Writer {
 					return b.ScopeLength.CompareTo(a.ScopeLength);
 				});
 				foreach (var info in methodScopeDebugInfos) {
-					var row = new RawLocalScopeRow();
+					uint localScopeRid = (uint)debugMetaData.localScopeInfos.infos.Count + 1;
+					var row = new RawLocalScopeRow(info.MethodRid, AddImportScope(info.Scope.ImportScope),
+						(uint)debugMetaData.tablesHeap.LocalVariableTable.Rows + 1,
+						(uint)debugMetaData.tablesHeap.LocalConstantTable.Rows + 1,
+						info.ScopeStart, info.ScopeLength);
 					debugMetaData.localScopeInfos.Add(info.Scope, row);
-					uint localScopeRid = (uint)debugMetaData.localScopeInfos.infos.Count;
-					row.Method = info.MethodRid;
-					row.ImportScope = AddImportScope(info.Scope.ImportScope);
-					row.VariableList = (uint)debugMetaData.tablesHeap.LocalVariableTable.Rows + 1;
-					row.ConstantList = (uint)debugMetaData.tablesHeap.LocalConstantTable.Rows + 1;
-					row.StartOffset = info.ScopeStart;
-					row.Length = info.ScopeLength;
 					foreach (var local in info.Scope.Variables)
 						AddLocalVariable(local);
 					foreach (var constant in info.Scope.Constants)
@@ -2902,9 +2893,8 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			var seqPointsBlob = outStream.ToArray();
-			var row = debugMetaData.tablesHeap.MethodDebugInformationTable[rid];
-			row.Document = singleDoc == null ? 0 : AddPdbDocument(singleDoc);
-			row.SequencePoints = debugMetaData.blobHeap.Add(seqPointsBlob);
+			var row = new RawMethodDebugInformationRow(singleDoc == null ? 0 : AddPdbDocument(singleDoc), debugMetaData.blobHeap.Add(seqPointsBlob));
+			debugMetaData.tablesHeap.MethodDebugInformationTable[rid] = row;
 			debugMetaData.methodDebugInformationInfosUsed = true;
 			Free(ref bwctx);
 		}

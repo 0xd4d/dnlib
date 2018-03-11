@@ -340,13 +340,13 @@ namespace dnlib.DotNet.MD {
 			uint endRid = startRid + 1;
 			var column = tableSource.TableInfo.Columns[keyColIndex];
 			for (; startRid > 1; startRid--) {
-				if (!tablesStream.ReadColumn_NoLock(tableSource, startRid - 1, column, out uint key2))
+				if (!tablesStream.TryReadColumn_NoLock(tableSource, startRid - 1, column, out uint key2))
 					break;	// Should never happen since startRid is valid
 				if (key != key2)
 					break;
 			}
 			for (; endRid <= tableSource.Rows; endRid++) {
-				if (!tablesStream.ReadColumn_NoLock(tableSource, endRid, column, out uint key2))
+				if (!tablesStream.TryReadColumn_NoLock(tableSource, endRid, column, out uint key2))
 					break;	// Should never happen since endRid is valid
 				if (key != key2)
 					break;
@@ -615,7 +615,7 @@ namespace dnlib.DotNet.MD {
 			tablesStream.theLock.EnterWriteLock(); try {
 #endif
 			for (uint rid = 1; rid <= gpTable.Rows; rid++) {
-				if (!tablesStream.ReadColumn_NoLock(gpTable, rid, ownerCol, out uint owner))
+				if (!tablesStream.TryReadColumn_NoLock(gpTable, rid, ownerCol, out uint owner))
 					continue;
 				ownersDict[owner] = true;
 			}
@@ -666,7 +666,7 @@ namespace dnlib.DotNet.MD {
 			tablesStream.theLock.EnterWriteLock(); try {
 #endif
 			for (uint rid = 1; rid <= gpcTable.Rows; rid++) {
-				if (!tablesStream.ReadColumn_NoLock(gpcTable, rid, ownerCol, out uint owner))
+				if (!tablesStream.TryReadColumn_NoLock(gpcTable, rid, ownerCol, out uint owner))
 					continue;
 				ownersDict[owner] = true;
 			}
@@ -743,8 +743,7 @@ namespace dnlib.DotNet.MD {
 			for (uint rid = 1; rid <= table.Rows; rid++) {
 				if (validTypeDefRids != null && !validTypeDefRids.ContainsKey(rid))
 					continue;
-				var row = tablesStream.ReadNestedClassRow(rid);
-				if (row == null)
+				if (!tablesStream.TryReadNestedClassRow(rid, out var row))
 					continue;	// Should never happen since rid is valid
 				if (!destTable.IsValidRID(row.NestedClass) || !destTable.IsValidRID(row.EnclosingClass))
 					continue;
@@ -756,8 +755,7 @@ namespace dnlib.DotNet.MD {
 
 			var newTypeDefRidToNestedClasses = new Dictionary<uint, List<uint>>();
 			foreach (var nestedRid in nestedRids) {
-				var row = tablesStream.ReadNestedClassRow(GetNestedClassRid(nestedRid));
-				if (row == null)
+				if (!tablesStream.TryReadNestedClassRow(GetNestedClassRid(nestedRid), out var row))
 					continue;
 				if (!newTypeDefRidToNestedClasses.TryGetValue(row.EnclosingClass, out var ridList))
 					newTypeDefRidToNestedClasses[row.EnclosingClass] = ridList = new List<uint>();

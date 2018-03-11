@@ -673,9 +673,12 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			module = readerModule;
-			implementationRid = readerModule.TablesStream.ReadExportedTypeRow(origRid, out attributes, out typeDefId, out uint name, out uint @namespace);
-			typeName = readerModule.StringsStream.ReadNoNull(name);
-			typeNamespace = readerModule.StringsStream.ReadNoNull(@namespace);
+			bool b = readerModule.TablesStream.TryReadExportedTypeRow(origRid, out var row);
+			implementationRid = row.Implementation;
+			attributes = (int)row.Flags;
+			typeDefId = row.TypeDefId;
+			typeName = readerModule.StringsStream.ReadNoNull(row.TypeName);
+			typeNamespace = readerModule.StringsStream.ReadNoNull(row.TypeNamespace);
 		}
 	}
 }
