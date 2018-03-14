@@ -39,7 +39,7 @@ v3.0 breaking changes
 - `ModuleWriterOptionsBase.Listener` is obsolete, use the new event `ModuleWriterOptionsBase.WriterEvent` instead
 - `StrongNameKey`, `PublicKey`, `PublicKeyToken` are immutable classes
 - `RidList` is a struct
-- IBinaryReader, IImageStream have been removed and replaced with new classes
+- `IBinaryReader`, `IImageStream` have been removed and replaced with new classes
 	- `MemoryImageStream` -> `ByteArrayDataReaderFactory`
 		- It has two static factory methods, `Create` and `CreateReader`
 	- `BinaryReaderChunk` -> `DataReaderChunk`
