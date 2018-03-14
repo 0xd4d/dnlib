@@ -10,7 +10,7 @@ namespace dnlib.IO {
 
 		public AlignedByteArrayDataStream(byte[] data) => this.data = data;
 
-		public override unsafe void ReadBytes(uint offset, void* destination, int length) =>
+		public override void ReadBytes(uint offset, void* destination, int length) =>
 			Marshal.Copy(data, (int)offset, (IntPtr)destination, length);
 
 		public override void ReadBytes(uint offset, byte[] destination, int destinationIndex, int length) =>

@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace dnlib.IO {
-	unsafe sealed class UnalignedNativeMemoryDataStream : DataStream {
+	sealed unsafe class UnalignedNativeMemoryDataStream : DataStream {
 		readonly byte* data;
 
 		public UnalignedNativeMemoryDataStream(byte* data) => this.data = data;
 
-		public override unsafe void ReadBytes(uint offset, void* destination, int length) {
+		public override void ReadBytes(uint offset, void* destination, int length) {
 			var ps = data + offset;
 			var pd = (byte*)destination;
 			int count = length / 4;

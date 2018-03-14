@@ -10,7 +10,7 @@ namespace dnlib.IO {
 
 		public AlignedNativeMemoryDataStream(byte* data) => this.data = data;
 
-		public override unsafe void ReadBytes(uint offset, void* destination, int length) {
+		public override void ReadBytes(uint offset, void* destination, int length) {
 			var ps = data + offset;
 			var pd = (byte*)destination;
 			int count = length / 4;

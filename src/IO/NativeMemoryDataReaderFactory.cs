@@ -6,7 +6,7 @@ namespace dnlib.IO {
 	/// <summary>
 	/// Creates <see cref="DataReader"/>s that read native memory
 	/// </summary>
-	public unsafe sealed class NativeMemoryDataReaderFactory : DataReaderFactory {
+	public sealed unsafe class NativeMemoryDataReaderFactory : DataReaderFactory {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
