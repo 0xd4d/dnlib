@@ -33,19 +33,19 @@ namespace dnlib.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify sections</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public PEInfo(IImageStream reader, bool verify) {
+		public PEInfo(ref DataReader reader, bool verify) {
 			reader.Position = 0;
-			imageDosHeader = new ImageDosHeader(reader, verify);
+			imageDosHeader = new ImageDosHeader(ref reader, verify);
 
 			if (verify && imageDosHeader.NTHeadersOffset == 0)
 				throw new BadImageFormatException("Invalid NT headers offset");
 			reader.Position = imageDosHeader.NTHeadersOffset;
-			imageNTHeaders = new ImageNTHeaders(reader, verify);
+			imageNTHeaders = new ImageNTHeaders(ref reader, verify);
 
-			reader.Position = (long)imageNTHeaders.OptionalHeader.StartOffset + imageNTHeaders.FileHeader.SizeOfOptionalHeader;
+			reader.Position = (uint)imageNTHeaders.OptionalHeader.StartOffset + imageNTHeaders.FileHeader.SizeOfOptionalHeader;
 			imageSectionHeaders = new ImageSectionHeader[imageNTHeaders.FileHeader.NumberOfSections];
 			for (int i = 0; i < imageSectionHeaders.Length; i++)
-				imageSectionHeaders[i] = new ImageSectionHeader(reader, verify);
+				imageSectionHeaders[i] = new ImageSectionHeader(ref reader, verify);
 		}
 
 		/// <summary>
@@ -96,7 +96,7 @@ namespace dnlib.PE {
 		public FileOffset ToFileOffset(RVA rva) {
 			var section = ToImageSectionHeader(rva);
 			if (section != null)
-				return (FileOffset)((long)(rva - section.VirtualAddress) + section.PointerToRawData);
+				return (FileOffset)(rva - section.VirtualAddress + section.PointerToRawData);
 			return (FileOffset)rva;
 		}
 
@@ -107,16 +107,16 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <remarks>It calculates the size itself, and does not return <see cref="IImageOptionalHeader.SizeOfImage"/></remarks>
 		/// <returns>Size of image in bytes</returns>
-		public long GetImageSize() {
+		public uint GetImageSize() {
 			var optHdr = ImageNTHeaders.OptionalHeader;
 			uint alignment = optHdr.SectionAlignment;
-			ulong len = AlignUp(optHdr.SizeOfHeaders, alignment);
+			ulong length = AlignUp(optHdr.SizeOfHeaders, alignment);
 			foreach (var section in imageSectionHeaders) {
-				ulong len2 = AlignUp((ulong)section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
-				if (len2 > len)
-					len = len2;
+				ulong length2 = AlignUp((ulong)section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
+				if (length2 > length)
+					length = length2;
 			}
-			return (long)len;
+			return (uint)Math.Min(length, uint.MaxValue);
 		}
 	}
 }

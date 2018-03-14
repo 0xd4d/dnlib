@@ -136,7 +136,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// </summary>
 		/// <param name="reader">Reader</param>
 		/// <returns></returns>
-		public static PdbAddress ReadAddress(IBinaryReader reader) {
+		public static PdbAddress ReadAddress(ref DataReader reader) {
 			uint offs = reader.ReadUInt32();
 			return new PdbAddress(reader.ReadUInt16(), offs);
 		}

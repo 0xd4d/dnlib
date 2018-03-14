@@ -368,7 +368,7 @@ namespace dnlib.DotNet {
 			context = options.Context;
 			Initialize();
 			InitializeFromRawRow();
-			location = metadata.PEImage.FileName ?? string.Empty;
+			location = metadata.PEImage.Filename ?? string.Empty;
 
 			Kind = GetKind();
 			Characteristics = Metadata.PEImage.ImageNTHeaders.FileHeader.Characteristics;
@@ -406,7 +406,7 @@ namespace dnlib.DotNet {
 				if (options.PdbFileOrData is byte[] pdbData)
 					return SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbData);
 
-				if (options.PdbFileOrData is IImageStream pdbStream)
+				if (options.PdbFileOrData is DataReaderFactory pdbStream)
 					return SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbStream);
 			}
 
@@ -465,14 +465,14 @@ namespace dnlib.DotNet {
 		/// Loads symbols from a stream
 		/// </summary>
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
-		public void LoadPdb(IImageStream pdbStream) => LoadPdb(PdbImplType.Default, pdbStream);
+		public void LoadPdb(DataReaderFactory pdbStream) => LoadPdb(PdbImplType.Default, pdbStream);
 
 		/// <summary>
 		/// Loads symbols from a stream
 		/// </summary>
 		/// <param name="pdbImpl">PDB implementation to use</param>
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
-		public void LoadPdb(PdbImplType pdbImpl, IImageStream pdbStream) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbStream));
+		public void LoadPdb(PdbImplType pdbImpl, DataReaderFactory pdbStream) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbStream));
 
 		/// <summary>
 		/// Loads symbols if a PDB file is available
@@ -1310,10 +1310,9 @@ namespace dnlib.DotNet {
 			// If we create a partial stream starting from rva, then position will be 0 and always
 			// 4-byte aligned. All fat method bodies should be 4-byte aligned, but the CLR doesn't
 			// seem to verify it. We must parse the method exactly the way the CLR parses it.
-			using (var reader = metadata.PEImage.CreateFullStream()) {
-				reader.Position = (long)metadata.PEImage.ToFileOffset(rva);
-				return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext);
-			}
+			var reader = metadata.PEImage.CreateReader();
+			reader.Position = (uint)metadata.PEImage.ToFileOffset(rva);
+			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext);
 		}
 
 		/// <summary>
@@ -1482,17 +1481,20 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="Resource"/> instance</returns>
 		Resource CreateResource(uint rid) {
 			if (!TablesStream.TryReadManifestResourceRow(rid, out var row))
-				return new EmbeddedResource(UTF8String.Empty, MemoryImageStream.CreateEmpty(), 0) { Rid = rid };
+				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
 
 			if (!CodedToken.Implementation.Decode(row.Implementation, out MDToken token))
-				return new EmbeddedResource(UTF8String.Empty, MemoryImageStream.CreateEmpty(), 0) { Rid = rid };
+				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
 
 			var mr = ResolveManifestResource(rid);
 			if (mr == null)
-				return new EmbeddedResource(UTF8String.Empty, MemoryImageStream.CreateEmpty(), 0) { Rid = rid };
+				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
 
-			if (token.Rid == 0)
-				return new EmbeddedResource(mr.Name, CreateResourceStream(mr.Offset), mr.Flags) { Rid = rid, Offset = mr.Offset };
+			if (token.Rid == 0) {
+				if (TryCreateResourceStream(mr.Offset, out var dataReaderFactory, out uint resourceOffset, out uint resourceLength))
+					return new EmbeddedResource(mr.Name, dataReaderFactory, resourceOffset, resourceLength, mr.Flags) { Rid = rid, Offset = mr.Offset };
+				return new EmbeddedResource(mr.Name, Array2.Empty<byte>(), mr.Flags) { Rid = rid, Offset = mr.Offset };
+			}
 
 			if (mr.Implementation is FileDef file)
 				return new LinkedResource(mr.Name, file, mr.Flags) { Rid = rid, Offset = mr.Offset };
@@ -1500,58 +1502,54 @@ namespace dnlib.DotNet {
 			if (mr.Implementation is AssemblyRef asmRef)
 				return new AssemblyLinkedResource(mr.Name, asmRef, mr.Flags) { Rid = rid, Offset = mr.Offset };
 
-			return new EmbeddedResource(mr.Name, MemoryImageStream.CreateEmpty(), mr.Flags) { Rid = rid, Offset = mr.Offset };
+			return new EmbeddedResource(mr.Name, Array2.Empty<byte>(), mr.Flags) { Rid = rid, Offset = mr.Offset };
 		}
 
-		/// <summary>
-		/// Creates a resource stream that can access part of the resource section of this module
-		/// </summary>
-		/// <param name="offset">Offset of resource relative to the .NET resources section</param>
-		/// <returns>A stream the size of the resource</returns>
 		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0
-		IImageStream CreateResourceStream(uint offset) {
-			IImageStream fs = null, imageStream = null;
+		bool TryCreateResourceStream(uint offset, out DataReaderFactory dataReaderFactory, out uint resourceOffset, out uint resourceLength) {
+			dataReaderFactory = null;
+			resourceOffset = 0;
+			resourceLength = 0;
+
 			try {
 				var peImage = metadata.PEImage;
 				var cor20Header = metadata.ImageCor20Header;
 				var resources = cor20Header.Resources;
 				if (resources.VirtualAddress == 0 || resources.Size == 0)
-					return MemoryImageStream.CreateEmpty();
-				fs = peImage.CreateFullStream();
+					return false;
+				var fullReader = peImage.CreateReader();
 
-				var resourceOffset = (long)peImage.ToFileOffset(resources.VirtualAddress);
-				if (resourceOffset <= 0 || resourceOffset + offset < resourceOffset)
-					return MemoryImageStream.CreateEmpty();
-				if (offset + 3 <= offset || offset + 3 >= resources.Size)
-					return MemoryImageStream.CreateEmpty();
-				if (resourceOffset + offset + 3 < resourceOffset || resourceOffset + offset + 3 >= fs.Length)
-					return MemoryImageStream.CreateEmpty();
-				fs.Position = resourceOffset + offset;
-				uint length = fs.ReadUInt32();	// Could throw
-				if (length == 0 || fs.Position + length - 1 < fs.Position || fs.Position + length - 1 >= fs.Length)
-					return MemoryImageStream.CreateEmpty();
-				if (fs.Position - resourceOffset + length - 1 >= resources.Size)
-					return MemoryImageStream.CreateEmpty();
+				var resourcesBaseOffs = (uint)peImage.ToFileOffset(resources.VirtualAddress);
+				if (resourcesBaseOffs == 0 || (ulong)resourcesBaseOffs + offset > uint.MaxValue)
+					return false;
+				if ((ulong)offset + 4 > resources.Size)
+					return false;
+				if ((ulong)resourcesBaseOffs + offset + 4 > fullReader.Length)
+					return false;
+				fullReader.Position = resourcesBaseOffs + offset;
+				resourceLength = fullReader.ReadUInt32();   // Could throw
+				resourceOffset = fullReader.Position;
+				if (resourceLength == 0 || (ulong)fullReader.Position + resourceLength > fullReader.Length)
+					return false;
+				if ((ulong)fullReader.Position - resourcesBaseOffs + resourceLength - 1 >= resources.Size)
+					return false;
 
-				imageStream = peImage.CreateStream((FileOffset)fs.Position, length);
 				if (peImage.MayHaveInvalidAddresses) {
-					for (; imageStream.Position < imageStream.Length; imageStream.Position += 0x1000)
-						imageStream.ReadByte();	// Could throw
-					imageStream.Position = imageStream.Length - 1;	// length is never 0 if we're here
-					imageStream.ReadByte();	// Could throw
-					imageStream.Position = 0;
+					var rsrcReader = peImage.CreateReader((FileOffset)fullReader.Position, resourceLength);
+					for (; rsrcReader.Position < rsrcReader.Length; rsrcReader.Position += Math.Min(rsrcReader.BytesLeft, 0x1000))
+						rsrcReader.ReadByte();	// Could throw
+					rsrcReader.Position = rsrcReader.Length - 1;	// length is never 0 if we're here
+					rsrcReader.ReadByte();	// Could throw
 				}
+
+				dataReaderFactory = peImage.DataReaderFactory;
+				return true;
+			}
+			catch (IOException) {
 			}
 			catch (AccessViolationException) {
-				if (imageStream != null)
-					imageStream.Dispose();
-				return MemoryImageStream.CreateEmpty();
 			}
-			finally {
-				if (fs != null)
-					fs.Dispose();
-			}
-			return imageStream;
+			return false;
 		}
 
 		/// <summary>
@@ -1586,11 +1584,10 @@ namespace dnlib.DotNet {
 			if (size < 0)
 				return null;
 			var peImage = Metadata.PEImage;
-			using (var reader = peImage.CreateStream(rva, size)) {
-				if (reader.Length < size)
-					return null;
-				return reader.ReadBytes(size);
-			}
+			var reader = peImage.CreateReader(rva, (uint)size);
+			if (reader.Length < size)
+				return null;
+			return reader.ReadBytes(size);
 		}
 
 		/// <summary>

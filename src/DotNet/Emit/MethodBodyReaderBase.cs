@@ -10,7 +10,7 @@ namespace dnlib.DotNet.Emit {
 	/// </summary>
 	public abstract class MethodBodyReaderBase {
 		/// <summary>The method reader</summary>
-		protected IBinaryReader reader;
+		protected DataReader reader;
 		/// <summary>All parameters</summary>
 		protected IList<Parameter> parameters;
 		/// <summary>All locals</summary>
@@ -21,9 +21,9 @@ namespace dnlib.DotNet.Emit {
 		protected IList<ExceptionHandler> exceptionHandlers = new List<ExceptionHandler>();
 		uint currentOffset;
 		/// <summary>First byte after the end of the code</summary>
-		protected long codeEndOffs;
+		protected uint codeEndOffs;
 		/// <summary>Start offset of method</summary>
-		protected long codeStartOffs;
+		protected uint codeStartOffs;
 
 		/// <summary>
 		/// Gets all parameters
@@ -55,7 +55,7 @@ namespace dnlib.DotNet.Emit {
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		protected MethodBodyReaderBase(IBinaryReader reader)
+		protected MethodBodyReaderBase(DataReader reader)
 			: this(reader, null) {
 		}
 
@@ -64,7 +64,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="reader">The reader</param>
 		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
-		protected MethodBodyReaderBase(IBinaryReader reader, IList<Parameter> parameters) {
+		protected MethodBodyReaderBase(DataReader reader, IList<Parameter> parameters) {
 			this.reader = reader;
 			this.parameters = parameters;
 		}

@@ -65,8 +65,8 @@ namespace dnlib.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageDebugDirectory(IImageStream reader, bool verify) {
-			SetStartOffset(reader);
+		public ImageDebugDirectory(ref DataReader reader, bool verify) {
+			SetStartOffset(ref reader);
 			characteristics = reader.ReadUInt32();
 			timeDateStamp = reader.ReadUInt32();
 			majorVersion = reader.ReadUInt16();
@@ -75,7 +75,7 @@ namespace dnlib.PE {
 			sizeOfData = reader.ReadUInt32();
 			addressOfRawData = reader.ReadUInt32();
 			pointerToRawData = reader.ReadUInt32();
-			SetEndoffset(reader);
+			SetEndoffset(ref reader);
 		}
 	}
 }

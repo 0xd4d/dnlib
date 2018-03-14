@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using dnlib.Utils;
 using dnlib.IO;
 using dnlib.PE;
@@ -11,7 +10,7 @@ namespace dnlib.W32Resources {
 	/// <summary>
 	/// A Win32 resource directory (see IMAGE_RESOURCE_DIRECTORY in the Windows SDK)
 	/// </summary>
-	public abstract class ResourceDirectory : ResourceDirectoryEntry, IDisposable {
+	public abstract class ResourceDirectory : ResourceDirectoryEntry {
 		/// <summary>See <see cref="Characteristics"/></summary>
 		protected uint characteristics;
 		/// <summary>See <see cref="TimeDateStamp"/></summary>
@@ -100,25 +99,6 @@ namespace dnlib.W32Resources {
 			}
 			return null;
 		}
-
-		/// <inheritdoc/>
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		/// <summary>
-		/// Dispose method
-		/// </summary>
-		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
-		protected virtual void Dispose(bool disposing) {
-			if (!disposing)
-				return;
-			directories.DisposeAll();
-			data.DisposeAll();
-			directories = null;
-			data = null;
-		}
 	}
 
 	/// <summary>
@@ -183,11 +163,11 @@ namespace dnlib.W32Resources {
 		/// <param name="name">Name</param>
 		/// <param name="resources">Resources</param>
 		/// <param name="reader">Reader positioned at the start of this resource directory</param>
-		public ResourceDirectoryPE(uint depth, ResourceName name, Win32ResourcesPE resources, IBinaryReader reader)
+		public ResourceDirectoryPE(uint depth, ResourceName name, Win32ResourcesPE resources, ref DataReader reader)
 			: base(name) {
 			this.resources = resources;
 			this.depth = depth;
-			Initialize(reader);
+			Initialize(ref reader);
 		}
 
 		/// <summary>
@@ -195,8 +175,8 @@ namespace dnlib.W32Resources {
 		/// <see cref="ResourceDirectory.data"/>.
 		/// </summary>
 		/// <param name="reader"></param>
-		void Initialize(IBinaryReader reader) {
-			if (depth > MAX_DIR_DEPTH || !reader.CanRead(16)) {
+		void Initialize(ref DataReader reader) {
+			if (depth > MAX_DIR_DEPTH || !reader.CanRead(16U)) {
 				InitializeDefault();
 				return;
 			}
@@ -209,21 +189,21 @@ namespace dnlib.W32Resources {
 			ushort numIds = reader.ReadUInt16();
 
 			int total = numNamed + numIds;
-			if (!reader.CanRead(total * 8)) {
+			if (!reader.CanRead((uint)total * 8)) {
 				InitializeDefault();
 				return;
 			}
 
 			dataInfos = new List<EntryInfo>();
 			dirInfos = new List<EntryInfo>();
-			long offset = reader.Position;
+			uint offset = reader.Position;
 			for (int i = 0; i < total; i++, offset += 8) {
 				reader.Position = offset;
 				uint nameOrId = reader.ReadUInt32();
 				uint dataOrDirectory = reader.ReadUInt32();
 				ResourceName name;
 				if ((nameOrId & 0x80000000) != 0)
-					name = new ResourceName(ReadString(reader, nameOrId & 0x7FFFFFFF) ?? string.Empty);
+					name = new ResourceName(ReadString(ref reader, nameOrId & 0x7FFFFFFF) ?? string.Empty);
 				else
 					name = new ResourceName((int)nameOrId);
 
@@ -243,17 +223,16 @@ namespace dnlib.W32Resources {
 		/// <param name="reader">Reader</param>
 		/// <param name="offset">Offset of string</param>
 		/// <returns>The string or <c>null</c> if we could not read it</returns>
-		static string ReadString(IBinaryReader reader, uint offset) {
+		static string ReadString(ref DataReader reader, uint offset) {
 			reader.Position = offset;
-			if (!reader.CanRead(2))
+			if (!reader.CanRead(2U))
 				return null;
 			int size = reader.ReadUInt16();
 			int sizeInBytes = size * 2;
-			if (!reader.CanRead(sizeInBytes))
+			if (!reader.CanRead((uint)sizeInBytes))
 				return null;
-			var stringData = reader.ReadBytes(sizeInBytes);
 			try {
-				return Encoding.Unicode.GetString(stringData);
+				return reader.ReadUtf16String(sizeInBytes / 2);
 			}
 			catch {
 				return null;
@@ -261,49 +240,30 @@ namespace dnlib.W32Resources {
 		}
 
 		ResourceDirectory ReadResourceDirectory(int i) {
-#if THREAD_SAFE
-			resources.theLock.EnterWriteLock(); try {
-#endif
 			var info = dirInfos[i];
-			var reader = resources.ResourceReader;
-			var oldPos = reader.Position;
-			reader.Position = info.offset;
-
-			var dir = new ResourceDirectoryPE(depth + 1, info.name, resources, reader);
-
-			reader.Position = oldPos;
-			return dir;
-#if THREAD_SAFE
-			} finally { resources.theLock.ExitWriteLock(); }
-#endif
+			var reader = resources.GetResourceReader();
+			reader.Position = Math.Min(reader.Length, info.offset);
+			return new ResourceDirectoryPE(depth + 1, info.name, resources, ref reader);
 		}
 
 		ResourceData ReadResourceData(int i) {
-#if THREAD_SAFE
-			resources.theLock.EnterWriteLock(); try {
-#endif
 			var info = dataInfos[i];
-			var reader = resources.ResourceReader;
-			var oldPos = reader.Position;
-			reader.Position = info.offset;
+			var reader = resources.GetResourceReader();
+			reader.Position = Math.Min(reader.Length, info.offset);
 
 			ResourceData data;
-			if (reader.CanRead(16)) {
+			if (reader.CanRead(16U)) {
 				var rva = (RVA)reader.ReadUInt32();
 				uint size = reader.ReadUInt32();
 				uint codePage = reader.ReadUInt32();
 				uint reserved = reader.ReadUInt32();
-				var dataReader = resources.CreateDataReader_NoLock(rva, size);
-				data = new ResourceData(info.name, dataReader, codePage, reserved);
+				resources.GetDataReaderInfo(rva, size, out var dataReaderFactory, out uint dataOffset, out uint dataLength);
+				data = new ResourceData(info.name, dataReaderFactory, dataOffset, dataLength, codePage, reserved);
 			}
 			else
-				data = new ResourceData(info.name, MemoryImageStream.CreateEmpty());
+				data = new ResourceData(info.name);
 
-			reader.Position = oldPos;
 			return data;
-#if THREAD_SAFE
-			} finally { resources.theLock.ExitWriteLock(); }
-#endif
 		}
 
 		void InitializeDefault() {

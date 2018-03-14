@@ -39,6 +39,20 @@ v3.0 breaking changes
 - `ModuleWriterOptionsBase.Listener` is obsolete, use the new event `ModuleWriterOptionsBase.WriterEvent` instead
 - `StrongNameKey`, `PublicKey`, `PublicKeyToken` are immutable classes
 - `RidList` is a struct
+- IBinaryReader, IImageStream have been removed and replaced with new classes
+	- `MemoryImageStream` -> `ByteArrayDataReaderFactory`
+		- It has two static factory methods, `Create` and `CreateReader`
+	- `BinaryReaderChunk` -> `DataReaderChunk`
+	- To get a reader, call `CreateReader` on `IPEImage`, `DataReaderFactory`, or #Blob stream
+	- The reader is a struct called `DataReader` and it's not disposable
+	- The reader has `Slice` methods to get another reader (replaces the older `Create` methods)
+	- Since the reader is a struct, pass it by reference to methods if its position should be updated when the method returns
+	- `DataReader.Position` is now a `uint` and not a `long` so expressions that were `long` could now be `uint` and possibly underflow
+		- `reader.Position + 0xFFFFFFFF`
+		- `reader.Position + someRandomValue`
+		- `var pos = reader.Position;` <-- `pos` is a `uint` and not a `long`
+	- `DataReader.Position` only accepts valid values and will throw (an `IOException`) if you set it to an invalid position
+- `FileOffset` is `uint`, used to be `long`
 
 Examples
 --------

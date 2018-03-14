@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.PE;
-using dnlib.IO;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -49,26 +48,25 @@ namespace dnlib.DotNet {
 			vtables = new List<VTable>((int)info.Size / 8);
 
 			var peImage = module.Metadata.PEImage;
-			using (var reader = peImage.CreateFullStream()) {
-				reader.Position = (long)peImage.ToFileOffset(info.VirtualAddress);
-				long endPos = reader.Position + info.Size;
-				while (reader.Position + 8 <= endPos && reader.CanRead(8)) {
-					var tableRva = (RVA)reader.ReadUInt32();
-					int numSlots = reader.ReadUInt16();
-					var flags = (VTableFlags)reader.ReadUInt16();
-					var vtable = new VTable(tableRva, flags, numSlots);
-					vtables.Add(vtable);
+			var reader = peImage.CreateReader();
+			reader.Position = (uint)peImage.ToFileOffset(info.VirtualAddress);
+			ulong endPos = (ulong)reader.Position + info.Size;
+			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
+				var tableRva = (RVA)reader.ReadUInt32();
+				int numSlots = reader.ReadUInt16();
+				var flags = (VTableFlags)reader.ReadUInt16();
+				var vtable = new VTable(tableRva, flags, numSlots);
+				vtables.Add(vtable);
 
-					var pos = reader.Position;
-					reader.Position = (long)peImage.ToFileOffset(tableRva);
-					int slotSize = vtable.Is64Bit ? 8 : 4;
-					while (numSlots-- > 0 && reader.CanRead(slotSize)) {
-						vtable.Methods.Add(module.ResolveToken(reader.ReadUInt32()) as IMethod);
-						if (slotSize == 8)
-							reader.ReadUInt32();
-					}
-					reader.Position = pos;
+				var pos = reader.Position;
+				reader.Position = (uint)peImage.ToFileOffset(tableRva);
+				uint slotSize = vtable.Is64Bit ? 8U : 4;
+				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
+					vtable.Methods.Add(module.ResolveToken(reader.ReadUInt32()) as IMethod);
+					if (slotSize == 8)
+						reader.ReadUInt32();
 				}
+				reader.Position = pos;
 			}
 		}
 

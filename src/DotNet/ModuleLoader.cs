@@ -6,7 +6,6 @@ using System.Diagnostics;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
-using dnlib.IO;
 using dnlib.PE;
 using dnlib.Threading;
 using dnlib.W32Resources;
@@ -546,10 +545,6 @@ namespace dnlib.DotNet {
 
 			switch (obj.ResourceType) {
 			case ResourceType.Embedded:
-				var er = (EmbeddedResource)obj;
-				// Make sure data is cached
-				if (!(er.Data is MemoryImageStream))
-					er.Data = MemoryImageStream.Create(er.GetClonedResourceStream().ReadAllBytes());
 				break;
 
 			case ResourceType.AssemblyLinked:
@@ -673,13 +668,7 @@ namespace dnlib.DotNet {
 			Add(obj.Data);
 		}
 
-		void Load(ResourceData obj) {
-			if (obj == null)
-				return;
-			var data = obj.Data;
-			if (data != null && !(data is MemoryImageStream))
-				obj.Data = MemoryImageStream.Create(data.ReadAllBytes());
-		}
+		void Load(ResourceData obj) { }
 
 		void AddToStack<T>(T t) where T : class {
 			if (t == null)

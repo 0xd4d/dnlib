@@ -21,7 +21,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public override int UserEntryPoint => pdbMetadata.PdbStream.EntryPoint.ToInt32();
 		public override IList<SymbolDocument> Documents => documents;
 
-		public PortablePdbReader(IImageStream pdbStream, PdbFileKind pdbFileKind) {
+		public PortablePdbReader(DataReaderFactory pdbStream, PdbFileKind pdbFileKind) {
 			this.pdbFileKind = pdbFileKind;
 			pdbMetadata = MetadataCreator.CreateStandalonePortablePDB(pdbStream, true);
 		}
@@ -110,82 +110,82 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return null;
 			uint documentRid = row.Document;
 
+			if (!pdbMetadata.BlobStream.TryCreateReader(row.SequencePoints, out var seqPointsReader))
+				return null;
 			var seqPointsBuilder = ListCache<SymbolSequencePoint>.AllocList();
-			using (var seqPointsStream = pdbMetadata.BlobStream.CreateStream(row.SequencePoints)) {
-				uint localSig = seqPointsStream.ReadCompressedUInt32();
-				if (documentRid == 0)
-					documentRid = seqPointsStream.ReadCompressedUInt32();
+			uint localSig = seqPointsReader.ReadCompressedUInt32();
+			if (documentRid == 0)
+				documentRid = seqPointsReader.ReadCompressedUInt32();
 
-				TryGetSymbolDocument(documentRid, out var document);
+			TryGetSymbolDocument(documentRid, out var document);
 
-				uint ilOffset = uint.MaxValue;
-				int line = -1, column = 0;
-				bool canReadDocumentRecord = false;
-				while (seqPointsStream.Position < seqPointsStream.Length) {
-					uint data = seqPointsStream.ReadCompressedUInt32();
-					if (data == 0 && canReadDocumentRecord) {
-						// document-record
+			uint ilOffset = uint.MaxValue;
+			int line = -1, column = 0;
+			bool canReadDocumentRecord = false;
+			while (seqPointsReader.Position < seqPointsReader.Length) {
+				uint data = seqPointsReader.ReadCompressedUInt32();
+				if (data == 0 && canReadDocumentRecord) {
+					// document-record
 
-						documentRid = seqPointsStream.ReadCompressedUInt32();
-						TryGetSymbolDocument(documentRid, out document);
+					documentRid = seqPointsReader.ReadCompressedUInt32();
+					TryGetSymbolDocument(documentRid, out document);
+				}
+				else {
+					// SequencePointRecord
+
+					Debug.Assert(document != null);
+					if (document == null)
+						return null;
+
+					var symSeqPoint = new SymbolSequencePoint {
+						Document = document,
+					};
+
+					if (ilOffset == uint.MaxValue)
+						ilOffset = data;
+					else {
+						Debug.Assert(data != 0);
+						if (data == 0)
+							return null;
+						ilOffset += data;
+					}
+					symSeqPoint.Offset = (int)ilOffset;
+
+					uint dlines = seqPointsReader.ReadCompressedUInt32();
+					int dcolumns = dlines == 0 ? (int)seqPointsReader.ReadCompressedUInt32() : seqPointsReader.ReadCompressedInt32();
+
+					if (dlines == 0 && dcolumns == 0) {
+						// hidden-sequence-point-record
+
+						symSeqPoint.Line = SequencePointConstants.HIDDEN_LINE;
+						symSeqPoint.EndLine = SequencePointConstants.HIDDEN_LINE;
+						symSeqPoint.Column = SequencePointConstants.HIDDEN_COLUMN;
+						symSeqPoint.EndColumn = SequencePointConstants.HIDDEN_COLUMN;
 					}
 					else {
-						// SequencePointRecord
+						// sequence-point-record
 
-						Debug.Assert(document != null);
-						if (document == null)
-							return null;
-
-						var symSeqPoint = new SymbolSequencePoint {
-							Document = document,
-						};
-
-						if (ilOffset == uint.MaxValue)
-							ilOffset = data;
-						else {
-							Debug.Assert(data != 0);
-							if (data == 0)
-								return null;
-							ilOffset += data;
-						}
-						symSeqPoint.Offset = (int)ilOffset;
-
-						uint dlines = seqPointsStream.ReadCompressedUInt32();
-						int dcolumns = dlines == 0 ? (int)seqPointsStream.ReadCompressedUInt32() : seqPointsStream.ReadCompressedInt32();
-
-						if (dlines == 0 && dcolumns == 0) {
-							// hidden-sequence-point-record
-
-							symSeqPoint.Line = SequencePointConstants.HIDDEN_LINE;
-							symSeqPoint.EndLine = SequencePointConstants.HIDDEN_LINE;
-							symSeqPoint.Column = SequencePointConstants.HIDDEN_COLUMN;
-							symSeqPoint.EndColumn = SequencePointConstants.HIDDEN_COLUMN;
+						if (line < 0) {
+							line = (int)seqPointsReader.ReadCompressedUInt32();
+							column = (int)seqPointsReader.ReadCompressedUInt32();
 						}
 						else {
-							// sequence-point-record
-
-							if (line < 0) {
-								line = (int)seqPointsStream.ReadCompressedUInt32();
-								column = (int)seqPointsStream.ReadCompressedUInt32();
-							}
-							else {
-								line += seqPointsStream.ReadCompressedInt32();
-								column += seqPointsStream.ReadCompressedInt32();
-							}
-
-							symSeqPoint.Line = line;
-							symSeqPoint.EndLine = line + (int)dlines;
-							symSeqPoint.Column = column;
-							symSeqPoint.EndColumn = column + dcolumns;
+							line += seqPointsReader.ReadCompressedInt32();
+							column += seqPointsReader.ReadCompressedInt32();
 						}
 
-						seqPointsBuilder.Add(symSeqPoint);
+						symSeqPoint.Line = line;
+						symSeqPoint.EndLine = line + (int)dlines;
+						symSeqPoint.Column = column;
+						symSeqPoint.EndColumn = column + dcolumns;
 					}
 
-					canReadDocumentRecord = true;
+					seqPointsBuilder.Add(symSeqPoint);
 				}
-				Debug.Assert(seqPointsStream.Position == seqPointsStream.Length);
+
+				canReadDocumentRecord = true;
 			}
+			Debug.Assert(seqPointsReader.Position == seqPointsReader.Length);
 
 			return ListCache<SymbolSequencePoint>.FreeAndToArray(ref seqPointsBuilder);
 		}
@@ -383,11 +383,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (!pdbMetadata.TablesStream.TryReadCustomDebugInformationRow(rid, out var row))
 					continue;
 				var guid = pdbMetadata.GuidStream.Read(row.Kind);
-				var data = pdbMetadata.BlobStream.Read(row.Value);
-				Debug.Assert(guid != null && data != null);
-				if (guid == null || data == null)
+				if (!pdbMetadata.BlobStream.TryCreateReader(row.Value, out var reader))
 					continue;
-				var cdi = PortablePdbCustomDebugInfoReader.Read(module, typeOpt, bodyOpt, gpContext, guid.Value, data);
+				Debug.Assert(guid != null);
+				if (guid == null)
+					continue;
+				var cdi = PortablePdbCustomDebugInfoReader.Read(module, typeOpt, bodyOpt, gpContext, guid.Value, ref reader);
 				Debug.Assert(cdi != null);
 				if (cdi != null) {
 					if (cdi is PdbAsyncMethodSteppingInformationCustomDebugInfo asyncStepInfoTmp) {

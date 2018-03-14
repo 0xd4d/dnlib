@@ -10,20 +10,18 @@ using dnlib.PE;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	static class SymbolReaderCreator {
-		public static SymbolReader TryCreate(IImageStream pdbStream, bool isEmbeddedPortablePdb) {
+		public static SymbolReader TryCreate(DataReaderFactory pdbStream, bool isEmbeddedPortablePdb) {
 			try {
-				if (pdbStream != null) {
-					pdbStream.Position = 0;
-					if (pdbStream.ReadUInt32() == 0x424A5342) {
-						pdbStream.Position = 0;
-						return new PortablePdbReader(pdbStream, isEmbeddedPortablePdb ? PdbFileKind.EmbeddedPortablePDB : PdbFileKind.PortablePDB);
-					}
-				}
+				if (pdbStream != null && pdbStream.Length >= 4 && pdbStream.CreateReader().ReadUInt32() == 0x424A5342)
+					return new PortablePdbReader(pdbStream, isEmbeddedPortablePdb ? PdbFileKind.EmbeddedPortablePDB : PdbFileKind.PortablePDB);
 			}
 			catch (IOException) {
 			}
-			if (pdbStream != null)
-				pdbStream.Dispose();
+			catch {
+				pdbStream?.Dispose();
+				throw;
+			}
+			pdbStream?.Dispose();
 			return null;
 		}
 
@@ -37,31 +35,30 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var embeddedDir = TryGetEmbeddedDebugDirectory(peImage);
 				if (embeddedDir == null)
 					return null;
-				using (var reader = peImage.CreateStream(embeddedDir.PointerToRawData, embeddedDir.SizeOfData)) {
-					// "MPDB" = 0x4244504D
-					if (reader.ReadUInt32() != 0x4244504D)
-						return null;
-					uint uncompressedSize = reader.ReadUInt32();
-					// If this fails, see the (hopefully) updated spec:
-					//		https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#embedded-portable-pdb-debug-directory-entry-type-17
-					bool newVersion = (uncompressedSize & 0x80000000) != 0;
-					Debug.Assert(!newVersion);
-					if (newVersion)
-						return null;
-					var decompressedBytes = new byte[uncompressedSize];
-					using (var deflateStream = new DeflateStream(new MemoryStream(reader.ReadRemainingBytes()), CompressionMode.Decompress)) {
-						int pos = 0;
-						while (pos < decompressedBytes.Length) {
-							int read = deflateStream.Read(decompressedBytes, pos, decompressedBytes.Length - pos);
-							if (read == 0)
-								break;
-							pos += read;
-						}
-						if (pos != decompressedBytes.Length)
-							return null;
-						var stream = MemoryImageStream.Create(decompressedBytes);
-						return TryCreate(stream, true);
+				var reader = peImage.CreateReader(embeddedDir.PointerToRawData, embeddedDir.SizeOfData);
+				// "MPDB" = 0x4244504D
+				if (reader.ReadUInt32() != 0x4244504D)
+					return null;
+				uint uncompressedSize = reader.ReadUInt32();
+				// If this fails, see the (hopefully) updated spec:
+				//		https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#embedded-portable-pdb-debug-directory-entry-type-17
+				bool newVersion = (uncompressedSize & 0x80000000) != 0;
+				Debug.Assert(!newVersion);
+				if (newVersion)
+					return null;
+				var decompressedBytes = new byte[uncompressedSize];
+				using (var deflateStream = new DeflateStream(reader.AsStream(), CompressionMode.Decompress)) {
+					int pos = 0;
+					while (pos < decompressedBytes.Length) {
+						int read = deflateStream.Read(decompressedBytes, pos, decompressedBytes.Length - pos);
+						if (read == 0)
+							break;
+						pos += read;
 					}
+					if (pos != decompressedBytes.Length)
+						return null;
+					var stream = ByteArrayDataReaderFactory.Create(decompressedBytes, filename: null);
+					return TryCreate(stream, true);
 				}
 			}
 			catch (IOException) {

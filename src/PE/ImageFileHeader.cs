@@ -57,8 +57,8 @@ namespace dnlib.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageFileHeader(IImageStream reader, bool verify) {
-			SetStartOffset(reader);
+		public ImageFileHeader(ref DataReader reader, bool verify) {
+			SetStartOffset(ref reader);
 			machine = (Machine)reader.ReadUInt16();
 			numberOfSections = reader.ReadUInt16();
 			timeDateStamp = reader.ReadUInt32();
@@ -66,7 +66,7 @@ namespace dnlib.PE {
 			numberOfSymbols = reader.ReadUInt32();
 			sizeOfOptionalHeader = reader.ReadUInt16();
 			characteristics = (Characteristics)reader.ReadUInt16();
-			SetEndoffset(reader);
+			SetEndoffset(ref reader);
 			if (verify && sizeOfOptionalHeader == 0)
 				throw new BadImageFormatException("Invalid SizeOfOptionalHeader");
 		}

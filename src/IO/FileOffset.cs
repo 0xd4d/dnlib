@@ -4,7 +4,7 @@
 	/// <summary>
 	/// Represents a file offset
 	/// </summary>
-	public enum FileOffset : long {
+	public enum FileOffset : uint {
 	}
 
 	partial class IOExtensions {

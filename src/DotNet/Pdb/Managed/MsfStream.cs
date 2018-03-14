@@ -5,17 +5,19 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
 	sealed class MsfStream {
-		public MsfStream(IImageStream[] pages, uint length) {
+		public MsfStream(DataReader[] pages, uint length) {
 			var buf = new byte[length];
 			int offset = 0;
-			foreach (var page in pages) {
+			for (int i = 0; i < pages.Length; i++) {
+				var page = pages[i];
 				page.Position = 0;
 				int len = Math.Min((int)page.Length, (int)(length - offset));
-				offset += page.Read(buf, offset, len);
+				page.ReadBytes(buf, offset, len);
+				offset += len;
 			}
-			Content = new MemoryImageStream(0, buf, 0, buf.Length);
+			Content = ByteArrayDataReaderFactory.CreateReader(buf);
 		}
 
-		public IImageStream Content { get; set; }
+		public DataReader Content;
 	}
 }

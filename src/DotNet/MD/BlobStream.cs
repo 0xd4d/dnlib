@@ -8,15 +8,13 @@ namespace dnlib.DotNet.MD {
 	/// Represents the #Blob stream
 	/// </summary>
 	public sealed class BlobStream : HeapStream {
-		static readonly byte[] noData = Array2.Empty<byte>();
-
 		/// <inheritdoc/>
 		public BlobStream() {
 		}
 
 		/// <inheritdoc/>
-		public BlobStream(IImageStream imageStream, StreamHeader streamHeader)
-			: base(imageStream, streamHeader) {
+		public BlobStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
+			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
 		}
 
 		/// <summary>
@@ -28,17 +26,10 @@ namespace dnlib.DotNet.MD {
 			// The CLR has a special check for offset 0. It always interprets it as
 			// 0-length data, even if that first byte isn't 0 at all.
 			if (offset == 0)
-				return noData;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			int size = GetReader_NoLock(offset, out var reader);
-			if (size < 0)
+				return Array2.Empty<byte>();
+			if (!TryCreateReader(offset, out var reader))
 				return null;
-			return reader.ReadBytes(size);
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
+			return reader.ToArray();
 		}
 
 		/// <summary>
@@ -47,37 +38,35 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="offset">Offset of data</param>
 		/// <returns>The data</returns>
-		public byte[] ReadNoNull(uint offset) => Read(offset) ?? noData;
+		public byte[] ReadNoNull(uint offset) => Read(offset) ?? Array2.Empty<byte>();
 
 		/// <summary>
-		/// Creates a new sub stream of the #Blob stream that can access one blob
+		/// Creates a reader that can access a blob
 		/// </summary>
 		/// <param name="offset">Offset of blob</param>
 		/// <returns>A new stream</returns>
-		public IImageStream CreateStream(uint offset) {
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			int size = GetReader_NoLock(offset, out var reader);
-			if (size < 0)
-				return MemoryImageStream.CreateEmpty();
-			return reader.Create((FileOffset)reader.Position, size);
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
+		public DataReader CreateReader(uint offset) {
+			TryCreateReader(offset, out var reader);
+			return reader;
 		}
 
-		int GetReader_NoLock(uint offset, out IImageStream reader) {
-			reader = null;
+		/// <summary>
+		/// Creates a reader that can access a blob or returns false on failure
+		/// </summary>
+		/// <param name="offset">Offset of blob</param>
+		/// <param name="reader">Updated with the reader</param>
+		/// <returns></returns>
+		public bool TryCreateReader(uint offset, out DataReader reader) {
+			reader = dataReader;
 			if (!IsValidOffset(offset))
-				return -1;
-			reader = GetReader_NoLock(offset);
+				return false;
+			reader.Position = offset;
 			if (!reader.ReadCompressedUInt32(out uint length))
-				return -1;
-			if (reader.Position + length < length || reader.Position + length > reader.Length)
-				return -1;
-
-			return (int)length;	// length <= 0x1FFFFFFF so this cast does not make it negative
+				return false;
+			if (!reader.CanRead(length))
+				return false;
+			reader = reader.Slice(reader.Position, length);
+			return true;
 		}
 	}
 }

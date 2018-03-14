@@ -6,13 +6,13 @@ using System.Security;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
-	static class ImageStreamUtils {
-		public static IImageStream OpenImageStream(string fileName) {
+	static class DataReaderFactoryUtils {
+		public static DataReaderFactory TryCreateDataReaderFactory(string filename) {
 			try {
-				if (!File.Exists(fileName))
+				if (!File.Exists(filename))
 					return null;
 				// Don't use memory mapped I/O
-				return MemoryImageStream.Create(File.ReadAllBytes(fileName));
+				return ByteArrayDataReaderFactory.Create(File.ReadAllBytes(filename), filename);
 			}
 			catch (IOException) {
 			}

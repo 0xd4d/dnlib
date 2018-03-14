@@ -420,29 +420,6 @@ namespace dnlib.Utils {
 			}
 		}
 
-		internal List<TValue> GetInitializedElements(bool clearList) {
-			List<TValue> newList;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			newList = new List<TValue>(list.Count);
-			int id2 = id;
-			for (int i = 0; i < list.Count; i++) {
-				if (id != id2)
-					throw new InvalidOperationException("List was modified");
-				var elem = list[i];
-				if (!elem.IsInitialized_NoLock)
-					continue;
-				newList.Add(elem.GetValue_NoLock(i));
-			}
-			if (clearList)
-				Clear_NoLock();
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
-			return newList;
-		}
-
 		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	}

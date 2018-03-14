@@ -46,10 +46,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// <summary>
 		/// Read the PDB in the specified stream.
 		/// </summary>
-		/// <param name="stream">The stream that contains the PDB file</param>
-		public void Read(IImageStream stream) {
+		/// <param name="reader">PDB file data reader</param>
+		public void Read(DataReader reader) {
 			try {
-				ReadInternal(stream);
+				ReadInternal(ref reader);
 			}
 			catch (Exception ex) {
 				if (ex is PdbException)
@@ -66,48 +66,39 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		static uint RoundUpDiv(uint value, uint divisor) => (value + divisor - 1) / divisor;
 
-		void ReadInternal(IImageStream stream) {
-			stream.Position = 0;
-			string sig = Encoding.ASCII.GetString(stream.ReadBytes(30));
+		void ReadInternal(ref DataReader reader) {
+			string sig = reader.ReadString(30, Encoding.ASCII);
 			if (sig != "Microsoft C/C++ MSF 7.00\r\n\u001ADS\0")
 				throw new PdbException("Invalid signature");
-			stream.Position += 2;
+			reader.Position += 2;
 
-			uint pageSize = stream.ReadUInt32();
-			/*uint fpm = */stream.ReadUInt32();
-			uint pageCount = stream.ReadUInt32();
-			uint rootSize = stream.ReadUInt32();
-			stream.ReadUInt32();
+			uint pageSize = reader.ReadUInt32();
+			/*uint fpm = */reader.ReadUInt32();
+			uint pageCount = reader.ReadUInt32();
+			uint rootSize = reader.ReadUInt32();
+			reader.ReadUInt32();
 			var numOfRootPages = RoundUpDiv(rootSize, pageSize);
 			var numOfPtrPages = RoundUpDiv(numOfRootPages * 4, pageSize);
-			if (pageCount * pageSize != stream.Length)
+			if (pageCount * pageSize != reader.Length)
 				throw new PdbException("File size mismatch");
 
-			var pages = new IImageStream[pageCount];
-			try {
-				FileOffset offset = 0;
-				for (uint i = 0; i < pageCount; i++) {
-					pages[i] = stream.Create(offset, pageSize);
-					offset += pageSize;
-				}
-
-				var rootPages = new IImageStream[numOfRootPages];
-				int pageIndex = 0;
-				for (int i = 0; i < numOfPtrPages && pageIndex < numOfRootPages; i++) {
-					var ptrPage = pages[stream.ReadUInt32()];
-					ptrPage.Position = 0;
-					for (; ptrPage.Position < ptrPage.Length && pageIndex < numOfRootPages; pageIndex++)
-						rootPages[pageIndex] = pages[ptrPage.ReadUInt32()];
-				}
-
-				ReadRootDirectory(new MsfStream(rootPages, rootSize), pages, pageSize);
+			var pages = new DataReader[pageCount];
+			FileOffset offset = 0;
+			for (uint i = 0; i < pageCount; i++) {
+				pages[i] = reader.Slice((uint)offset, pageSize);
+				offset += pageSize;
 			}
-			finally {
-				foreach (var page in pages) {
-					if (page != null)
-						page.Dispose();
-				}
+
+			var rootPages = new DataReader[numOfRootPages];
+			int pageIndex = 0;
+			for (int i = 0; i < numOfPtrPages && pageIndex < numOfRootPages; i++) {
+				var ptrPage = pages[reader.ReadUInt32()];
+				ptrPage.Position = 0;
+				for (; ptrPage.Position < ptrPage.Length && pageIndex < numOfRootPages; pageIndex++)
+					rootPages[pageIndex] = pages[ptrPage.ReadUInt32()];
 			}
+
+			ReadRootDirectory(new MsfStream(rootPages, rootSize), pages, pageSize);
 
 			ReadNames();
 			ReadStringTable();
@@ -116,11 +107,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 			documents = new Dictionary<string, DbiDocument>(StringComparer.OrdinalIgnoreCase);
 			foreach (var module in modules) {
 				if (IsValidStreamIndex(module.StreamId))
-					module.LoadFunctions(this, streams[module.StreamId].Content);
+					module.LoadFunctions(this, ref streams[module.StreamId].Content);
 			}
 
 			if (IsValidStreamIndex(tokenMapStream ?? STREAM_INVALID_INDEX))
-				ApplyRidMap(streams[tokenMapStream.Value].Content);
+				ApplyRidMap(ref streams[tokenMapStream.Value].Content);
 
 			functions = new Dictionary<int, DbiFunction>();
 			foreach (var module in modules) {
@@ -133,7 +124,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		bool IsValidStreamIndex(ushort index) => index != STREAM_INVALID_INDEX && index < streams.Length;
 
-		void ReadRootDirectory(MsfStream stream, IImageStream[] pages, uint pageSize) {
+		void ReadRootDirectory(MsfStream stream, DataReader[] pages, uint pageSize) {
 			uint streamNum = stream.Content.ReadUInt32();
 			var streamSizes = new uint[streamNum];
 			for (int i = 0; i < streamSizes.Length; i++)
@@ -146,7 +137,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					continue;
 				}
 				var pageCount = RoundUpDiv(streamSizes[i], pageSize);
-				var streamPages = new IImageStream[pageCount];
+				var streamPages = new DataReader[pageCount];
 				for (int j = 0; j < streamPages.Length; j++)
 					streamPages[j] = pages[stream.Content.ReadUInt32()];
 				streams[i] = new MsfStream(streamPages, streamSizes[i]);
@@ -154,33 +145,32 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		void ReadNames() {
-			var stream = streams[STREAM_NAMES].Content;
+			ref var stream = ref streams[STREAM_NAMES].Content;
 			stream.Position = 8;
 			Age = stream.ReadUInt32();
 			Guid = new Guid(stream.ReadBytes(0x10));
 
 			uint nameSize = stream.ReadUInt32();
-			using (var nameData = stream.Create(stream.FileOffset + stream.Position, nameSize)) {
-				stream.Position += nameSize;
+			var nameData = stream.Slice(stream.Position, nameSize);
+			stream.Position += nameSize;
 
-				/*uint entryCount = */stream.ReadUInt32();
-				uint entryCapacity = stream.ReadUInt32();
-				var entryOk = new BitArray(stream.ReadBytes(stream.ReadInt32() * 4));
-				if (stream.ReadUInt32() != 0)
-					throw new NotSupportedException();
+			/*uint entryCount = */stream.ReadUInt32();
+			uint entryCapacity = stream.ReadUInt32();
+			var entryOk = new BitArray(stream.ReadBytes(stream.ReadInt32() * 4));
+			if (stream.ReadUInt32() != 0)
+				throw new NotSupportedException();
 
-				names = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
-				entryCapacity = Math.Min(entryCapacity, (uint)entryOk.Count);
-				for (int i = 0; i < entryCapacity; i++) {
-					if (!entryOk[i])
-						continue;
+			names = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+			entryCapacity = Math.Min(entryCapacity, (uint)entryOk.Count);
+			for (int i = 0; i < entryCapacity; i++) {
+				if (!entryOk[i])
+					continue;
 
-					var pos = stream.ReadUInt32();
-					var streamId = stream.ReadUInt32();
-					nameData.Position = pos;
-					var streamName = ReadCString(nameData);
-					names[streamName] = streamId;
-				}
+				var pos = stream.ReadUInt32();
+				var streamId = stream.ReadUInt32();
+				nameData.Position = pos;
+				var streamName = ReadCString(ref nameData);
+				names[streamName] = streamId;
 			}
 		}
 
@@ -188,57 +178,55 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!names.TryGetValue("/names", out uint streamId))
 				throw new PdbException("String table not found");
 
-			var stream = streams[streamId].Content;
+			ref var stream = ref streams[streamId].Content;
 			stream.Position = 8;
 
 			uint strSize = stream.ReadUInt32();
-			using (var strData = stream.Create(stream.FileOffset + stream.Position, strSize)) {
-				stream.Position += strSize;
+			var strData = stream.Slice(stream.Position, strSize);
+			stream.Position += strSize;
 
-				strings = new Dictionary<uint, string>();
-				uint count = stream.ReadUInt32();
-				for (uint i = 0; i < count; i++) {
-					var pos = stream.ReadUInt32();
-					if (pos == 0)
-						continue;
-					strData.Position = pos;
-					strings[pos] = ReadCString(strData);
-				}
+			strings = new Dictionary<uint, string>();
+			uint count = stream.ReadUInt32();
+			for (uint i = 0; i < count; i++) {
+				var pos = stream.ReadUInt32();
+				if (pos == 0)
+					continue;
+				strData.Position = pos;
+				strings[pos] = ReadCString(ref strData);
 			}
 		}
 
-		static uint ReadSizeField(IBinaryReader reader) {
+		static uint ReadSizeField(ref DataReader reader) {
 			int size = reader.ReadInt32();
 			return size <= 0 ? 0 : (uint)size;
 		}
 
 		ushort? ReadModules() {
-			var stream = streams[STREAM_DBI].Content;
+			ref var stream = ref streams[STREAM_DBI].Content;
 			stream.Position = 20;
 			ushort symrecStream = stream.ReadUInt16();
 			stream.Position += 2;
-			uint gpmodiSize = ReadSizeField(stream); // gpmodiSize
+			uint gpmodiSize = ReadSizeField(ref stream); // gpmodiSize
 			uint otherSize = 0;
-			otherSize += ReadSizeField(stream); // secconSize
-			otherSize += ReadSizeField(stream); // secmapSize
-			otherSize += ReadSizeField(stream); // filinfSize
-			otherSize += ReadSizeField(stream); // tsmapSize
+			otherSize += ReadSizeField(ref stream); // secconSize
+			otherSize += ReadSizeField(ref stream); // secmapSize
+			otherSize += ReadSizeField(ref stream); // filinfSize
+			otherSize += ReadSizeField(ref stream); // tsmapSize
 			stream.ReadUInt32(); // mfcIndex
-			uint dbghdrSize = ReadSizeField(stream);
-			otherSize += ReadSizeField(stream); // ecinfoSize
+			uint dbghdrSize = ReadSizeField(ref stream);
+			otherSize += ReadSizeField(ref stream); // ecinfoSize
 			stream.Position += 8;
 
 			modules = new List<DbiModule>();
-			using (var moduleStream = stream.Create((FileOffset)stream.Position, gpmodiSize)) {
-				while (moduleStream.Position < moduleStream.Length) {
-					var module = new DbiModule();
-					module.Read(moduleStream);
-					modules.Add(module);
-				}
+			var moduleStream = stream.Slice(stream.Position, gpmodiSize);
+			while (moduleStream.Position < moduleStream.Length) {
+				var module = new DbiModule();
+				module.Read(ref moduleStream);
+				modules.Add(module);
 			}
 
 			if (IsValidStreamIndex(symrecStream))
-				ReadGlobalSymbols(streams[symrecStream].Content);
+				ReadGlobalSymbols(ref streams[symrecStream].Content);
 
 			if (dbghdrSize != 0) {
 				stream.Position += gpmodiSize;
@@ -256,24 +244,24 @@ namespace dnlib.DotNet.Pdb.Managed {
 				doc = new DbiDocument(name);
 
 				if (names.TryGetValue("/src/files/" + name, out uint streamId))
-					doc.Read(streams[streamId].Content);
+					doc.Read(ref streams[streamId].Content);
 				documents.Add(name, doc);
 			}
 			return doc;
 		}
 
-		void ReadGlobalSymbols(IImageStream stream) {
-			stream.Position = 0;
-			while (stream.Position < stream.Length) {
-				var size = stream.ReadUInt16();
-				var begin = stream.Position;
+		void ReadGlobalSymbols(ref DataReader reader) {
+			reader.Position = 0;
+			while (reader.Position < reader.Length) {
+				var size = reader.ReadUInt16();
+				var begin = reader.Position;
 				var end = begin + size;
 
-				if ((SymbolType)stream.ReadUInt16() == SymbolType.S_PUB32) {
-					stream.Position += 4;
-					var offset = stream.ReadUInt32();
-					stream.Position += 2;
-					var name = ReadCString(stream);
+				if ((SymbolType)reader.ReadUInt16() == SymbolType.S_PUB32) {
+					reader.Position += 4;
+					var offset = reader.ReadUInt32();
+					reader.Position += 2;
+					var name = ReadCString(ref reader);
 
 					if (name == "COM+_Entry_Point") {
 						entryPt = offset;
@@ -281,15 +269,15 @@ namespace dnlib.DotNet.Pdb.Managed {
 					}
 				}
 
-				stream.Position = end;
+				reader.Position = end;
 			}
 		}
 
-		void ApplyRidMap(IImageStream stream) {
-			stream.Position = 0;
-			var map = new uint[stream.Length / 4];
+		void ApplyRidMap(ref DataReader reader) {
+			reader.Position = 0;
+			var map = new uint[reader.Length / 4];
 			for (int i = 0; i < map.Length; i++)
-				map[i] = stream.ReadUInt32();
+				map[i] = reader.ReadUInt32();
 
 			foreach (var module in modules) {
 				foreach (var func in module.Functions) {
@@ -306,14 +294,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		internal static string ReadCString(IImageStream stream) {
-			var bytes = stream.ReadBytesUntilByte(0);
-			if (bytes == null)
-				return string.Empty;
-			var value = Encoding.UTF8.GetString(bytes);
-			stream.Position++;
-			return value;
-		}
+		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedString(Encoding.UTF8) ?? string.Empty;
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
 			if (functions.TryGetValue(method.MDToken.ToInt32(), out var symMethod))

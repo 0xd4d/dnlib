@@ -2,7 +2,6 @@
 
 using System;
 using dnlib.IO;
-using dnlib.Threading;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -19,6 +18,7 @@ namespace dnlib.DotNet.MD {
 		ulong sortedMask;
 		uint extraData;
 		MDTable[] mdTables;
+		uint mdTablesPos;
 
 		IColumnReader columnReader;
 		IRowReader<RawMethodRow> methodRowReader;
@@ -78,10 +78,6 @@ namespace dnlib.DotNet.MD {
 		public MDTable StateMachineMethodTable { get; private set; }
 		public MDTable CustomDebugInformationTable { get; private set; }
 #pragma warning restore
-
-#if THREAD_SAFE
-		internal readonly Lock theLock = Lock.Create();
-#endif
 
 		/// <summary>
 		/// Gets/sets the column reader
@@ -176,8 +172,8 @@ namespace dnlib.DotNet.MD {
 		public bool HasDelete => (flags & MDStreamFlags.HasDelete) != 0;
 
 		/// <inheritdoc/>
-		public TablesStream(IImageStream imageStream, StreamHeader streamHeader)
-			: base(imageStream, streamHeader) {
+		public TablesStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
+			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
 		}
 
 		/// <summary>
@@ -189,13 +185,14 @@ namespace dnlib.DotNet.MD {
 				throw new Exception("Initialize() has already been called");
 			initialized = true;
 
-			reserved1 = imageStream.ReadUInt32();
-			majorVersion = imageStream.ReadByte();
-			minorVersion = imageStream.ReadByte();
-			flags = (MDStreamFlags)imageStream.ReadByte();
-			log2Rid = imageStream.ReadByte();
-			validMask = imageStream.ReadUInt64();
-			sortedMask = imageStream.ReadUInt64();
+			var reader = dataReader;
+			reserved1 = reader.ReadUInt32();
+			majorVersion = reader.ReadByte();
+			minorVersion = reader.ReadByte();
+			flags = (MDStreamFlags)reader.ReadByte();
+			log2Rid = reader.ReadByte();
+			validMask = reader.ReadUInt64();
+			sortedMask = reader.ReadUInt64();
 
 			var dnTableSizes = new DotNetTableSizes();
 			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion, out int maxPresentTables);
@@ -206,7 +203,7 @@ namespace dnlib.DotNet.MD {
 			ulong valid = validMask;
 			var sizes = new uint[64];
 			for (int i = 0; i < 64; valid >>= 1, i++) {
-				uint rows = (valid & 1) == 0 ? 0 : imageStream.ReadUInt32();
+				uint rows = (valid & 1) == 0 ? 0 : reader.ReadUInt32();
 				if (i >= maxPresentTables)
 					rows = 0;
 				sizes[i] = rows;
@@ -215,7 +212,7 @@ namespace dnlib.DotNet.MD {
 			}
 
 			if (HasExtraData)
-				extraData = imageStream.ReadUInt32();
+				extraData = reader.ReadUInt32();
 
 			var debugSizes = sizes;
 			if (typeSystemTableRows != null) {
@@ -230,17 +227,26 @@ namespace dnlib.DotNet.MD {
 
 			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes, debugSizes);
 
-			var currentPos = (FileOffset)imageStream.Position;
+			mdTablesPos = reader.Position;
+			InitializeMdTableReaders();
+			InitializeTables();
+		}
+
+		/// <inheritdoc/>
+		protected override void OnReaderRecreated() => InitializeMdTableReaders();
+
+		void InitializeMdTableReaders() {
+			var reader = dataReader;
+			reader.Position = mdTablesPos;
+			var currentPos = reader.Position;
 			foreach (var mdTable in mdTables) {
-				var dataLen = (long)mdTable.TableInfo.RowSize * (long)mdTable.Rows;
-				mdTable.ImageStream = imageStream.Create(currentPos, dataLen);
-				var newPos = currentPos + (uint)dataLen;
+				var dataLen = (uint)mdTable.TableInfo.RowSize * mdTable.Rows;
+				mdTable.DataReader = reader.Slice(currentPos, dataLen);
+				var newPos = currentPos + dataLen;
 				if (newPos < currentPos)
 					throw new BadImageFormatException("Too big MD table");
 				currentPos = newPos;
 			}
-
-			InitializeTables();
 		}
 
 		void InitializeTables() {

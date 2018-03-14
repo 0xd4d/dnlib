@@ -296,7 +296,7 @@ namespace dnlib.DotNet.Writer {
 		internal readonly USHeap usHeap;
 		internal readonly GuidHeap guidHeap;
 		internal readonly BlobHeap blobHeap;
-		internal List<TypeDef> allTypeDefs;
+		internal TypeDef[] allTypeDefs;
 		internal readonly Rows<ModuleDef> moduleDefInfos = new Rows<ModuleDef>();
 		internal readonly SortedRows<InterfaceImpl, RawInterfaceImplRow> interfaceImplInfos = new SortedRows<InterfaceImpl, RawInterfaceImplRow>();
 		internal readonly SortedRows<IHasConstant, RawConstantRow> hasConstantInfos = new SortedRows<IHasConstant, RawConstantRow>();
@@ -322,7 +322,7 @@ namespace dnlib.DotNet.Writer {
 		internal readonly SortedRows<GenericParamConstraint, RawGenericParamConstraintRow> genericParamConstraintInfos = new SortedRows<GenericParamConstraint, RawGenericParamConstraintRow>();
 		internal readonly Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
 		internal readonly Dictionary<MethodDef, NativeMethodBody> methodToNativeBody = new Dictionary<MethodDef, NativeMethodBody>();
-		internal readonly Dictionary<EmbeddedResource, ByteArrayChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, ByteArrayChunk>();
+		internal readonly Dictionary<EmbeddedResource, DataReaderChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, DataReaderChunk>();
 		readonly Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
 		readonly Rows<PdbDocument> pdbDocumentInfos = new Rows<PdbDocument>();
 		bool methodDebugInformationInfosUsed;
@@ -1155,12 +1155,12 @@ namespace dnlib.DotNet.Writer {
 		public uint GetLocalVarSigToken(MethodDef md) => GetMethodBody(md)?.LocalVarSigTok ?? 0;
 
 		/// <summary>
-		/// Gets the <see cref="ByteArrayChunk"/> where the resource data will be stored
+		/// Gets the <see cref="DataReaderChunk"/> where the resource data will be stored
 		/// </summary>
 		/// <param name="er">Embedded resource</param>
-		/// <returns>A <see cref="ByteArrayChunk"/> instance or <c>null</c> if <paramref name="er"/>
+		/// <returns>A <see cref="DataReaderChunk"/> instance or <c>null</c> if <paramref name="er"/>
 		/// is invalid</returns>
-		public ByteArrayChunk GetChunk(EmbeddedResource er) {
+		public DataReaderChunk GetChunk(EmbeddedResource er) {
 			if (er == null)
 				return null;
 			embeddedResourceToByteArray.TryGetValue(er, out var chunk);
@@ -1307,7 +1307,7 @@ namespace dnlib.DotNet.Writer {
 		/// aren't written either.
 		/// </summary>
 		void InitializeTypeDefsAndMemberDefs() {
-			int numTypes = allTypeDefs.Count;
+			int numTypes = allTypeDefs.Length;
 			int typeNum = 0;
 			int notifyNum = 0;
 			const int numNotifyEvents = 5; // InitializeTypeDefsAndMemberDefs0 - InitializeTypeDefsAndMemberDefs4
@@ -1376,31 +1376,27 @@ namespace dnlib.DotNet.Writer {
 					}
 				}
 
-				if (!IsEmpty(type.Events)) {
-					foreach (var evt in type.Events) {
-						if (evt == null) {
-							Error("Event is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
-							continue;
-						}
-						uint rid = GetRid(evt);
-						var row = new RawEventRow((ushort)evt.Attributes, stringsHeap.Add(evt.Name), AddTypeDefOrRef(evt.EventType));
-						tablesHeap.EventTable[rid] = row;
-						AddMethodSemantics(evt);
+				foreach (var evt in type.Events) {
+					if (evt == null) {
+						Error("Event is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
+						continue;
 					}
+					uint rid = GetRid(evt);
+					var row = new RawEventRow((ushort)evt.Attributes, stringsHeap.Add(evt.Name), AddTypeDefOrRef(evt.EventType));
+					tablesHeap.EventTable[rid] = row;
+					AddMethodSemantics(evt);
 				}
 
-				if (!IsEmpty(type.Properties)) {
-					foreach (var prop in type.Properties) {
-						if (prop == null) {
-							Error("Property is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
-							continue;
-						}
-						uint rid = GetRid(prop);
-						var row = new RawPropertyRow((ushort)prop.Attributes, stringsHeap.Add(prop.Name), GetSignature(prop.Type));
-						tablesHeap.PropertyTable[rid] = row;
-						AddConstant(new MDToken(Table.Property, rid), prop);
-						AddMethodSemantics(prop);
+				foreach (var prop in type.Properties) {
+					if (prop == null) {
+						Error("Property is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
+						continue;
 					}
+					uint rid = GetRid(prop);
+					var row = new RawPropertyRow((ushort)prop.Attributes, stringsHeap.Add(prop.Name), GetSignature(prop.Type));
+					tablesHeap.PropertyTable[rid] = row;
+					AddConstant(new MDToken(Table.Property, rid), prop);
+					AddMethodSemantics(prop);
 				}
 			}
 			while (notifyNum < numNotifyEvents)
@@ -1412,7 +1408,7 @@ namespace dnlib.DotNet.Writer {
 		/// <c>Property</c> and <c>Param</c> custom attributes and custom debug infos.
 		/// </summary>
 		void WriteTypeDefAndMemberDefCustomAttributesAndCustomDebugInfos() {
-			int numTypes = allTypeDefs.Count;
+			int numTypes = allTypeDefs.Length;
 			int typeNum = 0;
 			int notifyNum = 0;
 			const int numNotifyEvents = 5; // WriteTypeDefAndMemberDefCustomAttributes0 - WriteTypeDefAndMemberDefCustomAttributes4
@@ -2631,7 +2627,7 @@ namespace dnlib.DotNet.Writer {
 						0);
 			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(er, rid);
-			embeddedResourceToByteArray[er] = netResources.Add(er.Data);
+			embeddedResourceToByteArray[er] = netResources.Add(er.GetReader());
 			//TODO: Add custom attributes
 			//TODO: Add custom debug infos
 			return rid;
@@ -3222,7 +3218,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets all <see cref="TypeDef"/>s that should be saved in the meta data
 		/// </summary>
-		protected abstract List<TypeDef> GetAllTypeDefs();
+		protected abstract TypeDef[] GetAllTypeDefs();
 
 		/// <summary>
 		/// Initializes <c>TypeDef</c> rids and creates raw rows, but does not initialize

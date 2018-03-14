@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-using System.Collections.Generic;
+using System.Linq;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Writer {
@@ -27,10 +27,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override List<TypeDef> GetAllTypeDefs() {
+		protected override TypeDef[] GetAllTypeDefs() {
 			// All nested types must be after their enclosing type. This is exactly
 			// what module.GetTypes() does.
-			return new List<TypeDef>(module.GetTypes());
+			return module.GetTypes().ToArray();
 		}
 
 		/// <inheritdoc/>
@@ -45,7 +45,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void AllocateMemberDefRids() {
-			int numTypes = allTypeDefs.Count;
+			int numTypes = allTypeDefs.Length;
 			int typeNum = 0;
 			int notifyNum = 0;
 			const int numNotifyEvents = 5; // AllocateMemberDefRids0 - AllocateMemberDefRids4

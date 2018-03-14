@@ -27,18 +27,18 @@ namespace dnlib.DotNet.Pdb.Managed {
 			documentType = SymDocumentType.Text;
 		}
 
-		public void Read(IImageStream stream) {
-			stream.Position = 0;
-			language = new Guid(stream.ReadBytes(0x10));
-			languageVendor = new Guid(stream.ReadBytes(0x10));
-			documentType = new Guid(stream.ReadBytes(0x10));
-			checkSumAlgorithmId = new Guid(stream.ReadBytes(0x10));
+		public void Read(ref DataReader reader) {
+			reader.Position = 0;
+			language = new Guid(reader.ReadBytes(0x10));
+			languageVendor = new Guid(reader.ReadBytes(0x10));
+			documentType = new Guid(reader.ReadBytes(0x10));
+			checkSumAlgorithmId = new Guid(reader.ReadBytes(0x10));
 
-			var len = stream.ReadInt32();
-			if (stream.ReadUInt32() != 0)
+			var len = reader.ReadInt32();
+			if (reader.ReadUInt32() != 0)
 				throw new PdbException("Unexpected value");
 
-			checkSum = stream.ReadBytes(len);
+			checkSum = reader.ReadBytes(len);
 		}
 	}
 }

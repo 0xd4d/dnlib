@@ -2,17 +2,16 @@
 
 using System;
 using System.Diagnostics;
-using System.Text;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	struct LocalConstantSigBlobReader {
 		readonly ModuleDef module;
-		readonly IImageStream reader;
+		DataReader reader;
 		readonly GenericParamContext gpContext;
 		RecursionCounter recursionCounter;
 
-		public LocalConstantSigBlobReader(ModuleDef module, IImageStream reader, GenericParamContext gpContext) {
+		public LocalConstantSigBlobReader(ModuleDef module, ref DataReader reader, GenericParamContext gpContext) {
 			this.module = module;
 			this.reader = reader;
 			this.gpContext = gpContext;
@@ -20,6 +19,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		public bool Read(out TypeSig type, out object value) {
+			bool b = ReadCatch(out type, out value);
+			Debug.Assert(!b || reader.Position == reader.Length);
+			return b;
+		}
+
+		bool ReadCatch(out TypeSig type, out object value) {
 			try {
 				return ReadCore(out type, out value);
 			}
@@ -141,13 +146,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 				break;
 
 			case ElementType.Ptr:
-				res = Read(out type, out value);
+				res = ReadCatch(out type, out value);
 				if (res)
 					type = new PtrSig(type);
 				break;
 
 			case ElementType.ByRef:
-				res = Read(out type, out value);
+				res = ReadCatch(out type, out value);
 				if (res)
 					type = new ByRefSig(type);
 				break;
@@ -186,26 +191,26 @@ namespace dnlib.DotNet.Pdb.Portable {
 					}
 				}
 				if (value == null && reader.Position != reader.Length)
-					value = reader.ReadRemainingBytes();
+					value = reader.ReadRemainingData();
 				res = true;
 				break;
 
 			case ElementType.Class:
 				type = new ClassSig(ReadTypeDefOrRef());
-				value = reader.Position == reader.Length ? null : reader.ReadRemainingBytes();
+				value = reader.Position == reader.Length ? null : reader.ReadRemainingData();
 				res = true;
 				break;
 
 			case ElementType.CModReqd:
 				tdr = ReadTypeDefOrRef();
-				res = Read(out type, out value);
+				res = ReadCatch(out type, out value);
 				if (res)
 					type = new CModReqdSig(tdr, type);
 				break;
 
 			case ElementType.CModOpt:
 				tdr = ReadTypeDefOrRef();
-				res = Read(out type, out value);
+				res = ReadCatch(out type, out value);
 				if (res)
 					type = new CModOptSig(tdr, type);
 				break;
@@ -288,7 +293,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (b == 0xFF && reader.Position == reader.Length)
 				return null;
 			reader.Position--;
-			return Encoding.Unicode.GetString(reader.ReadRemainingBytes());
+			Debug.Assert((reader.BytesLeft & 1) == 0);
+			return reader.ReadUtf16String((int)(reader.BytesLeft / 2));
 		}
 	}
 }

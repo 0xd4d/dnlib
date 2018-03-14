@@ -1,8 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.Threading;
@@ -34,27 +33,14 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override void InitializeInternal(IImageStream mdStream) {
-			bool disposeOfMdStream = false;
-			IImageStream imageStream = null;
+		protected override void InitializeInternal(DataReaderFactory mdReaderFactory, uint metadataBaseOffset) {
 			DotNetStream dns = null;
 			try {
-				if (peImage != null) {
-					Debug.Assert(mdStream == null);
-					Debug.Assert(cor20Header != null);
-					var mdOffset = peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
-					mdStream = peImage.CreateStream(mdOffset, cor20Header.Metadata.Size);
-					disposeOfMdStream = true;
-				}
-				else
-					Debug.Assert(mdStream != null);
 				foreach (var sh in mdHeader.StreamHeaders) {
-					imageStream = mdStream.Create((FileOffset)sh.Offset, sh.StreamSize);
 					switch (sh.Name.ToUpperInvariant()) {
 					case "#STRINGS":
 						if (stringsStream == null) {
-							stringsStream = new StringsStream(imageStream, sh);
-							imageStream = null;
+							stringsStream = new StringsStream(mdReaderFactory, metadataBaseOffset, sh);
 							allStreams.Add(stringsStream);
 							continue;
 						}
@@ -62,8 +48,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#US":
 						if (usStream == null) {
-							usStream = new USStream(imageStream, sh);
-							imageStream = null;
+							usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
 							allStreams.Add(usStream);
 							continue;
 						}
@@ -71,8 +56,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#BLOB":
 						if (blobStream == null) {
-							blobStream = new BlobStream(imageStream, sh);
-							imageStream = null;
+							blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
 							allStreams.Add(blobStream);
 							continue;
 						}
@@ -80,8 +64,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#GUID":
 						if (guidStream == null) {
-							guidStream = new GuidStream(imageStream, sh);
-							imageStream = null;
+							guidStream = new GuidStream(mdReaderFactory, metadataBaseOffset, sh);
 							allStreams.Add(guidStream);
 							continue;
 						}
@@ -90,8 +73,7 @@ namespace dnlib.DotNet.MD {
 					case "#~":	// Only if #Schema is used
 					case "#-":
 						if (tablesStream == null) {
-							tablesStream = new TablesStream(imageStream, sh);
-							imageStream = null;
+							tablesStream = new TablesStream(mdReaderFactory, metadataBaseOffset, sh);
 							allStreams.Add(tablesStream);
 							continue;
 						}
@@ -101,26 +83,19 @@ namespace dnlib.DotNet.MD {
 						// Case sensitive comparison since it's a stream that's not read by the CLR,
 						// only by other libraries eg. System.Reflection.Metadata.
 						if (isStandalonePortablePdb && pdbStream == null && sh.Name == "#Pdb") {
-							pdbStream = new PdbStream(imageStream, sh);
-							imageStream = null;
+							pdbStream = new PdbStream(mdReaderFactory, metadataBaseOffset, sh);
 							allStreams.Add(pdbStream);
 							continue;
 						}
 						break;
 					}
-					dns = new DotNetStream(imageStream, sh);
-					imageStream = null;
+					dns = new DotNetStream(mdReaderFactory, metadataBaseOffset, sh);
 					allStreams.Add(dns);
 					dns = null;
 				}
 			}
 			finally {
-				if (disposeOfMdStream)
-					mdStream.Dispose();
-				if (imageStream != null)
-					imageStream.Dispose();
-				if (dns != null)
-					dns.Dispose();
+				dns?.Dispose();
 			}
 
 			if (tablesStream == null)
@@ -186,7 +161,7 @@ namespace dnlib.DotNet.MD {
 		uint ToFieldRid(uint listRid) {
 			if (!hasFieldPtr)
 				return listRid;
-			return tablesStream.TryReadColumn(tablesStream.FieldPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn24(tablesStream.FieldPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -197,7 +172,7 @@ namespace dnlib.DotNet.MD {
 		uint ToMethodRid(uint listRid) {
 			if (!hasMethodPtr)
 				return listRid;
-			return tablesStream.TryReadColumn(tablesStream.MethodPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn24(tablesStream.MethodPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -208,7 +183,7 @@ namespace dnlib.DotNet.MD {
 		uint ToParamRid(uint listRid) {
 			if (!hasParamPtr)
 				return listRid;
-			return tablesStream.TryReadColumn(tablesStream.ParamPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn24(tablesStream.ParamPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -219,7 +194,7 @@ namespace dnlib.DotNet.MD {
 		uint ToEventRid(uint listRid) {
 			if (!hasEventPtr)
 				return listRid;
-			return tablesStream.TryReadColumn(tablesStream.EventPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn24(tablesStream.EventPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <summary>
@@ -230,7 +205,7 @@ namespace dnlib.DotNet.MD {
 		uint ToPropertyRid(uint listRid) {
 			if (!hasPropertyPtr)
 				return listRid;
-			return tablesStream.TryReadColumn(tablesStream.PropertyPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
+			return tablesStream.TryReadColumn24(tablesStream.PropertyPtrTable, listRid, 0, out uint listValue) ? listValue : 0;
 		}
 
 		/// <inheritdoc/>
@@ -368,17 +343,9 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
 			var column = tableSource.TableInfo.Columns[colIndex];
-			uint startRid, nextListRid;
-			bool hasNext;
-#if THREAD_SAFE
-			tablesStream.theLock.EnterWriteLock(); try {
-#endif
-			if (!tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid, column, out startRid))
+			if (!tablesStream.TryReadColumn24(tableSource, tableSourceRid, column, out uint startRid))
 				return RidList.Empty;
-			hasNext = tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid + 1, column, out nextListRid);
-#if THREAD_SAFE
-			} finally { tablesStream.theLock.ExitWriteLock(); }
-#endif
+			bool hasNext = tablesStream.TryReadColumn24(tableSource, tableSourceRid + 1, column, out uint nextListRid);
 			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
 				return RidList.Empty;
@@ -391,12 +358,12 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override uint BinarySearch_NoLock(MDTable tableSource, int keyColIndex, uint key) {
+		protected override uint BinarySearch(MDTable tableSource, int keyColIndex, uint key) {
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
-				if (!tablesStream.TryReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
+				if (!tablesStream.TryReadColumn24(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;
@@ -407,7 +374,7 @@ namespace dnlib.DotNet.MD {
 			}
 
 			if (tableSource.Table == Table.GenericParam && !tablesStream.IsSorted(tableSource))
-				return LinearSearch_NoLock(tableSource, keyColIndex, key);
+				return LinearSearch(tableSource, keyColIndex, key);
 
 			return 0;
 		}
@@ -420,12 +387,12 @@ namespace dnlib.DotNet.MD {
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
-		uint LinearSearch_NoLock(MDTable tableSource, int keyColIndex, uint key) {
+		uint LinearSearch(MDTable tableSource, int keyColIndex, uint key) {
 			if (tableSource == null)
 				return 0;
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
-				if (!tablesStream.TryReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
+				if (!tablesStream.TryReadColumn24(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;

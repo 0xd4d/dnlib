@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -25,29 +24,16 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override void InitializeInternal(IImageStream mdStream) {
-			bool disposeOfMdStream = false;
-			IImageStream imageStream = null, fullStream = null;
+		protected override void InitializeInternal(DataReaderFactory mdReaderFactory, uint metadataBaseOffset) {
 			DotNetStream dns = null;
 			var newAllStreams = new List<DotNetStream>(allStreams);
 			try {
-				if (peImage != null) {
-					Debug.Assert(mdStream == null);
-					Debug.Assert(cor20Header != null);
-					var mdOffset = peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
-					mdStream = peImage.CreateStream(mdOffset, cor20Header.Metadata.Size);
-					disposeOfMdStream = true;
-				}
-				else
-					Debug.Assert(mdStream != null);
 				for (int i = mdHeader.StreamHeaders.Count - 1; i >= 0; i--) {
 					var sh = mdHeader.StreamHeaders[i];
-					imageStream = mdStream.Create((FileOffset)sh.Offset, sh.StreamSize);
 					switch (sh.Name) {
 					case "#Strings":
 						if (stringsStream == null) {
-							stringsStream = new StringsStream(imageStream, sh);
-							imageStream = null;
+							stringsStream = new StringsStream(mdReaderFactory, metadataBaseOffset, sh);
 							newAllStreams.Add(stringsStream);
 							continue;
 						}
@@ -55,8 +41,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#US":
 						if (usStream == null) {
-							usStream = new USStream(imageStream, sh);
-							imageStream = null;
+							usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
 							newAllStreams.Add(usStream);
 							continue;
 						}
@@ -64,8 +49,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#Blob":
 						if (blobStream == null) {
-							blobStream = new BlobStream(imageStream, sh);
-							imageStream = null;
+							blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
 							newAllStreams.Add(blobStream);
 							continue;
 						}
@@ -73,8 +57,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#GUID":
 						if (guidStream == null) {
-							guidStream = new GuidStream(imageStream, sh);
-							imageStream = null;
+							guidStream = new GuidStream(mdReaderFactory, metadataBaseOffset, sh);
 							newAllStreams.Add(guidStream);
 							continue;
 						}
@@ -82,8 +65,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#~":
 						if (tablesStream == null) {
-							tablesStream = new TablesStream(imageStream, sh);
-							imageStream = null;
+							tablesStream = new TablesStream(mdReaderFactory, metadataBaseOffset, sh);
 							newAllStreams.Add(tablesStream);
 							continue;
 						}
@@ -91,28 +73,19 @@ namespace dnlib.DotNet.MD {
 
 					case "#Pdb":
 						if (isStandalonePortablePdb && pdbStream == null) {
-							pdbStream = new PdbStream(imageStream, sh);
-							imageStream = null;
+							pdbStream = new PdbStream(mdReaderFactory, metadataBaseOffset, sh);
 							allStreams.Add(pdbStream);
 							continue;
 						}
 						break;
 					}
-					dns = new DotNetStream(imageStream, sh);
-					imageStream = null;
+					dns = new DotNetStream(mdReaderFactory, metadataBaseOffset, sh);
 					newAllStreams.Add(dns);
 					dns = null;
 				}
 			}
 			finally {
-				if (disposeOfMdStream)
-					mdStream.Dispose();
-				if (imageStream != null)
-					imageStream.Dispose();
-				if (fullStream != null)
-					fullStream.Dispose();
-				if (dns != null)
-					dns.Dispose();
+				dns?.Dispose();
 				newAllStreams.Reverse();
 				allStreams = newAllStreams;
 			}
@@ -151,17 +124,9 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
 			var column = tableSource.TableInfo.Columns[colIndex];
-			uint startRid, nextListRid;
-			bool hasNext;
-#if THREAD_SAFE
-			tablesStream.theLock.EnterWriteLock(); try {
-#endif
-			if (!tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid, column, out startRid))
+			if (!tablesStream.TryReadColumn24(tableSource, tableSourceRid, column, out uint startRid))
 				return RidList.Empty;
-			hasNext = tablesStream.TryReadColumn_NoLock(tableSource, tableSourceRid + 1, column, out nextListRid);
-#if THREAD_SAFE
-			} finally { tablesStream.theLock.ExitWriteLock(); }
-#endif
+			bool hasNext = tablesStream.TryReadColumn24(tableSource, tableSourceRid + 1, column, out uint nextListRid);
 			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
 				return RidList.Empty;
@@ -174,12 +139,12 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		protected override uint BinarySearch_NoLock(MDTable tableSource, int keyColIndex, uint key) {
+		protected override uint BinarySearch(MDTable tableSource, int keyColIndex, uint key) {
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
-				if (!tablesStream.TryReadColumn_NoLock(tableSource, rid, keyColumn, out uint key2))
+				if (!tablesStream.TryReadColumn24(tableSource, rid, keyColumn, out uint key2))
 					break;	// Never happens since rid is valid
 				if (key == key2)
 					return rid;

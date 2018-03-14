@@ -13,8 +13,8 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public USStream(IImageStream imageStream, StreamHeader streamHeader)
-			: base(imageStream, streamHeader) {
+		public USStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
+			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
 		}
 
 		/// <summary>
@@ -27,16 +27,14 @@ namespace dnlib.DotNet.MD {
 				return string.Empty;
 			if (!IsValidOffset(offset))
 				return null;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(offset);
+			var reader = dataReader;
+			reader.Position = offset;
 			if (!reader.ReadCompressedUInt32(out uint length))
 				return null;
-			if (reader.Position + length < length || reader.Position + length > reader.Length)
+			if (!reader.CanRead(length))
 				return null;
 			try {
-				return reader.ReadString((int)(length / 2));
+				return reader.ReadUtf16String((int)(length / 2));
 			}
 			catch (OutOfMemoryException) {
 				throw;
@@ -46,9 +44,6 @@ namespace dnlib.DotNet.MD {
 				// a string. If so, return an empty string.
 				return string.Empty;
 			}
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>

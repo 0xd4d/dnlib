@@ -23,13 +23,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public IList<DbiFunction> Functions { get; private set; }
 		public IList<DbiDocument> Documents { get; private set; }
 
-		public void Read(IImageStream stream) {
-			stream.Position += 34;
-			StreamId = stream.ReadUInt16();
-			cbSyms = stream.ReadUInt32();
-			cbOldLines = stream.ReadUInt32();
-			cbLines = stream.ReadUInt32();
-			stream.Position += 16;
+		public void Read(ref DataReader reader) {
+			reader.Position += 34;
+			StreamId = reader.ReadUInt16();
+			cbSyms = reader.ReadUInt32();
+			cbOldLines = reader.ReadUInt32();
+			cbLines = reader.ReadUInt32();
+			reader.Position += 16;
 
 			if ((int)cbSyms < 0)
 				cbSyms = 0;
@@ -38,100 +38,98 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if ((int)cbLines < 0)
 				cbLines = 0;
 
-			ModuleName = PdbReader.ReadCString(stream);
-			ObjectName = PdbReader.ReadCString(stream);
+			ModuleName = PdbReader.ReadCString(ref reader);
+			ObjectName = PdbReader.ReadCString(ref reader);
 
-			stream.Position = (stream.Position + 3) & (~3);
+			reader.Position = (reader.Position + 3) & (~3U);
 		}
 
-		public void LoadFunctions(PdbReader reader, IImageStream stream) {
-			stream.Position = 0;
-			using (var substream = stream.Create(stream.FileOffset + stream.Position, cbSyms))
-				ReadFunctions(substream);
+		public void LoadFunctions(PdbReader pdbReader, ref DataReader reader) {
+			reader.Position = 0;
+			ReadFunctions(reader.Slice(reader.Position, cbSyms));
 
 			if (Functions.Count > 0) {
-				stream.Position += cbSyms + cbOldLines;
-				using (var substream = stream.Create(stream.FileOffset + stream.Position, cbLines))
-					ReadLines(reader, substream);
+				reader.Position += cbSyms + cbOldLines;
+				ReadLines(pdbReader, reader.Slice(reader.Position, cbLines));
 			}
 		}
 
-		void ReadFunctions(IImageStream stream) {
-			if (stream.ReadUInt32() != 4)
+		void ReadFunctions(DataReader reader) {
+			if (reader.ReadUInt32() != 4)
 				throw new PdbException("Invalid signature");
 
-			while (stream.Position < stream.Length) {
-				var size = stream.ReadUInt16();
-				var begin = stream.Position;
+			while (reader.Position < reader.Length) {
+				var size = reader.ReadUInt16();
+				var begin = reader.Position;
 				var end = begin + size;
 
-				var type = (SymbolType)stream.ReadUInt16();
+				var type = (SymbolType)reader.ReadUInt16();
 				switch (type) {
 					case SymbolType.S_GMANPROC:
 					case SymbolType.S_LMANPROC:
 						var func = new DbiFunction();
-						func.Read(stream, end);
+						func.Read(ref reader, end);
 						Functions.Add(func);
 						break;
 					default:
-						stream.Position = end;
+						reader.Position = end;
 						break;
 				}
 			}
 		}
 
-		void ReadLines(PdbReader reader, IImageStream stream) {
-			var docs = new Dictionary<long, DbiDocument>();
+		void ReadLines(PdbReader pdbReader, DataReader reader) {
+			var docs = new Dictionary<uint, DbiDocument>();
 
-			stream.Position = 0;
-			while (stream.Position < stream.Length) {
-				var sig = (ModuleStreamType)stream.ReadUInt32();
-				var size = stream.ReadUInt32();
-				var begin = stream.Position;
-				var end = (begin + size + 3) & ~3;
+			reader.Position = 0;
+			while (reader.Position < reader.Length) {
+				var sig = (ModuleStreamType)reader.ReadUInt32();
+				var size = reader.ReadUInt32();
+				var begin = reader.Position;
+				var end = (begin + size + 3) & ~3U;
 
 				if (sig == ModuleStreamType.FileInfo)
-					ReadFiles(reader, docs, stream, end);
+					ReadFiles(pdbReader, docs, ref reader, end);
 
-				stream.Position = end;
+				reader.Position = end;
 			}
 
 			var sortedFuncs = new DbiFunction[Functions.Count];
 			Functions.CopyTo(sortedFuncs, 0);
 			Array.Sort(sortedFuncs, (a, b) => a.Address.CompareTo(b.Address));
 
-			stream.Position = 0;
-			while (stream.Position < stream.Length) {
-				var sig = (ModuleStreamType)stream.ReadUInt32();
-				var size = stream.ReadUInt32();
-				var begin = stream.Position;
+			reader.Position = 0;
+			while (reader.Position < reader.Length) {
+				var sig = (ModuleStreamType)reader.ReadUInt32();
+				var size = reader.ReadUInt32();
+				var begin = reader.Position;
 				var end = begin + size;
 
 				if (sig == ModuleStreamType.Lines)
-					ReadLines(sortedFuncs, docs, stream, end);
+					ReadLines(sortedFuncs, docs, ref reader, end);
 
-				stream.Position = end;
+				reader.Position = end;
 			}
 		}
 
-		void ReadFiles(PdbReader reader, Dictionary<long, DbiDocument> documents, IImageStream stream, long end) {
-			var begin = stream.Position;
-			while (stream.Position < end) {
-				var id = stream.Position - begin;
+		void ReadFiles(PdbReader pdbReader, Dictionary<uint, DbiDocument> documents, ref DataReader reader, uint end) {
+			var begin = reader.Position;
+			while (reader.Position < end) {
+				var id = reader.Position - begin;
 
-				var nameId = stream.ReadUInt32();
-				var len = stream.ReadByte();
-				/*var type = */stream.ReadByte();
-				var doc = reader.GetDocument(nameId);
+				var nameId = reader.ReadUInt32();
+				var len = reader.ReadByte();
+				/*var type = */reader.ReadByte();
+				var doc = pdbReader.GetDocument(nameId);
 				documents.Add(id, doc);
 
-				stream.Position += len;
-				stream.Position = (stream.Position + 3) & (~3);
+				reader.Position += len;
+				reader.Position = (reader.Position + 3) & (~3U);
 			}
 		}
 
-		void ReadLines(DbiFunction[] funcs, Dictionary<long, DbiDocument> documents, IImageStream stream, long end) {
-			var address = PdbAddress.ReadAddress(stream);
+		void ReadLines(DbiFunction[] funcs, Dictionary<uint, DbiDocument> documents, ref DataReader reader, uint end) {
+			var address = PdbAddress.ReadAddress(ref reader);
 
 			int first = 0;
 			int last = funcs.Length - 1;
@@ -153,8 +151,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (found == -1)
 				return;
 
-			var flags = stream.ReadUInt16();
-			stream.Position += 4;
+			var flags = reader.ReadUInt16();
+			reader.Position += 4;
 
 			if (funcs[found].Lines == null) {
 				while (found > 0) {
@@ -177,31 +175,31 @@ namespace dnlib.DotNet.Pdb.Managed {
 				return;
 			func.Lines = new List<SymbolSequencePoint>();
 
-			while (stream.Position < end) {
-				var document = documents[stream.ReadUInt32()];
-				var count = stream.ReadUInt32();
-				stream.Position += 4;
+			while (reader.Position < end) {
+				var document = documents[reader.ReadUInt32()];
+				var count = reader.ReadUInt32();
+				reader.Position += 4;
 
 				const int LINE_ENTRY_SIZE = 8;
 				const int COL_ENTRY_SIZE = 4;
-				var lineTablePos = stream.Position;
-				var colTablePos = stream.Position + count * LINE_ENTRY_SIZE;
+				var lineTablePos = reader.Position;
+				var colTablePos = reader.Position + count * LINE_ENTRY_SIZE;
 
 				for (uint i = 0; i < count; i++) {
-					stream.Position = lineTablePos + i * LINE_ENTRY_SIZE;
+					reader.Position = lineTablePos + i * LINE_ENTRY_SIZE;
 
 					var line = new SymbolSequencePoint {
 						Document = document
 					};
-					line.Offset = stream.ReadInt32();
-					var lineFlags = stream.ReadUInt32();
+					line.Offset = reader.ReadInt32();
+					var lineFlags = reader.ReadUInt32();
 
 					line.Line = (int)(lineFlags & 0x00ffffff);
 					line.EndLine = line.Line + (int)((lineFlags >> 24) & 0x7F);
 					if ((flags & 1) != 0) {
-						stream.Position = colTablePos + i * COL_ENTRY_SIZE;
-						line.Column = stream.ReadUInt16();
-						line.EndColumn = stream.ReadUInt16();
+						reader.Position = colTablePos + i * COL_ENTRY_SIZE;
+						line.Column = reader.ReadUInt16();
+						line.EndColumn = reader.ReadUInt16();
 					}
 
 					func.Lines.Add(line);

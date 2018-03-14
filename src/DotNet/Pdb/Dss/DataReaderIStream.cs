@@ -7,11 +7,11 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	/// <summary>
-	/// Implements <see cref="IStream"/> and uses an <see cref="IImageStream"/> as the underlying
-	/// stream.
+	/// Implements <see cref="IStream"/> and uses an <see cref="DataReaderFactory"/> as the underlying stream.
 	/// </summary>
-	sealed class ImageStreamIStream : IStream, IDisposable {
-		readonly IImageStream stream;
+	sealed class DataReaderIStream : IStream, IDisposable {
+		readonly DataReaderFactory dataReaderFactory;
+		DataReader reader;
 		readonly string name;
 
 		const int STG_E_INVALIDFUNCTION = unchecked((int)0x80030001);
@@ -27,27 +27,19 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="stream">Source stream</param>
-		public ImageStreamIStream(IImageStream stream)
-			: this(stream, string.Empty) {
+		/// <param name="dataReaderFactory">Source stream</param>
+		public DataReaderIStream(DataReaderFactory dataReaderFactory)
+			: this(dataReaderFactory, dataReaderFactory.CreateReader(), string.Empty) {
 		}
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="stream">Source stream</param>
-		/// <param name="name">Name of original file or <c>null</c> if unknown.</param>
-		public ImageStreamIStream(IImageStream stream, string name) {
-			this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+		DataReaderIStream(DataReaderFactory dataReaderFactory, DataReader reader, string name) {
+			this.dataReaderFactory = dataReaderFactory ?? throw new ArgumentNullException(nameof(dataReaderFactory));
+			this.reader = reader;
 			this.name = name ?? string.Empty;
 		}
 
 		/// <inheritdoc/>
-		public void Clone(out IStream ppstm) {
-			var newStream = stream.Clone();
-			newStream.Position = stream.Position;
-			ppstm = new ImageStreamIStream(newStream, name);
-		}
+		public void Clone(out IStream ppstm) => ppstm = new DataReaderIStream(dataReaderFactory, reader, name);
 
 		/// <inheritdoc/>
 		public void Commit(int grfCommitFlags) {
@@ -61,8 +53,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 				cb = 0;
 			int sizeToRead = (int)cb;
 
-			if (stream.Position + sizeToRead < sizeToRead || stream.Position + sizeToRead > stream.Length)
-				sizeToRead = (int)(stream.Length - Math.Min(stream.Position, stream.Length));
+			if ((ulong)reader.Position + (uint)sizeToRead > reader.Length)
+				sizeToRead = (int)(reader.Length - Math.Min(reader.Position, reader.Length));
 
 			var buffer = new byte[sizeToRead];
 			Read(buffer, sizeToRead, pcbRead);
@@ -81,7 +73,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (cb < 0)
 				cb = 0;
 
-			cb = stream.Read(pv, 0, cb);
+			cb = (int)Math.Min(reader.BytesLeft, (uint)cb);
+			reader.ReadBytes(pv, 0, cb);
 
 			if (pcbRead != IntPtr.Zero)
 				Marshal.WriteInt32(pcbRead, cb);
@@ -101,20 +94,20 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public void Seek(long dlibMove, int dwOrigin, IntPtr plibNewPosition) {
 			switch ((STREAM_SEEK)dwOrigin) {
 			case STREAM_SEEK.SET:
-				stream.Position = dlibMove;
+				reader.Position = (uint)dlibMove;
 				break;
 
 			case STREAM_SEEK.CUR:
-				stream.Position += dlibMove;
+				reader.Position = (uint)(reader.Position + dlibMove);
 				break;
 
 			case STREAM_SEEK.END:
-				stream.Position = stream.Length + dlibMove;
+				reader.Position = (uint)(reader.Length + dlibMove);
 				break;
 			}
 
 			if (plibNewPosition != IntPtr.Zero)
-				Marshal.WriteInt64(plibNewPosition, stream.Position);
+				Marshal.WriteInt64(plibNewPosition, reader.Position);
 		}
 
 		/// <inheritdoc/>
@@ -138,7 +131,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			var s = new System.Runtime.InteropServices.ComTypes.STATSTG();
 
 			// s.atime = ???;
-			s.cbSize = stream.Length;
+			s.cbSize = reader.Length;
 			s.clsid = Guid.Empty;
 			// s.ctime = ???;
 			s.grfLocksSupported = 0;
@@ -161,7 +154,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			stream.Dispose();
 			if (UserData is IDisposable id)
 				id.Dispose();
 		}

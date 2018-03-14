@@ -35,11 +35,11 @@ namespace dnlib.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageDataDirectory(IImageStream reader, bool verify) {
-			SetStartOffset(reader);
+		public ImageDataDirectory(ref DataReader reader, bool verify) {
+			SetStartOffset(ref reader);
 			virtualAddress = (RVA)reader.ReadUInt32();
 			dataSize = reader.ReadUInt32();
-			SetEndoffset(reader);
+			SetEndoffset(ref reader);
 		}
 	}
 }

@@ -16,7 +16,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// Reads custom debug infos produced by the C# and Visual Basic compilers. They're stored in PDB files
 	/// as PDB method custom attributes with the name "MD2".
 	/// </summary>
-	readonly struct PdbCustomDebugInfoReader : IDisposable {
+	struct PdbCustomDebugInfoReader {
 		/// <summary>
 		/// Reads custom debug info
 		/// </summary>
@@ -27,8 +27,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="data">Custom debug info from the PDB file</param>
 		public static void Read(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result, byte[] data) {
 			try {
-				using (var reader = new PdbCustomDebugInfoReader(method, body, MemoryImageStream.Create(data)))
-					reader.Read(result);
+				var reader = ByteArrayDataReaderFactory.CreateReader(data);
+				var cdiReader = new PdbCustomDebugInfoReader(method, body, ref reader);
+				cdiReader.Read(result);
 			}
 			catch (ArgumentException) {
 			}
@@ -42,9 +43,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		readonly TypeDef typeOpt;
 		readonly CilBody bodyOpt;
 		readonly GenericParamContext gpContext;
-		readonly IBinaryReader reader;
+		DataReader reader;
 
-		PdbCustomDebugInfoReader(MethodDef method, CilBody body, IBinaryReader reader) {
+		PdbCustomDebugInfoReader(MethodDef method, CilBody body, ref DataReader reader) {
 			module = method.Module;
 			typeOpt = method.DeclaringType;
 			bodyOpt = body;
@@ -62,23 +63,23 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			int count = reader.ReadByte();
 			reader.Position += 2;
 
-			while (reader.Position + 8 <= reader.Length) {
+			while (reader.CanRead(8U)) {
 				int recVersion = reader.ReadByte();
 				Debug.Assert(recVersion == CustomDebugInfoConstants.RecordVersion);
 				var recKind = (PdbCustomDebugInfoKind)reader.ReadByte();
 				reader.Position++;
 				int alignmentSize = reader.ReadByte();
 				int recSize = reader.ReadInt32();
-				if (recSize < 8 || reader.Position - 8 + (uint)recSize > reader.Length)
+				if (recSize < 8 || (ulong)reader.Position - 8 + (uint)recSize > reader.Length)
 					return;
 				if (recKind <= PdbCustomDebugInfoKind.DynamicLocals)
 					alignmentSize = 0;
 				if (alignmentSize > 3)
 					return;
-				var nextRecPos = reader.Position - 8 + recSize;
+				var nextRecPos = reader.Position - 8 + (uint)recSize;
 
 				if (recVersion == CustomDebugInfoConstants.RecordVersion) {
-					var recPosEnd = reader.Position - 8 + recSize - alignmentSize;
+					ulong recPosEnd = (ulong)reader.Position - 8 + (uint)recSize - (uint)alignmentSize;
 					var cdi = ReadRecord(recKind, recPosEnd);
 					Debug.Assert(cdi != null);
 					Debug.Assert(reader.Position <= recPosEnd);
@@ -94,7 +95,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 		}
 
-		PdbCustomDebugInfo ReadRecord(PdbCustomDebugInfoKind recKind, long recPosEnd) {
+		PdbCustomDebugInfo ReadRecord(PdbCustomDebugInfoKind recKind, ulong recPosEnd) {
 			IMethodDefOrRef method;
 			byte[] data;
 			Local local;
@@ -163,7 +164,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					return null;
 				count = reader.ReadInt32();
 				const int dynLocalRecSize = 64 + 4 + 4 + 2 * 64;
-				if (reader.Position + (long)(uint)count * dynLocalRecSize > recPosEnd)
+				if (reader.Position + (ulong)(uint)count * dynLocalRecSize > recPosEnd)
 					return null;
 				var dynLocListRec = new PdbDynamicLocalsCustomDebugInfo(count);
 				for (int i = 0; i < count; i++) {
@@ -297,7 +298,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return null;
 		}
 
-		string ReadUnicodeZ(long recPosEnd, bool needZeroChar) {
+		string ReadUnicodeZ(ulong recPosEnd, bool needZeroChar) {
 			var sb = new StringBuilder();
 
 			for (;;) {
@@ -310,15 +311,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 		}
 
-		string ReadUTF8Z(long recPosEnd) {
+		string ReadUTF8Z(ulong recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
-			var bytes = reader.ReadBytesUntilByte(0);
-			if (bytes == null)
-				return null;
-			var s = Encoding.UTF8.GetString(bytes);
-			reader.Position++;
-			return s;
+			return reader.TryReadZeroTerminatedString(Encoding.UTF8);
 		}
 
 		Instruction GetInstruction(uint offset) {
@@ -336,7 +332,5 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 			return null;
 		}
-
-		public void Dispose() => reader.Dispose();
 	}
 }

@@ -11,44 +11,40 @@ namespace dnlib.DotNet.Pdb {
 			Create(metadata, Path.ChangeExtension(assemblyFileName, "pdb"));
 
 		public static SymbolReader Create(Metadata metadata, string pdbFileName) =>
-			Create(metadata, ImageStreamUtils.OpenImageStream(pdbFileName));
+			Create(metadata, DataReaderFactoryUtils.TryCreateDataReaderFactory(pdbFileName));
 
 		public static SymbolReader Create(Metadata metadata, byte[] pdbData) =>
-			Create(metadata, MemoryImageStream.Create(pdbData));
+			Create(metadata, ByteArrayDataReaderFactory.Create(pdbData, filename: null));
 
-		public static SymbolReader Create(Metadata metadata, IImageStream pdbStream) {
+		public static SymbolReader Create(Metadata metadata, DataReaderFactory pdbStream) {
 			try {
 				// Embedded pdbs have priority
 				var res = Create(metadata);
 				if (res != null) {
-					if (pdbStream != null)
-						pdbStream.Dispose();
+					pdbStream?.Dispose();
 					return res;
 				}
 
 				return CreateCore(pdbStream);
 			}
 			catch {
-				if (pdbStream != null)
-					pdbStream.Dispose();
+				pdbStream?.Dispose();
 				throw;
 			}
 		}
 
-		static SymbolReader CreateCore(IImageStream pdbStream) {
+		static SymbolReader CreateCore(DataReaderFactory pdbStream) {
 			if (pdbStream == null)
 				return null;
 			try {
-				uint sig = pdbStream.ReadUInt32();
-				pdbStream.Position = 0;
+				uint sig = pdbStream.CreateReader().ReadUInt32();
 				if (sig == 0x424A5342)
 					return Portable.SymbolReaderCreator.TryCreate(pdbStream, false);
 				return Managed.SymbolReaderCreator.Create(pdbStream);
 			}
 			catch (IOException) {
 			}
-			if (pdbStream != null)
-				pdbStream.Dispose();
+			pdbStream?.Dispose();
 			return null;
 		}
 

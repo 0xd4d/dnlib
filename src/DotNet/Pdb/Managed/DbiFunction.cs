@@ -22,20 +22,20 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 		List<SymbolSequencePoint> lines;
 
-		public void Read(IImageStream stream, long recEnd) {
-			stream.Position += 4;
-			var end = stream.ReadUInt32();
-			stream.Position += 4;
-			var len = stream.ReadUInt32();
-			stream.Position += 8;
-			token = stream.ReadInt32();
-			Address = PdbAddress.ReadAddress(stream);
-			stream.Position += 1 + 2;
-			Name = PdbReader.ReadCString(stream);
+		public void Read(ref DataReader reader, uint recEnd) {
+			reader.Position += 4;
+			var end = reader.ReadUInt32();
+			reader.Position += 4;
+			var len = reader.ReadUInt32();
+			reader.Position += 8;
+			token = reader.ReadInt32();
+			Address = PdbAddress.ReadAddress(ref reader);
+			reader.Position += 1 + 2;
+			Name = PdbReader.ReadCString(ref reader);
 
-			stream.Position = recEnd;
+			reader.Position = recEnd;
 			Root = new DbiScope(this, null, "", Address.Offset, len);
-			Root.Read(new RecursionCounter(), stream, end);
+			Root.Read(new RecursionCounter(), ref reader, end);
 			FixOffsets(new RecursionCounter(), Root);
 		}
 

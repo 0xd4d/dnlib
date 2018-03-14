@@ -58,13 +58,13 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="funcRva">Updated with RVA of func field</param>
 		/// <returns></returns>
-		public bool TryGetExportedRvaFromStub(IBinaryReader reader, IPEImage peImage, out uint funcRva) {
-			bool b = TryGetExportedRvaFromStubCore(reader, peImage, out funcRva);
+		public bool TryGetExportedRvaFromStub(ref DataReader reader, IPEImage peImage, out uint funcRva) {
+			bool b = TryGetExportedRvaFromStubCore(ref reader, peImage, out funcRva);
 			Debug.Assert(b);
 			return b;
 		}
 
-		protected abstract bool TryGetExportedRvaFromStubCore(IBinaryReader reader, IPEImage peImage, out uint funcRva);
+		protected abstract bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva);
 
 		/// <summary>
 		/// Writes stub relocs, if needed
@@ -117,7 +117,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		protected override bool TryGetExportedRvaFromStubCore(IBinaryReader reader, IPEImage peImage, out uint funcRva) {
+		protected override bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva) {
 			funcRva = 0;
 
 			// FF25xxxxxxxx		jmp DWORD PTR [xxxxxxxx]
@@ -183,7 +183,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		protected override bool TryGetExportedRvaFromStubCore(IBinaryReader reader, IPEImage peImage, out uint funcRva) {
+		protected override bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva) {
 			funcRva = 0;
 
 			// 48A1xxxxxxxxxxxxxxxx		movabs	rax,[xxxxxxxxxxxxxxxx]
@@ -257,7 +257,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		protected override bool TryGetExportedRvaFromStubCore(IBinaryReader reader, IPEImage peImage, out uint funcRva) {
+		protected override bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva) {
 			funcRva = 0;
 
 			// From ExportStubIA64Template in coreclr/src/ilasm/writer.cpp
@@ -277,7 +277,7 @@ namespace dnlib.DotNet {
 			// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 //address of VTFixup slot
 			ulong addrTemplate = reader.ReadUInt64();
 			ulong absAddr = reader.ReadUInt64();
-			reader.Position = (long)peImage.ToFileOffset((RVA)(addrTemplate - peImage.ImageNTHeaders.OptionalHeader.ImageBase));
+			reader.Position = (uint)peImage.ToFileOffset((RVA)(addrTemplate - peImage.ImageNTHeaders.OptionalHeader.ImageBase));
 			if (reader.ReadUInt64() != 0x40A010180200480BUL)
 				return false;
 			if (reader.ReadUInt64() != 0x0004000000283024UL)
@@ -354,7 +354,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		protected override bool TryGetExportedRvaFromStubCore(IBinaryReader reader, IPEImage peImage, out uint funcRva) {
+		protected override bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva) {
 			funcRva = 0;
 
 			// DFF800F0		ldr.w	pc,[pc]

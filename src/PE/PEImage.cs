@@ -27,7 +27,7 @@ namespace dnlib.PE {
 	/// <summary>
 	/// Accesses a PE file
 	/// </summary>
-	public sealed class PEImage : IPEImage {
+	public sealed class PEImage : IInternalPEImage {
 		// Default to false because an OS loaded PE image may contain memory holes. If there
 		// are memory holes, other code (eg. .NET resource creator) must verify that all memory
 		// is available, which will be slower.
@@ -36,8 +36,7 @@ namespace dnlib.PE {
 		static readonly IPEType MemoryLayout = new MemoryPEType();
 		static readonly IPEType FileLayout = new FilePEType();
 
-		IImageStream imageStream;
-		IImageStreamCreator imageStreamCreator;
+		DataReaderFactory dataReaderFactory;
 		IPEType peType;
 		PEInfo peInfo;
 		UserValue<Win32Resources> win32Resources;
@@ -46,18 +45,12 @@ namespace dnlib.PE {
 #endif
 
 		sealed class FilePEType : IPEType {
-			/// <inheritdoc/>
 			public RVA ToRVA(PEInfo peInfo, FileOffset offset) => peInfo.ToRVA(offset);
-
-			/// <inheritdoc/>
 			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) => peInfo.ToFileOffset(rva);
 		}
 
 		sealed class MemoryPEType : IPEType {
-			/// <inheritdoc/>
 			public RVA ToRVA(PEInfo peInfo, FileOffset offset) => (RVA)offset;
-
-			/// <inheritdoc/>
 			public FileOffset ToFileOffset(PEInfo peInfo, RVA rva) => (FileOffset)rva;
 		}
 
@@ -68,7 +61,7 @@ namespace dnlib.PE {
 		public bool MayHaveInvalidAddresses => !IsFileImageLayout;
 
 		/// <inheritdoc/>
-		public string FileName => imageStreamCreator.FileName;
+		public string Filename => dataReaderFactory.Filename;
 
 		/// <inheritdoc/>
 		public ImageDosHeader ImageDosHeader => peInfo.ImageDosHeader;
@@ -90,6 +83,9 @@ namespace dnlib.PE {
 		ImageDebugDirectory[] imageDebugDirectories;
 
 		/// <inheritdoc/>
+		public DataReaderFactory DataReaderFactory => dataReaderFactory;
+
+		/// <inheritdoc/>
 		public Win32Resources Win32Resources {
 			get => win32Resources.Value;
 			set {
@@ -109,15 +105,15 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="imageStreamCreator">The PE stream creator</param>
+		/// <param name="dataReaderFactory">Data reader factory</param>
 		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(IImageStreamCreator imageStreamCreator, ImageLayout imageLayout, bool verify) {
+		public PEImage(DataReaderFactory dataReaderFactory, ImageLayout imageLayout, bool verify) {
 			try {
-				this.imageStreamCreator = imageStreamCreator;
+				this.dataReaderFactory = dataReaderFactory;
 				peType = ConvertImageLayout(imageLayout);
-				ResetReader();
-				peInfo = new PEInfo(imageStream, verify);
+				var reader = dataReaderFactory.CreateReader();
+				peInfo = new PEInfo(ref reader, verify);
 				Initialize();
 			}
 			catch {
@@ -149,16 +145,14 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="fileName">Name of the file</param>
+		/// <param name="filename">Name of the file</param>
 		/// <param name="mapAsImage"><c>true</c> if we should map it as an executable</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(string fileName, bool mapAsImage, bool verify)
-			: this(ImageStreamCreator.Create(fileName, mapAsImage), mapAsImage ? ImageLayout.Memory : ImageLayout.File, verify) {
+		internal PEImage(string filename, bool mapAsImage, bool verify)
+			: this(DataReaderFactoryFactory.Create(filename, mapAsImage), mapAsImage ? ImageLayout.Memory : ImageLayout.File, verify) {
 			try {
-				if (mapAsImage && imageStreamCreator is MemoryMappedFileStreamCreator) {
-					((MemoryMappedFileStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
-					ResetReader();
-				}
+				if (mapAsImage && dataReaderFactory is MemoryMappedDataReaderFactory)
+					((MemoryMappedDataReaderFactory)dataReaderFactory).SetLength(peInfo.GetImageSize());
 			}
 			catch {
 				Dispose();
@@ -169,18 +163,18 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="fileName">Name of the file</param>
+		/// <param name="filename">Name of the file</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(string fileName, bool verify)
-			: this(fileName, USE_MEMORY_LAYOUT_WITH_MAPPED_FILES, verify) {
+		public PEImage(string filename, bool verify)
+			: this(filename, USE_MEMORY_LAYOUT_WITH_MAPPED_FILES, verify) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="fileName">Name of the file</param>
-		public PEImage(string fileName)
-			: this(fileName, true) {
+		/// <param name="filename">Name of the file</param>
+		public PEImage(string filename)
+			: this(filename, true) {
 		}
 
 		/// <summary>
@@ -191,7 +185,7 @@ namespace dnlib.PE {
 		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(byte[] data, string filename, ImageLayout imageLayout, bool verify)
-			: this(new MemoryStreamCreator(data) { FileName = filename }, imageLayout, verify) {
+			: this(ByteArrayDataReaderFactory.Create(data, filename), imageLayout, verify) {
 		}
 
 		/// <summary>
@@ -247,8 +241,8 @@ namespace dnlib.PE {
 		/// <param name="length">Length of PE image</param>
 		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(IntPtr baseAddr, long length, ImageLayout imageLayout, bool verify)
-			: this(new UnmanagedMemoryStreamCreator(baseAddr, length), imageLayout, verify) {
+		public unsafe PEImage(IntPtr baseAddr, uint length, ImageLayout imageLayout, bool verify)
+			: this(NativeMemoryDataReaderFactory.Create((byte*)baseAddr, length, filename: null), imageLayout, verify) {
 		}
 
 		/// <summary>
@@ -257,7 +251,7 @@ namespace dnlib.PE {
 		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="length">Length of PE image</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(IntPtr baseAddr, long length, bool verify)
+		public PEImage(IntPtr baseAddr, uint length, bool verify)
 			: this(baseAddr, length, ImageLayout.Memory, verify) {
 		}
 
@@ -266,7 +260,7 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="length">Length of PE image</param>
-		public PEImage(IntPtr baseAddr, long length)
+		public PEImage(IntPtr baseAddr, uint length)
 			: this(baseAddr, length, true) {
 		}
 
@@ -276,11 +270,10 @@ namespace dnlib.PE {
 		/// <param name="baseAddr">Address of PE image</param>
 		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(IntPtr baseAddr, ImageLayout imageLayout, bool verify)
-			: this(new UnmanagedMemoryStreamCreator(baseAddr, 0x10000), imageLayout, verify) {
+		public unsafe PEImage(IntPtr baseAddr, ImageLayout imageLayout, bool verify)
+			: this(NativeMemoryDataReaderFactory.Create((byte*)baseAddr, 0x10000, filename: null), imageLayout, verify) {
 			try {
-				((UnmanagedMemoryStreamCreator)imageStreamCreator).Length = peInfo.GetImageSize();
-				ResetReader();
+				((NativeMemoryDataReaderFactory)dataReaderFactory).SetLength(peInfo.GetImageSize());
 			}
 			catch {
 				Dispose();
@@ -305,14 +298,6 @@ namespace dnlib.PE {
 			: this(baseAddr, true) {
 		}
 
-		void ResetReader() {
-			if (imageStream != null) {
-				imageStream.Dispose();
-				imageStream = null;
-			}
-			imageStream = imageStreamCreator.CreateFull();
-		}
-
 		/// <inheritdoc/>
 		public RVA ToRVA(FileOffset offset) => peType.ToRVA(peInfo, offset);
 
@@ -324,41 +309,38 @@ namespace dnlib.PE {
 			IDisposable id;
 			if (win32Resources.IsValueInitialized && (id = win32Resources.Value) != null)
 				id.Dispose();
-			if ((id = imageStream) != null)
-				id.Dispose();
-			if ((id = imageStreamCreator) != null)
-				id.Dispose();
+			dataReaderFactory?.Dispose();
 			win32Resources.Value = null;
-			imageStream = null;
-			imageStreamCreator = null;
+			dataReaderFactory = null;
 			peType = null;
 			peInfo = null;
 		}
 
 		/// <inheritdoc/>
-		public IImageStream CreateStream(FileOffset offset) {
-			if ((long)offset > imageStreamCreator.Length)
-				throw new ArgumentOutOfRangeException(nameof(offset));
-			long length = imageStreamCreator.Length - (long)offset;
-			return CreateStream(offset, length);
-		}
+		public DataReader CreateReader(FileOffset offset) =>
+			DataReaderFactory.CreateReader((uint)offset, DataReaderFactory.Length - (uint)offset);
 
 		/// <inheritdoc/>
-		public IImageStream CreateStream(FileOffset offset, long length) => imageStreamCreator.Create(offset, length);
+		public DataReader CreateReader(FileOffset offset, uint length) =>
+			DataReaderFactory.CreateReader((uint)offset, length);
 
 		/// <inheritdoc/>
-		public IImageStream CreateFullStream() => imageStreamCreator.CreateFull();
+		public DataReader CreateReader(RVA rva) => CreateReader(ToFileOffset(rva));
 
 		/// <inheritdoc/>
-		public void UnsafeDisableMemoryMappedIO() {
-			if (imageStreamCreator is MemoryMappedFileStreamCreator creator)
+		public DataReader CreateReader(RVA rva, uint length) => CreateReader(ToFileOffset(rva), length);
+
+		/// <inheritdoc/>
+		public DataReader CreateReader() => DataReaderFactory.CreateReader();
+
+		void IInternalPEImage.UnsafeDisableMemoryMappedIO() {
+			if (dataReaderFactory is MemoryMappedDataReaderFactory creator)
 				creator.UnsafeDisableMemoryMappedIO();
 		}
 
-		/// <inheritdoc/>
-		public bool IsMemoryMappedIO {
+		bool IInternalPEImage.IsMemoryMappedIO {
 			get {
-				var creator = imageStreamCreator as MemoryMappedFileStreamCreator;
+				var creator = dataReaderFactory as MemoryMappedDataReaderFactory;
 				return creator == null ? false : creator.IsMemoryMappedIO;
 			}
 		}
@@ -370,20 +352,19 @@ namespace dnlib.PE {
 				var dataDir = ImageNTHeaders.OptionalHeader.DataDirectories[6];
 				if (dataDir.VirtualAddress == 0)
 					return Array2.Empty<ImageDebugDirectory>();
-				using (var reader = imageStream.Clone()) {
-					if (dataDir.Size > reader.Length)
-						return Array2.Empty<ImageDebugDirectory>();
-					int count = (int)(dataDir.Size / 0x1C);
-					if (count == 0)
-						return Array2.Empty<ImageDebugDirectory>();
-					reader.Position = (long)ToFileOffset(dataDir.VirtualAddress);
-					if (reader.Position + dataDir.Size > reader.Length)
-						return Array2.Empty<ImageDebugDirectory>();
-					var res = new ImageDebugDirectory[count];
-					for (int i = 0; i < res.Length; i++)
-						res[i] = new ImageDebugDirectory(reader, true);
-					return res;
-				}
+				var reader = DataReaderFactory.CreateReader();
+				if (dataDir.Size > reader.Length)
+					return Array2.Empty<ImageDebugDirectory>();
+				int count = (int)(dataDir.Size / 0x1C);
+				if (count == 0)
+					return Array2.Empty<ImageDebugDirectory>();
+				reader.CurrentOffset = (uint)ToFileOffset(dataDir.VirtualAddress);
+				if ((ulong)reader.CurrentOffset + dataDir.Size > reader.Length)
+					return Array2.Empty<ImageDebugDirectory>();
+				var res = new ImageDebugDirectory[count];
+				for (int i = 0; i < res.Length; i++)
+					res[i] = new ImageDebugDirectory(ref reader, true);
+				return res;
 			}
 			catch (IOException) {
 			}

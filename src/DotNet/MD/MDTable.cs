@@ -9,21 +9,21 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// A MD table (eg. Method table)
 	/// </summary>
-	[DebuggerDisplay("DL:{imageStream.Length} R:{numRows} RS:{tableInfo.RowSize} C:{Count} {tableInfo.Name}")]
+	[DebuggerDisplay("DL:{dataReader.Length} R:{numRows} RS:{tableInfo.RowSize} C:{Count} {tableInfo.Name}")]
 	public sealed class MDTable : IDisposable, IFileSection {
 		readonly Table table;
 		uint numRows;
 		TableInfo tableInfo;
-		IImageStream imageStream;
+		DataReader dataReader;
 
 		// Fix for VS2015 expression evaluator: "The debugger is unable to evaluate this expression"
 		int Count => tableInfo.Columns.Count;
 
 		/// <inheritdoc/>
-		public FileOffset StartOffset => imageStream.FileOffset;
+		public FileOffset StartOffset => (FileOffset)dataReader.StartOffset;
 
 		/// <inheritdoc/>
-		public FileOffset EndOffset => imageStream.FileOffset + imageStream.Length;
+		public FileOffset EndOffset => (FileOffset)dataReader.EndOffset;
 
 		/// <summary>
 		/// Gets the table
@@ -60,19 +60,9 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		public TableInfo TableInfo => tableInfo;
 
-		/// <summary>
-		/// The stream that can access all the rows in this table
-		/// </summary>
-		internal IImageStream ImageStream {
-			get => imageStream;
-			set {
-				var ims = imageStream;
-				if (ims == value)
-					return;
-				if (ims != null)
-					ims.Dispose();
-				imageStream = value;
-			}
+		internal DataReader DataReader {
+			get => dataReader;
+			set => dataReader = value;
 		}
 
 		/// <summary>
@@ -85,9 +75,29 @@ namespace dnlib.DotNet.MD {
 			this.table = table;
 			this.numRows = numRows;
 			this.tableInfo = tableInfo;
+
+			var columns = tableInfo.Columns;
+			if (columns.Count > 0) Column0 = columns[0];
+			if (columns.Count > 1) Column1 = columns[1];
+			if (columns.Count > 2) Column2 = columns[2];
+			if (columns.Count > 3) Column3 = columns[3];
+			if (columns.Count > 4) Column4 = columns[4];
+			if (columns.Count > 5) Column5 = columns[5];
+			if (columns.Count > 6) Column6 = columns[6];
+			if (columns.Count > 7) Column7 = columns[7];
+			if (columns.Count > 8) Column8 = columns[8];
 		}
 
-		internal IImageStream CloneImageStream() => imageStream.Clone();
+		// So we don't have to call IList<T> indexer
+		internal readonly ColumnInfo Column0;
+		internal readonly ColumnInfo Column1;
+		internal readonly ColumnInfo Column2;
+		internal readonly ColumnInfo Column3;
+		internal readonly ColumnInfo Column4;
+		internal readonly ColumnInfo Column5;
+		internal readonly ColumnInfo Column6;
+		internal readonly ColumnInfo Column7;
+		internal readonly ColumnInfo Column8;
 
 		/// <summary>
 		/// Checks whether the row <paramref name="rid"/> exists
@@ -103,12 +113,9 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			var ims = imageStream;
-			if (ims != null)
-				ims.Dispose();
 			numRows = 0;
 			tableInfo = null;
-			imageStream = null;
+			dataReader = default;
 		}
 	}
 }

@@ -42,9 +42,9 @@ namespace dnlib.PE {
 		bool MayHaveInvalidAddresses { get; }
 
 		/// <summary>
-		/// The file name or <c>null</c> if data is not from a file
+		/// The filename or null if the data is not from a file
 		/// </summary>
-		string FileName { get; }
+		string Filename { get; }
 
 		/// <summary>
 		/// Returns the DOS header
@@ -72,30 +72,51 @@ namespace dnlib.PE {
 		Win32Resources Win32Resources { get; set; }
 
 		/// <summary>
-		/// Creates a stream to access part of the PE image from <paramref name="offset"/>
-		/// to the end of the image
+		/// Gets the <see cref="DataReader"/> factory
 		/// </summary>
-		/// <param name="offset">File offset</param>
-		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
-		IImageStream CreateStream(FileOffset offset);
+		DataReaderFactory DataReaderFactory { get; }
 
 		/// <summary>
-		/// Creates a stream to access part of the PE image from <paramref name="offset"/>
-		/// with length <paramref name="length"/>
+		/// Creates a <see cref="DataReader"/> from <paramref name="offset"/> to the end of the image
 		/// </summary>
-		/// <param name="offset">File offset</param>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		DataReader CreateReader(FileOffset offset);
+
+		/// <summary>
+		/// Creates a <see cref="DataReader"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
 		/// <param name="length">Length of data</param>
-		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
-		IImageStream CreateStream(FileOffset offset, long length);
+		/// <returns></returns>
+		DataReader CreateReader(FileOffset offset, uint length);
 
 		/// <summary>
-		/// Creates a stream to access the full PE image
+		/// Creates a <see cref="DataReader"/> from <paramref name="rva"/> to the end of the image
 		/// </summary>
-		/// <returns>A new stream</returns>
-		IImageStream CreateFullStream();
+		/// <param name="rva">RVA of data</param>
+		/// <returns></returns>
+		DataReader CreateReader(RVA rva);
 
+		/// <summary>
+		/// Creates a <see cref="DataReader"/>
+		/// </summary>
+		/// <param name="rva">RVA of data</param>
+		/// <param name="length">Length of data</param>
+		/// <returns></returns>
+		DataReader CreateReader(RVA rva, uint length);
+
+		/// <summary>
+		/// Creates a <see cref="DataReader"/> that can read the whole image
+		/// </summary>
+		/// <returns></returns>
+		DataReader CreateReader();
+	}
+
+	/// <summary>
+	/// Interface to access a PE image
+	/// </summary>
+	public interface IInternalPEImage : IPEImage {
 		/// <summary>
 		/// Call this to disable memory mapped I/O if it was used to open the file. This must only
 		/// be called if no other code is trying to access the memory since that could lead to an
@@ -110,38 +131,6 @@ namespace dnlib.PE {
 	}
 
 	public static partial class PEExtensions {
-		/// <summary>
-		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
-		/// to the end of the image
-		/// </summary>
-		/// <param name="self">this</param>
-		/// <param name="rva">RVA</param>
-		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If the arg is invalid</exception>
-		public static IImageStream CreateStream(this IPEImage self, RVA rva) => self.CreateStream(self.ToFileOffset(rva));
-
-		/// <summary>
-		/// Creates a stream to access part of the PE image from <paramref name="rva"/>
-		/// with length <paramref name="length"/>
-		/// </summary>
-		/// <param name="self">this</param>
-		/// <param name="rva">RVA</param>
-		/// <param name="length">Length of data</param>
-		/// <returns>A new stream</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If any arg is invalid</exception>
-		public static IImageStream CreateStream(this IPEImage self, RVA rva, long length) => self.CreateStream(self.ToFileOffset(rva), length);
-
-		/// <summary>
-		/// Reads all bytes from the PE image. This may fail if the PE image has been loaded
-		/// by the OS loader since there may be memory holes.
-		/// </summary>
-		/// <param name="self">this</param>
-		/// <returns>All bytes of the PE image</returns>
-		public static byte[] GetImageAsByteArray(this IPEImage self) {
-			using (var reader = self.CreateFullStream())
-				return reader.ReadAllBytes();
-		}
-
 		/// <summary>
 		/// Finds a <see cref="ResourceData"/>
 		/// </summary>

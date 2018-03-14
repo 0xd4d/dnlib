@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Writer {
@@ -304,9 +305,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override List<TypeDef> GetAllTypeDefs() {
+		protected override TypeDef[] GetAllTypeDefs() {
 			if (!PreserveTypeDefRids) {
-				var types2 = new List<TypeDef>(module.GetTypes());
+				var types2 = module.GetTypes().ToArray();
 				InitializeTypeToRid(types2);
 				return types2;
 			}
@@ -381,11 +382,12 @@ namespace dnlib.DotNet.Writer {
 				prevRid = currRid;
 			}
 
-			InitializeTypeToRid(newTypes);
-			return newTypes;
+			var newTypesArray = newTypes.ToArray();
+			InitializeTypeToRid(newTypesArray);
+			return newTypesArray;
 		}
 
-		void InitializeTypeToRid(IEnumerable<TypeDef> types) {
+		void InitializeTypeToRid(TypeDef[] types) {
 			uint rid = 1;
 			foreach (var type in types) {
 				if (type == null)

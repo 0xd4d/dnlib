@@ -11,7 +11,7 @@ namespace dnlib.DotNet.Writer {
 	/// .NET resources
 	/// </summary>
 	public sealed class NetResources : IChunk {
-		readonly List<ByteArrayChunk> resources = new List<ByteArrayChunk>();
+		readonly List<DataReaderChunk> resources = new List<DataReaderChunk>();
 		readonly uint alignment;
 		uint length;
 		bool setOffsetCalled;
@@ -39,14 +39,13 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Adds a resource
 		/// </summary>
-		/// <param name="stream">The resource data</param>
+		/// <param name="reader">The resource data</param>
 		/// <returns>The resource data</returns>
-		public ByteArrayChunk Add(IImageStream stream) {
+		public DataReaderChunk Add(DataReader reader) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			var rawData = stream.ReadAllBytes();
-			length = Utils.AlignUp(length + 4 + (uint)rawData.Length, alignment);
-			var data = new ByteArrayChunk(rawData);
+			length = Utils.AlignUp(length + 4 + reader.Length, alignment);
+			var data = new DataReaderChunk(ref reader);
 			resources.Add(data);
 			return data;
 		}

@@ -85,8 +85,8 @@ namespace dnlib.PE {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageSectionHeader(IImageStream reader, bool verify) {
-			SetStartOffset(reader);
+		public ImageSectionHeader(ref DataReader reader, bool verify) {
+			SetStartOffset(ref reader);
 			name = reader.ReadBytes(8);
 			virtualSize = reader.ReadUInt32();
 			virtualAddress = (RVA)reader.ReadUInt32();
@@ -97,7 +97,7 @@ namespace dnlib.PE {
 			numberOfRelocations = reader.ReadUInt16();
 			numberOfLinenumbers = reader.ReadUInt16();
 			characteristics = reader.ReadUInt32();
-			SetEndoffset(reader);
+			SetEndoffset(ref reader);
 			displayName = ToString(name);
 		}
 

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using dnlib.IO;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -13,7 +12,7 @@ namespace dnlib.DotNet {
 		byte[] rawData;
 		readonly IList<CAArgument> arguments;
 		readonly IList<CANamedArgument> namedArguments;
-		IBinaryReader blobReader;
+		uint caBlobOffset;
 
 		/// <summary>
 		/// Gets/sets the custom attribute constructor
@@ -101,19 +100,24 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the #Blob offset or 0 if unknown
+		/// </summary>
+		public uint BlobOffset => caBlobOffset;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="rawData">Raw custom attribute blob</param>
 		public CustomAttribute(ICustomAttributeType ctor, byte[] rawData)
-			: this(ctor, null, null, null) => this.rawData = rawData;
+			: this(ctor, null, null, 0) => this.rawData = rawData;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="ctor">Custom attribute constructor</param>
 		public CustomAttribute(ICustomAttributeType ctor)
-			: this(ctor, null, null, null) {
+			: this(ctor, null, null, 0) {
 		}
 
 		/// <summary>
@@ -141,7 +145,7 @@ namespace dnlib.DotNet {
 		/// <param name="arguments">Constructor arguments or <c>null</c> if none</param>
 		/// <param name="namedArguments">Named arguments or <c>null</c> if none</param>
 		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments)
-			: this(ctor, arguments, namedArguments, null) {
+			: this(ctor, arguments, namedArguments, 0) {
 		}
 
 		/// <summary>
@@ -150,12 +154,12 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="arguments">Constructor arguments or <c>null</c> if none</param>
 		/// <param name="namedArguments">Named arguments or <c>null</c> if none</param>
-		/// <param name="blobReader">A reader that returns the original custom attribute blob data</param>
-		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments, IBinaryReader blobReader) {
+		/// <param name="caBlobOffset">Original custom attribute #Blob offset or 0</param>
+		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments, uint caBlobOffset) {
 			this.ctor = ctor;
 			this.arguments = arguments == null ? new List<CAArgument>() : new List<CAArgument>(arguments);
 			this.namedArguments = namedArguments == null ? new List<CANamedArgument>() : new List<CANamedArgument>(namedArguments);
-			this.blobReader = blobReader;
+			this.caBlobOffset = caBlobOffset;
 		}
 
 		/// <summary>
@@ -164,12 +168,12 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="arguments">Constructor arguments. The list is now owned by this instance.</param>
 		/// <param name="namedArguments">Named arguments. The list is now owned by this instance.</param>
-		/// <param name="blobReader">A reader that returns the original custom attribute blob data</param>
-		internal CustomAttribute(ICustomAttributeType ctor, List<CAArgument> arguments, List<CANamedArgument> namedArguments, IBinaryReader blobReader) {
+		/// <param name="caBlobOffset">Original custom attribute #Blob offset or 0</param>
+		internal CustomAttribute(ICustomAttributeType ctor, List<CAArgument> arguments, List<CANamedArgument> namedArguments, uint caBlobOffset) {
 			this.ctor = ctor;
 			this.arguments = arguments ?? new List<CAArgument>();
 			this.namedArguments = namedArguments ?? new List<CANamedArgument>();
-			this.blobReader = blobReader;
+			this.caBlobOffset = caBlobOffset;
 		}
 
 		/// <summary>
@@ -227,35 +231,6 @@ namespace dnlib.DotNet {
 			}
 			return null;
 		}
-
-		/// <summary>
-		/// Gets the binary custom attribute data that was used to create this instance.
-		/// </summary>
-		/// <returns>Blob of this custom attribute</returns>
-		public byte[] GetBlob() {
-			if (rawData != null)
-				return rawData;
-			if (blob != null)
-				return blob;
-#if THREAD_SAFE
-			if (blobReader != null) {
-				lock (this) {
-#endif
-					if (blobReader != null) {
-						blob = blobReader.ReadAllBytes();
-						blobReader.Dispose();
-						blobReader = null;
-						return blob;
-					}
-#if THREAD_SAFE
-				}
-			}
-#endif
-			if (blob != null)
-				return blob;
-			return blob = Array2.Empty<byte>();
-		}
-		byte[] blob;
 
 		/// <inheritdoc/>
 		public override string ToString() => TypeFullName;

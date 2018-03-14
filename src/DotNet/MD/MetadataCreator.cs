@@ -125,7 +125,6 @@ namespace dnlib.DotNet.MD {
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
 		static MetadataBase Create(IPEImage peImage, bool verify) {
-			IImageStream cor20HeaderStream = null, mdHeaderStream = null;
 			MetadataBase md = null;
 			try {
 				var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
@@ -133,14 +132,16 @@ namespace dnlib.DotNet.MD {
 					throw new BadImageFormatException(".NET data directory RVA is 0");
 				if (dotNetDir.Size < 0x48)
 					throw new BadImageFormatException(".NET data directory size < 0x48");
-				var cor20Header = new ImageCor20Header(cor20HeaderStream = peImage.CreateStream(dotNetDir.VirtualAddress, 0x48), verify);
+				var cor20HeaderReader = peImage.CreateReader(dotNetDir.VirtualAddress, 0x48);
+				var cor20Header = new ImageCor20Header(ref cor20HeaderReader, verify);
 				if (cor20Header.Metadata.VirtualAddress == 0)
 					throw new BadImageFormatException(".NET metadata RVA is 0");
 				if (cor20Header.Metadata.Size < 16)
 					throw new BadImageFormatException(".NET metadata size is too small");
 				var mdSize = cor20Header.Metadata.Size;
 				var mdRva = cor20Header.Metadata.VirtualAddress;
-				var mdHeader = new MetadataHeader(mdHeaderStream = peImage.CreateStream(mdRva, mdSize), verify);
+				var mdHeaderReader = peImage.CreateReader(mdRva, mdSize);
+				var mdHeader = new MetadataHeader(ref mdHeaderReader, verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
 						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > mdSize)
@@ -169,27 +170,22 @@ namespace dnlib.DotNet.MD {
 					md.Dispose();
 				throw;
 			}
-			finally {
-				if (cor20HeaderStream != null)
-					cor20HeaderStream.Dispose();
-				if (mdHeaderStream != null)
-					mdHeaderStream.Dispose();
-			}
 		}
 
 		/// <summary>
 		/// Create a standalone portable PDB <see cref="MetadataBase"/> instance
 		/// </summary>
-		/// <param name="mdStream">Metadata stream</param>
+		/// <param name="mdReaderFactory">Metadata stream</param>
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
-		internal static MetadataBase CreateStandalonePortablePDB(IImageStream mdStream, bool verify) {
+		internal static MetadataBase CreateStandalonePortablePDB(DataReaderFactory mdReaderFactory, bool verify) {
 			MetadataBase md = null;
 			try {
-				var mdHeader = new MetadataHeader(mdStream, verify);
+				var reader = mdReaderFactory.CreateReader();
+				var mdHeader = new MetadataHeader(ref reader, verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
-						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > mdStream.Length)
+						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > reader.Length)
 							throw new BadImageFormatException("Invalid stream header");
 					}
 				}
@@ -206,13 +202,12 @@ namespace dnlib.DotNet.MD {
 				default:
 					throw new BadImageFormatException("No #~ or #- stream found");
 				}
-				md.Initialize(mdStream);
+				md.Initialize(mdReaderFactory);
 
 				return md;
 			}
 			catch {
-				if (md != null)
-					md.Dispose();
+				md?.Dispose();
 				throw;
 			}
 		}

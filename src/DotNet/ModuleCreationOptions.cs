@@ -30,7 +30,7 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Set it to A) the path (string) of the PDB file, B) the data (byte[]) of the PDB file or
-		/// C) to an <see cref="IImageStream"/> of the PDB data. The <see cref="IImageStream"/> will
+		/// C) to an <see cref="DataReaderFactory"/> of the PDB data. The <see cref="DataReaderFactory"/> will
 		/// be owned by the module. You don't need to initialize <see cref="TryToLoadPdbFromDisk"/>
 		/// or <see cref="CreateSymbolReader"/>
 		/// </summary>

@@ -28,16 +28,14 @@ namespace dnlib.IO {
 		/// Set <see cref="startOffset"/> to <paramref name="reader"/>'s current position
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		protected void SetStartOffset(IImageStream reader) =>
-			startOffset = (FileOffset)reader.Position;
+		protected void SetStartOffset(ref DataReader reader) =>
+			startOffset = (FileOffset)reader.CurrentOffset;
 
 		/// <summary>
 		/// Set <see cref="size"/> according to <paramref name="reader"/>'s current position
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		protected void SetEndoffset(IImageStream reader) {
-			size = (uint)(reader.Position - startOffset);
-			startOffset = reader.FileOffset + (long)startOffset;
-		}
+		protected void SetEndoffset(ref DataReader reader) =>
+			size = reader.CurrentOffset - (uint)startOffset;
 	}
 }

@@ -853,10 +853,6 @@ namespace dnlib.DotNet {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;
-			foreach (var resource in Resources.GetInitializedElements(true)) {
-				if (resource != null)
-					resource.Dispose();
-			}
 			var tdf = typeDefFinder;
 			if (tdf != null) {
 				tdf.Dispose();

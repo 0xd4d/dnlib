@@ -81,13 +81,18 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="reader">A reader positioned on this column</param>
 		/// <returns>The column value</returns>
-		public uint Read(IBinaryReader reader) {
+		public uint Read(ref DataReader reader) {
 			switch (size) {
 			case 1: return reader.ReadByte();
 			case 2: return reader.ReadUInt16();
 			case 4: return reader.ReadUInt32();
 			default: throw new InvalidOperationException("Invalid column size");
 			}
+		}
+
+		internal uint Unsafe_Read24(ref DataReader reader) {
+			Debug.Assert(size == 2 || size == 4);
+			return size == 2 ? reader.Unsafe_ReadUInt16() : reader.Unsafe_ReadUInt32();
 		}
 
 		/// <summary>
@@ -102,6 +107,14 @@ namespace dnlib.DotNet.MD {
 			case 4: writer.Write(value); break;
 			default: throw new InvalidOperationException("Invalid column size");
 			}
+		}
+
+		internal void Write24(BinaryWriter writer, uint value) {
+			Debug.Assert(size == 2 || size == 4);
+			if (size == 2)
+				writer.Write((ushort)value);
+			else
+				writer.Write(value);
 		}
 	}
 }

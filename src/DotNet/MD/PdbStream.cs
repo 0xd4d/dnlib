@@ -28,20 +28,19 @@ namespace dnlib.DotNet.MD {
 		public uint[] TypeSystemTableRows { get; private set; }
 
 		/// <inheritdoc/>
-		public PdbStream(IImageStream imageStream, StreamHeader streamHeader)
-			: base(imageStream, streamHeader) {
-			using (var stream = GetClonedImageStream()) {
-				Id = stream.ReadBytes(20);
-				EntryPoint = new MDToken(stream.ReadUInt32());
-				var tables = stream.ReadUInt64();
-				ReferencedTypeSystemTables = tables;
-				var rows = new uint[64];
-				for (int i = 0; i < rows.Length; i++, tables >>= 1) {
-					if (((uint)tables & 1) != 0)
-						rows[i] = stream.ReadUInt32();
-				}
-				TypeSystemTableRows = rows;
+		public PdbStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
+			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
+			var reader = GetReader();
+			Id = reader.ReadBytes(20);
+			EntryPoint = new MDToken(reader.ReadUInt32());
+			var tables = reader.ReadUInt64();
+			ReferencedTypeSystemTables = tables;
+			var rows = new uint[64];
+			for (int i = 0; i < rows.Length; i++, tables >>= 1) {
+				if (((uint)tables & 1) != 0)
+					rows[i] = reader.ReadUInt32();
 			}
+			TypeSystemTableRows = rows;
 		}
 	}
 }

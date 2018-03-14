@@ -23,8 +23,8 @@ namespace dnlib.DotNet.Writer {
 		readonly List<ResourceData> dataHeaderList = new List<ResourceData>();
 		readonly Dictionary<string, uint> stringsDict = new Dictionary<string, uint>(StringComparer.Ordinal);
 		readonly List<string> stringsList = new List<string>();
-		readonly Dictionary<IBinaryReader, uint> dataDict = new Dictionary<IBinaryReader, uint>();
-		readonly List<IBinaryReader> dataList = new List<IBinaryReader>();
+		readonly Dictionary<ResourceData, uint> dataDict = new Dictionary<ResourceData, uint>();
+		readonly List<ResourceData> dataList = new List<ResourceData>();
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
@@ -171,50 +171,6 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="FileOffset"/> and <see cref="RVA"/> of the raw data
-		/// owned by a <see cref="ResourceData"/>. <see cref="SetOffset"/> must have been called.
-		/// </summary>
-		/// <param name="data">A <see cref="ResourceData"/>'s <see cref="IBinaryReader"/></param>
-		/// <param name="fileOffset">Updated with the file offset</param>
-		/// <param name="rva">Updated with the RVA</param>
-		/// <returns><c>true</c> if <paramref name="data"/> is valid and
-		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
-		/// if <paramref name="data"/> is not part of the Win32 resources.</returns>
-		public bool GetFileOffsetAndRvaOf(IBinaryReader data, out FileOffset fileOffset, out RVA rva) {
-			if (data == null || !dataDict.TryGetValue(data, out uint offs)) {
-				fileOffset = 0;
-				rva = 0;
-				return false;
-			}
-
-			fileOffset = offset + offs;
-			rva = this.rva + offs;
-			return true;
-		}
-
-		/// <summary>
-		/// Returns the <see cref="FileOffset"/> of the raw data owned by a
-		/// <see cref="ResourceData"/>. <see cref="SetOffset"/> must have been called.
-		/// </summary>
-		/// <param name="data">A <see cref="ResourceData"/>'s <see cref="IBinaryReader"/></param>
-		/// <returns>The file offset or 0 if <paramref name="data"/> is invalid</returns>
-		public FileOffset GetFileOffset(IBinaryReader data) {
-			GetFileOffsetAndRvaOf(data, out var fileOffset, out var rva);
-			return fileOffset;
-		}
-
-		/// <summary>
-		/// Returns the <see cref="RVA"/> of the raw data owned by a <see cref="ResourceData"/>.
-		/// <see cref="SetOffset"/> must have been called.
-		/// </summary>
-		/// <param name="data">A <see cref="ResourceData"/>'s <see cref="IBinaryReader"/></param>
-		/// <returns>The RVA or 0 if <paramref name="data"/> is invalid</returns>
-		public RVA GetRVA(IBinaryReader data) {
-			GetFileOffsetAndRvaOf(data, out var fileOffset, out var rva);
-			return rva;
-		}
-
-		/// <summary>
 		/// Returns the <see cref="FileOffset"/> and <see cref="RVA"/> of a
 		/// <see cref="ResourceDirectoryEntry"/>'s name. <see cref="SetOffset"/> must have been
 		/// called.
@@ -303,7 +259,7 @@ namespace dnlib.DotNet.Writer {
 				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DATA_HEADER_ALIGNMENT);
 				dataHeaderDict[data] = rsrcOffset;
 				AddString(data.Name);
-				AddData(data.Data);
+				AddData(data);
 				rsrcOffset += 16;
 			}
 
@@ -316,13 +272,13 @@ namespace dnlib.DotNet.Writer {
 			foreach (var data in dataList) {
 				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DATA_ALIGNMENT);
 				dataDict[data] = rsrcOffset;
-				rsrcOffset += (uint)data.Length;
+				rsrcOffset += data.GetReader().Length;
 			}
 
 			length = rsrcOffset;
 		}
 
-		void AddData(IBinaryReader data) {
+		void AddData(ResourceData data) {
 			if (dataDict.ContainsKey(data))
 				return;
 			dataList.Add(data);
@@ -406,8 +362,9 @@ namespace dnlib.DotNet.Writer {
 				if (dataDict[data] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource data offset");
 
-				data.Position = 0;
-				offset += data.WriteTo(writer, dataBuffer);
+				var reader = data.GetReader();
+				offset += reader.BytesLeft;
+				reader.CopyTo(writer, dataBuffer);
 			}
 
 			writer.WriteZeros((int)(Utils.AlignUp(length, ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT) - length));
@@ -466,8 +423,8 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint WriteTo(BinaryWriter writer, ResourceData dataHeader) {
-			writer.Write((uint)rva + dataDict[dataHeader.Data]);
-			writer.Write((uint)dataHeader.Data.Length);
+			writer.Write((uint)rva + dataDict[dataHeader]);
+			writer.Write((uint)dataHeader.GetReader().Length);
 			writer.Write(dataHeader.CodePage);
 			writer.Write(dataHeader.Reserved);
 			return 16;

@@ -23,26 +23,26 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// <param name="pdbFileName">Path to PDB file</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk.</returns>
-		public static SymbolReader Create(string pdbFileName) => Create(ImageStreamUtils.OpenImageStream(pdbFileName));
+		public static SymbolReader Create(string pdbFileName) => Create(DataReaderFactoryUtils.TryCreateDataReaderFactory(pdbFileName));
 
 		/// <summary>
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbData">PDB file data</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c>.</returns>
-		public static SymbolReader Create(byte[] pdbData) => Create(MemoryImageStream.Create(pdbData));
+		public static SymbolReader Create(byte[] pdbData) => Create(ByteArrayDataReaderFactory.Create(pdbData, filename: null));
 
 		/// <summary>
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
 		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c>.</returns>
-		public static SymbolReader Create(IImageStream pdbStream) {
+		public static SymbolReader Create(DataReaderFactory pdbStream) {
 			if (pdbStream == null)
 				return null;
 			try {
 				var pdbReader = new PdbReader();
-				pdbReader.Read(pdbStream);
+				pdbReader.Read(pdbStream.CreateReader());
 				return pdbReader;
 			}
 			catch (PdbException) {
@@ -50,8 +50,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			catch (IOException) {
 			}
 			finally {
-				if (pdbStream != null)
-					pdbStream.Dispose();
+				pdbStream?.Dispose();
 			}
 			return null;
 		}

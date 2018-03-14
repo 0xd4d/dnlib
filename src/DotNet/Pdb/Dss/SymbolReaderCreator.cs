@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Security;
 using dnlib.DotNet.MD;
 using dnlib.IO;
-using dnlib.PE;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Dss {
@@ -65,17 +64,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <param name="pdbFileName">Path to PDB file</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk or if any of the COM methods fail.</returns>
-		public static SymbolReader Create(Metadata metadata, string pdbFileName) {
-			var mdStream = CreateMetadataStream(metadata);
-			try {
-				return Create(mdStream, ImageStreamUtils.OpenImageStream(pdbFileName));
-			}
-			catch {
-				if (mdStream != null)
-					mdStream.Dispose();
-				throw;
-			}
-		}
+		public static SymbolReader Create(Metadata metadata, string pdbFileName) =>
+			Create(metadata, DataReaderFactoryUtils.TryCreateDataReaderFactory(pdbFileName));
 
 		/// <summary>
 		/// Creates a new <see cref="SymbolReader"/> instance
@@ -87,15 +77,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public static SymbolReader Create(Metadata metadata, byte[] pdbData) {
 			if (pdbData == null)
 				return null;
-			var mdStream = CreateMetadataStream(metadata);
-			try {
-				return Create(mdStream, MemoryImageStream.Create(pdbData));
-			}
-			catch {
-				if (mdStream != null)
-					mdStream.Dispose();
-				throw;
-			}
+			return Create(metadata, ByteArrayDataReaderFactory.Create(pdbData, filename: null));
 		}
 
 		/// <summary>
@@ -105,71 +87,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if any of the COM
 		/// methods fail.</returns>
-		public static SymbolReader Create(Metadata metadata, IImageStream pdbStream) {
-			try {
-				return Create(CreateMetadataStream(metadata), pdbStream);
-			}
-			catch {
-				if (pdbStream != null)
-					pdbStream.Dispose();
-				throw;
-			}
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="mdStream">.NET metadata stream which is now owned by this method</param>
-		/// <param name="pdbFileName">Path to PDB file</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
-		/// file on disk or if any of the COM methods fail.</returns>
-		public static SymbolReader Create(IImageStream mdStream, string pdbFileName) {
-			try {
-				return Create(mdStream, ImageStreamUtils.OpenImageStream(pdbFileName));
-			}
-			catch {
-				if (mdStream != null)
-					mdStream.Dispose();
-				throw;
-			}
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="mdStream">.NET metadata stream which is now owned by this method</param>
-		/// <param name="pdbData">PDB file data</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if any of the COM
-		/// methods fail.</returns>
-		public static SymbolReader Create(IImageStream mdStream, byte[] pdbData) {
-			if (pdbData == null) {
-				if (mdStream != null)
-					mdStream.Dispose();
-				return null;
-			}
-			try {
-				return Create(mdStream, MemoryImageStream.Create(pdbData));
-			}
-			catch {
-				if (mdStream != null)
-					mdStream.Dispose();
-				throw;
-			}
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="mdStream">.NET metadata stream which is now owned by this method</param>
-		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if any of the COM
-		/// methods fail.</returns>
-		public static SymbolReader Create(IImageStream mdStream, IImageStream pdbStream) {
-			ImageStreamIStream stream = null;
+		public static SymbolReader Create(Metadata metadata, DataReaderFactory pdbStream) {
+			DataReaderIStream stream = null;
 			PinnedMetadata pinnedMd = null;
 			bool error = true;
 			try {
-				if (pdbStream == null || mdStream == null)
+				if (pdbStream == null)
 					return null;
 
 				var CLSID_CorMetaDataDispenser = new Guid(0xE5CB7A31, 0x7512, 0x11D2, 0x89, 0xCE, 0x0, 0x80, 0xC7, 0x92, 0xE5, 0xD8);
@@ -180,12 +103,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 				var mdDisp = (IMetaDataDispenser)mdDispObj;
 				var IID_IMetaDataImport = new Guid(0x7DAC8207, 0xD3AE, 0x4C75, 0x9B, 0x67, 0x92, 0x80, 0x1A, 0x49, 0x7D, 0x44);
-				pinnedMd = new PinnedMetadata(mdStream);
+				pinnedMd = new PinnedMetadata(metadata);
 				mdDisp.OpenScopeOnMemory(pinnedMd.Address, (uint)pinnedMd.Size, 0x10, ref IID_IMetaDataImport, out object mdImportObj);
 				Marshal.FinalReleaseComObject(mdDispObj);
 
 				var binder = (ISymUnmanagedBinder)Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_CorSymBinder_SxS));
-				stream = new ImageStreamIStream(pdbStream, null) { UserData = pinnedMd };
+				stream = new DataReaderIStream(pdbStream) { UserData = pinnedMd };
 				hr = binder.GetReaderFromStream((IMetaDataImport)mdImportObj, stream, out var symReader);
 				Marshal.FinalReleaseComObject(mdImportObj);
 				Marshal.FinalReleaseComObject(binder);
@@ -202,23 +125,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 			finally {
 				if (error) {
-					if (stream != null)
-						stream.Dispose();
-					if (pinnedMd != null)
-						pinnedMd.Dispose();
-					if (mdStream != null)
-						mdStream.Dispose();
-					if (pdbStream != null)
-						pdbStream.Dispose();
+					stream?.Dispose();
+					pinnedMd?.Dispose();
+					pdbStream?.Dispose();
 				}
 			}
 			return null;
-		}
-
-		static IImageStream CreateMetadataStream(Metadata metadata) {
-			var peImage = metadata.PEImage;
-			var mdDataDir = metadata.ImageCor20Header.Metadata;
-			return peImage.CreateStream(mdDataDir.VirtualAddress, mdDataDir.Size);
 		}
 	}
 }

@@ -78,7 +78,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if it's not possible
 		/// to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, IImageStream pdbStream) {
+		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, DataReaderFactory pdbStream) {
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return Dss.SymbolReaderCreator.Create(metadata, pdbStream);
@@ -87,8 +87,7 @@ namespace dnlib.DotNet.Pdb {
 				return ManagedSymbolReaderCreator.Create(metadata, pdbStream);
 
 			default:
-				if (pdbStream != null)
-					pdbStream.Dispose();
+				pdbStream?.Dispose();
 				throw new InvalidOperationException();
 			}
 		}

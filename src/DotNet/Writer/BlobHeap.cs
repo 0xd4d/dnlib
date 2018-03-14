@@ -32,26 +32,25 @@ namespace dnlib.DotNet.Writer {
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
 				throw new InvalidOperationException("Add() has already been called");
-			if (blobStream == null || blobStream.ImageStreamLength == 0)
+			if (blobStream == null || blobStream.StreamLength == 0)
 				return;
 
-			using (var reader = blobStream.GetClonedImageStream()) {
-				originalData = reader.ReadAllBytes();
-				nextOffset = (uint)originalData.Length;
-				Populate(reader);
-			}
+			var reader = blobStream.GetReader();
+			originalData = reader.ToArray();
+			nextOffset = (uint)originalData.Length;
+			Populate(ref reader);
 		}
 
-		void Populate(IImageStream reader) {
+		void Populate(ref DataReader reader) {
 			reader.Position = 1;
 			while (reader.Position < reader.Length) {
-				uint offset = (uint)reader.Position;
+				uint offset = reader.Position;
 				if (!reader.ReadCompressedUInt32(out uint len)) {
 					if (offset == reader.Position)
 						reader.Position++;
 					continue;
 				}
-				if (len == 0 || reader.Position + len > reader.Length)
+				if (len == 0 || (ulong)reader.Position + len > reader.Length)
 					continue;
 
 				var data = reader.ReadBytes((int)len);

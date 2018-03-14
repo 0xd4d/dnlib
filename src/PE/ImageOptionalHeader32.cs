@@ -202,12 +202,12 @@ namespace dnlib.PE {
 		/// <param name="totalSize">Total size of this optional header (from the file header)</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageOptionalHeader32(IImageStream reader, uint totalSize, bool verify) {
+		public ImageOptionalHeader32(ref DataReader reader, uint totalSize, bool verify) {
 			if (totalSize < 0x60)
 				throw new BadImageFormatException("Invalid optional header size");
-			if (verify && reader.Position + totalSize > reader.Length)
+			if (verify && (ulong)reader.Position + totalSize > reader.Length)
 				throw new BadImageFormatException("Invalid optional header size");
-			SetStartOffset(reader);
+			SetStartOffset(ref reader);
 			magic = reader.ReadUInt16();
 			majorLinkerVersion = reader.ReadByte();
 			minorLinkerVersion = reader.ReadByte();
@@ -239,14 +239,14 @@ namespace dnlib.PE {
 			loaderFlags = reader.ReadUInt32();
 			numberOfRvaAndSizes = reader.ReadUInt32();
 			for (int i = 0; i < dataDirectories.Length; i++) {
-				uint len = (uint)(reader.Position - startOffset);
+				uint len = reader.Position - (uint)startOffset;
 				if (len + 8 <= totalSize)
-					dataDirectories[i] = new ImageDataDirectory(reader, verify);
+					dataDirectories[i] = new ImageDataDirectory(ref reader, verify);
 				else
 					dataDirectories[i] = new ImageDataDirectory();
 			}
-			reader.Position = (long)startOffset + totalSize;
-			SetEndoffset(reader);
+			reader.Position = (uint)startOffset + totalSize;
+			SetEndoffset(ref reader);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using dnlib.DotNet.MD;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Dss {
@@ -10,7 +11,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 	/// </summary>
 	sealed class PinnedMetadata : IDisposable {
 		GCHandle gcHandle;
-		readonly IImageStream stream;
 		readonly byte[] streamData;
 		readonly IntPtr address;
 
@@ -22,36 +22,40 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// <summary>
 		/// Gets the size
 		/// </summary>
-		public int Size => (int)stream.Length;
+		public int Size { get; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="stream">Metadata stream</param>
-		public PinnedMetadata(IImageStream stream) {
-			this.stream = stream;
+		/// <param name="metadata">.NET metadata</param>
+		public unsafe PinnedMetadata(Metadata metadata) {
+			var peImage = metadata.PEImage;
+			var mdDataDir = metadata.ImageCor20Header.Metadata;
+			var mdReader = peImage.CreateReader(mdDataDir.VirtualAddress, mdDataDir.Size);
+			Size = (int)mdReader.Length;
 
-			if (stream is UnmanagedMemoryImageStream umStream) {
-				address = umStream.StartAddress;
+			var realDataReaderFactory = peImage.DataReaderFactory;
+			if (realDataReaderFactory is NativeMemoryDataReaderFactory nativeMemFactory) {
+				address = (IntPtr)((byte*)nativeMemFactory.GetUnsafeUseAddress() + mdReader.StartOffset);
 				GC.SuppressFinalize(this);	// no GCHandle so finalizer isn't needed
 			}
+			else if (realDataReaderFactory is MemoryMappedDataReaderFactory mmapMemFactory) {
+				address = (IntPtr)((byte*)mmapMemFactory.GetUnsafeUseAddress() + mdReader.StartOffset);
+				GC.SuppressFinalize(this);	// no GCHandle so finalizer isn't needed
+			}
+			else if (realDataReaderFactory is ByteArrayDataReaderFactory memFactory) {
+				streamData = memFactory.DataArray;
+				gcHandle = GCHandle.Alloc(streamData, GCHandleType.Pinned);
+				address = new IntPtr(gcHandle.AddrOfPinnedObject().ToInt64() + memFactory.DataOffset + mdReader.StartOffset);
+			}
 			else {
-				if (stream is MemoryImageStream memStream) {
-					streamData = memStream.DataArray;
-					gcHandle = GCHandle.Alloc(streamData, GCHandleType.Pinned);
-					address = new IntPtr(gcHandle.AddrOfPinnedObject().ToInt64() + memStream.DataOffset);
-				}
-				else {
-					streamData = stream.ReadAllBytes();
-					gcHandle = GCHandle.Alloc(streamData, GCHandleType.Pinned);
-					address = gcHandle.AddrOfPinnedObject();
-				}
+				streamData = mdReader.ToArray();
+				gcHandle = GCHandle.Alloc(streamData, GCHandleType.Pinned);
+				address = gcHandle.AddrOfPinnedObject();
 			}
 		}
 
-		~PinnedMetadata() {
-			Dispose(false);
-		}
+		~PinnedMetadata() => Dispose(false);
 
 		public void Dispose() {
 			Dispose(true);
@@ -66,8 +70,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 				catch (InvalidOperationException) {
 				}
 			}
-			if (disposing)
-				stream.Dispose();
 		}
 	}
 }

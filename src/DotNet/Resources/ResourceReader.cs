@@ -50,19 +50,17 @@ namespace dnlib.DotNet.Resources {
 	/// <summary>
 	/// Reads .NET resources
 	/// </summary>
-	public readonly struct ResourceReader {
-		readonly IBinaryReader reader;
-		readonly long baseFileOffset;
+	public struct ResourceReader {
+		DataReader reader;
+		readonly uint baseFileOffset;
 		readonly ResourceDataCreator resourceDataCreator;
 		readonly CreateResourceDataDelegate createResourceDataDelegate;
 
-		ResourceReader(ModuleDef module, IBinaryReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
+		ResourceReader(ModuleDef module, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
 			this.reader = reader;
 			resourceDataCreator = new ResourceDataCreator(module);
 			this.createResourceDataDelegate = createResourceDataDelegate;
-
-			var stream = reader as IImageStream;
-			baseFileOffset = stream == null ? 0 : (long)stream.FileOffset;
+			baseFileOffset = reader.StartOffset;
 		}
 
 		/// <summary>
@@ -70,8 +68,8 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <param name="reader">Reader</param>
 		/// <returns></returns>
-		public static bool CouldBeResourcesFile(IBinaryReader reader) =>
-			reader.CanRead(4) && reader.ReadUInt32() == 0xBEEFCACE;
+		public static bool CouldBeResourcesFile(DataReader reader) =>
+			reader.CanRead(4U) && reader.ReadUInt32() == 0xBEEFCACE;
 
 		/// <summary>
 		/// Reads a .NET resource
@@ -79,7 +77,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="module">Owner module</param>
 		/// <param name="reader">Data of resource</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ModuleDef module, IBinaryReader reader) => Read(module, reader, null);
+		public static ResourceElementSet Read(ModuleDef module, DataReader reader) => Read(module, reader, null);
 
 		/// <summary>
 		/// Reads a .NET resource
@@ -88,8 +86,8 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ModuleDef module, IBinaryReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
-			new ResourceReader(module, reader, createResourceDataDelegate).Read();
+		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
+			new ResourceReader(module, ref reader, createResourceDataDelegate).Read();
 
 		ResourceElementSet Read() {
 			var resources = new ResourceElementSet();
@@ -111,8 +109,8 @@ namespace dnlib.DotNet.Resources {
 
 			var userTypes = new List<UserResourceType>();
 			for (int i = 0; i < numUserTypes; i++)
-				userTypes.Add(new UserResourceType(reader.ReadString(), ResourceTypeCode.UserTypes + i));
-			reader.Position = (reader.Position + 7) & ~7;
+				userTypes.Add(new UserResourceType(reader.ReadSerializedString(), ResourceTypeCode.UserTypes + i));
+			reader.Position = (reader.Position + 7) & ~7U;
 
 			var hashes = new int[numResources];
 			for (int i = 0; i < numResources; i++)
@@ -129,8 +127,8 @@ namespace dnlib.DotNet.Resources {
 			var infos = new List<ResourceInfo>(numResources);
 
 			for (int i = 0; i < numResources; i++) {
-				reader.Position = nameBaseOffset + offsets[i];
-				var name = reader.ReadString(Encoding.Unicode);
+				reader.Position = (uint)(nameBaseOffset + offsets[i]);
+				var name = reader.ReadSerializedString(Encoding.Unicode);
 				long offset = dataBaseOffset + reader.ReadInt32();
 				infos.Add(new ResourceInfo(name, offset));
 			}
@@ -140,7 +138,7 @@ namespace dnlib.DotNet.Resources {
 				var info = infos[i];
 				var element = new ResourceElement();
 				element.Name = info.name;
-				reader.Position = info.offset;
+				reader.Position = (uint)info.offset;
 				long nextDataOffset = i == infos.Count - 1 ? end : infos[i + 1].offset;
 				int size = (int)(nextDataOffset - info.offset);
 				element.ResourceData = ReadResourceData(userTypes, size);
@@ -164,10 +162,10 @@ namespace dnlib.DotNet.Resources {
 		}
 
 		IResourceData ReadResourceData(List<UserResourceType> userTypes, int size) {
-			uint code = ReadUInt32(reader);
+			uint code = ReadUInt32(ref reader);
 			switch ((ResourceTypeCode)code) {
 			case ResourceTypeCode.Null:		return resourceDataCreator.CreateNull();
-			case ResourceTypeCode.String:	return resourceDataCreator.Create(reader.ReadString());
+			case ResourceTypeCode.String:	return resourceDataCreator.Create(reader.ReadSerializedString());
 			case ResourceTypeCode.Boolean:	return resourceDataCreator.Create(reader.ReadBoolean());
 			case ResourceTypeCode.Char:		return resourceDataCreator.Create((char)reader.ReadUInt16());
 			case ResourceTypeCode.Byte:		return resourceDataCreator.Create(reader.ReadByte());
@@ -200,7 +198,7 @@ namespace dnlib.DotNet.Resources {
 			}
 		}
 
-		static uint ReadUInt32(IBinaryReader reader) {
+		static uint ReadUInt32(ref DataReader reader) {
 			try {
 				return reader.Read7BitEncodedUInt32();
 			}
@@ -220,8 +218,8 @@ namespace dnlib.DotNet.Resources {
 				throw new ResourceReaderException($"Invalid readers size: {readersSize:X8}");
 
 			for (int i = 0; i < numReaders; i++) {
-				var resourceReaderFullName = reader.ReadString();
-				/*var resourceSetFullName = */reader.ReadString();
+				var resourceReaderFullName = reader.ReadSerializedString();
+				/*var resourceSetFullName = */reader.ReadSerializedString();
 				if (Regex.IsMatch(resourceReaderFullName, @"^System\.Resources\.ResourceReader,\s*mscorlib,"))
 					validReader = true;
 			}

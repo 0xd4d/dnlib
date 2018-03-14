@@ -1,10 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.IO;
+using System;
 using dnlib.IO;
 using dnlib.DotNet.MD;
-using dnlib.Threading;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -30,7 +28,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Resource base class
 	/// </summary>
-	public abstract class Resource : IDisposable, IMDTokenProvider {
+	public abstract class Resource : IMDTokenProvider {
 		uint rid;
 		uint? offset;
 		UTF8String name;
@@ -101,152 +99,57 @@ namespace dnlib.DotNet {
 			this.name = name;
 			this.flags = flags;
 		}
-
-		/// <inheritdoc/>
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		/// <summary>
-		/// Dispose method
-		/// </summary>
-		/// <param name="disposing"><c>true</c> if called by <see cref="Dispose()"/></param>
-		protected virtual void Dispose(bool disposing) {
-		}
 	}
 
 	/// <summary>
 	/// A resource that is embedded in a .NET module. This is the most common type of resource.
 	/// </summary>
 	public sealed class EmbeddedResource : Resource {
-		IImageStream dataStream;
-#if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
-#endif
+		readonly DataReaderFactory dataReaderFactory;
+		readonly uint resourceStartOffset;
+		readonly uint resourceLength;
+
+		/// <summary>
+		/// Gets the length of the data
+		/// </summary>
+		public uint Length => resourceLength;
 
 		/// <inheritdoc/>
 		public override ResourceType ResourceType => ResourceType.Embedded;
 
 		/// <summary>
-		/// Gets/sets the resource data. It's never <c>null</c>.
-		/// </summary>
-		public IImageStream Data {
-			get {
-#if THREAD_SAFE
-				theLock.EnterReadLock(); try {
-#endif
-				return dataStream;
-#if THREAD_SAFE
-				} finally { theLock.ExitReadLock(); }
-#endif
-			}
-			set {
-				if (value == null)
-					throw new ArgumentNullException(nameof(value));
-#if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
-#endif
-				if (value == dataStream)
-					return;
-				if (dataStream != null)
-					dataStream.Dispose();
-				dataStream = value;
-#if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
-#endif
-			}
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="data">Resource data</param>
-		public EmbeddedResource(UTF8String name, byte[] data)
-			: this(name, data, ManifestResourceAttributes.Private) {
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <param name="data">Resource data</param>
 		/// <param name="flags">Resource flags</param>
-		public EmbeddedResource(UTF8String name, byte[] data, ManifestResourceAttributes flags)
-			: this(name, new MemoryImageStream(0, data, 0, data.Length), flags) {
-		}
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="name">Name of resource</param>
-		/// <param name="dataStream">Resource data</param>
-		public EmbeddedResource(UTF8String name, IImageStream dataStream)
-			: this(name, dataStream, ManifestResourceAttributes.Private) {
+		public EmbeddedResource(UTF8String name, byte[] data, ManifestResourceAttributes flags = ManifestResourceAttributes.Private)
+			: this(name, ByteArrayDataReaderFactory.Create(data, filename: null), 0, (uint)data.Length, flags) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name of resource</param>
-		/// <param name="dataStream">Resource data</param>
+		/// <param name="dataReaderFactory">Data reader factory</param>
+		/// <param name="offset">Offset of resource data</param>
+		/// <param name="length">Length of resource data</param>
 		/// <param name="flags">Resource flags</param>
-		public EmbeddedResource(UTF8String name, IImageStream dataStream, ManifestResourceAttributes flags)
-			: base(name, flags) => this.dataStream = dataStream ?? throw new ArgumentNullException(nameof(dataStream));
-
-		/// <summary>
-		/// Creates a new resource stream that can access the same data as the original
-		/// Stream. Note that the data is shared between these streams.
-		/// </summary>
-		/// <returns>A new <see cref="IImageStream"/> instance</returns>
-		public IImageStream GetClonedResourceStream() {
-#if THREAD_SAFE
-			theLock.EnterReadLock(); try {
-#endif
-			return dataStream.Clone();
-#if THREAD_SAFE
-			} finally { theLock.ExitReadLock(); }
-#endif
+		public EmbeddedResource(UTF8String name, DataReaderFactory dataReaderFactory, uint offset, uint length, ManifestResourceAttributes flags = ManifestResourceAttributes.Private)
+			: base(name, flags) {
+			this.dataReaderFactory = dataReaderFactory ?? throw new ArgumentNullException(nameof(dataReaderFactory));
+			resourceStartOffset = offset;
+			resourceLength = length;
 		}
 
 		/// <summary>
-		/// Gets the resource data as a <see cref="Stream"/>
+		/// Gets a data reader that can access the resource
 		/// </summary>
-		/// <returns>A stream</returns>
-		public Stream GetResourceStream() => GetClonedResourceStream().CreateStream(true);
-
-		/// <summary>
-		/// Gets the resource data as a byte array
-		/// </summary>
-		/// <returns>The resource data</returns>
-		public byte[] GetResourceData() {
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			return dataStream.ReadAllBytes();
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
-		}
+		/// <returns></returns>
+		public DataReader GetReader() => dataReaderFactory.CreateReader(resourceStartOffset, resourceLength);
 
 		/// <inheritdoc/>
-		protected override void Dispose(bool disposing) {
-			if (!disposing)
-				return;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			if (dataStream != null)
-				dataStream.Dispose();
-			dataStream = null;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
-			base.Dispose(disposing);
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - size: {(dataStream?.Length ?? 0)}";
+		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - size: {(resourceLength)}";
 	}
 
 	/// <summary>

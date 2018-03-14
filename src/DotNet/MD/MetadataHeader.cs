@@ -84,8 +84,8 @@ namespace dnlib.DotNet.MD {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public MetadataHeader(IImageStream reader, bool verify) {
-			SetStartOffset(reader);
+		public MetadataHeader(ref DataReader reader, bool verify) {
+			SetStartOffset(ref reader);
 			signature = reader.ReadUInt32();
 			if (verify && signature != 0x424A5342)
 				throw new BadImageFormatException("Invalid metadata header signature");
@@ -95,20 +95,20 @@ namespace dnlib.DotNet.MD {
 				throw new BadImageFormatException($"Unknown metadata header version: {majorVersion}.{minorVersion}");
 			reserved1 = reader.ReadUInt32();
 			stringLength = reader.ReadUInt32();
-			versionString = ReadString(reader, stringLength);
-			offset2ndPart = reader.FileOffset + reader.Position;
+			versionString = ReadString(ref reader, stringLength);
+			offset2ndPart = (FileOffset)reader.CurrentOffset;
 			flags = (StorageFlags)reader.ReadByte();
 			reserved2 = reader.ReadByte();
 			streams = reader.ReadUInt16();
 			streamHeaders = new StreamHeader[streams];
 			for (int i = 0; i < streamHeaders.Count; i++)
-				streamHeaders[i] = new StreamHeader(reader, verify);
-			SetEndoffset(reader);
+				streamHeaders[i] = new StreamHeader(ref reader, verify);
+			SetEndoffset(ref reader);
 		}
 
-		static string ReadString(IImageStream reader, uint maxLength) {
-			long endPos = reader.Position + maxLength;
-			if (endPos < reader.Position || endPos > reader.Length)
+		static string ReadString(ref DataReader reader, uint maxLength) {
+			ulong endPos = (ulong)reader.Position + maxLength;
+			if (endPos > reader.Length)
 				throw new BadImageFormatException("Invalid MD version string");
 			var utf8Bytes = new byte[maxLength];
 			uint i;
@@ -118,7 +118,7 @@ namespace dnlib.DotNet.MD {
 					break;
 				utf8Bytes[i] = b;
 			}
-			reader.Position = endPos;
+			reader.Position = (uint)endPos;
 			return Encoding.UTF8.GetString(utf8Bytes, 0, (int)i);
 		}
 	}

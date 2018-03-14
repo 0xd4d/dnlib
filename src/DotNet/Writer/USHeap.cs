@@ -30,18 +30,16 @@ namespace dnlib.DotNet.Writer {
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
 				throw new InvalidOperationException("Add() has already been called");
-			if (usStream == null || usStream.ImageStreamLength == 0)
+			if (usStream == null || usStream.StreamLength == 0)
 				return;
 
-			using (var reader = usStream.GetClonedImageStream()) {
-				originalData = reader.ReadAllBytes();
-				nextOffset = (uint)originalData.Length;
-				Populate(reader);
-			}
+			var reader = usStream.GetReader();
+			originalData = reader.ToArray();
+			nextOffset = (uint)originalData.Length;
+			Populate(ref reader);
 		}
 
-		void Populate(IImageStream reader) {
-			var chars = new char[0x200];
+		void Populate(ref DataReader reader) {
 			reader.Position = 1;
 			while (reader.Position < reader.Length) {
 				uint offset = (uint)reader.Position;
@@ -50,17 +48,13 @@ namespace dnlib.DotNet.Writer {
 						reader.Position++;
 					continue;
 				}
-				if (len == 0 || reader.Position + len > reader.Length)
+				if (len == 0 || (ulong)reader.Position + len > reader.Length)
 					continue;
 
 				int stringLen = (int)len / 2;
-				if (stringLen > chars.Length)
-					Array.Resize(ref chars, stringLen);
-				for (int i = 0; i < stringLen; i++)
-					chars[i] = (char)reader.ReadUInt16();
+				var s = reader.ReadUtf16String(stringLen);
 				if ((len & 1) != 0)
 					reader.ReadByte();
-				var s = new string(chars, 0, stringLen);
 
 				if (!cachedDict.ContainsKey(s))
 					cachedDict[s] = offset;

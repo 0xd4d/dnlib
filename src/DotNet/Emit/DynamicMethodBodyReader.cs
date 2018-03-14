@@ -159,7 +159,7 @@ namespace dnlib.DotNet.Emit {
 			ehHeader = rslvExceptionHeaderFieldInfo.Read(obj) as byte[];
 
 			UpdateLocals(rslvLocalsFieldInfo.Read(obj) as byte[]);
-			reader = MemoryImageStream.Create(code);
+			reader = ByteArrayDataReaderFactory.CreateReader(code);
 			method = CreateMethodDef(delMethod);
 			parameters = method.Parameters;
 		}

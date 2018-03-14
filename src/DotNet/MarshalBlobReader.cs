@@ -1,15 +1,14 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System;
 using dnlib.IO;
 
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Reads <see cref="MarshalType"/>s
 	/// </summary>
-	public readonly struct MarshalBlobReader : IDisposable {
+	public struct MarshalBlobReader {
 		readonly ModuleDef module;
-		readonly IBinaryReader reader;
+		DataReader reader;
 		readonly GenericParamContext gpContext;
 
 		/// <summary>
@@ -18,7 +17,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Module</param>
 		/// <param name="sig">Blob offset</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(ModuleDefMD module, uint sig) => Read(module, module.BlobStream.CreateStream(sig), new GenericParamContext());
+		public static MarshalType Read(ModuleDefMD module, uint sig) => Read(module, module.BlobStream.CreateReader(sig), new GenericParamContext());
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from the <c>#Blob</c> heap
@@ -27,7 +26,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Blob offset</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(ModuleDefMD module, uint sig, GenericParamContext gpContext) => Read(module, module.BlobStream.CreateStream(sig), gpContext);
+		public static MarshalType Read(ModuleDefMD module, uint sig, GenericParamContext gpContext) => Read(module, module.BlobStream.CreateReader(sig), gpContext);
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from <paramref name="data"/>
@@ -35,7 +34,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="data">Marshal data</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(ModuleDef module, byte[] data) => Read(module, MemoryImageStream.Create(data), new GenericParamContext());
+		public static MarshalType Read(ModuleDef module, byte[] data) => Read(module, ByteArrayDataReaderFactory.CreateReader(data), new GenericParamContext());
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from <paramref name="data"/>
@@ -44,7 +43,7 @@ namespace dnlib.DotNet {
 		/// <param name="data">Marshal data</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(ModuleDef module, byte[] data, GenericParamContext gpContext) => Read(module, MemoryImageStream.Create(data), gpContext);
+		public static MarshalType Read(ModuleDef module, byte[] data, GenericParamContext gpContext) => Read(module, ByteArrayDataReaderFactory.CreateReader(data), gpContext);
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from <see cref="reader"/>
@@ -52,7 +51,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="reader">A reader that will be owned by us</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(ModuleDef module, IBinaryReader reader) => Read(module, reader, new GenericParamContext());
+		public static MarshalType Read(ModuleDef module, DataReader reader) => Read(module, reader, new GenericParamContext());
 
 		/// <summary>
 		/// Reads a <see cref="MarshalType"/> from <see cref="reader"/>
@@ -61,12 +60,12 @@ namespace dnlib.DotNet {
 		/// <param name="reader">A reader that will be owned by us</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="MarshalType"/> instance</returns>
-		public static MarshalType Read(ModuleDef module, IBinaryReader reader, GenericParamContext gpContext) {
-			using (var marshalReader = new MarshalBlobReader(module, reader, gpContext))
-				return marshalReader.Read();
+		public static MarshalType Read(ModuleDef module, DataReader reader, GenericParamContext gpContext) {
+			var marshalReader = new MarshalBlobReader(module, ref reader, gpContext);
+			return marshalReader.Read();
 		}
 
-		MarshalBlobReader(ModuleDef module, IBinaryReader reader, GenericParamContext gpContext) {
+		MarshalBlobReader(ModuleDef module, ref DataReader reader, GenericParamContext gpContext) {
 			this.module = module;
 			this.reader = reader;
 			this.gpContext = gpContext;
@@ -126,7 +125,7 @@ namespace dnlib.DotNet {
 				}
 			}
 			catch {
-				returnValue = new RawMarshalType(reader.ReadAllBytes());
+				returnValue = new RawMarshalType(reader.ToArray());
 			}
 
 			return returnValue;
@@ -138,8 +137,5 @@ namespace dnlib.DotNet {
 			uint len = reader.ReadCompressedUInt32();
 			return len == 0 ? UTF8String.Empty : new UTF8String(reader.ReadBytes((int)len));
 		}
-
-		/// <inheritdoc/>
-		public void Dispose() => reader?.Dispose();
 	}
 }

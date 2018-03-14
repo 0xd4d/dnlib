@@ -12,8 +12,8 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
-		public StringsStream(IImageStream imageStream, StreamHeader streamHeader)
-			: base(imageStream, streamHeader) {
+		public StringsStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
+			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
 		}
 
 		/// <summary>
@@ -22,17 +22,12 @@ namespace dnlib.DotNet.MD {
 		/// <param name="offset">Offset of string</param>
 		/// <returns>A <see cref="UTF8String"/> instance or <c>null</c> if invalid offset</returns>
 		public UTF8String Read(uint offset) {
-			if (offset >= ImageStreamLength)
+			if (offset >= StreamLength)
 				return null;
 			byte[] data;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(offset);
-			data = reader.ReadBytesUntilByte(0);
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
+			var reader = dataReader;
+			reader.Position = offset;
+			data = reader.TryReadBytesUntil(0);
 			if (data == null)
 				return null;
 			return new UTF8String(data);

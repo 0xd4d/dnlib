@@ -63,10 +63,10 @@ namespace dnlib.DotNet.Writer {
 		/// no extra data or if <see cref="NativeModuleWriterOptions.KeepExtraPEData"/> is
 		/// <c>false</c>.
 		/// </summary>
-		BinaryReaderChunk extraData;
+		DataReaderChunk extraData;
 
 		/// <summary>The original PE headers</summary>
-		BinaryReaderChunk headerSection;
+		DataReaderChunk headerSection;
 
 		/// <summary>The original PE sections and their data</summary>
 		List<OrigSection> origSections;
@@ -102,7 +102,7 @@ namespace dnlib.DotNet.Writer {
 			/// <summary>PE section</summary>
 			public ImageSectionHeader PESection;
 			/// <summary>PE section data</summary>
-			public BinaryReaderChunk Chunk;
+			public DataReaderChunk Chunk;
 
 			/// <summary>
 			/// Constructor
@@ -113,16 +113,14 @@ namespace dnlib.DotNet.Writer {
 
 			/// <inheritdoc/>
 			public void Dispose() {
-				if (Chunk != null)
-					Chunk.Data.Dispose();
 				Chunk = null;
 				PESection = null;
 			}
 
 			/// <inheritdoc/>
 			public override string ToString() {
-				uint offs = Chunk.Data is IImageStream ? (uint)((IImageStream)Chunk.Data).FileOffset : 0;
-				return $"{PESection.DisplayName} FO:{offs:X8} L:{(uint)Chunk.Data.Length:X8}";
+				uint offs = Chunk.GetReader().StartOffset;
+				return $"{PESection.DisplayName} FO:{offs:X8} L:{Chunk.GetReader().Length:X8}";
 			}
 		}
 
@@ -186,10 +184,6 @@ namespace dnlib.DotNet.Writer {
 					foreach (var section in origSections)
 						section.Dispose();
 				}
-				if (headerSection != null)
-					headerSection.Data.Dispose();
-				if (extraData != null)
-					extraData.Data.Dispose();
 			}
 		}
 
@@ -269,7 +263,7 @@ namespace dnlib.DotNet.Writer {
 				var newSection = new OrigSection(peSection);
 				origSections.Add(newSection);
 				uint sectionSize = Utils.AlignUp(peSection.SizeOfRawData, fileAlignment);
-				newSection.Chunk = new BinaryReaderChunk(peImage.CreateStream(peSection.VirtualAddress, sectionSize), peSection.VirtualSize);
+				newSection.Chunk = new DataReaderChunk(peImage.CreateReader(peSection.VirtualAddress, sectionSize), peSection.VirtualSize);
 			}
 		}
 
@@ -284,7 +278,7 @@ namespace dnlib.DotNet.Writer {
 				headerLen = firstRawOffset;
 			headerLen = Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 			if (headerLen <= peImage.ImageNTHeaders.OptionalHeader.SectionAlignment) {
-				headerSection = new BinaryReaderChunk(peImage.CreateStream(0, headerLen));
+				headerSection = new DataReaderChunk(peImage.CreateReader((FileOffset)0, headerLen));
 				return;
 			}
 
@@ -311,11 +305,9 @@ namespace dnlib.DotNet.Writer {
 			if (!Options.KeepExtraPEData)
 				return;
 			var lastOffs = GetLastFileSectionOffset();
-			extraData = new BinaryReaderChunk(peImage.CreateStream((FileOffset)lastOffs));
-			if (extraData.Data.Length == 0) {
-				extraData.Data.Dispose();
+			extraData = new DataReaderChunk(peImage.CreateReader((FileOffset)lastOffs));
+			if (extraData.GetReader().Length == 0)
 				extraData = null;
-			}
 		}
 
 		uint GetLastFileSectionOffset() {

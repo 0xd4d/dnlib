@@ -75,17 +75,16 @@ namespace dnlib.DotNet.Pdb.Portable {
 				bool b = constantsMetadata.TablesStream.TryReadLocalConstantRow(rid, out var row);
 				Debug.Assert(b);
 				var name = constantsMetadata.StringsStream.Read(row.Name);
-				using (var stream = constantsMetadata.BlobStream.CreateStream(row.Signature)) {
-					var localConstantSigBlobReader = new LocalConstantSigBlobReader(module, stream, gpContext);
-					b = localConstantSigBlobReader.Read(out var type, out object value);
-					Debug.Assert(b);
-					if (b) {
-						var pdbConstant = new PdbConstant(name, type, value);
-						int token = new MDToken(Table.LocalConstant, rid).ToInt32();
-						owner.GetCustomDebugInfos(token, gpContext, pdbConstant.CustomDebugInfos);
-						res[w++] = pdbConstant;
-					}
-					Debug.Assert(stream.Position == stream.Length);
+				if (!constantsMetadata.BlobStream.TryCreateReader(row.Signature, out var reader))
+					continue;
+				var localConstantSigBlobReader = new LocalConstantSigBlobReader(module, ref reader, gpContext);
+				b = localConstantSigBlobReader.Read(out var type, out object value);
+				Debug.Assert(b);
+				if (b) {
+					var pdbConstant = new PdbConstant(name, type, value);
+					int token = new MDToken(Table.LocalConstant, rid).ToInt32();
+					owner.GetCustomDebugInfos(token, gpContext, pdbConstant.CustomDebugInfos);
+					res[w++] = pdbConstant;
 				}
 			}
 			if (res.Length != w)

@@ -77,6 +77,8 @@ namespace dnlib.DotNet.MD {
 		Dictionary<uint, List<uint>> typeDefRidToNestedClasses;
 		StrongBox<RidList> nonNestedTypes;
 
+		DataReaderFactory mdReaderFactoryToDisposeLater;
+
 		/// <summary>
 		/// Sorts a table by key column
 		/// </summary>
@@ -122,17 +124,17 @@ namespace dnlib.DotNet.MD {
 
 			void InitializeKeys(MDTable mdTable, int keyColIndex) {
 				var keyColumn = mdTable.TableInfo.Columns[keyColIndex];
+				Debug.Assert(keyColumn.Size == 2 || keyColumn.Size == 4);
 				rows = new RowInfo[mdTable.Rows + 1];
 				if (mdTable.Rows == 0)
 					return;
-				using (var reader = mdTable.CloneImageStream()) {
-					reader.Position = keyColumn.Offset;
-					int increment = mdTable.TableInfo.RowSize - keyColumn.Size;
-					for (uint i = 1; i <= mdTable.Rows; i++) {
-						rows[i] = new RowInfo(i, keyColumn.Read(reader));
-						if (i < mdTable.Rows)
-							reader.Position += increment;
-					}
+				var reader = mdTable.DataReader;
+				reader.Position = (uint)keyColumn.Offset;
+				uint increment = (uint)(mdTable.TableInfo.RowSize - keyColumn.Size);
+				for (uint i = 1; i <= mdTable.Rows; i++) {
+					rows[i] = new RowInfo(i, keyColumn.Unsafe_Read24(ref reader));
+					if (i < mdTable.Rows)
+						reader.Position += increment;
 				}
 			}
 
@@ -229,8 +231,20 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Initializes the metadata, tables, streams
 		/// </summary>
-		public void Initialize(IImageStream mdStream) {
-			InitializeInternal(mdStream);
+		public void Initialize(DataReaderFactory mdReaderFactory) {
+			mdReaderFactoryToDisposeLater = mdReaderFactory;
+			uint metadataBaseOffset;
+			if (peImage != null) {
+				Debug.Assert(mdReaderFactory == null);
+				Debug.Assert(cor20Header != null);
+				metadataBaseOffset = (uint)peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
+				mdReaderFactory = peImage.DataReaderFactory;
+			}
+			else {
+				Debug.Assert(mdReaderFactory != null);
+				metadataBaseOffset = 0;
+			}
+			InitializeInternal(mdReaderFactory, metadataBaseOffset);
 
 			if (tablesStream == null)
 				throw new BadImageFormatException("Missing MD stream");
@@ -254,24 +268,22 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Called by <see cref="Initialize(IImageStream)"/>
+		/// Called by <see cref="Initialize(DataReaderFactory)"/>
 		/// </summary>
-		protected abstract void InitializeInternal(IImageStream mdStream);
+		protected abstract void InitializeInternal(DataReaderFactory mdReaderFactory, uint metadataBaseOffset);
 
 		public override RidList GetTypeDefRidList() => RidList.Create(1, tablesStream.TypeDefTable.Rows);
 		public override RidList GetExportedTypeRidList() => RidList.Create(1, tablesStream.ExportedTypeTable.Rows);
 
 		/// <summary>
 		/// Binary searches the table for a <c>rid</c> whose key column at index
-		/// <paramref name="keyColIndex"/> is equal to <paramref name="key"/>. The
-		/// <see cref="tablesStream"/> has acquired its lock so only <c>*_NoLock</c> methods
-		/// may be called.
+		/// <paramref name="keyColIndex"/> is equal to <paramref name="key"/>.
 		/// </summary>
 		/// <param name="tableSource">Table to search</param>
 		/// <param name="keyColIndex">Key column index</param>
 		/// <param name="key">Key</param>
 		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
-		protected abstract uint BinarySearch_NoLock(MDTable tableSource, int keyColIndex, uint key);
+		protected abstract uint BinarySearch(MDTable tableSource, int keyColIndex, uint key);
 
 		/// <summary>
 		/// Finds all rows owned by <paramref name="key"/> in table <paramref name="tableSource"/>
@@ -282,30 +294,24 @@ namespace dnlib.DotNet.MD {
 		/// <param name="key">Key</param>
 		/// <returns>A <see cref="RidList"/> instance</returns>
 		protected RidList FindAllRows(MDTable tableSource, int keyColIndex, uint key) {
-#if THREAD_SAFE
-			tablesStream.theLock.EnterWriteLock(); try {
-#endif
-			uint startRid = BinarySearch_NoLock(tableSource, keyColIndex, key);
+			uint startRid = BinarySearch(tableSource, keyColIndex, key);
 			if (tableSource.IsInvalidRID(startRid))
 				return RidList.Empty;
 			uint endRid = startRid + 1;
 			var column = tableSource.TableInfo.Columns[keyColIndex];
 			for (; startRid > 1; startRid--) {
-				if (!tablesStream.TryReadColumn_NoLock(tableSource, startRid - 1, column, out uint key2))
+				if (!tablesStream.TryReadColumn24(tableSource, startRid - 1, column, out uint key2))
 					break;	// Should never happen since startRid is valid
 				if (key != key2)
 					break;
 			}
 			for (; endRid <= tableSource.Rows; endRid++) {
-				if (!tablesStream.TryReadColumn_NoLock(tableSource, endRid, column, out uint key2))
+				if (!tablesStream.TryReadColumn24(tableSource, endRid, column, out uint key2))
 					break;	// Should never happen since endRid is valid
 				if (key != key2)
 					break;
 			}
 			return RidList.Create(startRid, endRid - startRid);
-#if THREAD_SAFE
-			} finally { tablesStream.theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -541,17 +547,11 @@ namespace dnlib.DotNet.MD {
 			// Find all owners by reading the GenericParam.Owner column
 			var ownerCol = gpTable.TableInfo.Columns[2];
 			var ownersDict = new Dictionary<uint, bool>();
-#if THREAD_SAFE
-			tablesStream.theLock.EnterWriteLock(); try {
-#endif
 			for (uint rid = 1; rid <= gpTable.Rows; rid++) {
-				if (!tablesStream.TryReadColumn_NoLock(gpTable, rid, ownerCol, out uint owner))
+				if (!tablesStream.TryReadColumn24(gpTable, rid, ownerCol, out uint owner))
 					continue;
 				ownersDict[owner] = true;
 			}
-#if THREAD_SAFE
-			} finally { tablesStream.theLock.ExitWriteLock(); }
-#endif
 
 			// Now that we have the owners, find all the generic params they own. An obfuscated
 			// module could have 2+ owners pointing to the same generic param row.
@@ -591,17 +591,11 @@ namespace dnlib.DotNet.MD {
 
 			var ownerCol = gpcTable.TableInfo.Columns[0];
 			var ownersDict = new Dictionary<uint, bool>();
-#if THREAD_SAFE
-			tablesStream.theLock.EnterWriteLock(); try {
-#endif
 			for (uint rid = 1; rid <= gpcTable.Rows; rid++) {
-				if (!tablesStream.TryReadColumn_NoLock(gpcTable, rid, ownerCol, out uint owner))
+				if (!tablesStream.TryReadColumn24(gpcTable, rid, ownerCol, out uint owner))
 					continue;
 				ownersDict[owner] = true;
 			}
-#if THREAD_SAFE
-			} finally { tablesStream.theLock.ExitWriteLock(); }
-#endif
 
 			var owners = new List<uint>(ownersDict.Keys);
 			owners.Sort();
@@ -737,17 +731,18 @@ namespace dnlib.DotNet.MD {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;
-			Dispose(peImage);
-			Dispose(stringsStream);
-			Dispose(usStream);
-			Dispose(blobStream);
-			Dispose(guidStream);
-			Dispose(tablesStream);
+			peImage?.Dispose();
+			stringsStream?.Dispose();
+			usStream?.Dispose();
+			blobStream?.Dispose();
+			guidStream?.Dispose();
+			tablesStream?.Dispose();
 			var as2 = allStreams;
 			if (as2 != null) {
 				foreach (var stream in as2)
-					Dispose(stream);
+					stream?.Dispose();
 			}
+			mdReaderFactoryToDisposeLater?.Dispose();
 			peImage = null;
 			cor20Header = null;
 			mdHeader = null;
@@ -760,11 +755,7 @@ namespace dnlib.DotNet.MD {
 			fieldRidToTypeDefRid = null;
 			methodRidToTypeDefRid = null;
 			typeDefRidToNestedClasses = null;
-		}
-
-		static void Dispose(IDisposable id) {
-			if (id != null)
-				id.Dispose();
+			mdReaderFactoryToDisposeLater = null;
 		}
 	}
 }

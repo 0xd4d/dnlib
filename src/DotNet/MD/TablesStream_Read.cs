@@ -1,15 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
-using dnlib.IO;
+using System.Diagnostics;
 
 namespace dnlib.DotNet.MD {
 	public partial class TablesStream {
-		IBinaryReader GetReader_NoLock(MDTable table, uint rid) {
-			var reader = table.ImageStream;
-			reader.Position = (rid - 1) * table.TableInfo.RowSize;
-			return reader;
-		}
-
 		/// <summary>
 		/// Reads a raw <c>Module</c> row or returns false if the row doesn't exist
 		/// </summary>
@@ -22,20 +16,15 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawModuleRow(reader.ReadUInt16(),
-				columns[1].Read(reader),
-				columns[2].Read(reader),
-				columns[3].Read(reader),
-				columns[4].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawModuleRow(
+				reader.Unsafe_ReadUInt16(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader),
+				table.Column4.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -50,18 +39,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawTypeRefRow(columns[0].Read(reader),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawTypeRefRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -76,21 +60,16 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawTypeDefRow(reader.ReadUInt32(),
-				columns[1].Read(reader),
-				columns[2].Read(reader),
-				columns[3].Read(reader),
-				columns[4].Read(reader),
-				columns[5].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawTypeDefRow(
+				reader.Unsafe_ReadUInt32(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader),
+				table.Column4.Unsafe_Read24(ref reader),
+				table.Column5.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -105,16 +84,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawFieldPtrRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawFieldPtrRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -129,18 +102,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawFieldRow(reader.ReadUInt16(),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawFieldRow(
+				reader.Unsafe_ReadUInt16(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -155,16 +123,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawMethodPtrRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawMethodPtrRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -182,21 +144,16 @@ namespace dnlib.DotNet.MD {
 			var mrr = methodRowReader;
 			if (mrr != null && mrr.TryReadRow(rid, out row))
 				return true;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawMethodRow(reader.ReadUInt32(),
-				reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				columns[3].Read(reader),
-				columns[4].Read(reader),
-				columns[5].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawMethodRow(
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				table.Column3.Unsafe_Read24(ref reader),
+				table.Column4.Unsafe_Read24(ref reader),
+				table.Column5.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -211,16 +168,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawParamPtrRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawParamPtrRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -235,18 +186,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawParamRow(reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawParamRow(
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -261,17 +207,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawInterfaceImplRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawInterfaceImplRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -286,18 +227,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawMemberRefRow(columns[0].Read(reader),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawMemberRefRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -312,19 +248,14 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawConstantRow(reader.ReadByte(),
-				reader.ReadByte(),
-				columns[2].Read(reader),
-				columns[3].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawConstantRow(
+				reader.Unsafe_ReadByte(),
+				reader.Unsafe_ReadByte(),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -339,18 +270,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawCustomAttributeRow(columns[0].Read(reader),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawCustomAttributeRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -365,17 +291,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawFieldMarshalRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawFieldMarshalRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -390,18 +311,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawDeclSecurityRow(reader.ReadInt16(),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawDeclSecurityRow(
+				(short)reader.Unsafe_ReadUInt16(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -416,18 +332,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawClassLayoutRow(reader.ReadUInt16(),
-				reader.ReadUInt32(),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawClassLayoutRow(
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt32(),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -442,17 +353,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawFieldLayoutRow(reader.ReadUInt32(),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawFieldLayoutRow(
+				reader.Unsafe_ReadUInt32(),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -467,16 +373,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawStandAloneSigRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawStandAloneSigRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -491,17 +391,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawEventMapRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawEventMapRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -516,16 +411,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawEventPtrRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawEventPtrRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -540,18 +429,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawEventRow(reader.ReadUInt16(),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawEventRow(
+				reader.Unsafe_ReadUInt16(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -566,17 +450,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawPropertyMapRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawPropertyMapRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -591,16 +470,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawPropertyPtrRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawPropertyPtrRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -615,18 +488,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawPropertyRow(reader.ReadUInt16(),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawPropertyRow(
+				reader.Unsafe_ReadUInt16(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -641,18 +509,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawMethodSemanticsRow(reader.ReadUInt16(),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawMethodSemanticsRow(
+				reader.Unsafe_ReadUInt16(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -667,18 +530,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawMethodImplRow(columns[0].Read(reader),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawMethodImplRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -693,16 +551,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawModuleRefRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawModuleRefRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -717,16 +569,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawTypeSpecRow(columns[0].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawTypeSpecRow(table.Column0.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -741,19 +587,14 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawImplMapRow(reader.ReadUInt16(),
-				columns[1].Read(reader),
-				columns[2].Read(reader),
-				columns[3].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawImplMapRow(
+				reader.Unsafe_ReadUInt16(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -768,17 +609,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawFieldRVARow(reader.ReadUInt32(),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawFieldRVARow(
+				reader.Unsafe_ReadUInt32(),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -793,16 +629,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			row = new RawENCLogRow(reader.ReadUInt32(),
-				reader.ReadUInt32());
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawENCLogRow(
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32());
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -817,15 +649,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			row = new RawENCMapRow(reader.ReadUInt32());
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawENCMapRow(reader.Unsafe_ReadUInt32());
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -840,24 +667,19 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawAssemblyRow(reader.ReadUInt32(),
-				reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				reader.ReadUInt32(),
-				columns[6].Read(reader),
-				columns[7].Read(reader),
-				columns[8].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawAssemblyRow(
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt32(),
+				table.Column6.Unsafe_Read24(ref reader),
+				table.Column7.Unsafe_Read24(ref reader),
+				table.Column8.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -872,15 +694,10 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			row = new RawAssemblyProcessorRow(reader.ReadUInt32());
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawAssemblyProcessorRow(reader.Unsafe_ReadUInt32());
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -895,17 +712,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			row = new RawAssemblyOSRow(reader.ReadUInt32(),
-				reader.ReadUInt32(),
-				reader.ReadUInt32());
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawAssemblyOSRow(
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32());
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -920,24 +733,19 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawAssemblyRefRow(reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				reader.ReadUInt32(),
-				columns[5].Read(reader),
-				columns[6].Read(reader),
-				columns[7].Read(reader),
-				columns[8].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawAssemblyRefRow(
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt32(),
+				table.Column5.Unsafe_Read24(ref reader),
+				table.Column6.Unsafe_Read24(ref reader),
+				table.Column7.Unsafe_Read24(ref reader),
+				table.Column8.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -952,17 +760,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawAssemblyRefProcessorRow(reader.ReadUInt32(),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawAssemblyRefProcessorRow(
+				reader.Unsafe_ReadUInt32(),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -977,19 +780,14 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawAssemblyRefOSRow(reader.ReadUInt32(),
-				reader.ReadUInt32(),
-				reader.ReadUInt32(),
-				columns[3].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawAssemblyRefOSRow(
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32(),
+				table.Column3.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1004,18 +802,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawFileRow(reader.ReadUInt32(),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawFileRow(
+				reader.Unsafe_ReadUInt32(),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1030,20 +823,15 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawExportedTypeRow(reader.ReadUInt32(),
-				reader.ReadUInt32(),
-				columns[2].Read(reader),
-				columns[3].Read(reader),
-				columns[4].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawExportedTypeRow(
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32(),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader),
+				table.Column4.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1058,19 +846,14 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawManifestResourceRow(reader.ReadUInt32(),
-				reader.ReadUInt32(),
-				columns[2].Read(reader),
-				columns[3].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawManifestResourceRow(
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32(),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1085,17 +868,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawNestedClassRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawNestedClassRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1110,29 +888,25 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			if (columns.Count == 4) {
-				row = new RawGenericParamRow(reader.ReadUInt16(),
-					reader.ReadUInt16(),
-					columns[2].Read(reader),
-					columns[3].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			if (table.Column4 == null) {
+				row = new RawGenericParamRow(
+					reader.Unsafe_ReadUInt16(),
+					reader.Unsafe_ReadUInt16(),
+					table.Column2.Unsafe_Read24(ref reader),
+					table.Column3.Unsafe_Read24(ref reader));
 				return true;
 			}
 			else {
-				row = new RawGenericParamRow(reader.ReadUInt16(),
-					reader.ReadUInt16(),
-					columns[2].Read(reader),
-					columns[3].Read(reader),
-					columns[4].Read(reader));
+				row = new RawGenericParamRow(
+					reader.Unsafe_ReadUInt16(),
+					reader.Unsafe_ReadUInt16(),
+					table.Column2.Unsafe_Read24(ref reader),
+					table.Column3.Unsafe_Read24(ref reader),
+					table.Column4.Unsafe_Read24(ref reader));
 				return true;
 			}
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1147,17 +921,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawMethodSpecRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawMethodSpecRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1172,17 +941,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawGenericParamConstraintRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawGenericParamConstraintRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1197,19 +961,14 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawDocumentRow(columns[0].Read(reader),
-				columns[1].Read(reader),
-				columns[2].Read(reader),
-				columns[3].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawDocumentRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1224,17 +983,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawMethodDebugInformationRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawMethodDebugInformationRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1249,21 +1003,16 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawLocalScopeRow(columns[0].Read(reader),
-				columns[1].Read(reader),
-				columns[2].Read(reader),
-				columns[3].Read(reader),
-				reader.ReadUInt32(),
-				reader.ReadUInt32());
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawLocalScopeRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader),
+				table.Column3.Unsafe_Read24(ref reader),
+				reader.Unsafe_ReadUInt32(),
+				reader.Unsafe_ReadUInt32());
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1278,18 +1027,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawLocalVariableRow(reader.ReadUInt16(),
-				reader.ReadUInt16(),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawLocalVariableRow(
+				reader.Unsafe_ReadUInt16(),
+				reader.Unsafe_ReadUInt16(),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1304,17 +1048,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawLocalConstantRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawLocalConstantRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1329,17 +1068,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawImportScopeRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawImportScopeRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1354,17 +1088,12 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawStateMachineMethodRow(columns[0].Read(reader),
-				columns[1].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawStateMachineMethodRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1379,18 +1108,13 @@ namespace dnlib.DotNet.MD {
 				row = default;
 				return false;
 			}
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			var columns = table.TableInfo.Columns;
-			row = new RawCustomDebugInformationRow(columns[0].Read(reader),
-				columns[1].Read(reader),
-				columns[2].Read(reader));
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
+			row = new RawCustomDebugInformationRow(
+				table.Column0.Unsafe_Read24(ref reader),
+				table.Column1.Unsafe_Read24(ref reader),
+				table.Column2.Unsafe_Read24(ref reader));
 			return true;
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
 		}
 
 		/// <summary>
@@ -1420,27 +1144,17 @@ namespace dnlib.DotNet.MD {
 			var cr = columnReader;
 			if (cr != null && cr.ReadColumn(table, rid, column, out value))
 				return true;
-#if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
-#endif
-			var reader = GetReader_NoLock(table, rid);
-			reader.Position += column.Offset;
-			value = column.Read(reader);
-#if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
-#endif
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize + (uint)column.Offset;
+			value = column.Read(ref reader);
 			return true;
 		}
 
-		/// <summary>
-		/// Reads a column
-		/// </summary>
-		/// <param name="table">The table</param>
-		/// <param name="rid">Row ID</param>
-		/// <param name="column">Column</param>
-		/// <param name="value">Result is put here or 0 if we return <c>false</c></param>
-		/// <returns><c>true</c> if we could read the column, <c>false</c> otherwise</returns>
-		internal bool TryReadColumn_NoLock(MDTable table, uint rid, ColumnInfo column, out uint value) {
+		internal bool TryReadColumn24(MDTable table, uint rid, int colIndex, out uint value) =>
+			TryReadColumn24(table, rid, table.TableInfo.Columns[colIndex], out value);
+
+		internal bool TryReadColumn24(MDTable table, uint rid, ColumnInfo column, out uint value) {
+			Debug.Assert(column.Size == 2 || column.Size == 4);
 			if (table.IsInvalidRID(rid)) {
 				value = 0;
 				return false;
@@ -1448,9 +1162,9 @@ namespace dnlib.DotNet.MD {
 			var cr = columnReader;
 			if (cr != null && cr.ReadColumn(table, rid, column, out value))
 				return true;
-			var reader = GetReader_NoLock(table, rid);
-			reader.Position += column.Offset;
-			value = column.Read(reader);
+			var reader = table.DataReader;
+			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize + (uint)column.Offset;
+			value = column.Size == 2 ? reader.Unsafe_ReadUInt16() : reader.Unsafe_ReadUInt32();
 			return true;
 		}
 	}

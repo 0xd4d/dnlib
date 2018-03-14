@@ -93,23 +93,23 @@ namespace dnlib.DotNet.MD {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public ImageCor20Header(IImageStream reader, bool verify) {
-			SetStartOffset(reader);
+		public ImageCor20Header(ref DataReader reader, bool verify) {
+			SetStartOffset(ref reader);
 			cb = reader.ReadUInt32();
 			if (verify && cb < 0x48)
 				throw new BadImageFormatException("Invalid IMAGE_COR20_HEADER.cb value");
 			majorRuntimeVersion = reader.ReadUInt16();
 			minorRuntimeVersion = reader.ReadUInt16();
-			metadata = new ImageDataDirectory(reader, verify);
+			metadata = new ImageDataDirectory(ref reader, verify);
 			flags = (ComImageFlags)reader.ReadUInt32();
 			entryPointToken_or_RVA = reader.ReadUInt32();
-			resources = new ImageDataDirectory(reader, verify);
-			strongNameSignature = new ImageDataDirectory(reader, verify);
-			codeManagerTable = new ImageDataDirectory(reader, verify);
-			vtableFixups = new ImageDataDirectory(reader, verify);
-			exportAddressTableJumps = new ImageDataDirectory(reader, verify);
-			managedNativeHeader = new ImageDataDirectory(reader, verify);
-			SetEndoffset(reader);
+			resources = new ImageDataDirectory(ref reader, verify);
+			strongNameSignature = new ImageDataDirectory(ref reader, verify);
+			codeManagerTable = new ImageDataDirectory(ref reader, verify);
+			vtableFixups = new ImageDataDirectory(ref reader, verify);
+			exportAddressTableJumps = new ImageDataDirectory(ref reader, verify);
+			managedNativeHeader = new ImageDataDirectory(ref reader, verify);
+			SetEndoffset(ref reader);
 		}
 	}
 }
