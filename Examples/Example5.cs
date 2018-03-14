@@ -26,13 +26,13 @@ namespace dnlib.Examples {
 			for (int i = 0; i < peImage.ImageSectionHeaders.Count; i++) {
 				var section = peImage.ImageSectionHeaders[i];
 
-				// Create a stream for the whole section
-				var stream = peImage.CreateStream(section.VirtualAddress, section.SizeOfRawData);
+				// Create a reader for the whole section
+				var reader = peImage.CreateReader(section.VirtualAddress, section.SizeOfRawData);
 
 				// Write the data to disk
 				var fileName = string.Format(sectionFileName, i);
 				Console.WriteLine("Dumping section {0} to file {1}", section.DisplayName, fileName);
-				File.WriteAllBytes(fileName, stream.ReadAllBytes());
+				File.WriteAllBytes(fileName, reader.ToArray());
 			}
 		}
 	}
