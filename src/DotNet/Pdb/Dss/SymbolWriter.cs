@@ -9,7 +9,7 @@ using dnlib.DotNet.Pdb.WindowsPdb;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Dss {
-	sealed class SymbolWriter : ISymbolWriter3 {
+	sealed class SymbolWriter : ISymbolWriter2 {
 		readonly ISymUnmanagedWriter2 writer;
 		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;
 		readonly string pdbFileName;

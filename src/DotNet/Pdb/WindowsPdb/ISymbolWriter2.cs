@@ -50,14 +50,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// </summary>
 		/// <param name="metadata">Metadata</param>
 		void Initialize(Metadata metadata);
-	}
 
-	/// <summary>
-	/// Implements <see cref="ISymbolWriter"/> and adds a few extra methods we need that are part of
-	/// <c>ISymUnmanagedWriter</c> and <c>ISymUnmanagedWriter2</c> but not present in
-	/// <see cref="ISymbolWriter"/>.
-	/// </summary>
-	public interface ISymbolWriter3 : ISymbolWriter2 {
 		/// <summary>
 		/// Defines a constant
 		/// </summary>

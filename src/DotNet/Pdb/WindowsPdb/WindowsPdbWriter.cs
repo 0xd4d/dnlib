@@ -14,7 +14,6 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// <remarks>This class is not thread safe because it's a writer class</remarks>
 	public sealed class WindowsPdbWriter : IDisposable {
 		ISymbolWriter2 writer;
-		ISymbolWriter3 writer3;
 		readonly PdbState pdbState;
 		readonly ModuleDef module;
 		readonly Metadata metadata;
@@ -32,7 +31,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="writer">Symbol writer, it should implement <see cref="ISymbolWriter3"/></param>
+		/// <param name="writer">Symbol writer</param>
 		/// <param name="pdbState">PDB state</param>
 		/// <param name="metadata">Meta data</param>
 		public WindowsPdbWriter(ISymbolWriter2 writer, PdbState pdbState, Metadata metadata)
@@ -42,25 +41,6 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			if (metadata == null)
 				throw new ArgumentNullException(nameof(metadata));
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
-			writer3 = writer as ISymbolWriter3;
-			Debug.Assert(writer3 != null, "Symbol writer doesn't implement interface ISymbolWriter3");
-			writer.Initialize(metadata);
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="writer">Symbol writer</param>
-		/// <param name="pdbState">PDB state</param>
-		/// <param name="metadata">Meta data</param>
-		public WindowsPdbWriter(ISymbolWriter3 writer, PdbState pdbState, Metadata metadata)
-			: this(pdbState, metadata) {
-			if (pdbState == null)
-				throw new ArgumentNullException(nameof(pdbState));
-			if (metadata == null)
-				throw new ArgumentNullException(nameof(metadata));
-			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
-			writer3 = writer;
 			writer.Initialize(metadata);
 		}
 
@@ -264,7 +244,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 
 			if (asyncMethod != null) {
-				if (writer3 == null || !writer3.SupportsAsyncMethods)
+				if (!writer.SupportsAsyncMethods)
 					Error("PDB symbol writer doesn't support writing async methods");
 				else
 					WriteAsyncMethod(ref info, asyncMethod);
@@ -309,11 +289,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 
 			uint kickoffMethod = GetMethodToken(asyncMethod.KickoffMethod);
-			writer3.DefineKickoffMethod(kickoffMethod);
+			writer.DefineKickoffMethod(kickoffMethod);
 
 			if (asyncMethod.CatchHandlerInstruction != null) {
 				int catchHandlerILOffset = info.GetOffset(asyncMethod.CatchHandlerInstruction);
-				writer3.DefineCatchHandlerILOffset((uint)catchHandlerILOffset);
+				writer.DefineCatchHandlerILOffset((uint)catchHandlerILOffset);
 			}
 
 			var stepInfos = asyncMethod.StepInfos;
@@ -338,7 +318,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				breakpointOffset[i] = (uint)GetExternalInstructionOffset(ref info, stepInfo.BreakpointMethod, stepInfo.BreakpointInstruction);
 				breakpointMethods[i] = GetMethodToken(stepInfo.BreakpointMethod);
 			}
-			writer3.DefineAsyncStepInfo(yieldOffsets, breakpointOffset, breakpointMethods);
+			writer.DefineAsyncStepInfo(yieldOffsets, breakpointOffset, breakpointMethods);
 		}
 
 		int GetExternalInstructionOffset(ref CurrentMethod info, MethodDef method, Instruction instr) {
@@ -375,17 +355,13 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.OpenScope(startOffset);
 			AddLocals(info.Method, scope.Variables, (uint)startOffset, (uint)endOffset);
 			if (scope.Constants.Count > 0) {
-				if (writer3 == null)
-					Error("Symbol writer doesn't implement ISymbolWriter3: no constants can be written to the PDB file");
-				else {
-					var constants = scope.Constants;
-					var sig = new FieldSig();
-					for (int i = 0; i < constants.Count; i++) {
-						var constant = constants[i];
-						sig.Type = constant.Type;
-						var token = metadata.GetToken(sig);
-						writer3.DefineConstant2(constant.Name, constant.Value ?? 0, token.Raw);
-					}
+				var constants = scope.Constants;
+				var sig = new FieldSig();
+				for (int i = 0; i < constants.Count; i++) {
+					var constant = constants[i];
+					sig.Type = constant.Type;
+					var token = metadata.GetToken(sig);
+					writer.DefineConstant2(constant.Name, constant.Value ?? 0, token.Raw);
 				}
 			}
 			foreach (var ns in scope.Namespaces)
