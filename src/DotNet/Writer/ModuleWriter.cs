@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.DotNet.MD;
@@ -40,11 +41,13 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class ModuleWriter : ModuleWriterBase {
 		const uint DEFAULT_RELOC_ALIGNMENT = 4;
+		const uint MVID_ALIGNMENT = 1;
 
 		readonly ModuleDef module;
 		ModuleWriterOptions options;
 
 		List<PESection> sections;
+		PESection mvidSection;
 		PESection textSection;
 		PESection sdataSection;
 		PESection rsrcSection;
@@ -169,6 +172,8 @@ namespace dnlib.DotNet.Writer {
 
 		void CreateSections() {
 			sections = new List<PESection>();
+			if (TheOptions.AddMvidSection)
+				sections.Add(mvidSection = new PESection(".mvid", 0x42000040));
 			sections.Add(textSection = new PESection(".text", 0x60000020));
 			sections.Add(sdataSection = new PESection(".sdata", 0xC0000040));
 			if (GetWin32Resources() != null)
@@ -207,6 +212,8 @@ namespace dnlib.DotNet.Writer {
 			bool is64bit = machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64;
 			uint pointerAlignment = is64bit ? 8U : 4;
 
+			if (mvidSection != null)
+				mvidSection.Add(new ByteArrayChunk((module.Mvid ?? Guid.Empty).ToByteArray()), MVID_ALIGNMENT);
 			textSection.Add(importAddressTable, pointerAlignment);
 			textSection.Add(imageCor20Header, DEFAULT_COR20HEADER_ALIGNMENT);
 			textSection.Add(strongNameSignature, DEFAULT_STRONGNAMESIG_ALIGNMENT);

@@ -223,6 +223,11 @@ namespace dnlib.DotNet.Writer {
 		public Guid PdbGuid { get; set; }
 
 		/// <summary>
+		/// true if an <c>.mvid</c> section should be added to the assembly. Not used by native module writer.
+		/// </summary>
+		public bool AddMvidSection { get; set; }
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		protected ModuleWriterOptionsBase() {
@@ -309,6 +314,7 @@ namespace dnlib.DotNet.Writer {
 				PEHeadersOptions.MinorSubsystemVersion = ntHeaders.OptionalHeader.MinorSubsystemVersion;
 				PEHeadersOptions.Win32VersionValue = ntHeaders.OptionalHeader.Win32VersionValue;
 				AddCheckSum = ntHeaders.OptionalHeader.CheckSum != 0;
+				AddMvidSection = HasMvidSection(modDefMD.Metadata.PEImage.ImageSectionHeaders);
 			}
 
 			if (Is64Bit) {
@@ -317,6 +323,18 @@ namespace dnlib.DotNet.Writer {
 			}
 			else if (modDefMD == null)
 				PEHeadersOptions.Characteristics |= Characteristics.Bit32Machine;
+		}
+
+		static bool HasMvidSection(IList<ImageSectionHeader> sections) {
+			foreach (var section in sections) {
+				if (section.VirtualSize != 16)
+					continue;
+				var name = section.Name;
+				// Roslyn ignores the last 2 bytes
+				if (name[0] == '.' && name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == 0)
+					return true;
+			}
+			return false;
 		}
 
 		/// <summary>
