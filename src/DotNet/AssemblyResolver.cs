@@ -291,7 +291,22 @@ namespace dnlib.DotNet {
 #endif
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Add a module's assembly to the assembly cache
+		/// </summary>
+		/// <param name="module">The module whose assembly should be cached</param>
+		/// <returns><c>true</c> if <paramref name="module"/>'s assembly is cached, <c>false</c>
+		/// if it's not cached because some other assembly with the exact same full name has
+		/// already been cached or if <paramref name="module"/> or its assembly is <c>null</c>.</returns>
+		public bool AddToCache(ModuleDef module) => module != null && AddToCache(module.Assembly);
+
+		/// <summary>
+		/// Add an assembly to the assembly cache
+		/// </summary>
+		/// <param name="asm">The assembly</param>
+		/// <returns><c>true</c> if <paramref name="asm"/> is cached, <c>false</c> if it's not
+		/// cached because some other assembly with the exact same full name has already been
+		/// cached or if <paramref name="asm"/> is <c>null</c>.</returns>
 		public bool AddToCache(AssemblyDef asm) {
 			if (asm == null)
 				return false;
@@ -308,7 +323,21 @@ namespace dnlib.DotNet {
 #endif
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Removes a module's assembly from the cache
+		/// </summary>
+		/// <param name="module">The module</param>
+		/// <returns><c>true</c> if its assembly was removed, <c>false</c> if it wasn't removed
+		/// since it wasn't in the cache, it has no assembly, or <paramref name="module"/> was
+		/// <c>null</c></returns>
+		public bool Remove(ModuleDef module) => module != null && Remove(module.Assembly);
+
+		/// <summary>
+		/// Removes the assembly from the cache
+		/// </summary>
+		/// <param name="asm">The assembly</param>
+		/// <returns><c>true</c> if it was removed, <c>false</c> if it wasn't removed since it
+		/// wasn't in the cache or if <paramref name="asm"/> was <c>null</c></returns>
 		public bool Remove(AssemblyDef asm) {
 			if (asm == null)
 				return false;
@@ -322,7 +351,12 @@ namespace dnlib.DotNet {
 #endif
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Clears the cache and calls <see cref="IDisposable.Dispose()"/> on each cached module.
+		/// Use <see cref="Remove(AssemblyDef)"/> to remove any assemblies you added yourself
+		/// using <see cref="AddToCache(AssemblyDef)"/> before calling this method if you don't want
+		/// them disposed.
+		/// </summary>
 		public void Clear() {
 			List<AssemblyDef> asms;
 #if THREAD_SAFE

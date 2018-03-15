@@ -17,16 +17,6 @@
 		public AssemblyDef Resolve(IAssembly assembly, ModuleDef sourceModule) => null;
 
 		/// <inheritdoc/>
-		public bool AddToCache(AssemblyDef asm) => true;
-
-		/// <inheritdoc/>
-		public bool Remove(AssemblyDef asm) => false;
-
-		/// <inheritdoc/>
-		public void Clear() {
-		}
-
-		/// <inheritdoc/>
 		public TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule) => null;
 
 		/// <inheritdoc/>

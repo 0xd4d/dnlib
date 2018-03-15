@@ -31,6 +31,7 @@ v3.0 breaking changes
 - `*MetaData*` -> `*Metadata*`
 - `IMetaData` interface is an abstract class `Metadata`
 - `_32Bit*` -> `Bit32*`
+- `IAssemblyResolver` only has a `Resolve` method. The other methods are still implemented by the default assembly resolver (`AssemblyResolver`)
 - Raw table rows, eg. `RawMethodRow`
 	- They are immutable structs and the methods to read them have been renamed from eg. `ReadMethodRow` -> `TryReadMethodRow`
 	- An indexer replaces their `Read()` method
