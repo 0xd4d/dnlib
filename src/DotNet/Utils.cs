@@ -9,7 +9,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Compares byte arrays
 	/// </summary>
-	public sealed class ByteArrayEqualityComparer : IEqualityComparer<byte[]> {
+	sealed class ByteArrayEqualityComparer : IEqualityComparer<byte[]> {
 		/// <summary>
 		/// Default instance
 		/// </summary>

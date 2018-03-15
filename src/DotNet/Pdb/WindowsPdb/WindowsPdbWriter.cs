@@ -12,7 +12,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 	/// PDB writer
 	/// </summary>
 	/// <remarks>This class is not thread safe because it's a writer class</remarks>
-	public sealed class WindowsPdbWriter : IDisposable {
+	sealed class WindowsPdbWriter : IDisposable {
 		ISymbolWriter2 writer;
 		readonly PdbState pdbState;
 		readonly ModuleDef module;

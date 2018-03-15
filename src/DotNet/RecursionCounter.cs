@@ -6,7 +6,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Recursion counter
 	/// </summary>
-	public struct RecursionCounter {
+	struct RecursionCounter {
 		/// <summary>
 		/// Max recursion count. If this is reached, we won't continue, and will use a default value.
 		/// </summary>

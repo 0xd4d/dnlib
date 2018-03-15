@@ -335,7 +335,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 	ComImport,
 	Guid("0B97726E-9E6D-4F05-9A26-424022093CAA"),
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	public interface ISymUnmanagedWriter2 {
+	interface ISymUnmanagedWriter2 {
 		void DefineDocument([In] [MarshalAs(UnmanagedType.LPWStr)] string url, [In] ref Guid language, [In] ref Guid languageVendor, [In] ref Guid documentType, [Out] out ISymUnmanagedDocumentWriter pRetVal);
 		void SetUserEntryPoint([In] uint entryMethod);
 		void OpenMethod([In] uint method);
@@ -371,7 +371,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 	ComImport,
 	Guid("B01FAFEB-C450-3A4D-BEEC-B4CEEC01E006"),
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	public interface ISymUnmanagedDocumentWriter {
+	interface ISymUnmanagedDocumentWriter {
 		void SetSource([In] uint sourceSize, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[] source);
 		void SetCheckSum([In] Guid algorithmId, [In] uint checkSumSize, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] checkSum);
 	}

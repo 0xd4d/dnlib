@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Diagnostics;
 
 namespace dnlib.DotNet {
@@ -89,6 +90,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Exported method options
 	/// </summary>
+	[Flags]
 	public enum MethodExportInfoOptions {
 		/// <summary>
 		/// No bit is set
