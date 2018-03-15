@@ -56,7 +56,7 @@ namespace dnlib.DotNet.Writer {
 			uint paramListRid = 1;
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids0 + notifyNum++);
+					OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids0 + notifyNum++);
 					notifyAfter += numTypes / numNotifyEvents;
 				}
 
@@ -121,7 +121,7 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids0 + notifyNum++);
+				OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids0 + notifyNum++);
 		}
 
 		/// <inheritdoc/>

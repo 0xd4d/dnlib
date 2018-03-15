@@ -317,7 +317,6 @@
     <Compile Include="DotNet\Writer\HeapBase.cs" />
     <Compile Include="DotNet\Writer\IChunk.cs" />
     <Compile Include="DotNet\Writer\IHeap.cs" />
-    <Compile Include="DotNet\Writer\IMetadataListener.cs" />
     <Compile Include="DotNet\Writer\IModuleWriterListener.cs" />
     <Compile Include="DotNet\Writer\IOffsetHeap.cs" />
     <Compile Include="DotNet\Writer\IWriterError.cs" />
@@ -330,6 +329,7 @@
     <Compile Include="DotNet\Writer\MarshalBlobWriter.cs" />
     <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
     <Compile Include="DotNet\Writer\Metadata.cs" />
+    <Compile Include="DotNet\Writer\MetadataEvent.cs" />
     <Compile Include="DotNet\Writer\MetadataHeader.cs" />
     <Compile Include="DotNet\Writer\MethodBody.cs" />
     <Compile Include="DotNet\Writer\MethodBodyChunks.cs" />

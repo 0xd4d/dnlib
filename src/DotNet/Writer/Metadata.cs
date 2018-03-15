@@ -274,6 +274,31 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
+	/// Metadata writer event args
+	/// </summary>
+	public sealed class MetadataWriterEventArgs : EventArgs {
+		/// <summary>
+		/// Gets the metadata
+		/// </summary>
+		public Metadata Metadata { get; }
+
+		/// <summary>
+		/// Gets the event
+		/// </summary>
+		public MetadataEvent Event { get; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="metadata">Writer</param>
+		/// <param name="event">Event</param>
+		public MetadataWriterEventArgs(Metadata metadata, MetadataEvent @event) {
+			Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
+			Event = @event;
+		}
+	}
+
+	/// <summary>
 	/// .NET meta data
 	/// </summary>
 	public abstract class Metadata : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
@@ -281,7 +306,6 @@ namespace dnlib.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 		readonly MetadataOptions options;
-		IMetadataListener listener;
 		ILogger logger;
 		readonly NormalMetadata debugMetadata;
 		readonly bool isStandaloneDebugMetadata;
@@ -337,12 +361,9 @@ namespace dnlib.DotNet.Writer {
 		readonly List<MethodDef> exportedMethods = new List<MethodDef>();
 
 		/// <summary>
-		/// Gets/sets the listener
+		/// Raised at various times when writing the metadata
 		/// </summary>
-		public IMetadataListener Listener {
-			get => listener ?? (listener = DummyMetadataListener.Instance);
-			set => listener = value;
-		}
+		public event EventHandler<MetadataWriterEventArgs> MetadataEvent;
 
 		/// <summary>
 		/// Gets/sets the logger
@@ -1197,10 +1218,16 @@ namespace dnlib.DotNet.Writer {
 		protected void Warning(string message, params object[] args) => GetLogger().Log(this, LoggerEvent.Warning, message, args);
 
 		/// <summary>
+		/// Raises <see cref="MetadataEvent"/>
+		/// </summary>
+		/// <param name="evt">Event</param>
+		protected void OnMetadataEvent(MetadataEvent evt) => MetadataEvent?.Invoke(this, new MetadataWriterEventArgs(this, evt));
+
+		/// <summary>
 		/// Creates the .NET metadata tables
 		/// </summary>
 		public void CreateTables() {
-			Listener.OnMetadataEvent(this, MetadataEvent.BeginCreateTables);
+			OnMetadataEvent(Writer.MetadataEvent.BeginCreateTables);
 
 			if (module.Types.Count == 0 || module.Types[0] == null)
 				throw new ModuleWriterException("Missing global <Module> type");
@@ -1257,17 +1284,17 @@ namespace dnlib.DotNet.Writer {
 			Debug.Assert(!isStandaloneDebugMetadata);
 			Initialize();
 			allTypeDefs = GetAllTypeDefs();
-			Listener.OnMetadataEvent(this, MetadataEvent.AllocateTypeDefRids);
+			OnMetadataEvent(Writer.MetadataEvent.AllocateTypeDefRids);
 			AllocateTypeDefRids();
-			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids);
+			OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids);
 			AllocateMemberDefRids();
-			Listener.OnMetadataEvent(this, MetadataEvent.MemberDefRidsAllocated);
+			OnMetadataEvent(Writer.MetadataEvent.MemberDefRidsAllocated);
 
 			AddModule(module);
 			AddPdbDocuments();
 			InitializeMethodDebugInformation();
 			InitializeTypeDefsAndMemberDefs();
-			Listener.OnMetadataEvent(this, MetadataEvent.MemberDefsInitialized);
+			OnMetadataEvent(Writer.MetadataEvent.MemberDefsInitialized);
 
 			InitializeVTableFixups();
 
@@ -1276,28 +1303,28 @@ namespace dnlib.DotNet.Writer {
 			if (module.Assembly != null)
 				AddAssembly(module.Assembly, AssemblyPublicKey);
 
-			Listener.OnMetadataEvent(this, MetadataEvent.BeforeSortTables);
+			OnMetadataEvent(Writer.MetadataEvent.BeforeSortTables);
 			SortTables();
 			InitializeGenericParamConstraintTable();
-			Listener.OnMetadataEvent(this, MetadataEvent.MostTablesSorted);
+			OnMetadataEvent(Writer.MetadataEvent.MostTablesSorted);
 
 			WriteTypeDefAndMemberDefCustomAttributesAndCustomDebugInfos();
-			Listener.OnMetadataEvent(this, MetadataEvent.MemberDefCustomAttributesWritten);
+			OnMetadataEvent(Writer.MetadataEvent.MemberDefCustomAttributesWritten);
 
-			Listener.OnMetadataEvent(this, MetadataEvent.BeginAddResources);
+			OnMetadataEvent(Writer.MetadataEvent.BeginAddResources);
 			AddResources(module.Resources);
-			Listener.OnMetadataEvent(this, MetadataEvent.EndAddResources);
+			OnMetadataEvent(Writer.MetadataEvent.EndAddResources);
 
-			Listener.OnMetadataEvent(this, MetadataEvent.BeginWriteMethodBodies);
+			OnMetadataEvent(Writer.MetadataEvent.BeginWriteMethodBodies);
 			WriteMethodBodies();
-			Listener.OnMetadataEvent(this, MetadataEvent.EndWriteMethodBodies);
+			OnMetadataEvent(Writer.MetadataEvent.EndWriteMethodBodies);
 
 			BeforeSortingCustomAttributes();
 			InitializeCustomAttributeAndCustomDebugInfoTables();
-			Listener.OnMetadataEvent(this, MetadataEvent.OnAllTablesSorted);
+			OnMetadataEvent(Writer.MetadataEvent.OnAllTablesSorted);
 
 			EverythingInitialized();
-			Listener.OnMetadataEvent(this, MetadataEvent.EndCreateTables);
+			OnMetadataEvent(Writer.MetadataEvent.EndCreateTables);
 		}
 
 		/// <summary>
@@ -1315,7 +1342,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					Listener.OnMetadataEvent(this, MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
+					OnMetadataEvent(Writer.MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
 					notifyAfter += numTypes / numNotifyEvents;
 				}
 
@@ -1400,7 +1427,7 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetadataEvent(this, MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
+				OnMetadataEvent(Writer.MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1417,7 +1444,7 @@ namespace dnlib.DotNet.Writer {
 			uint rid;
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					Listener.OnMetadataEvent(this, MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
+					OnMetadataEvent(Writer.MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
 					notifyAfter += numTypes / numNotifyEvents;
 				}
 
@@ -1464,7 +1491,7 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetadataEvent(this, MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
+				OnMetadataEvent(Writer.MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1668,7 +1695,7 @@ namespace dnlib.DotNet.Writer {
 						continue;
 
 					if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-						Listener.OnMetadataEvent(this, MetadataEvent.WriteMethodBodies0 + notifyNum++);
+						OnMetadataEvent(Writer.MetadataEvent.WriteMethodBodies0 + notifyNum++);
 						notifyAfter += numMethods / numNotifyEvents;
 					}
 
@@ -1753,7 +1780,7 @@ namespace dnlib.DotNet.Writer {
 			if (serializerMethodContext != null)
 				Free(ref serializerMethodContext);
 			while (notifyNum < numNotifyEvents)
-				Listener.OnMetadataEvent(this, MetadataEvent.WriteMethodBodies0 + notifyNum++);
+				OnMetadataEvent(Writer.MetadataEvent.WriteMethodBodies0 + notifyNum++);
 		}
 
 		static bool IsEmptyRootScope(CilBody cilBody, PdbScope scope) {

@@ -384,7 +384,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Module writer base class
 	/// </summary>
-	public abstract class ModuleWriterBase : IMetadataListener, ILogger {
+	public abstract class ModuleWriterBase : ILogger {
 		/// <summary>Default alignment of all constants</summary>
 		protected internal const uint DEFAULT_CONSTANTS_ALIGNMENT = 8;
 		/// <summary>Default alignment of all method bodies</summary>
@@ -603,7 +603,7 @@ namespace dnlib.DotNet.Writer {
 				debugKind = DebugMetadataKind.None;
 			metadata = Metadata.Create(module, constants, methodBodies, netResources, TheOptions.MetadataOptions, debugKind);
 			metadata.Logger = TheOptions.MetadataLogger ?? this;
-			metadata.Listener = this;
+			metadata.MetadataEvent += Metadata_MetadataEvent;
 
 			// StrongNamePublicKey is used if the user wants to override the assembly's
 			// public key or when enhanced strong naming the assembly.
@@ -897,9 +897,8 @@ namespace dnlib.DotNet.Writer {
 			return File.Create(createdPdbFileName);
 		}
 
-		/// <inheritdoc/>
-		void IMetadataListener.OnMetadataEvent(Metadata metadata, MetadataEvent evt) {
-			switch (evt) {
+		void Metadata_MetadataEvent(object sender, MetadataWriterEventArgs e) {
+			switch (e.Event) {
 			case MetadataEvent.BeginCreateTables:
 				OnWriterEvent(ModuleWriterEvent.MDBeginCreateTables);
 				break;

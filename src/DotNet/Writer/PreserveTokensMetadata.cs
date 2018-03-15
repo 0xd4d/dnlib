@@ -525,7 +525,7 @@ namespace dnlib.DotNet.Writer {
 		protected override void AllocateMemberDefRids() {
 			FindMemberDefs();
 
-			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids0);
+			OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids0);
 
 			for (int i = 1; i <= fieldDefInfos.TableSize; i++) {
 				if ((uint)i != tablesHeap.FieldTable.Create(new RawFieldRow()))
@@ -558,7 +558,7 @@ namespace dnlib.DotNet.Writer {
 			SortEvents();
 			SortProperties();
 
-			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids1);
+			OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids1);
 
 			if (fieldDefInfos.NeedPtrTable) {
 				for (int i = 0; i < fieldDefInfos.Count; i++) {
@@ -604,14 +604,14 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 
-			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids2);
+			OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids2);
 
 			InitializeMethodAndFieldList();
 			InitializeParamList();
 			InitializeEventMap();
 			InitializePropertyMap();
 
-			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids3);
+			OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids3);
 
 			// We must re-use deleted event/property rows after we've initialized
 			// the event/prop map tables.
@@ -620,7 +620,7 @@ namespace dnlib.DotNet.Writer {
 			if (propertyDefInfos.NeedPtrTable)
 				ReUseDeletedPropertyRows();
 
-			Listener.OnMetadataEvent(this, MetadataEvent.AllocateMemberDefRids4);
+			OnMetadataEvent(Writer.MetadataEvent.AllocateMemberDefRids4);
 
 			InitializeTypeRefTableRows();
 			InitializeTypeSpecTableRows();

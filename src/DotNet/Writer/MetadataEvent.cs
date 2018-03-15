@@ -1,32 +1,6 @@
-// dnlib: See LICENSE.txt for more info
+﻿// dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet.Writer {
-	/// <summary>
-	/// Gets notified of various events when writing the metadata
-	/// </summary>
-	public interface IMetadataListener {
-		/// <summary>
-		/// Called by <see cref="Metadata"/>
-		/// </summary>
-		/// <param name="metadata">The metadata</param>
-		/// <param name="evt">Type of metadata event</param>
-		void OnMetadataEvent(Metadata metadata, MetadataEvent evt);
-	}
-
-	/// <summary>
-	/// A <see cref="IMetadataListener"/> which does nothing
-	/// </summary>
-	public sealed class DummyMetadataListener : IMetadataListener {
-		/// <summary>
-		/// An instance of this dummy listener
-		/// </summary>
-		public static readonly DummyMetadataListener Instance = new DummyMetadataListener();
-
-		/// <inheritdoc/>
-		public void OnMetadataEvent(Metadata metadata, MetadataEvent evt) {
-		}
-	}
-
+namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// All <see cref="Metadata"/> events
 	/// </summary>
