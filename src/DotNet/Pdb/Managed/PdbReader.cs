@@ -83,9 +83,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 				throw new PdbException("File size mismatch");
 
 			var pages = new DataReader[pageCount];
-			FileOffset offset = 0;
+			uint offset = 0;
 			for (uint i = 0; i < pageCount; i++) {
-				pages[i] = reader.Slice((uint)offset, pageSize);
+				pages[i] = reader.Slice(offset, pageSize);
 				offset += pageSize;
 			}
 
@@ -185,8 +185,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var strData = stream.Slice(stream.Position, strSize);
 			stream.Position += strSize;
 
-			strings = new Dictionary<uint, string>();
 			uint count = stream.ReadUInt32();
+			strings = new Dictionary<uint, string>((int)count);
 			for (uint i = 0; i < count; i++) {
 				var pos = stream.ReadUInt32();
 				if (pos == 0)
