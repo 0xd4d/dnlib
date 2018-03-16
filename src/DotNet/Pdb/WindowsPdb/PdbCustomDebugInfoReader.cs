@@ -304,7 +304,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			for (;;) {
 				if (reader.Position >= recPosEnd)
 					return needZeroChar ? null : sb.ToString();
-				var c = (char)reader.ReadUInt16();
+				var c = reader.ReadChar();
 				if (c == 0)
 					return sb.ToString();
 				sb.Append(c);

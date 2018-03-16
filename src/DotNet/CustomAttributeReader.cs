@@ -334,7 +334,7 @@ namespace dnlib.DotNet {
 
 			case SerializationType.Char:
 				realArgType = module.CorLibTypes.Char;
-				result = (char)reader.ReadUInt16();
+				result = reader.ReadChar();
 				break;
 
 			case SerializationType.I1:

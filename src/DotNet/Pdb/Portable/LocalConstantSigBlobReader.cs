@@ -57,7 +57,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			case ElementType.Char:
 				type = module.CorLibTypes.Char;
-				value = (char)reader.ReadUInt16();
+				value = reader.ReadChar();
 				if (reader.Position < reader.Length)
 					type = ReadTypeDefOrRefSig();
 				res = true;

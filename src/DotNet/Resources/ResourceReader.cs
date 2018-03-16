@@ -167,7 +167,7 @@ namespace dnlib.DotNet.Resources {
 			case ResourceTypeCode.Null:		return resourceDataCreator.CreateNull();
 			case ResourceTypeCode.String:	return resourceDataCreator.Create(reader.ReadSerializedString());
 			case ResourceTypeCode.Boolean:	return resourceDataCreator.Create(reader.ReadBoolean());
-			case ResourceTypeCode.Char:		return resourceDataCreator.Create((char)reader.ReadUInt16());
+			case ResourceTypeCode.Char:		return resourceDataCreator.Create(reader.ReadChar());
 			case ResourceTypeCode.Byte:		return resourceDataCreator.Create(reader.ReadByte());
 			case ResourceTypeCode.SByte:	return resourceDataCreator.Create(reader.ReadSByte());
 			case ResourceTypeCode.Int16:	return resourceDataCreator.Create(reader.ReadInt16());

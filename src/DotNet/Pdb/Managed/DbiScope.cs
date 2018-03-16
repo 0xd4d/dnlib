@@ -151,7 +151,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			for (;;) {
 				if ((ulong)reader.Position + 2 > end)
 					return null;
-				var c = (char)reader.ReadUInt16();
+				var c = reader.ReadChar();
 				if (c == 0)
 					break;
 				sb.Append(c);

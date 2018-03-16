@@ -182,6 +182,12 @@ namespace dnlib.IO {
 		public bool ReadBoolean() => ReadByte() != 0;
 
 		/// <summary>
+		/// Reads a <see cref="char"/>
+		/// </summary>
+		/// <returns></returns>
+		public char ReadChar() => (char)ReadUInt16();
+
+		/// <summary>
 		/// Reads a <see cref="sbyte"/>
 		/// </summary>
 		/// <returns></returns>
