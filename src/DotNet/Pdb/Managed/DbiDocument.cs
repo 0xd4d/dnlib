@@ -29,10 +29,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		public void Read(ref DataReader reader) {
 			reader.Position = 0;
-			language = new Guid(reader.ReadBytes(0x10));
-			languageVendor = new Guid(reader.ReadBytes(0x10));
-			documentType = new Guid(reader.ReadBytes(0x10));
-			checkSumAlgorithmId = new Guid(reader.ReadBytes(0x10));
+			language = reader.ReadGuid();
+			languageVendor = reader.ReadGuid();
+			documentType = reader.ReadGuid();
+			checkSumAlgorithmId = reader.ReadGuid();
 
 			var len = reader.ReadInt32();
 			if (reader.ReadUInt32() != 0)

@@ -38,6 +38,7 @@ namespace dnlib.IO {
 		public override ulong ReadUInt64(uint offset) => *(ulong*)(data + offset);
 		public override float ReadSingle(uint offset) => *(float*)(data + offset);
 		public override double ReadDouble(uint offset) => *(double*)(data + offset);
+		public override Guid ReadGuid(uint offset) => *(Guid*)(data + offset);
 		public override string ReadUtf16String(uint offset, int chars) => new string((char*)(data + offset), 0, chars);
 		public override string ReadString(uint offset, int length, Encoding encoding) => new string((sbyte*)(data + offset), 0, length, encoding);
 

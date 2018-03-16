@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Text;
 
 namespace dnlib.IO {
@@ -95,6 +96,16 @@ namespace dnlib.IO {
 		/// <param name="offset">Offset of data</param>
 		/// <returns></returns>
 		public abstract double ReadDouble(uint offset);
+
+		/// <summary>
+		/// Reads a <see cref="Guid"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual Guid ReadGuid(uint offset) =>
+			new Guid(ReadUInt32(offset), ReadUInt16(offset + 4), ReadUInt16(offset + 6),
+				ReadByte(offset + 8), ReadByte(offset + 9), ReadByte(offset + 10), ReadByte(offset + 11),
+				ReadByte(offset + 12), ReadByte(offset + 13), ReadByte(offset + 14), ReadByte(offset + 15));
 
 		/// <summary>
 		/// Reads a UTF-16 encoded <see cref="string"/>

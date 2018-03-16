@@ -148,7 +148,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			ref var stream = ref streams[STREAM_NAMES].Content;
 			stream.Position = 8;
 			Age = stream.ReadUInt32();
-			Guid = new Guid(stream.ReadBytes(0x10));
+			Guid = stream.ReadGuid();
 
 			uint nameSize = stream.ReadUInt32();
 			var nameData = stream.Slice(stream.Position, nameSize);

@@ -30,7 +30,7 @@ namespace dnlib.DotNet.MD {
 				return null;
 			var reader = dataReader;
 			reader.Position = (index - 1) * 16;
-			return new Guid(reader.ReadBytes(16));
+			return reader.ReadGuid();
 		}
 	}
 }

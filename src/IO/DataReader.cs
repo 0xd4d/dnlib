@@ -375,6 +375,22 @@ namespace dnlib.IO {
 		}
 
 		/// <summary>
+		/// Reads a <see cref="Guid"/>
+		/// </summary>
+		/// <returns></returns>
+		public Guid ReadGuid() {
+			VerifyState();
+			const uint SIZE = 16;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadGuid(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
+
+		/// <summary>
 		/// Reads a <see cref="decimal"/>
 		/// </summary>
 		/// <returns></returns>

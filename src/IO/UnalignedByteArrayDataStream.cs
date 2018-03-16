@@ -61,6 +61,11 @@ namespace dnlib.IO {
 				return *(double*)(p + offset);
 		}
 
+		public override Guid ReadGuid(uint offset) {
+			fixed (byte* p = data)
+				return *(Guid*)(p + offset);
+		}
+
 		public override string ReadUtf16String(uint offset, int chars) {
 			fixed (byte* p = data)
 				return new string((char*)(p + offset), 0, chars);
