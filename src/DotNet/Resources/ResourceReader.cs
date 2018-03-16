@@ -162,6 +162,7 @@ namespace dnlib.DotNet.Resources {
 		}
 
 		IResourceData ReadResourceData(List<UserResourceType> userTypes, int size) {
+			uint endPos = reader.Position + (uint)size;
 			uint code = ReadUInt32(ref reader);
 			switch ((ResourceTypeCode)code) {
 			case ResourceTypeCode.Null:		return resourceDataCreator.CreateNull();
@@ -188,7 +189,7 @@ namespace dnlib.DotNet.Resources {
 				if (userTypeIndex < 0 || userTypeIndex >= userTypes.Count)
 					throw new ResourceReaderException($"Invalid resource data code: {code}");
 				var userType = userTypes[userTypeIndex];
-				var serializedData = reader.ReadBytes(size);
+				var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
 				if (createResourceDataDelegate != null) {
 					var res = createResourceDataDelegate(resourceDataCreator, userType, serializedData);
 					if (res != null)
