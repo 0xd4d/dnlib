@@ -240,17 +240,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>
-		protected ModuleWriterOptionsBase(ModuleDef module)
-			: this(module, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">The module</param>
-		/// <param name="listener">Module writer listener</param>
-		protected ModuleWriterOptionsBase(ModuleDef module, IModuleWriterListener listener) {
-			this.listener = listener;
+		protected ModuleWriterOptionsBase(ModuleDef module) {
 			PdbGuid = Guid.NewGuid();
 			ShareMethodBodies = true;
 			MetadataOptions.MetadataHeaderOptions.VersionString = module.RuntimeVersion;

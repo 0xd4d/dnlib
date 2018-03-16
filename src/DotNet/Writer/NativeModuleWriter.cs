@@ -29,18 +29,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Module</param>
-		public NativeModuleWriterOptions(ModuleDefMD module)
-			: this(module, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">Module</param>
-		/// <param name="listener">Module writer listener</param>
-		public NativeModuleWriterOptions(ModuleDefMD module, IModuleWriterListener listener)
-			: base(module, listener) {
-
+		public NativeModuleWriterOptions(ModuleDefMD module) : base(module) {
 			// C++ .NET mixed mode assemblies sometimes/often call Module.ResolveMethod(),
 			// so method metadata tokens must be preserved.
 			MetadataOptions.Flags |= MetadataFlags.PreserveAllMethodRids;

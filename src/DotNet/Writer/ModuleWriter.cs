@@ -22,18 +22,7 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>
-		public ModuleWriterOptions(ModuleDef module)
-			: this(module, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="module">The module</param>
-		/// <param name="listener">Module writer listener</param>
-		public ModuleWriterOptions(ModuleDef module, IModuleWriterListener listener)
-			: base(module, listener) {
-		}
+		public ModuleWriterOptions(ModuleDef module) : base(module) { }
 	}
 
 	/// <summary>
