@@ -48,7 +48,7 @@ v3.0 breaking changes
 	- The reader is a struct called `DataReader` and it's not disposable
 	- The reader has `Slice` methods to get another reader (replaces the older `Create` methods)
 	- Since the reader is a struct, pass it by reference to methods if its position should be updated when the method returns
-	- `DataReader.Position` is now a `uint` and not a `long` so expressions that were `long` could now be `uint` and possibly underflow
+	- `DataReader.Position` is now a `uint` and not a `long` so expressions that were `long` could now be `uint` and possibly overflow/underflow
 		- `reader.Position + 0xFFFFFFFF`
 		- `reader.Position + someRandomValue`
 		- `var pos = reader.Position;` <-- `pos` is a `uint` and not a `long`
