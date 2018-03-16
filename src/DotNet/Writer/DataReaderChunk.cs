@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.IO;
 using dnlib.IO;
 using dnlib.PE;
@@ -13,6 +14,7 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 		DataReader data;
 		readonly uint virtualSize;
+		bool setOffsetCalled;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
@@ -60,10 +62,23 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public DataReader GetReader() => data;
 
+		/// <summary>
+		/// Replaces the old data with new data. The new data must be the same size as the old data if
+		/// <see cref="SetOffset(FileOffset, RVA)"/> has been called. That method gets called after
+		/// event <see cref="ModuleWriterEvent.BeginCalculateRvasAndFileOffsets"/>
+		/// </summary>
+		/// <param name="newData"></param>
+		public void SetData(DataReader newData) {
+			if (setOffsetCalled && newData.Length != data.Length)
+				throw new InvalidOperationException("New data must be the same size as the old data after SetOffset() has been called");
+			data = newData;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
+			setOffsetCalled = true;
 		}
 
 		/// <inheritdoc/>
