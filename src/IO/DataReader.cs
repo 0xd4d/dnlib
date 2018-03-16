@@ -695,7 +695,7 @@ namespace dnlib.IO {
 		/// Returns the remaining data
 		/// </summary>
 		/// <returns></returns>
-		public byte[] ReadRemainingData() {
+		public byte[] ReadRemainingBytes() {
 			int length = (int)BytesLeft;
 			if (length < 0)
 				ThrowInvalidOperationException();

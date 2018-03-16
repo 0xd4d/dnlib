@@ -191,13 +191,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 					}
 				}
 				if (value == null && reader.Position != reader.Length)
-					value = reader.ReadRemainingData();
+					value = reader.ReadRemainingBytes();
 				res = true;
 				break;
 
 			case ElementType.Class:
 				type = new ClassSig(ReadTypeDefOrRef());
-				value = reader.Position == reader.Length ? null : reader.ReadRemainingData();
+				value = reader.Position == reader.Length ? null : reader.ReadRemainingBytes();
 				res = true;
 				break;
 

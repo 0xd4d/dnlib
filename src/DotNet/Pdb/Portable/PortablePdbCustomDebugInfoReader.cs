@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (kind == CustomDebugInfoGuids.TupleElementNames)
 				return ReadTupleElementNames();
 			Debug.Fail("Unknown custom debug info guid: " + kind.ToString());
-			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingData());
+			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingBytes());
 		}
 
 		PdbCustomDebugInfo ReadAsyncMethodSteppingInformationBlob() {

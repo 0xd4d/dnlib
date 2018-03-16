@@ -404,7 +404,7 @@ namespace dnlib.DotNet {
 		byte[] GetExtraData() {
 			if (reader.Position == reader.Length)
 				return null;
-			return reader.ReadRemainingData();
+			return reader.ReadRemainingBytes();
 		}
 
 		/// <summary>
