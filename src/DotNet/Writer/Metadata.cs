@@ -1736,6 +1736,10 @@ namespace dnlib.DotNet.Writer {
 			const int numNotifyEvents = 40;
 			int notifyAfter = numMethods / numNotifyEvents;
 
+			var debugMetadata = this.debugMetadata;
+			var methodBodies = this.methodBodies;
+			var methodToBody = this.methodToBody;
+
 			List<MethodScopeDebugInfo> methodScopeDebugInfos;
 			List<PdbScope> scopeStack;
 			SerializerMethodContext serializerMethodContext;
@@ -1756,7 +1760,9 @@ namespace dnlib.DotNet.Writer {
 				if (type == null)
 					continue;
 
-				foreach (var method in type.Methods) {
+				var methods = type.Methods;
+				for (int i = 0; i < methods.Count; i++) {
+					var method = methods[i];
 					if (method == null)
 						continue;
 
@@ -1767,7 +1773,6 @@ namespace dnlib.DotNet.Writer {
 					}
 
 					uint localVarSigTok = 0;
-					uint rid = GetRid(method);
 
 					var cilBody = method.Body;
 					if (cilBody != null) {
@@ -1788,6 +1793,8 @@ namespace dnlib.DotNet.Writer {
 					}
 
 					if (debugMetadata != null) {
+						uint rid = GetRid(method);
+
 						if (cilBody != null) {
 							var pdbMethod = cilBody.PdbMethod;
 							if (pdbMethod != null) {
@@ -1811,9 +1818,10 @@ namespace dnlib.DotNet.Writer {
 								}
 							}
 						}
+
+						// Always add CDIs even if it has no managed method body
+						AddCustomDebugInformationList(method, rid, localVarSigTok);
 					}
-					// Always add CDIs even if it has no managed method body
-					AddCustomDebugInformationList(method, rid, localVarSigTok);
 				}
 			}
 			if (debugMetadata != null) {
@@ -2889,6 +2897,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformationList(MethodDef method, uint rid, uint localVarSigToken) {
+			Debug.Assert(debugMetadata != null);
 			if (debugMetadata == null)
 				return;
 			var serializerMethodContext = AllocSerializerMethodContext();

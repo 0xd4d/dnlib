@@ -378,17 +378,17 @@ namespace dnlib.DotNet.Emit {
 		public void CalculateStackUsage(bool methodHasReturnValue, out int pushes, out int pops) {
 			var opCode = OpCode;
 			if (opCode.FlowControl == FlowControl.Call)
-				CalculateStackUsageCall(opCode, out pushes, out pops);
+				CalculateStackUsageCall(opCode.Code, out pushes, out pops);
 			else
 				CalculateStackUsageNonCall(opCode, methodHasReturnValue, out pushes, out pops);
 		}
 
-		void CalculateStackUsageCall(OpCode opCode, out int pushes, out int pops) {
+		void CalculateStackUsageCall(Code code, out int pushes, out int pops) {
 			pushes = 0;
 			pops = 0;
 
 			// It doesn't push or pop anything. The stack should be empty when JMP is executed.
-			if (opCode.Code == Code.Jmp)
+			if (code == Code.Jmp)
 				return;
 
 			MethodSig sig;
@@ -400,28 +400,23 @@ namespace dnlib.DotNet.Emit {
 			if (sig == null)
 				return;
 			bool implicitThis = sig.ImplicitThis;
-			if (!IsSystemVoid(sig.RetType) || (opCode.Code == Code.Newobj && sig.HasThis))
+			if (!IsSystemVoid(sig.RetType) || (code == Code.Newobj && sig.HasThis))
 				pushes++;
 
 			pops += sig.Params.Count;
 			var paramsAfterSentinel = sig.ParamsAfterSentinel;
 			if (paramsAfterSentinel != null)
 				pops += paramsAfterSentinel.Count;
-			if (implicitThis && opCode.Code != Code.Newobj)
+			if (implicitThis && code != Code.Newobj)
 				pops++;
-			if (opCode.Code == Code.Calli)
+			if (code == Code.Calli)
 				pops++;
 		}
 
 		void CalculateStackUsageNonCall(OpCode opCode, bool hasReturnValue, out int pushes, out int pops) {
-			StackBehaviour stackBehavior;
-
-			pushes = 0;
-			pops = 0;
-
-			stackBehavior = opCode.StackBehaviourPush;
-			switch (stackBehavior) {
+			switch (opCode.StackBehaviourPush) {
 			case StackBehaviour.Push0:
+				pushes = 0;
 				break;
 
 			case StackBehaviour.Push1:
@@ -430,27 +425,28 @@ namespace dnlib.DotNet.Emit {
 			case StackBehaviour.Pushr4:
 			case StackBehaviour.Pushr8:
 			case StackBehaviour.Pushref:
-				pushes++;
+				pushes = 1;
 				break;
 
 			case StackBehaviour.Push1_push1:
-				pushes += 2;
+				pushes = 2;
 				break;
 
 			case StackBehaviour.Varpush:	// only call, calli, callvirt which are handled elsewhere
 			default:
+				pushes = 0;
 				break;
 			}
 
-			stackBehavior = opCode.StackBehaviourPop;
-			switch (stackBehavior) {
+			switch (opCode.StackBehaviourPop) {
 			case StackBehaviour.Pop0:
+				pops = 0;
 				break;
 
 			case StackBehaviour.Pop1:
 			case StackBehaviour.Popi:
 			case StackBehaviour.Popref:
-				pops++;
+				pops = 1;
 				break;
 
 			case StackBehaviour.Pop1_pop1:
@@ -461,7 +457,7 @@ namespace dnlib.DotNet.Emit {
 			case StackBehaviour.Popi_popr8:
 			case StackBehaviour.Popref_pop1:
 			case StackBehaviour.Popref_popi:
-				pops += 2;
+				pops = 2;
 				break;
 
 			case StackBehaviour.Popi_popi_popi:
@@ -471,7 +467,7 @@ namespace dnlib.DotNet.Emit {
 			case StackBehaviour.Popref_popi_popr8:
 			case StackBehaviour.Popref_popi_popref:
 			case StackBehaviour.Popref_popi_pop1:
-				pops += 3;
+				pops = 3;
 				break;
 
 			case StackBehaviour.PopAll:
@@ -480,10 +476,13 @@ namespace dnlib.DotNet.Emit {
 
 			case StackBehaviour.Varpop:	// call, calli, callvirt, newobj (all handled elsewhere), and ret
 				if (hasReturnValue)
-					pops++;
+					pops = 1;
+				else
+					pops = 0;
 				break;
 
 			default:
+				pops = 0;
 				break;
 			}
 		}

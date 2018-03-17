@@ -55,6 +55,7 @@ v3.0 breaking changes
 		- `var pos = reader.Position;` <-- `pos` is a `uint` and not a `long`
 	- `DataReader.Position` only accepts valid values and will throw (an `IOException`) if you set it to an invalid position
 - `FileOffset` is `uint`, used to be `long`
+- `MethodBodyWriterBase` uses `DataWriter` instead of `BinaryWriter` (all virtual methods)
 
 Examples
 --------

@@ -308,6 +308,7 @@
     <Compile Include="DotNet\Writer\ChunkListBase.cs" />
     <Compile Include="DotNet\Writer\CustomAttributeWriter.cs" />
     <Compile Include="DotNet\Writer\DataReaderChunk.cs" />
+    <Compile Include="DotNet\Writer\DataWriter.cs" />
     <Compile Include="DotNet\Writer\DebugDirectory.cs" />
     <Compile Include="DotNet\Writer\DeclSecurityWriter.cs" />
     <Compile Include="DotNet\Writer\Extensions.cs" />

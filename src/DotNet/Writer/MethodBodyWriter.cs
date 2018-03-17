@@ -1,9 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Writer {
@@ -144,12 +142,12 @@ namespace dnlib.DotNet.Writer {
 				flags |= 0x10;
 
 			code = new byte[12 + codeSize];
-			var writer = new BinaryWriter(new MemoryStream(code), Encoding.UTF8);
+			var writer = new DataWriter(code);
 			writer.Write(flags);
 			writer.Write((ushort)maxStack);
 			writer.Write(codeSize);
 			writer.Write(localVarSigTok = helper.GetToken(GetLocals(), cilBody.LocalVarSigTok).Raw);
-			if (WriteInstructions(writer) != codeSize)
+			if (WriteInstructions(ref writer) != codeSize)
 				Error("Didn't write all code bytes");
 		}
 
@@ -163,29 +161,28 @@ namespace dnlib.DotNet.Writer {
 		void WriteTinyHeader() {
 			localVarSigTok = 0;
 			code = new byte[1 + codeSize];
-			var writer = new BinaryWriter(new MemoryStream(code), Encoding.UTF8);
+			var writer = new DataWriter(code);
 			writer.Write((byte)((codeSize << 2) | 2));
-			if (WriteInstructions(writer) != codeSize)
+			if (WriteInstructions(ref writer) != codeSize)
 				Error("Didn't write all code bytes");
 		}
 
 		void WriteExceptionHandlers() {
-			var outStream = new MemoryStream();
-			var writer = new BinaryWriter(outStream, Encoding.UTF8);
 			if (NeedFatExceptionClauses())
-				WriteFatExceptionClauses(writer);
+				extraSections = WriteFatExceptionClauses();
 			else
-				WriteSmallExceptionClauses(writer);
-			extraSections = outStream.ToArray();
+				extraSections = WriteSmallExceptionClauses();
 		}
 
 		bool NeedFatExceptionClauses() {
 			// Size must fit in a byte, and since one small exception record is 12 bytes
 			// and header is 4 bytes: x*12+4 <= 255 ==> x <= 20
+			var exceptionHandlers = this.exceptionHandlers;
 			if (exceptionHandlers.Count > 20)
 				return true;
 
-			foreach (var eh in exceptionHandlers) {
+			for (int i = 0; i < exceptionHandlers.Count; i++) {
+				var eh = exceptionHandlers[i];
 				if (!FitsInSmallExceptionClause(eh.TryStart, eh.TryEnd))
 					return true;
 				if (!FitsInSmallExceptionClause(eh.HandlerStart, eh.HandlerEnd))
@@ -209,14 +206,17 @@ namespace dnlib.DotNet.Writer {
 			return GetOffset(instr);
 		}
 
-		void WriteFatExceptionClauses(BinaryWriter writer) {
+		byte[] WriteFatExceptionClauses() {
 			const int maxExceptionHandlers = (0x00FFFFFF - 4) / 24;
+			var exceptionHandlers = this.exceptionHandlers;
 			int numExceptionHandlers = exceptionHandlers.Count;
 			if (numExceptionHandlers > maxExceptionHandlers) {
 				Error("Too many exception handlers");
 				numExceptionHandlers = maxExceptionHandlers;
 			}
 
+			var data = new byte[numExceptionHandlers * 24 + 4];
+			var writer = new DataWriter(data);
 			writer.Write((((uint)numExceptionHandlers * 24 + 4) << 8) | 0x41);
 			for (int i = 0; i < numExceptionHandlers; i++) {
 				var eh = exceptionHandlers[i];
@@ -245,16 +245,23 @@ namespace dnlib.DotNet.Writer {
 				else
 					writer.Write(0);
 			}
+
+			if (writer.Position != data.Length)
+				throw new InvalidOperationException();
+			return data;
 		}
 
-		void WriteSmallExceptionClauses(BinaryWriter writer) {
+		byte[] WriteSmallExceptionClauses() {
 			const int maxExceptionHandlers = (0xFF - 4) / 12;
+			var exceptionHandlers = this.exceptionHandlers;
 			int numExceptionHandlers = exceptionHandlers.Count;
 			if (numExceptionHandlers > maxExceptionHandlers) {
 				Error("Too many exception handlers");
 				numExceptionHandlers = maxExceptionHandlers;
 			}
 
+			var data = new byte[numExceptionHandlers * 12 + 4];
+			var writer = new DataWriter(data);
 			writer.Write((((uint)numExceptionHandlers * 12 + 4) << 8) | 1);
 			for (int i = 0; i < numExceptionHandlers; i++) {
 				var eh = exceptionHandlers[i];
@@ -283,27 +290,31 @@ namespace dnlib.DotNet.Writer {
 				else
 					writer.Write(0);
 			}
+
+			if (writer.Position != data.Length)
+				throw new InvalidOperationException();
+			return data;
 		}
 
 		/// <inheritdoc/>
 		protected override void ErrorImpl(string message) => helper.Error(message);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineField(BinaryWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineField(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineMethod(BinaryWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineMethod(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineSig(BinaryWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineSig(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineString(BinaryWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineString(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineTok(BinaryWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineTok(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineType(BinaryWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineType(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 	}
 }

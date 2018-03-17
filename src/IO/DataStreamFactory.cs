@@ -10,6 +10,7 @@ namespace dnlib.IO {
 		static bool supportsUnalignedAccesses = CalculateSupportsUnalignedAccesses();
 
 		//TODO: ARM doesn't support unaligned accesses
+		//TODO: There are other places that use pointers that also need to be updated
 		static bool CalculateSupportsUnalignedAccesses() => true;
 
 		/// <summary>
