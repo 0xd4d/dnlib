@@ -104,7 +104,7 @@ namespace dnlib.IO {
 		void ThrowDataReaderException(string message) => throw new DataReaderException(message);
 		void ThrowInvalidOperationException() => throw new InvalidOperationException();
 		void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
-		void ThrowArgumentOutOfRangeException(string paramName) => throw new ArgumentOutOfRangeException(paramName);
+		void ThrowInvalidArgument(string paramName) => throw new DataReaderException("Invalid argument value");
 
 		/// <summary>
 		/// Resets the reader so it points to the start of the data
@@ -119,7 +119,7 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public DataReader Slice(uint start, uint length) {
 			if ((ulong)start + length > Length)
-				ThrowArgumentOutOfRangeException(nameof(length));
+				ThrowInvalidArgument(nameof(length));
 			return new DataReader(stream, startOffset + start, length);
 		}
 
@@ -130,7 +130,7 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public DataReader Slice(uint start) {
 			if (start > Length)
-				ThrowArgumentOutOfRangeException(nameof(start));
+				ThrowInvalidArgument(nameof(start));
 			return Slice(start, Length - start);
 		}
 
@@ -142,9 +142,9 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public DataReader Slice(int start, int length) {
 			if (start < 0)
-				ThrowArgumentOutOfRangeException(nameof(start));
+				ThrowInvalidArgument(nameof(start));
 			if (length < 0)
-				ThrowArgumentOutOfRangeException(nameof(length));
+				ThrowInvalidArgument(nameof(length));
 			return Slice((uint)start, (uint)length);
 		}
 
@@ -155,9 +155,9 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public DataReader Slice(int start) {
 			if (start < 0)
-				ThrowArgumentOutOfRangeException(nameof(start));
+				ThrowInvalidArgument(nameof(start));
 			if ((uint)start > Length)
-				ThrowArgumentOutOfRangeException(nameof(start));
+				ThrowInvalidArgument(nameof(start));
 			return Slice((uint)start, Length - (uint)start);
 		}
 
@@ -417,7 +417,7 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public string ReadUtf16String(int chars) {
 			if (chars < 0)
-				ThrowArgumentOutOfRangeException(nameof(chars));
+				ThrowInvalidArgument(nameof(chars));
 			if (chars == 0)
 				return string.Empty;
 			VerifyState();
@@ -440,7 +440,7 @@ namespace dnlib.IO {
 			if (destination == null)
 				ThrowArgumentNullException(nameof(destination));
 			if (length < 0)
-				ThrowArgumentOutOfRangeException(nameof(length));
+				ThrowInvalidArgument(nameof(length));
 			// This is also true if 'this' is the 'default' instance ('stream' is null)
 			if (length == 0)
 				return;
@@ -463,9 +463,9 @@ namespace dnlib.IO {
 			if (destination == null)
 				ThrowArgumentNullException(nameof(destination));
 			if (destinationIndex < 0)
-				ThrowArgumentOutOfRangeException(nameof(destinationIndex));
+				ThrowInvalidArgument(nameof(destinationIndex));
 			if (length < 0)
-				ThrowArgumentOutOfRangeException(nameof(length));
+				ThrowInvalidArgument(nameof(length));
 			// This is also true if 'this' is the 'default' instance ('stream' is null)
 			if (length == 0)
 				return;
@@ -485,7 +485,7 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public byte[] ReadBytes(int length) {
 			if (length < 0)
-				ThrowArgumentOutOfRangeException(nameof(length));
+				ThrowInvalidArgument(nameof(length));
 			if (length == 0)
 				return Array2.Empty<byte>();
 			var data = new byte[length];
@@ -756,13 +756,13 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public string ReadString(int byteCount, Encoding encoding) {
 			if (byteCount < 0)
-				ThrowArgumentOutOfRangeException(nameof(byteCount));
+				ThrowInvalidArgument(nameof(byteCount));
 			if (encoding == null)
 				ThrowArgumentNullException(nameof(encoding));
 			if (byteCount == 0)
 				return string.Empty;
 			if ((uint)byteCount > Length)
-				ThrowArgumentOutOfRangeException(nameof(byteCount));
+				ThrowInvalidArgument(nameof(byteCount));
 			VerifyState();
 			var currentOffset = this.currentOffset;
 			var value = stream.ReadString(currentOffset, byteCount, encoding);
