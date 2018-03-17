@@ -38,6 +38,7 @@ v3.0 breaking changes
 	- The `IRawRow` interface has been removed
 - The `Constant` table info (`TableInfo`) has an extra padding byte column
 - `ModuleWriterOptionsBase.Listener` is obsolete, use the new event `ModuleWriterOptionsBase.WriterEvent` instead
+- Module writer events related to the current progress have been removed. Use the new event `ModuleWriterOptionsBase.ProgressUpdated` instead
 - `StrongNameKey`, `PublicKey`, `PublicKeyToken` are immutable classes
 - `RidList` is a struct
 - `IBinaryReader`, `IImageStream` have been removed and replaced with new classes

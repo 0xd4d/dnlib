@@ -44,71 +44,11 @@ namespace dnlib.DotNet.Writer {
 		MDAllocateMemberDefRids,
 
 		/// <summary>
-		/// Original event: <see cref="MetadataEvent.AllocateMemberDefRids0"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDAllocateMemberDefRids0,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.AllocateMemberDefRids1"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDAllocateMemberDefRids1,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.AllocateMemberDefRids2"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDAllocateMemberDefRids2,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.AllocateMemberDefRids3"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDAllocateMemberDefRids3,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.AllocateMemberDefRids4"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDAllocateMemberDefRids4,
-
-		/// <summary>
 		/// Original event: <see cref="MetadataEvent.MemberDefRidsAllocated"/>.
 		/// The <c>rid</c>s of types, fields, methods, events, properties and parameters are
 		/// now known.
 		/// </summary>
 		MDMemberDefRidsAllocated,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.InitializeTypeDefsAndMemberDefs0"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDInitializeTypeDefsAndMemberDefs0,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.InitializeTypeDefsAndMemberDefs1"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDInitializeTypeDefsAndMemberDefs1,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.InitializeTypeDefsAndMemberDefs2"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDInitializeTypeDefsAndMemberDefs2,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.InitializeTypeDefsAndMemberDefs3"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDInitializeTypeDefsAndMemberDefs3,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.InitializeTypeDefsAndMemberDefs4"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDInitializeTypeDefsAndMemberDefs4,
 
 		/// <summary>
 		/// Original event: <see cref="MetadataEvent.MemberDefsInitialized"/>.
@@ -130,36 +70,6 @@ namespace dnlib.DotNet.Writer {
 		/// table is still unsorted since it's not been created yet.
 		/// </summary>
 		MDMostTablesSorted,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteTypeDefAndMemberDefCustomAttributes0,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes1"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteTypeDefAndMemberDefCustomAttributes1,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes2"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteTypeDefAndMemberDefCustomAttributes2,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes3"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteTypeDefAndMemberDefCustomAttributes3,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes4"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteTypeDefAndMemberDefCustomAttributes4,
 
 		/// <summary>
 		/// Original event: <see cref="MetadataEvent.MemberDefCustomAttributesWritten"/>.
@@ -185,66 +95,6 @@ namespace dnlib.DotNet.Writer {
 		/// All method bodies are about to be written
 		/// </summary>
 		MDBeginWriteMethodBodies,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies0"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies0,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies1"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies1,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies2"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies2,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies3"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies3,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies4"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies4,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies5"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies5,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies6"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies6,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies7"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies7,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies8"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies8,
-
-		/// <summary>
-		/// Original event: <see cref="MetadataEvent.WriteMethodBodies9"/>.
-		/// Sent by the metadata writer so a UI can update its progress bar
-		/// </summary>
-		MDWriteMethodBodies9,
 
 		/// <summary>
 		/// Original event: <see cref="MetadataEvent.EndWriteMethodBodies"/>.

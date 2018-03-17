@@ -40,6 +40,33 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
+	/// Module writer progress event args
+	/// </summary>
+	public sealed class ModuleWriterProgressEventArgs : EventArgs {
+		/// <summary>
+		/// Gets the writer (<see cref="ModuleWriter"/> or <see cref="NativeModuleWriter"/>)
+		/// </summary>
+		public ModuleWriterBase Writer { get; }
+
+		/// <summary>
+		/// Gets the progress, 0.0 - 1.0
+		/// </summary>
+		public double Progress { get; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="progress">Progress, 0.0 - 1.0</param>
+		public ModuleWriterProgressEventArgs(ModuleWriterBase writer, double progress) {
+			if (progress < 0 || progress > 1)
+				throw new ArgumentOutOfRangeException(nameof(progress));
+			Writer = writer ?? throw new ArgumentNullException(nameof(writer));
+			Progress = progress;
+		}
+	}
+
+	/// <summary>
 	/// Common module writer options base class
 	/// </summary>
 	public class ModuleWriterOptionsBase {
@@ -68,8 +95,13 @@ namespace dnlib.DotNet.Writer {
 		/// the file, eg. add extra metadata, encrypt methods, etc.
 		/// </summary>
 		public event EventHandler<ModuleWriterEventArgs> WriterEvent;
-
 		internal void RaiseEvent(object sender, ModuleWriterEventArgs e) => WriterEvent?.Invoke(sender, e);
+
+		/// <summary>
+		/// Raised when the progress is updated
+		/// </summary>
+		public event EventHandler<ModuleWriterProgressEventArgs> ProgressUpdated;
+		internal void RaiseEvent(object sender, ModuleWriterProgressEventArgs e) => ProgressUpdated?.Invoke(sender, e);
 
 		/// <summary>
 		/// Gets/sets the logger. If this is <c>null</c>, any errors result in a
@@ -594,6 +626,7 @@ namespace dnlib.DotNet.Writer {
 			metadata = Metadata.Create(module, constants, methodBodies, netResources, TheOptions.MetadataOptions, debugKind);
 			metadata.Logger = TheOptions.MetadataLogger ?? this;
 			metadata.MetadataEvent += Metadata_MetadataEvent;
+			metadata.ProgressUpdated += Metadata_ProgressUpdated;
 
 			// StrongNamePublicKey is used if the user wants to override the assembly's
 			// public key or when enhanced strong naming the assembly.
@@ -901,48 +934,8 @@ namespace dnlib.DotNet.Writer {
 				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids);
 				break;
 
-			case MetadataEvent.AllocateMemberDefRids0:
-				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids0);
-				break;
-
-			case MetadataEvent.AllocateMemberDefRids1:
-				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids1);
-				break;
-
-			case MetadataEvent.AllocateMemberDefRids2:
-				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids2);
-				break;
-
-			case MetadataEvent.AllocateMemberDefRids3:
-				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids3);
-				break;
-
-			case MetadataEvent.AllocateMemberDefRids4:
-				OnWriterEvent(ModuleWriterEvent.MDAllocateMemberDefRids4);
-				break;
-
 			case MetadataEvent.MemberDefRidsAllocated:
 				OnWriterEvent(ModuleWriterEvent.MDMemberDefRidsAllocated);
-				break;
-
-			case MetadataEvent.InitializeTypeDefsAndMemberDefs0:
-				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs0);
-				break;
-
-			case MetadataEvent.InitializeTypeDefsAndMemberDefs1:
-				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs1);
-				break;
-
-			case MetadataEvent.InitializeTypeDefsAndMemberDefs2:
-				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs2);
-				break;
-
-			case MetadataEvent.InitializeTypeDefsAndMemberDefs3:
-				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs3);
-				break;
-
-			case MetadataEvent.InitializeTypeDefsAndMemberDefs4:
-				OnWriterEvent(ModuleWriterEvent.MDInitializeTypeDefsAndMemberDefs4);
 				break;
 
 			case MetadataEvent.MemberDefsInitialized:
@@ -955,26 +948,6 @@ namespace dnlib.DotNet.Writer {
 
 			case MetadataEvent.MostTablesSorted:
 				OnWriterEvent(ModuleWriterEvent.MDMostTablesSorted);
-				break;
-
-			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0:
-				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes0);
-				break;
-
-			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes1:
-				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes1);
-				break;
-
-			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes2:
-				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes2);
-				break;
-
-			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes3:
-				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes3);
-				break;
-
-			case MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes4:
-				OnWriterEvent(ModuleWriterEvent.MDWriteTypeDefAndMemberDefCustomAttributes4);
 				break;
 
 			case MetadataEvent.MemberDefCustomAttributesWritten:
@@ -993,46 +966,6 @@ namespace dnlib.DotNet.Writer {
 				OnWriterEvent(ModuleWriterEvent.MDBeginWriteMethodBodies);
 				break;
 
-			case MetadataEvent.WriteMethodBodies0:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies0);
-				break;
-
-			case MetadataEvent.WriteMethodBodies1:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies1);
-				break;
-
-			case MetadataEvent.WriteMethodBodies2:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies2);
-				break;
-
-			case MetadataEvent.WriteMethodBodies3:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies3);
-				break;
-
-			case MetadataEvent.WriteMethodBodies4:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies4);
-				break;
-
-			case MetadataEvent.WriteMethodBodies5:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies5);
-				break;
-
-			case MetadataEvent.WriteMethodBodies6:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies6);
-				break;
-
-			case MetadataEvent.WriteMethodBodies7:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies7);
-				break;
-
-			case MetadataEvent.WriteMethodBodies8:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies8);
-				break;
-
-			case MetadataEvent.WriteMethodBodies9:
-				OnWriterEvent(ModuleWriterEvent.MDWriteMethodBodies9);
-				break;
-
 			case MetadataEvent.EndWriteMethodBodies:
 				OnWriterEvent(ModuleWriterEvent.MDEndWriteMethodBodies);
 				break;
@@ -1046,15 +979,66 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			default:
+				Debug.Fail($"Unknown MD event: {e.Event}");
 				break;
 			}
 		}
+
+		void Metadata_ProgressUpdated(object sender, MetadataProgressEventArgs e) =>
+			RaiseProgress(ModuleWriterEvent.MDBeginCreateTables, ModuleWriterEvent.MDEndCreateTables + 1, e.Progress);
 
 		/// <summary>
 		/// Raises a writer event
 		/// </summary>
 		/// <param name="evt">Event</param>
-		protected void OnWriterEvent(ModuleWriterEvent evt) => TheOptions.RaiseEvent(this, new ModuleWriterEventArgs(this, evt));
+		protected void OnWriterEvent(ModuleWriterEvent evt) {
+			RaiseProgress(evt, 0);
+			TheOptions.RaiseEvent(this, new ModuleWriterEventArgs(this, evt));
+		}
+
+		static readonly double[] eventToProgress = new double[(int)ModuleWriterEvent.End - (int)ModuleWriterEvent.Begin + 1 + 1] {
+			0,// Begin
+			0.00128048488389907,// PESectionsCreated
+			0.0524625293056615,	// ChunksCreated
+			0.0531036610555682,	// ChunksAddedToSections
+			0.0535679983835939,	// MDBeginCreateTables
+			0.0547784058004697,	// MDAllocateTypeDefRids
+			0.0558606342971218,	// MDAllocateMemberDefRids
+			0.120553993799033,	// MDMemberDefRidsAllocated
+			0.226210300699921,	// MDMemberDefsInitialized
+			0.236002648477671,	// MDBeforeSortTables
+			0.291089703426468,	// MDMostTablesSorted
+			0.449919748849947,	// MDMemberDefCustomAttributesWritten
+			0.449919985998736,	// MDBeginAddResources
+			0.452716444513587,	// MDEndAddResources
+			0.452716681662375,	// MDBeginWriteMethodBodies
+			0.924922132195272,	// MDEndWriteMethodBodies
+			0.931410404476231,	// MDOnAllTablesSorted
+			0.931425463424305,	// MDEndCreateTables
+			0.932072998191503,	// BeginWritePdb
+			0.932175327893773,	// EndWritePdb
+			0.932175446468167,	// BeginCalculateRvasAndFileOffsets
+			0.954646479929387,	// EndCalculateRvasAndFileOffsets
+			0.95492263969368,	// BeginWriteChunks
+			0.980563166714175,	// EndWriteChunks
+			0.980563403862964,	// BeginStrongNameSign
+			0.980563403862964,	// EndStrongNameSign
+			0.980563522437358,	// BeginWritePEChecksum
+			0.999975573674777,	// EndWritePEChecksum
+			1,					// End
+			1,// An extra one so we can get the next base progress without checking the index
+		};
+
+		void RaiseProgress(ModuleWriterEvent evt, double subProgress) => RaiseProgress(evt, evt + 1, subProgress);
+
+		void RaiseProgress(ModuleWriterEvent evt, ModuleWriterEvent nextEvt, double subProgress) {
+			subProgress = Math.Min(1, Math.Max(0, subProgress));
+			var baseProgress = eventToProgress[(int)evt];
+			var nextProgress = eventToProgress[(int)nextEvt];
+			var progress = baseProgress + (nextProgress - baseProgress) * subProgress;
+			progress = Math.Min(1, Math.Max(0, progress));
+			TheOptions.RaiseEvent(this, new ModuleWriterProgressEventArgs(this, progress));
+		}
 
 		ILogger GetLogger() => TheOptions.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 

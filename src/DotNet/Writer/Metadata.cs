@@ -278,7 +278,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MetadataWriterEventArgs : EventArgs {
 		/// <summary>
-		/// Gets the metadata
+		/// Gets the metadata writer
 		/// </summary>
 		public Metadata Metadata { get; }
 
@@ -295,6 +295,33 @@ namespace dnlib.DotNet.Writer {
 		public MetadataWriterEventArgs(Metadata metadata, MetadataEvent @event) {
 			Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
 			Event = @event;
+		}
+	}
+
+	/// <summary>
+	/// Metadata writer progress event args
+	/// </summary>
+	public sealed class MetadataProgressEventArgs : EventArgs {
+		/// <summary>
+		/// Gets the metadata writer
+		/// </summary>
+		public Metadata Metadata { get; }
+
+		/// <summary>
+		/// Gets the progress, 0.0 - 1.0
+		/// </summary>
+		public double Progress { get; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="metadata">Writer</param>
+		/// <param name="progress">Progress, 0.0 - 1.0</param>
+		public MetadataProgressEventArgs(Metadata metadata, double progress) {
+			if (progress < 0 || progress > 1)
+				throw new ArgumentOutOfRangeException(nameof(progress));
+			Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
+			Progress = progress;
 		}
 	}
 
@@ -364,6 +391,11 @@ namespace dnlib.DotNet.Writer {
 		/// Raised at various times when writing the metadata
 		/// </summary>
 		public event EventHandler<MetadataWriterEventArgs> MetadataEvent;
+
+		/// <summary>
+		/// Raised when the progress is updated
+		/// </summary>
+		public event EventHandler<MetadataProgressEventArgs> ProgressUpdated;
 
 		/// <summary>
 		/// Gets/sets the logger
@@ -1221,7 +1253,42 @@ namespace dnlib.DotNet.Writer {
 		/// Raises <see cref="MetadataEvent"/>
 		/// </summary>
 		/// <param name="evt">Event</param>
-		protected void OnMetadataEvent(MetadataEvent evt) => MetadataEvent?.Invoke(this, new MetadataWriterEventArgs(this, evt));
+		protected void OnMetadataEvent(MetadataEvent evt) {
+			RaiseProgress(evt, 0);
+			MetadataEvent?.Invoke(this, new MetadataWriterEventArgs(this, evt));
+		}
+
+		static readonly double[] eventToProgress = new double[(int)Writer.MetadataEvent.EndCreateTables - (int)Writer.MetadataEvent.BeginCreateTables + 1 + 1] {
+			0,					// BeginCreateTables
+			0.00134240009466231,// AllocateTypeDefRids
+			0.00257484711254305,// AllocateMemberDefRids
+			0.0762721800615359,	// MemberDefRidsAllocated
+			0.196633787905108,	// MemberDefsInitialized
+			0.207788892253819,	// BeforeSortTables
+			0.270543867900699,	// MostTablesSorted
+			0.451478814851716,	// MemberDefCustomAttributesWritten
+			0.451478949929206,	// BeginAddResources
+			0.454664752528583,	// EndAddResources
+			0.454664887606073,	// BeginWriteMethodBodies
+			0.992591810143725,	// EndWriteMethodBodies
+			0.999984331011171,	// OnAllTablesSorted
+			1,					// EndCreateTables
+			1,// An extra one so we can get the next base progress without checking the index
+		};
+
+		/// <summary>
+		/// Raises the progress event
+		/// </summary>
+		/// <param name="evt">Base event</param>
+		/// <param name="subProgress">Sub progress</param>
+		protected void RaiseProgress(MetadataEvent evt, double subProgress) {
+			subProgress = Math.Min(1, Math.Max(0, subProgress));
+			var baseProgress = eventToProgress[(int)evt];
+			var nextProgress = eventToProgress[(int)evt + 1];
+			var progress = baseProgress + (nextProgress - baseProgress) * subProgress;
+			progress = Math.Min(1, Math.Max(0, progress));
+			ProgressUpdated?.Invoke(this, new MetadataProgressEventArgs(this, progress));
+		}
 
 		/// <summary>
 		/// Creates the .NET metadata tables
@@ -1337,13 +1404,14 @@ namespace dnlib.DotNet.Writer {
 			int numTypes = allTypeDefs.Length;
 			int typeNum = 0;
 			int notifyNum = 0;
-			const int numNotifyEvents = 5; // InitializeTypeDefsAndMemberDefs0 - InitializeTypeDefsAndMemberDefs4
+			const int numNotifyEvents = 5;
 			int notifyAfter = numTypes / numNotifyEvents;
 
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					OnMetadataEvent(Writer.MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
-					notifyAfter += numTypes / numNotifyEvents;
+					RaiseProgress(Writer.MetadataEvent.MemberDefRidsAllocated, (double)typeNum / numTypes);
+					notifyNum++;
+					notifyAfter = (int)((double)numTypes / numNotifyEvents * (notifyNum + 1));
 				}
 
 				if (type == null) {
@@ -1426,8 +1494,6 @@ namespace dnlib.DotNet.Writer {
 					AddMethodSemantics(prop);
 				}
 			}
-			while (notifyNum < numNotifyEvents)
-				OnMetadataEvent(Writer.MetadataEvent.InitializeTypeDefsAndMemberDefs0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1438,14 +1504,15 @@ namespace dnlib.DotNet.Writer {
 			int numTypes = allTypeDefs.Length;
 			int typeNum = 0;
 			int notifyNum = 0;
-			const int numNotifyEvents = 5; // WriteTypeDefAndMemberDefCustomAttributes0 - WriteTypeDefAndMemberDefCustomAttributes4
+			const int numNotifyEvents = 5;
 			int notifyAfter = numTypes / numNotifyEvents;
 
 			uint rid;
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-					OnMetadataEvent(Writer.MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
-					notifyAfter += numTypes / numNotifyEvents;
+					RaiseProgress(Writer.MetadataEvent.MostTablesSorted, (double)typeNum / numTypes);
+					notifyNum++;
+					notifyAfter = (int)((double)numTypes / numNotifyEvents * (notifyNum + 1));
 				}
 
 				if (type == null)
@@ -1490,8 +1557,6 @@ namespace dnlib.DotNet.Writer {
 					AddCustomDebugInformationList(Table.Property, rid, prop);
 				}
 			}
-			while (notifyNum < numNotifyEvents)
-				OnMetadataEvent(Writer.MetadataEvent.WriteTypeDefAndMemberDefCustomAttributes0 + notifyNum++);
 		}
 
 		/// <summary>
@@ -1667,7 +1732,8 @@ namespace dnlib.DotNet.Writer {
 			int numMethods = NumberOfMethods;
 			int methodNum = 0;
 			int notifyNum = 0;
-			const int numNotifyEvents = 10; // WriteMethodBodies0 - WriteMethodBodies9
+			// Writing method bodies is the most expensive part and takes the longest
+			const int numNotifyEvents = 40;
 			int notifyAfter = numMethods / numNotifyEvents;
 
 			List<MethodScopeDebugInfo> methodScopeDebugInfos;
@@ -1695,8 +1761,9 @@ namespace dnlib.DotNet.Writer {
 						continue;
 
 					if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-						OnMetadataEvent(Writer.MetadataEvent.WriteMethodBodies0 + notifyNum++);
-						notifyAfter += numMethods / numNotifyEvents;
+						RaiseProgress(Writer.MetadataEvent.BeginWriteMethodBodies, (double)methodNum / numMethods);
+						notifyNum++;
+						notifyAfter = (int)((double)numMethods / numNotifyEvents * (notifyNum + 1));
 					}
 
 					uint localVarSigTok = 0;
@@ -1779,8 +1846,6 @@ namespace dnlib.DotNet.Writer {
 			}
 			if (serializerMethodContext != null)
 				Free(ref serializerMethodContext);
-			while (notifyNum < numNotifyEvents)
-				OnMetadataEvent(Writer.MetadataEvent.WriteMethodBodies0 + notifyNum++);
 		}
 
 		static bool IsEmptyRootScope(CilBody cilBody, PdbScope scope) {
