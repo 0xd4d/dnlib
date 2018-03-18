@@ -42,6 +42,8 @@ namespace dnlib.DotNet.Writer {
 		public virtual void SetOffset(FileOffset offset, RVA rva) {
 			this.offset = offset;
 			this.rva = rva;
+
+			// NOTE: This method can be called twice by NativeModuleWriter, see Metadata.SetOFfset() for more info
 		}
 
 		/// <inheritdoc/>

@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
@@ -10,13 +10,15 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET resources
 	/// </summary>
-	public sealed class NetResources : IChunk {
+	public sealed class NetResources : IReuseChunk {
 		readonly List<DataReaderChunk> resources = new List<DataReaderChunk>();
 		readonly uint alignment;
 		uint length;
 		bool setOffsetCalled;
 		FileOffset offset;
 		RVA rva;
+
+		internal bool IsEmpty => resources.Count == 0;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
@@ -28,7 +30,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets offset of next resource. This offset is relative to the start of
 		/// the .NET resources and is always aligned.
 		/// </summary>
-		public uint NextOffset => length;
+		public uint NextOffset => Utils.AlignUp(length, alignment);
 
 		/// <summary>
 		/// Constructor
@@ -44,11 +46,13 @@ namespace dnlib.DotNet.Writer {
 		public DataReaderChunk Add(DataReader reader) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			length = Utils.AlignUp(length + 4 + reader.Length, alignment);
+			length = NextOffset + 4 + reader.Length;
 			var data = new DataReaderChunk(ref reader);
 			resources.Add(data);
 			return data;
 		}
+
+		bool IReuseChunk.CanReuse(uint origSize) => length <= origSize;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -56,10 +60,12 @@ namespace dnlib.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 			foreach (var resource in resources) {
+				offset = offset.AlignUp(alignment);
+				rva = rva.AlignUp(alignment);
 				resource.SetOffset(offset + 4, rva + 4);
 				uint len = 4 + resource.GetFileLength();
-				offset = (offset + len).AlignUp(alignment);
-				rva = (rva + len).AlignUp(alignment);
+				offset += len;
+				rva += len;
 			}
 		}
 
@@ -73,12 +79,12 @@ namespace dnlib.DotNet.Writer {
 		public void WriteTo(BinaryWriter writer) {
 			var rva2 = rva;
 			foreach (var resourceData in resources) {
-				writer.Write(resourceData.GetFileLength());
-				resourceData.VerifyWriteTo(writer);
-				rva2 += 4 + resourceData.GetFileLength();
 				int padding = (int)rva2.AlignUp(alignment) - (int)rva2;
 				writer.WriteZeros(padding);
 				rva2 += (uint)padding;
+				writer.Write(resourceData.GetFileLength());
+				resourceData.VerifyWriteTo(writer);
+				rva2 += 4 + resourceData.GetFileLength();
 			}
 		}
 	}

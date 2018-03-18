@@ -412,13 +412,13 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>Default alignment of all method bodies</summary>
 		protected const uint DEFAULT_METHODBODIES_ALIGNMENT = 4;
 		/// <summary>Default alignment of all .NET resources</summary>
-		protected const uint DEFAULT_NETRESOURCES_ALIGNMENT = 8;
+		protected const uint DEFAULT_NETRESOURCES_ALIGNMENT = 4;
 		/// <summary>Default alignment of the .NET metadata</summary>
 		protected const uint DEFAULT_METADATA_ALIGNMENT = 4;
 		/// <summary>Default Win32 resources alignment</summary>
 		protected internal const uint DEFAULT_WIN32_RESOURCES_ALIGNMENT = 8;
 		/// <summary>Default strong name signature alignment</summary>
-		protected const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 16;
+		protected const uint DEFAULT_STRONGNAMESIG_ALIGNMENT = 4;
 		/// <summary>Default COR20 header alignment</summary>
 		protected const uint DEFAULT_COR20HEADER_ALIGNMENT = 4;
 

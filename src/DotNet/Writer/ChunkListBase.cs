@@ -20,6 +20,8 @@ namespace dnlib.DotNet.Writer {
 		FileOffset offset;
 		RVA rva;
 
+		internal bool IsEmpty => chunks.Count == 0;
+
 		/// <summary>
 		/// Helper struct
 		/// </summary>

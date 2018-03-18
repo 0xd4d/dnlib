@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Strong name signature chunk
 	/// </summary>
-	public sealed class StrongNameSignature : IChunk {
+	public sealed class StrongNameSignature : IReuseChunk {
 		FileOffset offset;
 		RVA rva;
 		int size;
@@ -24,6 +24,8 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="size">Size of strong name signature</param>
 		public StrongNameSignature(int size) => this.size = size;
+
+		bool IReuseChunk.CanReuse(uint origSize) => (uint)size <= origSize;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {

@@ -50,6 +50,18 @@ namespace dnlib.DotNet.Writer {
 		void WriteTo(BinaryWriter writer);
 	}
 
+	/// <summary>
+	/// Implemented by <see cref="IChunk"/>s that can reuse the old data location in the original PE file
+	/// </summary>
+	interface IReuseChunk : IChunk {
+		/// <summary>
+		/// Returns true if this chunk fits in the old location
+		/// </summary>
+		/// <param name="origSize">Size of the original location</param>
+		/// <returns></returns>
+		bool CanReuse(uint origSize);
+	}
+
 	public static partial class Extensions {
 		/// <summary>
 		/// Writes all data to <paramref name="writer"/> and verifies that all bytes were written
@@ -82,6 +94,15 @@ namespace dnlib.DotNet.Writer {
 			else {
 				writer.Write((uint)chunk.RVA);
 				writer.Write(chunk.GetVirtualSize());
+			}
+		}
+
+		internal static void WriteDebugDirectory(this BinaryWriter writer, DebugDirectory chunk) {
+			if (chunk == null || chunk.GetVirtualSize() == 0)
+				writer.Write(0UL);
+			else {
+				writer.Write((uint)chunk.RVA);
+				writer.Write(chunk.Count * DebugDirectory.HEADER_SIZE);
 			}
 		}
 	}

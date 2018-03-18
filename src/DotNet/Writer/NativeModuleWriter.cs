@@ -1,12 +1,13 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.W32Resources;
 using dnlib.DotNet.MD;
+using System.Diagnostics;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -25,14 +26,30 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public bool KeepWin32Resources { get; set; }
 
+		internal bool OptimizeImageSize { get; }
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Module</param>
-		public NativeModuleWriterOptions(ModuleDefMD module) : base(module) {
+		/// <param name="optimizeImageSize">true to optimize the image size so it's as small as possible.
+		/// Since the file can contain native methods and other native data, we re-use the
+		/// original file when writing the new file. If <paramref name="optimizeImageSize"/> is true,
+		/// we'll try to re-use the old method body locations in the original file and
+		/// also try to fit the new metadata in the old metadata location.</param>
+		public NativeModuleWriterOptions(ModuleDefMD module, bool optimizeImageSize) : base(module) {
 			// C++ .NET mixed mode assemblies sometimes/often call Module.ResolveMethod(),
 			// so method metadata tokens must be preserved.
 			MetadataOptions.Flags |= MetadataFlags.PreserveAllMethodRids;
+
+			if (optimizeImageSize) {
+				OptimizeImageSize = true;
+
+				// Prevent the #Blob heap from getting bigger. Encoded TypeDefOrRef tokens are stored there (in
+				// typesigs and callingconvsigs) so we must preserve TypeDefOrRef tokens (or the #Blob heap could
+				// grow in size and new MD won't fit in old location)
+				MetadataOptions.Flags |= MetadataFlags.PreserveTypeRefRids | MetadataFlags.PreserveTypeDefRids | MetadataFlags.PreserveTypeSpecRids;
+			}
 		}
 	}
 
@@ -54,11 +71,19 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		DataReaderChunk extraData;
 
-		/// <summary>The original PE headers</summary>
-		DataReaderChunk headerSection;
-
 		/// <summary>The original PE sections and their data</summary>
 		List<OrigSection> origSections;
+
+		readonly struct ReusedChunkInfo {
+			public IReuseChunk Chunk { get; }
+			public RVA RVA { get; }
+			public ReusedChunkInfo(IReuseChunk chunk, RVA rva) {
+				Chunk = chunk;
+				RVA = rva;
+			}
+		}
+
+		List<ReusedChunkInfo> reusedChunks;
 
 		/// <summary>Original PE image</summary>
 		readonly IPEImage peImage;
@@ -128,7 +153,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
 		public NativeModuleWriterOptions Options {
-			get => options ?? (options = new NativeModuleWriterOptions(module));
+			get => options ?? (options = new NativeModuleWriterOptions(module, optimizeImageSize: true));
 			set => options = value;
 		}
 
@@ -161,6 +186,7 @@ namespace dnlib.DotNet.Writer {
 			this.module = module;
 			this.options = options;
 			peImage = module.Metadata.PEImage;
+			reusedChunks = new List<ReusedChunkInfo>();
 		}
 
 		/// <inheritdoc/>
@@ -201,12 +227,12 @@ namespace dnlib.DotNet.Writer {
 		void CreateSections() {
 			CreatePESections();
 			CreateRawSections();
-			CreateHeaderSection();
 			CreateExtraData();
 		}
 
 		void CreateChunks() {
 			CreateMetadataChunks(module);
+			methodBodies.CanReuseOldBodyLocation = Options.OptimizeImageSize;
 
 			CreateDebugDirectory();
 
@@ -259,7 +285,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Creates the PE header "section"
 		/// </summary>
-		void CreateHeaderSection() {
+		DataReaderChunk CreateHeaderSection(out IChunk extraHeaderData) {
 			uint afterLastSectHeader = GetOffsetAfterLastSectionHeader() + (uint)sections.Count * 0x28;
 			uint firstRawOffset = Math.Min(GetFirstRawDataFileOffset(), peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			uint headerLen = afterLastSectHeader;
@@ -267,8 +293,19 @@ namespace dnlib.DotNet.Writer {
 				headerLen = firstRawOffset;
 			headerLen = Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 			if (headerLen <= peImage.ImageNTHeaders.OptionalHeader.SectionAlignment) {
-				headerSection = new DataReaderChunk(peImage.CreateReader((FileOffset)0, headerLen));
-				return;
+				uint origSizeOfHeaders = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
+				uint extraLen;
+				if (headerLen <= origSizeOfHeaders)
+					extraLen = 0;
+				else {
+					extraLen = headerLen - origSizeOfHeaders;
+					headerLen = origSizeOfHeaders;
+				}
+				if (extraLen > 0)
+					extraHeaderData = new ByteArrayChunk(new byte[(int)extraLen]);
+				else
+					extraHeaderData = null;
+				return new DataReaderChunk(peImage.CreateReader((FileOffset)0, headerLen));
 			}
 
 			//TODO: Support this too
@@ -306,6 +343,21 @@ namespace dnlib.DotNet.Writer {
 			return (uint)peImage.ToFileOffset((RVA)(rva - 1)) + 1;
 		}
 
+		void ReuseIfPossible(PESection section, IReuseChunk chunk, RVA origRva, uint origSize, uint requiredAlignment) {
+			if (origRva == 0 || origSize == 0)
+				return;
+			if (chunk == null)
+				return;
+			if (!chunk.CanReuse(origSize))
+				return;
+			if (((uint)origRva & (requiredAlignment - 1)) != 0)
+				return;
+
+			if (section.Remove(chunk) == null)
+				throw new InvalidOperationException();
+			reusedChunks.Add(new ReusedChunkInfo(chunk, origRva));
+		}
+
 		long WriteFile() {
 			bool entryPointIsManagedOrNoEntryPoint = GetEntryPoint(out uint entryPointToken);
 
@@ -315,8 +367,65 @@ namespace dnlib.DotNet.Writer {
 
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 
+			if (Options.OptimizeImageSize) {
+				// Check if we can reuse the old MD location for the new MD.
+				// If we can't reuse it, it could be due to several reasons:
+				//	- TypeDefOrRef tokens weren't preserved resulting in a new #Blob heap that's bigger than the old #Blob heap
+				//	- New MD was added or existing MD was modified (eg. types were renamed) by the user so it's
+				//	  now bigger and doesn't fit in the old location
+				//	- The original location wasn't aligned properly
+				//	- The new MD is bigger because the other MD writer was slightly better at optimizing the MD.
+				//	  This should be considered a bug.
+				var mdDataDir = module.Metadata.ImageCor20Header.Metadata;
+				metadata.SetOffset(peImage.ToFileOffset(mdDataDir.VirtualAddress), mdDataDir.VirtualAddress);
+				ReuseIfPossible(textSection, metadata, mdDataDir.VirtualAddress, mdDataDir.Size, DEFAULT_METADATA_ALIGNMENT);
+
+				var resourceDataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[2];
+				if (win32Resources != null && resourceDataDir.VirtualAddress != 0 && resourceDataDir.Size != 0) {
+					var win32ResourcesOffset = peImage.ToFileOffset(resourceDataDir.VirtualAddress);
+					if (win32Resources.CheckValidOffset(win32ResourcesOffset)) {
+						win32Resources.SetOffset(win32ResourcesOffset, resourceDataDir.VirtualAddress);
+						ReuseIfPossible(rsrcSection, win32Resources, resourceDataDir.VirtualAddress, resourceDataDir.Size, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
+					}
+				}
+
+				ReuseIfPossible(textSection, imageCor20Header, module.Metadata.PEImage.ImageNTHeaders.OptionalHeader.DataDirectories[14].VirtualAddress, module.Metadata.PEImage.ImageNTHeaders.OptionalHeader.DataDirectories[14].Size, DEFAULT_COR20HEADER_ALIGNMENT);
+				if ((module.Metadata.ImageCor20Header.Flags & ComImageFlags.StrongNameSigned) != 0)
+					ReuseIfPossible(textSection, strongNameSignature, module.Metadata.ImageCor20Header.StrongNameSignature.VirtualAddress, module.Metadata.ImageCor20Header.StrongNameSignature.Size, DEFAULT_STRONGNAMESIG_ALIGNMENT);
+				ReuseIfPossible(textSection, netResources, module.Metadata.ImageCor20Header.Resources.VirtualAddress, module.Metadata.ImageCor20Header.Resources.Size, DEFAULT_NETRESOURCES_ALIGNMENT);
+				if (methodBodies.ReusedAllMethodBodyLocations)
+					textSection.Remove(methodBodies);
+
+				var debugDataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[6];
+				if (debugDataDir.VirtualAddress != 0 && debugDataDir.Size != 0 && TryGetRealDebugDirectorySize(peImage, out uint realDebugDirSize))
+					ReuseIfPossible(textSection, debugDirectory, debugDataDir.VirtualAddress, realDebugDirSize, DebugDirectory.DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
+			}
+
+			if (constants.IsEmpty)
+				textSection.Remove(constants);
+			if (netResources.IsEmpty)
+				textSection.Remove(netResources);
+			if (textSection.IsEmpty)
+				sections.Remove(textSection);
+			if (rsrcSection != null && rsrcSection.IsEmpty) {
+				sections.Remove(rsrcSection);
+				rsrcSection = null;
+			}
+
+			var headerSection = CreateHeaderSection(out var extraHeaderData);
 			var chunks = new List<IChunk>();
-			chunks.Add(headerSection);
+			uint headerLen;
+			if (extraHeaderData != null) {
+				var list = new ChunkList<IChunk>();
+				list.Add(headerSection, 1);
+				list.Add(extraHeaderData, 1);
+				chunks.Add(list);
+				headerLen = headerSection.GetVirtualSize() + extraHeaderData.GetVirtualSize();
+			}
+			else {
+				chunks.Add(headerSection);
+				headerLen = headerSection.GetVirtualSize();
+			}
 			foreach (var origSection in origSections)
 				chunks.Add(origSection.Chunk);
 			foreach (var section in sections)
@@ -324,6 +433,21 @@ namespace dnlib.DotNet.Writer {
 			if (extraData != null)
 				chunks.Add(extraData);
 
+			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
+				uint newSizeOfHeaders = SectionSizes.GetSizeOfHeaders(peImage.ImageNTHeaders.OptionalHeader.FileAlignment, headerLen);
+				uint oldSizeOfHeaders = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
+				if (newSizeOfHeaders < oldSizeOfHeaders)
+					throw new InvalidOperationException();
+				uint fileOffsetDelta = newSizeOfHeaders - oldSizeOfHeaders;
+				methodBodies.InitializeReusedMethodBodies(peImage, fileOffsetDelta);
+				foreach (var info in reusedChunks) {
+					if (fileOffsetDelta == 0 && (info.Chunk == metadata || info.Chunk == win32Resources))
+						continue;
+					var offset = peImage.ToFileOffset(info.RVA) + fileOffsetDelta;
+					info.Chunk.SetOffset(offset, info.RVA);
+				}
+				metadata.UpdateMethodAndFieldRvas();
+			}
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			foreach (var section in origSections) {
 				if (section.Chunk.RVA != section.PESection.VirtualAddress)
@@ -335,7 +459,20 @@ namespace dnlib.DotNet.Writer {
 			var writer = new BinaryWriter(destStream);
 			WriteChunks(writer, chunks, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 			long imageLength = writer.BaseStream.Position - destStreamBaseOffset;
-			UpdateHeaderFields(writer, entryPointIsManagedOrNoEntryPoint, entryPointToken);
+			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
+				var pos = writer.BaseStream.Position;
+				foreach (var info in reusedChunks) {
+					Debug.Assert(info.Chunk.RVA == info.RVA);
+					if (info.Chunk.RVA != info.RVA)
+						throw new InvalidOperationException();
+					writer.BaseStream.Position = destStreamBaseOffset + (uint)info.Chunk.FileOffset;
+					info.Chunk.VerifyWriteTo(writer);
+				}
+				methodBodies.WriteReusedMethodBodies(writer, destStreamBaseOffset);
+				writer.BaseStream.Position = pos;
+			}
+			var sectionSizes = new SectionSizes(peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment, headerLen, GetSectionSizeInfos);
+			UpdateHeaderFields(writer, entryPointIsManagedOrNoEntryPoint, entryPointToken, ref sectionSizes);
 			OnWriterEvent(ModuleWriterEvent.EndWriteChunks);
 
 			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);
@@ -353,6 +490,26 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.EndWritePEChecksum);
 
 			return imageLength;
+		}
+
+		static bool TryGetRealDebugDirectorySize(IPEImage peImage, out uint realSize) {
+			realSize = 0;
+			if (peImage.ImageDebugDirectories.Count == 0)
+				return false;
+			var dirs = new List<ImageDebugDirectory>(peImage.ImageDebugDirectories);
+			dirs.Sort((a, b) => a.AddressOfRawData.CompareTo(b.AddressOfRawData));
+			var debugDataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[6];
+			if (dirs[0].AddressOfRawData != debugDataDir.VirtualAddress + debugDataDir.Size)
+				return false;
+			for (int i = 1; i < dirs.Count; i++) {
+				uint prevEnd = (uint)dirs[i - 1].AddressOfRawData + dirs[i - 1].SizeOfData;
+				uint prevEndAligned = (prevEnd + 3) & ~3U;
+				if (!(prevEnd <= (uint)dirs[i].AddressOfRawData && (uint)dirs[i].AddressOfRawData <= prevEndAligned))
+					return false;
+			}
+
+			realSize = dirs[dirs.Count - 1].AddressOfRawData + dirs[dirs.Count - 1].SizeOfData - debugDataDir.VirtualAddress;
+			return true;
 		}
 
 		/// <summary>
@@ -377,15 +534,12 @@ namespace dnlib.DotNet.Writer {
 		/// Updates the PE header and COR20 header fields that need updating. All sections are
 		/// also updated, and the new ones are added.
 		/// </summary>
-		void UpdateHeaderFields(BinaryWriter writer, bool entryPointIsManagedOrNoEntryPoint, uint entryPointToken) {
+		void UpdateHeaderFields(BinaryWriter writer, bool entryPointIsManagedOrNoEntryPoint, uint entryPointToken, ref SectionSizes sectionSizes) {
 			long fileHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.FileHeader.StartOffset;
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
 			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
 			long dataDirOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.EndOffset - 16 * 8;
 			long cor20Offset = destStreamBaseOffset + (long)imageCor20Header.FileOffset;
-
-			uint fileAlignment = peImage.ImageNTHeaders.OptionalHeader.FileAlignment;
-			uint sectionAlignment = peImage.ImageNTHeaders.OptionalHeader.SectionAlignment;
 
 			// Update PE file header
 			var peOptions = Options.PEHeadersOptions;
@@ -399,7 +553,6 @@ namespace dnlib.DotNet.Writer {
 			writer.Write((ushort)(peOptions.Characteristics ?? GetCharacteristics()));
 
 			// Update optional header
-			var sectionSizes = new SectionSizes(fileAlignment, sectionAlignment, headerSection.GetVirtualSize(), GetSectionSizeInfos);
 			writer.BaseStream.Position = optionalHeaderOffset;
 			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			if (is32BitOptionalHeader) {
@@ -478,7 +631,7 @@ namespace dnlib.DotNet.Writer {
 
 			// Write a new debug directory
 			writer.BaseStream.Position = dataDirOffset + 6 * 8;
-			writer.WriteDataDirectory(debugDirectory);
+			writer.WriteDebugDirectory(debugDirectory);
 
 			// Write a new Metadata data directory
 			writer.BaseStream.Position = dataDirOffset + 14 * 8;
@@ -492,7 +645,7 @@ namespace dnlib.DotNet.Writer {
 				writer.BaseStream.Position += 0x10;
 			}
 			foreach (var section in sections)
-				section.WriteHeaderTo(writer, fileAlignment, sectionAlignment, (uint)section.RVA);
+				section.WriteHeaderTo(writer, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment, (uint)section.RVA);
 
 			// Write the .NET header
 			writer.BaseStream.Position = cor20Offset;

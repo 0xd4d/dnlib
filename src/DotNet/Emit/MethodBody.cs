@@ -153,6 +153,12 @@ namespace dnlib.DotNet.Emit {
 		public bool HasPdbMethod => PdbMethod != null;
 
 		/// <summary>
+		/// Gets the total size of the body in the PE file, including header, IL bytes, and exception handlers.
+		/// This property returns 0 if the size is unknown.
+		/// </summary>
+		internal uint MetadataBodySize { get; set; }
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public CilBody() {

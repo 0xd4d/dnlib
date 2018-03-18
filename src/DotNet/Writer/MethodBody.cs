@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.IO;
+using System.Diagnostics;
+using System.IO;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -88,7 +89,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the approximate size of the method body (code + exception handlers)
 		/// </summary>
-		public int GetSizeOfMethodBody() {
+		public int GetApproximateSizeOfMethodBody() {
 			int len = code.Length;
 			if (extraSections != null) {
 				len = Utils.AlignUp(len, EXTRA_SECTIONS_ALIGNMENT);
@@ -98,8 +99,22 @@ namespace dnlib.DotNet.Writer {
 			return len;
 		}
 
+		internal bool CanReuse(RVA origRva, uint origSize) {
+			uint length;
+			if (HasExtraSections) {
+				var rva2 = origRva + (uint)code.Length;
+				rva2 = rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT);
+				rva2 += (uint)extraSections.Length;
+				length = (uint)rva2 - (uint)origRva;
+			}
+			else
+				length = (uint)code.Length;
+			return length <= origSize;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
+			Debug.Assert(this.rva == 0);
 			this.offset = offset;
 			this.rva = rva;
 			if (HasExtraSections) {

@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Stores a byte array
 	/// </summary>
-	public sealed class ByteArrayChunk : IChunk {
+	public sealed class ByteArrayChunk : IReuseChunk {
 		readonly byte[] array;
 		FileOffset offset;
 		RVA rva;
@@ -34,6 +34,8 @@ namespace dnlib.DotNet.Writer {
 		/// it's never inserted as a <c>key</c> in a dictionary, then the contents can be modified,
 		/// but shouldn't be resized after <see cref="SetOffset"/> has been called.</param>
 		public ByteArrayChunk(byte[] array) => this.array = array ?? Array2.Empty<byte>();
+
+		bool IReuseChunk.CanReuse(uint origSize) => (uint)array.Length <= origSize;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {

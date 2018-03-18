@@ -45,6 +45,8 @@ namespace dnlib.DotNet.Emit {
 		ushort maxStack;
 		uint codeSize;
 		uint localVarSigTok;
+		uint startOfHeader;
+		uint totalBodySize;
 		DataReader? exceptionsReader;
 		readonly GenericParamContext gpContext;
 
@@ -252,6 +254,7 @@ namespace dnlib.DotNet.Emit {
 			this.opResolver = opResolver;
 			exceptionsReader = ehReader;
 			this.gpContext = gpContext;
+			startOfHeader = uint.MaxValue;
 		}
 
 		/// <summary>
@@ -279,7 +282,7 @@ namespace dnlib.DotNet.Emit {
 					return false;
 				SetLocals(ReadLocals());
 				ReadInstructions();
-				ReadExceptionHandlers();
+				ReadExceptionHandlers(out totalBodySize);
 				return true;
 			}
 			catch (InvalidMethodException) {
@@ -298,6 +301,7 @@ namespace dnlib.DotNet.Emit {
 				return true;
 			hasReadHeader = true;
 
+			startOfHeader = reader.Position;
 			byte b = reader.ReadByte();
 			switch (b & 7) {
 			case 2:
@@ -384,24 +388,36 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Reads all exception handlers
 		/// </summary>
-		void ReadExceptionHandlers() {
-			if ((flags & 8) == 0)
+		void ReadExceptionHandlers(out uint totalBodySize) {
+			if ((flags & 8) == 0) {
+				totalBodySize = startOfHeader == uint.MaxValue ? 0 : reader.Position - startOfHeader;
 				return;
+			}
+			bool canSaveTotalBodySize;
 			DataReader ehReader;
-			if (exceptionsReader != null)
+			if (exceptionsReader != null) {
+				canSaveTotalBodySize = false;
 				ehReader = exceptionsReader.Value;
+			}
 			else {
+				canSaveTotalBodySize = true;
 				ehReader = reader;
 				ehReader.Position = (ehReader.Position + 3) & ~3U;
 			}
 			// Only read the first one. Any others aren't used.
 			byte b = ehReader.ReadByte();
-			if ((b & 0x3F) != 1)
-				return;	// Not exception handler clauses
+			if ((b & 0x3F) != 1) {
+				totalBodySize = startOfHeader == uint.MaxValue ? 0 : reader.Position - startOfHeader;
+				return; // Not exception handler clauses
+			}
 			if ((b & 0x40) != 0)
 				ReadFatExceptionHandlers(ref ehReader);
 			else
 				ReadSmallExceptionHandlers(ref ehReader);
+			if (canSaveTotalBodySize)
+				totalBodySize = startOfHeader == uint.MaxValue ? 0 : ehReader.Position - startOfHeader;
+			else
+				totalBodySize = 0;
 		}
 
 		static ushort GetNumberOfExceptionHandlers(uint num) {
@@ -463,6 +479,7 @@ namespace dnlib.DotNet.Emit {
 			cilBody.HeaderSize = headerSize;
 			cilBody.MaxStack = maxStack;
 			cilBody.LocalVarSigTok = localVarSigTok;
+			cilBody.MetadataBodySize = totalBodySize;
 			instructions = null;
 			exceptionHandlers = null;
 			locals = null;

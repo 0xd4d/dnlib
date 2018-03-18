@@ -1752,7 +1752,7 @@ namespace dnlib.DotNet {
 		/// <param name="filename">Filename</param>
 		/// <param name="options">Writer options</param>
 		public void NativeWrite(string filename, DNW.NativeModuleWriterOptions options) {
-			var writer = new DNW.NativeModuleWriter(this, options ?? new DNW.NativeModuleWriterOptions(this));
+			var writer = new DNW.NativeModuleWriter(this, options ?? new DNW.NativeModuleWriterOptions(this, optimizeImageSize: true));
 			writer.Write(filename);
 		}
 
@@ -1768,7 +1768,7 @@ namespace dnlib.DotNet {
 		/// <param name="dest">Destination stream</param>
 		/// <param name="options">Writer options</param>
 		public void NativeWrite(Stream dest, DNW.NativeModuleWriterOptions options) {
-			var writer = new DNW.NativeModuleWriter(this, options ?? new DNW.NativeModuleWriterOptions(this));
+			var writer = new DNW.NativeModuleWriter(this, options ?? new DNW.NativeModuleWriterOptions(this, optimizeImageSize: true));
 			writer.Write(dest);
 		}
 

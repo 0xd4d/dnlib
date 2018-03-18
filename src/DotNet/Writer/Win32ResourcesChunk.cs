@@ -2,6 +2,7 @@
 
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using dnlib.IO;
@@ -12,7 +13,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Writes Win32 resources
 	/// </summary>
-	public sealed class Win32ResourcesChunk : IChunk {
+	public sealed class Win32ResourcesChunk : IReuseChunk {
 		readonly Win32Resources win32Resources;
 		FileOffset offset;
 		RVA rva;
@@ -220,12 +221,52 @@ namespace dnlib.DotNet.Writer {
 		const uint RESOURCE_STRING_ALIGNMENT = 2;
 		const uint RESOURCE_DATA_ALIGNMENT = 4;
 
+		bool IReuseChunk.CanReuse(uint origSize) {
+			Debug.Assert(rva != 0);
+			if (rva == 0)
+				throw new InvalidOperationException();
+			return length <= origSize;
+		}
+
+		internal bool CheckValidOffset(FileOffset offset) {
+			GetMaxAlignment(offset, out var error);
+			return error == null;
+		}
+
+		static uint GetMaxAlignment(FileOffset offset, out string error) {
+			error = null;
+			uint maxAlignment = 1;
+			maxAlignment = Math.Max(maxAlignment, RESOURCE_DIR_ALIGNMENT);
+			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_HEADER_ALIGNMENT);
+			maxAlignment = Math.Max(maxAlignment, RESOURCE_STRING_ALIGNMENT);
+			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_ALIGNMENT);
+			if (((uint)offset & (maxAlignment - 1)) != 0)
+				error = $"Win32 resources section isn't {maxAlignment}-byte aligned";
+			else if (maxAlignment > ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT)
+				error = "maxAlignment > DEFAULT_WIN32_RESOURCES_ALIGNMENT";
+			return maxAlignment;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
+			// NOTE: This method can be called twice by NativeModuleWriter, see Metadata.SetOFfset() for more info
+			bool initAll = this.offset == 0;
 			this.offset = offset;
 			this.rva = rva;
 			if (win32Resources == null)
 				return;
+
+			if (!initAll) {
+				// If it's called a second time, re-do everything
+				dirDict.Clear();
+				dirList.Clear();
+				dataHeaderDict.Clear();
+				dataHeaderList.Clear();
+				stringsDict.Clear();
+				stringsList.Clear();
+				dataDict.Clear();
+				dataList.Clear();
+			}
 
 			FindDirectoryEntries();
 
@@ -236,16 +277,9 @@ namespace dnlib.DotNet.Writer {
 			//	4. All resource data.
 
 			uint rsrcOffset = 0;
-
-			uint maxAlignment = 1;
-			maxAlignment = Math.Max(maxAlignment, RESOURCE_DIR_ALIGNMENT);
-			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_HEADER_ALIGNMENT);
-			maxAlignment = Math.Max(maxAlignment, RESOURCE_STRING_ALIGNMENT);
-			maxAlignment = Math.Max(maxAlignment, RESOURCE_DATA_ALIGNMENT);
-			if (((uint)offset & (maxAlignment - 1)) != 0)
-				throw new ModuleWriterException($"Win32 resources section isn't {maxAlignment}-byte aligned");
-			if (maxAlignment > ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT)
-				throw new ModuleWriterException("maxAlignment > DEFAULT_WIN32_RESOURCES_ALIGNMENT");
+			var maxAlignment = GetMaxAlignment(offset, out var error);
+			if (error != null)
+				throw new ModuleWriterException(error);
 
 			foreach (var dir in dirList) {
 				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DIR_ALIGNMENT);
@@ -310,7 +344,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() => Utils.AlignUp(length, ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT);
+		public uint GetFileLength() => length;
 
 		/// <inheritdoc/>
 		public uint GetVirtualSize() => GetFileLength();
@@ -366,8 +400,6 @@ namespace dnlib.DotNet.Writer {
 				offset += reader.BytesLeft;
 				reader.CopyTo(writer, dataBuffer);
 			}
-
-			writer.WriteZeros((int)(Utils.AlignUp(length, ModuleWriterBase.DEFAULT_WIN32_RESOURCES_ALIGNMENT) - length));
 		}
 
 		uint WriteTo(BinaryWriter writer, ResourceDirectory dir) {

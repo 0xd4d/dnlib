@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.DotNet.Pdb;
@@ -31,15 +32,18 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Debug directory chunk
 	/// </summary>
-	public sealed class DebugDirectory : IChunk {
+	public sealed class DebugDirectory : IReuseChunk {
 		/// <summary>Default debug directory alignment</summary>
 		public const uint DEFAULT_DEBUGDIRECTORY_ALIGNMENT = 4;
-		const int HEADER_SIZE = 28;
+		internal const int HEADER_SIZE = 28;
+
+		internal int Count => entries.Count;
 
 		FileOffset offset;
 		RVA rva;
 		uint length;
 		readonly List<DebugDirectoryEntry> entries;
+		bool isReadonly;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
@@ -65,22 +69,39 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="chunk">Data</param>
 		/// <returns></returns>
 		public DebugDirectoryEntry Add(IChunk chunk) {
+			if (isReadonly)
+				throw new InvalidOperationException("Can't add a new DebugDirectory entry when the DebugDirectory is read-only!");
 			var entry = new DebugDirectoryEntry(chunk);
 			entries.Add(entry);
 			return entry;
 		}
 
+		bool IReuseChunk.CanReuse(uint origSize) {
+			uint newLength = GetLength(entries, 0, 0);
+			if (newLength > origSize)
+				return false;
+
+			isReadonly = true;
+			return true;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
+			isReadonly = true;
 			this.offset = offset;
 			this.rva = rva;
 
-			length = HEADER_SIZE * (uint)entries.Count;
+			length = GetLength(entries, offset, rva);
+		}
+
+		static uint GetLength(List<DebugDirectoryEntry> entries, FileOffset offset, RVA rva) {
+			uint length = HEADER_SIZE * (uint)entries.Count;
 			foreach (var entry in entries) {
 				length = Utils.AlignUp(length, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
 				entry.Chunk.SetOffset(offset + length, rva + length);
 				length += entry.Chunk.GetFileLength();
 			}
+			return length;
 		}
 
 		/// <inheritdoc/>

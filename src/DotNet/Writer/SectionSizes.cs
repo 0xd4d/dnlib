@@ -35,8 +35,10 @@ namespace dnlib.DotNet.Writer {
 		public readonly uint BaseOfData, BaseOfCode;
 		public readonly uint SizeOfCode, SizeOfInitdData, SizeOfUninitdData;
 
+		public static uint GetSizeOfHeaders(uint fileAlignment, uint headerLen) => Utils.AlignUp(headerLen, fileAlignment);
+
 		public SectionSizes(uint fileAlignment, uint sectionAlignment, uint headerLen, Func<IEnumerable<SectionSizeInfo>> getSectionSizeInfos) {
-			SizeOfHeaders = Utils.AlignUp(headerLen, fileAlignment);
+			SizeOfHeaders = GetSizeOfHeaders(fileAlignment, headerLen);
 			SizeOfImage = Utils.AlignUp(SizeOfHeaders, sectionAlignment);
 			BaseOfData = 0;
 			BaseOfCode = 0;

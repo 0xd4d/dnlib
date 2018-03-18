@@ -328,7 +328,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET meta data
 	/// </summary>
-	public abstract class Metadata : IChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
+	public abstract class Metadata : IReuseChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -1779,7 +1779,9 @@ namespace dnlib.DotNet.Writer {
 						if (!(cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)) {
 							writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
 							writer.Write();
-							var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok));
+							var origRva = method.RVA;
+							uint origSize = cilBody.MetadataBodySize;
+							var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok), origRva, origSize);
 							methodToBody[method] = mb;
 							localVarSigTok = writer.LocalVarSigTok;
 						}
@@ -3388,22 +3390,36 @@ namespace dnlib.DotNet.Writer {
 
 		const uint HEAP_ALIGNMENT = 4;
 
+		bool IReuseChunk.CanReuse(uint origSize) {
+			// The caller should've called SetOffset() so we know our final size
+			Debug.Assert(length != 0);
+			if (length == 0)
+				throw new InvalidOperationException();
+			return length <= origSize;
+		}
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
+			// This method can be called twice by NativeModuleWriter. It needs to know the size
+			// of the final metadata. If it fits in the old location, the new MD will be written
+			// there (smaller file size). If the new MD doesn't fit in the old location, this
+			// method gets called a second time with the updated offset + rva.
+			bool initAll = this.offset == 0;
 			this.offset = offset;
 			this.rva = rva;
 
-			stringsHeap.AddOptimizedStrings();
-			stringsHeap.SetReadOnly();
-			blobHeap.SetReadOnly();
-			guidHeap.SetReadOnly();
-			tablesHeap.SetReadOnly();
-			pdbHeap.SetReadOnly();
-			tablesHeap.BigStrings = stringsHeap.IsBig;
-			tablesHeap.BigBlob = blobHeap.IsBig;
-			tablesHeap.BigGuid = guidHeap.IsBig;
-
-			metadataHeader.Heaps = GetHeaps();
+			if (initAll) {
+				stringsHeap.AddOptimizedStrings();
+				stringsHeap.SetReadOnly();
+				blobHeap.SetReadOnly();
+				guidHeap.SetReadOnly();
+				tablesHeap.SetReadOnly();
+				pdbHeap.SetReadOnly();
+				tablesHeap.BigStrings = stringsHeap.IsBig;
+				tablesHeap.BigBlob = blobHeap.IsBig;
+				tablesHeap.BigGuid = guidHeap.IsBig;
+				metadataHeader.Heaps = GetHeaps();
+			}
 
 			metadataHeader.SetOffset(offset, rva);
 			uint len = metadataHeader.GetFileLength();
@@ -3418,12 +3434,18 @@ namespace dnlib.DotNet.Writer {
 				offset += len;
 				rva += len;
 			}
+			Debug.Assert(initAll || length == rva - this.rva);
+			if (!(initAll || length == rva - this.rva))
+				throw new InvalidOperationException();
 			length = rva - this.rva;
 
-			if (!isStandaloneDebugMetadata) {
-				UpdateMethodRvas();
-				UpdateFieldRvas();
-			}
+			if (!isStandaloneDebugMetadata && initAll)
+				UpdateMethodAndFieldRvas();
+		}
+
+		internal void UpdateMethodAndFieldRvas() {
+			UpdateMethodRvas();
+			UpdateFieldRvas();
 		}
 
 		IList<IHeap> GetHeaps() {
