@@ -4,7 +4,6 @@ using System;
 using System.IO;
 
 namespace dnlib.DotNet.Writer {
-#pragma warning disable 1591 // Missing XML comment for publicly visible type or member
 	/// <summary>
 	/// Writes data
 	/// </summary>
@@ -15,11 +14,18 @@ namespace dnlib.DotNet.Writer {
 
 		internal Stream InternalStream => stream;
 
+		/// <summary>
+		/// Gets/sets the position
+		/// </summary>
 		public long Position {
 			get => stream.Position;
 			set => stream.Position = value;
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="stream">Destination stream</param>
 		public DataWriter(Stream stream) {
 			if (stream == null)
 				ThrowArgumentNullException(nameof(stream));
@@ -30,10 +36,28 @@ namespace dnlib.DotNet.Writer {
 		static void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
 		static void ThrowArgumentOutOfRangeException(string message) => throw new ArgumentOutOfRangeException(message);
 
+		/// <summary>
+		/// Writes a <see cref="bool"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteBoolean(bool value) => stream.WriteByte(value ? (byte)1 : (byte)0);
+
+		/// <summary>
+		/// Writes a <see cref="sbyte"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteSByte(sbyte value) => stream.WriteByte((byte)value);
+
+		/// <summary>
+		/// Writes a <see cref="byte"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteByte(byte value) => stream.WriteByte(value);
 
+		/// <summary>
+		/// Writes a <see cref="short"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteInt16(short value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
@@ -41,6 +65,10 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 2);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="ushort"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteUInt16(ushort value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
@@ -48,6 +76,10 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 2);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="int"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteInt32(int value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
@@ -57,6 +89,10 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 4);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="uint"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteUInt32(uint value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
@@ -66,6 +102,10 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 4);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="long"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteInt64(long value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
@@ -79,6 +119,10 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 8);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="ulong"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteUInt64(ulong value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
@@ -92,6 +136,10 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 8);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="float"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public unsafe void WriteSingle(float value) {
 			uint tmp = *(uint*)&value;
 			var buffer = this.buffer;
@@ -102,6 +150,10 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 4);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="double"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public unsafe void WriteDouble(double value) {
 			ulong tmp = *(ulong*)&value;
 			var buffer = this.buffer;
@@ -116,9 +168,24 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 8);
 		}
 
+		/// <summary>
+		/// Writes bytes
+		/// </summary>
+		/// <param name="source">Bytes to write</param>
 		public void WriteBytes(byte[] source) => stream.Write(source, 0, source.Length);
+
+		/// <summary>
+		/// Writes bytes
+		/// </summary>
+		/// <param name="source">Bytes to write</param>
+		/// <param name="index">Index to start copying from</param>
+		/// <param name="length">Number of bytes to copy</param>
 		public void WriteBytes(byte[] source, int index, int length) => stream.Write(source, index, length);
 
+		/// <summary>
+		/// Writes a compressed <see cref="uint"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteCompressedUInt32(uint value) {
 			if (value <= 0x7F)
 				stream.WriteByte((byte)value);
@@ -136,6 +203,10 @@ namespace dnlib.DotNet.Writer {
 				ThrowArgumentOutOfRangeException("UInt32 value can't be compressed");
 		}
 
+		/// <summary>
+		/// Writes a compressed <see cref="int"/>
+		/// </summary>
+		/// <param name="value"></param>
 		public void WriteCompressedInt32(int value) {
 			// This is almost identical to compressing a UInt32, except that we first
 			// recode value so the sign bit is in bit 0. Then we compress it the same
@@ -161,6 +232,11 @@ namespace dnlib.DotNet.Writer {
 				ThrowArgumentOutOfRangeException("Int32 value can't be compressed");
 		}
 
+		/// <summary>
+		/// Gets the size of a compressed <see cref="uint"/>, see <see cref="WriteCompressedUInt32(uint)"/>
+		/// </summary>
+		/// <param name="value">Value</param>
+		/// <returns></returns>
 		public static int GetCompressedUInt32Length(uint value) {
 			if (value <= 0x7F)
 				return 1;
@@ -172,5 +248,4 @@ namespace dnlib.DotNet.Writer {
 			return 0;
 		}
 	}
-#pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 }
