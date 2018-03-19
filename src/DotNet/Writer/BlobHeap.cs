@@ -102,7 +102,7 @@ namespace dnlib.DotNet.Writer {
 			if (originalData != null)
 				writer.WriteBytes(originalData);
 			else
-				writer.WriteByte((byte)0);
+				writer.WriteByte(0);
 
 			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var data in cached) {

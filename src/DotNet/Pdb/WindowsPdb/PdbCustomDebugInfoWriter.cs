@@ -14,12 +14,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 	sealed class PdbCustomDebugInfoWriterContext {
 		public ILogger Logger;
 		public readonly MemoryStream MemoryStream;
-		public readonly BinaryWriter Writer;
+		public readonly DataWriter Writer;
 		public readonly Dictionary<Instruction, uint> InstructionToOffsetDict;
 
 		public PdbCustomDebugInfoWriterContext() {
 			MemoryStream = new MemoryStream();
-			Writer = new BinaryWriter(MemoryStream);
+			Writer = new DataWriter(MemoryStream);
 			InstructionToOffsetDict = new Dictionary<Instruction, uint>();
 		}
 	}
@@ -33,7 +33,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		readonly MethodDef method;
 		readonly ILogger logger;
 		readonly MemoryStream memoryStream;
-		readonly BinaryWriter writer;
+		readonly DataWriter writer;
 		readonly Dictionary<Instruction, uint> instructionToOffsetDict;
 		uint bodySize;
 		bool instructionToOffsetDictInitd;
@@ -106,9 +106,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return null;
 			}
 
-			writer.Write((byte)CustomDebugInfoConstants.Version);
-			writer.Write((byte)customDebugInfos.Count);
-			writer.Write((ushort)0);
+			writer.WriteByte(CustomDebugInfoConstants.Version);
+			writer.WriteByte((byte)customDebugInfos.Count);
+			writer.WriteUInt16(0);
 
 			for (int i = 0; i < customDebugInfos.Count; i++) {
 				var info = customDebugInfos[i];
@@ -121,11 +121,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					return null;
 				}
 
-				var recordPos = writer.BaseStream.Position;
-				writer.Write((byte)CustomDebugInfoConstants.RecordVersion);
-				writer.Write((byte)info.Kind);
-				writer.Write((ushort)0);
-				writer.Write((uint)0);
+				var recordPos = writer.Position;
+				writer.WriteByte(CustomDebugInfoConstants.RecordVersion);
+				writer.WriteByte((byte)info.Kind);
+				writer.WriteUInt16(0);
+				writer.WriteUInt32(0);
 
 				int count, j, k;
 				uint token;
@@ -141,9 +141,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						Error("UsingCounts contains more than 0xFFFF elements");
 						return null;
 					}
-					writer.Write((ushort)count);
+					writer.WriteUInt16((ushort)count);
 					for (j = 0; j < count; j++)
-						writer.Write(usingRec.UsingCounts[j]);
+						writer.WriteUInt16(usingRec.UsingCounts[j]);
 					break;
 
 				case PdbCustomDebugInfoKind.ForwardMethodInfo:
@@ -155,7 +155,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					token = GetMethodToken(fwdMethodRec.Method);
 					if (token == 0)
 						return null;
-					writer.Write(token);
+					writer.WriteUInt32(token);
 					break;
 
 				case PdbCustomDebugInfoKind.ForwardModuleInfo:
@@ -167,7 +167,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					token = GetMethodToken(fwdModRec.Method);
 					if (token == 0)
 						return null;
-					writer.Write(token);
+					writer.WriteUInt32(token);
 					break;
 
 				case PdbCustomDebugInfoKind.StateMachineHoistedLocalScopes:
@@ -177,16 +177,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						return null;
 					}
 					count = smLocalScopesRec.Scopes.Count;
-					writer.Write(count);
+					writer.WriteInt32(count);
 					for (j = 0; j < count; j++) {
 						var scope = smLocalScopesRec.Scopes[j];
 						if (scope.IsSynthesizedLocal) {
-							writer.Write(0);
-							writer.Write(0);
+							writer.WriteInt32(0);
+							writer.WriteInt32(0);
 						}
 						else {
-							writer.Write(GetInstructionOffset(scope.Start, nullIsEndOfMethod: false));
-							writer.Write(GetInstructionOffset(scope.End, nullIsEndOfMethod: true) - 1);
+							writer.WriteUInt32(GetInstructionOffset(scope.Start, nullIsEndOfMethod: false));
+							writer.WriteUInt32(GetInstructionOffset(scope.End, nullIsEndOfMethod: true) - 1);
 						}
 					}
 					break;
@@ -212,7 +212,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						return null;
 					}
 					count = dynLocListRec.Locals.Count;
-					writer.Write(count);
+					writer.WriteInt32(count);
 					for (j = 0; j < count; j++) {
 						var dynLoc = dynLocListRec.Locals[j];
 						if (dynLoc == null) {
@@ -236,20 +236,20 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						}
 
 						for (k = 0; k < dynLoc.Flags.Count; k++)
-							writer.Write(dynLoc.Flags[k]);
+							writer.WriteByte(dynLoc.Flags[k]);
 						while (k++ < 64)
-							writer.Write((byte)0);
-						writer.Write(dynLoc.Flags.Count);
+							writer.WriteByte(0);
+						writer.WriteInt32(dynLoc.Flags.Count);
 
 						if (dynLoc.Local == null)
-							writer.Write(0);
+							writer.WriteInt32(0);
 						else
-							writer.Write(dynLoc.Local.Index);
+							writer.WriteInt32(dynLoc.Local.Index);
 
 						for (k = 0; k < name.Length; k++)
-							writer.Write((ushort)name[k]);
+							writer.WriteUInt16(name[k]);
 						while (k++ < 64)
-							writer.Write((ushort)0);
+							writer.WriteUInt16(0);
 					}
 					break;
 
@@ -259,7 +259,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						Error("Unsupported custom debug info type {0}", info.GetType());
 						return null;
 					}
-					writer.Write(encLocalMapRec.Data);
+					writer.WriteBytes(encLocalMapRec.Data);
 					break;
 
 				case PdbCustomDebugInfoKind.EditAndContinueLambdaMap:
@@ -268,7 +268,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						Error("Unsupported custom debug info type {0}", info.GetType());
 						return null;
 					}
-					writer.Write(encLambdaRec.Data);
+					writer.WriteBytes(encLambdaRec.Data);
 					break;
 
 				case PdbCustomDebugInfoKind.TupleElementNames:
@@ -278,25 +278,25 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						return null;
 					}
 					count = tupleListRec.Names.Count;
-					writer.Write(count);
+					writer.WriteInt32(count);
 					for (j = 0; j < count; j++) {
 						var tupleInfo = tupleListRec.Names[j];
 						if (tupleInfo == null) {
 							Error("Tuple name info is null");
 							return null;
 						}
-						writer.Write(tupleInfo.TupleElementNames.Count);
+						writer.WriteInt32(tupleInfo.TupleElementNames.Count);
 						for (k = 0; k < tupleInfo.TupleElementNames.Count; k++)
 							WriteUTF8Z(tupleInfo.TupleElementNames[k]);
 
 						if (tupleInfo.Local == null) {
-							writer.Write(-1);
-							writer.Write(GetInstructionOffset(tupleInfo.ScopeStart, nullIsEndOfMethod: false));
-							writer.Write(GetInstructionOffset(tupleInfo.ScopeEnd, nullIsEndOfMethod: true));
+							writer.WriteInt32(-1);
+							writer.WriteUInt32(GetInstructionOffset(tupleInfo.ScopeStart, nullIsEndOfMethod: false));
+							writer.WriteUInt32(GetInstructionOffset(tupleInfo.ScopeEnd, nullIsEndOfMethod: true));
 						}
 						else {
-							writer.Write(tupleInfo.Local.Index);
-							writer.Write(0L);
+							writer.WriteInt32(tupleInfo.Local.Index);
+							writer.WriteInt64(0L);
 						}
 						WriteUTF8Z(tupleInfo.Name);
 					}
@@ -308,27 +308,27 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						Error("Unsupported custom debug info class {0}", info.GetType());
 						return null;
 					}
-					writer.Write(unkRec.Data);
+					writer.WriteBytes(unkRec.Data);
 					break;
 				}
 
-				var pos = writer.BaseStream.Position;
+				var pos = writer.Position;
 				var recLen = (pos - recordPos);
 				var alignedLen = (recLen + 3) & ~3;
 				if (alignedLen > uint.MaxValue) {
 					Error("Custom debug info record is too big");
 					return null;
 				}
-				writer.BaseStream.Position = recordPos + 3;
+				writer.Position = recordPos + 3;
 				if (info.Kind <= PdbCustomDebugInfoKind.DynamicLocals)
-					writer.Write((byte)0);
+					writer.WriteByte(0);
 				else
-					writer.Write((byte)(alignedLen - recLen));
-				writer.Write((uint)alignedLen);
+					writer.WriteByte((byte)(alignedLen - recLen));
+				writer.WriteUInt32((uint)alignedLen);
 
-				writer.BaseStream.Position = pos;
-				while (writer.BaseStream.Position < recordPos + alignedLen)
-					writer.Write((byte)0);
+				writer.Position = pos;
+				while (writer.Position < recordPos + alignedLen)
+					writer.WriteByte(0);
 			}
 
 			return memoryStream.ToArray();
@@ -355,8 +355,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 
 			for (int i = 0; i < s.Length; i++)
-				writer.Write((ushort)s[i]);
-			writer.Write((ushort)0);
+				writer.WriteUInt16(s[i]);
+			writer.WriteUInt16(0);
 		}
 
 		void WriteUTF8Z(string s) {
@@ -370,8 +370,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return;
 			}
 
-			writer.Write(Encoding.UTF8.GetBytes(s));
-			writer.Write((byte)0);
+			writer.WriteBytes(Encoding.UTF8.GetBytes(s));
+			writer.WriteByte(0);
 		}
 
 		uint GetMethodToken(IMethodDefOrRef method) {

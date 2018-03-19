@@ -45,7 +45,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 						writer.WriteSingle((float)value);
 					else {
 						helper.Error("Expected a Single constant");
-						writer.WriteSingle((float)0);
+						writer.WriteSingle(0);
 					}
 					return;
 
@@ -54,7 +54,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 						writer.WriteDouble((double)value);
 					else {
 						helper.Error("Expected a Double constant");
-						writer.WriteDouble((double)0);
+						writer.WriteDouble(0);
 					}
 					return;
 
@@ -216,10 +216,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			case ElementType.Char:
 				if (value is char)
-					writer.WriteUInt16((ushort)(char)value);
+					writer.WriteUInt16((char)value);
 				else {
 					helper.Error("Expected a Char constant");
-					writer.WriteUInt16((ushort)0);
+					writer.WriteUInt16(0);
 				}
 				break;
 
@@ -228,7 +228,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteSByte((sbyte)value);
 				else {
 					helper.Error("Expected a SByte constant");
-					writer.WriteSByte((sbyte)0);
+					writer.WriteSByte(0);
 				}
 				break;
 
@@ -237,7 +237,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteByte((byte)value);
 				else {
 					helper.Error("Expected a Byte constant");
-					writer.WriteByte((byte)0);
+					writer.WriteByte(0);
 				}
 				break;
 
@@ -246,7 +246,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteInt16((short)value);
 				else {
 					helper.Error("Expected an Int16 constant");
-					writer.WriteInt16((short)0);
+					writer.WriteInt16(0);
 				}
 				break;
 
@@ -255,7 +255,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteUInt16((ushort)value);
 				else {
 					helper.Error("Expected a UInt16 constant");
-					writer.WriteUInt16((ushort)0);
+					writer.WriteUInt16(0);
 				}
 				break;
 
@@ -264,7 +264,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteInt32((int)value);
 				else {
 					helper.Error("Expected an Int32 constant");
-					writer.WriteInt32((int)0);
+					writer.WriteInt32(0);
 				}
 				break;
 
@@ -273,7 +273,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteUInt32((uint)value);
 				else {
 					helper.Error("Expected a UInt32 constant");
-					writer.WriteUInt32((uint)0);
+					writer.WriteUInt32(0);
 				}
 				break;
 
@@ -282,7 +282,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteInt64((long)value);
 				else {
 					helper.Error("Expected an Int64 constant");
-					writer.WriteInt64((long)0);
+					writer.WriteInt64(0);
 				}
 				break;
 
@@ -291,7 +291,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					writer.WriteUInt64((ulong)value);
 				else {
 					helper.Error("Expected a UInt64 constant");
-					writer.WriteUInt64((ulong)0);
+					writer.WriteUInt64(0);
 				}
 				break;
 

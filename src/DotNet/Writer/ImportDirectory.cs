@@ -110,11 +110,11 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			writer.WriteZeros(stringsPadding);
-			writer.WriteUInt16((ushort)0);
+			writer.WriteUInt16(0);
 			writer.WriteBytes(Encoding.UTF8.GetBytes(IsExeFile ? "_CorExeMain\0" : "_CorDllMain\0"));
 			writer.WriteBytes(Encoding.UTF8.GetBytes("mscoree.dll\0"));
 
-			writer.WriteByte((byte)0);
+			writer.WriteByte(0);
 		}
 	}
 }

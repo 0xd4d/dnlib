@@ -201,7 +201,7 @@ namespace dnlib.DotNet.Writer {
 			if (originalData != null)
 				writer.WriteBytes(originalData);
 			else
-				writer.WriteByte((byte)0);
+				writer.WriteByte(0);
 
 			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
@@ -212,7 +212,7 @@ namespace dnlib.DotNet.Writer {
 				}
 				else {
 					writer.WriteBytes(s.Data);
-					writer.WriteByte((byte)0);
+					writer.WriteByte(0);
 				}
 				offset += (uint)s.Data.Length + 1;
 			}

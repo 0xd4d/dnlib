@@ -90,7 +90,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteUTF8Z(string s) {
 			var bytes = Encoding.UTF8.GetBytes(s);
 			writer.WriteBytes(bytes);
-			writer.WriteByte((byte)0);
+			writer.WriteByte(0);
 		}
 
 		void WriteStateMachineHoistedLocalScopes(PdbStateMachineHoistedLocalScopesCustomDebugInfo cdi) {

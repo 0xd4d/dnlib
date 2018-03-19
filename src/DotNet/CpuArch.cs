@@ -141,8 +141,8 @@ namespace dnlib.DotNet {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
-				writer.WriteUInt16((ushort)0);// padding
-				writer.WriteUInt16((ushort)0x25FF);
+				writer.WriteUInt16(0);// padding
+				writer.WriteUInt16(0x25FF);
 				writer.WriteUInt32((uint)imageBase + managedFuncRva);
 				break;
 			default:
@@ -214,10 +214,10 @@ namespace dnlib.DotNet {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
-				writer.WriteUInt16((ushort)0);// padding
-				writer.WriteUInt16((ushort)0xA148);
+				writer.WriteUInt16(0);// padding
+				writer.WriteUInt16(0xA148);
 				writer.WriteUInt64(imageBase + managedFuncRva);
-				writer.WriteUInt16((ushort)0xE0FF);
+				writer.WriteUInt16(0xE0FF);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();

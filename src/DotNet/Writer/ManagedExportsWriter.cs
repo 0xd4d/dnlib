@@ -475,7 +475,7 @@ namespace dnlib.DotNet.Writer {
 				count -= 8;
 			}
 			for (int i = 0; i < count; i++)
-				writer.WriteByte((byte)0);
+				writer.WriteByte(0);
 		}
 
 		void WriteVtableFixups(DataWriter writer) {

@@ -898,7 +898,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteBytes(guid.ToByteArray());
 			writer.WriteUInt32(age);
 			writer.WriteBytes(Encoding.UTF8.GetBytes(filename));
-			writer.WriteByte((byte)0);
+			writer.WriteByte(0);
 			return stream.ToArray();
 		}
 

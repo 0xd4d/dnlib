@@ -3198,7 +3198,7 @@ namespace dnlib.DotNet.Writer {
 			outStream.Position = 0;
 			var parts = name.Split(directorySeparatorCharArray);
 			if (parts.Length == 1)
-				writer.WriteByte((byte)0);
+				writer.WriteByte(0);
 			else
 				writer.WriteBytes(directorySeparatorCharUtf8);
 			for (int i = 0; i < parts.Length; i++) {

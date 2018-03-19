@@ -13,7 +13,7 @@ namespace dnlib.DotNet.Writer {
 		public static void WriteZeros(this DataWriter writer, int count) {
 			if (count <= 0x20) {
 				for (int i = 0; i < count; i++)
-					writer.WriteByte((byte)0);
+					writer.WriteByte(0);
 			}
 			else
 				writer.WriteBytes(new byte[count]);

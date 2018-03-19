@@ -92,7 +92,7 @@ namespace dnlib.DotNet.Writer {
 				foreach (var rva in pageList)
 					writer.WriteUInt16((ushort)(relocType | (rva & 0xFFF)));
 				if ((pageList.Count & 1) != 0)
-					writer.WriteUInt16((ushort)0);
+					writer.WriteUInt16(0);
 			}
 		}
 
