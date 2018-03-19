@@ -483,7 +483,7 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.BeginWritePEChecksum);
 			if (Options.AddCheckSum) {
 				destStream.Position = destStreamBaseOffset;
-				uint newCheckSum = new BinaryReader(destStream).CalculatePECheckSum(imageLength, checkSumOffset);
+				uint newCheckSum = destStream.CalculatePECheckSum(imageLength, checkSumOffset);
 				writer.BaseStream.Position = checkSumOffset;
 				writer.Write(newCheckSum);
 			}

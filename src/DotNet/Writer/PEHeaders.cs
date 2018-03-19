@@ -461,7 +461,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="length">Length of PE file</param>
 		public void WriteCheckSum(BinaryWriter writer, long length) {
 			writer.BaseStream.Position = startOffset;
-			uint checkSum = new BinaryReader(writer.BaseStream).CalculatePECheckSum(length, checkSumOffset);
+			uint checkSum = writer.BaseStream.CalculatePECheckSum(length, checkSumOffset);
 			writer.BaseStream.Position = checkSumOffset;
 			writer.Write(checkSum);
 		}
