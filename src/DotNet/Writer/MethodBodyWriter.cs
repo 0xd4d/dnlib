@@ -142,7 +142,7 @@ namespace dnlib.DotNet.Writer {
 				flags |= 0x10;
 
 			code = new byte[12 + codeSize];
-			var writer = new DataWriter(code);
+			var writer = new ArrayWriter(code);
 			writer.Write(flags);
 			writer.Write((ushort)maxStack);
 			writer.Write(codeSize);
@@ -161,7 +161,7 @@ namespace dnlib.DotNet.Writer {
 		void WriteTinyHeader() {
 			localVarSigTok = 0;
 			code = new byte[1 + codeSize];
-			var writer = new DataWriter(code);
+			var writer = new ArrayWriter(code);
 			writer.Write((byte)((codeSize << 2) | 2));
 			if (WriteInstructions(ref writer) != codeSize)
 				Error("Didn't write all code bytes");
@@ -216,7 +216,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			var data = new byte[numExceptionHandlers * 24 + 4];
-			var writer = new DataWriter(data);
+			var writer = new ArrayWriter(data);
 			writer.Write((((uint)numExceptionHandlers * 24 + 4) << 8) | 0x41);
 			for (int i = 0; i < numExceptionHandlers; i++) {
 				var eh = exceptionHandlers[i];
@@ -261,7 +261,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			var data = new byte[numExceptionHandlers * 12 + 4];
-			var writer = new DataWriter(data);
+			var writer = new ArrayWriter(data);
 			writer.Write((((uint)numExceptionHandlers * 12 + 4) << 8) | 1);
 			for (int i = 0; i < numExceptionHandlers; i++) {
 				var eh = exceptionHandlers[i];
@@ -300,21 +300,21 @@ namespace dnlib.DotNet.Writer {
 		protected override void ErrorImpl(string message) => helper.Error(message);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineField(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineField(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineMethod(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineMethod(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineSig(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineSig(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineString(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineString(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineTok(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineTok(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineType(ref DataWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineType(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
 	}
 }

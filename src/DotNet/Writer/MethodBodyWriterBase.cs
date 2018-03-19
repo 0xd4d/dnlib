@@ -121,7 +121,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">The instruction writer</param>
 		/// <returns>Number of bytes written</returns>
-		protected uint WriteInstructions(ref DataWriter writer) {
+		protected uint WriteInstructions(ref ArrayWriter writer) {
 			firstInstructionOffset = (uint)writer.Position;
 			var instructions = this.instructions;
 			for (int i = 0; i < instructions.Count; i++) {
@@ -139,14 +139,14 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">The instruction writer</param>
 		/// <returns>Current offset, relative to the first written instruction</returns>
-		protected uint ToInstructionOffset(ref DataWriter writer) => (uint)writer.Position - firstInstructionOffset;
+		protected uint ToInstructionOffset(ref ArrayWriter writer) => (uint)writer.Position - firstInstructionOffset;
 
 		/// <summary>
 		/// Writes an instruction
 		/// </summary>
 		/// <param name="writer">The instruction writer</param>
 		/// <param name="instr">The instruction</param>
-		protected virtual void WriteInstruction(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInstruction(ref ArrayWriter writer, Instruction instr) {
 			WriteOpCode(ref writer, instr);
 			WriteOperand(ref writer, instr);
 		}
@@ -156,7 +156,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">The instruction writer</param>
 		/// <param name="instr">The instruction</param>
-		protected void WriteOpCode(ref DataWriter writer, Instruction instr) {
+		protected void WriteOpCode(ref ArrayWriter writer, Instruction instr) {
 			var code = instr.OpCode.Code;
 			if ((ushort)code <= 0xFF)
 				writer.Write((byte)code);
@@ -179,7 +179,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">The instruction writer</param>
 		/// <param name="instr">The instruction</param>
-		protected void WriteOperand(ref DataWriter writer, Instruction instr) {
+		protected void WriteOperand(ref ArrayWriter writer, Instruction instr) {
 			switch (instr.OpCode.OperandType) {
 			case OperandType.InlineBrTarget:	WriteInlineBrTarget(ref writer, instr); break;
 			case OperandType.InlineField:		WriteInlineField(ref writer, instr); break;
@@ -211,7 +211,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlineBrTarget(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlineBrTarget(ref ArrayWriter writer, Instruction instr) {
 			uint displ = GetOffset(instr.Operand as Instruction) - (ToInstructionOffset(ref writer) + 4);
 			writer.Write(displ);
 		}
@@ -221,14 +221,14 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected abstract void WriteInlineField(ref DataWriter writer, Instruction instr);
+		protected abstract void WriteInlineField(ref ArrayWriter writer, Instruction instr);
 
 		/// <summary>
 		/// Writes an <see cref="OperandType.InlineI"/> operand
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlineI(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlineI(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is int)
 				writer.Write((int)instr.Operand);
 			else {
@@ -242,7 +242,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlineI8(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlineI8(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is long)
 				writer.Write((long)instr.Operand);
 			else {
@@ -256,14 +256,14 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected abstract void WriteInlineMethod(ref DataWriter writer, Instruction instr);
+		protected abstract void WriteInlineMethod(ref ArrayWriter writer, Instruction instr);
 
 		/// <summary>
 		/// Writes an <see cref="OperandType.InlineNone"/> operand
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlineNone(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlineNone(ref ArrayWriter writer, Instruction instr) {
 		}
 
 		/// <summary>
@@ -271,7 +271,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlinePhi(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlinePhi(ref ArrayWriter writer, Instruction instr) {
 		}
 
 		/// <summary>
@@ -279,7 +279,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlineR(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlineR(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is double)
 				writer.Write((double)instr.Operand);
 			else {
@@ -293,21 +293,21 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected abstract void WriteInlineSig(ref DataWriter writer, Instruction instr);
+		protected abstract void WriteInlineSig(ref ArrayWriter writer, Instruction instr);
 
 		/// <summary>
 		/// Writes an <see cref="OperandType.InlineString"/> operand
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected abstract void WriteInlineString(ref DataWriter writer, Instruction instr);
+		protected abstract void WriteInlineString(ref ArrayWriter writer, Instruction instr);
 
 		/// <summary>
 		/// Writes an <see cref="OperandType.InlineSwitch"/> operand
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlineSwitch(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlineSwitch(ref ArrayWriter writer, Instruction instr) {
 			var targets = instr.Operand as IList<Instruction>;
 			if (targets == null) {
 				Error("switch operand is not a list of instructions");
@@ -328,21 +328,21 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected abstract void WriteInlineTok(ref DataWriter writer, Instruction instr);
+		protected abstract void WriteInlineTok(ref ArrayWriter writer, Instruction instr);
 
 		/// <summary>
 		/// Writes an <see cref="OperandType.InlineType"/> operand
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected abstract void WriteInlineType(ref DataWriter writer, Instruction instr);
+		protected abstract void WriteInlineType(ref ArrayWriter writer, Instruction instr);
 
 		/// <summary>
 		/// Writes an <see cref="OperandType.InlineVar"/> operand
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteInlineVar(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteInlineVar(ref ArrayWriter writer, Instruction instr) {
 			var variable = instr.Operand as IVariable;
 			if (variable == null) {
 				Error("Operand is not a local/arg");
@@ -364,7 +364,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteShortInlineBrTarget(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteShortInlineBrTarget(ref ArrayWriter writer, Instruction instr) {
 			int displ = (int)(GetOffset(instr.Operand as Instruction) - (ToInstructionOffset(ref writer) + 1));
 			if (sbyte.MinValue <= displ && displ <= sbyte.MaxValue)
 				writer.Write((sbyte)displ);
@@ -379,7 +379,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteShortInlineI(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteShortInlineI(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is sbyte)
 				writer.Write((sbyte)instr.Operand);
 			else if (instr.Operand is byte)
@@ -395,7 +395,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteShortInlineR(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteShortInlineR(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is float)
 				writer.Write((float)instr.Operand);
 			else {
@@ -409,7 +409,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
-		protected virtual void WriteShortInlineVar(ref DataWriter writer, Instruction instr) {
+		protected virtual void WriteShortInlineVar(ref ArrayWriter writer, Instruction instr) {
 			var variable = instr.Operand as IVariable;
 			if (variable == null) {
 				Error("Operand is not a local/arg");

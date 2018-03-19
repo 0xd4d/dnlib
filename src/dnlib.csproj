@@ -302,6 +302,7 @@
     <Compile Include="DotNet\VariantType.cs" />
     <Compile Include="DotNet\WinMDHelpers.cs" />
     <Compile Include="DotNet\WinMDStatus.cs" />
+    <Compile Include="DotNet\Writer\ArrayWriter.cs" />
     <Compile Include="DotNet\Writer\BlobHeap.cs" />
     <Compile Include="DotNet\Writer\ByteArrayChunk.cs" />
     <Compile Include="DotNet\Writer\ChunkList.cs" />

@@ -7,13 +7,13 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Writes data
 	/// </summary>
-	public unsafe struct DataWriter {
+	public unsafe struct ArrayWriter {
 		public int Position => position;
 
 		readonly byte[] data;
 		int position;
 
-		public DataWriter(byte[] data) {
+		public ArrayWriter(byte[] data) {
 			this.data = data;
 			position = 0;
 		}
