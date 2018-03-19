@@ -833,6 +833,8 @@ namespace dnlib.DotNet.Writer {
 				}
 				else
 					pdbStream = GetStandalonePortablePdbStream(out ownsStream);
+				if (pdbStream == null)
+					throw new ModuleWriterException("Couldn't create a PDB stream");
 
 				var pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
 				if (isEmbeddedPortablePdb)
