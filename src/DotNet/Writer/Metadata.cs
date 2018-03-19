@@ -1517,44 +1517,57 @@ namespace dnlib.DotNet.Writer {
 
 				if (type == null)
 					continue;
-				rid = GetRid(type);
-				AddCustomAttributes(Table.TypeDef, rid, type);
-				AddCustomDebugInformationList(Table.TypeDef, rid, type);
+				if (type.HasCustomAttributes || type.HasCustomDebugInfos) {
+					rid = GetRid(type);
+					AddCustomAttributes(Table.TypeDef, rid, type);
+					AddCustomDebugInformationList(Table.TypeDef, rid, type);
+				}
 
 				foreach (var field in type.Fields) {
 					if (field == null)
 						continue;
-					rid = GetRid(field);
-					AddCustomAttributes(Table.Field, rid, field);
-					AddCustomDebugInformationList(Table.Field, rid, field);
+					if (field.HasCustomAttributes || field.HasCustomDebugInfos) {
+						rid = GetRid(field);
+						AddCustomAttributes(Table.Field, rid, field);
+						AddCustomDebugInformationList(Table.Field, rid, field);
+					}
 				}
 
 				foreach (var method in type.Methods) {
 					if (method == null)
 						continue;
-					AddCustomAttributes(Table.Method, GetRid(method), method);
-					// Method custom debug info is added later when writing method bodies
+					if (method.HasCustomAttributes) {
+						rid = GetRid(method);
+						AddCustomAttributes(Table.Method, rid, method);
+						// Method custom debug info is added later when writing method bodies
+					}
 					foreach (var pd in method.ParamDefs) {
 						if (pd == null)
 							continue;
-						rid = GetRid(pd);
-						AddCustomAttributes(Table.Param, rid, pd);
-						AddCustomDebugInformationList(Table.Param, rid, pd);
+						if (pd.HasCustomAttributes || pd.HasCustomDebugInfos) {
+							rid = GetRid(pd);
+							AddCustomAttributes(Table.Param, rid, pd);
+							AddCustomDebugInformationList(Table.Param, rid, pd);
+						}
 					}
 				}
 				foreach (var evt in type.Events) {
 					if (evt == null)
 						continue;
-					rid = GetRid(evt);
-					AddCustomAttributes(Table.Event, rid, evt);
-					AddCustomDebugInformationList(Table.Event, rid, evt);
+					if (evt.HasCustomAttributes || evt.HasCustomDebugInfos) {
+						rid = GetRid(evt);
+						AddCustomAttributes(Table.Event, rid, evt);
+						AddCustomDebugInformationList(Table.Event, rid, evt);
+					}
 				}
 				foreach (var prop in type.Properties) {
 					if (prop == null)
 						continue;
-					rid = GetRid(prop);
-					AddCustomAttributes(Table.Property, rid, prop);
-					AddCustomDebugInformationList(Table.Property, rid, prop);
+					if (prop.HasCustomAttributes || prop.HasCustomDebugInfos) {
+						rid = GetRid(prop);
+						AddCustomAttributes(Table.Property, rid, prop);
+						AddCustomDebugInformationList(Table.Property, rid, prop);
+					}
 				}
 			}
 		}
@@ -1654,19 +1667,25 @@ namespace dnlib.DotNet.Writer {
 			foreach (var info in nestedClassInfos.infos) tablesHeap.NestedClassTable.Create(info.row);
 
 			foreach (var info in interfaceImplInfos.infos) {
-				uint rid = interfaceImplInfos.Rid(info.data);
-				AddCustomAttributes(Table.InterfaceImpl, rid, info.data);
-				AddCustomDebugInformationList(Table.InterfaceImpl, rid, info.data);
+				if (info.data.HasCustomAttributes || info.data.HasCustomDebugInfos) {
+					uint rid = interfaceImplInfos.Rid(info.data);
+					AddCustomAttributes(Table.InterfaceImpl, rid, info.data);
+					AddCustomDebugInformationList(Table.InterfaceImpl, rid, info.data);
+				}
 			}
 			foreach (var info in declSecurityInfos.infos) {
-				uint rid = declSecurityInfos.Rid(info.data);
-				AddCustomAttributes(Table.DeclSecurity, rid, info.data);
-				AddCustomDebugInformationList(Table.DeclSecurity, rid, info.data);
+				if (info.data.HasCustomAttributes || info.data.HasCustomDebugInfos) {
+					uint rid = declSecurityInfos.Rid(info.data);
+					AddCustomAttributes(Table.DeclSecurity, rid, info.data);
+					AddCustomDebugInformationList(Table.DeclSecurity, rid, info.data);
+				}
 			}
 			foreach (var info in genericParamInfos.infos) {
-				uint rid = genericParamInfos.Rid(info.data);
-				AddCustomAttributes(Table.GenericParam, rid, info.data);
-				AddCustomDebugInformationList(Table.GenericParam, rid, info.data);
+				if (info.data.HasCustomAttributes || info.data.HasCustomDebugInfos) {
+					uint rid = genericParamInfos.Rid(info.data);
+					AddCustomAttributes(Table.GenericParam, rid, info.data);
+					AddCustomDebugInformationList(Table.GenericParam, rid, info.data);
+				}
 			}
 		}
 
@@ -1689,9 +1708,11 @@ namespace dnlib.DotNet.Writer {
 			foreach (var info in genericParamConstraintInfos.infos)
 				tablesHeap.GenericParamConstraintTable.Create(info.row);
 			foreach (var info in genericParamConstraintInfos.infos) {
-				uint rid = genericParamConstraintInfos.Rid(info.data);
-				AddCustomAttributes(Table.GenericParamConstraint, rid, info.data);
-				AddCustomDebugInformationList(Table.GenericParamConstraint, rid, info.data);
+				if (info.data.HasCustomAttributes || info.data.HasCustomDebugInfos) {
+					uint rid = genericParamConstraintInfos.Rid(info.data);
+					AddCustomAttributes(Table.GenericParamConstraint, rid, info.data);
+					AddCustomDebugInformationList(Table.GenericParamConstraint, rid, info.data);
+				}
 			}
 		}
 
@@ -2664,12 +2685,14 @@ namespace dnlib.DotNet.Writer {
 				Error("Method declaring type == null. Method {0} ({1:X8})", method, method.MDToken.Raw);
 				return;
 			}
-			uint rid = GetRid(method.DeclaringType);
-			foreach (var ovr in overrides) {
-				var row = new RawMethodImplRow(rid,
-							AddMethodDefOrRef(ovr.MethodBody),
-							AddMethodDefOrRef(ovr.MethodDeclaration));
-				methodImplInfos.Add(method, row);
+			if (overrides.Count != 0) {
+				uint rid = GetRid(method.DeclaringType);
+				foreach (var ovr in overrides) {
+					var row = new RawMethodImplRow(rid,
+								AddMethodDefOrRef(ovr.MethodBody),
+								AddMethodDefOrRef(ovr.MethodDeclaration));
+					methodImplInfos.Add(method, row);
+				}
 			}
 		}
 

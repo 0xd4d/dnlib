@@ -207,7 +207,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			var info = new CurrentMethod(this, method, instrToOffset);
 			var body = method.Body;
-			var symbolToken = new SymbolToken((int)new MDToken(MD.Table.Method, metadata.GetRid(method)).Raw);
+			var symbolToken = new SymbolToken((int)new MDToken(MD.Table.Method, rid).Raw);
 			writer.OpenMethod(symbolToken);
 			seqPointsHelper.Write(this, info.Method.Body.Instructions);
 
