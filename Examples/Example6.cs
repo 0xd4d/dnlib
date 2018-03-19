@@ -14,9 +14,7 @@ namespace dnlib.Examples {
 	/// most libraries that open .NET assemblies.
 	/// </summary>
 	public class Example6 {
-		public static void Run() {
-			new Example6().DoIt();
-		}
+		public static void Run() => new Example6().DoIt();
 
 		void DoIt() {
 			string destFileName = @"c:\output.dll";
@@ -59,47 +57,27 @@ namespace dnlib.Examples {
 			// This is the data. I chose 10 bytes, but any non-zero value can be used
 			byte[] heapData = new byte[10];
 
-			public MyHeap(string name) {
-				this.name = name;
-			}
+			public MyHeap(string name) => this.name = name;
 
 			// The rest of the code is just for implementing the required interface
 
-			public string Name {
-				get { return name; }
-			}
-
-			public bool IsEmpty {
-				get { return false; }
-			}
+			public string Name => name;
+			public bool IsEmpty => false;
 
 			public void SetReadOnly() {
 			}
 
-			public FileOffset FileOffset {
-				get { return offset; }
-			}
-
-			public RVA RVA {
-				get { return rva; }
-			}
+			public FileOffset FileOffset => offset;
+			public RVA RVA => rva;
 
 			public void SetOffset(FileOffset offset, RVA rva) {
 				this.offset = offset;
 				this.rva = rva;
 			}
 
-			public uint GetFileLength() {
-				return (uint)heapData.Length;
-			}
-
-			public uint GetVirtualSize() {
-				return GetFileLength();
-			}
-
-			public void WriteTo(BinaryWriter writer) {
-				writer.Write(heapData);
-			}
+			public uint GetFileLength() => (uint)heapData.Length;
+			public uint GetVirtualSize() => GetFileLength();
+			public void WriteTo(DataWriter writer) => writer.WriteBytes(heapData);
 		}
 
 		// Gets notified during module writing

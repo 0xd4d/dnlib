@@ -23,12 +23,12 @@ namespace dnlib.Examples {
 		public static void Run() {
 			// Create a new module. The string passed in is the name of the module,
 			// not the file name.
-			ModuleDef mod = new ModuleDefUser("MyModule.exe");
+			var mod = new ModuleDefUser("MyModule.exe");
 			// It's a console application
 			mod.Kind = ModuleKind.Console;
 
 			// Add the module to an assembly
-			AssemblyDef asm = new AssemblyDefUser("MyAssembly", new Version(1, 2, 3, 4), null, null);
+			var asm = new AssemblyDefUser("MyAssembly", new Version(1, 2, 3, 4), null, null);
 			asm.Modules.Add(mod);
 
 			// Add a .NET resource
@@ -37,14 +37,14 @@ namespace dnlib.Examples {
 							ManifestResourceAttributes.Private));
 
 			// Add the startup type. It derives from System.Object.
-			TypeDef startUpType = new TypeDefUser("My.Namespace", "Startup", mod.CorLibTypes.Object.TypeDefOrRef);
+			var startUpType = new TypeDefUser("My.Namespace", "Startup", mod.CorLibTypes.Object.TypeDefOrRef);
 			startUpType.Attributes = TypeAttributes.NotPublic | TypeAttributes.AutoLayout |
 									TypeAttributes.Class | TypeAttributes.AnsiClass;
 			// Add the type to the module
 			mod.Types.Add(startUpType);
 
 			// Create the entry point method
-			MethodDef entryPoint = new MethodDefUser("Main",
+			var entryPoint = new MethodDefUser("Main",
 				MethodSig.CreateStatic(mod.CorLibTypes.Int32, new SZArraySig(mod.CorLibTypes.String)));
 			entryPoint.Attributes = MethodAttributes.Private | MethodAttributes.Static |
 							MethodAttributes.HideBySig | MethodAttributes.ReuseSlot;
@@ -57,14 +57,14 @@ namespace dnlib.Examples {
 			mod.EntryPoint = entryPoint;
 
 			// Create a TypeRef to System.Console
-			TypeRef consoleRef = new TypeRefUser(mod, "System", "Console", mod.CorLibTypes.AssemblyRef);
+			var consoleRef = new TypeRefUser(mod, "System", "Console", mod.CorLibTypes.AssemblyRef);
 			// Create a method ref to 'System.Void System.Console::WriteLine(System.String)'
-			MemberRef consoleWrite1 = new MemberRefUser(mod, "WriteLine",
+			var consoleWrite1 = new MemberRefUser(mod, "WriteLine",
 						MethodSig.CreateStatic(mod.CorLibTypes.Void, mod.CorLibTypes.String),
 						consoleRef);
 
 			// Add a CIL method body to the entry point method
-			CilBody epBody = new CilBody();
+			var epBody = new CilBody();
 			entryPoint.Body = epBody;
 			epBody.Instructions.Add(OpCodes.Ldstr.ToInstruction("Hello World!"));
 			epBody.Instructions.Add(OpCodes.Call.ToInstruction(consoleWrite1));

@@ -8,13 +8,13 @@ namespace dnlib.Examples {
 	public class Example1 {
 		public static void Run() {
 			// Load mscorlib.dll
-			string filename = typeof(void).Module.FullyQualifiedName;
-			ModuleDefMD mod = ModuleDefMD.Load(filename);
+			var filename = typeof(void).Module.FullyQualifiedName;
+			var mod = ModuleDefMD.Load(filename);
 
 			int totalNumTypes = 0;
 			// mod.Types only returns non-nested types.
 			// mod.GetTypes() returns all types, including nested types.
-			foreach (TypeDef type in mod.GetTypes()) {
+			foreach (var type in mod.GetTypes()) {
 				totalNumTypes++;
 				Console.WriteLine();
 				Console.WriteLine("Type: {0}", type.FullName);
@@ -29,7 +29,7 @@ namespace dnlib.Examples {
 
 				if (type.Interfaces.Count > 0) {
 					Console.WriteLine("  Interfaces:");
-					foreach (InterfaceImpl iface in type.Interfaces)
+					foreach (var iface in type.Interfaces)
 						Console.WriteLine("    {0}", iface.Interface.FullName);
 				}
 			}
