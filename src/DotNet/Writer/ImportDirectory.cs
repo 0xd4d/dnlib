@@ -91,31 +91,31 @@ namespace dnlib.DotNet.Writer {
 		public void WriteTo(DataWriter writer) {
 			if (!Enable)
 				return;
-			writer.Write((uint)importLookupTableRVA);
-			writer.Write(0);	// DateTimeStamp
-			writer.Write(0);	// ForwarderChain
-			writer.Write((uint)mscoreeDllRVA);	// Name
-			writer.Write((uint)ImportAddressTable.RVA);
-			writer.Write(0UL);
-			writer.Write(0UL);
-			writer.Write(0);
+			writer.WriteUInt32((uint)importLookupTableRVA);
+			writer.WriteInt32(0);	// DateTimeStamp
+			writer.WriteInt32(0);	// ForwarderChain
+			writer.WriteUInt32((uint)mscoreeDllRVA);	// Name
+			writer.WriteUInt32((uint)ImportAddressTable.RVA);
+			writer.WriteUInt64(0);
+			writer.WriteUInt64(0);
+			writer.WriteInt32(0);
 
 			// ImportLookupTable
 			if (is64bit) {
-				writer.Write((ulong)(uint)corXxxMainRVA);
-				writer.Write(0UL);
+				writer.WriteUInt64((ulong)(uint)corXxxMainRVA);
+				writer.WriteUInt64(0);
 			}
 			else {
-				writer.Write((uint)corXxxMainRVA);
-				writer.Write(0);
+				writer.WriteUInt32((uint)corXxxMainRVA);
+				writer.WriteInt32(0);
 			}
 
 			writer.WriteZeros(stringsPadding);
-			writer.Write((ushort)0);
-			writer.Write(Encoding.UTF8.GetBytes(IsExeFile ? "_CorExeMain\0" : "_CorDllMain\0"));
-			writer.Write(Encoding.UTF8.GetBytes("mscoree.dll\0"));
+			writer.WriteUInt16((ushort)0);
+			writer.WriteBytes(Encoding.UTF8.GetBytes(IsExeFile ? "_CorExeMain\0" : "_CorDllMain\0"));
+			writer.WriteBytes(Encoding.UTF8.GetBytes("mscoree.dll\0"));
 
-			writer.Write((byte)0);
+			writer.WriteByte((byte)0);
 		}
 	}
 }

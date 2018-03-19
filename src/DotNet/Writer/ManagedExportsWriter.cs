@@ -293,7 +293,7 @@ namespace dnlib.DotNet.Writer {
 
 			public void Write(DataWriter writer) {
 				foreach (var name in names)
-					writer.Write(name);
+					writer.WriteBytes(name);
 			}
 
 			public uint[] GetMethodNameOffsets() => methodNameOffsets.ToArray();
@@ -326,9 +326,9 @@ namespace dnlib.DotNet.Writer {
 				vtbl.SdataChunkOffset = (uint)writer.Position;
 				foreach (var info in vtbl.Methods) {
 					info.ManagedVtblOffset = (uint)writer.Position;
-					writer.Write(0x06000000 + metadata.GetRid(info.Method));
+					writer.WriteUInt32(0x06000000 + metadata.GetRid(info.Method));
 					if ((vtbl.Flags & VTableFlags.Bit64) != 0)
-						writer.Write(0U);
+						writer.WriteUInt32(0);
 				}
 			}
 
@@ -391,18 +391,18 @@ namespace dnlib.DotNet.Writer {
 			// Write IMAGE_EXPORT_DIRECTORY
 			Debug.Assert((writer.Position & 3) == 0);
 			exportDirOffset = (uint)writer.Position;
-			writer.Write(0U); // Characteristics
-			writer.Write(timestamp);
-			writer.Write(0U); // MajorVersion, MinorVersion
+			writer.WriteUInt32(0); // Characteristics
+			writer.WriteUInt32(timestamp);
+			writer.WriteUInt32(0); // MajorVersion, MinorVersion
 			sdataBytesInfo.exportDirModuleNameStreamOffset = (uint)writer.Position;
-			writer.Write(0U); // Name
-			writer.Write(ordinalBase); // Base
-			writer.Write((uint)funcSize); // NumberOfFunctions
-			writer.Write(sdataBytesInfo.MethodNameOffsets.Length); // NumberOfNames
+			writer.WriteUInt32(0); // Name
+			writer.WriteInt32(ordinalBase); // Base
+			writer.WriteUInt32((uint)funcSize); // NumberOfFunctions
+			writer.WriteInt32(sdataBytesInfo.MethodNameOffsets.Length); // NumberOfNames
 			sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset = (uint)writer.Position;
-			writer.Write(0U); // AddressOfFunctions
-			writer.Write(0U); // AddressOfNames
-			writer.Write(0U); // AddressOfNameOrdinals
+			writer.WriteUInt32(0); // AddressOfFunctions
+			writer.WriteUInt32(0); // AddressOfNames
+			writer.WriteUInt32(0); // AddressOfNameOrdinals
 
 			sdataBytesInfo.addressOfFunctionsStreamOffset = (uint)writer.Position;
 			WriteZeroes(writer, funcSize * 4);
@@ -420,7 +420,7 @@ namespace dnlib.DotNet.Writer {
 			if (sdataBytesInfo.Data == null)
 				return;
 			PatchSdataBytesBlob();
-			writer.Write(sdataBytesInfo.Data);
+			writer.WriteBytes(sdataBytesInfo.Data);
 		}
 
 		void PatchSdataBytesBlob() {
@@ -430,13 +430,13 @@ namespace dnlib.DotNet.Writer {
 			var writer = new DataWriter(new MemoryStream(sdataBytesInfo.Data));
 
 			writer.Position = sdataBytesInfo.exportDirModuleNameStreamOffset;
-			writer.Write(namesBaseOffset + sdataBytesInfo.moduleNameOffset);
+			writer.WriteUInt32(namesBaseOffset + sdataBytesInfo.moduleNameOffset);
 
 			writer.Position = sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset;
-			writer.Write(rva + sdataBytesInfo.addressOfFunctionsStreamOffset); // AddressOfFunctions
+			writer.WriteUInt32(rva + sdataBytesInfo.addressOfFunctionsStreamOffset); // AddressOfFunctions
 			if (sdataBytesInfo.MethodNameOffsets.Length != 0) {
-				writer.Write(rva + sdataBytesInfo.addressOfNamesStreamOffset); // AddressOfNames
-				writer.Write(rva + sdataBytesInfo.addressOfNameOrdinalsStreamOffset); // AddressOfNameOrdinals
+				writer.WriteUInt32(rva + sdataBytesInfo.addressOfNamesStreamOffset); // AddressOfNames
+				writer.WriteUInt32(rva + sdataBytesInfo.addressOfNameOrdinalsStreamOffset); // AddressOfNameOrdinals
 			}
 
 			uint funcBaseRva = (uint)stubsChunk.RVA;
@@ -447,35 +447,35 @@ namespace dnlib.DotNet.Writer {
 				if (zeroes < 0)
 					throw new InvalidOperationException();
 				while (zeroes-- > 0)
-					writer.Write(0);
-				writer.Write(funcBaseRva + info.StubChunkOffset);
+					writer.WriteInt32(0);
+				writer.WriteUInt32(funcBaseRva + info.StubChunkOffset);
 				currentFuncIndex = info.FunctionIndex + 1;
 			}
 			foreach (var info in sortedNameMethodInfos) {
 				if (info.FunctionIndex != currentFuncIndex++)
 					throw new InvalidOperationException();
-				writer.Write(funcBaseRva + info.StubChunkOffset);
+				writer.WriteUInt32(funcBaseRva + info.StubChunkOffset);
 			}
 
 			var nameOffsets = sdataBytesInfo.MethodNameOffsets;
 			if (nameOffsets.Length != 0) {
 				writer.Position = sdataBytesInfo.addressOfNamesStreamOffset;
 				foreach (var info in sortedNameMethodInfos)
-					writer.Write(namesBaseOffset + nameOffsets[info.NameIndex]);
+					writer.WriteUInt32(namesBaseOffset + nameOffsets[info.NameIndex]);
 
 				writer.Position = sdataBytesInfo.addressOfNameOrdinalsStreamOffset;
 				foreach (var info in sortedNameMethodInfos)
-					writer.Write((ushort)info.FunctionIndex);
+					writer.WriteUInt16((ushort)info.FunctionIndex);
 			}
 		}
 
 		static void WriteZeroes(DataWriter writer, int count) {
 			while (count >= 8) {
-				writer.Write(0UL);
+				writer.WriteUInt64(0);
 				count -= 8;
 			}
 			for (int i = 0; i < count; i++)
-				writer.Write((byte)0);
+				writer.WriteByte((byte)0);
 		}
 
 		void WriteVtableFixups(DataWriter writer) {
@@ -484,9 +484,9 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var vtbl in vtables) {
 				Debug.Assert(vtbl.Methods.Count <= ushort.MaxValue);
-				writer.Write((uint)sdataChunk.RVA + vtbl.SdataChunkOffset);
-				writer.Write((ushort)vtbl.Methods.Count);
-				writer.Write((ushort)vtbl.Flags);
+				writer.WriteUInt32((uint)sdataChunk.RVA + vtbl.SdataChunkOffset);
+				writer.WriteUInt16((ushort)vtbl.Methods.Count);
+				writer.WriteUInt16((ushort)vtbl.Flags);
 			}
 		}
 

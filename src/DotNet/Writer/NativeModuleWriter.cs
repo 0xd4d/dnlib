@@ -485,7 +485,7 @@ namespace dnlib.DotNet.Writer {
 				destStream.Position = destStreamBaseOffset;
 				uint newCheckSum = destStream.CalculatePECheckSum(imageLength, checkSumOffset);
 				writer.Position = checkSumOffset;
-				writer.Write(newCheckSum);
+				writer.WriteUInt32(newCheckSum);
 			}
 			OnWriterEvent(ModuleWriterEvent.EndWritePEChecksum);
 
@@ -544,13 +544,13 @@ namespace dnlib.DotNet.Writer {
 			// Update PE file header
 			var peOptions = Options.PEHeadersOptions;
 			writer.Position = fileHeaderOffset;
-			writer.Write((ushort)(peOptions.Machine ?? module.Machine));
-			writer.Write((ushort)(origSections.Count + sections.Count));
+			writer.WriteUInt16((ushort)(peOptions.Machine ?? module.Machine));
+			writer.WriteUInt16((ushort)(origSections.Count + sections.Count));
 			WriteUInt32(writer, peOptions.TimeDateStamp);
 			WriteUInt32(writer, peOptions.PointerToSymbolTable);
 			WriteUInt32(writer, peOptions.NumberOfSymbols);
 			writer.Position += 2;    // sizeof(SizeOfOptionalHeader)
-			writer.Write((ushort)(peOptions.Characteristics ?? GetCharacteristics()));
+			writer.WriteUInt16((ushort)(peOptions.Characteristics ?? GetCharacteristics()));
 
 			// Update optional header
 			writer.Position = optionalHeaderOffset;
@@ -559,12 +559,12 @@ namespace dnlib.DotNet.Writer {
 				writer.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
 				WriteByte(writer, peOptions.MinorLinkerVersion);
-				writer.Write(sectionSizes.SizeOfCode);
-				writer.Write(sectionSizes.SizeOfInitdData);
-				writer.Write(sectionSizes.SizeOfUninitdData);
+				writer.WriteUInt32(sectionSizes.SizeOfCode);
+				writer.WriteUInt32(sectionSizes.SizeOfInitdData);
+				writer.WriteUInt32(sectionSizes.SizeOfUninitdData);
 				writer.Position += 4;	// EntryPoint
-				writer.Write(sectionSizes.BaseOfCode);
-				writer.Write(sectionSizes.BaseOfData);
+				writer.WriteUInt32(sectionSizes.BaseOfCode);
+				writer.WriteUInt32(sectionSizes.BaseOfData);
 				WriteUInt32(writer, peOptions.ImageBase);
 				writer.Position += 8;	// SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
@@ -574,10 +574,10 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt16(writer, peOptions.MajorSubsystemVersion);
 				WriteUInt16(writer, peOptions.MinorSubsystemVersion);
 				WriteUInt32(writer, peOptions.Win32VersionValue);
-				writer.Write(sectionSizes.SizeOfImage);
-				writer.Write(sectionSizes.SizeOfHeaders);
+				writer.WriteUInt32(sectionSizes.SizeOfImage);
+				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.Write(0);	// CheckSum
+				writer.WriteInt32(0);	// CheckSum
 				WriteUInt16(writer, peOptions.Subsystem);
 				WriteUInt16(writer, peOptions.DllCharacteristics);
 				WriteUInt32(writer, peOptions.SizeOfStackReserve);
@@ -591,11 +591,11 @@ namespace dnlib.DotNet.Writer {
 				writer.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
 				WriteByte(writer, peOptions.MinorLinkerVersion);
-				writer.Write(sectionSizes.SizeOfCode);
-				writer.Write(sectionSizes.SizeOfInitdData);
-				writer.Write(sectionSizes.SizeOfUninitdData);
+				writer.WriteUInt32(sectionSizes.SizeOfCode);
+				writer.WriteUInt32(sectionSizes.SizeOfInitdData);
+				writer.WriteUInt32(sectionSizes.SizeOfUninitdData);
 				writer.Position += 4;	// EntryPoint
-				writer.Write(sectionSizes.BaseOfCode);
+				writer.WriteUInt32(sectionSizes.BaseOfCode);
 				WriteUInt64(writer, peOptions.ImageBase);
 				writer.Position += 8;	// SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
@@ -605,10 +605,10 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt16(writer, peOptions.MajorSubsystemVersion);
 				WriteUInt16(writer, peOptions.MinorSubsystemVersion);
 				WriteUInt32(writer, peOptions.Win32VersionValue);
-				writer.Write(sectionSizes.SizeOfImage);
-				writer.Write(sectionSizes.SizeOfHeaders);
+				writer.WriteUInt32(sectionSizes.SizeOfImage);
+				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.Write(0);	// CheckSum
+				writer.WriteInt32(0);	// CheckSum
 				WriteUInt16(writer, peOptions.Subsystem ?? GetSubsystem());
 				WriteUInt16(writer, peOptions.DllCharacteristics ?? module.DllCharacteristics);
 				WriteUInt64(writer, peOptions.SizeOfStackReserve);
@@ -641,7 +641,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Position = sectionsOffset;
 			foreach (var section in origSections) {
 				writer.Position += 0x14;
-				writer.Write((uint)section.Chunk.FileOffset);	// PointerToRawData
+				writer.WriteUInt32((uint)section.Chunk.FileOffset);	// PointerToRawData
 				writer.Position += 0x10;
 			}
 			foreach (var section in sections)
@@ -649,12 +649,12 @@ namespace dnlib.DotNet.Writer {
 
 			// Write the .NET header
 			writer.Position = cor20Offset;
-			writer.Write(0x48);		// cb
+			writer.WriteInt32(0x48);		// cb
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MajorRuntimeVersion);
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MinorRuntimeVersion);
 			writer.WriteDataDirectory(metadata);
-			writer.Write((uint)GetComImageFlags(entryPointIsManagedOrNoEntryPoint));
-			writer.Write(entryPointToken);
+			writer.WriteUInt32((uint)GetComImageFlags(entryPointIsManagedOrNoEntryPoint));
+			writer.WriteUInt32(entryPointToken);
 			writer.WriteDataDirectory(netResources);
 			writer.WriteDataDirectory(strongNameSignature);
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.CodeManagerTable);
@@ -666,57 +666,57 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static void WriteDataDirectory(DataWriter writer, ImageDataDirectory dataDir) {
-			writer.Write((uint)dataDir.VirtualAddress);
-			writer.Write(dataDir.Size);
+			writer.WriteUInt32((uint)dataDir.VirtualAddress);
+			writer.WriteUInt32(dataDir.Size);
 		}
 
 		static void WriteByte(DataWriter writer, byte? value) {
 			if (value == null)
 				writer.Position++;
 			else
-				writer.Write(value.Value);
+				writer.WriteByte(value.Value);
 		}
 
 		static void WriteUInt16(DataWriter writer, ushort? value) {
 			if (value == null)
 				writer.Position += 2;
 			else
-				writer.Write(value.Value);
+				writer.WriteUInt16(value.Value);
 		}
 
 		static void WriteUInt16(DataWriter writer, Subsystem? value) {
 			if (value == null)
 				writer.Position += 2;
 			else
-				writer.Write((ushort)value.Value);
+				writer.WriteUInt16((ushort)value.Value);
 		}
 
 		static void WriteUInt16(DataWriter writer, DllCharacteristics? value) {
 			if (value == null)
 				writer.Position += 2;
 			else
-				writer.Write((ushort)value.Value);
+				writer.WriteUInt16((ushort)value.Value);
 		}
 
 		static void WriteUInt32(DataWriter writer, uint? value) {
 			if (value == null)
 				writer.Position += 4;
 			else
-				writer.Write(value.Value);
+				writer.WriteUInt32(value.Value);
 		}
 
 		static void WriteUInt32(DataWriter writer, ulong? value) {
 			if (value == null)
 				writer.Position += 4;
 			else
-				writer.Write((uint)value.Value);
+				writer.WriteUInt32((uint)value.Value);
 		}
 
 		static void WriteUInt64(DataWriter writer, ulong? value) {
 			if (value == null)
 				writer.Position += 8;
 			else
-				writer.Write(value.Value);
+				writer.WriteUInt64(value.Value);
 		}
 
 		ComImageFlags GetComImageFlags(bool isManagedEntryPoint) {
@@ -769,9 +769,9 @@ namespace dnlib.DotNet.Writer {
 			foreach (var vtable in vtableFixups) {
 				if (vtable.Methods.Count > ushort.MaxValue)
 					throw new ModuleWriterException("Too many methods in vtable");
-				writer.Write((uint)vtable.RVA);
-				writer.Write((ushort)vtable.Methods.Count);
-				writer.Write((ushort)vtable.Flags);
+				writer.WriteUInt32((uint)vtable.RVA);
+				writer.WriteUInt16((ushort)vtable.Methods.Count);
+				writer.WriteUInt16((ushort)vtable.Flags);
 
 				long pos = writer.Position;
 				writer.Position = ToWriterOffset(vtable.RVA);
@@ -781,9 +781,9 @@ namespace dnlib.DotNet.Writer {
 				}
 				else {
 					foreach (var method in vtable.Methods) {
-						writer.Write(GetMethodToken(method));
+						writer.WriteUInt32(GetMethodToken(method));
 						if (vtable.Is64Bit)
-							writer.Write(0);
+							writer.WriteInt32(0);
 					}
 				}
 				writer.Position = pos;

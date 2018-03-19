@@ -142,9 +142,9 @@ namespace dnlib.DotNet {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
-				writer.Write((ushort)0);// padding
-				writer.Write((ushort)0x25FF);
-				writer.Write((uint)imageBase + managedFuncRva);
+				writer.WriteUInt16((ushort)0);// padding
+				writer.WriteUInt16((ushort)0x25FF);
+				writer.WriteUInt32((uint)imageBase + managedFuncRva);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();
@@ -215,10 +215,10 @@ namespace dnlib.DotNet {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
-				writer.Write((ushort)0);// padding
-				writer.Write((ushort)0xA148);
-				writer.Write(imageBase + managedFuncRva);
-				writer.Write((ushort)0xE0FF);
+				writer.WriteUInt16((ushort)0);// padding
+				writer.WriteUInt16((ushort)0xA148);
+				writer.WriteUInt64(imageBase + managedFuncRva);
+				writer.WriteUInt16((ushort)0xE0FF);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();
@@ -310,12 +310,12 @@ namespace dnlib.DotNet {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
-				writer.Write(0x40A010180200480BUL);
-				writer.Write(0x0004000000283024UL);
-				writer.Write(0x5060101812000810UL);
-				writer.Write(0x0080006000038004UL);
-				writer.Write(imageBase + stubRva);
-				writer.Write(imageBase + managedFuncRva);
+				writer.WriteUInt64(0x40A010180200480BUL);
+				writer.WriteUInt64(0x0004000000283024UL);
+				writer.WriteUInt64(0x5060101812000810UL);
+				writer.WriteUInt64(0x0080006000038004UL);
+				writer.WriteUInt64(imageBase + stubRva);
+				writer.WriteUInt64(imageBase + managedFuncRva);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();
@@ -380,8 +380,8 @@ namespace dnlib.DotNet {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
-				writer.Write(0xF000F8DF);
-				writer.Write((uint)imageBase + managedFuncRva);
+				writer.WriteUInt32(0xF000F8DF);
+				writer.WriteUInt32((uint)imageBase + managedFuncRva);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();

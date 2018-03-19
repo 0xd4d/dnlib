@@ -82,7 +82,7 @@ namespace dnlib.DotNet.Writer {
 				int padding = (int)rva2.AlignUp(alignment) - (int)rva2;
 				writer.WriteZeros(padding);
 				rva2 += (uint)padding;
-				writer.Write(resourceData.GetFileLength());
+				writer.WriteUInt32(resourceData.GetFileLength());
 				resourceData.VerifyWriteTo(writer);
 				rva2 += 4 + resourceData.GetFileLength();
 			}

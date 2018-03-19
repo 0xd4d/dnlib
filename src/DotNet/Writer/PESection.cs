@@ -68,16 +68,16 @@ namespace dnlib.DotNet.Writer {
 			uint rawSize = Utils.AlignUp(fileLen, fileAlignment);
 			uint dataOffset = (uint)FileOffset;
 
-			writer.Write(Encoding.UTF8.GetBytes(Name + "\0\0\0\0\0\0\0\0"), 0, 8);
-			writer.Write(vs);			// VirtualSize
-			writer.Write((uint)rva);	// VirtualAddress
-			writer.Write(rawSize);		// SizeOfRawData
-			writer.Write(dataOffset);	// PointerToRawData
-			writer.Write(0);			// PointerToRelocations
-			writer.Write(0);			// PointerToLinenumbers
-			writer.Write((ushort)0);	// NumberOfRelocations
-			writer.Write((ushort)0);	// NumberOfLinenumbers
-			writer.Write(Characteristics);
+			writer.WriteBytes(Encoding.UTF8.GetBytes(Name + "\0\0\0\0\0\0\0\0"), 0, 8);
+			writer.WriteUInt32(vs);			// VirtualSize
+			writer.WriteUInt32((uint)rva);	// VirtualAddress
+			writer.WriteUInt32(rawSize);		// SizeOfRawData
+			writer.WriteUInt32(dataOffset);	// PointerToRawData
+			writer.WriteInt32(0);			// PointerToRelocations
+			writer.WriteInt32(0);			// PointerToLinenumbers
+			writer.WriteUInt16((ushort)0);	// NumberOfRelocations
+			writer.WriteUInt16((ushort)0);	// NumberOfLinenumbers
+			writer.WriteUInt32(Characteristics);
 
 			return alignedVs;
 		}

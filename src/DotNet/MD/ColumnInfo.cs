@@ -103,9 +103,9 @@ namespace dnlib.DotNet.MD {
 		/// <param name="value">The column value</param>
 		public void Write(DataWriter writer, uint value) {
 			switch (size) {
-			case 1: writer.Write((byte)value); break;
-			case 2: writer.Write((ushort)value); break;
-			case 4: writer.Write(value); break;
+			case 1: writer.WriteByte((byte)value); break;
+			case 2: writer.WriteUInt16((ushort)value); break;
+			case 4: writer.WriteUInt32(value); break;
 			default: throw new InvalidOperationException("Invalid column size");
 			}
 		}
@@ -113,9 +113,9 @@ namespace dnlib.DotNet.MD {
 		internal void Write24(DataWriter writer, uint value) {
 			Debug.Assert(size == 2 || size == 4);
 			if (size == 2)
-				writer.Write((ushort)value);
+				writer.WriteUInt16((ushort)value);
 			else
-				writer.Write(value);
+				writer.WriteUInt32(value);
 		}
 	}
 }

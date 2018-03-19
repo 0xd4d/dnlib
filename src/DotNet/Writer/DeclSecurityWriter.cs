@@ -48,7 +48,7 @@ namespace dnlib.DotNet.Writer {
 		byte[] WriteFormat2(IList<SecurityAttribute> secAttrs) {
 			var stream = new MemoryStream();
 			var writer = new DataWriter(stream);
-			writer.Write((byte)'.');
+			writer.WriteByte((byte)'.');
 			WriteCompressedUInt32(writer, (uint)secAttrs.Count);
 
 			foreach (var sa in secAttrs) {
@@ -77,7 +77,7 @@ namespace dnlib.DotNet.Writer {
 					namedArgsBlob = Array2.Empty<byte>();
 				}
 				WriteCompressedUInt32(writer, (uint)namedArgsBlob.Length);
-				writer.Write(namedArgsBlob);
+				writer.WriteBytes(namedArgsBlob);
 			}
 
 			return stream.ToArray();

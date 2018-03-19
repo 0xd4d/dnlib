@@ -114,14 +114,14 @@ namespace dnlib.DotNet.Writer {
 		public void WriteTo(DataWriter writer) {
 			uint offset = 0;
 			foreach (var entry in entries) {
-				writer.Write(entry.DebugDirectory.Characteristics);
-				writer.Write(entry.DebugDirectory.TimeDateStamp);
-				writer.Write(entry.DebugDirectory.MajorVersion);
-				writer.Write(entry.DebugDirectory.MinorVersion);
-				writer.Write((uint)entry.DebugDirectory.Type);
-				writer.Write(entry.Chunk.GetFileLength());
-				writer.Write((uint)entry.Chunk.RVA);
-				writer.Write((uint)entry.Chunk.FileOffset);
+				writer.WriteUInt32(entry.DebugDirectory.Characteristics);
+				writer.WriteUInt32(entry.DebugDirectory.TimeDateStamp);
+				writer.WriteUInt16(entry.DebugDirectory.MajorVersion);
+				writer.WriteUInt16(entry.DebugDirectory.MinorVersion);
+				writer.WriteUInt32((uint)entry.DebugDirectory.Type);
+				writer.WriteUInt32(entry.Chunk.GetFileLength());
+				writer.WriteUInt32((uint)entry.Chunk.RVA);
+				writer.WriteUInt32((uint)entry.Chunk.FileOffset);
 				offset += HEADER_SIZE;
 			}
 

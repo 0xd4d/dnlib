@@ -135,21 +135,21 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
-			writer.Write(options.Signature ?? MetadataHeaderOptions.DEFAULT_SIGNATURE);
-			writer.Write(options.MajorVersion ?? 1);
-			writer.Write(options.MinorVersion ?? 1);
-			writer.Write(options.Reserved1 ?? 0);
+			writer.WriteUInt32(options.Signature ?? MetadataHeaderOptions.DEFAULT_SIGNATURE);
+			writer.WriteUInt16(options.MajorVersion ?? 1);
+			writer.WriteUInt16(options.MinorVersion ?? 1);
+			writer.WriteUInt32(options.Reserved1 ?? 0);
 			var s = GetVersionString();
-			writer.Write(Utils.AlignUp(s.Length, 4));
-			writer.Write(s);
+			writer.WriteInt32(Utils.AlignUp(s.Length, 4));
+			writer.WriteBytes(s);
 			writer.WriteZeros(Utils.AlignUp(s.Length, 4) - s.Length);
-			writer.Write((byte)(options.StorageFlags ?? 0));
-			writer.Write(options.Reserved2 ?? 0);
-			writer.Write((ushort)heaps.Count);
+			writer.WriteByte((byte)(options.StorageFlags ?? 0));
+			writer.WriteByte(options.Reserved2 ?? 0);
+			writer.WriteUInt16((ushort)heaps.Count);
 			foreach (var heap in heaps) {
-				writer.Write((uint)(heap.FileOffset - offset));
-				writer.Write(heap.GetFileLength());
-				writer.Write(s = GetAsciizName(heap.Name));
+				writer.WriteUInt32((uint)(heap.FileOffset - offset));
+				writer.WriteUInt32(heap.GetFileLength());
+				writer.WriteBytes(s = GetAsciizName(heap.Name));
 				if (s.Length > 32)
 					throw new ModuleWriterException($"Heap name '{heap.Name}' is > 32 bytes");
 				writer.WriteZeros(Utils.AlignUp(s.Length, 4) - s.Length);

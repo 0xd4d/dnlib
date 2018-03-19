@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			writer.WriteCompressedUInt32(helper, (uint)s.DataLength);
-			writer.Write(s.Data);
+			writer.WriteBytes(s.Data);
 		}
 	}
 }

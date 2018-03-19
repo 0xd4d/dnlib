@@ -41,7 +41,7 @@ namespace dnlib.DotNet.Writer {
 			if (type != NativeType.RawBlob) {
 				if ((uint)type > byte.MaxValue)
 					helper.Error("Invalid MarshalType.NativeType");
-				writer.Write((byte)type);
+				writer.WriteByte((byte)type);
 			}
 			bool canWrite = true;
 			switch (type) {
@@ -100,7 +100,7 @@ namespace dnlib.DotNet.Writer {
 			case NativeType.RawBlob:
 				var data = ((RawMarshalType)marshalType).Data;
 				if (data != null)
-					writer.Write(data);
+					writer.WriteBytes(data);
 				break;
 
 			default:

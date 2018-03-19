@@ -116,12 +116,12 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
-			writer.Write(0x48);	// cb
-			writer.Write(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);
-			writer.Write(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
+			writer.WriteInt32(0x48);	// cb
+			writer.WriteUInt16(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);
+			writer.WriteUInt16(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
 			writer.WriteDataDirectory(Metadata);
-			writer.Write((uint)(options.Flags ?? ComImageFlags.ILOnly));
-			writer.Write(options.EntryPoint ?? 0);
+			writer.WriteUInt32((uint)(options.Flags ?? ComImageFlags.ILOnly));
+			writer.WriteUInt32(options.EntryPoint ?? 0);
 			writer.WriteDataDirectory(NetResources);
 			writer.WriteDataDirectory(StrongNameSignature);
 			writer.WriteDataDirectory(null);	// Code manager table

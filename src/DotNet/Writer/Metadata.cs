@@ -3198,9 +3198,9 @@ namespace dnlib.DotNet.Writer {
 			outStream.Position = 0;
 			var parts = name.Split(directorySeparatorCharArray);
 			if (parts.Length == 1)
-				writer.Write((byte)0);
+				writer.WriteByte((byte)0);
 			else
-				writer.Write(directorySeparatorCharUtf8);
+				writer.WriteBytes(directorySeparatorCharUtf8);
 			for (int i = 0; i < parts.Length; i++) {
 				var part = parts[i];
 				uint partOffset = debugMetadata.blobHeap.Add(Encoding.UTF8.GetBytes(part));

@@ -383,8 +383,8 @@ namespace dnlib.DotNet.Writer {
 				var bytes = Encoding.Unicode.GetBytes(s);
 				if (bytes.Length / 2 > ushort.MaxValue)
 					throw new ModuleWriterException("Win32 resource entry name is too long");
-				writer.Write((ushort)(bytes.Length / 2));
-				writer.Write(bytes);
+				writer.WriteUInt16((ushort)(bytes.Length / 2));
+				writer.WriteBytes(bytes);
 				offset += 2 + (uint)bytes.Length;
 			}
 
@@ -403,29 +403,29 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint WriteTo(DataWriter writer, ResourceDirectory dir) {
-			writer.Write(dir.Characteristics);
-			writer.Write(dir.TimeDateStamp);
-			writer.Write(dir.MajorVersion);
-			writer.Write(dir.MinorVersion);
+			writer.WriteUInt32(dir.Characteristics);
+			writer.WriteUInt32(dir.TimeDateStamp);
+			writer.WriteUInt16(dir.MajorVersion);
+			writer.WriteUInt16(dir.MinorVersion);
 
 			GetNamedAndIds(dir, out var named, out var ids);
 			if (named.Count > ushort.MaxValue || ids.Count > ushort.MaxValue)
 				throw new ModuleWriterException("Too many named/id Win32 resource entries");
-			writer.Write((ushort)named.Count);
-			writer.Write((ushort)ids.Count);
+			writer.WriteUInt16((ushort)named.Count);
+			writer.WriteUInt16((ushort)ids.Count);
 
 			// These must be sorted in ascending order. Names are case insensitive.
 			named.Sort((a, b) => a.Name.Name.ToUpperInvariant().CompareTo(b.Name.Name.ToUpperInvariant()));
 			ids.Sort((a, b) => a.Name.Id.CompareTo(b.Name.Id));
 
 			foreach (var d in named) {
-				writer.Write(0x80000000 | stringsDict[d.Name.Name]);
-				writer.Write(GetDirectoryEntryOffset(d));
+				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name]);
+				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}
 
 			foreach (var d in ids) {
-				writer.Write(d.Name.Id);
-				writer.Write(GetDirectoryEntryOffset(d));
+				writer.WriteInt32(d.Name.Id);
+				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}
 
 			return 16 + (uint)(named.Count + ids.Count) * 8;
@@ -455,10 +455,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint WriteTo(DataWriter writer, ResourceData dataHeader) {
-			writer.Write((uint)rva + dataDict[dataHeader]);
-			writer.Write((uint)dataHeader.GetReader().Length);
-			writer.Write(dataHeader.CodePage);
-			writer.Write(dataHeader.Reserved);
+			writer.WriteUInt32((uint)rva + dataDict[dataHeader]);
+			writer.WriteUInt32((uint)dataHeader.GetReader().Length);
+			writer.WriteUInt32(dataHeader.CodePage);
+			writer.WriteUInt32(dataHeader.Reserved);
 			return 16;
 		}
 	}

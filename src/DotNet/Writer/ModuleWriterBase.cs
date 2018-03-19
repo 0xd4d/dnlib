@@ -841,8 +841,8 @@ namespace dnlib.DotNet.Writer {
 				var pdbId = new byte[20];
 				var pdbIdWriter = new DataWriter(new MemoryStream(pdbId));
 				var pdbGuid = TheOptions.PdbGuid;
-				pdbIdWriter.Write(pdbGuid.ToByteArray());
-				pdbIdWriter.Write(GetTimeDateStamp());
+				pdbIdWriter.WriteBytes(pdbGuid.ToByteArray());
+				pdbIdWriter.WriteUInt32(GetTimeDateStamp());
 				Debug.Assert(pdbIdWriter.Position == pdbId.Length);
 
 				metadata.WritePortablePdb(pdbStream, entryPointToken, pdbId);
@@ -874,9 +874,9 @@ namespace dnlib.DotNet.Writer {
 			var data = new byte[4 + 4 + compressedData.Length];
 			var stream = new MemoryStream(data);
 			var writer = new DataWriter(stream);
-			writer.Write(0x4244504D);//"MPDB"
-			writer.Write((uint)portablePdbStream.Length);
-			writer.Write(compressedData);
+			writer.WriteInt32(0x4244504D);//"MPDB"
+			writer.WriteUInt32((uint)portablePdbStream.Length);
+			writer.WriteBytes(compressedData);
 			Debug.Assert(stream.Position == data.Length);
 			return data;
 		}
@@ -894,11 +894,11 @@ namespace dnlib.DotNet.Writer {
 		static byte[] GetCodeViewData(Guid guid, uint age, string filename) {
 			var stream = new MemoryStream();
 			var writer = new DataWriter(stream);
-			writer.Write(0x53445352);
-			writer.Write(guid.ToByteArray());
-			writer.Write(age);
-			writer.Write(Encoding.UTF8.GetBytes(filename));
-			writer.Write((byte)0);
+			writer.WriteInt32(0x53445352);
+			writer.WriteBytes(guid.ToByteArray());
+			writer.WriteUInt32(age);
+			writer.WriteBytes(Encoding.UTF8.GetBytes(filename));
+			writer.WriteByte((byte)0);
 			return stream.ToArray();
 		}
 

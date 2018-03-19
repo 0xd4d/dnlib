@@ -79,13 +79,13 @@ namespace dnlib.DotNet.Writer {
 		protected override void WriteToImpl(DataWriter writer) {
 			if (!referencedTypeSystemTablesInitd)
 				throw new InvalidOperationException("ReferencedTypeSystemTables hasn't been initialized yet");
-			writer.Write(pdbId);
-			writer.Write(entryPoint);
-			writer.Write(referencedTypeSystemTables);
+			writer.WriteBytes(pdbId);
+			writer.WriteUInt32(entryPoint);
+			writer.WriteUInt64(referencedTypeSystemTables);
 			ulong t = referencedTypeSystemTables;
 			for (int i = 0; i < typeSystemTableRows.Length; i++, t >>= 1) {
 				if (((int)t & 1) != 0)
-					writer.Write(typeSystemTableRows[i]);
+					writer.WriteUInt32(typeSystemTableRows[i]);
 			}
 		}
 	}

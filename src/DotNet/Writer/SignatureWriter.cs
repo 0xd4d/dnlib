@@ -91,12 +91,12 @@ namespace dnlib.DotNet.Writer {
 			const ElementType DEFAULT_ELEMENT_TYPE = ElementType.Boolean;
 			if (typeSig == null) {
 				helper.Error("TypeSig is null");
-				writer.Write((byte)DEFAULT_ELEMENT_TYPE);
+				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
 				return;
 			}
 			if (!recursionCounter.Increment()) {
 				helper.Error("Infinite recursion");
-				writer.Write((byte)DEFAULT_ELEMENT_TYPE);
+				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
 				return;
 			}
 
@@ -121,31 +121,31 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.U:
 			case ElementType.Object:
 			case ElementType.Sentinel:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				break;
 
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.SZArray:
 			case ElementType.Pinned:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				Write(typeSig.Next);
 				break;
 
 			case ElementType.ValueType:
 			case ElementType.Class:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				Write(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
 				break;
 
 			case ElementType.Var:
 			case ElementType.MVar:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				WriteCompressedUInt32(((GenericSig)typeSig).Number);
 				break;
 
 			case ElementType.Array:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				var ary = (ArraySig)typeSig;
 				Write(ary.Next);
 				WriteCompressedUInt32(ary.Rank);
@@ -160,7 +160,7 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			case ElementType.GenericInst:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				var gis = (GenericInstSig)typeSig;
 				Write(gis.GenericType);
 				count = WriteCompressedUInt32((uint)gis.GenericArguments.Count);
@@ -169,25 +169,25 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			case ElementType.ValueArray:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				Write(typeSig.Next);
 				WriteCompressedUInt32((typeSig as ValueArraySig).Size);
 				break;
 
 			case ElementType.FnPtr:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				Write((typeSig as FnPtrSig).Signature);
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				Write((typeSig as ModifierSig).Modifier);
 				Write(typeSig.Next);
 				break;
 
 			case ElementType.Module:
-				writer.Write((byte)typeSig.ElementType);
+				writer.WriteByte((byte)typeSig.ElementType);
 				WriteCompressedUInt32((typeSig as ModuleSig).Index);
 				Write(typeSig.Next);
 				break;
@@ -197,7 +197,7 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.Internal:
 			default:
 				helper.Error("Unknown or unsupported element type");
-				writer.Write((byte)DEFAULT_ELEMENT_TYPE);
+				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
 				break;
 			}
 
@@ -244,7 +244,7 @@ namespace dnlib.DotNet.Writer {
 				Write(gim);
 			else {
 				helper.Error("Unknown calling convention sig");
-				writer.Write((byte)sig.GetCallingConvention());
+				writer.WriteByte((byte)sig.GetCallingConvention());
 			}
 
 			recursionCounter.Decrement();
@@ -260,7 +260,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			writer.Write((byte)sig.GetCallingConvention());
+			writer.WriteByte((byte)sig.GetCallingConvention());
 			if (sig.Generic)
 				WriteCompressedUInt32(sig.GenParamCount);
 
@@ -274,7 +274,7 @@ namespace dnlib.DotNet.Writer {
 				Write(sig.Params[(int)i]);
 
 			if (sig.ParamsAfterSentinel != null && sig.ParamsAfterSentinel.Count > 0) {
-				writer.Write((byte)ElementType.Sentinel);
+				writer.WriteByte((byte)ElementType.Sentinel);
 				for (uint i = 0, j = (uint)sig.Params.Count; i < (uint)sig.ParamsAfterSentinel.Count && j < count; i++, j++)
 					Write(sig.ParamsAfterSentinel[(int)i]);
 			}
@@ -292,7 +292,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			writer.Write((byte)sig.GetCallingConvention());
+			writer.WriteByte((byte)sig.GetCallingConvention());
 			Write(sig.Type);
 
 			recursionCounter.Decrement();
@@ -308,7 +308,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			writer.Write((byte)sig.GetCallingConvention());
+			writer.WriteByte((byte)sig.GetCallingConvention());
 			uint count = WriteCompressedUInt32((uint)sig.Locals.Count);
 			if (count >= 0x10000) {
 				// ldloc 0xFFFF is invalid, see the ldloc documentation
@@ -330,7 +330,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			writer.Write((byte)sig.GetCallingConvention());
+			writer.WriteByte((byte)sig.GetCallingConvention());
 			uint count = WriteCompressedUInt32((uint)sig.GenericArguments.Count);
 			for (uint i = 0; i < count; i++)
 				Write(sig.GenericArguments[(int)i]);

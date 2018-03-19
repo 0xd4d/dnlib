@@ -27,25 +27,25 @@ namespace dnlib.DotNet.Writer {
 
 		static void ThrowArgumentOutOfRangeException(string message) => throw new ArgumentOutOfRangeException(message);
 
-		public void Write(bool value) => stream.WriteByte(value ? (byte)1 : (byte)0);
-		public void Write(sbyte value) => stream.WriteByte((byte)value);
-		public void Write(byte value) => stream.WriteByte(value);
+		public void WriteBoolean(bool value) => stream.WriteByte(value ? (byte)1 : (byte)0);
+		public void WriteSByte(sbyte value) => stream.WriteByte((byte)value);
+		public void WriteByte(byte value) => stream.WriteByte(value);
 
-		public void Write(short value) {
+		public void WriteInt16(short value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
 			buffer[1] = (byte)(value >> 8);
 			stream.Write(buffer, 0, 2);
 		}
 
-		public void Write(ushort value) {
+		public void WriteUInt16(ushort value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
 			buffer[1] = (byte)(value >> 8);
 			stream.Write(buffer, 0, 2);
 		}
 
-		public void Write(int value) {
+		public void WriteInt32(int value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
 			buffer[1] = (byte)(value >> 8);
@@ -54,7 +54,7 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 4);
 		}
 
-		public void Write(uint value) {
+		public void WriteUInt32(uint value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
 			buffer[1] = (byte)(value >> 8);
@@ -63,7 +63,7 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 4);
 		}
 
-		public void Write(long value) {
+		public void WriteInt64(long value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
 			buffer[1] = (byte)(value >> 8);
@@ -76,7 +76,7 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 8);
 		}
 
-		public void Write(ulong value) {
+		public void WriteUInt64(ulong value) {
 			var buffer = this.buffer;
 			buffer[0] = (byte)value;
 			buffer[1] = (byte)(value >> 8);
@@ -89,7 +89,7 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 8);
 		}
 
-		public unsafe void Write(float value) {
+		public unsafe void WriteSingle(float value) {
 			uint tmp = *(uint*)&value;
 			var buffer = this.buffer;
 			buffer[0] = (byte)tmp;
@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 4);
 		}
 
-		public unsafe void Write(double value) {
+		public unsafe void WriteDouble(double value) {
 			ulong tmp = *(ulong*)&value;
 			var buffer = this.buffer;
 			buffer[0] = (byte)tmp;
@@ -113,8 +113,8 @@ namespace dnlib.DotNet.Writer {
 			stream.Write(buffer, 0, 8);
 		}
 
-		public void Write(byte[] source) => stream.Write(source, 0, source.Length);
-		public void Write(byte[] source, int index, int length) => stream.Write(source, index, length);
+		public void WriteBytes(byte[] source) => stream.Write(source, 0, source.Length);
+		public void WriteBytes(byte[] source, int index, int length) => stream.Write(source, index, length);
 
 		public void WriteCompressedUInt32(uint value) {
 			if (value <= 0x7F)

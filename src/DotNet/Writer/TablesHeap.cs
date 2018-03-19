@@ -386,19 +386,19 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
-			writer.Write(options.Reserved1 ?? 0);
-			writer.Write(majorVersion);
-			writer.Write(minorVersion);
-			writer.Write((byte)GetMDStreamFlags());
-			writer.Write(GetLog2Rid());
-			writer.Write(GetValidMask());
-			writer.Write(GetSortedMask());
+			writer.WriteUInt32(options.Reserved1 ?? 0);
+			writer.WriteByte(majorVersion);
+			writer.WriteByte(minorVersion);
+			writer.WriteByte((byte)GetMDStreamFlags());
+			writer.WriteByte(GetLog2Rid());
+			writer.WriteUInt64(GetValidMask());
+			writer.WriteUInt64(GetSortedMask());
 			foreach (var mdt in Tables) {
 				if (!mdt.IsEmpty)
-					writer.Write(mdt.Rows);
+					writer.WriteInt32(mdt.Rows);
 			}
 			if (options.ExtraData.HasValue)
-				writer.Write(options.ExtraData.Value);
+				writer.WriteUInt32(options.ExtraData.Value);
 
 			writer.Write(metadata, ModuleTable);
 			writer.Write(metadata, TypeRefTable);

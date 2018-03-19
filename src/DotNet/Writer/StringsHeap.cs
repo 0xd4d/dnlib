@@ -200,20 +200,20 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override void WriteToImpl(DataWriter writer) {
 			if (originalData != null)
-				writer.Write(originalData);
+				writer.WriteBytes(originalData);
 			else
-				writer.Write((byte)0);
+				writer.WriteByte((byte)0);
 
 			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
 				if (userRawData != null && userRawData.TryGetValue(offset, out var rawData)) {
 					if (rawData.Length != s.Data.Length + 1)
 						throw new InvalidOperationException("Invalid length of raw data");
-					writer.Write(rawData);
+					writer.WriteBytes(rawData);
 				}
 				else {
-					writer.Write(s.Data);
-					writer.Write((byte)0);
+					writer.WriteBytes(s.Data);
+					writer.WriteByte((byte)0);
 				}
 				offset += (uint)s.Data.Length + 1;
 			}

@@ -135,11 +135,11 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
-			writer.Write(code);
+			writer.WriteBytes(code);
 			if (HasExtraSections) {
 				var rva2 = rva + (uint)code.Length;
 				writer.WriteZeros((int)rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT) - (int)rva2);
-				writer.Write(extraSections);
+				writer.WriteBytes(extraSections);
 			}
 		}
 

@@ -43,7 +43,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var kv in guids) {
 				if (userRawData == null || !userRawData.TryGetValue(offset, out var rawData))
 					rawData = kv.Key.ToByteArray();
-				writer.Write(rawData);
+				writer.WriteBytes(rawData);
 				offset += 16;
 			}
 		}

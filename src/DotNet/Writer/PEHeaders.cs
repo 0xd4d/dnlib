@@ -339,89 +339,89 @@ namespace dnlib.DotNet.Writer {
 			startOffset = writer.Position;
 
 			// DOS header
-			writer.Write(dosHeader);
+			writer.WriteBytes(dosHeader);
 
 			// PE magic
-			writer.Write(0x00004550);
+			writer.WriteInt32(0x00004550);
 
 			// Image file header
-			writer.Write((ushort)GetMachine());
-			writer.Write((ushort)SectionsCount);
+			writer.WriteUInt16((ushort)GetMachine());
+			writer.WriteUInt16((ushort)SectionsCount);
 			Debug.Assert(SectionsCount == sections.Count, "One or more sections are empty! The PE file could be bigger than it should be. Empty sections should be removed.");
-			writer.Write(options.TimeDateStamp ?? PEHeadersOptions.CreateNewTimeDateStamp());
-			writer.Write(options.PointerToSymbolTable ?? 0);
-			writer.Write(options.NumberOfSymbols ?? 0);
-			writer.Write((ushort)(Use32BitOptionalHeader() ? 0xE0U : 0xF0));
-			writer.Write((ushort)GetCharacteristics());
+			writer.WriteUInt32(options.TimeDateStamp ?? PEHeadersOptions.CreateNewTimeDateStamp());
+			writer.WriteUInt32(options.PointerToSymbolTable ?? 0);
+			writer.WriteUInt32(options.NumberOfSymbols ?? 0);
+			writer.WriteUInt16((ushort)(Use32BitOptionalHeader() ? 0xE0U : 0xF0));
+			writer.WriteUInt16((ushort)GetCharacteristics());
 
 			var sectionSizes = new SectionSizes(fileAlignment, sectionAlignment, length, () => GetSectionSizeInfos());
 
 			// Image optional header
 			uint ep = StartupStub == null || !StartupStub.Enable ? 0 : (uint)StartupStub.EntryPointRVA;
 			if (Use32BitOptionalHeader()) {
-				writer.Write((ushort)0x010B);
-				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
-				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
-				writer.Write(sectionSizes.SizeOfCode);
-				writer.Write(sectionSizes.SizeOfInitdData);
-				writer.Write(sectionSizes.SizeOfUninitdData);
-				writer.Write(ep);
-				writer.Write(sectionSizes.BaseOfCode);
-				writer.Write(sectionSizes.BaseOfData);
-				writer.Write((uint)imageBase);
-				writer.Write(sectionAlignment);
-				writer.Write(fileAlignment);
-				writer.Write(options.MajorOperatingSystemVersion ?? 4);
-				writer.Write(options.MinorOperatingSystemVersion ?? 0);
-				writer.Write(options.MajorImageVersion ?? 0);
-				writer.Write(options.MinorImageVersion ?? 0);
-				writer.Write(options.MajorSubsystemVersion ?? 4);
-				writer.Write(options.MinorSubsystemVersion ?? 0);
-				writer.Write(options.Win32VersionValue ?? 0);
-				writer.Write(sectionSizes.SizeOfImage);
-				writer.Write(sectionSizes.SizeOfHeaders);
+				writer.WriteUInt16((ushort)0x010B);
+				writer.WriteByte(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
+				writer.WriteByte(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
+				writer.WriteUInt32(sectionSizes.SizeOfCode);
+				writer.WriteUInt32(sectionSizes.SizeOfInitdData);
+				writer.WriteUInt32(sectionSizes.SizeOfUninitdData);
+				writer.WriteUInt32(ep);
+				writer.WriteUInt32(sectionSizes.BaseOfCode);
+				writer.WriteUInt32(sectionSizes.BaseOfData);
+				writer.WriteUInt32((uint)imageBase);
+				writer.WriteUInt32(sectionAlignment);
+				writer.WriteUInt32(fileAlignment);
+				writer.WriteUInt16(options.MajorOperatingSystemVersion ?? 4);
+				writer.WriteUInt16(options.MinorOperatingSystemVersion ?? 0);
+				writer.WriteUInt16(options.MajorImageVersion ?? 0);
+				writer.WriteUInt16(options.MinorImageVersion ?? 0);
+				writer.WriteUInt16(options.MajorSubsystemVersion ?? 4);
+				writer.WriteUInt16(options.MinorSubsystemVersion ?? 0);
+				writer.WriteUInt32(options.Win32VersionValue ?? 0);
+				writer.WriteUInt32(sectionSizes.SizeOfImage);
+				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.Write(0);	// CheckSum
-				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
-				writer.Write((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
-				writer.Write((uint)(options.SizeOfStackReserve ?? 0x00100000));
-				writer.Write((uint)(options.SizeOfStackCommit ?? 0x00001000));
-				writer.Write((uint)(options.SizeOfHeapReserve ?? 0x00100000));
-				writer.Write((uint)(options.SizeOfHeapCommit ?? 0x00001000));
-				writer.Write(options.LoaderFlags ?? 0x00000000);
-				writer.Write(options.NumberOfRvaAndSizes ?? 0x00000010);
+				writer.WriteInt32(0);	// CheckSum
+				writer.WriteUInt16((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
+				writer.WriteUInt16((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
+				writer.WriteUInt32((uint)(options.SizeOfStackReserve ?? 0x00100000));
+				writer.WriteUInt32((uint)(options.SizeOfStackCommit ?? 0x00001000));
+				writer.WriteUInt32((uint)(options.SizeOfHeapReserve ?? 0x00100000));
+				writer.WriteUInt32((uint)(options.SizeOfHeapCommit ?? 0x00001000));
+				writer.WriteUInt32(options.LoaderFlags ?? 0x00000000);
+				writer.WriteUInt32(options.NumberOfRvaAndSizes ?? 0x00000010);
 			}
 			else {
-				writer.Write((ushort)0x020B);
-				writer.Write(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
-				writer.Write(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
-				writer.Write(sectionSizes.SizeOfCode);
-				writer.Write(sectionSizes.SizeOfInitdData);
-				writer.Write(sectionSizes.SizeOfUninitdData);
-				writer.Write(ep);
-				writer.Write(sectionSizes.BaseOfCode);
-				writer.Write(imageBase);
-				writer.Write(sectionAlignment);
-				writer.Write(fileAlignment);
-				writer.Write(options.MajorOperatingSystemVersion ?? 4);
-				writer.Write(options.MinorOperatingSystemVersion ?? 0);
-				writer.Write(options.MajorImageVersion ?? 0);
-				writer.Write(options.MinorImageVersion ?? 0);
-				writer.Write(options.MajorSubsystemVersion ?? 4);
-				writer.Write(options.MinorSubsystemVersion ?? 0);
-				writer.Write(options.Win32VersionValue ?? 0);
-				writer.Write(sectionSizes.SizeOfImage);
-				writer.Write(sectionSizes.SizeOfHeaders);
+				writer.WriteUInt16((ushort)0x020B);
+				writer.WriteByte(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);
+				writer.WriteByte(options.MinorLinkerVersion ?? PEHeadersOptions.DEFAULT_MINOR_LINKER_VERSION);
+				writer.WriteUInt32(sectionSizes.SizeOfCode);
+				writer.WriteUInt32(sectionSizes.SizeOfInitdData);
+				writer.WriteUInt32(sectionSizes.SizeOfUninitdData);
+				writer.WriteUInt32(ep);
+				writer.WriteUInt32(sectionSizes.BaseOfCode);
+				writer.WriteUInt64(imageBase);
+				writer.WriteUInt32(sectionAlignment);
+				writer.WriteUInt32(fileAlignment);
+				writer.WriteUInt16(options.MajorOperatingSystemVersion ?? 4);
+				writer.WriteUInt16(options.MinorOperatingSystemVersion ?? 0);
+				writer.WriteUInt16(options.MajorImageVersion ?? 0);
+				writer.WriteUInt16(options.MinorImageVersion ?? 0);
+				writer.WriteUInt16(options.MajorSubsystemVersion ?? 4);
+				writer.WriteUInt16(options.MinorSubsystemVersion ?? 0);
+				writer.WriteUInt32(options.Win32VersionValue ?? 0);
+				writer.WriteUInt32(sectionSizes.SizeOfImage);
+				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.Write(0);	// CheckSum
-				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
-				writer.Write((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
-				writer.Write(options.SizeOfStackReserve ?? 0x0000000000400000);
-				writer.Write(options.SizeOfStackCommit ?? 0x0000000000004000);
-				writer.Write(options.SizeOfHeapReserve ?? 0x0000000000100000);
-				writer.Write(options.SizeOfHeapCommit ?? 0x0000000000002000);
-				writer.Write(options.LoaderFlags ?? 0x00000000);
-				writer.Write(options.NumberOfRvaAndSizes ?? 0x00000010);
+				writer.WriteInt32(0);	// CheckSum
+				writer.WriteUInt16((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
+				writer.WriteUInt16((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
+				writer.WriteUInt64(options.SizeOfStackReserve ?? 0x0000000000400000);
+				writer.WriteUInt64(options.SizeOfStackCommit ?? 0x0000000000004000);
+				writer.WriteUInt64(options.SizeOfHeapReserve ?? 0x0000000000100000);
+				writer.WriteUInt64(options.SizeOfHeapCommit ?? 0x0000000000002000);
+				writer.WriteUInt32(options.LoaderFlags ?? 0x00000000);
+				writer.WriteUInt32(options.NumberOfRvaAndSizes ?? 0x00000010);
 			}
 
 			writer.WriteDataDirectory(ExportDirectory);
@@ -463,7 +463,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Position = startOffset;
 			uint checkSum = writer.InternalStream.CalculatePECheckSum(length, checkSumOffset);
 			writer.Position = checkSumOffset;
-			writer.Write(checkSum);
+			writer.WriteUInt32(checkSum);
 		}
 
 		Machine GetMachine() => options.Machine ?? Machine.I386;

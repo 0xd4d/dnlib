@@ -91,19 +91,19 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="chunk">The data</param>
 		internal static void WriteDataDirectory(this DataWriter writer, IChunk chunk) {
 			if (chunk == null || chunk.GetVirtualSize() == 0)
-				writer.Write(0UL);
+				writer.WriteUInt64(0);
 			else {
-				writer.Write((uint)chunk.RVA);
-				writer.Write(chunk.GetVirtualSize());
+				writer.WriteUInt32((uint)chunk.RVA);
+				writer.WriteUInt32(chunk.GetVirtualSize());
 			}
 		}
 
 		internal static void WriteDebugDirectory(this DataWriter writer, DebugDirectory chunk) {
 			if (chunk == null || chunk.GetVirtualSize() == 0)
-				writer.Write(0UL);
+				writer.WriteUInt64(0);
 			else {
-				writer.Write((uint)chunk.RVA);
-				writer.Write((uint)(chunk.Count * DebugDirectory.HEADER_SIZE));
+				writer.WriteUInt32((uint)chunk.RVA);
+				writer.WriteUInt32((uint)(chunk.Count * DebugDirectory.HEADER_SIZE));
 			}
 		}
 	}

@@ -23,7 +23,7 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Generation);
+				writer.WriteUInt16(row.Generation);
 				columns1.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns2.Write24(writer, row.Mvid);
 				columns3.Write24(writer, row.EncId);
@@ -67,7 +67,7 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Flags);
+				writer.WriteUInt32(row.Flags);
 				columns1.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns2.Write24(writer, stringsHeap.GetOffset(row.Namespace));
 				columns3.Write24(writer, row.Extends);
@@ -104,7 +104,7 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Flags);
+				writer.WriteUInt16(row.Flags);
 				columns1.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns2.Write24(writer, row.Signature);
 			}
@@ -139,9 +139,9 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.RVA);
-				writer.Write(row.ImplFlags);
-				writer.Write(row.Flags);
+				writer.WriteUInt32(row.RVA);
+				writer.WriteUInt16(row.ImplFlags);
+				writer.WriteUInt16(row.Flags);
 				columns3.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns4.Write24(writer, row.Signature);
 				columns5.Write24(writer, row.ParamList);
@@ -175,8 +175,8 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Flags);
-				writer.Write(row.Sequence);
+				writer.WriteUInt16(row.Flags);
+				writer.WriteUInt16(row.Sequence);
 				columns2.Write24(writer, stringsHeap.GetOffset(row.Name));
 			}
 		}
@@ -230,8 +230,8 @@ namespace dnlib.DotNet.Writer {
 			var columns3 = columns[3];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Type);
-				writer.Write(row.Padding);
+				writer.WriteByte(row.Type);
+				writer.WriteByte(row.Padding);
 				columns2.Write24(writer, row.Parent);
 				columns3.Write24(writer, row.Value);
 			}
@@ -285,7 +285,7 @@ namespace dnlib.DotNet.Writer {
 			var columns2 = columns[2];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Action);
+				writer.WriteInt16(row.Action);
 				columns1.Write24(writer, row.Parent);
 				columns2.Write24(writer, row.PermissionSet);
 			}
@@ -302,8 +302,8 @@ namespace dnlib.DotNet.Writer {
 			var columns2 = columns[2];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.PackingSize);
-				writer.Write(row.ClassSize);
+				writer.WriteUInt16(row.PackingSize);
+				writer.WriteUInt32(row.ClassSize);
 				columns2.Write24(writer, row.Parent);
 			}
 		}
@@ -319,7 +319,7 @@ namespace dnlib.DotNet.Writer {
 			var columns1 = columns[1];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.OffSet);
+				writer.WriteUInt32(row.OffSet);
 				columns1.Write24(writer, row.Field);
 			}
 		}
@@ -384,7 +384,7 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.EventFlags);
+				writer.WriteUInt16(row.EventFlags);
 				columns1.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns2.Write24(writer, row.EventType);
 			}
@@ -435,7 +435,7 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.PropFlags);
+				writer.WriteUInt16(row.PropFlags);
 				columns1.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns2.Write24(writer, row.Type);
 			}
@@ -453,7 +453,7 @@ namespace dnlib.DotNet.Writer {
 			var columns2 = columns[2];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Semantic);
+				writer.WriteUInt16(row.Semantic);
 				columns1.Write24(writer, row.Method);
 				columns2.Write24(writer, row.Association);
 			}
@@ -523,7 +523,7 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.MappingFlags);
+				writer.WriteUInt16(row.MappingFlags);
 				columns1.Write24(writer, row.MemberForwarded);
 				columns2.Write24(writer, stringsHeap.GetOffset(row.ImportName));
 				columns3.Write24(writer, row.ImportScope);
@@ -541,7 +541,7 @@ namespace dnlib.DotNet.Writer {
 			var columns1 = columns[1];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.RVA);
+				writer.WriteUInt32(row.RVA);
 				columns1.Write24(writer, row.Field);
 			}
 		}
@@ -555,8 +555,8 @@ namespace dnlib.DotNet.Writer {
 		public static void Write(this DataWriter writer, Metadata metadata, MDTable<RawENCLogRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Token);
-				writer.Write(row.FuncCode);
+				writer.WriteUInt32(row.Token);
+				writer.WriteUInt32(row.FuncCode);
 			}
 		}
 
@@ -569,7 +569,7 @@ namespace dnlib.DotNet.Writer {
 		public static void Write(this DataWriter writer, Metadata metadata, MDTable<RawENCMapRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Token);
+				writer.WriteUInt32(row.Token);
 			}
 		}
 
@@ -587,12 +587,12 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.HashAlgId);
-				writer.Write(row.MajorVersion);
-				writer.Write(row.MinorVersion);
-				writer.Write(row.BuildNumber);
-				writer.Write(row.RevisionNumber);
-				writer.Write(row.Flags);
+				writer.WriteUInt32(row.HashAlgId);
+				writer.WriteUInt16(row.MajorVersion);
+				writer.WriteUInt16(row.MinorVersion);
+				writer.WriteUInt16(row.BuildNumber);
+				writer.WriteUInt16(row.RevisionNumber);
+				writer.WriteUInt32(row.Flags);
 				columns6.Write24(writer, row.PublicKey);
 				columns7.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns8.Write24(writer, stringsHeap.GetOffset(row.Locale));
@@ -608,7 +608,7 @@ namespace dnlib.DotNet.Writer {
 		public static void Write(this DataWriter writer, Metadata metadata, MDTable<RawAssemblyProcessorRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Processor);
+				writer.WriteUInt32(row.Processor);
 			}
 		}
 
@@ -621,9 +621,9 @@ namespace dnlib.DotNet.Writer {
 		public static void Write(this DataWriter writer, Metadata metadata, MDTable<RawAssemblyOSRow> table) {
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.OSPlatformId);
-				writer.Write(row.OSMajorVersion);
-				writer.Write(row.OSMinorVersion);
+				writer.WriteUInt32(row.OSPlatformId);
+				writer.WriteUInt32(row.OSMajorVersion);
+				writer.WriteUInt32(row.OSMinorVersion);
 			}
 		}
 
@@ -642,11 +642,11 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.MajorVersion);
-				writer.Write(row.MinorVersion);
-				writer.Write(row.BuildNumber);
-				writer.Write(row.RevisionNumber);
-				writer.Write(row.Flags);
+				writer.WriteUInt16(row.MajorVersion);
+				writer.WriteUInt16(row.MinorVersion);
+				writer.WriteUInt16(row.BuildNumber);
+				writer.WriteUInt16(row.RevisionNumber);
+				writer.WriteUInt32(row.Flags);
 				columns5.Write24(writer, row.PublicKeyOrToken);
 				columns6.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns7.Write24(writer, stringsHeap.GetOffset(row.Locale));
@@ -665,7 +665,7 @@ namespace dnlib.DotNet.Writer {
 			var columns1 = columns[1];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Processor);
+				writer.WriteUInt32(row.Processor);
 				columns1.Write24(writer, row.AssemblyRef);
 			}
 		}
@@ -681,9 +681,9 @@ namespace dnlib.DotNet.Writer {
 			var columns3 = columns[3];
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.OSPlatformId);
-				writer.Write(row.OSMajorVersion);
-				writer.Write(row.OSMinorVersion);
+				writer.WriteUInt32(row.OSPlatformId);
+				writer.WriteUInt32(row.OSMajorVersion);
+				writer.WriteUInt32(row.OSMinorVersion);
 				columns3.Write24(writer, row.AssemblyRef);
 			}
 		}
@@ -701,7 +701,7 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Flags);
+				writer.WriteUInt32(row.Flags);
 				columns1.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns2.Write24(writer, row.HashValue);
 			}
@@ -721,8 +721,8 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Flags);
-				writer.Write(row.TypeDefId);
+				writer.WriteUInt32(row.Flags);
+				writer.WriteUInt32(row.TypeDefId);
 				columns2.Write24(writer, stringsHeap.GetOffset(row.TypeName));
 				columns3.Write24(writer, stringsHeap.GetOffset(row.TypeNamespace));
 				columns4.Write24(writer, row.Implementation);
@@ -742,8 +742,8 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Offset);
-				writer.Write(row.Flags);
+				writer.WriteUInt32(row.Offset);
+				writer.WriteUInt32(row.Flags);
 				columns2.Write24(writer, stringsHeap.GetOffset(row.Name));
 				columns3.Write24(writer, row.Implementation);
 			}
@@ -781,8 +781,8 @@ namespace dnlib.DotNet.Writer {
 				var columns4 = columns[4];
 				for (int i = 0; i < table.Rows; i++) {
 					var row = table[(uint)i + 1];
-					writer.Write(row.Number);
-					writer.Write(row.Flags);
+					writer.WriteUInt16(row.Number);
+					writer.WriteUInt16(row.Flags);
 					columns2.Write24(writer, row.Owner);
 					columns3.Write24(writer, stringsHeap.GetOffset(row.Name));
 					columns4.Write24(writer, row.Kind);
@@ -791,8 +791,8 @@ namespace dnlib.DotNet.Writer {
 			else {
 				for (int i = 0; i < table.Rows; i++) {
 					var row = table[(uint)i + 1];
-					writer.Write(row.Number);
-					writer.Write(row.Flags);
+					writer.WriteUInt16(row.Number);
+					writer.WriteUInt16(row.Flags);
 					columns2.Write24(writer, row.Owner);
 					columns3.Write24(writer, stringsHeap.GetOffset(row.Name));
 				}
@@ -889,8 +889,8 @@ namespace dnlib.DotNet.Writer {
 				columns1.Write24(writer, row.ImportScope);
 				columns2.Write24(writer, row.VariableList);
 				columns3.Write24(writer, row.ConstantList);
-				writer.Write(row.StartOffset);
-				writer.Write(row.Length);
+				writer.WriteUInt32(row.StartOffset);
+				writer.WriteUInt32(row.Length);
 			}
 		}
 
@@ -906,8 +906,8 @@ namespace dnlib.DotNet.Writer {
 			var stringsHeap = metadata.StringsHeap;
 			for (int i = 0; i < table.Rows; i++) {
 				var row = table[(uint)i + 1];
-				writer.Write(row.Attributes);
-				writer.Write(row.Index);
+				writer.WriteUInt16(row.Attributes);
+				writer.WriteUInt16(row.Index);
 				columns2.Write24(writer, stringsHeap.GetOffset(row.Name));
 			}
 		}

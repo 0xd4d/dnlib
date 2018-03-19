@@ -104,9 +104,9 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override void WriteToImpl(DataWriter writer) {
 			if (originalData != null)
-				writer.Write(originalData);
+				writer.WriteBytes(originalData);
 			else
-				writer.Write((byte)0);
+				writer.WriteByte((byte)0);
 
 			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
@@ -114,7 +114,7 @@ namespace dnlib.DotNet.Writer {
 				if (userRawData != null && userRawData.TryGetValue(offset, out var rawData)) {
 					if (rawData.Length != rawLen)
 						throw new InvalidOperationException("Invalid length of raw data");
-					writer.Write(rawData);
+					writer.WriteBytes(rawData);
 				}
 				else
 					WriteString(writer, s);
@@ -127,11 +127,11 @@ namespace dnlib.DotNet.Writer {
 			byte last = 0;
 			for (int i = 0; i < s.Length; i++) {
 				ushort c = (ushort)s[i];
-				writer.Write(c);
+				writer.WriteUInt16(c);
 				if (c > 0xFF || (1 <= c && c <= 8) || (0x0E <= c && c <= 0x1F) || c == 0x27 || c == 0x2D || c == 0x7F)
 					last = 1;
 			}
-			writer.Write(last);
+			writer.WriteByte(last);
 		}
 
 		/// <inheritdoc/>
