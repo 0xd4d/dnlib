@@ -408,7 +408,7 @@ namespace dnlib.DotNet.Emit {
 			byte b = ehReader.ReadByte();
 			if ((b & 0x3F) != 1) {
 				totalBodySize = startOfHeader == uint.MaxValue ? 0 : reader.Position - startOfHeader;
-				return; // Not exception handler clauses
+				return;	// Not exception handler clauses
 			}
 			if ((b & 0x40) != 0)
 				ReadFatExceptionHandlers(ref ehReader);

@@ -221,7 +221,7 @@ namespace dnlib.DotNet.Writer {
 		const uint RESOURCE_STRING_ALIGNMENT = 2;
 		const uint RESOURCE_DATA_ALIGNMENT = 4;
 
-		bool IReuseChunk.CanReuse(uint origSize) {
+		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) {
 			Debug.Assert(rva != 0);
 			if (rva == 0)
 				throw new InvalidOperationException();
@@ -249,7 +249,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
-			// NOTE: This method can be called twice by NativeModuleWriter, see Metadata.SetOFfset() for more info
+			// NOTE: This method can be called twice by NativeModuleWriter, see Metadata.SetOffset() for more info
 			bool initAll = this.offset == 0;
 			this.offset = offset;
 			this.rva = rva;

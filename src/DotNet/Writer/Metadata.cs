@@ -3390,7 +3390,7 @@ namespace dnlib.DotNet.Writer {
 
 		const uint HEAP_ALIGNMENT = 4;
 
-		bool IReuseChunk.CanReuse(uint origSize) {
+		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) {
 			// The caller should've called SetOffset() so we know our final size
 			Debug.Assert(length != 0);
 			if (length == 0)

@@ -997,7 +997,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static readonly double[] eventToProgress = new double[(int)ModuleWriterEvent.End - (int)ModuleWriterEvent.Begin + 1 + 1] {
-			0,// Begin
+			0,					// Begin
 			0.00128048488389907,// PESectionsCreated
 			0.0524625293056615,	// ChunksCreated
 			0.0531036610555682,	// ChunksAddedToSections

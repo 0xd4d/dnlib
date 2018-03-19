@@ -76,8 +76,8 @@ namespace dnlib.DotNet.Writer {
 			return entry;
 		}
 
-		bool IReuseChunk.CanReuse(uint origSize) {
-			uint newLength = GetLength(entries, 0, 0);
+		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) {
+			uint newLength = GetLength(entries, (FileOffset)origRva, origRva);
 			if (newLength > origSize)
 				return false;
 

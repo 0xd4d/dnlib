@@ -57,9 +57,10 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Returns true if this chunk fits in the old location
 		/// </summary>
+		/// <param name="origRva">Original RVA of data</param>
 		/// <param name="origSize">Size of the original location</param>
 		/// <returns></returns>
-		bool CanReuse(uint origSize);
+		bool CanReuse(RVA origRva, uint origSize);
 	}
 
 	public static partial class Extensions {
@@ -102,7 +103,7 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(0UL);
 			else {
 				writer.Write((uint)chunk.RVA);
-				writer.Write(chunk.Count * DebugDirectory.HEADER_SIZE);
+				writer.Write((uint)(chunk.Count * DebugDirectory.HEADER_SIZE));
 			}
 		}
 	}

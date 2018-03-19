@@ -35,7 +35,7 @@ namespace dnlib.DotNet.Writer {
 		/// but shouldn't be resized after <see cref="SetOffset"/> has been called.</param>
 		public ByteArrayChunk(byte[] array) => this.array = array ?? Array2.Empty<byte>();
 
-		bool IReuseChunk.CanReuse(uint origSize) => (uint)array.Length <= origSize;
+		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) => (uint)array.Length <= origSize;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {

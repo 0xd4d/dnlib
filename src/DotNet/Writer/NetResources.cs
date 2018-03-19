@@ -52,7 +52,7 @@ namespace dnlib.DotNet.Writer {
 			return data;
 		}
 
-		bool IReuseChunk.CanReuse(uint origSize) => length <= origSize;
+		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) => length <= origSize;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {

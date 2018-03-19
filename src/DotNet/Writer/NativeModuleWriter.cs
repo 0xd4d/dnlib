@@ -348,7 +348,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			if (chunk == null)
 				return;
-			if (!chunk.CanReuse(origSize))
+			if (!chunk.CanReuse(origRva, origSize))
 				return;
 			if (((uint)origRva & (requiredAlignment - 1)) != 0)
 				return;

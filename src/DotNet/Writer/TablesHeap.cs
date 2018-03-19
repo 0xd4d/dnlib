@@ -307,7 +307,7 @@ namespace dnlib.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 
-			// NOTE: This method can be called twice by NativeModuleWriter, see Metadata.SetOFfset() for more info
+			// NOTE: This method can be called twice by NativeModuleWriter, see Metadata.SetOffset() for more info
 		}
 
 		/// <inheritdoc/>

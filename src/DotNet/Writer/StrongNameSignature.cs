@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="size">Size of strong name signature</param>
 		public StrongNameSignature(int size) => this.size = size;
 
-		bool IReuseChunk.CanReuse(uint origSize) => (uint)size <= origSize;
+		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) => (uint)size <= origSize;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
