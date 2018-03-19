@@ -71,18 +71,16 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Destination</param>
 		/// <exception cref="IOException">Not all bytes were written</exception>
 		public static void VerifyWriteTo(this IChunk chunk, DataWriter writer) {
-#if DEBUG
-			// PERF: Calling the BaseStream property is pretty expensive so only do it in DEBUG builds
 			long pos = writer.Position;
-#endif
 			// Uncomment this to add some debug info, useful when comparing old vs new version
 			//System.Diagnostics.Debug.WriteLine($" RVA 0x{(uint)chunk.RVA:X8} OFFS 0x{(uint)chunk.FileOffset:X8} VSIZE 0x{chunk.GetVirtualSize():X8} {chunk.GetType().FullName}");
 			chunk.WriteTo(writer);
-#if DEBUG
 			if (writer.Position - pos != chunk.GetFileLength())
-				throw new IOException("Did not write all bytes");
-#endif
+				VerifyWriteToThrow(chunk);
 		}
+
+		static void VerifyWriteToThrow(IChunk chunk) =>
+			throw new IOException($"Did not write all bytes: {chunk.GetType().FullName}");
 
 		/// <summary>
 		/// Writes a data directory

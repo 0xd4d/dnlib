@@ -21,10 +21,13 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		public DataWriter(Stream stream) {
-			this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+			if (stream == null)
+				ThrowArgumentNullException(nameof(stream));
+			this.stream = stream;
 			buffer = new byte[BUFFER_LEN];
 		}
 
+		static void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
 		static void ThrowArgumentOutOfRangeException(string message) => throw new ArgumentOutOfRangeException(message);
 
 		public void WriteBoolean(bool value) => stream.WriteByte(value ? (byte)1 : (byte)0);
