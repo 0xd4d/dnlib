@@ -44,7 +44,7 @@ namespace dnlib.DotNet.Writer {
 			void IChunk.SetOffset(FileOffset offset, RVA rva) => throw new NotSupportedException();
 			public uint GetFileLength() => owner.ExportDirSize;
 			public uint GetVirtualSize() => GetFileLength();
-			void IChunk.WriteTo(BinaryWriter writer) => throw new NotSupportedException();
+			void IChunk.WriteTo(DataWriter writer) => throw new NotSupportedException();
 		}
 
 		sealed class VtableFixupsChunk : IChunk {
@@ -61,7 +61,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			public uint GetFileLength() => length;
 			public uint GetVirtualSize() => GetFileLength();
-			public void WriteTo(BinaryWriter writer) => owner.WriteVtableFixups(writer);
+			public void WriteTo(DataWriter writer) => owner.WriteVtableFixups(writer);
 		}
 
 		sealed class StubsChunk : IChunk {
@@ -78,7 +78,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			public uint GetFileLength() => length;
 			public uint GetVirtualSize() => GetFileLength();
-			public void WriteTo(BinaryWriter writer) => owner.WriteStubs(writer);
+			public void WriteTo(DataWriter writer) => owner.WriteStubs(writer);
 		}
 
 		sealed class SdataChunk : IChunk {
@@ -95,7 +95,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			public uint GetFileLength() => length;
 			public uint GetVirtualSize() => GetFileLength();
-			public void WriteTo(BinaryWriter writer) => owner.WriteSdata(writer);
+			public void WriteTo(DataWriter writer) => owner.WriteSdata(writer);
 		}
 
 		public ManagedExportsWriter(string moduleName, Machine machine, RelocDirectory relocDirectory, Metadata metadata, PEHeaders peHeaders, Action<string, object[]> logError) {
@@ -291,7 +291,7 @@ namespace dnlib.DotNet.Writer {
 				return bytes;
 			}
 
-			public void Write(BinaryWriter writer) {
+			public void Write(DataWriter writer) {
 				foreach (var name in names)
 					writer.Write(name);
 			}
@@ -318,14 +318,14 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="timestamp">PE timestamp</param>
 		void WriteSdataBlob(uint timestamp) {
 			var stream = new MemoryStream();
-			var writer = new BinaryWriter(stream);
+			var writer = new DataWriter(stream);
 
 			// Write all vtables (referenced from the .text section)
-			Debug.Assert((writer.BaseStream.Position & 7) == 0);
+			Debug.Assert((writer.Position & 7) == 0);
 			foreach (var vtbl in vtables) {
-				vtbl.SdataChunkOffset = (uint)writer.BaseStream.Position;
+				vtbl.SdataChunkOffset = (uint)writer.Position;
 				foreach (var info in vtbl.Methods) {
-					info.ManagedVtblOffset = (uint)writer.BaseStream.Position;
+					info.ManagedVtblOffset = (uint)writer.Position;
 					writer.Write(0x06000000 + metadata.GetRid(info.Method));
 					if ((vtbl.Flags & VTableFlags.Bit64) != 0)
 						writer.Write(0U);
@@ -389,34 +389,34 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			// Write IMAGE_EXPORT_DIRECTORY
-			Debug.Assert((writer.BaseStream.Position & 3) == 0);
-			exportDirOffset = (uint)writer.BaseStream.Position;
+			Debug.Assert((writer.Position & 3) == 0);
+			exportDirOffset = (uint)writer.Position;
 			writer.Write(0U); // Characteristics
 			writer.Write(timestamp);
 			writer.Write(0U); // MajorVersion, MinorVersion
-			sdataBytesInfo.exportDirModuleNameStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.exportDirModuleNameStreamOffset = (uint)writer.Position;
 			writer.Write(0U); // Name
 			writer.Write(ordinalBase); // Base
 			writer.Write((uint)funcSize); // NumberOfFunctions
 			writer.Write(sdataBytesInfo.MethodNameOffsets.Length); // NumberOfNames
-			sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset = (uint)writer.Position;
 			writer.Write(0U); // AddressOfFunctions
 			writer.Write(0U); // AddressOfNames
 			writer.Write(0U); // AddressOfNameOrdinals
 
-			sdataBytesInfo.addressOfFunctionsStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.addressOfFunctionsStreamOffset = (uint)writer.Position;
 			WriteZeroes(writer, funcSize * 4);
-			sdataBytesInfo.addressOfNamesStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.addressOfNamesStreamOffset = (uint)writer.Position;
 			WriteZeroes(writer, sdataBytesInfo.MethodNameOffsets.Length * 4);
-			sdataBytesInfo.addressOfNameOrdinalsStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.addressOfNameOrdinalsStreamOffset = (uint)writer.Position;
 			WriteZeroes(writer, sdataBytesInfo.MethodNameOffsets.Length * 2);
-			sdataBytesInfo.namesBlobStreamOffset = (uint)writer.BaseStream.Position;
+			sdataBytesInfo.namesBlobStreamOffset = (uint)writer.Position;
 			namesBlob.Write(writer);
 
 			sdataBytesInfo.Data = stream.ToArray();
 		}
 
-		void WriteSdata(BinaryWriter writer) {
+		void WriteSdata(DataWriter writer) {
 			if (sdataBytesInfo.Data == null)
 				return;
 			PatchSdataBytesBlob();
@@ -427,12 +427,12 @@ namespace dnlib.DotNet.Writer {
 			uint rva = (uint)sdataChunk.RVA;
 			uint namesBaseOffset = rva + sdataBytesInfo.namesBlobStreamOffset;
 
-			var writer = new BinaryWriter(new MemoryStream(sdataBytesInfo.Data));
+			var writer = new DataWriter(new MemoryStream(sdataBytesInfo.Data));
 
-			writer.BaseStream.Position = sdataBytesInfo.exportDirModuleNameStreamOffset;
+			writer.Position = sdataBytesInfo.exportDirModuleNameStreamOffset;
 			writer.Write(namesBaseOffset + sdataBytesInfo.moduleNameOffset);
 
-			writer.BaseStream.Position = sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset;
+			writer.Position = sdataBytesInfo.exportDirAddressOfFunctionsStreamOffset;
 			writer.Write(rva + sdataBytesInfo.addressOfFunctionsStreamOffset); // AddressOfFunctions
 			if (sdataBytesInfo.MethodNameOffsets.Length != 0) {
 				writer.Write(rva + sdataBytesInfo.addressOfNamesStreamOffset); // AddressOfNames
@@ -440,7 +440,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			uint funcBaseRva = (uint)stubsChunk.RVA;
-			writer.BaseStream.Position = sdataBytesInfo.addressOfFunctionsStreamOffset;
+			writer.Position = sdataBytesInfo.addressOfFunctionsStreamOffset;
 			int currentFuncIndex = 0;
 			foreach (var info in sortedOrdinalMethodInfos) {
 				int zeroes = info.FunctionIndex - currentFuncIndex;
@@ -459,17 +459,17 @@ namespace dnlib.DotNet.Writer {
 
 			var nameOffsets = sdataBytesInfo.MethodNameOffsets;
 			if (nameOffsets.Length != 0) {
-				writer.BaseStream.Position = sdataBytesInfo.addressOfNamesStreamOffset;
+				writer.Position = sdataBytesInfo.addressOfNamesStreamOffset;
 				foreach (var info in sortedNameMethodInfos)
 					writer.Write(namesBaseOffset + nameOffsets[info.NameIndex]);
 
-				writer.BaseStream.Position = sdataBytesInfo.addressOfNameOrdinalsStreamOffset;
+				writer.Position = sdataBytesInfo.addressOfNameOrdinalsStreamOffset;
 				foreach (var info in sortedNameMethodInfos)
 					writer.Write((ushort)info.FunctionIndex);
 			}
 		}
 
-		static void WriteZeroes(BinaryWriter writer, int count) {
+		static void WriteZeroes(DataWriter writer, int count) {
 			while (count >= 8) {
 				writer.Write(0UL);
 				count -= 8;
@@ -478,7 +478,7 @@ namespace dnlib.DotNet.Writer {
 				writer.Write((byte)0);
 		}
 
-		void WriteVtableFixups(BinaryWriter writer) {
+		void WriteVtableFixups(DataWriter writer) {
 			if (vtables.Count == 0)
 				return;
 
@@ -490,7 +490,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		void WriteStubs(BinaryWriter writer) {
+		void WriteStubs(DataWriter writer) {
 			if (vtables.Count == 0)
 				return;
 			if (cpuArch == null)
@@ -508,10 +508,10 @@ namespace dnlib.DotNet.Writer {
 				uint currentOffset = info.StubChunkOffset - stubCodeOffset;
 				if (expectedOffset != currentOffset)
 					throw new InvalidOperationException();
-				var pos = writer.BaseStream.Position;
+				var pos = writer.Position;
 				cpuArch.WriteStub(stubType, writer, imageBase, stubsBaseRva + currentOffset, vtblBaseRva + info.ManagedVtblOffset);
-				Debug.Assert(pos + stubSize == writer.BaseStream.Position, "The full stub wasn't written");
-				if (pos + stubSize != writer.BaseStream.Position)
+				Debug.Assert(pos + stubSize == writer.Position, "The full stub wasn't written");
+				if (pos + stubSize != writer.Position)
 					throw new InvalidOperationException();
 				if (zeroes != 0)
 					WriteZeroes(writer, zeroes);

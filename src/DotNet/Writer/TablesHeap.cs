@@ -385,7 +385,7 @@ namespace dnlib.DotNet.Writer {
 		uint[] systemTables;
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			writer.Write(options.Reserved1 ?? 0);
 			writer.Write(majorVersion);
 			writer.Write(minorVersion);

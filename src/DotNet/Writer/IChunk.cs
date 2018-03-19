@@ -47,7 +47,7 @@ namespace dnlib.DotNet.Writer {
 		/// chunk's file position.
 		/// </summary>
 		/// <param name="writer">Destination</param>
-		void WriteTo(BinaryWriter writer);
+		void WriteTo(DataWriter writer);
 	}
 
 	/// <summary>
@@ -70,16 +70,16 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="chunk">this</param>
 		/// <param name="writer">Destination</param>
 		/// <exception cref="IOException">Not all bytes were written</exception>
-		public static void VerifyWriteTo(this IChunk chunk, BinaryWriter writer) {
+		public static void VerifyWriteTo(this IChunk chunk, DataWriter writer) {
 #if DEBUG
 			// PERF: Calling the BaseStream property is pretty expensive so only do it in DEBUG builds
-			long pos = writer.BaseStream.Position;
+			long pos = writer.Position;
 #endif
 			// Uncomment this to add some debug info, useful when comparing old vs new version
 			//System.Diagnostics.Debug.WriteLine($" RVA 0x{(uint)chunk.RVA:X8} OFFS 0x{(uint)chunk.FileOffset:X8} VSIZE 0x{chunk.GetVirtualSize():X8} {chunk.GetType().FullName}");
 			chunk.WriteTo(writer);
 #if DEBUG
-			if (writer.BaseStream.Position - pos != chunk.GetFileLength())
+			if (writer.Position - pos != chunk.GetFileLength())
 				throw new IOException("Did not write all bytes");
 #endif
 		}
@@ -89,7 +89,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Writer</param>
 		/// <param name="chunk">The data</param>
-		internal static void WriteDataDirectory(this BinaryWriter writer, IChunk chunk) {
+		internal static void WriteDataDirectory(this DataWriter writer, IChunk chunk) {
 			if (chunk == null || chunk.GetVirtualSize() == 0)
 				writer.Write(0UL);
 			else {
@@ -98,7 +98,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal static void WriteDebugDirectory(this BinaryWriter writer, DebugDirectory chunk) {
+		internal static void WriteDebugDirectory(this DataWriter writer, DebugDirectory chunk) {
 			if (chunk == null || chunk.GetVirtualSize() == 0)
 				writer.Write(0UL);
 			else {

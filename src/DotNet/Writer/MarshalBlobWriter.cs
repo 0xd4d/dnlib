@@ -10,7 +10,7 @@ namespace dnlib.DotNet.Writer {
 	public readonly struct MarshalBlobWriter : IDisposable, IFullNameCreatorHelper {
 		readonly ModuleDef module;
 		readonly MemoryStream outStream;
-		readonly BinaryWriter writer;
+		readonly DataWriter writer;
 		readonly IWriterError helper;
 
 		/// <summary>
@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Writer {
 		MarshalBlobWriter(ModuleDef module, IWriterError helper) {
 			this.module = module;
 			outStream = new MemoryStream();
-			writer = new BinaryWriter(outStream);
+			writer = new DataWriter(outStream);
 			this.helper = helper;
 		}
 
@@ -107,7 +107,6 @@ namespace dnlib.DotNet.Writer {
 				break;
 			}
 
-			writer.Flush();
 			return outStream.ToArray();
 		}
 

@@ -335,8 +335,8 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
-			startOffset = writer.BaseStream.Position;
+		public void WriteTo(DataWriter writer) {
+			startOffset = writer.Position;
 
 			// DOS header
 			writer.Write(dosHeader);
@@ -380,7 +380,7 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(options.Win32VersionValue ?? 0);
 				writer.Write(sectionSizes.SizeOfImage);
 				writer.Write(sectionSizes.SizeOfHeaders);
-				checkSumOffset = writer.BaseStream.Position;
+				checkSumOffset = writer.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
 				writer.Write((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
@@ -412,7 +412,7 @@ namespace dnlib.DotNet.Writer {
 				writer.Write(options.Win32VersionValue ?? 0);
 				writer.Write(sectionSizes.SizeOfImage);
 				writer.Write(sectionSizes.SizeOfHeaders);
-				checkSumOffset = writer.BaseStream.Position;
+				checkSumOffset = writer.Position;
 				writer.Write(0);	// CheckSum
 				writer.Write((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
 				writer.Write((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
@@ -451,7 +451,7 @@ namespace dnlib.DotNet.Writer {
 					emptySections++;
 			}
 			if (emptySections != 0)
-				writer.BaseStream.Position += emptySections * 0x28;
+				writer.Position += emptySections * 0x28;
 		}
 
 		/// <summary>
@@ -459,10 +459,10 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Writer</param>
 		/// <param name="length">Length of PE file</param>
-		public void WriteCheckSum(BinaryWriter writer, long length) {
-			writer.BaseStream.Position = startOffset;
-			uint checkSum = writer.BaseStream.CalculatePECheckSum(length, checkSumOffset);
-			writer.BaseStream.Position = checkSumOffset;
+		public void WriteCheckSum(DataWriter writer, long length) {
+			writer.Position = startOffset;
+			uint checkSum = writer.InternalStream.CalculatePECheckSum(length, checkSumOffset);
+			writer.Position = checkSumOffset;
 			writer.Write(checkSum);
 		}
 

@@ -61,7 +61,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="fileAlignment">File alignment</param>
 		/// <param name="sectionAlignment">Section alignment</param>
 		/// <param name="rva">Current <see cref="RVA"/></param>
-		public uint WriteHeaderTo(BinaryWriter writer, uint fileAlignment, uint sectionAlignment, uint rva) {
+		public uint WriteHeaderTo(DataWriter writer, uint fileAlignment, uint sectionAlignment, uint rva) {
 			uint vs = GetVirtualSize();
 			uint fileLen = GetFileLength();
 			uint alignedVs = Utils.AlignUp(vs, sectionAlignment);

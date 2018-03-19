@@ -674,7 +674,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="chunks">All chunks</param>
 		/// <param name="offset">File offset of first chunk</param>
 		/// <param name="fileAlignment">File alignment</param>
-		protected void WriteChunks(BinaryWriter writer, List<IChunk> chunks, FileOffset offset, uint fileAlignment) {
+		protected void WriteChunks(DataWriter writer, List<IChunk> chunks, FileOffset offset, uint fileAlignment) {
 			foreach (var chunk in chunks) {
 				chunk.VerifyWriteTo(writer);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
@@ -839,11 +839,11 @@ namespace dnlib.DotNet.Writer {
 					entryPointToken = new MDToken(Table.Method, metadata.GetRid(pdbState.UserEntryPoint)).Raw;
 
 				var pdbId = new byte[20];
-				var pdbIdWriter = new BinaryWriter(new MemoryStream(pdbId));
+				var pdbIdWriter = new DataWriter(new MemoryStream(pdbId));
 				var pdbGuid = TheOptions.PdbGuid;
 				pdbIdWriter.Write(pdbGuid.ToByteArray());
 				pdbIdWriter.Write(GetTimeDateStamp());
-				Debug.Assert(pdbIdWriter.BaseStream.Position == pdbId.Length);
+				Debug.Assert(pdbIdWriter.Position == pdbId.Length);
 
 				metadata.WritePortablePdb(pdbStream, entryPointToken, pdbId);
 
@@ -873,7 +873,7 @@ namespace dnlib.DotNet.Writer {
 			var compressedData = Compress(portablePdbStream);
 			var data = new byte[4 + 4 + compressedData.Length];
 			var stream = new MemoryStream(data);
-			var writer = new BinaryWriter(stream);
+			var writer = new DataWriter(stream);
 			writer.Write(0x4244504D);//"MPDB"
 			writer.Write((uint)portablePdbStream.Length);
 			writer.Write(compressedData);
@@ -893,7 +893,7 @@ namespace dnlib.DotNet.Writer {
 
 		static byte[] GetCodeViewData(Guid guid, uint age, string filename) {
 			var stream = new MemoryStream();
-			var writer = new BinaryWriter(stream);
+			var writer = new DataWriter(stream);
 			writer.Write(0x53445352);
 			writer.Write(guid.ToByteArray());
 			writer.Write(age);

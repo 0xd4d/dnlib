@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) => writer.Write(array);
+		public void WriteTo(DataWriter writer) => writer.Write(array);
 
 		/// <inheritdoc/>
 		public override int GetHashCode() => Utils.GetHashCode(array);

@@ -249,12 +249,12 @@ namespace dnlib.DotNet.Writer {
 		}
 	}
 
-	sealed class BinaryWriterContext {
+	sealed class DataWriterContext {
 		public readonly MemoryStream OutStream;
-		public readonly BinaryWriter Writer;
-		public BinaryWriterContext() {
+		public readonly DataWriter Writer;
+		public DataWriterContext() {
 			OutStream = new MemoryStream();
-			Writer = new BinaryWriter(OutStream);
+			Writer = new DataWriter(OutStream);
 		}
 	}
 
@@ -383,7 +383,7 @@ namespace dnlib.DotNet.Writer {
 		readonly Rows<PdbImportScope> importScopeInfos = new Rows<PdbImportScope>();
 		readonly SortedRows<PdbCustomDebugInfo, RawStateMachineMethodRow> stateMachineMethodInfos = new SortedRows<PdbCustomDebugInfo, RawStateMachineMethodRow>();
 		readonly SortedRows<PdbCustomDebugInfo, RawCustomDebugInformationRow> customDebugInfos = new SortedRows<PdbCustomDebugInfo, RawCustomDebugInformationRow>();
-		readonly List<BinaryWriterContext> binaryWriterContexts = new List<BinaryWriterContext>();
+		readonly List<DataWriterContext> binaryWriterContexts = new List<DataWriterContext>();
 		readonly List<SerializerMethodContext> serializerMethodContexts = new List<SerializerMethodContext>();
 		readonly List<MethodDef> exportedMethods = new List<MethodDef>();
 
@@ -3297,7 +3297,7 @@ namespace dnlib.DotNet.Writer {
 			if (!debugMetadata.methodDebugInformationInfosUsed)
 				debugMetadata.tablesHeap.MethodDebugInformationTable.Reset();
 			pdbHeap.ReferencedTypeSystemTables = systemTablesMask;
-			var writer = new BinaryWriter(output);
+			var writer = new DataWriter(output);
 			debugMetadata.SetOffset(0, 0);
 			debugMetadata.GetFileLength();
 			debugMetadata.VerifyWriteTo(writer);
@@ -3491,7 +3491,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			var rva2 = rva;
 			metadataHeader.VerifyWriteTo(writer);
 			rva2 += metadataHeader.GetFileLength();
@@ -3521,15 +3521,15 @@ namespace dnlib.DotNet.Writer {
 			return sorted;
 		}
 
-		BinaryWriterContext AllocBinaryWriterContext() {
+		DataWriterContext AllocBinaryWriterContext() {
 			if (binaryWriterContexts.Count == 0)
-				return new BinaryWriterContext();
+				return new DataWriterContext();
 			var res = binaryWriterContexts[binaryWriterContexts.Count - 1];
 			binaryWriterContexts.RemoveAt(binaryWriterContexts.Count - 1);
 			return res;
 		}
 
-		void Free(ref BinaryWriterContext ctx) {
+		void Free(ref DataWriterContext ctx) {
 			binaryWriterContexts.Add(ctx);
 			ctx = null;
 		}

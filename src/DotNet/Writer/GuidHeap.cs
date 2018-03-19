@@ -38,7 +38,7 @@ namespace dnlib.DotNet.Writer {
 		public override uint GetRawLength() => (uint)guids.Count * 16;
 
 		/// <inheritdoc/>
-		protected override void WriteToImpl(BinaryWriter writer) {
+		protected override void WriteToImpl(DataWriter writer) {
 			uint offset = 0;
 			foreach (var kv in guids) {
 				if (userRawData == null || !userRawData.TryGetValue(offset, out var rawData))

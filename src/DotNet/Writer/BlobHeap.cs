@@ -98,7 +98,7 @@ namespace dnlib.DotNet.Writer {
 		public override uint GetRawLength() => nextOffset;
 
 		/// <inheritdoc/>
-		protected override void WriteToImpl(BinaryWriter writer) {
+		protected override void WriteToImpl(DataWriter writer) {
 			if (originalData != null)
 				writer.Write(originalData);
 			else
@@ -121,7 +121,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public int GetRawDataSize(byte[] data) => Utils.GetCompressedUInt32Length((uint)data.Length) + data.Length;
+		public int GetRawDataSize(byte[] data) => DataWriter.GetCompressedUInt32Length((uint)data.Length) + data.Length;
 
 		/// <inheritdoc/>
 		public void SetRawData(uint offset, byte[] rawData) {
@@ -133,7 +133,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
 			var memStream = new MemoryStream();
-			var writer = new BinaryWriter(memStream);
+			var writer = new DataWriter(memStream);
 			uint offset = originalData != null ? (uint)originalData.Length : 1;
 			foreach (var data in cached) {
 				memStream.Position = 0;

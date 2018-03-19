@@ -76,7 +76,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			var rva2 = rva;
 			foreach (var resourceData in resources) {
 				int padding = (int)rva2.AlignUp(alignment) - (int)rva2;

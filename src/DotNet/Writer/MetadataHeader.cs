@@ -134,7 +134,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			writer.Write(options.Signature ?? MetadataHeaderOptions.DEFAULT_SIGNATURE);
 			writer.Write(options.MajorVersion ?? 1);
 			writer.Write(options.MinorVersion ?? 1);

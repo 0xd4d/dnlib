@@ -134,7 +134,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			writer.Write(code);
 			if (HasExtraSections) {
 				var rva2 = rva + (uint)code.Length;

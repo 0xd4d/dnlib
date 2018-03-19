@@ -104,7 +104,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => virtualSize;
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			var offset2 = offset;
 			foreach (var elem in chunks) {
 				if (elem.chunk.GetVirtualSize() == 0)

@@ -250,9 +250,9 @@ namespace dnlib.DotNet.Writer {
 			InitializeChunkProperties();
 
 			OnWriterEvent(ModuleWriterEvent.BeginWriteChunks);
-			var writer = new BinaryWriter(destStream);
+			var writer = new DataWriter(destStream);
 			WriteChunks(writer, chunks, 0, peHeaders.FileAlignment);
-			long imageLength = writer.BaseStream.Position - destStreamBaseOffset;
+			long imageLength = writer.Position - destStreamBaseOffset;
 			OnWriterEvent(ModuleWriterEvent.EndWriteChunks);
 
 			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);

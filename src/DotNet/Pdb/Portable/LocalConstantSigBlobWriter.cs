@@ -15,12 +15,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.systemMetadata = systemMetadata;
 		}
 
-		public static void Write(IWriterError helper, Metadata systemMetadata, BinaryWriter writer, TypeSig type, object value) {
+		public static void Write(IWriterError helper, Metadata systemMetadata, DataWriter writer, TypeSig type, object value) {
 			var sigWriter = new LocalConstantSigBlobWriter(helper, systemMetadata);
 			sigWriter.Write(writer, type, value);
 		}
 
-		void Write(BinaryWriter writer, TypeSig type, object value) {
+		void Write(DataWriter writer, TypeSig type, object value) {
 			for (; ; type = type.Next) {
 				if (type == null)
 					return;
@@ -94,7 +94,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 						case ElementType.U4:
 						case ElementType.I8:
 						case ElementType.U8:
-							writer.BaseStream.Position--;
+							writer.Position--;
 							writer.Write((byte)underlyingType.GetElementType());
 							WritePrimitiveValue(writer, underlyingType.GetElementType(), value);
 							WriteTypeDefOrRef(writer, tdr);
@@ -204,7 +204,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return false;
 		}
 
-		void WritePrimitiveValue(BinaryWriter writer, ElementType et, object value) {
+		void WritePrimitiveValue(DataWriter writer, ElementType et, object value) {
 			switch (et) {
 			case ElementType.Boolean:
 				if (value is bool)
@@ -301,7 +301,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		void WriteTypeDefOrRef(BinaryWriter writer, ITypeDefOrRef tdr) {
+		void WriteTypeDefOrRef(DataWriter writer, ITypeDefOrRef tdr) {
 			if (!MD.CodedToken.TypeDefOrRef.Encode(systemMetadata.GetToken(tdr), out uint codedToken)) {
 				helper.Error("Couldn't encode a TypeDefOrRef");
 				return;

@@ -111,7 +111,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			uint offset = 0;
 			foreach (var entry in entries) {
 				writer.Write(entry.DebugDirectory.Characteristics);
@@ -132,7 +132,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		static void WriteAlign(BinaryWriter writer, ref uint offs) {
+		static void WriteAlign(DataWriter writer, ref uint offs) {
 			uint align = Utils.AlignUp(offs, DEFAULT_DEBUGDIRECTORY_ALIGNMENT) - offs;
 			offs += align;
 			writer.WriteZeros((int)align);

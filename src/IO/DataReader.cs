@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
+using dnlib.DotNet.Writer;
 
 namespace dnlib.IO {
 	/// <summary>
@@ -778,6 +779,29 @@ namespace dnlib.IO {
 		public Stream AsStream() => new DataReaderStream(ref this);
 
 		byte[] AllocTempBuffer() => new byte[(int)Math.Min(0x2000, BytesLeft)];
+
+		/// <summary>
+		/// Copies the data, starting from <see cref="Position"/>, to <paramref name="destination"/>
+		/// </summary>
+		/// <param name="destination">Destination</param>
+		/// <returns>Number of bytes written</returns>
+		public void CopyTo(DataWriter destination) {
+			if (destination == null)
+				ThrowArgumentNullException(nameof(destination));
+			CopyTo(destination.InternalStream, AllocTempBuffer());
+		}
+
+		/// <summary>
+		/// Copies the data, starting from <see cref="Position"/>, to <paramref name="destination"/>
+		/// </summary>
+		/// <param name="destination">Destination</param>
+		/// <param name="dataBuffer">Temp buffer during writing</param>
+		/// <returns>Number of bytes written</returns>
+		public void CopyTo(DataWriter destination, byte[] dataBuffer) {
+			if (destination == null)
+				ThrowArgumentNullException(nameof(destination));
+			CopyTo(destination.InternalStream, dataBuffer);
+		}
 
 		/// <summary>
 		/// Copies the data, starting from <see cref="Position"/>, to <paramref name="destination"/>

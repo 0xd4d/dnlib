@@ -14,14 +14,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 		readonly SerializerMethodContext methodContext;
 		readonly Metadata systemMetadata;
 		readonly MemoryStream outStream;
-		readonly BinaryWriter writer;
+		readonly DataWriter writer;
 
-		public static byte[] Write(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, PdbCustomDebugInfo cdi, BinaryWriterContext context) {
+		public static byte[] Write(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, PdbCustomDebugInfo cdi, DataWriterContext context) {
 			var writer = new PortablePdbCustomDebugInfoWriter(helper, methodContext, systemMetadata, context);
 			return writer.Write(cdi);
 		}
 
-		PortablePdbCustomDebugInfoWriter(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, BinaryWriterContext context) {
+		PortablePdbCustomDebugInfoWriter(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, DataWriterContext context) {
 			this.helper = helper;
 			this.methodContext = methodContext;
 			this.systemMetadata = systemMetadata;

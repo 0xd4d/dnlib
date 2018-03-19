@@ -56,6 +56,7 @@ v3.0 breaking changes
 	- `DataReader.Position` only accepts valid values and will throw (an `IOException`) if you set it to an invalid position
 - `FileOffset` is `uint`, used to be `long`
 - `MethodBodyWriterBase` uses `ArrayWriter` instead of `BinaryWriter` (all virtual methods)
+- `ModuleWriter` and `NativeModuleWriter` use `DataWriter` instead of `BinaryWriter`
 - The native module writer now tries to fit the new metadata, method bodies, resources and other data in the old locations. This results in smaller files. It can be disabled by creating your own `NativeModuleWriterOptions`
 
 Examples

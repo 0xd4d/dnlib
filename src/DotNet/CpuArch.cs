@@ -83,7 +83,7 @@ namespace dnlib.DotNet {
 		/// <param name="imageBase">Image base</param>
 		/// <param name="stubRva">RVA of this stub</param>
 		/// <param name="managedFuncRva">RVA of a pointer-sized field that contains the absolute address of the managed function</param>
-		public abstract void WriteStub(StubType stubType, BinaryWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva);
+		public abstract void WriteStub(StubType stubType, DataWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva);
 	}
 
 	sealed class X86CpuArch : CpuArch {
@@ -138,7 +138,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		public override void WriteStub(StubType stubType, BinaryWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
+		public override void WriteStub(StubType stubType, DataWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
@@ -211,7 +211,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		public override void WriteStub(StubType stubType, BinaryWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
+		public override void WriteStub(StubType stubType, DataWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
@@ -306,7 +306,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		public override void WriteStub(StubType stubType, BinaryWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
+		public override void WriteStub(StubType stubType, DataWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:
@@ -376,7 +376,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		public override void WriteStub(StubType stubType, BinaryWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
+		public override void WriteStub(StubType stubType, DataWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
 			switch (stubType) {
 			case StubType.Export:
 			case StubType.EntryPoint:

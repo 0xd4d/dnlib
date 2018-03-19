@@ -22,7 +22,7 @@ namespace dnlib.DotNet.Writer {
 		readonly ISignatureWriterHelper helper;
 		RecursionCounter recursionCounter;
 		readonly MemoryStream outStream;
-		readonly BinaryWriter writer;
+		readonly DataWriter writer;
 		readonly bool disposeStream;
 
 		/// <summary>
@@ -38,7 +38,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal static byte[] Write(ISignatureWriterHelper helper, TypeSig typeSig, BinaryWriterContext context) {
+		internal static byte[] Write(ISignatureWriterHelper helper, TypeSig typeSig, DataWriterContext context) {
 			using (var writer = new SignatureWriter(helper, context)) {
 				writer.Write(typeSig);
 				return writer.GetResult();
@@ -58,7 +58,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal static byte[] Write(ISignatureWriterHelper helper, CallingConventionSig sig, BinaryWriterContext context) {
+		internal static byte[] Write(ISignatureWriterHelper helper, CallingConventionSig sig, DataWriterContext context) {
 			using (var writer = new SignatureWriter(helper, context)) {
 				writer.Write(sig);
 				return writer.GetResult();
@@ -69,11 +69,11 @@ namespace dnlib.DotNet.Writer {
 			this.helper = helper;
 			recursionCounter = new RecursionCounter();
 			outStream = new MemoryStream();
-			writer = new BinaryWriter(outStream);
+			writer = new DataWriter(outStream);
 			disposeStream = true;
 		}
 
-		SignatureWriter(ISignatureWriterHelper helper, BinaryWriterContext context) {
+		SignatureWriter(ISignatureWriterHelper helper, DataWriterContext context) {
 			this.helper = helper;
 			recursionCounter = new RecursionCounter();
 			outStream = context.OutStream;
@@ -344,8 +344,6 @@ namespace dnlib.DotNet.Writer {
 				return;
 			if (outStream != null)
 				outStream.Dispose();
-			if (writer != null)
-				((IDisposable)writer).Dispose();
 		}
 	}
 }

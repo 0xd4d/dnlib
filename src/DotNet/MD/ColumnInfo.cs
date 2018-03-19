@@ -3,6 +3,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using dnlib.DotNet.Writer;
 using dnlib.IO;
 
 namespace dnlib.DotNet.MD {
@@ -100,7 +101,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="writer">The writer position on this column</param>
 		/// <param name="value">The column value</param>
-		public void Write(BinaryWriter writer, uint value) {
+		public void Write(DataWriter writer, uint value) {
 			switch (size) {
 			case 1: writer.Write((byte)value); break;
 			case 2: writer.Write((ushort)value); break;
@@ -109,7 +110,7 @@ namespace dnlib.DotNet.MD {
 			}
 		}
 
-		internal void Write24(BinaryWriter writer, uint value) {
+		internal void Write24(DataWriter writer, uint value) {
 			Debug.Assert(size == 2 || size == 4);
 			if (size == 2)
 				writer.Write((ushort)value);

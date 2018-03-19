@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.IO;
-
 namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Extension methods
@@ -12,7 +10,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">this</param>
 		/// <param name="count">Number of zeros</param>
-		public static void WriteZeros(this BinaryWriter writer, int count) {
+		public static void WriteZeros(this DataWriter writer, int count) {
 			if (count <= 0x20) {
 				for (int i = 0; i < count; i++)
 					writer.Write((byte)0);

@@ -103,12 +103,12 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal void WriteReusedMethodBodies(BinaryWriter writer, long destStreamBaseOffset) {
+		internal void WriteReusedMethodBodies(DataWriter writer, long destStreamBaseOffset) {
 			foreach (var info in reusedMethods) {
 				Debug.Assert(info.MethodBody.RVA == info.RVA);
 				if (info.MethodBody.RVA != info.RVA)
 					throw new InvalidOperationException();
-				writer.BaseStream.Position = destStreamBaseOffset + (uint)info.MethodBody.FileOffset;
+				writer.Position = destStreamBaseOffset + (uint)info.MethodBody.FileOffset;
 				info.MethodBody.VerifyWriteTo(writer);
 			}
 		}
@@ -152,7 +152,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			var rva2 = rva;
 			foreach (var mb in tinyMethods) {
 				mb.VerifyWriteTo(writer);

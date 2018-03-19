@@ -350,7 +350,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			uint offset = 0;
 
 			// The order here must be the same as in SetOffset()
@@ -402,7 +402,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		uint WriteTo(BinaryWriter writer, ResourceDirectory dir) {
+		uint WriteTo(DataWriter writer, ResourceDirectory dir) {
 			writer.Write(dir.Characteristics);
 			writer.Write(dir.TimeDateStamp);
 			writer.Write(dir.MajorVersion);
@@ -454,7 +454,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		uint WriteTo(BinaryWriter writer, ResourceData dataHeader) {
+		uint WriteTo(DataWriter writer, ResourceData dataHeader) {
 			writer.Write((uint)rva + dataDict[dataHeader]);
 			writer.Write((uint)dataHeader.GetReader().Length);
 			writer.Write(dataHeader.CodePage);

@@ -198,7 +198,7 @@ namespace dnlib.DotNet.Writer {
 		public override uint GetRawLength() => nextOffset;
 
 		/// <inheritdoc/>
-		protected override void WriteToImpl(BinaryWriter writer) {
+		protected override void WriteToImpl(DataWriter writer) {
 			if (originalData != null)
 				writer.Write(originalData);
 			else

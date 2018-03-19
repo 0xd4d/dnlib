@@ -76,7 +76,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override void WriteToImpl(BinaryWriter writer) {
+		protected override void WriteToImpl(DataWriter writer) {
 			if (!referencedTypeSystemTablesInitd)
 				throw new InvalidOperationException("ReferencedTypeSystemTables hasn't been initialized yet");
 			writer.Write(pdbId);

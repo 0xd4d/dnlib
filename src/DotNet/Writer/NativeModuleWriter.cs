@@ -456,20 +456,20 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
 
 			OnWriterEvent(ModuleWriterEvent.BeginWriteChunks);
-			var writer = new BinaryWriter(destStream);
+			var writer = new DataWriter(destStream);
 			WriteChunks(writer, chunks, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
-			long imageLength = writer.BaseStream.Position - destStreamBaseOffset;
+			long imageLength = writer.Position - destStreamBaseOffset;
 			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
-				var pos = writer.BaseStream.Position;
+				var pos = writer.Position;
 				foreach (var info in reusedChunks) {
 					Debug.Assert(info.Chunk.RVA == info.RVA);
 					if (info.Chunk.RVA != info.RVA)
 						throw new InvalidOperationException();
-					writer.BaseStream.Position = destStreamBaseOffset + (uint)info.Chunk.FileOffset;
+					writer.Position = destStreamBaseOffset + (uint)info.Chunk.FileOffset;
 					info.Chunk.VerifyWriteTo(writer);
 				}
 				methodBodies.WriteReusedMethodBodies(writer, destStreamBaseOffset);
-				writer.BaseStream.Position = pos;
+				writer.Position = pos;
 			}
 			var sectionSizes = new SectionSizes(peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment, headerLen, GetSectionSizeInfos);
 			UpdateHeaderFields(writer, entryPointIsManagedOrNoEntryPoint, entryPointToken, ref sectionSizes);
@@ -484,7 +484,7 @@ namespace dnlib.DotNet.Writer {
 			if (Options.AddCheckSum) {
 				destStream.Position = destStreamBaseOffset;
 				uint newCheckSum = destStream.CalculatePECheckSum(imageLength, checkSumOffset);
-				writer.BaseStream.Position = checkSumOffset;
+				writer.Position = checkSumOffset;
 				writer.Write(newCheckSum);
 			}
 			OnWriterEvent(ModuleWriterEvent.EndWritePEChecksum);
@@ -534,7 +534,7 @@ namespace dnlib.DotNet.Writer {
 		/// Updates the PE header and COR20 header fields that need updating. All sections are
 		/// also updated, and the new ones are added.
 		/// </summary>
-		void UpdateHeaderFields(BinaryWriter writer, bool entryPointIsManagedOrNoEntryPoint, uint entryPointToken, ref SectionSizes sectionSizes) {
+		void UpdateHeaderFields(DataWriter writer, bool entryPointIsManagedOrNoEntryPoint, uint entryPointToken, ref SectionSizes sectionSizes) {
 			long fileHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.FileHeader.StartOffset;
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
 			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
@@ -543,30 +543,30 @@ namespace dnlib.DotNet.Writer {
 
 			// Update PE file header
 			var peOptions = Options.PEHeadersOptions;
-			writer.BaseStream.Position = fileHeaderOffset;
+			writer.Position = fileHeaderOffset;
 			writer.Write((ushort)(peOptions.Machine ?? module.Machine));
 			writer.Write((ushort)(origSections.Count + sections.Count));
 			WriteUInt32(writer, peOptions.TimeDateStamp);
 			WriteUInt32(writer, peOptions.PointerToSymbolTable);
 			WriteUInt32(writer, peOptions.NumberOfSymbols);
-			writer.BaseStream.Position += 2;    // sizeof(SizeOfOptionalHeader)
+			writer.Position += 2;    // sizeof(SizeOfOptionalHeader)
 			writer.Write((ushort)(peOptions.Characteristics ?? GetCharacteristics()));
 
 			// Update optional header
-			writer.BaseStream.Position = optionalHeaderOffset;
+			writer.Position = optionalHeaderOffset;
 			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			if (is32BitOptionalHeader) {
-				writer.BaseStream.Position += 2;
+				writer.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
 				WriteByte(writer, peOptions.MinorLinkerVersion);
 				writer.Write(sectionSizes.SizeOfCode);
 				writer.Write(sectionSizes.SizeOfInitdData);
 				writer.Write(sectionSizes.SizeOfUninitdData);
-				writer.BaseStream.Position += 4;	// EntryPoint
+				writer.Position += 4;	// EntryPoint
 				writer.Write(sectionSizes.BaseOfCode);
 				writer.Write(sectionSizes.BaseOfData);
 				WriteUInt32(writer, peOptions.ImageBase);
-				writer.BaseStream.Position += 8;	// SectionAlignment, FileAlignment
+				writer.Position += 8;	// SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MinorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MajorImageVersion);
@@ -576,7 +576,7 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt32(writer, peOptions.Win32VersionValue);
 				writer.Write(sectionSizes.SizeOfImage);
 				writer.Write(sectionSizes.SizeOfHeaders);
-				checkSumOffset = writer.BaseStream.Position;
+				checkSumOffset = writer.Position;
 				writer.Write(0);	// CheckSum
 				WriteUInt16(writer, peOptions.Subsystem);
 				WriteUInt16(writer, peOptions.DllCharacteristics);
@@ -588,16 +588,16 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt32(writer, peOptions.NumberOfRvaAndSizes);
 			}
 			else {
-				writer.BaseStream.Position += 2;
+				writer.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
 				WriteByte(writer, peOptions.MinorLinkerVersion);
 				writer.Write(sectionSizes.SizeOfCode);
 				writer.Write(sectionSizes.SizeOfInitdData);
 				writer.Write(sectionSizes.SizeOfUninitdData);
-				writer.BaseStream.Position += 4;	// EntryPoint
+				writer.Position += 4;	// EntryPoint
 				writer.Write(sectionSizes.BaseOfCode);
 				WriteUInt64(writer, peOptions.ImageBase);
-				writer.BaseStream.Position += 8;	// SectionAlignment, FileAlignment
+				writer.Position += 8;	// SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MinorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MajorImageVersion);
@@ -607,7 +607,7 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt32(writer, peOptions.Win32VersionValue);
 				writer.Write(sectionSizes.SizeOfImage);
 				writer.Write(sectionSizes.SizeOfHeaders);
-				checkSumOffset = writer.BaseStream.Position;
+				checkSumOffset = writer.Position;
 				writer.Write(0);	// CheckSum
 				WriteUInt16(writer, peOptions.Subsystem ?? GetSubsystem());
 				WriteUInt16(writer, peOptions.DllCharacteristics ?? module.DllCharacteristics);
@@ -621,34 +621,34 @@ namespace dnlib.DotNet.Writer {
 
 			// Update Win32 resources data directory, if we wrote a new one
 			if (win32Resources != null) {
-				writer.BaseStream.Position = dataDirOffset + 2 * 8;
+				writer.Position = dataDirOffset + 2 * 8;
 				writer.WriteDataDirectory(win32Resources);
 			}
 
 			// Clear the security descriptor directory
-			writer.BaseStream.Position = dataDirOffset + 4 * 8;
+			writer.Position = dataDirOffset + 4 * 8;
 			writer.WriteDataDirectory(null);
 
 			// Write a new debug directory
-			writer.BaseStream.Position = dataDirOffset + 6 * 8;
+			writer.Position = dataDirOffset + 6 * 8;
 			writer.WriteDebugDirectory(debugDirectory);
 
 			// Write a new Metadata data directory
-			writer.BaseStream.Position = dataDirOffset + 14 * 8;
+			writer.Position = dataDirOffset + 14 * 8;
 			writer.WriteDataDirectory(imageCor20Header);
 
 			// Update old sections, and add new sections
-			writer.BaseStream.Position = sectionsOffset;
+			writer.Position = sectionsOffset;
 			foreach (var section in origSections) {
-				writer.BaseStream.Position += 0x14;
+				writer.Position += 0x14;
 				writer.Write((uint)section.Chunk.FileOffset);	// PointerToRawData
-				writer.BaseStream.Position += 0x10;
+				writer.Position += 0x10;
 			}
 			foreach (var section in sections)
 				section.WriteHeaderTo(writer, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment, (uint)section.RVA);
 
 			// Write the .NET header
-			writer.BaseStream.Position = cor20Offset;
+			writer.Position = cor20Offset;
 			writer.Write(0x48);		// cb
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MajorRuntimeVersion);
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MinorRuntimeVersion);
@@ -665,56 +665,56 @@ namespace dnlib.DotNet.Writer {
 			UpdateVTableFixups(writer);
 		}
 
-		static void WriteDataDirectory(BinaryWriter writer, ImageDataDirectory dataDir) {
+		static void WriteDataDirectory(DataWriter writer, ImageDataDirectory dataDir) {
 			writer.Write((uint)dataDir.VirtualAddress);
 			writer.Write(dataDir.Size);
 		}
 
-		static void WriteByte(BinaryWriter writer, byte? value) {
+		static void WriteByte(DataWriter writer, byte? value) {
 			if (value == null)
-				writer.BaseStream.Position++;
+				writer.Position++;
 			else
 				writer.Write(value.Value);
 		}
 
-		static void WriteUInt16(BinaryWriter writer, ushort? value) {
+		static void WriteUInt16(DataWriter writer, ushort? value) {
 			if (value == null)
-				writer.BaseStream.Position += 2;
+				writer.Position += 2;
 			else
 				writer.Write(value.Value);
 		}
 
-		static void WriteUInt16(BinaryWriter writer, Subsystem? value) {
+		static void WriteUInt16(DataWriter writer, Subsystem? value) {
 			if (value == null)
-				writer.BaseStream.Position += 2;
+				writer.Position += 2;
 			else
 				writer.Write((ushort)value.Value);
 		}
 
-		static void WriteUInt16(BinaryWriter writer, DllCharacteristics? value) {
+		static void WriteUInt16(DataWriter writer, DllCharacteristics? value) {
 			if (value == null)
-				writer.BaseStream.Position += 2;
+				writer.Position += 2;
 			else
 				writer.Write((ushort)value.Value);
 		}
 
-		static void WriteUInt32(BinaryWriter writer, uint? value) {
+		static void WriteUInt32(DataWriter writer, uint? value) {
 			if (value == null)
-				writer.BaseStream.Position += 4;
+				writer.Position += 4;
 			else
 				writer.Write(value.Value);
 		}
 
-		static void WriteUInt32(BinaryWriter writer, ulong? value) {
+		static void WriteUInt32(DataWriter writer, ulong? value) {
 			if (value == null)
-				writer.BaseStream.Position += 4;
+				writer.Position += 4;
 			else
 				writer.Write((uint)value.Value);
 		}
 
-		static void WriteUInt64(BinaryWriter writer, ulong? value) {
+		static void WriteUInt64(DataWriter writer, ulong? value) {
 			if (value == null)
-				writer.BaseStream.Position += 8;
+				writer.Position += 8;
 			else
 				writer.Write(value.Value);
 		}
@@ -756,13 +756,13 @@ namespace dnlib.DotNet.Writer {
 				yield return new SectionSizeInfo(section.GetVirtualSize(), section.Characteristics);
 		}
 
-		void UpdateVTableFixups(BinaryWriter writer) {
+		void UpdateVTableFixups(DataWriter writer) {
 			var vtableFixups = module.VTableFixups;
 			if (vtableFixups == null || vtableFixups.VTables.Count == 0)
 				return;
 
-			writer.BaseStream.Position = ToWriterOffset(vtableFixups.RVA);
-			if (writer.BaseStream.Position == 0) {
+			writer.Position = ToWriterOffset(vtableFixups.RVA);
+			if (writer.Position == 0) {
 				Error("Could not convert RVA to file offset");
 				return;
 			}
@@ -773,9 +773,9 @@ namespace dnlib.DotNet.Writer {
 				writer.Write((ushort)vtable.Methods.Count);
 				writer.Write((ushort)vtable.Flags);
 
-				long pos = writer.BaseStream.Position;
-				writer.BaseStream.Position = ToWriterOffset(vtable.RVA);
-				if (writer.BaseStream.Position == 0) {
+				long pos = writer.Position;
+				writer.Position = ToWriterOffset(vtable.RVA);
+				if (writer.Position == 0) {
 					if (vtable.RVA != 0 || vtable.Methods.Count > 0)
 						Error("Could not convert RVA to file offset");
 				}
@@ -786,7 +786,7 @@ namespace dnlib.DotNet.Writer {
 							writer.Write(0);
 					}
 				}
-				writer.BaseStream.Position = pos;
+				writer.Position = pos;
 			}
 		}
 

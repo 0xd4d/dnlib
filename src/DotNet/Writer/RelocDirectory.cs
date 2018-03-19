@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			bool is64bit = machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64;
 			// 3 = IMAGE_REL_BASED_HIGHLOW, A = IMAGE_REL_BASED_DIR64
 			uint relocType = is64bit ? 0xA000U : 0x3000;

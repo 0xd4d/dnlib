@@ -18,7 +18,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.blobHeap = blobHeap;
 		}
 
-		public static void Write(IWriterError helper, Metadata systemMetadata, BinaryWriter writer, BlobHeap blobHeap, IList<PdbImport> imports) {
+		public static void Write(IWriterError helper, Metadata systemMetadata, DataWriter writer, BlobHeap blobHeap, IList<PdbImport> imports) {
 			var blobWriter = new ImportScopeBlobWriter(helper, systemMetadata, blobHeap);
 			blobWriter.Write(writer, imports);
 		}
@@ -32,7 +32,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return blobHeap.Add(bytes);
 		}
 
-		void Write(BinaryWriter writer, IList<PdbImport> imports) {
+		void Write(DataWriter writer, IList<PdbImport> imports) {
 			foreach (var import in imports) {
 				if (!ImportDefinitionKindUtils.ToImportDefinitionKind(import.Kind, out uint rawKind)) {
 					helper.Error("Unknown import definition kind: " + import.Kind.ToString());

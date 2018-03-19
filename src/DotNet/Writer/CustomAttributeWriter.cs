@@ -18,7 +18,7 @@ namespace dnlib.DotNet.Writer {
 		readonly ICustomAttributeWriterHelper helper;
 		RecursionCounter recursionCounter;
 		readonly MemoryStream outStream;
-		readonly BinaryWriter writer;
+		readonly DataWriter writer;
 		readonly bool disposeStream;
 		GenericArguments genericArguments;
 
@@ -35,7 +35,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal static byte[] Write(ICustomAttributeWriterHelper helper, CustomAttribute ca, BinaryWriterContext context) {
+		internal static byte[] Write(ICustomAttributeWriterHelper helper, CustomAttribute ca, DataWriterContext context) {
 			using (var writer = new CustomAttributeWriter(helper, context)) {
 				writer.Write(ca);
 				return writer.GetResult();
@@ -55,7 +55,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal static byte[] Write(ICustomAttributeWriterHelper helper, IList<CANamedArgument> namedArgs, BinaryWriterContext context) {
+		internal static byte[] Write(ICustomAttributeWriterHelper helper, IList<CANamedArgument> namedArgs, DataWriterContext context) {
 			using (var writer = new CustomAttributeWriter(helper, context)) {
 				writer.Write(namedArgs);
 				return writer.GetResult();
@@ -66,12 +66,12 @@ namespace dnlib.DotNet.Writer {
 			this.helper = helper;
 			recursionCounter = new RecursionCounter();
 			outStream = new MemoryStream();
-			writer = new BinaryWriter(outStream);
+			writer = new DataWriter(outStream);
 			genericArguments = null;
 			disposeStream = true;
 		}
 
-		CustomAttributeWriter(ICustomAttributeWriterHelper helper, BinaryWriterContext context) {
+		CustomAttributeWriter(ICustomAttributeWriterHelper helper, DataWriterContext context) {
 			this.helper = helper;
 			recursionCounter = new RecursionCounter();
 			outStream = context.OutStream;
@@ -753,8 +753,6 @@ namespace dnlib.DotNet.Writer {
 				return;
 			if (outStream != null)
 				outStream.Dispose();
-			if (writer != null)
-				((IDisposable)writer).Dispose();
 		}
 	}
 }

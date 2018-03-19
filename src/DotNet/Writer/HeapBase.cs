@@ -59,7 +59,7 @@ namespace dnlib.DotNet.Writer {
 		public abstract uint GetRawLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(BinaryWriter writer) {
+		public void WriteTo(DataWriter writer) {
 			WriteToImpl(writer);
 			writer.WriteZeros((int)(Utils.AlignUp(GetRawLength(), ALIGNMENT) - GetRawLength()));
 		}
@@ -68,7 +68,7 @@ namespace dnlib.DotNet.Writer {
 		/// Writes all data to <paramref name="writer"/> at its current location.
 		/// </summary>
 		/// <param name="writer">Destination</param>
-		protected abstract void WriteToImpl(BinaryWriter writer);
+		protected abstract void WriteToImpl(DataWriter writer);
 
 		/// <inheritdoc/>
 		public override string ToString() => Name;
