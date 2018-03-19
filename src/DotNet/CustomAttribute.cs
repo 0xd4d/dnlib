@@ -80,7 +80,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IEnumerable<CANamedArgument> Fields {
 			get {
-				foreach (var namedArg in namedArguments) {
+				var namedArguments = this.namedArguments;
+				int count = namedArguments.Count;
+				for (int i = 0; i < count; i++) {
+					var namedArg = namedArguments[i];
 					if (namedArg.IsField)
 						yield return namedArg;
 				}
@@ -92,7 +95,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IEnumerable<CANamedArgument> Properties {
 			get {
-				foreach (var namedArg in namedArguments) {
+				var namedArguments = this.namedArguments;
+				int count = namedArguments.Count;
+				for (int i = 0; i < count; i++) {
+					var namedArg = namedArguments[i];
 					if (namedArg.IsProperty)
 						yield return namedArg;
 				}
@@ -211,7 +217,10 @@ namespace dnlib.DotNet {
 		/// <param name="isField"><c>true</c> if it's a field, <c>false</c> if it's a property</param>
 		/// <returns>A <see cref="CANamedArgument"/> instance or <c>null</c> if not found</returns>
 		public CANamedArgument GetNamedArgument(string name, bool isField) {
-			foreach (var namedArg in namedArguments) {
+			var namedArguments = this.namedArguments;
+			int count = namedArguments.Count;
+			for (int i = 0; i < count; i++) {
+				var namedArg = namedArguments[i];
 				if (namedArg.IsField == isField && UTF8String.ToSystemStringOrEmpty(namedArg.Name) == name)
 					return namedArg;
 			}
@@ -225,7 +234,10 @@ namespace dnlib.DotNet {
 		/// <param name="isField"><c>true</c> if it's a field, <c>false</c> if it's a property</param>
 		/// <returns>A <see cref="CANamedArgument"/> instance or <c>null</c> if not found</returns>
 		public CANamedArgument GetNamedArgument(UTF8String name, bool isField) {
-			foreach (var namedArg in namedArguments) {
+			var namedArguments = this.namedArguments;
+			int count = namedArguments.Count;
+			for (int i = 0; i < count; i++) {
+				var namedArg = namedArguments[i];
 				if (namedArg.IsField == isField && UTF8String.Equals(namedArg.Name, name))
 					return namedArg;
 			}
@@ -291,8 +303,11 @@ namespace dnlib.DotNet {
 				value = ((CAArgument)value).Clone();
 			else if (value is IList<CAArgument> args) {
 				var newArgs = new List<CAArgument>(args.Count);
-				foreach (var arg in args)
+				int count = args.Count;
+				for (int i = 0; i < count; i++) {
+					var arg = args[i];
 					newArgs.Add(arg.Clone());
+				}
 				value = newArgs;
 			}
 			return new CAArgument(type, value);

@@ -51,7 +51,9 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteByte((byte)'.');
 			WriteCompressedUInt32(writer, (uint)secAttrs.Count);
 
-			foreach (var sa in secAttrs) {
+			int count = secAttrs.Count;
+			for (int i = 0; i < count; i++) {
+				var sa = secAttrs[i];
 				if (sa == null) {
 					helper.Error("SecurityAttribute is null");
 					Write(writer, UTF8String.Empty);

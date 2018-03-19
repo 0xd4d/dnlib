@@ -332,9 +332,14 @@ namespace dnlib.DotNet.Writer {
 				return;
 			dirList.Add(dir);
 			dirDict[dir] = 0;
-			foreach (var dir2 in dir.Directories)
-				FindDirectoryEntries(dir2);
-			foreach (var data in dir.Data) {
+			var dirs = dir.Directories;
+			int count = dirs.Count;
+			for (int i = 0; i < count; i++)
+				FindDirectoryEntries(dirs[i]);
+			var dirData = dir.Data;
+			count = dirData.Count;
+			for (int i = 0; i < count; i++) {
+				var data = dirData[i];
 				if (dataHeaderDict.ContainsKey(data))
 					continue;
 				dataHeaderList.Add(data);
@@ -439,13 +444,19 @@ namespace dnlib.DotNet.Writer {
 		static void GetNamedAndIds(ResourceDirectory dir, out List<ResourceDirectoryEntry> named, out List<ResourceDirectoryEntry> ids) {
 			named = new List<ResourceDirectoryEntry>();
 			ids = new List<ResourceDirectoryEntry>();
-			foreach (var d in dir.Directories) {
+			var dirs = dir.Directories;
+			int count = dirs.Count;
+			for (int i = 0; i < count; i++) {
+				var d = dirs[i];
 				if (d.Name.HasId)
 					ids.Add(d);
 				else
 					named.Add(d);
 			}
-			foreach (var d in dir.Data) {
+			var dirData = dir.Data;
+			count = dirData.Count;
+			for (int i = 0; i < count; i++) {
+				var d = dirData[i];
 				if (d.Name.HasId)
 					ids.Add(d);
 				else

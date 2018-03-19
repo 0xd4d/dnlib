@@ -307,8 +307,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 				if (documentsResult == null) {
 					var docs = new SymbolDocument[documents.Count];
 					int i = 0;
-					foreach (var doc in documents.Values)
-						docs[i++] = doc;
+					foreach (var kv in documents)
+						docs[i++] = kv.Value;
 					documentsResult = docs;
 				}
 				return documentsResult;

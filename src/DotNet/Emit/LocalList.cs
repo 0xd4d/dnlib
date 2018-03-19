@@ -42,10 +42,10 @@ namespace dnlib.DotNet.Emit {
 		/// Constructor
 		/// </summary>
 		/// <param name="locals">All locals that will be owned by this instance</param>
-		public LocalList(IEnumerable<Local> locals) {
+		public LocalList(IList<Local> locals) {
 			this.locals = new LazyList<Local>(this);
-			foreach (var local in locals)
-				this.locals.Add(local);
+			for (int i = 0; i < locals.Count; i++)
+				this.locals.Add(locals[i]);
 		}
 
 		/// <summary>

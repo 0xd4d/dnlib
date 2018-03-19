@@ -20,8 +20,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public string ModuleName { get; private set; }
 		public string ObjectName { get; private set; }
 
-		public IList<DbiFunction> Functions { get; private set; }
-		public IList<DbiDocument> Documents { get; private set; }
+		public List<DbiFunction> Functions { get; private set; }
+		public List<DbiDocument> Documents { get; private set; }
 
 		public void Read(ref DataReader reader) {
 			reader.Position += 34;

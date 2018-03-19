@@ -262,7 +262,10 @@ namespace dnlib.DotNet {
 			if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
 				// This assembly was just resolved
 				if (enableTypeDefCache) {
-					foreach (var module in resolvedAssembly.Modules) {
+					var modules = resolvedAssembly.Modules;
+					int count = modules.Count;
+					for (int i = 0; i < count; i++) {
+						var module = modules[i];
 						if (module != null)
 							module.EnableTypeDefFindCache = true;
 					}
@@ -444,7 +447,8 @@ namespace dnlib.DotNet {
 		AssemblyDef FindClosestAssembly(IAssembly assembly) {
 			AssemblyDef closest = null;
 			var asmComparer = AssemblyNameComparer.CompareAll;
-			foreach (var asm in cachedAssemblies.Values) {
+			foreach (var kv in cachedAssemblies) {
+				var asm = kv.Value;
 				if (asm == null)
 					continue;
 				if (asmComparer.CompareClosest(assembly, closest, asm) == 1)

@@ -1391,7 +1391,9 @@ namespace dnlib.DotNet {
 					if (isReflection) {
 						sb.Append('[');
 						int i = -1;
-						foreach (var genArg in typeGenArgs) {
+						int count = typeGenArgs.Count;
+						for (int j = 0; j < count; j++) {
+							var genArg = typeGenArgs[j];
 							i++;
 							if (i != 0)
 								sb.Append(',');
@@ -1417,7 +1419,9 @@ namespace dnlib.DotNet {
 					else {
 						sb.Append('<');
 						int i = -1;
-						foreach (var genArg in typeGenArgs) {
+						int count = typeGenArgs.Count;
+						for (int j = 0; j < count; j++) {
+							var genArg = typeGenArgs[j];
 							i++;
 							if (i != 0)
 								sb.Append(',');
@@ -1529,6 +1533,8 @@ namespace dnlib.DotNet {
 			EscapeAssemblyName(UTF8String.ToSystemString(asmSimplName));
 
 		static string EscapeAssemblyName(string asmSimplName) {
+			if (asmSimplName.IndexOf(']') < 0)
+				return asmSimplName;
 			var sb = new StringBuilder(asmSimplName.Length);
 			foreach (var c in asmSimplName) {
 				if (c == ']')
@@ -2124,7 +2130,7 @@ namespace dnlib.DotNet {
 			sb.Append(')');
 		}
 
-		int PrintMethodArgList(IEnumerable<TypeSig> args, bool hasPrintedArgs, bool isAfterSentinel) {
+		int PrintMethodArgList(IList<TypeSig> args, bool hasPrintedArgs, bool isAfterSentinel) {
 			if (args == null)
 				return 0;
 			if (isAfterSentinel) {
@@ -2134,7 +2140,9 @@ namespace dnlib.DotNet {
 				hasPrintedArgs = true;
 			}
 			int count = 0;
-			foreach (var arg in args) {
+			int argsCount = args.Count;
+			for (int i = 0; i < argsCount; i++) {
+				var arg = args[i];
 				count++;
 				if (hasPrintedArgs)
 					sb.Append(',');

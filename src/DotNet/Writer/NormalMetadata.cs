@@ -54,6 +54,7 @@ namespace dnlib.DotNet.Writer {
 			uint fieldListRid = 1, methodListRid = 1;
 			uint eventListRid = 1, propertyListRid = 1;
 			uint paramListRid = 1;
+			int count;
 			foreach (var type in allTypeDefs) {
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
 					RaiseProgress(Writer.MetadataEvent.AllocateMemberDefRids, (double)typeNum / numTypes);
@@ -68,7 +69,10 @@ namespace dnlib.DotNet.Writer {
 				typeRow = new RawTypeDefRow(typeRow.Flags, typeRow.Name, typeRow.Namespace, typeRow.Extends, fieldListRid, methodListRid);
 				tablesHeap.TypeDefTable[typeRid] = typeRow;
 
-				foreach (var field in type.Fields) {
+				var fields = type.Fields;
+				count = fields.Count;
+				for (int i = 0; i < count; i++) {
+					var field = fields[i];
 					if (field == null)
 						continue;
 					uint rid = fieldListRid++;
@@ -77,7 +81,10 @@ namespace dnlib.DotNet.Writer {
 					fieldDefInfos.Add(field, rid);
 				}
 
-				foreach (var method in type.Methods) {
+				var methods = type.Methods;
+				count = methods.Count;
+				for (int i = 0; i < count; i++) {
+					var method = methods[i];
 					if (method == null)
 						continue;
 					uint rid = methodListRid++;
@@ -98,7 +105,10 @@ namespace dnlib.DotNet.Writer {
 				if (!IsEmpty(type.Events)) {
 					uint eventMapRid = tablesHeap.EventMapTable.Create(new RawEventMapRow(typeRid, eventListRid));
 					eventMapInfos.Add(type, eventMapRid);
-					foreach (var evt in type.Events) {
+					var events = type.Events;
+					count = events.Count;
+					for (int i = 0; i < count; i++) {
+						var evt = events[i];
 						if (evt == null)
 							continue;
 						uint rid = eventListRid++;
@@ -111,7 +121,10 @@ namespace dnlib.DotNet.Writer {
 				if (!IsEmpty(type.Properties)) {
 					uint propertyMapRid = tablesHeap.PropertyMapTable.Create(new RawPropertyMapRow(typeRid, propertyListRid));
 					propertyMapInfos.Add(type, propertyMapRid);
-					foreach (var prop in type.Properties) {
+					var properties = type.Properties;
+					count = properties.Count;
+					for (int i = 0; i < count; i++) {
+						var prop = properties[i];
 						if (prop == null)
 							continue;
 						uint rid = propertyListRid++;

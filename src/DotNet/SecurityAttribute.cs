@@ -43,7 +43,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IEnumerable<CANamedArgument> Fields {
 			get {
-				foreach (var namedArg in namedArguments) {
+				var namedArguments = this.namedArguments;
+				int count = namedArguments.Count;
+				for (int i = 0; i < count; i++) {
+					var namedArg = namedArguments[i];
 					if (namedArg.IsField)
 						yield return namedArg;
 				}
@@ -55,7 +58,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IEnumerable<CANamedArgument> Properties {
 			get {
-				foreach (var namedArg in namedArguments) {
+				var namedArguments = this.namedArguments;
+				int count = namedArguments.Count;
+				for (int i = 0; i < count; i++) {
+					var namedArg = namedArguments[i];
 					if (namedArg.IsProperty)
 						yield return namedArg;
 				}

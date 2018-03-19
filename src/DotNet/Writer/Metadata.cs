@@ -1401,6 +1401,7 @@ namespace dnlib.DotNet.Writer {
 		/// aren't written either.
 		/// </summary>
 		void InitializeTypeDefsAndMemberDefs() {
+			int count;
 			int numTypes = allTypeDefs.Length;
 			int typeNum = 0;
 			int notifyNum = 0;
@@ -1428,7 +1429,10 @@ namespace dnlib.DotNet.Writer {
 				AddClassLayout(type);
 				AddNestedType(type, type.DeclaringType);
 
-				foreach (var field in type.Fields) {
+				var fields = type.Fields;
+				count = fields.Count;
+				for (int i = 0; i < count; i++) {
+					var field = fields[i];
 					if (field == null) {
 						Error("Field is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 						continue;
@@ -1443,7 +1447,10 @@ namespace dnlib.DotNet.Writer {
 					AddConstant(new MDToken(Table.Field, rid), field);
 				}
 
-				foreach (var method in type.Methods) {
+				var methods = type.Methods;
+				count = methods.Count;
+				for (int i = 0; i < count; i++) {
+					var method = methods[i];
 					if (method == null) {
 						Error("Method is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 						continue;
@@ -1458,7 +1465,10 @@ namespace dnlib.DotNet.Writer {
 					AddDeclSecurities(new MDToken(Table.Method, rid), method.DeclSecurities);
 					AddImplMap(new MDToken(Table.Method, rid), method);
 					AddMethodImpls(method, method.Overrides);
-					foreach (var pd in method.ParamDefs) {
+					var paramDefs = method.ParamDefs;
+					int count2 = paramDefs.Count;
+					for (int j = 0; j < count2; j++) {
+						var pd = paramDefs[j];
 						if (pd == null) {
 							Error("Param is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
 							continue;
@@ -1471,7 +1481,10 @@ namespace dnlib.DotNet.Writer {
 					}
 				}
 
-				foreach (var evt in type.Events) {
+				var events = type.Events;
+				count = events.Count;
+				for (int i = 0; i < count; i++) {
+					var evt = events[i];
 					if (evt == null) {
 						Error("Event is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 						continue;
@@ -1482,7 +1495,10 @@ namespace dnlib.DotNet.Writer {
 					AddMethodSemantics(evt);
 				}
 
-				foreach (var prop in type.Properties) {
+				var properties = type.Properties;
+				count = properties.Count;
+				for (int i = 0; i < count; i++) {
+					var prop = properties[i];
 					if (prop == null) {
 						Error("Property is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
 						continue;
@@ -1501,6 +1517,7 @@ namespace dnlib.DotNet.Writer {
 		/// <c>Property</c> and <c>Param</c> custom attributes and custom debug infos.
 		/// </summary>
 		void WriteTypeDefAndMemberDefCustomAttributesAndCustomDebugInfos() {
+			int count;
 			int numTypes = allTypeDefs.Length;
 			int typeNum = 0;
 			int notifyNum = 0;
@@ -1523,7 +1540,10 @@ namespace dnlib.DotNet.Writer {
 					AddCustomDebugInformationList(Table.TypeDef, rid, type);
 				}
 
-				foreach (var field in type.Fields) {
+				var fields = type.Fields;
+				count = fields.Count;
+				for (int i = 0; i < count; i++) {
+					var field = fields[i];
 					if (field == null)
 						continue;
 					if (field.HasCustomAttributes || field.HasCustomDebugInfos) {
@@ -1533,7 +1553,10 @@ namespace dnlib.DotNet.Writer {
 					}
 				}
 
-				foreach (var method in type.Methods) {
+				var methods = type.Methods;
+				count = methods.Count;
+				for (int i = 0; i < count; i++) {
+					var method = methods[i];
 					if (method == null)
 						continue;
 					if (method.HasCustomAttributes) {
@@ -1541,7 +1564,10 @@ namespace dnlib.DotNet.Writer {
 						AddCustomAttributes(Table.Method, rid, method);
 						// Method custom debug info is added later when writing method bodies
 					}
-					foreach (var pd in method.ParamDefs) {
+					var paramDefs = method.ParamDefs;
+					int count2 = paramDefs.Count;
+					for (int j = 0; j < count2; j++) {
+						var pd = paramDefs[j];
 						if (pd == null)
 							continue;
 						if (pd.HasCustomAttributes || pd.HasCustomDebugInfos) {
@@ -1551,7 +1577,10 @@ namespace dnlib.DotNet.Writer {
 						}
 					}
 				}
-				foreach (var evt in type.Events) {
+				var events = type.Events;
+				count = events.Count;
+				for (int i = 0; i < count; i++) {
+					var evt = events[i];
 					if (evt == null)
 						continue;
 					if (evt.HasCustomAttributes || evt.HasCustomDebugInfos) {
@@ -1560,7 +1589,10 @@ namespace dnlib.DotNet.Writer {
 						AddCustomDebugInformationList(Table.Event, rid, evt);
 					}
 				}
-				foreach (var prop in type.Properties) {
+				var properties = type.Properties;
+				count = properties.Count;
+				for (int i = 0; i < count; i++) {
+					var prop = properties[i];
 					if (prop == null)
 						continue;
 					if (prop.HasCustomAttributes || prop.HasCustomDebugInfos) {
@@ -1594,8 +1626,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddExportedTypes() {
-			foreach (var et in module.ExportedTypes)
-				AddExportedType(et);
+			var exportedTypes = module.ExportedTypes;
+			int count = exportedTypes.Count;
+			for (int i = 0; i < count; i++)
+				AddExportedType(exportedTypes[i]);
 		}
 
 		/// <summary>
@@ -1697,7 +1731,10 @@ namespace dnlib.DotNet.Writer {
 				if (type == null)
 					continue;
 				AddGenericParamConstraints(type.GenericParameters);
-				foreach (var method in type.Methods) {
+				var methods = type.Methods;
+				int count = methods.Count;
+				for (int i = 0; i < count; i++) {
+					var method = methods[i];
 					if (method == null)
 						continue;
 					AddGenericParamConstraints(method.GenericParameters);
@@ -1864,10 +1901,18 @@ namespace dnlib.DotNet.Writer {
 						(uint)debugMetadata.tablesHeap.LocalConstantTable.Rows + 1,
 						info.ScopeStart, info.ScopeLength);
 					debugMetadata.localScopeInfos.Add(info.Scope, row);
-					foreach (var local in info.Scope.Variables)
+					var variables = info.Scope.Variables;
+					int count = variables.Count;
+					for (int i = 0; i < count; i++) {
+						var local = variables[i];
 						AddLocalVariable(local);
-					foreach (var constant in info.Scope.Constants)
+					}
+					var constants = info.Scope.Constants;
+					count = constants.Count;
+					for (int i = 0; i < count; i++) {
+						var constant = constants[i];
 						AddLocalConstant(constant);
+					}
 					AddCustomDebugInformationList(Table.LocalScope, localScopeRid, info.Scope.CustomDebugInfos);
 				}
 
@@ -1909,8 +1954,9 @@ namespace dnlib.DotNet.Writer {
 		protected static bool IsEmpty<T>(IList<T> list) where T : class {
 			if (list == null)
 				return true;
-			foreach (var e in list) {
-				if (e != null)
+			int count = list.Count;
+			for (int i = 0; i < count; i++) {
+				if (list[i] != null)
 					return false;
 			}
 			return true;
@@ -2340,8 +2386,9 @@ namespace dnlib.DotNet.Writer {
 		protected void AddGenericParams(MDToken token, IList<GenericParam> gps) {
 			if (gps == null)
 				return;
-			foreach (var gp in gps)
-				AddGenericParam(token, gp);
+			int count = gps.Count;
+			for (int i = 0; i < count; i++)
+				AddGenericParam(token, gps[i]);
 		}
 
 		/// <summary>
@@ -2369,7 +2416,9 @@ namespace dnlib.DotNet.Writer {
 		void AddGenericParamConstraints(IList<GenericParam> gps) {
 			if (gps == null)
 				return;
-			foreach (var gp in gps) {
+			int count = gps.Count;
+			for (int i = 0; i < count; i++) {
+				var gp = gps[i];
 				if (gp == null)
 					continue;
 				uint rid = genericParamInfos.Rid(gp);
@@ -2385,8 +2434,9 @@ namespace dnlib.DotNet.Writer {
 		protected void AddGenericParamConstraints(uint gpRid, IList<GenericParamConstraint> constraints) {
 			if (constraints == null)
 				return;
-			foreach (var gpc in constraints)
-				AddGenericParamConstraint(gpRid, gpc);
+			int count = constraints.Count;
+			for (int i = 0; i < count; i++)
+				AddGenericParamConstraint(gpRid, constraints[i]);
 		}
 
 		/// <summary>
@@ -2409,7 +2459,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="typeDefRid">New rid of owner</param>
 		/// <param name="ifaces">All interfaces</param>
 		protected void AddInterfaceImpls(uint typeDefRid, IList<InterfaceImpl> ifaces) {
-			foreach (var iface in ifaces) {
+			int count = ifaces.Count;
+			for (int i = 0; i < count; i++) {
+				var iface = ifaces[i];
 				if (iface == null)
 					continue;
 				var row = new RawInterfaceImplRow(typeDefRid,
@@ -2609,7 +2661,9 @@ namespace dnlib.DotNet.Writer {
 				encodedParent = 0;
 			}
 			var bwctx = AllocBinaryWriterContext();
-			foreach (var decl in declSecurities) {
+			int count = declSecurities.Count;
+			for (int i = 0; i < count; i++) {
+				var decl = declSecurities[i];
 				if (decl == null)
 					continue;
 				var row = new RawDeclSecurityRow((short)decl.Action,
@@ -2660,8 +2714,9 @@ namespace dnlib.DotNet.Writer {
 		void AddMethodSemantics(MDToken owner, IList<MethodDef> methods, MethodSemanticsAttributes attrs) {
 			if (methods == null)
 				return;
-			foreach (var method in methods)
-				AddMethodSemantics(owner, method, attrs);
+			int count = methods.Count;
+			for (int i = 0; i < count; i++)
+				AddMethodSemantics(owner, methods[i], attrs);
 		}
 
 		void AddMethodSemantics(MDToken owner, MethodDef method, MethodSemanticsAttributes flags) {
@@ -2687,7 +2742,9 @@ namespace dnlib.DotNet.Writer {
 			}
 			if (overrides.Count != 0) {
 				uint rid = GetRid(method.DeclaringType);
-				foreach (var ovr in overrides) {
+				int count = overrides.Count;
+				for (int i = 0; i < count; i++) {
+					var ovr = overrides[i];
 					var row = new RawMethodImplRow(rid,
 								AddMethodDefOrRef(ovr.MethodBody),
 								AddMethodDefOrRef(ovr.MethodDeclaration));
@@ -2712,8 +2769,9 @@ namespace dnlib.DotNet.Writer {
 		void AddResources(IList<Resource> resources) {
 			if (resources == null)
 				return;
-			foreach (var resource in resources)
-				AddResource(resource);
+			int count = resources.Count;
+			for (int i = 0; i < count; i++)
+				AddResource(resources[i]);
 		}
 
 		void AddResource(Resource resource) {
@@ -2899,8 +2957,9 @@ namespace dnlib.DotNet.Writer {
 
 		void AddCustomAttributes(Table table, uint rid, CustomAttributeCollection caList) {
 			var token = new MDToken(table, rid);
-			foreach (var ca in caList)
-				AddCustomAttribute(token, ca);
+			int count = caList.Count;
+			for (int i = 0; i < count; i++)
+				AddCustomAttribute(token, caList[i]);
 		}
 
 		void AddCustomAttribute(MDToken token, CustomAttribute ca) {

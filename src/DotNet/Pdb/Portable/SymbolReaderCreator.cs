@@ -67,7 +67,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		static ImageDebugDirectory TryGetEmbeddedDebugDirectory(IPEImage peImage) {
-			foreach (var idd in peImage.ImageDebugDirectories) {
+			var dirs = peImage.ImageDebugDirectories;
+			int count = dirs.Count;
+			for (int i = 0; i < count; i++) {
+				var idd = dirs[i];
 				if (idd.Type == ImageDebugType.EmbeddedPortablePdb)
 					return idd;
 			}

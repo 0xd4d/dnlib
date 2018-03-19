@@ -520,8 +520,14 @@ namespace dnlib.DotNet {
 		}
 
 		static ExportedType FindExportedType(AssemblyDef asm, ExportedType et) {
-			foreach (var mod in asm.Modules) {
-				foreach (var et2 in mod.ExportedTypes) {
+			var modules = asm.Modules;
+			int count = modules.Count;
+			for (int i = 0; i < count; i++) {
+				var mod = modules[i];
+				var exportedTypes = mod.ExportedTypes;
+				int count2 = exportedTypes.Count;
+				for (int j = 0; j < count2; j++) {
+					var et2 = exportedTypes[j];
 					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(et, et2))
 						return et2;
 				}

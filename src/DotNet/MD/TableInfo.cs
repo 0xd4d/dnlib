@@ -11,7 +11,7 @@ namespace dnlib.DotNet.MD {
 	public sealed class TableInfo {
 		readonly Table table;
 		int rowSize;
-		readonly IList<ColumnInfo> columns;
+		readonly ColumnInfo[] columns;
 		readonly string name;
 
 		/// <summary>
@@ -30,7 +30,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Returns all the columns
 		/// </summary>
-		public IList<ColumnInfo> Columns => columns;
+		public ColumnInfo[] Columns => columns;
 
 		/// <summary>
 		/// Returns the name of the table
@@ -43,7 +43,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="table">Table type</param>
 		/// <param name="name">Table name</param>
 		/// <param name="columns">All columns</param>
-		public TableInfo(Table table, string name, IList<ColumnInfo> columns) {
+		public TableInfo(Table table, string name, ColumnInfo[] columns) {
 			this.table = table;
 			this.name = name;
 			this.columns = columns;
@@ -56,7 +56,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="name">Table name</param>
 		/// <param name="columns">All columns</param>
 		/// <param name="rowSize">Row size</param>
-		public TableInfo(Table table, string name, IList<ColumnInfo> columns, int rowSize) {
+		public TableInfo(Table table, string name, ColumnInfo[] columns, int rowSize) {
 			this.table = table;
 			this.name = name;
 			this.columns = columns;

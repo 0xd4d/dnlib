@@ -17,7 +17,7 @@ namespace dnlib.DotNet.MD {
 		DataReader dataReader;
 
 		// Fix for VS2015 expression evaluator: "The debugger is unable to evaluate this expression"
-		int Count => tableInfo.Columns.Count;
+		int Count => tableInfo.Columns.Length;
 
 		/// <inheritdoc/>
 		public FileOffset StartOffset => (FileOffset)dataReader.StartOffset;
@@ -77,15 +77,16 @@ namespace dnlib.DotNet.MD {
 			this.tableInfo = tableInfo;
 
 			var columns = tableInfo.Columns;
-			if (columns.Count > 0) Column0 = columns[0];
-			if (columns.Count > 1) Column1 = columns[1];
-			if (columns.Count > 2) Column2 = columns[2];
-			if (columns.Count > 3) Column3 = columns[3];
-			if (columns.Count > 4) Column4 = columns[4];
-			if (columns.Count > 5) Column5 = columns[5];
-			if (columns.Count > 6) Column6 = columns[6];
-			if (columns.Count > 7) Column7 = columns[7];
-			if (columns.Count > 8) Column8 = columns[8];
+			int length = columns.Length;
+			if (length > 0) Column0 = columns[0];
+			if (length > 1) Column1 = columns[1];
+			if (length > 2) Column2 = columns[2];
+			if (length > 3) Column3 = columns[3];
+			if (length > 4) Column4 = columns[4];
+			if (length > 5) Column5 = columns[5];
+			if (length > 6) Column6 = columns[6];
+			if (length > 7) Column7 = columns[7];
+			if (length > 8) Column8 = columns[8];
 		}
 
 		// So we don't have to call IList<T> indexer

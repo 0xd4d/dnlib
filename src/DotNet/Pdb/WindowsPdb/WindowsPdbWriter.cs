@@ -77,7 +77,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			foreach (var type in module.GetTypes()) {
 				if (type == null)
 					continue;
-				foreach (var method in type.Methods) {
+				var typeMethods = type.Methods;
+				int count = typeMethods.Count;
+				for (int i = 0; i < count; i++) {
+					var method = typeMethods[i];
 					if (method == null)
 						continue;
 					if (!ShouldAddMethod(method))
@@ -95,7 +98,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			if (body.HasPdbMethod)
 				return true;
 
-			foreach (var local in body.Variables) {
+			var bodyVariables = body.Variables;
+			int count = bodyVariables.Count;
+			for (int i = 0; i < count; i++) {
+				var local = bodyVariables[i];
 				// Don't check whether it's the empty string. Only check for null.
 				if (local.Name != null)
 					return true;
@@ -103,8 +109,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					return true;
 			}
 
-			foreach (var instr in body.Instructions) {
-				if (instr.SequencePoint != null)
+			var bodyInstructions = body.Instructions;
+			count = bodyInstructions.Count;
+			for (int i = 0; i < count; i++) {
+				if (bodyInstructions[i].SequencePoint != null)
 					return true;
 			}
 
@@ -181,7 +189,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				this.toOffset = toOffset;
 				toOffset.Clear();
 				uint offset = 0;
-				foreach (var instr in method.Body.Instructions) {
+				var instructions = method.Body.Instructions;
+				int count = instructions.Count;
+				for (int i = 0; i < count; i++) {
+					var instr = instructions[i];
 					toOffset[instr] = offset;
 					offset += (uint)instr.GetSize();
 				}
@@ -226,8 +237,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					writer.CloseScope((int)info.BodySize);
 				}
 				else {
-					foreach (var childScope in scope.Scopes)
-						WriteScope(ref info, childScope, 0);
+					var scopes = scope.Scopes;
+					int count = scopes.Count;
+					for (int i = 0; i < count; i++)
+						WriteScope(ref info, scopes[i], 0);
 				}
 			}
 			else {
@@ -256,7 +269,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		void GetPseudoCustomDebugInfos(IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo asyncMethod) {
 			cdiBuilder.Clear();
 			asyncMethod = null;
-			foreach (var cdi in customDebugInfos) {
+			int count = customDebugInfos.Count;
+			for (int i = 0; i < count; i++) {
+				var cdi = customDebugInfos[i];
 				switch (cdi.Kind) {
 				case PdbCustomDebugInfoKind.AsyncMethod:
 					if (asyncMethod != null)
@@ -364,10 +379,14 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					writer.DefineConstant2(constant.Name, constant.Value ?? 0, token.Raw);
 				}
 			}
-			foreach (var ns in scope.Namespaces)
-				writer.UsingNamespace(ns);
-			foreach (var childScope in scope.Scopes)
-				WriteScope(ref info, childScope, recursionCounter + 1);
+			var scopeNamespaces = scope.Namespaces;
+			int count = scopeNamespaces.Count;
+			for (int i = 0; i < count; i++)
+				writer.UsingNamespace(scopeNamespaces[i]);
+			var scopes = scope.Scopes;
+			count = scopes.Count;
+			for (int i = 0; i < count; i++)
+				WriteScope(ref info, scopes[i], recursionCounter + 1);
 			writer.CloseScope(startOffset == 0 && endOffset == info.BodySize ? endOffset : endOffset - localsEndScopeIncValue);
 		}
 
@@ -379,7 +398,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				Error("Method {0} ({1:X8}) has no local signature token", method, method.MDToken.Raw);
 				return;
 			}
-			foreach (var local in locals) {
+			int count = locals.Count;
+			for (int i = 0; i < count; i++) {
+				var local = locals[i];
 				uint attrs = GetPdbLocalFlags(local.Attributes);
 				if (attrs == 0 && local.Name == null)
 					continue;

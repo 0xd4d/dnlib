@@ -98,7 +98,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				helper.Error("Method has no body, can't write custom debug info: " + cdi.Kind);
 				return;
 			}
-			foreach (var scope in cdi.Scopes) {
+			var cdiScopes = cdi.Scopes;
+			int count = cdiScopes.Count;
+			for (int i = 0; i < count; i++) {
+				var scope = cdiScopes[i];
 				uint startOffset, endOffset;
 				if (scope.IsSynthesizedLocal) {
 					startOffset = 0;
@@ -150,7 +153,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		void WriteTupleElementNames(PortablePdbTupleElementNamesCustomDebugInfo cdi) {
-			foreach (var name in cdi.Names) {
+			var cdiNames = cdi.Names;
+			int count = cdiNames.Count;
+			for (int i = 0; i < count; i++) {
+				var name = cdiNames[i];
 				if (name == null) {
 					helper.Error("Tuple name is null");
 					return;
@@ -216,7 +222,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				catchHandlerOffset = methodContext.GetOffset(cdi.CatchHandlerInstruction) + 1;
 			writer.WriteUInt32(catchHandlerOffset);
 
-			foreach (var info in cdi.StepInfos) {
+			var cdiStepInfos = cdi.StepInfos;
+			int count = cdiStepInfos.Count;
+			for (int i = 0; i < count; i++) {
+				var info = cdiStepInfos[i];
 				if (info.YieldInstruction == null) {
 					helper.Error("YieldInstruction is null");
 					return;

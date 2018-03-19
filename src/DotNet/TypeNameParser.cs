@@ -298,7 +298,9 @@ namespace dnlib.DotNet {
 		}
 
 		internal TypeSig CreateTypeSig(IList<TSpec> tspecs, TypeSig currentSig) {
-			foreach (var tspec in tspecs) {
+			int count = tspecs.Count;
+			for (int i = 0; i < count; i++) {
+				var tspec = tspecs[i];
 				switch (tspec.etype) {
 				case ElementType.SZArray:
 					currentSig = new SZArraySig(currentSig);

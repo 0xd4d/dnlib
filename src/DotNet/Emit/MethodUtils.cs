@@ -16,7 +16,9 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">All method parameters, including the hidden 'this' parameter
 		/// if it's an instance method. Use <see cref="MethodDef.Parameters"/>.</param>
 		public static void SimplifyMacros(this IList<Instruction> instructions, IList<Local> locals, IList<Parameter> parameters) {
-			foreach (var instr in instructions) {
+			int count = instructions.Count;
+			for (int i = 0; i < count; i++) {
+				var instr = instructions[i];
 				switch (instr.OpCode.Code) {
 				case Code.Beq_S:
 					instr.OpCode = OpCodes.Beq;
@@ -230,7 +232,9 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instructions">All instructions</param>
 		public static void OptimizeMacros(this IList<Instruction> instructions) {
-			foreach (var instr in instructions) {
+			int count = instructions.Count;
+			for (int i = 0; i < count; i++) {
+				var instr = instructions[i];
 				Parameter arg;
 				Local local;
 				switch (instr.OpCode.Code) {
@@ -413,7 +417,9 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instructions">All instructions</param>
 		public static void SimplifyBranches(this IList<Instruction> instructions) {
-			foreach (var instr in instructions) {
+			int count = instructions.Count;
+			for (int i = 0; i < count; i++) {
+				var instr = instructions[i];
 				switch (instr.OpCode.Code) {
 				case Code.Beq_S:	instr.OpCode = OpCodes.Beq; break;
 				case Code.Bge_S:	instr.OpCode = OpCodes.Bge; break;
@@ -442,7 +448,9 @@ namespace dnlib.DotNet.Emit {
 				UpdateInstructionOffsets(instructions);
 
 				bool modified = false;
-				foreach (var instr in instructions) {
+				int count = instructions.Count;
+				for (int i = 0; i < count; i++) {
+					var instr = instructions[i];
 					OpCode shortOpCode;
 					switch (instr.OpCode.Code) {
 					case Code.Beq:		shortOpCode = OpCodes.Beq_S; break;
@@ -496,7 +504,9 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>Total size in bytes of all instructions</returns>
 		public static uint UpdateInstructionOffsets(this IList<Instruction> instructions) {
 			uint offset = 0;
-			foreach (var instr in instructions) {
+			int count = instructions.Count;
+			for (int i = 0; i < count; i++) {
+				var instr = instructions[i];
 				instr.Offset = offset;
 				offset += (uint)instr.GetSize();
 			}

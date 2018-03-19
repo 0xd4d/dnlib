@@ -779,7 +779,10 @@ namespace dnlib.DotNet.Writer {
 						Error("Could not convert RVA to file offset");
 				}
 				else {
-					foreach (var method in vtable.Methods) {
+					var methods = vtable.Methods;
+					int count = methods.Count;
+					for (int i = 0; i < count; i++) {
+						var method = methods[i];
 						writer.WriteUInt32(GetMethodToken(method));
 						if (vtable.Is64Bit)
 							writer.WriteInt32(0);

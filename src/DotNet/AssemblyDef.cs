@@ -336,7 +336,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of module</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
 		public ModuleDef FindModule(UTF8String name) {
-			foreach (var module in Modules) {
+			var modules = Modules;
+			int count = modules.Count;
+			for (int i = 0; i < count; i++) {
+				var module = modules[i];
 				if (module == null)
 					continue;
 				if (UTF8String.CaseInsensitiveEquals(module.Name, name))
@@ -519,7 +522,10 @@ namespace dnlib.DotNet {
 		/// are separated by a <c>/</c> character.</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		public TypeDef Find(string fullName, bool isReflectionName) {
-			foreach (var module in Modules) {
+			var modules = Modules;
+			int count = modules.Count;
+			for (int i = 0; i < count; i++) {
+				var module = modules[i];
 				if (module == null)
 					continue;
 				var type = module.Find(fullName, isReflectionName);
@@ -537,7 +543,10 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		public TypeDef Find(TypeRef typeRef) {
-			foreach (var module in Modules) {
+			var modules = Modules;
+			int count = modules.Count;
+			for (int i = 0; i < count; i++) {
+				var module = modules[i];
 				if (module == null)
 					continue;
 				var type = module.Find(typeRef);

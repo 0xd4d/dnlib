@@ -348,7 +348,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static bool HasMvidSection(IList<ImageSectionHeader> sections) {
-			foreach (var section in sections) {
+			int count = sections.Count;
+			for (int i = 0; i < count; i++) {
+				var section = sections[i];
 				if (section.VirtualSize != 16)
 					continue;
 				var name = section.Name;
@@ -655,7 +657,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="fileAlignment">File alignment</param>
 		/// <param name="sectionAlignment">Section alignment</param>
 		protected void CalculateRvasAndFileOffsets(List<IChunk> chunks, FileOffset offset, RVA rva, uint fileAlignment, uint sectionAlignment) {
-			foreach (var chunk in chunks) {
+			int count = chunks.Count;
+			for (int i = 0; i < count; i++) {
+				var chunk = chunks[i];
 				chunk.SetOffset(offset, rva);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
 				if (chunk.GetVirtualSize() != 0) {
@@ -675,7 +679,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="offset">File offset of first chunk</param>
 		/// <param name="fileAlignment">File alignment</param>
 		protected void WriteChunks(DataWriter writer, List<IChunk> chunks, FileOffset offset, uint fileAlignment) {
-			foreach (var chunk in chunks) {
+			int count = chunks.Count;
+			for (int i = 0; i < count; i++) {
+				var chunk = chunks[i];
 				chunk.VerifyWriteTo(writer);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
 				if (chunk.GetVirtualSize() != 0) {

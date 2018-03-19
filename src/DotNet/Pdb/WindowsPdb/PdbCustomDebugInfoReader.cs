@@ -271,23 +271,26 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		TypeDef GetNestedType(string name) {
 			if (typeOpt == null)
 				return null;
-			foreach (var type in typeOpt.NestedTypes) {
+			var nestedTypes = typeOpt.NestedTypes;
+			int count = nestedTypes.Count;
+			for (int i = 0; i < count; i++) {
+				var type = nestedTypes[i];
 				if (UTF8String.IsNullOrEmpty(type.Namespace)) {
 					if (type.Name == name)
 						return type;
 					var typeName = type.Name.String;
 					if (typeName.StartsWith(name) && typeName.Length >= name.Length + 2) {
-						int i = name.Length;
-						if (typeName[i] == '`') {
-							Debug.Assert(i + 1 < typeName.Length);
+						int index = name.Length;
+						if (typeName[index] == '`') {
+							Debug.Assert(index + 1 < typeName.Length);
 							bool ok = true;
-							i++;
-							while (i < typeName.Length) {
-								if (!char.IsDigit(typeName[i])) {
+							index++;
+							while (index < typeName.Length) {
+								if (!char.IsDigit(typeName[index])) {
 									ok = false;
 									break;
 								}
-								i++;
+								index++;
 							}
 							if (ok)
 								return type;

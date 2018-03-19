@@ -252,13 +252,15 @@ namespace dnlib.DotNet {
 				genericArguments.PushTypeArgs(gis.GenericArguments);
 			}
 
-			bool isEmpty = methodSig.Params.Count == 0 && reader.Position == reader.Length;
+			var methodSigParams = methodSig.Params;
+			bool isEmpty = methodSigParams.Count == 0 && reader.Position == reader.Length;
 			if (!isEmpty && reader.ReadUInt16() != 1)
 				throw new CABlobParserException("Invalid CA blob prolog");
 
-			var ctorArgs = new List<CAArgument>(methodSig.Params.Count);
-			foreach (var arg in methodSig.Params)
-				ctorArgs.Add(ReadFixedArg(FixTypeSig(arg)));
+			var ctorArgs = new List<CAArgument>(methodSigParams.Count);
+			int count = methodSigParams.Count;
+			for (int i = 0; i < count; i++)
+				ctorArgs.Add(ReadFixedArg(FixTypeSig(methodSigParams[i])));
 
 			// Some tools don't write the next ushort if there are no named arguments.
 			int numNamedArgs = reader.Position == reader.Length ? 0 : reader.ReadUInt16();

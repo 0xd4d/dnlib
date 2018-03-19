@@ -353,8 +353,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(asyncStepInfos.Count);
 			asyncMethod.KickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
 			asyncMethod.CatchHandlerInstruction = asyncCatchHandler;
-			foreach (var info in asyncStepInfos)
-				asyncMethod.StepInfos.Add(info);
+			int count = asyncStepInfos.Count;
+			for (int i = 0; i < count; i++)
+				asyncMethod.StepInfos.Add(asyncStepInfos[i]);
 			return asyncMethod;
 		}
 

@@ -344,7 +344,9 @@ namespace dnlib.DotNet {
 				return false;
 
 			bool res = false;
-			foreach (var type in types) {
+			int count = types.Count;
+			for (int i = 0; i < count; i++) {
+				var type = types[i];
 				if (ContainsGenericParameter(type)) {
 					res = true;
 					break;

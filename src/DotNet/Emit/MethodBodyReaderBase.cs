@@ -74,11 +74,13 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="newLocals">A list of types of all locals or <c>null</c> if none</param>
 		protected void SetLocals(IList<TypeSig> newLocals) {
+			var locals = this.locals;
 			locals.Clear();
 			if (newLocals == null)
 				return;
-			foreach (var typeSig in newLocals)
-				locals.Add(new Local(typeSig));
+			int count = newLocals.Count;
+			for (int i = 0; i < count; i++)
+				locals.Add(new Local(newLocals[i]));
 		}
 
 		/// <summary>
@@ -86,11 +88,13 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="newLocals">A list of types of all locals or <c>null</c> if none</param>
 		protected void SetLocals(IList<Local> newLocals) {
+			var locals = this.locals;
 			locals.Clear();
 			if (newLocals == null)
 				return;
-			foreach (var local in newLocals)
-				locals.Add(new Local(local.Type));
+			int count = newLocals.Count;
+			for (int i = 0; i < count; i++)
+				locals.Add(new Local(newLocals[i].Type));
 		}
 
 		/// <summary>
@@ -100,8 +104,9 @@ namespace dnlib.DotNet.Emit {
 		protected void ReadInstructions(int numInstrs) {
 			codeStartOffs = reader.Position;
 			codeEndOffs = reader.Length;	// We don't know the end pos so use the last one
-			instructions = new List<Instruction>(numInstrs);
+			this.instructions = new List<Instruction>(numInstrs);
 			currentOffset = 0;
+			var instructions = this.instructions;
 			for (int i = 0; i < numInstrs && reader.Position < codeEndOffs; i++)
 				instructions.Add(ReadOneInstruction());
 			FixBranches();
@@ -117,8 +122,9 @@ namespace dnlib.DotNet.Emit {
 			if (codeEndOffs < codeStartOffs || codeEndOffs > reader.Length)
 				throw new InvalidMethodException("Invalid code size");
 
-			instructions = new List<Instruction>();	//TODO: Estimate number of instructions based on codeSize
+			this.instructions = new List<Instruction>();	//TODO: Estimate number of instructions based on codeSize
 			currentOffset = 0;
+			var instructions = this.instructions;
 			while (reader.Position < codeEndOffs)
 				instructions.Add(ReadOneInstruction());
 			reader.Position = codeEndOffs;
@@ -130,7 +136,10 @@ namespace dnlib.DotNet.Emit {
 		/// instead of an offset.
 		/// </summary>
 		void FixBranches() {
-			foreach (var instr in instructions) {
+			var instructions = this.instructions;
+			int count = instructions.Count;
+			for (int i = 0; i < count; i++) {
+				var instr = instructions[i];
 				switch (instr.OpCode.OperandType) {
 				case OperandType.InlineBrTarget:
 				case OperandType.ShortInlineBrTarget:
@@ -140,8 +149,8 @@ namespace dnlib.DotNet.Emit {
 				case OperandType.InlineSwitch:
 					var uintTargets = (IList<uint>)instr.Operand;
 					var targets = new Instruction[uintTargets.Count];
-					for (int i = 0; i < uintTargets.Count; i++)
-						targets[i] = GetInstruction(uintTargets[i]);
+					for (int j = 0; j < uintTargets.Count; j++)
+						targets[j] = GetInstruction(uintTargets[j]);
 					instr.Operand = targets;
 					break;
 				}
@@ -155,6 +164,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>The instruction or <c>null</c> if there's no instruction at <paramref name="offset"/>.</returns>
 		protected Instruction GetInstruction(uint offset) {
 			// The instructions are sorted and all Offset fields are correct. Do a binary search.
+			var instructions = this.instructions;
 			int lo = 0, hi = instructions.Count - 1;
 			while (lo <= hi && hi != -1) {
 				int i = (lo + hi) / 2;
@@ -444,6 +454,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="index">A parameter index</param>
 		/// <returns>A <see cref="Parameter"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
 		protected Parameter GetParameter(int index) {
+			var parameters = this.parameters;
 			if ((uint)index < (uint)parameters.Count)
 				return parameters[index];
 			return null;
@@ -455,6 +466,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="index">A local index</param>
 		/// <returns>A <see cref="Local"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
 		protected Local GetLocal(int index) {
+			var locals = this.locals;
 			if ((uint)index < (uint)locals.Count)
 				return locals[index];
 			return null;
@@ -507,6 +519,7 @@ namespace dnlib.DotNet.Emit {
 		uint GetOffset(Instruction instr) {
 			if (instr != null)
 				return instr.Offset;
+			var instructions = this.instructions;
 			if (instructions.Count == 0)
 				return 0;
 			return instructions[instructions.Count - 1].Offset;
@@ -522,21 +535,27 @@ namespace dnlib.DotNet.Emit {
 			var body = method.Body;
 
 			body.Variables.Clear();
+			var locals = this.locals;
 			if (locals != null) {
-				foreach (var local in locals)
-					body.Variables.Add(local);
+				int count = locals.Count;
+				for (int i = 0; i < count; i++)
+					body.Variables.Add(locals[i]);
 			}
 
 			body.Instructions.Clear();
+			var instructions = this.instructions;
 			if (instructions != null) {
-				foreach (var instr in instructions)
-					body.Instructions.Add(instr);
+				int count = instructions.Count;
+				for (int i = 0; i < count; i++)
+					body.Instructions.Add(instructions[i]);
 			}
 
 			body.ExceptionHandlers.Clear();
+			var exceptionHandlers = this.exceptionHandlers;
 			if (exceptionHandlers != null) {
-				foreach (var eh in exceptionHandlers)
-					body.ExceptionHandlers.Add(eh);
+				int count = exceptionHandlers.Count;
+				for (int i = 0; i < count; i++)
+					body.ExceptionHandlers.Add(exceptionHandlers[i]);
 			}
 		}
 	}

@@ -776,7 +776,7 @@ namespace dnlib.DotNet.Writer {
 			var columns2 = columns[2];
 			var columns3 = columns[3];
 			var stringsHeap = metadata.StringsHeap;
-			if (columns.Count >= 5) {
+			if (columns.Length >= 5) {
 				var columns4 = columns[4];
 				for (int i = 0; i < table.Rows; i++) {
 					var row = table[(uint)i + 1];

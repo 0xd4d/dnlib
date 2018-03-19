@@ -119,7 +119,10 @@ namespace dnlib.DotNet.Writer {
 			length += (uint)GetVersionString().Length;
 			length = Utils.AlignUp(length, 4);
 			length += 4;
-			foreach (var heap in heaps) {
+			var heaps = this.heaps;
+			int count = heaps.Count;
+			for (int i = 0; i < count; i++) {
+				var heap = heaps[i];
 				length += 8;
 				length += (uint)GetAsciizName(heap.Name).Length;
 				length = Utils.AlignUp(length, 4);
@@ -144,8 +147,11 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteZeros(Utils.AlignUp(s.Length, 4) - s.Length);
 			writer.WriteByte((byte)(options.StorageFlags ?? 0));
 			writer.WriteByte(options.Reserved2 ?? 0);
+			var heaps = this.heaps;
 			writer.WriteUInt16((ushort)heaps.Count);
-			foreach (var heap in heaps) {
+			int count = heaps.Count;
+			for (int i = 0; i < count; i++) {
+				var heap = heaps[i];
 				writer.WriteUInt32((uint)(heap.FileOffset - offset));
 				writer.WriteUInt32(heap.GetFileLength());
 				writer.WriteBytes(s = GetAsciizName(heap.Name));

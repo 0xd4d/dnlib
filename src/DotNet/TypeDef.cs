@@ -907,7 +907,10 @@ namespace dnlib.DotNet {
 		/// if this is an enum.
 		/// </summary>
 		public TypeSig GetEnumUnderlyingType() {
-			foreach (var field in Fields) {
+			var fields = Fields;
+			int count = fields.Count;
+			for (int i = 0; i < count; i++) {
+				var field = fields[i];
 				if (!field.IsLiteral && !field.IsStatic) {
 					var fieldSig = field.FieldSig;
 					if (fieldSig != null)
@@ -979,7 +982,10 @@ namespace dnlib.DotNet {
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeMethodIsComparable) != 0;
-			foreach (var method in Methods) {
+			var methods = Methods;
+			int count = methods.Count;
+			for (int i = 0; i < count; i++) {
+				var method = methods[i];
 				if (!allowPrivateScope && method.IsPrivateScope)
 					continue;
 				if (!UTF8String.Equals(method.Name, name))
@@ -996,7 +1002,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of method</param>
 		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if not found</returns>
 		public MethodDef FindMethod(UTF8String name) {
-			foreach (var method in Methods) {
+			var methods = Methods;
+			int count = methods.Count;
+			for (int i = 0; i < count; i++) {
+				var method = methods[i];
 				if (UTF8String.Equals(method.Name, name))
 					return method;
 			}
@@ -1009,7 +1018,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of method</param>
 		/// <returns>All methods with that name</returns>
 		public IEnumerable<MethodDef> FindMethods(UTF8String name) {
-			foreach (var method in Methods) {
+			var methods = Methods;
+			int count = methods.Count;
+			for (int i = 0; i < count; i++) {
+				var method = methods[i];
 				if (UTF8String.Equals(method.Name, name))
 					yield return method;
 			}
@@ -1020,7 +1032,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>The class constructor or <c>null</c> if none found</returns>
 		public MethodDef FindStaticConstructor() {
-			foreach (var method in Methods) {
+			var methods = Methods;
+			int count = methods.Count;
+			for (int i = 0; i < count; i++) {
+				var method = methods[i];
 				if (method.IsStaticConstructor)
 					return method;
 			}
@@ -1059,7 +1074,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>All instance constructors</returns>
 		public IEnumerable<MethodDef> FindInstanceConstructors() {
-			foreach (var method in Methods) {
+			var methods = Methods;
+			int count = methods.Count;
+			for (int i = 0; i < count; i++) {
+				var method = methods[i];
 				if (method.IsInstanceConstructor)
 					yield return method;
 			}
@@ -1070,7 +1088,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>All static and instance constructors</returns>
 		public IEnumerable<MethodDef> FindConstructors() {
-			foreach (var method in Methods) {
+			var methods = Methods;
+			int count = methods.Count;
+			for (int i = 0; i < count; i++) {
+				var method = methods[i];
 				if (method.IsConstructor)
 					yield return method;
 			}
@@ -1081,7 +1102,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>The default instance constructor or <c>null</c> if none</returns>
 		public MethodDef FindDefaultConstructor() {
-			foreach (var method in Methods) {
+			var methods = Methods;
+			int count = methods.Count;
+			for (int i = 0; i < count; i++) {
+				var method = methods[i];
 				if (!method.IsInstanceConstructor)
 					continue;
 				var sig = method.MethodSig;
@@ -1121,7 +1145,10 @@ namespace dnlib.DotNet {
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeFieldIsComparable) != 0;
-			foreach (var field in Fields) {
+			var fields = Fields;
+			int count = fields.Count;
+			for (int i = 0; i < count; i++) {
+				var field = fields[i];
 				if (!allowPrivateScope && field.IsPrivateScope)
 					continue;
 				if (!UTF8String.Equals(field.Name, name))
@@ -1138,7 +1165,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of field</param>
 		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if not found</returns>
 		public FieldDef FindField(UTF8String name) {
-			foreach (var field in Fields) {
+			var fields = Fields;
+			int count = fields.Count;
+			for (int i = 0; i < count; i++) {
+				var field = fields[i];
 				if (UTF8String.Equals(field.Name, name))
 					return field;
 			}
@@ -1151,7 +1181,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of field</param>
 		/// <returns>All fields with that name</returns>
 		public IEnumerable<FieldDef> FindFields(UTF8String name) {
-			foreach (var field in Fields) {
+			var fields = Fields;
+			int count = fields.Count;
+			for (int i = 0; i < count; i++) {
+				var field = fields[i];
 				if (UTF8String.Equals(field.Name, name))
 					yield return field;
 			}
@@ -1186,7 +1219,10 @@ namespace dnlib.DotNet {
 			if (UTF8String.IsNull(name) || type == null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
-			foreach (var @event in Events) {
+			var events = Events;
+			int count = events.Count;
+			for (int i = 0; i < count; i++) {
+				var @event = events[i];
 				if (!UTF8String.Equals(@event.Name, name))
 					continue;
 				if (comparer.Equals(@event.EventType, type))
@@ -1201,7 +1237,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of event</param>
 		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
 		public EventDef FindEvent(UTF8String name) {
-			foreach (var @event in Events) {
+			var events = Events;
+			int count = events.Count;
+			for (int i = 0; i < count; i++) {
+				var @event = events[i];
 				if (UTF8String.Equals(@event.Name, name))
 					return @event;
 			}
@@ -1214,7 +1253,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of event</param>
 		/// <returns>All events with that name</returns>
 		public IEnumerable<EventDef> FindEvents(UTF8String name) {
-			foreach (var @event in Events) {
+			var events = Events;
+			int count = events.Count;
+			for (int i = 0; i < count; i++) {
+				var @event = events[i];
 				if (UTF8String.Equals(@event.Name, name))
 					yield return @event;
 			}
@@ -1249,7 +1291,10 @@ namespace dnlib.DotNet {
 			if (UTF8String.IsNull(name) || propSig == null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
-			foreach (var prop in Properties) {
+			var properties = Properties;
+			int count = properties.Count;
+			for (int i = 0; i < count; i++) {
+				var prop = properties[i];
 				if (!UTF8String.Equals(prop.Name, name))
 					continue;
 				if (comparer.Equals(prop.Type, propSig))
@@ -1264,7 +1309,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of prop</param>
 		/// <returns>The <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
 		public PropertyDef FindProperty(UTF8String name) {
-			foreach (var prop in Properties) {
+			var properties = Properties;
+			int count = properties.Count;
+			for (int i = 0; i < count; i++) {
+				var prop = properties[i];
 				if (UTF8String.Equals(prop.Name, name))
 					return prop;
 			}
@@ -1277,7 +1325,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of prop</param>
 		/// <returns>All props with that name</returns>
 		public IEnumerable<PropertyDef> FindProperties(UTF8String name) {
-			foreach (var prop in Properties) {
+			var properties = Properties;
+			int count = properties.Count;
+			for (int i = 0; i < count; i++) {
+				var prop = properties[i];
 				if (UTF8String.Equals(prop.Name, name))
 					yield return prop;
 			}
@@ -1488,13 +1539,19 @@ namespace dnlib.DotNet {
 			if (method == null)
 				return;
 
-			foreach (var prop in Properties) {
+			var properties = Properties;
+			int count = properties.Count;
+			for (int i = 0; i < count; i++) {
+				var prop = properties[i];
 				prop.GetMethods.Remove(method);
 				prop.SetMethods.Remove(method);
 				prop.OtherMethods.Remove(method);
 			}
 
-			foreach (var evt in Events) {
+			var events = Events;
+			count = events.Count;
+			for (int i = 0; i < count; i++) {
+				var evt = events[i];
 				if (evt.AddMethod == method)
 					evt.AddMethod = null;
 				if (evt.RemoveMethod == method)
@@ -1513,16 +1570,18 @@ namespace dnlib.DotNet {
 		}
 
 		void RemoveEmptyProperties() {
-			for (int i = Properties.Count - 1; i >= 0; i--) {
-				if (Properties[i].IsEmpty)
-					Properties.RemoveAt(i);
+			var properties = Properties;
+			for (int i = properties.Count - 1; i >= 0; i--) {
+				if (properties[i].IsEmpty)
+					properties.RemoveAt(i);
 			}
 		}
 
 		void RemoveEmptyEvents() {
-			for (int i = Events.Count - 1; i >= 0; i--) {
-				if (Events[i].IsEmpty)
-					Events.RemoveAt(i);
+			var events = Events;
+			for (int i = events.Count - 1; i >= 0; i--) {
+				if (events[i].IsEmpty)
+					events.RemoveAt(i);
 			}
 		}
 
@@ -1723,12 +1782,15 @@ namespace dnlib.DotNet {
 		/// <param name="name">Field name</param>
 		/// <returns>A list of 0 or more fields with name <paramref name="name"/></returns>
 		public IList<FieldDef> GetFields(UTF8String name) {
-			var fields = new List<FieldDef>();
-			foreach (var field in Fields) {
+			var result = new List<FieldDef>();
+			var fields = Fields;
+			int count = fields.Count;
+			for (int i = 0; i < count; i++) {
+				var field = fields[i];
 				if (field.Name == name)
-					fields.Add(field);
+					result.Add(field);
 			}
-			return fields;
+			return result;
 		}
 
 		/// <summary>
@@ -1737,7 +1799,10 @@ namespace dnlib.DotNet {
 		/// <param name="name">Field name</param>
 		/// <returns>The field or <c>null</c> if none found</returns>
 		public FieldDef GetField(UTF8String name) {
-			foreach (var field in Fields) {
+			var fields = Fields;
+			int count = fields.Count;
+			for (int i = 0; i < count; i++) {
+				var field = fields[i];
 				if (field.Name == name)
 					return field;
 			}

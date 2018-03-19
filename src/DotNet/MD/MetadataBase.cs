@@ -675,7 +675,9 @@ namespace dnlib.DotNet.MD {
 			}
 
 			var newTypeDefRidToNestedClasses = new Dictionary<uint, List<uint>>();
-			foreach (var nestedRid in nestedRids) {
+			int count = nestedRids.Count;
+			for (int i = 0; i < count; i++) {
+				var nestedRid = nestedRids[i];
 				if (!tablesStream.TryReadNestedClassRow(GetNestedClassRid(nestedRid), out var row))
 					continue;
 				if (!newTypeDefRidToNestedClasses.TryGetValue(row.EnclosingClass, out var ridList))

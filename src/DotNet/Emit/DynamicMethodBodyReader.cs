@@ -181,7 +181,9 @@ namespace dnlib.DotNet.Emit {
 
 			var infos = new List<ExceptionInfo>(ehInfos.Count);
 
-			foreach (var ehInfo in ehInfos) {
+			int count = ehInfos.Count;
+			for (int i = 0; i < count; i++) {
+				var ehInfo = ehInfos[i];
 				var eh = new ExceptionInfo {
 					CatchAddr = (int[])ehCatchAddrFieldInfo.Read(ehInfo),
 					CatchClass = (Type[])ehCatchClassFieldInfo.Read(ehInfo),
@@ -206,8 +208,10 @@ namespace dnlib.DotNet.Emit {
 			if (sig == null)
 				return;
 
-			foreach (var local in sig.Locals)
-				locals.Add(new Local(local));
+			var sigLocals = sig.Locals;
+			int count = sigLocals.Count;
+			for (int i = 0; i < count; i++)
+				locals.Add(new Local(sigLocals[i]));
 		}
 
 		MethodDef CreateMethodDef(SR.MethodBase delMethod) {

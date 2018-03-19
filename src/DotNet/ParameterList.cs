@@ -197,7 +197,10 @@ namespace dnlib.DotNet {
 			else
 				return hiddenThisParamDef;
 
-			foreach (var paramDef in method.ParamDefs) {
+			var paramDefs = method.ParamDefs;
+			int count = paramDefs.Count;
+			for (int i = 0; i < count; i++) {
+				var paramDef = paramDefs[i];
 				if (paramDef != null && paramDef.Sequence == seq)
 					return paramDef;
 			}

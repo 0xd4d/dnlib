@@ -638,7 +638,10 @@ namespace dnlib.DotNet {
 				var gpp = genericParamProvider;
 				if (gpp == null)
 					return null;
-				foreach (var gp in gpp.GenericParameters) {
+				var gps = gpp.GenericParameters;
+				int count = gps.Count;
+				for (int i = 0; i < count; i++) {
+					var gp = gps[i];
 					if (gp.Number == number)
 						return gp;
 				}

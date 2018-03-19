@@ -91,8 +91,13 @@ namespace dnlib.DotNet {
 		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
 			if (typeRef == null)
 				return null;
-			foreach (var module in modules) {
-				foreach (var exportedType in module.ExportedTypes) {
+			int count = modules.Count;
+			for (int i = 0; i < count; i++) {
+				var module = modules[i];
+				var exportedTypes = module.ExportedTypes;
+				int count2 = exportedTypes.Count;
+				for (int j = 0; j < count2; j++) {
+					var exportedType = exportedTypes[j];
 					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef))
 						return exportedType;
 				}

@@ -32,7 +32,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		void Write(DataWriter writer, IList<PdbImport> imports) {
-			foreach (var import in imports) {
+			int count = imports.Count;
+			for (int i = 0; i < count; i++) {
+				var import = imports[i];
 				if (!ImportDefinitionKindUtils.ToImportDefinitionKind(import.Kind, out uint rawKind)) {
 					helper.Error("Unknown import definition kind: " + import.Kind.ToString());
 					return;

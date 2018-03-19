@@ -94,8 +94,10 @@ namespace dnlib.DotNet.Pdb {
 
 			userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;
 
-			foreach (var doc in reader.Documents)
-				Add_NoLock(new PdbDocument(doc));
+			var documents = reader.Documents;
+			int count = documents.Count;
+			for (int i = 0; i < count; i++)
+				Add_NoLock(new PdbDocument(documents[i]));
 		}
 
 		/// <summary>
@@ -223,7 +225,10 @@ namespace dnlib.DotNet.Pdb {
 
 		void AddSequencePoints(CilBody body, SymbolMethod method) {
 			int instrIndex = 0;
-			foreach (var sp in method.SequencePoints) {
+			var sequencePoints = method.SequencePoints;
+			int count = sequencePoints.Count;
+			for (int i = 0; i < count; i++) {
+				var sp = sequencePoints[i];
 				var instr = GetInstruction(body.Instructions, sp.Offset, ref instrIndex);
 				if (instr == null)
 					continue;
@@ -259,10 +264,15 @@ recursive_call:
 				Start = GetInstruction(body.Instructions, state.SymScope.StartOffset, ref instrIndex),
 				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
 			};
-			foreach (var cdi in state.SymScope.CustomDebugInfos)
-				state.PdbScope.CustomDebugInfos.Add(cdi);
+			var cdis = state.SymScope.CustomDebugInfos;
+			int count = cdis.Count;
+			for (int i = 0; i < count; i++)
+				state.PdbScope.CustomDebugInfos.Add(cdis[i]);
 
-			foreach (var symLocal in state.SymScope.Locals) {
+			var locals = state.SymScope.Locals;
+			count = locals.Count;
+			for (int i = 0; i < count; i++) {
+				var symLocal = locals[i];
 				int localIndex = symLocal.Index;
 				if ((uint)localIndex >= (uint)body.Variables.Count) {
 					// VB sometimes creates a PDB local without a metadata local
@@ -274,13 +284,17 @@ recursive_call:
 				var attributes = symLocal.Attributes;
 				local.SetAttributes(attributes);
 				var pdbLocal = new PdbLocal(local, name, attributes);
-				foreach (var cdi in symLocal.CustomDebugInfos)
-					pdbLocal.CustomDebugInfos.Add(cdi);
+				cdis = symLocal.CustomDebugInfos;
+				int count2 = cdis.Count;
+				for (int j = 0; j < count2; j++)
+					pdbLocal.CustomDebugInfos.Add(cdis[j]);
 				state.PdbScope.Variables.Add(pdbLocal);
 			}
 
-			foreach (var ns in state.SymScope.Namespaces)
-				state.PdbScope.Namespaces.Add(ns.Name);
+			var namespaces = state.SymScope.Namespaces;
+			count = namespaces.Count;
+			for (int i = 0; i < count; i++)
+				state.PdbScope.Namespaces.Add(namespaces[i].Name);
 			state.PdbScope.ImportScope = state.SymScope.ImportScope;
 
 			var constants = state.SymScope.GetConstants(module, gpContext);

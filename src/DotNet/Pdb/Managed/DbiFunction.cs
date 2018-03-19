@@ -45,8 +45,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 			scope.startOffset -= (int)Address.Offset;
 			scope.endOffset -= (int)Address.Offset;
-			foreach (var child in scope.Children)
-				FixOffsets(counter, (DbiScope)child);
+			var children = scope.Children;
+			int count = children.Count;
+			for (int i = 0; i < count; i++)
+				FixOffsets(counter, (DbiScope)children[i]);
 
 			counter.Decrement();
 		}

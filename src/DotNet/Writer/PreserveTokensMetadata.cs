@@ -837,6 +837,7 @@ namespace dnlib.DotNet.Writer {
 		uint dummyPtrTableTypeRid;
 
 		void FindMemberDefs() {
+			int count;
 			var added = new Dictionary<object, bool>();
 			int pos;
 			foreach (var type in allTypeDefs) {
@@ -844,21 +845,30 @@ namespace dnlib.DotNet.Writer {
 					continue;
 
 				pos = 0;
-				foreach (var field in type.Fields) {
+				var fields = type.Fields;
+				count = fields.Count;
+				for (int i = 0; i < count; i++) {
+					var field = fields[i];
 					if (field == null)
 						continue;
 					fieldDefInfos.Add(field, pos++);
 				}
 
 				pos = 0;
-				foreach (var method in type.Methods) {
+				var methods = type.Methods;
+				count = methods.Count;
+				for (int i = 0; i < count; i++) {
+					var method = methods[i];
 					if (method == null)
 						continue;
 					methodDefInfos.Add(method, pos++);
 				}
 
 				pos = 0;
-				foreach (var evt in type.Events) {
+				var events = type.Events;
+				count = events.Count;
+				for (int i = 0; i < count; i++) {
+					var evt = events[i];
 					if (evt == null || added.ContainsKey(evt))
 						continue;
 					added[evt] = true;
@@ -866,7 +876,10 @@ namespace dnlib.DotNet.Writer {
 				}
 
 				pos = 0;
-				foreach (var prop in type.Properties) {
+				var properties = type.Properties;
+				count = properties.Count;
+				for (int i = 0; i < count; i++) {
+					var prop = properties[i];
 					if (prop == null || added.ContainsKey(prop))
 						continue;
 					added[prop] = true;
