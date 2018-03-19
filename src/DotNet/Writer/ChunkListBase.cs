@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
-using System.IO;
+using System.Collections.Generic;
 using dnlib.IO;
 using dnlib.PE;
 

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using dnlib.DotNet.Writer;
 using dnlib.IO;
 using dnlib.PE;

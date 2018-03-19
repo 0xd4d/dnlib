@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using dnlib.DotNet.MD;
 using dnlib.PE;
 using dnlib.W32Resources;

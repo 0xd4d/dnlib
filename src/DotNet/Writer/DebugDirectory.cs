@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using dnlib.DotNet.Pdb;
 using dnlib.IO;
 using dnlib.PE;
