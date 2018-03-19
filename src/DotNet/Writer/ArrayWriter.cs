@@ -18,20 +18,20 @@ namespace dnlib.DotNet.Writer {
 			position = 0;
 		}
 
-		public void Write(sbyte value) => data[position++] = (byte)value;
-		public void Write(byte value) => data[position++] = value;
+		public void WriteSByte(sbyte value) => data[position++] = (byte)value;
+		public void WriteByte(byte value) => data[position++] = value;
 
-		public void Write(short value) {
+		public void WriteInt16(short value) {
 			data[position++] = (byte)value;
 			data[position++] = (byte)(value >> 8);
 		}
 
-		public void Write(ushort value) {
+		public void WriteUInt16(ushort value) {
 			data[position++] = (byte)value;
 			data[position++] = (byte)(value >> 8);
 		}
 
-		public void Write(int value) {
+		public void WriteInt32(int value) {
 			Debug.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
@@ -39,7 +39,7 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 4;
 		}
 
-		public void Write(uint value) {
+		public void WriteUInt32(uint value) {
 			Debug.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
@@ -47,7 +47,7 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 4;
 		}
 
-		public void Write(long value) {
+		public void WriteInt64(long value) {
 			Debug.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
@@ -55,7 +55,7 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 8;
 		}
 
-		public void Write(ulong value) {
+		public void WriteUInt64(ulong value) {
 			Debug.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
@@ -63,7 +63,7 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 8;
 		}
 
-		public void Write(float value) {
+		public void WriteSingle(float value) {
 			Debug.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
@@ -71,7 +71,7 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 4;
 		}
 
-		public void Write(double value) {
+		public void WriteDouble(double value) {
 			Debug.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)

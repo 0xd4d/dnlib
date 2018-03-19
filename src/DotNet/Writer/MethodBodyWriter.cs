@@ -143,10 +143,10 @@ namespace dnlib.DotNet.Writer {
 
 			code = new byte[12 + codeSize];
 			var writer = new ArrayWriter(code);
-			writer.Write(flags);
-			writer.Write((ushort)maxStack);
-			writer.Write(codeSize);
-			writer.Write(localVarSigTok = helper.GetToken(GetLocals(), cilBody.LocalVarSigTok).Raw);
+			writer.WriteUInt16(flags);
+			writer.WriteUInt16((ushort)maxStack);
+			writer.WriteUInt32(codeSize);
+			writer.WriteUInt32(localVarSigTok = helper.GetToken(GetLocals(), cilBody.LocalVarSigTok).Raw);
 			if (WriteInstructions(ref writer) != codeSize)
 				Error("Didn't write all code bytes");
 		}
@@ -162,7 +162,7 @@ namespace dnlib.DotNet.Writer {
 			localVarSigTok = 0;
 			code = new byte[1 + codeSize];
 			var writer = new ArrayWriter(code);
-			writer.Write((byte)((codeSize << 2) | 2));
+			writer.WriteByte((byte)((codeSize << 2) | 2));
 			if (WriteInstructions(ref writer) != codeSize)
 				Error("Didn't write all code bytes");
 		}
@@ -217,33 +217,33 @@ namespace dnlib.DotNet.Writer {
 
 			var data = new byte[numExceptionHandlers * 24 + 4];
 			var writer = new ArrayWriter(data);
-			writer.Write((((uint)numExceptionHandlers * 24 + 4) << 8) | 0x41);
+			writer.WriteUInt32((((uint)numExceptionHandlers * 24 + 4) << 8) | 0x41);
 			for (int i = 0; i < numExceptionHandlers; i++) {
 				var eh = exceptionHandlers[i];
 				uint offs1, offs2;
 
-				writer.Write((uint)eh.HandlerType);
+				writer.WriteUInt32((uint)eh.HandlerType);
 
 				offs1 = GetOffset2(eh.TryStart);
 				offs2 = GetOffset2(eh.TryEnd);
 				if (offs2 <= offs1)
 					Error("Exception handler: TryEnd <= TryStart");
-				writer.Write(offs1);
-				writer.Write(offs2 - offs1);
+				writer.WriteUInt32(offs1);
+				writer.WriteUInt32(offs2 - offs1);
 
 				offs1 = GetOffset2(eh.HandlerStart);
 				offs2 = GetOffset2(eh.HandlerEnd);
 				if (offs2 <= offs1)
 					Error("Exception handler: HandlerEnd <= HandlerStart");
-				writer.Write(offs1);
-				writer.Write(offs2 - offs1);
+				writer.WriteUInt32(offs1);
+				writer.WriteUInt32(offs2 - offs1);
 
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					writer.Write(helper.GetToken(eh.CatchType).Raw);
+					writer.WriteUInt32(helper.GetToken(eh.CatchType).Raw);
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
-					writer.Write(GetOffset2(eh.FilterStart));
+					writer.WriteUInt32(GetOffset2(eh.FilterStart));
 				else
-					writer.Write(0);
+					writer.WriteInt32(0);
 			}
 
 			if (writer.Position != data.Length)
@@ -262,33 +262,33 @@ namespace dnlib.DotNet.Writer {
 
 			var data = new byte[numExceptionHandlers * 12 + 4];
 			var writer = new ArrayWriter(data);
-			writer.Write((((uint)numExceptionHandlers * 12 + 4) << 8) | 1);
+			writer.WriteUInt32((((uint)numExceptionHandlers * 12 + 4) << 8) | 1);
 			for (int i = 0; i < numExceptionHandlers; i++) {
 				var eh = exceptionHandlers[i];
 				uint offs1, offs2;
 
-				writer.Write((ushort)eh.HandlerType);
+				writer.WriteUInt16((ushort)eh.HandlerType);
 
 				offs1 = GetOffset2(eh.TryStart);
 				offs2 = GetOffset2(eh.TryEnd);
 				if (offs2 <= offs1)
 					Error("Exception handler: TryEnd <= TryStart");
-				writer.Write((ushort)offs1);
-				writer.Write((byte)(offs2 - offs1));
+				writer.WriteUInt16((ushort)offs1);
+				writer.WriteByte((byte)(offs2 - offs1));
 
 				offs1 = GetOffset2(eh.HandlerStart);
 				offs2 = GetOffset2(eh.HandlerEnd);
 				if (offs2 <= offs1)
 					Error("Exception handler: HandlerEnd <= HandlerStart");
-				writer.Write((ushort)offs1);
-				writer.Write((byte)(offs2 - offs1));
+				writer.WriteUInt16((ushort)offs1);
+				writer.WriteByte((byte)(offs2 - offs1));
 
 				if (eh.HandlerType == ExceptionHandlerType.Catch)
-					writer.Write(helper.GetToken(eh.CatchType).Raw);
+					writer.WriteUInt32(helper.GetToken(eh.CatchType).Raw);
 				else if (eh.HandlerType == ExceptionHandlerType.Filter)
-					writer.Write(GetOffset2(eh.FilterStart));
+					writer.WriteUInt32(GetOffset2(eh.FilterStart));
 				else
-					writer.Write(0);
+					writer.WriteInt32(0);
 			}
 
 			if (writer.Position != data.Length)
@@ -300,21 +300,21 @@ namespace dnlib.DotNet.Writer {
 		protected override void ErrorImpl(string message) => helper.Error(message);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineField(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineField(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineMethod(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineMethod(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineSig(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineSig(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineString(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineString(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineTok(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineTok(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);
 
 		/// <inheritdoc/>
-		protected override void WriteInlineType(ref ArrayWriter writer, Instruction instr) => writer.Write(helper.GetToken(instr.Operand).Raw);
+		protected override void WriteInlineType(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);
 	}
 }

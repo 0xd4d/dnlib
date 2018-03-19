@@ -159,18 +159,18 @@ namespace dnlib.DotNet.Writer {
 		protected void WriteOpCode(ref ArrayWriter writer, Instruction instr) {
 			var code = instr.OpCode.Code;
 			if ((ushort)code <= 0xFF)
-				writer.Write((byte)code);
+				writer.WriteByte((byte)code);
 			else if (((ushort)code >> 8) == 0xFE) {
-				writer.Write((byte)((ushort)code >> 8));
-				writer.Write((byte)code);
+				writer.WriteByte((byte)((ushort)code >> 8));
+				writer.WriteByte((byte)code);
 			}
 			else if (code == Code.UNKNOWN1)
-				writer.Write((byte)Code.Nop);
+				writer.WriteByte((byte)Code.Nop);
 			else if (code == Code.UNKNOWN2)
-				writer.Write((ushort)(((ushort)Code.Nop << 8) | Code.Nop));
+				writer.WriteUInt16((ushort)(((ushort)Code.Nop << 8) | Code.Nop));
 			else {
 				Error("Unknown instruction");
-				writer.Write((byte)Code.Nop);
+				writer.WriteByte((byte)Code.Nop);
 			}
 		}
 
@@ -213,7 +213,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">Instruction</param>
 		protected virtual void WriteInlineBrTarget(ref ArrayWriter writer, Instruction instr) {
 			uint displ = GetOffset(instr.Operand as Instruction) - (ToInstructionOffset(ref writer) + 4);
-			writer.Write(displ);
+			writer.WriteUInt32(displ);
 		}
 
 		/// <summary>
@@ -230,10 +230,10 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">Instruction</param>
 		protected virtual void WriteInlineI(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is int)
-				writer.Write((int)instr.Operand);
+				writer.WriteInt32((int)instr.Operand);
 			else {
 				Error("Operand is not an Int32");
-				writer.Write(0);
+				writer.WriteInt32(0);
 			}
 		}
 
@@ -244,10 +244,10 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">Instruction</param>
 		protected virtual void WriteInlineI8(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is long)
-				writer.Write((long)instr.Operand);
+				writer.WriteInt64((long)instr.Operand);
 			else {
 				Error("Operand is not an Int64");
-				writer.Write(0L);
+				writer.WriteInt64(0);
 			}
 		}
 
@@ -281,10 +281,10 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">Instruction</param>
 		protected virtual void WriteInlineR(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is double)
-				writer.Write((double)instr.Operand);
+				writer.WriteDouble((double)instr.Operand);
 			else {
 				Error("Operand is not a Double");
-				writer.Write(0D);
+				writer.WriteDouble(0);
 			}
 		}
 
@@ -311,14 +311,14 @@ namespace dnlib.DotNet.Writer {
 			var targets = instr.Operand as IList<Instruction>;
 			if (targets == null) {
 				Error("switch operand is not a list of instructions");
-				writer.Write(0);
+				writer.WriteInt32(0);
 			}
 			else {
 				uint offsetAfter = (uint)(ToInstructionOffset(ref writer) + 4 + targets.Count * 4);
-				writer.Write(targets.Count);
+				writer.WriteInt32(targets.Count);
 				for (int i = 0; i < targets.Count; i++) {
 					var target = targets[i];
-					writer.Write(GetOffset(target) - offsetAfter);
+					writer.WriteUInt32(GetOffset(target) - offsetAfter);
 				}
 			}
 		}
@@ -346,15 +346,15 @@ namespace dnlib.DotNet.Writer {
 			var variable = instr.Operand as IVariable;
 			if (variable == null) {
 				Error("Operand is not a local/arg");
-				writer.Write((ushort)0);
+				writer.WriteUInt16(0);
 			}
 			else {
 				int index = variable.Index;
 				if (ushort.MinValue <= index && index <= ushort.MaxValue)
-					writer.Write((ushort)index);
+					writer.WriteUInt16((ushort)index);
 				else {
 					Error("Local/arg index doesn't fit in a UInt16");
-					writer.Write((ushort)0);
+					writer.WriteUInt16(0);
 				}
 			}
 		}
@@ -367,10 +367,10 @@ namespace dnlib.DotNet.Writer {
 		protected virtual void WriteShortInlineBrTarget(ref ArrayWriter writer, Instruction instr) {
 			int displ = (int)(GetOffset(instr.Operand as Instruction) - (ToInstructionOffset(ref writer) + 1));
 			if (sbyte.MinValue <= displ && displ <= sbyte.MaxValue)
-				writer.Write((sbyte)displ);
+				writer.WriteSByte((sbyte)displ);
 			else {
 				Error("Target instruction is too far away for a short branch. Use the long branch or call CilBody.SimplifyBranches() and CilBody.OptimizeBranches()");
-				writer.Write((byte)0);
+				writer.WriteByte(0);
 			}
 		}
 
@@ -381,12 +381,12 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">Instruction</param>
 		protected virtual void WriteShortInlineI(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is sbyte)
-				writer.Write((sbyte)instr.Operand);
+				writer.WriteSByte((sbyte)instr.Operand);
 			else if (instr.Operand is byte)
-				writer.Write((byte)instr.Operand);
+				writer.WriteByte((byte)instr.Operand);
 			else {
 				Error("Operand is not a Byte or a SByte");
-				writer.Write((byte)0);
+				writer.WriteByte(0);
 			}
 		}
 
@@ -397,10 +397,10 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">Instruction</param>
 		protected virtual void WriteShortInlineR(ref ArrayWriter writer, Instruction instr) {
 			if (instr.Operand is float)
-				writer.Write((float)instr.Operand);
+				writer.WriteSingle((float)instr.Operand);
 			else {
 				Error("Operand is not a Single");
-				writer.Write(0F);
+				writer.WriteSingle(0);
 			}
 		}
 
@@ -413,15 +413,15 @@ namespace dnlib.DotNet.Writer {
 			var variable = instr.Operand as IVariable;
 			if (variable == null) {
 				Error("Operand is not a local/arg");
-				writer.Write((byte)0);
+				writer.WriteByte(0);
 			}
 			else {
 				int index = variable.Index;
 				if (byte.MinValue <= index && index <= byte.MaxValue)
-					writer.Write((byte)index);
+					writer.WriteByte((byte)index);
 				else {
 					Error("Local/arg index doesn't fit in a Byte. Use the longer ldloc/ldarg/stloc/starg instruction.");
-					writer.Write((byte)0);
+					writer.WriteByte(0);
 				}
 			}
 		}
