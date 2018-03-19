@@ -187,6 +187,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public void WriteCompressedUInt32(uint value) {
+			var stream = this.stream;
 			if (value <= 0x7F)
 				stream.WriteByte((byte)value);
 			else if (value <= 0x3FFF) {
@@ -194,10 +195,12 @@ namespace dnlib.DotNet.Writer {
 				stream.WriteByte((byte)value);
 			}
 			else if (value <= 0x1FFFFFFF) {
-				stream.WriteByte((byte)((value >> 24) | 0xC0));
-				stream.WriteByte((byte)(value >> 16));
-				stream.WriteByte((byte)(value >> 8));
-				stream.WriteByte((byte)value);
+				var buffer = this.buffer;
+				buffer[0] = (byte)((value >> 24) | 0xC0);
+				buffer[1] = (byte)(value >> 16);
+				buffer[2] = (byte)(value >> 8);
+				buffer[3] = (byte)value;
+				stream.Write(buffer, 0, 4);
 			}
 			else
 				ThrowArgumentOutOfRangeException("UInt32 value can't be compressed");
@@ -208,6 +211,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value"></param>
 		public void WriteCompressedInt32(int value) {
+			var stream = this.stream;
 			// This is almost identical to compressing a UInt32, except that we first
 			// recode value so the sign bit is in bit 0. Then we compress it the same
 			// way a UInt32 is compressed.
@@ -223,10 +227,12 @@ namespace dnlib.DotNet.Writer {
 			}
 			else if (-0x10000000 <= value && value <= 0x0FFFFFFF) {
 				uint v = ((uint)(value & 0x0FFFFFFF) << 1) | sign;
-				stream.WriteByte((byte)((v >> 24) | 0xC0));
-				stream.WriteByte((byte)(v >> 16));
-				stream.WriteByte((byte)(v >> 8));
-				stream.WriteByte((byte)v);
+				var buffer = this.buffer;
+				buffer[0] = (byte)((v >> 24) | 0xC0);
+				buffer[1] = (byte)(v >> 16);
+				buffer[2] = (byte)(v >> 8);
+				buffer[3] = (byte)v;
+				stream.Write(buffer, 0, 4);
 			}
 			else
 				ThrowArgumentOutOfRangeException("Int32 value can't be compressed");
