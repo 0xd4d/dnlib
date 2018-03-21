@@ -12,12 +12,6 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class ModuleWriterOptions : ModuleWriterOptionsBase {
 		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public ModuleWriterOptions() {
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>

@@ -148,9 +148,10 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt16(entry.DebugDirectory.MajorVersion);
 				writer.WriteUInt16(entry.DebugDirectory.MinorVersion);
 				writer.WriteUInt32((uint)entry.DebugDirectory.Type);
-				writer.WriteUInt32(entry.Chunk.GetFileLength());
-				writer.WriteUInt32((uint)entry.Chunk.RVA);
-				writer.WriteUInt32((uint)entry.Chunk.FileOffset);
+				uint length = entry.Chunk.GetFileLength();
+				writer.WriteUInt32(length);
+				writer.WriteUInt32(length == 0 ? 0 : (uint)entry.Chunk.RVA);
+				writer.WriteUInt32(length == 0 ? 0 : (uint)entry.Chunk.FileOffset);
 				offset += HEADER_SIZE;
 			}
 

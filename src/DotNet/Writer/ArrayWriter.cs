@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Diagnostics;
 
 namespace dnlib.DotNet.Writer {
@@ -124,6 +125,23 @@ namespace dnlib.DotNet.Writer {
 			fixed (byte* p = data)
 				*(double*)(p + position) = value;
 			this.position = position + 8;
+		}
+
+		/// <summary>
+		/// Writes bytes
+		/// </summary>
+		/// <param name="source">Bytes</param>
+		public void WriteBytes(byte[] source) => WriteBytes(source, 0, source.Length);
+
+		/// <summary>
+		/// Writes bytes
+		/// </summary>
+		/// <param name="source">Bytes</param>
+		/// <param name="index">Source index</param>
+		/// <param name="length">Number of bytes to write</param>
+		public void WriteBytes(byte[] source, int index, int length) {
+			Array.Copy(source, index, data, position, length);
+			position += length;
 		}
 	}
 }

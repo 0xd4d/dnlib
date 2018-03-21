@@ -249,9 +249,21 @@ namespace dnlib.DotNet.Writer {
 		public Stream PdbStream { get; set; }
 
 		/// <summary>
-		/// GUID used by some PDB writers, eg. portable PDB writer. It's initialized to a random GUID.
+		/// GUID used by some PDB writers, eg. portable PDB writer. If it's null, a deterministic PDB GUID is used.
+		/// This property is ignored if <see cref="ReproduciblePdb"/> is true.
 		/// </summary>
-		public Guid PdbGuid { get; set; }
+		public Guid? PdbGuid { get; set; }
+
+		/// <summary>
+		/// Create a reproducible PDB, if the PDB writer supports it.
+		/// If true, <see cref="PdbGuid"/> is ignored and a <see cref="ImageDebugType.Reproducible"/> debug directory entry is added to the EXE/DLL file.
+		/// </summary>
+		public bool ReproduciblePdb { get; set; }
+
+		/// <summary>
+		/// PDB checksum algorithm
+		/// </summary>
+		public ChecksumAlgorithm PdbChecksumAlgorithm { get; set; } = ChecksumAlgorithm.SHA256;
 
 		/// <summary>
 		/// true if an <c>.mvid</c> section should be added to the assembly. Not used by native module writer.
@@ -259,20 +271,10 @@ namespace dnlib.DotNet.Writer {
 		public bool AddMvidSection { get; set; }
 
 		/// <summary>
-		/// Default constructor
-		/// </summary>
-		protected ModuleWriterOptionsBase() {
-			ShareMethodBodies = true;
-			ModuleKind = ModuleKind.Windows;
-			PdbGuid = Guid.NewGuid();
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>
 		protected ModuleWriterOptionsBase(ModuleDef module) {
-			PdbGuid = Guid.NewGuid();
 			ShareMethodBodies = true;
 			MetadataOptions.MetadataHeaderOptions.VersionString = module.RuntimeVersion;
 			ModuleKind = module.Kind;
@@ -336,6 +338,7 @@ namespace dnlib.DotNet.Writer {
 				PEHeadersOptions.Win32VersionValue = ntHeaders.OptionalHeader.Win32VersionValue;
 				AddCheckSum = ntHeaders.OptionalHeader.CheckSum != 0;
 				AddMvidSection = HasMvidSection(modDefMD.Metadata.PEImage.ImageSectionHeaders);
+				ReproduciblePdb = HasReproduciblePdb(modDefMD.Metadata.PEImage.ImageDebugDirectories);
 			}
 
 			if (Is64Bit) {
@@ -355,6 +358,15 @@ namespace dnlib.DotNet.Writer {
 				var name = section.Name;
 				// Roslyn ignores the last 2 bytes
 				if (name[0] == '.' && name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == 0)
+					return true;
+			}
+			return false;
+		}
+
+		static bool HasReproduciblePdb(IList<ImageDebugDirectory> debugDirs) {
+			int count = debugDirs.Count;
+			for (int i = 0; i < count; i++) {
+				if (debugDirs[i].Type == ImageDebugType.Reproducible)
 					return true;
 			}
 			return false;
@@ -751,7 +763,12 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
+		void AddReproduciblePdbDebugDirectoryEntry() =>
+			debugDirectory.Add(Array2.Empty<byte>(), type: ImageDebugType.Reproducible, majorVersion: 0, minorVersion: 0, timeDateStamp: 0);
+
 		void WriteWindowsPdb(PdbState pdbState) {
+			bool reproduciblePdb = TheOptions.ReproduciblePdb;
+			reproduciblePdb = false;//TODO: If this is true, create a reproducible PDB writer
 			var symWriter = GetWindowsPdbSymbolWriter();
 			if (symWriter == null) {
 				Error("Could not create a PDB symbol writer. A Windows OS might be required.");
@@ -766,6 +783,8 @@ namespace dnlib.DotNet.Writer {
 				var entry = debugDirectory.Add(data);
 				entry.DebugDirectory = idd;
 				entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
+				if (reproduciblePdb)
+					AddReproduciblePdbDebugDirectoryEntry();
 			}
 		}
 
@@ -845,21 +864,43 @@ namespace dnlib.DotNet.Writer {
 				else
 					entryPointToken = new MDToken(Table.Method, metadata.GetRid(pdbState.UserEntryPoint)).Raw;
 
-				var pdbId = new byte[20];
-				var pdbIdWriter = new DataWriter(new MemoryStream(pdbId));
-				var pdbGuid = TheOptions.PdbGuid;
-				pdbIdWriter.WriteBytes(pdbGuid.ToByteArray());
-				pdbIdWriter.WriteUInt32(GetTimeDateStamp());
-				Debug.Assert(pdbIdWriter.Position == pdbId.Length);
+				metadata.WritePortablePdb(pdbStream, entryPointToken, out var pdbIdOffset);
 
-				metadata.WritePortablePdb(pdbStream, entryPointToken, pdbId);
+				Guid pdbGuid;
+				var pdbId = new byte[20];
+				var pdbIdWriter = new ArrayWriter(pdbId);
+				uint codeViewTimestamp;
+				if (TheOptions.ReproduciblePdb || TheOptions.PdbGuid == null) {
+					pdbStream.Position = 0;
+					var checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbStream.Length);
+					if (checksumBytes.Length < 20)
+						throw new ModuleWriterException("Checksum bytes length < 20");
+					RoslynContentIdProvider.GetContentId(checksumBytes, out pdbGuid, out codeViewTimestamp);
+				}
+				else {
+					codeViewTimestamp = GetTimeDateStamp();
+					pdbGuid = TheOptions.PdbGuid.Value;
+				}
+				pdbIdWriter.WriteBytes(pdbGuid.ToByteArray());
+				pdbIdWriter.WriteUInt32(codeViewTimestamp);
+				Debug.Assert(pdbIdWriter.Position == pdbId.Length);
+				pdbStream.Position = pdbIdOffset;
+				pdbStream.Write(pdbId, 0, pdbId.Length);
+
+				// NOTE: We add these directory entries in the same order as Roslyn seems to do:
+				//	- CodeView
+				//	- Reproducible
+				//	- EmbeddedPortablePdb
 
 				const uint age = 1;
 				debugDirectory.Add(GetCodeViewData(pdbGuid, age, pdbFilename),
 					type: ImageDebugType.CodeView,
 					majorVersion: PortablePdbConstants.FormatVersion,
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,
-					timeDateStamp: GetTimeDateStamp());
+					timeDateStamp: codeViewTimestamp);
+
+				if (TheOptions.ReproduciblePdb)
+					AddReproduciblePdbDebugDirectoryEntry();
 
 				if (isEmbeddedPortablePdb) {
 					Debug.Assert(embeddedMemoryStream != null);

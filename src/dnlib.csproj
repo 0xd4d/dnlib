@@ -305,6 +305,7 @@
     <Compile Include="DotNet\Writer\ArrayWriter.cs" />
     <Compile Include="DotNet\Writer\BlobHeap.cs" />
     <Compile Include="DotNet\Writer\ByteArrayChunk.cs" />
+    <Compile Include="DotNet\Writer\ChecksumAlgorithm.cs" />
     <Compile Include="DotNet\Writer\ChunkList.cs" />
     <Compile Include="DotNet\Writer\ChunkListBase.cs" />
     <Compile Include="DotNet\Writer\CustomAttributeWriter.cs" />
@@ -314,6 +315,7 @@
     <Compile Include="DotNet\Writer\DeclSecurityWriter.cs" />
     <Compile Include="DotNet\Writer\Extensions.cs" />
     <Compile Include="DotNet\Writer\GuidHeap.cs" />
+    <Compile Include="DotNet\Writer\Hasher.cs" />
     <Compile Include="DotNet\Writer\HeapBase.cs" />
     <Compile Include="DotNet\Writer\IChunk.cs" />
     <Compile Include="DotNet\Writer\IHeap.cs" />
@@ -348,6 +350,7 @@
     <Compile Include="DotNet\Writer\PortablePdbConstants.cs" />
     <Compile Include="DotNet\Writer\PreserveTokensMetadata.cs" />
     <Compile Include="DotNet\Writer\RelocDirectory.cs" />
+    <Compile Include="DotNet\Writer\RoslynContentIdProvider.cs" />
     <Compile Include="DotNet\Writer\SectionSizes.cs" />
     <Compile Include="DotNet\Writer\SerializerMethodContext.cs" />
     <Compile Include="DotNet\Writer\SignatureWriter.cs" />

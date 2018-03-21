@@ -1,6 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
+using dnlib.IO;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -24,6 +25,11 @@ namespace dnlib.DotNet.Writer {
 			set => entryPoint = value;
 		}
 		uint entryPoint;
+
+		/// <summary>
+		/// Gets the offset of the 20-byte PDB ID
+		/// </summary>
+		public FileOffset PdbIdOffset => FileOffset;
 
 		/// <summary>
 		/// Gets/sets the referenced type system tables

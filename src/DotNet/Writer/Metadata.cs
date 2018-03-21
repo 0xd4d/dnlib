@@ -3363,16 +3363,12 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="output">Output stream</param>
 		/// <param name="entryPointToken">Entry point token</param>
-		/// <param name="pdbId">PDB ID, exactly 20 bytes</param>
-		internal void WritePortablePdb(Stream output, uint entryPointToken, byte[] pdbId) {
+		/// <param name="pdbIdOffset">Updated with the offset of the 20-byte PDB ID. The caller is responsible for initializing it with the PDB ID</param>
+		internal void WritePortablePdb(Stream output, uint entryPointToken, out long pdbIdOffset) {
 			if (debugMetadata == null)
-				throw new InvalidOperationException();
-			if (pdbId.Length != 20)
 				throw new InvalidOperationException();
 			var pdbHeap = debugMetadata.PdbHeap;
 			pdbHeap.EntryPoint = entryPointToken;
-			for (int i = 0; i < pdbId.Length; i++)
-				pdbHeap.PdbId[i] = pdbId[i];
 
 			tablesHeap.GetSystemTableRows(out ulong systemTablesMask, pdbHeap.TypeSystemTableRows);
 			debugMetadata.tablesHeap.SetSystemTableRows(pdbHeap.TypeSystemTableRows);
@@ -3383,6 +3379,7 @@ namespace dnlib.DotNet.Writer {
 			debugMetadata.SetOffset(0, 0);
 			debugMetadata.GetFileLength();
 			debugMetadata.VerifyWriteTo(writer);
+			pdbIdOffset = (long)pdbHeap.PdbIdOffset;
 		}
 
 		/// <inheritdoc/>
