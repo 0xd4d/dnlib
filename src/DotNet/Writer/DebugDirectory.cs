@@ -75,6 +75,36 @@ namespace dnlib.DotNet.Writer {
 			return entry;
 		}
 
+		/// <summary>
+		/// Adds data
+		/// </summary>
+		/// <param name="data">Data</param>
+		/// <param name="type">Debug type</param>
+		/// <param name="majorVersion">Major version</param>
+		/// <param name="minorVersion">Minor version</param>
+		/// <param name="timeDateStamp">Timestamp</param>
+		/// <returns></returns>
+		public DebugDirectoryEntry Add(byte[] data, ImageDebugType type, ushort majorVersion, ushort minorVersion, uint timeDateStamp) =>
+			Add(new ByteArrayChunk(data), type, majorVersion, minorVersion, timeDateStamp);
+
+		/// <summary>
+		/// Adds data
+		/// </summary>
+		/// <param name="chunk">Data</param>
+		/// <param name="type">Debug type</param>
+		/// <param name="majorVersion">Major version</param>
+		/// <param name="minorVersion">Minor version</param>
+		/// <param name="timeDateStamp">Timestamp</param>
+		/// <returns></returns>
+		public DebugDirectoryEntry Add(IChunk chunk, ImageDebugType type, ushort majorVersion, ushort minorVersion, uint timeDateStamp) {
+			var entry = Add(chunk);
+			entry.DebugDirectory.Type = type;
+			entry.DebugDirectory.MajorVersion = majorVersion;
+			entry.DebugDirectory.MinorVersion = minorVersion;
+			entry.DebugDirectory.TimeDateStamp = timeDateStamp;
+			return entry;
+		}
+
 		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) {
 			uint newLength = GetLength(entries, (FileOffset)origRva, origRva);
 			if (newLength > origSize)

@@ -856,19 +856,19 @@ namespace dnlib.DotNet.Writer {
 				metadata.WritePortablePdb(pdbStream, entryPointToken, pdbId);
 
 				const uint age = 1;
-				var cvEntry = debugDirectory.Add(GetCodeViewData(pdbGuid, age, pdbFilename));
-				cvEntry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
-				cvEntry.DebugDirectory.MajorVersion = PortablePdbConstants.FormatVersion;
-				cvEntry.DebugDirectory.MinorVersion = PortablePdbConstants.PortableCodeViewVersionMagic;
-				cvEntry.DebugDirectory.Type = ImageDebugType.CodeView;
+				debugDirectory.Add(GetCodeViewData(pdbGuid, age, pdbFilename),
+					type: ImageDebugType.CodeView,
+					majorVersion: PortablePdbConstants.FormatVersion,
+					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,
+					timeDateStamp: GetTimeDateStamp());
 
 				if (isEmbeddedPortablePdb) {
 					Debug.Assert(embeddedMemoryStream != null);
-					var embedEntry = debugDirectory.Add(CreateEmbeddedPortablePdbBlob(embeddedMemoryStream));
-					embedEntry.DebugDirectory.TimeDateStamp = 0;
-					embedEntry.DebugDirectory.MajorVersion = PortablePdbConstants.FormatVersion;
-					embedEntry.DebugDirectory.MinorVersion = PortablePdbConstants.EmbeddedVersion;
-					embedEntry.DebugDirectory.Type = ImageDebugType.EmbeddedPortablePdb;
+					debugDirectory.Add(CreateEmbeddedPortablePdbBlob(embeddedMemoryStream),
+						type: ImageDebugType.EmbeddedPortablePdb,
+						majorVersion: PortablePdbConstants.FormatVersion,
+						minorVersion: PortablePdbConstants.EmbeddedVersion,
+						timeDateStamp: 0);
 				}
 			}
 			finally {
