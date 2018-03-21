@@ -18,30 +18,23 @@ namespace dnlib.DotNet {
 		public ModuleContext Context { get; set; }
 
 		/// <summary>
-		/// Set this if you want to decide how to create the PDB symbol reader. You don't need to
-		/// initialize <see cref="PdbFileOrData"/> or <see cref="TryToLoadPdbFromDisk"/>.
-		/// </summary>
-		public Func<ModuleDefMD, SymbolReader> CreateSymbolReader { get; set; }
-
-		/// <summary>
 		/// Which PDB reader to use. Default is <see cref="PdbImplType.Default"/>.
 		/// </summary>
-		public PdbImplType PdbImplementation { get; set; }
+		public PdbImplType PdbImplementation { get; set; } = PdbImplType.Default;
 
 		/// <summary>
 		/// Set it to A) the path (string) of the PDB file, B) the data (byte[]) of the PDB file or
 		/// C) to an <see cref="DataReaderFactory"/> of the PDB data. The <see cref="DataReaderFactory"/> will
 		/// be owned by the module. You don't need to initialize <see cref="TryToLoadPdbFromDisk"/>
-		/// or <see cref="CreateSymbolReader"/>
 		/// </summary>
 		public object PdbFileOrData { get; set; }
 
 		/// <summary>
 		/// If <c>true</c>, will load the PDB file from disk if present, or an embedded portable PDB file
 		/// stored in the PE file. The default value is <c>true</c>.
-		/// You don't need to initialize <see cref="CreateSymbolReader"/> or <see cref="PdbFileOrData"/>.
+		/// You don't need to initialize <see cref="PdbFileOrData"/>.
 		/// </summary>
-		public bool TryToLoadPdbFromDisk { get; set; }
+		public bool TryToLoadPdbFromDisk { get; set; } = true;
 
 		/// <summary>
 		/// corlib assembly reference to use or <c>null</c> if the default one from the opened
@@ -52,19 +45,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public ModuleCreationOptions() {
-			PdbImplementation = PdbImplType.Default;
-			TryToLoadPdbFromDisk = true;
-		}
+		public ModuleCreationOptions() { }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="context">Module context</param>
-		public ModuleCreationOptions(ModuleContext context) {
-			Context = context;
-			PdbImplementation = PdbImplType.Default;
-			TryToLoadPdbFromDisk = true;
-		}
+		public ModuleCreationOptions(ModuleContext context) => Context = context;
 	}
 }

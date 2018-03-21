@@ -389,12 +389,6 @@ namespace dnlib.DotNet {
 		}
 
 		SymbolReader CreateSymbolReader(ModuleCreationOptions options) {
-			if (options.CreateSymbolReader != null) {
-				var symReader = options.CreateSymbolReader(this);
-				if (symReader != null)
-					return symReader;
-			}
-
 			if (options.PdbFileOrData != null) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
