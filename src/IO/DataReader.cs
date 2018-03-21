@@ -802,6 +802,8 @@ namespace dnlib.IO {
 		public void CopyTo(DataWriter destination) {
 			if (destination == null)
 				ThrowArgumentNullException(nameof(destination));
+			if (Position >= Length)
+				return;
 			CopyTo(destination.InternalStream, AllocTempBuffer());
 		}
 
@@ -827,7 +829,7 @@ namespace dnlib.IO {
 				ThrowArgumentNullException(nameof(destination));
 			if (Position >= Length)
 				return;
-			CopyTo(destination, AllocTempBuffer());
+			CopyTo(destination.BaseStream, AllocTempBuffer());
 		}
 
 		/// <summary>
@@ -839,17 +841,7 @@ namespace dnlib.IO {
 		public void CopyTo(BinaryWriter destination, byte[] dataBuffer) {
 			if (destination == null)
 				ThrowArgumentNullException(nameof(destination));
-			if (dataBuffer == null)
-				ThrowArgumentNullException(nameof(dataBuffer));
-			if (Position >= Length)
-				return;
-			uint lenLeft = BytesLeft;
-			while (lenLeft > 0) {
-				int num = (int)Math.Min((uint)dataBuffer.Length, lenLeft);
-				lenLeft -= (uint)num;
-				ReadBytes(dataBuffer, 0, num);
-				destination.Write(dataBuffer, 0, num);
-			}
+			CopyTo(destination.BaseStream, dataBuffer);
 		}
 
 		/// <summary>
