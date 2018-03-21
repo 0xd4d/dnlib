@@ -17,6 +17,7 @@ namespace dnlib.DotNet.Writer {
 		readonly List<MethodBody> tinyMethods;
 		readonly List<MethodBody> fatMethods;
 		readonly List<ReusedMethodInfo> reusedMethods;
+		Dictionary<uint, MethodBody> rvaToReusedMethod;
 		readonly bool shareBodies;
 		FileOffset offset;
 		RVA rva;
@@ -63,6 +64,7 @@ namespace dnlib.DotNet.Writer {
 			tinyMethods = new List<MethodBody>();
 			fatMethods = new List<MethodBody>();
 			reusedMethods = new List<ReusedMethodInfo>();
+			rvaToReusedMethod = new Dictionary<uint, MethodBody>();
 		}
 
 		/// <summary>
@@ -75,6 +77,17 @@ namespace dnlib.DotNet.Writer {
 		internal MethodBody Add(MethodBody methodBody, RVA origRva, uint origSize) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
+			if (CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && methodBody.CanReuse(origRva, origSize)) {
+				if (rvaToReusedMethod.TryGetValue((uint)origRva, out var reusedMethod)) {
+					if (methodBody.Equals(reusedMethod))
+						return reusedMethod;
+				}
+				else {
+					rvaToReusedMethod.Add((uint)origRva, methodBody);
+					reusedMethods.Add(new ReusedMethodInfo(methodBody, origRva));
+					return methodBody;
+				}
+			}
 			if (shareBodies) {
 				var dict = methodBody.IsFat ? fatMethodsDict : tinyMethodsDict;
 				if (dict.TryGetValue(methodBody, out var cached)) {
@@ -83,16 +96,9 @@ namespace dnlib.DotNet.Writer {
 				}
 				dict[methodBody] = methodBody;
 			}
-			bool reuseLoc = CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && methodBody.CanReuse(origRva, origSize);
-			if (reuseLoc) {
-				reusedMethods.Add(new ReusedMethodInfo(methodBody, origRva));
-				return methodBody;
-			}
-			else {
-				var list = methodBody.IsFat ? fatMethods : tinyMethods;
-				list.Add(methodBody);
-				return methodBody;
-			}
+			var list = methodBody.IsFat ? fatMethods : tinyMethods;
+			list.Add(methodBody);
+			return methodBody;
 		}
 
 		internal void InitializeReusedMethodBodies(IPEImage peImage, uint fileOffsetDelta) {
