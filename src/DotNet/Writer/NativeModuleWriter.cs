@@ -498,16 +498,18 @@ namespace dnlib.DotNet.Writer {
 			var dirs = new List<ImageDebugDirectory>(peImage.ImageDebugDirectories);
 			dirs.Sort((a, b) => a.AddressOfRawData.CompareTo(b.AddressOfRawData));
 			var debugDataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[6];
-			if (dirs[0].AddressOfRawData != debugDataDir.VirtualAddress + debugDataDir.Size)
-				return false;
-			for (int i = 1; i < dirs.Count; i++) {
-				uint prevEnd = (uint)dirs[i - 1].AddressOfRawData + dirs[i - 1].SizeOfData;
+			var prevEnd = (uint)debugDataDir.VirtualAddress + debugDataDir.Size;
+			for (int i = 0; i < dirs.Count; i++) {
 				uint prevEndAligned = (prevEnd + 3) & ~3U;
-				if (!(prevEnd <= (uint)dirs[i].AddressOfRawData && (uint)dirs[i].AddressOfRawData <= prevEndAligned))
+				var dir = dirs[i];
+				if (dir.AddressOfRawData == 0 || dir.SizeOfData == 0)
+					continue;
+				if (!(prevEnd <= (uint)dir.AddressOfRawData && (uint)dir.AddressOfRawData <= prevEndAligned))
 					return false;
+				prevEnd = (uint)dir.AddressOfRawData + dir.SizeOfData;
 			}
 
-			realSize = dirs[dirs.Count - 1].AddressOfRawData + dirs[dirs.Count - 1].SizeOfData - debugDataDir.VirtualAddress;
+			realSize = prevEnd - (uint)debugDataDir.VirtualAddress;
 			return true;
 		}
 
