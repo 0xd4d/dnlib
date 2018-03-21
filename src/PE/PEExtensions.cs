@@ -21,8 +21,9 @@ namespace dnlib.PE {
 			var buffer = new byte[(int)Math.Min(length, 0x2000)];
 			uint checkSum = 0;
 			checkSum = CalculatePECheckSum(stream, checkSumOffset, checkSum, buffer);
-			stream.Position += 2;
-			checkSum = CalculatePECheckSum(stream, length - checkSumOffset - 2, checkSum, buffer);
+			const int ChecksumFieldSize = 4;
+			stream.Position += ChecksumFieldSize;
+			checkSum = CalculatePECheckSum(stream, length - checkSumOffset - ChecksumFieldSize, checkSum, buffer);
 			ulong cks = (ulong)checkSum + (ulong)length;
 			return (uint)cks + (uint)(cks >> 32);
 		}
