@@ -37,6 +37,11 @@ namespace dnlib.PE {
 		/// Embedded portable PDB data
 		/// </summary>
 		EmbeddedPortablePdb = 17,
+
+		/// <summary>
+		/// Checksum of the PDB file. 0 or more entries allowed.
+		/// </summary>
+		PdbChecksum = 19,
 #pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 	}
 }

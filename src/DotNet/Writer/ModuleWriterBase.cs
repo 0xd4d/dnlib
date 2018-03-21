@@ -261,6 +261,11 @@ namespace dnlib.DotNet.Writer {
 		public bool ReproduciblePdb { get; set; }
 
 		/// <summary>
+		/// true to add a PDB checksum debug directory entry to the PE file
+		/// </summary>
+		public bool AddPdbChecksumDebugDirectoryEntry { get; set; }
+
+		/// <summary>
 		/// PDB checksum algorithm
 		/// </summary>
 		public ChecksumAlgorithm PdbChecksumAlgorithm { get; set; } = ChecksumAlgorithm.SHA256;
@@ -338,7 +343,8 @@ namespace dnlib.DotNet.Writer {
 				PEHeadersOptions.Win32VersionValue = ntHeaders.OptionalHeader.Win32VersionValue;
 				AddCheckSum = ntHeaders.OptionalHeader.CheckSum != 0;
 				AddMvidSection = HasMvidSection(modDefMD.Metadata.PEImage.ImageSectionHeaders);
-				ReproduciblePdb = HasReproduciblePdb(modDefMD.Metadata.PEImage.ImageDebugDirectories);
+				ReproduciblePdb = HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.Reproducible);
+				AddPdbChecksumDebugDirectoryEntry = HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.PdbChecksum);
 			}
 
 			if (Is64Bit) {
@@ -363,10 +369,10 @@ namespace dnlib.DotNet.Writer {
 			return false;
 		}
 
-		static bool HasReproduciblePdb(IList<ImageDebugDirectory> debugDirs) {
+		static bool HasDebugDirectoryEntry(IList<ImageDebugDirectory> debugDirs, ImageDebugType type) {
 			int count = debugDirs.Count;
 			for (int i = 0; i < count; i++) {
-				if (debugDirs[i].Type == ImageDebugType.Reproducible)
+				if (debugDirs[i].Type == type)
 					return true;
 			}
 			return false;
@@ -766,9 +772,22 @@ namespace dnlib.DotNet.Writer {
 		void AddReproduciblePdbDebugDirectoryEntry() =>
 			debugDirectory.Add(Array2.Empty<byte>(), type: ImageDebugType.Reproducible, majorVersion: 0, minorVersion: 0, timeDateStamp: 0);
 
+		void AddPdbChecksumDebugDirectoryEntry(byte[] checksumBytes, ChecksumAlgorithm checksumAlgorithm) {
+			var stream = new MemoryStream();
+			var writer = new DataWriter(stream);
+			var checksumName = Hasher.GetChecksumName(checksumAlgorithm);
+			writer.WriteBytes(Encoding.UTF8.GetBytes(checksumName));
+			writer.WriteByte(0);
+			writer.WriteBytes(checksumBytes);
+			var blob = stream.ToArray();
+			debugDirectory.Add(blob, ImageDebugType.PdbChecksum, majorVersion: 1, minorVersion: 0, timeDateStamp: 0);
+		}
+
 		void WriteWindowsPdb(PdbState pdbState) {
 			bool reproduciblePdb = TheOptions.ReproduciblePdb;
 			reproduciblePdb = false;//TODO: If this is true, create a reproducible PDB writer
+			bool addPdbChecksumDebugDirectoryEntry = TheOptions.AddPdbChecksumDebugDirectoryEntry;
+			addPdbChecksumDebugDirectoryEntry = false;//TODO: If this is true, get the checksum from the PDB writer
 			var symWriter = GetWindowsPdbSymbolWriter();
 			if (symWriter == null) {
 				Error("Could not create a PDB symbol writer. A Windows OS might be required.");
@@ -783,6 +802,8 @@ namespace dnlib.DotNet.Writer {
 				var entry = debugDirectory.Add(data);
 				entry.DebugDirectory = idd;
 				entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
+				if (addPdbChecksumDebugDirectoryEntry)
+					{}//TODO: AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);, and verify that the order of the debug dir entries is the same as Roslyn created binaries
 				if (reproduciblePdb)
 					AddReproduciblePdbDebugDirectoryEntry();
 			}
@@ -870,9 +891,10 @@ namespace dnlib.DotNet.Writer {
 				var pdbId = new byte[20];
 				var pdbIdWriter = new ArrayWriter(pdbId);
 				uint codeViewTimestamp;
-				if (TheOptions.ReproduciblePdb || TheOptions.PdbGuid == null) {
+				byte[] checksumBytes;
+				if (TheOptions.ReproduciblePdb || TheOptions.AddPdbChecksumDebugDirectoryEntry || TheOptions.PdbGuid == null) {
 					pdbStream.Position = 0;
-					var checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbStream.Length);
+					checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbStream.Length);
 					if (checksumBytes.Length < 20)
 						throw new ModuleWriterException("Checksum bytes length < 20");
 					RoslynContentIdProvider.GetContentId(checksumBytes, out pdbGuid, out codeViewTimestamp);
@@ -880,6 +902,7 @@ namespace dnlib.DotNet.Writer {
 				else {
 					codeViewTimestamp = GetTimeDateStamp();
 					pdbGuid = TheOptions.PdbGuid.Value;
+					checksumBytes = null;
 				}
 				pdbIdWriter.WriteBytes(pdbGuid.ToByteArray());
 				pdbIdWriter.WriteUInt32(codeViewTimestamp);
@@ -889,6 +912,7 @@ namespace dnlib.DotNet.Writer {
 
 				// NOTE: We add these directory entries in the same order as Roslyn seems to do:
 				//	- CodeView
+				//	- PdbChecksum
 				//	- Reproducible
 				//	- EmbeddedPortablePdb
 
@@ -898,6 +922,9 @@ namespace dnlib.DotNet.Writer {
 					majorVersion: PortablePdbConstants.FormatVersion,
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,
 					timeDateStamp: codeViewTimestamp);
+
+				if (checksumBytes != null)
+					AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);
 
 				if (TheOptions.ReproduciblePdb)
 					AddReproduciblePdbDebugDirectoryEntry();
