@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Pdb.Portable {
@@ -128,7 +127,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		string ReadUTF8(uint offset) {
 			if (!blobStream.TryCreateReader(offset, out var reader))
 				return string.Empty;
-			return reader.ReadString((int)reader.BytesLeft, Encoding.UTF8);
+			return reader.ReadUtf8String((int)reader.BytesLeft);
 		}
 	}
 }

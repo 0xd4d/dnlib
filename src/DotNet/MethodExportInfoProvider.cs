@@ -6,7 +6,6 @@ using System.IO;
 using dnlib.PE;
 using dnlib.IO;
 using System.Diagnostics;
-using System.Text;
 
 namespace dnlib.DotNet {
 	sealed class MethodExportInfoProvider {
@@ -144,7 +143,7 @@ namespace dnlib.DotNet {
 		// If this method gets updated, also update the writer (ManagedExportsWriter)
 		static string ReadMethodNameASCIIZ(ref DataReader reader, uint offset) {
 			reader.Position = offset;
-			return reader.TryReadZeroTerminatedString(Encoding.UTF8) ?? string.Empty;
+			return reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
 		}
 
 		public MethodExportInfo GetMethodExportInfo(uint token) {

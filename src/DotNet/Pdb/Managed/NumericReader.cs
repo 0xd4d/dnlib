@@ -1,6 +1,5 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System.Text;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
@@ -77,7 +76,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				int varStrLen = reader.ReadUInt16();
 				if (position + (uint)varStrLen > end)
 					return false;
-				value = reader.ReadString(varStrLen, Encoding.UTF8);
+				value = reader.ReadUtf8String(varStrLen);
 				return true;
 
 			case NumericLeaf.LF_VARIANT:

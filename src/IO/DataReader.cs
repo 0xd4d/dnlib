@@ -724,6 +724,13 @@ namespace dnlib.IO {
 		}
 
 		/// <summary>
+		/// Reads a zero-terminated UTF-8 string or returns null if the string couldn't be read.
+		/// If successful, the current offset is incremented past the terminating zero.
+		/// </summary>
+		/// <returns></returns>
+		public string TryReadZeroTerminatedUtf8String() => TryReadZeroTerminatedString(Encoding.UTF8);
+
+		/// <summary>
 		/// Reads a zero-terminated string or returns null if the string couldn't be read.
 		/// If successful, the current offset is incremented past the terminating zero.
 		/// </summary>
@@ -748,6 +755,13 @@ namespace dnlib.IO {
 			VerifyState();
 			return value;
 		}
+
+		/// <summary>
+		/// Reads a UTF-8 encoded string
+		/// </summary>
+		/// <param name="byteCount">Number of bytes to read (not characters)</param>
+		/// <returns></returns>
+		public string ReadUtf8String(int byteCount) => ReadString(byteCount, Encoding.UTF8);
 
 		/// <summary>
 		/// Reads a string

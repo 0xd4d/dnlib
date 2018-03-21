@@ -425,7 +425,7 @@ namespace dnlib.DotNet.Writer {
 
 		static bool TryGetPdbChecksumAlgorithm2(ref DataReader reader, out ChecksumAlgorithm pdbChecksumAlgorithm) {
 			try {
-				var checksumName = reader.TryReadZeroTerminatedString(Encoding.UTF8);
+				var checksumName = reader.TryReadZeroTerminatedUtf8String();
 				if (Hasher.TryGetChecksumAlgorithm(checksumName, out pdbChecksumAlgorithm, out int checksumSize) && (uint)checksumSize == reader.BytesLeft)
 					return true;
 			}

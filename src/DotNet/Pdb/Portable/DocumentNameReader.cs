@@ -53,7 +53,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return name;
 			if (!blobStream.TryCreateReader(offset, out var reader))
 				return string.Empty;
-			name = reader.ReadString((int)reader.BytesLeft, Encoding.UTF8);
+			name = reader.ReadUtf8String((int)reader.BytesLeft);
 			docNamePartDict.Add(offset, name);
 			return name;
 		}

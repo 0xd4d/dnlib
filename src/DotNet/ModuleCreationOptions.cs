@@ -2,8 +2,6 @@
 
 using dnlib.IO;
 using dnlib.DotNet.Pdb;
-using dnlib.DotNet.Pdb.Symbols;
-using System;
 
 namespace dnlib.DotNet {
 	/// <summary>

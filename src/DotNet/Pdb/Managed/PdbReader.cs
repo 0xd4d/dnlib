@@ -294,7 +294,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedString(Encoding.UTF8) ?? string.Empty;
+		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
 			if (functions.TryGetValue(method.MDToken.ToInt32(), out var symMethod))

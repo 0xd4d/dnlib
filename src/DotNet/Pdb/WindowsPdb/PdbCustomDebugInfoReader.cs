@@ -317,7 +317,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		string ReadUTF8Z(ulong recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
-			return reader.TryReadZeroTerminatedString(Encoding.UTF8);
+			return reader.TryReadZeroTerminatedUtf8String();
 		}
 
 		Instruction GetInstruction(uint offset) {

@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.IO;
@@ -110,7 +109,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		PdbCustomDebugInfo ReadDefaultNamespace() {
-			var defaultNs = reader.ReadString((int)reader.BytesLeft, Encoding.UTF8);
+			var defaultNs = reader.ReadUtf8String((int)reader.BytesLeft);
 			return new PdbDefaultNamespaceCustomDebugInfo(defaultNs);
 		}
 
@@ -173,7 +172,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		string ReadUTF8Z(long recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
-			return reader.TryReadZeroTerminatedString(Encoding.UTF8);
+			return reader.TryReadZeroTerminatedUtf8String();
 		}
 
 		Instruction GetInstruction(uint offset) {
