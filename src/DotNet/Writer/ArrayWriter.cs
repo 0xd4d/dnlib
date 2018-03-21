@@ -3,34 +3,61 @@
 using System.Diagnostics;
 
 namespace dnlib.DotNet.Writer {
-#pragma warning disable 1591 // Missing XML comment for publicly visible type or member
 	/// <summary>
 	/// Writes data
 	/// </summary>
 	public unsafe struct ArrayWriter {
+		/// <summary>
+		/// Gets the current position
+		/// </summary>
 		public int Position => position;
 
 		readonly byte[] data;
 		int position;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="data">Destination array</param>
 		public ArrayWriter(byte[] data) {
 			this.data = data;
 			position = 0;
 		}
 
+		/// <summary>
+		/// Writes a <see cref="sbyte"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteSByte(sbyte value) => data[position++] = (byte)value;
+
+		/// <summary>
+		/// Writes a <see cref="byte"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteByte(byte value) => data[position++] = value;
 
+		/// <summary>
+		/// Writes a <see cref="short"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteInt16(short value) {
 			data[position++] = (byte)value;
 			data[position++] = (byte)(value >> 8);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="ushort"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteUInt16(ushort value) {
 			data[position++] = (byte)value;
 			data[position++] = (byte)(value >> 8);
 		}
 
+		/// <summary>
+		/// Writes a <see cref="int"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteInt32(int value) {
 			Debug.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
@@ -39,6 +66,10 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 4;
 		}
 
+		/// <summary>
+		/// Writes a <see cref="uint"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteUInt32(uint value) {
 			Debug.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
@@ -47,6 +78,10 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 4;
 		}
 
+		/// <summary>
+		/// Writes a <see cref="long"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteInt64(long value) {
 			Debug.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
@@ -55,6 +90,10 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 8;
 		}
 
+		/// <summary>
+		/// Writes a <see cref="ulong"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteUInt64(ulong value) {
 			Debug.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
@@ -63,6 +102,10 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 8;
 		}
 
+		/// <summary>
+		/// Writes a <see cref="float"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteSingle(float value) {
 			Debug.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
@@ -71,6 +114,10 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 4;
 		}
 
+		/// <summary>
+		/// Writes a <see cref="double"/>
+		/// </summary>
+		/// <param name="value">Value</param>
 		public void WriteDouble(double value) {
 			Debug.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
@@ -79,5 +126,4 @@ namespace dnlib.DotNet.Writer {
 			this.position = position + 8;
 		}
 	}
-#pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 }
