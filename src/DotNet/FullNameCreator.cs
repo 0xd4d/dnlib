@@ -1529,14 +1529,14 @@ namespace dnlib.DotNet {
 			return Utils.GetAssemblyNameString(EscapeAssemblyName(assembly.Name), assembly.Version, assembly.Culture, pk, assembly.Attributes);
 		}
 
-		static string EscapeAssemblyName(UTF8String asmSimplName) =>
-			EscapeAssemblyName(UTF8String.ToSystemString(asmSimplName));
+		static string EscapeAssemblyName(UTF8String asmSimpleName) =>
+			EscapeAssemblyName(UTF8String.ToSystemString(asmSimpleName));
 
-		static string EscapeAssemblyName(string asmSimplName) {
-			if (asmSimplName.IndexOf(']') < 0)
-				return asmSimplName;
-			var sb = new StringBuilder(asmSimplName.Length);
-			foreach (var c in asmSimplName) {
+		static string EscapeAssemblyName(string asmSimpleName) {
+			if (asmSimpleName.IndexOf(']') < 0)
+				return asmSimpleName;
+			var sb = new StringBuilder(asmSimpleName.Length);
+			foreach (var c in asmSimpleName) {
 				if (c == ']')
 					sb.Append('\\');
 				sb.Append(c);
