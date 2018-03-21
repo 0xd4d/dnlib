@@ -66,4 +66,17 @@
 		/// <summary></summary>
 		CEE			= 0xC0EE,
 	}
+
+	/// <summary>
+	/// Extensions
+	/// </summary>
+	public static class MachineExtensions {
+		/// <summary>
+		/// Checks if <paramref name="machine"/> is a 64-bit machine
+		/// </summary>
+		/// <param name="machine">Machine</param>
+		/// <returns></returns>
+		public static bool Is64Bit(this Machine machine) =>
+			machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64;
+	}
 }

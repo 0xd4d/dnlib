@@ -467,10 +467,7 @@ namespace dnlib.DotNet.Writer {
 
 		Machine GetMachine() => options.Machine ?? Machine.I386;
 
-		bool Use32BitOptionalHeader() {
-			var mach = GetMachine();
-			return mach != Machine.IA64 && mach != Machine.AMD64 && mach != Machine.ARM64;
-		}
+		bool Use32BitOptionalHeader() => !GetMachine().Is64Bit();
 
 		Characteristics GetCharacteristics() {
 			var chr = options.Characteristics ?? GetDefaultCharacteristics();

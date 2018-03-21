@@ -174,7 +174,7 @@ namespace dnlib.DotNet.Writer {
 			peHeaders = new PEHeaders(Options.PEHeadersOptions);
 
 			var machine = Options.PEHeadersOptions.Machine ?? Machine.I386;
-			bool is64bit = machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64;
+			bool is64bit = machine.Is64Bit();
 			relocDirectory = new RelocDirectory(machine);
 			if (machine == Machine.I386)
 				needStartupStub = true;
@@ -197,7 +197,7 @@ namespace dnlib.DotNet.Writer {
 
 		void AddChunksToSections() {
 			var machine = Options.PEHeadersOptions.Machine ?? Machine.I386;
-			bool is64bit = machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64;
+			bool is64bit = machine.Is64Bit();
 			uint pointerAlignment = is64bit ? 8U : 4;
 
 			if (mvidSection != null)

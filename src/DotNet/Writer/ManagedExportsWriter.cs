@@ -30,7 +30,7 @@ namespace dnlib.DotNet.Writer {
 		readonly CpuArch cpuArch;
 		uint exportDirOffset;
 
-		bool Is64Bit => machine == Machine.IA64 || machine == Machine.AMD64 || machine == Machine.ARM64;
+		bool Is64Bit => machine.Is64Bit();
 		FileOffset ExportDirOffset => sdataChunk.FileOffset + exportDirOffset;
 		RVA ExportDirRVA => sdataChunk.RVA + exportDirOffset;
 		uint ExportDirSize => 0x28;

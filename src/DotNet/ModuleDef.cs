@@ -1117,7 +1117,7 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		public int GetPointerSize(int defaultPointerSize, int prefer32bitPointerSize) {
 			var machine = Machine;
-			if (machine == Machine.AMD64 || machine == Machine.IA64 || machine == Machine.ARM64)
+			if (machine.Is64Bit())
 				return 8;
 			if (machine != Machine.I386)
 				return 4;

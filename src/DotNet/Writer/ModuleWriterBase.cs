@@ -196,6 +196,7 @@ namespace dnlib.DotNet.Writer {
 		/// <c>true</c> if method bodies can be shared (two or more method bodies can share the
 		/// same RVA), <c>false</c> if method bodies can't be shared. Don't enable it if there
 		/// must be a 1:1 relationship with method bodies and their RVAs.
+		/// This is enabled by default and results in smaller files.
 		/// </summary>
 		public bool ShareMethodBodies { get; set; }
 
@@ -212,9 +213,7 @@ namespace dnlib.DotNet.Writer {
 			get {
 				if (!PEHeadersOptions.Machine.HasValue)
 					return false;
-				return PEHeadersOptions.Machine == Machine.IA64 ||
-					PEHeadersOptions.Machine == Machine.AMD64 ||
-					PEHeadersOptions.Machine == Machine.ARM64;
+				return PEHeadersOptions.Machine.Value.Is64Bit();
 			}
 		}
 
