@@ -67,6 +67,31 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
+	/// Content ID
+	/// </summary>
+	public readonly struct ContentId {
+		/// <summary>
+		/// Gets the GUID
+		/// </summary>
+		public readonly Guid Guid;
+
+		/// <summary>
+		/// Gets the timestamp
+		/// </summary>
+		public readonly uint Timestamp;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="guid">Guid</param>
+		/// <param name="timestamp">Timestamp</param>
+		public ContentId(Guid guid, uint timestamp) {
+			Guid = guid;
+			Timestamp = timestamp;
+		}
+	}
+
+	/// <summary>
 	/// Common module writer options base class
 	/// </summary>
 	public class ModuleWriterOptionsBase {
@@ -249,14 +274,15 @@ namespace dnlib.DotNet.Writer {
 		public Stream PdbStream { get; set; }
 
 		/// <summary>
-		/// GUID used by some PDB writers, eg. portable PDB writer. If it's null, a deterministic PDB GUID is used.
+		/// Gets the PDB content id. The <see cref="Stream"/> argument is the PDB stream with the PDB ID zeroed out,
+		/// and the 2nd <see cref="uint"/> argument is the default timestamp.
 		/// This property is ignored if <see cref="ReproduciblePdb"/> is true.
 		/// </summary>
-		public Guid? PdbGuid { get; set; }
+		public Func<Stream, uint, ContentId> GetPdbContentId { get; set; }
 
 		/// <summary>
 		/// Create a reproducible PDB, if the PDB writer supports it.
-		/// If true, <see cref="PdbGuid"/> is ignored and a <see cref="ImageDebugType.Reproducible"/> debug directory entry is added to the EXE/DLL file.
+		/// If true, <see cref="GetPdbContentId"/> is ignored and a <see cref="ImageDebugType.Reproducible"/> debug directory entry is added to the EXE/DLL file.
 		/// </summary>
 		public bool ReproduciblePdb { get; set; }
 
@@ -892,7 +918,7 @@ namespace dnlib.DotNet.Writer {
 				var pdbIdWriter = new ArrayWriter(pdbId);
 				uint codeViewTimestamp;
 				byte[] checksumBytes;
-				if (TheOptions.ReproduciblePdb || TheOptions.AddPdbChecksumDebugDirectoryEntry || TheOptions.PdbGuid == null) {
+				if (TheOptions.ReproduciblePdb || TheOptions.AddPdbChecksumDebugDirectoryEntry || TheOptions.GetPdbContentId == null) {
 					pdbStream.Position = 0;
 					checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbStream.Length);
 					if (checksumBytes.Length < 20)
@@ -900,8 +926,9 @@ namespace dnlib.DotNet.Writer {
 					RoslynContentIdProvider.GetContentId(checksumBytes, out pdbGuid, out codeViewTimestamp);
 				}
 				else {
-					codeViewTimestamp = GetTimeDateStamp();
-					pdbGuid = TheOptions.PdbGuid.Value;
+					var contentId = TheOptions.GetPdbContentId(pdbStream, GetTimeDateStamp());
+					codeViewTimestamp = contentId.Timestamp;
+					pdbGuid = contentId.Guid;
 					checksumBytes = null;
 				}
 				pdbIdWriter.WriteBytes(pdbGuid.ToByteArray());
