@@ -448,6 +448,7 @@ namespace dnlib.DotNet.Writer {
 				metadata.UpdateMethodAndFieldRvas();
 			}
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
+			metadata.UpdateMethodAndFieldRvas();
 			foreach (var section in origSections) {
 				if (section.Chunk.RVA != section.PESection.VirtualAddress)
 					throw new ModuleWriterException("Invalid section RVA");
