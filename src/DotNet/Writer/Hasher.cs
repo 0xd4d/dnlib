@@ -27,6 +27,35 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
+		public static bool TryGetChecksumAlgorithm(string checksumName, out ChecksumAlgorithm pdbChecksumAlgorithm, out int checksumSize) {
+			switch (checksumName) {
+			case "SHA1":
+				pdbChecksumAlgorithm = ChecksumAlgorithm.SHA1;
+				checksumSize = 20;
+				return true;
+
+			case "SHA256":
+				pdbChecksumAlgorithm = ChecksumAlgorithm.SHA256;
+				checksumSize = 32;
+				return true;
+
+			case "SHA384":
+				pdbChecksumAlgorithm = ChecksumAlgorithm.SHA384;
+				checksumSize = 48;
+				return true;
+
+			case "SHA512":
+				pdbChecksumAlgorithm = ChecksumAlgorithm.SHA512;
+				checksumSize = 64;
+				return true;
+
+			default:
+				pdbChecksumAlgorithm = 0;
+				checksumSize = -1;
+				return false;
+			}
+		}
+
 		public static byte[] Hash(ChecksumAlgorithm checksumAlgorithm, Stream stream, long length) {
 			var buffer = new byte[(int)Math.Min(0x2000, length)];
 			using (var hasher = CreateHasher(checksumAlgorithm)) {

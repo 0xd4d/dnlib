@@ -291,10 +291,12 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public bool AddPdbChecksumDebugDirectoryEntry { get; set; }
 
+		const ChecksumAlgorithm DefaultPdbChecksumAlgorithm = ChecksumAlgorithm.SHA256;
+
 		/// <summary>
 		/// PDB checksum algorithm
 		/// </summary>
-		public ChecksumAlgorithm PdbChecksumAlgorithm { get; set; } = ChecksumAlgorithm.SHA256;
+		public ChecksumAlgorithm PdbChecksumAlgorithm { get; set; } = DefaultPdbChecksumAlgorithm;
 
 		/// <summary>
 		/// true if an <c>.mvid</c> section should be added to the assembly. Not used by native module writer.
@@ -371,6 +373,8 @@ namespace dnlib.DotNet.Writer {
 				AddMvidSection = HasMvidSection(modDefMD.Metadata.PEImage.ImageSectionHeaders);
 				ReproduciblePdb = HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.Reproducible);
 				AddPdbChecksumDebugDirectoryEntry = HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.PdbChecksum);
+				if (TryGetPdbChecksumAlgorithm(modDefMD.Metadata.PEImage, modDefMD.Metadata.PEImage.ImageDebugDirectories, out var pdbChecksumAlgorithm))
+					PdbChecksumAlgorithm = pdbChecksumAlgorithm;
 			}
 
 			if (Is64Bit) {
@@ -401,6 +405,36 @@ namespace dnlib.DotNet.Writer {
 				if (debugDirs[i].Type == type)
 					return true;
 			}
+			return false;
+		}
+
+		static bool TryGetPdbChecksumAlgorithm(IPEImage peImage, IList<ImageDebugDirectory> debugDirs, out ChecksumAlgorithm pdbChecksumAlgorithm) {
+			int count = debugDirs.Count;
+			for (int i = 0; i < count; i++) {
+				var dir = debugDirs[i];
+				if (dir.Type == ImageDebugType.PdbChecksum) {
+					var reader = peImage.CreateReader(dir.AddressOfRawData, dir.SizeOfData);
+					if (TryGetPdbChecksumAlgorithm2(ref reader, out pdbChecksumAlgorithm))
+						return true;
+				}
+			}
+
+			pdbChecksumAlgorithm = DefaultPdbChecksumAlgorithm;
+			return false;
+		}
+
+		static bool TryGetPdbChecksumAlgorithm2(ref DataReader reader, out ChecksumAlgorithm pdbChecksumAlgorithm) {
+			try {
+				var checksumName = reader.TryReadZeroTerminatedString(Encoding.UTF8);
+				if (Hasher.TryGetChecksumAlgorithm(checksumName, out pdbChecksumAlgorithm, out int checksumSize) && (uint)checksumSize == reader.BytesLeft)
+					return true;
+			}
+			catch (IOException) {
+			}
+			catch (ArgumentException) {
+			}
+
+			pdbChecksumAlgorithm = DefaultPdbChecksumAlgorithm;
 			return false;
 		}
 
