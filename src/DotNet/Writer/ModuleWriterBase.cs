@@ -414,7 +414,7 @@ namespace dnlib.DotNet.Writer {
 				var dir = debugDirs[i];
 				if (dir.Type == ImageDebugType.PdbChecksum) {
 					var reader = peImage.CreateReader(dir.AddressOfRawData, dir.SizeOfData);
-					if (TryGetPdbChecksumAlgorithm2(ref reader, out pdbChecksumAlgorithm))
+					if (TryGetPdbChecksumAlgorithm(ref reader, out pdbChecksumAlgorithm))
 						return true;
 				}
 			}
@@ -423,7 +423,7 @@ namespace dnlib.DotNet.Writer {
 			return false;
 		}
 
-		static bool TryGetPdbChecksumAlgorithm2(ref DataReader reader, out ChecksumAlgorithm pdbChecksumAlgorithm) {
+		static bool TryGetPdbChecksumAlgorithm(ref DataReader reader, out ChecksumAlgorithm pdbChecksumAlgorithm) {
 			try {
 				var checksumName = reader.TryReadZeroTerminatedUtf8String();
 				if (Hasher.TryGetChecksumAlgorithm(checksumName, out pdbChecksumAlgorithm, out int checksumSize) && (uint)checksumSize == reader.BytesLeft)

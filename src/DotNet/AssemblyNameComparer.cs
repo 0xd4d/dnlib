@@ -47,17 +47,17 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Compares the name, version, public key token, culture and content type
 		/// </summary>
-		public static AssemblyNameComparer CompareAll = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
+		public static readonly AssemblyNameComparer CompareAll = new AssemblyNameComparer(AssemblyNameComparerFlags.All);
 
 		/// <summary>
 		/// Compares only the name and the public key token
 		/// </summary>
-		public static AssemblyNameComparer NameAndPublicKeyTokenOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name | AssemblyNameComparerFlags.PublicKeyToken);
+		public static readonly AssemblyNameComparer NameAndPublicKeyTokenOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name | AssemblyNameComparerFlags.PublicKeyToken);
 
 		/// <summary>
 		/// Compares only the name
 		/// </summary>
-		public static AssemblyNameComparer NameOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name);
+		public static readonly AssemblyNameComparer NameOnly = new AssemblyNameComparer(AssemblyNameComparerFlags.Name);
 
 		readonly AssemblyNameComparerFlags flags;
 
