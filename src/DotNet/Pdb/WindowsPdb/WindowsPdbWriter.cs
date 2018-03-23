@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			module = metadata.Module;
 			instrToOffset = new Dictionary<Instruction, uint>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
-			localsEndScopeIncValue = pdbState.Compiler == Compiler.VisualBasic ? 1 : 0;
+			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
 		}
 
 		/// <summary>

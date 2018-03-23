@@ -17,6 +17,7 @@ namespace dnlib.DotNet.Pdb {
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
 		MethodDef userEntryPoint;
 		readonly Compiler compiler;
+		readonly PdbFileKind originalPdbFileKind;
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -77,6 +78,7 @@ namespace dnlib.DotNet.Pdb {
 				throw new ArgumentNullException(nameof(module));
 			compiler = CalculateCompiler(module);
 			PdbFileKind = pdbFileKind;
+			originalPdbFileKind = pdbFileKind;
 		}
 
 		/// <summary>
@@ -90,6 +92,7 @@ namespace dnlib.DotNet.Pdb {
 			this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
 			reader.Initialize(module);
 			PdbFileKind = reader.PdbFileKind;
+			originalPdbFileKind = reader.PdbFileKind;
 			compiler = CalculateCompiler(module);
 
 			userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;
@@ -257,9 +260,9 @@ namespace dnlib.DotNet.Pdb {
 			// Don't use recursive calls
 			var stack = new Stack<CreateScopeState>();
 			var state = new CreateScopeState() { SymScope = symScope };
+			int endIsInclusiveValue = PdbUtils.IsEndInclusive(originalPdbFileKind, Compiler) ? 1 : 0;
 recursive_call:
 			int instrIndex = 0;
-			int endIsInclusiveValue = Compiler == Compiler.VisualBasic ? 1 : 0;
 			state.PdbScope = new PdbScope() {
 				Start = GetInstruction(body.Instructions, state.SymScope.StartOffset, ref instrIndex),
 				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
