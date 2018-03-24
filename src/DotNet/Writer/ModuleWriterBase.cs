@@ -17,7 +17,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Module writer event args
 	/// </summary>
-	public sealed class ModuleWriterEventArgs : EventArgs {
+	public readonly struct ModuleWriterEventArgs {
 		/// <summary>
 		/// Gets the writer (<see cref="ModuleWriter"/> or <see cref="NativeModuleWriter"/>)
 		/// </summary>
@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Module writer progress event args
 	/// </summary>
-	public sealed class ModuleWriterProgressEventArgs : EventArgs {
+	public readonly struct ModuleWriterProgressEventArgs {
 		/// <summary>
 		/// Gets the writer (<see cref="ModuleWriter"/> or <see cref="NativeModuleWriter"/>)
 		/// </summary>
@@ -92,6 +92,14 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
+	/// Event handler
+	/// </summary>
+	/// <typeparam name="TEventArgs">Event args type</typeparam>
+	/// <param name="sender">Sender</param>
+	/// <param name="e">Event args</param>
+	public delegate void EventHandler2<TEventArgs>(object sender, TEventArgs e);
+
+	/// <summary>
 	/// Common module writer options base class
 	/// </summary>
 	public class ModuleWriterOptionsBase {
@@ -119,13 +127,13 @@ namespace dnlib.DotNet.Writer {
 		/// Raised at various times when writing the file. The listener has a chance to modify
 		/// the file, eg. add extra metadata, encrypt methods, etc.
 		/// </summary>
-		public event EventHandler<ModuleWriterEventArgs> WriterEvent;
+		public event EventHandler2<ModuleWriterEventArgs> WriterEvent;
 		internal void RaiseEvent(object sender, ModuleWriterEventArgs e) => WriterEvent?.Invoke(sender, e);
 
 		/// <summary>
 		/// Raised when the progress is updated
 		/// </summary>
-		public event EventHandler<ModuleWriterProgressEventArgs> ProgressUpdated;
+		public event EventHandler2<ModuleWriterProgressEventArgs> ProgressUpdated;
 		internal void RaiseEvent(object sender, ModuleWriterProgressEventArgs e) => ProgressUpdated?.Invoke(sender, e);
 
 		/// <summary>

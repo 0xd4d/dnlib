@@ -276,7 +276,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Metadata writer event args
 	/// </summary>
-	public sealed class MetadataWriterEventArgs : EventArgs {
+	public readonly struct MetadataWriterEventArgs {
 		/// <summary>
 		/// Gets the metadata writer
 		/// </summary>
@@ -301,7 +301,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Metadata writer progress event args
 	/// </summary>
-	public sealed class MetadataProgressEventArgs : EventArgs {
+	public readonly struct MetadataProgressEventArgs {
 		/// <summary>
 		/// Gets the metadata writer
 		/// </summary>
@@ -390,12 +390,12 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Raised at various times when writing the metadata
 		/// </summary>
-		public event EventHandler<MetadataWriterEventArgs> MetadataEvent;
+		public event EventHandler2<MetadataWriterEventArgs> MetadataEvent;
 
 		/// <summary>
 		/// Raised when the progress is updated
 		/// </summary>
-		public event EventHandler<MetadataProgressEventArgs> ProgressUpdated;
+		public event EventHandler2<MetadataProgressEventArgs> ProgressUpdated;
 
 		/// <summary>
 		/// Gets/sets the logger
