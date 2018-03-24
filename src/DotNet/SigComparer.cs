@@ -486,6 +486,11 @@ namespace dnlib.DotNet {
 		/// types can be considered equivalent if eg. a TypeIdentifierAttribute is used.
 		/// </summary>
 		DontCheckTypeEquivalence = 0x400000,
+
+		/// <summary>
+		/// When comparing types, don't compare a multi-dimensional array's lower bounds and sizes
+		/// </summary>
+		IgnoreMultiDimensionalArrayLowerBoundsAndSizes = 0x800000,
 	}
 
 	/// <summary>
@@ -533,6 +538,7 @@ namespace dnlib.DotNet {
 		bool MscorlibIsNotSpecial => (options & SigComparerOptions.MscorlibIsNotSpecial) != 0;
 		bool DontProjectWinMDRefs => (options & SigComparerOptions.DontProjectWinMDRefs) != 0;
 		bool DontCheckTypeEquivalence => (options & SigComparerOptions.DontCheckTypeEquivalence) != 0;
+		bool IgnoreMultiDimensionalArrayLowerBoundsAndSizes => (options & SigComparerOptions.IgnoreMultiDimensionalArrayLowerBoundsAndSizes) != 0;
 
 		/// <summary>
 		/// Constructor
@@ -1911,8 +1917,9 @@ exit: ;
 				case ElementType.Array:
 					ArraySig ara = a as ArraySig, arb = b as ArraySig;
 					result = ara.Rank == arb.Rank &&
-							Equals(ara.Sizes, arb.Sizes) &&
-							Equals(ara.LowerBounds, arb.LowerBounds) &&
+							(IgnoreMultiDimensionalArrayLowerBoundsAndSizes ||
+							(Equals(ara.Sizes, arb.Sizes) &&
+							Equals(ara.LowerBounds, arb.LowerBounds))) &&
 							Equals(a.Next, b.Next);
 					break;
 
@@ -2057,6 +2064,7 @@ exit: ;
 
 			case ElementType.Array:
 				// Don't include sizes and lower bounds since GetHashCode(Type) doesn't (and can't).
+				// Also, if IgnoreMultiDimensionArrayLowerBoundsAndSizes is set, we shouldn't include them either.
 				var ara = (ArraySig)a;
 				hash = HASHCODE_MAGIC_ET_ARRAY + (int)ara.Rank + GetHashCode(ara.Next);
 				break;
