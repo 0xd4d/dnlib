@@ -28,13 +28,9 @@ namespace dnlib.IO {
 		public override void ReadBytes(uint offset, byte[] destination, int destinationIndex, int length) =>
 			Marshal.Copy((IntPtr)(data + offset), destination, destinationIndex, length);
 
-		public override sbyte ReadSByte(uint offset) => *(sbyte*)(data + offset);
 		public override byte ReadByte(uint offset) => *(data + offset);
-		public override short ReadInt16(uint offset) => *(short*)(data + offset);
 		public override ushort ReadUInt16(uint offset) => *(ushort*)(data + offset);
-		public override int ReadInt32(uint offset) => *(int*)(data + offset);
 		public override uint ReadUInt32(uint offset) => *(uint*)(data + offset);
-		public override long ReadInt64(uint offset) => *(long*)(data + offset);
 		public override ulong ReadUInt64(uint offset) => *(ulong*)(data + offset);
 		public override float ReadSingle(uint offset) => *(float*)(data + offset);
 		public override double ReadDouble(uint offset) => *(double*)(data + offset);

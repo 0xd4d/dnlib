@@ -39,33 +39,16 @@ namespace dnlib.IO {
 		public override void ReadBytes(uint offset, byte[] destination, int destinationIndex, int length) =>
 			Marshal.Copy((IntPtr)(data + offset), destination, destinationIndex, length);
 
-		public override sbyte ReadSByte(uint offset) => *(sbyte*)(data + offset);
 		public override byte ReadByte(uint offset) => *(data + offset);
-
-		public override short ReadInt16(uint offset) {
-			var p = data + offset;
-			return (short)(*p++ | (*p << 8));
-		}
 
 		public override ushort ReadUInt16(uint offset) {
 			var p = data + offset;
 			return (ushort)(*p++ | (*p << 8));
 		}
 
-		public override int ReadInt32(uint offset) {
-			var p = data + offset;
-			return *p++ | (*p++ << 8) | (*p++ << 16) | (*p << 24);
-		}
-
 		public override uint ReadUInt32(uint offset) {
 			var p = data + offset;
 			return *p++ | ((uint)*p++ << 8) | ((uint)*p++ << 16) | ((uint)*p << 24);
-		}
-
-		public override long ReadInt64(uint offset) {
-			var p = data + offset;
-			return (long)(*p++ | ((ulong)*p++ << 8) | ((ulong)*p++ << 16) | ((ulong)*p++ << 24) |
-				((ulong)*p++ << 32) | ((ulong)*p++ << 40) | ((ulong)*p++ << 48) | ((ulong)*p << 56));
 		}
 
 		public override ulong ReadUInt64(uint offset) {

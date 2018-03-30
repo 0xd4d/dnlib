@@ -17,13 +17,9 @@ namespace dnlib.IO {
 			for (int i = 0; i < length; i++)
 				destination[destinationIndex + i] = 0;
 		}
-		public override sbyte ReadSByte(uint offset) => 0;
 		public override byte ReadByte(uint offset) => 0;
-		public override short ReadInt16(uint offset) => 0;
 		public override ushort ReadUInt16(uint offset) => 0;
-		public override int ReadInt32(uint offset) => 0;
 		public override uint ReadUInt32(uint offset) => 0;
-		public override long ReadInt64(uint offset) => 0;
 		public override ulong ReadUInt64(uint offset) => 0;
 		public override float ReadSingle(uint offset) => 0;
 		public override double ReadDouble(uint offset) => 0;

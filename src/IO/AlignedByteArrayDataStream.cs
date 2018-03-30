@@ -16,14 +16,7 @@ namespace dnlib.IO {
 		public override void ReadBytes(uint offset, byte[] destination, int destinationIndex, int length) =>
 			Array.Copy(data, (int)offset, destination, destinationIndex, length);
 
-		public override sbyte ReadSByte(uint offset) => (sbyte)data[(int)offset];
 		public override byte ReadByte(uint offset) => data[(int)offset];
-
-		public override short ReadInt16(uint offset) {
-			int i = (int)offset;
-			var data = this.data;
-			return (short)(data[i++] | (data[i] << 8));
-		}
 
 		public override ushort ReadUInt16(uint offset) {
 			int i = (int)offset;
@@ -31,23 +24,10 @@ namespace dnlib.IO {
 			return (ushort)(data[i++] | (data[i] << 8));
 		}
 
-		public override int ReadInt32(uint offset) {
-			int i = (int)offset;
-			var data = this.data;
-			return (int)(data[i++] | ((uint)data[i++] << 8) | ((uint)data[i++] << 16) | ((uint)data[i] << 24));
-		}
-
 		public override uint ReadUInt32(uint offset) {
 			int i = (int)offset;
 			var data = this.data;
 			return data[i++] | ((uint)data[i++] << 8) | ((uint)data[i++] << 16) | ((uint)data[i] << 24);
-		}
-
-		public override long ReadInt64(uint offset) {
-			int i = (int)offset;
-			var data = this.data;
-			return (long)(data[i++] | ((ulong)data[i++] << 8) | ((ulong)data[i++] << 16) | ((ulong)data[i++] << 24) |
-				((ulong)data[i++] << 32) | ((ulong)data[i++] << 40) | ((ulong)data[i++] << 48) | ((ulong)data[i] << 56));
 		}
 
 		public override ulong ReadUInt64(uint offset) {
