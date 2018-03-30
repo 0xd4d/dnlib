@@ -59,6 +59,7 @@ v3.0 breaking changes
 - `ModuleWriter` and `NativeModuleWriter` use `DataWriter` instead of `BinaryWriter`
 - The native module writer now tries to fit the new metadata, method bodies, resources and other data in the old locations. This results in smaller files. It can be disabled by creating your own `NativeModuleWriterOptions`
 - `MetadataOptions`'s `OtherHeaps` and `OtherHeapsEnd` have been removed. Use `CustomHeaps`, `MetadataHeapsAdded`, and `PreserveHeapOrder()` instead.
+- `Instruction.GetLocal()` returns a local if the instruction is a `ldloca` or `ldloca.s` instruction (it used to return null)
 
 Examples
 --------

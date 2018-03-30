@@ -658,11 +658,10 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
-		/// Returns the local if it's a <c>ldloc</c> or <c>stloc</c> instruction. It does not
-		/// return the local if it's a <c>ldloca</c> instruction.
+		/// Returns the local if it's a <c>ldloc</c>, <c>stloc</c> or <c>ldloca</c> instruction
 		/// </summary>
 		/// <param name="locals">The locals</param>
-		/// <returns>The local or <c>null</c> if it's not a <c>ldloc</c> or <c>stloc</c>
+		/// <returns>The local or <c>null</c> if it's not a <c>ldloc</c>, <c>stloc</c> or <c>ldloca</c>
 		/// instruction or if the local doesn't exist.</returns>
 		public Local GetLocal(IList<Local> locals) {
 			int index;
@@ -672,6 +671,8 @@ namespace dnlib.DotNet.Emit {
 			case Code.Ldloc_S:
 			case Code.Stloc:
 			case Code.Stloc_S:
+			case Code.Ldloca:
+			case Code.Ldloca_S:
 				return Operand as Local;
 
 			case Code.Ldloc_0:
