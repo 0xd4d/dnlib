@@ -11,6 +11,7 @@ using dnlib.DotNet.Emit;
 using System.Diagnostics;
 using dnlib.DotNet.Pdb;
 using dnlib.DotNet.Pdb.Portable;
+using System.Linq;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -164,14 +165,38 @@ namespace dnlib.DotNet.Writer {
 	}
 
 	/// <summary>
+	/// Metadata heaps event args
+	/// </summary>
+	public readonly struct MetadataHeapsAddedEventArgs {
+		/// <summary>
+		/// Gets the metadata writer
+		/// </summary>
+		public Metadata Metadata { get; }
+
+		/// <summary>
+		/// Gets all heaps
+		/// </summary>
+		public List<IHeap> Heaps { get; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="metadata">Metadata writer</param>
+		/// <param name="heaps">All heaps</param>
+		public MetadataHeapsAddedEventArgs(Metadata metadata, List<IHeap> heaps) {
+			Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
+			Heaps = heaps ?? throw new ArgumentNullException(nameof(heaps));
+		}
+	}
+
+	/// <summary>
 	/// <see cref="Metadata"/> options
 	/// </summary>
 	public sealed class MetadataOptions {
 		MetadataHeaderOptions metadataHeaderOptions;
 		MetadataHeaderOptions debugMetadataHeaderOptions;
 		TablesHeapOptions tablesHeapOptions;
-		List<IHeap> otherHeaps;
-		List<IHeap> otherHeapsEnd;
+		List<IHeap> customHeaps;
 
 		/// <summary>
 		/// Gets/sets the <see cref="MetadataHeader"/> options. This is never <c>null</c>.
@@ -211,14 +236,61 @@ namespace dnlib.DotNet.Writer {
 		public MetadataFlags Flags;
 
 		/// <summary>
-		/// Any additional heaps that should be added to the beginning of the heaps list
+		/// Extra heaps to add to the metadata. Also see <see cref="MetadataHeapsAdded"/> and <see cref="PreserveHeapOrder(ModuleDef, bool)"/>
 		/// </summary>
-		public List<IHeap> OtherHeaps => otherHeaps ?? (otherHeaps = new List<IHeap>());
+		public List<IHeap> CustomHeaps => customHeaps ?? (customHeaps = new List<IHeap>());
 
 		/// <summary>
-		/// Any additional heaps that should be added to end of the heaps list
+		/// Raised after all heaps have been added. The caller can sort the list if needed
 		/// </summary>
-		public List<IHeap> OtherHeapsEnd => otherHeapsEnd ?? (otherHeapsEnd = new List<IHeap>());
+		public event EventHandler2<MetadataHeapsAddedEventArgs> MetadataHeapsAdded;
+		internal void RaiseMetadataHeapsAdded(MetadataHeapsAddedEventArgs e) => MetadataHeapsAdded?.Invoke(e.Metadata, e);
+
+		/// <summary>
+		/// Preserves the original order of heaps, and optionally adds all custom heaps to <see cref="CustomHeaps"/>.
+		/// </summary>
+		/// <param name="module">Original module with the heaps</param>
+		/// <param name="addCustomHeaps">If true, all custom streams are added to <see cref="CustomHeaps"/></param>
+		public void PreserveHeapOrder(ModuleDef module, bool addCustomHeaps) {
+			if (module == null)
+				throw new ArgumentNullException(nameof(module));
+			if (module is ModuleDefMD mod) {
+				if (addCustomHeaps) {
+					var otherStreams = mod.Metadata.AllStreams.Where(a => a.GetType() == typeof(DotNetStream)).Select(a => new DataReaderHeap(a));
+					CustomHeaps.AddRange(otherStreams.OfType<IHeap>());
+				}
+				var streamToOrder = new Dictionary<DotNetStream, int>(mod.Metadata.AllStreams.Count);
+				for (int i = 0; i < mod.Metadata.AllStreams.Count; i++)
+					streamToOrder.Add(mod.Metadata.AllStreams[i], i);
+				var nameToOrder = new Dictionary<string, int>(mod.Metadata.AllStreams.Count, StringComparer.Ordinal);
+				for (int i = 0; i < mod.Metadata.AllStreams.Count; i++) {
+					var stream = mod.Metadata.AllStreams[i];
+					bool isKnownStream = stream is BlobStream || stream is GuidStream ||
+						stream is PdbStream || stream is StringsStream || stream is TablesStream || stream is USStream;
+					if (!nameToOrder.ContainsKey(stream.Name) || isKnownStream)
+						nameToOrder[stream.Name] = i;
+				}
+				MetadataHeapsAdded += (s, e) => {
+					e.Heaps.Sort((a, b) => {
+						int oa = GetOrder(streamToOrder, nameToOrder, a);
+						int ob = GetOrder(streamToOrder, nameToOrder, b);
+						int c = oa - ob;
+						if (c != 0)
+							return c;
+						return StringComparer.Ordinal.Compare(a.Name, b.Name);
+					});
+				};
+			}
+		}
+
+		static int GetOrder(Dictionary<DotNetStream, int> streamToOrder, Dictionary<string, int> nameToOrder, IHeap heap) {
+			if (heap is DataReaderHeap drHeap && drHeap.OptionalOriginalStream is DotNetStream dnHeap && streamToOrder.TryGetValue(dnHeap, out int order))
+				return order;
+			if (nameToOrder.TryGetValue(heap.Name, out order))
+				return order;
+
+			return int.MaxValue;
+		}
 
 		/// <summary>
 		/// Default constructor
@@ -3543,9 +3615,6 @@ namespace dnlib.DotNet.Writer {
 					heaps.Add(blobHeap);
 			}
 			else {
-				if (options.OtherHeaps != null)
-					heaps.AddRange(options.OtherHeaps);
-
 				heaps.Add(tablesHeap);
 				if (!stringsHeap.IsEmpty || AlwaysCreateStringsHeap)
 					heaps.Add(stringsHeap);
@@ -3556,8 +3625,8 @@ namespace dnlib.DotNet.Writer {
 				if (!blobHeap.IsEmpty || AlwaysCreateBlobHeap)
 					heaps.Add(blobHeap);
 
-				if (options.OtherHeapsEnd != null)
-					heaps.AddRange(options.OtherHeapsEnd);
+				heaps.AddRange(options.CustomHeaps);
+				options.RaiseMetadataHeapsAdded(new MetadataHeapsAddedEventArgs(this, heaps));
 			}
 
 			return heaps;
