@@ -37,12 +37,15 @@ namespace dnlib.Examples {
 			opts.MetadataOptions.TablesHeapOptions.ExtraData = 0x12345678;
 
 			// Add a few dummy heaps
-			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#US "));
-			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#Strings "));
-			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#Strimgs"));
-			opts.MetadataOptions.OtherHeaps.Add(new MyHeap("#GU1D"));
-			opts.MetadataOptions.OtherHeapsEnd.Add(new MyHeap("#US "));
-			opts.MetadataOptions.OtherHeapsEnd.Add(new MyHeap("#Strings "));
+			opts.MetadataOptions.CustomHeaps.Add(new MyHeap("#US "));
+			opts.MetadataOptions.CustomHeaps.Add(new MyHeap("#Strings "));
+			opts.MetadataOptions.CustomHeaps.Add(new MyHeap("#Strimgs"));
+			opts.MetadataOptions.CustomHeaps.Add(new MyHeap("#GU1D"));
+			opts.MetadataOptions.CustomHeaps.Add(new MyHeap("#US "));
+			opts.MetadataOptions.CustomHeaps.Add(new MyHeap("#Strings "));
+			opts.MetadataOptions.MetadataHeapsAdded += (s, e) => {
+				// You could sort the heaps here
+			};
 
 			// Write the module. The listener will get notified, see OnWriterEvent() below
 			mod.Write(destFileName, opts);
