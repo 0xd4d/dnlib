@@ -45,7 +45,7 @@ namespace dnlib.DotNet.Writer {
 			reader.Position = 1;
 			while (reader.Position < reader.Length) {
 				uint offset = reader.Position;
-				if (!reader.ReadCompressedUInt32(out uint len)) {
+				if (!reader.TryReadCompressedUInt32(out uint len)) {
 					if (offset == reader.Position)
 						reader.Position++;
 					continue;

@@ -586,7 +586,7 @@ namespace dnlib.DotNet {
 			if (reader.ReadByte() == 0xFF)
 				return null;
 			reader.Position--;
-			if (!reader.ReadCompressedUInt32(out uint len))
+			if (!reader.TryReadCompressedUInt32(out uint len))
 				throw new CABlobParserException("Could not read compressed UInt32");
 			if (len == 0)
 				return UTF8String.Empty;

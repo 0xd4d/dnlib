@@ -267,7 +267,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		TypeSig ReadTypeDefOrRefSig() {
 			uint codedToken;
-			if (!reader.ReadCompressedUInt32(out codedToken))
+			if (!reader.TryReadCompressedUInt32(out codedToken))
 				return null;
 			ISignatureReaderHelper helper = module;
 			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);
@@ -276,7 +276,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		ITypeDefOrRef ReadTypeDefOrRef() {
 			uint codedToken;
-			if (!reader.ReadCompressedUInt32(out codedToken))
+			if (!reader.TryReadCompressedUInt32(out codedToken))
 				return null;
 			ISignatureReaderHelper helper = module;
 			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);

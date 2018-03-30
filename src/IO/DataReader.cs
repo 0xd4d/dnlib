@@ -499,7 +499,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="value">Uncompressed <see cref="uint"/></param>
 		/// <returns></returns>
-		public bool ReadCompressedUInt32(out uint value) {
+		public bool TryReadCompressedUInt32(out uint value) {
 			VerifyState();
 			var currentOffset = this.currentOffset;
 			var bytesLeft = endOffset - currentOffset;
@@ -550,7 +550,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <returns></returns>
 		public uint ReadCompressedUInt32() {
-			if (!ReadCompressedUInt32(out uint value))
+			if (!TryReadCompressedUInt32(out uint value))
 				ThrowNoMoreBytesLeft();
 			return value;
 		}
@@ -560,7 +560,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="value">Uncompressed <see cref="int"/></param>
 		/// <returns></returns>
-		public bool ReadCompressedInt32(out int value) {
+		public bool TryReadCompressedInt32(out int value) {
 			VerifyState();
 			var currentOffset = this.currentOffset;
 			var bytesLeft = endOffset - currentOffset;
@@ -625,7 +625,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <returns></returns>
 		public int ReadCompressedInt32() {
-			if (!ReadCompressedInt32(out int value))
+			if (!TryReadCompressedInt32(out int value))
 				ThrowNoMoreBytesLeft();
 			return value;
 		}

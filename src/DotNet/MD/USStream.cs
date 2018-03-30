@@ -29,7 +29,7 @@ namespace dnlib.DotNet.MD {
 				return null;
 			var reader = dataReader;
 			reader.Position = offset;
-			if (!reader.ReadCompressedUInt32(out uint length))
+			if (!reader.TryReadCompressedUInt32(out uint length))
 				return null;
 			if (!reader.CanRead(length))
 				return null;

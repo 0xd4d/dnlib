@@ -477,12 +477,12 @@ namespace dnlib.DotNet {
 
 		T ReadSig<T>(T methodSig) where T : MethodBaseSig {
 			if (methodSig.Generic) {
-				if (!reader.ReadCompressedUInt32(out uint count))
+				if (!reader.TryReadCompressedUInt32(out uint count))
 					return null;
 				methodSig.GenParamCount = count;
 			}
 
-			if (!reader.ReadCompressedUInt32(out uint numParams))
+			if (!reader.TryReadCompressedUInt32(out uint numParams))
 				return null;
 
 			methodSig.RetType = ReadType();
@@ -508,7 +508,7 @@ namespace dnlib.DotNet {
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="LocalSig"/> instance</returns>
 		LocalSig ReadLocalSig(CallingConvention callingConvention) {
-			if (!reader.ReadCompressedUInt32(out uint count))
+			if (!reader.TryReadCompressedUInt32(out uint count))
 				return null;
 			var sig = new LocalSig(callingConvention, count);
 			var locals = sig.Locals;
@@ -523,7 +523,7 @@ namespace dnlib.DotNet {
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="GenericInstMethodSig"/> instance</returns>
 		GenericInstMethodSig ReadGenericInstMethod(CallingConvention callingConvention) {
-			if (!reader.ReadCompressedUInt32(out uint count))
+			if (!reader.TryReadCompressedUInt32(out uint count))
 				return null;
 			var sig = new GenericInstMethodSig(callingConvention, count);
 			var args = sig.GenericArguments;
@@ -574,33 +574,33 @@ namespace dnlib.DotNet {
 			case ElementType.Pinned:	result = new PinnedSig(ReadType()); break;
 
 			case ElementType.Var:
-				if (!reader.ReadCompressedUInt32(out num))
+				if (!reader.TryReadCompressedUInt32(out num))
 					break;
 				result = new GenericVar(num, gpContext.Type);
 				break;
 
 			case ElementType.MVar:
-				if (!reader.ReadCompressedUInt32(out num))
+				if (!reader.TryReadCompressedUInt32(out num))
 					break;
 				result = new GenericMVar(num, gpContext.Method);
 				break;
 
 			case ElementType.ValueArray:
 				nextType = ReadType();
-				if (!reader.ReadCompressedUInt32(out num))
+				if (!reader.TryReadCompressedUInt32(out num))
 					break;
 				result = new ValueArraySig(nextType, num);
 				break;
 
 			case ElementType.Module:
-				if (!reader.ReadCompressedUInt32(out num))
+				if (!reader.TryReadCompressedUInt32(out num))
 					break;
 				result = new ModuleSig(num, ReadType());
 				break;
 
 			case ElementType.GenericInst:
 				nextType = ReadType();
-				if (!reader.ReadCompressedUInt32(out num))
+				if (!reader.TryReadCompressedUInt32(out num))
 					break;
 				var genericInstSig = new GenericInstSig(nextType as ClassOrValueTypeSig, num);
 				var args = genericInstSig.GenericArguments;
@@ -612,25 +612,25 @@ namespace dnlib.DotNet {
 			case ElementType.Array:
 				nextType = ReadType();
 				uint rank;
-				if (!reader.ReadCompressedUInt32(out rank))
+				if (!reader.TryReadCompressedUInt32(out rank))
 					break;
 				if (rank == 0) {
 					result = new ArraySig(nextType, rank);
 					break;
 				}
-				if (!reader.ReadCompressedUInt32(out num))
+				if (!reader.TryReadCompressedUInt32(out num))
 					break;
 				var sizes = new List<uint>((int)num);
 				for (uint i = 0; i < num; i++) {
-					if (!reader.ReadCompressedUInt32(out uint size))
+					if (!reader.TryReadCompressedUInt32(out uint size))
 						goto exit;
 					sizes.Add(size);
 				}
-				if (!reader.ReadCompressedUInt32(out num))
+				if (!reader.TryReadCompressedUInt32(out num))
 					break;
 				var lowerBounds = new List<int>((int)num);
 				for (uint i = 0; i < num; i++) {
-					if (!reader.ReadCompressedInt32(out int size))
+					if (!reader.TryReadCompressedInt32(out int size))
 						goto exit;
 					lowerBounds.Add(size);
 				}
@@ -662,7 +662,7 @@ exit:
 		/// </summary>
 		/// <returns>A <see cref="ITypeDefOrRef"/> instance</returns>
 		ITypeDefOrRef ReadTypeDefOrRef() {
-			if (!reader.ReadCompressedUInt32(out uint codedToken))
+			if (!reader.TryReadCompressedUInt32(out uint codedToken))
 				return null;
 			return helper.ResolveTypeDefOrRef(codedToken, gpContext);
 		}
