@@ -58,7 +58,7 @@ v3.0 breaking changes
 - `MethodBodyWriterBase` uses `ArrayWriter` instead of `BinaryWriter` (all virtual methods)
 - `ModuleWriter` and `NativeModuleWriter` use `DataWriter` instead of `BinaryWriter`
 - The native module writer now tries to fit the new metadata, method bodies, resources and other data in the old locations. This results in smaller files. It can be disabled by creating your own `NativeModuleWriterOptions`
-- `MetadataOptions`'s `OtherHeaps` and `OtherHeapsEnd` have been removed. Use `CustomHeaps`, `MetadataHeapsAdded`, and `PreserveHeapOrder()` instead.
+- `MetadataOptions`' `OtherHeaps` and `OtherHeapsEnd` have been removed. Use `CustomHeaps`, `MetadataHeapsAdded` and `PreserveHeapOrder()` instead.
 - `Instruction.GetLocal()` returns a local if the instruction is a `ldloca` or `ldloca.s` instruction (it used to return null)
 
 Examples
@@ -265,6 +265,7 @@ method.MethodSig.RetType = type;
 Requirements:
 
 - The assembly platform must be x86, x64, IA-64 or ARM (ARM64 isn't supported at the moment). AnyCPU assemblies are not supported. This is as simple as changing (if needed) `ModuleWriterOptions.PEHeadersOptions.Machine` when saving the file. x86 files should set `32-bit required` flag and clear `32-bit preferred` flag in the COR20 header.
+- `ModuleWriterOptions.Cor20HeaderOptions.Flags`: The `IL Only` bit must be cleared.
 - It must be a DLL file (see `ModuleWriterOptions.PEHeadersOptions.Characteristics`). The file will fail to load at runtime if it's an EXE file.
 
 Type classes
