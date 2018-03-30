@@ -36,7 +36,7 @@ namespace dnlib.DotNet.Writer {
 		public DataReaderHeap(string name, DataReader heapReader) {
 			this.heapReader = heapReader;
 			this.heapReader.Position = 0;
-			Name = name;
+			Name = name ?? throw new ArgumentNullException(nameof(name));
 		}
 
 		/// <inheritdoc/>

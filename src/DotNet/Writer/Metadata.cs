@@ -260,15 +260,22 @@ namespace dnlib.DotNet.Writer {
 					CustomHeaps.AddRange(otherStreams.OfType<IHeap>());
 				}
 				var streamToOrder = new Dictionary<DotNetStream, int>(mod.Metadata.AllStreams.Count);
-				for (int i = 0; i < mod.Metadata.AllStreams.Count; i++)
-					streamToOrder.Add(mod.Metadata.AllStreams[i], i);
-				var nameToOrder = new Dictionary<string, int>(mod.Metadata.AllStreams.Count, StringComparer.Ordinal);
-				for (int i = 0; i < mod.Metadata.AllStreams.Count; i++) {
+				for (int i = 0, order = 0; i < mod.Metadata.AllStreams.Count; i++) {
 					var stream = mod.Metadata.AllStreams[i];
+					if (stream.StartOffset == 0)
+						continue;
+					streamToOrder.Add(stream, order++);
+				}
+				var nameToOrder = new Dictionary<string, int>(mod.Metadata.AllStreams.Count, StringComparer.Ordinal);
+				for (int i = 0, order = 0; i < mod.Metadata.AllStreams.Count; i++) {
+					var stream = mod.Metadata.AllStreams[i];
+					if (stream.StartOffset == 0)
+						continue;
 					bool isKnownStream = stream is BlobStream || stream is GuidStream ||
 						stream is PdbStream || stream is StringsStream || stream is TablesStream || stream is USStream;
 					if (!nameToOrder.ContainsKey(stream.Name) || isKnownStream)
-						nameToOrder[stream.Name] = i;
+						nameToOrder[stream.Name] = order;
+					order++;
 				}
 				MetadataHeapsAdded += (s, e) => {
 					e.Heaps.Sort((a, b) => {

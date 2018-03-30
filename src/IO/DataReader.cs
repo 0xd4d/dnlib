@@ -830,6 +830,8 @@ namespace dnlib.IO {
 				ThrowArgumentNullException(nameof(dataBuffer));
 			if (Position >= Length)
 				return;
+			if (dataBuffer.Length == 0)
+				ThrowInvalidArgument(nameof(dataBuffer));
 			uint lenLeft = BytesLeft;
 			while (lenLeft > 0) {
 				int num = (int)Math.Min((uint)dataBuffer.Length, lenLeft);
