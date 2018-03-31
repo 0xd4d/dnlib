@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// Creates a <see cref="SymbolReader"/> instance
 	/// </summary>
-	public static class SymbolReaderCreator {
+	static class SymbolReaderCreator {
 		/// <summary>
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
@@ -19,12 +19,16 @@ namespace dnlib.DotNet.Pdb {
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk or if it's not possible to create a <see cref="SymbolReader"/>.</returns>
 		public static SymbolReader CreateFromAssemblyFile(PdbImplType pdbImpl, Metadata metadata, string assemblyFileName) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage);
+			if (!pdbContext.HasDebugInfo)
+				return null;
+
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return Dss.SymbolReaderCreator.CreateFromAssemblyFile(assemblyFileName);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.CreateFromAssemblyFile(metadata, assemblyFileName);
+				return ManagedSymbolReaderCreator.CreateFromAssemblyFile(pdbContext, metadata, assemblyFileName);
 
 			default: throw new InvalidOperationException();
 			}
@@ -39,12 +43,16 @@ namespace dnlib.DotNet.Pdb {
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
 		/// file on disk or if it's not possible to create a <see cref="SymbolReader"/>.</returns>
 		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, string pdbFileName) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage);
+			if (!pdbContext.HasDebugInfo)
+				return null;
+
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return Dss.SymbolReaderCreator.Create(metadata, pdbFileName);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metadata, pdbFileName);
+				return ManagedSymbolReaderCreator.Create(pdbContext, metadata, pdbFileName);
 
 			default: throw new InvalidOperationException();
 			}
@@ -59,12 +67,16 @@ namespace dnlib.DotNet.Pdb {
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if it's not possible
 		/// to create a <see cref="SymbolReader"/>.</returns>
 		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, byte[] pdbData) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage);
+			if (!pdbContext.HasDebugInfo)
+				return null;
+
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return Dss.SymbolReaderCreator.Create(metadata, pdbData);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metadata, pdbData);
+				return ManagedSymbolReaderCreator.Create(pdbContext, metadata, pdbData);
 
 			default: throw new InvalidOperationException();
 			}
@@ -79,12 +91,16 @@ namespace dnlib.DotNet.Pdb {
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if it's not possible
 		/// to create a <see cref="SymbolReader"/>.</returns>
 		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, DataReaderFactory pdbStream) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage);
+			if (!pdbContext.HasDebugInfo)
+				return null;
+
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return Dss.SymbolReaderCreator.Create(metadata, pdbStream);
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metadata, pdbStream);
+				return ManagedSymbolReaderCreator.Create(pdbContext, metadata, pdbStream);
 
 			default:
 				pdbStream?.Dispose();
@@ -93,15 +109,18 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		internal static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage);
+			if (!pdbContext.HasDebugInfo)
+				return null;
+
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
 				return null;
 
 			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(metadata);
+				return ManagedSymbolReaderCreator.Create(pdbContext, metadata);
 
-			default:
-				throw new InvalidOperationException();
+			default: throw new InvalidOperationException();
 			}
 		}
 	}

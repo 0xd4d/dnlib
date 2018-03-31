@@ -12,38 +12,26 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// <summary>
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>
-		/// <param name="assemblyFileName">Path to assembly</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
-		/// file.</returns>
-		public static SymbolReader CreateFromAssemblyFile(string assemblyFileName) => Create(Path.ChangeExtension(assemblyFileName, "pdb"));
-
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="pdbFileName">Path to PDB file</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
-		/// file on disk.</returns>
-		public static SymbolReader Create(string pdbFileName) => Create(DataReaderFactoryUtils.TryCreateDataReaderFactory(pdbFileName));
-
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="pdbData">PDB file data</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c>.</returns>
-		public static SymbolReader Create(byte[] pdbData) => Create(ByteArrayDataReaderFactory.Create(pdbData, filename: null));
-
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
+		/// <param name="pdbContext">PDB context</param>
 		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c>.</returns>
-		public static SymbolReader Create(DataReaderFactory pdbStream) {
+		public static SymbolReader Create(PdbReaderContext pdbContext, DataReaderFactory pdbStream) {
 			if (pdbStream == null)
 				return null;
 			try {
-				var pdbReader = new PdbReader();
+				var debugDir = pdbContext.CodeViewDebugDirectory;
+				if (debugDir == null)
+					return null;
+				if (debugDir.MajorVersion != 0 || debugDir.MinorVersion != 0)
+					return null;
+				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
+					return null;
+
+				var pdbReader = new PdbReader(pdbGuid);
 				pdbReader.Read(pdbStream.CreateReader());
-				return pdbReader;
+				if (pdbReader.Guid == pdbGuid)
+					return pdbReader;
+				return null;
 			}
 			catch (PdbException) {
 			}

@@ -26,6 +26,20 @@ namespace dnlib.DotNet.Pdb.Portable {
 			pdbMetadata = MetadataCreator.CreateStandalonePortablePDB(pdbStream, true);
 		}
 
+		internal bool CheckVersion(Guid pdbGuid, uint timestamp) {
+			if (pdbMetadata.PdbStream is PdbStream pdbStream) {
+				var pdbGuidArray = pdbStream.Id;
+				Array.Resize(ref pdbGuidArray, 16);
+				if (new Guid(pdbGuidArray) != pdbGuid)
+					return false;
+				if (BitConverter.ToUInt32(pdbStream.Id, 16) != timestamp)
+					return false;
+
+				return true;
+			}
+			return false;
+		}
+
 		public override void Initialize(ModuleDef module) {
 			this.module = module;
 			documents = ReadDocuments();

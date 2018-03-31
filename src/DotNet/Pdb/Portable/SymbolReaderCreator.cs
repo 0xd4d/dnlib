@@ -7,35 +7,60 @@ using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 using dnlib.PE;
+using DDW = dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	static class SymbolReaderCreator {
-		public static SymbolReader TryCreate(DataReaderFactory pdbStream, bool isEmbeddedPortablePdb) {
+		public static SymbolReader TryCreate(PdbReaderContext pdbContext, DataReaderFactory pdbStream, bool isEmbeddedPortablePdb) {
+			bool disposePdbStream = true;
 			try {
-				if (pdbStream != null && pdbStream.Length >= 4 && pdbStream.CreateReader().ReadUInt32() == 0x424A5342)
-					return new PortablePdbReader(pdbStream, isEmbeddedPortablePdb ? PdbFileKind.EmbeddedPortablePDB : PdbFileKind.PortablePDB);
+				if (!pdbContext.HasDebugInfo)
+					return null;
+				if (pdbStream == null)
+					return null;
+				if (pdbStream.Length < 4)
+					return null;
+				if (pdbStream.CreateReader().ReadUInt32() != 0x424A5342)
+					return null;
+
+				var debugDir = pdbContext.CodeViewDebugDirectory;
+				if (debugDir == null)
+					return null;
+				if (debugDir.MinorVersion != DDW.PortablePdbConstants.PortableCodeViewVersionMagic)
+					return null;
+				Debug.Assert(debugDir.MajorVersion == DDW.PortablePdbConstants.FormatVersion, $"New Portable PDB version: 0x{debugDir.MajorVersion:X4}");
+				if (debugDir.MajorVersion != DDW.PortablePdbConstants.FormatVersion)
+					return null;
+				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
+					return null;
+
+				var reader = new PortablePdbReader(pdbStream, isEmbeddedPortablePdb ? PdbFileKind.EmbeddedPortablePDB : PdbFileKind.PortablePDB);
+				if (!reader.CheckVersion(pdbGuid, debugDir.TimeDateStamp))
+					return null;
+				disposePdbStream = false;
+				return reader;
 			}
 			catch (IOException) {
 			}
-			catch {
-				pdbStream?.Dispose();
-				throw;
+			finally {
+				if (disposePdbStream)
+					pdbStream?.Dispose();
 			}
-			pdbStream?.Dispose();
 			return null;
 		}
 
-		public static SymbolReader TryCreate(Metadata metadata) {
+		public static SymbolReader TryCreate(PdbReaderContext pdbContext, Metadata metadata) {
 			if (metadata == null)
 				return null;
 			try {
-				var peImage = metadata.PEImage;
-				if (peImage == null)
+				if (!pdbContext.HasDebugInfo)
 					return null;
-				var embeddedDir = TryGetEmbeddedDebugDirectory(peImage);
+				var embeddedDir = pdbContext.TryGetDebugDirectoryEntry(ImageDebugType.EmbeddedPortablePdb);
 				if (embeddedDir == null)
 					return null;
-				var reader = peImage.CreateReader(embeddedDir.PointerToRawData, embeddedDir.SizeOfData);
+				var reader = pdbContext.CreateReader(embeddedDir.PointerToRawData, embeddedDir.SizeOfData);
+				if (reader.Length < 8)
+					return null;
 				// "MPDB" = 0x4244504D
 				if (reader.ReadUInt32() != 0x4244504D)
 					return null;
@@ -58,21 +83,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (pos != decompressedBytes.Length)
 						return null;
 					var stream = ByteArrayDataReaderFactory.Create(decompressedBytes, filename: null);
-					return TryCreate(stream, true);
+					return TryCreate(pdbContext, stream, isEmbeddedPortablePdb: true);
 				}
 			}
 			catch (IOException) {
-			}
-			return null;
-		}
-
-		static ImageDebugDirectory TryGetEmbeddedDebugDirectory(IPEImage peImage) {
-			var dirs = peImage.ImageDebugDirectories;
-			int count = dirs.Count;
-			for (int i = 0; i < count; i++) {
-				var idd = dirs[i];
-				if (idd.Type == ImageDebugType.EmbeddedPortablePdb)
-					return idd;
 			}
 			return null;
 		}
