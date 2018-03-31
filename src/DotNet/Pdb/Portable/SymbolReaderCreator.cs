@@ -28,8 +28,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return null;
 				if (debugDir.MinorVersion != DDW.PortablePdbConstants.PortableCodeViewVersionMagic)
 					return null;
-				Debug.Assert(debugDir.MajorVersion == DDW.PortablePdbConstants.FormatVersion, $"New Portable PDB version: 0x{debugDir.MajorVersion:X4}");
-				if (debugDir.MajorVersion != DDW.PortablePdbConstants.FormatVersion)
+				bool validFormatVersion = debugDir.MajorVersion == DDW.PortablePdbConstants.FormatVersion;
+				Debug.Assert(validFormatVersion, $"New Portable PDB version: 0x{debugDir.MajorVersion:X4}");
+				if (!validFormatVersion)
 					return null;
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;

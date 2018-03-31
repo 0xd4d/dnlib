@@ -92,8 +92,10 @@ namespace dnlib.DotNet.Pdb {
 		/// to create a <see cref="SymbolReader"/>.</returns>
 		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, DataReaderFactory pdbStream) {
 			var pdbContext = new PdbReaderContext(metadata.PEImage);
-			if (!pdbContext.HasDebugInfo)
+			if (!pdbContext.HasDebugInfo) {
+				pdbStream?.Dispose();
 				return null;
+			}
 
 			switch (pdbImpl) {
 			case PdbImplType.MicrosoftCOM:
