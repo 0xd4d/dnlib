@@ -390,14 +390,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		DontCompareReturnType = 0x200,
 
-		/// <summary>
-		/// If set, all generic parameters are replaced with their generic arguments prior
-		/// to comparing types. You should enable this when comparing a method, field, property
-		/// or an event to a <see cref="MethodInfo"/>, <see cref="FieldInfo"/>,
-		/// <see cref="PropertyInfo"/> or an <see cref="EventInfo"/> if the owner type could
-		/// be a generic instance type.
-		/// </summary>
-		SubstituteGenericParameters = 0x400,
+		// Internal only
+		//SubstituteGenericParameters = 0x400,
 
 		/// <summary>
 		/// Type namespaces are case insensitive
@@ -497,6 +491,8 @@ namespace dnlib.DotNet {
 	/// Compares types, signatures, methods, fields, properties, events
 	/// </summary>
 	public struct SigComparer {
+		const SigComparerOptions SigComparerOptions_SubstituteGenericParameters = (SigComparerOptions)0x400;
+
 		const int HASHCODE_MAGIC_GLOBAL_TYPE = 1654396648;
 		const int HASHCODE_MAGIC_NESTED_TYPE = -1049070942;
 		const int HASHCODE_MAGIC_ET_MODULE = -299744851;
@@ -525,7 +521,7 @@ namespace dnlib.DotNet {
 		bool CompareAssemblyLocale => (options & SigComparerOptions.CompareAssemblyLocale) != 0;
 		bool TypeRefCanReferenceGlobalType => (options & SigComparerOptions.TypeRefCanReferenceGlobalType) != 0;
 		bool DontCompareReturnType => (options & SigComparerOptions.DontCompareReturnType) != 0;
-		bool SubstituteGenericParameters => (options & SigComparerOptions.SubstituteGenericParameters) != 0;
+		bool SubstituteGenericParameters => (options & SigComparerOptions_SubstituteGenericParameters) != 0;
 		bool CaseInsensitiveTypeNamespaces => (options & SigComparerOptions.CaseInsensitiveTypeNamespaces) != 0;
 		bool CaseInsensitiveTypeNames => (options & SigComparerOptions.CaseInsensitiveTypeNames) != 0;
 		bool CaseInsensitiveMethodFieldNames => (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0;
@@ -2754,7 +2750,7 @@ exit: ;
 				return 0;
 
 			// We must do this or it won't get the same hash code as some MethodInfos
-			var oldOptions = SetOptions(SigComparerOptions.SubstituteGenericParameters);
+			var oldOptions = SetOptions(SigComparerOptions_SubstituteGenericParameters);
 			var gim = a.GenericInstMethodSig;
 			if (gim != null) {
 				InitializeGenericArguments();
