@@ -24,7 +24,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="stream">The stream whose data will be copied to the new metadata file</param>
 		public DataReaderHeap(DotNetStream stream) {
 			OptionalOriginalStream = stream ?? throw new ArgumentNullException(nameof(stream));
-			heapReader = stream.GetReader();
+			heapReader = stream.CreateReader();
 			Name = stream.Name;
 		}
 

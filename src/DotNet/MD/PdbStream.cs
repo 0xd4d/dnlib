@@ -30,7 +30,7 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public PdbStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
 			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
-			var reader = GetReader();
+			var reader = CreateReader();
 			Id = reader.ReadBytes(20);
 			EntryPoint = new MDToken(reader.ReadUInt32());
 			var tables = reader.ReadUInt64();

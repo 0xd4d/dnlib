@@ -33,7 +33,7 @@ namespace dnlib.DotNet.Writer {
 			if (usStream == null || usStream.StreamLength == 0)
 				return;
 
-			var reader = usStream.GetReader();
+			var reader = usStream.CreateReader();
 			originalData = reader.ToArray();
 			nextOffset = (uint)originalData.Length;
 			Populate(ref reader);

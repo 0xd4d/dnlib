@@ -36,7 +36,6 @@ namespace dnlib.IO {
 		IntPtr data;
 		OSType osType;
 		long origDataLength;
-		bool unsafeUseAddress;
 
 		MemoryMappedDataReaderFactory(string filename) {
 			osType = OSType.Unknown;
@@ -270,11 +269,6 @@ namespace dnlib.IO {
 			}
 		}
 
-		internal IntPtr GetUnsafeUseAddress() {
-			unsafeUseAddress = true;
-			return data;
-		}
-
 		/// <summary>
 		/// <c>true</c> if memory mapped I/O is enabled
 		/// </summary>
@@ -287,8 +281,6 @@ namespace dnlib.IO {
 		internal void UnsafeDisableMemoryMappedIO() {
 			if (dataAry != null)
 				return;
-			if (unsafeUseAddress)
-				throw new InvalidOperationException("Can't convert to non-memory mapped I/O because the PDB reader uses the address. Use the managed PDB reader instead.");
 			var newAry = new byte[length];
 			Marshal.Copy(data, newAry, 0, newAry.Length);
 			FreeMemoryMappedIoData();

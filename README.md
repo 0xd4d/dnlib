@@ -60,6 +60,7 @@ v3.0 breaking changes
 - The native module writer now tries to fit the new metadata, method bodies, resources and other data in the old locations. This results in smaller files. It can be disabled by creating your own `NativeModuleWriterOptions`
 - `MetadataOptions`' `OtherHeaps` and `OtherHeapsEnd` have been removed. Use `CustomHeaps`, `MetadataHeapsAdded` and `PreserveHeapOrder()` instead.
 - `Instruction.GetLocal()` returns a local if the instruction is a `ldloca` or `ldloca.s` instruction (it used to return null)
+- `ModuleCreationOptions.PdbImplementation` has been removed and replaced with `PdbOptions`
 
 Examples
 --------
@@ -167,6 +168,17 @@ the name of the PDB file will be written to the PE file.
 ```
 
 dnlib supports Windows PDBs, portable PDBs and embedded portable PDBs.
+
+Windows PDBs
+------------
+
+It's only possible to write Windows PDBs on Windows (portable PDBs can be written on any OS). dnlib has a managed Windows PDB reader that supports all OSes.
+
+There are two *native* Windows PDB reader and writer implementations, the old `diasymreader.dll` that ships with .NET Framework and `Microsoft.DiaSymReader.Native` which has been updated with more features and bug fixes.
+
+dnlib will use `Microsoft.DiaSymReader.Native` if it exists and fall back to `diasymreader.dll` if needed. `PdbReaderOptions` and `PdbWriterOptions` can be used to disable one of them.
+
+`Microsoft.DiaSymReader.Native` is a NuGet package with 32-bit and 64-bit native DLLs. You have to add a reference to this NuGet package if you want dnlib to use it. dnlib doesn't add a reference to it.
 
 Strong name sign an assembly
 ----------------------------

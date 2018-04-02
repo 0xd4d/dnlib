@@ -6,9 +6,6 @@ using System.Runtime.InteropServices.ComTypes;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Dss {
-	/// <summary>
-	/// Implements <see cref="IStream"/> and uses an <see cref="DataReaderFactory"/> as the underlying stream.
-	/// </summary>
 	sealed class DataReaderIStream : IStream, IDisposable {
 		readonly DataReaderFactory dataReaderFactory;
 		DataReader reader;
@@ -17,17 +14,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 		const int STG_E_INVALIDFUNCTION = unchecked((int)0x80030001);
 		const int STG_E_CANTSAVE = unchecked((int)0x80030103);
 
-		/// <summary>
-		/// User can set this to anything he/she wants. If it implements <see cref="IDisposable"/>,
-		/// its <see cref="IDisposable.Dispose()"/> method will get called when this instance
-		/// is <see cref="IDisposable.Dispose()"/>'d.
-		/// </summary>
-		public object UserData { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="dataReaderFactory">Source stream</param>
 		public DataReaderIStream(DataReaderFactory dataReaderFactory)
 			: this(dataReaderFactory, dataReaderFactory.CreateReader(), string.Empty) {
 		}
@@ -38,14 +24,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 			this.name = name ?? string.Empty;
 		}
 
-		/// <inheritdoc/>
 		public void Clone(out IStream ppstm) => ppstm = new DataReaderIStream(dataReaderFactory, reader, name);
 
-		/// <inheritdoc/>
 		public void Commit(int grfCommitFlags) {
 		}
 
-		/// <inheritdoc/>
 		public void CopyTo(IStream pstm, long cb, IntPtr pcbRead, IntPtr pcbWritten) {
 			if (cb > int.MaxValue)
 				cb = int.MaxValue;
@@ -65,10 +48,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 				Marshal.WriteInt64(pcbWritten, Marshal.ReadInt32(pcbWritten));
 		}
 
-		/// <inheritdoc/>
 		public void LockRegion(long libOffset, long cb, int dwLockType) => Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
 
-		/// <inheritdoc/>
 		public void Read(byte[] pv, int cb, IntPtr pcbRead) {
 			if (cb < 0)
 				cb = 0;
@@ -80,7 +61,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 				Marshal.WriteInt32(pcbRead, cb);
 		}
 
-		/// <inheritdoc/>
 		public void Revert() {
 		}
 
@@ -90,7 +70,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 			END = 2,
 		}
 
-		/// <inheritdoc/>
 		public void Seek(long dlibMove, int dwOrigin, IntPtr plibNewPosition) {
 			switch ((STREAM_SEEK)dwOrigin) {
 			case STREAM_SEEK.SET:
@@ -110,7 +89,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 				Marshal.WriteInt64(plibNewPosition, reader.Position);
 		}
 
-		/// <inheritdoc/>
 		public void SetSize(long libNewSize) => Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
 
 		enum STATFLAG {
@@ -126,7 +104,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 			PROPERTY = 4,
 		}
 
-		/// <inheritdoc/>
 		public void Stat(out System.Runtime.InteropServices.ComTypes.STATSTG pstatstg, int grfStatFlag) {
 			var s = new System.Runtime.InteropServices.ComTypes.STATSTG();
 
@@ -146,16 +123,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 			pstatstg = s;
 		}
 
-		/// <inheritdoc/>
 		public void UnlockRegion(long libOffset, long cb, int dwLockType) => Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
-
-		/// <inheritdoc/>
 		public void Write(byte[] pv, int cb, IntPtr pcbWritten) => Marshal.ThrowExceptionForHR(STG_E_CANTSAVE);
-
-		/// <inheritdoc/>
-		public void Dispose() {
-			if (UserData is IDisposable id)
-				id.Dispose();
-		}
+		public void Dispose() { }
 	}
 }

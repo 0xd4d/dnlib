@@ -27,9 +27,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
-				var pdbReader = new PdbReader(pdbGuid);
+				var pdbReader = new PdbReader(pdbGuid, age);
 				pdbReader.Read(pdbStream.CreateReader());
-				if (pdbReader.Guid == pdbGuid)
+				if (pdbReader.Guid == pdbGuid && pdbReader.Age == age)
 					return pdbReader;
 				return null;
 			}

@@ -52,7 +52,7 @@ namespace dnlib.DotNet.Writer {
 			if (stringsStream == null || stringsStream.StreamLength == 0)
 				return;
 
-			var reader = stringsStream.GetReader();
+			var reader = stringsStream.CreateReader();
 			originalData = reader.ToArray();
 			nextOffset = (uint)originalData.Length;
 			Populate(ref reader);

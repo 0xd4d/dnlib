@@ -17,6 +17,7 @@
     <DebugType>portable</DebugType>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="DefaultDllImportSearchPathsAttribute.cs"/>
     <Compile Remove="HandleProcessCorruptedStateExceptionsAttribute.cs"/>
   </ItemGroup>
   <ItemGroup>

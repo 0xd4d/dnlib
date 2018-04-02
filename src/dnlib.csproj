@@ -47,6 +47,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DefaultDllImportSearchPathsAttribute.cs" />
     <Compile Include="DotNet\AllTypesHelper.cs" />
     <Compile Include="DotNet\AssemblyAttributes.cs" />
     <Compile Include="DotNet\AssemblyDef.cs" />
@@ -177,9 +178,11 @@
     <Compile Include="DotNet\Pdb\CustomDebugInfoGuids.cs" />
     <Compile Include="DotNet\Pdb\DataReaderFactoryUtils.cs" />
     <Compile Include="DotNet\Pdb\Dss\DataReaderIStream.cs" />
+    <Compile Include="DotNet\Pdb\Dss\MetaDataImport.cs" />
+    <Compile Include="DotNet\Pdb\Dss\ReaderMetaDataImport.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolReaderImpl.cs" />
+    <Compile Include="DotNet\Pdb\Dss\SymbolReaderWriterFactory.cs" />
     <Compile Include="DotNet\Pdb\IMAGE_DEBUG_DIRECTORY.cs" />
-    <Compile Include="DotNet\Pdb\ManagedSymbolReaderCreator.cs" />
     <Compile Include="DotNet\Pdb\Managed\NumericLeaf.cs" />
     <Compile Include="DotNet\Pdb\Managed\NumericReader.cs" />
     <Compile Include="DotNet\Pdb\Managed\PdbAddress.cs" />
@@ -192,6 +195,7 @@
     <Compile Include="DotNet\Pdb\PdbLocalAttributes.cs" />
     <Compile Include="DotNet\Pdb\PdbMethod.cs" />
     <Compile Include="DotNet\Pdb\PdbReaderContext.cs" />
+    <Compile Include="DotNet\Pdb\PdbReaderOptions.cs" />
     <Compile Include="DotNet\Pdb\PdbUtils.cs" />
     <Compile Include="DotNet\Pdb\Portable\DocumentNameReader.cs" />
     <Compile Include="DotNet\Pdb\Portable\ImportDefinitionKindUtils.cs" />
@@ -223,7 +227,6 @@
     <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoReader.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoWriter.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\PseudoCustomDebugInfoFactory.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\SymbolWriterCreator.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\WindowsPdbWriter.cs" />
     <Compile Include="DotNet\PInvokeAttributes.cs" />
     <Compile Include="DotNet\ParamAttributes.cs" />
@@ -231,17 +234,14 @@
     <Compile Include="DotNet\ParameterList.cs" />
     <Compile Include="DotNet\Pdb\Dss\ComInterfaces.cs" />
     <Compile Include="DotNet\Pdb\Dss\MDEmitter.cs" />
-    <Compile Include="DotNet\Pdb\Dss\PinnedMetadata.cs" />
     <Compile Include="DotNet\Pdb\Dss\StreamIStream.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolDocumentImpl.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolDocumentWriter.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolMethodImpl.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolNamespaceImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolReaderCreator.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolScopeImpl.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolVariableImpl.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolWriter.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolWriterCreator.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiDocument.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiFunction.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiModule.cs" />
@@ -255,7 +255,6 @@
     <Compile Include="DotNet\Pdb\Managed\SymbolReaderCreator.cs" />
     <Compile Include="DotNet\Pdb\Managed\SymbolType.cs" />
     <Compile Include="DotNet\Pdb\PdbDocument.cs" />
-    <Compile Include="DotNet\Pdb\PdbImplType.cs" />
     <Compile Include="DotNet\Pdb\PdbScope.cs" />
     <Compile Include="DotNet\Pdb\PdbState.cs" />
     <Compile Include="DotNet\Pdb\SequencePoint.cs" />
@@ -402,6 +401,7 @@
     <Compile Include="PE\PEExtensions.cs" />
     <Compile Include="PE\PEImage.cs" />
     <Compile Include="PE\PEInfo.cs" />
+    <Compile Include="PE\ProcessorArchUtils.cs" />
     <Compile Include="PE\RVA.cs" />
     <Compile Include="PE\Subsystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

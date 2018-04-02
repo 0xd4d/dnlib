@@ -15,10 +15,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public ModuleContext Context { get; set; }
 
+		internal const PdbReaderOptions DefaultPdbReaderOptions = PdbReaderOptions.None;
+
 		/// <summary>
-		/// Which PDB reader to use. Default is <see cref="PdbImplType.Default"/>.
+		/// PDB reader options
 		/// </summary>
-		public PdbImplType PdbImplementation { get; set; } = PdbImplType.Default;
+		public PdbReaderOptions PdbOptions { get; set; } = DefaultPdbReaderOptions;
 
 		/// <summary>
 		/// Set it to A) the path (string) of the PDB file, B) the data (byte[]) of the PDB file or

@@ -47,10 +47,10 @@ namespace dnlib.DotNet.MD {
 		public string Name => streamHeader == null ? string.Empty : streamHeader.Name;
 
 		/// <summary>
-		/// Gets data reader
+		/// Gets a data reader that can read the full stream
 		/// </summary>
 		/// <returns></returns>
-		public DataReader GetReader() => dataReader;
+		public DataReader CreateReader() => dataReader;
 
 		/// <summary>
 		/// Default constructor

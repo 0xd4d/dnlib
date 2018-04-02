@@ -42,8 +42,12 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public Guid Guid { get; private set; }
 
 		readonly Guid expectedGuid;
+		readonly uint expectedAge;
 
-		public PdbReader(Guid expectedGuid) => this.expectedGuid = expectedGuid;
+		public PdbReader(Guid expectedGuid, uint expectedAge) {
+			this.expectedGuid = expectedGuid;
+			this.expectedAge = expectedAge;
+		}
 
 		public override void Initialize(ModuleDef module) => this.module = module;
 
@@ -105,7 +109,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			ReadRootDirectory(new MsfStream(rootPages, rootSize), pages, pageSize);
 
 			ReadNames();
-			if (Guid != expectedGuid)
+			if (Guid != expectedGuid || Age != expectedAge)
 				return;
 			ReadStringTable();
 			var tokenMapStream = ReadModules();

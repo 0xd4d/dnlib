@@ -17,18 +17,14 @@ namespace dnlib.IO {
 		/// </summary>
 		public override uint Length => length;
 
-		internal IntPtr GetUnsafeUseAddress() => unsafeUseAddress;
-
 		DataStream stream;
 		string filename;
 		uint length;
-		IntPtr unsafeUseAddress;
 
 		NativeMemoryDataReaderFactory(byte* data, uint length, string filename) {
 			this.filename = filename;
 			this.length = length;
 			stream = DataStreamFactory.Create(data);
-			unsafeUseAddress = (IntPtr)data;
 		}
 
 		internal void SetLength(uint length) => this.length = length;
@@ -61,7 +57,6 @@ namespace dnlib.IO {
 			stream = EmptyDataStream.Instance;
 			length = 0;
 			filename = null;
-			unsafeUseAddress = IntPtr.Zero;
 		}
 	}
 }

@@ -11,15 +11,16 @@ namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolReaderImpl : SymbolReader {
 		ModuleDef module;
 		readonly ISymUnmanagedReader reader;
+		readonly object[] objsToKeepAlive;
 
 		const int E_FAIL = unchecked((int)0x80004005);
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="reader">An unmanaged symbol reader</param>
-		public SymbolReaderImpl(ISymUnmanagedReader reader) =>
+		public SymbolReaderImpl(ISymUnmanagedReader reader, object[] objsToKeepAlive) {
 			this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
+			this.objsToKeepAlive = objsToKeepAlive ?? throw new ArgumentNullException(nameof(objsToKeepAlive));
+		}
+
+		~SymbolReaderImpl() => Dispose(false);
 
 		public override PdbFileKind PdbFileKind => PdbFileKind.WindowsPDB;
 
@@ -75,6 +76,30 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		public override void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
+		}
+
+		public override void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		void Dispose(bool disposing) {
+			(reader as ISymUnmanagedDispose)?.Destroy();
+			foreach (var obj in objsToKeepAlive)
+				(obj as IDisposable)?.Dispose();
+		}
+
+		public bool CheckVersion(Guid pdbId, uint stamp, uint age) {
+			if (reader is ISymUnmanagedReader4 reader4) {
+				// Only id and age are verified
+				int hr = reader4.MatchesModule(pdbId, stamp, age, out bool result);
+				if (hr < 0)
+					return false;
+				return result;
+			}
+
+			// There seems to be no other method that can verify that we opened the correct PDB, so return true
+			return true;
 		}
 	}
 }

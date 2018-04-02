@@ -1,6 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Reflection;
@@ -14,32 +15,22 @@ namespace dnlib.DotNet.Pdb.Dss {
 		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;
 		readonly string pdbFileName;
 		readonly Stream pdbStream;
+		readonly bool ownsStream;
+		readonly bool isDeterministic;
 		bool closeCalled;
 
+		public bool IsDeterministic => isDeterministic;
 		public bool SupportsAsyncMethods => asyncMethodWriter != null;
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="writer">Writer</param>
-		/// <param name="pdbFileName">PDB file name</param>
-		public SymbolWriter(ISymUnmanagedWriter2 writer, string pdbFileName) {
-			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
-			asyncMethodWriter = writer as ISymUnmanagedAsyncMethodPropertiesWriter;
-			this.pdbFileName = pdbFileName ?? throw new ArgumentNullException(nameof(pdbFileName));
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="writer">Writer</param>
-		/// <param name="pdbFileName">PDB file name</param>
-		/// <param name="pdbStream">PDB output stream</param>
-		public SymbolWriter(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream) {
+		public SymbolWriter(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
 			asyncMethodWriter = writer as ISymUnmanagedAsyncMethodPropertiesWriter;
 			this.pdbStream = pdbStream ?? throw new ArgumentNullException(nameof(pdbStream));
 			this.pdbFileName = pdbFileName;
+			this.ownsStream = ownsStream;
+			// If it's deterministic, we should call UpdateSignatureByHashingContent() or UpdateSignature(),
+			// but that requires v7 or v8. InitializeDeterministic() is v6.
+			isDeterministic = (options & PdbWriterOptions.Deterministic) != 0 && writer is ISymUnmanagedWriter7;
 		}
 
 		public void Abort() => writer.Abort();
@@ -146,25 +137,60 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public void SetUserEntryPoint(SymbolToken entryMethod) => writer.SetUserEntryPoint((uint)entryMethod.GetToken());
 		public void UsingNamespace(string fullName) => writer.UsingNamespace(fullName);
 
-		public byte[] GetDebugInfo(out IMAGE_DEBUG_DIRECTORY pIDD) {
+		public unsafe bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[] codeViewData) {
+			pIDD = default;
+			codeViewData = null;
+
+			if (isDeterministic) {
+				((ISymUnmanagedWriter3)writer).Commit();
+				pdbStream.Position = 0;
+				var checksumBytes = Hasher.Hash(pdbChecksumAlgorithm, pdbStream, pdbStream.Length);
+				if (writer is ISymUnmanagedWriter8 writer8) {
+					RoslynContentIdProvider.GetContentId(checksumBytes, out guid, out stamp);
+					writer8.UpdateSignature(guid, stamp, pdbAge);
+					return true;
+				}
+				else {
+					var writer7 = (ISymUnmanagedWriter7)writer;
+					fixed (byte* p = checksumBytes)
+						writer7.UpdateSignatureByHashingContent(new IntPtr(p), (uint)checksumBytes.Length);
+				}
+			}
+
 			writer.GetDebugInfo(out pIDD, 0, out uint size, null);
-			var buffer = new byte[size];
-			writer.GetDebugInfo(out pIDD, size, out size, buffer);
-			return buffer;
+			codeViewData = new byte[size];
+			writer.GetDebugInfo(out pIDD, size, out size, codeViewData);
+
+			if (writer is IPdbWriter comPdbWriter) {
+				var guidBytes = new byte[16];
+				Array.Copy(codeViewData, 4, guidBytes, 0, 16);
+				guid = new Guid(guidBytes);
+				comPdbWriter.GetSignatureAge(out stamp, out uint age);
+				Debug.Assert(age == pdbAge);
+				pdbAge = age;
+				return true;
+			}
+
+			Debug.Fail($"COM PDB writer doesn't impl {nameof(IPdbWriter)}");
+			guid = default;
+			stamp = 0;
+			return false;
 		}
 
 		public void DefineLocalVariable2(string name, uint attributes, uint sigToken, uint addrKind, uint addr1, uint addr2, uint addr3, uint startOffset, uint endOffset) =>
 			writer.DefineLocalVariable2(name, attributes, sigToken, addrKind, addr1, addr2, addr3, startOffset, endOffset);
 
 		public void Initialize(Metadata metadata) {
-			if (pdbStream != null)
-				writer.Initialize(new MDEmitter(metadata), pdbFileName, new StreamIStream(pdbStream), true);
-			else if (!string.IsNullOrEmpty(pdbFileName))
-				writer.Initialize(new MDEmitter(metadata), pdbFileName, null, true);
+			if (isDeterministic)
+				((ISymUnmanagedWriter6)writer).InitializeDeterministic(new MDEmitter(metadata), new StreamIStream(pdbStream));
 			else
-				throw new InvalidOperationException();
+				writer.Initialize(new MDEmitter(metadata), pdbFileName, new StreamIStream(pdbStream), true);
 		}
 
-		public void Dispose() => Marshal.FinalReleaseComObject(writer);
+		public void Dispose() {
+			Marshal.FinalReleaseComObject(writer);
+			if (ownsStream)
+				pdbStream.Dispose();
+		}
 	}
 }

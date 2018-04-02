@@ -35,7 +35,7 @@ namespace dnlib.DotNet.Writer {
 			if (blobStream == null || blobStream.StreamLength == 0)
 				return;
 
-			var reader = blobStream.GetReader();
+			var reader = blobStream.CreateReader();
 			originalData = reader.ToArray();
 			nextOffset = (uint)originalData.Length;
 			Populate(ref reader);

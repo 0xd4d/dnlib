@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return null;
 		}
 
-		public static SymbolReader TryCreate(PdbReaderContext pdbContext, Metadata metadata) {
+		public static SymbolReader TryCreateEmbeddedPortablePdbReader(PdbReaderContext pdbContext, Metadata metadata) {
 			if (metadata == null)
 				return null;
 			try {

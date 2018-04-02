@@ -429,14 +429,10 @@ do_return:
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
 			Debug.Assert(token.Table != Table.Method, "Methods get initialized when reading the method bodies");
-			if (reader != null)
-				reader.GetCustomDebugInfos(token.ToInt32(), gpContext, result);
+			reader?.GetCustomDebugInfos(token.ToInt32(), gpContext, result);
 		}
 
-		internal void Dispose() {
-			if (reader != null)
-				reader.Dispose();
-		}
+		internal void Dispose() => reader?.Dispose();
 	}
 
 	enum Compiler {

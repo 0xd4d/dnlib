@@ -1,129 +1,113 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
-using System;
+using System.IO;
+using System.Text;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
-	/// <summary>
-	/// Creates a <see cref="SymbolReader"/> instance
-	/// </summary>
 	static class SymbolReaderCreator {
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metadata">.NET metadata</param>
-		/// <param name="assemblyFileName">Path to assembly</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
-		/// file on disk or if it's not possible to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader CreateFromAssemblyFile(PdbImplType pdbImpl, Metadata metadata, string assemblyFileName) {
-			var pdbContext = new PdbReaderContext(metadata.PEImage);
+		public static SymbolReader CreateFromAssemblyFile(PdbReaderOptions options, Metadata metadata, string assemblyFileName) =>
+			Create(options, metadata, Path.ChangeExtension(assemblyFileName, "pdb"));
+
+		public static SymbolReader Create(PdbReaderOptions options, Metadata metadata, string pdbFileName) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			if (!pdbContext.HasDebugInfo)
 				return null;
-
-			switch (pdbImpl) {
-			case PdbImplType.MicrosoftCOM:
-				return Dss.SymbolReaderCreator.CreateFromAssemblyFile(assemblyFileName);
-
-			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.CreateFromAssemblyFile(pdbContext, metadata, assemblyFileName);
-
-			default: throw new InvalidOperationException();
-			}
+			return CreateCore(pdbContext, metadata, DataReaderFactoryUtils.TryCreateDataReaderFactory(pdbFileName));
 		}
 
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metadata">.NET metadata</param>
-		/// <param name="pdbFileName">Path to PDB file</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if there's no PDB
-		/// file on disk or if it's not possible to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, string pdbFileName) {
-			var pdbContext = new PdbReaderContext(metadata.PEImage);
+		public static SymbolReader Create(PdbReaderOptions options, Metadata metadata, byte[] pdbData) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			if (!pdbContext.HasDebugInfo)
 				return null;
-
-			switch (pdbImpl) {
-			case PdbImplType.MicrosoftCOM:
-				return Dss.SymbolReaderCreator.Create(metadata, pdbFileName);
-
-			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(pdbContext, metadata, pdbFileName);
-
-			default: throw new InvalidOperationException();
-			}
+			return CreateCore(pdbContext, metadata, ByteArrayDataReaderFactory.Create(pdbData, filename: null));
 		}
 
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metadata">.NET metadata</param>
-		/// <param name="pdbData">PDB file data</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if it's not possible
-		/// to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, byte[] pdbData) {
-			var pdbContext = new PdbReaderContext(metadata.PEImage);
+		public static SymbolReader Create(PdbReaderOptions options, Metadata metadata, DataReaderFactory pdbStream) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
+			return CreateCore(pdbContext, metadata, pdbStream);
+		}
+
+		static SymbolReader CreateCore(PdbReaderContext pdbContext, Metadata metadata, DataReaderFactory pdbStream) {
+			SymbolReader symReader = null;
+			bool error = true;
+			try {
+				if (!pdbContext.HasDebugInfo)
+					return null;
+
+				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && pdbStream != null && IsWindowsPdb(pdbStream.CreateReader()))
+					symReader = Dss.SymbolReaderWriterFactory.Create(pdbContext, metadata, pdbStream);
+				else
+					symReader = CreateManaged(pdbContext, metadata, pdbStream);
+
+				if (symReader != null) {
+					error = false;
+					return symReader;
+				}
+			}
+			catch (IOException) {
+			}
+			finally {
+				if (error) {
+					pdbStream?.Dispose();
+					symReader?.Dispose();
+				}
+			}
+			return null;
+		}
+
+		static bool IsWindowsPdb(DataReader reader) {
+			const string SIG = "Microsoft C/C++ MSF 7.00\r\n\u001ADS\0";
+			if (!reader.CanRead(SIG.Length))
+				return false;
+			return reader.ReadString(SIG.Length, Encoding.ASCII) == SIG;
+		}
+
+		public static SymbolReader TryCreateEmbeddedPdbReader(PdbReaderOptions options, Metadata metadata) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			if (!pdbContext.HasDebugInfo)
 				return null;
-
-			switch (pdbImpl) {
-			case PdbImplType.MicrosoftCOM:
-				return Dss.SymbolReaderCreator.Create(metadata, pdbData);
-
-			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(pdbContext, metadata, pdbData);
-
-			default: throw new InvalidOperationException();
-			}
+			return TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
 		}
 
-		/// <summary>
-		/// Creates a new <see cref="SymbolReader"/> instance
-		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
-		/// <param name="metadata">.NET metadata</param>
-		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
-		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c> if it's not possible
-		/// to create a <see cref="SymbolReader"/>.</returns>
-		public static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata, DataReaderFactory pdbStream) {
-			var pdbContext = new PdbReaderContext(metadata.PEImage);
-			if (!pdbContext.HasDebugInfo) {
+		static SymbolReader CreateManaged(PdbReaderContext pdbContext, Metadata metadata, DataReaderFactory pdbStream) {
+			try {
+				// Embedded PDBs have priority
+				var embeddedReader = TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
+				if (embeddedReader != null) {
+					pdbStream?.Dispose();
+					return embeddedReader;
+				}
+
+				return CreateManagedCore(pdbContext, pdbStream);
+			}
+			catch {
 				pdbStream?.Dispose();
-				return null;
-			}
-
-			switch (pdbImpl) {
-			case PdbImplType.MicrosoftCOM:
-				return Dss.SymbolReaderCreator.Create(metadata, pdbStream);
-
-			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(pdbContext, metadata, pdbStream);
-
-			default:
-				pdbStream?.Dispose();
-				throw new InvalidOperationException();
+				throw;
 			}
 		}
 
-		internal static SymbolReader Create(PdbImplType pdbImpl, Metadata metadata) {
-			var pdbContext = new PdbReaderContext(metadata.PEImage);
-			if (!pdbContext.HasDebugInfo)
+		static SymbolReader CreateManagedCore(PdbReaderContext pdbContext, DataReaderFactory pdbStream) {
+			if (pdbStream == null)
 				return null;
-
-			switch (pdbImpl) {
-			case PdbImplType.MicrosoftCOM:
-				return null;
-
-			case PdbImplType.Managed:
-				return ManagedSymbolReaderCreator.Create(pdbContext, metadata);
-
-			default: throw new InvalidOperationException();
+			try {
+				var reader = pdbStream.CreateReader();
+				if (reader.Length >= 4) {
+					uint sig = reader.ReadUInt32();
+					if (sig == 0x424A5342)
+						return Portable.SymbolReaderCreator.TryCreate(pdbContext, pdbStream, isEmbeddedPortablePdb: false);
+					return Managed.SymbolReaderCreator.Create(pdbContext, pdbStream);
+				}
 			}
+			catch (IOException) {
+			}
+			pdbStream?.Dispose();
+			return null;
 		}
+
+		static SymbolReader TryCreateEmbeddedPortablePdbReader(PdbReaderContext pdbContext, Metadata metadata) =>
+			Portable.SymbolReaderCreator.TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
 	}
 }

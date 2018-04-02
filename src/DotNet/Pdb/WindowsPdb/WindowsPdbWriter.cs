@@ -8,10 +8,6 @@ using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.WindowsPdb {
-	/// <summary>
-	/// PDB writer
-	/// </summary>
-	/// <remarks>This class is not thread safe because it's a writer class</remarks>
 	sealed class WindowsPdbWriter : IDisposable {
 		ISymbolWriter2 writer;
 		readonly PdbState pdbState;
@@ -23,17 +19,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		readonly PdbCustomDebugInfoWriterContext customDebugInfoWriterContext;
 		readonly int localsEndScopeIncValue;
 
-		/// <summary>
-		/// Gets/sets the logger
-		/// </summary>
 		public ILogger Logger { get; set; }
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="writer">Symbol writer</param>
-		/// <param name="pdbState">PDB state</param>
-		/// <param name="metadata">Meta data</param>
 		public WindowsPdbWriter(ISymbolWriter2 writer, PdbState pdbState, Metadata metadata)
 			: this(pdbState, metadata) {
 			if (pdbState == null)
@@ -53,11 +40,6 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
 		}
 
-		/// <summary>
-		/// Adds <paramref name="pdbDoc"/> if it doesn't exist
-		/// </summary>
-		/// <param name="pdbDoc">PDB document</param>
-		/// <returns>A <see cref="ISymbolDocumentWriter"/> instance</returns>
 		ISymbolDocumentWriter Add(PdbDocument pdbDoc) {
 			if (pdbDocs.TryGetValue(pdbDoc, out var docWriter))
 				return docWriter;
@@ -67,9 +49,6 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return docWriter;
 		}
 
-		/// <summary>
-		/// Writes the PDB file
-		/// </summary>
 		public void Write() {
 			writer.SetUserEntryPoint(new SymbolToken(GetUserEntryPointToken()));
 
@@ -427,21 +406,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return new MDToken(MD.Table.Method, rid).ToInt32();
 		}
 
-		/// <summary>
-		/// Gets the <see cref="IMAGE_DEBUG_DIRECTORY"/> and debug data that should be written to
-		/// the PE file.
-		/// </summary>
-		/// <param name="idd">Updated with new values</param>
-		/// <returns>Debug data</returns>
-		public byte[] GetDebugInfo(out IMAGE_DEBUG_DIRECTORY idd) => writer.GetDebugInfo(out idd);
+		public bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY idd, out byte[] codeViewData) =>
+			writer.GetDebugInfo(pdbChecksumAlgorithm, ref pdbAge, out guid, out stamp, out idd, out codeViewData);
 
-		/// <summary>
-		/// Closes the PDB writer
-		/// </summary>
 		public void Close() => writer.Close();
-
 		ILogger GetLogger() => Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
-
 		void Error(string message, params object[] args) => GetLogger().Log(this, LoggerEvent.Error, message, args);
 
 		/// <inheritdoc/>

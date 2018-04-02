@@ -392,23 +392,23 @@ namespace dnlib.DotNet {
 			if (options.PdbFileOrData != null) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
-					var symReader = SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbFileName);
+					var symReader = SymbolReaderCreator.Create(options.PdbOptions, metadata, pdbFileName);
 					if (symReader != null)
 						return symReader;
 				}
 
 				if (options.PdbFileOrData is byte[] pdbData)
-					return SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbData);
+					return SymbolReaderCreator.Create(options.PdbOptions, metadata, pdbData);
 
 				if (options.PdbFileOrData is DataReaderFactory pdbStream)
-					return SymbolReaderCreator.Create(options.PdbImplementation, metadata, pdbStream);
+					return SymbolReaderCreator.Create(options.PdbOptions, metadata, pdbStream);
 			}
 
 			if (options.TryToLoadPdbFromDisk) {
 				if (!string.IsNullOrEmpty(location))
-					return SymbolReaderCreator.CreateFromAssemblyFile(options.PdbImplementation, metadata, location);
+					return SymbolReaderCreator.CreateFromAssemblyFile(options.PdbOptions, metadata, location);
 				else
-					return SymbolReaderCreator.Create(options.PdbImplementation, metadata);
+					return SymbolReaderCreator.TryCreateEmbeddedPdbReader(options.PdbOptions, metadata);
 			}
 
 			return null;
@@ -433,55 +433,62 @@ namespace dnlib.DotNet {
 		/// Loads symbols from a PDB file
 		/// </summary>
 		/// <param name="pdbFileName">PDB file name</param>
-		public void LoadPdb(string pdbFileName) => LoadPdb(PdbImplType.Default, pdbFileName);
+		public void LoadPdb(string pdbFileName) =>
+			LoadPdb(ModuleCreationOptions.DefaultPdbReaderOptions, pdbFileName);
 
 		/// <summary>
 		/// Loads symbols from a PDB file
 		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
+		/// <param name="options">PDB reader options</param>
 		/// <param name="pdbFileName">PDB file name</param>
-		public void LoadPdb(PdbImplType pdbImpl, string pdbFileName) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbFileName));
+		public void LoadPdb(PdbReaderOptions options, string pdbFileName) =>
+			LoadPdb(SymbolReaderCreator.Create(options, metadata, pdbFileName));
 
 		/// <summary>
 		/// Loads symbols from a byte array
 		/// </summary>
 		/// <param name="pdbData">PDB data</param>
-		public void LoadPdb(byte[] pdbData) => LoadPdb(PdbImplType.Default, pdbData);
+		public void LoadPdb(byte[] pdbData) =>
+			LoadPdb(ModuleCreationOptions.DefaultPdbReaderOptions, pdbData);
 
 		/// <summary>
 		/// Loads symbols from a byte array
 		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
+		/// <param name="options">PDB reader options</param>
 		/// <param name="pdbData">PDB data</param>
-		public void LoadPdb(PdbImplType pdbImpl, byte[] pdbData) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbData));
+		public void LoadPdb(PdbReaderOptions options, byte[] pdbData) =>
+			LoadPdb(SymbolReaderCreator.Create(options, metadata, pdbData));
 
 		/// <summary>
 		/// Loads symbols from a stream
 		/// </summary>
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
-		public void LoadPdb(DataReaderFactory pdbStream) => LoadPdb(PdbImplType.Default, pdbStream);
+		public void LoadPdb(DataReaderFactory pdbStream) =>
+			LoadPdb(ModuleCreationOptions.DefaultPdbReaderOptions, pdbStream);
 
 		/// <summary>
 		/// Loads symbols from a stream
 		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
+		/// <param name="options">PDB reader options</param>
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
-		public void LoadPdb(PdbImplType pdbImpl, DataReaderFactory pdbStream) => LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, pdbStream));
+		public void LoadPdb(PdbReaderOptions options, DataReaderFactory pdbStream) =>
+			LoadPdb(SymbolReaderCreator.Create(options, metadata, pdbStream));
 
 		/// <summary>
 		/// Loads symbols if a PDB file is available
 		/// </summary>
-		public void LoadPdb() => LoadPdb(PdbImplType.Default);
+		public void LoadPdb() =>
+			LoadPdb(ModuleCreationOptions.DefaultPdbReaderOptions);
 
 		/// <summary>
 		/// Loads symbols if a PDB file is available
 		/// </summary>
-		/// <param name="pdbImpl">PDB implementation to use</param>
-		public void LoadPdb(PdbImplType pdbImpl) {
+		/// <param name="options">PDB reader options</param>
+		public void LoadPdb(PdbReaderOptions options) {
 			var loc = location;
 			if (string.IsNullOrEmpty(loc))
 				return;
-			LoadPdb(SymbolReaderCreator.Create(pdbImpl, metadata, loc));
+			LoadPdb(SymbolReaderCreator.Create(options, metadata, loc));
 		}
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {

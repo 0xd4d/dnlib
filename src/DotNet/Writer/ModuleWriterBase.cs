@@ -100,6 +100,47 @@ namespace dnlib.DotNet.Writer {
 	public delegate void EventHandler2<TEventArgs>(object sender, TEventArgs e);
 
 	/// <summary>
+	/// PDB writer options
+	/// </summary>
+	[Flags]
+	public enum PdbWriterOptions {
+		/// <summary>
+		/// No bit is set
+		/// </summary>
+		None						= 0,
+
+		/// <summary>
+		/// Don't use Microsoft.DiaSymReader.Native. This is a NuGet package with an updated Windows PDB reader/writer implementation,
+		/// and if it's available at runtime, dnlib will try to use it. If this option is set, dnlib won't use it.
+		/// You have to add a reference to the NuGet package if you want to use it, dnlib has no reference to the NuGet package.
+		/// 
+		/// Only used if it's a Windows PDB file
+		/// </summary>
+		NoDiaSymReader			= 0x00000001,
+
+		/// <summary>
+		/// Don't use diasymreader.dll's PDB writer that is shipped with .NET Framework.
+		/// 
+		/// Only used if it's a Windows PDB file
+		/// </summary>
+		NoOldDiaSymReader		= 0x00000002,
+
+		/// <summary>
+		/// Create a deterministic PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory entry to the PE file.
+		/// 
+		/// It's ignored if the PDB writer doesn't support it.
+		/// </summary>
+		Deterministic			= 0x00000004,
+
+		/// <summary>
+		/// Hash the PDB file and add a PDB checksum debug directory entry to the PE file.
+		/// 
+		/// It's ignored if the PDB writer doesn't support it.
+		/// </summary>
+		PdbChecksum				= 0x00000008,
+	}
+
+	/// <summary>
 	/// Common module writer options base class
 	/// </summary>
 	public class ModuleWriterOptionsBase {
@@ -268,6 +309,11 @@ namespace dnlib.DotNet.Writer {
 		public bool WritePdb { get; set; }
 
 		/// <summary>
+		/// PDB writer options. This property is ignored if <see cref="WritePdb"/> is false.
+		/// </summary>
+		public PdbWriterOptions PdbOptions { get; set; }
+
+		/// <summary>
 		/// PDB file name. If it's <c>null</c> a PDB file with the same name as the output assembly
 		/// will be created but with a PDB extension. <see cref="WritePdb"/> must be <c>true</c> or
 		/// this property is ignored.
@@ -284,20 +330,9 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the PDB content id. The <see cref="Stream"/> argument is the PDB stream with the PDB ID zeroed out,
 		/// and the 2nd <see cref="uint"/> argument is the default timestamp.
-		/// This property is ignored if <see cref="ReproduciblePdb"/> is true.
+		/// This property is ignored if a deterministic PDB file is created or if the PDB checksum is calculated.
 		/// </summary>
 		public Func<Stream, uint, ContentId> GetPdbContentId { get; set; }
-
-		/// <summary>
-		/// Create a reproducible PDB, if the PDB writer supports it.
-		/// If true, <see cref="GetPdbContentId"/> is ignored and a <see cref="ImageDebugType.Reproducible"/> debug directory entry is added to the EXE/DLL file.
-		/// </summary>
-		public bool ReproduciblePdb { get; set; }
-
-		/// <summary>
-		/// true to add a PDB checksum debug directory entry to the PE file
-		/// </summary>
-		public bool AddPdbChecksumDebugDirectoryEntry { get; set; }
 
 		const ChecksumAlgorithm DefaultPdbChecksumAlgorithm = ChecksumAlgorithm.SHA256;
 
@@ -379,8 +414,10 @@ namespace dnlib.DotNet.Writer {
 				PEHeadersOptions.Win32VersionValue = ntHeaders.OptionalHeader.Win32VersionValue;
 				AddCheckSum = ntHeaders.OptionalHeader.CheckSum != 0;
 				AddMvidSection = HasMvidSection(modDefMD.Metadata.PEImage.ImageSectionHeaders);
-				ReproduciblePdb = HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.Reproducible);
-				AddPdbChecksumDebugDirectoryEntry = HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.PdbChecksum);
+				if (HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.Reproducible))
+					PdbOptions |= PdbWriterOptions.Deterministic;
+				if (HasDebugDirectoryEntry(modDefMD.Metadata.PEImage.ImageDebugDirectories, ImageDebugType.PdbChecksum))
+					PdbOptions |= PdbWriterOptions.PdbChecksum;
 				if (TryGetPdbChecksumAlgorithm(modDefMD.Metadata.PEImage, modDefMD.Metadata.PEImage.ImageDebugDirectories, out var pdbChecksumAlgorithm))
 					PdbChecksumAlgorithm = pdbChecksumAlgorithm;
 			}
@@ -851,12 +888,11 @@ namespace dnlib.DotNet.Writer {
 			debugDirectory.Add(blob, ImageDebugType.PdbChecksum, majorVersion: 1, minorVersion: 0, timeDateStamp: 0);
 		}
 
+		const uint PdbAge = 1;
 		void WriteWindowsPdb(PdbState pdbState) {
-			bool reproduciblePdb = TheOptions.ReproduciblePdb;
-			reproduciblePdb = false;//TODO: If this is true, create a reproducible PDB writer
-			bool addPdbChecksumDebugDirectoryEntry = TheOptions.AddPdbChecksumDebugDirectoryEntry;
+			bool addPdbChecksumDebugDirectoryEntry = (TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0;
 			addPdbChecksumDebugDirectoryEntry = false;//TODO: If this is true, get the checksum from the PDB writer
-			var symWriter = GetWindowsPdbSymbolWriter();
+			var symWriter = GetWindowsPdbSymbolWriter(TheOptions.PdbOptions, out var pdbFilename);
 			if (symWriter == null) {
 				Error("Could not create a PDB symbol writer. A Windows OS might be required.");
 				return;
@@ -866,13 +902,28 @@ namespace dnlib.DotNet.Writer {
 				pdbWriter.Logger = TheOptions.Logger;
 				pdbWriter.Write();
 
-				var data = pdbWriter.GetDebugInfo(out var idd);
-				var entry = debugDirectory.Add(data);
-				entry.DebugDirectory = idd;
-				entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
+				var pdbAge = PdbAge;
+				bool hasContentId = pdbWriter.GetDebugInfo(TheOptions.PdbChecksumAlgorithm, ref pdbAge, out var pdbGuid, out uint stamp, out var idd, out var codeViewData);
+				if (hasContentId) {
+					debugDirectory.Add(GetCodeViewData(pdbGuid, pdbAge, pdbFilename),
+						type: ImageDebugType.CodeView,
+						majorVersion: 0,
+						minorVersion: 0,
+						timeDateStamp: stamp);
+				}
+				else {
+					Debug.Fail("Failed to get the PDB content ID");
+					if (codeViewData == null)
+						throw new InvalidOperationException();
+					var entry = debugDirectory.Add(codeViewData);
+					entry.DebugDirectory = idd;
+					entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
+				}
+
+				//TODO: Only do this if symWriter supports PDB checksums
 				if (addPdbChecksumDebugDirectoryEntry)
 					{}//TODO: AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);, and verify that the order of the debug dir entries is the same as Roslyn created binaries
-				if (reproduciblePdb)
+				if (symWriter.IsDeterministic)
 					AddReproduciblePdbDebugDirectoryEntry();
 			}
 		}
@@ -889,23 +940,23 @@ namespace dnlib.DotNet.Writer {
 			return (uint)TheOptions.PEHeadersOptions.TimeDateStamp;
 		}
 
-		ISymbolWriter2 GetWindowsPdbSymbolWriter() {
+		ISymbolWriter2 GetWindowsPdbSymbolWriter(PdbWriterOptions options, out string pdbFilename) {
 			if (TheOptions.PdbStream != null) {
-				return SymbolWriterCreator.Create(TheOptions.PdbStream,
-							TheOptions.PdbFileName ??
+				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, TheOptions.PdbStream,
+							pdbFilename = TheOptions.PdbFileName ??
 							GetStreamName(TheOptions.PdbStream) ??
 							GetDefaultPdbFileName());
 			}
 
 			if (!string.IsNullOrEmpty(TheOptions.PdbFileName)) {
-				createdPdbFileName = TheOptions.PdbFileName;
-				return SymbolWriterCreator.Create(createdPdbFileName);
+				createdPdbFileName = pdbFilename = TheOptions.PdbFileName;
+				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, createdPdbFileName);
 			}
 
-			createdPdbFileName = GetDefaultPdbFileName();
+			createdPdbFileName = pdbFilename = GetDefaultPdbFileName();
 			if (createdPdbFileName == null)
 				return null;
-			return SymbolWriterCreator.Create(createdPdbFileName);
+			return Pdb.Dss.SymbolReaderWriterFactory.Create(options, createdPdbFileName);
 		}
 
 		static string GetStreamName(Stream stream) => (stream as FileStream)?.Name;
@@ -960,7 +1011,9 @@ namespace dnlib.DotNet.Writer {
 				var pdbIdWriter = new ArrayWriter(pdbId);
 				uint codeViewTimestamp;
 				byte[] checksumBytes;
-				if (TheOptions.ReproduciblePdb || TheOptions.AddPdbChecksumDebugDirectoryEntry || TheOptions.GetPdbContentId == null) {
+				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 ||
+					(TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0 ||
+					TheOptions.GetPdbContentId == null) {
 					pdbStream.Position = 0;
 					checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbStream.Length);
 					if (checksumBytes.Length < 20)
@@ -985,8 +1038,7 @@ namespace dnlib.DotNet.Writer {
 				//	- Reproducible
 				//	- EmbeddedPortablePdb
 
-				const uint age = 1;
-				debugDirectory.Add(GetCodeViewData(pdbGuid, age, pdbFilename),
+				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, pdbFilename),
 					type: ImageDebugType.CodeView,
 					majorVersion: PortablePdbConstants.FormatVersion,
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,
@@ -995,7 +1047,7 @@ namespace dnlib.DotNet.Writer {
 				if (checksumBytes != null)
 					AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);
 
-				if (TheOptions.ReproduciblePdb)
+				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0)
 					AddReproduciblePdbDebugDirectoryEntry();
 
 				if (isEmbeddedPortablePdb) {

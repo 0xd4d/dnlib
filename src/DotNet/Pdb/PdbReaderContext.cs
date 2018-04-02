@@ -11,9 +11,11 @@ namespace dnlib.DotNet.Pdb {
 
 		public bool HasDebugInfo => codeViewDebugDir != null;
 		public ImageDebugDirectory CodeViewDebugDirectory => codeViewDebugDir;
+		public PdbReaderOptions Options { get; }
 
-		public PdbReaderContext(IPEImage peImage) {
+		public PdbReaderContext(IPEImage peImage, PdbReaderOptions options) {
 			this.peImage = peImage;
+			Options = options;
 			codeViewDebugDir = TryGetDebugDirectoryEntry(peImage, ImageDebugType.CodeView);
 		}
 
