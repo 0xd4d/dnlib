@@ -39,6 +39,6 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
-		public void WriteTo(DataWriter writer) => writer.WriteZeros(size);
+		public void WriteTo(DataWriter writer) => writer.WriteZeroes(size);
 	}
 }

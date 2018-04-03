@@ -79,7 +79,7 @@ namespace dnlib.DotNet.Writer {
 			var rva2 = rva;
 			foreach (var resourceData in resources) {
 				int padding = (int)rva2.AlignUp(alignment) - (int)rva2;
-				writer.WriteZeros(padding);
+				writer.WriteZeroes(padding);
 				rva2 += (uint)padding;
 				writer.WriteUInt32(resourceData.GetFileLength());
 				resourceData.VerifyWriteTo(writer);

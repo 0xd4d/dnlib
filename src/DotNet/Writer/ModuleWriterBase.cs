@@ -809,7 +809,7 @@ namespace dnlib.DotNet.Writer {
 				if (chunk.GetVirtualSize() != 0) {
 					offset += chunk.GetFileLength();
 					var newOffset = offset.AlignUp(fileAlignment);
-					writer.WriteZeros((int)(newOffset - offset));
+					writer.WriteZeroes((int)(newOffset - offset));
 					offset = newOffset;
 				}
 			}

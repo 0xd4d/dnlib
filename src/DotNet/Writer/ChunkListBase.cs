@@ -109,7 +109,7 @@ namespace dnlib.DotNet.Writer {
 				if (elem.chunk.GetVirtualSize() == 0)
 					continue;
 				int paddingF = (int)offset2.AlignUp(elem.alignment) - (int)offset2;
-				writer.WriteZeros(paddingF);
+				writer.WriteZeroes(paddingF);
 				elem.chunk.VerifyWriteTo(writer);
 				offset2 += (uint)paddingF + elem.chunk.GetFileLength();
 			}

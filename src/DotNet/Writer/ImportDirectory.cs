@@ -109,7 +109,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteInt32(0);
 			}
 
-			writer.WriteZeros(stringsPadding);
+			writer.WriteZeroes(stringsPadding);
 			writer.WriteUInt16(0);
 			writer.WriteBytes(Encoding.UTF8.GetBytes(IsExeFile ? "_CorExeMain\0" : "_CorDllMain\0"));
 			writer.WriteBytes(Encoding.UTF8.GetBytes("mscoree.dll\0"));

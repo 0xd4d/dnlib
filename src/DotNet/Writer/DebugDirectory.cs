@@ -165,7 +165,7 @@ namespace dnlib.DotNet.Writer {
 		static void WriteAlign(DataWriter writer, ref uint offs) {
 			uint align = Utils.AlignUp(offs, DEFAULT_DEBUGDIRECTORY_ALIGNMENT) - offs;
 			offs += align;
-			writer.WriteZeros((int)align);
+			writer.WriteZeroes((int)align);
 		}
 	}
 }

@@ -3653,7 +3653,7 @@ namespace dnlib.DotNet.Writer {
 			rva2 += metadataHeader.GetFileLength();
 
 			foreach (var heap in metadataHeader.Heaps) {
-				writer.WriteZeros((int)(rva2.AlignUp(HEAP_ALIGNMENT) - rva2));
+				writer.WriteZeroes((int)(rva2.AlignUp(HEAP_ALIGNMENT) - rva2));
 				rva2 = rva2.AlignUp(HEAP_ALIGNMENT);
 				heap.VerifyWriteTo(writer);
 				rva2 += heap.GetFileLength();

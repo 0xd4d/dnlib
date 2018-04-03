@@ -144,7 +144,7 @@ namespace dnlib.DotNet.Writer {
 			var s = GetVersionString();
 			writer.WriteInt32(Utils.AlignUp(s.Length, 4));
 			writer.WriteBytes(s);
-			writer.WriteZeros(Utils.AlignUp(s.Length, 4) - s.Length);
+			writer.WriteZeroes(Utils.AlignUp(s.Length, 4) - s.Length);
 			writer.WriteByte((byte)(options.StorageFlags ?? 0));
 			writer.WriteByte(options.Reserved2 ?? 0);
 			var heaps = this.heaps;
@@ -157,7 +157,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteBytes(s = GetAsciizName(heap.Name));
 				if (s.Length > 32)
 					throw new ModuleWriterException($"Heap name '{heap.Name}' is > 32 bytes");
-				writer.WriteZeros(Utils.AlignUp(s.Length, 4) - s.Length);
+				writer.WriteZeroes(Utils.AlignUp(s.Length, 4) - s.Length);
 			}
 		}
 

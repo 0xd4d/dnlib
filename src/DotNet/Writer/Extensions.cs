@@ -4,19 +4,19 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Extension methods
 	/// </summary>
-	public static partial class Extensions {
+	static partial class Extensions {
 		/// <summary>
 		/// Write zeros
 		/// </summary>
 		/// <param name="writer">this</param>
 		/// <param name="count">Number of zeros</param>
-		public static void WriteZeros(this DataWriter writer, int count) {
-			if (count <= 0x20) {
-				for (int i = 0; i < count; i++)
-					writer.WriteByte(0);
+		public static void WriteZeroes(this DataWriter writer, int count) {
+			while (count >= 8) {
+				writer.WriteUInt64(0);
+				count -= 8;
 			}
-			else
-				writer.WriteBytes(new byte[count]);
+			for (int i = 0; i < count; i++)
+				writer.WriteByte(0);
 		}
 	}
 }

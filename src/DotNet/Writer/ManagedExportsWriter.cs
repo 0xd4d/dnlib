@@ -405,11 +405,11 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt32(0); // AddressOfNameOrdinals
 
 			sdataBytesInfo.addressOfFunctionsStreamOffset = (uint)writer.Position;
-			WriteZeroes(writer, funcSize * 4);
+			writer.WriteZeroes(funcSize * 4);
 			sdataBytesInfo.addressOfNamesStreamOffset = (uint)writer.Position;
-			WriteZeroes(writer, sdataBytesInfo.MethodNameOffsets.Length * 4);
+			writer.WriteZeroes(sdataBytesInfo.MethodNameOffsets.Length * 4);
 			sdataBytesInfo.addressOfNameOrdinalsStreamOffset = (uint)writer.Position;
-			WriteZeroes(writer, sdataBytesInfo.MethodNameOffsets.Length * 2);
+			writer.WriteZeroes(sdataBytesInfo.MethodNameOffsets.Length * 2);
 			sdataBytesInfo.namesBlobStreamOffset = (uint)writer.Position;
 			namesBlob.Write(writer);
 
@@ -469,15 +469,6 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		static void WriteZeroes(DataWriter writer, int count) {
-			while (count >= 8) {
-				writer.WriteUInt64(0);
-				count -= 8;
-			}
-			for (int i = 0; i < count; i++)
-				writer.WriteByte(0);
-		}
-
 		void WriteVtableFixups(DataWriter writer) {
 			if (vtables.Count == 0)
 				return;
@@ -514,7 +505,7 @@ namespace dnlib.DotNet.Writer {
 				if (pos + stubSize != writer.Position)
 					throw new InvalidOperationException();
 				if (zeroes != 0)
-					WriteZeroes(writer, zeroes);
+					writer.WriteZeroes(zeroes);
 				expectedOffset = (currentOffset + stubSize + stubAlignment - 1) & ~(stubAlignment - 1);
 			}
 			if (expectedOffset != stubsChunk.length)

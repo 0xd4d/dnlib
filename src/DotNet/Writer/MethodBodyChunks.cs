@@ -167,7 +167,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var mb in fatMethods) {
 				if (alignFatBodies) {
 					int padding = (int)rva2.AlignUp(FAT_BODY_ALIGNMENT) - (int)rva2;
-					writer.WriteZeros(padding);
+					writer.WriteZeroes(padding);
 					rva2 += (uint)padding;
 				}
 				mb.VerifyWriteTo(writer);
