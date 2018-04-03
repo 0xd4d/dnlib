@@ -219,7 +219,7 @@ namespace dnlib.DotNet {
 		public FieldSig Clone() => new FieldSig(callingConvention, type);
 
 		/// <inheritdoc/>
-		public override string ToString() => FullNameCreator.FullName(type, false, null, null, null, null);
+		public override string ToString() => FullNameFactory.FullName(type, false, null, null, null, null);
 	}
 
 	/// <summary>
@@ -580,7 +580,7 @@ namespace dnlib.DotNet {
 		public MethodSig Clone() => new MethodSig(callingConvention, genParamCount, retType, parameters, paramsAfterSentinel);
 
 		/// <inheritdoc/>
-		public override string ToString() => FullNameCreator.MethodBaseSigFullName(this, null);
+		public override string ToString() => FullNameFactory.MethodBaseSigFullName(this, null);
 	}
 
 	/// <summary>
@@ -771,7 +771,7 @@ namespace dnlib.DotNet {
 		public PropertySig Clone() => new PropertySig(callingConvention, genParamCount, retType, parameters, paramsAfterSentinel);
 
 		/// <inheritdoc/>
-		public override string ToString() => FullNameCreator.MethodBaseSigFullName(this, null);
+		public override string ToString() => FullNameFactory.MethodBaseSigFullName(this, null);
 	}
 
 	/// <summary>

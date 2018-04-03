@@ -138,14 +138,14 @@ namespace dnlib.DotNet {
 				var methodGenArgs = GenericInstMethodSig?.GenericArguments;
 				var m = method;
 				if (m is MethodDef methodDef)
-					return FullNameCreator.MethodFullName(methodDef.DeclaringType?.FullName, methodDef.Name, methodDef.MethodSig, null, methodGenArgs, null, null);
+					return FullNameFactory.MethodFullName(methodDef.DeclaringType?.FullName, methodDef.Name, methodDef.MethodSig, null, methodGenArgs, null, null);
 
 				if (m is MemberRef memberRef) {
 					var methodSig = memberRef.MethodSig;
 					if (methodSig != null) {
 						var gis = (memberRef.Class as TypeSpec)?.TypeSig as GenericInstSig;
 						var typeGenArgs = gis?.GenericArguments;
-						return FullNameCreator.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, typeGenArgs, methodGenArgs, null, null);
+						return FullNameFactory.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, typeGenArgs, methodGenArgs, null, null);
 					}
 				}
 

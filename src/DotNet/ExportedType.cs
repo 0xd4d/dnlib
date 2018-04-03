@@ -94,7 +94,7 @@ namespace dnlib.DotNet {
 		public bool IsPrimitive => this.IsPrimitive();
 
 		/// <inheritdoc/>
-		string IType.TypeName => FullNameCreator.Name(this, false, null);
+		string IType.TypeName => FullNameFactory.Name(this, false, null);
 
 		/// <inheritdoc/>
 		public UTF8String Name {
@@ -103,31 +103,31 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public string ReflectionName => FullNameCreator.Name(this, true, null);
+		public string ReflectionName => FullNameFactory.Name(this, true, null);
 
 		/// <inheritdoc/>
-		public string Namespace => FullNameCreator.Namespace(this, false, null);
+		public string Namespace => FullNameFactory.Namespace(this, false, null);
 
 		/// <inheritdoc/>
-		public string ReflectionNamespace => FullNameCreator.Namespace(this, true, null);
+		public string ReflectionNamespace => FullNameFactory.Namespace(this, true, null);
 
 		/// <inheritdoc/>
-		public string FullName => FullNameCreator.FullName(this, false, null, null);
+		public string FullName => FullNameFactory.FullName(this, false, null, null);
 
 		/// <inheritdoc/>
-		public string ReflectionFullName => FullNameCreator.FullName(this, true, null, null);
+		public string ReflectionFullName => FullNameFactory.FullName(this, true, null, null);
 
 		/// <inheritdoc/>
-		public string AssemblyQualifiedName => FullNameCreator.AssemblyQualifiedName(this, null, null);
+		public string AssemblyQualifiedName => FullNameFactory.AssemblyQualifiedName(this, null, null);
 
 		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly => FullNameCreator.DefinitionAssembly(this);
+		public IAssembly DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
 
 		/// <inheritdoc/>
-		public IScope Scope => FullNameCreator.Scope(this);
+		public IScope Scope => FullNameFactory.Scope(this);
 
 		/// <inheritdoc/>
-		public ITypeDefOrRef ScopeType => FullNameCreator.ScopeType(this);
+		public ITypeDefOrRef ScopeType => FullNameFactory.ScopeType(this);
 
 		/// <summary>
 		/// Always returns <c>false</c> since a <see cref="ExportedType"/> does not contain any

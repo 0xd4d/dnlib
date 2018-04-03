@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 	/// <summary>
 	/// Creates a <see cref="SymbolReader"/> instance
 	/// </summary>
-	static class SymbolReaderCreator {
+	static class SymbolReaderFactory {
 		/// <summary>
 		/// Creates a new <see cref="SymbolReader"/> instance
 		/// </summary>

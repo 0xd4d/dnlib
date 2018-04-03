@@ -166,7 +166,7 @@ namespace dnlib.DotNet {
 				if (cachedType == null)
 					return cachedType;
 				sb.Length = 0;
-				if (FullNameCreator.FullName(cachedType, true, null, sb) == fullName)
+				if (FullNameFactory.FullName(cachedType, true, null, sb) == fullName)
 					return cachedType;
 			}
 		}
@@ -181,7 +181,7 @@ namespace dnlib.DotNet {
 				if (cachedType == null)
 					return cachedType;
 				sb.Length = 0;
-				if (FullNameCreator.FullName(cachedType, false, null, sb) == fullName)
+				if (FullNameFactory.FullName(cachedType, false, null, sb) == fullName)
 					return cachedType;
 			}
 		}
@@ -203,7 +203,7 @@ namespace dnlib.DotNet {
 				if (type == null)
 					return type;
 				sb.Length = 0;
-				if (FullNameCreator.FullName(type, true, null, sb) == fullName)
+				if (FullNameFactory.FullName(type, true, null, sb) == fullName)
 					return type;
 			}
 		}
@@ -215,7 +215,7 @@ namespace dnlib.DotNet {
 				if (type == null)
 					return type;
 				sb.Length = 0;
-				if (FullNameCreator.FullName(type, false, null, sb) == fullName)
+				if (FullNameFactory.FullName(type, false, null, sb) == fullName)
 					return type;
 			}
 		}
@@ -251,10 +251,10 @@ namespace dnlib.DotNet {
 				typeRefCache[type] = type;
 			string fn;
 			sb.Length = 0;
-			if (!normalNameCache.ContainsKey(fn = FullNameCreator.FullName(type, false, null, sb)))
+			if (!normalNameCache.ContainsKey(fn = FullNameFactory.FullName(type, false, null, sb)))
 				normalNameCache[fn] = type;
 			sb.Length = 0;
-			if (!reflectionNameCache.ContainsKey(fn = FullNameCreator.FullName(type, true, null, sb)))
+			if (!reflectionNameCache.ContainsKey(fn = FullNameFactory.FullName(type, true, null, sb)))
 				reflectionNameCache[fn] = type;
 
 			return type;

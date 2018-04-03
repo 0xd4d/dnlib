@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Helps <see cref="CustomAttributeWriter"/> write custom attributes
 	/// </summary>
-	public interface ICustomAttributeWriterHelper : IWriterError, IFullNameCreatorHelper {
+	public interface ICustomAttributeWriterHelper : IWriterError, IFullNameFactoryHelper {
 	}
 
 	/// <summary>
@@ -716,7 +716,7 @@ namespace dnlib.DotNet.Writer {
 				WriteUTF8String(UTF8String.Empty);
 			}
 			else
-				WriteUTF8String(FullNameCreator.AssemblyQualifiedName(type, helper));
+				WriteUTF8String(FullNameFactory.AssemblyQualifiedName(type, helper));
 		}
 
 		static bool CheckCorLibType(TypeSig ts, string name) {

@@ -407,7 +407,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET meta data
 	/// </summary>
-	public abstract class Metadata : IReuseChunk, ISignatureWriterHelper, ITokenCreator, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
+	public abstract class Metadata : IReuseChunk, ISignatureWriterHelper, ITokenProvider, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -3468,7 +3468,7 @@ namespace dnlib.DotNet.Writer {
 		void IWriterError.Error(string message) => Error(message);
 
 		/// <inheritdoc/>
-		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) => FullNameCreator.MustUseAssemblyName(module, type);
+		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) => FullNameFactory.MustUseAssemblyName(module, type);
 
 		/// <summary>
 		/// Called before any other methods

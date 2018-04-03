@@ -259,10 +259,10 @@ namespace dnlib.DotNet {
 				}
 				var methodSig = MethodSig;
 				if (methodSig != null)
-					return FullNameCreator.MethodFullName(GetDeclaringTypeFullName(parent), name, methodSig, typeGenArgs, null, null, null);
+					return FullNameFactory.MethodFullName(GetDeclaringTypeFullName(parent), name, methodSig, typeGenArgs, null, null, null);
 				var fieldSig = FieldSig;
 				if (fieldSig != null)
-					return FullNameCreator.FieldFullName(GetDeclaringTypeFullName(parent), name, fieldSig, typeGenArgs, null);
+					return FullNameFactory.FieldFullName(GetDeclaringTypeFullName(parent), name, fieldSig, typeGenArgs, null);
 				return string.Empty;
 			}
 		}

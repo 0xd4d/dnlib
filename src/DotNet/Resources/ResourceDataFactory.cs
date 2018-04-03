@@ -10,7 +10,7 @@ namespace dnlib.DotNet.Resources {
 	/// <summary>
 	/// Creates resource data
 	/// </summary>
-	public class ResourceDataCreator {
+	public class ResourceDataFactory {
 		readonly ModuleDef module;
 		readonly ModuleDefMD moduleMD;
 		readonly Dictionary<string, UserResourceType> dict = new Dictionary<string, UserResourceType>(StringComparer.Ordinal);
@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Resources {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Owner module</param>
-		public ResourceDataCreator(ModuleDef module) {
+		public ResourceDataFactory(ModuleDef module) {
 			this.module = module;
 			moduleMD = module as ModuleDefMD;
 		}

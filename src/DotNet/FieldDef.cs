@@ -618,7 +618,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns the full name of this field
 		/// </summary>
-		public string FullName => FullNameCreator.FieldFullName(declaringType2?.FullName, name, FieldSig, null, null);
+		public string FullName => FullNameFactory.FieldFullName(declaringType2?.FullName, name, FieldSig, null, null);
 
 		/// <summary>
 		/// Gets the size of this field in bytes or <c>0</c> if unknown.

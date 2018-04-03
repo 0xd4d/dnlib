@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Returns tokens of token types, strings and signatures
 	/// </summary>
-	public interface ITokenCreator : IWriterError {
+	public interface ITokenProvider : IWriterError {
 		/// <summary>
 		/// Gets the token of <paramref name="o"/>
 		/// </summary>
@@ -30,7 +30,7 @@ namespace dnlib.DotNet.Writer {
 	/// Writes CIL method bodies
 	/// </summary>
 	public sealed class MethodBodyWriter : MethodBodyWriterBase {
-		readonly ITokenCreator helper;
+		readonly ITokenProvider helper;
 		CilBody cilBody;
 		bool keepMaxStack;
 		uint codeSize;
@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="helper">Helps this instance</param>
 		/// <param name="cilBody">The CIL method body</param>
-		public MethodBodyWriter(ITokenCreator helper, CilBody cilBody)
+		public MethodBodyWriter(ITokenProvider helper, CilBody cilBody)
 			: this(helper, cilBody, false) {
 		}
 
@@ -73,14 +73,14 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="cilBody">The CIL method body</param>
 		/// <param name="keepMaxStack">Keep the original max stack value that has been initialized
 		/// in <paramref name="cilBody"/></param>
-		public MethodBodyWriter(ITokenCreator helper, CilBody cilBody, bool keepMaxStack)
+		public MethodBodyWriter(ITokenProvider helper, CilBody cilBody, bool keepMaxStack)
 			: base(cilBody.Instructions, cilBody.ExceptionHandlers) {
 			this.helper = helper;
 			this.cilBody = cilBody;
 			this.keepMaxStack = keepMaxStack;
 		}
 
-		internal MethodBodyWriter(ITokenCreator helper) => this.helper = helper;
+		internal MethodBodyWriter(ITokenProvider helper) => this.helper = helper;
 
 		internal void Reset(CilBody cilBody, bool keepMaxStack) {
 			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);

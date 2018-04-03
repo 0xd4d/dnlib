@@ -98,7 +98,7 @@
     <Compile Include="DotNet\FileAttributes.cs" />
     <Compile Include="DotNet\FileDef.cs" />
     <Compile Include="DotNet\FrameworkRedirect.cs" />
-    <Compile Include="DotNet\FullNameCreator.cs" />
+    <Compile Include="DotNet\FullNameFactory.cs" />
     <Compile Include="DotNet\GenericArguments.cs" />
     <Compile Include="DotNet\GenericParam.cs" />
     <Compile Include="DotNet\GenericParamAttributes.cs" />
@@ -137,7 +137,7 @@
     <Compile Include="DotNet\MD\MDTable.cs" />
     <Compile Include="DotNet\MD\Metadata.cs" />
     <Compile Include="DotNet\MD\MetadataBase.cs" />
-    <Compile Include="DotNet\MD\MetadataCreator.cs" />
+    <Compile Include="DotNet\MD\MetadataFactory.cs" />
     <Compile Include="DotNet\MD\MetadataHeader.cs" />
     <Compile Include="DotNet\MD\PdbStream.cs" />
     <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
@@ -210,7 +210,7 @@
     <Compile Include="DotNet\Pdb\Portable\SequencePointConstants.cs" />
     <Compile Include="DotNet\Pdb\Portable\SymbolDocumentImpl.cs" />
     <Compile Include="DotNet\Pdb\Portable\SymbolMethodImpl.cs" />
-    <Compile Include="DotNet\Pdb\Portable\SymbolReaderCreator.cs" />
+    <Compile Include="DotNet\Pdb\Portable\SymbolReaderFactory.cs" />
     <Compile Include="DotNet\Pdb\Portable\SymbolScopeImpl.cs" />
     <Compile Include="DotNet\Pdb\Portable\SymbolVariableImpl.cs" />
     <Compile Include="DotNet\Pdb\Symbols\SymbolAsyncStepInfo.cs" />
@@ -252,13 +252,13 @@
     <Compile Include="DotNet\Pdb\Managed\MsfStream.cs" />
     <Compile Include="DotNet\Pdb\Managed\PdbException.cs" />
     <Compile Include="DotNet\Pdb\Managed\PdbReader.cs" />
-    <Compile Include="DotNet\Pdb\Managed\SymbolReaderCreator.cs" />
+    <Compile Include="DotNet\Pdb\Managed\SymbolReaderFactory.cs" />
     <Compile Include="DotNet\Pdb\Managed\SymbolType.cs" />
     <Compile Include="DotNet\Pdb\PdbDocument.cs" />
     <Compile Include="DotNet\Pdb\PdbScope.cs" />
     <Compile Include="DotNet\Pdb\PdbState.cs" />
     <Compile Include="DotNet\Pdb\SequencePoint.cs" />
-    <Compile Include="DotNet\Pdb\SymbolReaderCreator.cs" />
+    <Compile Include="DotNet\Pdb\SymbolReaderFactory.cs" />
     <Compile Include="DotNet\PropertyAttributes.cs" />
     <Compile Include="DotNet\PropertyDef.cs" />
     <Compile Include="DotNet\PublicKey.cs" />
@@ -272,7 +272,7 @@
     <Compile Include="DotNet\ResourceCollection.cs" />
     <Compile Include="DotNet\Resources\BuiltInResourceData.cs" />
     <Compile Include="DotNet\Resources\IResourceData.cs" />
-    <Compile Include="DotNet\Resources\ResourceDataCreator.cs" />
+    <Compile Include="DotNet\Resources\ResourceDataFactory.cs" />
     <Compile Include="DotNet\Resources\ResourceElement.cs" />
     <Compile Include="DotNet\Resources\ResourceElementSet.cs" />
     <Compile Include="DotNet\Resources\ResourceReader.cs" />

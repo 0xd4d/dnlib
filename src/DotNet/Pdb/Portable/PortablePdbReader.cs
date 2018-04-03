@@ -23,7 +23,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public PortablePdbReader(DataReaderFactory pdbStream, PdbFileKind pdbFileKind) {
 			this.pdbFileKind = pdbFileKind;
-			pdbMetadata = MetadataCreator.CreateStandalonePortablePDB(pdbStream, true);
+			pdbMetadata = MetadataFactory.CreateStandalonePortablePDB(pdbStream, true);
 		}
 
 		internal bool CheckVersion(Guid pdbGuid, uint timestamp) {

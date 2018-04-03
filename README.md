@@ -61,6 +61,11 @@ v3.0 breaking changes
 - `MetadataOptions`' `OtherHeaps` and `OtherHeapsEnd` have been removed. Use `CustomHeaps`, `MetadataHeapsAdded` and `PreserveHeapOrder()` instead.
 - `Instruction.GetLocal()` returns a local if the instruction is a `ldloca` or `ldloca.s` instruction (it used to return null)
 - `ModuleCreationOptions.PdbImplementation` has been removed and replaced with `PdbOptions`
+- Renamed
+	- `ITokenCreator` -> `ITokenProvider`
+	- `MetadataCreator` -> `MetadataFactory`
+	- `ResourceDataCreator` -> `ResourceDataFactory`
+	- `FullNameCreator` -> `FullNameFactory`
 
 Examples
 --------

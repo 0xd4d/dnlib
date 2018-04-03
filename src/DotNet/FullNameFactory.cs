@@ -5,9 +5,9 @@ using System.Text;
 
 namespace dnlib.DotNet {
 	/// <summary>
-	/// Helps <see cref="FullNameCreator"/> create a name
+	/// Helps <see cref="FullNameFactory"/> create a name
 	/// </summary>
-	public interface IFullNameCreatorHelper {
+	public interface IFullNameFactoryHelper {
 		/// <summary>
 		/// Checks whether the assembly name should be included when printing
 		/// the full type name. The assembly name isn't required in custom attributes
@@ -23,18 +23,18 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Creates type names, method names, etc.
 	/// </summary>
-	public struct FullNameCreator {
+	public struct FullNameFactory {
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
 		readonly StringBuilder sb;
 		readonly bool isReflection;
-		readonly IFullNameCreatorHelper helper;
+		readonly IFullNameFactoryHelper helper;
 		GenericArguments genericArguments;
 		RecursionCounter recursionCounter;
 
 		/// <summary>
 		/// Checks whether the assembly name should be included when printing the full name.
-		/// See <see cref="IFullNameCreatorHelper.MustUseAssemblyName"/> for more info.
+		/// See <see cref="IFullNameFactoryHelper.MustUseAssemblyName"/> for more info.
 		/// </summary>
 		/// <param name="module">Owner module</param>
 		/// <param name="type">The type (<c>TypeDef</c>, <c>TypeRef</c> or <c>ExportedType</c>)
@@ -64,7 +64,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(IType type, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) =>
+		public static string FullName(IType type, bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) =>
 			FullNameSB(type, isReflection, helper, sb).ToString();
 
 		/// <summary>
@@ -75,7 +75,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static StringBuilder FullNameSB(IType type, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static StringBuilder FullNameSB(IType type, bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) {
 			if (type is TypeDef td)
 				return FullNameSB(td, isReflection, helper, sb);
 			if (type is TypeRef tr)
@@ -158,7 +158,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(IType type, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string AssemblyQualifiedName(IType type, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			AssemblyQualifiedNameSB(type, helper, sb).ToString();
 
 		/// <summary>
@@ -168,7 +168,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static StringBuilder AssemblyQualifiedNameSB(IType type, IFullNameCreatorHelper helper, StringBuilder sb) {
+		public static StringBuilder AssemblyQualifiedNameSB(IType type, IFullNameFactoryHelper helper, StringBuilder sb) {
 			if (type is TypeDef td)
 				return AssemblyQualifiedNameSB(td, helper, sb);
 
@@ -209,7 +209,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Property full name</returns>
 		public static StringBuilder PropertyFullNameSB(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs, StringBuilder sb) {
-			var fnc = new FullNameCreator(false, null, sb);
+			var fnc = new FullNameFactory(false, null, sb);
 			if (typeGenArgs != null) {
 				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
@@ -241,7 +241,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Property full name</returns>
 		public static StringBuilder EventFullNameSB(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs, StringBuilder sb) {
-			var fnc = new FullNameCreator(false, null, sb);
+			var fnc = new FullNameFactory(false, null, sb);
 			if (typeGenArgs != null) {
 				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
@@ -273,7 +273,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Field full name</returns>
 		public static StringBuilder FieldFullNameSB(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs, StringBuilder sb) {
-			var fnc = new FullNameCreator(false, null, sb);
+			var fnc = new FullNameFactory(false, null, sb);
 			if (typeGenArgs != null) {
 				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
@@ -309,7 +309,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Method full name</returns>
 		public static StringBuilder MethodFullNameSB(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, MethodDef gppMethod, StringBuilder sb) {
-			var fnc = new FullNameCreator(false, null, sb);
+			var fnc = new FullNameFactory(false, null, sb);
 			if (typeGenArgs != null || methodGenArgs != null)
 				fnc.genericArguments = new GenericArguments();
 			if (typeGenArgs != null)
@@ -336,7 +336,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Property sig full name</returns>
 		public static StringBuilder MethodBaseSigFullNameSB(MethodBaseSig sig, StringBuilder sb) {
-			var fnc = new FullNameCreator(false, null, sb);
+			var fnc = new FullNameFactory(false, null, sb);
 			fnc.CreateMethodFullName(null, null, sig, null);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -363,7 +363,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>Sig full name</returns>
 		public static StringBuilder MethodBaseSigFullNameSB(string declType, string name, MethodBaseSig sig, MethodDef gppMethod, StringBuilder sb) {
-			var fnc = new FullNameCreator(false, null, sb);
+			var fnc = new FullNameFactory(false, null, sb);
 			fnc.CreateMethodFullName(declType, name, sig, gppMethod);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -386,7 +386,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
 		public static StringBuilder NamespaceSB(TypeRef typeRef, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateNamespace(typeRef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -409,7 +409,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
 		public static StringBuilder NameSB(TypeRef typeRef, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateName(typeRef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -422,7 +422,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeRef typeRef, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string FullName(TypeRef typeRef, bool isReflection, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			FullNameSB(typeRef, isReflection, helper, sb).ToString();
 
 		/// <summary>
@@ -433,8 +433,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static StringBuilder FullNameSB(TypeRef typeRef, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, helper, sb);
+		public static StringBuilder FullNameSB(TypeRef typeRef, bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(isReflection, helper, sb);
 			fnc.CreateFullName(typeRef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -446,7 +446,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeRef typeRef, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string AssemblyQualifiedName(TypeRef typeRef, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			AssemblyQualifiedNameSB(typeRef, helper, sb).ToString();
 
 		/// <summary>
@@ -456,8 +456,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static StringBuilder AssemblyQualifiedNameSB(TypeRef typeRef, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(true, helper, sb);
+		public static StringBuilder AssemblyQualifiedNameSB(TypeRef typeRef, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(true, helper, sb);
 			fnc.CreateAssemblyQualifiedName(typeRef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -468,7 +468,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
 		public static IAssembly DefinitionAssembly(TypeRef typeRef) =>
-			new FullNameCreator().GetDefinitionAssembly(typeRef);
+			new FullNameFactory().GetDefinitionAssembly(typeRef);
 
 		/// <summary>
 		/// Gets the scope
@@ -476,7 +476,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
 		public static IScope Scope(TypeRef typeRef) =>
-			new FullNameCreator().GetScope(typeRef);
+			new FullNameFactory().GetScope(typeRef);
 
 		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
@@ -484,7 +484,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The <c>TypeRef</c></param>
 		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
 		public static ModuleDef OwnerModule(TypeRef typeRef) =>
-			new FullNameCreator().GetOwnerModule(typeRef);
+			new FullNameFactory().GetOwnerModule(typeRef);
 
 		/// <summary>
 		/// Returns the namespace of a <see cref="TypeDef"/>
@@ -504,7 +504,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
 		public static StringBuilder NamespaceSB(TypeDef typeDef, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateNamespace(typeDef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -527,7 +527,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
 		public static StringBuilder NameSB(TypeDef typeDef, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateName(typeDef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -540,7 +540,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeDef typeDef, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string FullName(TypeDef typeDef, bool isReflection, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			FullNameSB(typeDef, isReflection, helper, sb).ToString();
 
 		/// <summary>
@@ -551,8 +551,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static StringBuilder FullNameSB(TypeDef typeDef, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, helper, sb);
+		public static StringBuilder FullNameSB(TypeDef typeDef, bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(isReflection, helper, sb);
 			fnc.CreateFullName(typeDef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -564,7 +564,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeDef typeDef, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string AssemblyQualifiedName(TypeDef typeDef, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			AssemblyQualifiedNameSB(typeDef, helper, sb).ToString();
 
 		/// <summary>
@@ -574,8 +574,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static StringBuilder AssemblyQualifiedNameSB(TypeDef typeDef, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(true, helper, sb);
+		public static StringBuilder AssemblyQualifiedNameSB(TypeDef typeDef, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(true, helper, sb);
 			fnc.CreateAssemblyQualifiedName(typeDef);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -586,7 +586,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeDef">The <c>TypeDef</c></param>
 		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
 		public static IAssembly DefinitionAssembly(TypeDef typeDef) =>
-			new FullNameCreator().GetDefinitionAssembly(typeDef);
+			new FullNameFactory().GetDefinitionAssembly(typeDef);
 
 		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
@@ -594,7 +594,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeDef">The <c>TypeDef</c></param>
 		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
 		public static ModuleDef OwnerModule(TypeDef typeDef) =>
-			new FullNameCreator().GetOwnerModule(typeDef);
+			new FullNameFactory().GetOwnerModule(typeDef);
 
 		/// <summary>
 		/// Returns the namespace of a <see cref="TypeSpec"/>
@@ -614,7 +614,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
 		public static StringBuilder NamespaceSB(TypeSpec typeSpec, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateNamespace(typeSpec);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -637,7 +637,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
 		public static StringBuilder NameSB(TypeSpec typeSpec, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateName(typeSpec);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -650,7 +650,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeSpec typeSpec, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string FullName(TypeSpec typeSpec, bool isReflection, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			FullNameSB(typeSpec, isReflection, helper, sb).ToString();
 
 		/// <summary>
@@ -661,8 +661,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static StringBuilder FullNameSB(TypeSpec typeSpec, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, helper, sb);
+		public static StringBuilder FullNameSB(TypeSpec typeSpec, bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(isReflection, helper, sb);
 			fnc.CreateFullName(typeSpec);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -674,7 +674,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSpec typeSpec, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string AssemblyQualifiedName(TypeSpec typeSpec, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			AssemblyQualifiedNameSB(typeSpec, helper, sb).ToString();
 
 		/// <summary>
@@ -684,8 +684,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static StringBuilder AssemblyQualifiedNameSB(TypeSpec typeSpec, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(true, helper, sb);
+		public static StringBuilder AssemblyQualifiedNameSB(TypeSpec typeSpec, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(true, helper, sb);
 			fnc.CreateAssemblyQualifiedName(typeSpec);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -696,7 +696,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
 		public static IAssembly DefinitionAssembly(TypeSpec typeSpec) =>
-			new FullNameCreator().GetDefinitionAssembly(typeSpec);
+			new FullNameFactory().GetDefinitionAssembly(typeSpec);
 
 		/// <summary>
 		/// Gets the scope type
@@ -704,7 +704,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <returns>The scope type or <c>null</c> if none found</returns>
 		public static ITypeDefOrRef ScopeType(TypeSpec typeSpec) =>
-			new FullNameCreator().GetScopeType(typeSpec);
+			new FullNameFactory().GetScopeType(typeSpec);
 
 		/// <summary>
 		/// Gets the scope
@@ -712,7 +712,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
 		public static IScope Scope(TypeSpec typeSpec) =>
-			new FullNameCreator().GetScope(typeSpec);
+			new FullNameFactory().GetScope(typeSpec);
 
 		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
@@ -720,7 +720,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSpec">The <c>TypeSpec</c></param>
 		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
 		public static ModuleDef OwnerModule(TypeSpec typeSpec) =>
-			new FullNameCreator().GetOwnerModule(typeSpec);
+			new FullNameFactory().GetOwnerModule(typeSpec);
 
 		/// <summary>
 		/// Returns the namespace of a <see cref="TypeSig"/>
@@ -740,7 +740,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
 		public static StringBuilder NamespaceSB(TypeSig typeSig, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateNamespace(typeSig);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -763,7 +763,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
 		public static StringBuilder NameSB(TypeSig typeSig, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateName(typeSig);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -778,7 +778,7 @@ namespace dnlib.DotNet {
 		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper = null, IList<TypeSig> typeGenArgs = null, IList<TypeSig> methodGenArgs = null, StringBuilder sb = null) =>
+		public static string FullName(TypeSig typeSig, bool isReflection, IFullNameFactoryHelper helper = null, IList<TypeSig> typeGenArgs = null, IList<TypeSig> methodGenArgs = null, StringBuilder sb = null) =>
 			FullNameSB(typeSig, isReflection, helper, typeGenArgs, methodGenArgs, sb).ToString();
 
 		/// <summary>
@@ -791,8 +791,8 @@ namespace dnlib.DotNet {
 		/// <param name="methodGenArgs">Method generic args or <c>null</c> if none</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static StringBuilder FullNameSB(TypeSig typeSig, bool isReflection, IFullNameCreatorHelper helper, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, helper, sb);
+		public static StringBuilder FullNameSB(TypeSig typeSig, bool isReflection, IFullNameFactoryHelper helper, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, StringBuilder sb) {
+			var fnc = new FullNameFactory(isReflection, helper, sb);
 			if (typeGenArgs != null || methodGenArgs != null)
 				fnc.genericArguments = new GenericArguments();
 			if (typeGenArgs != null)
@@ -810,7 +810,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(TypeSig typeSig, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string AssemblyQualifiedName(TypeSig typeSig, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			AssemblyQualifiedNameSB(typeSig, helper, sb).ToString();
 
 		/// <summary>
@@ -820,8 +820,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static StringBuilder AssemblyQualifiedNameSB(TypeSig typeSig, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(true, helper, sb);
+		public static StringBuilder AssemblyQualifiedNameSB(TypeSig typeSig, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(true, helper, sb);
 			fnc.CreateAssemblyQualifiedName(typeSig);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -832,7 +832,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSig">The <c>TypeSig</c></param>
 		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
 		public static IAssembly DefinitionAssembly(TypeSig typeSig) =>
-			new FullNameCreator().GetDefinitionAssembly(typeSig);
+			new FullNameFactory().GetDefinitionAssembly(typeSig);
 
 		/// <summary>
 		/// Gets the scope
@@ -840,7 +840,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSig">The <c>TypeSig</c></param>
 		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
 		public static IScope Scope(TypeSig typeSig) =>
-			new FullNameCreator().GetScope(typeSig);
+			new FullNameFactory().GetScope(typeSig);
 
 		/// <summary>
 		/// Gets the scope type
@@ -848,7 +848,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSig">The <c>TypeSig</c></param>
 		/// <returns>The scope type or <c>null</c> if none found</returns>
 		public static ITypeDefOrRef ScopeType(TypeSig typeSig) =>
-			new FullNameCreator().GetScopeType(typeSig);
+			new FullNameFactory().GetScopeType(typeSig);
 
 		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
@@ -856,7 +856,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSig">The <c>TypeSig</c></param>
 		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
 		public static ModuleDef OwnerModule(TypeSig typeSig) =>
-			new FullNameCreator().GetOwnerModule(typeSig);
+			new FullNameFactory().GetOwnerModule(typeSig);
 
 		/// <summary>
 		/// Returns the namespace of a <see cref="ExportedType"/>
@@ -876,7 +876,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The namespace</returns>
 		public static StringBuilder NamespaceSB(ExportedType exportedType, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateNamespace(exportedType);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -899,7 +899,7 @@ namespace dnlib.DotNet {
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The name</returns>
 		public static StringBuilder NameSB(ExportedType exportedType, bool isReflection, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, null, sb);
+			var fnc = new FullNameFactory(isReflection, null, sb);
 			fnc.CreateName(exportedType);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -912,7 +912,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static string FullName(ExportedType exportedType, bool isReflection, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string FullName(ExportedType exportedType, bool isReflection, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			FullNameSB(exportedType, isReflection, helper, sb).ToString();
 
 		/// <summary>
@@ -923,8 +923,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The full name</returns>
-		public static StringBuilder FullNameSB(ExportedType exportedType, bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(isReflection, helper, sb);
+		public static StringBuilder FullNameSB(ExportedType exportedType, bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(isReflection, helper, sb);
 			fnc.CreateFullName(exportedType);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -936,7 +936,7 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static string AssemblyQualifiedName(ExportedType exportedType, IFullNameCreatorHelper helper = null, StringBuilder sb = null) =>
+		public static string AssemblyQualifiedName(ExportedType exportedType, IFullNameFactoryHelper helper = null, StringBuilder sb = null) =>
 			AssemblyQualifiedNameSB(exportedType, helper, sb).ToString();
 
 		/// <summary>
@@ -946,8 +946,8 @@ namespace dnlib.DotNet {
 		/// <param name="helper">Helps print the name</param>
 		/// <param name="sb">String builder to use or null</param>
 		/// <returns>The assembly qualified full name</returns>
-		public static StringBuilder AssemblyQualifiedNameSB(ExportedType exportedType, IFullNameCreatorHelper helper, StringBuilder sb) {
-			var fnc = new FullNameCreator(true, helper, sb);
+		public static StringBuilder AssemblyQualifiedNameSB(ExportedType exportedType, IFullNameFactoryHelper helper, StringBuilder sb) {
+			var fnc = new FullNameFactory(true, helper, sb);
 			fnc.CreateAssemblyQualifiedName(exportedType);
 			return fnc.sb ?? new StringBuilder();
 		}
@@ -958,7 +958,7 @@ namespace dnlib.DotNet {
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <returns>A <see cref="IAssembly"/> or <c>null</c> if none found</returns>
 		public static IAssembly DefinitionAssembly(ExportedType exportedType) =>
-			new FullNameCreator().GetDefinitionAssembly(exportedType);
+			new FullNameFactory().GetDefinitionAssembly(exportedType);
 
 		/// <summary>
 		/// Gets the scope type
@@ -966,7 +966,7 @@ namespace dnlib.DotNet {
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <returns>The scope type or <c>null</c> if none found</returns>
 		public static ITypeDefOrRef ScopeType(ExportedType exportedType) =>
-			new FullNameCreator().GetScopeType(exportedType);
+			new FullNameFactory().GetScopeType(exportedType);
 
 		/// <summary>
 		/// Gets the scope
@@ -974,7 +974,7 @@ namespace dnlib.DotNet {
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <returns>The <see cref="IScope"/> or <c>null</c> if none found</returns>
 		public static IScope Scope(ExportedType exportedType) =>
-			new FullNameCreator().GetScope(exportedType);
+			new FullNameFactory().GetScope(exportedType);
 
 		/// <summary>
 		/// Returns the owner module. The type was created from metadata in this module.
@@ -982,11 +982,11 @@ namespace dnlib.DotNet {
 		/// <param name="exportedType">The <c>ExportedType</c></param>
 		/// <returns>A <see cref="ModuleDef"/> or <c>null</c> if none found</returns>
 		public static ModuleDef OwnerModule(ExportedType exportedType) =>
-			new FullNameCreator().GetOwnerModule(exportedType);
+			new FullNameFactory().GetOwnerModule(exportedType);
 
 		string Result => sb?.ToString();
 
-		FullNameCreator(bool isReflection, IFullNameCreatorHelper helper, StringBuilder sb) {
+		FullNameFactory(bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) {
 			this.sb = sb ?? new StringBuilder();
 			this.isReflection = isReflection;
 			this.helper = helper;

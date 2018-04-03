@@ -7,7 +7,7 @@ using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
-	static class SymbolReaderCreator {
+	static class SymbolReaderFactory {
 		public static SymbolReader CreateFromAssemblyFile(PdbReaderOptions options, Metadata metadata, string assemblyFileName) =>
 			Create(options, metadata, Path.ChangeExtension(assemblyFileName, "pdb"));
 
@@ -97,8 +97,8 @@ namespace dnlib.DotNet.Pdb {
 				if (reader.Length >= 4) {
 					uint sig = reader.ReadUInt32();
 					if (sig == 0x424A5342)
-						return Portable.SymbolReaderCreator.TryCreate(pdbContext, pdbStream, isEmbeddedPortablePdb: false);
-					return Managed.SymbolReaderCreator.Create(pdbContext, pdbStream);
+						return Portable.SymbolReaderFactory.TryCreate(pdbContext, pdbStream, isEmbeddedPortablePdb: false);
+					return Managed.SymbolReaderFactory.Create(pdbContext, pdbStream);
 				}
 			}
 			catch (IOException) {
@@ -108,6 +108,6 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		static SymbolReader TryCreateEmbeddedPortablePdbReader(PdbReaderContext pdbContext, Metadata metadata) =>
-			Portable.SymbolReaderCreator.TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
+			Portable.SymbolReaderFactory.TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
 	}
 }

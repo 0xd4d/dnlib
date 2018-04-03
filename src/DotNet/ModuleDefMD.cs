@@ -149,7 +149,7 @@ namespace dnlib.DotNet {
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options = null) => Load(MetadataCreator.Load(fileName), options);
+		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options = null) => Load(MetadataFactory.Load(fileName), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
@@ -165,7 +165,7 @@ namespace dnlib.DotNet {
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options = null) => Load(MetadataCreator.Load(data), options);
+		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options = null) => Load(MetadataFactory.Load(data), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
@@ -241,7 +241,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr) => Load(MetadataCreator.Load(addr), (ModuleCreationOptions)null);
+		public static ModuleDefMD Load(IntPtr addr) => Load(MetadataFactory.Load(addr), (ModuleCreationOptions)null);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -249,7 +249,7 @@ namespace dnlib.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) => Load(MetadataCreator.Load(addr), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) => Load(MetadataFactory.Load(addr), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -257,14 +257,14 @@ namespace dnlib.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options) => Load(MetadataCreator.Load(addr), options);
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options) => Load(MetadataFactory.Load(addr), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
 		/// </summary>
 		/// <param name="peImage">PE image</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage) => Load(MetadataCreator.Load(peImage), (ModuleCreationOptions)null);
+		public static ModuleDefMD Load(IPEImage peImage) => Load(MetadataFactory.Load(peImage), (ModuleCreationOptions)null);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
@@ -272,7 +272,7 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage, ModuleContext context) => Load(MetadataCreator.Load(peImage), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IPEImage peImage, ModuleContext context) => Load(MetadataFactory.Load(peImage), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
@@ -280,7 +280,7 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage, ModuleCreationOptions options) => Load(MetadataCreator.Load(peImage), options);
+		public static ModuleDefMD Load(IPEImage peImage, ModuleCreationOptions options) => Load(MetadataFactory.Load(peImage), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -289,7 +289,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) => Load(MetadataCreator.Load(addr, imageLayout), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) => Load(MetadataFactory.Load(addr, imageLayout), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -298,7 +298,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options, ImageLayout imageLayout) => Load(MetadataCreator.Load(addr, imageLayout), options);
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options, ImageLayout imageLayout) => Load(MetadataFactory.Load(addr, imageLayout), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a stream
@@ -392,23 +392,23 @@ namespace dnlib.DotNet {
 			if (options.PdbFileOrData != null) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
-					var symReader = SymbolReaderCreator.Create(options.PdbOptions, metadata, pdbFileName);
+					var symReader = SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbFileName);
 					if (symReader != null)
 						return symReader;
 				}
 
 				if (options.PdbFileOrData is byte[] pdbData)
-					return SymbolReaderCreator.Create(options.PdbOptions, metadata, pdbData);
+					return SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbData);
 
 				if (options.PdbFileOrData is DataReaderFactory pdbStream)
-					return SymbolReaderCreator.Create(options.PdbOptions, metadata, pdbStream);
+					return SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbStream);
 			}
 
 			if (options.TryToLoadPdbFromDisk) {
 				if (!string.IsNullOrEmpty(location))
-					return SymbolReaderCreator.CreateFromAssemblyFile(options.PdbOptions, metadata, location);
+					return SymbolReaderFactory.CreateFromAssemblyFile(options.PdbOptions, metadata, location);
 				else
-					return SymbolReaderCreator.TryCreateEmbeddedPdbReader(options.PdbOptions, metadata);
+					return SymbolReaderFactory.TryCreateEmbeddedPdbReader(options.PdbOptions, metadata);
 			}
 
 			return null;
@@ -442,7 +442,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">PDB reader options</param>
 		/// <param name="pdbFileName">PDB file name</param>
 		public void LoadPdb(PdbReaderOptions options, string pdbFileName) =>
-			LoadPdb(SymbolReaderCreator.Create(options, metadata, pdbFileName));
+			LoadPdb(SymbolReaderFactory.Create(options, metadata, pdbFileName));
 
 		/// <summary>
 		/// Loads symbols from a byte array
@@ -457,7 +457,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">PDB reader options</param>
 		/// <param name="pdbData">PDB data</param>
 		public void LoadPdb(PdbReaderOptions options, byte[] pdbData) =>
-			LoadPdb(SymbolReaderCreator.Create(options, metadata, pdbData));
+			LoadPdb(SymbolReaderFactory.Create(options, metadata, pdbData));
 
 		/// <summary>
 		/// Loads symbols from a stream
@@ -472,7 +472,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">PDB reader options</param>
 		/// <param name="pdbStream">PDB file stream which is now owned by us</param>
 		public void LoadPdb(PdbReaderOptions options, DataReaderFactory pdbStream) =>
-			LoadPdb(SymbolReaderCreator.Create(options, metadata, pdbStream));
+			LoadPdb(SymbolReaderFactory.Create(options, metadata, pdbStream));
 
 		/// <summary>
 		/// Loads symbols if a PDB file is available
@@ -488,7 +488,7 @@ namespace dnlib.DotNet {
 			var loc = location;
 			if (string.IsNullOrEmpty(loc))
 				return;
-			LoadPdb(SymbolReaderCreator.Create(options, metadata, loc));
+			LoadPdb(SymbolReaderFactory.Create(options, metadata, loc));
 		}
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {

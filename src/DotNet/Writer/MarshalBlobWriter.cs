@@ -7,7 +7,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Writes field marshal blobs
 	/// </summary>
-	public readonly struct MarshalBlobWriter : IDisposable, IFullNameCreatorHelper {
+	public readonly struct MarshalBlobWriter : IDisposable, IFullNameFactoryHelper {
 		readonly ModuleDef module;
 		readonly MemoryStream outStream;
 		readonly DataWriter writer;
@@ -84,7 +84,7 @@ namespace dnlib.DotNet.Writer {
 				Write(custMarshaler.Guid);
 				Write(custMarshaler.NativeTypeName);
 				var cm = custMarshaler.CustomMarshaler;
-				var cmName = cm == null ? string.Empty : FullNameCreator.AssemblyQualifiedName(cm, this);
+				var cmName = cm == null ? string.Empty : FullNameFactory.AssemblyQualifiedName(cm, this);
 				Write(cmName);
 				Write(custMarshaler.Cookie);
 				break;
@@ -130,6 +130,6 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public void Dispose() => outStream?.Dispose();
 
-		bool IFullNameCreatorHelper.MustUseAssemblyName(IType type) => FullNameCreator.MustUseAssemblyName(module, type);
+		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) => FullNameFactory.MustUseAssemblyName(module, type);
 	}
 }

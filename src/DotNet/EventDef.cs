@@ -249,7 +249,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the full name of the event
 		/// </summary>
-		public string FullName => FullNameCreator.EventFullName(declaringType2?.FullName, name, eventType, null, null);
+		public string FullName => FullNameFactory.EventFullName(declaringType2?.FullName, name, eventType, null, null);
 
 		bool IIsTypeOrMethod.IsType => false;
 		bool IIsTypeOrMethod.IsMethod => false;

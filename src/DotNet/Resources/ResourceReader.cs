@@ -41,11 +41,11 @@ namespace dnlib.DotNet.Resources {
 	/// Gets called to create a <see cref="IResourceData"/> from serialized data. Returns <c>null</c>
 	/// if a default <see cref="IResourceData"/> instance should be created.
 	/// </summary>
-	/// <param name="resourceDataCreator">ResourceDataCreator</param>
+	/// <param name="resourceDataFactory">ResourceDataFactory</param>
 	/// <param name="type">Serialized type</param>
 	/// <param name="serializedData">Serialized data</param>
 	/// <returns></returns>
-	public delegate IResourceData CreateResourceDataDelegate(ResourceDataCreator resourceDataCreator, UserResourceType type, byte[] serializedData);
+	public delegate IResourceData CreateResourceDataDelegate(ResourceDataFactory resourceDataFactory, UserResourceType type, byte[] serializedData);
 
 	/// <summary>
 	/// Reads .NET resources
@@ -53,12 +53,12 @@ namespace dnlib.DotNet.Resources {
 	public struct ResourceReader {
 		DataReader reader;
 		readonly uint baseFileOffset;
-		readonly ResourceDataCreator resourceDataCreator;
+		readonly ResourceDataFactory resourceDataFactory;
 		readonly CreateResourceDataDelegate createResourceDataDelegate;
 
 		ResourceReader(ModuleDef module, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
 			this.reader = reader;
-			resourceDataCreator = new ResourceDataCreator(module);
+			resourceDataFactory = new ResourceDataFactory(module);
 			this.createResourceDataDelegate = createResourceDataDelegate;
 			baseFileOffset = reader.StartOffset;
 		}
@@ -165,25 +165,25 @@ namespace dnlib.DotNet.Resources {
 			uint endPos = reader.Position + (uint)size;
 			uint code = ReadUInt32(ref reader);
 			switch ((ResourceTypeCode)code) {
-			case ResourceTypeCode.Null:		return resourceDataCreator.CreateNull();
-			case ResourceTypeCode.String:	return resourceDataCreator.Create(reader.ReadSerializedString());
-			case ResourceTypeCode.Boolean:	return resourceDataCreator.Create(reader.ReadBoolean());
-			case ResourceTypeCode.Char:		return resourceDataCreator.Create(reader.ReadChar());
-			case ResourceTypeCode.Byte:		return resourceDataCreator.Create(reader.ReadByte());
-			case ResourceTypeCode.SByte:	return resourceDataCreator.Create(reader.ReadSByte());
-			case ResourceTypeCode.Int16:	return resourceDataCreator.Create(reader.ReadInt16());
-			case ResourceTypeCode.UInt16:	return resourceDataCreator.Create(reader.ReadUInt16());
-			case ResourceTypeCode.Int32:	return resourceDataCreator.Create(reader.ReadInt32());
-			case ResourceTypeCode.UInt32:	return resourceDataCreator.Create(reader.ReadUInt32());
-			case ResourceTypeCode.Int64:	return resourceDataCreator.Create(reader.ReadInt64());
-			case ResourceTypeCode.UInt64:	return resourceDataCreator.Create(reader.ReadUInt64());
-			case ResourceTypeCode.Single:	return resourceDataCreator.Create(reader.ReadSingle());
-			case ResourceTypeCode.Double:	return resourceDataCreator.Create(reader.ReadDouble());
-			case ResourceTypeCode.Decimal:	return resourceDataCreator.Create(reader.ReadDecimal());
-			case ResourceTypeCode.DateTime: return resourceDataCreator.Create(DateTime.FromBinary(reader.ReadInt64()));
-			case ResourceTypeCode.TimeSpan:	return resourceDataCreator.Create(new TimeSpan(reader.ReadInt64()));
-			case ResourceTypeCode.ByteArray:return resourceDataCreator.Create(reader.ReadBytes(reader.ReadInt32()));
-			case ResourceTypeCode.Stream:	return resourceDataCreator.CreateStream(reader.ReadBytes(reader.ReadInt32()));
+			case ResourceTypeCode.Null:		return resourceDataFactory.CreateNull();
+			case ResourceTypeCode.String:	return resourceDataFactory.Create(reader.ReadSerializedString());
+			case ResourceTypeCode.Boolean:	return resourceDataFactory.Create(reader.ReadBoolean());
+			case ResourceTypeCode.Char:		return resourceDataFactory.Create(reader.ReadChar());
+			case ResourceTypeCode.Byte:		return resourceDataFactory.Create(reader.ReadByte());
+			case ResourceTypeCode.SByte:	return resourceDataFactory.Create(reader.ReadSByte());
+			case ResourceTypeCode.Int16:	return resourceDataFactory.Create(reader.ReadInt16());
+			case ResourceTypeCode.UInt16:	return resourceDataFactory.Create(reader.ReadUInt16());
+			case ResourceTypeCode.Int32:	return resourceDataFactory.Create(reader.ReadInt32());
+			case ResourceTypeCode.UInt32:	return resourceDataFactory.Create(reader.ReadUInt32());
+			case ResourceTypeCode.Int64:	return resourceDataFactory.Create(reader.ReadInt64());
+			case ResourceTypeCode.UInt64:	return resourceDataFactory.Create(reader.ReadUInt64());
+			case ResourceTypeCode.Single:	return resourceDataFactory.Create(reader.ReadSingle());
+			case ResourceTypeCode.Double:	return resourceDataFactory.Create(reader.ReadDouble());
+			case ResourceTypeCode.Decimal:	return resourceDataFactory.Create(reader.ReadDecimal());
+			case ResourceTypeCode.DateTime: return resourceDataFactory.Create(DateTime.FromBinary(reader.ReadInt64()));
+			case ResourceTypeCode.TimeSpan:	return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
+			case ResourceTypeCode.ByteArray:return resourceDataFactory.Create(reader.ReadBytes(reader.ReadInt32()));
+			case ResourceTypeCode.Stream:	return resourceDataFactory.CreateStream(reader.ReadBytes(reader.ReadInt32()));
 			default:
 				int userTypeIndex = (int)(code - (uint)ResourceTypeCode.UserTypes);
 				if (userTypeIndex < 0 || userTypeIndex >= userTypes.Count)
@@ -191,11 +191,11 @@ namespace dnlib.DotNet.Resources {
 				var userType = userTypes[userTypeIndex];
 				var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
 				if (createResourceDataDelegate != null) {
-					var res = createResourceDataDelegate(resourceDataCreator, userType, serializedData);
+					var res = createResourceDataDelegate(resourceDataFactory, userType, serializedData);
 					if (res != null)
 						return res;
 				}
-				return resourceDataCreator.CreateSerialized(serializedData, userType);
+				return resourceDataFactory.CreateSerialized(serializedData, userType);
 			}
 		}
 

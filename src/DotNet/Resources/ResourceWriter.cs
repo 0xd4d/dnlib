@@ -15,12 +15,12 @@ namespace dnlib.DotNet.Resources {
 		ModuleDef module;
 		BinaryWriter writer;
 		ResourceElementSet resources;
-		ResourceDataCreator typeCreator;
+		ResourceDataFactory typeCreator;
 		Dictionary<UserResourceData, UserResourceType> dataToNewType = new Dictionary<UserResourceData, UserResourceType>();
 
 		ResourceWriter(ModuleDef module, Stream stream, ResourceElementSet resources) {
 			this.module = module;
-			typeCreator = new ResourceDataCreator(module);
+			typeCreator = new ResourceDataFactory(module);
 			writer = new BinaryWriter(stream);
 			this.resources = resources;
 		}

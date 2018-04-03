@@ -9,7 +9,7 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Low level access to a .NET file's metadata
 	/// </summary>
-	public static class MetadataCreator {
+	public static class MetadataFactory {
 		enum MetadataType {
 			Unknown,
 			Compressed,	// #~ (normal)

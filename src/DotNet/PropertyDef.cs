@@ -333,7 +333,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the full name of the property
 		/// </summary>
-		public string FullName => FullNameCreator.PropertyFullName(declaringType2?.FullName, name, type, null, null);
+		public string FullName => FullNameFactory.PropertyFullName(declaringType2?.FullName, name, type, null, null);
 
 		bool IIsTypeOrMethod.IsType => false;
 		bool IIsTypeOrMethod.IsMethod => false;

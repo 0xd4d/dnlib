@@ -434,7 +434,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the full name
 		/// </summary>
-		public string FullName => FullNameCreator.MethodFullName(declaringType2?.FullName, name, MethodSig, null, null, this, null);
+		public string FullName => FullNameFactory.MethodFullName(declaringType2?.FullName, name, MethodSig, null, null, this, null);
 
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSig"/>

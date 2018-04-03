@@ -10,7 +10,7 @@ using dnlib.PE;
 using DDW = dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
-	static class SymbolReaderCreator {
+	static class SymbolReaderFactory {
 		public static SymbolReader TryCreate(PdbReaderContext pdbContext, DataReaderFactory pdbStream, bool isEmbeddedPortablePdb) {
 			bool disposePdbStream = true;
 			try {
