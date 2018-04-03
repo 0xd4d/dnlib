@@ -51,7 +51,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets all custom debug infos
 		/// </summary>
 		public IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
-		readonly IList<PdbCustomDebugInfo> customDebugInfos = new List<PdbCustomDebugInfo>();
+		IList<PdbCustomDebugInfo> customDebugInfos;
 
 		/// <summary>
 		/// Default constructor
@@ -63,15 +63,27 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		/// <param name="symDoc">A <see cref="SymbolDocument"/> instance</param>
-		public PdbDocument(SymbolDocument symDoc) {
+		public PdbDocument(SymbolDocument symDoc) : this(symDoc, partial: false) {
+		}
+
+		PdbDocument(SymbolDocument symDoc, bool partial) {
 			if (symDoc == null)
 				throw new ArgumentNullException(nameof(symDoc));
 			Url = symDoc.URL;
+			if (!partial)
+				Initialize(symDoc);
+		}
+
+		internal static PdbDocument CreatePartialForCompare(SymbolDocument symDoc) =>
+			new PdbDocument(symDoc, partial: true);
+
+		internal void Initialize(SymbolDocument symDoc) {
 			Language = symDoc.Language;
 			LanguageVendor = symDoc.LanguageVendor;
 			DocumentType = symDoc.DocumentType;
 			CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
 			CheckSum = symDoc.CheckSum;
+			customDebugInfos = new List<PdbCustomDebugInfo>();
 			foreach (var cdi in symDoc.CustomDebugInfos)
 				customDebugInfos.Add(cdi);
 		}

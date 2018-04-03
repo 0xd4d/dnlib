@@ -27,7 +27,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 				var pdbReader = new PdbReader(pdbGuid, age);
 				pdbReader.Read(pdbStream.CreateReader());
-				if (pdbReader.IsValidSignature)
+				if (pdbReader.MatchesModule)
 					return pdbReader;
 				return null;
 			}

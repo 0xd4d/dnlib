@@ -1,6 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 ﻿using System;
+using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
@@ -13,6 +14,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		Guid documentType;
 		Guid checkSumAlgorithmId;
 		byte[] checkSum;
+		byte[] sourceCode;
 
 		public override string URL => url;
 		public override Guid Language => language;
@@ -20,7 +22,21 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public override Guid DocumentType => documentType;
 		public override Guid CheckSumAlgorithmId => checkSumAlgorithmId;
 		public override byte[] CheckSum => checkSum;
-		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
+		byte[] SourceCode => sourceCode;
+
+		public override PdbCustomDebugInfo[] CustomDebugInfos {
+			get {
+				if (customDebugInfos == null) {
+					var sourceCode = SourceCode;
+					if (sourceCode != null)
+						customDebugInfos = new PdbCustomDebugInfo[1] { new PdbEmbeddedSourceCustomDebugInfo(sourceCode) };
+					else
+						customDebugInfos = Array2.Empty<PdbCustomDebugInfo>();
+				}
+				return customDebugInfos;
+			}
+		}
+		PdbCustomDebugInfo[] customDebugInfos;
 
 		public DbiDocument(string url) {
 			this.url = url;
@@ -33,12 +49,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 			languageVendor = reader.ReadGuid();
 			documentType = reader.ReadGuid();
 			checkSumAlgorithmId = reader.ReadGuid();
-
-			var len = reader.ReadInt32();
-			if (reader.ReadUInt32() != 0)
-				throw new PdbException("Unexpected value");
-
-			checkSum = reader.ReadBytes(len);
+			int checkSumLen = reader.ReadInt32();
+			int sourceLen = reader.ReadInt32();
+			checkSum = reader.ReadBytes(checkSumLen);
+			sourceCode = sourceLen == 0 ? null : reader.ReadBytes(sourceLen);
+			Debug.Assert(reader.BytesLeft == 0);
 		}
 	}
 }

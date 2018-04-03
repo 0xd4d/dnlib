@@ -124,7 +124,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbDynamicLocalVariablesCustomDebugInfo(flags);
 		}
 
-		PdbCustomDebugInfo ReadEmbeddedSource() => new PdbEmbeddedSourceCustomDebugInfo(reader.ToArray());
+		PdbCustomDebugInfo ReadEmbeddedSource() => new PdbEmbeddedSourceCustomDebugInfo(reader.ReadRemainingBytes());
 
 		PdbCustomDebugInfo ReadEncLambdaAndClosureMap(long recPosEnd) {
 			var data = reader.ReadBytes((int)(recPosEnd - reader.Position));
@@ -136,7 +136,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbEditAndContinueLocalSlotMapCustomDebugInfo(data);
 		}
 
-		PdbCustomDebugInfo ReadSourceLink() => new PdbSourceLinkCustomDebugInfo(reader.ToArray());
+		PdbCustomDebugInfo ReadSourceLink() => new PdbSourceLinkCustomDebugInfo(reader.ReadRemainingBytes());
 
 		PdbCustomDebugInfo ReadStateMachineHoistedLocalScopes() {
 			if (bodyOpt == null)

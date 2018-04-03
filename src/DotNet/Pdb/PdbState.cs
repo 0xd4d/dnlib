@@ -100,7 +100,7 @@ namespace dnlib.DotNet.Pdb {
 			var documents = reader.Documents;
 			int count = documents.Count;
 			for (int i = 0; i < count; i++)
-				Add_NoLock(new PdbDocument(documents[i]));
+				Add_NoLock(documents[i]);
 		}
 
 		/// <summary>
@@ -122,6 +122,16 @@ namespace dnlib.DotNet.Pdb {
 		PdbDocument Add_NoLock(PdbDocument doc) {
 			if (docDict.TryGetValue(doc, out var orig))
 				return orig;
+			docDict.Add(doc, doc);
+			return doc;
+		}
+
+		PdbDocument Add_NoLock(SymbolDocument symDoc) {
+			var doc = PdbDocument.CreatePartialForCompare(symDoc);
+			if (docDict.TryGetValue(doc, out var orig))
+				return orig;
+			// Expensive part, can read source code etc
+			doc.Initialize(symDoc);
 			docDict.Add(doc, doc);
 			return doc;
 		}
@@ -236,7 +246,7 @@ namespace dnlib.DotNet.Pdb {
 				if (instr == null)
 					continue;
 				var seqPoint = new SequencePoint() {
-					Document = Add_NoLock(new PdbDocument(sp.Document)),
+					Document = Add_NoLock(sp.Document),
 					StartLine = sp.Line,
 					StartColumn = sp.Column,
 					EndLine = sp.EndLine,

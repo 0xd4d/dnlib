@@ -57,6 +57,37 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
+		byte[] SourceCode {
+			get {
+				int hr = document.GetSourceLength(out int size);
+				if (hr < 0)
+					return null;
+				if (size <= 0)
+					return null;
+				var sourceCode = new byte[size];
+				hr = document.GetSourceRange(0, 0, int.MaxValue, int.MaxValue, size, out var bytesRead, sourceCode);
+				if (hr < 0)
+					return null;
+				if (bytesRead <= 0)
+					return null;
+				if (bytesRead != sourceCode.Length)
+					Array.Resize(ref sourceCode, bytesRead);
+				return sourceCode;
+			}
+		}
+
+		public override PdbCustomDebugInfo[] CustomDebugInfos {
+			get {
+				if (customDebugInfos == null) {
+					var sourceCode = SourceCode;
+					if (sourceCode != null)
+						customDebugInfos = new PdbCustomDebugInfo[1] { new PdbEmbeddedSourceCustomDebugInfo(sourceCode) };
+					else
+						customDebugInfos = Array2.Empty<PdbCustomDebugInfo>();
+				}
+				return customDebugInfos;
+			}
+		}
+		PdbCustomDebugInfo[] customDebugInfos;
 	}
 }

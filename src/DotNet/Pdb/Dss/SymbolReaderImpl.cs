@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
@@ -76,6 +77,50 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		public override void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
+			if (token == 0x00000001)
+				GetCustomDebugInfos_ModuleDef(result);
+		}
+
+		void GetCustomDebugInfos_ModuleDef(IList<PdbCustomDebugInfo> result) {
+			var sourceLinkData = GetSourceLinkData();
+			if (sourceLinkData != null)
+				result.Add(new PdbSourceLinkCustomDebugInfo(sourceLinkData));
+			var sourceServerData = GetSourceServerData();
+			if (sourceServerData != null)
+				result.Add(new PdbSourceServerCustomDebugInfo(sourceServerData));
+		}
+
+		byte[] GetSourceLinkData() {
+			if (reader is ISymUnmanagedReader4 reader4) {
+				// It returns data that it owns. The data is freed once its Destroy() method is called
+				Debug.Assert(reader is ISymUnmanagedDispose);
+				// Despite its name, it seems to only return source link, and not source server info
+				if (reader4.GetSourceServerData(out var srcLinkData, out int sizeData) >= 0 && sizeData > 0) {
+					var data = new byte[sizeData];
+					Marshal.Copy(srcLinkData, data, 0, data.Length);
+					return data;
+				}
+			}
+			return null;
+		}
+
+		byte[] GetSourceServerData() {
+			if (reader is ISymUnmanagedSourceServerModule srcSrvModule) {
+				var srcSrvData = IntPtr.Zero;
+				try {
+					// This method only returns source server, not source link info
+					if (srcSrvModule.GetSourceServerData(out int sizeData, out srcSrvData) >= 0 && sizeData > 0) {
+						var data = new byte[sizeData];
+						Marshal.Copy(srcSrvData, data, 0, data.Length);
+						return data;
+					}
+				}
+				finally {
+					if (srcSrvData != IntPtr.Zero)
+						Marshal.FreeCoTaskMem(srcSrvData);
+				}
+			}
+			return null;
 		}
 
 		public override void Dispose() {
@@ -95,7 +140,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			objsToKeepAlive = null;
 		}
 
-		public bool IsValidSignature(Guid pdbId, uint stamp, uint age) {
+		public bool MatchesModule(Guid pdbId, uint stamp, uint age) {
 			if (reader is ISymUnmanagedReader4 reader4) {
 				int hr = reader4.MatchesModule(pdbId, stamp, age, out bool result);
 				if (hr < 0)

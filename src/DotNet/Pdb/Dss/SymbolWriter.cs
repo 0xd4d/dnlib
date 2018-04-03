@@ -189,6 +189,24 @@ namespace dnlib.DotNet.Pdb.Dss {
 				writer.Initialize(new MDEmitter(metadata), pdbFileName, new StreamIStream(pdbStream), true);
 		}
 
+		public unsafe void SetSourceServerData(byte[] data) {
+			if (data == null)
+				return;
+			if (writer is ISymUnmanagedWriter8 writer8) {
+				fixed (void* p = data)
+					writer8.SetSourceServerData(new IntPtr(p), (uint)data.Length);
+			}
+		}
+
+		public unsafe void SetSourceLinkData(byte[] data) {
+			if (data == null)
+				return;
+			if (writer is ISymUnmanagedWriter8 writer8) {
+				fixed (void* p = data)
+					writer8.SetSourceLinkData(new IntPtr(p), (uint)data.Length);
+			}
+		}
+
 		public void Dispose() {
 			Marshal.FinalReleaseComObject(writer);
 			if (ownsStream)

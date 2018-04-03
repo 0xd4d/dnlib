@@ -17,5 +17,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		void DefineKickoffMethod(uint kickoffMethod);
 		void DefineCatchHandlerILOffset(uint catchHandlerOffset);
 		void DefineAsyncStepInfo(uint[] yieldOffsets, uint[] breakpointOffset, uint[] breakpointMethod);
+		void SetSourceServerData(byte[] data);
+		void SetSourceLinkData(byte[] data);
 	}
 }

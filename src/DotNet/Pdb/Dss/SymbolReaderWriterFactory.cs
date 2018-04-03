@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 					return null;
 
 				symReader = new SymbolReaderImpl(unmanagedReader, new object[] { pdbStream, mdImporter, comPdbStream });
-				if (!symReader.IsValidSignature(pdbGuid, debugDir.TimeDateStamp, age))
+				if (!symReader.MatchesModule(pdbGuid, debugDir.TimeDateStamp, age))
 					return null;
 
 				error = false;

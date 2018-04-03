@@ -17,23 +17,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 	[ComVisible(true),
 	ComImport,
-	Guid("809C652E-7396-11D2-9771-00A0C9B4D50C"),
+	Guid("997DD0CC-A76F-4c82-8D79-EA87559D27AD"),
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	interface IMetaDataDispenser {
-		void DefineScope([In] ref Guid rclsid, [In] uint dwCreateFlags, [In] ref Guid riid, [Out, MarshalAs(UnmanagedType.IUnknown)] out object ppIUnk);
-		void OpenScope([In, MarshalAs(UnmanagedType.LPWStr)] string szScope, [In] uint dwOpenFlags, [In] ref Guid riid, [Out, MarshalAs(UnmanagedType.IUnknown)] out object ppIUnk);
-		void OpenScopeOnMemory([In] IntPtr pData, [In] uint cbData, [In] uint dwOpenFlags, [In] ref Guid riid, [Out, MarshalAs(UnmanagedType.IUnknown)] out object ppIUnk);
-	}
-
-	[ComVisible(true),
-	ComImport,
-	Guid("AA544D42-28CB-11D3-BD22-0000F80849BD"),
-	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	interface ISymUnmanagedBinder {
+	interface ISymUnmanagedSourceServerModule {
 		[PreserveSig]
-		int GetReaderForFile([In, MarshalAs(UnmanagedType.IUnknown)] object importer, [In, MarshalAs(UnmanagedType.LPWStr)] string fileName, [In, MarshalAs(UnmanagedType.LPWStr)] string searchPath, [Out] out ISymUnmanagedReader pRetVal);
-		[PreserveSig]
-		int GetReaderFromStream([In, MarshalAs(UnmanagedType.IUnknown)] object importer, [In] IStream pstream, [Out] out ISymUnmanagedReader pRetVal);
+		int GetSourceServerData(out int pDataByteCount, out IntPtr ppData);
 	}
 
 	[ComVisible(true),
@@ -93,7 +81,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[PreserveSig]
 		int MatchesModule(Guid guid, uint stamp, uint age, [MarshalAs(UnmanagedType.Bool)] out bool result);
 		void GetPortableDebugMetadata(out IntPtr pMetadata, out uint pcMetadata);
-		void GetSourceServerData(out IntPtr data, out uint pcData);
+		[PreserveSig]
+		int GetSourceServerData(out IntPtr data, out int pcData);
 	}
 
 	[ComVisible(true),
@@ -118,8 +107,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void GetCheckSum([In] uint cData, [Out] out uint pcData, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[] data);
 		void FindClosestLine([In] uint line, [Out] out uint pRetVal);
 		void HasEmbeddedSource([Out] out bool pRetVal);
-		void GetSourceLength([Out] out uint pRetVal);
-		void GetSourceRange([In] uint startLine, [In] uint startColumn, [In] uint endLine, [In] uint endColumn, [In] uint cSourceBytes, [Out] out uint pcSourceBytes, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] source);
+		[PreserveSig]
+		int GetSourceLength([Out] out int pRetVal);
+		[PreserveSig]
+		int GetSourceRange([In] uint startLine, [In] uint startColumn, [In] uint endLine, [In] uint endColumn, [In] int cSourceBytes, [Out] out int pcSourceBytes, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] byte[] source);
 	}
 
 	[ComVisible(true),

@@ -88,6 +88,11 @@ namespace dnlib.DotNet.Pdb {
 		SourceLink,
 
 		/// <summary>
+		/// <see cref="PdbSourceServerCustomDebugInfo"/>
+		/// </summary>
+		SourceServer,
+
+		/// <summary>
 		/// <see cref="PdbAsyncMethodCustomDebugInfo"/>
 		/// </summary>
 		AsyncMethod,
@@ -799,7 +804,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the source link file contents
 		/// </summary>
-		public byte[] SourceLinkBlob { get; set; }
+		public byte[] FileBlob { get; set; }
 
 		/// <summary>
 		/// Constructor
@@ -810,8 +815,40 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="sourceLinkBlob">Source link file contents</param>
-		public PdbSourceLinkCustomDebugInfo(byte[] sourceLinkBlob) => SourceLinkBlob = sourceLinkBlob;
+		/// <param name="fileBlob">Source link file contents</param>
+		public PdbSourceLinkCustomDebugInfo(byte[] fileBlob) => FileBlob = fileBlob;
+	}
+
+	/// <summary>
+	/// Contains the source server file
+	/// </summary>
+	public sealed class PdbSourceServerCustomDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.SourceServer"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind => PdbCustomDebugInfoKind.SourceServer;
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid => Guid.Empty;
+
+		/// <summary>
+		/// Gets the source server file contents
+		/// </summary>
+		public byte[] FileBlob { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbSourceServerCustomDebugInfo() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="fileBlob">Source server file contents</param>
+		public PdbSourceServerCustomDebugInfo(byte[] fileBlob) => FileBlob = fileBlob;
 	}
 
 	/// <summary>

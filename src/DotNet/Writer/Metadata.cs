@@ -3255,6 +3255,7 @@ namespace dnlib.DotNet.Writer {
 			case PdbCustomDebugInfoKind.StateMachineTypeName:
 			case PdbCustomDebugInfoKind.DynamicLocals:
 			case PdbCustomDebugInfoKind.TupleElementNames:
+			case PdbCustomDebugInfoKind.SourceServer:
 				// These are Windows PDB CDIs
 				Error("Unsupported custom debug info {0}", cdi.Kind);
 				break;

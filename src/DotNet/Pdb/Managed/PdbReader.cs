@@ -28,6 +28,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		Dictionary<string, DbiDocument> documents;
 		Dictionary<int, DbiFunction> functions;
+		byte[] sourcelinkData;
+		byte[] srcsrvData;
 		uint entryPt;
 
 		public override PdbFileKind PdbFileKind => PdbFileKind.WindowsPDB;
@@ -35,7 +37,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		uint Age { get; set; }
 		Guid Guid { get; set; }
 
-		internal bool IsValidSignature => expectedGuid == Guid && expectedAge == Age;
+		internal bool MatchesModule => expectedGuid == Guid && expectedAge == Age;
 		readonly Guid expectedGuid;
 		readonly uint expectedAge;
 
@@ -104,7 +106,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			ReadRootDirectory(new MsfStream(rootPages, rootSize), pages, pageSize);
 
 			ReadNames();
-			if (!IsValidSignature)
+			if (!MatchesModule)
 				return;
 			ReadStringTable();
 			var tokenMapStream = ReadModules();
@@ -125,6 +127,17 @@ namespace dnlib.DotNet.Pdb.Managed {
 					functions.Add(func.Token, func);
 				}
 			}
+
+			sourcelinkData = TryGetRawFileData("sourcelink");
+			srcsrvData = TryGetRawFileData("srcsrv");
+		}
+
+		byte[] TryGetRawFileData(string name) {
+			if (!names.TryGetValue(name, out uint streamId))
+				return null;
+			if (streamId > ushort.MaxValue || !IsValidStreamIndex((ushort)streamId))
+				return null;
+			return streams[streamId].Content.ToArray();
 		}
 
 		bool IsValidStreamIndex(ushort index) => index != STREAM_INVALID_INDEX && index < streams.Length;
@@ -336,6 +349,15 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		public override void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
+			if (token == 0x00000001)
+				GetCustomDebugInfos_ModuleDef(result);
+		}
+
+		void GetCustomDebugInfos_ModuleDef(IList<PdbCustomDebugInfo> result) {
+			if (sourcelinkData != null)
+				result.Add(new PdbSourceLinkCustomDebugInfo(sourcelinkData));
+			if (srcsrvData != null)
+				result.Add(new PdbSourceServerCustomDebugInfo(srcsrvData));
 		}
 	}
 }

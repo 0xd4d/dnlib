@@ -26,13 +26,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 			pdbMetadata = MetadataFactory.CreateStandalonePortablePDB(pdbStream, true);
 		}
 
-		internal bool CheckVersion(Guid pdbGuid, uint timestamp) {
+		internal bool MatchesModule(Guid pdbGuid, uint timestamp, uint age) {
 			if (pdbMetadata.PdbStream is PdbStream pdbStream) {
 				var pdbGuidArray = pdbStream.Id;
 				Array.Resize(ref pdbGuidArray, 16);
 				if (new Guid(pdbGuidArray) != pdbGuid)
 					return false;
 				if (BitConverter.ToUInt32(pdbStream.Id, 16) != timestamp)
+					return false;
+				if (age != 1)
 					return false;
 
 				return true;

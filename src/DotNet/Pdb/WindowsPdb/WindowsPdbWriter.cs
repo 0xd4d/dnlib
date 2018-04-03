@@ -45,8 +45,23 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return docWriter;
 			docWriter = writer.DefineDocument(pdbDoc.Url, pdbDoc.Language, pdbDoc.LanguageVendor, pdbDoc.DocumentType);
 			docWriter.SetCheckSum(pdbDoc.CheckSumAlgorithmId, pdbDoc.CheckSum);
+			if (TryGetCustomDebugInfo(pdbDoc, out PdbEmbeddedSourceCustomDebugInfo sourceCdi))
+				docWriter.SetSource(sourceCdi.SourceCodeBlob);
 			pdbDocs.Add(pdbDoc, docWriter);
 			return docWriter;
+		}
+
+		static bool TryGetCustomDebugInfo<TCDI>(IHasCustomDebugInformation hci, out TCDI cdi) where TCDI : PdbCustomDebugInfo {
+			var cdis = hci.CustomDebugInfos;
+			int count = cdis.Count;
+			for (int i = 0; i < count; i++) {
+				if (cdis[i] is TCDI cdi2) {
+					cdi = cdi2;
+					return true;
+				}
+			}
+			cdi = null;
+			return false;
 		}
 
 		public void Write() {
@@ -67,6 +82,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					Write(method, cdiBuilder);
 				}
 			}
+
+			if (TryGetCustomDebugInfo(module, out PdbSourceLinkCustomDebugInfo sourceLinkCdi))
+				writer.SetSourceLinkData(sourceLinkCdi.FileBlob);
+			if (TryGetCustomDebugInfo(module, out PdbSourceServerCustomDebugInfo sourceServerCdi))
+				writer.SetSourceServerData(sourceServerCdi.FileBlob);
 		}
 
 		bool ShouldAddMethod(MethodDef method) {

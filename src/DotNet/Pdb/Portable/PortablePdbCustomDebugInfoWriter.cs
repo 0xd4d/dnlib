@@ -40,6 +40,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case PdbCustomDebugInfoKind.DynamicLocals:
 			case PdbCustomDebugInfoKind.TupleElementNames:
 			case PdbCustomDebugInfoKind.IteratorMethod:
+			case PdbCustomDebugInfoKind.SourceServer:
 			default:
 				helper.Error("Unreachable code, caller should filter these out");
 				return null;
@@ -201,7 +202,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		void WriteSourceLink(PdbSourceLinkCustomDebugInfo cdi) {
-			var d = cdi.SourceLinkBlob;
+			var d = cdi.FileBlob;
 			if (d == null) {
 				helper.Error("Source link blob is null");
 				return;
