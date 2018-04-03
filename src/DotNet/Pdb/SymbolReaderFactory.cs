@@ -8,8 +8,30 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
 	static class SymbolReaderFactory {
-		public static SymbolReader CreateFromAssemblyFile(PdbReaderOptions options, Metadata metadata, string assemblyFileName) =>
-			Create(options, metadata, Path.ChangeExtension(assemblyFileName, "pdb"));
+		public static SymbolReader CreateFromAssemblyFile(PdbReaderOptions options, Metadata metadata, string assemblyFileName) {
+			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
+			if (!pdbContext.HasDebugInfo)
+				return null;
+			if (!pdbContext.TryGetCodeViewData(out var guid, out uint age, out var pdbWindowsFilename))
+				return null;
+
+			string pdbFilename;
+			int index = pdbWindowsFilename.LastIndexOfAny(windowsPathSepChars);
+			if (index >= 0)
+				pdbFilename = pdbWindowsFilename.Substring(index + 1);
+			else
+				pdbFilename = pdbWindowsFilename;
+
+			var fileToCheck = Path.Combine(Path.GetDirectoryName(assemblyFileName), pdbFilename);
+			if (!File.Exists(fileToCheck)) {
+				var ext = Path.GetExtension(pdbFilename);
+				if (string.IsNullOrEmpty(ext))
+					ext = "pdb";
+				fileToCheck = Path.ChangeExtension(assemblyFileName, ext);
+			}
+			return Create(options, metadata, fileToCheck);
+		}
+		static readonly char[] windowsPathSepChars = new char[] { '\\', '/' };
 
 		public static SymbolReader Create(PdbReaderOptions options, Metadata metadata, string pdbFileName) {
 			var pdbContext = new PdbReaderContext(metadata.PEImage, options);

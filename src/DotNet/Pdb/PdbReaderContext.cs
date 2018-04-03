@@ -33,9 +33,12 @@ namespace dnlib.DotNet.Pdb {
 			return null;
 		}
 
-		public bool TryGetCodeViewData(out Guid guid, out uint age) {
+		public bool TryGetCodeViewData(out Guid guid, out uint age) => TryGetCodeViewData(out guid, out age, out _);
+
+		public bool TryGetCodeViewData(out Guid guid, out uint age, out string pdbFilename) {
 			guid = Guid.Empty;
 			age = 0;
+			pdbFilename = null;
 			var reader = GetCodeViewDataReader();
 			// magic, guid, age, zero-terminated string
 			if (reader.Length < 4 + 16 + 4 + 1)
@@ -44,7 +47,8 @@ namespace dnlib.DotNet.Pdb {
 				return false;
 			guid = reader.ReadGuid();
 			age = reader.ReadUInt32();
-			return true;
+			pdbFilename = reader.TryReadZeroTerminatedUtf8String();
+			return pdbFilename != null;
 		}
 
 		DataReader GetCodeViewDataReader() {
