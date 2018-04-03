@@ -22,14 +22,12 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var debugDir = pdbContext.CodeViewDebugDirectory;
 				if (debugDir == null)
 					return null;
-				if (debugDir.MajorVersion != 0 || debugDir.MinorVersion != 0)
-					return null;
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
 				var pdbReader = new PdbReader(pdbGuid, age);
 				pdbReader.Read(pdbStream.CreateReader());
-				if (pdbReader.Guid == pdbGuid && pdbReader.Age == age)
+				if (pdbReader.IsValidSignature)
 					return pdbReader;
 				return null;
 			}

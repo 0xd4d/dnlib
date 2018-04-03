@@ -305,7 +305,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var data in dataList) {
 				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DATA_ALIGNMENT);
 				dataDict[data] = rsrcOffset;
-				rsrcOffset += data.GetReader().Length;
+				rsrcOffset += data.CreateReader().Length;
 			}
 
 			length = rsrcOffset;
@@ -400,7 +400,7 @@ namespace dnlib.DotNet.Writer {
 				if (dataDict[data] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource data offset");
 
-				var reader = data.GetReader();
+				var reader = data.CreateReader();
 				offset += reader.BytesLeft;
 				reader.CopyTo(writer, dataBuffer);
 			}
@@ -466,7 +466,7 @@ namespace dnlib.DotNet.Writer {
 
 		uint WriteTo(DataWriter writer, ResourceData dataHeader) {
 			writer.WriteUInt32((uint)rva + dataDict[dataHeader]);
-			writer.WriteUInt32((uint)dataHeader.GetReader().Length);
+			writer.WriteUInt32((uint)dataHeader.CreateReader().Length);
 			writer.WriteUInt32(dataHeader.CodePage);
 			writer.WriteUInt32(dataHeader.Reserved);
 			return 16;

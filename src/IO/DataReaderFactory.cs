@@ -23,7 +23,7 @@ namespace dnlib.IO {
 		/// Creates a data reader that can read all data
 		/// </summary>
 		/// <returns></returns>
-		public DataReader CreateReader() => CreateReader(0, Length);
+		public DataReader CreateReader() => CreateReader(0U, Length);
 
 		/// <summary>
 		/// Creates a data reader
@@ -33,6 +33,9 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public abstract DataReader CreateReader(uint offset, uint length);
 
+		static void ThrowArgumentOutOfRangeException(string paramName) =>
+			throw new ArgumentOutOfRangeException(paramName);
+
 		/// <summary>
 		/// Creates a data reader
 		/// </summary>
@@ -41,7 +44,7 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public DataReader CreateReader(uint offset, int length) {
 			if (length < 0)
-				throw new ArgumentOutOfRangeException(nameof(length));
+				ThrowArgumentOutOfRangeException(nameof(length));
 			return CreateReader(offset, (uint)length);
 		}
 
@@ -53,7 +56,7 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public DataReader CreateReader(int offset, uint length) {
 			if (offset < 0)
-				throw new ArgumentOutOfRangeException(nameof(offset));
+				ThrowArgumentOutOfRangeException(nameof(offset));
 			return CreateReader((uint)offset, length);
 		}
 
@@ -65,9 +68,9 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public DataReader CreateReader(int offset, int length) {
 			if (offset < 0)
-				throw new ArgumentOutOfRangeException(nameof(offset));
+				ThrowArgumentOutOfRangeException(nameof(offset));
 			if (length < 0)
-				throw new ArgumentOutOfRangeException(nameof(length));
+				ThrowArgumentOutOfRangeException(nameof(length));
 			return CreateReader((uint)offset, (uint)length);
 		}
 

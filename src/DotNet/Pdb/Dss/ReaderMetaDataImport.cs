@@ -7,7 +7,7 @@ using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed unsafe class ReaderMetaDataImport : MetaDataImport, IDisposable {
-		readonly Metadata metadata;
+		Metadata metadata;
 		byte* blobPtr;
 		IntPtr addrToFree;
 
@@ -75,6 +75,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		void Dispose(bool disposing) {
+			metadata = null;
 			var addrToFreeTmp = Interlocked.Exchange(ref addrToFree, IntPtr.Zero);
 			blobPtr = null;
 			if (addrToFreeTmp != IntPtr.Zero)

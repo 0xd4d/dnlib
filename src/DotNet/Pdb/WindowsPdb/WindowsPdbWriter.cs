@@ -355,7 +355,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					var constant = constants[i];
 					sig.Type = constant.Type;
 					var token = metadata.GetToken(sig);
-					writer.DefineConstant2(constant.Name, constant.Value ?? 0, token.Raw);
+					writer.DefineConstant2(constant.Name, constant.Value ?? boxedZeroInt32, token.Raw);
 				}
 			}
 			var scopeNamespaces = scope.Namespaces;
@@ -368,6 +368,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				WriteScope(ref info, scopes[i], recursionCounter + 1);
 			writer.CloseScope(startOffset == 0 && endOffset == info.BodySize ? endOffset : endOffset - localsEndScopeIncValue);
 		}
+		static readonly object boxedZeroInt32 = 0;
 
 		void AddLocals(MethodDef method, IList<PdbLocal> locals, uint startOffset, uint endOffset) {
 			if (locals.Count == 0)
@@ -417,6 +418,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		public void Dispose() {
 			if (writer != null)
 				Close();
+			writer?.Dispose();
 			writer = null;
 		}
 	}

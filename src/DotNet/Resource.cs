@@ -146,7 +146,7 @@ namespace dnlib.DotNet {
 		/// Gets a data reader that can access the resource
 		/// </summary>
 		/// <returns></returns>
-		public DataReader GetReader() => dataReaderFactory.CreateReader(resourceStartOffset, resourceLength);
+		public DataReader CreateReader() => dataReaderFactory.CreateReader(resourceStartOffset, resourceLength);
 
 		/// <inheritdoc/>
 		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - size: {(resourceLength)}";

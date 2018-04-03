@@ -10,8 +10,8 @@ using dnlib.DotNet.Pdb.WindowsPdb;
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolReaderImpl : SymbolReader {
 		ModuleDef module;
-		readonly ISymUnmanagedReader reader;
-		readonly object[] objsToKeepAlive;
+		ISymUnmanagedReader reader;
+		object[] objsToKeepAlive;
 
 		const int E_FAIL = unchecked((int)0x80004005);
 
@@ -85,13 +85,18 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		void Dispose(bool disposing) {
 			(reader as ISymUnmanagedDispose)?.Destroy();
-			foreach (var obj in objsToKeepAlive)
-				(obj as IDisposable)?.Dispose();
+			var o = objsToKeepAlive;
+			if (o != null) {
+				foreach (var obj in o)
+					(obj as IDisposable)?.Dispose();
+			}
+			module = null;
+			reader = null;
+			objsToKeepAlive = null;
 		}
 
-		public bool CheckVersion(Guid pdbId, uint stamp, uint age) {
+		public bool IsValidSignature(Guid pdbId, uint stamp, uint age) {
 			if (reader is ISymUnmanagedReader4 reader4) {
-				// Only id and age are verified
 				int hr = reader4.MatchesModule(pdbId, stamp, age, out bool result);
 				if (hr < 0)
 					return false;

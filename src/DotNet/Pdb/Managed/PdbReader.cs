@@ -32,15 +32,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		public override PdbFileKind PdbFileKind => PdbFileKind.WindowsPDB;
 
-		/// <summary>
-		/// The age of PDB file.
-		/// </summary>
-		public uint Age { get; private set; }
-		/// <summary>
-		/// The GUID of PDB file.
-		/// </summary>
-		public Guid Guid { get; private set; }
+		uint Age { get; set; }
+		Guid Guid { get; set; }
 
+		internal bool IsValidSignature => expectedGuid == Guid && expectedAge == Age;
 		readonly Guid expectedGuid;
 		readonly uint expectedAge;
 
@@ -109,7 +104,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			ReadRootDirectory(new MsfStream(rootPages, rootSize), pages, pageSize);
 
 			ReadNames();
-			if (Guid != expectedGuid || Age != expectedAge)
+			if (!IsValidSignature)
 				return;
 			ReadStringTable();
 			var tokenMapStream = ReadModules();

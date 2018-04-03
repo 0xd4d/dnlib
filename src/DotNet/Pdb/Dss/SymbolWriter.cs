@@ -143,8 +143,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 			if (isDeterministic) {
 				((ISymUnmanagedWriter3)writer).Commit();
+				var oldPos = pdbStream.Position;
 				pdbStream.Position = 0;
 				var checksumBytes = Hasher.Hash(pdbChecksumAlgorithm, pdbStream, pdbStream.Length);
+				pdbStream.Position = oldPos;
 				if (writer is ISymUnmanagedWriter8 writer8) {
 					RoslynContentIdProvider.GetContentId(checksumBytes, out guid, out stamp);
 					writer8.UpdateSignature(guid, stamp, pdbAge);

@@ -2889,7 +2889,7 @@ namespace dnlib.DotNet.Writer {
 						0);
 			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(er, rid);
-			embeddedResourceToByteArray[er] = netResources.Add(er.GetReader());
+			embeddedResourceToByteArray[er] = netResources.Add(er.CreateReader());
 			//TODO: Add custom attributes
 			//TODO: Add custom debug infos
 			return rid;

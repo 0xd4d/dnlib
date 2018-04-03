@@ -114,14 +114,14 @@ namespace dnlib.DotNet.Writer {
 		/// and if it's available at runtime, dnlib will try to use it. If this option is set, dnlib won't use it.
 		/// You have to add a reference to the NuGet package if you want to use it, dnlib has no reference to the NuGet package.
 		/// 
-		/// Only used if it's a Windows PDB file
+		/// This is only used if it's a Windows PDB file.
 		/// </summary>
 		NoDiaSymReader			= 0x00000001,
 
 		/// <summary>
 		/// Don't use diasymreader.dll's PDB writer that is shipped with .NET Framework.
 		/// 
-		/// Only used if it's a Windows PDB file
+		/// This is only used if it's a Windows PDB file.
 		/// </summary>
 		NoOldDiaSymReader		= 0x00000002,
 

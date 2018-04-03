@@ -59,7 +59,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the data reader
 		/// </summary>
-		public DataReader GetReader() => data;
+		public DataReader CreateReader() => data;
 
 		/// <summary>
 		/// Replaces the old data with new data. The new data must be the same size as the old data if

@@ -132,8 +132,8 @@ namespace dnlib.DotNet.Writer {
 
 			/// <inheritdoc/>
 			public override string ToString() {
-				uint offs = Chunk.GetReader().StartOffset;
-				return $"{PESection.DisplayName} FO:{offs:X8} L:{Chunk.GetReader().Length:X8}";
+				uint offs = Chunk.CreateReader().StartOffset;
+				return $"{PESection.DisplayName} FO:{offs:X8} L:{Chunk.CreateReader().Length:X8}";
 			}
 		}
 
@@ -331,7 +331,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			var lastOffs = GetLastFileSectionOffset();
 			extraData = new DataReaderChunk(peImage.CreateReader((FileOffset)lastOffs));
-			if (extraData.GetReader().Length == 0)
+			if (extraData.CreateReader().Length == 0)
 				extraData = null;
 		}
 

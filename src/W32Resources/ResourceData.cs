@@ -19,7 +19,7 @@ namespace dnlib.W32Resources {
 		/// Gets the data reader
 		/// </summary>
 		/// <returns></returns>
-		public DataReader GetReader() => dataReaderFactory.CreateReader(resourceStartOffset, resourceLength);
+		public DataReader CreateReader() => dataReaderFactory.CreateReader(resourceStartOffset, resourceLength);
 
 		/// <summary>
 		/// Gets/sets the code page

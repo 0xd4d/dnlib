@@ -56,8 +56,6 @@ namespace dnlib.DotNet.Pdb.Dss {
 				var debugDir = pdbContext.CodeViewDebugDirectory;
 				if (debugDir == null)
 					return null;
-				if (debugDir.MajorVersion != 0 || debugDir.MinorVersion != 0)
-					return null;
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
@@ -72,7 +70,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 					return null;
 
 				symReader = new SymbolReaderImpl(unmanagedReader, new object[] { pdbStream, mdImporter, comPdbStream });
-				if (!symReader.CheckVersion(pdbGuid, debugDir.TimeDateStamp, age))
+				if (!symReader.IsValidSignature(pdbGuid, debugDir.TimeDateStamp, age))
 					return null;
 
 				error = false;
@@ -97,10 +95,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		static ISymUnmanagedReader CreateSymUnmanagedReader(PdbReaderOptions options) {
-			bool useDiaSymreader = (options & PdbReaderOptions.NoDiaSymReader) == 0;
-			bool useOldDiaSymreader = (options & PdbReaderOptions.NoOldDiaSymReader) == 0;
+			bool useDiaSymReader = (options & PdbReaderOptions.NoDiaSymReader) == 0;
+			bool useOldDiaSymReader = (options & PdbReaderOptions.NoOldDiaSymReader) == 0;
 
-			if (useDiaSymreader && canTry_Microsoft_DiaSymReader_Native) {
+			if (useDiaSymReader && canTry_Microsoft_DiaSymReader_Native) {
 				try {
 					var guid = CLSID_CorSymReader_SxS;
 					object symReaderObj;
@@ -134,17 +132,17 @@ namespace dnlib.DotNet.Pdb.Dss {
 				canTry_Microsoft_DiaSymReader_Native = false;
 			}
 
-			if (useOldDiaSymreader)
+			if (useOldDiaSymReader)
 				return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ?? (CorSymReader_Type = Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS)));
 
 			return null;
 		}
 
 		static ISymUnmanagedWriter2 CreateSymUnmanagedWriter2(PdbWriterOptions options) {
-			bool useDiaSymreader = (options & PdbWriterOptions.NoDiaSymReader) == 0;
-			bool useOldDiaSymreader = (options & PdbWriterOptions.NoOldDiaSymReader) == 0;
+			bool useDiaSymReader = (options & PdbWriterOptions.NoDiaSymReader) == 0;
+			bool useOldDiaSymReader = (options & PdbWriterOptions.NoOldDiaSymReader) == 0;
 
-			if (useDiaSymreader && canTry_Microsoft_DiaSymReader_Native) {
+			if (useDiaSymReader && canTry_Microsoft_DiaSymReader_Native) {
 				try {
 					var guid = CLSID_CorSymWriter_SxS;
 					object symWriterObj;
@@ -178,7 +176,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				canTry_Microsoft_DiaSymReader_Native = false;
 			}
 
-			if (useOldDiaSymreader)
+			if (useOldDiaSymReader)
 				return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ?? (CorSymWriterType = Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS)));
 
 			return null;
