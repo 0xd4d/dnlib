@@ -241,7 +241,7 @@
     <Compile Include="DotNet\Pdb\Dss\SymbolNamespaceImpl.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolScopeImpl.cs" />
     <Compile Include="DotNet\Pdb\Dss\SymbolVariableImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolWriter.cs" />
+    <Compile Include="DotNet\Pdb\Dss\SymbolWriterImpl.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiDocument.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiFunction.cs" />
     <Compile Include="DotNet\Pdb\Managed\DbiModule.cs" />

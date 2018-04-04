@@ -10,7 +10,7 @@ using dnlib.DotNet.Pdb.WindowsPdb;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Dss {
-	sealed class SymbolWriter : ISymbolWriter2 {
+	sealed class SymbolWriterImpl : ISymbolWriter2 {
 		readonly ISymUnmanagedWriter2 writer;
 		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;
 		readonly string pdbFileName;
@@ -22,7 +22,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public bool IsDeterministic => isDeterministic;
 		public bool SupportsAsyncMethods => asyncMethodWriter != null;
 
-		public SymbolWriter(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
+		public SymbolWriterImpl(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
 			asyncMethodWriter = writer as ISymUnmanagedAsyncMethodPropertiesWriter;
 			this.pdbStream = pdbStream ?? throw new ArgumentNullException(nameof(pdbStream));

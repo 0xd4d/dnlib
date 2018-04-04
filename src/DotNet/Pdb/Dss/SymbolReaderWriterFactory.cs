@@ -185,10 +185,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public static ISymbolWriter2 Create(PdbWriterOptions options, string pdbFileName) {
 			if (File.Exists(pdbFileName))
 				File.Delete(pdbFileName);
-			return new SymbolWriter(CreateSymUnmanagedWriter2(options), pdbFileName, File.Create(pdbFileName), options, ownsStream: true);
+			return new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, File.Create(pdbFileName), options, ownsStream: true);
 		}
 
 		public static ISymbolWriter2 Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) =>
-			new SymbolWriter(CreateSymUnmanagedWriter2(options), pdbFileName, pdbStream, options, ownsStream: false);
+			new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, pdbStream, options, ownsStream: false);
 	}
 }
