@@ -94,8 +94,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (reader is ISymUnmanagedReader4 reader4) {
 				// It returns data that it owns. The data is freed once its Destroy() method is called
 				Debug.Assert(reader is ISymUnmanagedDispose);
-				// Despite its name, it seems to only return source link, and not source server info
-				if (reader4.GetSourceServerData(out var srcLinkData, out int sizeData) >= 0 && sizeData > 0) {
+				// Despite its name, it seems to only return source link data, and not source server data
+				if (reader4.GetSourceServerData(out var srcLinkData, out int sizeData) == 0) {
+					if (sizeData == 0)
+						return Array2.Empty<byte>();
 					var data = new byte[sizeData];
 					Marshal.Copy(srcLinkData, data, 0, data.Length);
 					return data;
@@ -108,8 +110,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (reader is ISymUnmanagedSourceServerModule srcSrvModule) {
 				var srcSrvData = IntPtr.Zero;
 				try {
-					// This method only returns source server, not source link info
-					if (srcSrvModule.GetSourceServerData(out int sizeData, out srcSrvData) >= 0 && sizeData > 0) {
+					// This method only returns source server data, not source link data
+					if (srcSrvModule.GetSourceServerData(out int sizeData, out srcSrvData) == 0) {
+						if (sizeData == 0)
+							return Array2.Empty<byte>();
 						var data = new byte[sizeData];
 						Marshal.Copy(srcSrvData, data, 0, data.Length);
 						return data;
