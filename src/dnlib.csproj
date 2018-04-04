@@ -125,6 +125,7 @@
     <Compile Include="DotNet\MD\ColumnSize.cs" />
     <Compile Include="DotNet\MD\ComImageFlags.cs" />
     <Compile Include="DotNet\MD\CompressedMetadata.cs" />
+    <Compile Include="DotNet\MD\CustomDotNetStream.cs" />
     <Compile Include="DotNet\MD\DotNetStream.cs" />
     <Compile Include="DotNet\MD\DotNetTableSizes.cs" />
     <Compile Include="DotNet\MD\ENCMetadata.cs" />

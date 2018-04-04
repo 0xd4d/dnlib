@@ -9,7 +9,7 @@ namespace dnlib.DotNet.MD {
 	/// .NET metadata stream
 	/// </summary>
 	[DebuggerDisplay("{dataReader.Length} {streamHeader.Name}")]
-	public class DotNetStream : IFileSection, IDisposable {
+	public abstract class DotNetStream : IFileSection, IDisposable {
 		/// <summary>
 		/// Reader that can access the whole stream.
 		/// 
@@ -55,7 +55,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public DotNetStream() {
+		protected DotNetStream() {
 			streamHeader = null;
 			dataReader = default;
 		}
@@ -66,7 +66,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="mdReaderFactory">Data reader factory</param>
 		/// <param name="metadataBaseOffset">Offset of metadata</param>
 		/// <param name="streamHeader">The stream header</param>
-		public DotNetStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader) {
+		protected DotNetStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader) {
 			this.mdReaderFactory = mdReaderFactory;
 			mdReaderFactory.DataReaderInvalidated += DataReaderFactory_DataReaderInvalidated;
 			this.mdReaderFactory = mdReaderFactory;

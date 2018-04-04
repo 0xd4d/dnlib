@@ -89,7 +89,7 @@ namespace dnlib.DotNet.MD {
 						}
 						break;
 					}
-					dns = new DotNetStream(mdReaderFactory, metadataBaseOffset, sh);
+					dns = new CustomDotNetStream(mdReaderFactory, metadataBaseOffset, sh);
 					allStreams.Add(dns);
 					dns = null;
 				}
