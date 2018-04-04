@@ -14,18 +14,14 @@ namespace dnlib.DotNet {
 	}
 
 	abstract class CpuArch {
-		static readonly Dictionary<Machine, CpuArch> toCpuArch = new Dictionary<Machine, CpuArch> {
-			// To support a new CPU arch, the easiest way is to check coreclr/src/ilasm/writer.cpp or
-			// coreclr/src/dlls/mscorpe/stubs.h, eg. ExportStubAMD64Template, ExportStubX86Template,
-			// ExportStubARMTemplate, ExportStubIA64Template, or use ilasm to generate a file with
-			// exports and check the stub
-			{ Machine.I386, new X86CpuArch() },
-			{ Machine.AMD64, new X64CpuArch() },
-			{ Machine.IA64, new ItaniumCpuArch() },
-			{ Machine.ARMNT, new ArmCpuArch() },
-			//TODO: Support ARM64
-			// { Machine.ARM64, new Arm64CpuArch() },
-		};
+		// To support a new CPU arch, the easiest way is to check coreclr/src/ilasm/writer.cpp or
+		// coreclr/src/dlls/mscorpe/stubs.h, eg. ExportStubAMD64Template, ExportStubX86Template,
+		// ExportStubARMTemplate, ExportStubIA64Template, or use ilasm to generate a file with
+		// exports and check the stub
+		static readonly X86CpuArch x86CpuArch = new X86CpuArch();
+		static readonly X64CpuArch x64CpuArch = new X64CpuArch();
+		static readonly ItaniumCpuArch itaniumCpuArch = new ItaniumCpuArch();
+		static readonly ArmCpuArch armCpuArch = new ArmCpuArch();
 
 		/// <summary>
 		/// Gets the required alignment for the stubs, must be a power of 2
@@ -48,7 +44,49 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		public abstract uint GetStubCodeOffset(StubType stubType);
 
-		public static bool TryGetCpuArch(Machine machine, out CpuArch cpuArch) => toCpuArch.TryGetValue(machine, out cpuArch);
+		public static bool TryGetCpuArch(Machine machine, out CpuArch cpuArch) {
+			switch (machine) {
+			case Machine.I386:
+			case Machine.I386_Native_Apple:
+			case Machine.I386_Native_FreeBSD:
+			case Machine.I386_Native_Linux:
+			case Machine.I386_Native_NetBSD:
+				cpuArch = x86CpuArch;
+				return true;
+
+			case Machine.AMD64:
+			case Machine.AMD64_Native_Apple:
+			case Machine.AMD64_Native_FreeBSD:
+			case Machine.AMD64_Native_Linux:
+			case Machine.AMD64_Native_NetBSD:
+				cpuArch = x64CpuArch;
+				return true;
+
+			case Machine.IA64:
+				cpuArch = itaniumCpuArch;
+				return true;
+
+			case Machine.ARMNT:
+			case Machine.ARMNT_Native_Apple:
+			case Machine.ARMNT_Native_FreeBSD:
+			case Machine.ARMNT_Native_Linux:
+			case Machine.ARMNT_Native_NetBSD:
+				cpuArch = armCpuArch;
+				return true;
+
+			case Machine.ARM64:
+			case Machine.ARM64_Native_Apple:
+			case Machine.ARM64_Native_FreeBSD:
+			case Machine.ARM64_Native_Linux:
+			case Machine.ARM64_Native_NetBSD:
+				//TODO: Support ARM64
+				goto default;
+
+			default:
+				cpuArch = null;
+				return false;
+			}
+		}
 
 		/// <summary>
 		/// Gets the RVA of the func field that the stub jumps to

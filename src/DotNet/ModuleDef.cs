@@ -727,24 +727,24 @@ namespace dnlib.DotNet {
 		public Machine Machine { get; set; }
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.I386"/>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.I386"/>, <see cref="PE.Machine.I386_Native_Apple"/>, ...
 		/// </summary>
-		public bool IsI386 => Machine == Machine.I386;
+		public bool IsI386 => Machine.IsI386();
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.IA64"/>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.IA64"/>
 		/// </summary>
 		public bool IsIA64 => Machine == Machine.IA64;
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.AMD64"/>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.AMD64"/>, <see cref="PE.Machine.AMD64_Native_Apple"/>, ...
 		/// </summary>
-		public bool IsAMD64 => Machine == Machine.AMD64;
+		public bool IsAMD64 => Machine.IsAMD64();
 
 		/// <summary>
-		/// <c>true</c> if <see cref="Machine"/> is <see cref="dnlib.PE.Machine.ARM64"/>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.ARM64"/>, <see cref="PE.Machine.ARM64_Native_Apple"/>, ...
 		/// </summary>
-		public bool IsARM64 => Machine == Machine.ARM64;
+		public bool IsARM64 => Machine.IsARM64();
 
 		/// <summary>
 		/// Gets/sets the <see cref="Cor20HeaderFlags"/> (from .NET header)
@@ -1117,7 +1117,7 @@ namespace dnlib.DotNet {
 			var machine = Machine;
 			if (machine.Is64Bit())
 				return 8;
-			if (machine != Machine.I386)
+			if (!machine.IsI386())
 				return 4;
 
 			// Machine is I386 so it's either x86 or platform neutral

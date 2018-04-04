@@ -170,7 +170,7 @@ namespace dnlib.DotNet.Writer {
 			var machine = Options.PEHeadersOptions.Machine ?? Machine.I386;
 			bool is64bit = machine.Is64Bit();
 			relocDirectory = new RelocDirectory(machine);
-			if (machine == Machine.I386)
+			if (machine.IsI386())
 				needStartupStub = true;
 
 			importAddressTable = new ImportAddressTable(is64bit);
