@@ -182,13 +182,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 			return null;
 		}
 
-		public static ISymbolWriter2 Create(PdbWriterOptions options, string pdbFileName) {
+		public static SymbolWriter Create(PdbWriterOptions options, string pdbFileName) {
 			if (File.Exists(pdbFileName))
 				File.Delete(pdbFileName);
 			return new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, File.Create(pdbFileName), options, ownsStream: true);
 		}
 
-		public static ISymbolWriter2 Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) =>
+		public static SymbolWriter Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) =>
 			new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, pdbStream, options, ownsStream: false);
 	}
 }

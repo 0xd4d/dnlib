@@ -223,10 +223,10 @@
     <Compile Include="DotNet\Pdb\Symbols\SymbolVariable.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\CorSymVarFlag.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\CustomDebugInfoConstants.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\ISymbolWriter2.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoReader.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoWriter.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\PseudoCustomDebugInfoFactory.cs" />
+    <Compile Include="DotNet\Pdb\WindowsPdb\SymbolWriter.cs" />
     <Compile Include="DotNet\Pdb\WindowsPdb\WindowsPdbWriter.cs" />
     <Compile Include="DotNet\PInvokeAttributes.cs" />
     <Compile Include="DotNet\ParamAttributes.cs" />

@@ -9,7 +9,7 @@ using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.WindowsPdb {
 	sealed class WindowsPdbWriter : IDisposable {
-		ISymbolWriter2 writer;
+		SymbolWriter writer;
 		readonly PdbState pdbState;
 		readonly ModuleDef module;
 		readonly Metadata metadata;
@@ -21,7 +21,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		public ILogger Logger { get; set; }
 
-		public WindowsPdbWriter(ISymbolWriter2 writer, PdbState pdbState, Metadata metadata)
+		public WindowsPdbWriter(SymbolWriter writer, PdbState pdbState, Metadata metadata)
 			: this(pdbState, metadata) {
 			if (pdbState == null)
 				throw new ArgumentNullException(nameof(pdbState));
@@ -65,7 +65,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		public void Write() {
-			writer.SetUserEntryPoint(new SymbolToken(GetUserEntryPointToken()));
+			writer.SetUserEntryPoint(GetUserEntryPointToken());
 
 			var cdiBuilder = new List<PdbCustomDebugInfo>();
 			foreach (var type in module.GetTypes()) {
@@ -217,7 +217,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			var info = new CurrentMethod(this, method, instrToOffset);
 			var body = method.Body;
-			var symbolToken = new SymbolToken((int)new MDToken(MD.Table.Method, rid).Raw);
+			var symbolToken = new MDToken(MD.Table.Method, rid);
 			writer.OpenMethod(symbolToken);
 			seqPointsHelper.Write(this, info.Method.Body.Instructions);
 
@@ -375,7 +375,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					var constant = constants[i];
 					sig.Type = constant.Type;
 					var token = metadata.GetToken(sig);
-					writer.DefineConstant2(constant.Name, constant.Value ?? boxedZeroInt32, token.Raw);
+					writer.DefineConstant(constant.Name, constant.Value ?? boxedZeroInt32, token.Raw);
 				}
 			}
 			var scopeNamespaces = scope.Namespaces;
@@ -404,7 +404,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				uint attrs = GetPdbLocalFlags(local.Attributes);
 				if (attrs == 0 && local.Name == null)
 					continue;
-				writer.DefineLocalVariable2(local.Name ?? string.Empty, attrs,
+				writer.DefineLocalVariable(local.Name ?? string.Empty, attrs,
 								token, 1, (uint)local.Index, 0, 0, startOffset, endOffset);
 			}
 		}
@@ -415,16 +415,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return 0;
 		}
 
-		int GetUserEntryPointToken() {
+		MDToken GetUserEntryPointToken() {
 			var ep = pdbState.UserEntryPoint;
 			if (ep == null)
-				return 0;
+				return default;
 			uint rid = metadata.GetRid(ep);
 			if (rid == 0) {
 				Error("PDB user entry point method {0} ({1:X8}) is not defined in this module ({2})", ep, ep.MDToken.Raw, module);
-				return 0;
+				return default;
 			}
-			return new MDToken(MD.Table.Method, rid).ToInt32();
+			return new MDToken(MD.Table.Method, rid);
 		}
 
 		public bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY idd, out byte[] codeViewData) =>

@@ -940,7 +940,7 @@ namespace dnlib.DotNet.Writer {
 			return (uint)TheOptions.PEHeadersOptions.TimeDateStamp;
 		}
 
-		ISymbolWriter2 GetWindowsPdbSymbolWriter(PdbWriterOptions options, out string pdbFilename) {
+		SymbolWriter GetWindowsPdbSymbolWriter(PdbWriterOptions options, out string pdbFilename) {
 			if (TheOptions.PdbStream != null) {
 				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, TheOptions.PdbStream,
 							pdbFilename = TheOptions.PdbFileName ??
