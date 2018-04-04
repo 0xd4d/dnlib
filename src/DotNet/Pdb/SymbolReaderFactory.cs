@@ -22,7 +22,7 @@ namespace dnlib.DotNet.Pdb {
 			else
 				pdbFilename = pdbWindowsFilename;
 
-			var fileToCheck = Path.Combine(Path.GetDirectoryName(assemblyFileName), pdbFilename);
+			var fileToCheck = assemblyFileName == string.Empty ? pdbFilename : Path.Combine(Path.GetDirectoryName(assemblyFileName), pdbFilename);
 			if (!File.Exists(fileToCheck)) {
 				var ext = Path.GetExtension(pdbFilename);
 				if (string.IsNullOrEmpty(ext))

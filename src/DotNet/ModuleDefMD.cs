@@ -404,12 +404,8 @@ namespace dnlib.DotNet {
 					return SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbStream);
 			}
 
-			if (options.TryToLoadPdbFromDisk) {
-				if (!string.IsNullOrEmpty(location))
-					return SymbolReaderFactory.CreateFromAssemblyFile(options.PdbOptions, metadata, location);
-				else
-					return SymbolReaderFactory.TryCreateEmbeddedPdbReader(options.PdbOptions, metadata);
-			}
+			if (options.TryToLoadPdbFromDisk)
+				return SymbolReaderFactory.CreateFromAssemblyFile(options.PdbOptions, metadata, location ?? string.Empty);
 
 			return null;
 		}
@@ -484,12 +480,8 @@ namespace dnlib.DotNet {
 		/// Loads symbols if a PDB file is available
 		/// </summary>
 		/// <param name="options">PDB reader options</param>
-		public void LoadPdb(PdbReaderOptions options) {
-			var loc = location;
-			if (string.IsNullOrEmpty(loc))
-				return;
-			LoadPdb(SymbolReaderFactory.Create(options, metadata, loc));
-		}
+		public void LoadPdb(PdbReaderOptions options) =>
+			LoadPdb(SymbolReaderFactory.CreateFromAssemblyFile(options, metadata, location ?? string.Empty));
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
 			var ps = pdbState;
