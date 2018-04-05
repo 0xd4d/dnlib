@@ -742,6 +742,11 @@ namespace dnlib.DotNet {
 		public bool IsAMD64 => Machine.IsAMD64();
 
 		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.ARMNT"/>, <see cref="PE.Machine.ARMNT_Native_Apple"/>, ...
+		/// </summary>
+		public bool IsARM => Machine.IsARMNT();
+
+		/// <summary>
 		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.ARM64"/>, <see cref="PE.Machine.ARM64_Native_Apple"/>, ...
 		/// </summary>
 		public bool IsARM64 => Machine.IsARM64();
