@@ -328,7 +328,7 @@ namespace dnlib.DotNet.Writer {
 		public Stream PdbStream { get; set; }
 
 		/// <summary>
-		/// Gets the PDB content id. The <see cref="Stream"/> argument is the PDB stream with the PDB ID zeroed out,
+		/// Gets the PDB content id (portable PDBs). The <see cref="Stream"/> argument is the PDB stream with the PDB ID zeroed out,
 		/// and the 2nd <see cref="uint"/> argument is the default timestamp.
 		/// This property is ignored if a deterministic PDB file is created or if the PDB checksum is calculated.
 		/// </summary>

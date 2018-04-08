@@ -27,9 +27,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			this.pdbStream = pdbStream ?? throw new ArgumentNullException(nameof(pdbStream));
 			this.pdbFileName = pdbFileName;
 			this.ownsStream = ownsStream;
-			// If it's deterministic, we should call UpdateSignatureByHashingContent() or UpdateSignature(),
-			// but that requires v7 or v8. InitializeDeterministic() is v6.
-			isDeterministic = (options & PdbWriterOptions.Deterministic) != 0 && writer is ISymUnmanagedWriter7;
+			isDeterministic = (options & PdbWriterOptions.Deterministic) != 0 && writer is ISymUnmanagedWriter6;
 		}
 
 		public override void Close() {
@@ -102,8 +100,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 					writer8.UpdateSignature(guid, stamp, pdbAge);
 					return true;
 				}
-				else {
-					var writer7 = (ISymUnmanagedWriter7)writer;
+				else if (writer is ISymUnmanagedWriter7 writer7) {
 					fixed (byte* p = checksumBytes)
 						writer7.UpdateSignatureByHashingContent(new IntPtr(p), (uint)checksumBytes.Length);
 				}
