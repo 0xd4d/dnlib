@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(SolutionDir)\DnlibCommon.props" Condition="Exists('$(SolutionDir)\DnlibCommon.props')" />
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net35;netstandard2.0</TargetFrameworks>
     <RootNamespace>dnlib</RootNamespace>
     <AssemblyName>dnlib</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -16,11 +16,11 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <Compile Remove="DefaultDllImportSearchPathsAttribute.cs"/>
     <Compile Remove="HandleProcessCorruptedStateExceptionsAttribute.cs"/>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
   </ItemGroup>
