@@ -76,9 +76,10 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal void AddOptimizedStrings() {
+		internal void AddOptimizedStringsAndSetReadOnly() {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
+			SetReadOnly();
 
 			stringsOffsetInfos.Sort(Comparison_StringsOffsetInfoSorter);
 

@@ -364,6 +364,7 @@ namespace dnlib.DotNet.Writer {
 			WritePdbFile();
 			OnWriterEvent(ModuleWriterEvent.EndWritePdb);
 
+			metadata.OnBeforeSetOffset();
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 
 			if (Options.OptimizeImageSize) {

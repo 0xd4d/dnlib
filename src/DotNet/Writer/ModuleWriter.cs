@@ -222,6 +222,7 @@ namespace dnlib.DotNet.Writer {
 			WritePdbFile();
 			OnWriterEvent(ModuleWriterEvent.EndWritePdb);
 
+			metadata.OnBeforeSetOffset();
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 			var chunks = new List<IChunk>();
 			chunks.Add(peHeaders);

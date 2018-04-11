@@ -3456,6 +3456,7 @@ namespace dnlib.DotNet.Writer {
 				debugMetadata.tablesHeap.MethodDebugInformationTable.Reset();
 			pdbHeap.ReferencedTypeSystemTables = systemTablesMask;
 			var writer = new DataWriter(output);
+			debugMetadata.OnBeforeSetOffset();
 			debugMetadata.SetOffset(0, 0);
 			debugMetadata.GetFileLength();
 			debugMetadata.VerifyWriteTo(writer);
@@ -3557,6 +3558,12 @@ namespace dnlib.DotNet.Writer {
 			return length <= origSize;
 		}
 
+		/// <summary>
+		/// Should be called before all chunks get an RVA
+		/// </summary>
+		internal void OnBeforeSetOffset() =>
+			stringsHeap.AddOptimizedStringsAndSetReadOnly();
+
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
 			// This method can be called twice by NativeModuleWriter. It needs to know the size
@@ -3568,8 +3575,7 @@ namespace dnlib.DotNet.Writer {
 			this.rva = rva;
 
 			if (initAll) {
-				stringsHeap.AddOptimizedStrings();
-				stringsHeap.SetReadOnly();
+				// #Strings heap is initialized in OnBeforeSetOffset()
 				blobHeap.SetReadOnly();
 				guidHeap.SetReadOnly();
 				tablesHeap.SetReadOnly();
