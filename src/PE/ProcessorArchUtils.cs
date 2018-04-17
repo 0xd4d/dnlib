@@ -15,6 +15,10 @@ namespace dnlib.PE {
 		}
 
 		static class RuntimeInformationUtils {
+#if NETSTANDARD2_0
+			public static bool TryGet_RuntimeInformation_Architecture(out Machine machine) =>
+				TryGetArchitecture((int)System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture, out machine);
+#else
 			// .NET Framework 4.7.1: mscorlib
 			// .NET Core: System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 			static Assembly RuntimeInformationAssembly =>
@@ -29,7 +33,12 @@ namespace dnlib.PE {
 					return false;
 
 				var result = processArchitectureMethod.Invoke(null, Array2.Empty<object>());
-				switch ((int)result) {
+				return TryGetArchitecture((int)result, out machine);
+			}
+#endif
+
+			static bool TryGetArchitecture(int architecture, out Machine machine) {
+				switch (architecture) {
 				case 0: // Architecture.X86
 					Debug.Assert(IntPtr.Size == 4);
 					machine = Machine.I386;
@@ -51,6 +60,7 @@ namespace dnlib.PE {
 					return true;
 
 				default:
+					machine = 0;
 					return false;
 				}
 			}
