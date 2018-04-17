@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace dnlib.PE {
 	static class ProcessorArchUtils {
@@ -13,9 +14,54 @@ namespace dnlib.PE {
 			return cachedMachine;
 		}
 
+		static class RuntimeInformationUtils {
+			// .NET Framework 4.7.1: mscorlib
+			// .NET Core: System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+			static Assembly RuntimeInformationAssembly =>
+				Assembly.Load("System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a") ??
+				typeof(object).Assembly;
+			static Type System_Runtime_InteropServices_RuntimeInformation => RuntimeInformationAssembly.GetType("System.Runtime.InteropServices.RuntimeInformation", throwOnError: false);
+
+			public static bool TryGet_RuntimeInformation_Architecture(out Machine machine) {
+				machine = 0;
+				var processArchitectureMethod = System_Runtime_InteropServices_RuntimeInformation?.GetMethod("get_ProcessArchitecture", Array2.Empty<Type>());
+				if ((object)processArchitectureMethod == null)
+					return false;
+
+				var result = processArchitectureMethod.Invoke(null, Array2.Empty<object>());
+				switch ((int)result) {
+				case 0: // Architecture.X86
+					Debug.Assert(IntPtr.Size == 4);
+					machine = Machine.I386;
+					return true;
+
+				case 1: // Architecture.X64
+					Debug.Assert(IntPtr.Size == 8);
+					machine = Machine.AMD64;
+					return true;
+
+				case 2: // Architecture.Arm
+					Debug.Assert(IntPtr.Size == 4);
+					machine = Machine.ARMNT;
+					return true;
+
+				case 3: // Architecture.Arm64
+					Debug.Assert(IntPtr.Size == 8);
+					machine = Machine.ARM64;
+					return true;
+
+				default:
+					return false;
+				}
+			}
+		}
+
 		static Machine GetProcessCpuArchitectureCore() {
+			if (RuntimeInformationUtils.TryGet_RuntimeInformation_Architecture(out var machine))
+				return machine;
+
 			bool isWindows = true;//TODO:
-			if (isWindows && TryGetProcessCpuArchitecture_Windows(out var machine))
+			if (isWindows && TryGetProcessCpuArchitecture_Windows(out machine))
 				return machine;
 
 			Debug.WriteLine("Couldn't detect CPU arch, assuming x86 or x64");
@@ -23,7 +69,6 @@ namespace dnlib.PE {
 		}
 
 		static bool TryGetProcessCpuArchitecture_Windows(out Machine machine) {
-			//TODO: We shouldn't trust the environment
 			string arch = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
 			if (arch != null) {
 				// https://msdn.microsoft.com/en-us/library/aa384274.aspx ("WOW64 Implementation Details / Environment Variables")
