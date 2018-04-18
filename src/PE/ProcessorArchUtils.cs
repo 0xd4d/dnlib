@@ -20,10 +20,7 @@ namespace dnlib.PE {
 				TryGetArchitecture((int)System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture, out machine);
 #else
 			// .NET Framework 4.7.1: mscorlib
-			// .NET Core: System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
-			static Assembly RuntimeInformationAssembly =>
-				Assembly.Load("System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a") ??
-				typeof(object).Assembly;
+			static Assembly RuntimeInformationAssembly => typeof(object).Assembly;
 			static Type System_Runtime_InteropServices_RuntimeInformation => RuntimeInformationAssembly.GetType("System.Runtime.InteropServices.RuntimeInformation", throwOnError: false);
 
 			public static bool TryGet_RuntimeInformation_Architecture(out Machine machine) {
