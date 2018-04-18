@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace dnlib.PE {
 	static class ProcessorArchUtils {
@@ -17,9 +18,8 @@ namespace dnlib.PE {
 		static class RuntimeInformationUtils {
 #if NETSTANDARD2_0
 			public static bool TryGet_RuntimeInformation_Architecture(out Machine machine) =>
-				TryGetArchitecture((int)System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture, out machine);
+				TryGetArchitecture((int)RuntimeInformation.ProcessArchitecture, out machine);
 #else
-			// .NET Framework 4.7.1: mscorlib
 			static Assembly RuntimeInformationAssembly => typeof(object).Assembly;
 			static Type System_Runtime_InteropServices_RuntimeInformation => RuntimeInformationAssembly.GetType("System.Runtime.InteropServices.RuntimeInformation", throwOnError: false);
 
@@ -57,6 +57,7 @@ namespace dnlib.PE {
 					return true;
 
 				default:
+					Debug.Fail($"Unknown process architecture: {architecture}");
 					machine = 0;
 					return false;
 				}
@@ -64,67 +65,93 @@ namespace dnlib.PE {
 		}
 
 		static Machine GetProcessCpuArchitectureCore() {
-			if (RuntimeInformationUtils.TryGet_RuntimeInformation_Architecture(out var machine))
+			if (WindowsUtils.TryGetProcessCpuArchitecture(out var machine))
 				return machine;
-
-			bool isWindows = true;//TODO:
-			if (isWindows && TryGetProcessCpuArchitecture_Windows(out machine))
-				return machine;
+			try {
+				if (RuntimeInformationUtils.TryGet_RuntimeInformation_Architecture(out machine))
+					return machine;
+			}
+			catch (PlatformNotSupportedException) {
+			}
 
 			Debug.WriteLine("Couldn't detect CPU arch, assuming x86 or x64");
 			return IntPtr.Size == 4 ? Machine.I386 : Machine.AMD64;
 		}
 
-		static bool TryGetProcessCpuArchitecture_Windows(out Machine machine) {
-			string arch = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
-			if (arch != null) {
-				// https://msdn.microsoft.com/en-us/library/aa384274.aspx ("WOW64 Implementation Details / Environment Variables")
-				switch (arch.ToUpperInvariant()) {
-				case "AMD64":
-					if (IntPtr.Size == 8) {
-						machine = Machine.AMD64;
-						return true;
-					}
-					Debug.Fail($"Bad PROCESSOR_ARCHITECTURE env var");
-					break;
+		static class WindowsUtils {
+			[DllImport("kernel32")]
+			static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
 
-				case "X86":
-					if (IntPtr.Size == 4) {
-						machine = Machine.I386;
-						return true;
-					}
-					Debug.Fail($"Bad PROCESSOR_ARCHITECTURE env var");
-					break;
-
-				case "IA64":
-					if (IntPtr.Size == 8) {
-						machine = Machine.IA64;
-						return true;
-					}
-					Debug.Fail($"Bad PROCESSOR_ARCHITECTURE env var");
-					break;
-
-				//TODO: This string hasn't been tested
-				case "ARM":
-					if (IntPtr.Size == 4) {
-						machine = Machine.ARMNT;
-						return true;
-					}
-					Debug.Fail($"Bad PROCESSOR_ARCHITECTURE env var");
-					break;
-
-				case "ARM64":
-					if (IntPtr.Size == 8) {
-						machine = Machine.ARM64;
-						return true;
-					}
-					Debug.Fail($"Bad PROCESSOR_ARCHITECTURE env var");
-					break;
-				}
+			struct SYSTEM_INFO {
+				public ushort wProcessorArchitecture;
+				public ushort wReserved;
+				public uint dwPageSize;
+				public IntPtr lpMinimumApplicationAddress;
+				public IntPtr lpMaximumApplicationAddress;
+				public IntPtr dwActiveProcessorMask;
+				public uint dwNumberOfProcessors;
+				public uint dwProcessorType;
+				public uint dwAllocationGranularity;
+				public ushort wProcessorLevel;
+				public ushort wProcessorRevision;
 			}
 
-			machine = default;
-			return false;
+			enum ProcessorArchitecture : ushort {
+				INTEL		= 0,
+				ARM			= 5,
+				IA64		= 6,
+				AMD64		= 9,
+				ARM64		= 12,
+				UNKNOWN		= 0xFFFF,
+			}
+
+			public static bool TryGetProcessCpuArchitecture(out Machine machine) {
+				if (canTryGetSystemInfo) {
+					try {
+						GetSystemInfo(out var sysInfo);
+						switch ((ProcessorArchitecture)sysInfo.wProcessorArchitecture) {
+						case ProcessorArchitecture.INTEL:
+							Debug.Assert(IntPtr.Size == 4);
+							machine = Machine.I386;
+							return true;
+
+						case ProcessorArchitecture.ARM:
+							Debug.Assert(IntPtr.Size == 4);
+							machine = Machine.ARMNT;
+							return true;
+
+						case ProcessorArchitecture.IA64:
+							Debug.Assert(IntPtr.Size == 8);
+							machine = Machine.IA64;
+							return true;
+
+						case ProcessorArchitecture.AMD64:
+							Debug.Assert(IntPtr.Size == 8);
+							machine = Machine.AMD64;
+							return true;
+
+						case ProcessorArchitecture.ARM64:
+							Debug.Assert(IntPtr.Size == 8);
+							machine = Machine.ARM64;
+							return true;
+
+						case ProcessorArchitecture.UNKNOWN:
+						default:
+							break;
+						}
+					}
+					catch (EntryPointNotFoundException) {
+						canTryGetSystemInfo = false;
+					}
+					catch (DllNotFoundException) {
+						canTryGetSystemInfo = false;
+					}
+				}
+
+				machine = 0;
+				return false;
+			}
+			static bool canTryGetSystemInfo = true;
 		}
 	}
 }
