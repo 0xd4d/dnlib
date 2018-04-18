@@ -398,7 +398,7 @@ namespace dnlib.IO {
 		/// <param name="destination">Destination pointer</param>
 		/// <param name="length">Number of bytes to read</param>
 		public unsafe void ReadBytes(void* destination, int length) {
-			if (destination == null)
+			if (destination == null && length != 0)
 				ThrowArgumentNullException(nameof(destination));
 			if (length < 0)
 				ThrowInvalidArgument(nameof(length));
