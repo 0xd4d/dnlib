@@ -212,14 +212,10 @@ namespace dnlib.DotNet {
 			if (GetHINSTANCE == null)
 				throw new NotSupportedException("System.Reflection.Module loading is not supported on current platform");
 
-			var addr = (IntPtr)GetHINSTANCE.Invoke(null, new[] { mod });
+			return (IntPtr)GetHINSTANCE.Invoke(null, new[] { mod });
 #else
-			var addr = Marshal.GetHINSTANCE(mod);
+			return Marshal.GetHINSTANCE(mod);
 #endif
-			if (addr == IntPtr.Zero || addr == new IntPtr(-1))
-				throw new ArgumentException("It is not possible to get address of module");
-
-			return addr;
 		}
 
 		/// <summary>
@@ -231,9 +227,12 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleCreationOptions options, ImageLayout imageLayout) {
 			var addr = GetModuleHandle(mod);
-			if (addr == new IntPtr(-1))
+			if (addr != IntPtr.Zero && addr != new IntPtr(-1))
+				return Load(addr, options, imageLayout);
+			var location = mod.FullyQualifiedName;
+			if (string.IsNullOrEmpty(location) || location[0] == '<')
 				throw new InvalidOperationException($"Module {mod} has no HINSTANCE");
-			return Load(addr, options, imageLayout);
+			return Load(location, options);
 		}
 
 		/// <summary>
@@ -1375,7 +1374,7 @@ namespace dnlib.DotNet {
 				return null;
 			ModuleDefMD module;
 			try {
-				module = ModuleDefMD.Load(fileName);
+				module = Load(fileName);
 			}
 			catch {
 				module = null;
