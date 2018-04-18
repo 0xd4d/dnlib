@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(SolutionDir)\DnlibCommon.props" Condition="Exists('$(SolutionDir)\DnlibCommon.props')" />
   <PropertyGroup>
-    <TargetFrameworks>net35;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net35</TargetFrameworks>
     <RootNamespace>dnlib</RootNamespace>
     <AssemblyName>dnlib</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
