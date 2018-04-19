@@ -43,7 +43,15 @@ namespace dnlib.PE {
 			imageNTHeaders = new ImageNTHeaders(ref reader, verify);
 
 			reader.Position = (uint)imageNTHeaders.OptionalHeader.StartOffset + imageNTHeaders.FileHeader.SizeOfOptionalHeader;
-			imageSectionHeaders = new ImageSectionHeader[imageNTHeaders.FileHeader.NumberOfSections];
+			int numSections = imageNTHeaders.FileHeader.NumberOfSections;
+			if (numSections > 0) {
+				// Mono doesn't verify the section count
+				var tempReader = reader;
+				tempReader.Position += 0x14;
+				uint firstSectionOffset = tempReader.ReadUInt32();
+				numSections = Math.Min(numSections, (int)((firstSectionOffset - reader.Position) / 0x28));
+			}
+			imageSectionHeaders = new ImageSectionHeader[numSections];
 			for (int i = 0; i < imageSectionHeaders.Length; i++)
 				imageSectionHeaders[i] = new ImageSectionHeader(ref reader, verify);
 		}

@@ -347,8 +347,6 @@ namespace dnlib.PE {
 
 		ImageDebugDirectory[] ReadImageDebugDirectories() {
 			try {
-				if (6 >= ImageNTHeaders.OptionalHeader.DataDirectories.Length)
-					return Array2.Empty<ImageDebugDirectory>();
 				var dataDir = ImageNTHeaders.OptionalHeader.DataDirectories[6];
 				if (dataDir.VirtualAddress == 0)
 					return Array2.Empty<ImageDebugDirectory>();

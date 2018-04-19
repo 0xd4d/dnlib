@@ -204,6 +204,8 @@ namespace dnlib.DotNet.MD {
 			var sizes = new uint[64];
 			for (int i = 0; i < 64; valid >>= 1, i++) {
 				uint rows = (valid & 1) == 0 ? 0 : reader.ReadUInt32();
+				// Mono ignores the high byte
+				rows &= 0x00FFFFFF;
 				if (i >= maxPresentTables)
 					rows = 0;
 				sizes[i] = rows;

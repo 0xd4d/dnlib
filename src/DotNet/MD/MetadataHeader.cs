@@ -91,8 +91,6 @@ namespace dnlib.DotNet.MD {
 				throw new BadImageFormatException("Invalid metadata header signature");
 			majorVersion = reader.ReadUInt16();
 			minorVersion = reader.ReadUInt16();
-			if (verify && !((majorVersion == 1 && minorVersion == 1) || (majorVersion == 0 && minorVersion >= 19)))
-				throw new BadImageFormatException($"Unknown metadata header version: {majorVersion}.{minorVersion}");
 			reserved1 = reader.ReadUInt32();
 			stringLength = reader.ReadUInt32();
 			versionString = ReadString(ref reader, stringLength);
@@ -101,8 +99,13 @@ namespace dnlib.DotNet.MD {
 			reserved2 = reader.ReadByte();
 			streams = reader.ReadUInt16();
 			streamHeaders = new StreamHeader[streams];
-			for (int i = 0; i < streamHeaders.Count; i++)
-				streamHeaders[i] = new StreamHeader(ref reader, verify);
+			for (int i = 0; i < streamHeaders.Count; i++) {
+				// Mono doesn't verify all of these so we can't either
+				var sh = new StreamHeader(ref reader, throwOnError: false, verify, out bool failedVerification);
+				if (failedVerification || (ulong)sh.Offset + sh.StreamSize > reader.EndOffset)
+					sh = new StreamHeader(0, 0, "<invalid>");
+				streamHeaders[i] = sh;
+			}
 			SetEndoffset(ref reader);
 		}
 

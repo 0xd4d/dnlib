@@ -36,7 +36,8 @@ namespace dnlib.PE {
 		public ImageNTHeaders(ref DataReader reader, bool verify) {
 			SetStartOffset(ref reader);
 			signature = reader.ReadUInt32();
-			if (verify && signature != 0x4550)
+			// Mono only checks the low 2 bytes
+			if (verify && (ushort)signature != 0x4550)
 				throw new BadImageFormatException("Invalid NT headers signature");
 			imageFileHeader = new ImageFileHeader(ref reader, verify);
 			imageOptionalHeader = CreateImageOptionalHeader(ref reader, verify);

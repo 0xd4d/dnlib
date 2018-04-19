@@ -128,23 +128,20 @@ namespace dnlib.DotNet.MD {
 			MetadataBase md = null;
 			try {
 				var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
+				// Mono doesn't check that the Size field is >= 0x48
 				if (dotNetDir.VirtualAddress == 0)
 					throw new BadImageFormatException(".NET data directory RVA is 0");
-				if (dotNetDir.Size < 0x48)
-					throw new BadImageFormatException(".NET data directory size < 0x48");
 				var cor20HeaderReader = peImage.CreateReader(dotNetDir.VirtualAddress, 0x48);
 				var cor20Header = new ImageCor20Header(ref cor20HeaderReader, verify);
 				if (cor20Header.Metadata.VirtualAddress == 0)
 					throw new BadImageFormatException(".NET metadata RVA is 0");
-				if (cor20Header.Metadata.Size < 16)
-					throw new BadImageFormatException(".NET metadata size is too small");
-				var mdSize = cor20Header.Metadata.Size;
 				var mdRva = cor20Header.Metadata.VirtualAddress;
-				var mdHeaderReader = peImage.CreateReader(mdRva, mdSize);
+				// Don't use the size field, Mono ignores it. Create a reader that can read to EOF.
+				var mdHeaderReader = peImage.CreateReader(mdRva);
 				var mdHeader = new MetadataHeader(ref mdHeaderReader, verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
-						if (sh.Offset + sh.StreamSize < sh.Offset || sh.Offset + sh.StreamSize > mdSize)
+						if ((ulong)sh.Offset + sh.StreamSize > mdHeaderReader.EndOffset)
 							throw new BadImageFormatException("Invalid stream header");
 					}
 				}
