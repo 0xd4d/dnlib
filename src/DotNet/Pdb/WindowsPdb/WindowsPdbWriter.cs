@@ -243,7 +243,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				}
 			}
 			else {
-				Debug.Fail("Root scope isn't empty");
+				// C++/.NET (some methods)
 				WriteScope(ref info, scope, 0);
 			}
 
