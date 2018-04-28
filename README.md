@@ -529,7 +529,8 @@ cache.
 ```csharp
     ModuleDefMD mod = ModuleDefMD.Load(...);
     mod.Context = modCtx;	// Use the previously created (and shared) context
-    mod.Context.AssemblyResolver.AddToCache(mod);
+    // This code assumes you're using the default assembly resolver
+    ((AssemblyResolver)mod.Context.AssemblyResolver).AddToCache(mod);
 ```
 
 Resolving types, methods, etc from metadata tokens
