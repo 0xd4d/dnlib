@@ -17,7 +17,7 @@ namespace dnlib.DotNet.Writer {
 		uint length;
 		FileOffset offset;
 		RVA rva;
-		uint localVarSigTok;
+		readonly uint localVarSigTok;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
