@@ -604,4 +604,4 @@ To get a list of all valid TypeDef rids (row IDs), use this code:
     	Console.WriteLine("rid: {0}", typeDefRids[i]);
 ```
 
-You don't need to create a `ModuleDefMD`, though. See `DotNetFile`.
+You don't need to create a `ModuleDefMD`, though. See `MetadataFactory`.
