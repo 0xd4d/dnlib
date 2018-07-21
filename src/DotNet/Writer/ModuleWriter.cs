@@ -59,9 +59,20 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Gets all <see cref="PESection"/>s
+		/// Gets all <see cref="PESection"/>s. The reloc section must be the last section, so use <see cref="AddSection(PESection)"/> if you need to append a section
 		/// </summary>
 		public override List<PESection> Sections => sections;
+
+		/// <summary>
+		/// Adds <paramref name="section"/> to the sections list, but before the reloc section which must be last
+		/// </summary>
+		/// <param name="section">New section to add to the list</param>
+		public override void AddSection(PESection section) {
+			if (sections.Count > 0 && sections[sections.Count - 1] == relocSection)
+				sections.Insert(sections.Count - 1, section);
+			else
+				sections.Add(section);
+		}
 
 		/// <summary>
 		/// Gets the <c>.text</c> section
@@ -238,6 +249,9 @@ namespace dnlib.DotNet.Writer {
 			foreach (var section in sections)
 				chunks.Add(section);
 			peHeaders.PESections = sections;
+			int relocIndex = sections.IndexOf(relocSection);
+			if (relocIndex >= 0 && relocIndex != sections.Count - 1)
+				throw new InvalidOperationException("Reloc section must be the last section, use AddSection() to add a section");
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peHeaders.FileAlignment, peHeaders.SectionAlignment);
 			OnWriterEvent(ModuleWriterEvent.EndCalculateRvasAndFileOffsets);
 

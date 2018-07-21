@@ -611,9 +611,15 @@ namespace dnlib.DotNet.Writer {
 		public StrongNameSignature StrongNameSignature => strongNameSignature;
 
 		/// <summary>
-		/// Gets all <see cref="PESection"/>s
+		/// Gets all <see cref="PESection"/>s. The reloc section must be the last section, so use <see cref="AddSection(PESection)"/> if you need to append a section
 		/// </summary>
 		public abstract List<PESection> Sections { get; }
+
+		/// <summary>
+		/// Adds <paramref name="section"/> to the sections list, but before the reloc section which must be last
+		/// </summary>
+		/// <param name="section">New section to add to the list</param>
+		public virtual void AddSection(PESection section) => Sections.Add(section);
 
 		/// <summary>
 		/// Gets the <c>.text</c> section
