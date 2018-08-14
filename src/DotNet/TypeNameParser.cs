@@ -596,7 +596,7 @@ namespace dnlib.DotNet {
 				return null;
 			if (!(AssemblyNameComparer.CompareAll.Equals(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
 				return null;
-			var td = typeRef.Resolve();
+			var td = asm.Find(typeRef);
 			return td != null && td.Module == ownerModule ? td : null;
 		}
 
