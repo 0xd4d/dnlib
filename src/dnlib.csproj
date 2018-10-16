@@ -1,22 +1,58 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <Import Project="$(SolutionDir)\DnlibCommon.props" Condition="Exists('$(SolutionDir)\DnlibCommon.props')" />
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FDFC1237-143F-4919-8318-4926901F4639}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>dnlib</RootNamespace>
+    <TargetFrameworks>netstandard2.0;net35;net46;netcoreapp2.0</TargetFrameworks>
+
+    <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
+    <Description>.NET assembly reader/writer</Description>
+    <Title>$(Description)</Title>
+    <Copyright>Copyright (C) 2012-2018 de4dot@gmail.com</Copyright>
+    <AssemblyTitle>dnlib</AssemblyTitle>
+    <AssemblyTitle Condition="$(DefineConstants.Contains(THREAD_SAFE))">$(AssemblyTitle) (thread safe)</AssemblyTitle>
     <AssemblyName>dnlib</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Version>3.0.0</Version>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <Authors>0xd4d</Authors>
+
     <Features>strict</Features>
     <LangVersion>latest</LangVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\LICENSE.txt">
+      <Link>LICENSE.txt</Link>
+    </Content>
+    <None Include="..\README.md">
+      <Link>README.md</Link>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net35' ">
+    <Compile Remove="DefaultDllImportSearchPathsAttribute.cs"/>
+    <Compile Remove="HandleProcessCorruptedStateExceptionsAttribute.cs"/>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <PublicSign>true</PublicSign>
     <!-- Workaround for https://github.com/dotnet/sdk/issues/335 -->
@@ -25,416 +61,5 @@
     <FrameworkPathOverride Condition="Exists('/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api')">/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api</FrameworkPathOverride>
     <FrameworkPathOverride Condition="Exists('/usr/local/Cellar/mono/4.6.2.16/lib/mono/2.0-api')">/usr/local/Cellar/mono/4.6.2.16/lib/mono/2.0-api</FrameworkPathOverride>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\Debug\bin\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;$(MoreDefineConstants)</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>..\Debug\bin\dnlib.xml</DocumentationFile>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\Release\bin\</OutputPath>
-    <DefineConstants>TRACE;$(MoreDefineConstants)</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>..\Release\bin\dnlib.xml</DocumentationFile>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="DefaultDllImportSearchPathsAttribute.cs" />
-    <Compile Include="DotNet\AllTypesHelper.cs" />
-    <Compile Include="DotNet\AssemblyAttributes.cs" />
-    <Compile Include="DotNet\AssemblyDef.cs" />
-    <Compile Include="DotNet\AssemblyHash.cs" />
-    <Compile Include="DotNet\AssemblyHashAlgorithm.cs" />
-    <Compile Include="DotNet\AssemblyNameComparer.cs" />
-    <Compile Include="DotNet\AssemblyNameInfo.cs" />
-    <Compile Include="DotNet\AssemblyRef.cs" />
-    <Compile Include="DotNet\AssemblyResolver.cs" />
-    <Compile Include="DotNet\CallingConvention.cs" />
-    <Compile Include="DotNet\CallingConventionSig.cs" />
-    <Compile Include="DotNet\ClassLayout.cs" />
-    <Compile Include="DotNet\Constant.cs" />
-    <Compile Include="DotNet\CorLibTypes.cs" />
-    <Compile Include="DotNet\CpuArch.cs" />
-    <Compile Include="DotNet\CustomAttribute.cs" />
-    <Compile Include="DotNet\CustomAttributeCollection.cs" />
-    <Compile Include="DotNet\CustomAttributeReader.cs" />
-    <Compile Include="DotNet\DeclSecurity.cs" />
-    <Compile Include="DotNet\DeclSecurityReader.cs" />
-    <Compile Include="DotNet\ElementType.cs" />
-    <Compile Include="DotNet\Emit\Code.cs" />
-    <Compile Include="DotNet\Emit\DynamicMethodBodyReader.cs" />
-    <Compile Include="DotNet\Emit\ExceptionHandler.cs" />
-    <Compile Include="DotNet\Emit\ExceptionHandlerType.cs" />
-    <Compile Include="DotNet\Emit\Extensions.cs" />
-    <Compile Include="DotNet\Emit\FlowControl.cs" />
-    <Compile Include="DotNet\Emit\Instruction.cs" />
-    <Compile Include="DotNet\Emit\InstructionPrinter.cs" />
-    <Compile Include="DotNet\Emit\InvalidMethodException.cs" />
-    <Compile Include="DotNet\Emit\LocalList.cs" />
-    <Compile Include="DotNet\Emit\MethodBody.cs" />
-    <Compile Include="DotNet\Emit\MethodBodyReader.cs" />
-    <Compile Include="DotNet\Emit\MethodBodyReaderBase.cs" />
-    <Compile Include="DotNet\Emit\MethodTableToTypeConverter.cs" />
-    <Compile Include="DotNet\Emit\MethodUtils.cs" />
-    <Compile Include="DotNet\Emit\OpCode.cs" />
-    <Compile Include="DotNet\Emit\OpCodeType.cs" />
-    <Compile Include="DotNet\Emit\OpCodes.cs" />
-    <Compile Include="DotNet\Emit\OperandType.cs" />
-    <Compile Include="DotNet\Emit\StackBehaviour.cs" />
-    <Compile Include="DotNet\EventAttributes.cs" />
-    <Compile Include="DotNet\EventDef.cs" />
-    <Compile Include="DotNet\ExportedType.cs" />
-    <Compile Include="DotNet\Extensions.cs" />
-    <Compile Include="DotNet\FieldAttributes.cs" />
-    <Compile Include="DotNet\FieldDef.cs" />
-    <Compile Include="DotNet\FileAttributes.cs" />
-    <Compile Include="DotNet\FileDef.cs" />
-    <Compile Include="DotNet\FrameworkRedirect.cs" />
-    <Compile Include="DotNet\FullNameFactory.cs" />
-    <Compile Include="DotNet\GenericArguments.cs" />
-    <Compile Include="DotNet\GenericParam.cs" />
-    <Compile Include="DotNet\GenericParamAttributes.cs" />
-    <Compile Include="DotNet\GenericParamConstraint.cs" />
-    <Compile Include="DotNet\GenericParamContext.cs" />
-    <Compile Include="DotNet\IAssemblyResolver.cs" />
-    <Compile Include="DotNet\ICodedToken.cs" />
-    <Compile Include="DotNet\ICorLibTypes.cs" />
-    <Compile Include="DotNet\ICustomAttribute.cs" />
-    <Compile Include="DotNet\IDecrypters.cs" />
-    <Compile Include="DotNet\ILogger.cs" />
-    <Compile Include="DotNet\IResolver.cs" />
-    <Compile Include="DotNet\ITokenResolver.cs" />
-    <Compile Include="DotNet\IType.cs" />
-    <Compile Include="DotNet\ITypeDefFinder.cs" />
-    <Compile Include="DotNet\IVariable.cs" />
-    <Compile Include="DotNet\ImplMap.cs" />
-    <Compile Include="DotNet\Importer.cs" />
-    <Compile Include="DotNet\InterfaceImpl.cs" />
-    <Compile Include="DotNet\MDToken.cs" />
-    <Compile Include="DotNet\MD\BlobStream.cs" />
-    <Compile Include="DotNet\MD\CodedToken.cs" />
-    <Compile Include="DotNet\MD\ColumnInfo.cs" />
-    <Compile Include="DotNet\MD\ColumnSize.cs" />
-    <Compile Include="DotNet\MD\ComImageFlags.cs" />
-    <Compile Include="DotNet\MD\CompressedMetadata.cs" />
-    <Compile Include="DotNet\MD\CustomDotNetStream.cs" />
-    <Compile Include="DotNet\MD\DotNetStream.cs" />
-    <Compile Include="DotNet\MD\DotNetTableSizes.cs" />
-    <Compile Include="DotNet\MD\ENCMetadata.cs" />
-    <Compile Include="DotNet\MD\GuidStream.cs" />
-    <Compile Include="DotNet\MD\HeapType.cs" />
-    <Compile Include="DotNet\MD\IRowReaders.cs" />
-    <Compile Include="DotNet\MD\ImageCor20Header.cs" />
-    <Compile Include="DotNet\MD\MDHeaderRuntimeVersion.cs" />
-    <Compile Include="DotNet\MD\MDStreamFlags.cs" />
-    <Compile Include="DotNet\MD\MDTable.cs" />
-    <Compile Include="DotNet\MD\Metadata.cs" />
-    <Compile Include="DotNet\MD\MetadataBase.cs" />
-    <Compile Include="DotNet\MD\MetadataFactory.cs" />
-    <Compile Include="DotNet\MD\MetadataHeader.cs" />
-    <Compile Include="DotNet\MD\PdbStream.cs" />
-    <Compile Include="DotNet\MD\RawRowEqualityComparer.cs" />
-    <Compile Include="DotNet\MD\RawTableRows.cs" />
-    <Compile Include="DotNet\MD\RidList.cs" />
-    <Compile Include="DotNet\MD\StorageFlags.cs" />
-    <Compile Include="DotNet\MD\StreamHeader.cs" />
-    <Compile Include="DotNet\MD\StringsStream.cs" />
-    <Compile Include="DotNet\MD\Table.cs" />
-    <Compile Include="DotNet\MD\TableInfo.cs" />
-    <Compile Include="DotNet\MD\TablesStream.cs" />
-    <Compile Include="DotNet\MD\TablesStream_Read.cs" />
-    <Compile Include="DotNet\MD\USStream.cs" />
-    <Compile Include="DotNet\ManifestResource.cs" />
-    <Compile Include="DotNet\ManifestResourceAttributes.cs" />
-    <Compile Include="DotNet\MarshalBlobReader.cs" />
-    <Compile Include="DotNet\MarshalType.cs" />
-    <Compile Include="DotNet\MemberFinder.cs" />
-    <Compile Include="DotNet\MemberMDInitializer.cs" />
-    <Compile Include="DotNet\MemberRef.cs" />
-    <Compile Include="DotNet\MethodAttributes.cs" />
-    <Compile Include="DotNet\MethodDef.cs" />
-    <Compile Include="DotNet\MethodExportInfo.cs" />
-    <Compile Include="DotNet\MethodExportInfoProvider.cs" />
-    <Compile Include="DotNet\MethodImplAttributes.cs" />
-    <Compile Include="DotNet\MethodOverride.cs" />
-    <Compile Include="DotNet\MethodSemanticsAttributes.cs" />
-    <Compile Include="DotNet\MethodSpec.cs" />
-    <Compile Include="DotNet\ModuleContext.cs" />
-    <Compile Include="DotNet\ModuleCreationOptions.cs" />
-    <Compile Include="DotNet\ModuleDef.cs" />
-    <Compile Include="DotNet\ModuleDefMD.cs" />
-    <Compile Include="DotNet\ModuleKind.cs" />
-    <Compile Include="DotNet\ModuleLoader.cs" />
-    <Compile Include="DotNet\ModuleRef.cs" />
-    <Compile Include="DotNet\NativeType.cs" />
-    <Compile Include="DotNet\NullResolver.cs" />
-    <Compile Include="DotNet\Pdb\CustomDebugInfoGuids.cs" />
-    <Compile Include="DotNet\Pdb\DataReaderFactoryUtils.cs" />
-    <Compile Include="DotNet\Pdb\Dss\DataReaderIStream.cs" />
-    <Compile Include="DotNet\Pdb\Dss\MetaDataImport.cs" />
-    <Compile Include="DotNet\Pdb\Dss\ReaderMetaDataImport.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolReaderImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolReaderWriterFactory.cs" />
-    <Compile Include="DotNet\Pdb\IMAGE_DEBUG_DIRECTORY.cs" />
-    <Compile Include="DotNet\Pdb\Managed\NumericLeaf.cs" />
-    <Compile Include="DotNet\Pdb\Managed\NumericReader.cs" />
-    <Compile Include="DotNet\Pdb\Managed\PdbAddress.cs" />
-    <Compile Include="DotNet\Pdb\PdbConstant.cs" />
-    <Compile Include="DotNet\Pdb\PdbCustomDebugInfo.cs" />
-    <Compile Include="DotNet\Pdb\PdbDocumentConstants.cs" />
-    <Compile Include="DotNet\Pdb\PdbFileKind.cs" />
-    <Compile Include="DotNet\Pdb\PdbImport.cs" />
-    <Compile Include="DotNet\Pdb\PdbLocal.cs" />
-    <Compile Include="DotNet\Pdb\PdbLocalAttributes.cs" />
-    <Compile Include="DotNet\Pdb\PdbMethod.cs" />
-    <Compile Include="DotNet\Pdb\PdbReaderContext.cs" />
-    <Compile Include="DotNet\Pdb\PdbReaderOptions.cs" />
-    <Compile Include="DotNet\Pdb\PdbUtils.cs" />
-    <Compile Include="DotNet\Pdb\Portable\DocumentNameReader.cs" />
-    <Compile Include="DotNet\Pdb\Portable\ImportDefinitionKindUtils.cs" />
-    <Compile Include="DotNet\Pdb\Portable\ImportScopeBlobReader.cs" />
-    <Compile Include="DotNet\Pdb\Portable\ImportScopeBlobWriter.cs" />
-    <Compile Include="DotNet\Pdb\Portable\ListCache.cs" />
-    <Compile Include="DotNet\Pdb\Portable\LocalConstantSigBlobReader.cs" />
-    <Compile Include="DotNet\Pdb\Portable\LocalConstantSigBlobWriter.cs" />
-    <Compile Include="DotNet\Pdb\Portable\PortablePdbCustomDebugInfoReader.cs" />
-    <Compile Include="DotNet\Pdb\Portable\PortablePdbCustomDebugInfoWriter.cs" />
-    <Compile Include="DotNet\Pdb\Portable\PortablePdbReader.cs" />
-    <Compile Include="DotNet\Pdb\Portable\SequencePointConstants.cs" />
-    <Compile Include="DotNet\Pdb\Portable\SymbolDocumentImpl.cs" />
-    <Compile Include="DotNet\Pdb\Portable\SymbolMethodImpl.cs" />
-    <Compile Include="DotNet\Pdb\Portable\SymbolReaderFactory.cs" />
-    <Compile Include="DotNet\Pdb\Portable\SymbolScopeImpl.cs" />
-    <Compile Include="DotNet\Pdb\Portable\SymbolVariableImpl.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolAsyncStepInfo.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolDocument.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolMethod.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolNamespace.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolReader.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolScope.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolSequencePoint.cs" />
-    <Compile Include="DotNet\Pdb\Symbols\SymbolVariable.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\CorSymVarFlag.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\CustomDebugInfoConstants.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoReader.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\PdbCustomDebugInfoWriter.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\PseudoCustomDebugInfoFactory.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\SymbolWriter.cs" />
-    <Compile Include="DotNet\Pdb\WindowsPdb\WindowsPdbWriter.cs" />
-    <Compile Include="DotNet\PInvokeAttributes.cs" />
-    <Compile Include="DotNet\ParamAttributes.cs" />
-    <Compile Include="DotNet\ParamDef.cs" />
-    <Compile Include="DotNet\ParameterList.cs" />
-    <Compile Include="DotNet\Pdb\Dss\ComInterfaces.cs" />
-    <Compile Include="DotNet\Pdb\Dss\MDEmitter.cs" />
-    <Compile Include="DotNet\Pdb\Dss\StreamIStream.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolDocumentImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolDocumentWriter.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolMethodImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolNamespaceImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolScopeImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolVariableImpl.cs" />
-    <Compile Include="DotNet\Pdb\Dss\SymbolWriterImpl.cs" />
-    <Compile Include="DotNet\Pdb\Managed\DbiDocument.cs" />
-    <Compile Include="DotNet\Pdb\Managed\DbiFunction.cs" />
-    <Compile Include="DotNet\Pdb\Managed\DbiModule.cs" />
-    <Compile Include="DotNet\Pdb\Managed\DbiNamespace.cs" />
-    <Compile Include="DotNet\Pdb\Managed\DbiScope.cs" />
-    <Compile Include="DotNet\Pdb\Managed\DbiVariable.cs" />
-    <Compile Include="DotNet\Pdb\Managed\ModuleStreamType.cs" />
-    <Compile Include="DotNet\Pdb\Managed\MsfStream.cs" />
-    <Compile Include="DotNet\Pdb\Managed\PdbException.cs" />
-    <Compile Include="DotNet\Pdb\Managed\PdbReader.cs" />
-    <Compile Include="DotNet\Pdb\Managed\SymbolReaderFactory.cs" />
-    <Compile Include="DotNet\Pdb\Managed\SymbolType.cs" />
-    <Compile Include="DotNet\Pdb\PdbDocument.cs" />
-    <Compile Include="DotNet\Pdb\PdbScope.cs" />
-    <Compile Include="DotNet\Pdb\PdbState.cs" />
-    <Compile Include="DotNet\Pdb\SequencePoint.cs" />
-    <Compile Include="DotNet\Pdb\SymbolReaderFactory.cs" />
-    <Compile Include="DotNet\PropertyAttributes.cs" />
-    <Compile Include="DotNet\PropertyDef.cs" />
-    <Compile Include="DotNet\PublicKey.cs" />
-    <Compile Include="DotNet\PublicKeyBase.cs" />
-    <Compile Include="DotNet\PublicKeyToken.cs" />
-    <Compile Include="DotNet\RecursionCounter.cs" />
-    <Compile Include="DotNet\ReflectionExtensions.cs" />
-    <Compile Include="DotNet\ResolveException.cs" />
-    <Compile Include="DotNet\Resolver.cs" />
-    <Compile Include="DotNet\Resource.cs" />
-    <Compile Include="DotNet\ResourceCollection.cs" />
-    <Compile Include="DotNet\Resources\BuiltInResourceData.cs" />
-    <Compile Include="DotNet\Resources\IResourceData.cs" />
-    <Compile Include="DotNet\Resources\ResourceDataFactory.cs" />
-    <Compile Include="DotNet\Resources\ResourceElement.cs" />
-    <Compile Include="DotNet\Resources\ResourceElementSet.cs" />
-    <Compile Include="DotNet\Resources\ResourceReader.cs" />
-    <Compile Include="DotNet\Resources\ResourceTypeCode.cs" />
-    <Compile Include="DotNet\Resources\ResourceWriter.cs" />
-    <Compile Include="DotNet\Resources\UserResourceData.cs" />
-    <Compile Include="DotNet\Resources\UserResourceType.cs" />
-    <Compile Include="DotNet\SecurityAction.cs" />
-    <Compile Include="DotNet\SecurityAttribute.cs" />
-    <Compile Include="DotNet\SerializationType.cs" />
-    <Compile Include="DotNet\SigComparer.cs" />
-    <Compile Include="DotNet\SignatureReader.cs" />
-    <Compile Include="DotNet\StandAloneSig.cs" />
-    <Compile Include="DotNet\StrongNameKey.cs" />
-    <Compile Include="DotNet\StrongNameSigner.cs" />
-    <Compile Include="DotNet\TIAHelper.cs" />
-    <Compile Include="DotNet\TypeAttributes.cs" />
-    <Compile Include="DotNet\TypeDef.cs" />
-    <Compile Include="DotNet\TypeDefFinder.cs" />
-    <Compile Include="DotNet\TypeHelper.cs" />
-    <Compile Include="DotNet\TypeNameParser.cs" />
-    <Compile Include="DotNet\TypeRef.cs" />
-    <Compile Include="DotNet\TypeSig.cs" />
-    <Compile Include="DotNet\TypeSpec.cs" />
-    <Compile Include="DotNet\UTF8String.cs" />
-    <Compile Include="DotNet\Utils.cs" />
-    <Compile Include="DotNet\VTableFixups.cs" />
-    <Compile Include="DotNet\VariantType.cs" />
-    <Compile Include="DotNet\WinMDHelpers.cs" />
-    <Compile Include="DotNet\WinMDStatus.cs" />
-    <Compile Include="DotNet\Writer\ArrayWriter.cs" />
-    <Compile Include="DotNet\Writer\BlobHeap.cs" />
-    <Compile Include="DotNet\Writer\ByteArrayChunk.cs" />
-    <Compile Include="DotNet\Writer\ChecksumAlgorithm.cs" />
-    <Compile Include="DotNet\Writer\ChunkList.cs" />
-    <Compile Include="DotNet\Writer\ChunkListBase.cs" />
-    <Compile Include="DotNet\Writer\CustomAttributeWriter.cs" />
-    <Compile Include="DotNet\Writer\DataReaderChunk.cs" />
-    <Compile Include="DotNet\Writer\DataReaderHeap.cs" />
-    <Compile Include="DotNet\Writer\DataWriter.cs" />
-    <Compile Include="DotNet\Writer\DebugDirectory.cs" />
-    <Compile Include="DotNet\Writer\DeclSecurityWriter.cs" />
-    <Compile Include="DotNet\Writer\Extensions.cs" />
-    <Compile Include="DotNet\Writer\GuidHeap.cs" />
-    <Compile Include="DotNet\Writer\Hasher.cs" />
-    <Compile Include="DotNet\Writer\HeapBase.cs" />
-    <Compile Include="DotNet\Writer\IChunk.cs" />
-    <Compile Include="DotNet\Writer\IHeap.cs" />
-    <Compile Include="DotNet\Writer\IModuleWriterListener.cs" />
-    <Compile Include="DotNet\Writer\IOffsetHeap.cs" />
-    <Compile Include="DotNet\Writer\IWriterError.cs" />
-    <Compile Include="DotNet\Writer\ImageCor20Header.cs" />
-    <Compile Include="DotNet\Writer\ImportAddressTable.cs" />
-    <Compile Include="DotNet\Writer\ImportDirectory.cs" />
-    <Compile Include="DotNet\Writer\ManagedExportsWriter.cs" />
-    <Compile Include="DotNet\Writer\MDTable.cs" />
-    <Compile Include="DotNet\Writer\MDTableWriter.cs" />
-    <Compile Include="DotNet\Writer\MarshalBlobWriter.cs" />
-    <Compile Include="DotNet\Writer\MaxStackCalculator.cs" />
-    <Compile Include="DotNet\Writer\Metadata.cs" />
-    <Compile Include="DotNet\Writer\MetadataEvent.cs" />
-    <Compile Include="DotNet\Writer\MetadataHeader.cs" />
-    <Compile Include="DotNet\Writer\MethodBody.cs" />
-    <Compile Include="DotNet\Writer\MethodBodyChunks.cs" />
-    <Compile Include="DotNet\Writer\MethodBodyWriter.cs" />
-    <Compile Include="DotNet\Writer\MethodBodyWriterBase.cs" />
-    <Compile Include="DotNet\Writer\ModuleWriter.cs" />
-    <Compile Include="DotNet\Writer\ModuleWriterBase.cs" />
-    <Compile Include="DotNet\Writer\ModuleWriterEvent.cs" />
-    <Compile Include="DotNet\Writer\ModuleWriterException.cs" />
-    <Compile Include="DotNet\Writer\NativeModuleWriter.cs" />
-    <Compile Include="DotNet\Writer\NetResources.cs" />
-    <Compile Include="DotNet\Writer\NormalMetadata.cs" />
-    <Compile Include="DotNet\Writer\PdbHeap.cs" />
-    <Compile Include="DotNet\Writer\PEHeaders.cs" />
-    <Compile Include="DotNet\Writer\PESection.cs" />
-    <Compile Include="DotNet\Writer\PortablePdbConstants.cs" />
-    <Compile Include="DotNet\Writer\PreserveTokensMetadata.cs" />
-    <Compile Include="DotNet\Writer\RelocDirectory.cs" />
-    <Compile Include="DotNet\Writer\RoslynContentIdProvider.cs" />
-    <Compile Include="DotNet\Writer\SectionSizes.cs" />
-    <Compile Include="DotNet\Writer\SerializerMethodContext.cs" />
-    <Compile Include="DotNet\Writer\SignatureWriter.cs" />
-    <Compile Include="DotNet\Writer\StartupStub.cs" />
-    <Compile Include="DotNet\Writer\StringsHeap.cs" />
-    <Compile Include="DotNet\Writer\StrongNameSignature.cs" />
-    <Compile Include="DotNet\Writer\TablesHeap.cs" />
-    <Compile Include="DotNet\Writer\USHeap.cs" />
-    <Compile Include="DotNet\Writer\UniqueChunkList.cs" />
-    <Compile Include="DotNet\Writer\Win32ResourcesChunk.cs" />
-    <Compile Include="DotNet\Writer\WriterUtils.cs" />
-    <Compile Include="HandleProcessCorruptedStateExceptionsAttribute.cs" />
-    <Compile Include="IO\AlignedByteArrayDataStream.cs" />
-    <Compile Include="IO\AlignedNativeMemoryDataStream.cs" />
-    <Compile Include="IO\ByteArrayDataReaderFactory.cs" />
-    <Compile Include="IO\DataReader.cs" />
-    <Compile Include="IO\DataReaderFactory.cs" />
-    <Compile Include="IO\DataReaderFactoryFactory.cs" />
-    <Compile Include="IO\DataReaderStream.cs" />
-    <Compile Include="IO\DataStream.cs" />
-    <Compile Include="IO\DataStreamFactory.cs" />
-    <Compile Include="IO\EmptyDataStream.cs" />
-    <Compile Include="IO\FileOffset.cs" />
-    <Compile Include="IO\FileSection.cs" />
-    <Compile Include="IO\IFileSection.cs" />
-    <Compile Include="IO\IOExtensions.cs" />
-    <Compile Include="IO\MemoryMappedDataReaderFactory.cs" />
-    <Compile Include="IO\NativeMemoryDataReaderFactory.cs" />
-    <Compile Include="IO\UnalignedByteArrayDataStream.cs" />
-    <Compile Include="IO\UnalignedNativeMemoryDataStream.cs" />
-    <Compile Include="PE\Characteristics.cs" />
-    <Compile Include="PE\DllCharacteristics.cs" />
-    <Compile Include="PE\IImageOptionalHeader.cs" />
-    <Compile Include="PE\ImageDebugDirectory.cs" />
-    <Compile Include="PE\ImageDebugType.cs" />
-    <Compile Include="PE\IPEImage.cs" />
-    <Compile Include="PE\IPEType.cs" />
-    <Compile Include="PE\ImageDataDirectory.cs" />
-    <Compile Include="PE\ImageDosHeader.cs" />
-    <Compile Include="PE\ImageFileHeader.cs" />
-    <Compile Include="PE\ImageNTHeaders.cs" />
-    <Compile Include="PE\ImageOptionalHeader32.cs" />
-    <Compile Include="PE\ImageOptionalHeader64.cs" />
-    <Compile Include="PE\ImageSectionHeader.cs" />
-    <Compile Include="PE\Machine.cs" />
-    <Compile Include="PE\PEExtensions.cs" />
-    <Compile Include="PE\PEImage.cs" />
-    <Compile Include="PE\PEInfo.cs" />
-    <Compile Include="PE\ProcessorArchUtils.cs" />
-    <Compile Include="PE\RVA.cs" />
-    <Compile Include="PE\Subsystem.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="Threading\ICancellationToken.cs" />
-    <Compile Include="Threading\Lock.cs" />
-    <Compile Include="Utils\ArrayEmpty.cs" />
-    <Compile Include="Utils\CollectionDebugView.cs" />
-    <Compile Include="Utils\ILazyList.cs" />
-    <Compile Include="Utils\LazyList.cs" />
-    <Compile Include="Utils\SimpleLazyList.cs" />
-    <Compile Include="Utils\UserValue.cs" />
-    <Compile Include="W32Resources\ResourceData.cs" />
-    <Compile Include="W32Resources\ResourceDirectory.cs" />
-    <Compile Include="W32Resources\ResourceDirectoryEntry.cs" />
-    <Compile Include="W32Resources\ResourceName.cs" />
-    <Compile Include="W32Resources\Win32Resources.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\LICENSE.txt">
-      <Link>LICENSE.txt</Link>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\README.md">
-      <Link>README.md</Link>
-    </None>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

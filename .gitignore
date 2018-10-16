@@ -5,7 +5,6 @@
 *.opensdf
 *.suo
 /.vs/
-/Debug/
-/Release/
-/Examples/bin/
+bin/
+obj/
 *.tmp_proj
