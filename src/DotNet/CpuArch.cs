@@ -1,7 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
-using System.Diagnostics;
 using dnlib.DotNet.Writer;
 using dnlib.IO;
 using dnlib.PE;
@@ -94,11 +93,8 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="funcRva">Updated with RVA of func field</param>
 		/// <returns></returns>
-		public bool TryGetExportedRvaFromStub(ref DataReader reader, IPEImage peImage, out uint funcRva) {
-			bool b = TryGetExportedRvaFromStubCore(ref reader, peImage, out funcRva);
-			Debug.Assert(b);
-			return b;
-		}
+		public bool TryGetExportedRvaFromStub(ref DataReader reader, IPEImage peImage, out uint funcRva) =>
+			TryGetExportedRvaFromStubCore(ref reader, peImage, out funcRva);
 
 		protected abstract bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva);
 
