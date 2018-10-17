@@ -3,7 +3,7 @@
   <Import Project="$(SolutionDir)\DnlibCommon.props" Condition="Exists('$(SolutionDir)\DnlibCommon.props')" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net35;net46;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net35;net461;netcoreapp2.0</TargetFrameworks>
 
     <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
     <Description>.NET assembly reader/writer</Description>
