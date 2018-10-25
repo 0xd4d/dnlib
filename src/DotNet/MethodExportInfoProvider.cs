@@ -54,12 +54,8 @@ namespace dnlib.DotNet {
 				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
 					var tokenPos = reader.Position;
 					uint token = reader.ReadUInt32();
-					bool b = offsetToInfo.TryGetValue(tokenPos, out var exportInfo);
-					Debug.Assert(token == 0 || b);
-					if (b) {
-						exportInfo = new MethodExportInfo(exportInfo.Name, exportInfo.Ordinal, exportOptions);
-						toInfo[token] = exportInfo;
-					}
+					if (offsetToInfo.TryGetValue(tokenPos, out var exportInfo))
+						toInfo[token] = new MethodExportInfo(exportInfo.Name, exportInfo.Ordinal, exportOptions);
 					if (slotSize == 8)
 						reader.ReadUInt32();
 				}
