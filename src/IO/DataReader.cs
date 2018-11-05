@@ -101,11 +101,11 @@ namespace dnlib.IO {
 			Debug.Assert(currentOffset <= endOffset);
 		}
 
-		void ThrowNoMoreBytesLeft() => throw new DataReaderException("There's not enough bytes left to read");
-		void ThrowDataReaderException(string message) => throw new DataReaderException(message);
-		void ThrowInvalidOperationException() => throw new InvalidOperationException();
-		void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
-		void ThrowInvalidArgument(string paramName) => throw new DataReaderException("Invalid argument value");
+		static void ThrowNoMoreBytesLeft() => throw new DataReaderException("There's not enough bytes left to read");
+		static void ThrowDataReaderException(string message) => throw new DataReaderException(message);
+		static void ThrowInvalidOperationException() => throw new InvalidOperationException();
+		static void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
+		static void ThrowInvalidArgument(string paramName) => throw new DataReaderException("Invalid argument value");
 
 		/// <summary>
 		/// Resets the reader so it points to the start of the data

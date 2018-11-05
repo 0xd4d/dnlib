@@ -1,6 +1,7 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics;
 
 namespace dnlib.IO {
 	/// <summary>
@@ -36,6 +37,13 @@ namespace dnlib.IO {
 		static void ThrowArgumentOutOfRangeException(string paramName) =>
 			throw new ArgumentOutOfRangeException(paramName);
 
+		static void Throw_CreateReader_2(int offset, int length) {
+			if (offset < 0)
+				throw new ArgumentOutOfRangeException(nameof(offset));
+			Debug.Assert(length < 0);
+			throw new ArgumentOutOfRangeException(nameof(length));
+		}
+
 		/// <summary>
 		/// Creates a data reader
 		/// </summary>
@@ -67,10 +75,8 @@ namespace dnlib.IO {
 		/// <param name="length">Length of data</param>
 		/// <returns></returns>
 		public DataReader CreateReader(int offset, int length) {
-			if (offset < 0)
-				ThrowArgumentOutOfRangeException(nameof(offset));
-			if (length < 0)
-				ThrowArgumentOutOfRangeException(nameof(length));
+			if (offset < 0 || length < 0)
+				Throw_CreateReader_2(offset, length);
 			return CreateReader((uint)offset, (uint)length);
 		}
 

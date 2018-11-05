@@ -1,5 +1,6 @@
 ﻿// dnlib: See LICENSE.txt for more info
 
+#if NET35
 namespace System.Runtime.InteropServices {
 	[AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Method, AllowMultiple = false)]
 	sealed class DefaultDllImportSearchPathsAttribute : Attribute {
@@ -19,3 +20,4 @@ namespace System.Runtime.InteropServices {
 		SafeDirectories					= 0x1000,
 	}
 }
+#endif
