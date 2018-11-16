@@ -18,7 +18,7 @@ Want to say thanks? Click the star at the top of the page.
 Compiling
 ---------
 
-v3.0 requires VS2017 (C#7.2) or later to build it. See below for breaking changes going from 2.1 to 3.0
+v3.0 requires VS2017 (C#7.3) or later to build it. .NET Core SDK 2.1 or later is also required. See below for breaking changes going from 2.1 to 3.0
 
 An [older v2.1 branch](https://github.com/0xd4d/dnlib/tree/v2.1_VS2010) can be used to build with older VS versions. This branch won't get any new updates.
 
