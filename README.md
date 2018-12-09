@@ -1,19 +1,11 @@
-.NET module/assembly reader/writer library written for [de4dot](https://github.com/0xd4d/de4dot/).
+# dnlib  [![Build status](https://ci.appveyor.com/api/projects/status/h7dqmfac6qjh4hap/branch/master?svg=true)](https://ci.appveyor.com/project/0xd4d/dnlib/branch/master)
 
+.NET module/assembly reader/writer library
 
-dnlib was created because de4dot needed a robust .NET assembly library that
-could handle all types of obfuscated assemblies. de4dot used to use Mono.Cecil
-but since Mono.Cecil can't handle obfuscated assemblies, doesn't fully support
-mixed mode assemblies, doesn't read .NET assemblies the same way the [CLR](http://en.wikipedia.org/wiki/Common_Language_Runtime) does
-and many other missing features de4dot needed, dnlib was a necessity. The API
-is similar because it made porting de4dot to dnlib a lot easier.
+NuGet
+-----
 
-For other applications using dnlib, see [dnSpy](https://github.com/0xd4d/dnSpy) and
-[ConfuserEx](https://github.com/yck1509/ConfuserEx/) (a .NET obfuscator). They use
-many of the more advanced features of dnlib. Have a look at ConfuserEx' writer code
-which gets executed during the assembly writing process.
-
-Want to say thanks? Click the star at the top of the page.
+Soon...
 
 Compiling
 ---------
@@ -603,3 +595,10 @@ To get a list of all valid TypeDef rids (row IDs), use this code:
 ```
 
 You don't need to create a `ModuleDefMD`, though. See `MetadataFactory`.
+
+Credits
+-------
+
+Big thanks to [Ki](https://github.com/yck1509) for writing the managed Windows PDB reader!
+
+[List of all contributors](https://github.com/0xd4d/dnlib/graphs/contributors)

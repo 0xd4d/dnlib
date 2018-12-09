@@ -3,37 +3,50 @@
   <Import Project="$(SolutionDir)\DnlibCommon.props" Condition="Exists('$(SolutionDir)\DnlibCommon.props')" />
 
   <PropertyGroup>
+    <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
+    <DefineConstants Condition=" '$(NO_THREAD_SAFE)' != 'true' ">$(DefineConstants);THREAD_SAFE</DefineConstants>
     <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1</TargetFrameworks>
+    <!-- It's not possible to target .NET Framework 3.5 when using dotnet build
+         https://github.com/Microsoft/msbuild/issues/1333 -->
     <TargetFrameworks Condition=" '$(NoTargetFrameworkNet35)' != 'true' ">$(TargetFrameworks);net35</TargetFrameworks>
 
-    <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
-    <Description>.NET assembly reader/writer</Description>
+    <Description>Reads and writes .NET assemblies and modules</Description>
     <Title>$(Description)</Title>
     <Copyright>Copyright (C) 2012-2018 de4dot@gmail.com</Copyright>
     <AssemblyTitle>dnlib</AssemblyTitle>
     <AssemblyTitle Condition="$(DefineConstants.Contains(THREAD_SAFE))">$(AssemblyTitle) (thread safe)</AssemblyTitle>
     <AssemblyName>dnlib</AssemblyName>
-    <NeutralLanguage>en</NeutralLanguage>
+    <PackageId>dnlib</PackageId>
+    <NeutralLanguage>en-US</NeutralLanguage>
     <Version>3.0.0</Version>
     <InformationalVersion>$(Version)</InformationalVersion>
     <Authors>0xd4d</Authors>
-
+    <PackageProjectUrl>https://github.com/0xd4d/dnlib</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/0xd4d/dnlib/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageVersion>$(InformationalVersion)</PackageVersion>
+    <PackageTags>dotnet;assembly;module;reader;writer;PDB;PortablePdb;WindowsPdb;IL;CIL;MSIL;metadata</PackageTags>
     <Features>strict</Features>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <PackageDescription>Reads and writes .NET assemblies and modules, Windows PDBs and Portable PDBs.</PackageDescription>
+    <PackageReleaseNotes></PackageReleaseNotes>
+
+    <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\LICENSE.txt">
-      <Link>LICENSE.txt</Link>
-    </Content>
-    <None Include="..\README.md">
-      <Link>README.md</Link>
-    </None>
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="LICENSE.txt" />
+    <None Include="..\README.md" Link="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
