@@ -8,7 +8,7 @@ build:
   parallel: true
   verbosity: normal
 before_package:
-- cmd: msbuild /p:Configuration=Release /t:Pack dnlib.sln
+- cmd: msbuild /m /p:Configuration=Release /t:Pack dnlib.sln
 artifacts:
 - path: src\bin\Release\*.nupkg
   name: dnlib NuGet Packages
