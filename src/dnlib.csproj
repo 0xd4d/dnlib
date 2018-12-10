@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
-    <DefineConstants Condition=" '$(NO_THREAD_SAFE)' != 'true' ">$(DefineConstants);THREAD_SAFE</DefineConstants>
+    <DefineConstants Condition=" '$(DnlibThreadSafe)' != 'false' ">$(DefineConstants);THREAD_SAFE</DefineConstants>
     <TargetFrameworks>netstandard2.0;net461;netcoreapp2.1</TargetFrameworks>
     <!-- It's not possible to target .NET Framework 3.5 when using dotnet build
          https://github.com/Microsoft/msbuild/issues/1333 -->
