@@ -17,11 +17,15 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 
-		public void Read(ref DataReader reader) {
+		public bool Read(ref DataReader reader) {
 			index = reader.ReadInt32();
 			reader.Position += 10;
-			attributes = GetAttributes(reader.ReadUInt16());
+			ushort flags = reader.ReadUInt16();
+			attributes = GetAttributes(flags);
 			name = PdbReader.ReadCString(ref reader);
+
+			const int fIsParam = 1;
+			return (flags & fIsParam) == 0;
 		}
 
 		static PdbLocalAttributes GetAttributes(uint flags) {
