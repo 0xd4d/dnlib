@@ -68,7 +68,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public int AsyncKickoffMethod {
 			get {
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
-				if (data == null)
+				if (data == null || data.Length < 4)
 					return 0;
 				return BitConverter.ToInt32(data, 0);
 			}
@@ -77,7 +77,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public uint? AsyncCatchHandlerILOffset {
 			get {
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
-				if (data == null)
+				if (data == null || data.Length < 8)
 					return null;
 				uint token = BitConverter.ToUInt32(data, 4);
 				return token == uint.MaxValue ? (uint?)null : token;
@@ -95,7 +95,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		SymbolAsyncStepInfo[] CreateSymbolAsyncStepInfos() {
 			var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
-			if (data == null)
+			if (data == null || data.Length < 12)
 				return Array2.Empty<SymbolAsyncStepInfo>();
 			int pos = 8;
 			int count = BitConverter.ToInt32(data, pos);
