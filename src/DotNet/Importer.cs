@@ -44,6 +44,13 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
+	/// Re-maps entities that were renamed in the target module
+	/// </summary>
+	public interface IImportMapper {
+		ITypeDefOrRef Map(ITypeDefOrRef source);
+	}
+
+	/// <summary>
 	/// Imports <see cref="Type"/>s, <see cref="ConstructorInfo"/>s, <see cref="MethodInfo"/>s
 	/// and <see cref="FieldInfo"/>s as references
 	/// </summary>
@@ -52,6 +59,7 @@ namespace dnlib.DotNet {
 		readonly GenericParamContext gpContext;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
+		public IImportMapper Mapper;
 
 		bool TryToUseTypeDefs => (options & ImporterOptions.TryToUseTypeDefs) != 0;
 		bool TryToUseMethodDefs => (options & ImporterOptions.TryToUseMethodDefs) != 0;
@@ -104,6 +112,7 @@ namespace dnlib.DotNet {
 			recursionCounter = new RecursionCounter();
 			this.options = options;
 			this.gpContext = gpContext;
+			this.Mapper = null;
 		}
 
 		/// <summary>
@@ -613,6 +622,8 @@ namespace dnlib.DotNet {
 		public ITypeDefOrRef Import(TypeDef type) {
 			if (type == null)
 				return null;
+			var mapped = Mapper?.Map(type);
+			if (mapped != null) return mapped;
 			if (TryToUseTypeDefs && type.Module == module)
 				return type;
 			return Import2(type);
@@ -657,7 +668,11 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public ITypeDefOrRef Import(TypeRef type) => TryResolve(Import2(type));
+		public ITypeDefOrRef Import(TypeRef type) {
+			var mapped = Mapper?.Map(type);
+			if (mapped != null) return mapped;
+			return TryResolve(Import2(type));
+		}
 
 		TypeRef Import2(TypeRef type) {
 			if (type == null)
