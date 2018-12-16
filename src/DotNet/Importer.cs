@@ -46,8 +46,35 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Re-maps entities that were renamed in the target module
 	/// </summary>
-	public interface IImportMapper {
-		ITypeDefOrRef Map(ITypeDefOrRef source);
+	public abstract class ImportMapper {
+		
+		/// <summary>
+		/// Matches source <see cref="ITypeDefOrRef"/> to the one that is already present in the target module under a different name.
+		/// </summary>
+		/// <param name="source"><see cref="ITypeDefOrRef"/> referenced by the entity that is being imported.</param>
+		/// <returns>matching <see cref="ITypeDefOrRef"/> or <c>null</c> if there's no match.</returns>
+		public virtual ITypeDefOrRef Map(ITypeDefOrRef source) => null;
+
+		/// <summary>
+		/// Matches source <see cref="FieldDef"/> to the one that is already present in the target module under a different name.
+		/// </summary>
+		/// <param name="source"><see cref="FieldDef"/> referenced by the entity that is being imported.</param>
+		/// <returns>matching <see cref="IField"/> or <c>null</c> if there's no match.</returns>
+		public virtual IField Map(FieldDef source) => null;
+
+		/// <summary>
+		/// Matches source <see cref="MethodDef"/> to the one that is already present in the target module under a different name.
+		/// </summary>
+		/// <param name="source"><see cref="MethodDef"/> referenced by the entity that is being imported.</param>
+		/// <returns>matching <see cref="IMethod"/> or <c>null</c> if there's no match.</returns>
+		public virtual IMethod Map(MethodDef source) => null;
+
+		/// <summary>
+		/// Matches source <see cref="MemberRef"/> to the one that is already present in the target module under a different name.
+		/// </summary>
+		/// <param name="source"><see cref="MemberRef"/> referenced by the entity that is being imported.</param>
+		/// <returns>matching <see cref="MemberRef"/> or <c>null</c> if there's no match.</returns>
+		public virtual MemberRef Map(MemberRef source) => null;
 	}
 
 	/// <summary>
@@ -57,9 +84,9 @@ namespace dnlib.DotNet {
 	public struct Importer {
 		readonly ModuleDef module;
 		readonly GenericParamContext gpContext;
+		readonly ImportMapper Mapper;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
-		public IImportMapper Mapper;
 
 		bool TryToUseTypeDefs => (options & ImporterOptions.TryToUseTypeDefs) != 0;
 		bool TryToUseMethodDefs => (options & ImporterOptions.TryToUseMethodDefs) != 0;
@@ -80,7 +107,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">The module that will own all references</param>
 		public Importer(ModuleDef module)
-			: this(module, 0, new GenericParamContext()) {
+			: this(module, 0, new GenericParamContext(), null) {
 		}
 
 		/// <summary>
@@ -89,7 +116,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">The module that will own all references</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		public Importer(ModuleDef module, GenericParamContext gpContext)
-			: this(module, 0, gpContext) {
+			: this(module, 0, gpContext, null) {
 		}
 
 		/// <summary>
@@ -98,7 +125,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">The module that will own all references</param>
 		/// <param name="options">Importer options</param>
 		public Importer(ModuleDef module, ImporterOptions options)
-			: this(module, options, new GenericParamContext()) {
+			: this(module, options, new GenericParamContext(), null) {
 		}
 
 		/// <summary>
@@ -107,12 +134,23 @@ namespace dnlib.DotNet {
 		/// <param name="module">The module that will own all references</param>
 		/// <param name="options">Importer options</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		public Importer(ModuleDef module, ImporterOptions options, GenericParamContext gpContext) {
+		public Importer(ModuleDef module, ImporterOptions options, GenericParamContext gpContext)
+			: this(module, options, new GenericParamContext(), null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">The module that will own all references</param>
+		/// <param name="options">Importer options</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="mapper">Mapper for renamed entities</param>
+		public Importer(ModuleDef module, ImporterOptions options, GenericParamContext gpContext, ImportMapper mapper) {
 			this.module = module;
 			recursionCounter = new RecursionCounter();
 			this.options = options;
 			this.gpContext = gpContext;
-			this.Mapper = null;
+			Mapper = mapper;
 		}
 
 		/// <summary>
@@ -623,7 +661,8 @@ namespace dnlib.DotNet {
 			if (type == null)
 				return null;
 			var mapped = Mapper?.Map(type);
-			if (mapped != null) return mapped;
+			if (mapped != null)
+				return mapped;
 			if (TryToUseTypeDefs && type.Module == module)
 				return type;
 			return Import2(type);
@@ -670,7 +709,8 @@ namespace dnlib.DotNet {
 		/// <returns>The imported type or <c>null</c></returns>
 		public ITypeDefOrRef Import(TypeRef type) {
 			var mapped = Mapper?.Map(type);
-			if (mapped != null) return mapped;
+			if (mapped != null)
+				return mapped;
 			return TryResolve(Import2(type));
 		}
 
@@ -986,6 +1026,9 @@ namespace dnlib.DotNet {
 				return field;
 			if (!recursionCounter.Increment())
 				return null;
+			var mapped = Mapper?.Map(field);
+			if (mapped != null)
+				return mapped;
 
 			MemberRef result = module.UpdateRowId(new MemberRefUser(module, field.Name));
 			result.Signature = Import(field.Signature);
@@ -1015,6 +1058,9 @@ namespace dnlib.DotNet {
 				return method;
 			if (!recursionCounter.Increment())
 				return null;
+			var mapped = Mapper?.Map(method);
+			if (mapped != null)
+				return mapped;
 
 			MemberRef result = module.UpdateRowId(new MemberRefUser(module, method.Name));
 			result.Signature = Import(method.Signature);
@@ -1052,6 +1098,9 @@ namespace dnlib.DotNet {
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
+			var mapped = Mapper?.Map(memberRef);
+			if (mapped != null)
+				return mapped;
 
 			MemberRef result = module.UpdateRowId(new MemberRefUser(module, memberRef.Name));
 			result.Signature = Import(memberRef.Signature);
