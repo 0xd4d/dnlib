@@ -775,7 +775,7 @@ namespace dnlib.DotNet {
 			return result;
 		}
 
-		ITypeDefOrRef Import(ITypeDefOrRef type) => (ITypeDefOrRef)Import((IType)type);
+		public ITypeDefOrRef Import(ITypeDefOrRef type) => (ITypeDefOrRef)Import((IType)type);
 
 		TypeSig CreateClassOrValueType(ITypeDefOrRef type, bool isValueType) {
 			var corLibType = module.CorLibTypes.GetCorLibTypeSig(type);
