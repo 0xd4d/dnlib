@@ -1244,12 +1244,10 @@ namespace dnlib.DotNet {
 		/// Creates a new <see cref="ModuleContext"/> instance. There should normally only be one
 		/// instance shared by all <see cref="ModuleDef"/>s.
 		/// </summary>
-		/// <param name="addOtherSearchPaths">If <c>true</c>, add other common assembly search
-		/// paths, not just the module search paths and the GAC.</param>
 		/// <returns>A new <see cref="ModuleContext"/> instance</returns>
-		public static ModuleContext CreateModuleContext(bool addOtherSearchPaths = true) {
+		public static ModuleContext CreateModuleContext() {
 			var ctx = new ModuleContext();
-			var asmRes = new AssemblyResolver(ctx, addOtherSearchPaths);
+			var asmRes = new AssemblyResolver(ctx);
 			var res = new Resolver(asmRes);
 			ctx.AssemblyResolver = asmRes;
 			ctx.Resolver = res;
