@@ -320,7 +320,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					return;
 				}
 				if (stepInfo.BreakpointMethod == null) {
-					Error("BreakpointInstruction is null");
+					Error("BreakpointMethod is null");
 					return;
 				}
 				if (stepInfo.BreakpointInstruction == null) {
