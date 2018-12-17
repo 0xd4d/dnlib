@@ -53,7 +53,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="source"><see cref="ITypeDefOrRef"/> referenced by the entity that is being imported.</param>
 		/// <returns>matching <see cref="ITypeDefOrRef"/> or <c>null</c> if there's no match.</returns>
-		public virtual ITypeDefOrRef Map(ITypeDefOrRef source) => null;
+		public virtual TypeRef Map(ITypeDefOrRef source) => null;
 
 		/// <summary>
 		/// Matches source <see cref="FieldDef"/> to the one that is already present in the target module under a different name.
@@ -84,7 +84,7 @@ namespace dnlib.DotNet {
 	public struct Importer {
 		readonly ModuleDef module;
 		readonly GenericParamContext gpContext;
-		readonly ImportMapper Mapper;
+		readonly ImportMapper mapper;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
 
@@ -150,7 +150,7 @@ namespace dnlib.DotNet {
 			recursionCounter = new RecursionCounter();
 			this.options = options;
 			this.gpContext = gpContext;
-			Mapper = mapper;
+			this.mapper = mapper;
 		}
 
 		/// <summary>
@@ -660,9 +660,6 @@ namespace dnlib.DotNet {
 		public ITypeDefOrRef Import(TypeDef type) {
 			if (type == null)
 				return null;
-			var mapped = Mapper?.Map(type);
-			if (mapped != null)
-				return mapped;
 			if (TryToUseTypeDefs && type.Module == module)
 				return type;
 			return Import2(type);
@@ -673,6 +670,11 @@ namespace dnlib.DotNet {
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
+			var mapped = mapper?.Map(type);
+			if (mapped != null) {
+				recursionCounter.Decrement();
+				return mapped;
+			}
 			TypeRef result;
 
 			var declType = type.DeclaringType;
@@ -707,18 +709,18 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public ITypeDefOrRef Import(TypeRef type) {
-			var mapped = Mapper?.Map(type);
-			if (mapped != null)
-				return mapped;
-			return TryResolve(Import2(type));
-		}
+		public ITypeDefOrRef Import(TypeRef type) => TryResolve(Import2(type));
 
 		TypeRef Import2(TypeRef type) {
 			if (type == null)
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
+			var mapped = mapper?.Map(type);
+			if (mapped != null) {
+				recursionCounter.Decrement();
+				return mapped;
+			}
 			TypeRef result;
 
 			var declaringType = type.DeclaringType;
@@ -815,6 +817,11 @@ namespace dnlib.DotNet {
 			return result;
 		}
 
+		/// <summary>
+		/// Imports a <see cref="ITypeDefOrRef"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c></returns>
 		public ITypeDefOrRef Import(ITypeDefOrRef type) => (ITypeDefOrRef)Import((IType)type);
 
 		TypeSig CreateClassOrValueType(ITypeDefOrRef type, bool isValueType) {
@@ -1026,9 +1033,11 @@ namespace dnlib.DotNet {
 				return field;
 			if (!recursionCounter.Increment())
 				return null;
-			var mapped = Mapper?.Map(field);
-			if (mapped != null)
+			var mapped = mapper?.Map(field);
+			if (mapped != null) {
+				recursionCounter.Decrement();
 				return mapped;
+			}
 
 			MemberRef result = module.UpdateRowId(new MemberRefUser(module, field.Name));
 			result.Signature = Import(field.Signature);
@@ -1058,9 +1067,11 @@ namespace dnlib.DotNet {
 				return method;
 			if (!recursionCounter.Increment())
 				return null;
-			var mapped = Mapper?.Map(method);
-			if (mapped != null)
+			var mapped = mapper?.Map(method);
+			if (mapped != null) {
+				recursionCounter.Decrement();
 				return mapped;
+			}
 
 			MemberRef result = module.UpdateRowId(new MemberRefUser(module, method.Name));
 			result.Signature = Import(method.Signature);
@@ -1098,9 +1109,11 @@ namespace dnlib.DotNet {
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
-			var mapped = Mapper?.Map(memberRef);
-			if (mapped != null)
+			var mapped = mapper?.Map(memberRef);
+			if (mapped != null) {
+				recursionCounter.Decrement();
 				return mapped;
+			}
 
 			MemberRef result = module.UpdateRowId(new MemberRefUser(module, memberRef.Name));
 			result.Signature = Import(memberRef.Signature);
