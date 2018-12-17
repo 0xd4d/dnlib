@@ -3,7 +3,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Xml;
 using dnlib.Threading;
 
@@ -29,7 +28,7 @@ namespace dnlib.DotNet {
 
 		ModuleContext defaultModuleContext;
 		readonly Dictionary<ModuleDef, IList<string>> moduleSearchPaths = new Dictionary<ModuleDef, IList<string>>();
-		readonly Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.Ordinal);
+		readonly Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.OrdinalIgnoreCase);
 		readonly IList<string> preSearchPaths = new List<string>();
 		readonly IList<string> postSearchPaths = new List<string>();
 		bool findExactMatch;
@@ -368,7 +367,7 @@ namespace dnlib.DotNet {
 
 		static string GetAssemblyNameKey(IAssembly asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
-			return asmName.FullNameToken.ToUpperInvariant();
+			return asmName.FullNameToken;
 		}
 
 		AssemblyDef Resolve2(IAssembly assembly, ModuleDef sourceModule) {
