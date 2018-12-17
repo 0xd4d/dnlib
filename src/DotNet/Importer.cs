@@ -53,7 +53,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="source"><see cref="ITypeDefOrRef"/> referenced by the entity that is being imported.</param>
 		/// <returns>matching <see cref="ITypeDefOrRef"/> or <c>null</c> if there's no match.</returns>
-		public virtual TypeRef Map(ITypeDefOrRef source) => null;
+		public virtual ITypeDefOrRef Map(ITypeDefOrRef source) => null;
 
 		/// <summary>
 		/// Matches source <see cref="FieldDef"/> to the one that is already present in the target module under a different name.
@@ -662,6 +662,9 @@ namespace dnlib.DotNet {
 				return null;
 			if (TryToUseTypeDefs && type.Module == module)
 				return type;
+			var mapped = mapper?.Map(type);
+			if (mapped != null)
+				return mapped;
 			return Import2(type);
 		}
 
@@ -670,11 +673,7 @@ namespace dnlib.DotNet {
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
-			var mapped = mapper?.Map(type);
-			if (mapped != null) {
-				recursionCounter.Decrement();
-				return mapped;
-			}
+			
 			TypeRef result;
 
 			var declType = type.DeclaringType;
@@ -709,18 +708,19 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public ITypeDefOrRef Import(TypeRef type) => TryResolve(Import2(type));
+		public ITypeDefOrRef Import(TypeRef type) {
+			var mapped = mapper?.Map(type);
+			if (mapped != null)
+				return mapped;
+
+			return TryResolve(Import2(type));
+		}
 
 		TypeRef Import2(TypeRef type) {
 			if (type == null)
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
-			var mapped = mapper?.Map(type);
-			if (mapped != null) {
-				recursionCounter.Decrement();
-				return mapped;
-			}
 			TypeRef result;
 
 			var declaringType = type.DeclaringType;
