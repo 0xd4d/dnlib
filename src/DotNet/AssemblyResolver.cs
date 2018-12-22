@@ -27,10 +27,10 @@ namespace dnlib.DotNet {
 		};
 
 		ModuleContext defaultModuleContext;
-		readonly Dictionary<ModuleDef, IList<string>> moduleSearchPaths = new Dictionary<ModuleDef, IList<string>>();
+		readonly Dictionary<ModuleDef, List<string>> moduleSearchPaths = new Dictionary<ModuleDef, List<string>>();
 		readonly Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.OrdinalIgnoreCase);
-		readonly IList<string> preSearchPaths = new List<string>();
-		readonly IList<string> postSearchPaths = new List<string>();
+		readonly List<string> preSearchPaths = new List<string>();
+		readonly List<string> postSearchPaths = new List<string>();
 		bool findExactMatch;
 		bool enableFrameworkRedirect;
 		bool enableTypeDefCache = true;
@@ -43,9 +43,9 @@ namespace dnlib.DotNet {
 			public readonly int Version;
 			public readonly string Path;
 			public readonly string Prefix;
-			public readonly IList<string> SubDirs;
+			public readonly string[] SubDirs;
 
-			public GacInfo(int version, string prefix, string path, IList<string> subDirs) {
+			public GacInfo(int version, string prefix, string path, string[] subDirs) {
 				Version = version;
 				Prefix = prefix;
 				Path = path;
@@ -96,7 +96,7 @@ namespace dnlib.DotNet {
 				if (!string.IsNullOrEmpty(windir)) {
 					string path;
 
-					// .NET 1.x and 2.x
+					// .NET Framework 1.x and 2.x
 					path = Path.Combine(windir, "assembly");
 					if (Directory.Exists(path)) {
 						gacInfos.Add(new GacInfo(2, "", path, new string[] {
@@ -104,7 +104,7 @@ namespace dnlib.DotNet {
 						}));
 					}
 
-					// .NET 4.x
+					// .NET Framework 4.x
 					path = Path.Combine(Path.Combine(windir, "Microsoft.NET"), "assembly");
 					if (Directory.Exists(path)) {
 						gacInfos.Add(new GacInfo(4, "v4.0_", path, new string[] {
