@@ -18,7 +18,7 @@
     <AssemblyName>dnlib</AssemblyName>
     <PackageId>dnlib</PackageId>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <Version>3.0.0</Version>
+    <Version>3.1.0</Version>
     <InformationalVersion>$(Version)</InformationalVersion>
     <Authors>0xd4d</Authors>
     <PackageProjectUrl>https://github.com/0xd4d/dnlib</PackageProjectUrl>
@@ -30,7 +30,10 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
-    <PackageDescription>Reads and writes .NET assemblies and modules, Windows PDBs and Portable PDBs.</PackageDescription>
+    <PackageDescription>Reads and writes .NET assemblies and modules, Windows PDBs and Portable PDBs.
+
+For better *Windows PDB* writer support, you should add a reference to `Microsoft.DiaSymReader.Native` nuget package too, see the dnlib README for more info: https://github.com/0xd4d/dnlib#windows-pdbs . You don't need to do anything special for *Portable PDB* support.
+</PackageDescription>
     <PackageReleaseNotes></PackageReleaseNotes>
 
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>

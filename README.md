@@ -1,11 +1,11 @@
-# dnlib  [![Build status](https://ci.appveyor.com/api/projects/status/h7dqmfac6qjh4hap/branch/master?svg=true)](https://ci.appveyor.com/project/0xd4d/dnlib/branch/master)
+# dnlib  [![Build status](https://ci.appveyor.com/api/projects/status/h7dqmfac6qjh4hap/branch/master?svg=true)](https://ci.appveyor.com/project/0xd4d/dnlib/branch/master)  [![NuGet](https://img.shields.io/nuget/v/dnlib.svg)](https://www.nuget.org/packages/dnlib/)
 
 .NET module/assembly reader/writer library
 
 NuGet
 -----
 
-Soon...
+[![NuGet](https://img.shields.io/nuget/v/dnlib.svg)](https://www.nuget.org/packages/dnlib/)
 
 Compiling
 ---------
