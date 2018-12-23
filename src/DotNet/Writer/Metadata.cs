@@ -607,20 +607,21 @@ namespace dnlib.DotNet.Writer {
 		internal sealed class Rows<T> where T : class {
 			Dictionary<T, uint> dict = new Dictionary<T, uint>();
 
-			public int Count => dict.Count;
+			public int Count { get { lock (dict) return dict.Count; } }
 
 			public bool TryGetRid(T value, out uint rid) {
 				if (value == null) {
 					rid = 0;
 					return false;
 				}
-				return dict.TryGetValue(value, out rid);
+				lock(dict)
+					return dict.TryGetValue(value, out rid);
 			}
 
-			public bool Exists(T value) => dict.ContainsKey(value);
-			public void Add(T value, uint rid) => dict.Add(value, rid);
-			public uint Rid(T value) => dict[value];
-			public void SetRid(T value, uint rid) => dict[value] = rid;
+			public bool Exists(T value) { lock (dict) return dict.ContainsKey(value); } 
+			public void Add(T value, uint rid) { lock (dict) dict.Add(value, rid); } 
+			public uint Rid(T value) { lock (dict) return dict[value]; } 
+			public void SetRid(T value, uint rid) { lock (dict) dict[value] = rid; } 
 		}
 
 		/// <summary>
@@ -3708,15 +3709,18 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		DataWriterContext AllocBinaryWriterContext() {
-			if (binaryWriterContexts.Count == 0)
-				return new DataWriterContext();
-			var res = binaryWriterContexts[binaryWriterContexts.Count - 1];
-			binaryWriterContexts.RemoveAt(binaryWriterContexts.Count - 1);
-			return res;
+			lock (binaryWriterContexts) {
+				if (binaryWriterContexts.Count == 0)
+					return new DataWriterContext();
+				var res = binaryWriterContexts[binaryWriterContexts.Count - 1];
+				binaryWriterContexts.RemoveAt(binaryWriterContexts.Count - 1);
+				return res;
+			}
 		}
 
 		void Free(ref DataWriterContext ctx) {
-			binaryWriterContexts.Add(ctx);
+			lock (binaryWriterContexts) 
+				binaryWriterContexts.Add(ctx);
 			ctx = null;
 		}
 
