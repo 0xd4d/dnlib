@@ -1,4 +1,4 @@
-﻿// dnlib: See LICENSE.txt for more info
+// dnlib: See LICENSE.txt for more info
 
 namespace dnlib.DotNet.Pdb.Managed {
 	enum SymbolType : ushort {
