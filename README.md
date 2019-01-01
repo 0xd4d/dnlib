@@ -175,8 +175,8 @@ dnlib will use `Microsoft.DiaSymReader.Native` if it exists and fall back to `di
 
 `Microsoft.DiaSymReader.Native` is a NuGet package with 32-bit and 64-bit native DLLs. You have to add a reference to this NuGet package if you want dnlib to use it. dnlib doesn't add a reference to it.
 
-Strong name sign an assembly
-----------------------------
+Strong name signing an assembly
+-------------------------------
 
 Use the following code to strong name sign the assembly when saving it:
 
