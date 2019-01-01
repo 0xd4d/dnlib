@@ -12,7 +12,7 @@
 
     <Description>Reads and writes .NET assemblies and modules</Description>
     <Title>$(Description)</Title>
-    <Copyright>Copyright (C) 2012-2018 de4dot@gmail.com</Copyright>
+    <Copyright>Copyright (C) 2012-2019 de4dot@gmail.com</Copyright>
     <AssemblyTitle>dnlib</AssemblyTitle>
     <AssemblyTitle Condition="$(DefineConstants.Contains(THREAD_SAFE))">$(AssemblyTitle) (thread safe)</AssemblyTitle>
     <AssemblyName>dnlib</AssemblyName>
