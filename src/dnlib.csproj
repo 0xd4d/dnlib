@@ -22,7 +22,7 @@
     <InformationalVersion>$(Version)</InformationalVersion>
     <Authors>0xd4d</Authors>
     <PackageProjectUrl>https://github.com/0xd4d/dnlib</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/0xd4d/dnlib/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageVersion>$(InformationalVersion)</PackageVersion>
     <PackageTags>dotnet;assembly;module;reader;writer;PDB;PortablePdb;WindowsPdb;IL;CIL;MSIL;metadata</PackageTags>
     <Features>strict</Features>
@@ -44,7 +44,7 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="LICENSE.txt" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="" />
     <None Include="..\README.md" Link="README.md" />
   </ItemGroup>
 
