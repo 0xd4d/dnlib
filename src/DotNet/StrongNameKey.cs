@@ -337,8 +337,8 @@ namespace dnlib.DotNet {
 		public StrongNameKey(BinaryReader reader) {
 			/*
 			 * Links:
-			 *	http://msdn.microsoft.com/en-us/library/cc250013%28v=prot.20%29.aspx
-			 *	http://msdn.microsoft.com/en-us/library/windows/desktop/aa387689%28v=vs.85%29.aspx
+			 *	https://msdn.microsoft.com/en-us/library/cc250013%28v=prot.20%29.aspx
+			 *	https://docs.microsoft.com/en-us/windows/desktop/SecCrypto/rsa-schannel-key-blobs
 			 *
 			 *	struct PublicKeyBlob {
 			 *	  unsigned int SigAlgID;	// sig algorithm used to create the sig (00002400 = CALG_RSA_SIGN)
