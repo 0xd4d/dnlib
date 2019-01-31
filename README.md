@@ -2,11 +2,6 @@
 
 .NET module/assembly reader/writer library
 
-NuGet
------
-
-[![NuGet](https://img.shields.io/nuget/v/dnlib.svg)](https://www.nuget.org/packages/dnlib/)
-
 Compiling
 ---------
 
