@@ -104,15 +104,11 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>Removes the specified method body from this chunk</summary>
 		/// <param name="methodBody">The method body</param>
 		/// <returns><see langword="true" /> if the method body is removed</returns>
-		/// <exception cref="ArgumentNullException"><paramref name="methodBody"/> is <see langword="null"/></exception>
-		/// <exception cref="InvalidOperationException">
-		///   <see cref="SetOffset(FileOffset, RVA)"/> as already been called.
-		///   <br/>- or -<br/>
-		///   Reusing of native method bodies is enabled.
-		/// </exception>
 		public bool Remove(MethodBody methodBody) {
-			if (methodBody == null) throw new ArgumentNullException(nameof(methodBody));
-			if (setOffsetCalled) throw new InvalidOperationException("SetOffset() has already been called");
+			if (methodBody == null)
+				throw new ArgumentNullException(nameof(methodBody));
+			if (setOffsetCalled)
+				throw new InvalidOperationException("SetOffset() has already been called");
 			if (CanReuseOldBodyLocation)
 				throw new InvalidOperationException("Reusing old body locations is enabled. Can't remove bodies.");
 

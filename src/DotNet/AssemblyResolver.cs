@@ -3,6 +3,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using dnlib.Threading;
 
@@ -369,7 +370,17 @@ namespace dnlib.DotNet {
 		/// Gets the cached assemblies in this resolver.
 		/// </summary>
 		/// <returns>The cached assemblies.</returns>
-		public IEnumerable<AssemblyDef> GetCachedAssemblies() => cachedAssemblies.Values;
+		public IEnumerable<AssemblyDef> GetCachedAssemblies() {
+			AssemblyDef[] assemblies;
+#if THREAD_SAFE
+			theLock.EnterReadLock(); try {
+#endif
+			assemblies = cachedAssemblies.Values.ToArray();
+#if THREAD_SAFE
+			} finally { theLock.ExitReadLock(); }
+#endif
+			return assemblies;
+		}
 
 		static string GetAssemblyNameKey(IAssembly asmName) {
 			// Make sure the name contains PublicKeyToken= and not PublicKey=
