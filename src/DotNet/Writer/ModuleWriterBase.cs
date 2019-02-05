@@ -321,6 +321,11 @@ namespace dnlib.DotNet.Writer {
 		public string PdbFileName { get; set; }
 
 		/// <summary>
+		/// PDB file name stored in the debug directory, or null to use <see cref="PdbFileName"/>
+		/// </summary>
+		public string PdbFileNameInDebugDirectory { get; set; }
+
+		/// <summary>
 		/// PDB stream. If this is initialized, then you should also set <see cref="PdbFileName"/>
 		/// to the name of the PDB file since the file name must be written to the PE debug directory.
 		/// <see cref="WritePdb"/> must be <c>true</c> or this property is ignored.
@@ -911,7 +916,7 @@ namespace dnlib.DotNet.Writer {
 				var pdbAge = PdbAge;
 				bool hasContentId = pdbWriter.GetDebugInfo(TheOptions.PdbChecksumAlgorithm, ref pdbAge, out var pdbGuid, out uint stamp, out var idd, out var codeViewData);
 				if (hasContentId) {
-					debugDirectory.Add(GetCodeViewData(pdbGuid, pdbAge, pdbFilename),
+					debugDirectory.Add(GetCodeViewData(pdbGuid, pdbAge, TheOptions.PdbFileNameInDebugDirectory ?? pdbFilename),
 						type: ImageDebugType.CodeView,
 						majorVersion: 0,
 						minorVersion: 0,
@@ -1044,7 +1049,7 @@ namespace dnlib.DotNet.Writer {
 				//	- Reproducible
 				//	- EmbeddedPortablePdb
 
-				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, pdbFilename),
+				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, TheOptions.PdbFileNameInDebugDirectory ?? pdbFilename),
 					type: ImageDebugType.CodeView,
 					majorVersion: PortablePdbConstants.FormatVersion,
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,
