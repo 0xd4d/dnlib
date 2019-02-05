@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 ﻿using System;
+using System.ComponentModel;
 
 namespace dnlib.PE {
 	/// <summary>
@@ -26,6 +27,7 @@ namespace dnlib.PE {
 		BytesReversedLo		= 0x0080,
 		/// <summary>32 bit word machine.</summary>
 		[Obsolete("Use " + nameof(Bit32Machine), error: false)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		_32BitMachine		= Bit32Machine,
 		/// <summary>32 bit word machine.</summary>
 		Bit32Machine		= 0x0100,

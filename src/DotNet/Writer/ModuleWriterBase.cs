@@ -12,6 +12,7 @@ using System.Diagnostics;
 using dnlib.DotNet.Pdb.WindowsPdb;
 using System.Text;
 using System.IO.Compression;
+using System.ComponentModel;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -159,6 +160,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the listener
 		/// </summary>
 		[Obsolete("Use event " + nameof(WriterEvent) + " instead of " + nameof(IModuleWriterListener), error: false)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public IModuleWriterListener Listener {
 			get => listener;
 			set => listener = value;
