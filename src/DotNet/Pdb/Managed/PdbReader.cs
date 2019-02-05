@@ -221,6 +221,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		ushort? ReadModules() {
 			ref var stream = ref streams[STREAM_DBI].Content;
+			modules = new List<DbiModule>();
+			if (stream.Length == 0)
+				return null;
 			stream.Position = 20;
 			ushort symrecStream = stream.ReadUInt16();
 			stream.Position += 2;
@@ -235,7 +238,6 @@ namespace dnlib.DotNet.Pdb.Managed {
 			otherSize += ReadSizeField(ref stream); // ecinfoSize
 			stream.Position += 8;
 
-			modules = new List<DbiModule>();
 			var moduleStream = stream.Slice(stream.Position, gpmodiSize);
 			while (moduleStream.Position < moduleStream.Length) {
 				var module = new DbiModule();
