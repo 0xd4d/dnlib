@@ -59,7 +59,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var embeddedDir = pdbContext.TryGetDebugDirectoryEntry(ImageDebugType.EmbeddedPortablePdb);
 				if (embeddedDir == null)
 					return null;
-				var reader = pdbContext.CreateReader(embeddedDir.PointerToRawData, embeddedDir.SizeOfData);
+				var reader = pdbContext.CreateReader(embeddedDir.AddressOfRawData, embeddedDir.SizeOfData);
 				if (reader.Length < 8)
 					return null;
 				// "MPDB" = 0x4244504D
