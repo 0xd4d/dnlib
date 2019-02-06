@@ -12,7 +12,6 @@ using System.Diagnostics;
 using dnlib.DotNet.Pdb.WindowsPdb;
 using System.Text;
 using System.IO.Compression;
-using System.ComponentModel;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -145,7 +144,6 @@ namespace dnlib.DotNet.Writer {
 	/// Common module writer options base class
 	/// </summary>
 	public class ModuleWriterOptionsBase {
-		IModuleWriterListener listener;
 		PEHeadersOptions peHeadersOptions;
 		Cor20HeaderOptions cor20HeaderOptions;
 		MetadataOptions metadataOptions;
@@ -155,16 +153,6 @@ namespace dnlib.DotNet.Writer {
 		StrongNameKey strongNameKey;
 		StrongNamePublicKey strongNamePublicKey;
 		bool delaySign;
-
-		/// <summary>
-		/// Gets/sets the listener
-		/// </summary>
-		[Obsolete("Use event " + nameof(WriterEvent) + " instead of " + nameof(IModuleWriterListener), error: false)]
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		public IModuleWriterListener Listener {
-			get => listener;
-			set => listener = value;
-		}
 
 		/// <summary>
 		/// Raised at various times when writing the file. The listener has a chance to modify
@@ -697,21 +685,12 @@ namespace dnlib.DotNet.Writer {
 			else if (TheOptions.StrongNameKey != null || TheOptions.StrongNamePublicKey != null)
 				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
-			AddLegacyListener();
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
 			OnWriterEvent(ModuleWriterEvent.Begin);
 			var imageLength = WriteImpl();
 			destStream.Position = destStreamBaseOffset + imageLength;
 			OnWriterEvent(ModuleWriterEvent.End);
-		}
-
-		void AddLegacyListener() {
-#pragma warning disable 0618 // Type or member is obsolete
-			var listener = TheOptions.Listener;
-#pragma warning restore 0618 // Type or member is obsolete
-			if (listener != null)
-				TheOptions.WriterEvent += (s, e) => listener.OnWriterEvent(e.Writer, e.Event);
 		}
 
 		/// <summary>

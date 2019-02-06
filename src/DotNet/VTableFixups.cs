@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using dnlib.PE;
 
@@ -86,21 +85,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// 32-bit vtable slots
 		/// </summary>
-		[Obsolete("Use " + nameof(Bit32), error: false)]
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		_32Bit				= Bit32,
-
-		/// <summary>
-		/// 32-bit vtable slots
-		/// </summary>
 		Bit32				= 0x01,
-
-		/// <summary>
-		/// 64-bit vtable slots
-		/// </summary>
-		[Obsolete("Use " + nameof(Bit64), error: false)]
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		_64Bit				= Bit64,
 
 		/// <summary>
 		/// 64-bit vtable slots

@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
-using System.ComponentModel;
+using System;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -13,13 +12,6 @@ namespace dnlib.DotNet.MD {
 		/// See COMIMAGE_FLAGS_ILONLY in the Windows SDK
 		/// </summary>
 		ILOnly = 1,
-
-		/// <summary>
-		/// See COMIMAGE_FLAGS_32BITREQUIRED in the Windows SDK
-		/// </summary>
-		[Obsolete("Use " + nameof(Bit32Required), error: false)]
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		_32BitRequired = Bit32Required,
 
 		/// <summary>
 		/// See COMIMAGE_FLAGS_32BITREQUIRED in the Windows SDK
@@ -45,13 +37,6 @@ namespace dnlib.DotNet.MD {
 		/// See COMIMAGE_FLAGS_TRACKDEBUGDATA in the Windows SDK
 		/// </summary>
 		TrackDebugData = 0x10000,
-
-		/// <summary>
-		/// See COMIMAGE_FLAGS_32BITPREFERRED in the Windows SDK
-		/// </summary>
-		[Obsolete("Use " + nameof(Bit32Preferred), error: false)]
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		_32BitPreferred = Bit32Preferred,
 
 		/// <summary>
 		/// See COMIMAGE_FLAGS_32BITPREFERRED in the Windows SDK
