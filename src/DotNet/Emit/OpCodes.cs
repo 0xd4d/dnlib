@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Contains all valid CIL opcodes
 	/// </summary>

@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Any ALG_CLASS_HASH type in WinCrypt.h can be used by Microsoft's CLI implementation
 	/// </summary>

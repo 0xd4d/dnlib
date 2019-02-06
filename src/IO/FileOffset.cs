@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.IO {
+namespace dnlib.IO {
 	/// <summary>
 	/// Represents a file offset
 	/// </summary>
