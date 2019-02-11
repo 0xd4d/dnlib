@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// MD table column size
 	/// </summary>

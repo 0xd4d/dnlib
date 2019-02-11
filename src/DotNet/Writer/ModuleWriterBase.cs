@@ -144,7 +144,6 @@ namespace dnlib.DotNet.Writer {
 	/// Common module writer options base class
 	/// </summary>
 	public class ModuleWriterOptionsBase {
-		IModuleWriterListener listener;
 		PEHeadersOptions peHeadersOptions;
 		Cor20HeaderOptions cor20HeaderOptions;
 		MetadataOptions metadataOptions;
@@ -154,15 +153,6 @@ namespace dnlib.DotNet.Writer {
 		StrongNameKey strongNameKey;
 		StrongNamePublicKey strongNamePublicKey;
 		bool delaySign;
-
-		/// <summary>
-		/// Gets/sets the listener
-		/// </summary>
-		[Obsolete("Use event " + nameof(WriterEvent) + " instead of " + nameof(IModuleWriterListener), error: false)]
-		public IModuleWriterListener Listener {
-			get => listener;
-			set => listener = value;
-		}
 
 		/// <summary>
 		/// Raised at various times when writing the file. The listener has a chance to modify
@@ -319,6 +309,11 @@ namespace dnlib.DotNet.Writer {
 		/// this property is ignored.
 		/// </summary>
 		public string PdbFileName { get; set; }
+
+		/// <summary>
+		/// PDB file name stored in the debug directory, or null to use <see cref="PdbFileName"/>
+		/// </summary>
+		public string PdbFileNameInDebugDirectory { get; set; }
 
 		/// <summary>
 		/// PDB stream. If this is initialized, then you should also set <see cref="PdbFileName"/>
@@ -690,21 +685,12 @@ namespace dnlib.DotNet.Writer {
 			else if (TheOptions.StrongNameKey != null || TheOptions.StrongNamePublicKey != null)
 				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
-			AddLegacyListener();
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
 			OnWriterEvent(ModuleWriterEvent.Begin);
 			var imageLength = WriteImpl();
 			destStream.Position = destStreamBaseOffset + imageLength;
 			OnWriterEvent(ModuleWriterEvent.End);
-		}
-
-		void AddLegacyListener() {
-#pragma warning disable 0618 // Type or member is obsolete
-			var listener = TheOptions.Listener;
-#pragma warning restore 0618 // Type or member is obsolete
-			if (listener != null)
-				TheOptions.WriterEvent += (s, e) => listener.OnWriterEvent(e.Writer, e.Event);
 		}
 
 		/// <summary>
@@ -911,7 +897,7 @@ namespace dnlib.DotNet.Writer {
 				var pdbAge = PdbAge;
 				bool hasContentId = pdbWriter.GetDebugInfo(TheOptions.PdbChecksumAlgorithm, ref pdbAge, out var pdbGuid, out uint stamp, out var idd, out var codeViewData);
 				if (hasContentId) {
-					debugDirectory.Add(GetCodeViewData(pdbGuid, pdbAge, pdbFilename),
+					debugDirectory.Add(GetCodeViewData(pdbGuid, pdbAge, TheOptions.PdbFileNameInDebugDirectory ?? pdbFilename),
 						type: ImageDebugType.CodeView,
 						majorVersion: 0,
 						minorVersion: 0,
@@ -1044,7 +1030,7 @@ namespace dnlib.DotNet.Writer {
 				//	- Reproducible
 				//	- EmbeddedPortablePdb
 
-				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, pdbFilename),
+				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, TheOptions.PdbFileNameInDebugDirectory ?? pdbFilename),
 					type: ImageDebugType.CodeView,
 					majorVersion: PortablePdbConstants.FormatVersion,
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,

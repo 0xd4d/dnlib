@@ -1,6 +1,6 @@
-﻿// dnlib: See LICENSE.txt for more info
+// dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Pdb.Symbols;

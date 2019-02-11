@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Reads metadata table columns
 	/// </summary>

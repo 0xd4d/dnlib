@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet.MD {
+namespace dnlib.DotNet.MD {
 #pragma warning disable 1591 // Missing XML comment for publicly visible type or member
 	/// <summary>
 	/// Raw contents of an uncompressed Module table row

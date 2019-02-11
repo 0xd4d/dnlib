@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 
 namespace dnlib.PE {
 	/// <summary>
@@ -24,9 +24,6 @@ namespace dnlib.PE {
 		Reserved1			= 0x0040,
 		/// <summary>Bytes of machine word are reversed.</summary>
 		BytesReversedLo		= 0x0080,
-		/// <summary>32 bit word machine.</summary>
-		[Obsolete("Use " + nameof(Bit32Machine), error: false)]
-		_32BitMachine		= Bit32Machine,
 		/// <summary>32 bit word machine.</summary>
 		Bit32Machine		= 0x0100,
 		/// <summary>Debugging info stripped from file in .DBG file</summary>

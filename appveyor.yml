@@ -10,7 +10,7 @@ build:
 before_package:
 - cmd: msbuild /m /p:Configuration=Release /t:Pack dnlib.sln
 artifacts:
-- path: src\bin\Release\*.nupkg
+- path: src\bin\Release\*.*nupkg
   name: dnlib NuGet Packages
 notifications:
 - provider: Email

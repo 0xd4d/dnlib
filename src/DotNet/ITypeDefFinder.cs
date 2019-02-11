@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// Finds <see cref="TypeDef"/>s
 	/// </summary>

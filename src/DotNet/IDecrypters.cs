@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using dnlib.PE;
 using dnlib.DotNet.Emit;
 

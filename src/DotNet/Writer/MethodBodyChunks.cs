@@ -101,6 +101,21 @@ namespace dnlib.DotNet.Writer {
 			return methodBody;
 		}
 
+		/// <summary>Removes the specified method body from this chunk</summary>
+		/// <param name="methodBody">The method body</param>
+		/// <returns><see langword="true" /> if the method body is removed</returns>
+		public bool Remove(MethodBody methodBody) {
+			if (methodBody == null)
+				throw new ArgumentNullException(nameof(methodBody));
+			if (setOffsetCalled)
+				throw new InvalidOperationException("SetOffset() has already been called");
+			if (CanReuseOldBodyLocation)
+				throw new InvalidOperationException("Reusing old body locations is enabled. Can't remove bodies.");
+
+			var list = methodBody.IsFat ? fatMethods : tinyMethods;
+			return list.Remove(methodBody);
+		}
+
 		internal void InitializeReusedMethodBodies(IPEImage peImage, uint fileOffsetDelta) {
 			foreach (var info in reusedMethods) {
 				var offset = peImage.ToFileOffset(info.RVA) + fileOffsetDelta;

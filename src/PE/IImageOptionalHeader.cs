@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using dnlib.IO;
+using dnlib.IO;
 
 namespace dnlib.PE {
 	/// <summary>
