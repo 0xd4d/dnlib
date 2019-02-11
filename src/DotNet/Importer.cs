@@ -76,6 +76,18 @@ namespace dnlib.DotNet {
 		public virtual MemberRef Map(MemberRef source) => null;
 	}
 
+	public static partial class Extensions {
+
+		private static readonly Dictionary<AssemblyName, bool> corlibs = new Dictionary<AssemblyName, bool>();
+
+		public static bool IsCorLib(this Assembly asm) {
+			var name = asm.GetName();
+			if (!corlibs.TryGetValue(name, out var result))
+				corlibs.Add(name, result=asm.GetType("System.Object", false, false) != null);
+			return result;
+		}
+	}
+
 	/// <summary>
 	/// Imports <see cref="Type"/>s, <see cref="ConstructorInfo"/>s, <see cref="MethodInfo"/>s
 	/// and <see cref="FieldInfo"/>s as references
@@ -341,6 +353,8 @@ namespace dnlib.DotNet {
 		IResolutionScope CreateScopeReference(Type type) {
 			if (type == null)
 				return null;
+			if (type.Assembly.IsCorLib())
+				return module.CorLibTypes.AssemblyRef;
 			var asmName = type.Assembly.GetName();
 			var modAsm = module.Assembly;
 			if (modAsm != null) {
