@@ -112,9 +112,11 @@ namespace dnlib.DotNet.Writer {
 		public uint Add(TRow row) {
 			if (isReadOnly)
 				throw new ModuleWriterException($"Trying to modify table {table} after it's been set to read-only");
-			if (cachedDict.TryGetValue(row, out uint rid))
-				return rid;
-			return Create(row);
+			lock (this) {
+				if (cachedDict.TryGetValue(row, out uint rid))
+					return rid;
+				return Create(row);
+			}
 		}
 
 		/// <summary>
@@ -125,11 +127,13 @@ namespace dnlib.DotNet.Writer {
 		public uint Create(TRow row) {
 			if (isReadOnly)
 				throw new ModuleWriterException($"Trying to modify table {table} after it's been set to read-only");
-			uint rid = (uint)cached.Count + 1;
-			if (!cachedDict.ContainsKey(row))
-				cachedDict[row] = rid;
-			cached.Add(row);
-			return rid;
+			lock (this) {
+				uint rid = (uint)cached.Count + 1;
+				if (!cachedDict.ContainsKey(row))
+					cachedDict[row] = rid;
+				cached.Add(row);
+				return rid;
+			}
 		}
 
 		/// <summary>
@@ -139,12 +143,14 @@ namespace dnlib.DotNet.Writer {
 		public void ReAddRows() {
 			if (isReadOnly)
 				throw new ModuleWriterException($"Trying to modify table {table} after it's been set to read-only");
-			cachedDict.Clear();
-			for (int i = 0; i < cached.Count; i++) {
-				uint rid = (uint)i + 1;
-				var row = cached[i];
-				if (!cachedDict.ContainsKey(row))
-					cachedDict[row] = rid;
+			lock (this) {
+				cachedDict.Clear();
+				for (int i = 0; i < cached.Count; i++) {
+					uint rid = (uint)i + 1;
+					var row = cached[i];
+					if (!cachedDict.ContainsKey(row))
+						cachedDict[row] = rid;
+				}
 			}
 		}
 
@@ -154,8 +160,10 @@ namespace dnlib.DotNet.Writer {
 		public void Reset() {
 			if (isReadOnly)
 				throw new ModuleWriterException($"Trying to modify table {table} after it's been set to read-only");
-			cachedDict.Clear();
-			cached.Clear();
+			lock (this) {
+				cachedDict.Clear();
+				cached.Clear();
+			}
 		}
 	}
 }
