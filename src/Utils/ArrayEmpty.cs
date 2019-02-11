@@ -1,4 +1,4 @@
-﻿// dnlib: See LICENSE.txt for more info
+// dnlib: See LICENSE.txt for more info
 
 // System namespace so it can easily be replaced with Array.Empty<T> later
 namespace System {

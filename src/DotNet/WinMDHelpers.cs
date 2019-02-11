@@ -1,4 +1,4 @@
-﻿// dnlib: See LICENSE.txt for more info
+// dnlib: See LICENSE.txt for more info
 
 using System;
 using System.Collections.Generic;
@@ -172,7 +172,7 @@ namespace dnlib.DotNet {
 			var mscorlib = module?.CorLibTypes.AssemblyRef;
 			var asm = new AssemblyRefUser(GetName(clrAsm), contractAsmVersion, new PublicKeyToken(GetPublicKeyToken(clrAsm)), UTF8String.Empty);
 
-			if (mscorlib != null && mscorlib.Name == mscorlibName && mscorlib.Version != invalidWinMDVersion)
+			if (mscorlib != null && mscorlib.Name == mscorlibName && IsValidMscorlibVersion(mscorlib.Version))
 				asm.Version = mscorlib.Version;
 			if (module is ModuleDefMD mod) {
 				Version ver = null;
@@ -185,7 +185,7 @@ namespace dnlib.DotNet {
 						continue;
 					if (!PublicKeyBase.TokenEquals(asmRef.PublicKeyOrToken, asm.PublicKeyOrToken))
 						continue;
-					if (asmRef.Version == invalidWinMDVersion)
+					if (!IsValidMscorlibVersion(asmRef.Version))
 						continue;
 
 					if (ver == null || asmRef.Version > ver)
@@ -198,8 +198,10 @@ namespace dnlib.DotNet {
 			return asm;
 		}
 		static readonly Version contractAsmVersion = new Version(4, 0, 0, 0);
-		static readonly Version invalidWinMDVersion = new Version(255, 255, 255, 255);
 		static readonly UTF8String mscorlibName = new UTF8String("mscorlib");
+
+		// Silverlight uses 5.0.5.0
+		static bool IsValidMscorlibVersion(Version version) => version != null && (uint)version.Major <= 5;
 
 		static UTF8String GetName(ClrAssembly clrAsm) {
 			switch (clrAsm) {

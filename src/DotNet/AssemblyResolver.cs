@@ -1,8 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using dnlib.Threading;
 
@@ -363,6 +364,22 @@ namespace dnlib.DotNet {
 				foreach (var mod in asm.Modules)
 					mod.Dispose();
 			}
+		}
+
+		/// <summary>
+		/// Gets the cached assemblies in this resolver.
+		/// </summary>
+		/// <returns>The cached assemblies.</returns>
+		public IEnumerable<AssemblyDef> GetCachedAssemblies() {
+			AssemblyDef[] assemblies;
+#if THREAD_SAFE
+			theLock.EnterReadLock(); try {
+#endif
+			assemblies = cachedAssemblies.Values.ToArray();
+#if THREAD_SAFE
+			} finally { theLock.ExitReadLock(); }
+#endif
+			return assemblies;
 		}
 
 		static string GetAssemblyNameKey(IAssembly asmName) {

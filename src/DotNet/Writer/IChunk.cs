@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System.IO;
+using System.IO;
 using dnlib.IO;
 using dnlib.PE;
 

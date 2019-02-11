@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 

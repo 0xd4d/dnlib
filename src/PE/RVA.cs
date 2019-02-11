@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// Represents an RVA (relative virtual address)
 	/// </summary>

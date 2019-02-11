@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
 namespace dnlib.DotNet.Emit {

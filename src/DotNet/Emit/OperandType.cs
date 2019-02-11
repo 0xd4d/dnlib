@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using dnlib.DotNet.MD;
+using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>

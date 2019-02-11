@@ -1,4 +1,4 @@
-﻿// dnlib: See LICENSE.txt for more info
+// dnlib: See LICENSE.txt for more info
 
 using System.Diagnostics;
 using System.IO;
@@ -7,7 +7,6 @@ using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 using dnlib.PE;
-using DDW = dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	static class SymbolReaderFactory {
@@ -26,12 +25,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var debugDir = pdbContext.CodeViewDebugDirectory;
 				if (debugDir == null)
 					return null;
-				if (debugDir.MinorVersion != DDW.PortablePdbConstants.PortableCodeViewVersionMagic)
-					return null;
-				bool validFormatVersion = debugDir.MajorVersion == DDW.PortablePdbConstants.FormatVersion;
-				Debug.Assert(validFormatVersion, $"New Portable PDB version: 0x{debugDir.MajorVersion:X4}");
-				if (!validFormatVersion)
-					return null;
+				// Don't check that debugDir.MinorVersion == PortablePdbConstants.PortableCodeViewVersionMagic
+				// and debugDir.MajorVersion == PortablePdbConstants.FormatVersion since it could be a converted
+				// WindowsPDB file: https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#codeview-debug-directory-entry-type-2
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
@@ -59,7 +55,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var embeddedDir = pdbContext.TryGetDebugDirectoryEntry(ImageDebugType.EmbeddedPortablePdb);
 				if (embeddedDir == null)
 					return null;
-				var reader = pdbContext.CreateReader(embeddedDir.PointerToRawData, embeddedDir.SizeOfData);
+				var reader = pdbContext.CreateReader(embeddedDir.AddressOfRawData, embeddedDir.SizeOfData);
 				if (reader.Length < 8)
 					return null;
 				// "MPDB" = 0x4244504D
