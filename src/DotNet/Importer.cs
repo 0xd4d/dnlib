@@ -47,7 +47,6 @@ namespace dnlib.DotNet {
 	/// Re-maps entities that were renamed in the target module
 	/// </summary>
 	public abstract class ImportMapper {
-		
 		/// <summary>
 		/// Matches source <see cref="ITypeDefOrRef"/> to the one that is already present in the target module under a different name.
 		/// </summary>
@@ -673,7 +672,6 @@ namespace dnlib.DotNet {
 				return null;
 			if (!recursionCounter.Increment())
 				return null;
-			
 			TypeRef result;
 
 			var declType = type.DeclaringType;
