@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet.Emit {
+namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A CIL method exception handler
 	/// </summary>

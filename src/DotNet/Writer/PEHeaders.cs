@@ -22,7 +22,7 @@ namespace dnlib.DotNet.Writer {
 		public const Subsystem DEFAULT_SUBSYSTEM = dnlib.PE.Subsystem.WindowsGui;
 
 		/// <summary>
-		/// Default major linker version
+		/// Default major linker version. Roslyn C# defaults to 0x30, and Roslyn VB defaults to 0x50.
 		/// </summary>
 		public const byte DEFAULT_MAJOR_LINKER_VERSION = 11;
 
@@ -303,9 +303,9 @@ namespace dnlib.DotNet.Writer {
 			length += (uint)sections.Count * 0x28;
 
 			if (Use32BitOptionalHeader())
-				imageBase = options.ImageBase ?? 0x00400000;
+				imageBase = options.ImageBase ?? (IsExeFile ? 0x00400000UL : 0x10000000);
 			else
-				imageBase = options.ImageBase ?? 0x0000000140000000;
+				imageBase = options.ImageBase ?? (IsExeFile ? 0x0000000140000000UL : 0x0000000180000000);
 		}
 
 		int SectionsCount {

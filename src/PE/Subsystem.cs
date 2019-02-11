@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.PE {
+namespace dnlib.PE {
 	/// <summary>
 	/// IMAGE_OPTIONAL_HEADER.Subsystem
 	/// </summary>

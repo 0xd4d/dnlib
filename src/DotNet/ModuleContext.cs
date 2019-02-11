@@ -2,7 +2,7 @@
 
 using System.Threading;
 
-﻿namespace dnlib.DotNet {
+namespace dnlib.DotNet {
 	/// <summary>
 	/// <see cref="ModuleDef"/> context
 	/// </summary>

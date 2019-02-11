@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿namespace dnlib.DotNet.MD {
+namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Version strings found in the meta data header
 	/// </summary>

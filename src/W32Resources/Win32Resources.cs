@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-﻿using System;
+using System;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.IO;

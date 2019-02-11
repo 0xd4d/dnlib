@@ -1,4 +1,4 @@
-﻿using dnlib.DotNet;
+using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.Examples {
