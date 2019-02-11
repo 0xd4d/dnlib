@@ -88,7 +88,11 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if assembly is the core library</returns>
 		public static bool IsCorLib(this Assembly asm) {
 			var name = asm.GetName();
-			if (!corlibs.TryGetValue(name, out var result))
+			bool result;
+#if THREAD_SAFE
+			lock(corlibs)
+#endif
+			if (!corlibs.TryGetValue(name, out result))
 				corlibs.Add(name, result=asm.GetType("System.Object", false, false) != null);
 			return result;
 		}
