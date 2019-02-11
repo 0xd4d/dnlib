@@ -12,7 +12,6 @@ using System.Diagnostics;
 using dnlib.DotNet.Pdb;
 using dnlib.DotNet.Pdb.Portable;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -1862,15 +1861,6 @@ namespace dnlib.DotNet.Writer {
 			public uint ScopeLength;
 		}
 
-		static IEnumerable<T[]> PartitionInto<T>(IReadOnlyList<T> source, int partitions) {
-			var vCount = (int)Math.Ceiling(source.Count / (double)partitions);
-			var i = 0;
-			while (i < partitions) {
-				var vResult = source.Skip(vCount * i).Take(vCount).ToArray();
-				if (vResult.Length > 0) yield return vResult; else yield break;
-				i++;
-			}
-		}
 		/// <summary>
 		/// Writes all method bodies
 		/// </summary>
@@ -1884,111 +1874,95 @@ namespace dnlib.DotNet.Writer {
 			int notifyAfter = numMethods / numNotifyEvents;
 
 			var debugMetadata = this.debugMetadata;
+			var methodBodies = this.methodBodies;
+			var methodToBody = this.methodToBody;
+
 			List<MethodScopeDebugInfo> methodScopeDebugInfos;
-			if (debugMetadata == null) 
+			List<PdbScope> scopeStack;
+			SerializerMethodContext serializerMethodContext;
+			if (debugMetadata == null) {
 				methodScopeDebugInfos = null;
-			else
+				scopeStack = null;
+				serializerMethodContext = null;
+			}
+			else {
 				methodScopeDebugInfos = new List<MethodScopeDebugInfo>();
+				scopeStack = new List<PdbScope>();
+				serializerMethodContext = AllocSerializerMethodContext();
+			}
 
-			void ProcessTypes(IEnumerable<TypeDef> typeDefs) {
-				var methodBodies = this.methodBodies;
-				var methodToBody = this.methodToBody;
+			bool keepMaxStack = KeepOldMaxStack;
+			var writer = new MethodBodyWriter(this);
+			foreach (var type in allTypeDefs) {
+				if (type == null)
+					continue;
 
-				List<PdbScope> scopeStack;
-				SerializerMethodContext serializerMethodContext;
-				if (debugMetadata == null) {
-					scopeStack = null;
-					serializerMethodContext = null;
-				}
-				else {
-					scopeStack = new List<PdbScope>();
-					serializerMethodContext = AllocSerializerMethodContext();
-				}
-
-				bool keepMaxStack = KeepOldMaxStack;
-				var writer = new MethodBodyWriter(this);
-				foreach (var type in typeDefs) {
-					if (type == null)
+				var methods = type.Methods;
+				for (int i = 0; i < methods.Count; i++) {
+					var method = methods[i];
+					if (method == null)
 						continue;
 
-					var methods = type.Methods;
-					for (int i = 0; i < methods.Count; i++) {
-						var method = methods[i];
-						if (method == null)
-							continue;
+					if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
+						RaiseProgress(Writer.MetadataEvent.BeginWriteMethodBodies, (double)methodNum / numMethods);
+						notifyNum++;
+						notifyAfter = (int)((double)numMethods / numNotifyEvents * (notifyNum + 1));
+					}
 
-						lock (this)
-							if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
-								RaiseProgress(Writer.MetadataEvent.BeginWriteMethodBodies, (double)methodNum / numMethods);
-								notifyNum++;
-								notifyAfter = (int)((double)numMethods / numNotifyEvents * (notifyNum + 1));
-							}
+					uint localVarSigTok = 0;
 
-						uint localVarSigTok = 0;
+					var cilBody = method.Body;
+					if (cilBody != null) {
+						if (!(cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)) {
+							writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
+							writer.Write();
+							var origRva = method.RVA;
+							uint origSize = cilBody.MetadataBodySize;
+							var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok), origRva, origSize);
+							methodToBody[method] = mb;
+							localVarSigTok = writer.LocalVarSigTok;
+						}
+					}
+					else {
+						var nativeBody = method.NativeBody;
+						if (nativeBody != null)
+							methodToNativeBody[method] = nativeBody;
+						else if (method.MethodBody != null)
+							Error("Unsupported method body");
+					}
 
-						var cilBody = method.Body;
+					if (debugMetadata != null) {
+						uint rid = GetRid(method);
+
 						if (cilBody != null) {
-							if (!(cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)) {
-								writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
-								writer.Write();
-								var origRva = method.RVA;
-								uint origSize = cilBody.MetadataBodySize;
-								var mb = new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok);
-								lock(methodBodies)
-									methodBodies.Add(mb, origRva, origSize);
-								lock (methodToBody)
-									methodToBody[method] = mb;
-								localVarSigTok = writer.LocalVarSigTok;
-							}
-						}
-						else {
-							var nativeBody = method.NativeBody;
-							if (nativeBody != null)
-								lock (methodToNativeBody)
-									methodToNativeBody[method] = nativeBody;
-							else if (method.MethodBody != null)
-								Error("Unsupported method body");
-						}
-
-						if (debugMetadata != null) {
-							uint rid = GetRid(method);
-
-							if (cilBody != null) {
-								var pdbMethod = cilBody.PdbMethod;
-								if (pdbMethod != null) {
-									// We don't need to write empty scopes
-									if (!IsEmptyRootScope(cilBody, pdbMethod.Scope)) {
-										serializerMethodContext.SetBody(method);
-										scopeStack.Add(pdbMethod.Scope);
-										while (scopeStack.Count > 0) {
-											var scope = scopeStack[scopeStack.Count - 1];
-											scopeStack.RemoveAt(scopeStack.Count - 1);
-											scopeStack.AddRange(scope.Scopes);
-											uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
-											uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
-											methodScopeDebugInfos.Add(new MethodScopeDebugInfo() {
-												MethodRid = rid,
-												Scope = scope,
-												ScopeStart = scopeStart,
-												ScopeLength = scopeEnd - scopeStart,
-											});
-										}
+							var pdbMethod = cilBody.PdbMethod;
+							if (pdbMethod != null) {
+								// We don't need to write empty scopes
+								if (!IsEmptyRootScope(cilBody, pdbMethod.Scope)) {
+									serializerMethodContext.SetBody(method);
+									scopeStack.Add(pdbMethod.Scope);
+									while (scopeStack.Count > 0) {
+										var scope = scopeStack[scopeStack.Count - 1];
+										scopeStack.RemoveAt(scopeStack.Count - 1);
+										scopeStack.AddRange(scope.Scopes);
+										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
+										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
+										methodScopeDebugInfos.Add(new MethodScopeDebugInfo() {
+											MethodRid = rid,
+											Scope = scope,
+											ScopeStart = scopeStart,
+											ScopeLength = scopeEnd - scopeStart,
+										});
 									}
 								}
 							}
-
-							// Always add CDIs even if it has no managed method body
-							AddCustomDebugInformationList(method, rid, localVarSigTok);
 						}
+
+						// Always add CDIs even if it has no managed method body
+						AddCustomDebugInformationList(method, rid, localVarSigTok);
 					}
 				}
-				if (serializerMethodContext != null)
-					Free(ref serializerMethodContext);
 			}
-
-			var partitions=PartitionInto(allTypeDefs, Environment.ProcessorCount);
-			Parallel.ForEach(partitions, ProcessTypes);
-
 			if (debugMetadata != null) {
 				methodScopeDebugInfos.Sort((a, b) => {
 					int c = a.MethodRid.CompareTo(b.MethodRid);
@@ -2025,6 +1999,8 @@ namespace dnlib.DotNet.Writer {
 				foreach (var info in debugMetadata.localScopeInfos.infos)
 					debugMetadata.tablesHeap.LocalScopeTable.Create(info.row);
 			}
+			if (serializerMethodContext != null)
+				Free(ref serializerMethodContext);
 		}
 
 		static bool IsEmptyRootScope(CilBody cilBody, PdbScope scope) {
