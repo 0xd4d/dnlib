@@ -6,15 +6,11 @@
     <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
     <DefineConstants Condition=" '$(DnlibThreadSafe)' != 'false' ">$(DefineConstants);THREAD_SAFE</DefineConstants>
     <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
-
-    <!-- It's not possible to build on Unix systems using dotnet build without specifying the TargetFramework -->
-    <UseFullFramework Condition=" '$(OS)' == 'Windows_NT' ">true</UseFullFramework>
-    <TargetFrameworks Condition=" '$(UseFullFramework)' == 'true' ">$(TargetFrameworks);net461</TargetFrameworks>
-    
+    <TargetFrameworks Condition=" '$(MSBuildRuntimeType)' != 'Core' OR '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net461</TargetFrameworks>    
     <!-- It's not possible to target .NET Framework 3.5 when using dotnet build
          https://github.com/Microsoft/msbuild/issues/1333 -->
     <NoTargetFrameworkNet35 Condition=" '$(NoTargetFrameworkNet35)' == '' AND '$(MSBuildRuntimeType)' == 'Core' ">true</NoTargetFrameworkNet35>
-    <TargetFrameworks Condition=" '$(NoTargetFrameworkNet35)' != 'true' AND '$(UseFullFramework)' == 'true' ">$(TargetFrameworks);net35</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(NoTargetFrameworkNet35)' != 'true'">$(TargetFrameworks);net35</TargetFrameworks>
 
     <Description>Reads and writes .NET assemblies and modules</Description>
     <Title>$(Description)</Title>
@@ -71,7 +67,7 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
     <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' == 'Mono' ">
     <PublicSign>true</PublicSign>
     <!-- Workaround for https://github.com/dotnet/sdk/issues/335 -->
     <FrameworkPathOverride Condition="Exists('/usr/lib/mono/2.0-api')">/usr/lib/mono/2.0-api</FrameworkPathOverride>
