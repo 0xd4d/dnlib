@@ -1,7 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+    <!-- It's not possible to build on Unix systems using dotnet build without specifying the TargetFramework -->
+    <UseFullFramework Condition=" '$(OS)' == 'Windows_NT' ">true</UseFullFramework>
+    <TargetFrameworks Condition=" '$(UseFullFramework)' == 'true' ">$(TargetFrameworks);net461</TargetFrameworks>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
