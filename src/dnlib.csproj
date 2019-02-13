@@ -36,7 +36,7 @@
     <PackageDescription>Reads and writes .NET assemblies and modules, Windows PDBs and Portable PDBs.
 
 For better *Windows PDB* writer support, you should add a reference to `Microsoft.DiaSymReader.Native` nuget package too, see the dnlib README for more info: https://github.com/0xd4d/dnlib#windows-pdbs . You don't need to do anything special for *Portable PDB* support.
-</PackageDescription>
+    </PackageDescription>
     <PackageReleaseNotes></PackageReleaseNotes>
 
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
