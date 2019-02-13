@@ -80,12 +80,6 @@ namespace dnlib.DotNet {
 
 		private static readonly Dictionary<AssemblyName, bool> corlibs = new Dictionary<AssemblyName, bool>();
 
-		/// <summary>
-		/// Checks whether <paramref name="asm"/> appears to be the core library (eg.
-		/// mscorlib, System.Runtime or corefx).
-		/// </summary>
-		/// <param name="asm">assembly to check</param>
-		/// <returns><c>true</c> if assembly is the core library</returns>
 		public static bool IsCorLib(this Assembly asm) {
 			var name = asm.GetName();
 			if (!corlibs.TryGetValue(name, out var result))
