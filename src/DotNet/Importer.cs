@@ -74,6 +74,14 @@ namespace dnlib.DotNet {
 		/// <param name="source"><see cref="MemberRef"/> referenced by the entity that is being imported.</param>
 		/// <returns>matching <see cref="MemberRef"/> or <c>null</c> if there's no match.</returns>
 		public virtual MemberRef Map(MemberRef source) => null;
+
+		/// <summary>
+		/// Overrides default behavior of <see cref="Importer.Import(Type)"/>
+		/// May be used to use reference assemblies for <see cref="Type"/> resolution, for example.
+		/// </summary>
+		/// <param name="source"><see cref="Type"/> to create <see cref="TypeRef"/> for.</param>
+		/// <returns><see cref="TypeRef"/> or null to use default <see cref="Importer"/>'s type resolution</returns>
+		public virtual TypeRef Map(Type source) => null;
 	}
 
 	/// <summary>
@@ -330,7 +338,7 @@ namespace dnlib.DotNet {
 				UTF8String.CaseInsensitiveEquals(a.Culture, b.Culture);
 		}
 
-		ITypeDefOrRef CreateTypeRef(Type type) => TryResolve(CreateTypeRef2(type));
+		ITypeDefOrRef CreateTypeRef(Type type) => TryResolve(mapper?.Map(type) ?? CreateTypeRef2(type));
 
 		TypeRef CreateTypeRef2(Type type) {
 			if (!type.IsNested)
