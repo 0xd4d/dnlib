@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(MSBuildRuntimeType)' != 'Core' OR '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net461</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net461</TargetFrameworks>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 

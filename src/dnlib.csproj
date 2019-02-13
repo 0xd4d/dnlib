@@ -6,7 +6,7 @@
     <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
     <DefineConstants Condition=" '$(DnlibThreadSafe)' != 'false' ">$(DefineConstants);THREAD_SAFE</DefineConstants>
     <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(MSBuildRuntimeType)' != 'Core' OR '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net461</TargetFrameworks>    
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net461</TargetFrameworks>
     <!-- It's not possible to target .NET Framework 3.5 when using dotnet build
          https://github.com/Microsoft/msbuild/issues/1333 -->
     <NoTargetFrameworkNet35 Condition=" '$(NoTargetFrameworkNet35)' == '' AND '$(MSBuildRuntimeType)' == 'Core' ">true</NoTargetFrameworkNet35>
@@ -33,10 +33,11 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
-    <PackageDescription>Reads and writes .NET assemblies and modules, Windows PDBs and Portable PDBs.
+    <PackageDescription>
+      Reads and writes .NET assemblies and modules, Windows PDBs and Portable PDBs.
 
-For better *Windows PDB* writer support, you should add a reference to `Microsoft.DiaSymReader.Native` nuget package too, see the dnlib README for more info: https://github.com/0xd4d/dnlib#windows-pdbs . You don't need to do anything special for *Portable PDB* support.
-</PackageDescription>
+      For better *Windows PDB* writer support, you should add a reference to `Microsoft.DiaSymReader.Native` nuget package too, see the dnlib README for more info: https://github.com/0xd4d/dnlib#windows-pdbs . You don't need to do anything special for *Portable PDB* support.
+    </PackageDescription>
     <PackageReleaseNotes></PackageReleaseNotes>
 
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
@@ -65,15 +66,6 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' == 'Mono' ">
-    <PublicSign>true</PublicSign>
-    <!-- Workaround for https://github.com/dotnet/sdk/issues/335 -->
-    <FrameworkPathOverride Condition="Exists('/usr/lib/mono/2.0-api')">/usr/lib/mono/2.0-api</FrameworkPathOverride>
-    <FrameworkPathOverride Condition="Exists('/usr/local/lib/mono/2.0-api')">/usr/local/lib/mono/2.0-api</FrameworkPathOverride>
-    <FrameworkPathOverride Condition="Exists('/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api')">/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api</FrameworkPathOverride>
-    <FrameworkPathOverride Condition="Exists('/usr/local/Cellar/mono/4.6.2.16/lib/mono/2.0-api')">/usr/local/Cellar/mono/4.6.2.16/lib/mono/2.0-api</FrameworkPathOverride>
   </PropertyGroup>
 
 </Project>
