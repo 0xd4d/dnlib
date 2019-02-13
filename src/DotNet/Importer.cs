@@ -338,7 +338,7 @@ namespace dnlib.DotNet {
 				UTF8String.CaseInsensitiveEquals(a.Culture, b.Culture);
 		}
 
-		ITypeDefOrRef CreateTypeRef(Type type) => mapper?.Map(type) ?? TryResolve(CreateTypeRef2(type));
+		ITypeDefOrRef CreateTypeRef(Type type) => TryResolve(mapper?.Map(type) ?? CreateTypeRef2(type));
 
 		TypeRef CreateTypeRef2(Type type) {
 			if (!type.IsNested)
