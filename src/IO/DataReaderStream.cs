@@ -26,7 +26,7 @@ namespace dnlib.IO {
 		public override void Flush() { }
 
 		bool CheckAndSetPosition() {
-			if (position < 0 || position > reader.Length)
+			if ((ulong)position > reader.Length)
 				return false;
 			reader.Position = (uint)position;
 			return true;
