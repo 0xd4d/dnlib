@@ -27,7 +27,7 @@ namespace dnlib.DotNet.Emit {
 
 		static MethodTableToTypeConverter() {
 			if (ptrFieldInfo == null) {
-#if NETSTANDARD2_0
+#if NETSTANDARD
 				var asmb = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynAsm"), AssemblyBuilderAccess.Run);
 #else
 				var asmb = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("DynAsm"), AssemblyBuilderAccess.Run);
@@ -77,7 +77,7 @@ namespace dnlib.DotNet.Emit {
 			int maxStack = 8;
 			var locals = GetLocalSignature(address);
 			setMethodBodyMethodInfo.Invoke(mb, new object[5] { code, maxStack, locals, null, null });
-#if NETSTANDARD2_0
+#if NETSTANDARD
 			var type = tb.CreateTypeInfo();
 #else
 			var type = tb.CreateType();
@@ -100,7 +100,7 @@ namespace dnlib.DotNet.Emit {
 			sigDoneFieldInfo.SetValue(sigHelper, true);
 			currSigFieldInfo.SetValue(sigHelper, locals.Length);
 			signatureFieldInfo.SetValue(sigHelper, locals);
-#if NETSTANDARD2_0
+#if NETSTANDARD
 			var type = tb.CreateTypeInfo();
 #else
 			var type = tb.CreateType();

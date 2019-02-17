@@ -207,7 +207,7 @@ namespace dnlib.DotNet {
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context, ImageLayout imageLayout) => Load(mod, new ModuleCreationOptions(context), imageLayout);
 
 		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
-#if NETSTANDARD2_0
+#if NETSTANDARD
 			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new[] { typeof(System.Reflection.Module) });
 			if (GetHINSTANCE == null)
 				throw new NotSupportedException("System.Reflection.Module loading is not supported on current platform");
