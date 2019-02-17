@@ -105,9 +105,22 @@ namespace dnlib.DotNet.Emit {
 		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
 		/// instance or a DynamicResolver instance.</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		public DynamicMethodBodyReader(ModuleDef module, object obj, GenericParamContext gpContext) {
+		public DynamicMethodBodyReader(ModuleDef module, object obj, GenericParamContext gpContext)
+			: this(module, obj, new Importer(module, ImporterOptions.TryToUseDefs, gpContext), gpContext) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">Module that will own the method body</param>
+		/// <param name="obj">This can be one of several supported types: the delegate instance
+		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
+		/// instance or a DynamicResolver instance.</param>
+		/// <param name="importer">Importer</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer, GenericParamContext gpContext) {
 			this.module = module;
-			importer = new Importer(module, ImporterOptions.TryToUseDefs, gpContext);
+			this.importer = importer;
 			this.gpContext = gpContext;
 			methodName = null;
 
