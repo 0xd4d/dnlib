@@ -210,7 +210,7 @@ namespace dnlib.DotNet {
 #if NETSTANDARD
 			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new[] { typeof(System.Reflection.Module) });
 			if (GetHINSTANCE == null)
-				throw new NotSupportedException("System.Reflection.Module loading is not supported on current platform");
+				return IntPtr.Zero;
 
 			return (IntPtr)GetHINSTANCE.Invoke(null, new[] { mod });
 #else
