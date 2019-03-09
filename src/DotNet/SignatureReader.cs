@@ -33,6 +33,9 @@ namespace dnlib.DotNet {
 	/// Reads signatures from the #Blob stream
 	/// </summary>
 	public struct SignatureReader {
+		// .NET Core and .NET Framework limit arrays to 32 dimensions
+		const uint MaxArrayRank = 0x20;
+
 		readonly ISignatureReaderHelper helper;
 		readonly ICorLibTypes corLibTypes;
 		DataReader reader;
@@ -614,11 +617,15 @@ namespace dnlib.DotNet {
 				uint rank;
 				if (!reader.TryReadCompressedUInt32(out rank))
 					break;
+				if (rank > MaxArrayRank)
+					break;
 				if (rank == 0) {
 					result = new ArraySig(nextType, rank);
 					break;
 				}
 				if (!reader.TryReadCompressedUInt32(out num))
+					break;
+				if (num > MaxArrayRank)
 					break;
 				var sizes = new List<uint>((int)num);
 				for (uint i = 0; i < num; i++) {
@@ -627,6 +634,8 @@ namespace dnlib.DotNet {
 					sizes.Add(size);
 				}
 				if (!reader.TryReadCompressedUInt32(out num))
+					break;
+				if (num > MaxArrayRank)
 					break;
 				var lowerBounds = new List<int>((int)num);
 				for (uint i = 0; i < num; i++) {
