@@ -24,6 +24,7 @@ namespace dnlib.DotNet {
 	/// Creates type names, method names, etc.
 	/// </summary>
 	public struct FullNameFactory {
+		const uint MaxMethodGenParamCount = 512;
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
 		readonly StringBuilder sb;
@@ -2117,6 +2118,8 @@ namespace dnlib.DotNet {
 			if (methodSig.Generic) {
 				sb.Append('<');
 				uint genParamCount = methodSig.GenParamCount;
+				if (genParamCount > MaxMethodGenParamCount)
+					genParamCount = MaxMethodGenParamCount;
 				for (uint i = 0; i < genParamCount; i++) {
 					if (i != 0)
 						sb.Append(',');
