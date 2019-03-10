@@ -543,7 +543,7 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 
-			uint num;
+			uint num, i;
 			TypeSig nextType, result = null;
 			switch ((ElementType)reader.ReadByte()) {
 			case ElementType.Void:		result = corLibTypes.Void; break;
@@ -607,7 +607,7 @@ namespace dnlib.DotNet {
 					break;
 				var genericInstSig = new GenericInstSig(nextType as ClassOrValueTypeSig, num);
 				var args = genericInstSig.GenericArguments;
-				for (uint i = 0; i < num; i++)
+				for (i = 0; i < num; i++)
 					args.Add(ReadType());
 				result = genericInstSig;
 				break;
@@ -628,7 +628,7 @@ namespace dnlib.DotNet {
 				if (num > MaxArrayRank)
 					break;
 				var sizes = new List<uint>((int)num);
-				for (uint i = 0; i < num; i++) {
+				for (i = 0; i < num; i++) {
 					if (!reader.TryReadCompressedUInt32(out uint size))
 						goto exit;
 					sizes.Add(size);
@@ -638,7 +638,7 @@ namespace dnlib.DotNet {
 				if (num > MaxArrayRank)
 					break;
 				var lowerBounds = new List<int>((int)num);
-				for (uint i = 0; i < num; i++) {
+				for (i = 0; i < num; i++) {
 					if (!reader.TryReadCompressedInt32(out int size))
 						goto exit;
 					lowerBounds.Add(size);
