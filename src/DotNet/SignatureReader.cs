@@ -33,8 +33,9 @@ namespace dnlib.DotNet {
 	/// Reads signatures from the #Blob stream
 	/// </summary>
 	public struct SignatureReader {
-		// .NET Core and .NET Framework limit arrays to 32 dimensions
-		const uint MaxArrayRank = 0x20;
+		// .NET Core and .NET Framework limit arrays to 32 dimensions. Use a bigger limit
+		// so it's possible to read some bad MD, but not big enough to allocate a ton of mem.
+		const uint MaxArrayRank = 64;
 
 		readonly ISignatureReaderHelper helper;
 		readonly ICorLibTypes corLibTypes;
