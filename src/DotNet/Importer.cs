@@ -142,7 +142,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Importer options</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		public Importer(ModuleDef module, ImporterOptions options, GenericParamContext gpContext)
-			: this(module, options, new GenericParamContext(), null) {
+			: this(module, options, gpContext, null) {
 		}
 
 		/// <summary>
