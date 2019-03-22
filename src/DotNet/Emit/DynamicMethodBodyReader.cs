@@ -106,7 +106,7 @@ namespace dnlib.DotNet.Emit {
 		/// instance or a DynamicResolver instance.</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		public DynamicMethodBodyReader(ModuleDef module, object obj, GenericParamContext gpContext)
-			: this(module, obj, new Importer(module, ImporterOptions.TryToUseDefs, gpContext), gpContext) {
+			: this(module, obj, new Importer(module, ImporterOptions.TryToUseDefs, gpContext)) {
 		}
 
 		/// <summary>
@@ -117,11 +117,10 @@ namespace dnlib.DotNet.Emit {
 		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
 		/// instance or a DynamicResolver instance.</param>
 		/// <param name="importer">Importer</param>
-		/// <param name="gpContext">Generic parameter context</param>
-		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer, GenericParamContext gpContext) {
+		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer) {
 			this.module = module;
 			this.importer = importer;
-			this.gpContext = gpContext;
+			gpContext = importer.gpContext;
 			methodName = null;
 
 			if (obj == null)

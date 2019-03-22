@@ -90,7 +90,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public struct Importer {
 		readonly ModuleDef module;
-		readonly GenericParamContext gpContext;
+		internal readonly GenericParamContext gpContext;
 		readonly ImportMapper mapper;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
