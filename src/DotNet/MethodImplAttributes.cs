@@ -44,5 +44,7 @@ namespace dnlib.DotNet {
 		NoOptimization			= 0x0040,
 		/// <summary>Method may contain hot code and should be aggressively optimized.</summary>
 		AggressiveOptimization	= 0x0200,
+		/// <summary>The JIT compiler should look for security mitigation attributes, such as the user-defined System.Runtime.CompilerServices.SecurityMitigationsAttribute. If found, the JIT compiler applies any related security mitigations. Available starting with .NET Framework 4.8.</summary>
+		SecurityMitigations		= 0x0400,
 	}
 }
