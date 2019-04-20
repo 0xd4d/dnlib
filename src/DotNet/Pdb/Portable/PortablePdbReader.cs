@@ -93,6 +93,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
+			if (version != 1)
+				return null;
 			var mdTable = pdbMetadata.TablesStream.MethodDebugInformationTable;
 			uint methodRid = method.Rid;
 			if (!mdTable.IsValidRID(methodRid))

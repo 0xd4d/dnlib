@@ -33,7 +33,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// Gets a method or returns null if the method doesn't exist in the PDB file
 		/// </summary>
 		/// <param name="method">Method</param>
-		/// <param name="version">Edit and continue version</param>
+		/// <param name="version">Edit and continue version. The first version is 1</param>
 		/// <returns></returns>
 		public abstract SymbolMethod GetMethod(MethodDef method, int version);
 

@@ -317,6 +317,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
+			if (version != 1)
+				return null;
 			if (functions.TryGetValue(method.MDToken.ToInt32(), out var symMethod))
 				return symMethod;
 			return null;
