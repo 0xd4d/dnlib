@@ -270,6 +270,8 @@ Requirements:
 - `ModuleWriterOptions.Cor20HeaderOptions.Flags`: The `IL Only` bit must be cleared.
 - It must be a DLL file (see `ModuleWriterOptions.PEHeadersOptions.Characteristics`). The file will fail to load at runtime if it's an EXE file.
 
+NOTE: there appears to be a bug in VS' debugger. If you try to debug managed code that calls an exported method, a fatal execution engine exception is thrown. It repros with VS + debug builds. Workaround: debug a release build or attach to a debug build. See the following issues: [#271](https://github.com/0xd4d/dnlib/issues/271), [#172](https://github.com/0xd4d/dnlib/issues/172)
+
 Type classes
 ------------
 
