@@ -270,7 +270,21 @@ Requirements:
 - `ModuleWriterOptions.Cor20HeaderOptions.Flags`: The `IL Only` bit must be cleared.
 - It must be a DLL file (see `ModuleWriterOptions.PEHeadersOptions.Characteristics`). The file will fail to load at runtime if it's an EXE file.
 
-NOTE: there appears to be a bug in VS' debugger. If you try to debug managed code that calls an exported method, a fatal execution engine exception is thrown. It repros with VS + debug builds. Workaround: debug a release build or attach to a debug build. See the following issues: [#271](https://github.com/0xd4d/dnlib/issues/271), [#172](https://github.com/0xd4d/dnlib/issues/172)
+NOTE: VS' debugger crashes if there's a `DebuggableAttribute` attribute and if the first ctor arg is 0x107. The workaround is to clear the `EnableEditAndContinue` bit:
+
+```C#
+var ca = module.Assembly.CustomAttributes.Find("System.Diagnostics.DebuggableAttribute");
+if (ca != null && ca.ConstructorArguments.Count == 1) {
+    var arg = ca.ConstructorArguments[0];
+    // VS' debugger crashes if value == 0x107, so clear EnC bit
+    if (arg.Type.FullName == "System.Diagnostics.DebuggableAttribute/DebuggingModes" && arg.Value is int value && value == 0x107) {
+        arg.Value = value & ~(int)DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
+        ca.ConstructorArguments[0] = arg;
+    }
+}
+```
+
+See the following issues: [#271](https://github.com/0xd4d/dnlib/issues/271), [#172](https://github.com/0xd4d/dnlib/issues/172)
 
 Type classes
 ------------
