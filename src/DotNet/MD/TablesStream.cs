@@ -243,6 +243,10 @@ namespace dnlib.DotNet.MD {
 			var currentPos = reader.Position;
 			foreach (var mdTable in mdTables) {
 				var dataLen = (uint)mdTable.TableInfo.RowSize * mdTable.Rows;
+				if (currentPos > reader.Length)
+					currentPos = reader.Length;
+				if ((ulong)currentPos + dataLen > reader.Length)
+					dataLen = reader.Length - currentPos;
 				mdTable.DataReader = reader.Slice(currentPos, dataLen);
 				var newPos = currentPos + dataLen;
 				if (newPos < currentPos)
