@@ -259,7 +259,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the argument type
 		/// </summary>
 		public TypeSig Type {
-			get => type;
+			readonly get => type;
 			set => type = value;
 		}
 
@@ -267,7 +267,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the argument value
 		/// </summary>
 		public object Value {
-			get => value;
+			readonly get => value;
 			set => this.value = value;
 		}
 
@@ -290,14 +290,14 @@ namespace dnlib.DotNet {
 			this.value = value;
 		}
 
-		object ICloneable.Clone() => Clone();
+		readonly object ICloneable.Clone() => Clone();
 
 		/// <summary>
 		/// Clones this instance and any <see cref="CAArgument"/>s and <see cref="CANamedArgument"/>s
 		/// referenced from this instance.
 		/// </summary>
 		/// <returns></returns>
-		public CAArgument Clone() {
+		public readonly CAArgument Clone() {
 			var value = this.value;
 			if (value is CAArgument)
 				value = ((CAArgument)value).Clone();
@@ -314,7 +314,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() => $"{value ?? "null"} ({type})";
+		public override readonly string ToString() => $"{value ?? "null"} ({type})";
 	}
 
 	/// <summary>

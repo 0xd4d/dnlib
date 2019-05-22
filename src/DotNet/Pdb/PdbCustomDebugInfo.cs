@@ -279,7 +279,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a syntesized local (<see cref="Start"/> and <see cref="End"/> are both null)
 		/// </summary>
-		public bool IsSynthesizedLocal => Start == null && End == null;
+		public readonly bool IsSynthesizedLocal => Start == null && End == null;
 
 		/// <summary>
 		/// The instruction of the first operation in the scope. Can be null if it's a synthesized local

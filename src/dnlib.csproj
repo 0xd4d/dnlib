@@ -42,7 +42,7 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
 
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
