@@ -27,7 +27,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageVersion>$(InformationalVersion)</PackageVersion>
     <PackageTags>dotnet;assembly;module;reader;writer;PDB;PortablePdb;WindowsPdb;IL;CIL;MSIL;metadata</PackageTags>
-    <Features>strict</Features>
+    <Features>strict;nullablePublicOnly</Features>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
