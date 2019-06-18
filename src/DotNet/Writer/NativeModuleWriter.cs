@@ -152,7 +152,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
 		public NativeModuleWriterOptions Options {
-			get => options ?? (options = new NativeModuleWriterOptions(module, optimizeImageSize: true));
+			get => options ??= new NativeModuleWriterOptions(module, optimizeImageSize: true);
 			set => options = value;
 		}
 

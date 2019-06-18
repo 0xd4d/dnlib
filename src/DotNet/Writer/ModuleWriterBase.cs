@@ -190,7 +190,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the <see cref="PEHeaders"/> options. This is never <c>null</c>.
 		/// </summary>
 		public PEHeadersOptions PEHeadersOptions {
-			get => peHeadersOptions ?? (peHeadersOptions = new PEHeadersOptions());
+			get => peHeadersOptions ??= new PEHeadersOptions();
 			set => peHeadersOptions = value;
 		}
 
@@ -198,7 +198,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the <see cref="ImageCor20Header"/> options. This is never <c>null</c>.
 		/// </summary>
 		public Cor20HeaderOptions Cor20HeaderOptions {
-			get => cor20HeaderOptions ?? (cor20HeaderOptions = new Cor20HeaderOptions());
+			get => cor20HeaderOptions ??= new Cor20HeaderOptions();
 			set => cor20HeaderOptions = value;
 		}
 
@@ -206,7 +206,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the <see cref="Metadata"/> options. This is never <c>null</c>.
 		/// </summary>
 		public MetadataOptions MetadataOptions {
-			get => metadataOptions ?? (metadataOptions = new MetadataOptions());
+			get => metadataOptions ??= new MetadataOptions();
 			set => metadataOptions = value;
 		}
 

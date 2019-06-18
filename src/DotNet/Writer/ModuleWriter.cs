@@ -54,7 +54,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
 		public ModuleWriterOptions Options {
-			get => options ?? (options = new ModuleWriterOptions(module));
+			get => options ??= new ModuleWriterOptions(module);
 			set => options = value;
 		}
 

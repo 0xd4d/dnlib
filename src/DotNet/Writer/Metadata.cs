@@ -202,7 +202,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the <see cref="MetadataHeader"/> options. This is never <c>null</c>.
 		/// </summary>
 		public MetadataHeaderOptions MetadataHeaderOptions {
-			get => metadataHeaderOptions ?? (metadataHeaderOptions = new MetadataHeaderOptions());
+			get => metadataHeaderOptions ??= new MetadataHeaderOptions();
 			set => metadataHeaderOptions = value;
 		}
 
@@ -210,7 +210,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the debug (portable PDB) <see cref="MetadataHeader"/> options. This is never <c>null</c>.
 		/// </summary>
 		public MetadataHeaderOptions DebugMetadataHeaderOptions {
-			get => debugMetadataHeaderOptions ?? (debugMetadataHeaderOptions = MetadataHeaderOptions.CreatePortablePdbV1_0());
+			get => debugMetadataHeaderOptions ??= MetadataHeaderOptions.CreatePortablePdbV1_0();
 			set => debugMetadataHeaderOptions = value;
 		}
 
@@ -218,7 +218,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the <see cref="TablesHeap"/> options. This is never <c>null</c>.
 		/// </summary>
 		public TablesHeapOptions TablesHeapOptions {
-			get => tablesHeapOptions ?? (tablesHeapOptions = new TablesHeapOptions());
+			get => tablesHeapOptions ??= new TablesHeapOptions();
 			set => tablesHeapOptions = value;
 		}
 
@@ -226,7 +226,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the debug (portable PDB) <see cref="TablesHeap"/> options. This is never <c>null</c>.
 		/// </summary>
 		public TablesHeapOptions DebugTablesHeapOptions {
-			get => tablesHeapOptions ?? (tablesHeapOptions = TablesHeapOptions.CreatePortablePdbV1_0());
+			get => tablesHeapOptions ??= TablesHeapOptions.CreatePortablePdbV1_0();
 			set => tablesHeapOptions = value;
 		}
 
@@ -238,7 +238,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Extra heaps to add to the metadata. Also see <see cref="MetadataHeapsAdded"/> and <see cref="PreserveHeapOrder(ModuleDef, bool)"/>
 		/// </summary>
-		public List<IHeap> CustomHeaps => customHeaps ?? (customHeaps = new List<IHeap>());
+		public List<IHeap> CustomHeaps => customHeaps ??= new List<IHeap>();
 
 		/// <summary>
 		/// Raised after all heaps have been added. The caller can sort the list if needed
