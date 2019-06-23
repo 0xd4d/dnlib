@@ -129,7 +129,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Instance #1 or <c>null</c></param>
 		/// <param name="b">Instance #2 or <c>null</c></param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public static int CompareTo(UTF8String a, UTF8String b) => Utils.CompareTo((object)a == null ? null : a.data, (object)b == null ? null : b.data);
+		public static int CompareTo(UTF8String a, UTF8String b) => Utils.CompareTo(a?.data, b?.data);
 
 		/// <summary>
 		/// Compares two <see cref="UTF8String"/> instances (case insensitive)

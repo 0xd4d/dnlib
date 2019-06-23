@@ -673,6 +673,11 @@ namespace dnlib.DotNet {
 		public bool IsPrimitive => this.IsPrimitive();
 
 		/// <summary>
+		/// Checks whether this type has opted into equivalence
+		/// </summary>
+		public bool IsEquivalent => TIAHelper.IsTypeDefEquivalent(this);
+
+		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
 		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>

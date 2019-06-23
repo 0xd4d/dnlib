@@ -22,8 +22,8 @@ namespace dnlib.DotNet {
 			public bool Equals(Info other) => stricmp(Scope, other.Scope) && UTF8String.Equals(Identifier, other.Identifier);
 
 			static bool stricmp(UTF8String a, UTF8String b) {
-				var da = (object)a == null ? null : a.Data;
-				var db = (object)b == null ? null : b.Data;
+				var da = a?.Data;
+				var db = b?.Data;
 				if (da == db)
 					return true;
 				if (da == null || db == null)
@@ -109,6 +109,8 @@ namespace dnlib.DotNet {
 				data[j] = c[i];
 			return data;
 		}
+
+		internal static bool IsTypeDefEquivalent(TypeDef td) => GetInfo(td) != null && CheckEquivalent(td);
 
 		static bool CheckEquivalent(TypeDef td) {
 			Debug.Assert(td != null);
