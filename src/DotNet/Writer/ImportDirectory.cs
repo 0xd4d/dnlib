@@ -16,7 +16,7 @@ namespace dnlib.DotNet.Writer {
 		uint length;
 		RVA importLookupTableRVA;
 		RVA corXxxMainRVA;
-		RVA mscoreeDllRVA;
+		RVA dllToImportRVA;
 		int stringsPadding;
 
 		/// <summary>
@@ -50,6 +50,11 @@ namespace dnlib.DotNet.Writer {
 
 		internal bool Enable { get; set; }
 
+		/// <summary>
+		/// Gets/sets the name of the dll which should be imported.
+		/// </summary>
+		public string DllToImport { get; set; } = "mscoree.dll";
+
 		const uint STRINGS_ALIGNMENT = 16;
 
 		/// <summary>
@@ -71,7 +76,7 @@ namespace dnlib.DotNet.Writer {
 			length += (uint)stringsPadding;
 			corXxxMainRVA = rva + length;
 			length += 0xE;
-			mscoreeDllRVA = rva + length;
+			dllToImportRVA = rva + length;
 			length += 0xC;
 			length++;
 		}
@@ -93,7 +98,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt32((uint)importLookupTableRVA);
 			writer.WriteInt32(0);	// DateTimeStamp
 			writer.WriteInt32(0);	// ForwarderChain
-			writer.WriteUInt32((uint)mscoreeDllRVA);	// Name
+			writer.WriteUInt32((uint)dllToImportRVA);	// Name
 			writer.WriteUInt32((uint)ImportAddressTable.RVA);
 			writer.WriteUInt64(0);
 			writer.WriteUInt64(0);
@@ -112,7 +117,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteZeroes(stringsPadding);
 			writer.WriteUInt16(0);
 			writer.WriteBytes(Encoding.UTF8.GetBytes(IsExeFile ? "_CorExeMain\0" : "_CorDllMain\0"));
-			writer.WriteBytes(Encoding.UTF8.GetBytes("mscoree.dll\0"));
+			writer.WriteBytes(Encoding.UTF8.GetBytes($"{DllToImport}\0"));
 
 			writer.WriteByte(0);
 		}
