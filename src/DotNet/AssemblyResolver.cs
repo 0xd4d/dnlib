@@ -508,7 +508,14 @@ namespace dnlib.DotNet {
 				var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
 				foreach (var ext in exts) {
 					foreach (var path in paths) {
-						var fullPath = Path.Combine(path, asmSimpleName + ext);
+						string fullPath;
+						try {
+							fullPath = Path.Combine(path, asmSimpleName + ext);
+						}
+						catch (ArgumentException) {
+							// Invalid path chars
+							yield break;
+						}
 						if (File.Exists(fullPath))
 							yield return fullPath;
 					}
@@ -549,7 +556,14 @@ namespace dnlib.DotNet {
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
 		protected virtual IEnumerable<string> FindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			if (assembly.IsContentTypeWindowsRuntime) {
-				var path = Path.Combine(Path.Combine(Environment.SystemDirectory, "WinMetadata"), assembly.Name + ".winmd");
+				string path;
+				try {
+					path = Path.Combine(Path.Combine(Environment.SystemDirectory, "WinMetadata"), assembly.Name + ".winmd");
+				}
+				catch (ArgumentException) {
+					// Invalid path chars
+					path = null;
+				}
 				if (File.Exists(path))
 					yield return path;
 			}
@@ -596,7 +610,14 @@ namespace dnlib.DotNet {
 		static IEnumerable<string> GetExtraMonoPaths(IAssembly assembly, ModuleDef sourceModule) {
 			if (extraMonoPaths != null) {
 				foreach (var dir in extraMonoPaths) {
-					var file = Path.Combine(dir, assembly.Name + ".dll");
+					string file;
+					try {
+						file = Path.Combine(dir, assembly.Name + ".dll");
+					}
+					catch (ArgumentException) {
+						// Invalid path chars
+						break;
+					}
 					if (File.Exists(file))
 						yield return file;
 				}
@@ -614,7 +635,13 @@ namespace dnlib.DotNet {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				foreach (var subDir in gacInfo.SubDirs) {
 					var baseDir = Path.Combine(gacInfo.Path, subDir);
-					baseDir = Path.Combine(baseDir, asmSimpleName);
+					try {
+						baseDir = Path.Combine(baseDir, asmSimpleName);
+					}
+					catch (ArgumentException) {
+						// Invalid path chars
+						break;
+					}
 					baseDir = Path.Combine(baseDir, $"{gacInfo.Prefix}{verString}_{cultureString}_{pktString}");
 					var pathName = Path.Combine(baseDir, asmSimpleName + ".dll");
 					if (File.Exists(pathName))
@@ -639,7 +666,13 @@ namespace dnlib.DotNet {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				foreach (var subDir in gacInfo.SubDirs) {
 					var baseDir = Path.Combine(gacInfo.Path, subDir);
-					baseDir = Path.Combine(baseDir, asmSimpleName);
+					try {
+						baseDir = Path.Combine(baseDir, asmSimpleName);
+					}
+					catch (ArgumentException) {
+						// Invalid path chars
+						break;
+					}
 					foreach (var dir in GetDirs(baseDir)) {
 						var pathName = Path.Combine(dir, asmSimpleName + ".dll");
 						if (File.Exists(pathName))
@@ -670,10 +703,16 @@ namespace dnlib.DotNet {
 				foreach (var path in searchPaths) {
 					for (int i = 0; i < 2; i++) {
 						string path2;
-						if (i == 0)
-							path2 = Path.Combine(path, asmSimpleName + ext);
-						else
-							path2 = Path.Combine(Path.Combine(path, asmSimpleName), asmSimpleName + ext);
+						try {
+							if (i == 0)
+								path2 = Path.Combine(path, asmSimpleName + ext);
+							else
+								path2 = Path.Combine(Path.Combine(path, asmSimpleName), asmSimpleName + ext);
+						}
+						catch (ArgumentException) {
+							// Invalid path chars
+							yield break;
+						}
 						if (File.Exists(path2))
 							yield return path2;
 					}
