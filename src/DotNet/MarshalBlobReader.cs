@@ -86,7 +86,7 @@ namespace dnlib.DotNet {
 				case NativeType.SafeArray:
 					var vt = CanRead() ? (VariantType)reader.ReadCompressedUInt32() : VariantType.NotInitialized;
 					var udtName = CanRead() ? ReadUTF8String() : null;
-					var udtRef = (object)udtName == null ? null : TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(udtName), null, gpContext);
+					var udtRef = udtName is null ? null : TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(udtName), null, gpContext);
 					returnValue = new SafeArrayMarshalType(vt, udtRef);
 					break;
 

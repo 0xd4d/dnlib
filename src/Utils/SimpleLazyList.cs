@@ -33,7 +33,7 @@ namespace dnlib.Utils {
 			get {
 				if (index >= length)
 					return null;
-				if (elements[index] == null)
+				if (elements[index] is null)
 					Interlocked.CompareExchange(ref elements[index], readElementByRID(index + 1), null);
 				return elements[index];
 			}
@@ -81,7 +81,7 @@ namespace dnlib.Utils {
 			get {
 				if (index >= length)
 					return null;
-				if (elements[index] == null) {
+				if (elements[index] is null) {
 					var elem = readElementByRID(index + 1, gpContext);
 					// Don't cache it if it contains GPs since each GP could hold a reference
 					// to the type/method context. These GPs can't be shared.

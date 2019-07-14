@@ -33,7 +33,7 @@ namespace dnlib.IO {
 		/// <param name="data">Pointer to data</param>
 		/// <returns></returns>
 		public static DataStream Create(byte* data) {
-			if (data == null)
+			if (data is null)
 				throw new ArgumentNullException(nameof(data));
 			if (supportsUnalignedAccesses)
 				return new UnalignedNativeMemoryDataStream(data);
@@ -46,7 +46,7 @@ namespace dnlib.IO {
 		/// <param name="data">Data</param>
 		/// <returns></returns>
 		public static DataStream Create(byte[] data) {
-			if (data == null)
+			if (data is null)
 				throw new ArgumentNullException(nameof(data));
 			if (supportsUnalignedAccesses)
 				return new UnalignedByteArrayDataStream(data);

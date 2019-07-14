@@ -75,7 +75,7 @@ namespace dnlib.PE {
 		/// <inheritdoc/>
 		public IList<ImageDebugDirectory> ImageDebugDirectories {
 			get {
-				if (imageDebugDirectories == null)
+				if (imageDebugDirectories is null)
 					imageDebugDirectories = ReadImageDebugDirectories();
 				return imageDebugDirectories;
 			}
@@ -97,7 +97,7 @@ namespace dnlib.PE {
 				}
 				win32Resources.Value = value;
 
-				if (origValue != null)
+				if (!(origValue is null))
 					origValue.Dispose();
 			}
 		}
@@ -307,7 +307,7 @@ namespace dnlib.PE {
 		/// <inheritdoc/>
 		public void Dispose() {
 			IDisposable id;
-			if (win32Resources.IsValueInitialized && (id = win32Resources.Value) != null)
+			if (win32Resources.IsValueInitialized && !((id = win32Resources.Value) is null))
 				id.Dispose();
 			dataReaderFactory?.Dispose();
 			win32Resources.Value = null;
@@ -341,7 +341,7 @@ namespace dnlib.PE {
 		bool IInternalPEImage.IsMemoryMappedIO {
 			get {
 				var creator = dataReaderFactory as MemoryMappedDataReaderFactory;
-				return creator == null ? false : creator.IsMemoryMappedIO;
+				return creator is null ? false : creator.IsMemoryMappedIO;
 			}
 		}
 

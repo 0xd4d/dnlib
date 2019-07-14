@@ -37,7 +37,7 @@ namespace dnlib.IO {
 		/// <param name="filename">The filename or null if the data is not from a file</param>
 		/// <returns></returns>
 		public static NativeMemoryDataReaderFactory Create(byte* data, uint length, string filename) {
-			if (data == null)
+			if (data is null)
 				throw new ArgumentNullException(nameof(data));
 			return new NativeMemoryDataReaderFactory(data, length, filename);
 		}

@@ -356,7 +356,7 @@ namespace dnlib.DotNet.Writer {
 			var sectionSizes = new SectionSizes(fileAlignment, sectionAlignment, length, () => GetSectionSizeInfos());
 
 			// Image optional header
-			uint ep = StartupStub == null || !StartupStub.Enable ? 0 : (uint)StartupStub.EntryPointRVA;
+			uint ep = StartupStub is null || !StartupStub.Enable ? 0 : (uint)StartupStub.EntryPointRVA;
 			if (Use32BitOptionalHeader()) {
 				writer.WriteUInt16((ushort)0x010B);
 				writer.WriteByte(options.MajorLinkerVersion ?? PEHeadersOptions.DEFAULT_MAJOR_LINKER_VERSION);

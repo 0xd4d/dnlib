@@ -119,7 +119,7 @@ namespace dnlib.DotNet.Writer {
 
 		internal void AddTextChunks(PESection textSection) {
 			textSection.Add(vtableFixups, DEFAULT_VTBL_FIXUPS_ALIGNMENT);
-			if (cpuArch != null)
+			if (!(cpuArch is null))
 				textSection.Add(stubsChunk, cpuArch.GetStubAlignment(stubType));
 		}
 
@@ -137,7 +137,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 
 			// Only check for an unsupported machine when we know there's at least one exported method
-			if (cpuArch == null) {
+			if (cpuArch is null) {
 				logError("The module has exported methods but the CPU architecture isn't supported: {0} (0x{1:X4})", new object[] { machine, (ushort)machine });
 				return;
 			}
@@ -182,8 +182,8 @@ namespace dnlib.DotNet.Writer {
 			uint stubSize = cpuArch.GetStubSize(stubType);
 			foreach (var method in methods) {
 				var exportInfo = method.ExportInfo;
-				Debug.Assert(exportInfo != null);
-				if (exportInfo == null)
+				Debug.Assert(!(exportInfo is null));
+				if (exportInfo is null)
 					continue;
 
 				var flags = baseFlags;
@@ -282,7 +282,7 @@ namespace dnlib.DotNet.Writer {
 
 			// If this method gets updated, also update the reader (MethodExportInfoProvider)
 			static byte[] GetNameASCIIZ(string name) {
-				Debug.Assert(name != null);
+				Debug.Assert(!(name is null));
 				int size = Encoding.UTF8.GetByteCount(name);
 				var bytes = new byte[size + 1];
 				Encoding.UTF8.GetBytes(name, 0, name.Length, bytes, 0);
@@ -338,8 +338,8 @@ namespace dnlib.DotNet.Writer {
 			foreach (var info in allMethodInfos) {
 				var exportInfo = info.Method.ExportInfo;
 				var name = exportInfo.Name;
-				if (name == null) {
-					if (exportInfo.Ordinal != null) {
+				if (name is null) {
+					if (!(exportInfo.Ordinal is null)) {
 						sortedOrdinalMethodInfos.Add(info);
 						continue;
 					}
@@ -417,7 +417,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void WriteSdata(DataWriter writer) {
-			if (sdataBytesInfo.Data == null)
+			if (sdataBytesInfo.Data is null)
 				return;
 			PatchSdataBytesBlob();
 			writer.WriteBytes(sdataBytesInfo.Data);
@@ -484,7 +484,7 @@ namespace dnlib.DotNet.Writer {
 		void WriteStubs(DataWriter writer) {
 			if (vtables.Count == 0)
 				return;
-			if (cpuArch == null)
+			if (cpuArch is null)
 				return;
 
 			ulong imageBase = peHeaders.ImageBase;

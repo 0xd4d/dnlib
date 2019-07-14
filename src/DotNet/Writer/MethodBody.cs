@@ -53,7 +53,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// <c>true</c> if there's an extra section
 		/// </summary>
-		public bool HasExtraSections => extraSections != null && extraSections.Length > 0;
+		public bool HasExtraSections => !(extraSections is null) && extraSections.Length > 0;
 
 		/// <summary>
 		/// Constructor
@@ -90,7 +90,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public int GetApproximateSizeOfMethodBody() {
 			int len = code.Length;
-			if (extraSections != null) {
+			if (!(extraSections is null)) {
 				len = Utils.AlignUp(len, EXTRA_SECTIONS_ALIGNMENT);
 				len += extraSections.Length;
 				len = Utils.AlignUp(len, EXTRA_SECTIONS_ALIGNMENT);
@@ -148,7 +148,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {
 			var other = obj as MethodBody;
-			if (other == null)
+			if (other is null)
 				return false;
 			return Utils.Equals(code, other.code) &&
 				Utils.Equals(extraSections, other.extraSections);

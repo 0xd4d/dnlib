@@ -67,16 +67,16 @@ namespace dnlib.DotNet.Writer {
 			var stackHeights = this.stackHeights;
 			for (int i = 0; i < exceptionHandlers.Count; i++) {
 				var eh = exceptionHandlers[i];
-				if (eh == null)
+				if (eh is null)
 					continue;
 				Instruction instr;
-				if ((instr = eh.TryStart) != null)
+				if (!((instr = eh.TryStart) is null))
 					stackHeights[instr] = 0;
-				if ((instr = eh.FilterStart) != null) {
+				if (!((instr = eh.FilterStart) is null)) {
 					stackHeights[instr] = 1;
 					currentMaxStack = 1;
 				}
-				if ((instr = eh.HandlerStart) != null) {
+				if (!((instr = eh.HandlerStart) is null)) {
 					bool pushed = eh.HandlerType == ExceptionHandlerType.Catch || eh.HandlerType == ExceptionHandlerType.Filter;
 					if (pushed) {
 						stackHeights[instr] = 1;
@@ -92,7 +92,7 @@ namespace dnlib.DotNet.Writer {
 			var instructions = this.instructions;
 			for (int i = 0; i < instructions.Count; i++) {
 				var instr = instructions[i];
-				if (instr == null)
+				if (instr is null)
 					continue;
 
 				if (resetStack) {
@@ -158,7 +158,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		int WriteStack(Instruction instr, int stack) {
-			if (instr == null) {
+			if (instr is null) {
 				hasError = true;
 				return stack;
 			}

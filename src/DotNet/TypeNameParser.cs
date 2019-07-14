@@ -238,7 +238,7 @@ namespace dnlib.DotNet {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;
-			if (reader != null)
+			if (!(reader is null))
 				reader.Dispose();
 			reader = null;
 		}
@@ -389,17 +389,17 @@ namespace dnlib.DotNet {
 
 		internal AssemblyRef FindAssemblyRef(TypeRef nonNestedTypeRef) {
 			AssemblyRef asmRef = null;
-			if (nonNestedTypeRef != null && typeNameParserHelper != null)
+			if (!(nonNestedTypeRef is null) && !(typeNameParserHelper is null))
 				asmRef = typeNameParserHelper.FindAssemblyRef(nonNestedTypeRef);
-			if (asmRef != null)
+			if (!(asmRef is null))
 				return asmRef;
 			var ownerAsm = ownerModule.Assembly;
-			if (ownerAsm != null)
+			if (!(ownerAsm is null))
 				return ownerModule.UpdateRowId(ownerAsm.ToAssemblyRef());
 			return AssemblyRef.CurrentAssembly;
 		}
 
-		internal bool IsValueType(TypeRef typeRef) => typeRef != null && typeRef.IsValueType;
+		internal bool IsValueType(TypeRef typeRef) => !(typeRef is null) && typeRef.IsValueType;
 
 		internal static void Verify(bool b, string msg) {
 			if (!b)
@@ -574,12 +574,12 @@ namespace dnlib.DotNet {
 				result = null;
 				if (typeRef == nonNestedTypeRef) {
 					var corLibSig = ownerModule.CorLibTypes.GetCorLibTypeSig(typeRef.Namespace, typeRef.Name, typeRef.DefinitionAssembly);
-					if (corLibSig != null)
+					if (!(corLibSig is null))
 						result = corLibSig;
 				}
-				if (result == null) {
+				if (result is null) {
 					var typeDef = Resolve(asmRef, typeRef);
-					result = ToTypeSig(typeDef != null ? (ITypeDefOrRef)typeDef : typeRef);
+					result = ToTypeSig(!(typeDef is null) ? (ITypeDefOrRef)typeDef : typeRef);
 				}
 
 				if (tspecs.Count != 0)
@@ -592,12 +592,12 @@ namespace dnlib.DotNet {
 
 		TypeDef Resolve(AssemblyRef asmRef, TypeRef typeRef) {
 			var asm = ownerModule.Assembly;
-			if (asm == null)
+			if (asm is null)
 				return null;
 			if (!(AssemblyNameComparer.CompareAll.Equals(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
 				return null;
 			var td = asm.Find(typeRef);
-			return td != null && td.Module == ownerModule ? td : null;
+			return !(td is null) && td.Module == ownerModule ? td : null;
 		}
 
 		AssemblyRef ReadOptionalAssemblyRef() {
@@ -721,7 +721,7 @@ namespace dnlib.DotNet {
 
 		AssemblyRef ReadAssemblyRef() {
 			var asmRef = new AssemblyRefUser();
-			if (ownerModule != null)
+			if (!(ownerModule is null))
 				ownerModule.UpdateRowId(asmRef);
 
 			asmRef.Name = ReadAssemblyNameId();

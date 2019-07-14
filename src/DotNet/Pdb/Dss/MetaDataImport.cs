@@ -13,12 +13,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public virtual void GetTypeRefProps(uint tr, uint* ptkResolutionScope, ushort* szName, uint cchName, uint* pchName) => throw new NotImplementedException();
 
 		protected void CopyTypeName(string typeNamespace, string typeName, ushort* destBuffer, uint destBufferLen, uint* requiredLength) {
-			if (typeName == null)
+			if (typeName is null)
 				typeName = string.Empty;
-			if (typeNamespace == null)
+			if (typeNamespace is null)
 				typeNamespace = string.Empty;
 
-			if (destBuffer != null && destBufferLen > 0) {
+			if (!(destBuffer is null) && destBufferLen > 0) {
 				uint maxChars = destBufferLen - 1;
 				uint w = 0;
 				if (typeNamespace.Length > 0) {
@@ -35,10 +35,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 				*destBuffer = 0;
 			}
 
-			if (requiredLength != null) {
+			if (!(requiredLength is null)) {
 				int totalLen = typeNamespace.Length == 0 ? typeName.Length : typeNamespace.Length + 1 + typeName.Length;
 				int copyLen = Math.Min(totalLen, (int)Math.Min(int.MaxValue, destBufferLen == 0 ? 0 : destBufferLen - 1));
-				if (destBuffer != null)
+				if (!(destBuffer is null))
 					*requiredLength = (uint)copyLen;
 				else
 					*requiredLength = (uint)totalLen;

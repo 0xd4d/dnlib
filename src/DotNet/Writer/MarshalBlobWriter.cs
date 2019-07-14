@@ -34,7 +34,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		byte[] Write(MarshalType marshalType) {
-			if (marshalType == null)
+			if (marshalType is null)
 				return null;
 
 			var type = marshalType.NativeType;
@@ -84,7 +84,7 @@ namespace dnlib.DotNet.Writer {
 				Write(custMarshaler.Guid);
 				Write(custMarshaler.NativeTypeName);
 				var cm = custMarshaler.CustomMarshaler;
-				var cmName = cm == null ? string.Empty : FullNameFactory.AssemblyQualifiedName(cm, this);
+				var cmName = cm is null ? string.Empty : FullNameFactory.AssemblyQualifiedName(cm, this);
 				Write(cmName);
 				Write(custMarshaler.Cookie);
 				break;
@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Writer {
 
 			case NativeType.RawBlob:
 				var data = ((RawMarshalType)marshalType).Data;
-				if (data != null)
+				if (!(data is null))
 					writer.WriteBytes(data);
 				break;
 

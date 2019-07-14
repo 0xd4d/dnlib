@@ -13,7 +13,7 @@ namespace dnlib.DotNet.Writer {
 		uint bodySize;
 		bool dictInitd;
 
-		public bool HasBody => body != null;
+		public bool HasBody => !(body is null);
 
 		public SerializerMethodContext(IWriterError helper) {
 			toOffset = new Dictionary<Instruction, uint>();
@@ -31,12 +31,12 @@ namespace dnlib.DotNet.Writer {
 
 		public uint GetOffset(Instruction instr) {
 			if (!dictInitd) {
-				Debug.Assert(body != null);
-				if (body == null)
+				Debug.Assert(!(body is null));
+				if (body is null)
 					return 0;
 				InitializeDict();
 			}
-			if (instr == null)
+			if (instr is null)
 				return bodySize;
 			if (toOffset.TryGetValue(instr, out uint offset))
 				return offset;
@@ -47,7 +47,7 @@ namespace dnlib.DotNet.Writer {
 		public bool IsSameMethod(MethodDef method) => this.method == method;
 
 		void InitializeDict() {
-			Debug.Assert(body != null);
+			Debug.Assert(!(body is null));
 			Debug.Assert(toOffset.Count == 0);
 			uint offset = 0;
 			var instrs = body.Instructions;

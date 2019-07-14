@@ -40,19 +40,19 @@ namespace dnlib.DotNet {
 				sb.Append(c);
 			}
 
-			if (version != null) {
+			if (!(version is null)) {
 				sb.Append(", Version=");
 				sb.Append(CreateVersionWithNoUndefinedValues(version).ToString());
 			}
 
-			if ((object)culture != null) {
+			if (!(culture is null)) {
 				sb.Append(", Culture=");
 				sb.Append(UTF8String.IsNullOrEmpty(culture) ? "neutral" : culture.String);
 			}
 
 			sb.Append(", ");
-			sb.Append(publicKey == null || publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
-			sb.Append(publicKey == null ? "null" : publicKey.ToString());
+			sb.Append(publicKey is null || publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
+			sb.Append(publicKey is null ? "null" : publicKey.ToString());
 
 			if ((attributes & AssemblyAttributes.Retargetable) != 0)
 				sb.Append(", Retargetable=Yes");
@@ -70,7 +70,7 @@ namespace dnlib.DotNet {
 		/// <param name="upper"><c>true</c> if output should be in upper case hex</param>
 		/// <returns><paramref name="bytes"/> as a hex string</returns>
 		internal static string ToHex(byte[] bytes, bool upper) {
-			if (bytes == null)
+			if (bytes is null)
 				return "";
 			var chars = new char[bytes.Length * 2];
 			for (int i = 0, j = 0; i < bytes.Length; i++) {
@@ -137,9 +137,9 @@ namespace dnlib.DotNet {
 		internal static int CompareTo(byte[] a, byte[] b) {
 			if (a == b)
 				return 0;
-			if (a == null)
+			if (a is null)
 				return -1;
-			if (b == null)
+			if (b is null)
 				return 1;
 			int count = Math.Min(a.Length, b.Length);
 			for (int i = 0; i < count; i++) {
@@ -162,7 +162,7 @@ namespace dnlib.DotNet {
 		internal static bool Equals(byte[] a, byte[] b) {
 			if (a == b)
 				return true;
-			if (a == null || b == null)
+			if (a is null || b is null)
 				return false;
 			if (a.Length != b.Length)
 				return false;
@@ -179,7 +179,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Byte array</param>
 		/// <returns>The hash code</returns>
 		internal static int GetHashCode(byte[] a) {
-			if (a == null || a.Length == 0)
+			if (a is null || a.Length == 0)
 				return 0;
 			int count = Math.Min(a.Length / 2, 20);
 			if (count == 0)
@@ -202,9 +202,9 @@ namespace dnlib.DotNet {
 		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
 		internal static int CompareTo(Version a, Version b) {
-			if (a == null)
+			if (a is null)
 				a = new Version();
-			if (b == null)
+			if (b is null)
 				b = new Version();
 			if (a.Major != b.Major)
 				return a.Major.CompareTo(b.Major);
@@ -233,7 +233,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">A <see cref="Version"/> instance</param>
 		/// <returns>A new <see cref="Version"/> instance</returns>
 		internal static Version CreateVersionWithNoUndefinedValues(Version a) {
-			if (a == null)
+			if (a is null)
 				return new Version(0, 0, 0, 0);
 			return new Version(a.Major, a.Minor, GetDefaultVersionValue(a.Build), GetDefaultVersionValue(a.Revision));
 		}

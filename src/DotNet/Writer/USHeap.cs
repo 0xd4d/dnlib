@@ -26,11 +26,11 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="usStream">The #US stream with the original content</param>
 		public void Populate(USStream usStream) {
-			if (originalData != null)
+			if (!(originalData is null))
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
 				throw new InvalidOperationException("Add() has already been called");
-			if (usStream == null || usStream.StreamLength == 0)
+			if (usStream is null || usStream.StreamLength == 0)
 				return;
 
 			var reader = usStream.CreateReader();
@@ -69,7 +69,7 @@ namespace dnlib.DotNet.Writer {
 		public uint Add(string s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #US when it's read-only");
-			if (s == null)
+			if (s is null)
 				s = string.Empty;
 
 			if (cachedDict.TryGetValue(s, out uint offset))
@@ -103,15 +103,15 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(DataWriter writer) {
-			if (originalData != null)
+			if (!(originalData is null))
 				writer.WriteBytes(originalData);
 			else
 				writer.WriteByte(0);
 
-			uint offset = originalData != null ? (uint)originalData.Length : 1;
+			uint offset = !(originalData is null) ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
 				int rawLen = GetRawDataSize(s);
-				if (userRawData != null && userRawData.TryGetValue(offset, out var rawData)) {
+				if (!(userRawData is null) && userRawData.TryGetValue(offset, out var rawData)) {
 					if (rawData.Length != rawLen)
 						throw new InvalidOperationException("Invalid length of raw data");
 					writer.WriteBytes(rawData);
@@ -139,7 +139,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void SetRawData(uint offset, byte[] rawData) {
-			if (userRawData == null)
+			if (userRawData is null)
 				userRawData = new Dictionary<uint, byte[]>();
 			userRawData[offset] = rawData ?? throw new ArgumentNullException(nameof(rawData));
 		}
@@ -148,7 +148,7 @@ namespace dnlib.DotNet.Writer {
 		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
 			var memStream = new MemoryStream();
 			var writer = new DataWriter(memStream);
-			uint offset = originalData != null ? (uint)originalData.Length : 1;
+			uint offset = !(originalData is null) ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
 				memStream.Position = 0;
 				memStream.SetLength(0);

@@ -54,7 +54,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public CustomAttributeCollection CustomAttributes {
 			get {
-				if (customAttributes == null)
+				if (customAttributes is null)
 					InitializeCustomAttributes();
 				return customAttributes;
 			}
@@ -79,7 +79,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
-				if (customDebugInfos == null)
+				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
 				return customDebugInfos;
 			}
@@ -95,7 +95,7 @@ namespace dnlib.DotNet {
 			get => method?.MethodSig;
 			set {
 				var m = method;
-				if (m != null)
+				if (!(m is null))
 					m.MethodSig = value;
 			}
 		}
@@ -104,11 +104,11 @@ namespace dnlib.DotNet {
 		public UTF8String Name {
 			get {
 				var m = method;
-				return m == null ? UTF8String.Empty : m.Name;
+				return m is null ? UTF8String.Empty : m.Name;
 			}
 			set {
 				var m = method;
-				if (m != null)
+				if (!(m is null))
 					m.Name = value;
 			}
 		}
@@ -142,7 +142,7 @@ namespace dnlib.DotNet {
 
 				if (m is MemberRef memberRef) {
 					var methodSig = memberRef.MethodSig;
-					if (methodSig != null) {
+					if (!(methodSig is null)) {
 						var gis = (memberRef.Class as TypeSpec)?.TypeSig as GenericInstSig;
 						var typeGenArgs = gis?.GenericArguments;
 						return FullNameFactory.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, typeGenArgs, methodGenArgs, null, null);
@@ -238,7 +238,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public MethodSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
-			if (readerModule == null)
+			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.MethodSpecTable.IsInvalidRID(rid))
 				throw new BadImageFormatException($"MethodSpec rid {rid} does not exist");

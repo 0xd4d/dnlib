@@ -51,16 +51,16 @@ namespace dnlib.DotNet.Pdb.Dss {
 			DataReaderIStream comPdbStream = null;
 			bool error = true;
 			try {
-				if (pdbStream == null)
+				if (pdbStream is null)
 					return null;
 				var debugDir = pdbContext.CodeViewDebugDirectory;
-				if (debugDir == null)
+				if (debugDir is null)
 					return null;
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
 				unmanagedReader = CreateSymUnmanagedReader(pdbContext.Options);
-				if (unmanagedReader == null)
+				if (unmanagedReader is null)
 					return null;
 
 				mdImporter = new ReaderMetaDataImport(metadata);

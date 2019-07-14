@@ -172,7 +172,7 @@ namespace dnlib.DotNet {
 			var mscorlib = module?.CorLibTypes.AssemblyRef;
 			var asm = new AssemblyRefUser(GetName(clrAsm), contractAsmVersion, new PublicKeyToken(GetPublicKeyToken(clrAsm)), UTF8String.Empty);
 
-			if (mscorlib != null && mscorlib.Name == mscorlibName && IsValidMscorlibVersion(mscorlib.Version))
+			if (!(mscorlib is null) && mscorlib.Name == mscorlibName && IsValidMscorlibVersion(mscorlib.Version))
 				asm.Version = mscorlib.Version;
 			if (module is ModuleDefMD mod) {
 				Version ver = null;
@@ -188,10 +188,10 @@ namespace dnlib.DotNet {
 					if (!IsValidMscorlibVersion(asmRef.Version))
 						continue;
 
-					if (ver == null || asmRef.Version > ver)
+					if (ver is null || asmRef.Version > ver)
 						ver = asmRef.Version;
 				}
-				if (ver != null)
+				if (!(ver is null))
 					asm.Version = ver;
 			}
 
@@ -201,7 +201,7 @@ namespace dnlib.DotNet {
 		static readonly UTF8String mscorlibName = new UTF8String("mscorlib");
 
 		// Silverlight uses 5.0.5.0
-		static bool IsValidMscorlibVersion(Version version) => version != null && (uint)version.Major <= 5;
+		static bool IsValidMscorlibVersion(Version version) => !(version is null) && (uint)version.Major <= 5;
 
 		static UTF8String GetName(ClrAssembly clrAsm) {
 			switch (clrAsm) {
@@ -257,10 +257,10 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		public static TypeRef ToCLR(ModuleDef module, TypeDef td, out bool isClrValueType) {
 			isClrValueType = false;
-			if (td == null || !td.IsWindowsRuntime)
+			if (td is null || !td.IsWindowsRuntime)
 				return null;
 			var asm = td.DefinitionAssembly;
-			if (asm == null || !asm.IsContentTypeWindowsRuntime)
+			if (asm is null || !asm.IsContentTypeWindowsRuntime)
 				return null;
 
 			if (!winMDToCLR.TryGetValue(new ClassName(td.Namespace, td.Name), out var pc))
@@ -289,12 +289,12 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		public static TypeRef ToCLR(ModuleDef module, TypeRef tr, out bool isClrValueType) {
 			isClrValueType = false;
-			if (tr == null)
+			if (tr is null)
 				return null;
 			var defAsm = tr.DefinitionAssembly;
-			if (defAsm == null || !defAsm.IsContentTypeWindowsRuntime)
+			if (defAsm is null || !defAsm.IsContentTypeWindowsRuntime)
 				return null;
-			if (tr.DeclaringType != null)
+			if (!(tr.DeclaringType is null))
 				return null;
 
 			if (!winMDToCLR.TryGetValue(new ClassName(tr.Namespace, tr.Name), out var pc))
@@ -312,12 +312,12 @@ namespace dnlib.DotNet {
 		/// <param name="et">Type</param>
 		/// <returns></returns>
 		public static ExportedType ToCLR(ModuleDef module, ExportedType et) {
-			if (et == null)
+			if (et is null)
 				return null;
 			var defAsm = et.DefinitionAssembly;
-			if (defAsm == null || !defAsm.IsContentTypeWindowsRuntime)
+			if (defAsm is null || !defAsm.IsContentTypeWindowsRuntime)
 				return null;
-			if (et.DeclaringType != null)
+			if (!(et.DeclaringType is null))
 				return null;
 
 			if (!winMDToCLR.TryGetValue(new ClassName(et.TypeNamespace, et.TypeName), out var pc))
@@ -334,7 +334,7 @@ namespace dnlib.DotNet {
 		/// <param name="ts">Type</param>
 		/// <returns></returns>
 		public static TypeSig ToCLR(ModuleDef module, TypeSig ts) {
-			if (ts == null)
+			if (ts is null)
 				return null;
 			var et = ts.ElementType;
 			if (et != ElementType.Class && et != ElementType.ValueType)
@@ -346,12 +346,12 @@ namespace dnlib.DotNet {
 			bool isClrValueType;
 			if (tdr is TypeDef td) {
 				newTr = ToCLR(module, td, out isClrValueType);
-				if (newTr == null)
+				if (newTr is null)
 					return null;
 			}
-			else if ((tr = tdr as TypeRef) != null) {
+			else if (!((tr = tdr as TypeRef) is null)) {
 				newTr = ToCLR(module, tr, out isClrValueType);
-				if (newTr == null)
+				if (newTr is null)
 					return null;
 			}
 			else
@@ -372,13 +372,13 @@ namespace dnlib.DotNet {
 		public static MemberRef ToCLR(ModuleDef module, MemberRef mr) {
 			// See WinMDAdapter::CheckIfMethodImplImplementsARedirectedInterface
 			// in coreclr: md/winmd/adapter.cpp
-			if (mr == null)
+			if (mr is null)
 				return null;
 			if (mr.Name != CloseName)
 				return null;
 
 			var msig = mr.MethodSig;
-			if (msig == null)
+			if (msig is null)
 				return null;
 
 			var cl = mr.Class;
@@ -386,21 +386,21 @@ namespace dnlib.DotNet {
 			TypeSpec ts;
 			if (cl is TypeRef tr) {
 				var newTr = ToCLR(module, tr);
-				if (newTr == null || !IsIDisposable(newTr))
+				if (newTr is null || !IsIDisposable(newTr))
 					return null;
 
 				newCl = newTr;
 			}
-			else if ((ts = cl as TypeSpec) != null) {
+			else if (!((ts = cl as TypeSpec) is null)) {
 				var gis = ts.TypeSig as GenericInstSig;
-				if (gis == null || !(gis.GenericType is ClassSig))
+				if (gis is null || !(gis.GenericType is ClassSig))
 					return null;
 				tr = gis.GenericType.TypeRef;
-				if (tr == null)
+				if (tr is null)
 					return null;
 
 				var newTr = ToCLR(module, tr, out bool isClrValueType);
-				if (newTr == null || !IsIDisposable(newTr))
+				if (newTr is null || !IsIDisposable(newTr))
 					return null;
 
 				newCl = new TypeSpecUser(new GenericInstSig(isClrValueType ?
@@ -427,16 +427,16 @@ namespace dnlib.DotNet {
 		/// <param name="md">Method</param>
 		/// <returns></returns>
 		public static MemberRef ToCLR(ModuleDef module, MethodDef md) {
-			if (md == null)
+			if (md is null)
 				return null;
 			if (md.Name != CloseName)
 				return null;
 			var declType = md.DeclaringType;
-			if (declType == null)
+			if (declType is null)
 				return null;
 
 			var tr = ToCLR(module, declType);
-			if (tr == null || !IsIDisposable(tr))
+			if (tr is null || !IsIDisposable(tr))
 				return null;
 
 			return new MemberRefUser(md.Module, DisposeName, md.MethodSig, tr);

@@ -156,7 +156,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public CustomAttributeCollection CustomAttributes {
 			get {
-				if (customAttributes == null)
+				if (customAttributes is null)
 					InitializeCustomAttributes();
 				return customAttributes;
 			}
@@ -181,7 +181,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
-				if (customDebugInfos == null)
+				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
 				return customDebugInfos;
 			}
@@ -195,13 +195,13 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
 		/// </summary>
-		public bool IsNested => DeclaringType != null;
+		public bool IsNested => !(DeclaringType is null);
 
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
 				var td = Resolve();
-				return td != null && td.IsValueType;
+				return !(td is null) && td.IsValueType;
 			}
 		}
 
@@ -242,7 +242,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
 		public TypeDef Resolve(ModuleDef sourceModule) {
-			if (module == null)
+			if (module is null)
 				return null;
 			return module.Context.Resolver.Resolve(this, sourceModule ?? module);
 		}
@@ -262,7 +262,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		public TypeDef ResolveThrow(ModuleDef sourceModule) {
 			var type = Resolve(sourceModule);
-			if (type != null)
+			if (!(type is null))
 				return type;
 			throw new TypeResolveException($"Could not resolve type: {this} ({DefinitionAssembly})");
 		}
@@ -273,11 +273,11 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">Input</param>
 		/// <returns>The non-nested <see cref="TypeRef"/> or <c>null</c></returns>
 		internal static TypeRef GetNonNestedTypeRef(TypeRef typeRef) {
-			if (typeRef == null)
+			if (typeRef is null)
 				return null;
 			for (int i = 0; i < 1000; i++) {
 				var next = typeRef.ResolutionScope as TypeRef;
-				if (next == null)
+				if (next is null)
 					return typeRef;
 				typeRef = next;
 			}
@@ -367,7 +367,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public TypeRefMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
-			if (readerModule == null)
+			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.TypeRefTable.IsInvalidRID(rid))
 				throw new BadImageFormatException($"TypeRef rid {rid} does not exist");

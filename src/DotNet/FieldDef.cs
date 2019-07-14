@@ -49,7 +49,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public CustomAttributeCollection CustomAttributes {
 			get {
-				if (customAttributes == null)
+				if (customAttributes is null)
 					InitializeCustomAttributes();
 				return customAttributes;
 			}
@@ -71,7 +71,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
-				if (customDebugInfos == null)
+				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
 				return customDebugInfos;
 			}
@@ -370,7 +370,7 @@ namespace dnlib.DotNet {
 		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
-		public bool HasImplMap => ImplMap != null;
+		public bool HasImplMap => !(ImplMap is null);
 
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
@@ -381,9 +381,9 @@ namespace dnlib.DotNet {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
 					return;
-				if (currentDeclaringType != null)
+				if (!(currentDeclaringType is null))
 					currentDeclaringType.Fields.Remove(this);	// Will set DeclaringType2 = null
-				if (value != null)
+				if (!(value is null))
 					value.Fields.Add(this);		// Will set DeclaringType2 = value
 			}
 		}
@@ -431,12 +431,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldOffset"/> is not <c>null</c>
 		/// </summary>
-		public bool HasLayoutInfo => FieldOffset != null;
+		public bool HasLayoutInfo => !(FieldOffset is null);
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
-		public bool HasConstant => Constant != null;
+		public bool HasConstant => !(Constant is null);
 
 		/// <summary>
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
@@ -444,14 +444,14 @@ namespace dnlib.DotNet {
 		public ElementType ElementType {
 			get {
 				var c = Constant;
-				return c == null ? ElementType.End : c.Type;
+				return c is null ? ElementType.End : c.Type;
 			}
 		}
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
-		public bool HasMarshalType => MarshalType != null;
+		public bool HasMarshalType => !(MarshalType is null);
 
 		/// <summary>
 		/// Gets/sets the field type
@@ -460,7 +460,7 @@ namespace dnlib.DotNet {
 			get => FieldSig.GetFieldType();
 			set {
 				var sig = FieldSig;
-				if (sig != null)
+				if (!(sig is null))
 					sig.Type = value;
 			}
 		}
@@ -655,7 +655,7 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
 		protected bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, int ptrSize, out uint size) {
 			size = 0;
-			if (fieldSig == null)
+			if (fieldSig is null)
 				return false;
 			return GetClassSize(declaringType, fieldSig.Type, ptrSize, out size);
 		}
@@ -663,7 +663,7 @@ namespace dnlib.DotNet {
 		bool GetClassSize(TypeDef declaringType, TypeSig ts, int ptrSize, out uint size) {
 			size = 0;
 			ts = ts.RemovePinnedAndModifiers();
-			if (ts == null)
+			if (ts is null)
 				return false;
 
 			int size2 = ts.ElementType.GetPrimitiveSize(ptrSize);
@@ -673,25 +673,25 @@ namespace dnlib.DotNet {
 			}
 
 			var tdrs = ts as TypeDefOrRefSig;
-			if (tdrs == null)
+			if (tdrs is null)
 				return false;
 
 			var td = tdrs.TypeDef;
-			if (td != null)
+			if (!(td is null))
 				return TypeDef.GetClassSize(td, out size);
 
 			var tr = tdrs.TypeRef;
-			if (tr != null)
+			if (!(tr is null))
 				return TypeDef.GetClassSize(tr.Resolve(), out size);
 
 			return false;
 		}
 
 		int GetPointerSize(TypeDef declaringType) {
-			if (declaringType == null)
+			if (declaringType is null)
 				return 4;
 			var module = declaringType.Module;
-			if (module == null)
+			if (module is null)
 				return 4;
 			return module.GetPointerSize();
 		}
@@ -808,7 +808,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public FieldDefMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
-			if (readerModule == null)
+			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.FieldTable.IsInvalidRID(rid))
 				throw new BadImageFormatException($"Field rid {rid} does not exist");

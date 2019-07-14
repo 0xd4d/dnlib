@@ -103,7 +103,7 @@ namespace dnlib.DotNet {
 				/*int blobLength = (int)*/reader.ReadCompressedUInt32();
 				int numNamedArgs = (int)reader.ReadCompressedUInt32();
 				var namedArgs = CustomAttributeReader.ReadNamedArguments(module, ref reader, numNamedArgs, gpContext);
-				if (namedArgs == null)
+				if (namedArgs is null)
 					throw new ApplicationException("Could not read named arguments");
 				list.Add(new SecurityAttribute(attrRef, namedArgs));
 			}

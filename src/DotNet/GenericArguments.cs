@@ -46,7 +46,7 @@ namespace dnlib.DotNet {
 					return null;
 				var typeSig = args[(int)number];
 				var gvar = typeSig as GenericSig;
-				if (gvar == null || gvar.IsTypeVar != isTypeVar)
+				if (gvar is null || gvar.IsTypeVar != isTypeVar)
 					return typeSig;
 				result = gvar;
 				number = gvar.Number;
@@ -95,21 +95,21 @@ namespace dnlib.DotNet {
 		/// <returns>New <see cref="TypeSig"/> which is never <c>null</c> unless
 		/// <paramref name="typeSig"/> is <c>null</c></returns>
 		public TypeSig Resolve(TypeSig typeSig) {
-			if (typeSig == null)
+			if (typeSig is null)
 				return null;
 
 			var sig = typeSig;
 
 			if (sig is GenericMVar genericMVar) {
 				var newSig = methodArgsStack.Resolve(genericMVar.Number);
-				if (newSig == null || newSig == sig)
+				if (newSig is null || newSig == sig)
 					return sig;
 				return newSig;
 			}
 
 			if (sig is GenericVar genericVar) {
 				var newSig = typeArgsStack.Resolve(genericVar.Number);
-				if (newSig == null || newSig == sig)
+				if (newSig is null || newSig == sig)
 					return sig;
 				return newSig;
 			}

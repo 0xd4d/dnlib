@@ -251,11 +251,11 @@ namespace dnlib.DotNet.Emit {
 			// The OpCode ctor copies itself to one of these arrays. Whatever are still null
 			// are unsupported opcodes. Set them all to UNKNOWN1 or UNKNOWN2.
 			for (int i = 0; i < OneByteOpCodes.Length; i++) {
-				if (OneByteOpCodes[i] == null)
+				if (OneByteOpCodes[i] is null)
 					OneByteOpCodes[i] = UNKNOWN1;
 			}
 			for (int i = 0; i < TwoByteOpCodes.Length; i++) {
-				if (TwoByteOpCodes[i] == null)
+				if (TwoByteOpCodes[i] is null)
 					TwoByteOpCodes[i] = UNKNOWN2;
 			}
 		}

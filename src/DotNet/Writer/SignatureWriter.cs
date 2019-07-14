@@ -89,7 +89,7 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(TypeSig typeSig) {
 			const ElementType DEFAULT_ELEMENT_TYPE = ElementType.Boolean;
-			if (typeSig == null) {
+			if (typeSig is null) {
 				helper.Error("TypeSig is null");
 				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
 				return;
@@ -205,7 +205,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void Write(ITypeDefOrRef tdr) {
-			if (tdr == null) {
+			if (tdr is null) {
 				helper.Error("TypeDefOrRef is null");
 				WriteCompressedUInt32(0);
 				return;
@@ -220,7 +220,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void Write(CallingConventionSig sig) {
-			if (sig == null) {
+			if (sig is null) {
 				helper.Error("sig is null");
 				return;
 			}
@@ -234,13 +234,13 @@ namespace dnlib.DotNet.Writer {
 			LocalSig ls;
 			GenericInstMethodSig gim;
 
-			if ((mbs = sig as MethodBaseSig) != null)
+			if (!((mbs = sig as MethodBaseSig) is null))
 				Write(mbs);
-			else if ((fs = sig as FieldSig) != null)
+			else if (!((fs = sig as FieldSig) is null))
 				Write(fs);
-			else if ((ls = sig as LocalSig) != null)
+			else if (!((ls = sig as LocalSig) is null))
 				Write(ls);
-			else if ((gim = sig as GenericInstMethodSig) != null)
+			else if (!((gim = sig as GenericInstMethodSig) is null))
 				Write(gim);
 			else {
 				helper.Error("Unknown calling convention sig");
@@ -251,7 +251,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void Write(MethodBaseSig sig) {
-			if (sig == null) {
+			if (sig is null) {
 				helper.Error("sig is null");
 				return;
 			}
@@ -265,7 +265,7 @@ namespace dnlib.DotNet.Writer {
 				WriteCompressedUInt32(sig.GenParamCount);
 
 			uint numParams = (uint)sig.Params.Count;
-			if (sig.ParamsAfterSentinel != null)
+			if (!(sig.ParamsAfterSentinel is null))
 				numParams += (uint)sig.ParamsAfterSentinel.Count;
 
 			uint count = WriteCompressedUInt32(numParams);
@@ -273,7 +273,7 @@ namespace dnlib.DotNet.Writer {
 			for (uint i = 0; i < count && i < (uint)sig.Params.Count; i++)
 				Write(sig.Params[(int)i]);
 
-			if (sig.ParamsAfterSentinel != null && sig.ParamsAfterSentinel.Count > 0) {
+			if (!(sig.ParamsAfterSentinel is null) && sig.ParamsAfterSentinel.Count > 0) {
 				writer.WriteByte((byte)ElementType.Sentinel);
 				for (uint i = 0, j = (uint)sig.Params.Count; i < (uint)sig.ParamsAfterSentinel.Count && j < count; i++, j++)
 					Write(sig.ParamsAfterSentinel[(int)i]);
@@ -283,7 +283,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void Write(FieldSig sig) {
-			if (sig == null) {
+			if (sig is null) {
 				helper.Error("sig is null");
 				return;
 			}
@@ -299,7 +299,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void Write(LocalSig sig) {
-			if (sig == null) {
+			if (sig is null) {
 				helper.Error("sig is null");
 				return;
 			}
@@ -321,7 +321,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void Write(GenericInstMethodSig sig) {
-			if (sig == null) {
+			if (sig is null) {
 				helper.Error("sig is null");
 				return;
 			}
@@ -342,7 +342,7 @@ namespace dnlib.DotNet.Writer {
 		public void Dispose() {
 			if (!disposeStream)
 				return;
-			if (outStream != null)
+			if (!(outStream is null))
 				outStream.Dispose();
 		}
 	}

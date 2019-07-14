@@ -252,7 +252,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public byte[] PublicKey {
 			get {
-				if (publicKey == null)
+				if (publicKey is null)
 					Interlocked.CompareExchange(ref publicKey, CreatePublicKey(), null);
 				return publicKey;
 			}

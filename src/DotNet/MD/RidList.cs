@@ -54,7 +54,7 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A rid or 0 if <paramref name="index"/> is invalid</returns>
 		public uint this[int index] {
 			get {
-				if (rids != null) {
+				if (!(rids is null)) {
 					if ((uint)index >= (uint)rids.Count)
 						return 0;
 					return rids[index];
@@ -106,7 +106,7 @@ namespace dnlib.DotNet.MD {
 			/// </summary>
 			/// <returns></returns>
 			public bool MoveNext() {
-				if (rids == null && index < length) {
+				if (rids is null && index < length) {
 					current = startRid + index;
 					index++;
 					return true;
@@ -119,7 +119,7 @@ namespace dnlib.DotNet.MD {
 					current = 0;
 					return false;
 				}
-				if (rids != null)
+				if (!(rids is null))
 					current = rids[(int)index];
 				else
 					current = startRid + index;

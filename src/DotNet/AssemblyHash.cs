@@ -52,7 +52,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (hasher != null)
+			if (!(hasher is null))
 				((IDisposable)hasher).Dispose();
 		}
 
@@ -65,7 +65,7 @@ namespace dnlib.DotNet {
 		/// <param name="hashAlgo">The algorithm to use</param>
 		/// <returns>Hashed data or null if <paramref name="data"/> was <c>null</c></returns>
 		public static byte[] Hash(byte[] data, AssemblyHashAlgorithm hashAlgo) {
-			if (data == null)
+			if (data is null)
 				return null;
 
 			using (var asmHash = new AssemblyHash(hashAlgo)) {
@@ -123,7 +123,7 @@ namespace dnlib.DotNet {
 		/// <param name="publicKeyData">The data</param>
 		/// <returns>A new <see cref="PublicKeyToken"/> instance</returns>
 		public static PublicKeyToken CreatePublicKeyToken(byte[] publicKeyData) {
-			if (publicKeyData == null)
+			if (publicKeyData is null)
 				return new PublicKeyToken();
 			var hash = Hash(publicKeyData, AssemblyHashAlgorithm.SHA1);
 			var pkt = new byte[8];

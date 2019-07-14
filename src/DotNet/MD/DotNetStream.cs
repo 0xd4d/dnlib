@@ -44,7 +44,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets the name of the stream
 		/// </summary>
-		public string Name => streamHeader == null ? string.Empty : streamHeader.Name;
+		public string Name => streamHeader is null ? string.Empty : streamHeader.Name;
 
 		/// <summary>
 		/// Gets a data reader that can read the full stream
@@ -78,7 +78,7 @@ namespace dnlib.DotNet.MD {
 		void DataReaderFactory_DataReaderInvalidated(object sender, EventArgs e) => RecreateReader(mdReaderFactory, metadataBaseOffset, streamHeader, notifyThisClass: true);
 
 		void RecreateReader(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader, bool notifyThisClass) {
-			if (mdReaderFactory == null || streamHeader == null)
+			if (mdReaderFactory is null || streamHeader is null)
 				dataReader = default;
 			else
 				dataReader = mdReaderFactory.CreateReader(metadataBaseOffset + streamHeader.Offset, streamHeader.StreamSize);
@@ -104,7 +104,7 @@ namespace dnlib.DotNet.MD {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				var mdReaderFactory = this.mdReaderFactory;
-				if (mdReaderFactory != null)
+				if (!(mdReaderFactory is null))
 					mdReaderFactory.DataReaderInvalidated -= DataReaderFactory_DataReaderInvalidated;
 				streamHeader = null;
 				this.mdReaderFactory = null;

@@ -154,16 +154,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var flags = reader.ReadUInt16();
 			reader.Position += 4;
 
-			if (funcs[found].Lines == null) {
+			if (funcs[found].Lines is null) {
 				while (found > 0) {
 					var prevFunc = funcs[found - 1];
-					if (prevFunc != null || prevFunc.Address != address)
+					if (!(prevFunc is null) || prevFunc.Address != address)
 						break;
 					found--;
 				}
 			}
 			else {
-				while (found < funcs.Length - 1 && funcs[found] != null) {
+				while (found < funcs.Length - 1 && !(funcs[found] is null)) {
 					var nextFunc = funcs[found + 1];
 					if (nextFunc.Address != address)
 						break;
@@ -171,7 +171,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				}
 			}
 			var func = funcs[found];
-			if (func.Lines != null)
+			if (!(func.Lines is null))
 				return;
 			func.Lines = new List<SymbolSequencePoint>();
 

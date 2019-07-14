@@ -71,7 +71,7 @@ namespace dnlib.DotNet {
 		int IGenericParameterProvider.NumberOfGenericParameters {
 			get {
 				var type = this.RemovePinnedAndModifiers() as GenericInstSig;
-				return type == null ? 0 : type.GenericArguments.Count;
+				return type is null ? 0 : type.GenericArguments.Count;
 			}
 		}
 
@@ -79,12 +79,12 @@ namespace dnlib.DotNet {
 		public bool IsValueType {
 			get {
 				var t = this.RemovePinnedAndModifiers();
-				if (t == null)
+				if (t is null)
 					return false;
 				if (t.ElementType == ElementType.GenericInst) {
 					var gis = (GenericInstSig)t;
 					t = gis.GenericType;
-					if (t == null)
+					if (t is null)
 						return false;
 				}
 				return t.ElementType.IsValueType();
@@ -255,11 +255,11 @@ namespace dnlib.DotNet {
 		/// <param name="a">A <see cref="TypeSig"/> instance</param>
 		/// <returns>Input after all modifiers</returns>
 		public static TypeSig RemoveModifiers(this TypeSig a) {
-			if (a == null)
+			if (a is null)
 				return null;
 			while (true) {
 				var modifier = a as ModifierSig;
-				if (modifier == null)
+				if (modifier is null)
 					return a;
 				a = a.Next;
 			}
@@ -272,7 +272,7 @@ namespace dnlib.DotNet {
 		/// <returns>Input after pinned signature</returns>
 		public static TypeSig RemovePinned(this TypeSig a) {
 			var pinned = a as PinnedSig;
-			if (pinned == null)
+			if (pinned is null)
 				return a;
 			return pinned.Next;
 		}
@@ -398,7 +398,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static bool GetIsValueType(this TypeSig self) => self == null ? false : self.IsValueType;
+		public static bool GetIsValueType(this TypeSig self) => self is null ? false : self.IsValueType;
 
 		/// <summary>
 		/// Gets the <see cref="TypeSig.IsPrimitive"/> value or <c>false</c> if
@@ -406,35 +406,35 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static bool GetIsPrimitive(this TypeSig self) => self == null ? false : self.IsPrimitive;
+		public static bool GetIsPrimitive(this TypeSig self) => self is null ? false : self.IsPrimitive;
 
 		/// <summary>
 		/// Gets the element type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>The element type</returns>
-		public static ElementType GetElementType(this TypeSig a) => a == null ? ElementType.End : a.ElementType;
+		public static ElementType GetElementType(this TypeSig a) => a is null ? ElementType.End : a.ElementType;
 
 		/// <summary>
 		/// Gets the full name of the type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>Full name of the type</returns>
-		public static string GetFullName(this TypeSig a) => a == null ? string.Empty : a.FullName;
+		public static string GetFullName(this TypeSig a) => a is null ? string.Empty : a.FullName;
 
 		/// <summary>
 		/// Gets the name of the type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>Name of the type</returns>
-		public static string GetName(this TypeSig a) => a == null ? string.Empty : a.TypeName;
+		public static string GetName(this TypeSig a) => a is null ? string.Empty : a.TypeName;
 
 		/// <summary>
 		/// Gets the namespace of the type
 		/// </summary>
 		/// <param name="a">this</param>
 		/// <returns>Namespace of the type</returns>
-		public static string GetNamespace(this TypeSig a) => a == null ? string.Empty : a.Namespace;
+		public static string GetNamespace(this TypeSig a) => a is null ? string.Empty : a.Namespace;
 
 		/// <summary>
 		/// Returns the <see cref="TypeRef"/> if it is a <see cref="TypeDefOrRefSig"/>.
@@ -483,17 +483,17 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeRef"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeRef => TypeRef != null;
+		public bool IsTypeRef => !(TypeRef is null);
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeDef"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeDef => TypeDef != null;
+		public bool IsTypeDef => !(TypeDef is null);
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeSpec"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeSpec => TypeSpec != null;
+		public bool IsTypeSpec => !(TypeSpec is null);
 
 		/// <summary>
 		/// Gets the <see cref="TypeRef"/> or <c>null</c> if it's not a <see cref="TypeRef"/>
@@ -599,19 +599,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="TypeDef"/> or <see cref="MethodDef"/>
 		/// </summary>
-		public bool HasOwner => genericParamProvider != null;
+		public bool HasOwner => !(genericParamProvider is null);
 
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="TypeDef"/> (<see cref="OwnerType"/> is
 		/// not <c>null</c>)
 		/// </summary>
-		public bool HasOwnerType => OwnerType != null;
+		public bool HasOwnerType => !(OwnerType is null);
 
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="MethodDef"/> (<see cref="OwnerMethod"/> is
 		/// not <c>null</c>)
 		/// </summary>
-		public bool HasOwnerMethod => OwnerMethod != null;
+		public bool HasOwnerMethod => !(OwnerMethod is null);
 
 		/// <summary>
 		/// Gets the owner type or <c>null</c> if the owner is a <see cref="MethodDef"/> or if it
@@ -636,7 +636,7 @@ namespace dnlib.DotNet {
 		public GenericParam GenericParam {
 			get {
 				var gpp = genericParamProvider;
-				if (gpp == null)
+				if (gpp is null)
 					return null;
 				var gps = gpp.GenericParameters;
 				int count = gps.Count;

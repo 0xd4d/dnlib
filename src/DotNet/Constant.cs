@@ -75,7 +75,7 @@ namespace dnlib.DotNet {
 		}
 
 		static ElementType GetElementType(object value) {
-			if (value == null)
+			if (value is null)
 				return ElementType.Class;
 			switch (System.Type.GetTypeCode(value.GetType())) {
 			case TypeCode.Boolean:	return ElementType.Boolean;
@@ -114,7 +114,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public ConstantMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
-			if (readerModule == null)
+			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.ConstantTable.IsInvalidRID(rid))
 				throw new BadImageFormatException($"Constant rid {rid} does not exist");

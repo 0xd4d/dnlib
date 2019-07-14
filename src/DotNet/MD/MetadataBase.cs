@@ -214,7 +214,7 @@ namespace dnlib.DotNet.MD {
 				isStandalonePortablePdb = false;
 			}
 			catch {
-				if (peImage != null)
+				if (!(peImage is null))
 					peImage.Dispose();
 				throw;
 			}
@@ -234,21 +234,21 @@ namespace dnlib.DotNet.MD {
 		public void Initialize(DataReaderFactory mdReaderFactory) {
 			mdReaderFactoryToDisposeLater = mdReaderFactory;
 			uint metadataBaseOffset;
-			if (peImage != null) {
-				Debug.Assert(mdReaderFactory == null);
-				Debug.Assert(cor20Header != null);
+			if (!(peImage is null)) {
+				Debug.Assert(mdReaderFactory is null);
+				Debug.Assert(!(cor20Header is null));
 				metadataBaseOffset = (uint)peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
 				mdReaderFactory = peImage.DataReaderFactory;
 			}
 			else {
-				Debug.Assert(mdReaderFactory != null);
+				Debug.Assert(!(mdReaderFactory is null));
 				metadataBaseOffset = 0;
 			}
 			InitializeInternal(mdReaderFactory, metadataBaseOffset);
 
-			if (tablesStream == null)
+			if (tablesStream is null)
 				throw new BadImageFormatException("Missing MD stream");
-			if (isStandalonePortablePdb && pdbStream == null)
+			if (isStandalonePortablePdb && pdbStream is null)
 				throw new BadImageFormatException("Missing #Pdb stream");
 			InitializeNonExistentHeaps();
 		}
@@ -257,13 +257,13 @@ namespace dnlib.DotNet.MD {
 		/// Creates empty heap objects if they're not present in the metadata
 		/// </summary>
 		protected void InitializeNonExistentHeaps() {
-			if (stringsStream == null)
+			if (stringsStream is null)
 				stringsStream = new StringsStream();
-			if (usStream == null)
+			if (usStream is null)
 				usStream = new USStream();
-			if (blobStream == null)
+			if (blobStream is null)
 				blobStream = new BlobStream();
-			if (guidStream == null)
+			if (guidStream is null)
 				guidStream = new GuidStream();
 		}
 
@@ -394,7 +394,7 @@ namespace dnlib.DotNet.MD {
 			// The EventMap and PropertyMap tables can only be trusted to be sorted if it's
 			// an NGen image and it's the normal #- stream. The IsSorted bit must not be used
 			// to check whether the tables are sorted. See coreclr: md/inc/metamodel.h / IsVerified()
-			if (eventMapSortedTable == null)
+			if (eventMapSortedTable is null)
 				Interlocked.CompareExchange(ref eventMapSortedTable, new SortedTable(tablesStream.EventMapTable, 0), null);
 			var list = eventMapSortedTable.FindAllRows(typeDefRid);
 			return list.Count == 0 ? 0 : list[0];
@@ -402,7 +402,7 @@ namespace dnlib.DotNet.MD {
 
 		public override uint GetPropertyMapRid(uint typeDefRid) {
 			// Always unsorted, see comment in GetEventMapRid() above
-			if (propertyMapSortedTable == null)
+			if (propertyMapSortedTable is null)
 				Interlocked.CompareExchange(ref propertyMapSortedTable, new SortedTable(tablesStream.PropertyMapTable, 0), null);
 			var list = propertyMapSortedTable.FindAllRows(typeDefRid);
 			return list.Count == 0 ? 0 : list[0];
@@ -416,7 +416,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		public override uint GetOwnerTypeOfField(uint fieldRid) {
-			if (fieldRidToTypeDefRid == null)
+			if (fieldRidToTypeDefRid is null)
 				InitializeInverseFieldOwnerRidList();
 			uint index = fieldRid - 1;
 			if (index >= fieldRidToTypeDefRid.LongLength)
@@ -425,7 +425,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseFieldOwnerRidList() {
-			if (fieldRidToTypeDefRid != null)
+			if (!(fieldRidToTypeDefRid is null))
 				return;
 			var newFieldRidToTypeDefRid = new uint[tablesStream.FieldTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -443,7 +443,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		public override uint GetOwnerTypeOfMethod(uint methodRid) {
-			if (methodRidToTypeDefRid == null)
+			if (methodRidToTypeDefRid is null)
 				InitializeInverseMethodOwnerRidList();
 			uint index = methodRid - 1;
 			if (index >= methodRidToTypeDefRid.LongLength)
@@ -452,7 +452,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseMethodOwnerRidList() {
-			if (methodRidToTypeDefRid != null)
+			if (!(methodRidToTypeDefRid is null))
 				return;
 			var newMethodRidToTypeDefRid = new uint[tablesStream.MethodTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -470,7 +470,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		public override uint GetOwnerTypeOfEvent(uint eventRid) {
-			if (eventRidToTypeDefRid == null)
+			if (eventRidToTypeDefRid is null)
 				InitializeInverseEventOwnerRidList();
 			uint index = eventRid - 1;
 			if (index >= eventRidToTypeDefRid.LongLength)
@@ -479,7 +479,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseEventOwnerRidList() {
-			if (eventRidToTypeDefRid != null)
+			if (!(eventRidToTypeDefRid is null))
 				return;
 			var newEventRidToTypeDefRid = new uint[tablesStream.EventTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -497,7 +497,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		public override uint GetOwnerTypeOfProperty(uint propertyRid) {
-			if (propertyRidToTypeDefRid == null)
+			if (propertyRidToTypeDefRid is null)
 				InitializeInversePropertyOwnerRidList();
 			uint index = propertyRid - 1;
 			if (index >= propertyRidToTypeDefRid.LongLength)
@@ -506,7 +506,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInversePropertyOwnerRidList() {
-			if (propertyRidToTypeDefRid != null)
+			if (!(propertyRidToTypeDefRid is null))
 				return;
 			var newPropertyRidToTypeDefRid = new uint[tablesStream.PropertyTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -530,7 +530,7 @@ namespace dnlib.DotNet.MD {
 			// if ever will this occur, but could happen if some obfuscator has
 			// added it.
 
-			if (gpRidToOwnerRid == null)
+			if (gpRidToOwnerRid is null)
 				InitializeInverseGenericParamOwnerRidList();
 			uint index = gpRid - 1;
 			if (index >= gpRidToOwnerRid.LongLength)
@@ -539,7 +539,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseGenericParamOwnerRidList() {
-			if (gpRidToOwnerRid != null)
+			if (!(gpRidToOwnerRid is null))
 				return;
 			var gpTable = tablesStream.GenericParamTable;
 			var newGpRidToOwnerRid = new uint[gpTable.Rows];
@@ -575,7 +575,7 @@ namespace dnlib.DotNet.MD {
 			// Don't use GenericParamConstraint.Owner column for the same reason
 			// as described in GetOwnerOfGenericParam().
 
-			if (gpcRidToOwnerRid == null)
+			if (gpcRidToOwnerRid is null)
 				InitializeInverseGenericParamConstraintOwnerRidList();
 			uint index = gpcRid - 1;
 			if (index >= gpcRidToOwnerRid.LongLength)
@@ -584,7 +584,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseGenericParamConstraintOwnerRidList() {
-			if (gpcRidToOwnerRid != null)
+			if (!(gpcRidToOwnerRid is null))
 				return;
 			var gpcTable = tablesStream.GenericParamConstraintTable;
 			var newGpcRidToOwnerRid = new uint[gpcTable.Rows];
@@ -613,7 +613,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		public override uint GetOwnerOfParam(uint paramRid) {
-			if (paramRidToOwnerRid == null)
+			if (paramRidToOwnerRid is null)
 				InitializeInverseParamOwnerRidList();
 			uint index = paramRid - 1;
 			if (index >= paramRidToOwnerRid.LongLength)
@@ -622,7 +622,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseParamOwnerRidList() {
-			if (paramRidToOwnerRid != null)
+			if (!(paramRidToOwnerRid is null))
 				return;
 
 			var newParamRidToOwnerRid = new uint[tablesStream.ParamTable.Rows];
@@ -640,7 +640,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		public override RidList GetNestedClassRidList(uint typeDefRid) {
-			if (typeDefRidToNestedClasses == null)
+			if (typeDefRidToNestedClasses is null)
 				InitializeNestedClassesDictionary();
 			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out var ridList))
 				return RidList.Create(ridList);
@@ -662,7 +662,7 @@ namespace dnlib.DotNet.MD {
 			var nestedRidsDict = new Dictionary<uint, bool>((int)table.Rows);
 			var nestedRids = new List<uint>((int)table.Rows);	// Need it so we add the rids in correct order
 			for (uint rid = 1; rid <= table.Rows; rid++) {
-				if (validTypeDefRids != null && !validTypeDefRids.ContainsKey(rid))
+				if (!(validTypeDefRids is null) && !validTypeDefRids.ContainsKey(rid))
 					continue;
 				if (!tablesStream.TryReadNestedClassRow(rid, out var row))
 					continue;	// Should never happen since rid is valid
@@ -687,7 +687,7 @@ namespace dnlib.DotNet.MD {
 
 			var newNonNestedTypes = new List<uint>((int)(destTable.Rows - nestedRidsDict.Count));
 			for (uint rid = 1; rid <= destTable.Rows; rid++) {
-				if (validTypeDefRids != null && !validTypeDefRids.ContainsKey(rid))
+				if (!(validTypeDefRids is null) && !validTypeDefRids.ContainsKey(rid))
 					continue;
 				if (nestedRidsDict.ContainsKey(rid))
 					continue;
@@ -703,7 +703,7 @@ namespace dnlib.DotNet.MD {
 		public override RidList GetNonNestedClassRidList() {
 			// Check typeDefRidToNestedClasses and not nonNestedTypes since
 			// InitializeNestedClassesDictionary() writes to typeDefRidToNestedClasses last.
-			if (typeDefRidToNestedClasses == null)
+			if (typeDefRidToNestedClasses is null)
 				InitializeNestedClassesDictionary();
 			return nonNestedTypes.Value;
 		}
@@ -740,7 +740,7 @@ namespace dnlib.DotNet.MD {
 			guidStream?.Dispose();
 			tablesStream?.Dispose();
 			var as2 = allStreams;
-			if (as2 != null) {
+			if (!(as2 is null)) {
 				foreach (var stream in as2)
 					stream?.Dispose();
 			}

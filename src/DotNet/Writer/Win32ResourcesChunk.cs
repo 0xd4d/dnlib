@@ -93,7 +93,7 @@ namespace dnlib.DotNet.Writer {
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="dir"/> is not part of the Win32 resources.</returns>
 		public bool GetFileOffsetAndRvaOf(ResourceDirectory dir, out FileOffset fileOffset, out RVA rva) {
-			if (dir == null || !dirDict.TryGetValue(dir, out uint offs)) {
+			if (dir is null || !dirDict.TryGetValue(dir, out uint offs)) {
 				fileOffset = 0;
 				rva = 0;
 				return false;
@@ -137,7 +137,7 @@ namespace dnlib.DotNet.Writer {
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="dataHeader"/> is not part of the Win32 resources.</returns>
 		public bool GetFileOffsetAndRvaOf(ResourceData dataHeader, out FileOffset fileOffset, out RVA rva) {
-			if (dataHeader == null || !dataHeaderDict.TryGetValue(dataHeader, out uint offs)) {
+			if (dataHeader is null || !dataHeaderDict.TryGetValue(dataHeader, out uint offs)) {
 				fileOffset = 0;
 				rva = 0;
 				return false;
@@ -182,7 +182,7 @@ namespace dnlib.DotNet.Writer {
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="name"/> is not part of the Win32 resources.</returns>
 		public bool GetFileOffsetAndRvaOf(string name, out FileOffset fileOffset, out RVA rva) {
-			if (name == null || !stringsDict.TryGetValue(name, out uint offs)) {
+			if (name is null || !stringsDict.TryGetValue(name, out uint offs)) {
 				fileOffset = 0;
 				rva = 0;
 				return false;
@@ -229,7 +229,7 @@ namespace dnlib.DotNet.Writer {
 
 		internal bool CheckValidOffset(FileOffset offset) {
 			GetMaxAlignment(offset, out var error);
-			return error == null;
+			return error is null;
 		}
 
 		static uint GetMaxAlignment(FileOffset offset, out string error) {
@@ -252,7 +252,7 @@ namespace dnlib.DotNet.Writer {
 			bool initAll = this.offset == 0;
 			this.offset = offset;
 			this.rva = rva;
-			if (win32Resources == null)
+			if (win32Resources is null)
 				return;
 
 			if (!initAll) {
@@ -277,7 +277,7 @@ namespace dnlib.DotNet.Writer {
 
 			uint rsrcOffset = 0;
 			var maxAlignment = GetMaxAlignment(offset, out var error);
-			if (error != null)
+			if (!(error is null))
 				throw new ModuleWriterException(error);
 
 			foreach (var dir in dirList) {

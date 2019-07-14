@@ -83,7 +83,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public ClassLayoutMD(ModuleDefMD readerModule, uint rid) {
 #if DEBUG
-			if (readerModule == null)
+			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.ClassLayoutTable.IsInvalidRID(rid))
 				throw new BadImageFormatException($"ClassLayout rid {rid} does not exist");

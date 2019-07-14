@@ -272,14 +272,14 @@ namespace dnlib.IO {
 		/// <summary>
 		/// <c>true</c> if memory mapped I/O is enabled
 		/// </summary>
-		internal bool IsMemoryMappedIO => dataAry == null;
+		internal bool IsMemoryMappedIO => dataAry is null;
 
 		/// <summary>
 		/// Call this to disable memory mapped I/O. This must only be called if no other code is
 		/// trying to access the memory since that could lead to an exception.
 		/// </summary>
 		internal void UnsafeDisableMemoryMappedIO() {
-			if (dataAry != null)
+			if (!(dataAry is null))
 				return;
 			var newAry = new byte[length];
 			Marshal.Copy(data, newAry, 0, newAry.Length);
@@ -293,7 +293,7 @@ namespace dnlib.IO {
 		}
 
 		void FreeMemoryMappedIoData() {
-			if (dataAry == null) {
+			if (dataAry is null) {
 				var origData = Interlocked.Exchange(ref data, IntPtr.Zero);
 				if (origData != IntPtr.Zero) {
 					length = 0;

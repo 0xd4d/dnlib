@@ -44,7 +44,7 @@ namespace dnlib.DotNet.Writer {
 		public T Add(T chunk, uint alignment) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			if (chunk == null)
+			if (chunk is null)
 				return null;
 			var elem = new Elem(chunk, alignment);
 			if (dict.TryGetValue(elem, out var other))

@@ -27,7 +27,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(fileName));
 			}
 			catch {
-				if (peImage != null)
+				if (!(peImage is null))
 					peImage.Dispose();
 				throw;
 			}
@@ -44,7 +44,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(data));
 			}
 			catch {
-				if (peImage != null)
+				if (!(peImage is null))
 					peImage.Dispose();
 				throw;
 			}
@@ -63,7 +63,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(addr, ImageLayout.Memory, true));
 			}
 			catch {
-				if (peImage != null)
+				if (!(peImage is null))
 					peImage.Dispose();
 				peImage = null;
 			}
@@ -72,7 +72,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(addr, ImageLayout.File, true));
 			}
 			catch {
-				if (peImage != null)
+				if (!(peImage is null))
 					peImage.Dispose();
 				throw;
 			}
@@ -90,7 +90,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(addr, imageLayout, true));
 			}
 			catch {
-				if (peImage != null)
+				if (!(peImage is null))
 					peImage.Dispose();
 				throw;
 			}
@@ -163,7 +163,7 @@ namespace dnlib.DotNet.MD {
 				return md;
 			}
 			catch {
-				if (md != null)
+				if (!(md is null))
 					md.Dispose();
 				throw;
 			}
@@ -212,7 +212,7 @@ namespace dnlib.DotNet.MD {
 		static MetadataType GetMetadataType(IList<StreamHeader> streamHeaders) {
 			MetadataType? mdType = null;
 			foreach (var sh in streamHeaders) {
-				if (mdType == null) {
+				if (mdType is null) {
 					if (sh.Name == "#~")
 						mdType = MetadataType.Compressed;
 					else if (sh.Name == "#-")
@@ -221,7 +221,7 @@ namespace dnlib.DotNet.MD {
 				if (sh.Name == "#Schema")
 					mdType = MetadataType.ENC;
 			}
-			if (mdType == null)
+			if (mdType is null)
 				return MetadataType.Unknown;
 			return mdType.Value;
 		}

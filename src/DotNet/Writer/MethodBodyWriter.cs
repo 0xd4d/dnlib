@@ -114,9 +114,9 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>The code and any exception handlers</returns>
 		public byte[] GetFullMethodBody() {
 			int padding = Utils.AlignUp(code.Length, 4) - code.Length;
-			var bytes = new byte[code.Length + (extraSections == null ? 0 : padding + extraSections.Length)];
+			var bytes = new byte[code.Length + (extraSections is null ? 0 : padding + extraSections.Length)];
 			Array.Copy(code, 0, bytes, 0, code.Length);
-			if (extraSections != null)
+			if (!(extraSections is null))
 				Array.Copy(extraSections, 0, bytes, code.Length + padding, extraSections.Length);
 			return bytes;
 		}
@@ -201,7 +201,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint GetOffset2(Instruction instr) {
-			if (instr == null)
+			if (instr is null)
 				return codeSize;
 			return GetOffset(instr);
 		}

@@ -17,17 +17,17 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(asyncStepInfos.Count);
 			asyncMethod.KickoffMethod = kickoffMethod;
 
-			if (asyncCatchHandlerILOffset != null) {
+			if (!(asyncCatchHandlerILOffset is null)) {
 				asyncMethod.CatchHandlerInstruction = GetInstruction(body, asyncCatchHandlerILOffset.Value);
-				Debug.Assert(asyncMethod.CatchHandlerInstruction != null);
+				Debug.Assert(!(asyncMethod.CatchHandlerInstruction is null));
 			}
 
 			int count = asyncStepInfos.Count;
 			for (int i = 0; i < count; i++) {
 				var rawInfo = asyncStepInfos[i];
 				var yieldInstruction = GetInstruction(body, rawInfo.YieldOffset);
-				Debug.Assert(yieldInstruction != null);
-				if (yieldInstruction == null)
+				Debug.Assert(!(yieldInstruction is null));
+				if (yieldInstruction is null)
 					continue;
 				MethodDef breakpointMethod;
 				Instruction breakpointInstruction;
@@ -41,13 +41,13 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					if (breakpointMethodToken.Table != Table.Method)
 						continue;
 					breakpointMethod = module.ResolveToken(breakpointMethodToken) as MethodDef;
-					Debug.Assert(breakpointMethod != null);
-					if (breakpointMethod == null)
+					Debug.Assert(!(breakpointMethod is null));
+					if (breakpointMethod is null)
 						continue;
 					breakpointInstruction = GetInstruction(breakpointMethod.Body, rawInfo.BreakpointOffset);
 				}
-				Debug.Assert(breakpointInstruction != null);
-				if (breakpointInstruction == null)
+				Debug.Assert(!(breakpointInstruction is null));
+				if (breakpointInstruction is null)
 					continue;
 
 				asyncMethod.StepInfos.Add(new PdbAsyncStepInfo(yieldInstruction, breakpointMethod, breakpointInstruction));
@@ -57,7 +57,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		static Instruction GetInstruction(CilBody body, uint offset) {
-			if (body == null)
+			if (body is null)
 				return null;
 			var instructions = body.Instructions;
 			int lo = 0, hi = instructions.Count - 1;

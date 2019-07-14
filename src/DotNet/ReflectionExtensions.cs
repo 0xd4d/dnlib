@@ -13,10 +13,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="self">The type</param>
 		public static bool IsSZArray(this Type self) {
-			if (self == null || !self.IsArray)
+			if (self is null || !self.IsArray)
 				return false;
 			var prop = self.GetType().GetProperty("IsSzArray", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			if (prop != null)
+			if (!(prop is null))
 				return (bool)prop.GetValue(self, Array2.Empty<object>());
 			return (self.Name ?? string.Empty).EndsWith("[]");
 		}
@@ -27,7 +27,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">The type</param>
 		/// <returns>The type's element type</returns>
 		public static ElementType GetElementType2(this Type a) {
-			if (a == null)
+			if (a is null)
 				return ElementType.End;	// Any invalid one is good enough
 			if (a.IsArray)
 				return IsSZArray(a) ? ElementType.SZArray : ElementType.Array;
@@ -36,7 +36,7 @@ namespace dnlib.DotNet {
 			if (a.IsPointer)
 				return ElementType.Ptr;
 			if (a.IsGenericParameter)
-				return a.DeclaringMethod == null ? ElementType.Var : ElementType.MVar;
+				return a.DeclaringMethod is null ? ElementType.Var : ElementType.MVar;
 			if (a.IsGenericType && !a.IsGenericTypeDefinition)
 				return ElementType.GenericInst;
 
@@ -68,7 +68,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="mb">The method</param>
 		public static bool IsGenericButNotGenericMethodDefinition(this MethodBase mb) =>
-			mb != null && !mb.IsGenericMethodDefinition && mb.IsGenericMethod;
+			!(mb is null) && !mb.IsGenericMethodDefinition && mb.IsGenericMethod;
 
 		/// <summary>
 		/// Checks whether a parameter/prop/event type should be treated as if it is really a
@@ -80,7 +80,7 @@ namespace dnlib.DotNet {
 		/// <param name="declaringType">Declaring type of method/event/property</param>
 		/// <param name="t">Parameter/property/event type</param>
 		internal static bool MustTreatTypeAsGenericInstType(this Type declaringType, Type t) =>
-			declaringType != null && declaringType.IsGenericTypeDefinition && t == declaringType;
+			!(declaringType is null) && declaringType.IsGenericTypeDefinition && t == declaringType;
 
 		/// <summary>
 		/// Checks whether <paramref name="type"/> is a type definition and not a type spec
@@ -88,6 +88,6 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">this</param>
 		public static bool IsTypeDef(this Type type) =>
-			type != null && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
+			!(type is null) && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
 	}
 }

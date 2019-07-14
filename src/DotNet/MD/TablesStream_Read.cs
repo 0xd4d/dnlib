@@ -142,7 +142,7 @@ namespace dnlib.DotNet.MD {
 				return false;
 			}
 			var mrr = methodRowReader;
-			if (mrr != null && mrr.TryReadRow(rid, out row))
+			if (!(mrr is null) && mrr.TryReadRow(rid, out row))
 				return true;
 			var reader = table.DataReader;
 			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
@@ -890,7 +890,7 @@ namespace dnlib.DotNet.MD {
 			}
 			var reader = table.DataReader;
 			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize;
-			if (table.Column4 == null) {
+			if (table.Column4 is null) {
 				row = new RawGenericParamRow(
 					reader.Unsafe_ReadUInt16(),
 					reader.Unsafe_ReadUInt16(),
@@ -1142,7 +1142,7 @@ namespace dnlib.DotNet.MD {
 				return false;
 			}
 			var cr = columnReader;
-			if (cr != null && cr.ReadColumn(table, rid, column, out value))
+			if (!(cr is null) && cr.ReadColumn(table, rid, column, out value))
 				return true;
 			var reader = table.DataReader;
 			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize + (uint)column.Offset;
@@ -1160,7 +1160,7 @@ namespace dnlib.DotNet.MD {
 				return false;
 			}
 			var cr = columnReader;
-			if (cr != null && cr.ReadColumn(table, rid, column, out value))
+			if (!(cr is null) && cr.ReadColumn(table, rid, column, out value))
 				return true;
 			var reader = table.DataReader;
 			reader.Position = (rid - 1) * (uint)table.TableInfo.RowSize + (uint)column.Offset;

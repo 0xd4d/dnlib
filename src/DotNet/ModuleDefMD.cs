@@ -209,7 +209,7 @@ namespace dnlib.DotNet {
 		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
 #if NETSTANDARD
 			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new[] { typeof(System.Reflection.Module) });
-			if (GetHINSTANCE == null)
+			if (GetHINSTANCE is null)
 				return IntPtr.Zero;
 
 			return (IntPtr)GetHINSTANCE.Invoke(null, new[] { mod });
@@ -330,7 +330,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		public static ModuleDefMD Load(Stream stream, ModuleCreationOptions options) {
-			if (stream == null)
+			if (stream is null)
 				throw new ArgumentNullException(nameof(stream));
 			if (stream.Length > int.MaxValue)
 				throw new ArgumentException("Stream is too big");
@@ -358,10 +358,10 @@ namespace dnlib.DotNet {
 		ModuleDefMD(MetadataBase metadata, ModuleCreationOptions options)
 			: base(null, 1) {
 #if DEBUG
-			if (metadata == null)
+			if (metadata is null)
 				throw new ArgumentNullException(nameof(metadata));
 #endif
-			if (options == null)
+			if (options is null)
 				options = ModuleCreationOptions.Default;
 			this.metadata = metadata;
 			context = options.Context;
@@ -382,17 +382,17 @@ namespace dnlib.DotNet {
 		}
 
 		void InitializePdb(ModuleCreationOptions options) {
-			if (options == null)
+			if (options is null)
 				return;
 			LoadPdb(CreateSymbolReader(options));
 		}
 
 		SymbolReader CreateSymbolReader(ModuleCreationOptions options) {
-			if (options.PdbFileOrData != null) {
+			if (!(options.PdbFileOrData is null)) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
 					var symReader = SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbFileName);
-					if (symReader != null)
+					if (!(symReader is null))
 						return symReader;
 				}
 
@@ -414,13 +414,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="symbolReader">PDB symbol reader</param>
 		public void LoadPdb(SymbolReader symbolReader) {
-			if (symbolReader == null)
+			if (symbolReader is null)
 				return;
-			if (pdbState != null)
+			if (!(pdbState is null))
 				throw new InvalidOperationException("PDB file has already been initialized");
 
 			var orig = Interlocked.CompareExchange(ref pdbState, new PdbState(symbolReader, this), null);
-			if (orig != null)
+			if (!(orig is null))
 				throw new InvalidOperationException("PDB file has already been initialized");
 		}
 
@@ -484,7 +484,7 @@ namespace dnlib.DotNet {
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
 			var ps = pdbState;
-			if (ps == null)
+			if (ps is null)
 				return;
 			ps.InitializeCustomDebugInfos(token, gpContext, result);
 		}
@@ -538,7 +538,7 @@ namespace dnlib.DotNet {
 
 			for (int i = 0; i < 64; i++) {
 				var tbl = TablesStream.Get((Table)i);
-				lastUsedRids[i] = tbl == null ? 0 : (int)tbl.Rows;
+				lastUsedRids[i] = tbl is null ? 0 : (int)tbl.Rows;
 			}
 		}
 
@@ -579,7 +579,7 @@ namespace dnlib.DotNet {
 					corLibAsmRef = asmRef;
 				}
 			}
-			if (corLibAsmRef != null)
+			if (!(corLibAsmRef is null))
 				return corLibAsmRef;
 
 			for (uint i = 1; i <= numAsmRefs; i++) {
@@ -589,7 +589,7 @@ namespace dnlib.DotNet {
 				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
 					corLibAsmRef = asmRef;
 			}
-			if (corLibAsmRef != null)
+			if (!(corLibAsmRef is null))
 				return corLibAsmRef;
 
 			for (uint i = 1; i <= numAsmRefs; i++) {
@@ -599,12 +599,12 @@ namespace dnlib.DotNet {
 				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
 					corLibAsmRef = asmRef;
 			}
-			if (corLibAsmRef != null)
+			if (!(corLibAsmRef is null))
 				return corLibAsmRef;
 
 			// If we've loaded mscorlib itself, it won't have any AssemblyRefs to itself.
 			var asm = Assembly;
-			if (asm != null && (asm.IsCorLib() || Find("System.Object", false) != null)) {
+			if (!(asm is null) && (asm.IsCorLib() || !(Find("System.Object", false) is null))) {
 				IsCoreLibraryModule = true;
 				return UpdateRowId(new AssemblyRefUser(asm));
 			}
@@ -618,7 +618,7 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		AssemblyRef CreateDefaultCorLibAssemblyRef() {
 			var asmRef = GetAlternativeCorLibReference();
-			if (asmRef != null)
+			if (!(asmRef is null))
 				return UpdateRowId(asmRef);
 
 			if (IsClr40)
@@ -648,7 +648,7 @@ namespace dnlib.DotNet {
 			if (asmRef.Name != name)
 				return false;
 			var pkot = asmRef.PublicKeyOrToken;
-			if (pkot == null)
+			if (pkot is null)
 				return false;
 			return token.Equals(pkot.Token);
 		}
@@ -663,7 +663,7 @@ namespace dnlib.DotNet {
 			base.Dispose(disposing);
 			if (disposing) {
 				var md = metadata;
-				if (md != null)
+				if (!(md is null))
 					md.Dispose();
 				metadata = null;
 			}
@@ -1365,12 +1365,12 @@ namespace dnlib.DotNet {
 		/// is invalid or if it's not a .NET module.</returns>
 		internal ModuleDefMD ReadModule(uint fileRid, AssemblyDef owner) {
 			var fileDef = ResolveFile(fileRid);
-			if (fileDef == null)
+			if (fileDef is null)
 				return null;
 			if (!fileDef.ContainsMetadata)
 				return null;
 			var fileName = GetValidFilename(GetBaseDirectoryOfImage(), UTF8String.ToSystemString(fileDef.Name));
-			if (fileName == null)
+			if (fileName is null)
 				return null;
 			ModuleDefMD module;
 			try {
@@ -1379,12 +1379,12 @@ namespace dnlib.DotNet {
 			catch {
 				module = null;
 			}
-			if (module != null) {
+			if (!(module is null)) {
 				// share context
 				module.context = context;
 
 				var asm = module.Assembly;
-				if (asm != null && asm != owner)
+				if (!(asm is null) && asm != owner)
 					asm.Modules.Remove(module);
 			}
 			return module;
@@ -1396,13 +1396,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
 		internal RidList GetModuleRidList() {
-			if (moduleRidList == null)
+			if (moduleRidList is null)
 				InitializeModuleList();
 			return moduleRidList.Value;
 		}
 
 		void InitializeModuleList() {
-			if (moduleRidList != null)
+			if (!(moduleRidList is null))
 				return;
 			uint rows = TablesStream.FileTable.Rows;
 			var newModuleRidList = new List<uint>((int)rows);
@@ -1410,12 +1410,12 @@ namespace dnlib.DotNet {
 			var baseDir = GetBaseDirectoryOfImage();
 			for (uint fileRid = 1; fileRid <= rows; fileRid++) {
 				var fileDef = ResolveFile(fileRid);
-				if (fileDef == null)
+				if (fileDef is null)
 					continue;	// Should never happen
 				if (!fileDef.ContainsMetadata)
 					continue;
 				var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
-				if (pathName != null)
+				if (!(pathName is null))
 					newModuleRidList.Add(fileRid);
 			}
 			Interlocked.CompareExchange(ref moduleRidList, new StrongBox<RidList>(RidList.Create(newModuleRidList)), null);
@@ -1428,7 +1428,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">File name</param>
 		/// <returns>Full path to the file or <c>null</c> if one of the inputs is invalid</returns>
 		static string GetValidFilename(string baseDir, string name) {
-			if (baseDir == null)
+			if (baseDir is null)
 				return null;
 
 			string pathName;
@@ -1479,7 +1479,7 @@ namespace dnlib.DotNet {
 				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
 
 			var mr = ResolveManifestResource(rid);
-			if (mr == null)
+			if (mr is null)
 				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
 
 			if (token.Rid == 0) {
@@ -1669,7 +1669,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
 		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, GenericParamContext gpContext) {
 			var mDec = methodDecrypter;
-			if (mDec != null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out var mb)) {
+			if (!(mDec is null) && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out var mb)) {
 				if (mb is CilBody cilBody)
 					return InitializeBodyFromPdb(method, cilBody);
 				return mb;
@@ -1693,17 +1693,17 @@ namespace dnlib.DotNet {
 		/// <returns>Returns originak <paramref name="body"/> value</returns>
 		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body) {
 			var ps = pdbState;
-			if (ps != null)
+			if (!(ps is null))
 				ps.InitializeMethodBody(this, method, body);
 			return body;
 		}
 
 		internal void InitializeCustomDebugInfos(MethodDefMD method, CilBody body, IList<PdbCustomDebugInfo> customDebugInfos) {
-			if (body == null)
+			if (body is null)
 				return;
 
 			var ps = pdbState;
-			if (ps != null)
+			if (!(ps is null))
 				ps.InitializeCustomDebugInfos(method, body, customDebugInfos);
 		}
 
@@ -1714,16 +1714,16 @@ namespace dnlib.DotNet {
 		/// <returns>A non-null string</returns>
 		public string ReadUserString(uint token) {
 			var sDec = stringDecrypter;
-			if (sDec != null) {
+			if (!(sDec is null)) {
 				var s = sDec.ReadUserString(token);
-				if (s != null)
+				if (!(s is null))
 					return s;
 			}
 			return USStream.ReadNoNull(token & 0x00FFFFFF);
 		}
 
 		internal MethodExportInfo GetExportInfo(uint methodRid) {
-			if (methodExportInfoProvider == null)
+			if (methodExportInfoProvider is null)
 				InitializeMethodExportInfoProvider();
 			return methodExportInfoProvider.GetMethodExportInfo(0x06000000 + methodRid);
 		}

@@ -169,7 +169,7 @@ namespace dnlib.DotNet.Writer {
 				sections.Add(mvidSection = new PESection(".mvid", 0x42000040));
 			sections.Add(textSection = new PESection(".text", 0x60000020));
 			sections.Add(sdataSection = new PESection(".sdata", 0xC0000040));
-			if (GetWin32Resources() != null)
+			if (!(GetWin32Resources() is null))
 				sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));
 			// Should be last so any data in a previous section can add relocations
 			sections.Add(relocSection = new PESection(".reloc", 0x42000040));
@@ -205,7 +205,7 @@ namespace dnlib.DotNet.Writer {
 			bool is64bit = machine.Is64Bit();
 			uint pointerAlignment = is64bit ? 8U : 4;
 
-			if (mvidSection != null)
+			if (!(mvidSection is null))
 				mvidSection.Add(new ByteArrayChunk((module.Mvid ?? Guid.Empty).ToByteArray()), MVID_ALIGNMENT);
 			textSection.Add(importAddressTable, pointerAlignment);
 			textSection.Add(imageCor20Header, DEFAULT_COR20HEADER_ALIGNMENT);
@@ -219,7 +219,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(importDirectory, pointerAlignment);
 			textSection.Add(startupStub, startupStub.Alignment);
 			managedExportsWriter.AddSdataChunks(sdataSection);
-			if (GetWin32Resources() != null)
+			if (!(GetWin32Resources() is null))
 				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 			relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}
@@ -264,7 +264,7 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.EndWriteChunks);
 
 			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);
-			if (Options.StrongNameKey != null)
+			if (!(Options.StrongNameKey is null))
 				StrongNameSign((long)strongNameSignature.FileOffset);
 			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);
 

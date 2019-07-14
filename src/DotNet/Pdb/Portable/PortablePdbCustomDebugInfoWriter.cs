@@ -110,7 +110,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				}
 				else {
 					var startInstr = scope.Start;
-					if (startInstr == null) {
+					if (startInstr is null) {
 						helper.Error("Instruction is null");
 						return;
 					}
@@ -128,7 +128,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteEditAndContinueLocalSlotMap(PdbEditAndContinueLocalSlotMapCustomDebugInfo cdi) {
 			var d = cdi.Data;
-			if (d == null) {
+			if (d is null) {
 				helper.Error("Data blob is null");
 				return;
 			}
@@ -137,7 +137,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteEditAndContinueLambdaMap(PdbEditAndContinueLambdaMapCustomDebugInfo cdi) {
 			var d = cdi.Data;
-			if (d == null) {
+			if (d is null) {
 				helper.Error("Data blob is null");
 				return;
 			}
@@ -146,7 +146,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteUnknown(PdbUnknownCustomDebugInfo cdi) {
 			var d = cdi.Data;
-			if (d == null) {
+			if (d is null) {
 				helper.Error("Data blob is null");
 				return;
 			}
@@ -158,7 +158,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			int count = cdiNames.Count;
 			for (int i = 0; i < count; i++) {
 				var name = cdiNames[i];
-				if (name == null) {
+				if (name is null) {
 					helper.Error("Tuple name is null");
 					return;
 				}
@@ -168,7 +168,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteDefaultNamespace(PdbDefaultNamespaceCustomDebugInfo cdi) {
 			var ns = cdi.Namespace;
-			if (ns == null) {
+			if (ns is null) {
 				helper.Error("Default namespace is null");
 				return;
 			}
@@ -194,7 +194,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteEmbeddedSource(PdbEmbeddedSourceCustomDebugInfo cdi) {
 			var d = cdi.SourceCodeBlob;
-			if (d == null) {
+			if (d is null) {
 				helper.Error("Source code blob is null");
 				return;
 			}
@@ -203,7 +203,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteSourceLink(PdbSourceLinkCustomDebugInfo cdi) {
 			var d = cdi.FileBlob;
-			if (d == null) {
+			if (d is null) {
 				helper.Error("Source link blob is null");
 				return;
 			}
@@ -217,7 +217,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 
 			uint catchHandlerOffset;
-			if (cdi.CatchHandlerInstruction == null)
+			if (cdi.CatchHandlerInstruction is null)
 				catchHandlerOffset = 0;
 			else
 				catchHandlerOffset = methodContext.GetOffset(cdi.CatchHandlerInstruction) + 1;
@@ -227,15 +227,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 			int count = cdiStepInfos.Count;
 			for (int i = 0; i < count; i++) {
 				var info = cdiStepInfos[i];
-				if (info.YieldInstruction == null) {
+				if (info.YieldInstruction is null) {
 					helper.Error("YieldInstruction is null");
 					return;
 				}
-				if (info.BreakpointMethod == null) {
+				if (info.BreakpointMethod is null) {
 					helper.Error("BreakpointMethod is null");
 					return;
 				}
-				if (info.BreakpointInstruction == null) {
+				if (info.BreakpointInstruction is null) {
 					helper.Error("BreakpointInstruction is null");
 					return;
 				}
@@ -254,7 +254,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		uint GetOffsetSlow(MethodDef method, Instruction instr) {
 			var body = method.Body;
-			if (body == null) {
+			if (body is null) {
 				helper.Error("Method has no body");
 				return uint.MaxValue;
 			}

@@ -21,7 +21,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void Write(DataWriter writer, TypeSig type, object value) {
 			for (; ; type = type.Next) {
-				if (type == null)
+				if (type is null)
 					return;
 
 				var et = type.ElementType;
@@ -59,7 +59,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return;
 
 				case ElementType.String:
-					if (value == null)
+					if (value is null)
 						writer.WriteByte((byte)0xFF);
 					else if (value is string)
 						writer.WriteBytes(Encoding.Unicode.GetBytes((string)value));
@@ -78,7 +78,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				case ElementType.ValueType:
 					var tdr = ((ValueTypeSig)type).TypeDefOrRef;
 					var td = tdr.ResolveTypeDef();
-					if (td == null)
+					if (td is null)
 						helper.Error($"Couldn't resolve type 0x{tdr?.MDToken.Raw ?? 0:X8}");
 					else if (td.IsEnum) {
 						var underlyingType = td.GetEnumUnderlyingType().RemovePinnedAndModifiers();
@@ -134,7 +134,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 						if (!valueWritten) {
 							if (value is byte[])
 								writer.WriteBytes((byte[])value);
-							else if (value != null) {
+							else if (!(value is null)) {
 								helper.Error("Unsupported constant: " + value.GetType().FullName);
 								return;
 							}
@@ -146,7 +146,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					WriteTypeDefOrRef(writer, ((ClassSig)type).TypeDefOrRef);
 					if (value is byte[])
 						writer.WriteBytes((byte[])value);
-					else if (value != null)
+					else if (!(value is null))
 						helper.Error("Expected a null constant");
 					return;
 

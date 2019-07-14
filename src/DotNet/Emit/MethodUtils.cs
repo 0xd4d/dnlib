@@ -219,7 +219,7 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		static T ReadList<T>(IList<T> list, int index) {
-			if (list == null)
+			if (list is null)
 				return default;
 			if ((uint)index < (uint)list.Count)
 				return list[index];
@@ -241,7 +241,7 @@ namespace dnlib.DotNet.Emit {
 				case Code.Ldarg:
 				case Code.Ldarg_S:
 					arg = instr.Operand as Parameter;
-					if (arg == null)
+					if (arg is null)
 						break;
 					if (arg.Index == 0) {
 						instr.OpCode = OpCodes.Ldarg_0;
@@ -265,7 +265,7 @@ namespace dnlib.DotNet.Emit {
 
 				case Code.Ldarga:
 					arg = instr.Operand as Parameter;
-					if (arg == null)
+					if (arg is null)
 						break;
 					if (byte.MinValue <= arg.Index && arg.Index <= byte.MaxValue)
 						instr.OpCode = OpCodes.Ldarga_S;
@@ -343,7 +343,7 @@ namespace dnlib.DotNet.Emit {
 				case Code.Ldloc:
 				case Code.Ldloc_S:
 					local = instr.Operand as Local;
-					if (local == null)
+					if (local is null)
 						break;
 					if (local.Index == 0) {
 						instr.OpCode = OpCodes.Ldloc_0;
@@ -367,7 +367,7 @@ namespace dnlib.DotNet.Emit {
 
 				case Code.Ldloca:
 					local = instr.Operand as Local;
-					if (local == null)
+					if (local is null)
 						break;
 					if (byte.MinValue <= local.Index && local.Index <= byte.MaxValue)
 						instr.OpCode = OpCodes.Ldloca_S;
@@ -375,7 +375,7 @@ namespace dnlib.DotNet.Emit {
 
 				case Code.Starg:
 					arg = instr.Operand as Parameter;
-					if (arg == null)
+					if (arg is null)
 						break;
 					if (byte.MinValue <= arg.Index && arg.Index <= byte.MaxValue)
 						instr.OpCode = OpCodes.Starg_S;
@@ -384,7 +384,7 @@ namespace dnlib.DotNet.Emit {
 				case Code.Stloc:
 				case Code.Stloc_S:
 					local = instr.Operand as Local;
-					if (local == null)
+					if (local is null)
 						break;
 					if (local.Index == 0) {
 						instr.OpCode = OpCodes.Stloc_0;
@@ -470,7 +470,7 @@ namespace dnlib.DotNet.Emit {
 					default: continue;
 					}
 					var targetInstr = instr.Operand as Instruction;
-					if (targetInstr == null)
+					if (targetInstr is null)
 						continue;
 
 					int afterShortInstr;

@@ -30,7 +30,7 @@ namespace dnlib.DotNet {
 			if ((object)this == obj)
 				return true;
 			var other = obj as PublicKeyToken;
-			if (other == null)
+			if (other is null)
 				return false;
 			return Utils.Equals(Data, other.Data);
 		}

@@ -18,7 +18,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// true if <see cref="Type"/> and <see cref="Method"/> are both <c>null</c>
 		/// </summary>
-		public bool IsEmpty => Type == null && Method == null;
+		public bool IsEmpty => Type is null && Method is null;
 
 		/// <summary>
 		/// Creates a new <see cref="GenericParamContext"/> instance and initializes the
@@ -28,7 +28,7 @@ namespace dnlib.DotNet {
 		/// <param name="method">Method</param>
 		/// <returns>A new <see cref="GenericParamContext"/> instance</returns>
 		public static GenericParamContext Create(MethodDef method) {
-			if (method == null)
+			if (method is null)
 				return new GenericParamContext();
 			return new GenericParamContext(method.DeclaringType, method);
 		}

@@ -359,10 +359,10 @@ namespace dnlib.DotNet.Writer {
 			PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
 			Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 
-			if (module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey))
+			if (!(module.Assembly is null) && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey))
 				Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
-			if (module.Cor20HeaderRuntimeVersion != null) {
+			if (!(module.Cor20HeaderRuntimeVersion is null)) {
 				Cor20HeaderOptions.MajorRuntimeVersion = (ushort)(module.Cor20HeaderRuntimeVersion.Value >> 16);
 				Cor20HeaderOptions.MinorRuntimeVersion = (ushort)module.Cor20HeaderRuntimeVersion.Value;
 			}
@@ -375,7 +375,7 @@ namespace dnlib.DotNet.Writer {
 				Cor20HeaderOptions.MinorRuntimeVersion = 5;
 			}
 
-			if (module.TablesHeaderVersion != null) {
+			if (!(module.TablesHeaderVersion is null)) {
 				MetadataOptions.TablesHeapOptions.MajorVersion = (byte)(module.TablesHeaderVersion.Value >> 8);
 				MetadataOptions.TablesHeapOptions.MinorVersion = (byte)module.TablesHeaderVersion.Value;
 			}
@@ -394,7 +394,7 @@ namespace dnlib.DotNet.Writer {
 			MetadataOptions.Flags |= MetadataFlags.AlwaysCreateGuidHeap;
 
 			var modDefMD = module as ModuleDefMD;
-			if (modDefMD != null) {
+			if (!(modDefMD is null)) {
 				var ntHeaders = modDefMD.Metadata.PEImage.ImageNTHeaders;
 				PEHeadersOptions.TimeDateStamp = ntHeaders.FileHeader.TimeDateStamp;
 				PEHeadersOptions.MajorLinkerVersion = ntHeaders.OptionalHeader.MajorLinkerVersion;
@@ -421,7 +421,7 @@ namespace dnlib.DotNet.Writer {
 				PEHeadersOptions.Characteristics &= ~Characteristics.Bit32Machine;
 				PEHeadersOptions.Characteristics |= Characteristics.LargeAddressAware;
 			}
-			else if (modDefMD == null)
+			else if (modDefMD is null)
 				PEHeadersOptions.Characteristics |= Characteristics.Bit32Machine;
 		}
 
@@ -487,7 +487,7 @@ namespace dnlib.DotNet.Writer {
 		public void InitializeStrongNameSigning(ModuleDef module, StrongNameKey signatureKey) {
 			StrongNameKey = signatureKey;
 			StrongNamePublicKey = null;
-			if (module.Assembly != null)
+			if (!(module.Assembly is null))
 				module.Assembly.CustomAttributes.RemoveAll("System.Reflection.AssemblySignatureKeyAttribute");
 		}
 
@@ -517,7 +517,7 @@ namespace dnlib.DotNet.Writer {
 		public void InitializeEnhancedStrongNameSigning(ModuleDef module, StrongNameKey signatureKey, StrongNamePublicKey signaturePubKey, StrongNameKey identityKey, StrongNamePublicKey identityPubKey) {
 			StrongNameKey = signatureKey.WithHashAlgorithm(signaturePubKey.HashAlgorithm);
 			StrongNamePublicKey = identityPubKey;
-			if (module.Assembly != null)
+			if (!(module.Assembly is null))
 				module.Assembly.UpdateOrCreateAssemblySignatureKeyAttribute(identityPubKey, identityKey, signaturePubKey);
 		}
 	}
@@ -676,13 +676,13 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		public void Write(Stream dest) {
-			pdbState = TheOptions.WritePdb && Module.PdbState != null ? Module.PdbState : null;
+			pdbState = TheOptions.WritePdb && !(Module.PdbState is null) ? Module.PdbState : null;
 			if (TheOptions.DelaySign) {
-				Debug.Assert(TheOptions.StrongNamePublicKey != null, "Options.StrongNamePublicKey must be initialized when delay signing the assembly");
-				Debug.Assert(TheOptions.StrongNameKey == null, "Options.StrongNameKey must be null when delay signing the assembly");
+				Debug.Assert(!(TheOptions.StrongNamePublicKey is null), "Options.StrongNamePublicKey must be initialized when delay signing the assembly");
+				Debug.Assert(TheOptions.StrongNameKey is null, "Options.StrongNameKey must be null when delay signing the assembly");
 				TheOptions.Cor20HeaderOptions.Flags &= ~ComImageFlags.StrongNameSigned;
 			}
-			else if (TheOptions.StrongNameKey != null || TheOptions.StrongNamePublicKey != null)
+			else if (!(TheOptions.StrongNameKey is null) || !(TheOptions.StrongNamePublicKey is null))
 				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
 			destStream = dest;
@@ -710,13 +710,13 @@ namespace dnlib.DotNet.Writer {
 		/// set or wants to sign the assembly.
 		/// </summary>
 		protected void CreateStrongNameSignature() {
-			if (TheOptions.DelaySign && TheOptions.StrongNamePublicKey != null) {
+			if (TheOptions.DelaySign && !(TheOptions.StrongNamePublicKey is null)) {
 				int len = TheOptions.StrongNamePublicKey.CreatePublicKey().Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
 			}
-			else if (TheOptions.StrongNameKey != null)
+			else if (!(TheOptions.StrongNameKey is null))
 				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
-			else if (Module.Assembly != null && !PublicKeyBase.IsNullOrEmpty2(Module.Assembly.PublicKey)) {
+			else if (!(Module.Assembly is null) && !PublicKeyBase.IsNullOrEmpty2(Module.Assembly.PublicKey)) {
 				int len = Module.Assembly.PublicKey.Data.Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
 			}
@@ -735,7 +735,7 @@ namespace dnlib.DotNet.Writer {
 			netResources = new NetResources(DEFAULT_NETRESOURCES_ALIGNMENT);
 
 			DebugMetadataKind debugKind;
-			if (pdbState != null && (pdbState.PdbFileKind == PdbFileKind.PortablePDB || pdbState.PdbFileKind == PdbFileKind.EmbeddedPortablePDB))
+			if (!(pdbState is null) && (pdbState.PdbFileKind == PdbFileKind.PortablePDB || pdbState.PdbFileKind == PdbFileKind.EmbeddedPortablePDB))
 				debugKind = DebugMetadataKind.Standalone;
 			else
 				debugKind = DebugMetadataKind.None;
@@ -747,13 +747,13 @@ namespace dnlib.DotNet.Writer {
 			// StrongNamePublicKey is used if the user wants to override the assembly's
 			// public key or when enhanced strong naming the assembly.
 			var pk = TheOptions.StrongNamePublicKey;
-			if (pk != null)
+			if (!(pk is null))
 				metadata.AssemblyPublicKey = pk.CreatePublicKey();
-			else if (TheOptions.StrongNameKey != null)
+			else if (!(TheOptions.StrongNameKey is null))
 				metadata.AssemblyPublicKey = TheOptions.StrongNameKey.PublicKey;
 
 			var w32Resources = GetWin32Resources();
-			if (w32Resources != null)
+			if (!(w32Resources is null))
 				win32Resources = new Win32ResourcesChunk(w32Resources);
 		}
 
@@ -816,7 +816,7 @@ namespace dnlib.DotNet.Writer {
 			snSigner.WriteSignature(TheOptions.StrongNameKey, snSigOffset);
 		}
 
-		bool CanWritePdb() => pdbState != null;
+		bool CanWritePdb() => !(pdbState is null);
 
 		/// <summary>
 		/// Creates the debug directory if a PDB file should be written
@@ -833,10 +833,10 @@ namespace dnlib.DotNet.Writer {
 		protected void WritePdbFile() {
 			if (!CanWritePdb())
 				return;
-			if (debugDirectory == null)
+			if (debugDirectory is null)
 				throw new InvalidOperationException("debugDirectory is null but WritePdb is true");
 
-			if (pdbState == null) {
+			if (pdbState is null) {
 				Error("TheOptions.WritePdb is true but module has no PdbState");
 				return;
 			}
@@ -885,7 +885,7 @@ namespace dnlib.DotNet.Writer {
 			bool addPdbChecksumDebugDirectoryEntry = (TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0;
 			addPdbChecksumDebugDirectoryEntry = false;//TODO: If this is true, get the checksum from the PDB writer
 			var symWriter = GetWindowsPdbSymbolWriter(TheOptions.PdbOptions, out var pdbFilename);
-			if (symWriter == null) {
+			if (symWriter is null) {
 				Error("Could not create a PDB symbol writer. A Windows OS might be required.");
 				return;
 			}
@@ -905,7 +905,7 @@ namespace dnlib.DotNet.Writer {
 				}
 				else {
 					Debug.Fail("Failed to get the PDB content ID");
-					if (codeViewData == null)
+					if (codeViewData is null)
 						throw new InvalidOperationException();
 					var entry = debugDirectory.Add(codeViewData);
 					entry.DebugDirectory = idd;
@@ -933,7 +933,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		SymbolWriter GetWindowsPdbSymbolWriter(PdbWriterOptions options, out string pdbFilename) {
-			if (TheOptions.PdbStream != null) {
+			if (!(TheOptions.PdbStream is null)) {
 				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, TheOptions.PdbStream,
 							pdbFilename = TheOptions.PdbFileName ??
 							GetStreamName(TheOptions.PdbStream) ??
@@ -946,7 +946,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			createdPdbFileName = pdbFilename = GetDefaultPdbFileName();
-			if (createdPdbFileName == null)
+			if (createdPdbFileName is null)
 				return null;
 			return Pdb.Dss.SymbolReaderWriterFactory.Create(options, createdPdbFileName);
 		}
@@ -983,7 +983,7 @@ namespace dnlib.DotNet.Writer {
 				}
 				else
 					pdbStream = GetStandalonePortablePdbStream(out ownsStream);
-				if (pdbStream == null)
+				if (pdbStream is null)
 					throw new ModuleWriterException("Couldn't create a PDB stream");
 
 				var pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
@@ -991,7 +991,7 @@ namespace dnlib.DotNet.Writer {
 					pdbFilename = Path.GetFileName(pdbFilename);
 
 				uint entryPointToken;
-				if (pdbState.UserEntryPoint == null)
+				if (pdbState.UserEntryPoint is null)
 					entryPointToken = 0;
 				else
 					entryPointToken = new MDToken(Table.Method, metadata.GetRid(pdbState.UserEntryPoint)).Raw;
@@ -1005,7 +1005,7 @@ namespace dnlib.DotNet.Writer {
 				byte[] checksumBytes;
 				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 ||
 					(TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0 ||
-					TheOptions.GetPdbContentId == null) {
+					TheOptions.GetPdbContentId is null) {
 					pdbStream.Position = 0;
 					checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbStream.Length);
 					if (checksumBytes.Length < 20)
@@ -1036,14 +1036,14 @@ namespace dnlib.DotNet.Writer {
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,
 					timeDateStamp: codeViewTimestamp);
 
-				if (checksumBytes != null)
+				if (!(checksumBytes is null))
 					AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);
 
 				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0)
 					AddReproduciblePdbDebugDirectoryEntry();
 
 				if (isEmbeddedPortablePdb) {
-					Debug.Assert(embeddedMemoryStream != null);
+					Debug.Assert(!(embeddedMemoryStream is null));
 					debugDirectory.Add(CreateEmbeddedPortablePdbBlob(embeddedMemoryStream),
 						type: ImageDebugType.EmbeddedPortablePdb,
 						majorVersion: PortablePdbConstants.FormatVersion,
@@ -1052,7 +1052,7 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			finally {
-				if (ownsStream && pdbStream != null)
+				if (ownsStream && !(pdbStream is null))
 					pdbStream.Dispose();
 			}
 		}
@@ -1091,7 +1091,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		Stream GetStandalonePortablePdbStream(out bool ownsStream) {
-			if (TheOptions.PdbStream != null) {
+			if (!(TheOptions.PdbStream is null)) {
 				ownsStream = false;
 				return TheOptions.PdbStream;
 			}
@@ -1100,7 +1100,7 @@ namespace dnlib.DotNet.Writer {
 				createdPdbFileName = TheOptions.PdbFileName;
 			else
 				createdPdbFileName = GetDefaultPdbFileName();
-			if (createdPdbFileName == null) {
+			if (createdPdbFileName is null) {
 				ownsStream = false;
 				return null;
 			}

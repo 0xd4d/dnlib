@@ -131,7 +131,7 @@ namespace dnlib.DotNet {
 			var tr = new TypeRefUser(module, "System", name, corLibAssemblyRef);
 			if (isCorLib) {
 				var td = module.Find(tr);
-				if (td != null)
+				if (!(td is null))
 					return td;
 			}
 			return module.UpdateRowId(tr);
