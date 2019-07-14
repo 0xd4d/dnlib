@@ -606,7 +606,7 @@ namespace dnlib.DotNet {
 				var asm = module.Context.AssemblyResolver.Resolve(origDeclType.Module.Assembly.GetName(), module);
 				if (asm == null || asm.FullName != origDeclType.Assembly.FullName)
 					throw new Exception("Couldn't resolve the correct assembly");
-				var mod = asm.FindModule(origDeclType.Module.Name) as ModuleDefMD;
+				var mod = asm.FindModule(origDeclType.Module.ScopeName) as ModuleDefMD;
 				if (mod == null)
 					throw new Exception("Couldn't resolve the correct module");
 				var fieldDef = mod.ResolveField((uint)(origField.MetadataToken & 0x00FFFFFF));
