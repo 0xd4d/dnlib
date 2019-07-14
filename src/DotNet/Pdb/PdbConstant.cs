@@ -71,7 +71,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <returns></returns>
 		public override string ToString() {
 			var type = Type;
-			return (type == null ? "" : type.ToString()) + " " + Name + " = " + (Value == null ? "null" : Value.ToString() + " (" + Value.GetType().FullName + ")");
+			return (type is null ? "" : type.ToString()) + " " + Name + " = " + (Value is null ? "null" : Value.ToString() + " (" + Value.GetType().FullName + ")");
 		}
 	}
 }

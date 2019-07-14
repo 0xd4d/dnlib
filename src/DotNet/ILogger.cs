@@ -410,24 +410,24 @@ namespace dnlib.DotNet {
 		/// errors. It must have a public constructor that takes a <see cref="string"/> as the only
 		/// argument.</param>
 		public DummyLogger(Type exceptionToThrow) {
-			if (exceptionToThrow != null) {
+			if (!(exceptionToThrow is null)) {
 				if (!exceptionToThrow.IsSubclassOf(typeof(Exception)))
 					throw new ArgumentException($"Not a System.Exception sub class: {exceptionToThrow.GetType()}");
 				ctor = exceptionToThrow.GetConstructor(new Type[] { typeof(string) });
-				if (ctor == null)
+				if (ctor is null)
 					throw new ArgumentException($"Exception type {exceptionToThrow.GetType()} doesn't have a public constructor that takes a string as the only argument");
 			}
 		}
 
 		/// <inheritdoc/>
 		public void Log(object sender, LoggerEvent loggerEvent, string format, params object[] args) {
-			if (loggerEvent == LoggerEvent.Error && ctor != null)
+			if (loggerEvent == LoggerEvent.Error && !(ctor is null))
 				throw (Exception)ctor.Invoke(new object[] { string.Format(format, args) });
 		}
 
 		/// <inheritdoc/>
 		public bool IgnoresEvent(LoggerEvent loggerEvent) {
-			if (ctor == null)
+			if (ctor is null)
 				return true;
 			return loggerEvent != LoggerEvent.Error;
 		}

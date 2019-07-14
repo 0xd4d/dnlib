@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.IO;
 using System.Text;
 using dnlib.DotNet.MD;
@@ -22,12 +23,18 @@ namespace dnlib.DotNet.Pdb {
 			else
 				pdbFilename = pdbWindowsFilename;
 
-			var fileToCheck = assemblyFileName == string.Empty ? pdbFilename : Path.Combine(Path.GetDirectoryName(assemblyFileName), pdbFilename);
-			if (!File.Exists(fileToCheck)) {
-				var ext = Path.GetExtension(pdbFilename);
-				if (string.IsNullOrEmpty(ext))
-					ext = "pdb";
-				fileToCheck = Path.ChangeExtension(assemblyFileName, ext);
+			string fileToCheck;
+			try {
+				fileToCheck = assemblyFileName == string.Empty ? pdbFilename : Path.Combine(Path.GetDirectoryName(assemblyFileName), pdbFilename);
+				if (!File.Exists(fileToCheck)) {
+					var ext = Path.GetExtension(pdbFilename);
+					if (string.IsNullOrEmpty(ext))
+						ext = "pdb";
+					fileToCheck = Path.ChangeExtension(assemblyFileName, ext);
+				}
+			}
+			catch (ArgumentException) {
+				return null;// Invalid filename
 			}
 			return Create(options, metadata, fileToCheck);
 		}
@@ -59,12 +66,12 @@ namespace dnlib.DotNet.Pdb {
 				if (!pdbContext.HasDebugInfo)
 					return null;
 
-				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && pdbStream != null && IsWindowsPdb(pdbStream.CreateReader()))
+				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && !(pdbStream is null) && IsWindowsPdb(pdbStream.CreateReader()))
 					symReader = Dss.SymbolReaderWriterFactory.Create(pdbContext, metadata, pdbStream);
 				else
 					symReader = CreateManaged(pdbContext, metadata, pdbStream);
 
-				if (symReader != null) {
+				if (!(symReader is null)) {
 					error = false;
 					return symReader;
 				}
@@ -98,7 +105,7 @@ namespace dnlib.DotNet.Pdb {
 			try {
 				// Embedded PDBs have priority
 				var embeddedReader = TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
-				if (embeddedReader != null) {
+				if (!(embeddedReader is null)) {
 					pdbStream?.Dispose();
 					return embeddedReader;
 				}
@@ -112,7 +119,7 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		static SymbolReader CreateManagedCore(PdbReaderContext pdbContext, DataReaderFactory pdbStream) {
-			if (pdbStream == null)
+			if (pdbStream is null)
 				return null;
 			try {
 				var reader = pdbStream.CreateReader();

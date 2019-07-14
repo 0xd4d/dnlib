@@ -44,7 +44,7 @@ namespace dnlib.DotNet {
 		int IGenericParameterProvider.NumberOfGenericParameters {
 			get {
 				var ts = TypeSig;
-				return ts == null ? 0 : ((IGenericParameterProvider)ts).NumberOfGenericParameters;
+				return ts is null ? 0 : ((IGenericParameterProvider)ts).NumberOfGenericParameters;
 			}
 		}
 
@@ -52,11 +52,11 @@ namespace dnlib.DotNet {
 		UTF8String IFullName.Name {
 			get {
 				var mr = ScopeType;
-				return mr == null ? UTF8String.Empty : mr.Name;
+				return mr is null ? UTF8String.Empty : mr.Name;
 			}
 			set {
 				var mr = ScopeType;
-				if (mr != null)
+				if (!(mr is null))
 					mr.Name = value;
 			}
 		}
@@ -97,7 +97,7 @@ namespace dnlib.DotNet {
 		public bool IsValueType {
 			get {
 				var sig = TypeSig;
-				return sig != null && sig.IsValueType;
+				return !(sig is null) && sig.IsValueType;
 			}
 		}
 
@@ -105,7 +105,7 @@ namespace dnlib.DotNet {
 		public bool IsPrimitive {
 			get {
 				var sig = TypeSig;
-				return sig != null && sig.IsPrimitive;
+				return !(sig is null) && sig.IsPrimitive;
 			}
 		}
 
@@ -213,7 +213,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public CustomAttributeCollection CustomAttributes {
 			get {
-				if (customAttributes == null)
+				if (customAttributes is null)
 					InitializeCustomAttributes();
 				return customAttributes;
 			}
@@ -239,7 +239,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
-				if (customDebugInfos == null)
+				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
 				return customDebugInfos;
 			}
@@ -291,7 +291,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override TypeSig GetTypeSigAndExtraData_NoLock(out byte[] extraData) {
 			var sig = readerModule.ReadTypeSignature(signatureOffset, gpContext, out extraData);
-			if (sig != null)
+			if (!(sig is null))
 				sig.Rid = origRid;
 			return sig;
 		}
@@ -320,7 +320,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public TypeSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
-			if (readerModule == null)
+			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.TypeSpecTable.IsInvalidRID(rid))
 				throw new BadImageFormatException($"TypeSpec rid {rid} does not exist");

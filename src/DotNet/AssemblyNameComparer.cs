@@ -101,9 +101,9 @@ namespace dnlib.DotNet {
 		public int CompareTo(IAssembly a, IAssembly b) {
 			if (a == b)
 				return 0;
-			if (a == null)
+			if (a is null)
 				return -1;
-			if (b == null)
+			if (b is null)
 				return 1;
 
 			int v;
@@ -141,9 +141,9 @@ namespace dnlib.DotNet {
 		public int CompareClosest(IAssembly requested, IAssembly a, IAssembly b) {
 			if (a == b)
 				return 0;
-			if (a == null)
+			if (a is null)
 				return !CompareName ? 1 : UTF8String.CaseInsensitiveEquals(requested.Name, b.Name) ? 1 : 0;
-			if (b == null)
+			if (b is null)
 				return !CompareName ? 0 : UTF8String.CaseInsensitiveEquals(requested.Name, a.Name) ? 0 : 1;
 
 			// Compare the most important parts first:
@@ -237,7 +237,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Assembly name</param>
 		/// <returns>The hash code</returns>
 		public int GetHashCode(IAssembly a) {
-			if (a == null)
+			if (a is null)
 				return 0;
 
 			int hash = 0;

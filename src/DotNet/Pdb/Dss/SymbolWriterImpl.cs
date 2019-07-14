@@ -19,7 +19,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		bool closeCalled;
 
 		public override bool IsDeterministic => isDeterministic;
-		public override bool SupportsAsyncMethods => asyncMethodWriter != null;
+		public override bool SupportsAsyncMethods => !(asyncMethodWriter is null);
 
 		public SymbolWriterImpl(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
@@ -41,7 +41,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override void CloseScope(int endOffset) => writer.CloseScope((uint)endOffset);
 
 		public override void DefineAsyncStepInfo(uint[] yieldOffsets, uint[] breakpointOffset, uint[] breakpointMethod) {
-			if (asyncMethodWriter == null)
+			if (asyncMethodWriter is null)
 				throw new InvalidOperationException();
 			if (yieldOffsets.Length != breakpointOffset.Length || yieldOffsets.Length != breakpointMethod.Length)
 				throw new ArgumentException();
@@ -49,7 +49,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		public override void DefineCatchHandlerILOffset(uint catchHandlerOffset) {
-			if (asyncMethodWriter == null)
+			if (asyncMethodWriter is null)
 				throw new InvalidOperationException();
 			asyncMethodWriter.DefineCatchHandlerILOffset(catchHandlerOffset);
 		}
@@ -58,18 +58,18 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		public override ISymbolDocumentWriter DefineDocument(string url, Guid language, Guid languageVendor, Guid documentType) {
 			writer.DefineDocument(url, ref language, ref languageVendor, ref documentType, out var unDocWriter);
-			return unDocWriter == null ? null : new SymbolDocumentWriter(unDocWriter);
+			return unDocWriter is null ? null : new SymbolDocumentWriter(unDocWriter);
 		}
 
 		public override void DefineKickoffMethod(uint kickoffMethod) {
-			if (asyncMethodWriter == null)
+			if (asyncMethodWriter is null)
 				throw new InvalidOperationException();
 			asyncMethodWriter.DefineKickoffMethod(kickoffMethod);
 		}
 
 		public override void DefineSequencePoints(ISymbolDocumentWriter document, uint arraySize, int[] offsets, int[] lines, int[] columns, int[] endLines, int[] endColumns) {
 			var doc = document as SymbolDocumentWriter;
-			if (doc == null)
+			if (doc is null)
 				throw new ArgumentException("document isn't a non-null SymbolDocumentWriter instance");
 			writer.DefineSequencePoints(doc.SymUnmanagedDocumentWriter, arraySize, offsets, lines, columns, endLines, endColumns);
 		}
@@ -137,7 +137,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		public override unsafe void SetSourceServerData(byte[] data) {
-			if (data == null)
+			if (data is null)
 				return;
 			if (writer is ISymUnmanagedWriter8 writer8) {
 				fixed (void* p = data)
@@ -146,7 +146,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		public override unsafe void SetSourceLinkData(byte[] data) {
-			if (data == null)
+			if (data is null)
 				return;
 			if (writer is ISymUnmanagedWriter8 writer8) {
 				fixed (void* p = data)

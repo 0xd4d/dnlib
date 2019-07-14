@@ -38,7 +38,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		public override IList<SymbolDocument> Documents {
 			get {
-				if (documents == null) {
+				if (documents is null) {
 					reader.GetDocuments(0, out uint numDocs, null);
 					var unDocs = new ISymUnmanagedDocument[numDocs];
 					reader.GetDocuments((uint)unDocs.Length, out numDocs, unDocs);
@@ -59,12 +59,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (hr == E_FAIL)
 				return null;
 			Marshal.ThrowExceptionForHR(hr);
-			return unMethod == null ? null : new SymbolMethodImpl(this, unMethod);
+			return unMethod is null ? null : new SymbolMethodImpl(this, unMethod);
 		}
 
 		internal void GetCustomDebugInfos(SymbolMethodImpl symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			var asyncMethod = PseudoCustomDebugInfoFactory.TryCreateAsyncMethod(method.Module, method, body, symMethod.AsyncKickoffMethod, symMethod.AsyncStepInfos, symMethod.AsyncCatchHandlerILOffset);
-			if (asyncMethod != null)
+			if (!(asyncMethod is null))
 				result.Add(asyncMethod);
 
 			const string CDI_NAME = "MD2";
@@ -83,10 +83,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		void GetCustomDebugInfos_ModuleDef(IList<PdbCustomDebugInfo> result) {
 			var sourceLinkData = GetSourceLinkData();
-			if (sourceLinkData != null)
+			if (!(sourceLinkData is null))
 				result.Add(new PdbSourceLinkCustomDebugInfo(sourceLinkData));
 			var sourceServerData = GetSourceServerData();
-			if (sourceServerData != null)
+			if (!(sourceServerData is null))
 				result.Add(new PdbSourceServerCustomDebugInfo(sourceServerData));
 		}
 
@@ -135,7 +135,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void Dispose(bool disposing) {
 			(reader as ISymUnmanagedDispose)?.Destroy();
 			var o = objsToKeepAlive;
-			if (o != null) {
+			if (!(o is null)) {
 				foreach (var obj in o)
 					(obj as IDisposable)?.Dispose();
 			}

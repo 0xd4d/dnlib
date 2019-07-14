@@ -36,10 +36,10 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the address of the JMP instruction
 		/// </summary>
-		public RVA EntryPointRVA => rva + (cpuArch == null ? 0 : cpuArch.GetStubCodeOffset(stubType));
+		public RVA EntryPointRVA => rva + (cpuArch is null ? 0 : cpuArch.GetStubCodeOffset(stubType));
 
 		internal bool Enable { get; set; }
-		internal uint Alignment => cpuArch == null ? 1 : cpuArch.GetStubAlignment(stubType);
+		internal uint Alignment => cpuArch is null ? 1 : cpuArch.GetStubAlignment(stubType);
 
 		/// <summary>
 		/// Constructor
@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Writer {
 			if (!Enable)
 				return;
 
-			if (cpuArch == null) {
+			if (cpuArch is null) {
 				logError("The module needs an unmanaged entry point but the CPU architecture isn't supported: {0} (0x{1:X4})", new object[] { machine, (ushort)machine });
 				return;
 			}
@@ -74,7 +74,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetFileLength() {
 			if (!Enable)
 				return 0;
-			if (cpuArch == null)
+			if (cpuArch is null)
 				return 0;
 			return cpuArch.GetStubSize(stubType);
 		}
@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Writer {
 		public void WriteTo(DataWriter writer) {
 			if (!Enable)
 				return;
-			if (cpuArch == null)
+			if (cpuArch is null)
 				return;
 			cpuArch.WriteStub(stubType, writer, PEHeaders.ImageBase, (uint)rva, (uint)ImportDirectory.IatCorXxxMainRVA);
 		}

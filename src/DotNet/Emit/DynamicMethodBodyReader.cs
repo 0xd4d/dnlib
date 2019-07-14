@@ -62,9 +62,9 @@ namespace dnlib.DotNet.Emit {
 			}
 
 			public object Read(object instance) {
-				if (fieldInfo == null)
+				if (fieldInfo is null)
 					InitializeField(instance.GetType());
-				if (fieldInfo == null)
+				if (fieldInfo is null)
 					throw new Exception($"Couldn't find field '{fieldName1}' or '{fieldName2}'");
 
 				return fieldInfo.GetValue(instance);
@@ -72,16 +72,16 @@ namespace dnlib.DotNet.Emit {
 
 			public bool Exists(object instance) {
 				InitializeField(instance.GetType());
-				return fieldInfo != null;
+				return !(fieldInfo is null);
 			}
 
 			void InitializeField(Type type) {
-				if (fieldInfo != null)
+				if (!(fieldInfo is null))
 					return;
 
 				var flags = SR.BindingFlags.Instance | SR.BindingFlags.Public | SR.BindingFlags.NonPublic;
 				fieldInfo = type.GetField(fieldName1, flags);
-				if (fieldInfo == null && fieldName2 != null)
+				if (fieldInfo is null && !(fieldName2 is null))
 					fieldInfo = type.GetField(fieldName2, flags);
 			}
 		}
@@ -123,25 +123,25 @@ namespace dnlib.DotNet.Emit {
 			gpContext = importer.gpContext;
 			methodName = null;
 
-			if (obj == null)
+			if (obj is null)
 				throw new ArgumentNullException(nameof(obj));
 
 			if (obj is Delegate del) {
 				obj = del.Method;
-				if (obj == null)
-					throw new Exception("Delegate.Method == null");
+				if (obj is null)
+					throw new Exception("Delegate.Method is null");
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.DynamicMethod+RTDynamicMethod") {
 				obj = rtdmOwnerFieldInfo.Read(obj) as DynamicMethod;
-				if (obj == null)
+				if (obj is null)
 					throw new Exception("RTDynamicMethod.m_owner is null or invalid");
 			}
 
 			if (obj is DynamicMethod) {
 				methodName = ((DynamicMethod)obj).Name;
 				obj = dmResolverFieldInfo.Read(obj);
-				if (obj == null)
+				if (obj is null)
 					throw new Exception("No resolver found");
 			}
 
@@ -149,19 +149,19 @@ namespace dnlib.DotNet.Emit {
 				throw new Exception("Couldn't find DynamicResolver");
 
 			var code = rslvCodeFieldInfo.Read(obj) as byte[];
-			if (code == null)
+			if (code is null)
 				throw new Exception("No code");
 			codeSize = code.Length;
 			var delMethod = rslvMethodFieldInfo.Read(obj) as SR.MethodBase;
-			if (delMethod == null)
+			if (delMethod is null)
 				throw new Exception("No method");
 			maxStack = (int)rslvMaxStackFieldInfo.Read(obj);
 
 			var scope = rslvDynamicScopeFieldInfo.Read(obj);
-			if (scope == null)
+			if (scope is null)
 				throw new Exception("No scope");
 			var tokensList = scopeTokensFieldInfo.Read(scope) as System.Collections.IList;
-			if (tokensList == null)
+			if (tokensList is null)
 				throw new Exception("No tokens");
 			tokens = new List<object>(tokensList.Count);
 			for (int i = 0; i < tokensList.Count; i++)
@@ -188,7 +188,7 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		static List<ExceptionInfo> CreateExceptionInfos(IList<object> ehInfos) {
-			if (ehInfos == null)
+			if (ehInfos is null)
 				return new List<ExceptionInfo>();
 
 			var infos = new List<ExceptionInfo>(ehInfos.Count);
@@ -213,11 +213,11 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		void UpdateLocals(byte[] localsSig) {
-			if (localsSig == null || localsSig.Length == 0)
+			if (localsSig is null || localsSig.Length == 0)
 				return;
 
 			var sig = SignatureReader.ReadSig(this, module.CorLibTypes, localsSig, gpContext) as LocalSig;
-			if (sig == null)
+			if (sig is null)
 				return;
 
 			var sigLocals = sig.Locals;
@@ -271,7 +271,7 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		void CreateExceptionHandlers() {
-			if (ehHeader != null) {
+			if (!(ehHeader is null)) {
 				if (ehHeader.Length < 4)
 					return;
 				var reader = new BinaryReader(new MemoryStream(ehHeader));
@@ -328,7 +328,7 @@ namespace dnlib.DotNet.Emit {
 					}
 				}
 			}
-			else if (ehInfos != null) {
+			else if (!(ehInfos is null)) {
 				foreach (var ehInfo in CreateExceptionInfos(ehInfos)) {
 					var tryStart = GetInstructionThrow((uint)ehInfo.StartAddr);
 					var tryEnd = GetInstruction((uint)ehInfo.EndAddr);
@@ -408,7 +408,7 @@ namespace dnlib.DotNet.Emit {
 
 		IMethod ImportMethod(uint rid) {
 			var obj = Resolve(rid);
-			if (obj == null)
+			if (obj is null)
 				return null;
 
 			if (obj is RuntimeMethodHandle)
@@ -449,7 +449,7 @@ namespace dnlib.DotNet.Emit {
 
 		IField ImportField(uint rid) {
 			var obj = Resolve(rid);
-			if (obj == null)
+			if (obj is null)
 				return null;
 
 			if (obj is RuntimeFieldHandle)
@@ -474,7 +474,7 @@ namespace dnlib.DotNet.Emit {
 
 		CallingConventionSig ImportSignature(uint rid) {
 			var sig = Resolve(rid) as byte[];
-			if (sig == null)
+			if (sig is null)
 				return null;
 
 			return SignatureReader.ReadSig(this, module.CorLibTypes, sig, gpContext);

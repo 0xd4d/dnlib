@@ -27,7 +27,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="stream">Destination stream</param>
 		public DataWriter(Stream stream) {
-			if (stream == null)
+			if (stream is null)
 				ThrowArgumentNullException(nameof(stream));
 			this.stream = stream;
 			buffer = new byte[BUFFER_LEN];

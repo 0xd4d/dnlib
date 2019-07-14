@@ -81,11 +81,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				if (recVersion == CustomDebugInfoConstants.RecordVersion) {
 					ulong recPosEnd = (ulong)reader.Position - 8 + (uint)recSize - (uint)alignmentSize;
 					var cdi = ReadRecord(recKind, recPosEnd);
-					Debug.Assert(cdi != null);
+					Debug.Assert(!(cdi is null));
 					Debug.Assert(reader.Position <= recPosEnd);
 					if (reader.Position > recPosEnd)
 						return;
-					if (cdi != null) {
+					if (!(cdi is null)) {
 						Debug.Assert(cdi.Kind == recKind);
 						result.Add(cdi);
 					}
@@ -113,18 +113,18 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			case PdbCustomDebugInfoKind.ForwardMethodInfo:
 				method = module.ResolveToken(reader.ReadUInt32(), gpContext) as IMethodDefOrRef;
-				if (method == null)
+				if (method is null)
 					return null;
 				return new PdbForwardMethodInfoCustomDebugInfo(method);
 
 			case PdbCustomDebugInfoKind.ForwardModuleInfo:
 				method = module.ResolveToken(reader.ReadUInt32(), gpContext) as IMethodDefOrRef;
-				if (method == null)
+				if (method is null)
 					return null;
 				return new PdbForwardModuleInfoCustomDebugInfo(method);
 
 			case PdbCustomDebugInfoKind.StateMachineHoistedLocalScopes:
-				if (bodyOpt == null)
+				if (bodyOpt is null)
 					return null;
 				count = reader.ReadInt32();
 				if (count < 0)
@@ -143,7 +143,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					else {
 						var start = GetInstruction(startOffset);
 						var end = GetInstruction(endOffset + 1);
-						if (start == null)
+						if (start is null)
 							return null;
 						smScope.Scopes.Add(new StateMachineHoistedLocalScope(start, end));
 					}
@@ -152,15 +152,15 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			case PdbCustomDebugInfoKind.StateMachineTypeName:
 				var name = ReadUnicodeZ(recPosEnd, needZeroChar: true);
-				if (name == null)
+				if (name is null)
 					return null;
 				var type = GetNestedType(name);
-				if (type == null)
+				if (type is null)
 					return null;
 				return new PdbStateMachineTypeNameCustomDebugInfo(type);
 
 			case PdbCustomDebugInfoKind.DynamicLocals:
-				if (bodyOpt == null)
+				if (bodyOpt is null)
 					return null;
 				count = reader.ReadInt32();
 				const int dynLocalRecSize = 64 + 4 + 4 + 2 * 64;
@@ -191,9 +191,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 					local = localIndex < bodyOpt.Variables.Count ? bodyOpt.Variables[localIndex] : null;
 					// Roslyn writes 0 to localIndex if it's a 'const' local, try to undo that now
-					if (localIndex == 0 && local != null && local.Name != name)
+					if (localIndex == 0 && !(local is null) && local.Name != name)
 						local = null;
-					if (local != null && local.Name == name)
+					if (!(local is null) && local.Name == name)
 						name = null;
 					dynLocRec.Name = name;
 					dynLocRec.Local = local;
@@ -210,7 +210,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return new PdbEditAndContinueLambdaMapCustomDebugInfo(data);
 
 			case PdbCustomDebugInfoKind.TupleElementNames:
-				if (bodyOpt == null)
+				if (bodyOpt is null)
 					return null;
 				count = reader.ReadInt32();
 				if (count < 0)
@@ -224,7 +224,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 					for (int j = 0; j < nameCount; j++) {
 						var s = ReadUTF8Z(recPosEnd);
-						if (s == null)
+						if (s is null)
 							return null;
 						tupleInfo.TupleElementNames.Add(s);
 					}
@@ -233,7 +233,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					uint scopeStart = reader.ReadUInt32();
 					uint scopeEnd = reader.ReadUInt32();
 					name = ReadUTF8Z(recPosEnd);
-					if (name == null)
+					if (name is null)
 						return null;
 					Debug.Assert(localIndex >= -1);
 					// -1 = 'const' local. Only 'const' locals have a scope
@@ -243,7 +243,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						local = null;
 						tupleInfo.ScopeStart = GetInstruction(scopeStart);
 						tupleInfo.ScopeEnd = GetInstruction(scopeEnd);
-						if (tupleInfo.ScopeStart == null)
+						if (tupleInfo.ScopeStart is null)
 							return null;
 					}
 					else {
@@ -252,7 +252,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						local = bodyOpt.Variables[localIndex];
 					}
 
-					if (local != null && local.Name == name)
+					if (!(local is null) && local.Name == name)
 						name = null;
 					tupleInfo.Local = local;
 					tupleInfo.Name = name;
@@ -269,7 +269,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		TypeDef GetNestedType(string name) {
-			if (typeOpt == null)
+			if (typeOpt is null)
 				return null;
 			var nestedTypes = typeOpt.NestedTypes;
 			int count = nestedTypes.Count;

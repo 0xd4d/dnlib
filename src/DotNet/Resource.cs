@@ -210,7 +210,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the file name
 		/// </summary>
-		public UTF8String FileName => file == null ? UTF8String.Empty : file.Name;
+		public UTF8String FileName => file is null ? UTF8String.Empty : file.Name;
 
 		/// <summary>
 		/// Constructor

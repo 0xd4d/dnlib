@@ -121,7 +121,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="UserDefinedSubType"/> is valid
 		/// </summary>
-		public bool IsUserDefinedSubTypeValid => userDefinedSubType != null;
+		public bool IsUserDefinedSubTypeValid => !(userDefinedSubType is null);
 
 		/// <summary>
 		/// Default constructor
@@ -160,7 +160,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public override string ToString() {
 			var udt = userDefinedSubType;
-			if (udt != null)
+			if (!(udt is null))
 				return $"{nativeType} ({vt}, {udt})";
 			return $"{nativeType} ({vt})";
 		}

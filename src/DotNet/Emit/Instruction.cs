@@ -326,7 +326,7 @@ namespace dnlib.DotNet.Emit {
 
 			case OperandType.InlineSwitch:
 				var targets = Operand as IList<Instruction>;
-				return opCode.Size + 4 + (targets == null ? 0 : targets.Count * 4);
+				return opCode.Size + 4 + (targets is null ? 0 : targets.Count * 4);
 
 			case OperandType.InlineVar:
 				return opCode.Size + 2;
@@ -397,7 +397,7 @@ namespace dnlib.DotNet.Emit {
 				sig = method.MethodSig;
 			else
 				sig = op as MethodSig;	// calli instruction
-			if (sig == null)
+			if (sig is null)
 				return;
 			bool implicitThis = sig.ImplicitThis;
 			if (!IsSystemVoid(sig.RetType) || (code == Code.Newobj && sig.HasThis))
@@ -405,7 +405,7 @@ namespace dnlib.DotNet.Emit {
 
 			pops += sig.Params.Count;
 			var paramsAfterSentinel = sig.ParamsAfterSentinel;
-			if (paramsAfterSentinel != null)
+			if (!(paramsAfterSentinel is null))
 				pops += paramsAfterSentinel.Count;
 			if (implicitThis && code != Code.Newobj)
 				pops++;
@@ -716,7 +716,7 @@ namespace dnlib.DotNet.Emit {
 			case Code.Ldarg:
 			case Code.Ldarg_S:
 				var parameter = Operand as Parameter;
-				if (parameter != null)
+				if (!(parameter is null))
 					return parameter.Index;
 				break;
 			}
@@ -743,7 +743,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="declaringType">Declaring type (only needed if it's an instance method)</param>
 		/// <returns>The type or <c>null</c> if it doesn't exist</returns>
 		public TypeSig GetArgumentType(MethodSig methodSig, ITypeDefOrRef declaringType) {
-			if (methodSig == null)
+			if (methodSig is null)
 				return null;
 			int index = GetParameterIndex();
 			if (index == 0 && methodSig.ImplicitThis)

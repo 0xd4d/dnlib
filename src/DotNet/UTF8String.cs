@@ -45,7 +45,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public string String {
 			get {
-				if (asString == null)
+				if (asString is null)
 					asString = ConvertFromUTF8(data);
 				return asString;
 			}
@@ -67,14 +67,14 @@ namespace dnlib.DotNet {
 		/// Gets the length of the raw data. It's the same as <c>Data.Length</c>
 		/// </summary>
 		/// <seealso cref="Length"/>
-		public int DataLength => data == null ? 0 : data.Length;
+		public int DataLength => data is null ? 0 : data.Length;
 
 		/// <summary>
 		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c>.
 		/// </summary>
 		/// <param name="utf8">The instance to check</param>
 		/// <returns><c>true</c> if <c>null</c> or empty, <c>false</c> otherwise</returns>
-		public static bool IsNull(UTF8String utf8) => (object)utf8 == null || utf8.data == null;
+		public static bool IsNull(UTF8String utf8) => utf8 is null || utf8.data is null;
 
 		/// <summary>
 		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c> or the
@@ -82,13 +82,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="utf8">The instance to check</param>
 		/// <returns><c>true</c> if <c>null</c> or empty, <c>false</c> otherwise</returns>
-		public static bool IsNullOrEmpty(UTF8String utf8) => (object)utf8 == null || utf8.data == null || utf8.data.Length == 0;
+		public static bool IsNullOrEmpty(UTF8String utf8) => utf8 is null || utf8.data is null || utf8.data.Length == 0;
 
 		/// <summary>Implicit conversion from <see cref="UTF8String"/> to <see cref="string"/></summary>
 		public static implicit operator string(UTF8String s) => UTF8String.ToSystemString(s);
 
 		/// <summary>Implicit conversion from <see cref="string"/> to <see cref="UTF8String"/></summary>
-		public static implicit operator UTF8String(string s) => s == null ? null : new UTF8String(s);
+		public static implicit operator UTF8String(string s) => s is null ? null : new UTF8String(s);
 
 		/// <summary>
 		/// Converts it to a <see cref="string"/>
@@ -96,7 +96,7 @@ namespace dnlib.DotNet {
 		/// <param name="utf8">The UTF-8 string instace or <c>null</c></param>
 		/// <returns>A <see cref="string"/> or <c>null</c> if <paramref name="utf8"/> is <c>null</c></returns>
 		public static string ToSystemString(UTF8String utf8) {
-			if ((object)utf8 == null || utf8.data == null)
+			if (utf8 is null || utf8.data is null)
 				return null;
 			if (utf8.data.Length == 0)
 				return string.Empty;
@@ -129,7 +129,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Instance #1 or <c>null</c></param>
 		/// <param name="b">Instance #2 or <c>null</c></param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public static int CompareTo(UTF8String a, UTF8String b) => Utils.CompareTo((object)a == null ? null : a.data, (object)b == null ? null : b.data);
+		public static int CompareTo(UTF8String a, UTF8String b) => Utils.CompareTo(a?.data, b?.data);
 
 		/// <summary>
 		/// Compares two <see cref="UTF8String"/> instances (case insensitive)
@@ -144,9 +144,9 @@ namespace dnlib.DotNet {
 			var sb = ToSystemString(b);
 			if ((object)sa == (object)sb)
 				return 0;
-			if (sa == null)
+			if (sa is null)
 				return -1;
-			if (sb == null)
+			if (sb is null)
 				return 1;
 			return StringComparer.OrdinalIgnoreCase.Compare(sa, sb);
 		}
@@ -200,11 +200,11 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="s">The string</param>
 		public UTF8String(string s)
-			: this(s == null ? null : Encoding.UTF8.GetBytes(s)) {
+			: this(s is null ? null : Encoding.UTF8.GetBytes(s)) {
 		}
 
 		static string ConvertFromUTF8(byte[] data) {
-			if (data == null)
+			if (data is null)
 				return null;
 			try {
 				return Encoding.UTF8.GetString(data);
@@ -228,7 +228,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {
 			var other = obj as UTF8String;
-			if ((object)other == null)
+			if (other is null)
 				return false;
 			return CompareTo(this, other) == 0;
 		}

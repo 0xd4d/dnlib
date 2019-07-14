@@ -24,7 +24,7 @@ namespace dnlib.W32Resources {
 		/// <returns>The <see cref="ResourceDirectory"/> or <c>null</c> if none found</returns>
 		public ResourceDirectory Find(ResourceName type) {
 			var dir = Root;
-			if (dir == null)
+			if (dir is null)
 				return null;
 			return dir.FindDirectory(type);
 		}
@@ -37,7 +37,7 @@ namespace dnlib.W32Resources {
 		/// <returns>The <see cref="ResourceDirectory"/> or <c>null</c> if none found</returns>
 		public ResourceDirectory Find(ResourceName type, ResourceName name) {
 			var dir = Find(type);
-			if (dir == null)
+			if (dir is null)
 				return null;
 			return dir.FindDirectory(name);
 		}
@@ -51,7 +51,7 @@ namespace dnlib.W32Resources {
 		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
 		public ResourceData Find(ResourceName type, ResourceName name, ResourceName langId) {
 			var dir = Find(type, name);
-			if (dir == null)
+			if (dir is null)
 				return null;
 			return dir.FindData(langId);
 		}
@@ -189,7 +189,7 @@ namespace dnlib.W32Resources {
 			dataReader_factory = peImage.DataReaderFactory;
 			dataReader_offset = 0;
 			dataReader_length = dataReader_factory.Length;
-			if (rsrcReader_factory != null) {
+			if (!(rsrcReader_factory is null)) {
 				this.rsrcReader_factory = rsrcReader_factory;
 				this.rsrcReader_offset = rsrcReader_offset;
 				this.rsrcReader_length = rsrcReader_length;
@@ -215,7 +215,7 @@ namespace dnlib.W32Resources {
 		void Initialize() {
 			root.ReadOriginalValue = () => {
 				var rsrcReader_factory = this.rsrcReader_factory;
-				if (rsrcReader_factory == null)
+				if (rsrcReader_factory is null)
 					return null;    // It's disposed
 				var reader = rsrcReader_factory.CreateReader(rsrcReader_offset, rsrcReader_length);
 				return new ResourceDirectoryPE(0, new ResourceName("root"), this, ref reader);

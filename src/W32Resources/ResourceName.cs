@@ -13,12 +13,12 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// <c>true</c> if <see cref="Id"/> is valid
 		/// </summary>
-		public bool HasId => name == null;
+		public bool HasId => name is null;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Name"/> is valid
 		/// </summary>
-		public bool HasName => name != null;
+		public bool HasName => !(name is null);
 
 		/// <summary>
 		/// The ID. It's only valid if <see cref="HasId"/> is <c>true</c>

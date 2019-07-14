@@ -86,7 +86,7 @@ namespace dnlib.IO {
 		/// <param name="offset">Start offset of data</param>
 		/// <param name="length">Length of data</param>
 		public DataReader(DataStream stream, uint offset, uint length) {
-			Debug.Assert(stream != null || (offset == 0 && length == 0));
+			Debug.Assert(!(stream is null) || (offset == 0 && length == 0));
 			Debug.Assert(offset + length >= offset);
 			this.stream = stream;
 			startOffset = offset;
@@ -398,7 +398,7 @@ namespace dnlib.IO {
 		/// <param name="destination">Destination pointer</param>
 		/// <param name="length">Number of bytes to read</param>
 		public unsafe void ReadBytes(void* destination, int length) {
-			if (destination == null && length != 0)
+			if (destination is null && length != 0)
 				ThrowArgumentNullException(nameof(destination));
 			if (length < 0)
 				ThrowInvalidArgument(nameof(length));
@@ -421,7 +421,7 @@ namespace dnlib.IO {
 		/// <param name="destinationIndex">Destination index</param>
 		/// <param name="length">Number of bytes to read</param>
 		public void ReadBytes(byte[] destination, int destinationIndex, int length) {
-			if (destination == null)
+			if (destination is null)
 				ThrowArgumentNullException(nameof(destination));
 			if (destinationIndex < 0)
 				ThrowInvalidArgument(nameof(destinationIndex));
@@ -626,7 +626,7 @@ namespace dnlib.IO {
 		/// <param name="encoding">Encoding</param>
 		/// <returns></returns>
 		public string ReadSerializedString(Encoding encoding) {
-			if (encoding == null)
+			if (encoding is null)
 				ThrowArgumentNullException(nameof(encoding));
 			int length = Read7BitEncodedInt32();
 			if (length < 0)
@@ -697,7 +697,7 @@ namespace dnlib.IO {
 		/// <param name="encoding">Encoding</param>
 		/// <returns></returns>
 		public string TryReadZeroTerminatedString(Encoding encoding) {
-			if (encoding == null)
+			if (encoding is null)
 				ThrowArgumentNullException(nameof(encoding));
 			VerifyState();
 			var currentOffset = this.currentOffset;
@@ -732,7 +732,7 @@ namespace dnlib.IO {
 		public string ReadString(int byteCount, Encoding encoding) {
 			if (byteCount < 0)
 				ThrowInvalidArgument(nameof(byteCount));
-			if (encoding == null)
+			if (encoding is null)
 				ThrowArgumentNullException(nameof(encoding));
 			if (byteCount == 0)
 				return string.Empty;
@@ -760,7 +760,7 @@ namespace dnlib.IO {
 		/// <param name="destination">Destination</param>
 		/// <returns>Number of bytes written</returns>
 		public void CopyTo(DataWriter destination) {
-			if (destination == null)
+			if (destination is null)
 				ThrowArgumentNullException(nameof(destination));
 			if (Position >= Length)
 				return;
@@ -774,7 +774,7 @@ namespace dnlib.IO {
 		/// <param name="dataBuffer">Temp buffer during writing</param>
 		/// <returns>Number of bytes written</returns>
 		public void CopyTo(DataWriter destination, byte[] dataBuffer) {
-			if (destination == null)
+			if (destination is null)
 				ThrowArgumentNullException(nameof(destination));
 			CopyTo(destination.InternalStream, dataBuffer);
 		}
@@ -785,7 +785,7 @@ namespace dnlib.IO {
 		/// <param name="destination">Destination</param>
 		/// <returns>Number of bytes written</returns>
 		public void CopyTo(BinaryWriter destination) {
-			if (destination == null)
+			if (destination is null)
 				ThrowArgumentNullException(nameof(destination));
 			if (Position >= Length)
 				return;
@@ -799,7 +799,7 @@ namespace dnlib.IO {
 		/// <param name="dataBuffer">Temp buffer during writing</param>
 		/// <returns>Number of bytes written</returns>
 		public void CopyTo(BinaryWriter destination, byte[] dataBuffer) {
-			if (destination == null)
+			if (destination is null)
 				ThrowArgumentNullException(nameof(destination));
 			CopyTo(destination.BaseStream, dataBuffer);
 		}
@@ -810,7 +810,7 @@ namespace dnlib.IO {
 		/// <param name="destination">Destination</param>
 		/// <returns>Number of bytes written</returns>
 		public void CopyTo(Stream destination) {
-			if (destination == null)
+			if (destination is null)
 				ThrowArgumentNullException(nameof(destination));
 			if (Position >= Length)
 				return;
@@ -824,9 +824,9 @@ namespace dnlib.IO {
 		/// <param name="dataBuffer">Temp buffer during writing</param>
 		/// <returns>Number of bytes written</returns>
 		public void CopyTo(Stream destination, byte[] dataBuffer) {
-			if (destination == null)
+			if (destination is null)
 				ThrowArgumentNullException(nameof(destination));
-			if (dataBuffer == null)
+			if (dataBuffer is null)
 				ThrowArgumentNullException(nameof(dataBuffer));
 			if (Position >= Length)
 				return;

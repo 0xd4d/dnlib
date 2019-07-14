@@ -229,10 +229,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="asm">The assembly</param>
 		public AssemblyNameInfo(IAssembly asm) {
-			if (asm == null)
+			if (asm is null)
 				return;
 			var asmDef = asm as AssemblyDef;
-			hashAlgId = asmDef == null ? 0 : asmDef.HashAlgorithm;
+			hashAlgId = asmDef is null ? 0 : asmDef.HashAlgorithm;
 			version = asm.Version ?? new Version(0, 0, 0, 0);
 			flags = asm.Attributes;
 			publicKeyOrToken = asm.PublicKeyOrToken;
@@ -245,7 +245,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
 		public AssemblyNameInfo(AssemblyName asmName) {
-			if (asmName == null)
+			if (asmName is null)
 				return;
 			hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			version = asmName.Version ?? new Version(0, 0, 0, 0);
@@ -253,7 +253,7 @@ namespace dnlib.DotNet {
 			publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			name = asmName.Name ?? string.Empty;
-			culture = asmName.CultureInfo != null && asmName.CultureInfo.Name != null ? asmName.CultureInfo.Name : string.Empty;
+			culture = !(asmName.CultureInfo is null) && !(asmName.CultureInfo.Name is null) ? asmName.CultureInfo.Name : string.Empty;
 		}
 
 		/// <inhertidoc/>

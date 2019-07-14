@@ -279,7 +279,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a syntesized local (<see cref="Start"/> and <see cref="End"/> are both null)
 		/// </summary>
-		public readonly bool IsSynthesizedLocal => Start == null && End == null;
+		public readonly bool IsSynthesizedLocal => Start is null && End is null;
 
 		/// <summary>
 		/// The instruction of the first operation in the scope. Can be null if it's a synthesized local
@@ -421,7 +421,7 @@ namespace dnlib.DotNet.Pdb {
 		public string Name {
 			get {
 				var n = name;
-				if (n != null)
+				if (!(n is null))
 					return n;
 				return local?.Name;
 			}
@@ -431,12 +431,12 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a constant and not a variable (<see cref="Local"/> is null)
 		/// </summary>
-		public bool IsConstant => Local == null;
+		public bool IsConstant => Local is null;
 
 		/// <summary>
 		/// true if it's a variable (<see cref="Local"/> is not null)
 		/// </summary>
-		public bool IsVariable => Local != null;
+		public bool IsVariable => !(Local is null);
 
 		/// <summary>
 		/// Gets/sets the local. Could be null if there's no local (it's a 'const' local).
@@ -562,7 +562,7 @@ namespace dnlib.DotNet.Pdb {
 		public string Name {
 			get {
 				var n = name;
-				if (n != null)
+				if (!(n is null))
 					return n;
 				return local?.Name;
 			}
@@ -580,12 +580,12 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a constant. Constants have a scope (<see cref="ScopeStart"/> and <see cref="ScopeEnd"/>)
 		/// </summary>
-		public bool IsConstant => local == null;
+		public bool IsConstant => local is null;
 
 		/// <summary>
 		/// true if it's a variable. Variables don't have a scope (<see cref="ScopeStart"/> and <see cref="ScopeEnd"/>)
 		/// </summary>
-		public bool IsVariable => local != null;
+		public bool IsVariable => !(local is null);
 
 		/// <summary>
 		/// Gets/sets the start of the scope or null. Only constants have a scope.

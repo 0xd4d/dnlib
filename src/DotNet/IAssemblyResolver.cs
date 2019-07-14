@@ -27,7 +27,7 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver or
 		/// <c>null</c> if the assembly couldn't be found.</returns>
 		public static AssemblyDef Resolve(this IAssemblyResolver self, AssemblyName assembly, ModuleDef sourceModule) {
-			if (assembly == null)
+			if (assembly is null)
 				return null;
 			return self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
 		}
@@ -41,7 +41,7 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver or
 		/// <c>null</c> if the assembly couldn't be found.</returns>
 		public static AssemblyDef Resolve(this IAssemblyResolver self, string asmFullName, ModuleDef sourceModule) {
-			if (asmFullName == null)
+			if (asmFullName is null)
 				return null;
 			return self.Resolve(new AssemblyNameInfo(asmFullName), sourceModule);
 		}
@@ -55,10 +55,10 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		public static AssemblyDef ResolveThrow(this IAssemblyResolver self, IAssembly assembly, ModuleDef sourceModule) {
-			if (assembly == null)
+			if (assembly is null)
 				return null;
 			var asm = self.Resolve(assembly, sourceModule);
-			if (asm != null)
+			if (!(asm is null))
 				return asm;
 			throw new AssemblyResolveException($"Could not resolve assembly: {assembly}");
 		}
@@ -72,10 +72,10 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		public static AssemblyDef ResolveThrow(this IAssemblyResolver self, AssemblyName assembly, ModuleDef sourceModule) {
-			if (assembly == null)
+			if (assembly is null)
 				return null;
 			var asm = self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
-			if (asm != null)
+			if (!(asm is null))
 				return asm;
 			throw new AssemblyResolveException($"Could not resolve assembly: {assembly}");
 		}
@@ -89,10 +89,10 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		public static AssemblyDef ResolveThrow(this IAssemblyResolver self, string asmFullName, ModuleDef sourceModule) {
-			if (asmFullName == null)
+			if (asmFullName is null)
 				return null;
 			var asm = self.Resolve(new AssemblyNameInfo(asmFullName), sourceModule);
-			if (asm != null)
+			if (!(asm is null))
 				return asm;
 			throw new AssemblyResolveException($"Could not resolve assembly: {asmFullName}");
 		}

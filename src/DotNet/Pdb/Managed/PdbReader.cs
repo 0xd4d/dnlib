@@ -326,7 +326,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		public override IList<SymbolDocument> Documents {
 			get {
-				if (documentsResult == null) {
+				if (documentsResult is null) {
 					var docs = new SymbolDocument[documents.Count];
 					int i = 0;
 					foreach (var kv in documents)
@@ -343,11 +343,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 		internal void GetCustomDebugInfos(DbiFunction symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			const string CDI_NAME = "MD2";
 			var asyncMethod = PseudoCustomDebugInfoFactory.TryCreateAsyncMethod(method.Module, method, body, symMethod.AsyncKickoffMethod, symMethod.AsyncStepInfos, symMethod.AsyncCatchHandlerILOffset);
-			if (asyncMethod != null)
+			if (!(asyncMethod is null))
 				result.Add(asyncMethod);
 
 			var cdiData = symMethod.Root.GetSymAttribute(CDI_NAME);
-			if (cdiData == null)
+			if (cdiData is null)
 				return;
 			PdbCustomDebugInfoReader.Read(method, body, result, cdiData);
 		}
@@ -358,9 +358,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		void GetCustomDebugInfos_ModuleDef(IList<PdbCustomDebugInfo> result) {
-			if (sourcelinkData != null)
+			if (!(sourcelinkData is null))
 				result.Add(new PdbSourceLinkCustomDebugInfo(sourcelinkData));
-			if (srcsrvData != null)
+			if (!(srcsrvData is null))
 				result.Add(new PdbSourceServerCustomDebugInfo(srcsrvData));
 		}
 	}

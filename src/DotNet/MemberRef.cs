@@ -75,7 +75,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public CustomAttributeCollection CustomAttributes {
 			get {
-				if (customAttributes == null)
+				if (customAttributes is null)
 					InitializeCustomAttributes();
 				return customAttributes;
 			}
@@ -100,7 +100,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public IList<PdbCustomDebugInfo> CustomDebugInfos {
 			get {
-				if (customDebugInfos == null)
+				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
 				return customDebugInfos;
 			}
@@ -124,7 +124,7 @@ namespace dnlib.DotNet {
 
 				if (owner is ModuleRef mr) {
 					var tr = GetGlobalTypeRef(mr);
-					if (module != null)
+					if (!(module is null))
 						return module.UpdateRowId(tr);
 					return tr;
 				}
@@ -134,26 +134,26 @@ namespace dnlib.DotNet {
 		}
 
 		TypeRefUser GetGlobalTypeRef(ModuleRef mr) {
-			if (module == null)
+			if (module is null)
 				return CreateDefaultGlobalTypeRef(mr);
 			var globalType = module.GlobalType;
-			if (globalType != null && new SigComparer().Equals(module, mr))
+			if (!(globalType is null) && new SigComparer().Equals(module, mr))
 				return new TypeRefUser(module, globalType.Namespace, globalType.Name, mr);
 			var asm = module.Assembly;
-			if (asm == null)
+			if (asm is null)
 				return CreateDefaultGlobalTypeRef(mr);
 			var mod = asm.FindModule(mr.Name);
-			if (mod == null)
+			if (mod is null)
 				return CreateDefaultGlobalTypeRef(mr);
 			globalType = mod.GlobalType;
-			if (globalType == null)
+			if (globalType is null)
 				return CreateDefaultGlobalTypeRef(mr);
 			return new TypeRefUser(module, globalType.Namespace, globalType.Name, mr);
 		}
 
 		TypeRefUser CreateDefaultGlobalTypeRef(ModuleRef mr) {
 			var tr = new TypeRefUser(module, string.Empty, "<Module>", mr);
-			if (module != null)
+			if (!(module is null))
 				module.UpdateRowId(tr);
 			return tr;
 		}
@@ -175,12 +175,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if this is a method reference (<see cref="MethodSig"/> != <c>null</c>)
 		/// </summary>
-		public bool IsMethodRef => MethodSig != null;
+		public bool IsMethodRef => !(MethodSig is null);
 
 		/// <summary>
 		/// <c>true</c> if this is a field reference (<see cref="FieldSig"/> != <c>null</c>)
 		/// </summary>
-		public bool IsFieldRef => FieldSig != null;
+		public bool IsFieldRef => !(FieldSig is null);
 
 		/// <summary>
 		/// Gets/sets the method sig
@@ -207,7 +207,7 @@ namespace dnlib.DotNet {
 		public bool HasThis {
 			get {
 				var ms = MethodSig;
-				return ms == null ? false : ms.HasThis;
+				return ms is null ? false : ms.HasThis;
 			}
 		}
 
@@ -217,7 +217,7 @@ namespace dnlib.DotNet {
 		public bool ExplicitThis {
 			get {
 				var ms = MethodSig;
-				return ms == null ? false : ms.ExplicitThis;
+				return ms is null ? false : ms.ExplicitThis;
 			}
 		}
 
@@ -227,7 +227,7 @@ namespace dnlib.DotNet {
 		public CallingConvention CallingConvention {
 			get {
 				var ms = MethodSig;
-				return ms == null ? 0 : ms.CallingConvention & CallingConvention.Mask;
+				return ms is null ? 0 : ms.CallingConvention & CallingConvention.Mask;
 			}
 		}
 
@@ -238,7 +238,7 @@ namespace dnlib.DotNet {
 			get => MethodSig?.RetType;
 			set {
 				var ms = MethodSig;
-				if (ms != null)
+				if (!(ms is null))
 					ms.RetType = value;
 			}
 		}
@@ -258,10 +258,10 @@ namespace dnlib.DotNet {
 						typeGenArgs = sig.GenericArguments;
 				}
 				var methodSig = MethodSig;
-				if (methodSig != null)
+				if (!(methodSig is null))
 					return FullNameFactory.MethodFullName(GetDeclaringTypeFullName(parent), name, methodSig, typeGenArgs, null, null, null);
 				var fieldSig = FieldSig;
-				if (fieldSig != null)
+				if (!(fieldSig is null))
 					return FullNameFactory.FieldFullName(GetDeclaringTypeFullName(parent), name, fieldSig, typeGenArgs, null);
 				return string.Empty;
 			}
@@ -274,7 +274,7 @@ namespace dnlib.DotNet {
 		public string GetDeclaringTypeFullName() => GetDeclaringTypeFullName(@class);
 
 		string GetDeclaringTypeFullName(IMemberRefParent parent) {
-			if (parent == null)
+			if (parent is null)
 				return null;
 			if (parent is ITypeDefOrRef)
 				return ((ITypeDefOrRef)parent).FullName;
@@ -293,7 +293,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
 		/// if it couldn't be resolved.</returns>
 		public IMemberForwarded Resolve() {
-			if (module == null)
+			if (module is null)
 				return null;
 			return module.Context.Resolver.Resolve(this);
 		}
@@ -305,7 +305,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
 		public IMemberForwarded ResolveThrow() {
 			var memberDef = Resolve();
-			if (memberDef != null)
+			if (!(memberDef is null))
 				return memberDef;
 			throw new MemberRefResolveException($"Could not resolve method/field: {this} ({this.GetDefinitionAssembly()})");
 		}
@@ -323,7 +323,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
 		public FieldDef ResolveFieldThrow() {
 			var field = ResolveField();
-			if (field != null)
+			if (!(field is null))
 				return field;
 			throw new MemberRefResolveException($"Could not resolve field: {this} ({this.GetDefinitionAssembly()})");
 		}
@@ -341,7 +341,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
 		public MethodDef ResolveMethodThrow() {
 			var method = ResolveMethod();
-			if (method != null)
+			if (!(method is null))
 				return method;
 			throw new MemberRefResolveException($"Could not resolve method: {this} ({this.GetDefinitionAssembly()})");
 		}
@@ -474,7 +474,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
 		public MemberRefMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
-			if (readerModule == null)
+			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
 			if (readerModule.TablesStream.MemberRefTable.IsInvalidRID(rid))
 				throw new BadImageFormatException($"MemberRef rid {rid} does not exist");

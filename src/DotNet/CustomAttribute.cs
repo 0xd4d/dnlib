@@ -37,7 +37,7 @@ namespace dnlib.DotNet {
 
 				if (ctor is MethodDef mdCtor) {
 					var declType = mdCtor.DeclaringType;
-					if (declType != null)
+					if (!(declType is null))
 						return declType.FullName;
 				}
 
@@ -48,7 +48,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if the raw custom attribute blob hasn't been parsed
 		/// </summary>
-		public bool IsRawBlob => rawData != null;
+		public bool IsRawBlob => !(rawData is null);
 
 		/// <summary>
 		/// Gets the raw custom attribute blob or <c>null</c> if the CA was successfully parsed.
@@ -163,8 +163,8 @@ namespace dnlib.DotNet {
 		/// <param name="caBlobOffset">Original custom attribute #Blob offset or 0</param>
 		public CustomAttribute(ICustomAttributeType ctor, IEnumerable<CAArgument> arguments, IEnumerable<CANamedArgument> namedArguments, uint caBlobOffset) {
 			this.ctor = ctor;
-			this.arguments = arguments == null ? new List<CAArgument>() : new List<CAArgument>(arguments);
-			this.namedArguments = namedArguments == null ? new List<CANamedArgument>() : new List<CANamedArgument>(namedArguments);
+			this.arguments = arguments is null ? new List<CAArgument>() : new List<CAArgument>(arguments);
+			this.namedArguments = namedArguments is null ? new List<CANamedArgument>() : new List<CANamedArgument>(namedArguments);
 			this.caBlobOffset = caBlobOffset;
 		}
 
