@@ -256,7 +256,7 @@ namespace dnlib.DotNet.Writer {
 				throw new ArgumentNullException(nameof(module));
 			if (module is ModuleDefMD mod) {
 				if (addCustomHeaps) {
-					var otherStreams = mod.Metadata.AllStreams.Where(a => a.GetType() == typeof(DotNetStream)).Select(a => new DataReaderHeap(a));
+					var otherStreams = mod.Metadata.AllStreams.Where(a => a.GetType() == typeof(CustomDotNetStream)).Select(a => new DataReaderHeap(a));
 					CustomHeaps.AddRange(otherStreams.OfType<IHeap>());
 				}
 				var streamToOrder = new Dictionary<DotNetStream, int>(mod.Metadata.AllStreams.Count);
