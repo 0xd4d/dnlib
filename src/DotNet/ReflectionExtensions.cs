@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace dnlib.DotNet {
@@ -8,6 +9,21 @@ namespace dnlib.DotNet {
 	/// Extension methods for reflection types, methods, fields
 	/// </summary>
 	static class ReflectionExtensions {
+		public static void GetTypeNamespaceAndName_TypeDefOrRef(this Type type, out string @namespace, out string name) {
+			Debug.Assert(type.IsTypeDef());
+			name = type.Name ?? string.Empty;
+			if (!type.IsNested)
+				@namespace = type.Namespace ?? string.Empty;
+			else {
+				var declTypeFullName = type.DeclaringType.FullName;
+				var typeFullName = type.FullName;
+				if (declTypeFullName.Length + 1 + name.Length == typeFullName.Length)
+					@namespace = string.Empty;
+				else
+					@namespace = typeFullName.Substring(declTypeFullName.Length + 1, typeFullName.Length - declTypeFullName.Length - 1 - name.Length - 1);
+			}
+		}
+
 		/// <summary>
 		/// Checks whether it's a <see cref="ElementType.SZArray"/>
 		/// </summary>
