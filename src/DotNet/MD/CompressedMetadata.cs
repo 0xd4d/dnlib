@@ -78,7 +78,7 @@ namespace dnlib.DotNet.MD {
 					case "#Pdb":
 						if (isStandalonePortablePdb && pdbStream is null) {
 							pdbStream = new PdbStream(mdReaderFactory, metadataBaseOffset, sh);
-							allStreams.Add(pdbStream);
+							newAllStreams.Add(pdbStream);
 							continue;
 						}
 						break;
