@@ -37,16 +37,22 @@ namespace dnlib.DotNet.MD {
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
 		public StreamHeader(ref DataReader reader, bool verify)
-			: this(ref reader, verify, verify, out _) {
+			: this(ref reader, verify, verify, CLRRuntimeReaderKind.CLR, out _) {
 		}
 
-		internal StreamHeader(ref DataReader reader, bool throwOnError, bool verify, out bool failedVerification) {
+		internal StreamHeader(ref DataReader reader, bool throwOnError, bool verify, CLRRuntimeReaderKind runtime, out bool failedVerification) {
 			failedVerification = false;
 			SetStartOffset(ref reader);
 			offset = reader.ReadUInt32();
 			streamSize = reader.ReadUInt32();
 			name = ReadString(ref reader, 32, verify, ref failedVerification);
 			SetEndoffset(ref reader);
+			if (runtime == CLRRuntimeReaderKind.Mono) {
+				if (offset > reader.Length)
+					offset = reader.Length;
+				// Mono ignores the size (eg. it can be 0 or max value) so set it to the max possible value
+				streamSize = reader.Length - offset;
+			}
 			if (verify && offset + size < offset)
 				failedVerification = true;
 			if (throwOnError && failedVerification)

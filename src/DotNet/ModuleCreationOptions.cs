@@ -43,6 +43,12 @@ namespace dnlib.DotNet {
 		public AssemblyRef CorLibAssemblyRef { get; set; }
 
 		/// <summary>
+		/// Runtime reader kind, default is <see cref="CLRRuntimeReaderKind.CLR"/>. It should be
+		/// set to <see cref="CLRRuntimeReaderKind.Mono"/> if it's an obfuscated Mono/Unity assembly.
+		/// </summary>
+		public CLRRuntimeReaderKind Runtime { get; set; } = CLRRuntimeReaderKind.CLR;
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public ModuleCreationOptions() { }
@@ -52,5 +58,38 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="context">Module context</param>
 		public ModuleCreationOptions(ModuleContext context) => Context = context;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="runtime">Runtime reader kind, default is <see cref="CLRRuntimeReaderKind.CLR"/>. It should be
+		/// set to <see cref="CLRRuntimeReaderKind.Mono"/> if it's an obfuscated Mono/Unity assembly.</param>
+		public ModuleCreationOptions(CLRRuntimeReaderKind runtime) => Runtime = runtime;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="context">Module context</param>
+		/// <param name="runtime">Runtime reader kind, default is <see cref="CLRRuntimeReaderKind.CLR"/>. It should be
+		/// set to <see cref="CLRRuntimeReaderKind.Mono"/> if it's an obfuscated Mono/Unity assembly.</param>
+		public ModuleCreationOptions(ModuleContext context, CLRRuntimeReaderKind runtime) {
+			Context = context;
+			Runtime = runtime;
+		}
+	}
+
+	/// <summary>
+	/// Runtime reader kind
+	/// </summary>
+	public enum CLRRuntimeReaderKind {
+		/// <summary>
+		/// Microsoft's CLRs (.NET Framework, .NET Core)
+		/// </summary>
+		CLR,
+
+		/// <summary>
+		/// Mono's CLR (Mono, Unity)
+		/// </summary>
+		Mono,
 	}
 }

@@ -84,7 +84,18 @@ namespace dnlib.DotNet.MD {
 		/// <param name="reader">PE file reader pointing to the start of this section</param>
 		/// <param name="verify">Verify section</param>
 		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
-		public MetadataHeader(ref DataReader reader, bool verify) {
+		public MetadataHeader(ref DataReader reader, bool verify)
+			: this(ref reader, CLRRuntimeReaderKind.CLR, verify) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="reader">PE file reader pointing to the start of this section</param>
+		/// <param name="runtime">Runtime reader kind</param>
+		/// <param name="verify">Verify section</param>
+		/// <exception cref="BadImageFormatException">Thrown if verification fails</exception>
+		public MetadataHeader(ref DataReader reader, CLRRuntimeReaderKind runtime, bool verify) {
 			SetStartOffset(ref reader);
 			signature = reader.ReadUInt32();
 			if (verify && signature != 0x424A5342)
@@ -93,7 +104,7 @@ namespace dnlib.DotNet.MD {
 			minorVersion = reader.ReadUInt16();
 			reserved1 = reader.ReadUInt32();
 			stringLength = reader.ReadUInt32();
-			versionString = ReadString(ref reader, stringLength);
+			versionString = ReadString(ref reader, stringLength, runtime);
 			offset2ndPart = (FileOffset)reader.CurrentOffset;
 			flags = (StorageFlags)reader.ReadByte();
 			reserved2 = reader.ReadByte();
@@ -101,7 +112,7 @@ namespace dnlib.DotNet.MD {
 			streamHeaders = new StreamHeader[streams];
 			for (int i = 0; i < streamHeaders.Count; i++) {
 				// Mono doesn't verify all of these so we can't either
-				var sh = new StreamHeader(ref reader, throwOnError: false, verify, out bool failedVerification);
+				var sh = new StreamHeader(ref reader, throwOnError: false, verify, runtime, out bool failedVerification);
 				if (failedVerification || (ulong)sh.Offset + sh.StreamSize > reader.EndOffset)
 					sh = new StreamHeader(0, 0, "<invalid>");
 				streamHeaders[i] = sh;
@@ -109,9 +120,11 @@ namespace dnlib.DotNet.MD {
 			SetEndoffset(ref reader);
 		}
 
-		static string ReadString(ref DataReader reader, uint maxLength) {
-			ulong endPos = (ulong)reader.Position + maxLength;
-			if (endPos > reader.Length)
+		static string ReadString(ref DataReader reader, uint maxLength, CLRRuntimeReaderKind runtime) {
+			ulong endOffset = (ulong)reader.CurrentOffset + maxLength;
+			if (runtime == CLRRuntimeReaderKind.Mono)
+				endOffset = (endOffset + 3) / 4 * 4;
+			if (endOffset > reader.EndOffset)
 				throw new BadImageFormatException("Invalid MD version string");
 			var utf8Bytes = new byte[maxLength];
 			uint i;
@@ -121,7 +134,7 @@ namespace dnlib.DotNet.MD {
 					break;
 				utf8Bytes[i] = b;
 			}
-			reader.Position = (uint)endPos;
+			reader.CurrentOffset = (uint)endOffset;
 			return Encoding.UTF8.GetString(utf8Bytes, 0, (int)i);
 		}
 	}

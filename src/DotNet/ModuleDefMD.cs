@@ -149,7 +149,7 @@ namespace dnlib.DotNet {
 		/// <param name="fileName">File name of an existing .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options = null) => Load(MetadataFactory.Load(fileName), options);
+		public static ModuleDefMD Load(string fileName, ModuleCreationOptions options = null) => Load(MetadataFactory.Load(fileName, options?.Runtime ?? CLRRuntimeReaderKind.CLR), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a byte[]
@@ -165,7 +165,7 @@ namespace dnlib.DotNet {
 		/// <param name="data">Contents of a .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options = null) => Load(MetadataFactory.Load(data), options);
+		public static ModuleDefMD Load(byte[] data, ModuleCreationOptions options = null) => Load(MetadataFactory.Load(data, options?.Runtime ?? CLRRuntimeReaderKind.CLR), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a reflection module
@@ -240,7 +240,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr) => Load(MetadataFactory.Load(addr), (ModuleCreationOptions)null);
+		public static ModuleDefMD Load(IntPtr addr) => Load(MetadataFactory.Load(addr, CLRRuntimeReaderKind.CLR), (ModuleCreationOptions)null);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -248,7 +248,7 @@ namespace dnlib.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) => Load(MetadataFactory.Load(addr), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context) => Load(MetadataFactory.Load(addr, CLRRuntimeReaderKind.CLR), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -256,14 +256,14 @@ namespace dnlib.DotNet {
 		/// <param name="addr">Address of a .NET module/assembly</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options) => Load(MetadataFactory.Load(addr), options);
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options) => Load(MetadataFactory.Load(addr, options?.Runtime ?? CLRRuntimeReaderKind.CLR), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
 		/// </summary>
 		/// <param name="peImage">PE image</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage) => Load(MetadataFactory.Load(peImage), (ModuleCreationOptions)null);
+		public static ModuleDefMD Load(IPEImage peImage) => Load(MetadataFactory.Load(peImage, CLRRuntimeReaderKind.CLR), (ModuleCreationOptions)null);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
@@ -271,7 +271,7 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage, ModuleContext context) => Load(MetadataFactory.Load(peImage), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IPEImage peImage, ModuleContext context) => Load(MetadataFactory.Load(peImage, CLRRuntimeReaderKind.CLR), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance
@@ -279,7 +279,7 @@ namespace dnlib.DotNet {
 		/// <param name="peImage">PE image</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IPEImage peImage, ModuleCreationOptions options) => Load(MetadataFactory.Load(peImage), options);
+		public static ModuleDefMD Load(IPEImage peImage, ModuleCreationOptions options) => Load(MetadataFactory.Load(peImage, options?.Runtime ?? CLRRuntimeReaderKind.CLR), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -288,7 +288,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) => Load(MetadataFactory.Load(addr, imageLayout), new ModuleCreationOptions(context));
+		public static ModuleDefMD Load(IntPtr addr, ModuleContext context, ImageLayout imageLayout) => Load(MetadataFactory.Load(addr, imageLayout, CLRRuntimeReaderKind.CLR), new ModuleCreationOptions(context));
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a memory location
@@ -297,7 +297,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the file in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
-		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options, ImageLayout imageLayout) => Load(MetadataFactory.Load(addr, imageLayout), options);
+		public static ModuleDefMD Load(IntPtr addr, ModuleCreationOptions options, ImageLayout imageLayout) => Load(MetadataFactory.Load(addr, imageLayout, options?.Runtime ?? CLRRuntimeReaderKind.CLR), options);
 
 		/// <summary>
 		/// Creates a <see cref="ModuleDefMD"/> instance from a stream

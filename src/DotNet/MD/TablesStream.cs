@@ -22,6 +22,7 @@ namespace dnlib.DotNet.MD {
 
 		IColumnReader columnReader;
 		IRowReader<RawMethodRow> methodRowReader;
+		readonly CLRRuntimeReaderKind runtime;
 
 #pragma warning disable 1591	// XML doc comment
 		public MDTable ModuleTable { get; private set; }
@@ -154,26 +155,43 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.Padding"/> bit
 		/// </summary>
-		public bool HasPadding => (flags & MDStreamFlags.Padding) != 0;
+		public bool HasPadding => runtime == CLRRuntimeReaderKind.CLR && (flags & MDStreamFlags.Padding) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.DeltaOnly"/> bit
 		/// </summary>
-		public bool HasDeltaOnly => (flags & MDStreamFlags.DeltaOnly) != 0;
+		public bool HasDeltaOnly => runtime == CLRRuntimeReaderKind.CLR && (flags & MDStreamFlags.DeltaOnly) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.ExtraData"/> bit
 		/// </summary>
-		public bool HasExtraData => (flags & MDStreamFlags.ExtraData) != 0;
+		public bool HasExtraData => runtime == CLRRuntimeReaderKind.CLR && (flags & MDStreamFlags.ExtraData) != 0;
 
 		/// <summary>
 		/// Gets the <see cref="MDStreamFlags.HasDelete"/> bit
 		/// </summary>
-		public bool HasDelete => (flags & MDStreamFlags.HasDelete) != 0;
+		public bool HasDelete => runtime == CLRRuntimeReaderKind.CLR && (flags & MDStreamFlags.HasDelete) != 0;
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="mdReaderFactory"><see cref="DataReader"/> factory</param>
+		/// <param name="metadataBaseOffset">Offset of metadata</param>
+		/// <param name="streamHeader">Stream header</param>
 		public TablesStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
+			: this(mdReaderFactory, metadataBaseOffset, streamHeader, CLRRuntimeReaderKind.CLR) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="mdReaderFactory"><see cref="DataReader"/> factory</param>
+		/// <param name="metadataBaseOffset">Offset of metadata</param>
+		/// <param name="streamHeader">Stream header</param>
+		/// <param name="runtime">Runtime kind</param>
+		public TablesStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader, CLRRuntimeReaderKind runtime)
 			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
+			this.runtime = runtime;
 		}
 
 		/// <summary>

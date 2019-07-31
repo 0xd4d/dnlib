@@ -10,17 +10,21 @@ namespace dnlib.DotNet.MD {
 	/// Used when a #~ stream is present in the metadata
 	/// </summary>
 	sealed class CompressedMetadata : MetadataBase {
+		readonly CLRRuntimeReaderKind runtime;
+
 		/// <inheritdoc/>
 		public override bool IsCompressed => true;
 
 		/// <inheritdoc/>
-		public CompressedMetadata(IPEImage peImage, ImageCor20Header cor20Header, MetadataHeader mdHeader)
+		public CompressedMetadata(IPEImage peImage, ImageCor20Header cor20Header, MetadataHeader mdHeader, CLRRuntimeReaderKind runtime)
 			: base(peImage, cor20Header, mdHeader) {
+			this.runtime = runtime;
 		}
 
 		/// <inheritdoc/>
-		internal CompressedMetadata(MetadataHeader mdHeader, bool isStandalonePortablePdb)
+		internal CompressedMetadata(MetadataHeader mdHeader, bool isStandalonePortablePdb, CLRRuntimeReaderKind runtime)
 			: base(mdHeader, isStandalonePortablePdb) {
+			this.runtime = runtime;
 		}
 
 		/// <inheritdoc/>
@@ -65,7 +69,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#~":
 						if (tablesStream is null) {
-							tablesStream = new TablesStream(mdReaderFactory, metadataBaseOffset, sh);
+							tablesStream = new TablesStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 							newAllStreams.Add(tablesStream);
 							continue;
 						}
