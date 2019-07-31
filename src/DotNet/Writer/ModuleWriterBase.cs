@@ -149,6 +149,7 @@ namespace dnlib.DotNet.Writer {
 		MetadataOptions metadataOptions;
 		ILogger logger;
 		ILogger metadataLogger;
+		bool noWin32Resources;
 		Win32Resources win32Resources;
 		StrongNameKey strongNameKey;
 		StrongNamePublicKey strongNamePublicKey;
@@ -208,6 +209,14 @@ namespace dnlib.DotNet.Writer {
 		public MetadataOptions MetadataOptions {
 			get => metadataOptions ?? (metadataOptions = new MetadataOptions());
 			set => metadataOptions = value;
+		}
+
+		/// <summary>
+		/// If <c>true</c>, Win32 resources aren't written to the output
+		/// </summary>
+		public bool NoWin32Resources {
+			get => noWin32Resources;
+			set => noWin32Resources = value;
 		}
 
 		/// <summary>

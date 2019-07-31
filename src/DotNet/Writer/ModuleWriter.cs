@@ -161,7 +161,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override Win32Resources GetWin32Resources() => Options.Win32Resources ?? module.Win32Resources;
+		protected override Win32Resources GetWin32Resources() {
+			if (Options.NoWin32Resources)
+				return null;
+			return Options.Win32Resources ?? module.Win32Resources;
+		}
 
 		void CreateSections() {
 			sections = new List<PESection>();

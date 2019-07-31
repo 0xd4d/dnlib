@@ -255,6 +255,8 @@ namespace dnlib.DotNet.Writer {
 		protected override Win32Resources GetWin32Resources() {
 			if (Options.KeepWin32Resources)
 				return null;
+			if (Options.NoWin32Resources)
+				return null;
 			return Options.Win32Resources ?? module.Win32Resources;
 		}
 

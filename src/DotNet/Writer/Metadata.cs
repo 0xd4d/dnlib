@@ -162,6 +162,21 @@ namespace dnlib.DotNet.Writer {
 		/// according to the ECMA spec, see https://github.com/dotnet/roslyn/issues/3905
 		/// </summary>
 		RoslynSortInterfaceImpl = 0x100000,
+
+		/// <summary>
+		/// Don't write method bodies
+		/// </summary>
+		NoMethodBodies = 0x200000,
+
+		/// <summary>
+		/// Don't write .NET resources
+		/// </summary>
+		NoDotNetResources = 0x400000,
+
+		/// <summary>
+		/// Don't write field data
+		/// </summary>
+		NoFieldData = 0x800000,
 	}
 
 	/// <summary>
@@ -828,6 +843,45 @@ namespace dnlib.DotNet.Writer {
 					options.Flags |= MetadataFlags.RoslynSortInterfaceImpl;
 				else
 					options.Flags &= ~MetadataFlags.RoslynSortInterfaceImpl;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetadataFlags.NoMethodBodies"/> bit
+		/// </summary>
+		public bool NoMethodBodies {
+			get => (options.Flags & MetadataFlags.NoMethodBodies) != 0;
+			set {
+				if (value)
+					options.Flags |= MetadataFlags.NoMethodBodies;
+				else
+					options.Flags &= ~MetadataFlags.NoMethodBodies;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetadataFlags.NoDotNetResources"/> bit
+		/// </summary>
+		public bool NoDotNetResources {
+			get => (options.Flags & MetadataFlags.NoDotNetResources) != 0;
+			set {
+				if (value)
+					options.Flags |= MetadataFlags.NoDotNetResources;
+				else
+					options.Flags &= ~MetadataFlags.NoDotNetResources;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetadataFlags.NoFieldData"/> bit
+		/// </summary>
+		public bool NoFieldData {
+			get => (options.Flags & MetadataFlags.NoFieldData) != 0;
+			set {
+				if (value)
+					options.Flags |= MetadataFlags.NoFieldData;
+				else
+					options.Flags &= ~MetadataFlags.NoFieldData;
 			}
 		}
 
@@ -1866,6 +1920,8 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		void WriteMethodBodies() {
 			Debug.Assert(!isStandaloneDebugMetadata);
+			if (NoMethodBodies)
+				return;
 			int numMethods = NumberOfMethods;
 			int methodNum = 0;
 			int notifyNum = 0;
@@ -2585,6 +2641,8 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="field">The field</param>
 		protected void AddFieldRVA(FieldDef field) {
 			Debug.Assert(!isStandaloneDebugMetadata);
+			if (NoFieldData)
+				return;
 			if (field.RVA != 0 && KeepFieldRVA) {
 				uint rid = GetRid(field);
 				var row = new RawFieldRVARow((uint)field.RVA, rid);
@@ -2846,6 +2904,8 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddResources(IList<Resource> resources) {
+			if (NoDotNetResources)
+				return;
 			if (resources is null)
 				return;
 			int count = resources.Count;
@@ -2854,6 +2914,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddResource(Resource resource) {
+			Debug.Assert(!NoDotNetResources);
 			if (resource is EmbeddedResource er) {
 				AddEmbeddedResource(er);
 				return;
@@ -2877,6 +2938,7 @@ namespace dnlib.DotNet.Writer {
 
 		uint AddEmbeddedResource(EmbeddedResource er) {
 			Debug.Assert(!isStandaloneDebugMetadata);
+			Debug.Assert(!NoDotNetResources);
 			if (er is null) {
 				Error("EmbeddedResource is null");
 				return 0;
@@ -2896,6 +2958,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddAssemblyLinkedResource(AssemblyLinkedResource alr) {
+			Debug.Assert(!NoDotNetResources);
 			if (alr is null) {
 				Error("AssemblyLinkedResource is null");
 				return 0;
@@ -2914,6 +2977,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddLinkedResource(LinkedResource lr) {
+			Debug.Assert(!NoDotNetResources);
 			if (lr is null) {
 				Error("LinkedResource is null");
 				return 0;
