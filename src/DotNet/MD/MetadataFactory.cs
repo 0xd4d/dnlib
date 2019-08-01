@@ -220,8 +220,10 @@ namespace dnlib.DotNet.MD {
 				foreach (var sh in streamHeaders) {
 					if (sh.Name == "#~")
 						mdType = MetadataType.Compressed;
-					else if (sh.Name == "#-")
+					else if (sh.Name == "#-") {
 						mdType = MetadataType.ENC;
+						break;
+					}
 				}
 			}
 			else

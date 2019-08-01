@@ -77,6 +77,7 @@ namespace dnlib.DotNet.MD {
 							}
 							break;
 
+						case "#~":
 						case "#-":
 							if (tablesStream is null) {
 								tablesStream = new TablesStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
