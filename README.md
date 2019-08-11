@@ -105,6 +105,10 @@ To get the assembly, use its Assembly property:
     Console.WriteLine("Assembly: {0}", asm);
 ```
 
+If it's an obfuscated Unity/Mono assembly, you need to create a `ModuleCreationOptions`
+and write `CLRRuntimeReaderKind.Mono` to `ModuleCreationOptions.Runtime` and pass in
+this `ModuleCreationOptions` instance to one of the `ModuleDefMD.Load(...)` methods.
+
 Saving a .NET assembly/module
 -----------------------------
 
