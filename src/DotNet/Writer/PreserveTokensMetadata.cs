@@ -480,8 +480,11 @@ namespace dnlib.DotNet.Writer {
 			initdMemberRef = true;
 
 			uint rows = mod.TablesStream.MemberRefTable.Rows;
-			for (uint rid = 1; rid <= rows; rid++)
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (tablesHeap.MemberRefTable[rid].Class != 0)
+					continue;
 				AddMemberRef(mod.ResolveMemberRef(rid), true);
+			}
 			tablesHeap.MemberRefTable.ReAddRows();
 		}
 
@@ -492,8 +495,11 @@ namespace dnlib.DotNet.Writer {
 			initdStandAloneSig = true;
 
 			uint rows = mod.TablesStream.StandAloneSigTable.Rows;
-			for (uint rid = 1; rid <= rows; rid++)
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (tablesHeap.StandAloneSigTable[rid].Signature != 0)
+					continue;
 				AddStandAloneSig(mod.ResolveStandAloneSig(rid), true);
+			}
 			tablesHeap.StandAloneSigTable.ReAddRows();
 		}
 
@@ -504,8 +510,11 @@ namespace dnlib.DotNet.Writer {
 			initdTypeSpec = true;
 
 			uint rows = mod.TablesStream.TypeSpecTable.Rows;
-			for (uint rid = 1; rid <= rows; rid++)
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (tablesHeap.TypeSpecTable[rid].Signature != 0)
+					continue;
 				AddTypeSpec(mod.ResolveTypeSpec(rid), true);
+			}
 			tablesHeap.TypeSpecTable.ReAddRows();
 		}
 
@@ -516,8 +525,11 @@ namespace dnlib.DotNet.Writer {
 			initdMethodSpec = true;
 
 			uint rows = mod.TablesStream.MethodSpecTable.Rows;
-			for (uint rid = 1; rid <= rows; rid++)
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (tablesHeap.MethodSpecTable[rid].Method != 0)
+					continue;
 				AddMethodSpec(mod.ResolveMethodSpec(rid), true);
+			}
 			tablesHeap.MethodSpecTable.ReAddRows();
 		}
 
