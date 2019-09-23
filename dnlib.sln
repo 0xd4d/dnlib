@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.28729.10
-MinimumVisualStudioVersion = 16.0.28729.10
+VisualStudioVersion = 16.0.29318.209
+MinimumVisualStudioVersion = 16.0.29318.209
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dnlib", "src\dnlib.csproj", "{FDFC1237-143F-4919-8318-4926901F4639}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples", "Examples\Examples.csproj", "{F27E72B5-C4BD-40BF-AD19-4C8A99B55872}"
