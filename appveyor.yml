@@ -10,27 +10,9 @@ install:
     start /wait vs_BuildTools.exe --quiet --wait --norestart --installPath "C:\vsbuildtools" --add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools --add Microsoft.VisualStudio.Workload.NetCoreBuildTools
 build_script:
 - cmd: |
-    set path=C:\vsbuildtools\MSBuild\Current\Bin\amd64;%path%
-    msbuild -v:m -restore -t:Build -p:Configuration=Release dnlib.sln
-    msbuild -v:m -t:Pack -p:Configuration=Release dnlib.sln
+    set PATH=C:\vsbuildtools\MSBuild\Current\Bin\amd64;%PATH%
+    build.cmd
 test: off
-before_package:
-- cmd: |
-    set path=C:\vsbuildtools\MSBuild\Current\Bin\amd64;%path%
-    msbuild -v:m -t:Pack -p:Configuration=Release dnlib.sln
 artifacts:
 - path: src\bin\Release\*.*nupkg
   name: dnlib NuGet Packages
-notifications:
-- provider: Email
-  to:
-  - de4dot@gmail.com
-  on_build_success: false
-  on_build_failure: true
-  on_build_status_changed: false
-deploy:
-- provider: NuGet
-  on:
-    APPVEYOR_REPO_TAG: true
-  api_key:
-    secure: 1oWvNqv/17WGGwHiBAuPEXRbFUqG5ZIX83m51TNF1u/jIqAkjt8Ec4LI+jB9N5zh
