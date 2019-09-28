@@ -255,6 +255,7 @@ Exporting managed methods (DllExport)
 -------------------------------------
 
 dnlib supports exporting managed methods so the managed DLL file can be loaded by native code and then executed. .NET Framework supports this feature, but there's no guarantee that other CLRs (eg. .NET Core or Mono/Unity) support this feature.
+In case of .NET Core please be aware that `ijwhost.dll` has to be loaded prior to calling your exported method and that ijwhost currently (as of .NET Core 3.0) does not work if the calling app is self-contained.
 
 The `MethodDef` class has an `ExportInfo` property. If it gets initialized, the method gets exported when saving the module. At most 65536 (2^16) methods can be exported. This is a PE file limitation, not a dnlib limitation.
 
