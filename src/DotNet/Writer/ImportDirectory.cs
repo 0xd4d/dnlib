@@ -19,6 +19,7 @@ namespace dnlib.DotNet.Writer {
 		RVA dllToImportRVA;
 		int stringsPadding;
 		string dllToImport;
+		string entryPointName;
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImportAddressTable"/>
@@ -59,8 +60,17 @@ namespace dnlib.DotNet.Writer {
 			set => dllToImport = value;
 		}
 
+		/// <summary>
+		/// Gets/sets the name of the entry point of the imported dll.
+		/// </summary>
+		public string EntryPointName {
+			get => entryPointName ?? (IsExeFile ? "_CorExeMain" : "_CorDllMain");
+			set => entryPointName = value;
+		}
+
 		const uint STRINGS_ALIGNMENT = 16;
 		const uint ZERO_STRING_TERMINATION = 1;
+		const uint TWO_BYTE_PADDING = 2;
 
 		/// <summary>
 		/// Constructor
@@ -80,7 +90,7 @@ namespace dnlib.DotNet.Writer {
 			stringsPadding = (int)(rva.AlignUp(STRINGS_ALIGNMENT) - rva);
 			length += (uint)stringsPadding;
 			corXxxMainRVA = rva + length;
-			length += 0xE;
+			length += (uint)EntryPointName.Length + ZERO_STRING_TERMINATION + TWO_BYTE_PADDING;
 			dllToImportRVA = rva + length;
 			length += (uint)DllToImport.Length + ZERO_STRING_TERMINATION;
 			length++;
@@ -121,7 +131,7 @@ namespace dnlib.DotNet.Writer {
 
 			writer.WriteZeroes(stringsPadding);
 			writer.WriteUInt16(0);
-			writer.WriteBytes(Encoding.UTF8.GetBytes(IsExeFile ? "_CorExeMain\0" : "_CorDllMain\0"));
+			writer.WriteBytes(Encoding.UTF8.GetBytes($"{EntryPointName}\0"));
 			writer.WriteBytes(Encoding.UTF8.GetBytes($"{DllToImport}\0"));
 
 			writer.WriteByte(0);
