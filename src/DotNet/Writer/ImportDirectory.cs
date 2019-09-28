@@ -69,8 +69,6 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		const uint STRINGS_ALIGNMENT = 16;
-		const uint ZERO_STRING_TERMINATION = 1;
-		const uint TWO_BYTE_PADDING = 2;
 
 		/// <summary>
 		/// Constructor
@@ -90,9 +88,9 @@ namespace dnlib.DotNet.Writer {
 			stringsPadding = (int)(rva.AlignUp(STRINGS_ALIGNMENT) - rva);
 			length += (uint)stringsPadding;
 			corXxxMainRVA = rva + length;
-			length += (uint)EntryPointName.Length + ZERO_STRING_TERMINATION + TWO_BYTE_PADDING;
+			length += 2 + (uint)EntryPointName.Length + 1;
 			dllToImportRVA = rva + length;
-			length += (uint)DllToImport.Length + ZERO_STRING_TERMINATION;
+			length += (uint)DllToImport.Length + 1;
 			length++;
 		}
 
@@ -131,8 +129,8 @@ namespace dnlib.DotNet.Writer {
 
 			writer.WriteZeroes(stringsPadding);
 			writer.WriteUInt16(0);
-			writer.WriteBytes(Encoding.UTF8.GetBytes($"{EntryPointName}\0"));
-			writer.WriteBytes(Encoding.UTF8.GetBytes($"{DllToImport}\0"));
+			writer.WriteBytes(Encoding.UTF8.GetBytes(EntryPointName + "\0"));
+			writer.WriteBytes(Encoding.UTF8.GetBytes(DllToImport + "\0"));
 
 			writer.WriteByte(0);
 		}
