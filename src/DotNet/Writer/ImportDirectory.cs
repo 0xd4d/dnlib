@@ -18,6 +18,7 @@ namespace dnlib.DotNet.Writer {
 		RVA corXxxMainRVA;
 		RVA dllToImportRVA;
 		int stringsPadding;
+		string dllToImport;
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImportAddressTable"/>
@@ -53,9 +54,13 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the name of the dll which should be imported.
 		/// </summary>
-		public string DllToImport { get; set; } = "mscoree.dll";
+		public string DllToImport {
+			get => dllToImport ?? "mscoree.dll";
+			set => dllToImport = value;
+		}
 
 		const uint STRINGS_ALIGNMENT = 16;
+		const uint ZERO_STRING_TERMINATION = 1;
 
 		/// <summary>
 		/// Constructor
@@ -77,7 +82,7 @@ namespace dnlib.DotNet.Writer {
 			corXxxMainRVA = rva + length;
 			length += 0xE;
 			dllToImportRVA = rva + length;
-			length += 0xC;
+			length += (uint)DllToImport.Length + ZERO_STRING_TERMINATION;
 			length++;
 		}
 
