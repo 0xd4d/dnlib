@@ -18,7 +18,7 @@ namespace dnlib.IO {
 		DataReader reader;
 		long position;
 
-		public DataReaderStream(ref DataReader reader) {
+		public DataReaderStream(in DataReader reader) {
 			this.reader = reader;
 			position = reader.Position;
 		}

@@ -197,7 +197,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				BodySize = offset;
 			}
 
-			public int GetOffset(Instruction instr) {
+			public readonly int GetOffset(Instruction instr) {
 				if (instr is null)
 					return (int)BodySize;
 				if (toOffset.TryGetValue(instr, out uint offset))

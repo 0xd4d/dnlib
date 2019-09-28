@@ -290,9 +290,6 @@ namespace dnlib.DotNet.Writer {
 				public bool Equals(RawDummyRow x, RawDummyRow y) => throw new NotSupportedException();
 				public int GetHashCode(RawDummyRow obj) => throw new NotSupportedException();
 			}
-
-			public uint Read(int index) => throw new NotSupportedException();
-			public void Write(int index, uint value) => throw new NotSupportedException();
 		}
 
 		/// <inheritdoc/>

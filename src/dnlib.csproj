@@ -27,7 +27,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageVersion>$(InformationalVersion)</PackageVersion>
     <PackageTags>dotnet;assembly;module;reader;writer;PDB;PortablePdb;WindowsPdb;IL;CIL;MSIL;metadata</PackageTags>
-    <Features>strict</Features>
+    <Features>strict;nullablePublicOnly</Features>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
@@ -43,7 +43,7 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
 
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
