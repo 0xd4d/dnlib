@@ -28,7 +28,7 @@ if (!$useMsbuild) {
 if ($useMsbuild) {
 	msbuild -v:m -restore -t:Build -p:Configuration=$configuration
 	if ($LASTEXITCODE) { exit $LASTEXITCODE }
-	msbuild -v:m -t:Pack -p:Configuration=$configuration
+	msbuild -v:m -t:Pack -p:Configuration=$configuration src/dnlib.csproj
 	if ($LASTEXITCODE) { exit $LASTEXITCODE }
 }
 else {
