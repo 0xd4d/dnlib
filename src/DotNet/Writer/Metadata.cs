@@ -177,6 +177,19 @@ namespace dnlib.DotNet.Writer {
 		/// Don't write field data
 		/// </summary>
 		NoFieldData = 0x800000,
+
+		/// <summary>
+		/// Serialized type names stored in custom attributes are optimized if the types
+		/// exist in the current module or in the core library (eg. mscorlib/System.Private.CoreLib).
+		/// Instead of storing type-name + assembly-name, only type-name is stored. This results in
+		/// slightly smaller assemblies.
+		/// <br/>
+		/// <br/>
+		/// This is disabled by default. It's safe to enable if the reference core assembly
+		/// is the same as the runtime core assembly (eg. it's mscorlib.dll and .NET Framework,
+		/// but not .NET Core).
+		/// </summary>
+		OptimizeCustomAttributeSerializedTypeNames = 0x1000000,
 	}
 
 	/// <summary>
@@ -882,6 +895,19 @@ namespace dnlib.DotNet.Writer {
 					options.Flags |= MetadataFlags.NoFieldData;
 				else
 					options.Flags &= ~MetadataFlags.NoFieldData;
+			}
+		}
+
+		/// <summary>
+		/// Gets/sets the <see cref="MetadataFlags.OptimizeCustomAttributeSerializedTypeNames"/> bit
+		/// </summary>
+		public bool OptimizeCustomAttributeSerializedTypeNames {
+			get => (options.Flags & MetadataFlags.OptimizeCustomAttributeSerializedTypeNames) != 0;
+			set {
+				if (value)
+					options.Flags |= MetadataFlags.OptimizeCustomAttributeSerializedTypeNames;
+				else
+					options.Flags &= ~MetadataFlags.OptimizeCustomAttributeSerializedTypeNames;
 			}
 		}
 
@@ -2631,7 +2657,7 @@ namespace dnlib.DotNet.Writer {
 				encodedParent = 0;
 			}
 			var row = new RawFieldMarshalRow(encodedParent,
-						blobHeap.Add(MarshalBlobWriter.Write(module, fieldMarshal, this)));
+						blobHeap.Add(MarshalBlobWriter.Write(module, fieldMarshal, this, OptimizeCustomAttributeSerializedTypeNames)));
 			fieldMarshalInfos.Add(hfm, row);
 		}
 
@@ -2805,7 +2831,7 @@ namespace dnlib.DotNet.Writer {
 					continue;
 				var row = new RawDeclSecurityRow((short)decl.Action,
 							encodedParent,
-							blobHeap.Add(DeclSecurityWriter.Write(module, decl.SecurityAttributes, this, bwctx)));
+							blobHeap.Add(DeclSecurityWriter.Write(module, decl.SecurityAttributes, this, OptimizeCustomAttributeSerializedTypeNames, bwctx)));
 				declSecurityInfos.Add(decl, row);
 			}
 			Free(ref bwctx);
@@ -3534,7 +3560,8 @@ namespace dnlib.DotNet.Writer {
 		void IWriterError.Error(string message) => Error(message);
 
 		/// <inheritdoc/>
-		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) => FullNameFactory.MustUseAssemblyName(module, type);
+		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>
+			!OptimizeCustomAttributeSerializedTypeNames || FullNameFactory.MustUseAssemblyName(module, type);
 
 		/// <summary>
 		/// Called before any other methods

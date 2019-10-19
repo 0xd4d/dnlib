@@ -13,6 +13,7 @@ namespace dnlib.DotNet.Writer {
 		readonly ModuleDef module;
 		readonly IWriterError helper;
 		readonly DataWriterContext context;
+		readonly bool optimizeCustomAttributeSerializedTypeNames;
 
 		/// <summary>
 		/// Creates a <c>DeclSecurity</c> blob from <paramref name="secAttrs"/>
@@ -22,15 +23,28 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A <c>DeclSecurity</c> blob</returns>
 		public static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper) =>
-			new DeclSecurityWriter(module, helper, null).Write(secAttrs);
+			Write(module, secAttrs, helper, false);
 
-		internal static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper, DataWriterContext context) =>
-			new DeclSecurityWriter(module, helper, context).Write(secAttrs);
+		/// <summary>
+		/// Creates a <c>DeclSecurity</c> blob from <paramref name="secAttrs"/>
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="secAttrs">List of <see cref="SecurityAttribute"/>s</param>
+		/// <param name="helper">Helps this class</param>
+		/// <param name="optimizeCustomAttributeSerializedTypeNames">Optimize serialized type strings in custom attributes.
+		/// For more info, see <see cref="MetadataFlags.OptimizeCustomAttributeSerializedTypeNames"/></param>
+		/// <returns>A <c>DeclSecurity</c> blob</returns>
+		public static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames) =>
+			new DeclSecurityWriter(module, helper, optimizeCustomAttributeSerializedTypeNames, null).Write(secAttrs);
 
-		DeclSecurityWriter(ModuleDef module, IWriterError helper, DataWriterContext context) {
+		internal static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames, DataWriterContext context) =>
+			new DeclSecurityWriter(module, helper, optimizeCustomAttributeSerializedTypeNames, context).Write(secAttrs);
+
+		DeclSecurityWriter(ModuleDef module, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames, DataWriterContext context) {
 			this.module = module;
 			this.helper = helper;
 			this.context = context;
+			this.optimizeCustomAttributeSerializedTypeNames = optimizeCustomAttributeSerializedTypeNames;
 		}
 
 		byte[] Write(IList<SecurityAttribute> secAttrs) {
@@ -88,6 +102,7 @@ namespace dnlib.DotNet.Writer {
 		uint WriteCompressedUInt32(DataWriter writer, uint value) => writer.WriteCompressedUInt32(helper, value);
 		void Write(DataWriter writer, UTF8String s) => writer.Write(helper, s);
 		void IWriterError.Error(string message) => helper.Error(message);
-		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) => FullNameFactory.MustUseAssemblyName(module, type);
+		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>
+			!optimizeCustomAttributeSerializedTypeNames || FullNameFactory.MustUseAssemblyName(module, type);
 	}
 }

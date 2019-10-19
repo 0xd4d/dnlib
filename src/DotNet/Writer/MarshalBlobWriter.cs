@@ -12,6 +12,7 @@ namespace dnlib.DotNet.Writer {
 		readonly MemoryStream outStream;
 		readonly DataWriter writer;
 		readonly IWriterError helper;
+		readonly bool optimizeCustomAttributeSerializedTypeNames;
 
 		/// <summary>
 		/// Creates a field marshal blob from <paramref name="marshalType"/>
@@ -21,16 +22,30 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A field marshal blob or <c>null</c> if <paramref name="marshalType"/> is
 		/// <c>null</c></returns>
-		public static byte[] Write(ModuleDef module, MarshalType marshalType, IWriterError helper) {
-			using (var writer = new MarshalBlobWriter(module, helper))
+		public static byte[] Write(ModuleDef module, MarshalType marshalType, IWriterError helper) =>
+			Write(module, marshalType, helper, false);
+
+		/// <summary>
+		/// Creates a field marshal blob from <paramref name="marshalType"/>
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="marshalType">Marshal type</param>
+		/// <param name="helper">Helps this class</param>
+		/// <param name="optimizeCustomAttributeSerializedTypeNames">Optimize serialized type strings in custom attributes.
+		/// For more info, see <see cref="MetadataFlags.OptimizeCustomAttributeSerializedTypeNames"/></param>
+		/// <returns>A field marshal blob or <c>null</c> if <paramref name="marshalType"/> is
+		/// <c>null</c></returns>
+		public static byte[] Write(ModuleDef module, MarshalType marshalType, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames) {
+			using (var writer = new MarshalBlobWriter(module, helper, optimizeCustomAttributeSerializedTypeNames))
 				return writer.Write(marshalType);
 		}
 
-		MarshalBlobWriter(ModuleDef module, IWriterError helper) {
+		MarshalBlobWriter(ModuleDef module, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames) {
 			this.module = module;
 			outStream = new MemoryStream();
 			writer = new DataWriter(outStream);
 			this.helper = helper;
+			this.optimizeCustomAttributeSerializedTypeNames = optimizeCustomAttributeSerializedTypeNames;
 		}
 
 		byte[] Write(MarshalType marshalType) {
@@ -130,6 +145,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public void Dispose() => outStream?.Dispose();
 
-		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) => FullNameFactory.MustUseAssemblyName(module, type);
+		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>
+			!optimizeCustomAttributeSerializedTypeNames || FullNameFactory.MustUseAssemblyName(module, type);
 	}
 }
