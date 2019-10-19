@@ -1951,6 +1951,8 @@ namespace dnlib.DotNet {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
+		internal ModuleDefMD ReaderModule => readerModule;
+
 		readonly uint origRid;
 		readonly uint extendsCodedToken;
 		Dictionary<uint, IList<MethodOverrideTokens>> methodRidToOverrides;
