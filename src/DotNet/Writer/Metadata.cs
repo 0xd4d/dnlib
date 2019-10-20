@@ -187,7 +187,7 @@ namespace dnlib.DotNet.Writer {
 		/// <br/>
 		/// This is disabled by default. It's safe to enable if the reference core assembly
 		/// is the same as the runtime core assembly (eg. it's mscorlib.dll and .NET Framework,
-		/// but not .NET Core).
+		/// but not .NET Core / .NET Standard).
 		/// </summary>
 		OptimizeCustomAttributeSerializedTypeNames = 0x1000000,
 	}
