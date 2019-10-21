@@ -52,8 +52,6 @@ namespace dnlib.DotNet {
 
 		/// <summary>Implementation is forwarded through pinvoke.</summary>
 		PinvokeImpl			= 0x2000,
-		/// <summary>Implementation is forwarded through pinvoke.</summary>
-		PInvokeImpl			= PinvokeImpl,
 		/// <summary>Managed method exported via thunk to unmanaged code.</summary>
 		UnmanagedExport		= 0x0008,
 
