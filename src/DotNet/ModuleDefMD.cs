@@ -560,6 +560,12 @@ namespace dnlib.DotNet {
 			{ "mscorlib, Version=3.5.0.0, Culture=neutral, PublicKeyToken=969db8053d3322ac", 60 },
 			{ "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=969db8053d3322ac", 50 },
 		};
+		static readonly string[] corlibs = new string[] {
+			"System.Private.CoreLib",
+			"System.Runtime",
+			"netstandard",
+			"mscorlib",
+		};
 
 		/// <summary>
 		/// Finds a mscorlib <see cref="AssemblyRef"/>
@@ -582,25 +588,17 @@ namespace dnlib.DotNet {
 			if (!(corLibAsmRef is null))
 				return corLibAsmRef;
 
-			for (uint i = 1; i <= numAsmRefs; i++) {
-				var asmRef = ResolveAssemblyRef(i);
-				if (!UTF8String.ToSystemStringOrEmpty(asmRef.Name).Equals("netstandard", StringComparison.OrdinalIgnoreCase))
-					continue;
-				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
-					corLibAsmRef = asmRef;
+			foreach (var corlib in corlibs) {
+				for (uint i = 1; i <= numAsmRefs; i++) {
+					var asmRef = ResolveAssemblyRef(i);
+					if (!UTF8String.ToSystemStringOrEmpty(asmRef.Name).Equals(corlib, StringComparison.OrdinalIgnoreCase))
+						continue;
+					if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
+						corLibAsmRef = asmRef;
+				}
+				if (!(corLibAsmRef is null))
+					return corLibAsmRef;
 			}
-			if (!(corLibAsmRef is null))
-				return corLibAsmRef;
-
-			for (uint i = 1; i <= numAsmRefs; i++) {
-				var asmRef = ResolveAssemblyRef(i);
-				if (!UTF8String.ToSystemStringOrEmpty(asmRef.Name).Equals("mscorlib", StringComparison.OrdinalIgnoreCase))
-					continue;
-				if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
-					corLibAsmRef = asmRef;
-			}
-			if (!(corLibAsmRef is null))
-				return corLibAsmRef;
 
 			// If we've loaded mscorlib itself, it won't have any AssemblyRefs to itself.
 			var asm = Assembly;
