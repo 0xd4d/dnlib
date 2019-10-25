@@ -489,12 +489,11 @@ namespace dnlib.DotNet.Emit {
 		ITypeDefOrRef ISignatureReaderHelper.ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext) {
 			if (!CodedToken.TypeDefOrRef.Decode(codedToken, out uint token))
 				return null;
-			uint rid = MDToken.ToRID(token);
 			switch (MDToken.ToTable(token)) {
 			case Table.TypeDef:
 			case Table.TypeRef:
 			case Table.TypeSpec:
-				return ImportType(rid);
+				return module.ResolveToken(token) as ITypeDefOrRef;
 			}
 			return null;
 		}
