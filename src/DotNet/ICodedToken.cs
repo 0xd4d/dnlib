@@ -606,7 +606,7 @@ namespace dnlib.DotNet {
 		/// <param name="method">this</param>
 		/// <param name="index">Normal visible parameter index</param>
 		/// <returns></returns>
-		public static TypeSig GetParam(this IMethod method, int index) => method?.MethodSig?.Params?[index];
+		public static TypeSig GetParam(this IMethod method, int index) => method?.MethodSig?.Params[index];
 	}
 
 	/// <summary>
