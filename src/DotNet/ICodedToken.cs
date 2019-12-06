@@ -585,6 +585,28 @@ namespace dnlib.DotNet {
 
 			return null;
 		}
+
+		/// <summary>
+		/// Gets the normal visible parameters, doesn't include the hidden 'this' parameter
+		/// </summary>
+		/// <param name="method">this</param>
+		/// <returns>The normal visible parameters</returns>
+		public static IList<TypeSig> GetParams(this IMethod method) => method?.MethodSig.GetParams();
+
+		/// <summary>
+		/// Gets the normal visible parameter count, doesn't include the hidden 'this' parameter
+		/// </summary>
+		/// <param name="method">this</param>
+		/// <returns>Normal visible parameter count</returns>
+		public static int GetParamCount(this IMethod method) => method?.MethodSig.GetParamCount() ?? 0;
+
+		/// <summary>
+		/// Gets a normal visible parameter, doesn't include the hidden 'this' parameter
+		/// </summary>
+		/// <param name="method">this</param>
+		/// <param name="index">Normal visible parameter index</param>
+		/// <returns></returns>
+		public static TypeSig GetParam(this IMethod method, int index) => method?.MethodSig?.Params?[index];
 	}
 
 	/// <summary>

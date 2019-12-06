@@ -437,6 +437,13 @@ namespace dnlib.DotNet {
 		public static string GetNamespace(this TypeSig a) => a is null ? string.Empty : a.Namespace;
 
 		/// <summary>
+		/// Returns the <see cref="ITypeDefOrRef"/> if it is a <see cref="TypeDefOrRefSig"/>.
+		/// </summary>
+		/// <param name="a">this</param>
+		/// <returns>A <see cref="ITypeDefOrRef"/> or <c>null</c> if none found</returns>
+		public static ITypeDefOrRef TryGetTypeDefOrRef(this TypeSig a) => (a.RemovePinnedAndModifiers() as TypeDefOrRefSig)?.TypeDefOrRef;
+
+		/// <summary>
 		/// Returns the <see cref="TypeRef"/> if it is a <see cref="TypeDefOrRefSig"/>.
 		/// </summary>
 		/// <param name="a">this</param>
