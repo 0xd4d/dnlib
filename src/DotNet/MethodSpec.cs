@@ -204,7 +204,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the MethodSpec table
 	/// </summary>
-	sealed class MethodSpecMD : MethodSpec, IMDTokenProviderMD {
+	sealed class MethodSpecMD : MethodSpec, IMDTokenProviderMD, IContainsGenericParameter2 {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
@@ -213,6 +213,8 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public uint OrigRid => origRid;
+
+		bool IContainsGenericParameter2.ContainsGenericParameter => TypeHelper.ContainsGenericParameter(this);
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {

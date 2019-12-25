@@ -255,7 +255,6 @@ namespace dnlib.DotNet {
 					ContainsGenericParameterInternal((type as NonLeafSig).Next);
 				break;
 
-
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:

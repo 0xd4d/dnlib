@@ -80,6 +80,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		bool ContainsGenericParameter { get; }
 	}
+	interface IContainsGenericParameter2 {
+		bool ContainsGenericParameter { get; }
+	}
 
 	public static partial class Extensions {
 		/// <summary>

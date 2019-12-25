@@ -126,7 +126,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the StandAloneSig table
 	/// </summary>
-	sealed class StandAloneSigMD : StandAloneSig, IMDTokenProviderMD {
+	sealed class StandAloneSigMD : StandAloneSig, IMDTokenProviderMD, IContainsGenericParameter2 {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 

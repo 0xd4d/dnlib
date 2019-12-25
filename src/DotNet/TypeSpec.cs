@@ -277,7 +277,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Created from a row in the TypeSpec table
 	/// </summary>
-	sealed class TypeSpecMD : TypeSpec, IMDTokenProviderMD {
+	sealed class TypeSpecMD : TypeSpec, IMDTokenProviderMD, IContainsGenericParameter2 {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
@@ -309,6 +309,8 @@ namespace dnlib.DotNet {
 			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), gpContext, list);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}
+
+		bool IContainsGenericParameter2.ContainsGenericParameter => !gpContext.IsEmpty && ContainsGenericParameter;
 
 		/// <summary>
 		/// Constructor

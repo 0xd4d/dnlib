@@ -58,7 +58,7 @@ namespace dnlib.Utils {
 	/// </summary>
 	/// <typeparam name="T">Any class type</typeparam>
 	[DebuggerDisplay("Count = {Length}")]
-	sealed class SimpleLazyList2<T> where T : class, IContainsGenericParameter {
+	sealed class SimpleLazyList2<T> where T : class, IContainsGenericParameter2 {
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 		readonly T[] elements;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]

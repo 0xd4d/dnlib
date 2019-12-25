@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using dnlib.DotNet.MD;
 using dnlib.IO;
 
 namespace dnlib.DotNet {
@@ -568,12 +569,12 @@ namespace dnlib.DotNet {
 
 			case ElementType.Ptr:		result = new PtrSig(ReadType()); break;
 			case ElementType.ByRef:		result = new ByRefSig(ReadType()); break;
-			case ElementType.ValueType:	result = new ValueTypeSig(ReadTypeDefOrRef()); break;
-			case ElementType.Class:		result = new ClassSig(ReadTypeDefOrRef()); break;
+			case ElementType.ValueType:	result = new ValueTypeSig(ReadTypeDefOrRef(false)); break;
+			case ElementType.Class:		result = new ClassSig(ReadTypeDefOrRef(false)); break;
 			case ElementType.FnPtr:		result = new FnPtrSig(ReadSig()); break;
 			case ElementType.SZArray:	result = new SZArraySig(ReadType()); break;
-			case ElementType.CModReqd:	result = new CModReqdSig(ReadTypeDefOrRef(), ReadType()); break;
-			case ElementType.CModOpt:	result = new CModOptSig(ReadTypeDefOrRef(), ReadType()); break;
+			case ElementType.CModReqd:	result = new CModReqdSig(ReadTypeDefOrRef(true), ReadType()); break;
+			case ElementType.CModOpt:	result = new CModOptSig(ReadTypeDefOrRef(true), ReadType()); break;
 			case ElementType.Sentinel:	result = new SentinelSig(); break;
 			case ElementType.Pinned:	result = new PinnedSig(ReadType()); break;
 
@@ -667,14 +668,12 @@ exit:
 			return result;
 		}
 
-		/// <summary>
-		/// Reads a <c>TypeDefOrRef</c>
-		/// </summary>
-		/// <returns>A <see cref="ITypeDefOrRef"/> instance</returns>
-		ITypeDefOrRef ReadTypeDefOrRef() {
+		ITypeDefOrRef ReadTypeDefOrRef(bool allowTypeSpec) {
 			if (!reader.TryReadCompressedUInt32(out uint codedToken))
 				return null;
-			return helper.ResolveTypeDefOrRef(codedToken, gpContext);
+			if (!allowTypeSpec && CodedToken.TypeDefOrRef.Decode2(codedToken).Table == Table.TypeSpec)
+				return null;
+			return helper.ResolveTypeDefOrRef(codedToken, default);
 		}
 	}
 }
