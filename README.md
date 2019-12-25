@@ -9,56 +9,6 @@ v3.0 requires VS2019 or later to build it. .NET Core SDK 2.1 or later is also re
 
 An [older v2.1 branch](https://github.com/0xd4d/dnlib/tree/v2.1_VS2010) can be used to build with older VS versions. This branch won't get any new updates.
 
-v3.0 breaking changes
----------------------
-- VS2019 is required to compile it
-- It targets .NET Framework 3.5 or later and netstandard 2.0 or later (.NET Framework 2.0 and 3.0 aren't supported)
-- `*MetaData*` -> `*Metadata*`
-- `IMetaData` interface is an abstract class `Metadata`
-- `_32Bit*` -> `Bit32*`
-- `IAssemblyResolver` only has a `Resolve` method. The other methods are still implemented by the default assembly resolver (`AssemblyResolver`)
-- Raw table rows, eg. `RawMethodRow`
-	- They are immutable structs and the methods to read them have been renamed from eg. `ReadMethodRow` -> `TryReadMethodRow`
-	- An indexer replaces their `Read()` method
-	- The `IRawRow` interface has been removed
-- The `Constant` table info (`TableInfo`) has an extra padding byte column
-- `ModuleWriterOptionsBase.Listener` is obsolete, use the new event `ModuleWriterOptionsBase.WriterEvent` instead
-- Module writer events related to the current progress have been removed. Use the new event `ModuleWriterOptionsBase.ProgressUpdated` instead
-- `StrongNameKey`, `PublicKey`, `PublicKeyToken` are immutable classes
-- `RidList` is a struct
-- `IBinaryReader`, `IImageStream` have been removed and replaced with new classes
-	- `MemoryImageStream` -> `ByteArrayDataReaderFactory`
-		- It has two static factory methods, `Create` and `CreateReader`
-	- `BinaryReaderChunk` -> `DataReaderChunk`
-	- To get a reader, call `CreateReader` on `IPEImage`, `DataReaderFactory`, or #Blob stream
-	- The reader is a struct called `DataReader` and it's not disposable
-	- The reader has `Slice` methods to get another reader (replaces the older `Create` methods)
-	- Since the reader is a struct, pass it by reference to methods if its position should be updated when the method returns
-	- `DataReader.Position` is now a `uint` and not a `long` so expressions that were `long` could now be `uint` and possibly overflow/underflow
-		- `reader.Position + 0xFFFFFFFF`
-		- `reader.Position + someRandomValue`
-		- `var pos = reader.Position;` <-- `pos` is a `uint` and not a `long`
-	- `DataReader.Position` only accepts valid values and will throw (an `IOException`) if you set it to an invalid position
-- `FileOffset` is `uint`, used to be `long`
-- `MethodBodyWriterBase` uses `ArrayWriter` instead of `BinaryWriter` (all virtual methods)
-- `ModuleWriter` and `NativeModuleWriter` use `DataWriter` instead of `BinaryWriter`
-- The native module writer now tries to fit the new metadata, method bodies, resources and other data in the old locations. This results in smaller files. It can be disabled by creating your own `NativeModuleWriterOptions`
-- `MetadataOptions`' `OtherHeaps` and `OtherHeapsEnd` have been removed. Use `CustomHeaps`, `MetadataHeapsAdded` and `PreserveHeapOrder()` instead.
-- `Instruction.GetLocal()` returns a local if the instruction is a `ldloca` or `ldloca.s` instruction (it used to return null)
-- `ModuleCreationOptions.PdbImplementation` has been removed and replaced with `PdbOptions`
-- Renamed
-	- `ITokenCreator` -> `ITokenProvider`
-	- `MetadataCreator` -> `MetadataFactory`
-	- `ResourceDataCreator` -> `ResourceDataFactory`
-	- `FullNameCreator` -> `FullNameFactory`
-
-Examples
---------
-
-All examples use C#, but since it's a .NET library, you can use any .NET language (eg. VB.NET).
-
-See the Examples project for several examples.
-
 Opening a .NET assembly/module
 ------------------------------
 
