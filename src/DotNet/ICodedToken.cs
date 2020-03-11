@@ -601,6 +601,13 @@ namespace dnlib.DotNet {
 		public static int GetParamCount(this IMethod method) => method?.MethodSig.GetParamCount() ?? 0;
 
 		/// <summary>
+		/// Checks whether any normal visible parameter exists, doesn't include the hidden 'this' parameter
+		/// </summary>
+		/// <param name="method">this</param>
+		/// <returns><c>true</c> if there's at least one normal visible parameter</returns>
+		public static bool HasParams(this IMethod method) => method.GetParamCount() > 0;
+
+		/// <summary>
 		/// Gets a normal visible parameter, doesn't include the hidden 'this' parameter
 		/// </summary>
 		/// <param name="method">this</param>
