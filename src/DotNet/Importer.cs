@@ -218,8 +218,11 @@ namespace dnlib.DotNet {
 				return module.CorLibTypes.IntPtr;
 
 			case ElementType.Array:
-				FixSignature = true;	// We don't know sizes and lower bounds
-				return new ArraySig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst), (uint)type.GetArrayRank());
+				// We don't know sizes and lower bounds. Assume it's `0..`
+				var lowerBounds = new int[type.GetArrayRank()];
+				var sizes = Array2.Empty<uint>();
+				FixSignature = true;
+				return new ArraySig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst), (uint)type.GetArrayRank(), sizes, lowerBounds);
 
 			case ElementType.GenericInst:
 				var typeGenArgs = type.GetGenericArguments();
