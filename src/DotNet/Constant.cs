@@ -91,7 +91,7 @@ namespace dnlib.DotNet {
 			case TypeCode.Single:	return ElementType.R4;
 			case TypeCode.Double:	return ElementType.R8;
 			case TypeCode.String:	return ElementType.String;
-			default: return ElementType.Void;
+			default:				return ElementType.Void;
 			}
 		}
 	}
