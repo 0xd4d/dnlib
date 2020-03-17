@@ -359,6 +359,15 @@ namespace dnlib.DotNet.Writer {
 			reusedChunks.Add(new ReusedChunkInfo(chunk, origRva));
 		}
 
+		FileOffset GetNewFileOffset(RVA rva) {
+			foreach (var sect in origSections) {
+				var section = sect.PESection;
+				if (section.VirtualAddress <= rva && rva < section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData))
+					return sect.Chunk.FileOffset + (rva - section.VirtualAddress);
+			}
+			return (FileOffset)rva;
+		}
+
 		long WriteFile() {
 			bool entryPointIsManagedOrNoEntryPoint = GetEntryPoint(out uint entryPointToken);
 
@@ -435,22 +444,14 @@ namespace dnlib.DotNet.Writer {
 			if (!(extraData is null))
 				chunks.Add(extraData);
 
+			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
-				uint newSizeOfHeaders = SectionSizes.GetSizeOfHeaders(peImage.ImageNTHeaders.OptionalHeader.FileAlignment, headerLen);
-				uint oldSizeOfHeaders = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
-				if (newSizeOfHeaders < oldSizeOfHeaders)
-					throw new InvalidOperationException();
-				uint fileOffsetDelta = newSizeOfHeaders - oldSizeOfHeaders;
-				methodBodies.InitializeReusedMethodBodies(peImage, fileOffsetDelta);
+				methodBodies.InitializeReusedMethodBodies(GetNewFileOffset);
 				foreach (var info in reusedChunks) {
-					if (fileOffsetDelta == 0 && (info.Chunk == metadata || info.Chunk == win32Resources))
-						continue;
-					var offset = peImage.ToFileOffset(info.RVA) + fileOffsetDelta;
+					var offset = GetNewFileOffset(info.RVA);
 					info.Chunk.SetOffset(offset, info.RVA);
 				}
-				metadata.UpdateMethodAndFieldRvas();
 			}
-			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			metadata.UpdateMethodAndFieldRvas();
 			foreach (var section in origSections) {
 				if (section.Chunk.RVA != section.PESection.VirtualAddress)
