@@ -42,7 +42,19 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type (<c>TypeDef</c>, <c>TypeRef</c> or <c>ExportedType</c>)
 		/// or <c>null</c></param>
 		/// <returns><c>true</c> if the assembly name must be included, <c>false</c> otherwise</returns>
-		public static bool MustUseAssemblyName(ModuleDef module, IType type) {
+		public static bool MustUseAssemblyName(ModuleDef module, IType type) => MustUseAssemblyName(module, type, true);
+
+		/// <summary>
+		/// Checks whether the assembly name should be included when printing the full name.
+		/// See <see cref="IFullNameFactoryHelper.MustUseAssemblyName"/> for more info.
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="type">The type (<c>TypeDef</c>, <c>TypeRef</c> or <c>ExportedType</c>)
+		/// or <c>null</c></param>
+		/// <param name="allowCorlib">If false, don't add an assembly name if it's a type in <paramref name="module"/>,
+		/// if true, don't add an assembly name if it's a type in <paramref name="module"/> or the corlib.</param>
+		/// <returns><c>true</c> if the assembly name must be included, <c>false</c> otherwise</returns>
+		public static bool MustUseAssemblyName(ModuleDef module, IType type, bool allowCorlib) {
 			if (type is TypeDef td)
 				return td.Module != module;
 
@@ -51,11 +63,15 @@ namespace dnlib.DotNet {
 				return true;
 			if (tr.ResolutionScope == AssemblyRef.CurrentAssembly)
 				return false;
-			if (!tr.DefinitionAssembly.IsCorLib())
+			if (allowCorlib) {
+				if (!tr.DefinitionAssembly.IsCorLib())
+					return true;
+				// If it's present in this module, but it's a corlib type, then we will need the
+				// assembly name.
+				return !(module.Find(tr) is null);
+			}
+			else
 				return true;
-			// If it's present in this module, but it's a corlib type, then we will need the
-			// assembly name.
-			return !(module.Find(tr) is null);
 		}
 
 		/// <summary>
@@ -1317,8 +1333,8 @@ namespace dnlib.DotNet {
 						if (!isReflection) {
 							const int NO_LOWER = int.MinValue;
 							const uint NO_SIZE = uint.MaxValue;
-								int lower = i < arraySig.LowerBounds.Count ? arraySig.LowerBounds[i] : NO_LOWER;
-								uint size = i < arraySig.Sizes.Count ? arraySig.Sizes[i] : NO_SIZE;
+							int lower = i < arraySig.LowerBounds.Count ? arraySig.LowerBounds[i] : NO_LOWER;
+							uint size = i < arraySig.Sizes.Count ? arraySig.Sizes[i] : NO_SIZE;
 							if (lower != NO_LOWER) {
 								sb.Append(lower);
 								sb.Append("..");

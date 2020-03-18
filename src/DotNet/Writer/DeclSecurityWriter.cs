@@ -103,6 +103,6 @@ namespace dnlib.DotNet.Writer {
 		void Write(DataWriter writer, UTF8String s) => writer.Write(helper, s);
 		void IWriterError.Error(string message) => helper.Error(message);
 		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>
-			!optimizeCustomAttributeSerializedTypeNames || FullNameFactory.MustUseAssemblyName(module, type);
+			FullNameFactory.MustUseAssemblyName(module, type, optimizeCustomAttributeSerializedTypeNames);
 	}
 }
