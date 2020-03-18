@@ -2,6 +2,8 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet {
@@ -205,20 +207,40 @@ namespace dnlib.DotNet {
 		/// <param name="dllName">Name of the DLL</param>
 		/// <param name="funcName">Name of the function within the DLL</param>
 		/// <returns><c>true</c> if it's the specified P/Invoke method, else <c>false</c></returns>
-		public bool IsPinvokeMethod(string dllName, string funcName) {
+		public bool IsPinvokeMethod(string dllName, string funcName) => IsPinvokeMethod(dllName, funcName, IsWindows());
+
+		/// <summary>
+		/// Checks whether this <see cref="ImplMap"/> is a certain P/Invoke method
+		/// </summary>
+		/// <param name="dllName">Name of the DLL</param>
+		/// <param name="funcName">Name of the function within the DLL</param>
+		/// <param name="treatAsWindows">Treat as Windows</param>
+		/// <returns><c>true</c> if it's the specified P/Invoke method, else <c>false</c></returns>
+		public bool IsPinvokeMethod(string dllName, string funcName, bool treatAsWindows) {
 			if (name != funcName)
 				return false;
 			var mod = module;
 			if (mod is null)
 				return false;
-			return GetDllName(dllName).Equals(GetDllName(mod.Name), StringComparison.OrdinalIgnoreCase);
+			return GetDllName(dllName, treatAsWindows).Equals(GetDllName(mod.Name, treatAsWindows), StringComparison.OrdinalIgnoreCase);
 		}
 
-		static string GetDllName(string dllName) {
+		static string GetDllName(string dllName, bool treatAsWindows) {
+			if (treatAsWindows)
+				dllName = dllName.TrimEnd(trimChars);
 			if (dllName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
 				return dllName.Substring(0, dllName.Length - 4);
 			return dllName;
 		}
+
+		static bool IsWindows() =>
+#if NETSTANDARD
+			RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#else
+			Path.DirectorySeparatorChar == '\\' || Path.AltDirectorySeparatorChar == '\\';
+#endif
+
+		static readonly char[] trimChars = { ' ' };
 	}
 
 	/// <summary>
