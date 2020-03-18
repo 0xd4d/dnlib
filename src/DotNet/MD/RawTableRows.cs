@@ -25,18 +25,15 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Generation;
-				case 1: return Name;
-				case 2: return Mvid;
-				case 3: return EncId;
-				case 4: return EncBaseId;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Generation,
+				1 => Name,
+				2 => Mvid,
+				3 => EncId,
+				4 => EncBaseId,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -58,16 +55,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return ResolutionScope;
-				case 1: return Name;
-				case 2: return Namespace;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => ResolutionScope,
+				1 => Name,
+				2 => Namespace,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -95,19 +89,16 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Flags;
-				case 1: return Name;
-				case 2: return Namespace;
-				case 3: return Extends;
-				case 4: return FieldList;
-				case 5: return MethodList;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Flags,
+				1 => Name,
+				2 => Namespace,
+				3 => Extends,
+				4 => FieldList,
+				5 => MethodList,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -123,14 +114,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Field;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Field,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -152,16 +140,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Flags;
-				case 1: return Name;
-				case 2: return Signature;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Flags,
+				1 => Name,
+				2 => Signature,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -177,14 +162,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Method;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Method,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -212,19 +194,16 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return RVA;
-				case 1: return ImplFlags;
-				case 2: return Flags;
-				case 3: return Name;
-				case 4: return Signature;
-				case 5: return ParamList;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => RVA,
+				1 => ImplFlags,
+				2 => Flags,
+				3 => Name,
+				4 => Signature,
+				5 => ParamList,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -240,14 +219,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Param;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Param,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -269,16 +245,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Flags;
-				case 1: return Sequence;
-				case 2: return Name;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Flags,
+				1 => Sequence,
+				2 => Name,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -298,15 +271,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Class;
-				case 1: return Interface;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Class,
+				1 => Interface,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -328,16 +298,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Class;
-				case 1: return Name;
-				case 2: return Signature;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Class,
+				1 => Name,
+				2 => Signature,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -361,17 +328,14 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Type;
-				case 1: return Padding;
-				case 2: return Parent;
-				case 3: return Value;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Type,
+				1 => Padding,
+				2 => Parent,
+				3 => Value,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -393,16 +357,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Parent;
-				case 1: return Type;
-				case 2: return Value;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Parent,
+				1 => Type,
+				2 => Value,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -422,15 +383,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Parent;
-				case 1: return NativeType;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Parent,
+				1 => NativeType,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -452,16 +410,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return (uint)(int)Action;
-				case 1: return Parent;
-				case 2: return PermissionSet;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => (uint)(int)Action,
+				1 => Parent,
+				2 => PermissionSet,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -483,16 +438,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return PackingSize;
-				case 1: return ClassSize;
-				case 2: return Parent;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => PackingSize,
+				1 => ClassSize,
+				2 => Parent,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -512,15 +464,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return OffSet;
-				case 1: return Field;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => OffSet,
+				1 => Field,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -536,14 +485,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Signature;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Signature,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -563,15 +509,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Parent;
-				case 1: return EventList;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Parent,
+				1 => EventList,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -587,14 +530,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Event;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Event,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -616,16 +556,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return EventFlags;
-				case 1: return Name;
-				case 2: return EventType;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => EventFlags,
+				1 => Name,
+				2 => EventType,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -645,15 +582,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Parent;
-				case 1: return PropertyList;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Parent,
+				1 => PropertyList,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -669,14 +603,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Property;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Property,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -698,16 +629,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return PropFlags;
-				case 1: return Name;
-				case 2: return Type;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => PropFlags,
+				1 => Name,
+				2 => Type,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -729,16 +657,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Semantic;
-				case 1: return Method;
-				case 2: return Association;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Semantic,
+				1 => Method,
+				2 => Association,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -760,16 +685,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Class;
-				case 1: return MethodBody;
-				case 2: return MethodDeclaration;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Class,
+				1 => MethodBody,
+				2 => MethodDeclaration,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -785,14 +707,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Name;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Name,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -808,14 +727,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Signature;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Signature,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -839,17 +755,14 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return MappingFlags;
-				case 1: return MemberForwarded;
-				case 2: return ImportName;
-				case 3: return ImportScope;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => MappingFlags,
+				1 => MemberForwarded,
+				2 => ImportName,
+				3 => ImportScope,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -869,15 +782,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return RVA;
-				case 1: return Field;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => RVA,
+				1 => Field,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -897,15 +807,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Token;
-				case 1: return FuncCode;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Token,
+				1 => FuncCode,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -921,14 +828,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Token;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Token,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -962,22 +866,19 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return HashAlgId;
-				case 1: return MajorVersion;
-				case 2: return MinorVersion;
-				case 3: return BuildNumber;
-				case 4: return RevisionNumber;
-				case 5: return Flags;
-				case 6: return PublicKey;
-				case 7: return Name;
-				case 8: return Locale;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => HashAlgId,
+				1 => MajorVersion,
+				2 => MinorVersion,
+				3 => BuildNumber,
+				4 => RevisionNumber,
+				5 => Flags,
+				6 => PublicKey,
+				7 => Name,
+				8 => Locale,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -993,14 +894,11 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Processor;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Processor,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1022,16 +920,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return OSPlatformId;
-				case 1: return OSMajorVersion;
-				case 2: return OSMinorVersion;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => OSPlatformId,
+				1 => OSMajorVersion,
+				2 => OSMinorVersion,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1065,22 +960,19 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return MajorVersion;
-				case 1: return MinorVersion;
-				case 2: return BuildNumber;
-				case 3: return RevisionNumber;
-				case 4: return Flags;
-				case 5: return PublicKeyOrToken;
-				case 6: return Name;
-				case 7: return Locale;
-				case 8: return HashValue;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => MajorVersion,
+				1 => MinorVersion,
+				2 => BuildNumber,
+				3 => RevisionNumber,
+				4 => Flags,
+				5 => PublicKeyOrToken,
+				6 => Name,
+				7 => Locale,
+				8 => HashValue,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1100,15 +992,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Processor;
-				case 1: return AssemblyRef;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Processor,
+				1 => AssemblyRef,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1132,17 +1021,14 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return OSPlatformId;
-				case 1: return OSMajorVersion;
-				case 2: return OSMinorVersion;
-				case 3: return AssemblyRef;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => OSPlatformId,
+				1 => OSMajorVersion,
+				2 => OSMinorVersion,
+				3 => AssemblyRef,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1164,16 +1050,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Flags;
-				case 1: return Name;
-				case 2: return HashValue;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Flags,
+				1 => Name,
+				2 => HashValue,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1199,18 +1082,15 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Flags;
-				case 1: return TypeDefId;
-				case 2: return TypeName;
-				case 3: return TypeNamespace;
-				case 4: return Implementation;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Flags,
+				1 => TypeDefId,
+				2 => TypeName,
+				3 => TypeNamespace,
+				4 => Implementation,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1234,17 +1114,14 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Offset;
-				case 1: return Flags;
-				case 2: return Name;
-				case 3: return Implementation;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Offset,
+				1 => Flags,
+				2 => Name,
+				3 => Implementation,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1264,15 +1141,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return NestedClass;
-				case 1: return EnclosingClass;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => NestedClass,
+				1 => EnclosingClass,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1306,18 +1180,15 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Number;
-				case 1: return Flags;
-				case 2: return Owner;
-				case 3: return Name;
-				case 4: return Kind;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Number,
+				1 => Flags,
+				2 => Owner,
+				3 => Name,
+				4 => Kind,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1337,15 +1208,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Method;
-				case 1: return Instantiation;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Method,
+				1 => Instantiation,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1365,15 +1233,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Owner;
-				case 1: return Constraint;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Owner,
+				1 => Constraint,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1397,17 +1262,14 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Name;
-				case 1: return HashAlgorithm;
-				case 2: return Hash;
-				case 3: return Language;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Name,
+				1 => HashAlgorithm,
+				2 => Hash,
+				3 => Language,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1427,15 +1289,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Document;
-				case 1: return SequencePoints;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Document,
+				1 => SequencePoints,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1463,19 +1322,16 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Method;
-				case 1: return ImportScope;
-				case 2: return VariableList;
-				case 3: return ConstantList;
-				case 4: return StartOffset;
-				case 5: return Length;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Method,
+				1 => ImportScope,
+				2 => VariableList,
+				3 => ConstantList,
+				4 => StartOffset,
+				5 => Length,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1497,16 +1353,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Attributes;
-				case 1: return Index;
-				case 2: return Name;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Attributes,
+				1 => Index,
+				2 => Name,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1526,15 +1379,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Name;
-				case 1: return Signature;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Name,
+				1 => Signature,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1554,15 +1404,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Parent;
-				case 1: return Imports;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Parent,
+				1 => Imports,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1582,15 +1429,12 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return MoveNextMethod;
-				case 1: return KickoffMethod;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => MoveNextMethod,
+				1 => KickoffMethod,
+				_ => 0,
+			};
 	}
 
 	/// <summary>
@@ -1612,16 +1456,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="index">Index of column</param>
 		/// <returns></returns>
-		public uint this[int index] {
-			get {
-				switch (index) {
-				case 0: return Parent;
-				case 1: return Kind;
-				case 2: return Value;
-				default: return 0;
-				}
-			}
-		}
+		public uint this[int index] =>
+			index switch {
+				0 => Parent,
+				1 => Kind,
+				2 => Value,
+				_ => 0,
+			};
 	}
 #pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 }

@@ -54,11 +54,11 @@ namespace dnlib.PE {
 		IImageOptionalHeader CreateImageOptionalHeader(ref DataReader reader, bool verify) {
 			ushort magic = reader.ReadUInt16();
 			reader.Position -= 2;
-			switch (magic) {
-			case 0x010B: return new ImageOptionalHeader32(ref reader, imageFileHeader.SizeOfOptionalHeader, verify);
-			case 0x020B: return new ImageOptionalHeader64(ref reader, imageFileHeader.SizeOfOptionalHeader, verify);
-			default: throw new BadImageFormatException("Invalid optional header magic");
-			}
+			return magic switch {
+				0x010B => new ImageOptionalHeader32(ref reader, imageFileHeader.SizeOfOptionalHeader, verify),
+				0x020B => new ImageOptionalHeader64(ref reader, imageFileHeader.SizeOfOptionalHeader, verify),
+				_ => throw new BadImageFormatException("Invalid optional header magic"),
+			};
 		}
 	}
 }

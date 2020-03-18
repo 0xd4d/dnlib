@@ -134,13 +134,12 @@ namespace dnlib.PE {
 #endif
 		}
 
-		static IPEType ConvertImageLayout(ImageLayout imageLayout) {
-			switch (imageLayout) {
-			case ImageLayout.File: return FileLayout;
-			case ImageLayout.Memory: return MemoryLayout;
-			default: throw new ArgumentException("imageLayout");
-			}
-		}
+		static IPEType ConvertImageLayout(ImageLayout imageLayout) =>
+			imageLayout switch {
+				ImageLayout.File => FileLayout,
+				ImageLayout.Memory => MemoryLayout,
+				_ => throw new ArgumentException("imageLayout"),
+			};
 
 		/// <summary>
 		/// Constructor

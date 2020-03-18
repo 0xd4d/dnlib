@@ -34,22 +34,21 @@ namespace dnlib.DotNet {
 	}
 
 	public static partial class Extensions {
-		internal static string GetName(this AssemblyHashAlgorithm hashAlg) {
-			switch (hashAlg) {
-			case AssemblyHashAlgorithm.MD2:		return null;
-			case AssemblyHashAlgorithm.MD4:		return null;
-			case AssemblyHashAlgorithm.MD5:		return "MD5";
-			case AssemblyHashAlgorithm.SHA1:	return "SHA1";
-			case AssemblyHashAlgorithm.MAC:		return null;
-			case AssemblyHashAlgorithm.SSL3_SHAMD5: return null;
-			case AssemblyHashAlgorithm.HMAC:	return null;
-			case AssemblyHashAlgorithm.TLS1PRF:	return null;
-			case AssemblyHashAlgorithm.HASH_REPLACE_OWF: return null;
-			case AssemblyHashAlgorithm.SHA_256:	return "SHA256";
-			case AssemblyHashAlgorithm.SHA_384:	return "SHA384";
-			case AssemblyHashAlgorithm.SHA_512:	return "SHA512";
-			default: return null;
-			}
-		}
+		internal static string GetName(this AssemblyHashAlgorithm hashAlg) =>
+			hashAlg switch {
+				AssemblyHashAlgorithm.MD2 => null,
+				AssemblyHashAlgorithm.MD4 => null,
+				AssemblyHashAlgorithm.MD5 => "MD5",
+				AssemblyHashAlgorithm.SHA1 => "SHA1",
+				AssemblyHashAlgorithm.MAC => null,
+				AssemblyHashAlgorithm.SSL3_SHAMD5 => null,
+				AssemblyHashAlgorithm.HMAC => null,
+				AssemblyHashAlgorithm.TLS1PRF => null,
+				AssemblyHashAlgorithm.HASH_REPLACE_OWF => null,
+				AssemblyHashAlgorithm.SHA_256 => "SHA256",
+				AssemblyHashAlgorithm.SHA_384 => "SHA384",
+				AssemblyHashAlgorithm.SHA_512 => "SHA512",
+				_ => null,
+			};
 	}
 }

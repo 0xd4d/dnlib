@@ -6,26 +6,24 @@ using System.Security.Cryptography;
 
 namespace dnlib.DotNet.Writer {
 	static class Hasher {
-		static HashAlgorithm CreateHasher(ChecksumAlgorithm checksumAlgorithm) {
-			switch (checksumAlgorithm) {
-			case ChecksumAlgorithm.SHA1:		return SHA1.Create();
-			case ChecksumAlgorithm.SHA256:		return SHA256.Create();
-			case ChecksumAlgorithm.SHA384:		return SHA384.Create();
-			case ChecksumAlgorithm.SHA512:		return SHA512.Create();
-			default: throw new ArgumentOutOfRangeException(nameof(checksumAlgorithm));
-			}
-		}
+		static HashAlgorithm CreateHasher(ChecksumAlgorithm checksumAlgorithm) =>
+			checksumAlgorithm switch {
+				ChecksumAlgorithm.SHA1 => SHA1.Create(),
+				ChecksumAlgorithm.SHA256 => SHA256.Create(),
+				ChecksumAlgorithm.SHA384 => SHA384.Create(),
+				ChecksumAlgorithm.SHA512 => SHA512.Create(),
+				_ => throw new ArgumentOutOfRangeException(nameof(checksumAlgorithm)),
+			};
 
-		public static string GetChecksumName(ChecksumAlgorithm checksumAlgorithm) {
+		public static string GetChecksumName(ChecksumAlgorithm checksumAlgorithm) =>
 			// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#pdb-checksum-debug-directory-entry-type-19
-			switch (checksumAlgorithm) {
-			case ChecksumAlgorithm.SHA1:		return "SHA1";
-			case ChecksumAlgorithm.SHA256:		return "SHA256";
-			case ChecksumAlgorithm.SHA384:		return "SHA384";
-			case ChecksumAlgorithm.SHA512:		return "SHA512";
-			default: throw new ArgumentOutOfRangeException(nameof(checksumAlgorithm));
-			}
-		}
+			checksumAlgorithm switch {
+				ChecksumAlgorithm.SHA1 => "SHA1",
+				ChecksumAlgorithm.SHA256 => "SHA256",
+				ChecksumAlgorithm.SHA384 => "SHA384",
+				ChecksumAlgorithm.SHA512 => "SHA512",
+				_ => throw new ArgumentOutOfRangeException(nameof(checksumAlgorithm)),
+			};
 
 		public static bool TryGetChecksumAlgorithm(string checksumName, out ChecksumAlgorithm pdbChecksumAlgorithm, out int checksumSize) {
 			switch (checksumName) {

@@ -138,18 +138,11 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 
-				switch (GetMetadataType(mdHeader.StreamHeaders, runtime)) {
-				case MetadataType.Compressed:
-					md = new CompressedMetadata(peImage, cor20Header, mdHeader, runtime);
-					break;
-
-				case MetadataType.ENC:
-					md = new ENCMetadata(peImage, cor20Header, mdHeader, runtime);
-					break;
-
-				default:
-					throw new BadImageFormatException("No #~ or #- stream found");
-				}
+				md = GetMetadataType(mdHeader.StreamHeaders, runtime) switch {
+					MetadataType.Compressed => new CompressedMetadata(peImage, cor20Header, mdHeader, runtime),
+					MetadataType.ENC => new ENCMetadata(peImage, cor20Header, mdHeader, runtime),
+					_ => throw new BadImageFormatException("No #~ or #- stream found"),
+				};
 				md.Initialize(null);
 
 				return md;
@@ -180,18 +173,11 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 
-				switch (GetMetadataType(mdHeader.StreamHeaders, runtime)) {
-				case MetadataType.Compressed:
-					md = new CompressedMetadata(mdHeader, true, runtime);
-					break;
-
-				case MetadataType.ENC:
-					md = new ENCMetadata(mdHeader, true, runtime);
-					break;
-
-				default:
-					throw new BadImageFormatException("No #~ or #- stream found");
-				}
+				md = GetMetadataType(mdHeader.StreamHeaders, runtime) switch {
+					MetadataType.Compressed => new CompressedMetadata(mdHeader, true, runtime),
+					MetadataType.ENC => new ENCMetadata(mdHeader, true, runtime),
+					_ => throw new BadImageFormatException("No #~ or #- stream found"),
+				};
 				md.Initialize(mdReaderFactory);
 
 				return md;

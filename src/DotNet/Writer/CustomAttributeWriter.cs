@@ -220,21 +220,21 @@ namespace dnlib.DotNet.Writer {
 			if (o is null)
 				return false;
 
-			switch (Type.GetTypeCode(o.GetType())) {
-			case TypeCode.Boolean:	return etype == ElementType.Boolean;
-			case TypeCode.Char:		return etype == ElementType.Char;
-			case TypeCode.SByte:	return etype == ElementType.I1;
-			case TypeCode.Byte:		return etype == ElementType.U1;
-			case TypeCode.Int16:	return etype == ElementType.I2;
-			case TypeCode.UInt16:	return etype == ElementType.U2;
-			case TypeCode.Int32:	return etype == ElementType.I4;
-			case TypeCode.UInt32:	return etype == ElementType.U4;
-			case TypeCode.Int64:	return etype == ElementType.I8;
-			case TypeCode.UInt64:	return etype == ElementType.U8;
-			case TypeCode.Single:	return etype == ElementType.R4;
-			case TypeCode.Double:	return etype == ElementType.R8;
-			default: return false;
-			}
+			return Type.GetTypeCode(o.GetType()) switch {
+				TypeCode.Boolean => etype == ElementType.Boolean,
+				TypeCode.Char => etype == ElementType.Char,
+				TypeCode.SByte => etype == ElementType.I1,
+				TypeCode.Byte => etype == ElementType.U1,
+				TypeCode.Int16 => etype == ElementType.I2,
+				TypeCode.UInt16 => etype == ElementType.U2,
+				TypeCode.Int32 => etype == ElementType.I4,
+				TypeCode.UInt32 => etype == ElementType.U4,
+				TypeCode.Int64 => etype == ElementType.I8,
+				TypeCode.UInt64 => etype == ElementType.U8,
+				TypeCode.Single => etype == ElementType.R4,
+				TypeCode.Double => etype == ElementType.R8,
+				_ => false,
+			};
 		}
 
 		static ulong ToUInt64(object o) {

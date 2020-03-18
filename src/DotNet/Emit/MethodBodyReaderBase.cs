@@ -227,29 +227,28 @@ namespace dnlib.DotNet.Emit {
 		/// Reads the instruction operand (if any)
 		/// </summary>
 		/// <param name="instr">The instruction</param>
-		object ReadOperand(Instruction instr) {
-			switch (instr.OpCode.OperandType) {
-			case OperandType.InlineBrTarget:	return ReadInlineBrTarget(instr);
-			case OperandType.InlineField:		return ReadInlineField(instr);
-			case OperandType.InlineI:			return ReadInlineI(instr);
-			case OperandType.InlineI8:			return ReadInlineI8(instr);
-			case OperandType.InlineMethod:		return ReadInlineMethod(instr);
-			case OperandType.InlineNone:		return ReadInlineNone(instr);
-			case OperandType.InlinePhi:			return ReadInlinePhi(instr);
-			case OperandType.InlineR:			return ReadInlineR(instr);
-			case OperandType.InlineSig:			return ReadInlineSig(instr);
-			case OperandType.InlineString:		return ReadInlineString(instr);
-			case OperandType.InlineSwitch:		return ReadInlineSwitch(instr);
-			case OperandType.InlineTok:			return ReadInlineTok(instr);
-			case OperandType.InlineType:		return ReadInlineType(instr);
-			case OperandType.InlineVar:			return ReadInlineVar(instr);
-			case OperandType.ShortInlineBrTarget: return ReadShortInlineBrTarget(instr);
-			case OperandType.ShortInlineI:		return ReadShortInlineI(instr);
-			case OperandType.ShortInlineR:		return ReadShortInlineR(instr);
-			case OperandType.ShortInlineVar:	return ReadShortInlineVar(instr);
-			default: throw new InvalidOperationException("Invalid OpCode.OperandType");
-			}
-		}
+		object ReadOperand(Instruction instr) =>
+			instr.OpCode.OperandType switch {
+				OperandType.InlineBrTarget => ReadInlineBrTarget(instr),
+				OperandType.InlineField => ReadInlineField(instr),
+				OperandType.InlineI => ReadInlineI(instr),
+				OperandType.InlineI8 => ReadInlineI8(instr),
+				OperandType.InlineMethod => ReadInlineMethod(instr),
+				OperandType.InlineNone => ReadInlineNone(instr),
+				OperandType.InlinePhi => ReadInlinePhi(instr),
+				OperandType.InlineR => ReadInlineR(instr),
+				OperandType.InlineSig => ReadInlineSig(instr),
+				OperandType.InlineString => ReadInlineString(instr),
+				OperandType.InlineSwitch => ReadInlineSwitch(instr),
+				OperandType.InlineTok => ReadInlineTok(instr),
+				OperandType.InlineType => ReadInlineType(instr),
+				OperandType.InlineVar => ReadInlineVar(instr),
+				OperandType.ShortInlineBrTarget => ReadShortInlineBrTarget(instr),
+				OperandType.ShortInlineI => ReadShortInlineI(instr),
+				OperandType.ShortInlineR => ReadShortInlineR(instr),
+				OperandType.ShortInlineVar => ReadShortInlineVar(instr),
+				_ => throw new InvalidOperationException("Invalid OpCode.OperandType"),
+			};
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineBrTarget"/> operand

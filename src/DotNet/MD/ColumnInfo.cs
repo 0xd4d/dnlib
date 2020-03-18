@@ -81,14 +81,13 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="reader">A reader positioned on this column</param>
 		/// <returns>The column value</returns>
-		public uint Read(ref DataReader reader) {
-			switch (size) {
-			case 1: return reader.ReadByte();
-			case 2: return reader.ReadUInt16();
-			case 4: return reader.ReadUInt32();
-			default: throw new InvalidOperationException("Invalid column size");
-			}
-		}
+		public uint Read(ref DataReader reader) =>
+			size switch {
+				1 => reader.ReadByte(),
+				2 => reader.ReadUInt16(),
+				4 => reader.ReadUInt32(),
+				_ => throw new InvalidOperationException("Invalid column size"),
+			};
 
 		internal uint Unsafe_Read24(ref DataReader reader) {
 			Debug.Assert(size == 2 || size == 4);

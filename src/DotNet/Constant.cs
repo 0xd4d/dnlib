@@ -77,22 +77,22 @@ namespace dnlib.DotNet {
 		static ElementType GetElementType(object value) {
 			if (value is null)
 				return ElementType.Class;
-			switch (System.Type.GetTypeCode(value.GetType())) {
-			case TypeCode.Boolean:	return ElementType.Boolean;
-			case TypeCode.Char:		return ElementType.Char;
-			case TypeCode.SByte:	return ElementType.I1;
-			case TypeCode.Byte:		return ElementType.U1;
-			case TypeCode.Int16:	return ElementType.I2;
-			case TypeCode.UInt16:	return ElementType.U2;
-			case TypeCode.Int32:	return ElementType.I4;
-			case TypeCode.UInt32:	return ElementType.U4;
-			case TypeCode.Int64:	return ElementType.I8;
-			case TypeCode.UInt64:	return ElementType.U8;
-			case TypeCode.Single:	return ElementType.R4;
-			case TypeCode.Double:	return ElementType.R8;
-			case TypeCode.String:	return ElementType.String;
-			default:				return ElementType.Void;
-			}
+			return System.Type.GetTypeCode(value.GetType()) switch {
+				TypeCode.Boolean => ElementType.Boolean,
+				TypeCode.Char => ElementType.Char,
+				TypeCode.SByte => ElementType.I1,
+				TypeCode.Byte => ElementType.U1,
+				TypeCode.Int16 => ElementType.I2,
+				TypeCode.UInt16 => ElementType.U2,
+				TypeCode.Int32 => ElementType.I4,
+				TypeCode.UInt32 => ElementType.U4,
+				TypeCode.Int64 => ElementType.I8,
+				TypeCode.UInt64 => ElementType.U8,
+				TypeCode.Single => ElementType.R4,
+				TypeCode.Double => ElementType.R8,
+				TypeCode.String => ElementType.String,
+				_ => ElementType.Void,
+			};
 		}
 	}
 

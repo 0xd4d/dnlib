@@ -542,13 +542,11 @@ namespace dnlib.DotNet {
 		}
 
 		CANamedArgument ReadNamedArgument() {
-			bool isField;
-			switch ((SerializationType)reader.ReadByte()) {
-			case SerializationType.Property:isField = false; break;
-			case SerializationType.Field:	isField = true; break;
-			default: throw new CABlobParserException("Named argument is not a field/property");
-			}
-
+			var isField = (SerializationType)reader.ReadByte() switch {
+				SerializationType.Property => false,
+				SerializationType.Field => true,
+				_ => throw new CABlobParserException("Named argument is not a field/property"),
+			};
 			var fieldPropType = ReadFieldOrPropType();
 			var name = ReadUTF8String();
 			var argument = ReadFixedArg(fieldPropType);
@@ -559,27 +557,26 @@ namespace dnlib.DotNet {
 		TypeSig ReadFieldOrPropType() {
 			if (!recursionCounter.Increment())
 				throw new CABlobParserException("Too much recursion");
-			TypeSig result;
-			switch ((SerializationType)reader.ReadByte()) {
-			case SerializationType.Boolean: result = module.CorLibTypes.Boolean; break;
-			case SerializationType.Char:	result = module.CorLibTypes.Char; break;
-			case SerializationType.I1:		result = module.CorLibTypes.SByte; break;
-			case SerializationType.U1:		result = module.CorLibTypes.Byte; break;
-			case SerializationType.I2:		result = module.CorLibTypes.Int16; break;
-			case SerializationType.U2:		result = module.CorLibTypes.UInt16; break;
-			case SerializationType.I4:		result = module.CorLibTypes.Int32; break;
-			case SerializationType.U4:		result = module.CorLibTypes.UInt32; break;
-			case SerializationType.I8:		result = module.CorLibTypes.Int64; break;
-			case SerializationType.U8:		result = module.CorLibTypes.UInt64; break;
-			case SerializationType.R4:		result = module.CorLibTypes.Single; break;
-			case SerializationType.R8:		result = module.CorLibTypes.Double; break;
-			case SerializationType.String:	result = module.CorLibTypes.String; break;
-			case SerializationType.SZArray: result = new SZArraySig(ReadFieldOrPropType()); break;
-			case SerializationType.Type:	result = new ClassSig(module.CorLibTypes.GetTypeRef("System", "Type")); break;
-			case SerializationType.TaggedObject: result = module.CorLibTypes.Object; break;
-			case SerializationType.Enum:	result = ReadType(false); break;
-			default: throw new CABlobParserException("Invalid type");
-			}
+			var result = (SerializationType)reader.ReadByte() switch {
+				SerializationType.Boolean => module.CorLibTypes.Boolean,
+				SerializationType.Char => module.CorLibTypes.Char,
+				SerializationType.I1 => module.CorLibTypes.SByte,
+				SerializationType.U1 => module.CorLibTypes.Byte,
+				SerializationType.I2 => module.CorLibTypes.Int16,
+				SerializationType.U2 => module.CorLibTypes.UInt16,
+				SerializationType.I4 => module.CorLibTypes.Int32,
+				SerializationType.U4 => module.CorLibTypes.UInt32,
+				SerializationType.I8 => module.CorLibTypes.Int64,
+				SerializationType.U8 => module.CorLibTypes.UInt64,
+				SerializationType.R4 => module.CorLibTypes.Single,
+				SerializationType.R8 => module.CorLibTypes.Double,
+				SerializationType.String => module.CorLibTypes.String,
+				SerializationType.SZArray => new SZArraySig(ReadFieldOrPropType()),
+				SerializationType.Type => new ClassSig(module.CorLibTypes.GetTypeRef("System", "Type")),
+				SerializationType.TaggedObject => module.CorLibTypes.Object,
+				SerializationType.Enum => ReadType(false),
+				_ => throw new CABlobParserException("Invalid type"),
+			};
 			recursionCounter.Decrement();
 			return result;
 		}

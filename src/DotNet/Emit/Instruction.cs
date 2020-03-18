@@ -572,24 +572,22 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>The integer value</returns>
 		/// <exception cref="InvalidOperationException"><see cref="OpCode"/> isn't one of the
 		/// <c>ldc.i4</c> opcodes</exception>
-		public int GetLdcI4Value() {
-			switch (OpCode.Code) {
-			case Code.Ldc_I4_M1:return -1;
-			case Code.Ldc_I4_0:	return 0;
-			case Code.Ldc_I4_1:	return 1;
-			case Code.Ldc_I4_2:	return 2;
-			case Code.Ldc_I4_3:	return 3;
-			case Code.Ldc_I4_4:	return 4;
-			case Code.Ldc_I4_5:	return 5;
-			case Code.Ldc_I4_6:	return 6;
-			case Code.Ldc_I4_7:	return 7;
-			case Code.Ldc_I4_8:	return 8;
-			case Code.Ldc_I4_S:	return (sbyte)Operand;
-			case Code.Ldc_I4:	return (int)Operand;
-			default:
-				throw new InvalidOperationException($"Not a ldc.i4 instruction: {this}");
-			}
-		}
+		public int GetLdcI4Value() =>
+			OpCode.Code switch {
+				Code.Ldc_I4_M1 => -1,
+				Code.Ldc_I4_0 => 0,
+				Code.Ldc_I4_1 => 1,
+				Code.Ldc_I4_2 => 2,
+				Code.Ldc_I4_3 => 3,
+				Code.Ldc_I4_4 => 4,
+				Code.Ldc_I4_5 => 5,
+				Code.Ldc_I4_6 => 6,
+				Code.Ldc_I4_7 => 7,
+				Code.Ldc_I4_8 => 8,
+				Code.Ldc_I4_S => (sbyte)Operand,
+				Code.Ldc_I4 => (int)Operand,
+				_ => throw new InvalidOperationException($"Not a ldc.i4 instruction: {this}"),
+			};
 
 		/// <summary>
 		/// Checks whether it's one of the <c>ldarg</c> instructions, but does <c>not</c> check

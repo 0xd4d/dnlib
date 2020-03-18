@@ -47,24 +47,23 @@ namespace dnlib.DotNet.MD {
 				return count > 0xFFFF ? 4 : 2;
 			}
 			else if (ColumnSize.TypeDefOrRef <= columnSize && columnSize <= ColumnSize.HasCustomDebugInformation) {
-				CodedToken info;
-				switch (columnSize) {
-				case ColumnSize.TypeDefOrRef:		info = CodedToken.TypeDefOrRef; break;
-				case ColumnSize.HasConstant:		info = CodedToken.HasConstant; break;
-				case ColumnSize.HasCustomAttribute:	info = CodedToken.HasCustomAttribute; break;
-				case ColumnSize.HasFieldMarshal:	info = CodedToken.HasFieldMarshal; break;
-				case ColumnSize.HasDeclSecurity:	info = CodedToken.HasDeclSecurity; break;
-				case ColumnSize.MemberRefParent:	info = CodedToken.MemberRefParent; break;
-				case ColumnSize.HasSemantic:		info = CodedToken.HasSemantic; break;
-				case ColumnSize.MethodDefOrRef:		info = CodedToken.MethodDefOrRef; break;
-				case ColumnSize.MemberForwarded:	info = CodedToken.MemberForwarded; break;
-				case ColumnSize.Implementation:		info = CodedToken.Implementation; break;
-				case ColumnSize.CustomAttributeType:info = CodedToken.CustomAttributeType; break;
-				case ColumnSize.ResolutionScope:	info = CodedToken.ResolutionScope; break;
-				case ColumnSize.TypeOrMethodDef:	info = CodedToken.TypeOrMethodDef; break;
-				case ColumnSize.HasCustomDebugInformation:info = CodedToken.HasCustomDebugInformation; break;
-				default: throw new InvalidOperationException($"Invalid ColumnSize: {columnSize}");
-				}
+				var info = columnSize switch {
+					ColumnSize.TypeDefOrRef => CodedToken.TypeDefOrRef,
+					ColumnSize.HasConstant => CodedToken.HasConstant,
+					ColumnSize.HasCustomAttribute => CodedToken.HasCustomAttribute,
+					ColumnSize.HasFieldMarshal => CodedToken.HasFieldMarshal,
+					ColumnSize.HasDeclSecurity => CodedToken.HasDeclSecurity,
+					ColumnSize.MemberRefParent => CodedToken.MemberRefParent,
+					ColumnSize.HasSemantic => CodedToken.HasSemantic,
+					ColumnSize.MethodDefOrRef => CodedToken.MethodDefOrRef,
+					ColumnSize.MemberForwarded => CodedToken.MemberForwarded,
+					ColumnSize.Implementation => CodedToken.Implementation,
+					ColumnSize.CustomAttributeType => CodedToken.CustomAttributeType,
+					ColumnSize.ResolutionScope => CodedToken.ResolutionScope,
+					ColumnSize.TypeOrMethodDef => CodedToken.TypeOrMethodDef,
+					ColumnSize.HasCustomDebugInformation => CodedToken.HasCustomDebugInformation,
+					_ => throw new InvalidOperationException($"Invalid ColumnSize: {columnSize}"),
+				};
 				uint maxRows = 0;
 				foreach (var tableType in info.TableTypes) {
 					int index = (int)tableType;
