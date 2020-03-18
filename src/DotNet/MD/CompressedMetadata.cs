@@ -134,7 +134,7 @@ namespace dnlib.DotNet.MD {
 			uint lastRid = tableDest.Rows + 1;
 			if (startRid == 0 || startRid >= lastRid)
 				return RidList.Empty;
-			uint endRid = hasNext ? nextListRid : lastRid;
+			uint endRid = !hasNext || (nextListRid == 0 && tableSourceRid + 1 == tableSource.Rows && tableDest.Rows == 0xFFFF) ? lastRid : nextListRid;
 			if (endRid < startRid)
 				endRid = startRid;
 			if (endRid > lastRid)
