@@ -993,7 +993,7 @@ namespace dnlib.DotNet {
 			int count = methods.Count;
 			for (int i = 0; i < count; i++) {
 				var method = methods[i];
-				if (!allowPrivateScope && method.IsPrivateScope)
+				if (!allowPrivateScope && method.IsPrivateScope && sourceModule != Module)
 					continue;
 				if (!UTF8String.Equals(method.Name, name))
 					continue;
@@ -1156,7 +1156,7 @@ namespace dnlib.DotNet {
 			int count = fields.Count;
 			for (int i = 0; i < count; i++) {
 				var field = fields[i];
-				if (!allowPrivateScope && field.IsPrivateScope)
+				if (!allowPrivateScope && field.IsPrivateScope && sourceModule != Module)
 					continue;
 				if (!UTF8String.Equals(field.Name, name))
 					continue;
