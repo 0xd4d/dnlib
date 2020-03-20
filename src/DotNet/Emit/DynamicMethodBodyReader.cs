@@ -411,8 +411,11 @@ namespace dnlib.DotNet.Emit {
 			if (obj is null)
 				return null;
 
-			if (obj is RuntimeMethodHandle)
-				return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
+			if (obj is RuntimeMethodHandle) {
+				// Sometimes it's a generic type but obj != `GenericMethodInfo`, so pass in 'default' and the
+				// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
+				return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
+			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericMethodInfo") {
 				var context = (RuntimeTypeHandle)gmiContextFieldInfo.Read(obj);
@@ -452,8 +455,11 @@ namespace dnlib.DotNet.Emit {
 			if (obj is null)
 				return null;
 
-			if (obj is RuntimeFieldHandle)
-				return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj));
+			if (obj is RuntimeFieldHandle) {
+				// Sometimes it's a generic type but obj != `GenericFieldInfo`, so pass in 'default' and the
+				// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
+				return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
+			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericFieldInfo") {
 				var context = (RuntimeTypeHandle)gfiContextFieldInfo.Read(obj);
