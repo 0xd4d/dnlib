@@ -161,11 +161,20 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>
+		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>. If it's a type that should be
+		/// the declaring type of a field/method reference, call <see cref="ImportDeclaringType(Type)"/> instead.
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef Import(Type type) => module.UpdateRowId(ImportAsTypeSig(type).ToTypeDefOrRef());
+
+		/// <summary>
+		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>. Should be called if it's the
+		/// declaring type of a method/field reference. See also <see cref="Import(Type)"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns></returns>
+		public ITypeDefOrRef ImportDeclaringType(Type type) => module.UpdateRowId(ImportAsTypeSig(type, type.IsGenericTypeDefinition).ToTypeDefOrRef());
 
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>
@@ -444,7 +453,7 @@ namespace dnlib.DotNet {
 				IMethodDefOrRef method;
 				var origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
 				if (methodBase.DeclaringType.GetElementType2() == ElementType.GenericInst)
-					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), Import(methodBase.DeclaringType)));
+					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), ImportDeclaringType(methodBase.DeclaringType)));
 				else
 					method = ImportInternal(origMethod) as IMethodDefOrRef;
 
@@ -464,7 +473,7 @@ namespace dnlib.DotNet {
 					parent = GetModuleParent(methodBase.Module);
 				}
 				else
-					parent = Import(methodBase.DeclaringType);
+					parent = ImportDeclaringType(methodBase.DeclaringType);
 				if (parent is null)
 					return null;
 
@@ -590,7 +599,7 @@ namespace dnlib.DotNet {
 				parent = GetModuleParent(fieldInfo.Module);
 			}
 			else
-				parent = Import(fieldInfo.DeclaringType);
+				parent = ImportDeclaringType(fieldInfo.DeclaringType);
 			if (parent is null)
 				return null;
 
