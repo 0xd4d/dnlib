@@ -10,6 +10,24 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Emit {
 	/// <summary>
+	/// <see cref="DynamicMethodBodyReader"/> options
+	/// </summary>
+	[Flags]
+	public enum DynamicMethodBodyReaderOptions {
+		/// <summary>
+		/// No option is enabled
+		/// </summary>
+		None						= 0,
+
+		/// <summary>
+		/// Some fields/methods have an unknown declaring type and don't have a context with
+		/// that information. If this is enabled, the reader will try to guess it but it doesn't
+		/// always work. If you get an <see cref="ArgumentException"/>, try enabling this option.
+		/// </summary>
+		UnknownDeclaringType		= 0x00000001,
+	}
+
+	/// <summary>
 	/// Reads code from a DynamicMethod
 	/// </summary>
 	public class DynamicMethodBodyReader : MethodBodyReaderBase, ISignatureReaderHelper {
@@ -48,6 +66,7 @@ namespace dnlib.DotNet.Emit {
 		readonly IList<object> ehInfos;
 		readonly byte[] ehHeader;
 		readonly string methodName;
+		readonly DynamicMethodBodyReaderOptions options;
 
 		class ReflectionFieldInfo {
 			SR.FieldInfo fieldInfo;
@@ -106,7 +125,7 @@ namespace dnlib.DotNet.Emit {
 		/// instance or a DynamicResolver instance.</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		public DynamicMethodBodyReader(ModuleDef module, object obj, GenericParamContext gpContext)
-			: this(module, obj, new Importer(module, ImporterOptions.TryToUseDefs, gpContext)) {
+			: this(module, obj, new Importer(module, ImporterOptions.TryToUseDefs, gpContext), DynamicMethodBodyReaderOptions.None) {
 		}
 
 		/// <summary>
@@ -117,9 +136,23 @@ namespace dnlib.DotNet.Emit {
 		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
 		/// instance or a DynamicResolver instance.</param>
 		/// <param name="importer">Importer</param>
-		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer) {
+		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer)
+			: this(module, obj, importer, DynamicMethodBodyReaderOptions.None) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">Module that will own the method body</param>
+		/// <param name="obj">This can be one of several supported types: the delegate instance
+		/// created by DynamicMethod.CreateDelegate(), a DynamicMethod instance, a RTDynamicMethod
+		/// instance or a DynamicResolver instance.</param>
+		/// <param name="importer">Importer</param>
+		/// <param name="options">Options</param>
+		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer, DynamicMethodBodyReaderOptions options) {
 			this.module = module;
 			this.importer = importer;
+			this.options = options;
 			gpContext = importer.gpContext;
 			methodName = null;
 
@@ -412,9 +445,13 @@ namespace dnlib.DotNet.Emit {
 				return null;
 
 			if (obj is RuntimeMethodHandle) {
-				// Sometimes it's a generic type but obj != `GenericMethodInfo`, so pass in 'default' and the
-				// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
-				return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
+				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
+					// Sometimes it's a generic type but obj != `GenericMethodInfo`, so pass in 'default' and the
+					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
+					return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
+				}
+				else
+					return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericMethodInfo") {
@@ -456,9 +493,13 @@ namespace dnlib.DotNet.Emit {
 				return null;
 
 			if (obj is RuntimeFieldHandle) {
-				// Sometimes it's a generic type but obj != `GenericFieldInfo`, so pass in 'default' and the
-				// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
-				return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
+				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
+					// Sometimes it's a generic type but obj != `GenericFieldInfo`, so pass in 'default' and the
+					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
+					return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
+				}
+				else
+					return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj));
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericFieldInfo") {
