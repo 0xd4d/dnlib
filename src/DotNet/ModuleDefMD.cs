@@ -28,6 +28,8 @@ namespace dnlib.DotNet {
 		MetadataBase metadata;
 		IMethodDecrypter methodDecrypter;
 		IStringDecrypter stringDecrypter;
+		
+		Dictionary<uint, string> stringDictionary;
 
 		StrongBox<RidList> moduleRidList;
 
@@ -379,6 +381,8 @@ namespace dnlib.DotNet {
 			TablesHeaderVersion = Metadata.TablesStream.Version;
 			corLibTypes = new CorLibTypes(this, options.CorLibAssemblyRef ?? FindCorLibAssemblyRef() ?? CreateDefaultCorLibAssemblyRef());
 			InitializePdb(options);
+			//new string dictionary everytime it loads module
+			stringDictionary = new Dictionary<uint, string>();
 		}
 
 		void InitializePdb(ModuleCreationOptions options) {
@@ -1708,12 +1712,19 @@ namespace dnlib.DotNet {
 		/// <returns>A non-null string</returns>
 		public string ReadUserString(uint token) {
 			var sDec = stringDecrypter;
+			if (stringDictionary.ContainsKey(token)) return stringDictionary[token];
+			string returnstringValue;
 			if (!(sDec is null)) {
-				var s = sDec.ReadUserString(token);
-				if (!(s is null))
-					return s;
+				returnstringValue = sDec.ReadUserString(token);
+				if (!(returnstringValue is null)) {
+					if (!stringDictionary.ContainsKey(token)) stringDictionary.Add(token, returnstringValue);
+				}
 			}
-			return USStream.ReadNoNull(token & 0x00FFFFFF);
+			else {
+				returnstringValue = USStream.ReadNoNull(token & 0x00FFFFFF);
+				if (!stringDictionary.ContainsKey(token)) stringDictionary.Add(token, returnstringValue);
+			}
+			return returnstringValue;
 		}
 
 		internal MethodExportInfo GetExportInfo(uint methodRid) {
