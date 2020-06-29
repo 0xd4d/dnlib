@@ -26,7 +26,7 @@ namespace dnlib.DotNet {
 		LocalSig		= 0x7,
 		/// <summary/>
 		Property		= 0x8,
-		/// <summary/>
+		/// <summary>Unmanaged calling convention encoded as modopts</summary>
 		Unmanaged		= 0x9,
 		/// <summary>generic method instantiation</summary>
 		GenericInst		= 0xA,

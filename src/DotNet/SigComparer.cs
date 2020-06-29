@@ -2218,6 +2218,7 @@ exit: ;
 				case CallingConvention.VarArg:
 				case CallingConvention.Property:
 				case CallingConvention.NativeVarArg:
+				case CallingConvention.Unmanaged:
 					MethodBaseSig ma = a as MethodBaseSig, mb = b as MethodBaseSig;
 					result = !(ma is null) && !(mb is null) && Equals(ma, mb);
 					break;
@@ -2237,7 +2238,6 @@ exit: ;
 					result = !(ga is null) && !(gb is null) && Equals(ga, gb);
 					break;
 
-				case CallingConvention.Unmanaged:
 				default:
 					result = false;
 					break;
@@ -2269,6 +2269,7 @@ exit: ;
 			case CallingConvention.VarArg:
 			case CallingConvention.Property:
 			case CallingConvention.NativeVarArg:
+			case CallingConvention.Unmanaged:
 				var ma = a as MethodBaseSig;
 				hash = ma is null ? 0 : GetHashCode(ma);
 				break;
@@ -2288,7 +2289,6 @@ exit: ;
 				hash = ga is null ? 0 : GetHashCode(ga);
 				break;
 
-			case CallingConvention.Unmanaged:
 			default:
 				hash = GetHashCode_CallingConvention(a);
 				break;
