@@ -12,6 +12,8 @@ namespace dnlib.DotNet.Writer {
 		protected IList<Instruction> instructions;
 		/// <summary/>
 		protected IList<ExceptionHandler> exceptionHandlers;
+		/// <summary>The module context</summary>
+		protected readonly ModuleContext context;
 		readonly Dictionary<Instruction, uint> offsets = new Dictionary<Instruction, uint>();
 		uint firstInstructionOffset;
 		int errors;
@@ -22,7 +24,8 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public bool ErrorDetected => errors > 0;
 
-		internal MethodBodyWriterBase() {
+		internal MethodBodyWriterBase(ModuleContext context) {
+			this.context = context;
 		}
 
 		/// <summary>
@@ -30,9 +33,20 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="instructions">All instructions</param>
 		/// <param name="exceptionHandlers">All exception handlers</param>
-		protected MethodBodyWriterBase(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
+		protected MethodBodyWriterBase(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers)
+			: this(instructions, exceptionHandlers, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="instructions">All instructions</param>
+		/// <param name="exceptionHandlers">All exception handlers</param>
+		/// <param name="context">The module context</param>
+		protected MethodBodyWriterBase(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers, ModuleContext context) {
 			this.instructions = instructions;
 			this.exceptionHandlers = exceptionHandlers;
+			this.context = context;
 		}
 
 		internal void Reset(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
@@ -158,20 +172,19 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">The instruction</param>
 		protected void WriteOpCode(ref ArrayWriter writer, Instruction instr) {
 			var code = instr.OpCode.Code;
-			if ((ushort)code <= 0xFF)
-				writer.WriteByte((byte)code);
-			else if (((ushort)code >> 8) == 0xFE) {
-				writer.WriteByte((byte)((ushort)code >> 8));
-				writer.WriteByte((byte)code);
+			if (instr.OpCode.Size == 2)
+			{
+				byte code1, code2;
+				if (code != Code.UNKNOWN2) {
+					code1 = (byte)((ushort)code >> 8);
+					code2 = (byte)code;
+				} else
+					code1 = code2 = (byte)Code.Nop;
+				writer.WriteByte(code1);
+				writer.WriteByte(code2);
 			}
-			else if (code == Code.UNKNOWN1)
-				writer.WriteByte((byte)Code.Nop);
-			else if (code == Code.UNKNOWN2)
-				writer.WriteUInt16((ushort)(((ushort)Code.Nop << 8) | Code.Nop));
-			else {
-				Error("Unknown instruction");
-				writer.WriteByte((byte)Code.Nop);
-			}
+			else
+				writer.WriteByte(code != Code.UNKNOWN1 ? (byte)code : (byte)Code.Nop);
 		}
 
 		/// <summary>

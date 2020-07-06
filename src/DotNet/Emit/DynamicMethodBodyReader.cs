@@ -149,7 +149,8 @@ namespace dnlib.DotNet.Emit {
 		/// instance or a DynamicResolver instance.</param>
 		/// <param name="importer">Importer</param>
 		/// <param name="options">Options</param>
-		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer, DynamicMethodBodyReaderOptions options) {
+		public DynamicMethodBodyReader(ModuleDef module, object obj, Importer importer, DynamicMethodBodyReaderOptions options)
+			: base(module.Context) {
 			this.module = module;
 			this.importer = importer;
 			this.options = options;

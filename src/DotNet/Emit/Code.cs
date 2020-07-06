@@ -173,7 +173,7 @@ namespace dnlib.DotNet.Emit {
 		Neg				= 0x0065,
 		Newarr			= 0x008D,
 		Newobj			= 0x0073,
-//		No				= 0xFE19,	// Not supported by MS' CLI and must be parsed as an opcode without an operand
+		No				= 0xFE19,
 		Nop				= 0x0000,
 		Not				= 0x0066,
 		Or				= 0x0060,
@@ -241,17 +241,51 @@ namespace dnlib.DotNet.Emit {
 
 	public static partial class Extensions {
 		/// <summary>
+		/// Determines whether a <see cref="Code"/> is experimental
+		/// </summary>
+		/// <param name="code">The code</param>
+		/// <returns><c>true</c> if the <see cref="Code"/> is experimental; otherwise, <c>false</c></returns>
+		public static bool IsExperimental(this Code code) {
+			byte hi = (byte)((ushort)code >> 8);
+
+			return hi >= 0xF0 && hi <= 0xFB;
+		}
+
+		/// <summary>
 		/// Converts a <see cref="Code"/> to an <see cref="OpCode"/>
 		/// </summary>
 		/// <param name="code">The code</param>
 		/// <returns>A <see cref="OpCode"/> or <c>null</c> if it's invalid</returns>
 		public static OpCode ToOpCode(this Code code) {
-			int hi = (ushort)code >> 8;
-			int lo = (byte)code;
+			byte hi = (byte)((ushort)code >> 8);
+			byte lo = (byte)code;
 			if (hi == 0)
 				return OpCodes.OneByteOpCodes[lo];
 			if (hi == 0xFE)
 				return OpCodes.TwoByteOpCodes[lo];
+			if (code == Code.UNKNOWN1)
+				return OpCodes.UNKNOWN1;
+			if (code == Code.UNKNOWN2)
+				return OpCodes.UNKNOWN2;
+			return null;
+		}
+
+		/// <summary>
+		/// Converts a <see cref="Code"/> to an <see cref="OpCode"/>, using a module context to look
+		/// up potential experimental opcodes
+		/// </summary>
+		/// <param name="code">The code</param>
+		/// <param name="context">The module context</param>
+		/// <returns>A <see cref="OpCode"/> or <c>null</c> if it's invalid</returns>
+		public static OpCode ToOpCode(this Code code, ModuleContext context) {
+			byte hi = (byte)((ushort)code >> 8);
+			byte lo = (byte)code;
+			if (hi == 0)
+				return OpCodes.OneByteOpCodes[lo];
+			if (hi == 0xFE)
+				return OpCodes.TwoByteOpCodes[lo];
+			if (context.GetExperimentalOpCode(hi, lo) is OpCode op)
+				return op;
 			if (code == Code.UNKNOWN1)
 				return OpCodes.UNKNOWN1;
 			if (code == Code.UNKNOWN2)

@@ -93,6 +93,18 @@ namespace dnlib.DotNet.Emit {
 			CreateCilBody(opResolver, reader, null, parameters, gpContext);
 
 		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="reader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">The module context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader reader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) =>
+			CreateCilBody(opResolver, reader, null, parameters, gpContext, context);
+
+		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
 		/// a valid CIL method body.
 		/// </summary>
@@ -139,8 +151,22 @@ namespace dnlib.DotNet.Emit {
 		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext) {
-			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext);
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext) =>
+			CreateCilBody(opResolver, codeReader, ehReader, parameters, gpContext, null);
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="codeReader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">The module context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) {
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context);
 			if (!mbReader.Read())
 				return new CilBody();
 			return mbReader.CreateCilBody();
@@ -176,10 +202,28 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext) {
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext) =>
+			CreateCilBody(opResolver, code, exceptions, parameters, flags, maxStack, codeSize, localVarSigTok, gpContext, null);
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="code"/> is not
+		/// a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="code">All code</param>
+		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
+		/// <paramref name="code"/></param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="flags">Method header flags, eg. 2 if tiny method</param>
+		/// <param name="maxStack">Max stack</param>
+		/// <param name="codeSize">Code size</param>
+		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">The module context</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext, ModuleContext context) {
 			var codeReader = ByteArrayDataReaderFactory.CreateReader(code);
 			var ehReader = exceptions is null ? (DataReader?)null : ByteArrayDataReaderFactory.CreateReader(exceptions);
-			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext);
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context);
 			mbReader.SetHeader(flags, maxStack, codeSize, localVarSigTok);
 			if (!mbReader.Read())
 				return new CilBody();
@@ -250,7 +294,21 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext)
-			: base(codeReader, parameters) {
+			: this(opResolver, codeReader, ehReader, parameters, gpContext, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">Module context</param>
+		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context)
+			: base(codeReader, parameters, context) {
 			this.opResolver = opResolver;
 			exceptionsReader = ehReader;
 			this.gpContext = gpContext;

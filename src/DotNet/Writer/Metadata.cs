@@ -1977,7 +1977,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			bool keepMaxStack = KeepOldMaxStack;
-			var writer = new MethodBodyWriter(this);
+			var writer = new MethodBodyWriter(this, Module.Context);
 			foreach (var type in allTypeDefs) {
 				if (type is null)
 					continue;

@@ -240,7 +240,7 @@ namespace dnlib.DotNet.Emit {
 		public static readonly OpCode Constrained	= new OpCode("constrained.",	Code.Constrained, OperandType.InlineType, FlowControl.Meta, OpCodeType.Prefix, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Cpblk			= new OpCode("cpblk",			Code.Cpblk, OperandType.InlineNone, FlowControl.Next, OpCodeType.Primitive, StackBehaviour.Push0, StackBehaviour.Popi_popi_popi);
 		public static readonly OpCode Initblk		= new OpCode("initblk",			Code.Initblk, OperandType.InlineNone, FlowControl.Next, OpCodeType.Primitive, StackBehaviour.Push0, StackBehaviour.Popi_popi_popi);
-//		public static readonly OpCode No			= new OpCode("no.",				Code.No, OperandType.ShortInlineI, FlowControl.Meta, OpCodeType.Prefix, StackBehaviour.Push0, StackBehaviour.Pop0);
+		public static readonly OpCode No			= new OpCode("no.",				Code.No, OperandType.ShortInlineI, FlowControl.Meta, OpCodeType.Prefix, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Rethrow		= new OpCode("rethrow",			Code.Rethrow, OperandType.InlineNone, FlowControl.Throw, OpCodeType.Objmodel, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Sizeof		= new OpCode("sizeof",			Code.Sizeof, OperandType.InlineType, FlowControl.Next, OpCodeType.Primitive, StackBehaviour.Pushi, StackBehaviour.Pop0);
 		public static readonly OpCode Refanytype	= new OpCode("refanytype",		Code.Refanytype, OperandType.InlineNone, FlowControl.Next, OpCodeType.Primitive, StackBehaviour.Pushi, StackBehaviour.Pop1);

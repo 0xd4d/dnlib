@@ -1298,7 +1298,7 @@ namespace dnlib.DotNet {
 			// seem to verify it. We must parse the method exactly the way the CLR parses it.
 			var reader = metadata.PEImage.CreateReader();
 			reader.Position = (uint)metadata.PEImage.ToFileOffset(rva);
-			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext);
+			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext, Context);
 		}
 
 		/// <summary>

@@ -74,13 +74,28 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="keepMaxStack">Keep the original max stack value that has been initialized
 		/// in <paramref name="cilBody"/></param>
 		public MethodBodyWriter(ITokenProvider helper, CilBody cilBody, bool keepMaxStack)
-			: base(cilBody.Instructions, cilBody.ExceptionHandlers) {
+			: this(helper, cilBody, keepMaxStack, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="helper">Helps this instance</param>
+		/// <param name="cilBody">The CIL method body</param>
+		/// <param name="keepMaxStack">Keep the original max stack value that has been initialized
+		/// in <paramref name="cilBody"/></param>
+		/// <param name="context">The module context</param>
+		public MethodBodyWriter(ITokenProvider helper, CilBody cilBody, bool keepMaxStack, ModuleContext context)
+			: base(cilBody.Instructions, cilBody.ExceptionHandlers, context) {
 			this.helper = helper;
 			this.cilBody = cilBody;
 			this.keepMaxStack = keepMaxStack;
 		}
 
-		internal MethodBodyWriter(ITokenProvider helper) => this.helper = helper;
+		internal MethodBodyWriter(ITokenProvider helper, ModuleContext context)
+			: base(context) {
+			this.helper = helper;
+		}
 
 		internal void Reset(CilBody cilBody, bool keepMaxStack) {
 			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);

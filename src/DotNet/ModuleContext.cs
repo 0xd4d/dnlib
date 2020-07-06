@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System.Threading;
+using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -9,6 +10,7 @@ namespace dnlib.DotNet {
 	public class ModuleContext {
 		IAssemblyResolver assemblyResolver;
 		IResolver resolver;
+		readonly OpCode[][] experimentalOpCodes = new OpCode[12][];
 
 		/// <summary>
 		/// Gets/sets the assembly resolver. This is never <c>null</c>.
@@ -33,6 +35,11 @@ namespace dnlib.DotNet {
 			}
 			set => resolver = value;
 		}
+
+		/// <summary>
+		/// Gets the list of experimental CIL opcodes.
+		/// </summary>
+		public OpCode[][] ExperimentalOpCodes => experimentalOpCodes;
 
 		/// <summary>
 		/// Default constructor
@@ -66,6 +73,34 @@ namespace dnlib.DotNet {
 			this.resolver = resolver;
 			if (resolver is null && !(assemblyResolver is null))
 				this.resolver = new Resolver(assemblyResolver);
+		}
+
+		/// <summary>
+		/// Registers an experimental CIL opcode.
+		/// </summary>
+		public void RegisterExperimentalOpCode(OpCode opCode) {
+			byte high = (byte)((ushort)opCode.Value >> 8);
+			byte low = (byte)opCode.Value;
+			OpCode[] array = experimentalOpCodes[high - 0xF0] ??= new OpCode[256];
+
+			array[low] = opCode;
+		}
+
+		/// <summary>
+		/// Clears an experimental CIL opcode.
+		/// </summary>
+		public void ClearExperimentalOpCode(byte high, byte low) {
+			OpCode[] array = experimentalOpCodes[high - 0xF0];
+
+			if (array != null)
+				array[low] = null;
+		}
+
+		/// <summary>
+		/// Attempts to get an experimental CIL opcode.
+		/// </summary>
+		public OpCode GetExperimentalOpCode(byte high, byte low) {
+			return experimentalOpCodes[high - 0xF0]?[low];
 		}
 	}
 }

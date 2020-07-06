@@ -7,7 +7,8 @@ namespace dnlib.Examples {
 // 			Example3.Run();
 // 			Example4.Run();
 // 			Example5.Run();
-			Example6.Run();
+// 			Example6.Run();
+			Example7.Run();
 		}
 	}
 }
