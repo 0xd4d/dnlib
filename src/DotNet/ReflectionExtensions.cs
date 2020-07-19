@@ -11,12 +11,12 @@ namespace dnlib.DotNet {
 	static class ReflectionExtensions {
 		public static void GetTypeNamespaceAndName_TypeDefOrRef(this Type type, out string @namespace, out string name) {
 			Debug.Assert(type.IsTypeDef());
-			name = type.Name ?? string.Empty;
+			name = Unescape(type.Name) ?? string.Empty;
 			if (!type.IsNested)
 				@namespace = type.Namespace ?? string.Empty;
 			else {
-				var declTypeFullName = type.DeclaringType.FullName;
-				var typeFullName = type.FullName;
+				var declTypeFullName = Unescape(type.DeclaringType.FullName);
+				var typeFullName = Unescape(type.FullName);
 				if (declTypeFullName.Length + 1 + name.Length == typeFullName.Length)
 					@namespace = string.Empty;
 				else
@@ -105,5 +105,11 @@ namespace dnlib.DotNet {
 		/// <param name="type">this</param>
 		public static bool IsTypeDef(this Type type) =>
 			!(type is null) && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
+
+		internal static string Unescape(string name) {
+			if (string.IsNullOrEmpty(name))
+				return name;
+			return name.Replace(@"\,", ",").Replace(@"\+", "+").Replace(@"\&", "&").Replace(@"\*", "*").Replace(@"\[", "[").Replace(@"\]", "]").Replace(@"\\", @"\");
+		}
 	}
 }

@@ -354,7 +354,7 @@ namespace dnlib.DotNet {
 
 		TypeRef CreateTypeRef2(Type type) {
 			if (!type.IsNested)
-				return module.UpdateRowId(new TypeRefUser(module, type.Namespace ?? string.Empty, type.Name ?? string.Empty, CreateScopeReference(type)));
+				return module.UpdateRowId(new TypeRefUser(module, type.Namespace ?? string.Empty, ReflectionExtensions.Unescape(type.Name) ?? string.Empty, CreateScopeReference(type)));
 			type.GetTypeNamespaceAndName_TypeDefOrRef(out var @namespace, out var name);
 			return module.UpdateRowId(new TypeRefUser(module, @namespace ?? string.Empty, name ?? string.Empty, CreateTypeRef2(type.DeclaringType)));
 		}
