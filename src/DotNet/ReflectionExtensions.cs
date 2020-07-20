@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Text;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -107,9 +108,31 @@ namespace dnlib.DotNet {
 			!(type is null) && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
 
 		internal static string Unescape(string name) {
-			if (string.IsNullOrEmpty(name))
+			if (string.IsNullOrEmpty(name) || !name.Contains(@"\"))
 				return name;
-			return name.Replace(@"\,", ",").Replace(@"\+", "+").Replace(@"\&", "&").Replace(@"\*", "*").Replace(@"\[", "[").Replace(@"\]", "]").Replace(@"\\", @"\");
+			var sb = new StringBuilder(name.Length);
+			for (int i = 0; i < name.Length; i++) {
+				if (name[i] == '\\' && i < name.Length - 1 && IsReservedTypeNameChar(name[i + 1]))
+					sb.Append(name[++i]);
+				else
+					sb.Append(name[i]);
+			}
+			return sb.ToString();
+		}
+
+		static bool IsReservedTypeNameChar(char c) {
+			switch (c) {
+			case ',':
+			case '+':
+			case '&':
+			case '*':
+			case '[':
+			case ']':
+			case '\\':
+				return true;
+			default:
+				return false;
+			}
 		}
 	}
 }

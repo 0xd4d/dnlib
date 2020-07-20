@@ -3160,7 +3160,7 @@ exit: ;
 				}
 			}
 			result = !b.HasElementType &&
-					Equals_TypeNames(a.Name, b.Name) &&
+					Equals_TypeNames(a.Name, ReflectionExtensions.Unescape(b.Name)) &&
 					Equals_TypeNamespaces(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
 					(DontCompareTypeScope || Equals(a.Module, b.Module));
@@ -3214,7 +3214,7 @@ exit: ;
 
 			if (!b.IsTypeDef())
 				result = false;
-			else if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b))
+			else if (!Equals_TypeNames(a.Name, ReflectionExtensions.Unescape(b.Name)) || !Equals_TypeNamespaces(a.Namespace, b))
 				result = false;
 			else if (!((dta = scope as TypeRef) is null))	// nested type
 				result = Equals(dta, b.DeclaringType);	// Compare enclosing types
@@ -3492,7 +3492,7 @@ exit: ;
 
 			if (!b.IsTypeDef())
 				result = false;
-			else if (!Equals_TypeNames(a.TypeName, b.Name) || !Equals_TypeNamespaces(a.TypeNamespace, b))
+			else if (!Equals_TypeNames(a.TypeName, ReflectionExtensions.Unescape(b.Name)) || !Equals_TypeNamespaces(a.TypeNamespace, b))
 				result = false;
 			else if (!((dta = scope as ExportedType) is null))	// nested type
 				result = Equals(dta, b.DeclaringType);	// Compare enclosing types
@@ -3678,7 +3678,7 @@ exit: ;
 			if (a is null)
 				return GetHashCodeGlobalType();
 			int hash;
-			hash = GetHashCode_TypeName(a.Name);
+			hash = GetHashCode_TypeName(ReflectionExtensions.Unescape(a.Name));
 			if (a.IsNested)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
