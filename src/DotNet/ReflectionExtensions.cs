@@ -108,7 +108,7 @@ namespace dnlib.DotNet {
 			!(type is null) && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
 
 		internal static string Unescape(string name) {
-			if (string.IsNullOrEmpty(name) || !name.Contains(@"\"))
+			if (string.IsNullOrEmpty(name) || name.IndexOf('\\') < 0)
 				return name;
 			var sb = new StringBuilder(name.Length);
 			for (int i = 0; i < name.Length; i++) {
