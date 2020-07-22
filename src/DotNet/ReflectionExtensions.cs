@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Text;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -11,12 +12,12 @@ namespace dnlib.DotNet {
 	static class ReflectionExtensions {
 		public static void GetTypeNamespaceAndName_TypeDefOrRef(this Type type, out string @namespace, out string name) {
 			Debug.Assert(type.IsTypeDef());
-			name = type.Name ?? string.Empty;
+			name = Unescape(type.Name) ?? string.Empty;
 			if (!type.IsNested)
 				@namespace = type.Namespace ?? string.Empty;
 			else {
-				var declTypeFullName = type.DeclaringType.FullName;
-				var typeFullName = type.FullName;
+				var declTypeFullName = Unescape(type.DeclaringType.FullName);
+				var typeFullName = Unescape(type.FullName);
 				if (declTypeFullName.Length + 1 + name.Length == typeFullName.Length)
 					@namespace = string.Empty;
 				else
@@ -105,5 +106,33 @@ namespace dnlib.DotNet {
 		/// <param name="type">this</param>
 		public static bool IsTypeDef(this Type type) =>
 			!(type is null) && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
+
+		internal static string Unescape(string name) {
+			if (string.IsNullOrEmpty(name) || name.IndexOf('\\') < 0)
+				return name;
+			var sb = new StringBuilder(name.Length);
+			for (int i = 0; i < name.Length; i++) {
+				if (name[i] == '\\' && i < name.Length - 1 && IsReservedTypeNameChar(name[i + 1]))
+					sb.Append(name[++i]);
+				else
+					sb.Append(name[i]);
+			}
+			return sb.ToString();
+		}
+
+		static bool IsReservedTypeNameChar(char c) {
+			switch (c) {
+			case ',':
+			case '+':
+			case '&':
+			case '*':
+			case '[':
+			case ']':
+			case '\\':
+				return true;
+			default:
+				return false;
+			}
+		}
 	}
 }
