@@ -358,7 +358,7 @@ namespace dnlib.DotNet {
 		protected TypeRef ReadTypeRefNoAssembly() {
 			// White space is important here. Any white space before the comma/EOF must be
 			// parsed as part of the name.
-			GetNamespaceAndName(ReadId(false), out var ns, out var name);
+			GetNamespaceAndName(ReadId(false, false), out var ns, out var name);
 			return ownerModule.UpdateRowId(new TypeRefUser(ownerModule, ns, name));
 		}
 
@@ -455,13 +455,13 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		internal string ReadId() => ReadId(true);
+		internal string ReadId() => ReadId(true, true);
 
-		internal string ReadId(bool ignoreWhiteSpace) {
+		internal string ReadId(bool ignoreWhiteSpace, bool ignoreEqualSign) {
 			SkipWhite();
 			var sb = new StringBuilder();
 			int c;
-			while ((c = GetIdChar(ignoreWhiteSpace)) != -1)
+			while ((c = GetIdChar(ignoreWhiteSpace, ignoreEqualSign)) != -1)
 				sb.Append((char)c);
 			Verify(sb.Length > 0, "Expected an id");
 			return sb.ToString();
@@ -481,7 +481,8 @@ namespace dnlib.DotNet {
 		/// Gets the next ID char or <c>-1</c> if no more ID chars
 		/// </summary>
 		/// <param name="ignoreWhiteSpace"><c>true</c> if white space should be ignored</param>
-		internal abstract int GetIdChar(bool ignoreWhiteSpace);
+		/// <param name="ignoreEqualSign"><c>true</c> if equal sign '=' should be ignored</param>
+		internal abstract int GetIdChar(bool ignoreWhiteSpace, bool ignoreEqualSign);
 	}
 
 	/// <summary>
@@ -824,7 +825,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		internal override int GetIdChar(bool ignoreWhiteSpace) {
+		internal override int GetIdChar(bool ignoreWhiteSpace, bool ignoreEqualSign) {
 			int c = PeekChar();
 			if (c == -1)
 				return -1;
@@ -841,7 +842,7 @@ namespace dnlib.DotNet {
 			case '*':
 			case '[':
 			case ']':
-			case '=':
+			case '=' when ignoreEqualSign:
 				return -1;
 
 			default:
