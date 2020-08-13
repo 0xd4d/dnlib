@@ -841,7 +841,6 @@ namespace dnlib.DotNet {
 			case '*':
 			case '[':
 			case ']':
-			case '=':
 				return -1;
 
 			default:
