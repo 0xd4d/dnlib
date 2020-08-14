@@ -3,6 +3,7 @@
 // See Roslyn files: MethodDebugInfo.Portable.cs, MetadataWriter.PortablePdb.cs
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using dnlib.DotNet.Emit;
@@ -60,6 +61,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return ReadStateMachineHoistedLocalScopes();
 			if (kind == CustomDebugInfoGuids.TupleElementNames)
 				return ReadTupleElementNames();
+			if (kind == CustomDebugInfoGuids.CompilationMetadataReferences)
+				return ReadCompilationMetadataReferences();
+			if (kind == CustomDebugInfoGuids.CompilationOptions)
+				return ReadCompilationOptions();
 			Debug.Fail("Unknown custom debug info guid: " + kind.ToString());
 			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingBytes());
 		}
@@ -173,6 +178,54 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (reader.Position > recPosEnd)
 				return null;
 			return reader.TryReadZeroTerminatedUtf8String();
+		}
+
+		PdbCustomDebugInfo ReadCompilationMetadataReferences() {
+			var cdi = new PdbCompilationMetadataReferencesCustomDebugInfo();
+
+			while (reader.BytesLeft > 0) {
+				var name = reader.TryReadZeroTerminatedUtf8String();
+				Debug.Assert(!(name is null));
+				if (name is null)
+					break;
+				var aliases = reader.TryReadZeroTerminatedUtf8String();
+				Debug.Assert(!(aliases is null));
+				if (aliases is null)
+					break;
+
+				const uint RequiredBytes = 1 + 4 + 4 + 16;
+				Debug.Assert(reader.BytesLeft >= RequiredBytes);
+				if (reader.BytesLeft < RequiredBytes)
+					break;
+
+				var flags = (PdbCompilationMetadataReferenceFlags)reader.ReadByte();
+				uint timestamp = reader.ReadUInt32();
+				uint sizeOfImage = reader.ReadUInt32();
+				var mvid = reader.ReadGuid();
+
+				var mdRef = new PdbCompilationMetadataReference(name, aliases, flags, timestamp, sizeOfImage, mvid);
+				cdi.References.Add(mdRef);
+			}
+
+			return cdi;
+		}
+
+		PdbCustomDebugInfo ReadCompilationOptions() {
+			var cdi = new PdbCompilationOptionsCustomDebugInfo();
+
+			while (reader.BytesLeft > 0) {
+				var key = reader.TryReadZeroTerminatedUtf8String();
+				Debug.Assert(!(key is null));
+				if (key is null)
+					break;
+				var value = reader.TryReadZeroTerminatedUtf8String();
+				Debug.Assert(!(value is null));
+				if (value is null)
+					break;
+				cdi.Options.Add(new KeyValuePair<string, string>(key, value));
+			}
+
+			return cdi;
 		}
 
 		Instruction GetInstruction(uint offset) {

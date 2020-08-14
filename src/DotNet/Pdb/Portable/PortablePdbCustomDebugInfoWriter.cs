@@ -84,11 +84,21 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case PdbCustomDebugInfoKind.AsyncMethod:
 				WriteAsyncMethodSteppingInformation((PdbAsyncMethodCustomDebugInfo)cdi);
 				break;
+
+			case PdbCustomDebugInfoKind.CompilationMetadataReferences:
+				WriteCompilationMetadataReferences((PdbCompilationMetadataReferencesCustomDebugInfo)cdi);
+				break;
+
+			case PdbCustomDebugInfoKind.CompilationOptions:
+				WriteCompilationOptions((PdbCompilationOptionsCustomDebugInfo)cdi);
+				break;
 			}
 			return outStream.ToArray();
 		}
 
 		void WriteUTF8Z(string s) {
+			if (s.IndexOf('\0') >= 0)
+				helper.Error("String must not contain any NUL bytes");
 			var bytes = Encoding.UTF8.GetBytes(s);
 			writer.WriteBytes(bytes);
 			writer.WriteByte(0);
@@ -268,6 +278,44 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 			helper.Error("Couldn't find an instruction, maybe it was removed. It's still being referenced by some code or by the PDB");
 			return uint.MaxValue;
+		}
+
+		void WriteCompilationMetadataReferences(PdbCompilationMetadataReferencesCustomDebugInfo cdi) {
+			foreach (var mdRef in cdi.References) {
+				var name = mdRef.Name;
+				if (name is null) {
+					helper.Error("Metadata reference name is null");
+					return;
+				}
+				WriteUTF8Z(name);
+
+				var aliases = mdRef.Aliases;
+				if (aliases is null) {
+					helper.Error("Metadata reference aliases is null");
+					return;
+				}
+				WriteUTF8Z(aliases);
+
+				writer.WriteByte((byte)mdRef.Flags);
+				writer.WriteUInt32(mdRef.Timestamp);
+				writer.WriteUInt32(mdRef.SizeOfImage);
+				writer.WriteBytes(mdRef.Mvid.ToByteArray());
+			}
+		}
+
+		void WriteCompilationOptions(PdbCompilationOptionsCustomDebugInfo cdi) {
+			foreach (var kv in cdi.Options) {
+				if (kv.Key is null) {
+					helper.Error("Compiler option `key` is null");
+					return;
+				}
+				if (kv.Value is null) {
+					helper.Error("Compiler option `value` is null");
+					return;
+				}
+				WriteUTF8Z(kv.Key);
+				WriteUTF8Z(kv.Value);
+			}
 		}
 	}
 }

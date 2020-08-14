@@ -3362,6 +3362,8 @@ namespace dnlib.DotNet.Writer {
 			case PdbCustomDebugInfoKind.DynamicLocalVariables:
 			case PdbCustomDebugInfoKind.EmbeddedSource:
 			case PdbCustomDebugInfoKind.SourceLink:
+			case PdbCustomDebugInfoKind.CompilationMetadataReferences:
+			case PdbCustomDebugInfoKind.CompilationOptions:
 				AddCustomDebugInformationCore(serializerMethodContext, encodedToken, cdi, cdi.Guid);
 				break;
 
