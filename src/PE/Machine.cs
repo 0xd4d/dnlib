@@ -90,6 +90,11 @@ namespace dnlib.PE {
 		AMD64_Native_NetBSD = AMD64 ^ 0x1993,
 		ARMNT_Native_NetBSD = ARMNT ^ 0x1993,
 		ARM64_Native_NetBSD = ARM64 ^ 0x1993,
+
+		I386_Native_Sun = I386 ^ 0x1992,
+		AMD64_Native_Sun = AMD64 ^ 0x1992,
+		ARMNT_Native_Sun = ARMNT ^ 0x1992,
+		ARM64_Native_Sun = ARM64 ^ 0x1992,
 #pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 	}
 
@@ -111,12 +116,14 @@ namespace dnlib.PE {
 			case Machine.AMD64_Native_FreeBSD:
 			case Machine.AMD64_Native_Linux:
 			case Machine.AMD64_Native_NetBSD:
+			case Machine.AMD64_Native_Sun:
 
 			case Machine.ARM64:
 			case Machine.ARM64_Native_Apple:
 			case Machine.ARM64_Native_FreeBSD:
 			case Machine.ARM64_Native_Linux:
 			case Machine.ARM64_Native_NetBSD:
+			case Machine.ARM64_Native_Sun:
 				return true;
 
 			default:
@@ -136,6 +143,7 @@ namespace dnlib.PE {
 			case Machine.I386_Native_FreeBSD:
 			case Machine.I386_Native_Linux:
 			case Machine.I386_Native_NetBSD:
+			case Machine.I386_Native_Sun:
 				return true;
 			default:
 				return false;
@@ -154,6 +162,7 @@ namespace dnlib.PE {
 			case Machine.AMD64_Native_FreeBSD:
 			case Machine.AMD64_Native_Linux:
 			case Machine.AMD64_Native_NetBSD:
+			case Machine.AMD64_Native_Sun:
 				return true;
 			default:
 				return false;
@@ -172,6 +181,7 @@ namespace dnlib.PE {
 			case Machine.ARMNT_Native_FreeBSD:
 			case Machine.ARMNT_Native_Linux:
 			case Machine.ARMNT_Native_NetBSD:
+			case Machine.ARMNT_Native_Sun:
 				return true;
 			default:
 				return false;
@@ -190,6 +200,7 @@ namespace dnlib.PE {
 			case Machine.ARM64_Native_FreeBSD:
 			case Machine.ARM64_Native_Linux:
 			case Machine.ARM64_Native_NetBSD:
+			case Machine.ARM64_Native_Sun:
 				return true;
 			default:
 				return false;
