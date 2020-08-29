@@ -1,5 +1,22 @@
 name: GitHub CI
-on: push
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+      - 'Examples/**'
+      - 'src/**'
+      - '!**/*.md'
+    branches:
+      - master
+  pull_request:
+    paths:
+      - 'Examples/**'
+      - 'src/**'
+      - '!**/*.md'
+    branches:
+      - master
+  release:
+    types: released
 
 jobs:
   build-windows:
