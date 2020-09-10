@@ -37,11 +37,6 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets the list of experimental CIL opcodes.
-		/// </summary>
-		public OpCode[][] ExperimentalOpCodes => experimentalOpCodes;
-
-		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public ModuleContext() {
@@ -76,7 +71,8 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Registers an experimental CIL opcode.
+		/// Registers an experimental CIL opcode. It must be a 2-byte opcode
+		/// where the first byte lies within the range <c>0xF0..0xFB</c>.
 		/// </summary>
 		public void RegisterExperimentalOpCode(OpCode opCode) {
 			byte high = (byte)((ushort)opCode.Value >> 8);

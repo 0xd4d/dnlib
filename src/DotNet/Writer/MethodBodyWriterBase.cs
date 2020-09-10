@@ -12,8 +12,6 @@ namespace dnlib.DotNet.Writer {
 		protected IList<Instruction> instructions;
 		/// <summary/>
 		protected IList<ExceptionHandler> exceptionHandlers;
-		/// <summary>The module context</summary>
-		protected readonly ModuleContext context;
 		readonly Dictionary<Instruction, uint> offsets = new Dictionary<Instruction, uint>();
 		uint firstInstructionOffset;
 		int errors;
@@ -24,8 +22,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public bool ErrorDetected => errors > 0;
 
-		internal MethodBodyWriterBase(ModuleContext context) {
-			this.context = context;
+		internal MethodBodyWriterBase() {
 		}
 
 		/// <summary>
@@ -33,20 +30,9 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="instructions">All instructions</param>
 		/// <param name="exceptionHandlers">All exception handlers</param>
-		protected MethodBodyWriterBase(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers)
-			: this(instructions, exceptionHandlers, null) {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="instructions">All instructions</param>
-		/// <param name="exceptionHandlers">All exception handlers</param>
-		/// <param name="context">The module context</param>
-		protected MethodBodyWriterBase(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers, ModuleContext context) {
+		protected MethodBodyWriterBase(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
 			this.instructions = instructions;
 			this.exceptionHandlers = exceptionHandlers;
-			this.context = context;
 		}
 
 		internal void Reset(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
