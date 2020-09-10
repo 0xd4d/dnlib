@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>Start offset of method</summary>
 		protected uint codeStartOffs;
 		/// <summary>The module context</summary>
-		protected ModuleContext context;
+		protected readonly ModuleContext context;
 
 		/// <summary>
 		/// Gets all parameters
