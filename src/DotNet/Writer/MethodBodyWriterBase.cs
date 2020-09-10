@@ -172,19 +172,21 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">The instruction</param>
 		protected void WriteOpCode(ref ArrayWriter writer, Instruction instr) {
 			var code = instr.OpCode.Code;
-			if (instr.OpCode.Size == 2)
-			{
-				byte code1, code2;
-				if (code != Code.UNKNOWN2) {
-					code1 = (byte)((ushort)code >> 8);
-					code2 = (byte)code;
-				} else
-					code1 = code2 = (byte)Code.Nop;
-				writer.WriteByte(code1);
-				writer.WriteByte(code2);
+			var hi = (ushort)code >> 8;
+			if ((ushort)code <= 0xFF)
+				writer.WriteByte((byte)code);
+			else if (hi == 0xFE || (hi >= 0xF0 && hi <= 0xFB)) {
+				writer.WriteByte((byte)((ushort)code >> 8));
+				writer.WriteByte((byte)code);
 			}
-			else
-				writer.WriteByte(code != Code.UNKNOWN1 ? (byte)code : (byte)Code.Nop);
+			else if (code == Code.UNKNOWN1)
+				writer.WriteByte((byte)Code.Nop);
+			else if (code == Code.UNKNOWN2)
+				writer.WriteUInt16((ushort)(((ushort)Code.Nop << 8) | Code.Nop));
+			else {
+				Error("Unknown instruction");
+				writer.WriteByte((byte)Code.Nop);
+			}
 		}
 
 		/// <summary>
