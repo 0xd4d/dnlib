@@ -52,7 +52,14 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		public int Size => Code < (Code)0x100 || Code == Code.UNKNOWN1 ? 1 : 2;
 
-		internal OpCode(string name, Code code, OperandType operandType, FlowControl flowControl, OpCodeType opCodeType, StackBehaviour push, StackBehaviour pop) {
+		/// <summary>
+		/// Constructs an experimental opcode.
+		/// </summary>
+		public OpCode(string name, byte first, byte second, OperandType operandType, FlowControl flowControl, StackBehaviour push, StackBehaviour pop)
+			: this(name, (Code)((first << 8) | second), operandType, flowControl, OpCodeType.Experimental, push, pop, true) {
+		}
+
+		internal OpCode(string name, Code code, OperandType operandType, FlowControl flowControl, OpCodeType opCodeType, StackBehaviour push, StackBehaviour pop, bool experimental = false) {
 			Name = name;
 			Code = code;
 			OperandType = operandType;
@@ -60,10 +67,12 @@ namespace dnlib.DotNet.Emit {
 			OpCodeType = opCodeType;
 			StackBehaviourPush = push;
 			StackBehaviourPop = pop;
-			if (((ushort)code >> 8) == 0)
-				OpCodes.OneByteOpCodes[(byte)code] = this;
-			else if (((ushort)code >> 8) == 0xFE)
-				OpCodes.TwoByteOpCodes[(byte)code] = this;
+			if (!experimental) {
+				if (((ushort)code >> 8) == 0)
+					OpCodes.OneByteOpCodes[(byte)code] = this;
+				else if (((ushort)code >> 8) == 0xFE)
+					OpCodes.TwoByteOpCodes[(byte)code] = this;
+			}
 		}
 
 		/// <summary>

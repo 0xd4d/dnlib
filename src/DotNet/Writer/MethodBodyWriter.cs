@@ -80,7 +80,9 @@ namespace dnlib.DotNet.Writer {
 			this.keepMaxStack = keepMaxStack;
 		}
 
-		internal MethodBodyWriter(ITokenProvider helper) => this.helper = helper;
+		internal MethodBodyWriter(ITokenProvider helper) {
+			this.helper = helper;
+		}
 
 		internal void Reset(CilBody cilBody, bool keepMaxStack) {
 			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);

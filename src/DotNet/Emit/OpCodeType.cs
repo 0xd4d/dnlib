@@ -17,5 +17,7 @@ namespace dnlib.DotNet.Emit {
 		Prefix,
 		/// <summary/>
 		Primitive,
+		/// <summary/>
+		Experimental,
 	}
 }

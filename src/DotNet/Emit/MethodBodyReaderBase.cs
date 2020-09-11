@@ -24,6 +24,7 @@ namespace dnlib.DotNet.Emit {
 		protected uint codeEndOffs;
 		/// <summary>Start offset of method</summary>
 		protected uint codeStartOffs;
+		readonly ModuleContext context;
 
 		/// <summary>
 		/// Gets all parameters
@@ -54,6 +55,14 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="context">The module context</param>
+		protected MethodBodyReaderBase(ModuleContext context) {
+			this.context = context;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		/// <param name="reader">The reader</param>
 		protected MethodBodyReaderBase(DataReader reader)
 			: this(reader, null) {
@@ -64,9 +73,20 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="reader">The reader</param>
 		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
-		protected MethodBodyReaderBase(DataReader reader, IList<Parameter> parameters) {
+		protected MethodBodyReaderBase(DataReader reader, IList<Parameter> parameters)
+			: this(reader, parameters, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="reader">The reader</param>
+		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
+		/// <param name="context">The module context</param>
+		protected MethodBodyReaderBase(DataReader reader, IList<Parameter> parameters, ModuleContext context) {
 			this.reader = reader;
 			this.parameters = parameters;
+			this.context = context;
 		}
 
 		/// <summary>
@@ -218,9 +238,15 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		OpCode ReadOpCode() {
 			var op = reader.ReadByte();
-			if (op != 0xFE)
-				return OpCodes.OneByteOpCodes[op];
-			return OpCodes.TwoByteOpCodes[reader.ReadByte()];
+			if (op == 0xFE)
+				return OpCodes.TwoByteOpCodes[reader.ReadByte()];
+			if (op >= 0xF0 && op <= 0xFB && !(context is null) && reader.BytesLeft >= 1) {
+				if (context.GetExperimentalOpCode(op, reader.ReadByte()) is OpCode opCode)
+					return opCode;
+				else
+					reader.Position--;
+			}
+			return OpCodes.OneByteOpCodes[op];
 		}
 
 		/// <summary>

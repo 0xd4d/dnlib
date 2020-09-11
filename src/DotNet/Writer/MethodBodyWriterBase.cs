@@ -158,9 +158,10 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">The instruction</param>
 		protected void WriteOpCode(ref ArrayWriter writer, Instruction instr) {
 			var code = instr.OpCode.Code;
+			var hi = (ushort)code >> 8;
 			if ((ushort)code <= 0xFF)
 				writer.WriteByte((byte)code);
-			else if (((ushort)code >> 8) == 0xFE) {
+			else if (hi == 0xFE || (hi >= 0xF0 && hi <= 0xFB)) {
 				writer.WriteByte((byte)((ushort)code >> 8));
 				writer.WriteByte((byte)code);
 			}
