@@ -240,8 +240,12 @@ namespace dnlib.DotNet.Emit {
 			var op = reader.ReadByte();
 			if (op == 0xFE)
 				return OpCodes.TwoByteOpCodes[reader.ReadByte()];
-			if (op >= 0xF0 && op <= 0xFB)
-				return context?.GetExperimentalOpCode(op, reader.ReadByte()) ?? OpCodes.UNKNOWN2;
+			if (op >= 0xF0 && op <= 0xFB && !(context is null) && reader.BytesLeft >= 1) {
+				if (context.GetExperimentalOpCode(op, reader.ReadByte()) is OpCode opCode)
+					return opCode;
+				else
+					reader.Position--;
+			}
 			return OpCodes.OneByteOpCodes[op];
 		}
 
