@@ -118,10 +118,25 @@ namespace dnlib.DotNet {
 #endif
 			if (methodDeclaringType is null)
 				hiddenThisParameter.Type = null;
-			else if (methodDeclaringType.IsValueType)
-				hiddenThisParameter.Type = new ByRefSig(new ValueTypeSig(methodDeclaringType));
-			else
-				hiddenThisParameter.Type = new ClassSig(methodDeclaringType);
+			else {
+				bool isValueType = methodDeclaringType.IsValueType;
+				ClassOrValueTypeSig instSig;
+				if (isValueType)
+					instSig = new ValueTypeSig(methodDeclaringType);
+				else
+					instSig = new ClassSig(methodDeclaringType);
+				TypeSig thisTypeSig;
+				if (methodDeclaringType.HasGenericParameters) {
+					int gpCount = methodDeclaringType.GenericParameters.Count;
+					var genArgs = new List<TypeSig>(gpCount);
+					for (int i = 0; i < gpCount; i++)
+						genArgs.Add(new GenericVar(i, methodDeclaringType));
+					thisTypeSig = new GenericInstSig(instSig, genArgs);
+				}
+				else
+					thisTypeSig = instSig;
+				hiddenThisParameter.Type = isValueType ? new ByRefSig(thisTypeSig) : thisTypeSig;
+			}
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
