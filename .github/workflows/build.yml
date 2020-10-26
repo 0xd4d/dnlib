@@ -24,7 +24,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: Build
         shell: pwsh
@@ -40,11 +40,12 @@ jobs:
           New-Item -ItemType Directory nuget_files > $null
           Copy-Item src\bin\Release\*.*nupkg nuget_files
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
         with:
           name: nupkg
           path: nuget_files
+          if-no-files-found: error
 
       - name: Upload to nuget.org if it's a new release
         if: startsWith(github.ref, 'refs/tags/')
@@ -59,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: Build
         shell: pwsh
