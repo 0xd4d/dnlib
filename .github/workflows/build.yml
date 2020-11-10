@@ -18,6 +18,9 @@ on:
   release:
     types: released
 
+env:
+  CI_REQ_DOTNET_SDK_VER: 5.0.100
+
 jobs:
   build-windows:
     name: Build (Windows)
@@ -25,6 +28,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
 
       - name: Build
         shell: pwsh
@@ -61,6 +68,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
 
       - name: Build
         shell: pwsh
