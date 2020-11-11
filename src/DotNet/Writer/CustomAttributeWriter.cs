@@ -93,7 +93,7 @@ namespace dnlib.DotNet.Writer {
 			// Check whether it's raw first. If it is, we don't care whether the ctor is
 			// invalid. Just use the raw data.
 			if (ca.IsRawBlob) {
-				if ((!(ca.ConstructorArguments is null) && ca.ConstructorArguments.Count > 0) || (!(ca.NamedArguments is null) && ca.NamedArguments.Count > 0))
+				if ((ca.ConstructorArguments is not null && ca.ConstructorArguments.Count > 0) || (ca.NamedArguments is not null && ca.NamedArguments.Count > 0))
 					helper.Error("Raw custom attribute contains arguments and/or named arguments");
 				writer.WriteBytes(ca.RawData);
 				return;
@@ -112,7 +112,7 @@ namespace dnlib.DotNet.Writer {
 
 			if (ca.ConstructorArguments.Count != methodSig.Params.Count)
 				helper.Error("Custom attribute arguments count != method sig arguments count");
-			if (!(methodSig.ParamsAfterSentinel is null) && methodSig.ParamsAfterSentinel.Count > 0)
+			if (methodSig.ParamsAfterSentinel is not null && methodSig.ParamsAfterSentinel.Count > 0)
 				helper.Error("Custom attribute ctor has parameters after the sentinel");
 			if (ca.NamedArguments.Count > ushort.MaxValue)
 				helper.Error("Custom attribute has too many named arguments");
@@ -164,7 +164,7 @@ namespace dnlib.DotNet.Writer {
 
 			if (argType is SZArraySig arrayType) {
 				var argsArray = value.Value as IList<CAArgument>;
-				if (argsArray is null && !(value.Value is null))
+				if (argsArray is null && value.Value is not null)
 					helper.Error("CAArgument.Value is not null or an array");
 				WriteArrayValue(arrayType, argsArray);
 			}
@@ -213,7 +213,7 @@ namespace dnlib.DotNet.Writer {
 		static bool VerifyType(TypeSig type, ElementType etype) {
 			type = type.RemoveModifiers();
 			// Assume it's an enum if it's a ValueType
-			return !(type is null) && (etype == type.ElementType || type.ElementType == ElementType.ValueType);
+			return type is not null && (etype == type.ElementType || type.ElementType == ElementType.ValueType);
 		}
 
 		static bool VerifyValue(object o, ElementType etype) {
@@ -483,7 +483,7 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.ValueType:
 				tdr = ((TypeDefOrRefSig)argType).TypeDefOrRef;
 				underlyingType = GetEnumUnderlyingType(argType);
-				if (!(underlyingType is null))
+				if (underlyingType is not null)
 					WriteElem(underlyingType, value);
 				else if (tdr is TypeRef && TryWriteEnumUnderlyingTypeValue(value.Value)) {
 					// No error. Assume it's an enum that couldn't be resolved.
@@ -606,11 +606,11 @@ namespace dnlib.DotNet.Writer {
 		static TypeDef GetTypeDef(TypeSig type) {
 			if (type is TypeDefOrRefSig tdr) {
 				var td = tdr.TypeDef;
-				if (!(td is null))
+				if (td is not null)
 					return td;
 
 				var tr = tdr.TypeRef;
-				if (!(tr is null))
+				if (tr is not null)
 					return tr.Resolve();
 			}
 
@@ -690,7 +690,7 @@ namespace dnlib.DotNet.Writer {
 				tdr = ((TypeDefOrRefSig)type).TypeDefOrRef;
 				var enumType = GetEnumTypeDef(type);
 				// If TypeRef => assume it's an enum that couldn't be resolved
-				if (!(enumType is null) || tdr is TypeRef) {
+				if (enumType is not null || tdr is TypeRef) {
 					writer.WriteByte((byte)SerializationType.Enum);
 					WriteType(tdr);
 				}
@@ -751,7 +751,7 @@ namespace dnlib.DotNet.Writer {
 		public void Dispose() {
 			if (!disposeStream)
 				return;
-			if (!(outStream is null))
+			if (outStream is not null)
 				outStream.Dispose();
 		}
 	}

@@ -124,7 +124,7 @@ namespace dnlib.DotNet {
 
 				if (owner is ModuleRef mr) {
 					var tr = GetGlobalTypeRef(mr);
-					if (!(module is null))
+					if (module is not null)
 						return module.UpdateRowId(tr);
 					return tr;
 				}
@@ -137,7 +137,7 @@ namespace dnlib.DotNet {
 			if (module is null)
 				return CreateDefaultGlobalTypeRef(mr);
 			var globalType = module.GlobalType;
-			if (!(globalType is null) && new SigComparer().Equals(module, mr))
+			if (globalType is not null && new SigComparer().Equals(module, mr))
 				return new TypeRefUser(module, globalType.Namespace, globalType.Name, mr);
 			var asm = module.Assembly;
 			if (asm is null)
@@ -153,7 +153,7 @@ namespace dnlib.DotNet {
 
 		TypeRefUser CreateDefaultGlobalTypeRef(ModuleRef mr) {
 			var tr = new TypeRefUser(module, string.Empty, "<Module>", mr);
-			if (!(module is null))
+			if (module is not null)
 				module.UpdateRowId(tr);
 			return tr;
 		}
@@ -175,12 +175,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if this is a method reference (<see cref="MethodSig"/> != <c>null</c>)
 		/// </summary>
-		public bool IsMethodRef => !(MethodSig is null);
+		public bool IsMethodRef => MethodSig is not null;
 
 		/// <summary>
 		/// <c>true</c> if this is a field reference (<see cref="FieldSig"/> != <c>null</c>)
 		/// </summary>
-		public bool IsFieldRef => !(FieldSig is null);
+		public bool IsFieldRef => FieldSig is not null;
 
 		/// <summary>
 		/// Gets/sets the method sig
@@ -238,7 +238,7 @@ namespace dnlib.DotNet {
 			get => MethodSig?.RetType;
 			set {
 				var ms = MethodSig;
-				if (!(ms is null))
+				if (ms is not null)
 					ms.RetType = value;
 			}
 		}
@@ -258,10 +258,10 @@ namespace dnlib.DotNet {
 						typeGenArgs = sig.GenericArguments;
 				}
 				var methodSig = MethodSig;
-				if (!(methodSig is null))
+				if (methodSig is not null)
 					return FullNameFactory.MethodFullName(GetDeclaringTypeFullName(parent), name, methodSig, typeGenArgs, null, null, null);
 				var fieldSig = FieldSig;
-				if (!(fieldSig is null))
+				if (fieldSig is not null)
 					return FullNameFactory.FieldFullName(GetDeclaringTypeFullName(parent), name, fieldSig, typeGenArgs, null);
 				return string.Empty;
 			}
@@ -305,7 +305,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
 		public IMemberForwarded ResolveThrow() {
 			var memberDef = Resolve();
-			if (!(memberDef is null))
+			if (memberDef is not null)
 				return memberDef;
 			throw new MemberRefResolveException($"Could not resolve method/field: {this} ({this.GetDefinitionAssembly()})");
 		}
@@ -323,7 +323,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
 		public FieldDef ResolveFieldThrow() {
 			var field = ResolveField();
-			if (!(field is null))
+			if (field is not null)
 				return field;
 			throw new MemberRefResolveException($"Could not resolve field: {this} ({this.GetDefinitionAssembly()})");
 		}
@@ -341,7 +341,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
 		public MethodDef ResolveMethodThrow() {
 			var method = ResolveMethod();
-			if (!(method is null))
+			if (method is not null)
 				return method;
 			throw new MemberRefResolveException($"Could not resolve method: {this} ({this.GetDefinitionAssembly()})");
 		}

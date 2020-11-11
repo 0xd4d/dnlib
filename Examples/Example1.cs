@@ -18,7 +18,7 @@ namespace dnlib.Examples {
 				totalNumTypes++;
 				Console.WriteLine();
 				Console.WriteLine("Type: {0}", type.FullName);
-				if (!(type.BaseType is null))
+				if (type.BaseType is not null)
 					Console.WriteLine("  Base type: {0}", type.BaseType.FullName);
 
 				Console.WriteLine("  Methods: {0}", type.Methods.Count);

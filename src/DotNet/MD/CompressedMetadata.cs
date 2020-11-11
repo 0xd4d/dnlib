@@ -97,7 +97,7 @@ namespace dnlib.DotNet.MD {
 			if (tablesStream is null)
 				throw new BadImageFormatException("Missing MD stream");
 
-			if (!(pdbStream is null))
+			if (pdbStream is not null)
 				tablesStream.Initialize(pdbStream.TypeSystemTableRows);
 			else
 				tablesStream.Initialize(null);

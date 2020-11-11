@@ -66,7 +66,7 @@ namespace dnlib.DotNet {
 		public ModuleContext(IAssemblyResolver assemblyResolver, IResolver resolver) {
 			this.assemblyResolver = assemblyResolver;
 			this.resolver = resolver;
-			if (resolver is null && !(assemblyResolver is null))
+			if (resolver is null && assemblyResolver is not null)
 				this.resolver = new Resolver(assemblyResolver);
 		}
 

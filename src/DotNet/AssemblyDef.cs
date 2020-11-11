@@ -379,7 +379,7 @@ namespace dnlib.DotNet {
 				return asm;
 			}
 			catch {
-				if (!(module is null))
+				if (module is not null)
 					module.Dispose();
 				throw;
 			}
@@ -416,7 +416,7 @@ namespace dnlib.DotNet {
 				return asm;
 			}
 			catch {
-				if (!(module is null))
+				if (module is not null)
 					module.Dispose();
 				throw;
 			}
@@ -453,7 +453,7 @@ namespace dnlib.DotNet {
 				return asm;
 			}
 			catch {
-				if (!(module is null))
+				if (module is not null)
 					module.Dispose();
 				throw;
 			}
@@ -494,7 +494,7 @@ namespace dnlib.DotNet {
 				return asm;
 			}
 			catch {
-				if (!(module is null))
+				if (module is not null)
 					module.Dispose();
 				throw;
 			}
@@ -529,7 +529,7 @@ namespace dnlib.DotNet {
 				if (module is null)
 					continue;
 				var type = module.Find(fullName, isReflectionName);
-				if (!(type is null))
+				if (type is not null)
 					return type;
 			}
 			return null;
@@ -550,7 +550,7 @@ namespace dnlib.DotNet {
 				if (module is null)
 					continue;
 				var type = module.Find(typeRef);
-				if (!(type is null))
+				if (type is not null)
 					return type;
 			}
 			return null;
@@ -710,14 +710,14 @@ namespace dnlib.DotNet {
 		void IListListener<ModuleDef>.OnAdd(int index, ModuleDef module) {
 			if (module is null)
 				return;
-			if (!(module.Assembly is null))
+			if (module.Assembly is not null)
 				throw new InvalidOperationException("Module already has an assembly. Remove it from that assembly before adding it to this assembly.");
 			module.Assembly = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnRemove(int index, ModuleDef module) {
-			if (!(module is null))
+			if (module is not null)
 				module.Assembly = null;
 		}
 
@@ -728,7 +728,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnClear() {
 			foreach (var module in modules.GetEnumerable_NoLock()) {
-				if (!(module is null))
+				if (module is not null)
 					module.Assembly = null;
 			}
 		}

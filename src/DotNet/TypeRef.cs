@@ -195,13 +195,13 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
 		/// </summary>
-		public bool IsNested => !(DeclaringType is null);
+		public bool IsNested => DeclaringType is not null;
 
 		/// <inheritdoc/>
 		public bool IsValueType {
 			get {
 				var td = Resolve();
-				return !(td is null) && td.IsValueType;
+				return td is not null && td.IsValueType;
 			}
 		}
 
@@ -262,7 +262,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		public TypeDef ResolveThrow(ModuleDef sourceModule) {
 			var type = Resolve(sourceModule);
-			if (!(type is null))
+			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not resolve type: {this} ({DefinitionAssembly})");
 		}

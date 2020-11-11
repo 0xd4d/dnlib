@@ -150,7 +150,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// <c>true</c> if <see cref="PdbMethod"/> is not <c>null</c>
 		/// </summary>
-		public bool HasPdbMethod => !(PdbMethod is null);
+		public bool HasPdbMethod => PdbMethod is not null;
 
 		/// <summary>
 		/// Gets the total size of the body in the PE file, including header, IL bytes, and exception handlers.

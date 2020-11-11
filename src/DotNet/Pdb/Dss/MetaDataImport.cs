@@ -18,7 +18,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (typeNamespace is null)
 				typeNamespace = string.Empty;
 
-			if (!(destBuffer is null) && destBufferLen > 0) {
+			if (destBuffer is not null && destBufferLen > 0) {
 				uint maxChars = destBufferLen - 1;
 				uint w = 0;
 				if (typeNamespace.Length > 0) {
@@ -35,10 +35,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 				*destBuffer = 0;
 			}
 
-			if (!(requiredLength is null)) {
+			if (requiredLength is not null) {
 				int totalLen = typeNamespace.Length == 0 ? typeName.Length : typeNamespace.Length + 1 + typeName.Length;
 				int copyLen = Math.Min(totalLen, (int)Math.Min(int.MaxValue, destBufferLen == 0 ? 0 : destBufferLen - 1));
-				if (!(destBuffer is null))
+				if (destBuffer is not null)
 					*requiredLength = (uint)copyLen;
 				else
 					*requiredLength = (uint)totalLen;

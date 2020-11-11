@@ -57,7 +57,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {
 			var other = obj as ByteArrayChunk;
-			return !(other is null) && Utils.Equals(array, other.array);
+			return other is not null && Utils.Equals(array, other.array);
 		}
 	}
 }

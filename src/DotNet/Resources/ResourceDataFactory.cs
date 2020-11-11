@@ -273,9 +273,9 @@ namespace dnlib.DotNet.Resources {
 			if (simpleName == module.CorLibTypes.AssemblyRef.Name)
 				return module.CorLibTypes.AssemblyRef.FullName;
 
-			if (!(moduleMD is null)) {
+			if (moduleMD is not null) {
 				var asmRef = moduleMD.GetAssemblyRef(simpleName);
-				if (!(asmRef is null))
+				if (asmRef is not null)
 					return asmRef.FullName;
 			}
 

@@ -86,7 +86,7 @@ namespace dnlib.IO {
 		/// <param name="offset">Start offset of data</param>
 		/// <param name="length">Length of data</param>
 		public DataReader(DataStream stream, uint offset, uint length) {
-			Debug.Assert(!(stream is null) || (offset == 0 && length == 0));
+			Debug.Assert(stream is not null || (offset == 0 && length == 0));
 			Debug.Assert(offset + length >= offset);
 			this.stream = stream;
 			startOffset = offset;

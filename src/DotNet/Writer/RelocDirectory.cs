@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Writer {
 			var allRvas = new List<uint>(allRelocRvas.Count);
 			foreach (var info in allRelocRvas) {
 				uint relocRva;
-				if (!(info.Chunk is null))
+				if (info.Chunk is not null)
 					relocRva = (uint)info.Chunk.RVA + info.OffsetOrRva;
 				else
 					relocRva = info.OffsetOrRva;
@@ -64,14 +64,14 @@ namespace dnlib.DotNet.Writer {
 				uint page = relocRva & ~0xFFFU;
 				if (page != prevPage) {
 					prevPage = page;
-					if (!(pageList is null))
+					if (pageList is not null)
 						totalSize += (uint)(8 + ((pageList.Count + 1) & ~1) * 2);
 					pageList = new List<uint>();
 					relocSections.Add(pageList);
 				}
 				pageList.Add(relocRva);
 			}
-			if (!(pageList is null))
+			if (pageList is not null)
 				totalSize += (uint)(8 + ((pageList.Count + 1) & ~1) * 2);
 		}
 

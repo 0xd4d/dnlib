@@ -80,7 +80,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			get {
 				if (customDebugInfos is null) {
 					var sourceCode = SourceCode;
-					if (!(sourceCode is null))
+					if (sourceCode is not null)
 						customDebugInfos = new PdbCustomDebugInfo[1] { new PdbEmbeddedSourceCustomDebugInfo(sourceCode) };
 					else
 						customDebugInfos = Array2.Empty<PdbCustomDebugInfo>();

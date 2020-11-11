@@ -490,17 +490,17 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeRef"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeRef => !(TypeRef is null);
+		public bool IsTypeRef => TypeRef is not null;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeDef"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeDef => !(TypeDef is null);
+		public bool IsTypeDef => TypeDef is not null;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeSpec"/> != <c>null</c>
 		/// </summary>
-		public bool IsTypeSpec => !(TypeSpec is null);
+		public bool IsTypeSpec => TypeSpec is not null;
 
 		/// <summary>
 		/// Gets the <see cref="TypeRef"/> or <c>null</c> if it's not a <see cref="TypeRef"/>
@@ -606,19 +606,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="TypeDef"/> or <see cref="MethodDef"/>
 		/// </summary>
-		public bool HasOwner => !(genericParamProvider is null);
+		public bool HasOwner => genericParamProvider is not null;
 
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="TypeDef"/> (<see cref="OwnerType"/> is
 		/// not <c>null</c>)
 		/// </summary>
-		public bool HasOwnerType => !(OwnerType is null);
+		public bool HasOwnerType => OwnerType is not null;
 
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="MethodDef"/> (<see cref="OwnerMethod"/> is
 		/// not <c>null</c>)
 		/// </summary>
-		public bool HasOwnerMethod => !(OwnerMethod is null);
+		public bool HasOwnerMethod => OwnerMethod is not null;
 
 		/// <summary>
 		/// Gets the owner type or <c>null</c> if the owner is a <see cref="MethodDef"/> or if it

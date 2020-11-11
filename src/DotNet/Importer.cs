@@ -307,7 +307,7 @@ namespace dnlib.DotNet {
 				return td;
 
 			td = TryResolve(mr.Class as TypeRef) as TypeDef;
-			if (!(td is null))
+			if (td is not null)
 				return td;
 
 			var modRef = mr.Class as ModuleRef;
@@ -335,7 +335,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool IsThisModule(ModuleRef modRef) =>
-			!(modRef is null) &&
+			modRef is not null &&
 			module.Name == modRef.Name &&
 			Equals(module.Assembly, modRef.DefinitionAssembly);
 
@@ -364,7 +364,7 @@ namespace dnlib.DotNet {
 				return null;
 			var asmName = type.Assembly.GetName();
 			var modAsm = module.Assembly;
-			if (!(modAsm is null)) {
+			if (modAsm is not null) {
 				if (UTF8String.ToSystemStringOrEmpty(modAsm.Name).Equals(asmName.Name, StringComparison.OrdinalIgnoreCase)) {
 					if (UTF8String.ToSystemStringOrEmpty(module.Name).Equals(type.Module.ScopeName, StringComparison.OrdinalIgnoreCase))
 						return module;
@@ -400,12 +400,12 @@ namespace dnlib.DotNet {
 			// Assume all required modifiers are closer to the real type.
 			// Assume all modifiers should be applied in the same order as in the lists.
 
-			if (!(requiredModifiers is null)) {
+			if (requiredModifiers is not null) {
 				foreach (var modifier in requiredModifiers)
 					ts = new CModReqdSig(Import(modifier), ts);
 			}
 
-			if (!(optionalModifiers is null)) {
+			if (optionalModifiers is not null) {
 				foreach (var modifier in optionalModifiers)
 					ts = new CModOptSig(Import(modifier), ts);
 			}
@@ -657,13 +657,13 @@ namespace dnlib.DotNet {
 			TypeSpec ts;
 			TypeSig sig;
 
-			if (!((td = type as TypeDef) is null))
+			if ((td = type as TypeDef) is not null)
 				result = Import(td);
-			else if (!((tr = type as TypeRef) is null))
+			else if ((tr = type as TypeRef) is not null)
 				result = Import(tr);
-			else if (!((ts = type as TypeSpec) is null))
+			else if ((ts = type as TypeSpec) is not null)
 				result = Import(ts);
-			else if (!((sig = type as TypeSig) is null))
+			else if ((sig = type as TypeSig) is not null)
 				result = Import(sig);
 			else
 				result = null;
@@ -683,7 +683,7 @@ namespace dnlib.DotNet {
 			if (TryToUseTypeDefs && type.Module == module)
 				return type;
 			var mapped = mapper?.Map(type);
-			if (!(mapped is null))
+			if (mapped is not null)
 				return mapped;
 			return Import2(type);
 		}
@@ -696,7 +696,7 @@ namespace dnlib.DotNet {
 			TypeRef result;
 
 			var declType = type.DeclaringType;
-			if (!(declType is null))
+			if (declType is not null)
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declType)));
 			else
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
@@ -709,7 +709,7 @@ namespace dnlib.DotNet {
 			if (defAsm is null)
 				return null;
 			var modAsm = module.Assembly;
-			if (!(defMod is null) && !(defAsm is null) && !(modAsm is null)) {
+			if (defMod is not null && defAsm is not null && modAsm is not null) {
 				if (UTF8String.CaseInsensitiveEquals(modAsm.Name, defAsm.Name)) {
 					if (UTF8String.CaseInsensitiveEquals(module.Name, defMod.Name))
 						return module;
@@ -729,7 +729,7 @@ namespace dnlib.DotNet {
 		/// <returns>The imported type or <c>null</c></returns>
 		public ITypeDefOrRef Import(TypeRef type) {
 			var mapped = mapper?.Map(type);
-			if (!(mapped is null))
+			if (mapped is not null)
 				return mapped;
 
 			return TryResolve(Import2(type));
@@ -743,7 +743,7 @@ namespace dnlib.DotNet {
 			TypeRef result;
 
 			var declaringType = type.DeclaringType;
-			if (!(declaringType is null))
+			if (declaringType is not null)
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declaringType)));
 			else
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
@@ -845,7 +845,7 @@ namespace dnlib.DotNet {
 
 		TypeSig CreateClassOrValueType(ITypeDefOrRef type, bool isValueType) {
 			var corLibType = module.CorLibTypes.GetCorLibTypeSig(type);
-			if (!(corLibType is null))
+			if (corLibType is not null)
 				return corLibType;
 
 			if (isValueType)
@@ -923,7 +923,7 @@ namespace dnlib.DotNet {
 				sig.Params.Add(Import(p));
 			sig.GenParamCount = old.GenParamCount;
 			var paramsAfterSentinel = sig.ParamsAfterSentinel;
-			if (!(paramsAfterSentinel is null)) {
+			if (paramsAfterSentinel is not null) {
 				foreach (var p in old.ParamsAfterSentinel)
 					paramsAfterSentinel.Add(Import(p));
 			}
@@ -1000,9 +1000,9 @@ namespace dnlib.DotNet {
 			MemberRef mr;
 			FieldDef fd;
 
-			if (!((fd = field as FieldDef) is null))
+			if ((fd = field as FieldDef) is not null)
 				result = Import(fd);
-			else if (!((mr = field as MemberRef) is null))
+			else if ((mr = field as MemberRef) is not null)
 				result = Import(mr);
 			else
 				result = null;
@@ -1027,11 +1027,11 @@ namespace dnlib.DotNet {
 			MethodSpec ms;
 			MemberRef mr;
 
-			if (!((md = method as MethodDef) is null))
+			if ((md = method as MethodDef) is not null)
 				result = Import(md);
-			else if (!((ms = method as MethodSpec) is null))
+			else if ((ms = method as MethodSpec) is not null)
 				result = Import(ms);
-			else if (!((mr = method as MemberRef) is null))
+			else if ((mr = method as MemberRef) is not null)
 				result = Import(mr);
 			else
 				result = null;
@@ -1053,7 +1053,7 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 			var mapped = mapper?.Map(field);
-			if (!(mapped is null)) {
+			if (mapped is not null) {
 				recursionCounter.Decrement();
 				return mapped;
 			}
@@ -1087,7 +1087,7 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 			var mapped = mapper?.Map(method);
-			if (!(mapped is null)) {
+			if (mapped is not null) {
 				recursionCounter.Decrement();
 				return mapped;
 			}
@@ -1129,7 +1129,7 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 			var mapped = mapper?.Map(memberRef);
-			if (!(mapped is null)) {
+			if (mapped is not null) {
 				recursionCounter.Decrement();
 				return mapped;
 			}

@@ -348,9 +348,9 @@ namespace dnlib.DotNet {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
 					return;
-				if (!(currentDeclaringType is null))
+				if (currentDeclaringType is not null)
 					currentDeclaringType.Methods.Remove(this);	// Will set DeclaringType2 = null
-				if (!(value is null))
+				if (value is not null)
 					value.Methods.Add(this);	// Will set DeclaringType2 = value
 			}
 		}
@@ -419,7 +419,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="Body"/>
 		/// </summary>
-		public bool HasBody => !(Body is null);
+		public bool HasBody => Body is not null;
 
 		/// <summary>
 		/// <c>true</c> if there's at least one <see cref="MethodOverride"/> in <see cref="Overrides"/>
@@ -429,7 +429,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="ImplMap"/> is not <c>null</c>
 		/// </summary>
-		public bool HasImplMap => !(ImplMap is null);
+		public bool HasImplMap => ImplMap is not null;
 
 		/// <summary>
 		/// Gets the full name
@@ -494,7 +494,7 @@ namespace dnlib.DotNet {
 			get => MethodSig?.RetType;
 			set {
 				var ms = MethodSig;
-				if (!(ms is null))
+				if (ms is not null)
 					ms.RetType = value;
 			}
 		}
@@ -934,7 +934,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnAdd(int index, GenericParam value) {
-			if (!(value.Owner is null))
+			if (value.Owner is not null)
 				throw new InvalidOperationException("Generic param is already owned by another type/method. Set Owner to null first.");
 			value.Owner = this;
 		}
@@ -964,7 +964,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ParamDef>.OnAdd(int index, ParamDef value) {
-			if (!(value.DeclaringMethod is null))
+			if (value.DeclaringMethod is not null)
 				throw new InvalidOperationException("Param is already owned by another method. Set DeclaringMethod to null first.");
 			value.DeclaringMethod = this;
 		}

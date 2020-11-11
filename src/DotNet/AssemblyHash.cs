@@ -28,7 +28,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (!(hasher is null))
+			if (hasher is not null)
 				((IDisposable)hasher).Dispose();
 		}
 

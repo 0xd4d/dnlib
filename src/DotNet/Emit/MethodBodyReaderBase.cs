@@ -208,7 +208,7 @@ namespace dnlib.DotNet.Emit {
 		/// <paramref name="offset"/></exception>
 		protected Instruction GetInstructionThrow(uint offset) {
 			var instr = GetInstruction(offset);
-			if (!(instr is null))
+			if (instr is not null)
 				return instr;
 			throw new InvalidOperationException($"There's no instruction @ {offset:X4}");
 		}
@@ -240,7 +240,7 @@ namespace dnlib.DotNet.Emit {
 			var op = reader.ReadByte();
 			if (op == 0xFE)
 				return OpCodes.TwoByteOpCodes[reader.ReadByte()];
-			if (op >= 0xF0 && op <= 0xFB && !(context is null) && reader.BytesLeft >= 1) {
+			if (op >= 0xF0 && op <= 0xFB && context is not null && reader.BytesLeft >= 1) {
 				if (context.GetExperimentalOpCode(op, reader.ReadByte()) is OpCode opCode)
 					return opCode;
 				else
@@ -542,7 +542,7 @@ namespace dnlib.DotNet.Emit {
 		/// at the end of the method.</param>
 		/// <returns>The instruction offset</returns>
 		uint GetOffset(Instruction instr) {
-			if (!(instr is null))
+			if (instr is not null)
 				return instr.Offset;
 			var instructions = this.instructions;
 			if (instructions.Count == 0)
@@ -561,7 +561,7 @@ namespace dnlib.DotNet.Emit {
 
 			body.Variables.Clear();
 			var locals = this.locals;
-			if (!(locals is null)) {
+			if (locals is not null) {
 				int count = locals.Count;
 				for (int i = 0; i < count; i++)
 					body.Variables.Add(locals[i]);
@@ -569,7 +569,7 @@ namespace dnlib.DotNet.Emit {
 
 			body.Instructions.Clear();
 			var instructions = this.instructions;
-			if (!(instructions is null)) {
+			if (instructions is not null) {
 				int count = instructions.Count;
 				for (int i = 0; i < count; i++)
 					body.Instructions.Add(instructions[i]);
@@ -577,7 +577,7 @@ namespace dnlib.DotNet.Emit {
 
 			body.ExceptionHandlers.Clear();
 			var exceptionHandlers = this.exceptionHandlers;
-			if (!(exceptionHandlers is null)) {
+			if (exceptionHandlers is not null) {
 				int count = exceptionHandlers.Count;
 				for (int i = 0; i < count; i++)
 					body.ExceptionHandlers.Add(exceptionHandlers[i]);

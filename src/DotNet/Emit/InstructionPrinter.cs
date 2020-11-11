@@ -67,7 +67,7 @@ namespace dnlib.DotNet.Emit {
 				sb.Append(extra);
 				if (op is IFullName)
 					sb.Append((op as IFullName).FullName);
-				else if (!(op is null))
+				else if (op is not null)
 					sb.Append(op.ToString());
 				else
 					sb.Append("null");

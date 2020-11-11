@@ -37,7 +37,7 @@ namespace dnlib.DotNet {
 
 				if (ctor is MethodDef mdCtor) {
 					var declType = mdCtor.DeclaringType;
-					if (!(declType is null))
+					if (declType is not null)
 						return declType.FullName;
 				}
 
@@ -48,7 +48,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if the raw custom attribute blob hasn't been parsed
 		/// </summary>
-		public bool IsRawBlob => !(rawData is null);
+		public bool IsRawBlob => rawData is not null;
 
 		/// <summary>
 		/// Gets the raw custom attribute blob or <c>null</c> if the CA was successfully parsed.

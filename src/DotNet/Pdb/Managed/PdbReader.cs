@@ -343,7 +343,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		internal void GetCustomDebugInfos(DbiFunction symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			const string CDI_NAME = "MD2";
 			var asyncMethod = PseudoCustomDebugInfoFactory.TryCreateAsyncMethod(method.Module, method, body, symMethod.AsyncKickoffMethod, symMethod.AsyncStepInfos, symMethod.AsyncCatchHandlerILOffset);
-			if (!(asyncMethod is null))
+			if (asyncMethod is not null)
 				result.Add(asyncMethod);
 
 			var cdiData = symMethod.Root.GetSymAttribute(CDI_NAME);
@@ -358,9 +358,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		void GetCustomDebugInfos_ModuleDef(IList<PdbCustomDebugInfo> result) {
-			if (!(sourcelinkData is null))
+			if (sourcelinkData is not null)
 				result.Add(new PdbSourceLinkCustomDebugInfo(sourcelinkData));
-			if (!(srcsrvData is null))
+			if (srcsrvData is not null)
 				result.Add(new PdbSourceServerCustomDebugInfo(srcsrvData));
 		}
 	}

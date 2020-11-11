@@ -253,7 +253,7 @@ namespace dnlib.DotNet {
 			publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			name = asmName.Name ?? string.Empty;
-			culture = !(asmName.CultureInfo is null) && !(asmName.CultureInfo.Name is null) ? asmName.CultureInfo.Name : string.Empty;
+			culture = asmName.CultureInfo is not null && asmName.CultureInfo.Name is not null ? asmName.CultureInfo.Name : string.Empty;
 		}
 
 		/// <inhertidoc/>

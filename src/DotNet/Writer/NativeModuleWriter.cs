@@ -194,7 +194,7 @@ namespace dnlib.DotNet.Writer {
 				return Write();
 			}
 			finally {
-				if (!(origSections is null)) {
+				if (origSections is not null) {
 					foreach (var section in origSections)
 						section.Dispose();
 				}
@@ -247,7 +247,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(netResources, DEFAULT_NETRESOURCES_ALIGNMENT);
 			textSection.Add(metadata, DEFAULT_METADATA_ALIGNMENT);
 			textSection.Add(debugDirectory, DebugDirectory.DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
-			if (!(rsrcSection is null))
+			if (rsrcSection is not null)
 				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 		}
 
@@ -263,7 +263,7 @@ namespace dnlib.DotNet.Writer {
 		void CreatePESections() {
 			sections = new List<PESection>();
 			sections.Add(textSection = new PESection(".text", 0x60000020));
-			if (!(GetWin32Resources() is null))
+			if (GetWin32Resources() is not null)
 				sections.Add(rsrcSection = new PESection(".rsrc", 0x40000040));
 		}
 
@@ -392,7 +392,7 @@ namespace dnlib.DotNet.Writer {
 				ReuseIfPossible(textSection, metadata, mdDataDir.VirtualAddress, mdDataDir.Size, DEFAULT_METADATA_ALIGNMENT);
 
 				var resourceDataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[2];
-				if (!(win32Resources is null) && resourceDataDir.VirtualAddress != 0 && resourceDataDir.Size != 0) {
+				if (win32Resources is not null && resourceDataDir.VirtualAddress != 0 && resourceDataDir.Size != 0) {
 					var win32ResourcesOffset = peImage.ToFileOffset(resourceDataDir.VirtualAddress);
 					if (win32Resources.CheckValidOffset(win32ResourcesOffset)) {
 						win32Resources.SetOffset(win32ResourcesOffset, resourceDataDir.VirtualAddress);
@@ -418,7 +418,7 @@ namespace dnlib.DotNet.Writer {
 				textSection.Remove(netResources);
 			if (textSection.IsEmpty)
 				sections.Remove(textSection);
-			if (!(rsrcSection is null) && rsrcSection.IsEmpty) {
+			if (rsrcSection is not null && rsrcSection.IsEmpty) {
 				sections.Remove(rsrcSection);
 				rsrcSection = null;
 			}
@@ -426,7 +426,7 @@ namespace dnlib.DotNet.Writer {
 			var headerSection = CreateHeaderSection(out var extraHeaderData);
 			var chunks = new List<IChunk>();
 			uint headerLen;
-			if (!(extraHeaderData is null)) {
+			if (extraHeaderData is not null) {
 				var list = new ChunkList<IChunk>();
 				list.Add(headerSection, 1);
 				list.Add(extraHeaderData, 1);
@@ -441,7 +441,7 @@ namespace dnlib.DotNet.Writer {
 				chunks.Add(origSection.Chunk);
 			foreach (var section in sections)
 				chunks.Add(section);
-			if (!(extraData is null))
+			if (extraData is not null)
 				chunks.Add(extraData);
 
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
@@ -480,7 +480,7 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.EndWriteChunks);
 
 			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);
-			if (!(Options.StrongNameKey is null))
+			if (Options.StrongNameKey is not null)
 				StrongNameSign((long)strongNameSignature.FileOffset);
 			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);
 
@@ -626,7 +626,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			// Update Win32 resources data directory, if we wrote a new one
-			if (!(win32Resources is null)) {
+			if (win32Resources is not null) {
 				writer.Position = dataDirOffset + 2 * 8;
 				writer.WriteDataDirectory(win32Resources);
 			}
@@ -727,7 +727,7 @@ namespace dnlib.DotNet.Writer {
 
 		ComImageFlags GetComImageFlags(bool isManagedEntryPoint) {
 			var flags = Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags;
-			if (!(Options.Cor20HeaderOptions.EntryPoint is null))
+			if (Options.Cor20HeaderOptions.EntryPoint is not null)
 				return flags;
 			if (isManagedEntryPoint)
 				return flags & ~ComImageFlags.NativeEntryPoint;
@@ -824,7 +824,7 @@ namespace dnlib.DotNet.Writer {
 		/// <c>false</c> if it's a native entry point</returns>
 		bool GetEntryPoint(out uint ep) {
 			var tok = Options.Cor20HeaderOptions.EntryPoint;
-			if (!(tok is null)) {
+			if (tok is not null) {
 				ep = tok.Value;
 				return ep == 0 || ((Options.Cor20HeaderOptions.Flags ?? 0) & ComImageFlags.NativeEntryPoint) == 0;
 			}

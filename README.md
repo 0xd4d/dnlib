@@ -214,7 +214,7 @@ NOTE: VS' debugger crashes if there's a `DebuggableAttribute` attribute and if t
 
 ```C#
 var ca = module.Assembly.CustomAttributes.Find("System.Diagnostics.DebuggableAttribute");
-if (!(ca is null) && ca.ConstructorArguments.Count == 1) {
+if (ca is not null && ca.ConstructorArguments.Count == 1) {
     var arg = ca.ConstructorArguments[0];
     // VS' debugger crashes if value == 0x107, so clear EnC bit
     if (arg.Type.FullName == "System.Diagnostics.DebuggableAttribute/DebuggingModes" && arg.Value is int value && value == 0x107) {

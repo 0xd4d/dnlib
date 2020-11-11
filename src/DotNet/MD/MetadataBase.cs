@@ -214,7 +214,7 @@ namespace dnlib.DotNet.MD {
 				isStandalonePortablePdb = false;
 			}
 			catch {
-				if (!(peImage is null))
+				if (peImage is not null)
 					peImage.Dispose();
 				throw;
 			}
@@ -234,14 +234,14 @@ namespace dnlib.DotNet.MD {
 		public void Initialize(DataReaderFactory mdReaderFactory) {
 			mdReaderFactoryToDisposeLater = mdReaderFactory;
 			uint metadataBaseOffset;
-			if (!(peImage is null)) {
+			if (peImage is not null) {
 				Debug.Assert(mdReaderFactory is null);
-				Debug.Assert(!(cor20Header is null));
+				Debug.Assert(cor20Header is not null);
 				metadataBaseOffset = (uint)peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
 				mdReaderFactory = peImage.DataReaderFactory;
 			}
 			else {
-				Debug.Assert(!(mdReaderFactory is null));
+				Debug.Assert(mdReaderFactory is not null);
 				metadataBaseOffset = 0;
 			}
 			InitializeInternal(mdReaderFactory, metadataBaseOffset);
@@ -425,7 +425,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseFieldOwnerRidList() {
-			if (!(fieldRidToTypeDefRid is null))
+			if (fieldRidToTypeDefRid is not null)
 				return;
 			var newFieldRidToTypeDefRid = new uint[tablesStream.FieldTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -452,7 +452,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseMethodOwnerRidList() {
-			if (!(methodRidToTypeDefRid is null))
+			if (methodRidToTypeDefRid is not null)
 				return;
 			var newMethodRidToTypeDefRid = new uint[tablesStream.MethodTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -479,7 +479,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseEventOwnerRidList() {
-			if (!(eventRidToTypeDefRid is null))
+			if (eventRidToTypeDefRid is not null)
 				return;
 			var newEventRidToTypeDefRid = new uint[tablesStream.EventTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -506,7 +506,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInversePropertyOwnerRidList() {
-			if (!(propertyRidToTypeDefRid is null))
+			if (propertyRidToTypeDefRid is not null)
 				return;
 			var newPropertyRidToTypeDefRid = new uint[tablesStream.PropertyTable.Rows];
 			var ownerList = GetTypeDefRidList();
@@ -539,7 +539,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseGenericParamOwnerRidList() {
-			if (!(gpRidToOwnerRid is null))
+			if (gpRidToOwnerRid is not null)
 				return;
 			var gpTable = tablesStream.GenericParamTable;
 			var newGpRidToOwnerRid = new uint[gpTable.Rows];
@@ -584,7 +584,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseGenericParamConstraintOwnerRidList() {
-			if (!(gpcRidToOwnerRid is null))
+			if (gpcRidToOwnerRid is not null)
 				return;
 			var gpcTable = tablesStream.GenericParamConstraintTable;
 			var newGpcRidToOwnerRid = new uint[gpcTable.Rows];
@@ -622,7 +622,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		void InitializeInverseParamOwnerRidList() {
-			if (!(paramRidToOwnerRid is null))
+			if (paramRidToOwnerRid is not null)
 				return;
 
 			var newParamRidToOwnerRid = new uint[tablesStream.ParamTable.Rows];
@@ -662,7 +662,7 @@ namespace dnlib.DotNet.MD {
 			var nestedRidsDict = new Dictionary<uint, bool>((int)table.Rows);
 			var nestedRids = new List<uint>((int)table.Rows);	// Need it so we add the rids in correct order
 			for (uint rid = 1; rid <= table.Rows; rid++) {
-				if (!(validTypeDefRids is null) && !validTypeDefRids.ContainsKey(rid))
+				if (validTypeDefRids is not null && !validTypeDefRids.ContainsKey(rid))
 					continue;
 				if (!tablesStream.TryReadNestedClassRow(rid, out var row))
 					continue;	// Should never happen since rid is valid
@@ -687,7 +687,7 @@ namespace dnlib.DotNet.MD {
 
 			var newNonNestedTypes = new List<uint>((int)(destTable.Rows - nestedRidsDict.Count));
 			for (uint rid = 1; rid <= destTable.Rows; rid++) {
-				if (!(validTypeDefRids is null) && !validTypeDefRids.ContainsKey(rid))
+				if (validTypeDefRids is not null && !validTypeDefRids.ContainsKey(rid))
 					continue;
 				if (nestedRidsDict.ContainsKey(rid))
 					continue;
@@ -740,7 +740,7 @@ namespace dnlib.DotNet.MD {
 			guidStream?.Dispose();
 			tablesStream?.Dispose();
 			var as2 = allStreams;
-			if (!(as2 is null)) {
+			if (as2 is not null) {
 				foreach (var stream in as2)
 					stream?.Dispose();
 			}

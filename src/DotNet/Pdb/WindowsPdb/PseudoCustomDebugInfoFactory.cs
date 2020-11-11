@@ -17,16 +17,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(asyncStepInfos.Count);
 			asyncMethod.KickoffMethod = kickoffMethod;
 
-			if (!(asyncCatchHandlerILOffset is null)) {
+			if (asyncCatchHandlerILOffset is not null) {
 				asyncMethod.CatchHandlerInstruction = GetInstruction(body, asyncCatchHandlerILOffset.Value);
-				Debug.Assert(!(asyncMethod.CatchHandlerInstruction is null));
+				Debug.Assert(asyncMethod.CatchHandlerInstruction is not null);
 			}
 
 			int count = asyncStepInfos.Count;
 			for (int i = 0; i < count; i++) {
 				var rawInfo = asyncStepInfos[i];
 				var yieldInstruction = GetInstruction(body, rawInfo.YieldOffset);
-				Debug.Assert(!(yieldInstruction is null));
+				Debug.Assert(yieldInstruction is not null);
 				if (yieldInstruction is null)
 					continue;
 				MethodDef breakpointMethod;
@@ -41,12 +41,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					if (breakpointMethodToken.Table != Table.Method)
 						continue;
 					breakpointMethod = module.ResolveToken(breakpointMethodToken) as MethodDef;
-					Debug.Assert(!(breakpointMethod is null));
+					Debug.Assert(breakpointMethod is not null);
 					if (breakpointMethod is null)
 						continue;
 					breakpointInstruction = GetInstruction(breakpointMethod.Body, rawInfo.BreakpointOffset);
 				}
-				Debug.Assert(!(breakpointInstruction is null));
+				Debug.Assert(breakpointInstruction is not null);
 				if (breakpointInstruction is null)
 					continue;
 

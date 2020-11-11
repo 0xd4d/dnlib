@@ -56,7 +56,7 @@ namespace dnlib.DotNet {
 			}
 			set {
 				var mr = ScopeType;
-				if (!(mr is null))
+				if (mr is not null)
 					mr.Name = value;
 			}
 		}
@@ -97,7 +97,7 @@ namespace dnlib.DotNet {
 		public bool IsValueType {
 			get {
 				var sig = TypeSig;
-				return !(sig is null) && sig.IsValueType;
+				return sig is not null && sig.IsValueType;
 			}
 		}
 
@@ -105,7 +105,7 @@ namespace dnlib.DotNet {
 		public bool IsPrimitive {
 			get {
 				var sig = TypeSig;
-				return !(sig is null) && sig.IsPrimitive;
+				return sig is not null && sig.IsPrimitive;
 			}
 		}
 
@@ -291,7 +291,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override TypeSig GetTypeSigAndExtraData_NoLock(out byte[] extraData) {
 			var sig = readerModule.ReadTypeSignature(signatureOffset, gpContext, out extraData);
-			if (!(sig is null))
+			if (sig is not null)
 				sig.Rid = origRid;
 			return sig;
 		}

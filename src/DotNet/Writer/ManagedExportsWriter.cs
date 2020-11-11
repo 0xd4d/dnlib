@@ -119,7 +119,7 @@ namespace dnlib.DotNet.Writer {
 
 		internal void AddTextChunks(PESection textSection) {
 			textSection.Add(vtableFixups, DEFAULT_VTBL_FIXUPS_ALIGNMENT);
-			if (!(cpuArch is null))
+			if (cpuArch is not null)
 				textSection.Add(stubsChunk, cpuArch.GetStubAlignment(stubType));
 		}
 
@@ -182,7 +182,7 @@ namespace dnlib.DotNet.Writer {
 			uint stubSize = cpuArch.GetStubSize(stubType);
 			foreach (var method in methods) {
 				var exportInfo = method.ExportInfo;
-				Debug.Assert(!(exportInfo is null));
+				Debug.Assert(exportInfo is not null);
 				if (exportInfo is null)
 					continue;
 
@@ -282,7 +282,7 @@ namespace dnlib.DotNet.Writer {
 
 			// If this method gets updated, also update the reader (MethodExportInfoProvider)
 			static byte[] GetNameASCIIZ(string name) {
-				Debug.Assert(!(name is null));
+				Debug.Assert(name is not null);
 				int size = Encoding.UTF8.GetByteCount(name);
 				var bytes = new byte[size + 1];
 				Encoding.UTF8.GetBytes(name, 0, name.Length, bytes, 0);
@@ -339,7 +339,7 @@ namespace dnlib.DotNet.Writer {
 				var exportInfo = info.Method.ExportInfo;
 				var name = exportInfo.Name;
 				if (name is null) {
-					if (!(exportInfo.Ordinal is null)) {
+					if (exportInfo.Ordinal is not null) {
 						sortedOrdinalMethodInfos.Add(info);
 						continue;
 					}

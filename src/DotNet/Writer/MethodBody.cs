@@ -53,7 +53,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// <c>true</c> if there's an extra section
 		/// </summary>
-		public bool HasExtraSections => !(extraSections is null) && extraSections.Length > 0;
+		public bool HasExtraSections => extraSections is not null && extraSections.Length > 0;
 
 		/// <summary>
 		/// Constructor
@@ -90,7 +90,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public int GetApproximateSizeOfMethodBody() {
 			int len = code.Length;
-			if (!(extraSections is null)) {
+			if (extraSections is not null) {
 				len = Utils.AlignUp(len, EXTRA_SECTIONS_ALIGNMENT);
 				len += extraSections.Length;
 				len = Utils.AlignUp(len, EXTRA_SECTIONS_ALIGNMENT);

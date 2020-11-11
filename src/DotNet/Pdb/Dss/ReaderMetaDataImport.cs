@@ -29,9 +29,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 				throw new ArgumentException();
 			if (!metadata.TablesStream.TryReadTypeRefRow(token.Rid, out var row))
 				throw new ArgumentException();
-			if (!(ptkResolutionScope is null))
+			if (ptkResolutionScope is not null)
 				*ptkResolutionScope = row.ResolutionScope;
-			if (!(szName is null) || !(pchName is null)) {
+			if (szName is not null || pchName is not null) {
 				var typeNamespace = metadata.StringsStream.ReadNoNull(row.Namespace);
 				var typeName = metadata.StringsStream.ReadNoNull(row.Name);
 				CopyTypeName(typeNamespace, typeName, szName, cchName, pchName);
@@ -44,11 +44,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 				throw new ArgumentException();
 			if (!metadata.TablesStream.TryReadTypeDefRow(token.Rid, out var row))
 				throw new ArgumentException();
-			if (!(pdwTypeDefFlags is null))
+			if (pdwTypeDefFlags is not null)
 				*pdwTypeDefFlags = row.Flags;
-			if (!(ptkExtends is null))
+			if (ptkExtends is not null)
 				*ptkExtends = row.Extends;
-			if (!(szTypeDef is null) || !(pchTypeDef is null)) {
+			if (szTypeDef is not null || pchTypeDef is not null) {
 				var typeNamespace = metadata.StringsStream.ReadNoNull(row.Namespace);
 				var typeName = metadata.StringsStream.ReadNoNull(row.Name);
 				CopyTypeName(typeNamespace, typeName, szTypeDef, cchTypeDef, pchTypeDef);
@@ -63,9 +63,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 				throw new ArgumentException();
 			if (!metadata.BlobStream.TryCreateReader(row.Signature, out var reader))
 				throw new ArgumentException();
-			if (!(ppvSig is null))
+			if (ppvSig is not null)
 				*ppvSig = blobPtr + (reader.StartOffset - (uint)metadata.BlobStream.StartOffset);
-			if (!(pcbSig is null))
+			if (pcbSig is not null)
 				*pcbSig = reader.Length;
 		}
 

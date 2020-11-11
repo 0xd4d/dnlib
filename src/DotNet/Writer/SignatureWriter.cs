@@ -234,13 +234,13 @@ namespace dnlib.DotNet.Writer {
 			LocalSig ls;
 			GenericInstMethodSig gim;
 
-			if (!((mbs = sig as MethodBaseSig) is null))
+			if ((mbs = sig as MethodBaseSig) is not null)
 				Write(mbs);
-			else if (!((fs = sig as FieldSig) is null))
+			else if ((fs = sig as FieldSig) is not null)
 				Write(fs);
-			else if (!((ls = sig as LocalSig) is null))
+			else if ((ls = sig as LocalSig) is not null)
 				Write(ls);
-			else if (!((gim = sig as GenericInstMethodSig) is null))
+			else if ((gim = sig as GenericInstMethodSig) is not null)
 				Write(gim);
 			else {
 				helper.Error("Unknown calling convention sig");
@@ -265,7 +265,7 @@ namespace dnlib.DotNet.Writer {
 				WriteCompressedUInt32(sig.GenParamCount);
 
 			uint numParams = (uint)sig.Params.Count;
-			if (!(sig.ParamsAfterSentinel is null))
+			if (sig.ParamsAfterSentinel is not null)
 				numParams += (uint)sig.ParamsAfterSentinel.Count;
 
 			uint count = WriteCompressedUInt32(numParams);
@@ -273,7 +273,7 @@ namespace dnlib.DotNet.Writer {
 			for (uint i = 0; i < count && i < (uint)sig.Params.Count; i++)
 				Write(sig.Params[(int)i]);
 
-			if (!(sig.ParamsAfterSentinel is null) && sig.ParamsAfterSentinel.Count > 0) {
+			if (sig.ParamsAfterSentinel is not null && sig.ParamsAfterSentinel.Count > 0) {
 				writer.WriteByte((byte)ElementType.Sentinel);
 				for (uint i = 0, j = (uint)sig.Params.Count; i < (uint)sig.ParamsAfterSentinel.Count && j < count; i++, j++)
 					Write(sig.ParamsAfterSentinel[(int)i]);
@@ -342,7 +342,7 @@ namespace dnlib.DotNet.Writer {
 		public void Dispose() {
 			if (!disposeStream)
 				return;
-			if (!(outStream is null))
+			if (outStream is not null)
 				outStream.Dispose();
 		}
 	}

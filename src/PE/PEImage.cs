@@ -97,7 +97,7 @@ namespace dnlib.PE {
 				}
 				win32Resources.Value = value;
 
-				if (!(origValue is null))
+				if (origValue is not null)
 					origValue.Dispose();
 			}
 		}
@@ -306,7 +306,7 @@ namespace dnlib.PE {
 		/// <inheritdoc/>
 		public void Dispose() {
 			IDisposable id;
-			if (win32Resources.IsValueInitialized && !((id = win32Resources.Value) is null))
+			if (win32Resources.IsValueInitialized && (id = win32Resources.Value) is not null)
 				id.Dispose();
 			dataReaderFactory?.Dispose();
 			win32Resources.Value = null;

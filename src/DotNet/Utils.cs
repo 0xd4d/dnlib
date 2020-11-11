@@ -40,12 +40,12 @@ namespace dnlib.DotNet {
 				sb.Append(c);
 			}
 
-			if (!(version is null)) {
+			if (version is not null) {
 				sb.Append(", Version=");
 				sb.Append(CreateVersionWithNoUndefinedValues(version).ToString());
 			}
 
-			if (!(culture is null)) {
+			if (culture is not null) {
 				sb.Append(", Culture=");
 				sb.Append(UTF8String.IsNullOrEmpty(culture) ? "neutral" : culture.String);
 			}

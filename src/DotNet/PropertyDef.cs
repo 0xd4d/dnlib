@@ -276,7 +276,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
-		public bool HasConstant => !(Constant is null);
+		public bool HasConstant => Constant is not null;
 
 		/// <summary>
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
@@ -305,9 +305,9 @@ namespace dnlib.DotNet {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
 					return;
-				if (!(currentDeclaringType is null))
+				if (currentDeclaringType is not null)
 					currentDeclaringType.Properties.Remove(this);	// Will set DeclaringType2 = null
-				if (!(value is null))
+				if (value is not null)
 					value.Properties.Add(this);	// Will set DeclaringType2 = value
 			}
 		}
@@ -499,7 +499,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializePropertyMethods_NoLock() {
-			if (!(otherMethods is null))
+			if (otherMethods is not null)
 				return;
 			IList<MethodDef> newOtherMethods;
 			IList<MethodDef> newGetMethods, newSetMethods;

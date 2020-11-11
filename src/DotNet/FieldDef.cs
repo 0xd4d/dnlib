@@ -370,7 +370,7 @@ namespace dnlib.DotNet {
 		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
-		public bool HasImplMap => !(ImplMap is null);
+		public bool HasImplMap => ImplMap is not null;
 
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
@@ -381,9 +381,9 @@ namespace dnlib.DotNet {
 				var currentDeclaringType = DeclaringType2;
 				if (currentDeclaringType == value)
 					return;
-				if (!(currentDeclaringType is null))
+				if (currentDeclaringType is not null)
 					currentDeclaringType.Fields.Remove(this);	// Will set DeclaringType2 = null
-				if (!(value is null))
+				if (value is not null)
 					value.Fields.Add(this);		// Will set DeclaringType2 = value
 			}
 		}
@@ -431,12 +431,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldOffset"/> is not <c>null</c>
 		/// </summary>
-		public bool HasLayoutInfo => !(FieldOffset is null);
+		public bool HasLayoutInfo => FieldOffset is not null;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
-		public bool HasConstant => !(Constant is null);
+		public bool HasConstant => Constant is not null;
 
 		/// <summary>
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
@@ -451,7 +451,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
-		public bool HasMarshalType => !(MarshalType is null);
+		public bool HasMarshalType => MarshalType is not null;
 
 		/// <summary>
 		/// Gets/sets the field type
@@ -460,7 +460,7 @@ namespace dnlib.DotNet {
 			get => FieldSig.GetFieldType();
 			set {
 				var sig = FieldSig;
-				if (!(sig is null))
+				if (sig is not null)
 					sig.Type = value;
 			}
 		}
@@ -677,11 +677,11 @@ namespace dnlib.DotNet {
 				return false;
 
 			var td = tdrs.TypeDef;
-			if (!(td is null))
+			if (td is not null)
 				return TypeDef.GetClassSize(td, out size);
 
 			var tr = tdrs.TypeRef;
-			if (!(tr is null))
+			if (tr is not null)
 				return TypeDef.GetClassSize(tr.Resolve(), out size);
 
 			return false;

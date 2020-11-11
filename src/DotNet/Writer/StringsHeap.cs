@@ -45,7 +45,7 @@ namespace dnlib.DotNet.Writer {
 		public void Populate(StringsStream stringsStream) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
-			if (!(originalData is null))
+			if (originalData is not null)
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
 				throw new InvalidOperationException("Add() has already been called");
@@ -85,7 +85,7 @@ namespace dnlib.DotNet.Writer {
 
 			StringsOffsetInfo prevInfo = null;
 			foreach (var info in stringsOffsetInfos) {
-				if (!(prevInfo is null) && EndsWith(prevInfo.Value, info.Value))
+				if (prevInfo is not null && EndsWith(prevInfo.Value, info.Value))
 					info.StringsOffset = prevInfo.StringsOffset + (uint)(prevInfo.Value.Data.Length - info.Value.Data.Length);
 				else
 					info.StringsOffset = AddToCache(info.Value);
@@ -199,14 +199,14 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(DataWriter writer) {
-			if (!(originalData is null))
+			if (originalData is not null)
 				writer.WriteBytes(originalData);
 			else
 				writer.WriteByte(0);
 
-			uint offset = !(originalData is null) ? (uint)originalData.Length : 1;
+			uint offset = originalData is not null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
-				if (!(userRawData is null) && userRawData.TryGetValue(offset, out var rawData)) {
+				if (userRawData is not null && userRawData.TryGetValue(offset, out var rawData)) {
 					if (rawData.Length != s.Data.Length + 1)
 						throw new InvalidOperationException("Invalid length of raw data");
 					writer.WriteBytes(rawData);
@@ -231,7 +231,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
-			uint offset = !(originalData is null) ? (uint)originalData.Length : 1;
+			uint offset = originalData is not null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
 				var rawData = new byte[s.Data.Length + 1];
 				Array.Copy(s.Data, rawData, s.Data.Length);

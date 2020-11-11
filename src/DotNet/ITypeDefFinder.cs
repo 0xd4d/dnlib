@@ -35,7 +35,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		public static TypeDef FindThrow(this ITypeDefFinder self, TypeRef typeRef) {
 			var type = self.Find(typeRef);
-			if (!(type is null))
+			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not find type: {typeRef}");
 		}
@@ -52,7 +52,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		public static TypeDef FindThrow(this ITypeDefFinder self, string fullName, bool isReflectionName) {
 			var type = self.Find(fullName, isReflectionName);
-			if (!(type is null))
+			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not find type: {fullName}");
 		}
@@ -74,7 +74,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		public static TypeDef FindNormalThrow(this ITypeDefFinder self, string fullName) {
 			var type = self.Find(fullName, false);
-			if (!(type is null))
+			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not find type: {fullName}");
 		}
@@ -96,7 +96,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		public static TypeDef FindReflectionThrow(this ITypeDefFinder self, string fullName) {
 			var type = self.Find(fullName, true);
-			if (!(type is null))
+			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not find type: {fullName}");
 		}
@@ -108,7 +108,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="typeRef">The type ref</param>
 		/// <returns><c>true</c> if the <see cref="TypeDef"/> exists, <c>false</c> otherwise</returns>
-		public static bool TypeExists(this ITypeDefFinder self, TypeRef typeRef) => !(self.Find(typeRef) is null);
+		public static bool TypeExists(this ITypeDefFinder self, TypeRef typeRef) => self.Find(typeRef) is not null;
 
 		/// <summary>
 		/// Checks whether a <see cref="TypeDef"/> exists
@@ -119,7 +119,7 @@ namespace dnlib.DotNet {
 		/// type names are separated by a <c>+</c> character. If <c>false</c>, nested type names
 		/// are separated by a <c>/</c> character.</param>
 		/// <returns><c>true</c> if the <see cref="TypeDef"/> exists, <c>false</c> otherwise</returns>
-		public static bool TypeExists(this ITypeDefFinder self, string fullName, bool isReflectionName) => !(self.Find(fullName, isReflectionName) is null);
+		public static bool TypeExists(this ITypeDefFinder self, string fullName, bool isReflectionName) => self.Find(fullName, isReflectionName) is not null;
 
 		/// <summary>
 		/// Checks whether a <see cref="TypeDef"/> exists
@@ -127,7 +127,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="fullName">Full name of the type (no assembly information). Nested types are separated by <c>/</c></param>
 		/// <returns><c>true</c> if the <see cref="TypeDef"/> exists, <c>false</c> otherwise</returns>
-		public static bool TypeExistsNormal(this ITypeDefFinder self, string fullName) => !(self.Find(fullName, false) is null);
+		public static bool TypeExistsNormal(this ITypeDefFinder self, string fullName) => self.Find(fullName, false) is not null;
 
 		/// <summary>
 		/// Checks whether a <see cref="TypeDef"/> exists
@@ -135,6 +135,6 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="fullName">Full name of the type (no assembly information). Nested types are separated by <c>+</c></param>
 		/// <returns><c>true</c> if the <see cref="TypeDef"/> exists, <c>false</c> otherwise</returns>
-		public static bool TypeExistsReflection(this ITypeDefFinder self, string fullName) => !(self.Find(fullName, true) is null);
+		public static bool TypeExistsReflection(this ITypeDefFinder self, string fullName) => self.Find(fullName, true) is not null;
 	}
 }

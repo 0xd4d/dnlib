@@ -9,9 +9,9 @@ namespace dnlib.DotNet {
 	struct TypeHelper {
 		RecursionCounter recursionCounter;
 
-		internal static bool ContainsGenericParameter(StandAloneSig ss) => !(ss is null) && TypeHelper.ContainsGenericParameter(ss.Signature);
-		internal static bool ContainsGenericParameter(InterfaceImpl ii) => !(ii is null) && TypeHelper.ContainsGenericParameter(ii.Interface);
-		internal static bool ContainsGenericParameter(GenericParamConstraint gpc) => !(gpc is null) && ContainsGenericParameter(gpc.Constraint);
+		internal static bool ContainsGenericParameter(StandAloneSig ss) => ss is not null && TypeHelper.ContainsGenericParameter(ss.Signature);
+		internal static bool ContainsGenericParameter(InterfaceImpl ii) => ii is not null && TypeHelper.ContainsGenericParameter(ii.Interface);
+		internal static bool ContainsGenericParameter(GenericParamConstraint gpc) => gpc is not null && ContainsGenericParameter(gpc.Constraint);
 
 		internal static bool ContainsGenericParameter(MethodSpec ms) {
 			if (ms is null)

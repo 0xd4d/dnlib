@@ -65,7 +65,7 @@ namespace dnlib.DotNet {
 
 		void Process() {
 			while (stack.Count != 0) {
-				if (!(cancellationToken is null))
+				if (cancellationToken is not null)
 					cancellationToken.ThrowIfCancellationRequested();
 				var o = stack.Pop();
 				LoadObj(o);
@@ -236,13 +236,13 @@ namespace dnlib.DotNet {
 
 			case Table.ManifestResource:
 				var rsrc = mdt as Resource;
-				if (!(rsrc is null)) {
+				if (rsrc is not null) {
 					Load(rsrc);
 					break;
 				}
 
 				var mr = mdt as ManifestResource;
-				if (!(mr is null)) {
+				if (mr is not null) {
 					Load(mr);
 					break;
 				}

@@ -54,7 +54,7 @@ namespace dnlib.DotNet {
 				if (isCacheEnabled == value)
 					return;
 
-				if (!(typeEnumerator is null)) {
+				if (typeEnumerator is not null) {
 					typeEnumerator.Dispose();
 					typeEnumerator = null;
 				}
@@ -92,7 +92,7 @@ namespace dnlib.DotNet {
 		}
 
 		void InitializeTypeEnumerator() {
-			if (!(typeEnumerator is null)) {
+			if (typeEnumerator is not null) {
 				typeEnumerator.Dispose();
 				typeEnumerator = null;
 			}
@@ -227,7 +227,7 @@ namespace dnlib.DotNet {
 		TypeDef GetNextTypeDef() {
 			while (typeEnumerator.MoveNext()) {
 				var type = typeEnumerator.Current;
-				if (!(type is null))
+				if (type is not null)
 					return type;
 			}
 			return null;
@@ -265,7 +265,7 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (!(typeEnumerator is null))
+			if (typeEnumerator is not null)
 				typeEnumerator.Dispose();
 			typeEnumerator = null;
 			typeRefCache = null;

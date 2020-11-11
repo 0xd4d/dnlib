@@ -86,7 +86,7 @@ namespace dnlib.DotNet {
 		public bool IsValueType {
 			get {
 				var td = Resolve();
-				return !(td is null) && td.IsValueType;
+				return td is not null && td.IsValueType;
 			}
 		}
 
@@ -231,7 +231,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="ExportedType"/>
 		/// </summary>
-		public bool IsNested => !(DeclaringType is null);
+		public bool IsNested => DeclaringType is not null;
 
 		/// <summary>
 		/// Gets the declaring type, if any
@@ -510,7 +510,7 @@ namespace dnlib.DotNet {
 					break;
 
 				var td = etAsm.Find(et.FullName, false);
-				if (!(td is null))
+				if (td is not null)
 					return td;
 
 				et = FindExportedType(etAsm, et);
@@ -542,7 +542,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		public TypeDef ResolveThrow() {
 			var type = Resolve();
-			if (!(type is null))
+			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not resolve type: {this} ({DefinitionAssembly})");
 		}
@@ -555,12 +555,12 @@ namespace dnlib.DotNet {
 			TypeRef result = null, prev = null;
 			var mod = module;
 			IImplementation impl = this;
-			for (int i = 0; i < MAX_LOOP_ITERS && !(impl is null); i++) {
+			for (int i = 0; i < MAX_LOOP_ITERS && impl is not null; i++) {
 				if (impl is ExportedType et) {
 					var newTr = mod.UpdateRowId(new TypeRefUser(mod, et.TypeNamespace, et.TypeName));
 					if (result is null)
 						result = newTr;
-					if (!(prev is null))
+					if (prev is not null)
 						prev.ResolutionScope = newTr;
 
 					prev = newTr;

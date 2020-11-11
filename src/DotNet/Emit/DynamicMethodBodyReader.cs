@@ -91,16 +91,16 @@ namespace dnlib.DotNet.Emit {
 
 			public bool Exists(object instance) {
 				InitializeField(instance.GetType());
-				return !(fieldInfo is null);
+				return fieldInfo is not null;
 			}
 
 			void InitializeField(Type type) {
-				if (!(fieldInfo is null))
+				if (fieldInfo is not null)
 					return;
 
 				var flags = SR.BindingFlags.Instance | SR.BindingFlags.Public | SR.BindingFlags.NonPublic;
 				fieldInfo = type.GetField(fieldName1, flags);
-				if (fieldInfo is null && !(fieldName2 is null))
+				if (fieldInfo is null && fieldName2 is not null)
 					fieldInfo = type.GetField(fieldName2, flags);
 			}
 		}
@@ -305,7 +305,7 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		void CreateExceptionHandlers() {
-			if (!(ehHeader is null)) {
+			if (ehHeader is not null) {
 				if (ehHeader.Length < 4)
 					return;
 				var reader = new BinaryReader(new MemoryStream(ehHeader));
@@ -362,7 +362,7 @@ namespace dnlib.DotNet.Emit {
 					}
 				}
 			}
-			else if (!(ehInfos is null)) {
+			else if (ehInfos is not null) {
 				foreach (var ehInfo in CreateExceptionInfos(ehInfos)) {
 					var tryStart = GetInstructionThrow((uint)ehInfo.StartAddr);
 					var tryEnd = GetInstruction((uint)ehInfo.EndAddr);

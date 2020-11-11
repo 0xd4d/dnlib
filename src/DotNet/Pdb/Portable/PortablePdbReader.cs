@@ -54,7 +54,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		SymbolDocument[] ReadDocuments() {
-			Debug.Assert(!(module is null));
+			Debug.Assert(module is not null);
 			var docTbl = pdbMetadata.TablesStream.DocumentTable;
 			var docs = new SymbolDocument[docTbl.Rows];
 			var nameReader = new DocumentNameReader(pdbMetadata.BlobStream);
@@ -151,7 +151,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				else {
 					// SequencePointRecord
 
-					Debug.Assert(!(document is null));
+					Debug.Assert(document is not null);
 					if (document is null)
 						return null;
 
@@ -233,7 +233,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 						stack.RemoveAt(stack.Count - 1);
 					}
 
-					Debug.Assert(!(parent is null) || rootScopeOrNull is null);
+					Debug.Assert(parent is not null || rootScopeOrNull is null);
 					custInfos.Clear();
 					GetCustomDebugInfos(token, gpContext, custInfos);
 					var customDebugInfos = custInfos.Count == 0 ? Array2.Empty<PdbCustomDebugInfo>() : custInfos.ToArray();
@@ -241,7 +241,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (rootScopeOrNull is null)
 						rootScopeOrNull = scope;
 					stack.Add(scope);
-					if (!(parent is null))
+					if (parent is not null)
 						parent.childrenList.Add(scope);
 
 					scope.importScope = ReadPdbImportScope(ref importScopeBlobReader, row.ImportScope, gpContext);
@@ -285,7 +285,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				GetCustomDebugInfos(token, gpContext, scope.CustomDebugInfos);
 				if (result is null)
 					result = scope;
-				if (!(prevScope is null))
+				if (prevScope is not null)
 					prevScope.Parent = scope;
 				importScopeBlobReader.Read(row.Imports, scope.Imports);
 				prevScope = scope;
@@ -349,16 +349,16 @@ namespace dnlib.DotNet.Pdb.Portable {
 		internal void GetCustomDebugInfos(SymbolMethodImpl symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			Debug.Assert(method.Module == module);
 			GetCustomDebugInfos(method.MDToken.ToInt32(), GenericParamContext.Create(method), result, method, body, out var asyncStepInfo);
-			if (!(asyncStepInfo is null)) {
+			if (asyncStepInfo is not null) {
 				var asyncMethod = TryCreateAsyncMethod(module, symMethod.KickoffMethod, asyncStepInfo.AsyncStepInfos, asyncStepInfo.CatchHandler);
-				Debug.Assert(!(asyncMethod is null));
-				if (!(asyncMethod is null))
+				Debug.Assert(asyncMethod is not null);
+				if (asyncMethod is not null)
 					result.Add(asyncMethod);
 			}
 			else if (symMethod.KickoffMethod != 0) {
 				var iteratorMethod = TryCreateIteratorMethod(module, symMethod.KickoffMethod);
-				Debug.Assert(!(iteratorMethod is null));
-				if (!(iteratorMethod is null))
+				Debug.Assert(iteratorMethod is not null);
+				if (iteratorMethod is not null)
 					result.Add(iteratorMethod);
 			}
 		}
@@ -404,12 +404,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var guid = pdbMetadata.GuidStream.Read(row.Kind);
 				if (!pdbMetadata.BlobStream.TryCreateReader(row.Value, out var reader))
 					continue;
-				Debug.Assert(!(guid is null));
+				Debug.Assert(guid is not null);
 				if (guid is null)
 					continue;
 				var cdi = PortablePdbCustomDebugInfoReader.Read(module, typeOpt, bodyOpt, gpContext, guid.Value, ref reader);
-				Debug.Assert(!(cdi is null));
-				if (!(cdi is null)) {
+				Debug.Assert(cdi is not null);
+				if (cdi is not null) {
 					if (cdi is PdbAsyncMethodSteppingInformationCustomDebugInfo asyncStepInfoTmp) {
 						Debug.Assert(asyncStepInfo is null);
 						asyncStepInfo = asyncStepInfoTmp;

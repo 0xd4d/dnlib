@@ -101,7 +101,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			for (int i = 0; i < count; i++) {
 				var local = bodyVariables[i];
 				// Don't check whether it's the empty string. Only check for null.
-				if (!(local.Name is null))
+				if (local.Name is not null)
 					return true;
 				if (local.Attributes != 0)
 					return true;
@@ -110,7 +110,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			var bodyInstructions = body.Instructions;
 			count = bodyInstructions.Count;
 			for (int i = 0; i < count; i++) {
-				if (!(bodyInstructions[i].SequencePoint is null))
+				if (bodyInstructions[i].SequencePoint is not null)
 					return true;
 			}
 
@@ -169,7 +169,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 					if (!otherDocsAvailable)
 						break;
-					if (!(currPdbDoc is null))
+					if (currPdbDoc is not null)
 						checkedPdbDocs.Add(currPdbDoc, true);
 				}
 			}
@@ -250,11 +250,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			if (cdiBuilder.Count != 0) {
 				customDebugInfoWriterContext.Logger = GetLogger();
 				var cdiData = PdbCustomDebugInfoWriter.Write(metadata, method, customDebugInfoWriterContext, cdiBuilder);
-				if (!(cdiData is null))
+				if (cdiData is not null)
 					writer.SetSymAttribute(symbolToken, "MD2", cdiData);
 			}
 
-			if (!(asyncMethod is null)) {
+			if (asyncMethod is not null) {
 				if (!writer.SupportsAsyncMethods)
 					Error("PDB symbol writer doesn't support writing async methods");
 				else
@@ -272,7 +272,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				var cdi = customDebugInfos[i];
 				switch (cdi.Kind) {
 				case PdbCustomDebugInfoKind.AsyncMethod:
-					if (!(asyncMethod is null))
+					if (asyncMethod is not null)
 						Error("Duplicate async method custom debug info");
 					else
 						asyncMethod = (PdbAsyncMethodCustomDebugInfo)cdi;
@@ -304,7 +304,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			uint kickoffMethod = GetMethodToken(asyncMethod.KickoffMethod);
 			writer.DefineKickoffMethod(kickoffMethod);
 
-			if (!(asyncMethod.CatchHandlerInstruction is null)) {
+			if (asyncMethod.CatchHandlerInstruction is not null) {
 				int catchHandlerILOffset = info.GetOffset(asyncMethod.CatchHandlerInstruction);
 				writer.DefineCatchHandlerILOffset((uint)catchHandlerILOffset);
 			}
@@ -435,7 +435,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			if (!(writer is null))
+			if (writer is not null)
 				Close();
 			writer?.Dispose();
 			writer = null;

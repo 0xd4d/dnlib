@@ -104,7 +104,7 @@ namespace dnlib.DotNet.MD {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				var mdReaderFactory = this.mdReaderFactory;
-				if (!(mdReaderFactory is null))
+				if (mdReaderFactory is not null)
 					mdReaderFactory.DataReaderInvalidated -= DataReaderFactory_DataReaderInvalidated;
 				streamHeader = null;
 				this.mdReaderFactory = null;

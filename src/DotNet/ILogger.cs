@@ -410,7 +410,7 @@ namespace dnlib.DotNet {
 		/// errors. It must have a public constructor that takes a <see cref="string"/> as the only
 		/// argument.</param>
 		public DummyLogger(Type exceptionToThrow) {
-			if (!(exceptionToThrow is null)) {
+			if (exceptionToThrow is not null) {
 				if (!exceptionToThrow.IsSubclassOf(typeof(Exception)))
 					throw new ArgumentException($"Not a System.Exception sub class: {exceptionToThrow.GetType()}");
 				ctor = exceptionToThrow.GetConstructor(new Type[] { typeof(string) });
@@ -421,7 +421,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public void Log(object sender, LoggerEvent loggerEvent, string format, params object[] args) {
-			if (loggerEvent == LoggerEvent.Error && !(ctor is null))
+			if (loggerEvent == LoggerEvent.Error && ctor is not null)
 				throw (Exception)ctor.Invoke(new object[] { string.Format(format, args) });
 		}
 

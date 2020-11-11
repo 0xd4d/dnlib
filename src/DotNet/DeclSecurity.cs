@@ -131,7 +131,7 @@ namespace dnlib.DotNet {
 			if (arg.Type.GetElementType() != ElementType.String)
 				return null;
 			var utf8 = arg.Value as UTF8String;
-			if (!(utf8 is null))
+			if (utf8 is not null)
 				return utf8;
 			if (arg.Value is string s)
 				return s;

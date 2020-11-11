@@ -70,13 +70,13 @@ namespace dnlib.DotNet.Writer {
 				if (eh is null)
 					continue;
 				Instruction instr;
-				if (!((instr = eh.TryStart) is null))
+				if ((instr = eh.TryStart) is not null)
 					stackHeights[instr] = 0;
-				if (!((instr = eh.FilterStart) is null)) {
+				if ((instr = eh.FilterStart) is not null) {
 					stackHeights[instr] = 1;
 					currentMaxStack = 1;
 				}
-				if (!((instr = eh.HandlerStart) is null)) {
+				if ((instr = eh.HandlerStart) is not null) {
 					bool pushed = eh.HandlerType == ExceptionHandlerType.Catch || eh.HandlerType == ExceptionHandlerType.Filter;
 					if (pushed) {
 						stackHeights[instr] = 1;

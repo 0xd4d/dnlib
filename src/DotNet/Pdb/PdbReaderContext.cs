@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Pdb {
 		readonly IPEImage peImage;
 		readonly ImageDebugDirectory codeViewDebugDir;
 
-		public bool HasDebugInfo => !(codeViewDebugDir is null);
+		public bool HasDebugInfo => codeViewDebugDir is not null;
 		public ImageDebugDirectory CodeViewDebugDirectory => codeViewDebugDir;
 		public PdbReaderOptions Options { get; }
 
@@ -48,7 +48,7 @@ namespace dnlib.DotNet.Pdb {
 			guid = reader.ReadGuid();
 			age = reader.ReadUInt32();
 			pdbFilename = reader.TryReadZeroTerminatedUtf8String();
-			return !(pdbFilename is null);
+			return pdbFilename is not null;
 		}
 
 		DataReader GetCodeViewDataReader() {

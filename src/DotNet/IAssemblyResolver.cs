@@ -58,7 +58,7 @@ namespace dnlib.DotNet {
 			if (assembly is null)
 				return null;
 			var asm = self.Resolve(assembly, sourceModule);
-			if (!(asm is null))
+			if (asm is not null)
 				return asm;
 			throw new AssemblyResolveException($"Could not resolve assembly: {assembly}");
 		}
@@ -75,7 +75,7 @@ namespace dnlib.DotNet {
 			if (assembly is null)
 				return null;
 			var asm = self.Resolve(new AssemblyNameInfo(assembly), sourceModule);
-			if (!(asm is null))
+			if (asm is not null)
 				return asm;
 			throw new AssemblyResolveException($"Could not resolve assembly: {assembly}");
 		}
@@ -92,7 +92,7 @@ namespace dnlib.DotNet {
 			if (asmFullName is null)
 				return null;
 			var asm = self.Resolve(new AssemblyNameInfo(asmFullName), sourceModule);
-			if (!(asm is null))
+			if (asm is not null)
 				return asm;
 			throw new AssemblyResolveException($"Could not resolve assembly: {asmFullName}");
 		}

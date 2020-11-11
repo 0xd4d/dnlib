@@ -52,7 +52,7 @@ namespace dnlib.DotNet.Writer {
 				secAttrs = Array2.Empty<SecurityAttribute>();
 
 			var xml = DeclSecurity.GetNet1xXmlStringInternal(secAttrs);
-			if (!(xml is null))
+			if (xml is not null)
 				return WriteFormat1(xml);
 			return WriteFormat2(secAttrs);
 		}

@@ -279,7 +279,7 @@ namespace dnlib.IO {
 		/// trying to access the memory since that could lead to an exception.
 		/// </summary>
 		internal void UnsafeDisableMemoryMappedIO() {
-			if (!(dataAry is null))
+			if (dataAry is not null)
 				return;
 			var newAry = new byte[length];
 			Marshal.Copy(data, newAry, 0, newAry.Length);

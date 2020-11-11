@@ -277,7 +277,7 @@ namespace dnlib.DotNet.Writer {
 
 			uint rsrcOffset = 0;
 			var maxAlignment = GetMaxAlignment(offset, out var error);
-			if (!(error is null))
+			if (error is not null)
 				throw new ModuleWriterException(error);
 
 			foreach (var dir in dirList) {

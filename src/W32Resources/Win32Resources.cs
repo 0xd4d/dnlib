@@ -189,7 +189,7 @@ namespace dnlib.W32Resources {
 			dataReader_factory = peImage.DataReaderFactory;
 			dataReader_offset = 0;
 			dataReader_length = dataReader_factory.Length;
-			if (!(rsrcReader_factory is null)) {
+			if (rsrcReader_factory is not null) {
 				this.rsrcReader_factory = rsrcReader_factory;
 				this.rsrcReader_offset = rsrcReader_offset;
 				this.rsrcReader_length = rsrcReader_length;

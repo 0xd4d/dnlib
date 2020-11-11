@@ -41,7 +41,7 @@ namespace dnlib.DotNet {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;
-				if (!(resource is null) && resource.Name == name)
+				if (resource is not null && resource.Name == name)
 					return i;
 			}
 			return -1;
@@ -56,7 +56,7 @@ namespace dnlib.DotNet {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;
-				if (!(resource is null) &&
+				if (resource is not null &&
 					resource.ResourceType == ResourceType.Embedded &&
 					resource.Name == name)
 					return i;
@@ -73,7 +73,7 @@ namespace dnlib.DotNet {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;
-				if (!(resource is null) &&
+				if (resource is not null &&
 					resource.ResourceType == ResourceType.AssemblyLinked &&
 					resource.Name == name)
 					return i;
@@ -90,7 +90,7 @@ namespace dnlib.DotNet {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;
-				if (!(resource is null) &&
+				if (resource is not null &&
 					resource.ResourceType == ResourceType.Linked &&
 					resource.Name == name)
 					return i;
@@ -105,7 +105,7 @@ namespace dnlib.DotNet {
 		/// <returns>The <see cref="Resource"/> or <c>null</c> if none was found</returns>
 		public Resource Find(UTF8String name) {
 			foreach (var resource in this) {
-				if (!(resource is null) && resource.Name == name)
+				if (resource is not null && resource.Name == name)
 					return resource;
 			}
 			return null;
@@ -118,7 +118,7 @@ namespace dnlib.DotNet {
 		/// <returns>The <see cref="EmbeddedResource"/> or <c>null</c> if none was found</returns>
 		public EmbeddedResource FindEmbeddedResource(UTF8String name) {
 			foreach (var resource in this) {
-				if (!(resource is null) &&
+				if (resource is not null &&
 					resource.ResourceType == ResourceType.Embedded &&
 					resource.Name == name)
 					return (EmbeddedResource)resource;
@@ -133,7 +133,7 @@ namespace dnlib.DotNet {
 		/// <returns>The <see cref="AssemblyLinkedResource"/> or <c>null</c> if none was found</returns>
 		public AssemblyLinkedResource FindAssemblyLinkedResource(UTF8String name) {
 			foreach (var resource in this) {
-				if (!(resource is null) &&
+				if (resource is not null &&
 					resource.ResourceType == ResourceType.AssemblyLinked &&
 					resource.Name == name)
 					return (AssemblyLinkedResource)resource;
@@ -148,7 +148,7 @@ namespace dnlib.DotNet {
 		/// <returns>The <see cref="LinkedResource"/> or <c>null</c> if none was found</returns>
 		public LinkedResource FindLinkedResource(UTF8String name) {
 			foreach (var resource in this) {
-				if (!(resource is null) &&
+				if (resource is not null &&
 					resource.ResourceType == ResourceType.Linked &&
 					resource.Name == name)
 					return (LinkedResource)resource;

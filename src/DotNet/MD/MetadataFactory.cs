@@ -22,7 +22,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(fileName), runtime);
 			}
 			catch {
-				if (!(peImage is null))
+				if (peImage is not null)
 					peImage.Dispose();
 				throw;
 			}
@@ -34,7 +34,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(data), runtime);
 			}
 			catch {
-				if (!(peImage is null))
+				if (peImage is not null)
 					peImage.Dispose();
 				throw;
 			}
@@ -48,7 +48,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(addr, ImageLayout.Memory, true), runtime);
 			}
 			catch {
-				if (!(peImage is null))
+				if (peImage is not null)
 					peImage.Dispose();
 				peImage = null;
 			}
@@ -57,7 +57,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(addr, ImageLayout.File, true), runtime);
 			}
 			catch {
-				if (!(peImage is null))
+				if (peImage is not null)
 					peImage.Dispose();
 				throw;
 			}
@@ -69,7 +69,7 @@ namespace dnlib.DotNet.MD {
 				return Load(peImage = new PEImage(addr, imageLayout, true), runtime);
 			}
 			catch {
-				if (!(peImage is null))
+				if (peImage is not null)
 					peImage.Dispose();
 				throw;
 			}
@@ -148,7 +148,7 @@ namespace dnlib.DotNet.MD {
 				return md;
 			}
 			catch {
-				if (!(md is null))
+				if (md is not null)
 					md.Dispose();
 				throw;
 			}

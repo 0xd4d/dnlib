@@ -405,7 +405,7 @@ namespace dnlib.DotNet.Emit {
 
 			pops += sig.Params.Count;
 			var paramsAfterSentinel = sig.ParamsAfterSentinel;
-			if (!(paramsAfterSentinel is null))
+			if (paramsAfterSentinel is not null)
 				pops += paramsAfterSentinel.Count;
 			if (implicitThis && code != Code.Newobj)
 				pops++;
@@ -714,7 +714,7 @@ namespace dnlib.DotNet.Emit {
 			case Code.Ldarg:
 			case Code.Ldarg_S:
 				var parameter = Operand as Parameter;
-				if (!(parameter is null))
+				if (parameter is not null)
 					return parameter.Index;
 				break;
 			}

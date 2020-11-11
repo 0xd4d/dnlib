@@ -157,13 +157,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (funcs[found].Lines is null) {
 				while (found > 0) {
 					var prevFunc = funcs[found - 1];
-					if (!(prevFunc is null) || prevFunc.Address != address)
+					if (prevFunc is not null || prevFunc.Address != address)
 						break;
 					found--;
 				}
 			}
 			else {
-				while (found < funcs.Length - 1 && !(funcs[found] is null)) {
+				while (found < funcs.Length - 1 && funcs[found] is not null) {
 					var nextFunc = funcs[found + 1];
 					if (nextFunc.Address != address)
 						break;
@@ -171,7 +171,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				}
 			}
 			var func = funcs[found];
-			if (!(func.Lines is null))
+			if (func.Lines is not null)
 				return;
 			func.Lines = new List<SymbolSequencePoint>();
 

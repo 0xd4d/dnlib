@@ -18,7 +18,7 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// <c>true</c> if <see cref="Name"/> is valid
 		/// </summary>
-		public bool HasName => !(name is null);
+		public bool HasName => name is not null;
 
 		/// <summary>
 		/// The ID. It's only valid if <see cref="HasId"/> is <c>true</c>

@@ -272,7 +272,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParamConstraint>.OnAdd(int index, GenericParamConstraint value) {
-			if (!(value.Owner is null))
+			if (value.Owner is not null)
 				throw new InvalidOperationException("Generic param constraint is already owned by another generic param. Set Owner to null first.");
 			value.Owner = this;
 		}

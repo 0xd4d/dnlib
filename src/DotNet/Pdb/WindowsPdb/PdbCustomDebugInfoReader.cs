@@ -81,11 +81,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				if (recVersion == CustomDebugInfoConstants.RecordVersion) {
 					ulong recPosEnd = (ulong)reader.Position - 8 + (uint)recSize - (uint)alignmentSize;
 					var cdi = ReadRecord(recKind, recPosEnd);
-					Debug.Assert(!(cdi is null));
+					Debug.Assert(cdi is not null);
 					Debug.Assert(reader.Position <= recPosEnd);
 					if (reader.Position > recPosEnd)
 						return;
-					if (!(cdi is null)) {
+					if (cdi is not null) {
 						Debug.Assert(cdi.Kind == recKind);
 						result.Add(cdi);
 					}
@@ -191,9 +191,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 					local = localIndex < bodyOpt.Variables.Count ? bodyOpt.Variables[localIndex] : null;
 					// Roslyn writes 0 to localIndex if it's a 'const' local, try to undo that now
-					if (localIndex == 0 && !(local is null) && local.Name != name)
+					if (localIndex == 0 && local is not null && local.Name != name)
 						local = null;
-					if (!(local is null) && local.Name == name)
+					if (local is not null && local.Name == name)
 						name = null;
 					dynLocRec.Name = name;
 					dynLocRec.Local = local;
@@ -252,7 +252,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						local = bodyOpt.Variables[localIndex];
 					}
 
-					if (!(local is null) && local.Name == name)
+					if (local is not null && local.Name == name)
 						name = null;
 					tupleInfo.Local = local;
 					tupleInfo.Name = name;

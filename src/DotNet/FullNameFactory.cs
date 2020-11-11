@@ -68,7 +68,7 @@ namespace dnlib.DotNet {
 					return true;
 				// If it's present in this module, but it's a corlib type, then we will need the
 				// assembly name.
-				return !(module.Find(tr) is null);
+				return module.Find(tr) is not null;
 			}
 			else
 				return true;
@@ -228,7 +228,7 @@ namespace dnlib.DotNet {
 		/// <returns>Property full name</returns>
 		public static StringBuilder PropertyFullNameSB(string declaringType, UTF8String name, CallingConventionSig propertySig, IList<TypeSig> typeGenArgs, StringBuilder sb) {
 			var fnc = new FullNameFactory(false, null, sb);
-			if (!(typeGenArgs is null)) {
+			if (typeGenArgs is not null) {
 				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
@@ -260,7 +260,7 @@ namespace dnlib.DotNet {
 		/// <returns>Property full name</returns>
 		public static StringBuilder EventFullNameSB(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef, IList<TypeSig> typeGenArgs, StringBuilder sb) {
 			var fnc = new FullNameFactory(false, null, sb);
-			if (!(typeGenArgs is null)) {
+			if (typeGenArgs is not null) {
 				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
@@ -292,7 +292,7 @@ namespace dnlib.DotNet {
 		/// <returns>Field full name</returns>
 		public static StringBuilder FieldFullNameSB(string declaringType, string name, FieldSig fieldSig, IList<TypeSig> typeGenArgs, StringBuilder sb) {
 			var fnc = new FullNameFactory(false, null, sb);
-			if (!(typeGenArgs is null)) {
+			if (typeGenArgs is not null) {
 				fnc.genericArguments = new GenericArguments();
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
@@ -328,11 +328,11 @@ namespace dnlib.DotNet {
 		/// <returns>Method full name</returns>
 		public static StringBuilder MethodFullNameSB(string declaringType, string name, MethodSig methodSig, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, MethodDef gppMethod, StringBuilder sb) {
 			var fnc = new FullNameFactory(false, null, sb);
-			if (!(typeGenArgs is null) || !(methodGenArgs is null))
+			if (typeGenArgs is not null || methodGenArgs is not null)
 				fnc.genericArguments = new GenericArguments();
-			if (!(typeGenArgs is null))
+			if (typeGenArgs is not null)
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
-			if (!(methodGenArgs is null))
+			if (methodGenArgs is not null)
 				fnc.genericArguments.PushMethodArgs(methodGenArgs);
 			fnc.CreateMethodFullName(declaringType, name, methodSig, gppMethod);
 			return fnc.sb ?? new StringBuilder();
@@ -811,11 +811,11 @@ namespace dnlib.DotNet {
 		/// <returns>The full name</returns>
 		public static StringBuilder FullNameSB(TypeSig typeSig, bool isReflection, IFullNameFactoryHelper helper, IList<TypeSig> typeGenArgs, IList<TypeSig> methodGenArgs, StringBuilder sb) {
 			var fnc = new FullNameFactory(isReflection, helper, sb);
-			if (!(typeGenArgs is null) || !(methodGenArgs is null))
+			if (typeGenArgs is not null || methodGenArgs is not null)
 				fnc.genericArguments = new GenericArguments();
-			if (!(typeGenArgs is null))
+			if (typeGenArgs is not null)
 				fnc.genericArguments.PushTypeArgs(typeGenArgs);
-			if (!(methodGenArgs is null))
+			if (methodGenArgs is not null)
 				fnc.genericArguments.PushMethodArgs(methodGenArgs);
 			fnc.CreateFullName(typeSig);
 			return fnc.sb ?? new StringBuilder();
@@ -1029,7 +1029,7 @@ namespace dnlib.DotNet {
 				GenericInstSig gis;
 				if (sig is TypeDefOrRefSig tdr)
 					type = GetDefinitionType(tdr.TypeDefOrRef);
-				else if (!((gis = sig as GenericInstSig) is null))
+				else if ((gis = sig as GenericInstSig) is not null)
 					type = GetDefinitionType(gis.GenericType);
 				else
 					type = GetDefinitionType(sig.Next);
@@ -1166,7 +1166,7 @@ namespace dnlib.DotNet {
 			}
 
 			var declaringTypeDef = typeDef.DeclaringType;
-			if (!(declaringTypeDef is null)) {
+			if (declaringTypeDef is not null) {
 				CreateFullName(declaringTypeDef);
 				AddNestedTypeSeparator();
 			}
@@ -1717,13 +1717,13 @@ namespace dnlib.DotNet {
 			var scope = typeRef.ResolutionScope;
 			if (scope is null)
 				result = null;	//TODO: Check ownerModule's ExportedType table
-			else if (!((tr = scope as TypeRef) is null))
+			else if ((tr = scope as TypeRef) is not null)
 				result = GetScope(tr);
-			else if (!((asmRef = scope as AssemblyRef) is null))
+			else if ((asmRef = scope as AssemblyRef) is not null)
 				result = asmRef;
-			else if (!((modRef = scope as ModuleRef) is null))
+			else if ((modRef = scope as ModuleRef) is not null)
 				result = modRef;
-			else if (!((modDef = scope as ModuleDef) is null))
+			else if ((modDef = scope as ModuleDef) is not null)
 				result = modDef;
 			else
 				result = null;	// Should never be reached
@@ -2062,7 +2062,7 @@ namespace dnlib.DotNet {
 			var scope = exportedType.Implementation;
 			if (scope is ExportedType et)
 				result = GetDefinitionAssembly(et);
-			else if (!((asmRef = scope as AssemblyRef) is null))
+			else if ((asmRef = scope as AssemblyRef) is not null)
 				result = asmRef;
 			else if (scope is FileDef) {
 				var ownerModule = GetOwnerModule(exportedType);
@@ -2089,13 +2089,13 @@ namespace dnlib.DotNet {
 			var scope = exportedType.Implementation;
 			if (scope is ExportedType et)
 				result = GetScope(et);
-			else if (!((asmRef = scope as AssemblyRef) is null))
+			else if ((asmRef = scope as AssemblyRef) is not null)
 				result = asmRef;
-			else if (!((file = scope as FileDef) is null)) {
+			else if ((file = scope as FileDef) is not null) {
 				var ownerModule = GetOwnerModule(exportedType);
 				//TODO: Not all modules' names are equal to the name in FileDef.Name
 				var modRef = new ModuleRefUser(ownerModule, file.Name);
-				if (!(ownerModule is null))
+				if (ownerModule is not null)
 					ownerModule.UpdateRowId(modRef);
 				result = modRef;
 			}
@@ -2116,11 +2116,11 @@ namespace dnlib.DotNet {
 			CreateFullName(fieldSig?.Type);
 			sb.Append(' ');
 
-			if (!(declaringType is null)) {
+			if (declaringType is not null) {
 				sb.Append(declaringType);
 				sb.Append("::");
 			}
-			if (!(name is null))
+			if (name is not null)
 				sb.Append(name);
 		}
 
@@ -2132,11 +2132,11 @@ namespace dnlib.DotNet {
 
 			CreateFullName(methodSig.RetType);
 			sb.Append(' ');
-			if (!(declaringType is null)) {
+			if (declaringType is not null) {
 				sb.Append(declaringType);
 				sb.Append("::");
 			}
-			if (!(name is null))
+			if (name is not null)
 				sb.Append(name);
 
 			if (methodSig.Generic) {
@@ -2185,7 +2185,7 @@ namespace dnlib.DotNet {
 		void CreateEventFullName(string declaringType, UTF8String name, ITypeDefOrRef typeDefOrRef) {
 			CreateFullName(typeDefOrRef);
 			sb.Append(' ');
-			if (!(declaringType is null)) {
+			if (declaringType is not null) {
 				sb.Append(declaringType);
 				sb.Append("::");
 			}

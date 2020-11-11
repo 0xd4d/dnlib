@@ -431,7 +431,7 @@ namespace dnlib.DotNet.Pdb {
 		public string Name {
 			get {
 				var n = name;
-				if (!(n is null))
+				if (n is not null)
 					return n;
 				return local?.Name;
 			}
@@ -446,7 +446,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a variable (<see cref="Local"/> is not null)
 		/// </summary>
-		public bool IsVariable => !(Local is null);
+		public bool IsVariable => Local is not null;
 
 		/// <summary>
 		/// Gets/sets the local. Could be null if there's no local (it's a 'const' local).
@@ -572,7 +572,7 @@ namespace dnlib.DotNet.Pdb {
 		public string Name {
 			get {
 				var n = name;
-				if (!(n is null))
+				if (n is not null)
 					return n;
 				return local?.Name;
 			}
@@ -595,7 +595,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a variable. Variables don't have a scope (<see cref="ScopeStart"/> and <see cref="ScopeEnd"/>)
 		/// </summary>
-		public bool IsVariable => !(local is null);
+		public bool IsVariable => local is not null;
 
 		/// <summary>
 		/// Gets/sets the start of the scope or null. Only constants have a scope.

@@ -68,7 +68,7 @@ namespace dnlib.DotNet {
 				if (reader.reader.Length == 0)
 					return null;
 				var csig = reader.ReadSig();
-				if (!(csig is null))
+				if (csig is not null)
 					csig.ExtraData = reader.GetExtraData();
 				return csig;
 			}

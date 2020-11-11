@@ -14,7 +14,7 @@ namespace dnlib.DotNet {
 		public static IEnumerable<TypeDef> Types(IEnumerable<TypeDef> types) {
 			var visited = new Dictionary<TypeDef, bool>();
 			var stack = new Stack<IEnumerator<TypeDef>>();
-			if (!(types is null))
+			if (types is not null)
 				stack.Push(types.GetEnumerator());
 			while (stack.Count > 0) {
 				var enumerator = stack.Pop();

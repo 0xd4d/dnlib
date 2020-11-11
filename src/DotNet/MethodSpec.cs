@@ -95,7 +95,7 @@ namespace dnlib.DotNet {
 			get => method?.MethodSig;
 			set {
 				var m = method;
-				if (!(m is null))
+				if (m is not null)
 					m.MethodSig = value;
 			}
 		}
@@ -108,7 +108,7 @@ namespace dnlib.DotNet {
 			}
 			set {
 				var m = method;
-				if (!(m is null))
+				if (m is not null)
 					m.Name = value;
 			}
 		}
@@ -142,7 +142,7 @@ namespace dnlib.DotNet {
 
 				if (m is MemberRef memberRef) {
 					var methodSig = memberRef.MethodSig;
-					if (!(methodSig is null)) {
+					if (methodSig is not null) {
 						var gis = (memberRef.Class as TypeSpec)?.TypeSig as GenericInstSig;
 						var typeGenArgs = gis?.GenericArguments;
 						return FullNameFactory.MethodFullName(memberRef.GetDeclaringTypeFullName(), memberRef.Name, methodSig, typeGenArgs, methodGenArgs, null, null);

@@ -172,7 +172,7 @@ namespace dnlib.DotNet {
 			var mscorlib = module?.CorLibTypes.AssemblyRef;
 			var asm = new AssemblyRefUser(GetName(clrAsm), contractAsmVersion, new PublicKeyToken(GetPublicKeyToken(clrAsm)), UTF8String.Empty);
 
-			if (!(mscorlib is null) && mscorlib.Name == mscorlibName && IsValidMscorlibVersion(mscorlib.Version))
+			if (mscorlib is not null && mscorlib.Name == mscorlibName && IsValidMscorlibVersion(mscorlib.Version))
 				asm.Version = mscorlib.Version;
 			if (module is ModuleDefMD mod) {
 				Version ver = null;
@@ -191,7 +191,7 @@ namespace dnlib.DotNet {
 					if (ver is null || asmRef.Version > ver)
 						ver = asmRef.Version;
 				}
-				if (!(ver is null))
+				if (ver is not null)
 					asm.Version = ver;
 			}
 
@@ -201,7 +201,7 @@ namespace dnlib.DotNet {
 		static readonly UTF8String mscorlibName = new UTF8String("mscorlib");
 
 		// Silverlight uses 5.0.5.0
-		static bool IsValidMscorlibVersion(Version version) => !(version is null) && (uint)version.Major <= 5;
+		static bool IsValidMscorlibVersion(Version version) => version is not null && (uint)version.Major <= 5;
 
 		static UTF8String GetName(ClrAssembly clrAsm) =>
 			clrAsm switch {
@@ -292,7 +292,7 @@ namespace dnlib.DotNet {
 			var defAsm = tr.DefinitionAssembly;
 			if (defAsm is null || !defAsm.IsContentTypeWindowsRuntime)
 				return null;
-			if (!(tr.DeclaringType is null))
+			if (tr.DeclaringType is not null)
 				return null;
 
 			if (!winMDToCLR.TryGetValue(new ClassName(tr.Namespace, tr.Name), out var pc))
@@ -315,7 +315,7 @@ namespace dnlib.DotNet {
 			var defAsm = et.DefinitionAssembly;
 			if (defAsm is null || !defAsm.IsContentTypeWindowsRuntime)
 				return null;
-			if (!(et.DeclaringType is null))
+			if (et.DeclaringType is not null)
 				return null;
 
 			if (!winMDToCLR.TryGetValue(new ClassName(et.TypeNamespace, et.TypeName), out var pc))
@@ -347,7 +347,7 @@ namespace dnlib.DotNet {
 				if (newTr is null)
 					return null;
 			}
-			else if (!((tr = tdr as TypeRef) is null)) {
+			else if ((tr = tdr as TypeRef) is not null) {
 				newTr = ToCLR(module, tr, out isClrValueType);
 				if (newTr is null)
 					return null;
@@ -389,7 +389,7 @@ namespace dnlib.DotNet {
 
 				newCl = newTr;
 			}
-			else if (!((ts = cl as TypeSpec) is null)) {
+			else if ((ts = cl as TypeSpec) is not null) {
 				var gis = ts.TypeSig as GenericInstSig;
 				if (gis is null || !(gis.GenericType is ClassSig))
 					return null;

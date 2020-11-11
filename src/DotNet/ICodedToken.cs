@@ -163,15 +163,15 @@ namespace dnlib.DotNet {
 		public static bool IsCorLib(this IAssembly asm) {
 			if (asm is AssemblyDef asmDef) {
 				var manifestModule = asmDef.ManifestModule;
-				if (!(manifestModule is null)) {
+				if (manifestModule is not null) {
 					var isCorModule = manifestModule.IsCoreLibraryModule;
-					if (!(isCorModule is null))
+					if (isCorModule is not null)
 						return isCorModule.Value;
 				}
 			}
 
 			string asmName;
-			return !(asm is null) &&
+			return asm is not null &&
 				UTF8String.IsNullOrEmpty(asm.Culture) &&
 				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name)).Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ||
@@ -206,14 +206,14 @@ namespace dnlib.DotNet {
 				return null;
 
 			var module = type.Module;
-			if (!(module is null)) {
+			if (module is not null) {
 				var corLibType = module.CorLibTypes.GetCorLibTypeSig(type);
-				if (!(corLibType is null))
+				if (corLibType is not null)
 					return corLibType;
 			}
 
 			var td = type as TypeDef;
-			if (!(td is null))
+			if (td is not null)
 				return CreateClassOrValueType(type, checkValueType ? td.IsValueType : false);
 
 			if (type is TypeRef tr) {
@@ -398,17 +398,17 @@ namespace dnlib.DotNet {
 				return null;
 
 			var git = ts.TypeSig.ToGenericInstSig();
-			if (!(git is null))
+			if (git is not null)
 				tdr = git.GenericType?.TypeDefOrRef;
 			else
 				tdr = ts.TypeSig.ToTypeDefOrRefSig()?.TypeDefOrRef;
 
 			td = tdr as TypeDef;
-			if (!(td is null))
+			if (td is not null)
 				return td.BaseType;
 
 			tr = tdr as TypeRef;
-			if (!(tr is null)) {
+			if (tr is not null) {
 				td = throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve();
 				return td?.BaseType;
 			}
@@ -434,11 +434,11 @@ namespace dnlib.DotNet {
 			tdr = tdr.ScopeType;
 
 			td = tdr as TypeDef;
-			if (!(td is null))
+			if (td is not null)
 				return td;
 
 			tr = tdr as TypeRef;
-			if (!(tr is null))
+			if (tr is not null)
 				return tr.Resolve();
 
 			return null;
@@ -462,11 +462,11 @@ namespace dnlib.DotNet {
 			tdr = tdr.ScopeType;
 
 			td = tdr as TypeDef;
-			if (!(td is null))
+			if (td is not null)
 				return td;
 
 			tr = tdr as TypeRef;
-			if (!(tr is null))
+			if (tr is not null)
 				return tr.ResolveThrow();
 
 			throw new TypeResolveException($"Could not resolve type: {tdr} ({tdr?.DefinitionAssembly})");
@@ -525,11 +525,11 @@ namespace dnlib.DotNet {
 
 			if (method is MethodSpec ms) {
 				md = ms.Method as MethodDef;
-				if (!(md is null))
+				if (md is not null)
 					return md;
 
 				mr = ms.Method as MemberRef;
-				if (!(mr is null))
+				if (mr is not null)
 					return mr.ResolveMethod();
 			}
 
@@ -553,11 +553,11 @@ namespace dnlib.DotNet {
 
 			if (method is MethodSpec ms) {
 				md = ms.Method as MethodDef;
-				if (!(md is null))
+				if (md is not null)
 					return md;
 
 				mr = ms.Method as MemberRef;
-				if (!(mr is null))
+				if (mr is not null)
 					return mr.ResolveMethodThrow();
 			}
 

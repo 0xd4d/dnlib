@@ -134,7 +134,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 						if (!valueWritten) {
 							if (value is byte[])
 								writer.WriteBytes((byte[])value);
-							else if (!(value is null)) {
+							else if (value is not null) {
 								helper.Error("Unsupported constant: " + value.GetType().FullName);
 								return;
 							}
@@ -146,7 +146,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					WriteTypeDefOrRef(writer, ((ClassSig)type).TypeDefOrRef);
 					if (value is byte[])
 						writer.WriteBytes((byte[])value);
-					else if (!(value is null))
+					else if (value is not null)
 						helper.Error("Expected a null constant");
 					return;
 

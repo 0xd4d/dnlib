@@ -20,7 +20,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public override SymbolMethod Method {
 			get {
-				if (!(method is null))
+				if (method is not null)
 					return method;
 				var p = parent;
 				if (p is null)
@@ -66,7 +66,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constantList >= constantListEnd)
 				return Array2.Empty<PdbConstant>();
-			Debug.Assert(!(constantsMetadata is null));
+			Debug.Assert(constantsMetadata is not null);
 
 			var res = new PdbConstant[constantListEnd - constantList];
 			int w = 0;

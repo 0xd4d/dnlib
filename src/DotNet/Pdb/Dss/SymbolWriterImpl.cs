@@ -19,7 +19,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		bool closeCalled;
 
 		public override bool IsDeterministic => isDeterministic;
-		public override bool SupportsAsyncMethods => !(asyncMethodWriter is null);
+		public override bool SupportsAsyncMethods => asyncMethodWriter is not null;
 
 		public SymbolWriterImpl(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));

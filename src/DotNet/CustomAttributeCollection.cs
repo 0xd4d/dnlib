@@ -30,7 +30,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="fullName">Full name of custom attribute type</param>
 		/// <returns><c>true</c> if the custom attribute type is present, <c>false</c> otherwise</returns>
-		public bool IsDefined(string fullName) => !(Find(fullName) is null);
+		public bool IsDefined(string fullName) => Find(fullName) is not null;
 
 		/// <summary>
 		/// Removes all custom attributes of a certain type
@@ -50,7 +50,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="CustomAttribute"/> or <c>null</c> if it wasn't found</returns>
 		public CustomAttribute Find(string fullName) {
 			foreach (var ca in this) {
-				if (!(ca is null) && ca.TypeFullName == fullName)
+				if (ca is not null && ca.TypeFullName == fullName)
 					return ca;
 			}
 
@@ -64,7 +64,7 @@ namespace dnlib.DotNet {
 		/// <returns>All <see cref="CustomAttribute"/>s of the requested type</returns>
 		public IEnumerable<CustomAttribute> FindAll(string fullName) {
 			foreach (var ca in this) {
-				if (!(ca is null) && ca.TypeFullName == fullName)
+				if (ca is not null && ca.TypeFullName == fullName)
 					yield return ca;
 			}
 		}

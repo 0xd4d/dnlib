@@ -388,11 +388,11 @@ namespace dnlib.DotNet {
 		}
 
 		SymbolReader CreateSymbolReader(ModuleCreationOptions options) {
-			if (!(options.PdbFileOrData is null)) {
+			if (options.PdbFileOrData is not null) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
 					var symReader = SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbFileName);
-					if (!(symReader is null))
+					if (symReader is not null)
 						return symReader;
 				}
 
@@ -416,11 +416,11 @@ namespace dnlib.DotNet {
 		public void LoadPdb(SymbolReader symbolReader) {
 			if (symbolReader is null)
 				return;
-			if (!(pdbState is null))
+			if (pdbState is not null)
 				throw new InvalidOperationException("PDB file has already been initialized");
 
 			var orig = Interlocked.CompareExchange(ref pdbState, new PdbState(symbolReader, this), null);
-			if (!(orig is null))
+			if (orig is not null)
 				throw new InvalidOperationException("PDB file has already been initialized");
 		}
 
@@ -581,7 +581,7 @@ namespace dnlib.DotNet {
 					corLibAsmRef = asmRef;
 				}
 			}
-			if (!(corLibAsmRef is null))
+			if (corLibAsmRef is not null)
 				return corLibAsmRef;
 
 			foreach (var corlib in corlibs) {
@@ -592,13 +592,13 @@ namespace dnlib.DotNet {
 					if (IsGreaterAssemblyRefVersion(corLibAsmRef, asmRef))
 						corLibAsmRef = asmRef;
 				}
-				if (!(corLibAsmRef is null))
+				if (corLibAsmRef is not null)
 					return corLibAsmRef;
 			}
 
 			// If we've loaded mscorlib itself, it won't have any AssemblyRefs to itself.
 			var asm = Assembly;
-			if (!(asm is null) && (asm.IsCorLib() || !(Find("System.Object", false) is null))) {
+			if (asm is not null && (asm.IsCorLib() || Find("System.Object", false) is not null)) {
 				IsCoreLibraryModule = true;
 				return UpdateRowId(new AssemblyRefUser(asm));
 			}
@@ -612,7 +612,7 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		AssemblyRef CreateDefaultCorLibAssemblyRef() {
 			var asmRef = GetAlternativeCorLibReference();
-			if (!(asmRef is null))
+			if (asmRef is not null)
 				return UpdateRowId(asmRef);
 
 			if (IsClr40)
@@ -657,7 +657,7 @@ namespace dnlib.DotNet {
 			base.Dispose(disposing);
 			if (disposing) {
 				var md = metadata;
-				if (!(md is null))
+				if (md is not null)
 					md.Dispose();
 				metadata = null;
 			}
@@ -1373,12 +1373,12 @@ namespace dnlib.DotNet {
 			catch {
 				module = null;
 			}
-			if (!(module is null)) {
+			if (module is not null) {
 				// share context
 				module.context = context;
 
 				var asm = module.Assembly;
-				if (!(asm is null) && asm != owner)
+				if (asm is not null && asm != owner)
 					asm.Modules.Remove(module);
 			}
 			return module;
@@ -1396,7 +1396,7 @@ namespace dnlib.DotNet {
 		}
 
 		void InitializeModuleList() {
-			if (!(moduleRidList is null))
+			if (moduleRidList is not null)
 				return;
 			uint rows = TablesStream.FileTable.Rows;
 			var newModuleRidList = new List<uint>((int)rows);
@@ -1409,7 +1409,7 @@ namespace dnlib.DotNet {
 				if (!fileDef.ContainsMetadata)
 					continue;
 				var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
-				if (!(pathName is null))
+				if (pathName is not null)
 					newModuleRidList.Add(fileRid);
 			}
 			Interlocked.CompareExchange(ref moduleRidList, new StrongBox<RidList>(RidList.Create(newModuleRidList)), null);
@@ -1663,7 +1663,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="MethodBody"/> or <c>null</c> if none</returns>
 		internal MethodBody ReadMethodBody(MethodDefMD method, RVA rva, MethodImplAttributes implAttrs, GenericParamContext gpContext) {
 			var mDec = methodDecrypter;
-			if (!(mDec is null) && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out var mb)) {
+			if (mDec is not null && mDec.GetMethodBody(method.OrigRid, rva, method.Parameters, gpContext, out var mb)) {
 				if (mb is CilBody cilBody)
 					return InitializeBodyFromPdb(method, cilBody);
 				return mb;
@@ -1687,7 +1687,7 @@ namespace dnlib.DotNet {
 		/// <returns>Returns originak <paramref name="body"/> value</returns>
 		CilBody InitializeBodyFromPdb(MethodDefMD method, CilBody body) {
 			var ps = pdbState;
-			if (!(ps is null))
+			if (ps is not null)
 				ps.InitializeMethodBody(this, method, body);
 			return body;
 		}
@@ -1697,7 +1697,7 @@ namespace dnlib.DotNet {
 				return;
 
 			var ps = pdbState;
-			if (!(ps is null))
+			if (ps is not null)
 				ps.InitializeCustomDebugInfos(method, body, customDebugInfos);
 		}
 
@@ -1708,9 +1708,9 @@ namespace dnlib.DotNet {
 		/// <returns>A non-null string</returns>
 		public string ReadUserString(uint token) {
 			var sDec = stringDecrypter;
-			if (!(sDec is null)) {
+			if (sDec is not null) {
 				var s = sDec.ReadUserString(token);
-				if (!(s is null))
+				if (s is not null)
 					return s;
 			}
 			return USStream.ReadNoNull(token & 0x00FFFFFF);

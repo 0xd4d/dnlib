@@ -641,7 +641,7 @@ namespace dnlib.DotNet {
 			// Could be an exported type. Resolve it and check again.
 
 			var td = b.Resolve(sourceModule);
-			return !(td is null) && Equals(aAsm, td.Module.Assembly);
+			return td is not null && Equals(aAsm, td.Module.Assembly);
 		}
 
 		bool Equals(IAssembly aAsm, IAssembly bAsm, ExportedType b) {
@@ -649,7 +649,7 @@ namespace dnlib.DotNet {
 				return true;
 
 			var td = b.Resolve();
-			return !(td is null) && Equals(aAsm, td.Module.Assembly);
+			return td is not null && Equals(aAsm, td.Module.Assembly);
 		}
 
 		bool Equals(IAssembly aAsm, TypeRef a, IAssembly bAsm, TypeRef b) {
@@ -660,7 +660,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve(sourceModule);
-			return !(tda is null) && !(tdb is null) && Equals(tda.Module.Assembly, tdb.Module.Assembly);
+			return tda is not null && tdb is not null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
 		}
 
 		bool Equals(IAssembly aAsm, ExportedType a, IAssembly bAsm, ExportedType b) {
@@ -669,7 +669,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve();
 			var tdb = b.Resolve();
-			return !(tda is null) && !(tdb is null) && Equals(tda.Module.Assembly, tdb.Module.Assembly);
+			return tda is not null && tdb is not null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
 		}
 
 		bool Equals(IAssembly aAsm, TypeRef a, IAssembly bAsm, ExportedType b) {
@@ -680,7 +680,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve();
-			return !(tda is null) && !(tdb is null) && Equals(tda.Module.Assembly, tdb.Module.Assembly);
+			return tda is not null && tdb is not null && Equals(tda.Module.Assembly, tdb.Module.Assembly);
 		}
 
 		bool Equals(TypeDef a, IModule bMod, TypeRef b) {
@@ -704,7 +704,7 @@ namespace dnlib.DotNet {
 				return true;
 
 			var td = b.Resolve();
-			return !(td is null) && Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
+			return td is not null && Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
 		}
 
 		bool TypeDefScopeEquals(TypeDef a, TypeDef b) {
@@ -725,7 +725,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve(sourceModule);
-			return !(tda is null) && !(tdb is null) &&
+			return tda is not null && tdb is not null &&
 				Equals(tda.Module, tdb.Module) && Equals(tda.DefinitionAssembly, tdb.DefinitionAssembly);
 		}
 
@@ -737,7 +737,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve();
-			return !(tda is null) && !(tdb is null) &&
+			return tda is not null && tdb is not null &&
 				Equals(tda.Module, tdb.Module) && Equals(tda.DefinitionAssembly, tdb.DefinitionAssembly);
 		}
 
@@ -748,7 +748,7 @@ namespace dnlib.DotNet {
 			// Could be an exported type. Resolve it and check again.
 
 			var td = b.Resolve(sourceModule);
-			return !(td is null) && Equals(td.Module.Assembly, aAsm);
+			return td is not null && Equals(td.Module.Assembly, aAsm);
 		}
 
 		bool Equals(Assembly aAsm, IAssembly bAsm, ExportedType b) {
@@ -756,7 +756,7 @@ namespace dnlib.DotNet {
 				return true;
 
 			var td = b.Resolve();
-			return !(td is null) && Equals(td.Module.Assembly, aAsm);
+			return td is not null && Equals(td.Module.Assembly, aAsm);
 		}
 
 		bool Equals(Type a, IModule bMod, TypeRef b) {
@@ -766,7 +766,7 @@ namespace dnlib.DotNet {
 			// Could be an exported type. Resolve it and check again.
 
 			var td = b.Resolve(sourceModule);
-			return !(td is null) && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
+			return td is not null && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
 		}
 
 		bool Equals(Type a, FileDef bFile, ExportedType b) {
@@ -774,7 +774,7 @@ namespace dnlib.DotNet {
 				return true;
 
 			var td = b.Resolve();
-			return !(td is null) && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
+			return td is not null && Equals(td.Module, a.Module) && Equals(td.DefinitionAssembly, a.Assembly);
 		}
 
 		/// <summary>
@@ -798,15 +798,15 @@ namespace dnlib.DotNet {
 			PropertyDef pa, pb;
 			EventDef ea, eb;
 
-			if (!((ta = a as IType) is null) && !((tb = b as IType) is null))
+			if ((ta = a as IType) is not null && (tb = b as IType) is not null)
 				result = Equals(ta, tb);
-			else if (!((fa = a as IField) is null) && !((fb = b as IField) is null) && fa.IsField && fb.IsField)
+			else if ((fa = a as IField) is not null && (fb = b as IField) is not null && fa.IsField && fb.IsField)
 				result = Equals(fa, fb);
-			else if (!((ma = a as IMethod) is null) && !((mb = b as IMethod) is null))
+			else if ((ma = a as IMethod) is not null && (mb = b as IMethod) is not null)
 				result = Equals(ma, mb);
-			else if (!((pa = a as PropertyDef) is null) && !((pb = b as PropertyDef) is null))
+			else if ((pa = a as PropertyDef) is not null && (pb = b as PropertyDef) is not null)
 				result = Equals(pa, pb);
-			else if (!((ea = a as EventDef) is null) && !((eb = b as EventDef) is null))
+			else if ((ea = a as EventDef) is not null && (eb = b as EventDef) is not null)
 				result = Equals(ea, eb);
 			else
 				result = false;
@@ -833,15 +833,15 @@ namespace dnlib.DotNet {
 			PropertyDef pa;
 			EventDef ea;
 
-			if (!((ta = a as IType) is null))
+			if ((ta = a as IType) is not null)
 				result = GetHashCode(ta);
-			else if (!((fa = a as IField) is null))
+			else if ((fa = a as IField) is not null)
 				result = GetHashCode(fa);
-			else if (!((ma = a as IMethod) is null))
+			else if ((ma = a as IMethod) is not null)
 				result = GetHashCode(ma);
-			else if (!((pa = a as PropertyDef) is null))
+			else if ((pa = a as PropertyDef) is not null)
 				result = GetHashCode(pa);
-			else if (!((ea = a as EventDef) is null))
+			else if ((ea = a as EventDef) is not null)
 				result = GetHashCode(ea);
 			else
 				result = 0;		// Should never be reached
@@ -886,55 +886,55 @@ namespace dnlib.DotNet {
 			TypeSig sa, sb;
 			ExportedType eta, etb;
 
-			if (!((tda = a as TypeDef) is null) & !((tdb = b as TypeDef) is null))
+			if ((tda = a as TypeDef) is not null & (tdb = b as TypeDef) is not null)
 				result = Equals(tda, tdb);
-			else if (!((tra = a as TypeRef) is null) & !((trb = b as TypeRef) is null))
+			else if ((tra = a as TypeRef) is not null & (trb = b as TypeRef) is not null)
 				result = Equals(tra, trb);
-			else if (!((tsa = a as TypeSpec) is null) & !((tsb = b as TypeSpec) is null))
+			else if ((tsa = a as TypeSpec) is not null & (tsb = b as TypeSpec) is not null)
 				result = Equals(tsa, tsb);
-			else if (!((sa = a as TypeSig) is null) & !((sb = b as TypeSig) is null))
+			else if ((sa = a as TypeSig) is not null & (sb = b as TypeSig) is not null)
 				result = Equals(sa, sb);
-			else if (!((eta = a as ExportedType) is null) & !((etb = b as ExportedType) is null))
+			else if ((eta = a as ExportedType) is not null & (etb = b as ExportedType) is not null)
 				result = Equals(eta, etb);
-			else if (!(tda is null) && !(trb is null))
+			else if (tda is not null && trb is not null)
 				result = Equals(tda, trb);		// TypeDef vs TypeRef
-			else if (!(tra is null) && !(tdb is null))
+			else if (tra is not null && tdb is not null)
 				result = Equals(tdb, tra);		// TypeDef vs TypeRef
-			else if (!(tda is null) && !(tsb is null))
+			else if (tda is not null && tsb is not null)
 				result = Equals(tda, tsb);		// TypeDef vs TypeSpec
-			else if (!(tsa is null) && !(tdb is null))
+			else if (tsa is not null && tdb is not null)
 				result = Equals(tdb, tsa);		// TypeDef vs TypeSpec
-			else if (!(tda is null) && !(sb is null))
+			else if (tda is not null && sb is not null)
 				result = Equals(tda, sb);		// TypeDef vs TypeSig
-			else if (!(sa is null) && !(tdb is null))
+			else if (sa is not null && tdb is not null)
 				result = Equals(tdb, sa);		// TypeDef vs TypeSig
-			else if (!(tda is null) && !(etb is null))
+			else if (tda is not null && etb is not null)
 				result = Equals(tda, etb);		// TypeDef vs ExportedType
-			else if (!(eta is null) && !(tdb is null))
+			else if (eta is not null && tdb is not null)
 				result = Equals(tdb, eta);		// TypeDef vs ExportedType
-			else if (!(tra is null) && !(tsb is null))
+			else if (tra is not null && tsb is not null)
 				result = Equals(tra, tsb);		// TypeRef vs TypeSpec
-			else if (!(tsa is null) && !(trb is null))
+			else if (tsa is not null && trb is not null)
 				result = Equals(trb, tsa);		// TypeRef vs TypeSpec
-			else if (!(tra is null) && !(sb is null))
+			else if (tra is not null && sb is not null)
 				result = Equals(tra, sb);		// TypeRef vs TypeSig
-			else if (!(sa is null) && !(trb is null))
+			else if (sa is not null && trb is not null)
 				result = Equals(trb, sa);		// TypeRef vs TypeSig
-			else if (!(tra is null) && !(etb is null))
+			else if (tra is not null && etb is not null)
 				result = Equals(tra, etb);		// TypeRef vs ExportedType
-			else if (!(eta is null) && !(trb is null))
+			else if (eta is not null && trb is not null)
 				result = Equals(trb, eta);		// TypeRef vs ExportedType
-			else if (!(tsa is null) && !(sb is null))
+			else if (tsa is not null && sb is not null)
 				result = Equals(tsa, sb);		// TypeSpec vs TypeSig
-			else if (!(sa is null) && !(tsb is null))
+			else if (sa is not null && tsb is not null)
 				result = Equals(tsb, sa);		// TypeSpec vs TypeSig
-			else if (!(tsa is null) && !(etb is null))
+			else if (tsa is not null && etb is not null)
 				result = Equals(tsa, etb);		// TypeSpec vs ExportedType
-			else if (!(eta is null) && !(tsb is null))
+			else if (eta is not null && tsb is not null)
 				result = Equals(tsb, eta);		// TypeSpec vs ExportedType
-			else if (!(sa is null) && !(etb is null))
+			else if (sa is not null && etb is not null)
 				result = Equals(sa, etb);		// TypeSig vs ExportedType
-			else if (!(eta is null) && !(sb is null))
+			else if (eta is not null && sb is not null)
 				result = Equals(sb, eta);		// TypeSig vs ExportedType
 			else
 				result = false;	// Should never be reached
@@ -961,15 +961,15 @@ namespace dnlib.DotNet {
 			TypeSig sig;
 			ExportedType et;
 
-			if (!((td = a as TypeDef) is null))
+			if ((td = a as TypeDef) is not null)
 				hash = GetHashCode(td);
-			else if (!((tr = a as TypeRef) is null))
+			else if ((tr = a as TypeRef) is not null)
 				hash = GetHashCode(tr);
-			else if (!((ts = a as TypeSpec) is null))
+			else if ((ts = a as TypeSpec) is not null)
 				hash = GetHashCode(ts);
-			else if (!((sig = a as TypeSig) is null))
+			else if ((sig = a as TypeSig) is not null)
 				hash = GetHashCode(sig);
-			else if (!((et = a as ExportedType) is null))
+			else if ((et = a as ExportedType) is not null)
 				hash = GetHashCode(et);
 			else
 				hash = 0;	// Should never be reached
@@ -1008,7 +1008,7 @@ namespace dnlib.DotNet {
 			if (!DontProjectWinMDRefs) {
 				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
 				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
-				if (!(tra is null)) {
+				if (tra is not null) {
 					result = Equals(tra, b);
 					goto exit;
 				}
@@ -1018,19 +1018,19 @@ namespace dnlib.DotNet {
 
 			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b.Namespace))
 				result = false;
-			else if (!((dtb = scope as TypeRef) is null))	// nested type
+			else if ((dtb = scope as TypeRef) is not null)	// nested type
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
-			else if (!(a.DeclaringType is null)) {
+			else if (a.DeclaringType is not null) {
 				// a is nested, b isn't
 				result = false;
 			}
 			else if (DontCompareTypeScope)
 				result = true;
-			else if (!((bMod = scope as IModule) is null))	// 'b' is defined in the same assembly as 'a'
+			else if ((bMod = scope as IModule) is not null)	// 'b' is defined in the same assembly as 'a'
 				result = Equals(a, bMod, b);
-			else if (!((bAsm = scope as AssemblyRef) is null)) {
+			else if ((bAsm = scope as AssemblyRef) is not null) {
 				var aMod = a.Module;
-				result = !(aMod is null) && Equals(aMod.Assembly, bAsm, b);
+				result = aMod is not null && Equals(aMod.Assembly, bAsm, b);
 				if (!result) {
 					if (!DontCheckTypeEquivalence) {
 						var tdb = b.Resolve();
@@ -1079,7 +1079,7 @@ exit: ;
 			if (!DontProjectWinMDRefs) {
 				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
 				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
-				if (!(tra is null)) {
+				if (tra is not null) {
 					result = Equals(tra, b);
 					goto exit;
 				}
@@ -1089,20 +1089,20 @@ exit: ;
 
 			if (!Equals_TypeNames(a.Name, b.TypeName) || !Equals_TypeNamespaces(a.Namespace, b.TypeNamespace))
 				result = false;
-			else if (!((dtb = scope as ExportedType) is null)) {	// nested type
+			else if ((dtb = scope as ExportedType) is not null) {	// nested type
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
 			}
-			else if (!(a.DeclaringType is null)) {
+			else if (a.DeclaringType is not null) {
 				result = false;	// a is nested, b isn't
 			}
 			else if (DontCompareTypeScope)
 				result = true;
 			else {
-				if (!((bFile = scope as FileDef) is null))
+				if ((bFile = scope as FileDef) is not null)
 					result = Equals(a, bFile, b);
-				else if (!((bAsm = scope as AssemblyRef) is null)) {
+				else if ((bAsm = scope as AssemblyRef) is not null) {
 					var aMod = a.Module;
-					result = !(aMod is null) && Equals(aMod.Assembly, bAsm, b);
+					result = aMod is not null && Equals(aMod.Assembly, bAsm, b);
 				}
 				else
 					result = false;
@@ -1483,7 +1483,7 @@ exit: ;
 			if (!DontProjectWinMDRefs) {
 				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
 				var trb = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b);
-				if (!(tra is null) || !(trb is null)) {
+				if (tra is not null || trb is not null) {
 					result = Equals((IType)tra ?? a, (IType)trb ?? b);
 					goto exit;
 				}
@@ -1514,13 +1514,13 @@ exit: ;
 				return GetHashCodeGlobalType();
 			if (!DontProjectWinMDRefs) {
 				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
-				if (!(tra is null))
+				if (tra is not null)
 					return GetHashCode(tra);
 			}
 
 			int hash;
 			hash = GetHashCode_TypeName(a.Name);
-			if (!(a.DeclaringType is null))
+			if (a.DeclaringType is not null)
 				hash += HASHCODE_MAGIC_NESTED_TYPE;
 			else
 				hash += GetHashCode_TypeNamespace(a.Namespace);
@@ -1586,29 +1586,29 @@ exit: ;
 			bool resolveCheck = true;
 
 			// if one of them is a TypeRef, the other one must be too
-			if (!((ea = ra as TypeRef) is null) | !((eb = rb as TypeRef) is null)) {
+			if ((ea = ra as TypeRef) is not null | (eb = rb as TypeRef) is not null) {
 				result = Equals(ea, eb);
 				resolveCheck = false;
 			}
 			else if (DontCompareTypeScope)
 				result = true;
 			// only compare if both are modules
-			else if (!((ma = ra as IModule) is null) & !((mb = rb as IModule) is null))
+			else if ((ma = ra as IModule) is not null & (mb = rb as IModule) is not null)
 				result = Equals(a, ma, b, mb);
 			// only compare if both are assemblies
-			else if (!((aa = ra as AssemblyRef) is null) & !((ab = rb as AssemblyRef) is null))
+			else if ((aa = ra as AssemblyRef) is not null & (ab = rb as AssemblyRef) is not null)
 				result = Equals(aa, a, ab, b);
-			else if (!(aa is null) && rb is ModuleRef) {
+			else if (aa is not null && rb is ModuleRef) {
 				var bMod = b.Module;
-				result = !(bMod is null) && Equals(bMod.Assembly, b, aa, a);
+				result = bMod is not null && Equals(bMod.Assembly, b, aa, a);
 			}
-			else if (!(ab is null) && ra is ModuleRef) {
+			else if (ab is not null && ra is ModuleRef) {
 				var aMod = a.Module;
-				result = !(aMod is null) && Equals(aMod.Assembly, a, ab, b);
+				result = aMod is not null && Equals(aMod.Assembly, a, ab, b);
 			}
-			else if (!(aa is null) && !((modDef = rb as ModuleDef) is null))
+			else if (aa is not null && (modDef = rb as ModuleDef) is not null)
 				result = Equals(modDef.Assembly, aa, a);
-			else if (!(ab is null) && !((modDef = ra as ModuleDef) is null))
+			else if (ab is not null && (modDef = ra as ModuleDef) is not null)
 				result = Equals(modDef.Assembly, ab, b);
 			else {
 				result = false;
@@ -1618,7 +1618,7 @@ exit: ;
 				if (!DontCheckTypeEquivalence) {
 					var td1 = a.Resolve();
 					var td2 = b.Resolve();
-					if (!(td1 is null) && !(td2 is null))
+					if (td1 is not null && td2 is not null)
 						result = TypeDefScopeEquals(td1, td2);
 				}
 			}
@@ -1654,21 +1654,21 @@ exit: ;
 			bool checkResolve = true;
 
 			// if one of them is an ExportedType, the other one must be too
-			if (!((ea = ia as ExportedType) is null) | !((eb = ib as ExportedType) is null)) {
+			if ((ea = ia as ExportedType) is not null | (eb = ib as ExportedType) is not null) {
 				result = Equals(ea, eb);
 				checkResolve = false;
 			}
 			else if (DontCompareTypeScope)
 				result = true;
 			// only compare if both are files
-			else if (!((fa = ia as FileDef) is null) & !((fb = ib as FileDef) is null))
+			else if ((fa = ia as FileDef) is not null & (fb = ib as FileDef) is not null)
 				result = Equals(fa, fb);
 			// only compare if both are assemblies
-			else if (!((aa = ia as AssemblyRef) is null) & !((ab = ib as AssemblyRef) is null))
+			else if ((aa = ia as AssemblyRef) is not null & (ab = ib as AssemblyRef) is not null)
 				result = Equals(aa, a, ab, b);
-			else if (!(fa is null) && !(ab is null))
+			else if (fa is not null && ab is not null)
 				result = Equals(a.DefinitionAssembly, ab, b);
-			else if (!(fb is null) && !(aa is null))
+			else if (fb is not null && aa is not null)
 				result = Equals(b.DefinitionAssembly, aa, a);
 			else {
 				result = false;
@@ -1677,7 +1677,7 @@ exit: ;
 			if (!result && checkResolve && !DontCheckTypeEquivalence) {
 				var td1 = a.Resolve();
 				var td2 = b.Resolve();
-				if (!(td1 is null) && !(td2 is null))
+				if (td1 is not null && td2 is not null)
 					result = TypeDefScopeEquals(td1, td2);
 			}
 
@@ -1714,19 +1714,19 @@ exit: ;
 			bool checkResolve = true;
 
 			// If one is a nested type, the other one must be too
-			if (!((ea = ra as TypeRef) is null) | !((eb = ib as ExportedType) is null)) {
+			if ((ea = ra as TypeRef) is not null | (eb = ib as ExportedType) is not null) {
 				result = Equals(ea, eb);
 				checkResolve = false;
 			}
 			else if (DontCompareTypeScope)
 				result = true;
-			else if (!((ma = ra as IModule) is null) & !((fb = ib as FileDef) is null))
+			else if ((ma = ra as IModule) is not null & (fb = ib as FileDef) is not null)
 				result = Equals(a, ma, b, fb);
-			else if (!((aa = ra as AssemblyRef) is null) & !((ab = ib as AssemblyRef) is null))
+			else if ((aa = ra as AssemblyRef) is not null & (ab = ib as AssemblyRef) is not null)
 				result = Equals(aa, a, ab, b);
-			else if (!(ma is null) && !(ab is null))
+			else if (ma is not null && ab is not null)
 				result = Equals(a.DefinitionAssembly, ab, b);
-			else if (!(fb is null) && !(aa is null))
+			else if (fb is not null && aa is not null)
 				result = Equals(b.DefinitionAssembly, aa, a);
 			else {
 				checkResolve = false;
@@ -1735,7 +1735,7 @@ exit: ;
 			if (!result && checkResolve && !DontCheckTypeEquivalence) {
 				var td1 = a.Resolve();
 				var td2 = b.Resolve();
-				if (!(td1 is null) && !(td2 is null))
+				if (td1 is not null && td2 is not null)
 					result = TypeDefScopeEquals(td1, td2);
 			}
 
@@ -1791,14 +1791,14 @@ exit: ;
 			return UTF8String.CaseInsensitiveEquals(a.Name, b.Name);
 		}
 
-		static bool IsCorLib(ModuleDef a) => !(a is null) && a.IsManifestModule && a.Assembly.IsCorLib();
+		static bool IsCorLib(ModuleDef a) => a is not null && a.IsManifestModule && a.Assembly.IsCorLib();
 
 		static bool IsCorLib(IModule a) {
 			var mod = a as ModuleDef;
-			return !(mod is null) && mod.IsManifestModule && mod.Assembly.IsCorLib();
+			return mod is not null && mod.IsManifestModule && mod.Assembly.IsCorLib();
 		}
 
-		static bool IsCorLib(Module a) => !(a is null) && a.Assembly.ManifestModule == a && a.Assembly == typeof(void).Assembly;
+		static bool IsCorLib(Module a) => a is not null && a.Assembly.ManifestModule == a && a.Assembly == typeof(void).Assembly;
 		static bool IsCorLib(IAssembly a) => a.IsCorLib();
 		static bool IsCorLib(Assembly a) => a == typeof(void).Assembly;
 
@@ -2005,7 +2005,7 @@ exit: ;
 				return 0;
 			int hash;
 
-			if (!(genericArguments is null))
+			if (genericArguments is not null)
 				a = genericArguments.Resolve(a);
 
 			switch (a.ElementType) {
@@ -2220,22 +2220,22 @@ exit: ;
 				case CallingConvention.NativeVarArg:
 				case CallingConvention.Unmanaged:
 					MethodBaseSig ma = a as MethodBaseSig, mb = b as MethodBaseSig;
-					result = !(ma is null) && !(mb is null) && Equals(ma, mb);
+					result = ma is not null && mb is not null && Equals(ma, mb);
 					break;
 
 				case CallingConvention.Field:
 					FieldSig fa = a as FieldSig, fb = b as FieldSig;
-					result = !(fa is null) && !(fb is null) && Equals(fa, fb);
+					result = fa is not null && fb is not null && Equals(fa, fb);
 					break;
 
 				case CallingConvention.LocalSig:
 					LocalSig la = a as LocalSig, lb = b as LocalSig;
-					result = !(la is null) && !(lb is null) && Equals(la, lb);
+					result = la is not null && lb is not null && Equals(la, lb);
 					break;
 
 				case CallingConvention.GenericInst:
 					GenericInstMethodSig ga = a as GenericInstMethodSig, gb = b as GenericInstMethodSig;
-					result = !(ga is null) && !(gb is null) && Equals(ga, gb);
+					result = ga is not null && gb is not null && Equals(ga, gb);
 					break;
 
 				default:
@@ -2507,15 +2507,15 @@ exit: ;
 			MemberRef mra, mrb;
 			MethodSpec msa, msb;
 
-			if (!((mda = a as MethodDef) is null) & !((mdb = b as MethodDef) is null))
+			if ((mda = a as MethodDef) is not null & (mdb = b as MethodDef) is not null)
 				result = Equals(mda, mdb);
-			else if (!((mra = a as MemberRef) is null) & !((mrb = b as MemberRef) is null))
+			else if ((mra = a as MemberRef) is not null & (mrb = b as MemberRef) is not null)
 				result = Equals(mra, mrb);
-			else if (!((msa = a as MethodSpec) is null) && !((msb = b as MethodSpec) is null))
+			else if ((msa = a as MethodSpec) is not null && (msb = b as MethodSpec) is not null)
 				result = Equals(msa, msb);
-			else if (!(mda is null) && !(mrb is null))
+			else if (mda is not null && mrb is not null)
 				result = Equals(mda, mrb);
-			else if (!(mra is null) && !(mdb is null))
+			else if (mra is not null && mdb is not null)
 				result = Equals(mdb, mra);
 			else
 				result = false;
@@ -2540,11 +2540,11 @@ exit: ;
 			MemberRef mra;
 			MethodSpec msa;
 
-			if (!((mda = a as MethodDef) is null))
+			if ((mda = a as MethodDef) is not null)
 				hash = GetHashCode(mda);
-			else if (!((mra = a as MemberRef) is null))
+			else if ((mra = a as MemberRef) is not null)
 				hash = GetHashCode(mra);
-			else if (!((msa = a as MethodSpec) is null))
+			else if ((msa = a as MethodSpec) is not null)
 				hash = GetHashCode(msa);
 			else
 				hash = 0;
@@ -2579,7 +2579,7 @@ exit: ;
 			if (!DontProjectWinMDRefs) {
 				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
 				b = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b) ?? b;
-				if (!(mra is null)) {
+				if (mra is not null) {
 					result = Equals(mra, b);
 					goto exit;
 				}
@@ -2612,7 +2612,7 @@ exit: ;
 			if (!DontProjectWinMDRefs) {
 				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
 				var mrb = WinMDHelpers.ToCLR(b.Module ?? sourceModule, b);
-				if (!(mra is null) || !(mrb is null)) {
+				if (mra is not null || mrb is not null) {
 					result = Equals((IMethod)mra ?? a, (IMethod)mrb ?? b);
 					goto exit;
 				}
@@ -2639,7 +2639,7 @@ exit: ;
 				return 0;
 			if (!DontProjectWinMDRefs) {
 				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
-				if (!(mra is null))
+				if (mra is not null)
 					return GetHashCode(mra);
 			}
 
@@ -2700,7 +2700,7 @@ exit: ;
 
 			int hash = GetHashCode_MethodFieldName(a.Name);
 			GenericInstSig git;
-			if (SubstituteGenericParameters && !((git = GetGenericInstanceType(a.Class)) is null)) {
+			if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
 				InitializeGenericArguments();
 				genericArguments.PushTypeArgs(git.GenericArguments);
 				hash += GetHashCode(a.Signature);
@@ -2752,12 +2752,12 @@ exit: ;
 			// We must do this or it won't get the same hash code as some MethodInfos
 			var oldOptions = SetOptions(SigComparerOptions_SubstituteGenericParameters);
 			var gim = a.GenericInstMethodSig;
-			if (!(gim is null)) {
+			if (gim is not null) {
 				InitializeGenericArguments();
 				genericArguments.PushMethodArgs(gim.GenericArguments);
 			}
 			int hash = GetHashCode(a.Method);
-			if (!(gim is null))
+			if (gim is not null)
 				genericArguments.PopMethodArgs();
 			RestoreOptions(oldOptions);
 
@@ -2785,18 +2785,18 @@ exit: ;
 			MethodDef ma, mb;
 			TypeDef td;
 
-			if (!((ita = a as ITypeDefOrRef) is null) && !((itb = b as ITypeDefOrRef) is null))
+			if ((ita = a as ITypeDefOrRef) is not null && (itb = b as ITypeDefOrRef) is not null)
 				result = Equals((IType)ita, (IType)itb);
-			else if (!((moda = a as ModuleRef) is null) & !((modb = b as ModuleRef) is null)) {
+			else if ((moda = a as ModuleRef) is not null & (modb = b as ModuleRef) is not null) {
 				ModuleDef omoda = moda.Module, omodb = modb.Module;
 				result = Equals((IModule)moda, (IModule)modb) &&
 						Equals(omoda?.Assembly, omodb?.Assembly);
 			}
-			else if (!((ma = a as MethodDef) is null) && !((mb = b as MethodDef) is null))
+			else if ((ma = a as MethodDef) is not null && (mb = b as MethodDef) is not null)
 				result = Equals(ma, mb);
-			else if (!(modb is null) && !((td = a as TypeDef) is null))
+			else if (modb is not null && (td = a as TypeDef) is not null)
 				result = EqualsGlobal(td, modb);
-			else if (!(moda is null) && !((td = b as TypeDef) is null))
+			else if (moda is not null && (td = b as TypeDef) is not null)
 				result = EqualsGlobal(td, moda);
 			else
 				result = false;
@@ -2820,11 +2820,11 @@ exit: ;
 			ITypeDefOrRef ita;
 			MethodDef ma;
 
-			if (!((ita = a as ITypeDefOrRef) is null))
+			if ((ita = a as ITypeDefOrRef) is not null)
 				hash = GetHashCode((IType)ita);
 			else if (a is ModuleRef)
 				hash = GetHashCodeGlobalType();
-			else if (!((ma = a as MethodDef) is null)) {
+			else if ((ma = a as MethodDef) is not null) {
 				// Only use the declaring type so we get the same hash code when hashing a MethodBase.
 				hash = GetHashCode(ma.DeclaringType);
 			}
@@ -2853,13 +2853,13 @@ exit: ;
 			FieldDef fa, fb;
 			MemberRef ma, mb;
 
-			if (!((fa = a as FieldDef) is null) & !((fb = b as FieldDef) is null))
+			if ((fa = a as FieldDef) is not null & (fb = b as FieldDef) is not null)
 				result = Equals(fa, fb);
-			else if (!((ma = a as MemberRef) is null) & !((mb = b as MemberRef) is null))
+			else if ((ma = a as MemberRef) is not null & (mb = b as MemberRef) is not null)
 				result = Equals(ma, mb);
-			else if (!(fa is null) && !(mb is null))
+			else if (fa is not null && mb is not null)
 				result = Equals(fa, mb);
-			else if (!(fb is null) && !(ma is null))
+			else if (fb is not null && ma is not null)
 				result = Equals(fb, ma);
 			else
 				result = false;
@@ -2883,9 +2883,9 @@ exit: ;
 			FieldDef fa;
 			MemberRef ma;
 
-			if (!((fa = a as FieldDef) is null))
+			if ((fa = a as FieldDef) is not null)
 				hash = GetHashCode(fa);
-			else if (!((ma = a as MemberRef) is null))
+			else if ((ma = a as MemberRef) is not null)
 				hash = GetHashCode(ma);
 			else
 				hash = 0;
@@ -3109,15 +3109,15 @@ exit: ;
 			TypeSig sig;
 			ExportedType et;
 
-			if (!((td = a as TypeDef) is null))
+			if ((td = a as TypeDef) is not null)
 				result = Equals(td, b);
-			else if (!((tr = a as TypeRef) is null))
+			else if ((tr = a as TypeRef) is not null)
 				result = Equals(tr, b);
-			else if (!((ts = a as TypeSpec) is null))
+			else if ((ts = a as TypeSpec) is not null)
 				result = Equals(ts, b);
-			else if (!((sig = a as TypeSig) is null))
+			else if ((sig = a as TypeSig) is not null)
 				result = Equals(sig, b);
-			else if (!((et = a as ExportedType) is null))
+			else if ((et = a as ExportedType) is not null)
 				result = Equals(et, b);
 			else
 				result = false;
@@ -3154,7 +3154,7 @@ exit: ;
 
 			if (!DontProjectWinMDRefs) {
 				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
-				if (!(tra is null)) {
+				if (tra is not null) {
 					result = Equals(tra, b);
 					goto exit;
 				}
@@ -3216,15 +3216,15 @@ exit: ;
 				result = false;
 			else if (!Equals_TypeNames(a.Name, ReflectionExtensions.Unescape(b.Name)) || !Equals_TypeNamespaces(a.Namespace, b))
 				result = false;
-			else if (!((dta = scope as TypeRef) is null))	// nested type
+			else if ((dta = scope as TypeRef) is not null)	// nested type
 				result = Equals(dta, b.DeclaringType);	// Compare enclosing types
 			else if (b.IsNested)
 				result = false;	// b is nested, a isn't
 			else if (DontCompareTypeScope)
 				result = true;
-			else if (!((aMod = scope as IModule) is null))	// 'a' is defined in the same assembly as 'b'
+			else if ((aMod = scope as IModule) is not null)	// 'a' is defined in the same assembly as 'b'
 				result = Equals(b, aMod, a);
-			else if (!((aAsm = scope as AssemblyRef) is null))
+			else if ((aAsm = scope as AssemblyRef) is not null)
 				result = Equals(b.Assembly, aAsm, a);
 			else {
 				result = false;
@@ -3324,7 +3324,7 @@ exit: ;
 				return false;
 			bool result;
 
-			if (!(genericArguments is null))
+			if (genericArguments is not null)
 				a = genericArguments.Resolve(a);
 
 			switch (a.ElementType) {
@@ -3354,7 +3354,7 @@ exit: ;
 					result = false;
 				else if (IsFnPtrElementType(b)) {
 					a = a.Next.RemoveModifiers();
-					result = !(a is null) && a.ElementType == ElementType.FnPtr;
+					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
 					result = Equals(a.Next, b.GetElementType());
@@ -3365,7 +3365,7 @@ exit: ;
 					result = false;
 				else if (IsFnPtrElementType(b)) {
 					a = a.Next.RemoveModifiers();
-					result = !(a is null) && a.ElementType == ElementType.FnPtr;
+					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
 					result = Equals(a.Next, b.GetElementType());
@@ -3376,7 +3376,7 @@ exit: ;
 					result = false;
 				else if (IsFnPtrElementType(b)) {
 					a = a.Next.RemoveModifiers();
-					result = !(a is null) && a.ElementType == ElementType.FnPtr;
+					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
 					result = Equals(a.Next, b.GetElementType());
@@ -3393,7 +3393,7 @@ exit: ;
 					var ara = a as ArraySig;
 					result = ara.Rank == b.GetArrayRank() &&
 						(IsFnPtrElementType(b) ?
-								!((a = a.Next.RemoveModifiers()) is null) && a.ElementType == ElementType.FnPtr :
+								(a = a.Next.RemoveModifiers()) is not null && a.ElementType == ElementType.FnPtr :
 								Equals(a.Next, b.GetElementType()));
 				}
 				break;
@@ -3412,7 +3412,7 @@ exit: ;
 			case ElementType.MVar:
 				result = b.IsGenericParameter &&
 						b.GenericParameterPosition == (a as GenericSig).Number &&
-						!(b.DeclaringMethod is null);
+						b.DeclaringMethod is not null;
 				break;
 
 			case ElementType.GenericInst:
@@ -3494,15 +3494,15 @@ exit: ;
 				result = false;
 			else if (!Equals_TypeNames(a.TypeName, ReflectionExtensions.Unescape(b.Name)) || !Equals_TypeNamespaces(a.TypeNamespace, b))
 				result = false;
-			else if (!((dta = scope as ExportedType) is null))	// nested type
+			else if ((dta = scope as ExportedType) is not null)	// nested type
 				result = Equals(dta, b.DeclaringType);	// Compare enclosing types
 			else if (b.IsNested)
 				result = false;	// b is nested, a isn't
 			else if (DontCompareTypeScope)
 				result = true;
-			else if (!((aFile = scope as FileDef) is null))
+			else if ((aFile = scope as FileDef) is not null)
 				result = Equals(b, aFile, a);
-			else if (!((aAsm = scope as AssemblyRef) is null))
+			else if ((aAsm = scope as AssemblyRef) is not null)
 				result = Equals(b.Assembly, aAsm, a);
 			else
 				result = false;
@@ -3821,11 +3821,11 @@ exit: ;
 			MemberRef mr;
 			MethodSpec ms;
 
-			if (!((md = a as MethodDef) is null))
+			if ((md = a as MethodDef) is not null)
 				result = DeclaringTypeEquals(md, b);
-			else if (!((mr = a as MemberRef) is null))
+			else if ((mr = a as MemberRef) is not null)
 				result = DeclaringTypeEquals(mr, b);
-			else if (!((ms = a as MethodSpec) is null))
+			else if ((ms = a as MethodSpec) is not null)
 				result = DeclaringTypeEquals(ms, b);
 			else
 				result = false;
@@ -3894,11 +3894,11 @@ exit: ;
 			MemberRef mr;
 			MethodSpec ms;
 
-			if (!((md = a as MethodDef) is null))
+			if ((md = a as MethodDef) is not null)
 				result = Equals(md, b);
-			else if (!((mr = a as MemberRef) is null))
+			else if ((mr = a as MemberRef) is not null)
 				result = Equals(mr, b);
-			else if (!((ms = a as MethodSpec) is null))
+			else if ((ms = a as MethodSpec) is not null)
 				result = Equals(ms, b);
 			else
 				result = false;
@@ -3932,7 +3932,7 @@ exit: ;
 			bool result;
 			if (!DontProjectWinMDRefs) {
 				var mra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
-				if (!(mra is null)) {
+				if (mra is not null) {
 					result = Equals(mra, b);
 					goto exit;
 				}
@@ -3940,7 +3940,7 @@ exit: ;
 
 			var amSig = a.MethodSig;
 			result = Equals_MethodFieldNames(a.Name, b.Name) &&
-					!(amSig is null) &&
+					amSig is not null &&
 					((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 					(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod)) &&
 					Equals(amSig, b) &&
@@ -4022,12 +4022,12 @@ exit: ;
 			else {
 				var amSig = a.MethodSig;
 				result = Equals_MethodFieldNames(a.Name, b.Name) &&
-						!(amSig is null) &&
+						amSig is not null &&
 						((amSig.Generic && b.IsGenericMethodDefinition && b.IsGenericMethod) ||
 						(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod));
 
 				GenericInstSig git;
-				if (SubstituteGenericParameters && !((git = GetGenericInstanceType(a.Class)) is null)) {
+				if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
 					InitializeGenericArguments();
 					genericArguments.PushTypeArgs(git.GenericArguments);
 					result = result && Equals(amSig, b);
@@ -4074,17 +4074,17 @@ exit: ;
 			MethodDef ma;
 			TypeDef td;
 
-			if (!((ita = a as ITypeDefOrRef) is null))
+			if ((ita = a as ITypeDefOrRef) is not null)
 				result = Equals((IType)ita, b);
-			else if (!((moda = a as ModuleRef) is null)) {
+			else if ((moda = a as ModuleRef) is not null) {
 				var omoda = moda.Module;
 				result = b is null &&	// b is null => it's the global type
 						Equals(moda, bModule) &&
 						Equals(omoda?.Assembly, bModule.Assembly);
 			}
-			else if (!((ma = a as MethodDef) is null))
+			else if ((ma = a as MethodDef) is not null)
 				result = Equals(ma.DeclaringType, b);
-			else if (b is null && !((td = a as TypeDef) is null))
+			else if (b is null && (td = a as TypeDef) is not null)
 				result = td.IsGlobalModuleType;
 			else
 				result = false;
@@ -4127,7 +4127,7 @@ exit: ;
 			result = result && DeclaringTypeEquals(a.Method, b);
 
 			var gim = a.GenericInstMethodSig;
-			result = result && !(gim is null) && Equals(gim.GenericArguments, b.GetGenericArguments());
+			result = result && gim is not null && Equals(gim.GenericArguments, b.GetGenericArguments());
 
 			recursionCounter.Decrement();
 			return result;
@@ -4199,7 +4199,7 @@ exit: ;
 
 		int GetHashCode_ReturnType(MethodBase a) {
 			var mi = a as MethodInfo;
-			if (!(mi is null))
+			if (mi is not null)
 				return GetHashCode(mi.ReturnParameter, a.DeclaringType);
 			return GetHashCode(typeof(void));
 		}
@@ -4276,7 +4276,7 @@ exit: ;
 
 			bool result;
 			var mi = b as MethodInfo;
-			if (!(mi is null))
+			if (mi is not null)
 				result = Equals(a, mi.ReturnParameter, b.DeclaringType);
 			else if (b is ConstructorInfo)
 				result = IsSystemVoid(a);
@@ -4427,9 +4427,9 @@ exit: ;
 			FieldDef fa;
 			MemberRef ma;
 
-			if (!((fa = a as FieldDef) is null))
+			if ((fa = a as FieldDef) is not null)
 				result = Equals(fa, b);
-			else if (!((ma = a as MemberRef) is null))
+			else if ((ma = a as MemberRef) is not null)
 				result = Equals(ma, b);
 			else
 				result = false;
@@ -4508,7 +4508,7 @@ exit: ;
 			bool result = Equals_MethodFieldNames(a.Name, b.Name);
 
 			GenericInstSig git;
-			if (SubstituteGenericParameters && !((git = GetGenericInstanceType(a.Class)) is null)) {
+			if (SubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
 				InitializeGenericArguments();
 				genericArguments.PushTypeArgs(git.GenericArguments);
 				result = result && Equals(a.FieldSig, b);

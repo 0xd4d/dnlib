@@ -118,7 +118,7 @@ namespace dnlib.DotNet.Writer {
 			int padding = Utils.AlignUp(code.Length, 4) - code.Length;
 			var bytes = new byte[code.Length + (extraSections is null ? 0 : padding + extraSections.Length)];
 			Array.Copy(code, 0, bytes, 0, code.Length);
-			if (!(extraSections is null))
+			if (extraSections is not null)
 				Array.Copy(extraSections, 0, bytes, code.Length + padding, extraSections.Length);
 			return bytes;
 		}

@@ -114,7 +114,7 @@ namespace dnlib.DotNet.Writer {
 
 			case NativeType.RawBlob:
 				var data = ((RawMarshalType)marshalType).Data;
-				if (!(data is null))
+				if (data is not null)
 					writer.WriteBytes(data);
 				break;
 

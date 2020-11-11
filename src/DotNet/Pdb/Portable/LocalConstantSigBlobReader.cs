@@ -281,7 +281,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			ISignatureReaderHelper helper = module;
 			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);
 			var corType = module.CorLibTypes.GetCorLibTypeSig(tdr);
-			if (!(corType is null))
+			if (corType is not null)
 				return corType.TypeDefOrRef;
 			return tdr;
 		}

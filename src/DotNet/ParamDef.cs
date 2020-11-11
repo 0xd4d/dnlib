@@ -209,7 +209,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
-		public bool HasConstant => !(Constant is null);
+		public bool HasConstant => Constant is not null;
 
 		/// <summary>
 		/// Gets the constant element type or <see cref="dnlib.DotNet.ElementType.End"/> if there's no constant
@@ -224,7 +224,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
-		public bool HasMarshalType => !(MarshalType is null);
+		public bool HasMarshalType => MarshalType is not null;
 
 		/// <inheritdoc/>
 		public string FullName {

@@ -60,7 +60,7 @@ namespace dnlib.DotNet.Emit {
 			var mb = tb.DefineMethod(METHOD_NAME, SR.MethodAttributes.Static, typeof(void), Array2.Empty<Type>());
 
 			try {
-				if (!(setMethodBodyMethodInfo is null))
+				if (setMethodBodyMethodInfo is not null)
 					return GetTypeNET45(tb, mb, address);
 				else
 					return GetTypeNET40(tb, mb, address);

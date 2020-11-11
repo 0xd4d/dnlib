@@ -91,7 +91,7 @@ namespace dnlib.PE {
 		/// <returns>The RVA</returns>
 		public RVA ToRVA(FileOffset offset) {
 			var section = ToImageSectionHeader(offset);
-			if (!(section is null))
+			if (section is not null)
 				return (uint)(offset - section.PointerToRawData) + section.VirtualAddress;
 			return (RVA)offset;
 		}
@@ -103,7 +103,7 @@ namespace dnlib.PE {
 		/// <returns>The file offset</returns>
 		public FileOffset ToFileOffset(RVA rva) {
 			var section = ToImageSectionHeader(rva);
-			if (!(section is null))
+			if (section is not null)
 				return (FileOffset)(rva - section.VirtualAddress + section.PointerToRawData);
 			return (FileOffset)rva;
 		}

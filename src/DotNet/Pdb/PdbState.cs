@@ -200,7 +200,7 @@ namespace dnlib.DotNet.Pdb {
 				return;
 
 			var method = reader.GetMethod(ownerMethod, 1);
-			if (!(method is null)) {
+			if (method is not null) {
 				var pdbMethod = new PdbMethod();
 				pdbMethod.Scope = CreateScope(module, GenericParamContext.Create(ownerMethod), body, method.RootScope);
 				AddSequencePoints(body, method);
@@ -213,7 +213,7 @@ namespace dnlib.DotNet.Pdb {
 				return;
 
 			var method = reader.GetMethod(ownerMethod, 1);
-			if (!(method is null))
+			if (method is not null)
 				method.GetCustomDebugInfos(ownerMethod, body, customDebugInfos);
 		}
 
@@ -231,7 +231,7 @@ namespace dnlib.DotNet.Pdb {
 			// The VB runtime can also be embedded, and if so, it seems that "Microsoft.VisualBasic.Embedded"
 			// attribute is added to the assembly's custom attributes.
 			var asm = module.Assembly;
-			if (!(asm is null) && asm.CustomAttributes.IsDefined("Microsoft.VisualBasic.Embedded"))
+			if (asm is not null && asm.CustomAttributes.IsDefined("Microsoft.VisualBasic.Embedded"))
 				return Compiler.VisualBasic;
 #endif
 
@@ -319,7 +319,7 @@ recursive_call:
 			for (int i = 0; i < constants.Count; i++) {
 				var constant = constants[i];
 				var type = constant.Type.RemovePinnedAndModifiers();
-				if (!(type is null)) {
+				if (type is not null) {
 					// Fix a few values since they're stored as some other type in the PDB
 					switch (type.ElementType) {
 					case ElementType.Boolean:
@@ -382,7 +382,7 @@ recursive_call:
 					case ElementType.Var:
 					case ElementType.MVar:
 						var gp = ((GenericSig)type).GenericParam;
-						if (!(gp is null)) {
+						if (gp is not null) {
 							if (gp.HasNotNullableValueTypeConstraint)
 								break;
 							if (gp.HasReferenceTypeConstraint)

@@ -429,7 +429,7 @@ namespace dnlib.DotNet.Emit {
 			if (standAloneSig is null)
 				return null;
 			var sig = standAloneSig.MethodSig;
-			if (!(sig is null))
+			if (sig is not null)
 				sig.OriginalToken = standAloneSig.MDToken.Raw;
 			return sig;
 		}
@@ -453,7 +453,7 @@ namespace dnlib.DotNet.Emit {
 			}
 			bool canSaveTotalBodySize;
 			DataReader ehReader;
-			if (!(exceptionsReader is null)) {
+			if (exceptionsReader is not null) {
 				canSaveTotalBodySize = false;
 				ehReader = exceptionsReader.Value;
 			}

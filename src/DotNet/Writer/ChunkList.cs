@@ -21,7 +21,7 @@ namespace dnlib.DotNet.Writer {
 		public void Add(T chunk, uint alignment) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			if (!(chunk is null))
+			if (chunk is not null)
 				chunks.Add(new Elem(chunk, alignment));
 		}
 
@@ -33,7 +33,7 @@ namespace dnlib.DotNet.Writer {
 		public uint? Remove(T chunk) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			if (!(chunk is null)) {
+			if (chunk is not null) {
 				var chunks = this.chunks;
 				for (int i = 0; i < chunks.Count; i++) {
 					if (chunks[i].chunk == chunk) {

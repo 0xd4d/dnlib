@@ -26,7 +26,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="usStream">The #US stream with the original content</param>
 		public void Populate(USStream usStream) {
-			if (!(originalData is null))
+			if (originalData is not null)
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
 				throw new InvalidOperationException("Add() has already been called");
@@ -103,15 +103,15 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(DataWriter writer) {
-			if (!(originalData is null))
+			if (originalData is not null)
 				writer.WriteBytes(originalData);
 			else
 				writer.WriteByte(0);
 
-			uint offset = !(originalData is null) ? (uint)originalData.Length : 1;
+			uint offset = originalData is not null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
 				int rawLen = GetRawDataSize(s);
-				if (!(userRawData is null) && userRawData.TryGetValue(offset, out var rawData)) {
+				if (userRawData is not null && userRawData.TryGetValue(offset, out var rawData)) {
 					if (rawData.Length != rawLen)
 						throw new InvalidOperationException("Invalid length of raw data");
 					writer.WriteBytes(rawData);
@@ -148,7 +148,7 @@ namespace dnlib.DotNet.Writer {
 		public IEnumerable<KeyValuePair<uint, byte[]>> GetAllRawData() {
 			var memStream = new MemoryStream();
 			var writer = new DataWriter(memStream);
-			uint offset = !(originalData is null) ? (uint)originalData.Length : 1;
+			uint offset = originalData is not null ? (uint)originalData.Length : 1;
 			foreach (var s in cached) {
 				memStream.Position = 0;
 				memStream.SetLength(0);

@@ -37,28 +37,28 @@ namespace dnlib.DotNet.Pdb.Dss {
 			var method = tokenToMethodDef[mb];
 			var row = metadata.TablesHeap.MethodTable[mb & 0x00FFFFFF];
 
-			if (!(pClass is null))
+			if (pClass is not null)
 				*pClass = new MDToken(MD.Table.TypeDef, metadata.GetRid(method.DeclaringType)).Raw;
-			if (!(pdwAttr is null))
+			if (pdwAttr is not null)
 				*pdwAttr = row.Flags;
-			if (!(ppvSigBlob is null))
+			if (ppvSigBlob is not null)
 				*ppvSigBlob = IntPtr.Zero;
-			if (!(pcbSigBlob is null))
+			if (pcbSigBlob is not null)
 				*pcbSigBlob = 0;
-			if (!(pulCodeRVA is null))
+			if (pulCodeRVA is not null)
 				*pulCodeRVA = row.RVA;
-			if (!(pdwImplFlags is null))
+			if (pdwImplFlags is not null)
 				*pdwImplFlags = row.ImplFlags;
 
 			string name = method.Name.String ?? string.Empty;
 			int len = (int)Math.Min((uint)name.Length + 1, cchMethod);
-			if (!(szMethod is null)) {
+			if (szMethod is not null) {
 				for (int i = 0; i < len - 1; i++, szMethod++)
 					*szMethod = (ushort)name[i];
 				if (len > 0)
 					*szMethod = 0;
 			}
-			if (!(pchMethod is null))
+			if (pchMethod is not null)
 				*pchMethod = (uint)len;
 		}
 
@@ -67,9 +67,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 				throw new ArgumentException();
 			var type = tokenToTypeDef[td];
 			var row = metadata.TablesHeap.TypeDefTable[td & 0x00FFFFFF];
-			if (!(pdwTypeDefFlags is null))
+			if (pdwTypeDefFlags is not null)
 				*pdwTypeDefFlags = row.Flags;
-			if (!(ptkExtends is null))
+			if (ptkExtends is not null)
 				*ptkExtends = row.Extends;
 			CopyTypeName(type.Namespace, type.Name, szTypeDef, cchTypeDef, pchTypeDef);
 		}
@@ -79,7 +79,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				throw new ArgumentException();
 			var type = tokenToTypeDef[tdNestedClass];
 			var declType = type.DeclaringType;
-			if (!(ptdEnclosingClass is null)) {
+			if (ptdEnclosingClass is not null) {
 				if (declType is null)
 					*ptdEnclosingClass = 0;
 				else

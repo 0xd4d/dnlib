@@ -16,7 +16,7 @@ namespace dnlib.IO {
 
 		public static DataReaderFactory Create(string fileName, bool mapAsImage) {
 			var creator = CreateDataReaderFactory(fileName, mapAsImage);
-			if (!(creator is null))
+			if (creator is not null)
 				return creator;
 
 			return ByteArrayDataReaderFactory.Create(File.ReadAllBytes(fileName), fileName);

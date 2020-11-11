@@ -343,7 +343,7 @@ namespace dnlib.DotNet {
 		void Add(EventDef ed) {
 			if (ed is null || EventDefs.ContainsKey(ed))
 				return;
-			if (!(ed.DeclaringType is null) && ed.DeclaringType.Module != validModule)
+			if (ed.DeclaringType is not null && ed.DeclaringType.Module != validModule)
 				return;
 			EventDefs[ed] = true;
 			Push(ed.EventType);
@@ -365,7 +365,7 @@ namespace dnlib.DotNet {
 		void Add(FieldDef fd) {
 			if (fd is null || FieldDefs.ContainsKey(fd))
 				return;
-			if (!(fd.DeclaringType is null) && fd.DeclaringType.Module != validModule)
+			if (fd.DeclaringType is not null && fd.DeclaringType.Module != validModule)
 				return;
 			FieldDefs[fd] = true;
 			Add(fd.CustomAttributes);
@@ -427,7 +427,7 @@ namespace dnlib.DotNet {
 		void Add(MethodDef md) {
 			if (md is null || MethodDefs.ContainsKey(md))
 				return;
-			if (!(md.DeclaringType is null) && md.DeclaringType.Module != validModule)
+			if (md.DeclaringType is not null && md.DeclaringType.Module != validModule)
 				return;
 			MethodDefs[md] = true;
 			Add(md.Signature);
@@ -474,12 +474,12 @@ namespace dnlib.DotNet {
 				case OperandType.InlineVar:
 				case OperandType.ShortInlineVar:
 					var local = instr.Operand as Local;
-					if (!(local is null)) {
+					if (local is not null) {
 						Add(local);
 						break;
 					}
 					var arg = instr.Operand as Parameter;
-					if (!(arg is null)) {
+					if (arg is not null) {
 						Add(arg);
 						break;
 					}
@@ -568,7 +568,7 @@ namespace dnlib.DotNet {
 		void Add(MethodSpec ms) {
 			if (ms is null || MethodSpecs.ContainsKey(ms))
 				return;
-			if (!(ms.Method is null) && !(ms.Method.DeclaringType is null) && ms.Method.DeclaringType.Module != validModule)
+			if (ms.Method is not null && ms.Method.DeclaringType is not null && ms.Method.DeclaringType.Module != validModule)
 				return;
 			MethodSpecs[ms] = true;
 			Push(ms.Method);
@@ -586,7 +586,7 @@ namespace dnlib.DotNet {
 		void Add(PropertyDef pd) {
 			if (pd is null || PropertyDefs.ContainsKey(pd))
 				return;
-			if (!(pd.DeclaringType is null) && pd.DeclaringType.Module != validModule)
+			if (pd.DeclaringType is not null && pd.DeclaringType.Module != validModule)
 				return;
 			PropertyDefs[pd] = true;
 			Add(pd.Type);
@@ -661,7 +661,7 @@ namespace dnlib.DotNet {
 				return;
 			TypeSigs[ts] = true;
 
-			for (; !(ts is null); ts = ts.Next) {
+			for (; ts is not null; ts = ts.Next) {
 				switch (ts.ElementType) {
 				case ElementType.Void:
 				case ElementType.Boolean:

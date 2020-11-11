@@ -990,7 +990,7 @@ namespace dnlib.DotNet.Writer {
 				var row = tablesHeap.MethodTable[methodRid];
 				row = new RawMethodRow(row.RVA, row.ImplFlags, row.Flags, row.Name, row.Signature, ridList);
 				tablesHeap.MethodTable[methodRid] = row;
-				if (!(methodInfo is null))
+				if (methodInfo is not null)
 					ridList += (uint)methodInfo.Def.ParamDefs.Count;
 			}
 		}

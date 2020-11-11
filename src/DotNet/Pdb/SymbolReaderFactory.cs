@@ -66,12 +66,12 @@ namespace dnlib.DotNet.Pdb {
 				if (!pdbContext.HasDebugInfo)
 					return null;
 
-				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && !(pdbStream is null) && IsWindowsPdb(pdbStream.CreateReader()))
+				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && pdbStream is not null && IsWindowsPdb(pdbStream.CreateReader()))
 					symReader = Dss.SymbolReaderWriterFactory.Create(pdbContext, metadata, pdbStream);
 				else
 					symReader = CreateManaged(pdbContext, metadata, pdbStream);
 
-				if (!(symReader is null)) {
+				if (symReader is not null) {
 					error = false;
 					return symReader;
 				}
@@ -105,7 +105,7 @@ namespace dnlib.DotNet.Pdb {
 			try {
 				// Embedded PDBs have priority
 				var embeddedReader = TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
-				if (!(embeddedReader is null)) {
+				if (embeddedReader is not null) {
 					pdbStream?.Dispose();
 					return embeddedReader;
 				}

@@ -305,12 +305,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="ManagedEntryPoint"/> is non-null
 		/// </summary>
-		public bool IsManagedEntryPointValid => !(ManagedEntryPoint is null);
+		public bool IsManagedEntryPointValid => ManagedEntryPoint is not null;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="EntryPoint"/> is non-null
 		/// </summary>
-		public bool IsEntryPointValid => !(EntryPoint is null);
+		public bool IsEntryPointValid => EntryPoint is not null;
 
 		/// <summary>
 		/// Gets a list of all <see cref="Resource"/>s
@@ -449,7 +449,7 @@ namespace dnlib.DotNet {
 		public bool IsManifestModule {
 			get {
 				var asm = assembly;
-				return !(asm is null) && asm.ManifestModule == this;
+				return asm is not null && asm.ManifestModule == this;
 			}
 		}
 
@@ -551,7 +551,7 @@ namespace dnlib.DotNet {
 		public WinMDStatus WinMDStatus {
 			get {
 				var cval = cachedWinMDStatus;
-				if (!(cval is null))
+				if (cval is not null)
 					return cval.Value;
 				cachedWinMDStatus = cval = CalculateWinMDStatus(RuntimeVersion);
 				return cval.Value;
@@ -582,7 +582,7 @@ namespace dnlib.DotNet {
 		public string RuntimeVersionWinMD {
 			get {
 				var rtver = runtimeVersionWinMD;
-				if (!(rtver is null))
+				if (rtver is not null)
 					return rtver;
 				runtimeVersionWinMD = rtver = CalculateRuntimeVersionWinMD(RuntimeVersion);
 				return rtver;
@@ -597,7 +597,7 @@ namespace dnlib.DotNet {
 		public string WinMDVersion {
 			get {
 				var ver = winMDVersion;
-				if (!(ver is null))
+				if (ver is not null)
 					return ver;
 				winMDVersion = ver = CalculateWinMDVersion(RuntimeVersion);
 				return ver;
@@ -859,7 +859,7 @@ namespace dnlib.DotNet {
 			if (!disposing)
 				return;
 			var tdf = typeDefFinder;
-			if (!(tdf is null)) {
+			if (tdf is not null) {
 				tdf.Dispose();
 				typeDefFinder = null;
 			}
@@ -1086,13 +1086,13 @@ namespace dnlib.DotNet {
 			if (pdbState is null)
 				throw new ArgumentNullException(nameof(pdbState));
 			var orig = Interlocked.CompareExchange(ref this.pdbState, pdbState, null);
-			if (!(orig is null))
+			if (orig is not null)
 				throw new InvalidOperationException("PDB file has already been initialized");
 		}
 
 		uint GetCor20RuntimeVersion() {
 			var rtVer = Cor20HeaderRuntimeVersion;
-			if (!(rtVer is null))
+			if (rtVer is not null)
 				return rtVer.Value;
 			return IsClr1x ? 0x00020000U : 0x00020005;
 		}
@@ -1162,17 +1162,17 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnLazyAdd(int index, ref TypeDef value) {
 #if DEBUG
-			if (!(value.DeclaringType is null))
-				throw new InvalidOperationException("Added type's !(DeclaringType is null)");
+			if (value.DeclaringType is not null)
+				throw new InvalidOperationException("Added type's DeclaringType is not null");
 #endif
 			value.Module2 = this;
 		}
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnAdd(int index, TypeDef value) {
-			if (!(value.DeclaringType is null))
+			if (value.DeclaringType is not null)
 				throw new InvalidOperationException("Nested type is already owned by another type. Set DeclaringType to null first.");
-			if (!(value.Module is null))
+			if (value.Module is not null)
 				throw new InvalidOperationException("Type is already owned by another module. Remove it from that module's type list.");
 			value.Module2 = this;
 		}
@@ -1230,11 +1230,11 @@ namespace dnlib.DotNet {
 				return null;
 
 			td = sig.TypeDef;
-			if (!(td is null))
+			if (td is not null)
 				return td.Module == this ? td : null;
 
 			tr = sig.TypeRef;
-			if (!(tr is null))
+			if (tr is not null)
 				return Find(tr);
 
 			return null;
@@ -1395,7 +1395,7 @@ namespace dnlib.DotNet {
 				return true;
 			var foundVer = found.Version;
 			var newVer = newOne.Version;
-			return foundVer is null || (!(newVer is null) && newVer >= foundVer);
+			return foundVer is null || (newVer is not null && newVer >= foundVer);
 		}
 
 		ITypeDefOrRef ISignatureReaderHelper.ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext) {

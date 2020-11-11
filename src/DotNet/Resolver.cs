@@ -79,7 +79,7 @@ namespace dnlib.DotNet {
 					return null;
 
 				var td = etAsm.Find(typeRef);
-				if (!(td is null))
+				if (td is not null)
 					return td;
 
 				modules = etAsm.Modules;
@@ -140,9 +140,9 @@ namespace dnlib.DotNet {
 				if (new SigComparer().Equals(module, moduleRef))
 					globalType = module.GlobalType;
 				var modAsm = module.Assembly;
-				if (globalType is null && !(modAsm is null)) {
+				if (globalType is null && modAsm is not null) {
 					var moduleDef = modAsm.FindModule(moduleRef.Name);
-					if (!(moduleDef is null))
+					if (moduleDef is not null)
 						globalType = moduleDef.GlobalType;
 				}
 				return globalType;
