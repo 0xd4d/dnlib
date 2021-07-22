@@ -2325,7 +2325,6 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its encoded token</returns>
 		protected uint AddResolutionScope(IResolutionScope rs) {
 			if (rs is null) {
-				// ResolutionScope can now actually be null in .NET 5 Reference Assemblies, so do not throw error any longer here, just return 0
 				return 0;
 			}
 
