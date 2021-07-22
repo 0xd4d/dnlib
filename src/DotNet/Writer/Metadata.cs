@@ -2325,7 +2325,6 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its encoded token</returns>
 		protected uint AddResolutionScope(IResolutionScope rs) {
 			if (rs is null) {
-				Error("ResolutionScope is null");
 				return 0;
 			}
 
