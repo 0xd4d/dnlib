@@ -113,28 +113,28 @@ namespace dnlib.DotNet.Writer {
 		/// Don't use Microsoft.DiaSymReader.Native. This is a NuGet package with an updated Windows PDB reader/writer implementation,
 		/// and if it's available at runtime, dnlib will try to use it. If this option is set, dnlib won't use it.
 		/// You have to add a reference to the NuGet package if you want to use it, dnlib has no reference to the NuGet package.
-		/// 
+		///
 		/// This is only used if it's a Windows PDB file.
 		/// </summary>
 		NoDiaSymReader			= 0x00000001,
 
 		/// <summary>
 		/// Don't use diasymreader.dll's PDB writer that is shipped with .NET Framework.
-		/// 
+		///
 		/// This is only used if it's a Windows PDB file.
 		/// </summary>
 		NoOldDiaSymReader		= 0x00000002,
 
 		/// <summary>
 		/// Create a deterministic PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory entry to the PE file.
-		/// 
+		///
 		/// It's ignored if the PDB writer doesn't support it.
 		/// </summary>
 		Deterministic			= 0x00000004,
 
 		/// <summary>
 		/// Hash the PDB file and add a PDB checksum debug directory entry to the PE file.
-		/// 
+		///
 		/// It's ignored if the PDB writer doesn't support it.
 		/// </summary>
 		PdbChecksum				= 0x00000008,
@@ -382,6 +382,10 @@ namespace dnlib.DotNet.Writer {
 			else {
 				Cor20HeaderOptions.MajorRuntimeVersion = 2;
 				Cor20HeaderOptions.MinorRuntimeVersion = 5;
+			}
+
+			if (module is ModuleDefMD moduleDefMd) {
+				MetadataOptions.TablesHeapOptions.Log2Rid = moduleDefMd.TablesStream.Log2Rid;
 			}
 
 			if (module.TablesHeaderVersion is not null) {
