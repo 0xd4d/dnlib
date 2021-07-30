@@ -384,10 +384,6 @@ namespace dnlib.DotNet.Writer {
 				Cor20HeaderOptions.MinorRuntimeVersion = 5;
 			}
 
-			if (module is ModuleDefMD moduleDefMd) {
-				MetadataOptions.TablesHeapOptions.Log2Rid = moduleDefMd.TablesStream.Log2Rid;
-			}
-
 			if (module.TablesHeaderVersion is not null) {
 				MetadataOptions.TablesHeapOptions.MajorVersion = (byte)(module.TablesHeaderVersion.Value >> 8);
 				MetadataOptions.TablesHeapOptions.MinorVersion = (byte)module.TablesHeaderVersion.Value;
@@ -428,6 +424,7 @@ namespace dnlib.DotNet.Writer {
 					PdbOptions |= PdbWriterOptions.PdbChecksum;
 				if (TryGetPdbChecksumAlgorithm(modDefMD.Metadata.PEImage, modDefMD.Metadata.PEImage.ImageDebugDirectories, out var pdbChecksumAlgorithm))
 					PdbChecksumAlgorithm = pdbChecksumAlgorithm;
+				MetadataOptions.TablesHeapOptions.Log2Rid = modDefMD.TablesStream.Log2Rid;
 			}
 
 			if (Is64Bit) {
