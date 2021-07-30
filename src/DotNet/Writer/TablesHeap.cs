@@ -40,6 +40,11 @@ namespace dnlib.DotNet.Writer {
 		public uint? ExtraData;
 
 		/// <summary>
+		/// Log2Rid to write
+		/// </summary>
+		public byte? Log2Rid;
+
+		/// <summary>
 		/// <c>true</c> if there are deleted <see cref="TypeDef"/>s, <see cref="ExportedType"/>s,
 		/// <see cref="FieldDef"/>s, <see cref="MethodDef"/>s, <see cref="EventDef"/>s and/or
 		/// <see cref="PropertyDef"/>s.
@@ -57,6 +62,7 @@ namespace dnlib.DotNet.Writer {
 				MinorVersion = 0,
 				UseENC = null,
 				ExtraData = null,
+				Log2Rid = null,
 				HasDeletedRows = null,
 			};
 	}
@@ -469,7 +475,7 @@ namespace dnlib.DotNet.Writer {
 
 		byte GetLog2Rid() {
 			//TODO: Sometimes this is 16. Probably when at least one of the table indexes requires 4 bytes.
-			return 1;
+			return options.Log2Rid ?? 1;
 		}
 
 		ulong GetValidMask() {
