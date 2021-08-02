@@ -2980,8 +2980,8 @@ namespace dnlib.DotNet.Writer {
 			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(er, rid);
 			embeddedResourceToByteArray[er] = netResources.Add(er.CreateReader());
-			//TODO: Add custom attributes
-			//TODO: Add custom debug infos
+			AddCustomAttributes(Table.ManifestResource, rid, er);
+			AddCustomDebugInformationList(Table.ManifestResource, rid, er);
 			return rid;
 		}
 
@@ -2999,8 +2999,8 @@ namespace dnlib.DotNet.Writer {
 						AddImplementation(alr.Assembly));
 			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(alr, rid);
-			//TODO: Add custom attributes
-			//TODO: Add custom debug infos
+			AddCustomAttributes(Table.ManifestResource, rid, alr);
+			AddCustomDebugInformationList(Table.ManifestResource, rid, alr);
 			return rid;
 		}
 
@@ -3018,8 +3018,8 @@ namespace dnlib.DotNet.Writer {
 						AddImplementation(lr.File));
 			rid = tablesHeap.ManifestResourceTable.Add(row);
 			manifestResourceInfos.Add(lr, rid);
-			//TODO: Add custom attributes
-			//TODO: Add custom debug infos
+			AddCustomAttributes(Table.ManifestResource, rid, lr);
+			AddCustomDebugInformationList(Table.ManifestResource, rid, lr);
 			return rid;
 		}
 

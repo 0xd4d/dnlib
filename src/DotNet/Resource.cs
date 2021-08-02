@@ -1,8 +1,11 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using dnlib.IO;
 using dnlib.DotNet.MD;
+using dnlib.DotNet.Pdb;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -28,7 +31,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Resource base class
 	/// </summary>
-	public abstract class Resource : IMDTokenProvider {
+	public abstract class Resource : IMDTokenProvider, IHasCustomAttribute, IHasCustomDebugInformation {
 		uint rid;
 		uint? offset;
 		UTF8String name;
@@ -89,6 +92,50 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if <see cref="ManifestResourceAttributes.Private"/> is set
 		/// </summary>
 		public bool IsPrivate => (flags & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Private;
+
+		/// <inheritdoc/>
+		public int HasCustomAttributeTag => 18;
+
+		/// <summary>
+		/// Gets all custom attributes
+		/// </summary>
+		public CustomAttributeCollection CustomAttributes {
+			get {
+				if (customAttributes is null)
+					InitializeCustomAttributes();
+				return customAttributes;
+			}
+		}
+		/// <summary/>
+		protected CustomAttributeCollection customAttributes;
+		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		protected virtual void InitializeCustomAttributes() =>
+			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
+
+		/// <inheritdoc/>
+		public bool HasCustomAttributes => CustomAttributes.Count > 0;
+
+		/// <inheritdoc/>
+		public int HasCustomDebugInformationTag => 18;
+
+		/// <summary>
+		/// Gets all custom debug infos
+		/// </summary>
+		public IList<PdbCustomDebugInfo> CustomDebugInfos {
+			get {
+				if (customDebugInfos is null)
+					InitializeCustomDebugInfos();
+				return customDebugInfos;
+			}
+		}
+		/// <summary/>
+		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		protected virtual void InitializeCustomDebugInfos() =>
+			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
+
+		/// <inheritdoc/>
+		public bool HasCustomDebugInfos => CustomDebugInfos.Count > 0;
 
 		/// <summary>
 		/// Constructor
