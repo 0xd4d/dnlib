@@ -1478,17 +1478,17 @@ namespace dnlib.DotNet {
 
 			if (token.Rid == 0) {
 				if (TryCreateResourceStream(mr.Offset, out var dataReaderFactory, out uint resourceOffset, out uint resourceLength))
-					return new EmbeddedResource(mr.Name, dataReaderFactory, resourceOffset, resourceLength, mr.Flags) { Rid = rid, Offset = mr.Offset };
-				return new EmbeddedResource(mr.Name, Array2.Empty<byte>(), mr.Flags) { Rid = rid, Offset = mr.Offset };
+					return new EmbeddedResourceMD(this, mr, dataReaderFactory, resourceOffset, resourceLength);
+				return new EmbeddedResourceMD(this, mr, Array2.Empty<byte>());
 			}
 
 			if (mr.Implementation is FileDef file)
-				return new LinkedResource(mr.Name, file, mr.Flags) { Rid = rid, Offset = mr.Offset };
+				return new LinkedResourceMD(this, mr, file);
 
 			if (mr.Implementation is AssemblyRef asmRef)
-				return new AssemblyLinkedResource(mr.Name, asmRef, mr.Flags) { Rid = rid, Offset = mr.Offset };
+				return new AssemblyLinkedResourceMD(this, mr, asmRef);
 
-			return new EmbeddedResource(mr.Name, Array2.Empty<byte>(), mr.Flags) { Rid = rid, Offset = mr.Offset };
+			return new EmbeddedResourceMD(this, mr, Array2.Empty<byte>());
 		}
 
 		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0

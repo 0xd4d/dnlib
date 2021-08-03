@@ -32,8 +32,8 @@ namespace dnlib.DotNet {
 	/// Resource base class
 	/// </summary>
 	public abstract class Resource : IMDTokenProvider, IHasCustomAttribute, IHasCustomDebugInformation {
-		uint rid;
-		uint? offset;
+		private protected uint rid;
+		private protected uint? offset;
 		UTF8String name;
 		ManifestResourceAttributes flags;
 
@@ -151,7 +151,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A resource that is embedded in a .NET module. This is the most common type of resource.
 	/// </summary>
-	public sealed class EmbeddedResource : Resource {
+	public class EmbeddedResource : Resource {
 		readonly DataReaderFactory dataReaderFactory;
 		readonly uint resourceStartOffset;
 		readonly uint resourceLength;
@@ -199,10 +199,45 @@ namespace dnlib.DotNet {
 		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - size: {(resourceLength)}";
 	}
 
+	sealed class EmbeddedResourceMD : EmbeddedResource, IMDTokenProviderMD {
+		/// <summary>The module where this instance is located</summary>
+		readonly ModuleDefMD readerModule;
+
+		readonly uint origRid;
+
+		/// <inheritdoc/>
+		public uint OrigRid => origRid;
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.ManifestResource, origRid);
+			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomDebugInfos() {
+			var list = new List<PdbCustomDebugInfo>();
+			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(), list);
+			Interlocked.CompareExchange(ref customDebugInfos, list, null);
+		}
+
+		public EmbeddedResourceMD(ModuleDefMD readerModule, ManifestResource mr, byte[] data)
+			: this(readerModule, mr, ByteArrayDataReaderFactory.Create(data, filename: null), 0, (uint)data.Length) {
+		}
+
+		public EmbeddedResourceMD(ModuleDefMD readerModule, ManifestResource mr, DataReaderFactory dataReaderFactory, uint offset, uint length)
+			: base(mr.Name, dataReaderFactory, offset, length, mr.Flags) {
+			this.readerModule = readerModule;
+			origRid = rid = mr.Rid;
+			this.offset = mr.Offset;
+		}
+	}
+
 	/// <summary>
 	/// A reference to a resource in another assembly
 	/// </summary>
-	public sealed class AssemblyLinkedResource : Resource {
+	public class AssemblyLinkedResource : Resource {
 		AssemblyRef asmRef;
 
 		/// <inheritdoc/>
@@ -229,10 +264,40 @@ namespace dnlib.DotNet {
 		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - assembly: {asmRef.FullName}";
 	}
 
+	sealed class AssemblyLinkedResourceMD : AssemblyLinkedResource, IMDTokenProviderMD {
+		/// <summary>The module where this instance is located</summary>
+		readonly ModuleDefMD readerModule;
+
+		readonly uint origRid;
+
+		/// <inheritdoc/>
+		public uint OrigRid => origRid;
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.ManifestResource, origRid);
+			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomDebugInfos() {
+			var list = new List<PdbCustomDebugInfo>();
+			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(), list);
+			Interlocked.CompareExchange(ref customDebugInfos, list, null);
+		}
+
+		public AssemblyLinkedResourceMD(ModuleDefMD readerModule, ManifestResource mr, AssemblyRef asmRef) : base(mr.Name, asmRef, mr.Flags) {
+			this.readerModule = readerModule;
+			origRid = rid = mr.Rid;
+			offset = mr.Offset;
+		}
+	}
+
 	/// <summary>
 	/// A resource that is stored in a file on disk
 	/// </summary>
-	public sealed class LinkedResource : Resource {
+	public class LinkedResource : Resource {
 		FileDef file;
 
 		/// <inheritdoc/>
@@ -270,5 +335,35 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public override string ToString() => $"{UTF8String.ToSystemStringOrEmpty(Name)} - file: {UTF8String.ToSystemStringOrEmpty(FileName)}";
+	}
+
+	sealed class LinkedResourceMD : LinkedResource, IMDTokenProviderMD {
+		/// <summary>The module where this instance is located</summary>
+		readonly ModuleDefMD readerModule;
+
+		readonly uint origRid;
+
+		/// <inheritdoc/>
+		public uint OrigRid => origRid;
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomAttributes() {
+			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.ManifestResource, origRid);
+			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			Interlocked.CompareExchange(ref customAttributes, tmp, null);
+		}
+
+		/// <inheritdoc/>
+		protected override void InitializeCustomDebugInfos() {
+			var list = new List<PdbCustomDebugInfo>();
+			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), new GenericParamContext(), list);
+			Interlocked.CompareExchange(ref customDebugInfos, list, null);
+		}
+
+		public LinkedResourceMD(ModuleDefMD readerModule, ManifestResource mr, FileDef file) : base(mr.Name, file, mr.Flags) {
+			this.readerModule = readerModule;
+			origRid = rid = mr.Rid;
+			offset = mr.Offset;
+		}
 	}
 }
