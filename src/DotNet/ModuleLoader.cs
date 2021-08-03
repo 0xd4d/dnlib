@@ -542,6 +542,7 @@ namespace dnlib.DotNet {
 			Add(obj.Offset);
 			Add(obj.Name);
 			Add(obj.Attributes);
+			Add(obj.CustomAttributes);
 
 			switch (obj.ResourceType) {
 			case ResourceType.Embedded:
