@@ -189,23 +189,15 @@ namespace dnlib.DotNet.Resources {
 				int userTypeIndex = (int)(code - (uint)ResourceTypeCode.UserTypes);
 				if (userTypeIndex < 0 || userTypeIndex >= userTypes.Count)
 					throw new ResourceReaderException($"Invalid resource data code: {code}");
-				var userType = userTypes[userTypeIndex];
-				var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
-				if (createResourceDataDelegate is not null) {
-					var res = createResourceDataDelegate(resourceDataFactory, userType, serializedData);
-					if (res is not null)
-						return res;
-				}
-				return resourceDataFactory.CreateSerialized(serializedData, userType);
+				return ReadSerializedObject(endPos, userTypes[userTypeIndex]);
 			}
 		}
 
 		IResourceData ReadResourceDataV1(List<UserResourceType> userTypes, int size) {
 			uint endPos = reader.Position + (uint)size;
 			int typeIndex = ReadInt32(ref reader);
-			if (typeIndex == -1) {
+			if (typeIndex == -1)
 				return resourceDataFactory.CreateNull();
-			}
 			if (typeIndex < 0 || typeIndex >= userTypes.Count)
 				throw new ResourceReaderException($"Invalid resource type index: {typeIndex}");
 			var type = userTypes[typeIndex];
@@ -225,14 +217,14 @@ namespace dnlib.DotNet.Resources {
 			case "System.TimeSpan": return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
 			case "System.Decimal":  return resourceDataFactory.Create(reader.ReadDecimal());
 			default:
-				var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
-				if (createResourceDataDelegate is not null) {
-					var res = createResourceDataDelegate(resourceDataFactory, type, serializedData);
-					if (res is not null)
-						return res;
-				}
-				return resourceDataFactory.CreateSerialized(serializedData, type);
+				return ReadSerializedObject(endPos, type);
 			}
+		}
+
+		IResourceData ReadSerializedObject(uint endPos, UserResourceType type) {
+			var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
+			var res = createResourceDataDelegate?.Invoke(resourceDataFactory, type, serializedData);
+			return res ?? resourceDataFactory.CreateSerialized(serializedData, type);
 		}
 
 		static int ReadInt32(ref DataReader reader) {
