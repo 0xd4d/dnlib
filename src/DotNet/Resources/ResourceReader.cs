@@ -201,7 +201,8 @@ namespace dnlib.DotNet.Resources {
 			if (typeIndex < 0 || typeIndex >= userTypes.Count)
 				throw new ResourceReaderException($"Invalid resource type index: {typeIndex}");
 			var type = userTypes[typeIndex];
-			var actualName = type.Name.Split(',')[0];
+			var commaIndex = type.Name.IndexOf(',');
+			string actualName = commaIndex == -1 ? type.Name : type.Name.Remove(commaIndex);
 			switch (actualName) {
 			case "System.String":   return resourceDataFactory.Create(reader.ReadSerializedString());
 			case "System.Int32":    return resourceDataFactory.Create(reader.ReadInt32());
