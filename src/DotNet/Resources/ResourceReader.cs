@@ -201,7 +201,8 @@ namespace dnlib.DotNet.Resources {
 			if (typeIndex < 0 || typeIndex >= userTypes.Count)
 				throw new ResourceReaderException($"Invalid resource type index: {typeIndex}");
 			var type = userTypes[typeIndex];
-			switch (type.Name) {
+			var actualName = type.Name.Split(',')[0];
+			switch (actualName) {
 			case "System.String":   return resourceDataFactory.Create(reader.ReadSerializedString());
 			case "System.Int32":    return resourceDataFactory.Create(reader.ReadInt32());
 			case "System.Byte":     return resourceDataFactory.Create(reader.ReadByte());
@@ -258,7 +259,7 @@ namespace dnlib.DotNet.Resources {
 			for (int i = 0; i < numReaders; i++) {
 				var resourceReaderFullName = reader.ReadSerializedString();
 				/*var resourceSetFullName = */reader.ReadSerializedString();
-				if (Regex.IsMatch(resourceReaderFullName, @"^System\.Resources\.ResourceReader,\s*mscorlib,"))
+				if (Regex.IsMatch(resourceReaderFullName, @"^System\.Resources\.ResourceReader,\s*mscorlib"))
 					validReader = true;
 			}
 
