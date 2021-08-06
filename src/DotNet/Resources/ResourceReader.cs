@@ -98,7 +98,7 @@ namespace dnlib.DotNet.Resources {
 			if (!CheckReaders())
 				throw new ResourceReaderException("Invalid resource reader");
 			int version = reader.ReadInt32();
-			if (version != 2)//TODO: Support version 1
+			if (version != 2 && version != 1)
 				throw new ResourceReaderException($"Invalid resource version: {version}");
 			int numResources = reader.ReadInt32();
 			if (numResources < 0)
@@ -141,7 +141,8 @@ namespace dnlib.DotNet.Resources {
 				reader.Position = (uint)info.offset;
 				long nextDataOffset = i == infos.Count - 1 ? end : infos[i + 1].offset;
 				int size = (int)(nextDataOffset - info.offset);
-				element.ResourceData = ReadResourceData(userTypes, size);
+				element.ResourceData =
+					version == 1 ? ReadResourceDataV1(userTypes, size) : ReadResourceDataV2(userTypes, size);
 				element.ResourceData.StartOffset = baseFileOffset + (FileOffset)info.offset;
 				element.ResourceData.EndOffset = baseFileOffset + (FileOffset)reader.Position;
 
@@ -161,7 +162,7 @@ namespace dnlib.DotNet.Resources {
 			public override string ToString() => $"{offset:X8} - {name}";
 		}
 
-		IResourceData ReadResourceData(List<UserResourceType> userTypes, int size) {
+		IResourceData ReadResourceDataV2(List<UserResourceType> userTypes, int size) {
 			uint endPos = reader.Position + (uint)size;
 			uint code = ReadUInt32(ref reader);
 			switch ((ResourceTypeCode)code) {
@@ -188,14 +189,52 @@ namespace dnlib.DotNet.Resources {
 				int userTypeIndex = (int)(code - (uint)ResourceTypeCode.UserTypes);
 				if (userTypeIndex < 0 || userTypeIndex >= userTypes.Count)
 					throw new ResourceReaderException($"Invalid resource data code: {code}");
-				var userType = userTypes[userTypeIndex];
-				var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
-				if (createResourceDataDelegate is not null) {
-					var res = createResourceDataDelegate(resourceDataFactory, userType, serializedData);
-					if (res is not null)
-						return res;
-				}
-				return resourceDataFactory.CreateSerialized(serializedData, userType);
+				return ReadSerializedObject(endPos, userTypes[userTypeIndex]);
+			}
+		}
+
+		IResourceData ReadResourceDataV1(List<UserResourceType> userTypes, int size) {
+			uint endPos = reader.Position + (uint)size;
+			int typeIndex = ReadInt32(ref reader);
+			if (typeIndex == -1)
+				return resourceDataFactory.CreateNull();
+			if (typeIndex < 0 || typeIndex >= userTypes.Count)
+				throw new ResourceReaderException($"Invalid resource type index: {typeIndex}");
+			var type = userTypes[typeIndex];
+			var commaIndex = type.Name.IndexOf(',');
+			string actualName = commaIndex == -1 ? type.Name : type.Name.Remove(commaIndex);
+			switch (actualName) {
+			case "System.String":   return resourceDataFactory.Create(reader.ReadSerializedString());
+			case "System.Int32":    return resourceDataFactory.Create(reader.ReadInt32());
+			case "System.Byte":     return resourceDataFactory.Create(reader.ReadByte());
+			case "System.SByte":    return resourceDataFactory.Create(reader.ReadSByte());
+			case "System.Int16":    return resourceDataFactory.Create(reader.ReadInt16());
+			case "System.Int64":    return resourceDataFactory.Create(reader.ReadInt64());
+			case "System.UInt16":   return resourceDataFactory.Create(reader.ReadUInt16());
+			case "System.UInt32":   return resourceDataFactory.Create(reader.ReadUInt32());
+			case "System.UInt64":   return resourceDataFactory.Create(reader.ReadUInt64());
+			case "System.Single":   return resourceDataFactory.Create(reader.ReadSingle());
+			case "System.Double":   return resourceDataFactory.Create(reader.ReadDouble());
+			case "System.DateTime": return resourceDataFactory.Create(new DateTime(reader.ReadInt64()));
+			case "System.TimeSpan": return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
+			case "System.Decimal":  return resourceDataFactory.Create(reader.ReadDecimal());
+			default:
+				return ReadSerializedObject(endPos, type);
+			}
+		}
+
+		IResourceData ReadSerializedObject(uint endPos, UserResourceType type) {
+			var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
+			var res = createResourceDataDelegate?.Invoke(resourceDataFactory, type, serializedData);
+			return res ?? resourceDataFactory.CreateSerialized(serializedData, type);
+		}
+
+		static int ReadInt32(ref DataReader reader) {
+			try {
+				return reader.Read7BitEncodedInt32();
+			}
+			catch {
+				throw new ResourceReaderException("Invalid encoded int32");
 			}
 		}
 
@@ -221,7 +260,7 @@ namespace dnlib.DotNet.Resources {
 			for (int i = 0; i < numReaders; i++) {
 				var resourceReaderFullName = reader.ReadSerializedString();
 				/*var resourceSetFullName = */reader.ReadSerializedString();
-				if (Regex.IsMatch(resourceReaderFullName, @"^System\.Resources\.ResourceReader,\s*mscorlib,"))
+				if (Regex.IsMatch(resourceReaderFullName, @"^System\.Resources\.ResourceReader,\s*mscorlib"))
 					validReader = true;
 			}
 
