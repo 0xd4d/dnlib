@@ -177,6 +177,7 @@ namespace dnlib.DotNet {
 			if (mod.IsManifestModule)
 				Add(mod.Assembly);
 			Add(mod.VTableFixups);
+			Add(mod.Resources);
 		}
 
 		void Add(VTableFixups fixups) {
@@ -185,6 +186,12 @@ namespace dnlib.DotNet {
 			foreach (var fixup in fixups) {
 				foreach (var method in fixup)
 					Push(method);
+			}
+		}
+
+		void Add(ResourceCollection resources) {
+			foreach (var resource in resources) {
+				Add(resource.CustomAttributes);
 			}
 		}
 
