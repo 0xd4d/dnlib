@@ -11,6 +11,7 @@ namespace dnlib.DotNet.Writer {
 		/// can be ignored but the written data won't be valid.
 		/// </summary>
 		/// <param name="message">Error message</param>
-		void Error(string message);
+		/// <param name="args">Optional message arguments</param>
+		void Error(string message, params object[] args);
 	}
 }

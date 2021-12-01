@@ -1999,7 +1999,7 @@ namespace dnlib.DotNet.Writer {
 					var cilBody = method.Body;
 					if (cilBody is not null) {
 						if (!(cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)) {
-							writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
+							writer.Reset(method, keepMaxStack || cilBody.KeepOldMaxStack);
 							writer.Write();
 							var origRva = method.RVA;
 							uint origSize = cilBody.MetadataBodySize;
@@ -3561,7 +3561,7 @@ namespace dnlib.DotNet.Writer {
 		uint ISignatureWriterHelper.ToEncodedToken(ITypeDefOrRef typeDefOrRef) => AddTypeDefOrRef(typeDefOrRef);
 
 		/// <inheritdoc/>
-		void IWriterError.Error(string message) => Error(message);
+		void IWriterError.Error(string message, params object[] args) => Error(message, args);
 
 		/// <inheritdoc/>
 		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>

@@ -9,6 +9,8 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public abstract class MethodBodyWriterBase {
 		/// <summary/>
+		protected MethodDef method;
+		/// <summary/>
 		protected IList<Instruction> instructions;
 		/// <summary/>
 		protected IList<ExceptionHandler> exceptionHandlers;
@@ -50,7 +52,10 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="message">Error message</param>
 		protected void Error(string message) {
 			errors++;
-			ErrorImpl(message);
+			if (method is null)
+				ErrorImpl(message);
+			else
+				ErrorImpl(message + " At method {0} ({1:X8}).", method, method.MDToken.Raw);
 		}
 
 		/// <summary>
@@ -58,7 +63,19 @@ namespace dnlib.DotNet.Writer {
 		/// ignored but the method won't be valid.
 		/// </summary>
 		/// <param name="message">Error message</param>
-		protected virtual void ErrorImpl(string message) {
+		/// <param name="args">Optional message arguments</param>
+		protected void Error(string message, params object[] args) {
+			errors++;
+			ErrorImpl(message, args);
+		}
+
+		/// <summary>
+		/// Called when an error is detected (eg. a null pointer). The error can be
+		/// ignored but the method won't be valid.
+		/// </summary>
+		/// <param name="message">Error message</param>
+		/// <param name="args">Optional message arguments</param>
+		protected virtual void ErrorImpl(string message, params object[] args) {
 		}
 
 		/// <summary>
