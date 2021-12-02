@@ -327,6 +327,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
+		protected override void ErrorImpl(string message) => helper.Error(message);
+
+		/// <inheritdoc/>
 		protected override void ErrorImpl(string message, params object[] args) => helper.Error(message, args);
 
 		/// <inheritdoc/>

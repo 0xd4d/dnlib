@@ -3561,6 +3561,9 @@ namespace dnlib.DotNet.Writer {
 		uint ISignatureWriterHelper.ToEncodedToken(ITypeDefOrRef typeDefOrRef) => AddTypeDefOrRef(typeDefOrRef);
 
 		/// <inheritdoc/>
+		void IWriterError.Error(string message) => Error(message);
+
+		/// <inheritdoc/>
 		void IWriterError.Error(string message, params object[] args) => Error(message, args);
 
 		/// <inheritdoc/>

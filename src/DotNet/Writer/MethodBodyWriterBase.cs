@@ -74,6 +74,14 @@ namespace dnlib.DotNet.Writer {
 		/// ignored but the method won't be valid.
 		/// </summary>
 		/// <param name="message">Error message</param>
+		protected virtual void ErrorImpl(string message) {
+		}
+
+		/// <summary>
+		/// Called when an error is detected (eg. a null pointer). The error can be
+		/// ignored but the method won't be valid.
+		/// </summary>
+		/// <param name="message">Error message</param>
 		/// <param name="args">Optional message arguments</param>
 		protected virtual void ErrorImpl(string message, params object[] args) {
 		}
