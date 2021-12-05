@@ -102,7 +102,6 @@ namespace dnlib.DotNet.Writer {
 		uint WriteCompressedUInt32(DataWriter writer, uint value) => writer.WriteCompressedUInt32(helper, value);
 		void Write(DataWriter writer, UTF8String s) => writer.Write(helper, s);
 		void IWriterError.Error(string message) => helper.Error(message);
-		void IWriterError.Error(string message, params object[] args) => helper.Error(message, args);
 		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>
 			FullNameFactory.MustUseAssemblyName(module, type, optimizeCustomAttributeSerializedTypeNames);
 	}

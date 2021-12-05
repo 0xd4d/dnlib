@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Returns tokens of token types, strings and signatures
 	/// </summary>
-	public interface ITokenProvider : IWriterError {
+	public interface ITokenProvider : IWriterError2 {
 		/// <summary>
 		/// Gets the token of <paramref name="o"/>
 		/// </summary>
