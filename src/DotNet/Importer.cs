@@ -380,10 +380,9 @@ namespace dnlib.DotNet {
 			var pkt = asmName.GetPublicKeyToken();
 			if (pkt is null || pkt.Length == 0)
 				pkt = null;
-			if (TryToUseExistingAssemblyRefs)
-				return module.GetAssemblyRef(asmName.Name) ?? module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
-			else
-				return module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
+			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(asmName.Name) is AssemblyRef asmRef)
+				return asmRef;
+			return module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
 		}
 
 		/// <summary>
@@ -728,10 +727,9 @@ namespace dnlib.DotNet {
 			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
-			if (TryToUseExistingAssemblyRefs)
-				return module.GetAssemblyRef(defAsm.Name) ?? module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture) { Attributes = defAsm.Attributes & ~AssemblyAttributes.PublicKey });
-			else
-				return module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture) { Attributes = defAsm.Attributes & ~AssemblyAttributes.PublicKey });
+			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(defAsm.Name) is AssemblyRef asmRef)
+				return asmRef;
+			return module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture) { Attributes = defAsm.Attributes & ~AssemblyAttributes.PublicKey });
 		}
 
 		/// <summary>
