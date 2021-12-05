@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Returns tokens of token types, strings and signatures
 	/// </summary>
-	public interface ITokenProvider : IWriterError2 {
+	public interface ITokenProvider : IWriterError {
 		/// <summary>
 		/// Gets the token of <paramref name="o"/>
 		/// </summary>
@@ -31,6 +31,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MethodBodyWriter : MethodBodyWriterBase {
 		readonly ITokenProvider helper;
+		MethodDef method;
 		CilBody cilBody;
 		bool keepMaxStack;
 		uint codeSize;
@@ -109,18 +110,14 @@ namespace dnlib.DotNet.Writer {
 
 		internal void Reset(MethodDef method, bool keepMaxStack) {
 			this.method = method;
-			Reset(method.Body, keepMaxStack);
-		}
-
-		internal void Reset(CilBody cilBody, bool keepMaxStack) {
-			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);
-			this.cilBody = cilBody;
 			this.keepMaxStack = keepMaxStack;
+			cilBody = method.Body;
 			codeSize = 0;
 			maxStack = 0;
 			code = null;
 			extraSections = null;
 			localVarSigTok = 0;
+			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);
 		}
 
 		/// <summary>
@@ -327,10 +324,12 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override void ErrorImpl(string message) => helper.Error(message);
-
-		/// <inheritdoc/>
-		protected override void ErrorImpl(string message, params object[] args) => helper.Error(message, args);
+		protected override void ErrorImpl(string message) {
+			if (method is not null && helper is IWriterError2 writerError2)
+				writerError2.Error(message + " At method {0} ({1:X8}).", method, method.MDToken.Raw);
+			else
+				helper.Error(message);
+		}
 
 		/// <inheritdoc/>
 		protected override void WriteInlineField(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);
