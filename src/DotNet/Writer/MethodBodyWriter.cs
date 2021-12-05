@@ -31,6 +31,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MethodBodyWriter : MethodBodyWriterBase {
 		readonly ITokenProvider helper;
+		MethodDef method;
 		CilBody cilBody;
 		bool keepMaxStack;
 		uint codeSize;
@@ -61,6 +62,29 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="helper">Helps this instance</param>
+		/// <param name="method">The method</param>
+		public MethodBodyWriter(ITokenProvider helper, MethodDef method)
+			: this(helper, method, false) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="helper">Helps this instance</param>
+		/// <param name="method">The method</param>
+		/// <param name="keepMaxStack">Keep the original max stack value that has been initialized
+		/// in <paramref name="method"/></param>
+		public MethodBodyWriter(ITokenProvider helper, MethodDef method, bool keepMaxStack)
+			: base(method.Body.Instructions, method.Body.ExceptionHandlers) {
+			this.helper = helper;
+			this.method = method;
+			this.keepMaxStack = keepMaxStack;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="helper">Helps this instance</param>
 		/// <param name="cilBody">The CIL method body</param>
 		public MethodBodyWriter(ITokenProvider helper, CilBody cilBody)
 			: this(helper, cilBody, false) {
@@ -84,15 +108,16 @@ namespace dnlib.DotNet.Writer {
 			this.helper = helper;
 		}
 
-		internal void Reset(CilBody cilBody, bool keepMaxStack) {
-			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);
-			this.cilBody = cilBody;
+		internal void Reset(MethodDef method, bool keepMaxStack) {
+			this.method = method;
 			this.keepMaxStack = keepMaxStack;
+			cilBody = method.Body;
 			codeSize = 0;
 			maxStack = 0;
 			code = null;
 			extraSections = null;
 			localVarSigTok = 0;
+			Reset(cilBody.Instructions, cilBody.ExceptionHandlers);
 		}
 
 		/// <summary>
@@ -299,7 +324,12 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override void ErrorImpl(string message) => helper.Error(message);
+		protected override void ErrorImpl(string message) {
+			if (method is not null && helper is IWriterError2 writerError2)
+				writerError2.Error(message + " At method {0} ({1:X8}).", method, method.MDToken.Raw);
+			else
+				helper.Error(message);
+		}
 
 		/// <inheritdoc/>
 		protected override void WriteInlineField(ref ArrayWriter writer, Instruction instr) => writer.WriteUInt32(helper.GetToken(instr.Operand).Raw);

@@ -438,7 +438,7 @@ namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// .NET meta data
 	/// </summary>
-	public abstract class Metadata : IReuseChunk, ISignatureWriterHelper, ITokenProvider, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper {
+	public abstract class Metadata : IReuseChunk, ISignatureWriterHelper, ITokenProvider, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper, IWriterError2 {
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -1999,7 +1999,7 @@ namespace dnlib.DotNet.Writer {
 					var cilBody = method.Body;
 					if (cilBody is not null) {
 						if (!(cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)) {
-							writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
+							writer.Reset(method, keepMaxStack || cilBody.KeepOldMaxStack);
 							writer.Write();
 							var origRva = method.RVA;
 							uint origSize = cilBody.MetadataBodySize;
@@ -3562,6 +3562,9 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		void IWriterError.Error(string message) => Error(message);
+
+		/// <inheritdoc/>
+		void IWriterError2.Error(string message, params object[] args) => Error(message, args);
 
 		/// <inheritdoc/>
 		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>
