@@ -38,6 +38,11 @@ namespace dnlib.DotNet {
 		TryToUseDefs = TryToUseTypeDefs | TryToUseMethodDefs | TryToUseFieldDefs,
 
 		/// <summary>
+		/// Use already existing <see cref="AssemblyRef"/>s whenever possible
+		/// </summary>
+		TryToUseExistingAssemblyRefs = 8,
+
+		/// <summary>
 		/// Don't set this flag. For internal use only.
 		/// </summary>
 		FixSignature = int.MinValue,
@@ -79,7 +84,7 @@ namespace dnlib.DotNet {
 		/// Overrides default behavior of <see cref="Importer.Import(Type)"/>
 		/// May be used to use reference assemblies for <see cref="Type"/> resolution, for example.
 		/// </summary>
-		/// <param name="source"><see cref="Type"/> to create <see cref="TypeRef"/> for.</param>
+		/// <param name="source"><see cref="Type"/> to create <see cref="TypeRef"/> for. <paramref name="source"/> is non-generic type or generic type without generic arguments.</param>
 		/// <returns><see cref="TypeRef"/> or null to use default <see cref="Importer"/>'s type resolution</returns>
 		public virtual TypeRef Map(Type source) => null;
 	}
@@ -98,6 +103,7 @@ namespace dnlib.DotNet {
 		bool TryToUseTypeDefs => (options & ImporterOptions.TryToUseTypeDefs) != 0;
 		bool TryToUseMethodDefs => (options & ImporterOptions.TryToUseMethodDefs) != 0;
 		bool TryToUseFieldDefs => (options & ImporterOptions.TryToUseFieldDefs) != 0;
+		bool TryToUseExistingAssemblyRefs => (options & ImporterOptions.TryToUseExistingAssemblyRefs) != 0;
 
 		bool FixSignature {
 			get => (options & ImporterOptions.FixSignature) != 0;
@@ -320,7 +326,7 @@ namespace dnlib.DotNet {
 		bool IsThisModule(TypeRef tr) {
 			if (tr is null)
 				return false;
-			var scopeType = tr.ScopeType.GetNonNestedTypeRefScope() as TypeRef;
+			var scopeType = tr.GetNonNestedTypeRefScope() as TypeRef;
 			if (scopeType is null)
 				return false;
 
@@ -374,7 +380,10 @@ namespace dnlib.DotNet {
 			var pkt = asmName.GetPublicKeyToken();
 			if (pkt is null || pkt.Length == 0)
 				pkt = null;
-			return module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
+			if (TryToUseExistingAssemblyRefs)
+				return module.GetAssemblyRef(asmName.Name) ?? module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
+			else
+				return module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
 		}
 
 		/// <summary>
@@ -719,7 +728,10 @@ namespace dnlib.DotNet {
 			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
-			return module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture) { Attributes = defAsm.Attributes & ~AssemblyAttributes.PublicKey });
+			if (TryToUseExistingAssemblyRefs)
+				return module.GetAssemblyRef(defAsm.Name) ?? module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture) { Attributes = defAsm.Attributes & ~AssemblyAttributes.PublicKey });
+			else
+				return module.UpdateRowId(new AssemblyRefUser(defAsm.Name, defAsm.Version, pkt, defAsm.Culture) { Attributes = defAsm.Attributes & ~AssemblyAttributes.PublicKey });
 		}
 
 		/// <summary>
