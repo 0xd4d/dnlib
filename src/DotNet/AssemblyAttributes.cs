@@ -27,6 +27,8 @@ namespace dnlib.DotNet {
 		PA_AMD64					= 0x0040,
 		/// <summary>Processor Architecture: ARM (PE32)</summary>
 		PA_ARM						= 0x0050,
+		/// <summary>Processor Architecture: ARM64 (PE32+)</summary>
+		PA_ARM64					= 0x0060,
 		/// <summary>applies to any platform but cannot run on any (e.g. reference assembly), should not have "specified" set</summary>
 		PA_NoPlatform				= 0x0070,
 		/// <summary>Propagate PA flags to AssemblyRef record</summary>
