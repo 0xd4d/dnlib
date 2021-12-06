@@ -429,8 +429,8 @@ namespace dnlib.DotNet {
 			case CallingConvention.ThisCall:
 			case CallingConvention.FastCall:
 			case CallingConvention.VarArg:
-			case CallingConvention.NativeVarArg:
 			case CallingConvention.Unmanaged:
+			case CallingConvention.NativeVarArg:
 				result = ReadMethod(callingConvention);
 				break;
 
@@ -540,8 +540,9 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Reads the next type
 		/// </summary>
+		/// <param name="allowTypeSpec"><c>true</c> if a <c>TypeSpec</c> is allowed if the next type is a class/value-type</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if invalid element type</returns>
-		TypeSig ReadType() {
+		TypeSig ReadType(bool allowTypeSpec = false) {
 			if (!recursionCounter.Increment())
 				return null;
 
@@ -569,8 +570,8 @@ namespace dnlib.DotNet {
 
 			case ElementType.Ptr:		result = new PtrSig(ReadType()); break;
 			case ElementType.ByRef:		result = new ByRefSig(ReadType()); break;
-			case ElementType.ValueType:	result = new ValueTypeSig(ReadTypeDefOrRef(false)); break;
-			case ElementType.Class:		result = new ClassSig(ReadTypeDefOrRef(false)); break;
+			case ElementType.ValueType:	result = new ValueTypeSig(ReadTypeDefOrRef(allowTypeSpec)); break;
+			case ElementType.Class:		result = new ClassSig(ReadTypeDefOrRef(allowTypeSpec)); break;
 			case ElementType.FnPtr:		result = new FnPtrSig(ReadSig()); break;
 			case ElementType.SZArray:	result = new SZArraySig(ReadType()); break;
 			case ElementType.CModReqd:	result = new CModReqdSig(ReadTypeDefOrRef(true), ReadType()); break;
