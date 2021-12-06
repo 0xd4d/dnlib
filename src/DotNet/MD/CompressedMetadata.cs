@@ -31,6 +31,7 @@ namespace dnlib.DotNet.MD {
 		protected override void InitializeInternal(DataReaderFactory mdReaderFactory, uint metadataBaseOffset) {
 			DotNetStream dns = null;
 			var newAllStreams = new List<DotNetStream>(allStreams);
+			bool forceAllBig = false;
 			try {
 				for (int i = mdHeader.StreamHeaders.Count - 1; i >= 0; i--) {
 					var sh = mdHeader.StreamHeaders[i];
@@ -82,6 +83,13 @@ namespace dnlib.DotNet.MD {
 							continue;
 						}
 						break;
+
+					case "#JTD":
+						if (runtime == CLRRuntimeReaderKind.Mono) {
+							forceAllBig = true;
+							continue;
+						}
+						break;
 					}
 					dns = new CustomDotNetStream(mdReaderFactory, metadataBaseOffset, sh);
 					newAllStreams.Add(dns);
@@ -98,9 +106,9 @@ namespace dnlib.DotNet.MD {
 				throw new BadImageFormatException("Missing MD stream");
 
 			if (pdbStream is not null)
-				tablesStream.Initialize(pdbStream.TypeSystemTableRows);
+				tablesStream.Initialize(pdbStream.TypeSystemTableRows, forceAllBig);
 			else
-				tablesStream.Initialize(null);
+				tablesStream.Initialize(null, forceAllBig);
 		}
 
 		/// <inheritdoc/>

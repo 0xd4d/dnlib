@@ -35,6 +35,15 @@ namespace dnlib.DotNet.Writer {
 		public bool? UseENC;
 
 		/// <summary>
+		/// All columns that can be 2 or 4 bytes are forced to be 4 bytes.
+		/// Set this to <c>true</c> if you add a <c>#JTD</c> heap and (if CLR) a <c>#-</c> tables heap is used
+		/// or (if Mono/Unity) a <c>#~</c> or <c>#-</c> tables heap is used.
+		/// dnlib won't try to auto detect this from your added heaps since the CLR/CoreCLR vs Mono/Unity behavior
+		/// is a little bit different. You may need to set <see cref="UseENC"/> to <c>true</c> if you target CLR/CoreCLR.
+		/// </summary>
+		public bool? ForceBigColumns;
+
+		/// <summary>
 		/// Extra data to write
 		/// </summary>
 		public uint? ExtraData;
@@ -341,7 +350,7 @@ namespace dnlib.DotNet.Writer {
 			var dnTableSizes = new DotNetTableSizes();
 			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion);
 			var rowCounts = GetRowCounts();
-			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, systemTables ?? rowCounts, rowCounts);
+			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, systemTables ?? rowCounts, rowCounts, options.ForceBigColumns ?? false);
 			for (int i = 0; i < Tables.Length; i++)
 				Tables[i].TableInfo = tableInfos[i];
 

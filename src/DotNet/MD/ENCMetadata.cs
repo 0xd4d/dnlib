@@ -39,6 +39,7 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		protected override void InitializeInternal(DataReaderFactory mdReaderFactory, uint metadataBaseOffset) {
 			DotNetStream dns = null;
+			bool forceAllBig = false;
 			try {
 				if (runtime == CLRRuntimeReaderKind.Mono) {
 					var newAllStreams = new List<DotNetStream>(allStreams);
@@ -93,6 +94,10 @@ namespace dnlib.DotNet.MD {
 								continue;
 							}
 							break;
+
+						case "#JTD":
+							forceAllBig = true;
+							continue;
 						}
 						dns = new CustomDotNetStream(mdReaderFactory, metadataBaseOffset, sh);
 						newAllStreams.Add(dns);
@@ -155,6 +160,10 @@ namespace dnlib.DotNet.MD {
 								continue;
 							}
 							break;
+
+						case "#JTD":
+							forceAllBig = true;
+							continue;
 						}
 						dns = new CustomDotNetStream(mdReaderFactory, metadataBaseOffset, sh);
 						allStreams.Add(dns);
@@ -170,9 +179,9 @@ namespace dnlib.DotNet.MD {
 				throw new BadImageFormatException("Missing MD stream");
 
 			if (pdbStream is not null)
-				tablesStream.Initialize(pdbStream.TypeSystemTableRows);
+				tablesStream.Initialize(pdbStream.TypeSystemTableRows, forceAllBig);
 			else
-				tablesStream.Initialize(null);
+				tablesStream.Initialize(null, forceAllBig);
 
 			// The pointer tables are used iff row count != 0
 			hasFieldPtr = !tablesStream.FieldPtrTable.IsEmpty;

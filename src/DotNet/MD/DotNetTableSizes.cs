@@ -11,6 +11,7 @@ namespace dnlib.DotNet.MD {
 		bool bigStrings;
 		bool bigGuid;
 		bool bigBlob;
+		bool forceAllBig;
 		TableInfo[] tableInfos;
 
 		internal static bool IsSystemTable(Table table) => table < Table.Document;
@@ -23,10 +24,23 @@ namespace dnlib.DotNet.MD {
 		/// <param name="bigBlob"><c>true</c> if #Blob size >= 0x10000</param>
 		/// <param name="systemRowCounts">Count of rows in each table</param>
 		/// <param name="debugRowCounts">Count of rows in each table (debug tables)</param>
-		public void InitializeSizes(bool bigStrings, bool bigGuid, bool bigBlob, IList<uint> systemRowCounts, IList<uint> debugRowCounts) {
-			this.bigStrings = bigStrings;
-			this.bigGuid = bigGuid;
-			this.bigBlob = bigBlob;
+		public void InitializeSizes(bool bigStrings, bool bigGuid, bool bigBlob, IList<uint> systemRowCounts, IList<uint> debugRowCounts) =>
+			InitializeSizes(bigStrings, bigGuid, bigBlob, systemRowCounts, debugRowCounts, false);
+
+		/// <summary>
+		/// Initializes the table sizes
+		/// </summary>
+		/// <param name="bigStrings"><c>true</c> if #Strings size >= 0x10000</param>
+		/// <param name="bigGuid"><c>true</c> if #GUID size >= 0x10000</param>
+		/// <param name="bigBlob"><c>true</c> if #Blob size >= 0x10000</param>
+		/// <param name="systemRowCounts">Count of rows in each table</param>
+		/// <param name="debugRowCounts">Count of rows in each table (debug tables)</param>
+		/// <param name="forceAllBig">Force all columns to 4 bytes instead of 2 or 4 bytes</param>
+		internal void InitializeSizes(bool bigStrings, bool bigGuid, bool bigBlob, IList<uint> systemRowCounts, IList<uint> debugRowCounts, bool forceAllBig) {
+			this.bigStrings = bigStrings || forceAllBig;
+			this.bigGuid = bigGuid || forceAllBig;
+			this.bigBlob = bigBlob || forceAllBig;
+			this.forceAllBig = forceAllBig;
 			foreach (var tableInfo in tableInfos) {
 				var rowCounts = IsSystemTable(tableInfo.Table) ? systemRowCounts : debugRowCounts;
 				int colOffset = 0;
@@ -44,7 +58,7 @@ namespace dnlib.DotNet.MD {
 			if (ColumnSize.Module <= columnSize && columnSize <= ColumnSize.CustomDebugInformation) {
 				int table = (int)(columnSize - ColumnSize.Module);
 				uint count = table >= rowCounts.Count ? 0 : rowCounts[table];
-				return count > 0xFFFF ? 4 : 2;
+				return forceAllBig || count > 0xFFFF ? 4 : 2;
 			}
 			else if (ColumnSize.TypeDefOrRef <= columnSize && columnSize <= ColumnSize.HasCustomDebugInformation) {
 				var info = columnSize switch {
@@ -73,7 +87,7 @@ namespace dnlib.DotNet.MD {
 				}
 				// Can't overflow since maxRows <= 0x00FFFFFF and info.Bits < 8
 				uint finalRows = maxRows << info.Bits;
-				return finalRows > 0xFFFF ? 4 : 2;
+				return forceAllBig || finalRows > 0xFFFF ? 4 : 2;
 			}
 			else {
 				switch (columnSize) {
@@ -82,9 +96,9 @@ namespace dnlib.DotNet.MD {
 				case ColumnSize.UInt16:	return 2;
 				case ColumnSize.Int32:	return 4;
 				case ColumnSize.UInt32:	return 4;
-				case ColumnSize.Strings:return bigStrings ? 4 : 2;
-				case ColumnSize.GUID:	return bigGuid ? 4 : 2;
-				case ColumnSize.Blob:	return bigBlob ? 4 : 2;
+				case ColumnSize.Strings:return forceAllBig || bigStrings ? 4 : 2;
+				case ColumnSize.GUID:	return forceAllBig || bigGuid ? 4 : 2;
+				case ColumnSize.Blob:	return forceAllBig || bigBlob ? 4 : 2;
 				}
 			}
 			throw new InvalidOperationException($"Invalid ColumnSize: {columnSize}");

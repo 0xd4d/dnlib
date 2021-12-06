@@ -198,7 +198,15 @@ namespace dnlib.DotNet.MD {
 		/// Initializes MD tables
 		/// </summary>
 		/// <param name="typeSystemTableRows">Type system table rows (from #Pdb stream)</param>
-		public void Initialize(uint[] typeSystemTableRows) {
+		public void Initialize(uint[] typeSystemTableRows) =>
+			Initialize(typeSystemTableRows, false);
+
+		/// <summary>
+		/// Initializes MD tables
+		/// </summary>
+		/// <param name="typeSystemTableRows">Type system table rows (from #Pdb stream)</param>
+		/// <param name="forceAllBig">Force all columns to 4 bytes instead of 2 or 4 bytes</param>
+		internal void Initialize(uint[] typeSystemTableRows, bool forceAllBig) {
 			if (initialized)
 				throw new Exception("Initialize() has already been called");
 			initialized = true;
@@ -245,7 +253,7 @@ namespace dnlib.DotNet.MD {
 				}
 			}
 
-			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes, debugSizes);
+			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes, debugSizes, forceAllBig);
 
 			mdTablesPos = reader.Position;
 			InitializeMdTableReaders();
