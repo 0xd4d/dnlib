@@ -118,6 +118,12 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public override RidList GetPropertyRidList(uint propertyMapRid) => GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
 
+		/// <inheritdoc/>
+		public override RidList GetLocalVariableRidList(uint localScopeRid) => GetRidList(tablesStream.LocalScopeTable, localScopeRid, 2, tablesStream.LocalVariableTable);
+
+		/// <inheritdoc/>
+		public override RidList GetLocalConstantRidList(uint localScopeRid) => GetRidList(tablesStream.LocalScopeTable, localScopeRid, 3, tablesStream.LocalConstantTable);
+
 		/// <summary>
 		/// Gets a rid list (eg. field list)
 		/// </summary>

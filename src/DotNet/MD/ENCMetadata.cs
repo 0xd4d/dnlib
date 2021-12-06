@@ -401,6 +401,12 @@ namespace dnlib.DotNet.MD {
 			return RidList.Create(newList);
 		}
 
+		/// <inheritdoc/>
+		public override RidList GetLocalVariableRidList(uint localScopeRid) => GetRidList(tablesStream.LocalScopeTable, localScopeRid, 2, tablesStream.LocalVariableTable);
+
+		/// <inheritdoc/>
+		public override RidList GetLocalConstantRidList(uint localScopeRid) => GetRidList(tablesStream.LocalScopeTable, localScopeRid, 3, tablesStream.LocalConstantTable);
+
 		/// <summary>
 		/// Gets a rid list (eg. field list)
 		/// </summary>
@@ -447,14 +453,6 @@ namespace dnlib.DotNet.MD {
 			return 0;
 		}
 
-		/// <summary>
-		/// Linear searches the table (O(n)) for a <c>rid</c> whose key column at index
-		/// <paramref name="keyColIndex"/> is equal to <paramref name="key"/>.
-		/// </summary>
-		/// <param name="tableSource">Table to search</param>
-		/// <param name="keyColIndex">Key column index</param>
-		/// <param name="key">Key</param>
-		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
 		uint LinearSearch(MDTable tableSource, int keyColIndex, uint key) {
 			if (tableSource is null)
 				return 0;

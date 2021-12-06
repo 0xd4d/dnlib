@@ -361,7 +361,7 @@ namespace dnlib.DotNet.MD {
 			return list.Count == 0 ? 0 : list[0];
 		}
 
-		override public uint GetFieldLayoutRid(uint fieldRid) {
+		public override uint GetFieldLayoutRid(uint fieldRid) {
 			var list = FindAllRowsUnsorted(tablesStream.FieldLayoutTable, 1, fieldRid);
 			return list.Count == 0 ? 0 : list[0];
 		}
