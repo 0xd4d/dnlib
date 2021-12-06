@@ -2,16 +2,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using dnlib.IO;
-using dnlib.PE;
-using dnlib.DotNet.MD;
-using dnlib.DotNet.Emit;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
 using dnlib.DotNet.Pdb.Portable;
-using System.Linq;
+using dnlib.IO;
+using dnlib.PE;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -158,6 +158,7 @@ namespace dnlib.DotNet.Writer {
 		AlwaysCreateBlobHeap = 0x80000,
 
 		/// <summary>
+		/// DEPRECATED:
 		/// Sort the InterfaceImpl table the same way Roslyn sorts it. Roslyn doesn't sort it
 		/// according to the ECMA spec, see https://github.com/dotnet/roslyn/issues/3905
 		/// </summary>
@@ -1822,15 +1823,7 @@ namespace dnlib.DotNet.Writer {
 					return a.row.Owner.CompareTo(b.row.Owner);
 				return a.row.Number.CompareTo(b.row.Number);
 			});
-			if (RoslynSortInterfaceImpl)
-				interfaceImplInfos.Sort((a, b) => a.row.Class.CompareTo(b.row.Class));
-			else {
-				interfaceImplInfos.Sort((a, b) => {
-					if (a.row.Class != b.row.Class)
-						return a.row.Class.CompareTo(b.row.Class);
-					return a.row.Interface.CompareTo(b.row.Interface);
-				});
-			}
+			interfaceImplInfos.Sort((a, b) => a.row.Class.CompareTo(b.row.Class));
 
 			tablesHeap.ClassLayoutTable.IsSorted = true;
 			tablesHeap.ConstantTable.IsSorted = true;
