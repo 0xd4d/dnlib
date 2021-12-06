@@ -11,14 +11,14 @@ namespace dnlib.PE {
 	/// </summary>
 	public interface IRvaFileOffsetConverter {
 		/// <summary>
-		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>
+		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>, returns 0 if out of range
 		/// </summary>
 		/// <param name="offset">The file offset to convert</param>
 		/// <returns>The RVA</returns>
 		RVA ToRVA(FileOffset offset);
 
 		/// <summary>
-		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>
+		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>, returns 0 if out of range
 		/// </summary>
 		/// <param name="rva">The RVA to convert</param>
 		/// <returns>The file offset</returns>
