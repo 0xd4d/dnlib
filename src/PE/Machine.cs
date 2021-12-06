@@ -75,26 +75,31 @@ namespace dnlib.PE {
 		AMD64_Native_Apple = AMD64 ^ 0x4644,
 		ARMNT_Native_Apple = ARMNT ^ 0x4644,
 		ARM64_Native_Apple = ARM64 ^ 0x4644,
+		S390X_Native_Apple = Unknown ^ 0x4644,
 
 		I386_Native_FreeBSD = I386 ^ 0xADC4,
 		AMD64_Native_FreeBSD = AMD64 ^ 0xADC4,
 		ARMNT_Native_FreeBSD = ARMNT ^ 0xADC4,
 		ARM64_Native_FreeBSD = ARM64 ^ 0xADC4,
+		S390X_Native_FreeBSD = Unknown ^ 0xADC4,
 
 		I386_Native_Linux = I386 ^ 0x7B79,
 		AMD64_Native_Linux = AMD64 ^ 0x7B79,
 		ARMNT_Native_Linux = ARMNT ^ 0x7B79,
 		ARM64_Native_Linux = ARM64 ^ 0x7B79,
+		S390X_Native_Linux = Unknown ^ 0x7B79,
 
 		I386_Native_NetBSD = I386 ^ 0x1993,
 		AMD64_Native_NetBSD = AMD64 ^ 0x1993,
 		ARMNT_Native_NetBSD = ARMNT ^ 0x1993,
 		ARM64_Native_NetBSD = ARM64 ^ 0x1993,
+		S390X_Native_NetBSD = Unknown ^ 0x1993,
 
 		I386_Native_Sun = I386 ^ 0x1992,
 		AMD64_Native_Sun = AMD64 ^ 0x1992,
 		ARMNT_Native_Sun = ARMNT ^ 0x1992,
 		ARM64_Native_Sun = ARM64 ^ 0x1992,
+		S390X_Native_Sun = Unknown ^ 0x1992,
 #pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 	}
 
@@ -124,6 +129,15 @@ namespace dnlib.PE {
 			case Machine.ARM64_Native_Linux:
 			case Machine.ARM64_Native_NetBSD:
 			case Machine.ARM64_Native_Sun:
+				return true;
+
+			// It uses value 0==Unknown but we can't assume it's always s390x
+			//case Machine.Unknown:
+			case Machine.S390X_Native_Apple:
+			case Machine.S390X_Native_FreeBSD:
+			case Machine.S390X_Native_Linux:
+			case Machine.S390X_Native_NetBSD:
+			case Machine.S390X_Native_Sun:
 				return true;
 
 			default:
@@ -201,6 +215,26 @@ namespace dnlib.PE {
 			case Machine.ARM64_Native_Linux:
 			case Machine.ARM64_Native_NetBSD:
 			case Machine.ARM64_Native_Sun:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Checks if <paramref name="machine"/> is s390x, <see cref="Machine.S390X_Native_Apple"/>, etc...
+		/// </summary>
+		/// <param name="machine">Machine</param>
+		/// <returns></returns>
+		public static bool IsS390x(this Machine machine) {
+			switch (machine) {
+			// It uses value 0==Unknown but we can't assume it's always s390x
+			//case Machine.Unknown:
+			case Machine.S390X_Native_Apple:
+			case Machine.S390X_Native_FreeBSD:
+			case Machine.S390X_Native_Linux:
+			case Machine.S390X_Native_NetBSD:
+			case Machine.S390X_Native_Sun:
 				return true;
 			default:
 				return false;

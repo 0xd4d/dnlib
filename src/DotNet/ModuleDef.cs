@@ -752,6 +752,11 @@ namespace dnlib.DotNet {
 		public bool IsARM64 => Machine.IsARM64();
 
 		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is s390x, <see cref="PE.Machine.S390X_Native_Apple"/>, ...
+		/// </summary>
+		public bool IsS390x => Machine.IsS390x();
+
+		/// <summary>
 		/// Gets/sets the <see cref="Cor20HeaderFlags"/> (from .NET header)
 		/// </summary>
 		public ComImageFlags Cor20HeaderFlags {
