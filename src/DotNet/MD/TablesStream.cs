@@ -219,9 +219,18 @@ namespace dnlib.DotNet.MD {
 			log2Rid = reader.ReadByte();
 			validMask = reader.ReadUInt64();
 			sortedMask = reader.ReadUInt64();
+			// Mono assumes everything is sorted
+			if (runtime == CLRRuntimeReaderKind.Mono)
+				sortedMask = ulong.MaxValue;
 
 			var dnTableSizes = new DotNetTableSizes();
-			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion, out int maxPresentTables);
+			byte tmpMajor = majorVersion, tmpMinor = minorVersion;
+			// It ignores the version so use 2.0
+			if (runtime == CLRRuntimeReaderKind.Mono) {
+				tmpMajor = 2;
+				tmpMinor = 0;
+			}
+			var tableInfos = dnTableSizes.CreateTables(tmpMajor, tmpMinor, out int maxPresentTables);
 			if (typeSystemTableRows is not null)
 				maxPresentTables = DotNetTableSizes.normalMaxTables;
 			mdTables = new MDTable[tableInfos.Length];
