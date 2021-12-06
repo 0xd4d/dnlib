@@ -478,14 +478,9 @@ namespace dnlib.DotNet.Emit {
 				totalBodySize = 0;
 		}
 
-		static ushort GetNumberOfExceptionHandlers(uint num) {
-			// The CLR truncates the count so num handlers is always <= FFFFh.
-			return (ushort)num;
-		}
-
 		void ReadFatExceptionHandlers(ref DataReader ehReader) {
 			ehReader.Position--;
-			int num = GetNumberOfExceptionHandlers((ehReader.ReadUInt32() >> 8) / 24);
+			int num = (int)((ehReader.ReadUInt32() >> 8) / 24);
 			for (int i = 0; i < num; i++) {
 				var eh = new ExceptionHandler((ExceptionHandlerType)ehReader.ReadUInt32());
 				uint offs = ehReader.ReadUInt32();
@@ -505,7 +500,7 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		void ReadSmallExceptionHandlers(ref DataReader ehReader) {
-			int num = GetNumberOfExceptionHandlers((uint)ehReader.ReadByte() / 12);
+			int num = (int)((uint)ehReader.ReadByte() / 12);
 			ehReader.Position += 2;
 			for (int i = 0; i < num; i++) {
 				var eh = new ExceptionHandler((ExceptionHandlerType)ehReader.ReadUInt16());
