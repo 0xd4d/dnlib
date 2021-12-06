@@ -764,7 +764,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the runtime version number in the COR20 header. The major version is
 		/// in the high 16 bits. The minor version is in the low 16 bits. This is normally 2.5
-		/// (0x00020005), but if it's .NET 1.x, it should be 2.0 (0x00020000). If this is
+		/// (0x00020005), but if it's .NET Framework 1.x, it should be 2.0 (0x00020000). If this is
 		/// <c>null</c>, the default value will be used when saving the module (2.0 if CLR 1.x,
 		/// and 2.5 if not CLR 1.x).
 		/// </summary>
@@ -772,12 +772,12 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Gets the tables header version. The major version is in the upper 8 bits and the
-		/// minor version is in the lower 8 bits. .NET 1.0/1.1 use version 1.0 (0x0100) and
-		/// .NET 2.x and later use version 2.0 (0x0200). 1.0 has no support for generics,
+		/// minor version is in the lower 8 bits. .NET Framework 1.0/1.1 use version 1.0 (0x0100) and
+		/// .NET Framework 2.x and later use version 2.0 (0x0200). 1.0 has no support for generics,
 		/// 1.1 has support for generics (GenericParam rows have an extra Kind column),
 		/// and 2.0 has support for generics (GenericParam rows have the standard 4 columns).
 		/// No other version is supported. If this is <c>null</c>, the default version is
-		/// used (1.0 if .NET 1.x, else 2.0).
+		/// used (1.0 if .NET Framework 1.x, else 2.0).
 		/// </summary>
 		public ushort? TablesHeaderVersion { get; set; }
 
@@ -1137,7 +1137,7 @@ namespace dnlib.DotNet {
 			if ((flags & ComImageFlags.ILOnly) == 0)
 				return 4;
 
-			// 32-bit Preferred flag is new in .NET 4.5. See CorHdr.h in Windows SDK for more info
+			// 32-bit Preferred flag is new in .NET Framework 4.5. See CorHdr.h in Windows SDK for more info
 			switch (flags & (ComImageFlags.Bit32Required | ComImageFlags.Bit32Preferred)) {
 			case 0:
 				// Machine and ILOnly flag should be checked
@@ -1449,8 +1449,8 @@ namespace dnlib.DotNet {
 			RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 			Machine = Machine.I386;
 			cor20HeaderFlags = (int)ComImageFlags.ILOnly;
-			Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
-			TablesHeaderVersion = 0x0200;			// .NET 2.0 or later should use 2.0
+			Cor20HeaderRuntimeVersion = 0x00020005;	// .NET Framework 2.0 or later should use 2.5
+			TablesHeaderVersion = 0x0200;			// .NET Framework 2.0 or later should use 2.0
 			types = new LazyList<TypeDef>(this);
 			exportedTypes = new LazyList<ExportedType>();
 			resources = new ResourceCollection();
@@ -1527,8 +1527,8 @@ namespace dnlib.DotNet {
 				RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 				Machine = Machine.I386;
 				cor20HeaderFlags = (int)ComImageFlags.ILOnly;
-				Cor20HeaderRuntimeVersion = 0x00020005;	// .NET 2.0 or later should use 2.5
-				TablesHeaderVersion = 0x0200;			// .NET 2.0 or later should use 2.0
+				Cor20HeaderRuntimeVersion = 0x00020005;	// .NET Framework 2.0 or later should use 2.5
+				TablesHeaderVersion = 0x0200;			// .NET Framework 2.0 or later should use 2.0
 				corLibTypes = new CorLibTypes(this);
 				location = string.Empty;
 				InitializeFromRawRow();

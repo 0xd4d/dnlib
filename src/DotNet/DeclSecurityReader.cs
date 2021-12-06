@@ -89,7 +89,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Reads the new (.NET 2.0+) DeclSecurity blob format
+		/// Reads the new (.NET Framework 2.0+) DeclSecurity blob format
 		/// </summary>
 		/// <returns></returns>
 		IList<SecurityAttribute> ReadBinaryFormat() {
@@ -112,7 +112,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Reads the old (.NET 1.x) DeclSecurity blob format
+		/// Reads the old (.NET Framework 1.x) DeclSecurity blob format
 		/// </summary>
 		/// <returns></returns>
 		IList<SecurityAttribute> ReadXmlFormat() {

@@ -465,7 +465,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// By default, all module and assembly compares when they're both the system library
 		/// (eg. mscorlib or System.Runtime.dll) return true, even if they're really different,
-		/// eg. mscorlib (.NET 2.0) vs mscorlib (Windows CE). If this flag is set, the system
+		/// eg. mscorlib (.NET Framework 2.0) vs mscorlib (Windows CE). If this flag is set, the system
 		/// library is compared just like any other module/assembly.
 		/// </summary>
 		MscorlibIsNotSpecial = 0x100000,
@@ -476,7 +476,7 @@ namespace dnlib.DotNet {
 		DontProjectWinMDRefs = 0x200000,
 
 		/// <summary>
-		/// Don't check type equivalence when comparing types. Starting with .NET 4.0, two different
+		/// Don't check type equivalence when comparing types. Starting with .NET Framework 4.0, two different
 		/// types can be considered equivalent if eg. a TypeIdentifierAttribute is used.
 		/// </summary>
 		DontCheckTypeEquivalence = 0x400000,

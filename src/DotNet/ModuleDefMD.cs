@@ -1495,7 +1495,7 @@ namespace dnlib.DotNet {
 			return new EmbeddedResourceMD(this, mr, Array2.Empty<byte>());
 		}
 
-		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET 4.0
+		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET Framework 4.0
 		bool TryCreateResourceStream(uint offset, out DataReaderFactory dataReaderFactory, out uint resourceOffset, out uint resourceLength) {
 			dataReaderFactory = null;
 			resourceOffset = 0;

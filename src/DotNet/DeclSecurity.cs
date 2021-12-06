@@ -109,7 +109,7 @@ namespace dnlib.DotNet {
 		public abstract byte[] GetBlob();
 
 		/// <summary>
-		/// Returns the .NET 1.x XML string or null if it's not a .NET 1.x format
+		/// Returns the .NET Framework 1.x XML string or null if it's not a .NET Framework 1.x format
 		/// </summary>
 		/// <returns></returns>
 		public string GetNet1xXmlString() => GetNet1xXmlStringInternal(SecurityAttributes);

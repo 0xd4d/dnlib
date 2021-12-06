@@ -71,7 +71,7 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
-		// .NET 4.5 and later have the documented SetMethodBody() method.
+		// .NET Framework 4.5 and later have the documented SetMethodBody() method.
 		static Type GetTypeNET45(TypeBuilder tb, MethodBuilder mb, IntPtr address) {
 			var code = new byte[1] { 0x2A };
 			int maxStack = 8;
@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Emit {
 			return createdMethod.GetMethodBody().LocalVariables[0].LocalType;
 		}
 
-		// This code works with .NET 4.0+ but will throw an exception if .NET 2.0 is used
+		// This code works with .NET Framework 4.0+ but will throw an exception if .NET Framework 2.0 is used
 		// ("operation could destabilize the runtime")
 		static Type GetTypeNET40(TypeBuilder tb, MethodBuilder mb, IntPtr address) {
 			var ilg = mb.GetILGenerator();
@@ -109,7 +109,7 @@ namespace dnlib.DotNet.Emit {
 			return createdMethod.GetMethodBody().LocalVariables[0].LocalType;
 		}
 
-		// .NET 2.0 - 3.5
+		// .NET Framework 2.0 - 3.5
 		static Type GetTypeNET20(IntPtr address) {
 			if (ptrFieldInfo is null)
 				return null;

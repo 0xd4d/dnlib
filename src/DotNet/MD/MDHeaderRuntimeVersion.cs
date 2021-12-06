@@ -6,37 +6,37 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	public static class MDHeaderRuntimeVersion {
 		/// <summary>
-		/// MS CLR 1.0 version string (.NET 1.0)
+		/// MS CLR 1.0 version string (.NET Framework 1.0)
 		/// </summary>
 		public const string MS_CLR_10 = "v1.0.3705";
 
 		/// <summary>
-		/// MS CLR 1.0 version string (.NET 1.0). This is an incorrect version that shouldn't be used.
+		/// MS CLR 1.0 version string (.NET Framework 1.0). This is an incorrect version that shouldn't be used.
 		/// </summary>
 		public const string MS_CLR_10_X86RETAIL = "v1.x86ret";
 
 		/// <summary>
-		/// MS CLR 1.0 version string (.NET 1.0). This is an incorrect version that shouldn't be used.
+		/// MS CLR 1.0 version string (.NET Framework 1.0). This is an incorrect version that shouldn't be used.
 		/// </summary>
 		public const string MS_CLR_10_RETAIL = "retail";
 
 		/// <summary>
-		/// MS CLR 1.0 version string (.NET 1.0). This is an incorrect version that shouldn't be used.
+		/// MS CLR 1.0 version string (.NET Framework 1.0). This is an incorrect version that shouldn't be used.
 		/// </summary>
 		public const string MS_CLR_10_COMPLUS = "COMPLUS";
 
 		/// <summary>
-		/// MS CLR 1.1 version string (.NET 1.1)
+		/// MS CLR 1.1 version string (.NET Framework 1.1)
 		/// </summary>
 		public const string MS_CLR_11 = "v1.1.4322";
 
 		/// <summary>
-		/// MS CLR 2.0 version string (.NET 2.0-3.5)
+		/// MS CLR 2.0 version string (.NET Framework 2.0-3.5)
 		/// </summary>
 		public const string MS_CLR_20 = "v2.0.50727";
 
 		/// <summary>
-		/// MS CLR 4.0 version string (.NET 4.0-4.5)
+		/// MS CLR 4.0 version string (.NET Framework 4.0-4.5)
 		/// </summary>
 		public const string MS_CLR_40 = "v4.0.30319";
 

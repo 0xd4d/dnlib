@@ -476,13 +476,13 @@ namespace dnlib.DotNet.Emit {
 
 		SR.MethodInfo GetVarArgMethod(object obj) {
 			if (vamDynamicMethodFieldInfo.Exists(obj)) {
-				// .NET 4.0+
+				// .NET Framework 4.0+
 				var method = vamMethodFieldInfo.Read(obj) as SR.MethodInfo;
 				var dynMethod = vamDynamicMethodFieldInfo.Read(obj) as DynamicMethod;
 				return dynMethod ?? method;
 			}
 			else {
-				// .NET 2.0
+				// .NET Framework 2.0
 				// This is either a DynamicMethod or a MethodInfo
 				return vamMethodFieldInfo.Read(obj) as SR.MethodInfo;
 			}

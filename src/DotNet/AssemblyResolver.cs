@@ -156,8 +156,8 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// <c>true</c> if resolved .NET framework assemblies can be redirected to the source
-		/// module's framework assembly version. Eg. if a resolved .NET 3.5 assembly can be
-		/// redirected to a .NET 4.0 assembly if the source module is a .NET 4.0 assembly. This is
+		/// module's framework assembly version. Eg. if a resolved .NET Framework 3.5 assembly can be
+		/// redirected to a .NET Framework 4.0 assembly if the source module is a .NET Framework 4.0 assembly. This is
 		/// ignored if <see cref="FindExactMatch"/> is <c>true</c>.
 		/// </summary>
 		public bool EnableFrameworkRedirect {
@@ -585,7 +585,7 @@ namespace dnlib.DotNet {
 
 		IEnumerable<GacInfo> GetGacInfos(ModuleDef sourceModule) {
 			int version = sourceModule is null ? int.MinValue : sourceModule.IsClr40 ? 4 : 2;
-			// Try the correct GAC first (eg. GAC4 if it's a .NET 4 assembly)
+			// Try the correct GAC first (eg. GAC4 if it's a .NET Framework 4 assembly)
 			foreach (var gacInfo in gacInfos) {
 				if (gacInfo.Version == version)
 					yield return gacInfo;
