@@ -34,7 +34,7 @@ namespace dnlib.DotNet.Emit {
 		public Instruction HandlerEnd;
 
 		/// <summary>
-		/// The catch type if <see cref="HandlerType"/> is <see cref="ExceptionHandlerType.Catch"/>
+		/// The catch type if <see cref="IsCatch"/> is <see langword="true" />
 		/// </summary>
 		public ITypeDefOrRef CatchType;
 
@@ -43,6 +43,26 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		public ExceptionHandlerType HandlerType;
 
+		/// <summary>
+		/// Checks if it's a `catch` handler
+		/// </summary>
+		public bool IsCatch => ((uint)HandlerType & 7) == (uint)ExceptionHandlerType.Catch;
+
+		/// <summary>
+		/// Checks if it's a `filter` handler
+		/// </summary>
+		public bool IsFilter => (HandlerType & ExceptionHandlerType.Filter) != 0;
+
+		/// <summary>
+		/// Checks if it's a `finally` handler
+		/// </summary>
+		public bool IsFinally => (HandlerType & ExceptionHandlerType.Finally) != 0;
+
+		/// <summary>
+		/// Checks if it's a `fault` handler
+		/// </summary>
+		public bool IsFault => (HandlerType & ExceptionHandlerType.Fault) != 0;
+		
 		/// <summary>
 		/// Default constructor
 		/// </summary>

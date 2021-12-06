@@ -265,9 +265,9 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32(offs1);
 				writer.WriteUInt32(offs2 - offs1);
 
-				if (eh.HandlerType == ExceptionHandlerType.Catch)
+				if (eh.IsCatch)
 					writer.WriteUInt32(helper.GetToken(eh.CatchType).Raw);
-				else if (eh.HandlerType == ExceptionHandlerType.Filter)
+				else if (eh.IsFilter)
 					writer.WriteUInt32(GetOffset2(eh.FilterStart));
 				else
 					writer.WriteInt32(0);
@@ -310,9 +310,9 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt16((ushort)offs1);
 				writer.WriteByte((byte)(offs2 - offs1));
 
-				if (eh.HandlerType == ExceptionHandlerType.Catch)
+				if (eh.IsCatch)
 					writer.WriteUInt32(helper.GetToken(eh.CatchType).Raw);
-				else if (eh.HandlerType == ExceptionHandlerType.Filter)
+				else if (eh.IsFilter)
 					writer.WriteUInt32(GetOffset2(eh.FilterStart));
 				else
 					writer.WriteInt32(0);

@@ -494,9 +494,9 @@ namespace dnlib.DotNet.Emit {
 				offs = ehReader.ReadUInt32();
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadUInt32());
-				if (eh.HandlerType == ExceptionHandlerType.Catch)
+				if (eh.IsCatch)
 					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32(), gpContext) as ITypeDefOrRef;
-				else if (eh.HandlerType == ExceptionHandlerType.Filter)
+				else if (eh.IsFilter)
 					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else
 					ehReader.ReadUInt32();
@@ -515,9 +515,9 @@ namespace dnlib.DotNet.Emit {
 				offs = ehReader.ReadUInt16();
 				eh.HandlerStart = GetInstruction(offs);
 				eh.HandlerEnd = GetInstruction(offs + ehReader.ReadByte());
-				if (eh.HandlerType == ExceptionHandlerType.Catch)
+				if (eh.IsCatch)
 					eh.CatchType = opResolver.ResolveToken(ehReader.ReadUInt32(), gpContext) as ITypeDefOrRef;
-				else if (eh.HandlerType == ExceptionHandlerType.Filter)
+				else if (eh.IsFilter)
 					eh.FilterStart = GetInstruction(ehReader.ReadUInt32());
 				else
 					ehReader.ReadUInt32();

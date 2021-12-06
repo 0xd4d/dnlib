@@ -77,7 +77,7 @@ namespace dnlib.DotNet.Writer {
 					currentMaxStack = 1;
 				}
 				if ((instr = eh.HandlerStart) is not null) {
-					bool pushed = eh.HandlerType == ExceptionHandlerType.Catch || eh.HandlerType == ExceptionHandlerType.Filter;
+					bool pushed = eh.IsCatch || eh.IsFilter;
 					if (pushed) {
 						stackHeights[instr] = 1;
 						currentMaxStack = 1;

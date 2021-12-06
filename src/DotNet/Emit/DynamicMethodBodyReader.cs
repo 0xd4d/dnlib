@@ -326,9 +326,9 @@ namespace dnlib.DotNet.Emit {
 						eh.HandlerStart = GetInstructionThrow((uint)offs);
 						eh.HandlerEnd = GetInstruction((uint)(reader.ReadByte() + offs));
 
-						if (eh.HandlerType == ExceptionHandlerType.Catch)
+						if (eh.IsCatch)
 							eh.CatchType = ReadToken(reader.ReadUInt32()) as ITypeDefOrRef;
-						else if (eh.HandlerType == ExceptionHandlerType.Filter)
+						else if (eh.IsFilter)
 							eh.FilterStart = GetInstruction(reader.ReadUInt32());
 						else
 							reader.ReadUInt32();
@@ -351,9 +351,9 @@ namespace dnlib.DotNet.Emit {
 						eh.HandlerStart = GetInstructionThrow((uint)offs);
 						eh.HandlerEnd = GetInstruction((uint)(reader.ReadUInt32() + offs));
 
-						if (eh.HandlerType == ExceptionHandlerType.Catch)
+						if (eh.IsCatch)
 							eh.CatchType = ReadToken(reader.ReadUInt32()) as ITypeDefOrRef;
-						else if (eh.HandlerType == ExceptionHandlerType.Filter)
+						else if (eh.IsFilter)
 							eh.FilterStart = GetInstruction(reader.ReadUInt32());
 						else
 							reader.ReadUInt32();
@@ -371,7 +371,7 @@ namespace dnlib.DotNet.Emit {
 						var eh = new ExceptionHandler();
 						eh.HandlerType = (ExceptionHandlerType)ehInfo.Type[i];
 						eh.TryStart = tryStart;
-						eh.TryEnd = eh.HandlerType == ExceptionHandlerType.Finally ? endFinally : tryEnd;
+						eh.TryEnd = eh.IsFinally ? endFinally : tryEnd;
 						eh.FilterStart = null;	// not supported by DynamicMethod.ILGenerator
 						eh.HandlerStart = GetInstructionThrow((uint)ehInfo.CatchAddr[i]);
 						eh.HandlerEnd = GetInstruction((uint)ehInfo.CatchEndAddr[i]);

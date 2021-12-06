@@ -513,7 +513,7 @@ namespace dnlib.DotNet.Emit {
 			if (handlerEnd <= handlerStart)
 				return false;
 
-			if (eh.HandlerType == ExceptionHandlerType.Filter) {
+			if (eh.IsFilter) {
 				if (eh.FilterStart is null)
 					return false;
 				if (eh.FilterStart.Offset >= handlerStart)
