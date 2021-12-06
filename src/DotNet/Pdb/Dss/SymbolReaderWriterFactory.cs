@@ -24,6 +24,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[DllImport("Microsoft.DiaSymReader.Native.arm.dll", EntryPoint = "CreateSymReader")]
 		static extern void CreateSymReader_arm(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
 
+		[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories | DllImportSearchPath.AssemblyDirectory)]
+		[DllImport("Microsoft.DiaSymReader.Native.arm64.dll", EntryPoint = "CreateSymReader")]
+		static extern void CreateSymReader_arm64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
+
 		[DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
 		[DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
 		static extern void CreateSymWriter_x86(ref Guid guid, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
@@ -35,6 +39,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
 		[DllImport("Microsoft.DiaSymReader.Native.arm.dll", EntryPoint = "CreateSymWriter")]
 		static extern void CreateSymWriter_arm(ref Guid guid, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
+
+		[DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
+		[DllImport("Microsoft.DiaSymReader.Native.arm64.dll", EntryPoint = "CreateSymWriter")]
+		static extern void CreateSymWriter_arm64(ref Guid guid, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
 		static readonly Guid CLSID_CorSymReader_SxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
 		static Type CorSymReader_Type;
@@ -116,6 +124,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 						CreateSymReader_arm(ref guid, out symReaderObj);
 						break;
 
+					case Machine.ARM64:
+						CreateSymReader_arm64(ref guid, out symReaderObj);
+						break;
+
 					default:
 						Debug.Fail($"Microsoft.DiaSymReader.Native doesn't support this CPU arch: {machine}");
 						symReaderObj = null;
@@ -158,6 +170,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 					case Machine.ARMNT:
 						CreateSymWriter_arm(ref guid, out symWriterObj);
+						break;
+
+					case Machine.ARM64:
+						CreateSymWriter_arm64(ref guid, out symWriterObj);
 						break;
 
 					default:
