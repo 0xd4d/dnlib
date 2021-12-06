@@ -195,7 +195,8 @@ namespace dnlib.DotNet.MD {
 
 				// RTSpecialName is ignored by the CLR. It's only the name that indicates
 				// whether it's been deleted.
-				if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
+				// It's not possible to delete the global type (<Module>)
+				if (rid != 1 && stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
 					continue;	// ignore this deleted row
 				list.Add(rid);
 			}
