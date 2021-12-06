@@ -8,7 +8,7 @@ namespace dnlib.PE {
 	/// </summary>
 	interface IPEType {
 		/// <summary>
-		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>
+		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>, returns 0 if out of range
 		/// </summary>
 		/// <param name="peInfo">The PEInfo context</param>
 		/// <param name="offset">The file offset to convert</param>
@@ -16,7 +16,7 @@ namespace dnlib.PE {
 		RVA ToRVA(PEInfo peInfo, FileOffset offset);
 
 		/// <summary>
-		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>
+		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>, returns 0 if out of range
 		/// </summary>
 		/// <param name="peInfo">The PEInfo context</param>
 		/// <param name="rva">The RVA to convert</param>

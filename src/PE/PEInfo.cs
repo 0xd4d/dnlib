@@ -5,7 +5,7 @@ using dnlib.IO;
 
 namespace dnlib.PE {
 	/// <summary>
-	/// Reads all PE sections from a PE stream
+	/// Reads all PE sections from a PE stream, for more information see https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
 	/// </summary>
 	sealed class PEInfo {
 		readonly ImageDosHeader imageDosHeader;
@@ -64,7 +64,7 @@ namespace dnlib.PE {
 		/// <returns></returns>
 		public ImageSectionHeader ToImageSectionHeader(FileOffset offset) {
 			foreach (var section in imageSectionHeaders) {
-				if ((long)offset >= section.PointerToRawData && (long)offset < section.PointerToRawData + section.SizeOfRawData)
+				if ((uint)offset >= section.PointerToRawData && (uint)offset < section.PointerToRawData + section.SizeOfRawData)
 					return section;
 			}
 			return null;
@@ -77,34 +77,58 @@ namespace dnlib.PE {
 		/// <param name="rva">The RVA</param>
 		/// <returns></returns>
 		public ImageSectionHeader ToImageSectionHeader(RVA rva) {
+			uint alignment = imageNTHeaders.OptionalHeader.SectionAlignment;
 			foreach (var section in imageSectionHeaders) {
-				if (rva >= section.VirtualAddress && rva < section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData))
+				if (rva >= section.VirtualAddress && rva < section.VirtualAddress + DotNet.Utils.AlignUp(section.VirtualSize, alignment))
 					return section;
 			}
 			return null;
 		}
 
 		/// <summary>
-		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>
+		/// Converts a <see cref="FileOffset"/> to an <see cref="RVA"/>, returns 0 if out of range
 		/// </summary>
 		/// <param name="offset">The file offset to convert</param>
 		/// <returns>The RVA</returns>
 		public RVA ToRVA(FileOffset offset) {
+			// In pe headers
+			if (imageSectionHeaders.Length == 0)
+				return (RVA)offset;
+
+			// In pe additional data, like digital signature, won't be loaded into memory
+			var lastSection = imageSectionHeaders[imageSectionHeaders.Length - 1];
+			if ((uint)offset > lastSection.PointerToRawData + lastSection.SizeOfRawData)
+				return 0;
+
+			// In a section
 			var section = ToImageSectionHeader(offset);
 			if (section is not null)
 				return (uint)(offset - section.PointerToRawData) + section.VirtualAddress;
+
+			// In pe headers
 			return (RVA)offset;
 		}
 
 		/// <summary>
-		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>
+		/// Converts an <see cref="RVA"/> to a <see cref="FileOffset"/>, returns 0 if out of range
 		/// </summary>
 		/// <param name="rva">The RVA to convert</param>
 		/// <returns>The file offset</returns>
 		public FileOffset ToFileOffset(RVA rva) {
+			// Check if rva is larger than memory layout size
+			if ((uint)rva >= imageNTHeaders.OptionalHeader.SizeOfImage)
+				return 0;
+
 			var section = ToImageSectionHeader(rva);
-			if (section is not null)
-				return (FileOffset)(rva - section.VirtualAddress + section.PointerToRawData);
+			if (section is not null) {
+				uint offset = rva - section.VirtualAddress;
+				// Virtual size may be bigger than raw size and there may be no corresponding file offset to rva
+				if (offset < section.SizeOfRawData)
+					return (FileOffset)offset + section.PointerToRawData;
+				return 0;
+			}
+
+			// If not in any section, rva is in pe headers and don't convert it
 			return (FileOffset)rva;
 		}
 
@@ -118,13 +142,12 @@ namespace dnlib.PE {
 		public uint GetImageSize() {
 			var optHdr = ImageNTHeaders.OptionalHeader;
 			uint alignment = optHdr.SectionAlignment;
-			ulong length = AlignUp(optHdr.SizeOfHeaders, alignment);
-			foreach (var section in imageSectionHeaders) {
-				ulong length2 = AlignUp((ulong)section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData), alignment);
-				if (length2 > length)
-					length = length2;
-			}
-			return (uint)Math.Min(length, uint.MaxValue);
+			if (imageSectionHeaders.Length == 0)
+				return (uint)AlignUp(optHdr.SizeOfHeaders, alignment);
+
+			// Section headers must be in ascending order and adjacent
+			var section = imageSectionHeaders[imageSectionHeaders.Length - 1];
+			return (uint)Math.Min(AlignUp((ulong)section.VirtualAddress + section.VirtualSize, alignment), uint.MaxValue);
 		}
 	}
 }

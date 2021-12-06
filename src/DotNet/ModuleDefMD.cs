@@ -1296,8 +1296,12 @@ namespace dnlib.DotNet {
 			// If we create a partial stream starting from rva, then position will be 0 and always
 			// 4-byte aligned. All fat method bodies should be 4-byte aligned, but the CLR doesn't
 			// seem to verify it. We must parse the method exactly the way the CLR parses it.
+			var offset = metadata.PEImage.ToFileOffset(rva);
+			if (offset == 0)
+				return new CilBody();
+
 			var reader = metadata.PEImage.CreateReader();
-			reader.Position = (uint)metadata.PEImage.ToFileOffset(rva);
+			reader.Position = (uint)offset;
 			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext, Context);
 		}
 
