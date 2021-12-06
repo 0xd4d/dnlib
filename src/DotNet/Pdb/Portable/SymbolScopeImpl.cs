@@ -54,24 +54,22 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		Metadata constantsMetadata;
-		uint constantList;
-		uint constantListEnd;
+		RidList constantRidList;
 
-		internal void SetConstants(Metadata metadata, uint constantList, uint constantListEnd) {
+		internal void SetConstants(Metadata metadata, RidList rids) {
 			constantsMetadata = metadata;
-			this.constantList = constantList;
-			this.constantListEnd = constantListEnd;
+			constantRidList = rids;
 		}
 
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
-			if (constantList >= constantListEnd)
+			if (constantRidList.Count == 0)
 				return Array2.Empty<PdbConstant>();
 			Debug.Assert(constantsMetadata is not null);
 
-			var res = new PdbConstant[constantListEnd - constantList];
+			var res = new PdbConstant[constantRidList.Count];
 			int w = 0;
 			for (int i = 0; i < res.Length; i++) {
-				uint rid = constantList + (uint)i;
+				uint rid = constantRidList[i];
 				bool b = constantsMetadata.TablesStream.TryReadLocalConstantRow(rid, out var row);
 				Debug.Assert(b);
 				var name = constantsMetadata.StringsStream.Read(row.Name);

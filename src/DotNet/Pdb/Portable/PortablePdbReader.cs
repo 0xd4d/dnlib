@@ -245,27 +245,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 						parent.childrenList.Add(scope);
 
 					scope.importScope = ReadPdbImportScope(ref importScopeBlobReader, row.ImportScope, gpContext);
-					GetEndOfLists(rid, out uint variableListEnd, out uint constantListEnd);
-					ReadVariables(scope, gpContext, row.VariableList, variableListEnd);
-					ReadConstants(scope, row.ConstantList, constantListEnd);
+					ReadVariables(scope, gpContext, pdbMetadata.GetLocalVariableRidList(rid));
+					ReadConstants(scope, pdbMetadata.GetLocalConstantRidList(rid));
 				}
 
 				ListCache<SymbolScopeImpl>.Free(ref stack);
 				ListCache<PdbCustomDebugInfo>.Free(ref custInfos);
 			}
 			return rootScopeOrNull ?? new SymbolScopeImpl(this, null, 0, int.MaxValue, Array2.Empty<PdbCustomDebugInfo>());
-		}
-
-		void GetEndOfLists(uint scopeRid, out uint variableListEnd, out uint constantListEnd) {
-			var nextRid = scopeRid + 1;
-			if (!pdbMetadata.TablesStream.TryReadLocalScopeRow(nextRid, out var row)) {
-				variableListEnd = pdbMetadata.TablesStream.LocalVariableTable.Rows + 1;
-				constantListEnd = pdbMetadata.TablesStream.LocalConstantTable.Rows + 1;
-			}
-			else {
-				variableListEnd = row.VariableList;
-				constantListEnd = row.ConstantList;
-			}
 		}
 
 		PdbImportScope ReadPdbImportScope(ref ImportScopeBlobReader importScopeBlobReader, uint importScope, GenericParamContext gpContext) {
@@ -295,21 +282,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return result;
 		}
 
-		void ReadVariables(SymbolScopeImpl scope, GenericParamContext gpContext, uint variableList, uint variableListEnd) {
-			if (variableList == 0)
-				return;
-			Debug.Assert(variableList <= variableListEnd);
-			if (variableList >= variableListEnd)
+		void ReadVariables(SymbolScopeImpl scope, GenericParamContext gpContext, RidList rids) {
+			if (rids.Count == 0)
 				return;
 			var table = pdbMetadata.TablesStream.LocalVariableTable;
-			Debug.Assert(table.IsValidRID(variableListEnd - 1));
-			if (!table.IsValidRID(variableListEnd - 1))
-				return;
-			Debug.Assert(table.IsValidRID(variableList));
-			if (!table.IsValidRID(variableList))
-				return;
 			var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
-			for (uint rid = variableList; rid < variableListEnd; rid++) {
+			for (int i = 0; i < rids.Count; i++) {
+				var rid = rids[i];
 				int token = new MDToken(Table.LocalVariable, rid).ToInt32();
 				custInfos.Clear();
 				GetCustomDebugInfos(token, gpContext, custInfos);
@@ -330,20 +309,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return res;
 		}
 
-		void ReadConstants(SymbolScopeImpl scope, uint constantList, uint constantListEnd) {
-			if (constantList == 0)
+		void ReadConstants(SymbolScopeImpl scope, RidList rids) {
+			if (rids.Count == 0)
 				return;
-			Debug.Assert(constantList <= constantListEnd);
-			if (constantList >= constantListEnd)
-				return;
-			var table = pdbMetadata.TablesStream.LocalConstantTable;
-			Debug.Assert(table.IsValidRID(constantListEnd - 1));
-			if (!table.IsValidRID(constantListEnd - 1))
-				return;
-			Debug.Assert(table.IsValidRID(constantList));
-			if (!table.IsValidRID(constantList))
-				return;
-			scope.SetConstants(pdbMetadata, constantList, constantListEnd);
+			scope.SetConstants(pdbMetadata, rids);
 		}
 
 		internal void GetCustomDebugInfos(SymbolMethodImpl symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
