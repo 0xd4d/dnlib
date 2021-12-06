@@ -91,19 +91,22 @@ namespace dnlib.PE {
 		/// <param name="offset">The file offset to convert</param>
 		/// <returns>The RVA</returns>
 		public RVA ToRVA(FileOffset offset) {
+			// In pe headers
 			if (imageSectionHeaders.Length == 0)
 				return (RVA)offset;
-			// In pe headers
+
+			// In pe additional data, like digital signature, won't be loaded into memory
 			var lastSection = imageSectionHeaders[imageSectionHeaders.Length - 1];
 			if ((uint)offset > lastSection.PointerToRawData + lastSection.SizeOfRawData)
 				return 0;
-			// In pe additional data, like digital signature, won't be loaded into memory
+
+			// In a section
 			var section = ToImageSectionHeader(offset);
 			if (section is not null)
 				return (uint)(offset - section.PointerToRawData) + section.VirtualAddress;
-			// In a section
-			return (RVA)offset;
+
 			// In pe headers
+			return (RVA)offset;
 		}
 
 		/// <summary>
@@ -112,19 +115,21 @@ namespace dnlib.PE {
 		/// <param name="rva">The RVA to convert</param>
 		/// <returns>The file offset</returns>
 		public FileOffset ToFileOffset(RVA rva) {
+			// Check if rva is larger than memory layout size
 			if ((uint)rva >= imageNTHeaders.OptionalHeader.SizeOfImage)
 				return 0;
-			// Check if rva is larger than memory layout size
+
 			var section = ToImageSectionHeader(rva);
 			if (section is not null) {
 				uint offset = rva - section.VirtualAddress;
+				// Virtual size may be bigger than raw size and there may be no corresponding file offset to rva
 				if (offset < section.SizeOfRawData)
 					return (FileOffset)offset + section.PointerToRawData;
-				// Virtual size may be bigger than raw size and there may be no corresponding file offset to rva
 				return 0;
 			}
-			return (FileOffset)rva;
+
 			// If not in any section, rva is in pe headers and don't convert it
+			return (FileOffset)rva;
 		}
 
 		static ulong AlignUp(ulong val, uint alignment) => (val + alignment - 1) & ~(ulong)(alignment - 1);
@@ -139,8 +144,9 @@ namespace dnlib.PE {
 			uint alignment = optHdr.SectionAlignment;
 			if (imageSectionHeaders.Length == 0)
 				return (uint)AlignUp(optHdr.SizeOfHeaders, alignment);
-			var section = imageSectionHeaders[imageSectionHeaders.Length - 1];
+
 			// Section headers must be in ascending order and adjacent
+			var section = imageSectionHeaders[imageSectionHeaders.Length - 1];
 			return (uint)Math.Min(AlignUp((ulong)section.VirtualAddress + section.VirtualSize, alignment), uint.MaxValue);
 		}
 	}
