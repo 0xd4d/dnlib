@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace dnlib.DotNet.MD {
 	/// <summary>
@@ -12,7 +13,7 @@ namespace dnlib.DotNet.MD {
 		bool bigGuid;
 		bool bigBlob;
 		bool forceAllBig;
-		TableInfo[] tableInfos;
+		TableInfo[]? tableInfos;
 
 		internal static bool IsSystemTable(Table table) => table < Table.Document;
 
@@ -37,6 +38,8 @@ namespace dnlib.DotNet.MD {
 		/// <param name="debugRowCounts">Count of rows in each table (debug tables)</param>
 		/// <param name="forceAllBig">Force all columns to 4 bytes instead of 2 or 4 bytes</param>
 		internal void InitializeSizes(bool bigStrings, bool bigGuid, bool bigBlob, IList<uint> systemRowCounts, IList<uint> debugRowCounts, bool forceAllBig) {
+			if (tableInfos is null)
+				throw new InvalidOperationException();
 			this.bigStrings = bigStrings || forceAllBig;
 			this.bigGuid = bigGuid || forceAllBig;
 			this.bigBlob = bigBlob || forceAllBig;

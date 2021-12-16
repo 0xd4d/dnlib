@@ -24,12 +24,12 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the first instruction
 		/// </summary>
-		public Instruction Start { get; set; }
+		public Instruction? Start { get; set; }
 
 		/// <summary>
 		/// Gets/sets the last instruction. It's <c>null</c> if it ends at the end of the method.
 		/// </summary>
-		public Instruction End { get; set; }
+		public Instruction? End { get; set; }
 
 		/// <summary>
 		/// Gets all child scopes
@@ -64,7 +64,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the import scope (Portable PDBs). Windows PDBs use <see cref="Namespaces"/>
 		/// </summary>
-		public PdbImportScope ImportScope { get; set; }
+		public PdbImportScope? ImportScope { get; set; }
 
 		/// <summary>
 		/// Gets all constants

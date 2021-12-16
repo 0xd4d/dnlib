@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Pdb {
 	public sealed class PdbConstant : IHasCustomDebugInformation {
 		string name;
 		TypeSig type;
-		object value;
+		object? value;
 
 		/// <summary>
 		/// Gets/sets the name
@@ -30,15 +30,9 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the value of the constant
 		/// </summary>
-		public object Value {
+		public object? Value {
 			get => value;
 			set => this.value = value;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbConstant() {
 		}
 
 		/// <summary>
@@ -47,7 +41,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="name">Name of constant</param>
 		/// <param name="type">Type of constant</param>
 		/// <param name="value">Constant value</param>
-		public PdbConstant(string name, TypeSig type, object value) {
+		public PdbConstant(string name, TypeSig type, object? value) {
 			this.name = name;
 			this.type = type;
 			this.value = value;

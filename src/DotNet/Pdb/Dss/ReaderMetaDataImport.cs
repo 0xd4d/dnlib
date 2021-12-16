@@ -75,7 +75,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		void Dispose(bool disposing) {
-			metadata = null;
+			metadata = null!;
 			var addrToFreeTmp = Interlocked.Exchange(ref addrToFree, IntPtr.Zero);
 			blobPtr = null;
 			if (addrToFreeTmp != IntPtr.Zero)

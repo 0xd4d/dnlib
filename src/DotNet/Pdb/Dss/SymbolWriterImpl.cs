@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -11,8 +12,8 @@ using dnlib.DotNet.Writer;
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolWriterImpl : SymbolWriter {
 		readonly ISymUnmanagedWriter2 writer;
-		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;
-		readonly string pdbFileName;
+		readonly ISymUnmanagedAsyncMethodPropertiesWriter? asyncMethodWriter;
+		readonly string? pdbFileName;
 		readonly Stream pdbStream;
 		readonly bool ownsStream;
 		readonly bool isDeterministic;
@@ -21,7 +22,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override bool IsDeterministic => isDeterministic;
 		public override bool SupportsAsyncMethods => asyncMethodWriter is not null;
 
-		public SymbolWriterImpl(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
+		public SymbolWriterImpl(ISymUnmanagedWriter2 writer, string? pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
 			asyncMethodWriter = writer as ISymUnmanagedAsyncMethodPropertiesWriter;
 			this.pdbStream = pdbStream ?? throw new ArgumentNullException(nameof(pdbStream));
@@ -58,7 +59,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		public override ISymbolDocumentWriter DefineDocument(string url, Guid language, Guid languageVendor, Guid documentType) {
 			writer.DefineDocument(url, ref language, ref languageVendor, ref documentType, out var unDocWriter);
-			return unDocWriter is null ? null : new SymbolDocumentWriter(unDocWriter);
+			return new SymbolDocumentWriter(unDocWriter ?? throw new InvalidOperationException());
 		}
 
 		public override void DefineKickoffMethod(uint kickoffMethod) {
@@ -85,7 +86,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override void SetUserEntryPoint(MDToken entryMethod) => writer.SetUserEntryPoint(entryMethod.Raw);
 		public override void UsingNamespace(string fullName) => writer.UsingNamespace(fullName);
 
-		public override unsafe bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[] codeViewData) {
+		public override unsafe bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, [NotNullWhen(false)] out byte[]? codeViewData) {
 			pIDD = default;
 			codeViewData = null;
 

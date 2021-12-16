@@ -13,9 +13,9 @@ namespace dnlib.DotNet.Pdb {
 	/// PDB state for a <see cref="ModuleDef"/>
 	/// </summary>
 	public sealed class PdbState {
-		readonly SymbolReader reader;
+		readonly SymbolReader? reader;
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
-		MethodDef userEntryPoint;
+		MethodDef? userEntryPoint;
 		readonly Compiler compiler;
 		readonly PdbFileKind originalPdbFileKind;
 
@@ -32,7 +32,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the user entry point method.
 		/// </summary>
-		public MethodDef UserEntryPoint {
+		public MethodDef? UserEntryPoint {
 			get => userEntryPoint;
 			set => userEntryPoint = value;
 		}
@@ -157,7 +157,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="doc">A PDB document</param>
 		/// <returns>The existing <see cref="PdbDocument"/> or <c>null</c> if it doesn't exist.</returns>
-		public PdbDocument GetExisting(PdbDocument doc) {
+		public PdbDocument? GetExisting(PdbDocument doc) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -181,7 +181,7 @@ namespace dnlib.DotNet.Pdb {
 		/// should be returned.</param>
 		/// <returns>All <see cref="PdbDocument"/>s if <paramref name="returnDocs"/> is <c>true</c>
 		/// or <c>null</c> if <paramref name="returnDocs"/> is <c>false</c>.</returns>
-		public List<PdbDocument> RemoveAllDocuments(bool returnDocs) {
+		public List<PdbDocument>? RemoveAllDocuments(bool returnDocs) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -201,10 +201,11 @@ namespace dnlib.DotNet.Pdb {
 
 			var method = reader.GetMethod(ownerMethod, 1);
 			if (method is not null) {
-				var pdbMethod = new PdbMethod();
-				pdbMethod.Scope = CreateScope(module, GenericParamContext.Create(ownerMethod), body, method.RootScope);
-				AddSequencePoints(body, method);
-				body.PdbMethod = pdbMethod;
+				if (CreateScope(module, GenericParamContext.Create(ownerMethod), body, method.RootScope) is PdbScope scope) {
+					var pdbMethod = new PdbMethod(scope);
+					AddSequencePoints(body, method);
+					body.PdbMethod = pdbMethod;
+				}
 			}
 		}
 
@@ -250,8 +251,7 @@ namespace dnlib.DotNet.Pdb {
 				var instr = GetInstruction(body.Instructions, sp.Offset, ref instrIndex);
 				if (instr is null)
 					continue;
-				var seqPoint = new SequencePoint() {
-					Document = Add_NoLock(sp.Document),
+				var seqPoint = new SequencePoint(Add_NoLock(sp.Document)) {
 					StartLine = sp.Line,
 					StartColumn = sp.Column,
 					EndLine = sp.EndLine,
@@ -268,7 +268,7 @@ namespace dnlib.DotNet.Pdb {
 			public int ChildrenIndex;
 		}
 
-		PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, SymbolScope symScope) {
+		PdbScope? CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, SymbolScope symScope) {
 			if (symScope is null)
 				return null;
 
@@ -416,7 +416,7 @@ do_return:
 			goto do_return;
 		}
 
-		static Instruction GetInstruction(IList<Instruction> instrs, int offset, ref int index) {
+		static Instruction? GetInstruction(IList<Instruction> instrs, int offset, ref int index) {
 			if (instrs.Count > 0 && offset > instrs[instrs.Count - 1].Offset)
 				return null;
 			for (int i = index; i < instrs.Count; i++) {

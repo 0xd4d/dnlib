@@ -118,7 +118,7 @@ namespace dnlib.DotNet.Emit {
 	public sealed class Local : IVariable {
 		TypeSig typeSig;
 		int index;
-		string name;
+		string? name;
 		PdbLocalAttributes attributes;
 
 		/// <summary>
@@ -140,7 +140,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the name. This property is obsolete, use <see cref="PdbLocal"/> to get/set the name stored in the PDB file.
 		/// </summary>
-		public string Name {
+		public string? Name {
 			get => name;
 			set => name = value;
 		}

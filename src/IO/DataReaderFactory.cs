@@ -13,7 +13,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
-		public abstract string Filename { get; }
+		public abstract string? Filename { get; }
 
 		/// <summary>
 		/// Gets the total length of the data

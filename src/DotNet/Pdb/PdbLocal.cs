@@ -11,12 +11,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbLocal() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="local"></param>
 		/// <param name="name"></param>
 		/// <param name="attributes"></param>

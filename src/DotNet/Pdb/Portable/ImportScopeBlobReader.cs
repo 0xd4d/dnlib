@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var kind = ImportDefinitionKindUtils.ToPdbImportDefinitionKind(reader.ReadCompressedUInt32());
 				string targetNamespace, alias;
 				AssemblyRef targetAssembly;
-				PdbImport import;
+				PdbImport? import;
 				ITypeDefOrRef targetType;
 				switch (kind) {
 				case PdbImportDefinitionKind.ImportNamespace:
@@ -112,7 +112,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			bool b = CodedToken.TypeDefOrRef.Decode(codedToken, out uint token);
 			Debug.Assert(b);
 			if (!b)
-				return null;
+				return module.CorLibTypes.Void.TypeDefOrRef;
 			var type = module.ResolveToken(token) as ITypeDefOrRef;
 			Debug.Assert(type is not null);
 			return type;

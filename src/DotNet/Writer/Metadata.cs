@@ -3463,7 +3463,7 @@ namespace dnlib.DotNet.Writer {
 		static readonly byte[] directorySeparatorCharUtf8 = Encoding.UTF8.GetBytes(Path.DirectorySeparatorChar.ToString());
 		static readonly char[] directorySeparatorCharArray = new char[] { Path.DirectorySeparatorChar };
 
-		uint AddImportScope(PdbImportScope scope) {
+		uint AddImportScope(PdbImportScope? scope) {
 			Debug.Assert(debugMetadata is not null);
 			if (scope is null)
 				return 0;

@@ -17,7 +17,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// The opcode operand
 		/// </summary>
-		public object Operand;
+		public object? Operand;
 
 		/// <summary>
 		/// Offset of the instruction in the method body
@@ -27,7 +27,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// PDB sequence point or <c>null</c> if none
 		/// </summary>
-		public SequencePoint SequencePoint;
+		public SequencePoint? SequencePoint;
 
 		/// <summary>
 		/// Default constructor
@@ -325,7 +325,7 @@ namespace dnlib.DotNet.Emit {
 				return opCode.Size;
 
 			case OperandType.InlineSwitch:
-				var targets = Operand as IList<Instruction>;
+				var targets = Operand as IList<Instruction?>;
 				return opCode.Size + 4 + (targets is null ? 0 : targets.Count * 4);
 
 			case OperandType.InlineVar:
@@ -391,7 +391,7 @@ namespace dnlib.DotNet.Emit {
 			if (code == Code.Jmp)
 				return;
 
-			MethodSig sig;
+			MethodSig? sig;
 			var op = Operand;
 			if (op is IMethod method)
 				sig = method.MethodSig;
@@ -584,8 +584,8 @@ namespace dnlib.DotNet.Emit {
 				Code.Ldc_I4_6 => 6,
 				Code.Ldc_I4_7 => 7,
 				Code.Ldc_I4_8 => 8,
-				Code.Ldc_I4_S => (sbyte)Operand,
-				Code.Ldc_I4 => (int)Operand,
+				Code.Ldc_I4_S => (sbyte)Operand!,
+				Code.Ldc_I4 => (int)Operand!,
 				_ => throw new InvalidOperationException($"Not a ldc.i4 instruction: {this}"),
 			};
 
@@ -661,7 +661,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="locals">The locals</param>
 		/// <returns>The local or <c>null</c> if it's not a <c>ldloc</c>, <c>stloc</c> or <c>ldloca</c>
 		/// instruction or if the local doesn't exist.</returns>
-		public Local GetLocal(IList<Local> locals) {
+		public Local? GetLocal(IList<Local> locals) {
 			int index;
 			var code = OpCode.Code;
 			switch (code) {
@@ -727,7 +727,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="parameters">All parameters</param>
 		/// <returns>A parameter or <c>null</c> if it doesn't exist</returns>
-		public Parameter GetParameter(IList<Parameter> parameters) {
+		public Parameter? GetParameter(IList<Parameter> parameters) {
 			int i = GetParameterIndex();
 			if ((uint)i < (uint)parameters.Count)
 				return parameters[i];
@@ -740,7 +740,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="methodSig">Method signature</param>
 		/// <param name="declaringType">Declaring type (only needed if it's an instance method)</param>
 		/// <returns>The type or <c>null</c> if it doesn't exist</returns>
-		public TypeSig GetArgumentType(MethodSig methodSig, ITypeDefOrRef declaringType) {
+		public TypeSig? GetArgumentType(MethodSig methodSig, ITypeDefOrRef? declaringType) {
 			if (methodSig is null)
 				return null;
 			int index = GetParameterIndex();
@@ -782,7 +782,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static object GetOperand(this Instruction self) => self?.Operand;
+		public static object? GetOperand(this Instruction self) => self?.Operand;
 
 		/// <summary>
 		/// Gets the offset or 0 if <paramref name="self"/> is <c>null</c>
@@ -796,6 +796,6 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static dnlib.DotNet.Pdb.SequencePoint GetSequencePoint(this Instruction self) => self?.SequencePoint;
+		public static dnlib.DotNet.Pdb.SequencePoint? GetSequencePoint(this Instruction self) => self?.SequencePoint;
 	}
 }

@@ -16,12 +16,12 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// The PE image
 		/// </summary>
-		protected IPEImage peImage;
+		protected IPEImage? peImage;
 
 		/// <summary>
 		/// The .NET header
 		/// </summary>
-		protected ImageCor20Header cor20Header;
+		protected ImageCor20Header? cor20Header;
 
 		/// <summary>
 		/// The MD header
@@ -56,7 +56,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// The #Pdb stream
 		/// </summary>
-		protected PdbStream pdbStream;
+		protected PdbStream? pdbStream;
 
 		/// <summary>
 		/// All the streams that are present in the PE image
@@ -67,17 +67,17 @@ namespace dnlib.DotNet.MD {
 		/// <summary><c>true</c> if this is standalone Portable PDB metadata</summary>
 		protected readonly bool isStandalonePortablePdb;
 
-		uint[] fieldRidToTypeDefRid;
-		uint[] methodRidToTypeDefRid;
-		uint[] eventRidToTypeDefRid;
-		uint[] propertyRidToTypeDefRid;
-		uint[] gpRidToOwnerRid;
-		uint[] gpcRidToOwnerRid;
-		uint[] paramRidToOwnerRid;
-		Dictionary<uint, List<uint>> typeDefRidToNestedClasses;
-		StrongBox<RidList> nonNestedTypes;
+		uint[]? fieldRidToTypeDefRid;
+		uint[]? methodRidToTypeDefRid;
+		uint[]? eventRidToTypeDefRid;
+		uint[]? propertyRidToTypeDefRid;
+		uint[]? gpRidToOwnerRid;
+		uint[]? gpcRidToOwnerRid;
+		uint[]? paramRidToOwnerRid;
+		Dictionary<uint, List<uint>>? typeDefRidToNestedClasses;
+		StrongBox<RidList>? nonNestedTypes;
 
-		DataReaderFactory mdReaderFactoryToDisposeLater;
+		DataReaderFactory? mdReaderFactoryToDisposeLater;
 
 		/// <summary>
 		/// Sorts a table by key column
@@ -118,11 +118,6 @@ namespace dnlib.DotNet.MD {
 			/// <param name="mdTable">The MD table</param>
 			/// <param name="keyColIndex">Index of key column</param>
 			public SortedTable(MDTable mdTable, int keyColIndex) {
-				InitializeKeys(mdTable, keyColIndex);
-				Array.Sort(rows);
-			}
-
-			void InitializeKeys(MDTable mdTable, int keyColIndex) {
 				var keyColumn = mdTable.TableInfo.Columns[keyColIndex];
 				Debug.Assert(keyColumn.Size == 2 || keyColumn.Size == 4);
 				rows = new RowInfo[mdTable.Rows + 1];
@@ -136,6 +131,7 @@ namespace dnlib.DotNet.MD {
 					if (i < mdTable.Rows)
 						reader.Position += increment;
 				}
+				Array.Sort(rows);
 			}
 
 			/// <summary>
@@ -196,7 +192,7 @@ namespace dnlib.DotNet.MD {
 		public override BlobStream BlobStream => blobStream;
 		public override GuidStream GuidStream => guidStream;
 		public override TablesStream TablesStream => tablesStream;
-		public override PdbStream PdbStream => pdbStream;
+		public override PdbStream? PdbStream => pdbStream;
 		public override IList<DotNetStream> AllStreams => allStreams;
 
 		/// <summary>
@@ -205,7 +201,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="peImage">The PE image</param>
 		/// <param name="cor20Header">The .NET header</param>
 		/// <param name="mdHeader">The MD header</param>
-		protected MetadataBase(IPEImage peImage, ImageCor20Header cor20Header, MetadataHeader mdHeader) {
+		protected MetadataBase(IPEImage? peImage, ImageCor20Header cor20Header, MetadataHeader mdHeader) {
 			try {
 				allStreams = new List<DotNetStream>();
 				this.peImage = peImage;
@@ -231,7 +227,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Initializes the metadata, tables, streams
 		/// </summary>
-		public void Initialize(DataReaderFactory mdReaderFactory) {
+		public void Initialize(DataReaderFactory? mdReaderFactory) {
 			mdReaderFactoryToDisposeLater = mdReaderFactory;
 			uint metadataBaseOffset;
 			if (peImage is not null) {
@@ -250,21 +246,10 @@ namespace dnlib.DotNet.MD {
 				throw new BadImageFormatException("Missing MD stream");
 			if (isStandalonePortablePdb && pdbStream is null)
 				throw new BadImageFormatException("Missing #Pdb stream");
-			InitializeNonExistentHeaps();
-		}
-
-		/// <summary>
-		/// Creates empty heap objects if they're not present in the metadata
-		/// </summary>
-		protected void InitializeNonExistentHeaps() {
-			if (stringsStream is null)
-				stringsStream = new StringsStream();
-			if (usStream is null)
-				usStream = new USStream();
-			if (blobStream is null)
-				blobStream = new BlobStream();
-			if (guidStream is null)
-				guidStream = new GuidStream();
+			stringsStream ??= new StringsStream();
+			usStream ??= new USStream();
+			blobStream ??= new BlobStream();
+			guidStream ??= new GuidStream();
 		}
 
 		/// <summary>
@@ -419,7 +404,7 @@ namespace dnlib.DotNet.MD {
 			if (fieldRidToTypeDefRid is null)
 				InitializeInverseFieldOwnerRidList();
 			uint index = fieldRid - 1;
-			if (index >= fieldRidToTypeDefRid.LongLength)
+			if (index >= fieldRidToTypeDefRid!.LongLength)
 				return 0;
 			return fieldRidToTypeDefRid[index];
 		}
@@ -446,7 +431,7 @@ namespace dnlib.DotNet.MD {
 			if (methodRidToTypeDefRid is null)
 				InitializeInverseMethodOwnerRidList();
 			uint index = methodRid - 1;
-			if (index >= methodRidToTypeDefRid.LongLength)
+			if (index >= methodRidToTypeDefRid!.LongLength)
 				return 0;
 			return methodRidToTypeDefRid[index];
 		}
@@ -473,7 +458,7 @@ namespace dnlib.DotNet.MD {
 			if (eventRidToTypeDefRid is null)
 				InitializeInverseEventOwnerRidList();
 			uint index = eventRid - 1;
-			if (index >= eventRidToTypeDefRid.LongLength)
+			if (index >= eventRidToTypeDefRid!.LongLength)
 				return 0;
 			return eventRidToTypeDefRid[index];
 		}
@@ -500,7 +485,7 @@ namespace dnlib.DotNet.MD {
 			if (propertyRidToTypeDefRid is null)
 				InitializeInversePropertyOwnerRidList();
 			uint index = propertyRid - 1;
-			if (index >= propertyRidToTypeDefRid.LongLength)
+			if (index >= propertyRidToTypeDefRid!.LongLength)
 				return 0;
 			return propertyRidToTypeDefRid[index];
 		}
@@ -533,7 +518,7 @@ namespace dnlib.DotNet.MD {
 			if (gpRidToOwnerRid is null)
 				InitializeInverseGenericParamOwnerRidList();
 			uint index = gpRid - 1;
-			if (index >= gpRidToOwnerRid.LongLength)
+			if (index >= gpRidToOwnerRid!.LongLength)
 				return 0;
 			return gpRidToOwnerRid[index];
 		}
@@ -578,7 +563,7 @@ namespace dnlib.DotNet.MD {
 			if (gpcRidToOwnerRid is null)
 				InitializeInverseGenericParamConstraintOwnerRidList();
 			uint index = gpcRid - 1;
-			if (index >= gpcRidToOwnerRid.LongLength)
+			if (index >= gpcRidToOwnerRid!.LongLength)
 				return 0;
 			return gpcRidToOwnerRid[index];
 		}
@@ -616,7 +601,7 @@ namespace dnlib.DotNet.MD {
 			if (paramRidToOwnerRid is null)
 				InitializeInverseParamOwnerRidList();
 			uint index = paramRid - 1;
-			if (index >= paramRidToOwnerRid.LongLength)
+			if (index >= paramRidToOwnerRid!.LongLength)
 				return 0;
 			return paramRidToOwnerRid[index];
 		}
@@ -642,7 +627,7 @@ namespace dnlib.DotNet.MD {
 		public override RidList GetNestedClassRidList(uint typeDefRid) {
 			if (typeDefRidToNestedClasses is null)
 				InitializeNestedClassesDictionary();
-			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out var ridList))
+			if (typeDefRidToNestedClasses!.TryGetValue(typeDefRid, out var ridList))
 				return RidList.Create(ridList);
 			return RidList.Empty;
 		}
@@ -651,7 +636,7 @@ namespace dnlib.DotNet.MD {
 			var table = tablesStream.NestedClassTable;
 			var destTable = tablesStream.TypeDefTable;
 
-			Dictionary<uint, bool> validTypeDefRids = null;
+			Dictionary<uint, bool>? validTypeDefRids = null;
 			var typeDefRidList = GetTypeDefRidList();
 			if ((uint)typeDefRidList.Count != destTable.Rows) {
 				validTypeDefRids = new Dictionary<uint, bool>(typeDefRidList.Count);
@@ -705,7 +690,7 @@ namespace dnlib.DotNet.MD {
 			// InitializeNestedClassesDictionary() writes to typeDefRidToNestedClasses last.
 			if (typeDefRidToNestedClasses is null)
 				InitializeNestedClassesDictionary();
-			return nonNestedTypes.Value;
+			return nonNestedTypes!.Value;
 		}
 
 		public override RidList GetLocalScopeRidList(uint methodRid) => FindAllRows(tablesStream.LocalScopeTable, 0, methodRid);
@@ -747,13 +732,13 @@ namespace dnlib.DotNet.MD {
 			mdReaderFactoryToDisposeLater?.Dispose();
 			peImage = null;
 			cor20Header = null;
-			mdHeader = null;
-			stringsStream = null;
-			usStream = null;
-			blobStream = null;
-			guidStream = null;
-			tablesStream = null;
-			allStreams = null;
+			mdHeader = null!;
+			stringsStream = null!;
+			usStream = null!;
+			blobStream = null!;
+			guidStream = null!;
+			tablesStream = null!;
+			allStreams = null!;
 			fieldRidToTypeDefRid = null;
 			methodRidToTypeDefRid = null;
 			typeDefRidToNestedClasses = null;

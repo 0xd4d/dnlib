@@ -18,7 +18,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="ITypeDefOrRef"/> or <c>null</c> if <paramref name="codedToken"/>
 		/// is invalid</returns>
-		ITypeDefOrRef ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext);
+		ITypeDefOrRef? ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext);
 
 		/// <summary>
 		/// Converts the address of a <see cref="Type"/> to a <see cref="TypeSig"/>
@@ -27,7 +27,7 @@ namespace dnlib.DotNet {
 		/// <param name="address">Address of <see cref="Type"/>. This is also known as the
 		/// method table and has the same value as <see cref="RuntimeTypeHandle.Value"/></param>
 		/// <returns>A <see cref="TypeSig"/> or <c>null</c> if not supported</returns>
-		TypeSig ConvertRTInternalAddress(IntPtr address);
+		TypeSig? ConvertRTInternalAddress(IntPtr address);
 	}
 
 	/// <summary>

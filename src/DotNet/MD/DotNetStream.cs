@@ -20,9 +20,9 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// <c>null</c> if it wasn't present in the file
 		/// </summary>
-		StreamHeader streamHeader;
+		StreamHeader? streamHeader;
 
-		DataReaderFactory mdReaderFactory;
+		DataReaderFactory? mdReaderFactory;
 		uint metadataBaseOffset;
 
 		/// <inheritdoc/>
@@ -39,7 +39,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets the stream header
 		/// </summary>
-		public StreamHeader StreamHeader => streamHeader;
+		public StreamHeader? StreamHeader => streamHeader;
 
 		/// <summary>
 		/// Gets the name of the stream
@@ -66,7 +66,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="mdReaderFactory">Data reader factory</param>
 		/// <param name="metadataBaseOffset">Offset of metadata</param>
 		/// <param name="streamHeader">The stream header</param>
-		protected DotNetStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader) {
+		protected DotNetStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader? streamHeader) {
 			this.mdReaderFactory = mdReaderFactory;
 			mdReaderFactory.DataReaderInvalidated += DataReaderFactory_DataReaderInvalidated;
 			this.mdReaderFactory = mdReaderFactory;
@@ -75,9 +75,9 @@ namespace dnlib.DotNet.MD {
 			RecreateReader(mdReaderFactory, metadataBaseOffset, streamHeader, notifyThisClass: false);
 		}
 
-		void DataReaderFactory_DataReaderInvalidated(object sender, EventArgs e) => RecreateReader(mdReaderFactory, metadataBaseOffset, streamHeader, notifyThisClass: true);
+		void DataReaderFactory_DataReaderInvalidated(object? sender, EventArgs e) => RecreateReader(mdReaderFactory, metadataBaseOffset, streamHeader, notifyThisClass: true);
 
-		void RecreateReader(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader, bool notifyThisClass) {
+		void RecreateReader(DataReaderFactory? mdReaderFactory, uint metadataBaseOffset, StreamHeader? streamHeader, bool notifyThisClass) {
 			if (mdReaderFactory is null || streamHeader is null)
 				dataReader = default;
 			else
@@ -107,7 +107,7 @@ namespace dnlib.DotNet.MD {
 				if (mdReaderFactory is not null)
 					mdReaderFactory.DataReaderInvalidated -= DataReaderFactory_DataReaderInvalidated;
 				streamHeader = null;
-				this.mdReaderFactory = null;
+				this.mdReaderFactory = null!;
 			}
 		}
 

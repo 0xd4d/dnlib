@@ -8,14 +8,15 @@ using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.WindowsPdb {
 	static class PseudoCustomDebugInfoFactory {
-		public static PdbAsyncMethodCustomDebugInfo TryCreateAsyncMethod(ModuleDef module, MethodDef method, CilBody body, int asyncKickoffMethod, IList<SymbolAsyncStepInfo> asyncStepInfos, uint? asyncCatchHandlerILOffset) {
+		public static PdbAsyncMethodCustomDebugInfo? TryCreateAsyncMethod(ModuleDef module, MethodDef method, CilBody body, int asyncKickoffMethod, IList<SymbolAsyncStepInfo> asyncStepInfos, uint? asyncCatchHandlerILOffset) {
 			var kickoffToken = new MDToken(asyncKickoffMethod);
 			if (kickoffToken.Table != Table.Method)
 				return null;
 			var kickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
+			if (kickoffMethod is null)
+				return null;
 
-			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(asyncStepInfos.Count);
-			asyncMethod.KickoffMethod = kickoffMethod;
+			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(kickoffMethod, asyncStepInfos.Count);
 
 			if (asyncCatchHandlerILOffset is not null) {
 				asyncMethod.CatchHandlerInstruction = GetInstruction(body, asyncCatchHandlerILOffset.Value);
@@ -29,8 +30,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				Debug.Assert(yieldInstruction is not null);
 				if (yieldInstruction is null)
 					continue;
-				MethodDef breakpointMethod;
-				Instruction breakpointInstruction;
+				MethodDef? breakpointMethod;
+				Instruction? breakpointInstruction;
 				if (method.MDToken.Raw == rawInfo.BreakpointMethod) {
 					breakpointMethod = method;
 					breakpointInstruction = GetInstruction(body, rawInfo.BreakpointOffset);
@@ -56,7 +57,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return asyncMethod;
 		}
 
-		static Instruction GetInstruction(CilBody body, uint offset) {
+		static Instruction? GetInstruction(CilBody body, uint offset) {
 			if (body is null)
 				return null;
 			var instructions = body.Instructions;

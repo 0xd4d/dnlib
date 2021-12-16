@@ -21,7 +21,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="offset">Offset of string</param>
 		/// <returns>A <see cref="UTF8String"/> instance or <c>null</c> if invalid offset</returns>
-		public UTF8String Read(uint offset) {
+		public UTF8String? Read(uint offset) {
 			if (offset >= StreamLength)
 				return null;
 			byte[] data;

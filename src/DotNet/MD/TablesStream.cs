@@ -20,8 +20,8 @@ namespace dnlib.DotNet.MD {
 		MDTable[] mdTables;
 		uint mdTablesPos;
 
-		IColumnReader columnReader;
-		IRowReader<RawMethodRow> methodRowReader;
+		IColumnReader? columnReader;
+		IRowReader<RawMethodRow>? methodRowReader;
 		readonly CLRRuntimeReaderKind runtime;
 
 #pragma warning disable 1591	// XML doc comment
@@ -83,7 +83,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets/sets the column reader
 		/// </summary>
-		public IColumnReader ColumnReader {
+		public IColumnReader? ColumnReader {
 			get => columnReader;
 			set => columnReader = value;
 		}
@@ -91,7 +91,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets/sets the <c>Method</c> table reader
 		/// </summary>
-		public IRowReader<RawMethodRow> MethodRowReader {
+		public IRowReader<RawMethodRow>? MethodRowReader {
 			get => methodRowReader;
 			set => methodRowReader = value;
 		}
@@ -206,7 +206,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="typeSystemTableRows">Type system table rows (from #Pdb stream)</param>
 		/// <param name="forceAllBig">Force all columns to 4 bytes instead of 2 or 4 bytes</param>
-		internal void Initialize(uint[] typeSystemTableRows, bool forceAllBig) {
+		internal void Initialize(uint[]? typeSystemTableRows, bool forceAllBig) {
 			if (initialized)
 				throw new Exception("Initialize() has already been called");
 			initialized = true;
@@ -355,7 +355,7 @@ namespace dnlib.DotNet.MD {
 						if (mdTable is not null)
 							mdTable.Dispose();
 					}
-					mdTables = null;
+					mdTables = null!;
 				}
 			}
 			base.Dispose(disposing);
@@ -366,7 +366,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="table">The table type</param>
 		/// <returns>A <see cref="MDTable"/> or <c>null</c> if table doesn't exist</returns>
-		public MDTable Get(Table table) {
+		public MDTable? Get(Table table) {
 			int index = (int)table;
 			if ((uint)index >= (uint)mdTables.Length)
 				return null;

@@ -13,7 +13,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbMethod() {
-		}
+		/// <param name="scope">The root scope</param>
+		public PdbMethod(PdbScope scope) => Scope = scope;
 	}
 }

@@ -13,7 +13,7 @@ namespace dnlib.DotNet.MD {
 	public readonly struct RidList : IEnumerable<uint> {
 		readonly uint startRid;
 		readonly uint length;
-		readonly IList<uint> rids;
+		readonly IList<uint>? rids;
 
 		/// <summary>
 		/// Gets the empty instance
@@ -78,7 +78,7 @@ namespace dnlib.DotNet.MD {
 		public struct Enumerator : IEnumerator<uint> {
 			readonly uint startRid;
 			readonly uint length;
-			readonly IList<uint> rids;
+			readonly IList<uint>? rids;
 			uint index;
 			uint current;
 

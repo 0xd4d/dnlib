@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
@@ -18,25 +20,17 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		readonly PdbCustomDebugInfoWriterContext customDebugInfoWriterContext;
 		readonly int localsEndScopeIncValue;
 
-		public ILogger Logger { get; set; }
+		public ILogger? Logger { get; set; }
 
-		public WindowsPdbWriter(SymbolWriter writer, PdbState pdbState, Metadata metadata)
-			: this(pdbState, metadata) {
-			if (pdbState is null)
-				throw new ArgumentNullException(nameof(pdbState));
-			if (metadata is null)
-				throw new ArgumentNullException(nameof(metadata));
-			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
-			writer.Initialize(metadata);
-		}
-
-		WindowsPdbWriter(PdbState pdbState, Metadata metadata) {
-			this.pdbState = pdbState;
-			this.metadata = metadata;
+		public WindowsPdbWriter(SymbolWriter writer, PdbState pdbState, Metadata metadata) {
+			this.pdbState = pdbState ?? throw new ArgumentNullException(nameof(pdbState));
+			this.metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
 			module = metadata.Module;
 			instrToOffset = new Dictionary<Instruction, uint>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
 			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
+			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
+			writer.Initialize(metadata);
 		}
 
 		ISymbolDocumentWriter Add(PdbDocument pdbDoc) {
@@ -44,13 +38,13 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return docWriter;
 			docWriter = writer.DefineDocument(pdbDoc.Url, pdbDoc.Language, pdbDoc.LanguageVendor, pdbDoc.DocumentType);
 			docWriter.SetCheckSum(pdbDoc.CheckSumAlgorithmId, pdbDoc.CheckSum);
-			if (TryGetCustomDebugInfo(pdbDoc, out PdbEmbeddedSourceCustomDebugInfo sourceCdi))
+			if (TryGetCustomDebugInfo(pdbDoc, out PdbEmbeddedSourceCustomDebugInfo? sourceCdi))
 				docWriter.SetSource(sourceCdi.SourceCodeBlob);
 			pdbDocs.Add(pdbDoc, docWriter);
 			return docWriter;
 		}
 
-		static bool TryGetCustomDebugInfo<TCDI>(IHasCustomDebugInformation hci, out TCDI cdi) where TCDI : PdbCustomDebugInfo {
+		static bool TryGetCustomDebugInfo<TCDI>(IHasCustomDebugInformation hci, [NotNullWhen(true)] out TCDI? cdi) where TCDI : PdbCustomDebugInfo {
 			var cdis = hci.CustomDebugInfos;
 			int count = cdis.Count;
 			for (int i = 0; i < count; i++) {
@@ -82,9 +76,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				}
 			}
 
-			if (TryGetCustomDebugInfo(module, out PdbSourceLinkCustomDebugInfo sourceLinkCdi))
+			if (TryGetCustomDebugInfo(module, out PdbSourceLinkCustomDebugInfo? sourceLinkCdi))
 				writer.SetSourceLinkData(sourceLinkCdi.FileBlob);
-			if (TryGetCustomDebugInfo(module, out PdbSourceServerCustomDebugInfo sourceServerCdi))
+			if (TryGetCustomDebugInfo(module, out PdbSourceServerCustomDebugInfo? sourceServerCdi))
 				writer.SetSourceServerData(sourceServerCdi.FileBlob);
 		}
 
@@ -120,18 +114,18 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		sealed class SequencePointHelper {
 			readonly Dictionary<PdbDocument, bool> checkedPdbDocs = new Dictionary<PdbDocument, bool>();
 			int[] instrOffsets = Array2.Empty<int>();
-			int[] startLines;
-			int[] startColumns;
-			int[] endLines;
-			int[] endColumns;
+			int[] startLines = Array2.Empty<int>();
+			int[] startColumns = Array2.Empty<int>();
+			int[] endLines = Array2.Empty<int>();
+			int[] endColumns = Array2.Empty<int>();
 
 			public void Write(WindowsPdbWriter pdbWriter, IList<Instruction> instrs) {
 				checkedPdbDocs.Clear();
 				while (true) {
-					PdbDocument currPdbDoc = null;
+					PdbDocument? currPdbDoc = null;
 					bool otherDocsAvailable = false;
 					int index = 0, instrOffset = 0;
-					Instruction instr = null;
+					Instruction? instr = null;
 					for (int i = 0; i < instrs.Count; i++, instrOffset += instr.GetSize()) {
 						instr = instrs[i];
 						var seqp = instr.SequencePoint;
@@ -164,8 +158,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						endColumns[index]	= seqp.EndColumn;
 						index++;
 					}
-					if (index != 0)
+					if (index != 0) {
+						Debug.Assert(currPdbDoc is not null);
 						pdbWriter.writer.DefineSequencePoints(pdbWriter.Add(currPdbDoc), (uint)index, instrOffsets, startLines, startColumns, endLines, endColumns);
+					}
 
 					if (!otherDocsAvailable)
 						break;
@@ -197,7 +193,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				BodySize = offset;
 			}
 
-			public readonly int GetOffset(Instruction instr) {
+			public readonly int GetOffset(Instruction? instr) {
 				if (instr is null)
 					return (int)BodySize;
 				if (toOffset.TryGetValue(instr, out uint offset))
@@ -222,10 +218,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			var pdbMethod = body.PdbMethod;
 			if (pdbMethod is null)
-				body.PdbMethod = pdbMethod = new PdbMethod();
+				body.PdbMethod = pdbMethod = new PdbMethod(new PdbScope());
 			var scope = pdbMethod.Scope;
-			if (scope is null)
-				pdbMethod.Scope = scope = new PdbScope();
 			if (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0) {
 				if (scope.Scopes.Count == 0) {
 					// We must open at least one sub scope (the sym writer creates the 'method' scope
@@ -264,7 +258,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.CloseMethod();
 		}
 
-		void GetPseudoCustomDebugInfos(IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo asyncMethod) {
+		void GetPseudoCustomDebugInfos(IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo? asyncMethod) {
 			cdiBuilder.Clear();
 			asyncMethod = null;
 			int count = customDebugInfos.Count;
@@ -426,7 +420,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return new MDToken(MD.Table.Method, rid);
 		}
 
-		public bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY idd, out byte[] codeViewData) =>
+		public bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY idd, [NotNullWhen(false)] out byte[]? codeViewData) =>
 			writer.GetDebugInfo(pdbChecksumAlgorithm, ref pdbAge, out guid, out stamp, out idd, out codeViewData);
 
 		public void Close() => writer.Close();
@@ -438,7 +432,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			if (writer is not null)
 				Close();
 			writer?.Dispose();
-			writer = null;
+			writer = null!;
 		}
 	}
 }

@@ -14,13 +14,13 @@ namespace dnlib.DotNet.Emit {
 		/// One instruction past the end of try block or <c>null</c> if it ends at the end
 		/// of the method.
 		/// </summary>
-		public Instruction TryEnd;
+		public Instruction? TryEnd;
 
 		/// <summary>
 		/// Start of filter handler or <c>null</c> if none. The end of filter handler is
 		/// always <see cref="HandlerStart"/>.
 		/// </summary>
-		public Instruction FilterStart;
+		public Instruction? FilterStart;
 
 		/// <summary>
 		/// First instruction of try handler block
@@ -31,12 +31,12 @@ namespace dnlib.DotNet.Emit {
 		/// One instruction past the end of try handler block or <c>null</c> if it ends at the end
 		/// of the method.
 		/// </summary>
-		public Instruction HandlerEnd;
+		public Instruction? HandlerEnd;
 
 		/// <summary>
 		/// The catch type if <see cref="IsCatch"/> is <see langword="true" />
 		/// </summary>
-		public ITypeDefOrRef CatchType;
+		public ITypeDefOrRef? CatchType;
 
 		/// <summary>
 		/// Type of exception handler clause
@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Emit {
 		/// Checks if it's a `fault` handler
 		/// </summary>
 		public bool IsFault => (HandlerType & ExceptionHandlerType.Fault) != 0;
-		
+
 		/// <summary>
 		/// Default constructor
 		/// </summary>

@@ -207,12 +207,12 @@ namespace dnlib.DotNet {
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context, ImageLayout imageLayout) => Load(mod, new ModuleCreationOptions(context), imageLayout);
 
 		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
-#if NETSTANDARD
+#if NETSTANDARD || NETCOREAPP
 			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new[] { typeof(System.Reflection.Module) });
 			if (GetHINSTANCE is null)
 				return IntPtr.Zero;
 
-			return (IntPtr)GetHINSTANCE.Invoke(null, new[] { mod });
+			return (IntPtr)GetHINSTANCE.Invoke(null, new[] { mod })!;
 #else
 			return Marshal.GetHINSTANCE(mod);
 #endif
@@ -387,7 +387,7 @@ namespace dnlib.DotNet {
 			LoadPdb(CreateSymbolReader(options));
 		}
 
-		SymbolReader CreateSymbolReader(ModuleCreationOptions options) {
+		SymbolReader? CreateSymbolReader(ModuleCreationOptions options) {
 			if (options.PdbFileOrData is not null) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
@@ -413,7 +413,7 @@ namespace dnlib.DotNet {
 		/// Loads symbols using <paramref name="symbolReader"/>
 		/// </summary>
 		/// <param name="symbolReader">PDB symbol reader</param>
-		public void LoadPdb(SymbolReader symbolReader) {
+		public void LoadPdb(SymbolReader? symbolReader) {
 			if (symbolReader is null)
 				return;
 			if (pdbState is not null)

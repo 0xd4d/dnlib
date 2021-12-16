@@ -45,18 +45,18 @@ namespace dnlib.DotNet.Pdb.Dss {
 		static extern void CreateSymWriter_arm64(ref Guid guid, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
 		static readonly Guid CLSID_CorSymReader_SxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
-		static Type CorSymReader_Type;
+		static Type? CorSymReader_Type;
 
 		static readonly Guid CLSID_CorSymWriter_SxS = new Guid(0x0AE2DEB0, 0xF901, 0x478B, 0xBB, 0x9F, 0x88, 0x1E, 0xE8, 0x06, 0x67, 0x88);
-		static Type CorSymWriterType;
+		static Type? CorSymWriterType;
 
 		static volatile bool canTry_Microsoft_DiaSymReader_Native = true;
 
-		public static SymbolReader Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream) {
-			ISymUnmanagedReader unmanagedReader = null;
-			SymbolReaderImpl symReader = null;
-			ReaderMetaDataImport mdImporter = null;
-			DataReaderIStream comPdbStream = null;
+		public static SymbolReader? Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream) {
+			ISymUnmanagedReader? unmanagedReader = null;
+			SymbolReaderImpl? symReader = null;
+			ReaderMetaDataImport? mdImporter = null;
+			DataReaderIStream? comPdbStream = null;
 			bool error = true;
 			try {
 				if (pdbStream is null)
@@ -102,7 +102,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			return null;
 		}
 
-		static ISymUnmanagedReader CreateSymUnmanagedReader(PdbReaderOptions options) {
+		static ISymUnmanagedReader? CreateSymUnmanagedReader(PdbReaderOptions options) {
 			bool useDiaSymReader = (options & PdbReaderOptions.NoDiaSymReader) == 0;
 			bool useOldDiaSymReader = (options & PdbReaderOptions.NoOldDiaSymReader) == 0;
 
@@ -145,12 +145,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 
 			if (useOldDiaSymReader)
-				return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS));
+				return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS)!)!;
 
 			return null;
 		}
 
-		static ISymUnmanagedWriter2 CreateSymUnmanagedWriter2(PdbWriterOptions options) {
+		static ISymUnmanagedWriter2? CreateSymUnmanagedWriter2(PdbWriterOptions options) {
 			bool useDiaSymReader = (options & PdbWriterOptions.NoDiaSymReader) == 0;
 			bool useOldDiaSymReader = (options & PdbWriterOptions.NoOldDiaSymReader) == 0;
 
@@ -193,18 +193,23 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 
 			if (useOldDiaSymReader)
-				return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS));
+				return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS)!)!;
 
 			return null;
 		}
 
-		public static SymbolWriter Create(PdbWriterOptions options, string pdbFileName) {
+		public static SymbolWriter? Create(PdbWriterOptions options, string pdbFileName) {
 			if (File.Exists(pdbFileName))
 				File.Delete(pdbFileName);
-			return new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, File.Create(pdbFileName), options, ownsStream: true);
+			if (CreateSymUnmanagedWriter2(options) is ISymUnmanagedWriter2 writer)
+				return new SymbolWriterImpl(writer, pdbFileName, File.Create(pdbFileName), options, ownsStream: true);
+			return null;
 		}
 
-		public static SymbolWriter Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) =>
-			new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, pdbStream, options, ownsStream: false);
+		public static SymbolWriter? Create(PdbWriterOptions options, Stream pdbStream, string? pdbFileName) {
+			if (CreateSymUnmanagedWriter2(options) is ISymUnmanagedWriter2 writer)
+				return new SymbolWriterImpl(writer, pdbFileName, pdbStream, options, ownsStream: false);
+			return null;
+		}
 	}
 }

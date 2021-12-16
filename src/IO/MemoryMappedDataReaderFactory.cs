@@ -16,7 +16,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
-		public override string Filename => filename;
+		public override string? Filename => filename;
 
 		/// <summary>
 		/// Gets the total length of the data

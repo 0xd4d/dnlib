@@ -9,16 +9,16 @@ namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolScopeImpl : SymbolScope {
 		readonly ISymUnmanagedScope scope;
 		readonly SymbolMethod method;
-		readonly SymbolScope parent;
+		readonly SymbolScope? parent;
 
-		public SymbolScopeImpl(ISymUnmanagedScope scope, SymbolMethod method, SymbolScope parent) {
+		public SymbolScopeImpl(ISymUnmanagedScope scope, SymbolMethod method, SymbolScope? parent) {
 			this.scope = scope;
 			this.method = method;
 			this.parent = parent;
 		}
 
 		public override SymbolMethod Method => method;
-		public override SymbolScope Parent => parent;
+		public override SymbolScope? Parent => parent;
 
 		public override int StartOffset {
 			get {
@@ -48,7 +48,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return children;
 			}
 		}
-		volatile SymbolScope[] children;
+		volatile SymbolScope[]? children;
 
 		public override IList<SymbolVariable> Locals {
 			get {
@@ -64,7 +64,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return locals;
 			}
 		}
-		volatile SymbolVariable[] locals;
+		volatile SymbolVariable[]? locals;
 
 		public override IList<SymbolNamespace> Namespaces {
 			get {
@@ -80,10 +80,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return namespaces;
 			}
 		}
-		volatile SymbolNamespace[] namespaces;
+		volatile SymbolNamespace[]? namespaces;
 
 		public override IList<PdbCustomDebugInfo> CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
-		public override PdbImportScope ImportScope => null;
+		public override PdbImportScope? ImportScope => null;
 
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			var scope2 = scope as ISymUnmanagedScope2;
@@ -102,7 +102,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				var sigBytes = GetSignatureBytes(unc);
 				TypeSig signature;
 				if (sigBytes.Length == 0)
-					signature = null;
+					signature = module.CorLibTypes.Void;
 				else
 					signature = SignatureReader.ReadTypeSig(module, module.CorLibTypes, sigBytes, gpContext);
 				nss[i] = new PdbConstant(name, signature, value);

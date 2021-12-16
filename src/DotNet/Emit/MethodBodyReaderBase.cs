@@ -24,7 +24,7 @@ namespace dnlib.DotNet.Emit {
 		protected uint codeEndOffs;
 		/// <summary>Start offset of method</summary>
 		protected uint codeStartOffs;
-		readonly ModuleContext context;
+		readonly ModuleContext? context;
 
 		/// <summary>
 		/// Gets all parameters
@@ -73,7 +73,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="reader">The reader</param>
 		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
-		protected MethodBodyReaderBase(DataReader reader, IList<Parameter> parameters)
+		protected MethodBodyReaderBase(DataReader reader, IList<Parameter>? parameters)
 			: this(reader, parameters, null) {
 		}
 
@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="reader">The reader</param>
 		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
 		/// <param name="context">The module context</param>
-		protected MethodBodyReaderBase(DataReader reader, IList<Parameter> parameters, ModuleContext context) {
+		protected MethodBodyReaderBase(DataReader reader, IList<Parameter>? parameters, ModuleContext? context) {
 			this.reader = reader;
 			this.parameters = parameters;
 			this.context = context;
@@ -92,7 +92,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Sets new locals
 		/// </summary>
-		/// <param name="newLocals">A list of types of all locals or <c>null</c> if none</param>
+		/// <param name="newLocals">A list of types of all locals<c>null</c> if none</param>
 		protected void SetLocals(IList<TypeSig> newLocals) {
 			var locals = this.locals;
 			locals.Clear();
@@ -163,12 +163,12 @@ namespace dnlib.DotNet.Emit {
 				switch (instr.OpCode.OperandType) {
 				case OperandType.InlineBrTarget:
 				case OperandType.ShortInlineBrTarget:
-					instr.Operand = GetInstruction((uint)instr.Operand);
+					instr.Operand = GetInstruction((uint)instr.Operand!);
 					break;
 
 				case OperandType.InlineSwitch:
-					var uintTargets = (IList<uint>)instr.Operand;
-					var targets = new Instruction[uintTargets.Count];
+					var uintTargets = (IList<uint>?)instr.Operand ?? Array2.Empty<uint>();
+					var targets = new Instruction?[uintTargets.Count];
 					for (int j = 0; j < uintTargets.Count; j++)
 						targets[j] = GetInstruction(uintTargets[j]);
 					instr.Operand = targets;
@@ -182,7 +182,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="offset">Offset of instruction</param>
 		/// <returns>The instruction or <c>null</c> if there's no instruction at <paramref name="offset"/>.</returns>
-		protected Instruction GetInstruction(uint offset) {
+		protected Instruction? GetInstruction(uint offset) {
 			// The instructions are sorted and all Offset fields are correct. Do a binary search.
 			var instructions = this.instructions;
 			int lo = 0, hi = instructions.Count - 1;
@@ -223,7 +223,7 @@ namespace dnlib.DotNet.Emit {
 			instr.Operand = ReadOperand(instr);
 
 			if (instr.OpCode.Code == Code.Switch) {
-				var targets = (IList<uint>)instr.Operand;
+				var targets = (IList<uint>?)instr.Operand ?? Array2.Empty<uint>();
 				currentOffset += (uint)(instr.OpCode.Size + 4 + 4 * targets.Count);
 			}
 			else
@@ -253,7 +253,7 @@ namespace dnlib.DotNet.Emit {
 		/// Reads the instruction operand (if any)
 		/// </summary>
 		/// <param name="instr">The instruction</param>
-		object ReadOperand(Instruction instr) =>
+		object? ReadOperand(Instruction instr) =>
 			instr.OpCode.OperandType switch {
 				OperandType.InlineBrTarget => ReadInlineBrTarget(instr),
 				OperandType.InlineField => ReadInlineField(instr),
@@ -288,7 +288,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected abstract IField ReadInlineField(Instruction instr);
+		protected abstract IField? ReadInlineField(Instruction instr);
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineI"/> operand
@@ -309,21 +309,21 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected abstract IMethod ReadInlineMethod(Instruction instr);
+		protected abstract IMethod? ReadInlineMethod(Instruction instr);
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineNone"/> operand
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual object ReadInlineNone(Instruction instr) => null;
+		protected virtual object? ReadInlineNone(Instruction instr) => null;
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlinePhi"/> operand
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual object ReadInlinePhi(Instruction instr) => null;
+		protected virtual object? ReadInlinePhi(Instruction instr) => null;
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineR"/> operand
@@ -337,7 +337,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected abstract MethodSig ReadInlineSig(Instruction instr);
+		protected abstract MethodSig? ReadInlineSig(Instruction instr);
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineString"/> operand
@@ -371,21 +371,21 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected abstract ITokenOperand ReadInlineTok(Instruction instr);
+		protected abstract ITokenOperand? ReadInlineTok(Instruction instr);
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineType"/> operand
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected abstract ITypeDefOrRef ReadInlineType(Instruction instr);
+		protected abstract ITypeDefOrRef? ReadInlineType(Instruction instr);
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineVar"/> operand
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual IVariable ReadInlineVar(Instruction instr) {
+		protected virtual IVariable? ReadInlineVar(Instruction instr) {
 			if (IsArgOperandInstruction(instr))
 				return ReadInlineVarArg(instr);
 			return ReadInlineVarLocal(instr);
@@ -396,14 +396,14 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual Parameter ReadInlineVarArg(Instruction instr) => GetParameter(reader.ReadUInt16());
+		protected virtual Parameter? ReadInlineVarArg(Instruction instr) => GetParameter(reader.ReadUInt16());
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.InlineVar"/> (a local) operand
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual Local ReadInlineVarLocal(Instruction instr) => GetLocal(reader.ReadUInt16());
+		protected virtual Local? ReadInlineVarLocal(Instruction instr) => GetLocal(reader.ReadUInt16());
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.ShortInlineBrTarget"/> operand
@@ -435,7 +435,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual IVariable ReadShortInlineVar(Instruction instr) {
+		protected virtual IVariable? ReadShortInlineVar(Instruction instr) {
 			if (IsArgOperandInstruction(instr))
 				return ReadShortInlineVarArg(instr);
 			return ReadShortInlineVarLocal(instr);
@@ -446,14 +446,14 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual Parameter ReadShortInlineVarArg(Instruction instr) => GetParameter(reader.ReadByte());
+		protected virtual Parameter? ReadShortInlineVarArg(Instruction instr) => GetParameter(reader.ReadByte());
 
 		/// <summary>
 		/// Reads a <see cref="OperandType.ShortInlineVar"/> (a local) operand
 		/// </summary>
 		/// <param name="instr">The current instruction</param>
 		/// <returns>The operand</returns>
-		protected virtual Local ReadShortInlineVarLocal(Instruction instr) => GetLocal(reader.ReadByte());
+		protected virtual Local? ReadShortInlineVarLocal(Instruction instr) => GetLocal(reader.ReadByte());
 
 		/// <summary>
 		/// Returns <c>true</c> if it's one of the ldarg/starg instructions that have an operand
@@ -478,7 +478,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="index">A parameter index</param>
 		/// <returns>A <see cref="Parameter"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
-		protected Parameter GetParameter(int index) {
+		protected Parameter? GetParameter(int index) {
 			var parameters = this.parameters;
 			if ((uint)index < (uint)parameters.Count)
 				return parameters[index];
@@ -490,7 +490,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="index">A local index</param>
 		/// <returns>A <see cref="Local"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
-		protected Local GetLocal(int index) {
+		protected Local? GetLocal(int index) {
 			var locals = this.locals;
 			if ((uint)index < (uint)locals.Count)
 				return locals[index];
@@ -541,7 +541,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="instr">The instruction or <c>null</c> if the offset is the first offset
 		/// at the end of the method.</param>
 		/// <returns>The instruction offset</returns>
-		uint GetOffset(Instruction instr) {
+		uint GetOffset(Instruction? instr) {
 			if (instr is not null)
 				return instr.Offset;
 			var instructions = this.instructions;

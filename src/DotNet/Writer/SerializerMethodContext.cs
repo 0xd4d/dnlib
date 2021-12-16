@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		public uint GetOffset(Instruction instr) {
+		public uint GetOffset(Instruction? instr) {
 			if (!dictInitd) {
 				Debug.Assert(body is not null);
 				if (body is null)

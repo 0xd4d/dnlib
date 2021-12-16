@@ -65,8 +65,8 @@ namespace dnlib.DotNet.Emit {
 			case OperandType.InlineTok:
 			case OperandType.InlineType:
 				sb.Append(extra);
-				if (op is IFullName)
-					sb.Append((op as IFullName).FullName);
+				if (op is IFullName fn)
+					sb.Append(fn.FullName);
 				else if (op is not null)
 					sb.Append(op.ToString());
 				else
@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Emit {
 
 			case OperandType.InlineSig:
 				sb.Append(extra);
-				sb.Append(FullNameFactory.MethodFullName(null, (UTF8String)null, op as MethodSig, null, null, null, null));
+				sb.Append(FullNameFactory.MethodFullName(null, (UTF8String?)null, op as MethodSig, null, null, null, null));
 				break;
 
 			case OperandType.InlineString:
@@ -92,8 +92,7 @@ namespace dnlib.DotNet.Emit {
 				break;
 
 			case OperandType.InlineSwitch:
-				var targets = op as IList<Instruction>;
-				if (targets is null)
+				if (op is not IList<Instruction?> targets)
 					sb.Append("null");
 				else {
 					sb.Append('(');
@@ -122,14 +121,14 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
-		static void AddInstructionTarget(StringBuilder sb, Instruction targetInstr) {
+		static void AddInstructionTarget(StringBuilder sb, Instruction? targetInstr) {
 			if (targetInstr is null)
 				sb.Append("null");
 			else
 				sb.Append($"IL_{targetInstr.Offset:X4}");
 		}
 
-		static void EscapeString(StringBuilder sb, string s, bool addQuotes) {
+		static void EscapeString(StringBuilder sb, string? s, bool addQuotes) {
 			if (s is null) {
 				sb.Append("null");
 				return;

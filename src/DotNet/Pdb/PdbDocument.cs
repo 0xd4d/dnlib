@@ -54,12 +54,6 @@ namespace dnlib.DotNet.Pdb {
 		IList<PdbCustomDebugInfo> customDebugInfos;
 
 		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public PdbDocument() {
-		}
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="symDoc">A <see cref="SymbolDocument"/> instance</param>
@@ -70,6 +64,8 @@ namespace dnlib.DotNet.Pdb {
 			if (symDoc is null)
 				throw new ArgumentNullException(nameof(symDoc));
 			Url = symDoc.URL;
+			CheckSum = Array2.Empty<byte>();
+			customDebugInfos = Array2.Empty<PdbCustomDebugInfo>();
 			if (!partial)
 				Initialize(symDoc);
 		}
@@ -104,13 +100,14 @@ namespace dnlib.DotNet.Pdb {
 			DocumentType = documentType;
 			CheckSumAlgorithmId = checkSumAlgorithmId;
 			CheckSum = checkSum;
+			customDebugInfos = Array2.Empty<PdbCustomDebugInfo>();
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(Url ?? string.Empty);
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			var other = obj as PdbDocument;
 			if (other is null)
 				return false;

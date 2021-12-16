@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.SymbolStore;
 using dnlib.DotNet.Writer;
 
@@ -11,7 +12,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		public abstract void Initialize(Metadata metadata);
 		public abstract void Close();
-		public abstract bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[] codeViewData);
+		public abstract bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, [NotNullWhen(false)] out byte[]? codeViewData);
 
 		public abstract void SetUserEntryPoint(MDToken entryMethod);
 		public abstract ISymbolDocumentWriter DefineDocument(string url, Guid language, Guid languageVendor, Guid documentType);

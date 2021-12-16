@@ -115,8 +115,9 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public void Dispose() {
 			numRows = 0;
-			tableInfo = null;
+			tableInfo = null!;
 			dataReader = default;
 		}
+
 	}
 }

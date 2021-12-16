@@ -16,7 +16,7 @@ namespace dnlib.PE {
 		}
 
 		static class RuntimeInformationUtils {
-#if NETSTANDARD
+#if NETSTANDARD || NETCOREAPP
 			public static bool TryGet_RuntimeInformation_Architecture(out Machine machine) =>
 				TryGetArchitecture((int)RuntimeInformation.ProcessArchitecture, out machine);
 #else

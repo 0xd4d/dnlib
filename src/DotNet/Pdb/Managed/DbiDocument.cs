@@ -13,21 +13,20 @@ namespace dnlib.DotNet.Pdb.Managed {
 		Guid languageVendor;
 		Guid documentType;
 		Guid checkSumAlgorithmId;
-		byte[] checkSum;
-		byte[] sourceCode;
+		byte[]? checkSum;
+		byte[]? sourceCode;
 
 		public override string URL => url;
 		public override Guid Language => language;
 		public override Guid LanguageVendor => languageVendor;
 		public override Guid DocumentType => documentType;
 		public override Guid CheckSumAlgorithmId => checkSumAlgorithmId;
-		public override byte[] CheckSum => checkSum;
-		byte[] SourceCode => sourceCode;
+		public override byte[] CheckSum => checkSum ?? Array2.Empty<byte>();
 
 		public override PdbCustomDebugInfo[] CustomDebugInfos {
 			get {
 				if (customDebugInfos is null) {
-					var sourceCode = SourceCode;
+					var sourceCode = this.sourceCode;
 					if (sourceCode is not null)
 						customDebugInfos = new PdbCustomDebugInfo[1] { new PdbEmbeddedSourceCustomDebugInfo(sourceCode) };
 					else
@@ -36,7 +35,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				return customDebugInfos;
 			}
 		}
-		PdbCustomDebugInfo[] customDebugInfos;
+		PdbCustomDebugInfo[]? customDebugInfos;
 
 		public DbiDocument(string url) {
 			this.url = url;

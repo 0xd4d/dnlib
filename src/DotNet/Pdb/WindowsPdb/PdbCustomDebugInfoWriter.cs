@@ -46,7 +46,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="method">Method</param>
 		/// <param name="customDebugInfos">Custom debug infos to write</param>
 		/// <returns></returns>
-		public static byte[] Write(Metadata metadata, MethodDef method, PdbCustomDebugInfoWriterContext context, IList<PdbCustomDebugInfo> customDebugInfos) {
+		public static byte[]? Write(Metadata metadata, MethodDef method, PdbCustomDebugInfoWriterContext context, IList<PdbCustomDebugInfo> customDebugInfos) {
 			var writer = new PdbCustomDebugInfoWriter(metadata, method, context);
 			return writer.Write(customDebugInfos);
 		}
@@ -81,7 +81,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			instructionToOffsetDictInitd = true;
 		}
 
-		uint GetInstructionOffset(Instruction instr, bool nullIsEndOfMethod) {
+		uint GetInstructionOffset(Instruction? instr, bool nullIsEndOfMethod) {
 			if (!instructionToOffsetDictInitd)
 				InitializeInstructionDictionary();
 			if (instr is null) {
@@ -98,7 +98,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		void Error(string message, params object[] args) => logger.Log(this, LoggerEvent.Error, message, args);
 
-		byte[] Write(IList<PdbCustomDebugInfo> customDebugInfos) {
+		byte[]? Write(IList<PdbCustomDebugInfo> customDebugInfos) {
 			if (customDebugInfos.Count == 0)
 				return null;
 			if (customDebugInfos.Count > byte.MaxValue) {
@@ -334,7 +334,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return memoryStream.ToArray();
 		}
 
-		string MetadataNameToRoslynName(string name) {
+		string? MetadataNameToRoslynName(string name) {
 			if (name is null)
 				return name;
 			int index = name.LastIndexOf('`');
@@ -343,7 +343,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return name.Substring(0, index);
 		}
 
-		void WriteUnicodeZ(string s) {
+		void WriteUnicodeZ(string? s) {
 			if (s is null) {
 				Error("String is null");
 				return;
@@ -359,7 +359,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.WriteUInt16(0);
 		}
 
-		void WriteUTF8Z(string s) {
+		void WriteUTF8Z(string? s) {
 			if (s is null) {
 				Error("String is null");
 				return;

@@ -63,10 +63,10 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public abstract class TypeNameParser : IDisposable {
 		/// <summary>Owner module</summary>
-		protected ModuleDef ownerModule;
+		protected ModuleDef? ownerModule;
 		readonly GenericParamContext gpContext;
 		StringReader reader;
-		readonly IAssemblyRefFinder typeNameParserHelper;
+		readonly IAssemblyRefFinder? typeNameParserHelper;
 		RecursionCounter recursionCounter;
 
 		/// <summary>
@@ -190,7 +190,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		protected TypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper, GenericParamContext gpContext) {
+		protected TypeNameParser(ModuleDef? ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
 			this.ownerModule = ownerModule;
 			reader = new StringReader(typeFullName ?? string.Empty);
 			this.typeNameParserHelper = typeNameParserHelper;
@@ -238,9 +238,8 @@ namespace dnlib.DotNet {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;
-			if (reader is not null)
-				reader.Dispose();
-			reader = null;
+			reader?.Dispose();
+			reader = null!;
 		}
 
 		internal abstract class TSpec {
@@ -388,7 +387,7 @@ namespace dnlib.DotNet {
 		static TypeSig ToTypeSig(ITypeDefOrRef type, bool isValueType) => isValueType ? (TypeSig)new ValueTypeSig(type) : new ClassSig(type);
 
 		internal AssemblyRef FindAssemblyRef(TypeRef nonNestedTypeRef) {
-			AssemblyRef asmRef = null;
+			AssemblyRef? asmRef = null;
 			if (nonNestedTypeRef is not null && typeNameParserHelper is not null)
 				asmRef = typeNameParserHelper.FindAssemblyRef(nonNestedTypeRef);
 			if (asmRef is not null)
@@ -506,7 +505,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		public ReflectionTypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder typeNameParserHelper, GenericParamContext gpContext)
+		public ReflectionTypeNameParser(ModuleDef? ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext)
 			: base(ownerModule, typeFullName, typeNameParserHelper, gpContext) {
 		}
 

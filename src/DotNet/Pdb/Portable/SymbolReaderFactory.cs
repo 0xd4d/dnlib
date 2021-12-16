@@ -10,7 +10,7 @@ using dnlib.PE;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	static class SymbolReaderFactory {
-		public static SymbolReader TryCreate(PdbReaderContext pdbContext, DataReaderFactory pdbStream, bool isEmbeddedPortablePdb) {
+		public static SymbolReader? TryCreate(PdbReaderContext pdbContext, DataReaderFactory pdbStream, bool isEmbeddedPortablePdb) {
 			bool disposePdbStream = true;
 			try {
 				if (!pdbContext.HasDebugInfo)
@@ -46,7 +46,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return null;
 		}
 
-		public static SymbolReader TryCreateEmbeddedPortablePdbReader(PdbReaderContext pdbContext, Metadata metadata) {
+		public static SymbolReader? TryCreateEmbeddedPortablePdbReader(PdbReaderContext pdbContext, Metadata metadata) {
 			if (metadata is null)
 				return null;
 			try {

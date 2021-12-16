@@ -17,7 +17,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		internal static MetadataBase Load(string fileName, CLRRuntimeReaderKind runtime) {
-			IPEImage peImage = null;
+			IPEImage? peImage = null;
 			try {
 				return Load(peImage = new PEImage(fileName), runtime);
 			}
@@ -29,7 +29,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		internal static MetadataBase Load(byte[] data, CLRRuntimeReaderKind runtime) {
-			IPEImage peImage = null;
+			IPEImage? peImage = null;
 			try {
 				return Load(peImage = new PEImage(data), runtime);
 			}
@@ -41,7 +41,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		internal static MetadataBase Load(IntPtr addr, CLRRuntimeReaderKind runtime) {
-			IPEImage peImage = null;
+			IPEImage? peImage = null;
 
 			// We don't know what layout it is. Memory is more common so try that first.
 			try {
@@ -64,7 +64,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		internal static MetadataBase Load(IntPtr addr, ImageLayout imageLayout, CLRRuntimeReaderKind runtime) {
-			IPEImage peImage = null;
+			IPEImage? peImage = null;
 			try {
 				return Load(peImage = new PEImage(addr, imageLayout, true), runtime);
 			}
@@ -117,7 +117,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="verify"><c>true</c> if we should verify that it's a .NET PE file</param>
 		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
 		static MetadataBase Create(IPEImage peImage, CLRRuntimeReaderKind runtime, bool verify) {
-			MetadataBase md = null;
+			MetadataBase? md = null;
 			try {
 				var dotNetDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
 				// Mono doesn't check that the Size field is >= 0x48
@@ -162,7 +162,7 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A new <see cref="MetadataBase"/> instance</returns>
 		internal static MetadataBase CreateStandalonePortablePDB(DataReaderFactory mdReaderFactory, bool verify) {
 			const CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR;
-			MetadataBase md = null;
+			MetadataBase? md = null;
 			try {
 				var reader = mdReaderFactory.CreateReader();
 				var mdHeader = new MetadataHeader(ref reader, runtime, verify);

@@ -9,7 +9,7 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
 	static class SymbolReaderFactory {
-		public static SymbolReader CreateFromAssemblyFile(PdbReaderOptions options, Metadata metadata, string assemblyFileName) {
+		public static SymbolReader? CreateFromAssemblyFile(PdbReaderOptions options, Metadata metadata, string assemblyFileName) {
 			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			if (!pdbContext.HasDebugInfo)
 				return null;
@@ -25,7 +25,12 @@ namespace dnlib.DotNet.Pdb {
 
 			string fileToCheck;
 			try {
-				fileToCheck = assemblyFileName == string.Empty ? pdbFilename : Path.Combine(Path.GetDirectoryName(assemblyFileName), pdbFilename);
+				if (assemblyFileName == string.Empty)
+					fileToCheck = pdbFilename;
+				else if (Path.GetDirectoryName(assemblyFileName) is string p)
+					fileToCheck = Path.Combine(p, pdbFilename);
+				else
+					fileToCheck = pdbFilename;
 				if (!File.Exists(fileToCheck)) {
 					var ext = Path.GetExtension(pdbFilename);
 					if (string.IsNullOrEmpty(ext))
@@ -40,27 +45,27 @@ namespace dnlib.DotNet.Pdb {
 		}
 		static readonly char[] windowsPathSepChars = new char[] { '\\', '/' };
 
-		public static SymbolReader Create(PdbReaderOptions options, Metadata metadata, string pdbFileName) {
+		public static SymbolReader? Create(PdbReaderOptions options, Metadata metadata, string pdbFileName) {
 			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			if (!pdbContext.HasDebugInfo)
 				return null;
 			return CreateCore(pdbContext, metadata, DataReaderFactoryUtils.TryCreateDataReaderFactory(pdbFileName));
 		}
 
-		public static SymbolReader Create(PdbReaderOptions options, Metadata metadata, byte[] pdbData) {
+		public static SymbolReader? Create(PdbReaderOptions options, Metadata metadata, byte[] pdbData) {
 			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			if (!pdbContext.HasDebugInfo)
 				return null;
 			return CreateCore(pdbContext, metadata, ByteArrayDataReaderFactory.Create(pdbData, filename: null));
 		}
 
-		public static SymbolReader Create(PdbReaderOptions options, Metadata metadata, DataReaderFactory pdbStream) {
+		public static SymbolReader? Create(PdbReaderOptions options, Metadata metadata, DataReaderFactory? pdbStream) {
 			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			return CreateCore(pdbContext, metadata, pdbStream);
 		}
 
-		static SymbolReader CreateCore(PdbReaderContext pdbContext, Metadata metadata, DataReaderFactory pdbStream) {
-			SymbolReader symReader = null;
+		static SymbolReader? CreateCore(PdbReaderContext pdbContext, Metadata metadata, DataReaderFactory? pdbStream) {
+			SymbolReader? symReader = null;
 			bool error = true;
 			try {
 				if (!pdbContext.HasDebugInfo)
@@ -94,14 +99,14 @@ namespace dnlib.DotNet.Pdb {
 			return reader.ReadString(SIG.Length, Encoding.ASCII) == SIG;
 		}
 
-		public static SymbolReader TryCreateEmbeddedPdbReader(PdbReaderOptions options, Metadata metadata) {
+		public static SymbolReader? TryCreateEmbeddedPdbReader(PdbReaderOptions options, Metadata metadata) {
 			var pdbContext = new PdbReaderContext(metadata.PEImage, options);
 			if (!pdbContext.HasDebugInfo)
 				return null;
 			return TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
 		}
 
-		static SymbolReader CreateManaged(PdbReaderContext pdbContext, Metadata metadata, DataReaderFactory pdbStream) {
+		static SymbolReader? CreateManaged(PdbReaderContext pdbContext, Metadata metadata, DataReaderFactory? pdbStream) {
 			try {
 				// Embedded PDBs have priority
 				var embeddedReader = TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
@@ -118,7 +123,7 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
-		static SymbolReader CreateManagedCore(PdbReaderContext pdbContext, DataReaderFactory pdbStream) {
+		static SymbolReader? CreateManagedCore(PdbReaderContext pdbContext, DataReaderFactory? pdbStream) {
 			if (pdbStream is null)
 				return null;
 			try {
@@ -136,7 +141,7 @@ namespace dnlib.DotNet.Pdb {
 			return null;
 		}
 
-		static SymbolReader TryCreateEmbeddedPortablePdbReader(PdbReaderContext pdbContext, Metadata metadata) =>
+		static SymbolReader? TryCreateEmbeddedPortablePdbReader(PdbReaderContext pdbContext, Metadata metadata) =>
 			Portable.SymbolReaderFactory.TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
 	}
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
@@ -18,13 +19,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 			recursionCounter = default;
 		}
 
-		public bool Read(out TypeSig type, out object value) {
+		public bool Read([NotNullWhen(true)] out TypeSig? type, out object? value) {
 			bool b = ReadCatch(out type, out value);
 			Debug.Assert(!b || reader.Position == reader.Length);
 			return b;
 		}
 
-		bool ReadCatch(out TypeSig type, out object value) {
+		bool ReadCatch([NotNullWhen(true)] out TypeSig? type, out object? value) {
 			try {
 				return ReadCore(out type, out value);
 			}
@@ -35,7 +36,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return false;
 		}
 
-		bool ReadCore(out TypeSig type, out object value) {
+		bool ReadCore([NotNullWhen(true)] out TypeSig? type, out object? value) {
 			if (!recursionCounter.Increment()) {
 				type = null;
 				value = null;
@@ -44,7 +45,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			bool res;
 			ITypeDefOrRef tdr;
-			UTF8String ns, name;
 			var et = (ElementType)reader.ReadByte();
 			switch (et) {
 			case ElementType.Boolean:
@@ -148,13 +148,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case ElementType.Ptr:
 				res = ReadCatch(out type, out value);
 				if (res)
-					type = new PtrSig(type);
+					type = new PtrSig(type!);
 				break;
 
 			case ElementType.ByRef:
 				res = ReadCatch(out type, out value);
 				if (res)
-					type = new ByRefSig(type);
+					type = new ByRefSig(type!);
 				break;
 
 			case ElementType.Object:
@@ -167,7 +167,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				tdr = ReadTypeDefOrRef();
 				type = tdr.ToTypeSig();
 				value = null;
-				if (GetName(tdr, out ns, out name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
+				if (GetName(tdr, out var ns, out var name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
 					if (name == stringDecimal) {
 						if (reader.Length - reader.Position != 13)
 							goto default;
@@ -205,14 +205,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 				tdr = ReadTypeDefOrRef();
 				res = ReadCatch(out type, out value);
 				if (res)
-					type = new CModReqdSig(tdr, type);
+					type = new CModReqdSig(tdr, type!);
 				break;
 
 			case ElementType.CModOpt:
 				tdr = ReadTypeDefOrRef();
 				res = ReadCatch(out type, out value);
 				if (res)
-					type = new CModOptSig(tdr, type);
+					type = new CModOptSig(tdr, type!);
 				break;
 
 			case ElementType.Var:
@@ -247,7 +247,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		static readonly UTF8String stringDecimal = new UTF8String("Decimal");
 		static readonly UTF8String stringDateTime = new UTF8String("DateTime");
 
-		static bool GetName(ITypeDefOrRef tdr, out UTF8String @namespace, out UTF8String name) {
+		static bool GetName(ITypeDefOrRef tdr, [NotNullWhen(true)] out UTF8String? @namespace, [NotNullWhen(true)] out UTF8String? name) {
 			if (tdr is TypeRef tr) {
 				@namespace = tr.Namespace;
 				name = tr.Name;
@@ -268,7 +268,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		TypeSig ReadTypeDefOrRefSig() {
 			uint codedToken;
 			if (!reader.TryReadCompressedUInt32(out codedToken))
-				return null;
+				return module.CorLibTypes.Void;
 			ISignatureReaderHelper helper = module;
 			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);
 			return tdr.ToTypeSig();
@@ -277,16 +277,16 @@ namespace dnlib.DotNet.Pdb.Portable {
 		ITypeDefOrRef ReadTypeDefOrRef() {
 			uint codedToken;
 			if (!reader.TryReadCompressedUInt32(out codedToken))
-				return null;
+				return module.CorLibTypes.Void.TypeDefOrRef;
 			ISignatureReaderHelper helper = module;
-			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);
+			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext) ?? module.CorLibTypes.Void.TypeDefOrRef;
 			var corType = module.CorLibTypes.GetCorLibTypeSig(tdr);
 			if (corType is not null)
 				return corType.TypeDefOrRef;
 			return tdr;
 		}
 
-		string ReadString() {
+		string? ReadString() {
 			if (reader.Position == reader.Length)
 				return string.Empty;
 			byte b = reader.ReadByte();

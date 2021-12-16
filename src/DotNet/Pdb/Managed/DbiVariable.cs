@@ -17,7 +17,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		public override PdbCustomDebugInfo[] CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
 
-		public bool Read(ref DataReader reader) {
+		public DbiVariable(ref DataReader reader, out bool isVariable) {
 			index = reader.ReadInt32();
 			reader.Position += 10;
 			ushort flags = reader.ReadUInt16();
@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			name = PdbReader.ReadCString(ref reader);
 
 			const int fIsParam = 1;
-			return (flags & fIsParam) == 0;
+			isVariable = (flags & fIsParam) == 0;
 		}
 
 		static PdbLocalAttributes GetAttributes(uint flags) {

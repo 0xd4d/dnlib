@@ -10,7 +10,6 @@ using dnlib.DotNet.Pdb.WindowsPdb;
 
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolReaderImpl : SymbolReader {
-		ModuleDef module;
 		ISymUnmanagedReader reader;
 		object[] objsToKeepAlive;
 
@@ -50,11 +49,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return documents;
 			}
 		}
-		volatile SymbolDocument[] documents;
+		volatile SymbolDocument[]? documents;
 
-		public override void Initialize(ModuleDef module) => this.module = module;
+		public override void Initialize(ModuleDef module) {}
 
-		public override SymbolMethod GetMethod(MethodDef method, int version) {
+		public override SymbolMethod? GetMethod(MethodDef method, int version) {
 			int hr = reader.GetMethodByVersion(method.MDToken.Raw, version, out var unMethod);
 			if (hr == E_FAIL)
 				return null;
@@ -90,7 +89,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				result.Add(new PdbSourceServerCustomDebugInfo(sourceServerData));
 		}
 
-		byte[] GetSourceLinkData() {
+		byte[]? GetSourceLinkData() {
 			if (reader is ISymUnmanagedReader4 reader4) {
 				// It returns data that it owns. The data is freed once its Destroy() method is called
 				Debug.Assert(reader is ISymUnmanagedDispose);
@@ -106,7 +105,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			return null;
 		}
 
-		byte[] GetSourceServerData() {
+		byte[]? GetSourceServerData() {
 			if (reader is ISymUnmanagedSourceServerModule srcSrvModule) {
 				var srcSrvData = IntPtr.Zero;
 				try {
@@ -139,9 +138,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 				foreach (var obj in o)
 					(obj as IDisposable)?.Dispose();
 			}
-			module = null;
-			reader = null;
-			objsToKeepAlive = null;
+			reader = null!;
+			objsToKeepAlive = null!;
 		}
 
 		public bool MatchesModule(Guid pdbId, uint stamp, uint age) {

@@ -7,23 +7,17 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
 	sealed class DbiModule {
-		public DbiModule() {
-			Functions = new List<DbiFunction>();
-			Documents = new List<DbiDocument>();
-		}
-
 		public ushort StreamId { get; private set; }
 		uint cbSyms;
 		uint cbOldLines;
 		uint cbLines;
-
-		public string ModuleName { get; private set; }
-		public string ObjectName { get; private set; }
+		string moduleName;
+		string objectName;
 
 		public List<DbiFunction> Functions { get; private set; }
-		public List<DbiDocument> Documents { get; private set; }
 
-		public void Read(ref DataReader reader) {
+		public DbiModule(ref DataReader reader) {
+			Functions = new List<DbiFunction>();
 			reader.Position += 34;
 			StreamId = reader.ReadUInt16();
 			cbSyms = reader.ReadUInt32();
@@ -38,8 +32,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if ((int)cbLines < 0)
 				cbLines = 0;
 
-			ModuleName = PdbReader.ReadCString(ref reader);
-			ObjectName = PdbReader.ReadCString(ref reader);
+			moduleName = PdbReader.ReadCString(ref reader);
+			objectName = PdbReader.ReadCString(ref reader);
 
 			reader.Position = (reader.Position + 3) & (~3U);
 		}
@@ -67,8 +61,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				switch (type) {
 					case SymbolType.S_GMANPROC:
 					case SymbolType.S_LMANPROC:
-						var func = new DbiFunction();
-						func.Read(ref reader, end);
+						var func = new DbiFunction(ref reader, end);
 						Functions.Add(func);
 						break;
 					default:
@@ -154,10 +147,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var flags = reader.ReadUInt16();
 			reader.Position += 4;
 
-			if (funcs[found].Lines is null) {
+			if (funcs[found].lines is null) {
 				while (found > 0) {
 					var prevFunc = funcs[found - 1];
-					if (prevFunc is not null || prevFunc.Address != address)
+					if (prevFunc.Address != address)
 						break;
 					found--;
 				}
@@ -171,9 +164,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 				}
 			}
 			var func = funcs[found];
-			if (func.Lines is not null)
+			if (func.lines is not null)
 				return;
-			func.Lines = new List<SymbolSequencePoint>();
+			func.lines = new List<SymbolSequencePoint>();
 
 			while (reader.Position < end) {
 				var document = documents[reader.ReadUInt32()];
@@ -202,7 +195,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 						line.EndColumn = reader.ReadUInt16();
 					}
 
-					func.Lines.Add(line);
+					func.lines.Add(line);
 				}
 			}
 		}

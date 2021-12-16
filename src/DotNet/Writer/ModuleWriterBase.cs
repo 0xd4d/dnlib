@@ -942,7 +942,7 @@ namespace dnlib.DotNet.Writer {
 			return (uint)TheOptions.PEHeadersOptions.TimeDateStamp;
 		}
 
-		SymbolWriter GetWindowsPdbSymbolWriter(PdbWriterOptions options, out string pdbFilename) {
+		SymbolWriter? GetWindowsPdbSymbolWriter(PdbWriterOptions options, out string pdbFilename) {
 			if (TheOptions.PdbStream is not null) {
 				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, TheOptions.PdbStream,
 							pdbFilename = TheOptions.PdbFileName ??
@@ -961,9 +961,9 @@ namespace dnlib.DotNet.Writer {
 			return Pdb.Dss.SymbolReaderWriterFactory.Create(options, createdPdbFileName);
 		}
 
-		static string GetStreamName(Stream stream) => (stream as FileStream)?.Name;
+		static string? GetStreamName(Stream stream) => (stream as FileStream)?.Name;
 
-		static string GetModuleName(ModuleDef module) {
+		static string? GetModuleName(ModuleDef module) {
 			var name = module.Name ?? string.Empty;
 			if (string.IsNullOrEmpty(name))
 				return null;
@@ -972,7 +972,7 @@ namespace dnlib.DotNet.Writer {
 			return name + ".pdb";
 		}
 
-		string GetDefaultPdbFileName() {
+		string? GetDefaultPdbFileName() {
 			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
 			if (string.IsNullOrEmpty(destFileName)) {
 				Error("TheOptions.WritePdb is true but it's not possible to guess the default PDB file name. Set PdbFileName to the name of the PDB file.");
@@ -984,9 +984,9 @@ namespace dnlib.DotNet.Writer {
 
 		void WritePortablePdb(PdbState pdbState, bool isEmbeddedPortablePdb) {
 			bool ownsStream = false;
-			Stream pdbStream = null;
+			Stream? pdbStream = null;
 			try {
-				MemoryStream embeddedMemoryStream = null;
+				MemoryStream? embeddedMemoryStream = null;
 				if (isEmbeddedPortablePdb) {
 					pdbStream = embeddedMemoryStream = new MemoryStream();
 					ownsStream = true;
@@ -1012,7 +1012,7 @@ namespace dnlib.DotNet.Writer {
 				var pdbId = new byte[20];
 				var pdbIdWriter = new ArrayWriter(pdbId);
 				uint codeViewTimestamp;
-				byte[] checksumBytes;
+				byte[]? checksumBytes;
 				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 ||
 					(TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0 ||
 					TheOptions.GetPdbContentId is null) {

@@ -15,7 +15,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets the parent scope
 		/// </summary>
-		public abstract SymbolScope Parent { get; }
+		public abstract SymbolScope? Parent { get; }
 
 		/// <summary>
 		/// Gets the start offset of the scope in the method
@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets the import scope or null if none
 		/// </summary>
-		public abstract PdbImportScope ImportScope { get; }
+		public abstract PdbImportScope? ImportScope { get; }
 
 		/// <summary>
 		/// Gets all the constants

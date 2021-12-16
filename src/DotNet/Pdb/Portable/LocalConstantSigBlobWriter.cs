@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using dnlib.DotNet.Writer;
 
@@ -185,7 +186,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		static readonly UTF8String stringDecimal = new UTF8String("Decimal");
 		static readonly UTF8String stringDateTime = new UTF8String("DateTime");
 
-		static bool GetName(ITypeDefOrRef tdr, out UTF8String @namespace, out UTF8String name) {
+		static bool GetName(ITypeDefOrRef tdr, [NotNullWhen(true)] out UTF8String? @namespace, [NotNullWhen(true)] out UTF8String? name) {
 			if (tdr is TypeRef tr) {
 				@namespace = tr.Namespace;
 				name = tr.Name;

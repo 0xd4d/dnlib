@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;

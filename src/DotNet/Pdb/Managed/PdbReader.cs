@@ -14,7 +14,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 	/// A managed PDB reader implementation for .NET modules.
 	/// </summary>
 	sealed class PdbReader : SymbolReader {
-		MsfStream[] streams;
+		MsfStream?[] streams;
 		Dictionary<string, uint> names;
 		Dictionary<uint, string> strings;
 		List<DbiModule> modules;
@@ -62,10 +62,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 				throw new PdbException(ex);
 			}
 			finally {
-				streams = null;
-				names = null;
-				strings = null;
-				modules = null;
+				streams = null!;
+				names = null!;
+				strings = null!;
+				modules = null!;
 			}
 		}
 
@@ -118,7 +118,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 
 			if (IsValidStreamIndex(tokenMapStream ?? STREAM_INVALID_INDEX))
-				ApplyRidMap(ref streams[tokenMapStream.Value].Content);
+				ApplyRidMap(ref streams[tokenMapStream.GetValueOrDefault()].Content);
 
 			functions = new Dictionary<int, DbiFunction>();
 			foreach (var module in modules) {
@@ -132,7 +132,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			srcsrvData = TryGetRawFileData("srcsrv");
 		}
 
-		byte[] TryGetRawFileData(string name) {
+		byte[]? TryGetRawFileData(string name) {
 			if (!names.TryGetValue(name, out uint streamId))
 				return null;
 			if (streamId > ushort.MaxValue || !IsValidStreamIndex((ushort)streamId))
@@ -148,7 +148,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			for (int i = 0; i < streamSizes.Length; i++)
 				streamSizes[i] = stream.Content.ReadUInt32();
 
-			streams = new MsfStream[streamNum];
+			streams = new MsfStream?[streamNum];
 			for (int i = 0; i < streamSizes.Length; i++) {
 				if (streamSizes[i] == 0xffffffff) {
 					streams[i] = null;
@@ -240,8 +240,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 			var moduleStream = stream.Slice(stream.Position, gpmodiSize);
 			while (moduleStream.Position < moduleStream.Length) {
-				var module = new DbiModule();
-				module.Read(ref moduleStream);
+				var module = new DbiModule(ref moduleStream);
 				modules.Add(module);
 			}
 
@@ -316,7 +315,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
 
-		public override SymbolMethod GetMethod(MethodDef method, int version) {
+		public override SymbolMethod? GetMethod(MethodDef method, int version) {
 			if (version != 1)
 				return null;
 			if (functions.TryGetValue(method.MDToken.ToInt32(), out var symMethod))
@@ -336,7 +335,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				return documentsResult;
 			}
 		}
-		volatile SymbolDocument[] documentsResult;
+		volatile SymbolDocument[]? documentsResult;
 
 		public override int UserEntryPoint => (int)entryPt;
 
@@ -346,7 +345,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (asyncMethod is not null)
 				result.Add(asyncMethod);
 
-			var cdiData = symMethod.Root.GetSymAttribute(CDI_NAME);
+			var cdiData = symMethod.root.GetSymAttribute(CDI_NAME);
 			if (cdiData is null)
 				return;
 			PdbCustomDebugInfoReader.Read(method, body, result, cdiData);
