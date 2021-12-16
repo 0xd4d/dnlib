@@ -19,7 +19,7 @@ on:
     types: released
 
 env:
-  CI_REQ_DOTNET_SDK_VER: 5.0.100
+  CI_REQ_DOTNET_SDK_VER: 6.0.100
 
 jobs:
   build-windows:
