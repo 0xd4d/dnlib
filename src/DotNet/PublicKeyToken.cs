@@ -8,12 +8,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the <see cref="PublicKeyToken"/>
 		/// </summary>
-		public override PublicKeyToken Token => this;
+		public override PublicKeyToken? Token => this;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PublicKeyToken() : base((byte[])null) { }
+		public PublicKeyToken() : base((byte[]?)null) { }
 
 		/// <inheritdoc/>
 		public PublicKeyToken(byte[] data)
@@ -26,7 +26,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			if ((object)this == obj)
 				return true;
 			var other = obj as PublicKeyToken;

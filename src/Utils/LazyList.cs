@@ -67,7 +67,7 @@ namespace dnlib.Utils {
 	public class LazyList<TValue> : ILazyList<TValue> where TValue : class {
 		private protected readonly List<Element> list;
 		int id = 0;
-		private protected readonly IListListener<TValue> listener;
+		private protected readonly IListListener<TValue>? listener;
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -176,7 +176,7 @@ namespace dnlib.Utils {
 		/// Constructor
 		/// </summary>
 		/// <param name="listener">List listener</param>
-		public LazyList(IListListener<TValue> listener) {
+		public LazyList(IListListener<TValue>? listener) {
 			this.listener = listener;
 			list = new List<Element>();
 		}
@@ -352,7 +352,7 @@ namespace dnlib.Utils {
 			internal Enumerator(LazyList<TValue> list) {
 				this.list = list;
 				index = 0;
-				current = default;
+				current = default!;
 #if THREAD_SAFE
 				list.theLock.EnterReadLock(); try {
 #endif
@@ -391,7 +391,7 @@ namespace dnlib.Utils {
 			bool MoveNextDoneOrThrow_NoLock() {
 				if (list.id != id)
 					throw new InvalidOperationException("List was modified");
-				current = default;
+				current = default!;
 				return false;
 			}
 
@@ -433,7 +433,7 @@ namespace dnlib.Utils {
 	[DebuggerTypeProxy(typeof(CollectionDebugView<,>))]
 	public class LazyList<TValue, TContext> : LazyList<TValue>, ILazyList<TValue> where TValue : class {
 		/*readonly*/ TContext context;
-		readonly Func<TContext, int, TValue> readOriginalValue;
+		readonly Func<TContext, int, TValue>? readOriginalValue;
 
 		/// <summary>
 		/// Stores data and keeps track of the original index and whether the data has been
@@ -441,7 +441,7 @@ namespace dnlib.Utils {
 		/// </summary>
 		sealed class LazyElement : Element {
 			internal readonly int origIndex;
-			LazyList<TValue, TContext> lazyList;
+			LazyList<TValue, TContext>? lazyList;
 
 			/// <inheritdoc/>
 			public override bool IsInitialized_NoLock => lazyList is null;
@@ -491,7 +491,7 @@ namespace dnlib.Utils {
 		/// Constructor
 		/// </summary>
 		/// <param name="listener">List listener</param>
-		public LazyList(IListListener<TValue> listener) : base(listener) {
+		public LazyList(IListListener<TValue>? listener) : base(listener) {
 		}
 
 		/// <summary>
@@ -511,7 +511,7 @@ namespace dnlib.Utils {
 		/// <param name="listener">List listener</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public LazyList(int length, IListListener<TValue> listener, TContext context, Func<TContext, int, TValue> readOriginalValue) : base(length, listener) {
+		public LazyList(int length, IListListener<TValue>? listener, TContext context, Func<TContext, int, TValue> readOriginalValue) : base(length, listener) {
 			this.context = context;
 			this.readOriginalValue = readOriginalValue;
 			for (int i = 0; i < length; i++)
@@ -521,7 +521,7 @@ namespace dnlib.Utils {
 		TValue ReadOriginalValue_NoLock(LazyElement elem) => ReadOriginalValue_NoLock(list.IndexOf(elem), elem.origIndex);
 
 		TValue ReadOriginalValue_NoLock(int index, int origIndex) {
-			var newValue = readOriginalValue(context, origIndex);
+			var newValue = readOriginalValue!(context, origIndex);
 			listener?.OnLazyAdd(index, ref newValue);
 			return newValue;
 		}

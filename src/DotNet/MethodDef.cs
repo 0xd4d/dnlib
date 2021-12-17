@@ -10,6 +10,7 @@ using dnlib.Threading;
 using dnlib.DotNet.Pdb;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -275,8 +276,9 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -297,8 +299,9 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 

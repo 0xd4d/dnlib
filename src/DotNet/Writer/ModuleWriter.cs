@@ -26,13 +26,13 @@ namespace dnlib.DotNet.Writer {
 		const uint MVID_ALIGNMENT = 1;
 
 		readonly ModuleDef module;
-		ModuleWriterOptions options;
+		ModuleWriterOptions? options;
 
 		List<PESection> sections;
-		PESection mvidSection;
+		PESection? mvidSection;
 		PESection textSection;
 		PESection sdataSection;
-		PESection rsrcSection;
+		PESection? rsrcSection;
 		PESection relocSection;
 
 		PEHeaders peHeaders;
@@ -87,7 +87,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the <c>.rsrc</c> section or null if none
 		/// </summary>
-		public override PESection RsrcSection => rsrcSection;
+		public override PESection? RsrcSection => rsrcSection;
 
 		/// <summary>
 		/// Gets the <c>.reloc</c> section
@@ -137,10 +137,12 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="module">The module</param>
 		/// <param name="options">Options or <c>null</c></param>
-		public ModuleWriter(ModuleDef module, ModuleWriterOptions options) {
+#pragma warning disable CS8618
+		public ModuleWriter(ModuleDef module, ModuleWriterOptions? options) {
 			this.module = module;
 			this.options = options;
 		}
+#pragma warning restore CS8618
 
 		/// <inheritdoc/>
 		protected override long WriteImpl() {
@@ -161,7 +163,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override Win32Resources GetWin32Resources() {
+		protected override Win32Resources? GetWin32Resources() {
 			if (Options.NoWin32Resources)
 				return null;
 			return Options.Win32Resources ?? module.Win32Resources;
@@ -224,7 +226,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(startupStub, startupStub.Alignment);
 			managedExportsWriter.AddSdataChunks(sdataSection);
 			if (GetWin32Resources() is not null)
-				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
+				rsrcSection!.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 			relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}
 
@@ -269,7 +271,7 @@ namespace dnlib.DotNet.Writer {
 
 			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);
 			if (Options.StrongNameKey is not null)
-				StrongNameSign((long)strongNameSignature.FileOffset);
+				StrongNameSign((long)strongNameSignature!.FileOffset);
 			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);
 
 			OnWriterEvent(ModuleWriterEvent.BeginWritePEChecksum);

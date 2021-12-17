@@ -13,7 +13,7 @@ namespace dnlib.DotNet.Writer {
 
 		readonly bool isTiny;
 		readonly byte[] code;
-		readonly byte[] extraSections;
+		readonly byte[]? extraSections;
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -33,7 +33,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the extra sections (exception handlers) or <c>null</c>
 		/// </summary>
-		public byte[] ExtraSections => extraSections;
+		public byte[]? ExtraSections => extraSections;
 
 		/// <summary>
 		/// Gets the token of the locals
@@ -78,7 +78,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="code">Code</param>
 		/// <param name="extraSections">Extra sections or <c>null</c></param>
 		/// <param name="localVarSigTok">Token of locals</param>
-		public MethodBody(byte[] code, byte[] extraSections, uint localVarSigTok) {
+		public MethodBody(byte[] code, byte[]? extraSections, uint localVarSigTok) {
 			isTiny = (code[0] & 3) == 2;
 			this.code = code;
 			this.extraSections = extraSections;
@@ -100,7 +100,7 @@ namespace dnlib.DotNet.Writer {
 
 		internal bool CanReuse(RVA origRva, uint origSize) {
 			uint length;
-			if (HasExtraSections) {
+			if (extraSections is not null && extraSections.Length > 0) {
 				var rva2 = origRva + (uint)code.Length;
 				rva2 = rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT);
 				rva2 += (uint)extraSections.Length;
@@ -116,7 +116,7 @@ namespace dnlib.DotNet.Writer {
 			Debug.Assert(this.rva == 0);
 			this.offset = offset;
 			this.rva = rva;
-			if (HasExtraSections) {
+			if (extraSections is not null && extraSections.Length > 0) {
 				var rva2 = rva + (uint)code.Length;
 				rva2 = rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT);
 				rva2 += (uint)extraSections.Length;
@@ -135,7 +135,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			writer.WriteBytes(code);
-			if (HasExtraSections) {
+			if (extraSections is not null && extraSections.Length > 0) {
 				var rva2 = rva + (uint)code.Length;
 				writer.WriteZeroes((int)rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT) - (int)rva2);
 				writer.WriteBytes(extraSections);
@@ -146,7 +146,7 @@ namespace dnlib.DotNet.Writer {
 		public override int GetHashCode() => Utils.GetHashCode(code) + Utils.GetHashCode(extraSections);
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			var other = obj as MethodBody;
 			if (other is null)
 				return false;

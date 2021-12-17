@@ -59,9 +59,9 @@ namespace dnlib.DotNet.Writer {
 			readonly bool preserveRids;
 			readonly bool enableRidToInfo;
 			readonly Dictionary<T, MemberDefInfo<T>> defToInfo = new Dictionary<T, MemberDefInfo<T>>();
-			Dictionary<uint, MemberDefInfo<T>> ridToInfo;
+			Dictionary<uint, MemberDefInfo<T>>? ridToInfo;
 			readonly List<MemberDefInfo<T>> defs = new List<MemberDefInfo<T>>();
-			List<MemberDefInfo<T>> sortedDefs;
+			List<MemberDefInfo<T>>? sortedDefs;
 			readonly Dictionary<T, int> collectionPositions = new Dictionary<T, int>();
 
 			/// <summary>
@@ -125,9 +125,14 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			public MemberDefInfo<T> Get(int i) => defs[i];
-			public MemberDefInfo<T> GetSorted(int i) => sortedDefs[i];
+			public MemberDefInfo<T> GetSorted(int i) {
+				Debug.Assert(sortedDefs is not null);
+				return sortedDefs[i];
+			}
 
-			public MemberDefInfo<T> GetByRid(uint rid) {
+			public MemberDefInfo<T>? GetByRid(uint rid) {
+				Debug.Assert(enableRidToInfo);
+				Debug.Assert(ridToInfo is not null);
 				ridToInfo.TryGetValue(rid, out var info);
 				return info;
 			}
@@ -189,12 +194,14 @@ namespace dnlib.DotNet.Writer {
 
 		protected override int NumberOfMethods => methodDefInfos.Count;
 
+#pragma warning disable CS8618
 		public PreserveTokensMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
 			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
-			mod = module as ModuleDefMD;
-			if (mod is null)
+			if (module is not ModuleDefMD mod2)
 				throw new ModuleWriterException("Not a ModuleDefMD");
+			mod = mod2;
 		}
+#pragma warning restore CS8618
 
 		/// <inheritdoc/>
 		public override uint GetRid(TypeRef tr) {
@@ -998,7 +1005,7 @@ namespace dnlib.DotNet.Writer {
 		void InitializeEventMap() {
 			if (!tablesHeap.EventMapTable.IsEmpty)
 				throw new ModuleWriterException("EventMap table isn't empty");
-			TypeDef type = null;
+			TypeDef? type = null;
 			for (int i = 0; i < eventDefInfos.Count; i++) {
 				var info = eventDefInfos.GetSorted(i);
 				if (type == info.Def.DeclaringType)
@@ -1013,7 +1020,7 @@ namespace dnlib.DotNet.Writer {
 		void InitializePropertyMap() {
 			if (!tablesHeap.PropertyMapTable.IsEmpty)
 				throw new ModuleWriterException("PropertyMap table isn't empty");
-			TypeDef type = null;
+			TypeDef? type = null;
 			for (int i = 0; i < propertyDefInfos.Count; i++) {
 				var info = propertyDefInfos.GetSorted(i);
 				if (type == info.Def.DeclaringType)

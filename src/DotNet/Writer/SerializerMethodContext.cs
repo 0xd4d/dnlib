@@ -8,8 +8,8 @@ namespace dnlib.DotNet.Writer {
 	sealed class SerializerMethodContext {
 		readonly Dictionary<Instruction, uint> toOffset;
 		readonly IWriterError helper;
-		MethodDef method;
-		CilBody body;
+		MethodDef? method;
+		CilBody? body;
 		uint bodySize;
 		bool dictInitd;
 
@@ -20,7 +20,7 @@ namespace dnlib.DotNet.Writer {
 			this.helper = helper;
 		}
 
-		internal void SetBody(MethodDef method) {
+		internal void SetBody(MethodDef? method) {
 			if (this.method != method) {
 				toOffset.Clear();
 				this.method = method;

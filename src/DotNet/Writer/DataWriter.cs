@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace dnlib.DotNet.Writer {
@@ -33,7 +34,9 @@ namespace dnlib.DotNet.Writer {
 			buffer = new byte[BUFFER_LEN];
 		}
 
+		[DoesNotReturn]
 		static void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
+		[DoesNotReturn]
 		static void ThrowArgumentOutOfRangeException(string message) => throw new ArgumentOutOfRangeException(message);
 
 		/// <summary>

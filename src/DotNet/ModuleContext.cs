@@ -8,9 +8,9 @@ namespace dnlib.DotNet {
 	/// <see cref="ModuleDef"/> context
 	/// </summary>
 	public class ModuleContext {
-		IAssemblyResolver assemblyResolver;
-		IResolver resolver;
-		readonly OpCode[][] experimentalOpCodes = new OpCode[12][];
+		IAssemblyResolver? assemblyResolver;
+		IResolver? resolver;
+		readonly OpCode?[][] experimentalOpCodes = new OpCode[12][];
 
 		/// <summary>
 		/// Gets/sets the assembly resolver. This is never <c>null</c>.
@@ -54,7 +54,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="resolver">Type/method/field resolver or <c>null</c></param>
-		public ModuleContext(IResolver resolver)
+		public ModuleContext(IResolver? resolver)
 			: this(null, resolver) {
 		}
 
@@ -63,7 +63,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="assemblyResolver">Assembly resolver or <c>null</c></param>
 		/// <param name="resolver">Type/method/field resolver or <c>null</c></param>
-		public ModuleContext(IAssemblyResolver assemblyResolver, IResolver resolver) {
+		public ModuleContext(IAssemblyResolver? assemblyResolver, IResolver? resolver) {
 			this.assemblyResolver = assemblyResolver;
 			this.resolver = resolver;
 			if (resolver is null && assemblyResolver is not null)
@@ -77,7 +77,7 @@ namespace dnlib.DotNet {
 		public void RegisterExperimentalOpCode(OpCode opCode) {
 			byte high = (byte)((ushort)opCode.Value >> 8);
 			byte low = (byte)opCode.Value;
-			OpCode[] array = experimentalOpCodes[high - 0xF0] ??= new OpCode[256];
+			var array = experimentalOpCodes[high - 0xF0] ??= new OpCode[256];
 
 			array[low] = opCode;
 		}
@@ -86,7 +86,7 @@ namespace dnlib.DotNet {
 		/// Clears an experimental CIL opcode.
 		/// </summary>
 		public void ClearExperimentalOpCode(byte high, byte low) {
-			OpCode[] array = experimentalOpCodes[high - 0xF0];
+			var array = experimentalOpCodes[high - 0xF0];
 
 			if (array != null)
 				array[low] = null;
@@ -95,8 +95,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Attempts to get an experimental CIL opcode.
 		/// </summary>
-		public OpCode GetExperimentalOpCode(byte high, byte low) {
-			return experimentalOpCodes[high - 0xF0]?[low];
-		}
+		public OpCode? GetExperimentalOpCode(byte high, byte low) =>
+			experimentalOpCodes[high - 0xF0]?[low];
 	}
 }

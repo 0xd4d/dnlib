@@ -39,11 +39,8 @@ namespace dnlib.DotNet {
 		/// <see cref="AssemblyHashAlgorithm.SHA1"/> will be used as the hash algorithm.</remarks>
 		/// <param name="data">The data</param>
 		/// <param name="hashAlgo">The algorithm to use</param>
-		/// <returns>Hashed data or null if <paramref name="data"/> was <c>null</c></returns>
+		/// <returns>Hashed data</returns>
 		public static byte[] Hash(byte[] data, AssemblyHashAlgorithm hashAlgo) {
-			if (data is null)
-				return null;
-
 			using (var asmHash = new AssemblyHash(hashAlgo)) {
 				asmHash.Hash(data);
 				return asmHash.ComputeHash();
@@ -88,7 +85,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public byte[] ComputeHash() {
 			hasher.TransformFinalBlock(Array2.Empty<byte>(), 0, 0);
-			return hasher.Hash;
+			return hasher.Hash ?? throw new InvalidOperationException();
 		}
 
 		/// <summary>
@@ -98,7 +95,7 @@ namespace dnlib.DotNet {
 		/// order, is used as the public key token</remarks>
 		/// <param name="publicKeyData">The data</param>
 		/// <returns>A new <see cref="PublicKeyToken"/> instance</returns>
-		public static PublicKeyToken CreatePublicKeyToken(byte[] publicKeyData) {
+		public static PublicKeyToken CreatePublicKeyToken(byte[]? publicKeyData) {
 			if (publicKeyData is null)
 				return new PublicKeyToken();
 			var hash = Hash(publicKeyData, AssemblyHashAlgorithm.SHA1);

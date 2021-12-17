@@ -175,7 +175,6 @@ namespace dnlib.DotNet {
 				UTF8String.IsNullOrEmpty(asm.Culture) &&
 				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name)).Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ||
-				// This name could change but since CoreCLR is used a lot, it's worth supporting
 				asmName.Equals("System.Private.CoreLib", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("netstandard", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("corefx", StringComparison.OrdinalIgnoreCase));
@@ -187,8 +186,6 @@ namespace dnlib.DotNet {
 		/// <param name="asm">The assembly</param>
 		/// <returns>A new <see cref="AssemblyRef"/> instance</returns>
 		public static AssemblyRef ToAssemblyRef(this IAssembly asm) {
-			if (asm is null)
-				throw new ArgumentNullException(nameof(asm));
 			// Always create a new one, even if it happens to be an AssemblyRef
 			return new AssemblyRefUser(asm.Name, asm.Version, asm.PublicKeyOrToken, asm.Culture) { Attributes = asm.Attributes };
 		}
@@ -199,12 +196,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <param name="checkValueType"><c>true</c> if we should try to figure out whether
 		/// <paramref name="type"/> is a <see cref="ValueType"/></param>
-		/// <returns>A <see cref="TypeSig"/> instance or <c>null</c> if <paramref name="type"/>
-		/// is invalid</returns>
-		public static TypeSig? ToTypeSig(this ITypeDefOrRef? type, bool checkValueType = true) {
-			if (type is null)
-				return null;
-
+		public static TypeSig ToTypeSig(this ITypeDefOrRef type, bool checkValueType = true) {
 			var module = type.Module;
 			if (module is not null) {
 				var corLibType = module.CorLibTypes.GetCorLibTypeSig(type);
@@ -212,20 +204,21 @@ namespace dnlib.DotNet {
 					return corLibType;
 			}
 
-			var td = type as TypeDef;
-			if (td is not null)
+			if (type is TypeDef td)
 				return CreateClassOrValueType(type, checkValueType ? td.IsValueType : false);
 
 			if (type is TypeRef tr) {
+				TypeDef? td2 = null;
 				if (checkValueType)
-					td = tr.Resolve();
-				return CreateClassOrValueType(type, td is null ? false : td.IsValueType);
+					td2 = tr.Resolve();
+				return CreateClassOrValueType(type, td2 is null ? false : td2.IsValueType);
 			}
 
 			if (type is TypeSpec ts)
 				return ts.TypeSig;
 
-			return null;
+			// Unreachable
+			throw new InvalidOperationException();
 		}
 
 		static TypeSig CreateClassOrValueType(ITypeDefOrRef type, bool isValueType) {
@@ -880,7 +873,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the marshal type
 		/// </summary>
-		MarshalType MarshalType { get; set; }
+		MarshalType? MarshalType { get; set; }
 
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>

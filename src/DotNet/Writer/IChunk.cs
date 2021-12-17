@@ -87,7 +87,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">Writer</param>
 		/// <param name="chunk">The data</param>
-		internal static void WriteDataDirectory(this DataWriter writer, IChunk chunk) {
+		internal static void WriteDataDirectory(this DataWriter writer, IChunk? chunk) {
 			if (chunk is null || chunk.GetVirtualSize() == 0)
 				writer.WriteUInt64(0);
 			else {
@@ -96,7 +96,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		internal static void WriteDebugDirectory(this DataWriter writer, DebugDirectory chunk) {
+		internal static void WriteDebugDirectory(this DataWriter writer, DebugDirectory? chunk) {
 			if (chunk is null || chunk.GetVirtualSize() == 0)
 				writer.WriteUInt64(0);
 			else {

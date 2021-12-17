@@ -37,12 +37,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Constant.Value
 		/// </summary>
-		public object Value {
+		public object? Value {
 			get => value;
 			set => this.value = value;
 		}
 		/// <summary/>
-		protected object value;
+		protected object? value;
 	}
 
 	/// <summary>
@@ -128,7 +128,7 @@ namespace dnlib.DotNet {
 			value = GetValue(type, ref reader);
 		}
 
-		static object GetValue(ElementType etype, ref DataReader reader) {
+		static object? GetValue(ElementType etype, ref DataReader reader) {
 			switch (etype) {
 			case ElementType.Boolean:
 				if (reader.Length < 1)

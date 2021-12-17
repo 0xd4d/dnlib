@@ -23,6 +23,8 @@ namespace dnlib.DotNet.Writer {
 		public bool ErrorDetected => errors > 0;
 
 		internal MethodBodyWriterBase() {
+			this.instructions = null!;
+			this.exceptionHandlers = null!;
 		}
 
 		/// <summary>

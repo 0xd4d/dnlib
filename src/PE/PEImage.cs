@@ -61,7 +61,7 @@ namespace dnlib.PE {
 		public bool MayHaveInvalidAddresses => !IsFileImageLayout;
 
 		/// <inheritdoc/>
-		public string Filename => dataReaderFactory.Filename;
+		public string? Filename => dataReaderFactory.Filename;
 
 		/// <inheritdoc/>
 		public ImageDosHeader ImageDosHeader => peInfo.ImageDosHeader;
@@ -80,7 +80,7 @@ namespace dnlib.PE {
 				return imageDebugDirectories;
 			}
 		}
-		ImageDebugDirectory[] imageDebugDirectories;
+		ImageDebugDirectory[]? imageDebugDirectories;
 
 		/// <inheritdoc/>
 		public DataReaderFactory DataReaderFactory => dataReaderFactory;
@@ -89,7 +89,7 @@ namespace dnlib.PE {
 		public Win32Resources Win32Resources {
 			get => win32Resources.Value;
 			set {
-				IDisposable origValue = null;
+				IDisposable? origValue = null;
 				if (win32Resources.IsValueInitialized) {
 					origValue = win32Resources.Value;
 					if (origValue == value)
@@ -183,7 +183,7 @@ namespace dnlib.PE {
 		/// <param name="filename">Filename or null</param>
 		/// <param name="imageLayout">Image layout</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(byte[] data, string filename, ImageLayout imageLayout, bool verify)
+		public PEImage(byte[] data, string? filename, ImageLayout imageLayout, bool verify)
 			: this(ByteArrayDataReaderFactory.Create(data, filename), imageLayout, verify) {
 		}
 
@@ -212,7 +212,7 @@ namespace dnlib.PE {
 		/// <param name="data">The PE file data</param>
 		/// <param name="filename">Filename or null</param>
 		/// <param name="verify">Verify PE file data</param>
-		public PEImage(byte[] data, string filename, bool verify)
+		public PEImage(byte[] data, string? filename, bool verify)
 			: this(data, filename, ImageLayout.File, verify) {
 		}
 
@@ -229,7 +229,7 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <param name="data">The PE file data</param>
 		/// <param name="filename">Filename or null</param>
-		public PEImage(byte[] data, string filename)
+		public PEImage(byte[] data, string? filename)
 			: this(data, filename, true) {
 		}
 
@@ -309,10 +309,10 @@ namespace dnlib.PE {
 			if (win32Resources.IsValueInitialized && (id = win32Resources.Value) is not null)
 				id.Dispose();
 			dataReaderFactory?.Dispose();
-			win32Resources.Value = null;
-			dataReaderFactory = null;
-			peType = null;
-			peInfo = null;
+			win32Resources.Value = null!;
+			dataReaderFactory = null!;
+			peType = null!;
+			peInfo = null!;
 		}
 
 		/// <inheritdoc/>

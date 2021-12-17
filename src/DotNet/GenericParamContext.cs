@@ -8,12 +8,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Type context
 		/// </summary>
-		public readonly TypeDef Type;
+		public readonly TypeDef? Type;
 
 		/// <summary>
 		/// Method context
 		/// </summary>
-		public readonly MethodDef Method;
+		public readonly MethodDef? Method;
 
 		/// <summary>
 		/// true if <see cref="Type"/> and <see cref="Method"/> are both <c>null</c>
@@ -27,7 +27,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">Method</param>
 		/// <returns>A new <see cref="GenericParamContext"/> instance</returns>
-		public static GenericParamContext Create(MethodDef method) {
+		public static GenericParamContext Create(MethodDef? method) {
 			if (method is null)
 				return new GenericParamContext();
 			return new GenericParamContext(method.DeclaringType, method);

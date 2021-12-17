@@ -16,7 +16,7 @@ namespace dnlib.DotNet {
 		readonly MethodDef method;
 		readonly List<Parameter> parameters;
 		readonly Parameter hiddenThisParameter;
-		ParamDef hiddenThisParamDef;
+		ParamDef? hiddenThisParamDef;
 		readonly Parameter returnParameter;
 		int methodSigIndexBase;
 #if THREAD_SAFE
@@ -112,12 +112,12 @@ namespace dnlib.DotNet {
 		/// Should be called when the method's declaring type has changed
 		/// </summary>
 		/// <param name="methodDeclaringType">Method declaring type</param>
-		internal void UpdateThisParameterType(TypeDef methodDeclaringType) {
+		internal void UpdateThisParameterType(TypeDef? methodDeclaringType) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
 			if (methodDeclaringType is null)
-				hiddenThisParameter.Type = null;
+				hiddenThisParameter.Type = null!;
 			else {
 				bool isValueType = methodDeclaringType.IsValueType;
 				ClassOrValueTypeSig instSig;
@@ -193,7 +193,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		internal ParamDef FindParamDef(Parameter param) {
+		internal ParamDef? FindParamDef(Parameter param) {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
@@ -203,7 +203,7 @@ namespace dnlib.DotNet {
 #endif
 		}
 
-		ParamDef FindParamDef_NoLock(Parameter param) {
+		ParamDef? FindParamDef_NoLock(Parameter param) {
 			int seq;
 			if (param.IsReturnTypeParameter)
 				seq = 0;
@@ -314,7 +314,7 @@ namespace dnlib.DotNet {
 
 			internal Enumerator(ParameterList list) {
 				this.list = list;
-				current = default;
+				current = null!;
 #if THREAD_SAFE
 				list.theLock.EnterReadLock(); try {
 #endif
@@ -368,7 +368,7 @@ namespace dnlib.DotNet {
 	/// A method parameter
 	/// </summary>
 	public sealed class Parameter : IVariable {
-		readonly ParameterList parameterList;
+		readonly ParameterList? parameterList;
 		TypeSig typeSig;
 		readonly int paramIndex;
 		readonly int methodSigIndex;
@@ -432,7 +432,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the <see cref="dnlib.DotNet.ParamDef"/> or <c>null</c> if not present
 		/// </summary>
-		public ParamDef ParamDef => parameterList?.FindParamDef(this);
+		public ParamDef? ParamDef => parameterList?.FindParamDef(this);
 
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="dnlib.DotNet.ParamDef"/>
@@ -459,30 +459,11 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="paramIndex">Parameter index</param>
-		public Parameter(int paramIndex) {
-			this.paramIndex = paramIndex;
-			methodSigIndex = paramIndex;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="paramIndex">Parameter index</param>
 		/// <param name="type">Parameter type</param>
 		public Parameter(int paramIndex, TypeSig type) {
 			this.paramIndex = paramIndex;
 			methodSigIndex = paramIndex;
 			typeSig = type;
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="paramIndex">Parameter index (0 is hidden this param if it exists)</param>
-		/// <param name="methodSigIndex">Index in method signature</param>
-		public Parameter(int paramIndex, int methodSigIndex) {
-			this.paramIndex = paramIndex;
-			this.methodSigIndex = methodSigIndex;
 		}
 
 		/// <summary>
@@ -497,11 +478,13 @@ namespace dnlib.DotNet {
 			typeSig = type;
 		}
 
+#pragma warning disable CS8618
 		internal Parameter(ParameterList parameterList, int paramIndex, int methodSigIndex) {
 			this.parameterList = parameterList;
 			this.paramIndex = paramIndex;
 			this.methodSigIndex = methodSigIndex;
 		}
+#pragma warning restore CS8618
 
 		/// <summary>
 		/// Creates a <see cref="dnlib.DotNet.ParamDef"/> if it doesn't already exist

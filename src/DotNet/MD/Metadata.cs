@@ -22,7 +22,7 @@ namespace dnlib.DotNet.MD {
 		public abstract bool IsStandalonePortablePdb { get; }
 
 		/// <summary>
-		/// Gets the .NET header
+		/// Gets the .NET header or throws if it's just a pure .NET metadata file (eg. Portable PDB)
 		/// </summary>
 		public abstract ImageCor20Header ImageCor20Header { get; }
 
@@ -38,7 +38,7 @@ namespace dnlib.DotNet.MD {
 		public abstract string VersionString { get; }
 
 		/// <summary>
-		/// Gets the <see cref="IPEImage"/>
+		/// Gets the <see cref="IPEImage"/> or throws if it's just a pure .NET metadata file (eg. Portable PDB)
 		/// </summary>
 		public abstract IPEImage PEImage { get; }
 

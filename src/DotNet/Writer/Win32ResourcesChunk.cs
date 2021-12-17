@@ -232,7 +232,7 @@ namespace dnlib.DotNet.Writer {
 			return error is null;
 		}
 
-		static uint GetMaxAlignment(FileOffset offset, out string error) {
+		static uint GetMaxAlignment(FileOffset offset, out string? error) {
 			error = null;
 			uint maxAlignment = 1;
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_DIR_ALIGNMENT);

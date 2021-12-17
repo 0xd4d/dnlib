@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -12,9 +13,9 @@ namespace dnlib.DotNet.Resources {
 	/// </summary>
 	public class ResourceDataFactory {
 		readonly ModuleDef module;
-		readonly ModuleDefMD moduleMD;
+		readonly ModuleDefMD? moduleMD;
 		readonly Dictionary<string, UserResourceType> dict = new Dictionary<string, UserResourceType>(StringComparer.Ordinal);
-		readonly Dictionary<string, string> asmNameToAsmFullName = new Dictionary<string, string>(StringComparer.Ordinal);
+		readonly Dictionary<string, string?> asmNameToAsmFullName = new Dictionary<string, string?>(StringComparer.Ordinal);
 
 		/// <summary>
 		/// Gets the owner module
@@ -189,18 +190,19 @@ namespace dnlib.DotNet.Resources {
 
 		sealed class MyBinder : SerializationBinder {
 			public class OkException : Exception {
-				public string AssemblyName { get; set; }
-				public string TypeName { get; set; }
+				public readonly string AssemblyName;
+				public readonly string TypeName;
+				public OkException(string assemblyName, string typeName) {
+					AssemblyName = assemblyName;
+					TypeName = typeName;
+				}
 			}
 
 			public override Type BindToType(string assemblyName, string typeName) =>
-				throw new OkException {
-					AssemblyName = assemblyName,
-					TypeName = typeName,
-				};
+				throw new OkException(assemblyName, typeName);
 		}
 
-		bool GetSerializedTypeAndAssemblyName(byte[] value, out string assemblyName, out string typeName) {
+		bool GetSerializedTypeAndAssemblyName(byte[] value, [NotNullWhen(true)] out string? assemblyName, [NotNullWhen(true)] out string? typeName) {
 			try {
 				var formatter = new BinaryFormatter();
 				formatter.Binder = new MyBinder();
@@ -254,21 +256,21 @@ namespace dnlib.DotNet.Resources {
 
 			var newFullName = fullName;
 
-			string assemblyName = GetRealAssemblyName(asmRef);
+			var assemblyName = GetRealAssemblyName(asmRef);
 			if (!string.IsNullOrEmpty(assemblyName))
 				newFullName = $"{tr.ReflectionFullName}, {assemblyName}";
 
 			return newFullName;
 		}
 
-		string GetRealAssemblyName(IAssembly asm) {
+		string? GetRealAssemblyName(IAssembly asm) {
 			string assemblyName = asm.FullName;
 			if (!asmNameToAsmFullName.TryGetValue(assemblyName, out var newAsmName))
 				asmNameToAsmFullName[assemblyName] = newAsmName = TryGetRealAssemblyName(asm);
 			return newAsmName;
 		}
 
-		string TryGetRealAssemblyName(IAssembly asm) {
+		string? TryGetRealAssemblyName(IAssembly asm) {
 			var simpleName = asm.Name;
 			if (simpleName == module.CorLibTypes.AssemblyRef.Name)
 				return module.CorLibTypes.AssemblyRef.FullName;
@@ -289,7 +291,7 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <param name="simpleName">Simple name of assembly</param>
 		/// <returns></returns>
-		protected virtual string GetAssemblyFullName(string simpleName) => null;
+		protected virtual string? GetAssemblyFullName(string simpleName) => null;
 
 		/// <summary>
 		/// Gets all types sorted by <see cref="UserResourceType"/>

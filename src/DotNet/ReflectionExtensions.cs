@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 
@@ -16,8 +17,8 @@ namespace dnlib.DotNet {
 			if (!type.IsNested)
 				@namespace = type.Namespace ?? string.Empty;
 			else {
-				var declTypeFullName = Unescape(type.DeclaringType.FullName);
-				var typeFullName = Unescape(type.FullName);
+				var declTypeFullName = Unescape(type.DeclaringType!.FullName) ?? string.Empty;
+				var typeFullName = Unescape(type.FullName) ?? string.Empty;
 				if (declTypeFullName.Length + 1 + name.Length == typeFullName.Length)
 					@namespace = string.Empty;
 				else
@@ -34,7 +35,7 @@ namespace dnlib.DotNet {
 				return false;
 			var prop = self.GetType().GetProperty("IsSzArray", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			if (prop is not null)
-				return (bool)prop.GetValue(self, Array2.Empty<object>());
+				return (bool)prop.GetValue(self, Array2.Empty<object>())!;
 			return (self.Name ?? string.Empty).EndsWith("[]");
 		}
 
@@ -107,7 +108,8 @@ namespace dnlib.DotNet {
 		public static bool IsTypeDef(this Type type) =>
 			type is not null && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
 
-		internal static string Unescape(string name) {
+		[return: NotNullIfNotNull("name")]
+		internal static string? Unescape(string? name) {
 			if (string.IsNullOrEmpty(name) || name.IndexOf('\\') < 0)
 				return name;
 			var sb = new StringBuilder(name.Length);

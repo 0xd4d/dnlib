@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -55,12 +56,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column File.HashValue
 		/// </summary>
-		public byte[] HashValue {
+		public byte[]? HashValue {
 			get => hashValue;
 			set => hashValue = value;
 		}
 		/// <summary/>
-		protected byte[] hashValue;
+		protected byte[]? hashValue;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -73,8 +74,9 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -98,8 +100,9 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -155,7 +158,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of file</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="hashValue">File hash</param>
-		public FileDefUser(UTF8String name, FileAttributes flags, byte[] hashValue) {
+		public FileDefUser(UTF8String name, FileAttributes flags, byte[]? hashValue) {
 			this.name = name;
 			attributes = (int)flags;
 			this.hashValue = hashValue;

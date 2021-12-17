@@ -40,7 +40,7 @@ namespace dnlib.DotNet {
 				// Don't check IsValueType
 				UTF8String.Equals(Namespace, other.Namespace) && UTF8String.Equals(Name, other.Name);
 
-			public override bool Equals(object obj) {
+			public override bool Equals(object? obj) {
 				if (!(obj is ClassName))
 					return false;
 				return Equals((ClassName)obj);
@@ -159,7 +159,7 @@ namespace dnlib.DotNet {
 				winMDToCLR.Add(projClass.WinMDClass, projClass);
 		}
 
-		static AssemblyRef ToCLR(ModuleDef module, ref UTF8String ns, ref UTF8String name) {
+		static AssemblyRef? ToCLR(ModuleDef? module, ref UTF8String ns, ref UTF8String name) {
 			if (!winMDToCLR.TryGetValue(new ClassName(ns, name), out var pc))
 				return null;
 
@@ -168,14 +168,14 @@ namespace dnlib.DotNet {
 			return CreateAssembly(module, pc.ContractAssembly);
 		}
 
-		static AssemblyRef CreateAssembly(ModuleDef module, ClrAssembly clrAsm) {
+		static AssemblyRef CreateAssembly(ModuleDef? module, ClrAssembly clrAsm) {
 			var mscorlib = module?.CorLibTypes.AssemblyRef;
 			var asm = new AssemblyRefUser(GetName(clrAsm), contractAsmVersion, new PublicKeyToken(GetPublicKeyToken(clrAsm)), UTF8String.Empty);
 
 			if (mscorlib is not null && mscorlib.Name == mscorlibName && IsValidMscorlibVersion(mscorlib.Version))
 				asm.Version = mscorlib.Version;
 			if (module is ModuleDefMD mod) {
-				Version ver = null;
+				Version? ver = null;
 				foreach (var asmRef in mod.GetAssemblyRefs()) {
 					if (asmRef.IsContentTypeWindowsRuntime)
 						continue;
@@ -243,7 +243,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="td">Type</param>
 		/// <returns></returns>
-		public static TypeRef ToCLR(ModuleDef module, TypeDef td) => ToCLR(module, td, out bool isClrValueType);
+		public static TypeRef? ToCLR(ModuleDef? module, TypeDef? td) => ToCLR(module, td, out bool isClrValueType);
 
 		/// <summary>
 		/// Converts WinMD type <paramref name="td"/> to a CLR type. Returns <c>null</c>
@@ -253,7 +253,7 @@ namespace dnlib.DotNet {
 		/// <param name="td">Type</param>
 		/// <param name="isClrValueType"><c>true</c> if the returned type is a value type</param>
 		/// <returns></returns>
-		public static TypeRef ToCLR(ModuleDef module, TypeDef td, out bool isClrValueType) {
+		public static TypeRef? ToCLR(ModuleDef? module, TypeDef? td, out bool isClrValueType) {
 			isClrValueType = false;
 			if (td is null || !td.IsWindowsRuntime)
 				return null;
@@ -275,7 +275,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="tr">Type</param>
 		/// <returns></returns>
-		public static TypeRef ToCLR(ModuleDef module, TypeRef tr) => ToCLR(module, tr, out bool isClrValueType);
+		public static TypeRef? ToCLR(ModuleDef? module, TypeRef? tr) => ToCLR(module, tr, out bool isClrValueType);
 
 		/// <summary>
 		/// Converts WinMD type <paramref name="tr"/> to a CLR type. Returns <c>null</c>
@@ -285,7 +285,7 @@ namespace dnlib.DotNet {
 		/// <param name="tr">Type</param>
 		/// <param name="isClrValueType"><c>true</c> if the returned type is a value type</param>
 		/// <returns></returns>
-		public static TypeRef ToCLR(ModuleDef module, TypeRef tr, out bool isClrValueType) {
+		public static TypeRef? ToCLR(ModuleDef? module, TypeRef? tr, out bool isClrValueType) {
 			isClrValueType = false;
 			if (tr is null)
 				return null;
@@ -309,7 +309,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="et">Type</param>
 		/// <returns></returns>
-		public static ExportedType ToCLR(ModuleDef module, ExportedType et) {
+		public static ExportedType? ToCLR(ModuleDef? module, ExportedType? et) {
 			if (et is null)
 				return null;
 			var defAsm = et.DefinitionAssembly;
@@ -331,7 +331,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="ts">Type</param>
 		/// <returns></returns>
-		public static TypeSig ToCLR(ModuleDef module, TypeSig ts) {
+		public static TypeSig? ToCLR(ModuleDef? module, TypeSig? ts) {
 			if (ts is null)
 				return null;
 			var et = ts.ElementType;
@@ -340,14 +340,14 @@ namespace dnlib.DotNet {
 
 			var tdr = ((ClassOrValueTypeSig)ts).TypeDefOrRef;
 
-			TypeRef tr, newTr;
+			TypeRef? tr, newTr;
 			bool isClrValueType;
 			if (tdr is TypeDef td) {
 				newTr = ToCLR(module, td, out isClrValueType);
 				if (newTr is null)
 					return null;
 			}
-			else if ((tr = tdr as TypeRef) is not null) {
+			else if ((tr = (TypeRef)tdr) is not null) {
 				newTr = ToCLR(module, tr, out isClrValueType);
 				if (newTr is null)
 					return null;
@@ -367,7 +367,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="mr">Member reference</param>
 		/// <returns></returns>
-		public static MemberRef ToCLR(ModuleDef module, MemberRef mr) {
+		public static MemberRef? ToCLR(ModuleDef? module, MemberRef? mr) {
 			// See WinMDAdapter::CheckIfMethodImplImplementsARedirectedInterface
 			// in coreclr: md/winmd/adapter.cpp
 			if (mr is null)
@@ -389,7 +389,7 @@ namespace dnlib.DotNet {
 
 				newCl = newTr;
 			}
-			else if ((ts = cl as TypeSpec) is not null) {
+			else if ((ts = (TypeSpec)cl) is not null) {
 				var gis = ts.TypeSig as GenericInstSig;
 				if (gis is null || !(gis.GenericType is ClassSig))
 					return null;
@@ -424,7 +424,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module or <c>null</c></param>
 		/// <param name="md">Method</param>
 		/// <returns></returns>
-		public static MemberRef ToCLR(ModuleDef module, MethodDef md) {
+		public static MemberRef? ToCLR(ModuleDef? module, MethodDef? md) {
 			if (md is null)
 				return null;
 			if (md.Name != CloseName)

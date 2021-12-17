@@ -12,8 +12,8 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MethodBodyChunks : IChunk {
 		const uint FAT_BODY_ALIGNMENT = 4;
-		Dictionary<MethodBody, MethodBody> tinyMethodsDict;
-		Dictionary<MethodBody, MethodBody> fatMethodsDict;
+		Dictionary<MethodBody, MethodBody>? tinyMethodsDict;
+		Dictionary<MethodBody, MethodBody>? fatMethodsDict;
 		readonly List<MethodBody> tinyMethods;
 		readonly List<MethodBody> fatMethods;
 		readonly List<ReusedMethodInfo> reusedMethods;
@@ -89,6 +89,8 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			if (shareBodies) {
+				Debug.Assert(fatMethodsDict is not null);
+				Debug.Assert(tinyMethodsDict is not null);
 				var dict = methodBody.IsFat ? fatMethodsDict : tinyMethodsDict;
 				if (dict.TryGetValue(methodBody, out var cached)) {
 					savedBytes += (uint)methodBody.GetApproximateSizeOfMethodBody();

@@ -210,7 +210,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public AssemblyDef Resolve(IAssembly assembly, ModuleDef sourceModule) {
+		public AssemblyDef? Resolve(IAssembly? assembly, ModuleDef? sourceModule) {
 			if (assembly is null)
 				return null;
 
@@ -387,7 +387,7 @@ namespace dnlib.DotNet {
 			return asmName.FullNameToken;
 		}
 
-		AssemblyDef Resolve2(IAssembly assembly, ModuleDef sourceModule) {
+		AssemblyDef Resolve2(IAssembly assembly, ModuleDef? sourceModule) {
 			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out var resolvedAssembly))
 				return resolvedAssembly;
 
@@ -530,7 +530,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> PreFindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string> PreFindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			foreach (var path in FindAssemblies2(assembly, preSearchPaths))
 				yield return path;
 		}
@@ -542,7 +542,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> PostFindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string> PostFindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			foreach (var path in FindAssemblies2(assembly, postSearchPaths))
 				yield return path;
 		}
@@ -554,7 +554,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> FindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string> FindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			if (assembly.IsContentTypeWindowsRuntime) {
 				string path;
 				try {
@@ -577,13 +577,13 @@ namespace dnlib.DotNet {
 				yield return path;
 		}
 
-		IEnumerable<string> FindAssembliesGac(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		IEnumerable<string> FindAssembliesGac(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			if (matchExactly)
 				return FindAssembliesGacExactly(assembly, sourceModule);
 			return FindAssembliesGacAny(assembly, sourceModule);
 		}
 
-		IEnumerable<GacInfo> GetGacInfos(ModuleDef sourceModule) {
+		IEnumerable<GacInfo> GetGacInfos(ModuleDef? sourceModule) {
 			int version = sourceModule is null ? int.MinValue : sourceModule.IsClr40 ? 4 : 2;
 			// Try the correct GAC first (eg. GAC4 if it's a .NET Framework 4 assembly)
 			foreach (var gacInfo in gacInfos) {
@@ -596,7 +596,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacExactly(IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacExactly(IAssembly assembly, ModuleDef? sourceModule) {
 			foreach (var gacInfo in GetGacInfos(sourceModule)) {
 				foreach (var path in FindAssembliesGacExactly(gacInfo, assembly, sourceModule))
 					yield return path;
@@ -607,7 +607,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		static IEnumerable<string> GetExtraMonoPaths(IAssembly assembly, ModuleDef sourceModule) {
+		static IEnumerable<string> GetExtraMonoPaths(IAssembly assembly, ModuleDef? sourceModule) {
 			if (extraMonoPaths is not null) {
 				foreach (var dir in extraMonoPaths) {
 					string file;
@@ -624,7 +624,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacExactly(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacExactly(GacInfo gacInfo, IAssembly assembly, ModuleDef? sourceModule) {
 			var pkt = PublicKeyBase.ToPublicKeyToken(assembly.PublicKeyOrToken);
 			if (gacInfo is not null && pkt is not null) {
 				string pktString = pkt.ToString();
@@ -650,7 +650,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacAny(IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacAny(IAssembly assembly, ModuleDef? sourceModule) {
 			foreach (var gacInfo in GetGacInfos(sourceModule)) {
 				foreach (var path in FindAssembliesGacAny(gacInfo, assembly, sourceModule))
 					yield return path;
@@ -661,7 +661,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacAny(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacAny(GacInfo gacInfo, IAssembly assembly, ModuleDef? sourceModule) {
 			if (gacInfo is not null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				foreach (var subDir in gacInfo.SubDirs) {
@@ -695,7 +695,7 @@ namespace dnlib.DotNet {
 			return dirs;
 		}
 
-		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 			var searchPaths = GetSearchPaths(sourceModule);
 			var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
@@ -725,7 +725,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of all search paths to use for this module</returns>
-		IEnumerable<string> GetSearchPaths(ModuleDef module) {
+		IEnumerable<string> GetSearchPaths(ModuleDef? module) {
 			var keyModule = module;
 			if (keyModule is null)
 				keyModule = nullModule;
@@ -742,14 +742,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of search paths</returns>
-		protected virtual IEnumerable<string> GetModuleSearchPaths(ModuleDef module) => GetModulePrivateSearchPaths(module);
+		protected virtual IEnumerable<string> GetModuleSearchPaths(ModuleDef? module) => GetModulePrivateSearchPaths(module);
 
 		/// <summary>
 		/// Gets all private assembly search paths as found in the module's <c>.config</c> file.
 		/// </summary>
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of search paths</returns>
-		protected IEnumerable<string> GetModulePrivateSearchPaths(ModuleDef module) {
+		protected IEnumerable<string> GetModulePrivateSearchPaths(ModuleDef? module) {
 			if (module is null)
 				return Array2.Empty<string>();
 			var asm = module.Assembly;

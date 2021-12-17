@@ -5,6 +5,7 @@ using System.Text;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.DotNet.MD;
+using System;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -45,7 +46,7 @@ namespace dnlib.DotNet.Writer {
 		/// Version string. Default is <see cref="DEFAULT_VERSION_STRING"/>. It's stored as a
 		/// zero-terminated UTF-8 string. Length should be &lt;= 255 bytes.
 		/// </summary>
-		public string VersionString;
+		public string? VersionString;
 
 		/// <summary>
 		/// Storage flags should be 0
@@ -108,7 +109,10 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Options</param>
-		public MetadataHeader(MetadataHeaderOptions options) => this.options = options ?? new MetadataHeaderOptions();
+		public MetadataHeader(MetadataHeaderOptions? options) {
+			this.options = options ?? new MetadataHeaderOptions();
+			heaps = Array2.Empty<IHeap>();
+		}
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {

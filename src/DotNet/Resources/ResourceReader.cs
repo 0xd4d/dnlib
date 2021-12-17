@@ -54,9 +54,9 @@ namespace dnlib.DotNet.Resources {
 		DataReader reader;
 		readonly uint baseFileOffset;
 		readonly ResourceDataFactory resourceDataFactory;
-		readonly CreateResourceDataDelegate createResourceDataDelegate;
+		readonly CreateResourceDataDelegate? createResourceDataDelegate;
 
-		ResourceReader(ModuleDef module, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
+		ResourceReader(ModuleDef module, ref DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) {
 			this.reader = reader;
 			resourceDataFactory = new ResourceDataFactory(module);
 			this.createResourceDataDelegate = createResourceDataDelegate;
@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
+		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) =>
 			new ResourceReader(module, ref reader, createResourceDataDelegate).Read();
 
 		ResourceElementSet Read() {
@@ -136,13 +136,11 @@ namespace dnlib.DotNet.Resources {
 			infos.Sort((a, b) => a.offset.CompareTo(b.offset));
 			for (int i = 0; i < infos.Count; i++) {
 				var info = infos[i];
-				var element = new ResourceElement();
-				element.Name = info.name;
 				reader.Position = (uint)info.offset;
 				long nextDataOffset = i == infos.Count - 1 ? end : infos[i + 1].offset;
 				int size = (int)(nextDataOffset - info.offset);
-				element.ResourceData =
-					version == 1 ? ReadResourceDataV1(userTypes, size) : ReadResourceDataV2(userTypes, size);
+				var resourceData = version == 1 ? ReadResourceDataV1(userTypes, size) : ReadResourceDataV2(userTypes, size);
+				var element = new ResourceElement(info.name, resourceData);
 				element.ResourceData.StartOffset = baseFileOffset + (FileOffset)info.offset;
 				element.ResourceData.EndOffset = baseFileOffset + (FileOffset)reader.Position;
 

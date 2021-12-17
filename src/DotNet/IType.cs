@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Interface to get the full name of a type
@@ -91,7 +93,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">this</param>
 		/// <returns>The scope type</returns>
-		public static ITypeDefOrRef GetNonNestedTypeRefScope(this IType type) {
+		public static ITypeDefOrRef? GetNonNestedTypeRefScope(this IType? type) {
 			if (type is null)
 				return null;
 			var scopeType = type.ScopeType;

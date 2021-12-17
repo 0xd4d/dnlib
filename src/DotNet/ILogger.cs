@@ -388,7 +388,7 @@ namespace dnlib.DotNet {
 	/// Dummy logger which ignores all messages, but can optionally throw on errors.
 	/// </summary>
 	public sealed class DummyLogger : ILogger {
-		ConstructorInfo ctor;
+		ConstructorInfo? ctor;
 
 		/// <summary>
 		/// It ignores everything and doesn't throw anything.

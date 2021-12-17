@@ -14,12 +14,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public AssemblyDef Resolve(IAssembly assembly, ModuleDef sourceModule) => null;
+		public AssemblyDef? Resolve(IAssembly? assembly, ModuleDef? sourceModule) => null;
 
 		/// <inheritdoc/>
-		public TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule) => null;
+		public TypeDef? Resolve(TypeRef? typeRef, ModuleDef? sourceModule) => null;
 
 		/// <inheritdoc/>
-		public IMemberForwarded Resolve(MemberRef memberRef) => null;
+		public IMemberForwarded? Resolve(MemberRef? memberRef) => null;
 	}
 }

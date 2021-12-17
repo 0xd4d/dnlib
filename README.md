@@ -2,6 +2,14 @@
 
 .NET module/assembly reader/writer library
 
+v4 breaking changes compared to v3
+----------------------------------
+
+- Nullable reference types was enabled. Some things that used to return `null` may now return some default value, eg. when it has some invalid metadata.
+- `UTF8String(string)` constructor doesn't allow a `null` argument.
+- Some constructors that could be called without initializing all non-nullable reference type fields have been removed or updated to take more parameters.
+- TODO:
+
 Opening a .NET assembly/module
 ------------------------------
 

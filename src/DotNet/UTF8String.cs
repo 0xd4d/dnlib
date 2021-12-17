@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 
@@ -17,10 +18,10 @@ namespace dnlib.DotNet {
 		public static readonly UTF8StringEqualityComparer Instance = new UTF8StringEqualityComparer();
 
 		/// <inheritdoc/>
-		public bool Equals(UTF8String x, UTF8String y) => UTF8String.Equals(x, y);
+		public bool Equals(UTF8String? x, UTF8String? y) => UTF8String.Equals(x, y);
 
 		/// <inheritdoc/>
-		public int GetHashCode(UTF8String obj) => UTF8String.GetHashCode(obj);
+		public int GetHashCode(UTF8String? obj) => UTF8String.GetHashCode(obj);
 	}
 
 	/// <summary>
@@ -37,7 +38,7 @@ namespace dnlib.DotNet {
 		public static readonly UTF8String Empty = new UTF8String(string.Empty);
 
 		readonly byte[] data;
-		string asString;
+		string? asString;
 
 		/// <summary>
 		/// Gets the value as a UTF8 decoded string. Only use it for display purposes,
@@ -46,7 +47,7 @@ namespace dnlib.DotNet {
 		public string String {
 			get {
 				if (asString is null)
-					asString = ConvertFromUTF8(data);
+					asString = ConvertFromUTF8(data) ?? string.Empty;
 				return asString;
 			}
 		}
@@ -67,36 +68,37 @@ namespace dnlib.DotNet {
 		/// Gets the length of the raw data. It's the same as <c>Data.Length</c>
 		/// </summary>
 		/// <seealso cref="Length"/>
-		public int DataLength => data is null ? 0 : data.Length;
+		public int DataLength => data.Length;
 
 		/// <summary>
-		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c>.
+		/// Checks whether <paramref name="utf8"/> is <c>null</c>
 		/// </summary>
 		/// <param name="utf8">The instance to check</param>
 		/// <returns><c>true</c> if <c>null</c> or empty, <c>false</c> otherwise</returns>
-		public static bool IsNull(UTF8String utf8) => utf8 is null || utf8.data is null;
+		public static bool IsNull(UTF8String? utf8) => utf8 is null;
 
 		/// <summary>
-		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c> or the
-		/// data is zero length.
+		/// Checks whether <paramref name="utf8"/> is <c>null</c> or the data is zero length.
 		/// </summary>
 		/// <param name="utf8">The instance to check</param>
 		/// <returns><c>true</c> if <c>null</c> or empty, <c>false</c> otherwise</returns>
-		public static bool IsNullOrEmpty(UTF8String utf8) => utf8 is null || utf8.data is null || utf8.data.Length == 0;
+		public static bool IsNullOrEmpty([NotNullWhen(false)] UTF8String? utf8) => utf8 is null || utf8.data.Length == 0;
 
 		/// <summary>Implicit conversion from <see cref="UTF8String"/> to <see cref="string"/></summary>
-		public static implicit operator string(UTF8String s) => UTF8String.ToSystemString(s);
+		[return: NotNullIfNotNull("s")]
+		public static implicit operator string?(UTF8String? s) => UTF8String.ToSystemString(s);
 
 		/// <summary>Implicit conversion from <see cref="string"/> to <see cref="UTF8String"/></summary>
-		public static implicit operator UTF8String(string s) => s is null ? null : new UTF8String(s);
+		[return: NotNullIfNotNull("s")]
+		public static implicit operator UTF8String?(string? s) => s is null ? null : new UTF8String(s);
 
 		/// <summary>
 		/// Converts it to a <see cref="string"/>
 		/// </summary>
 		/// <param name="utf8">The UTF-8 string instace or <c>null</c></param>
 		/// <returns>A <see cref="string"/> or <c>null</c> if <paramref name="utf8"/> is <c>null</c></returns>
-		public static string ToSystemString(UTF8String utf8) {
-			if (utf8 is null || utf8.data is null)
+		public static string? ToSystemString(UTF8String? utf8) {
+			if (utf8 is null)
 				return null;
 			if (utf8.data.Length == 0)
 				return string.Empty;
@@ -108,20 +110,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="utf8">The UTF-8 string instace or <c>null</c></param>
 		/// <returns>A <see cref="string"/> (never <c>null</c>)</returns>
-		public static string ToSystemStringOrEmpty(UTF8String utf8) => ToSystemString(utf8) ?? string.Empty;
+		public static string ToSystemStringOrEmpty(UTF8String? utf8) => ToSystemString(utf8) ?? string.Empty;
 
 		/// <summary>
 		/// Gets the hash code of a <see cref="UTF8String"/>
 		/// </summary>
 		/// <param name="utf8">Input</param>
-		public static int GetHashCode(UTF8String utf8) {
+		public static int GetHashCode(UTF8String? utf8) {
 			if (IsNullOrEmpty(utf8))
 				return 0;
 			return Utils.GetHashCode(utf8.data);
 		}
 
 		/// <inheritdoc/>
-		public int CompareTo(UTF8String other) => CompareTo(this, other);
+		public int CompareTo(UTF8String? other) => CompareTo(this, other);
 
 		/// <summary>
 		/// Compares two <see cref="UTF8String"/> instances (case sensitive)
@@ -129,7 +131,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Instance #1 or <c>null</c></param>
 		/// <param name="b">Instance #2 or <c>null</c></param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public static int CompareTo(UTF8String a, UTF8String b) => Utils.CompareTo(a?.data, b?.data);
+		public static int CompareTo(UTF8String? a, UTF8String? b) => Utils.CompareTo(a?.data, b?.data);
 
 		/// <summary>
 		/// Compares two <see cref="UTF8String"/> instances (case insensitive)
@@ -137,12 +139,12 @@ namespace dnlib.DotNet {
 		/// <param name="a">Instance #1 or <c>null</c></param>
 		/// <param name="b">Instance #2 or <c>null</c></param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public static int CaseInsensitiveCompareTo(UTF8String a, UTF8String b) {
-			if ((object)a == (object)b)
+		public static int CaseInsensitiveCompareTo(UTF8String? a, UTF8String? b) {
+			if ((object?)a == (object?)b)
 				return 0;
 			var sa = ToSystemString(a);
 			var sb = ToSystemString(b);
-			if ((object)sa == (object)sb)
+			if ((object?)sa == (object?)sb)
 				return 0;
 			if (sa is null)
 				return -1;
@@ -157,55 +159,53 @@ namespace dnlib.DotNet {
 		/// <param name="a">Instance #1 or <c>null</c></param>
 		/// <param name="b">Instance #2 or <c>null</c></param>
 		/// <returns><c>true</c> if equals, <c>false</c> otherwise</returns>
-		public static bool CaseInsensitiveEquals(UTF8String a, UTF8String b) => CaseInsensitiveCompareTo(a, b) == 0;
+		public static bool CaseInsensitiveEquals(UTF8String? a, UTF8String? b) => CaseInsensitiveCompareTo(a, b) == 0;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator ==(UTF8String left, UTF8String right) => CompareTo(left, right) == 0;
+		public static bool operator ==(UTF8String? left, UTF8String? right) => CompareTo(left, right) == 0;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator ==(UTF8String left, string right) => ToSystemString(left) == right;
+		public static bool operator ==(UTF8String? left, string? right) => ToSystemString(left) == right;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator ==(string left, UTF8String right) => left == ToSystemString(right);
+		public static bool operator ==(string? left, UTF8String? right) => left == ToSystemString(right);
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator !=(UTF8String left, UTF8String right) => CompareTo(left, right) != 0;
+		public static bool operator !=(UTF8String? left, UTF8String? right) => CompareTo(left, right) != 0;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator !=(UTF8String left, string right) => ToSystemString(left) != right;
+		public static bool operator !=(UTF8String? left, string? right) => ToSystemString(left) != right;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator !=(string left, UTF8String right) => left != ToSystemString(right);
+		public static bool operator !=(string? left, UTF8String? right) => left != ToSystemString(right);
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator >(UTF8String left, UTF8String right) => CompareTo(left, right) > 0;
+		public static bool operator >(UTF8String? left, UTF8String? right) => CompareTo(left, right) > 0;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator <(UTF8String left, UTF8String right) => CompareTo(left, right) < 0;
+		public static bool operator <(UTF8String? left, UTF8String? right) => CompareTo(left, right) < 0;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator >=(UTF8String left, UTF8String right) => CompareTo(left, right) >= 0;
+		public static bool operator >=(UTF8String? left, UTF8String? right) => CompareTo(left, right) >= 0;
 
 		/// <summary>Overloaded operator</summary>
-		public static bool operator <=(UTF8String left, UTF8String right) => CompareTo(left, right) <= 0;
+		public static bool operator <=(UTF8String? left, UTF8String? right) => CompareTo(left, right) <= 0;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="data">UTF-8 data that this instance now owns</param>
-		public UTF8String(byte[] data) => this.data = data;
+		public UTF8String(byte[] data) => this.data = data ?? throw new ArgumentNullException();
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="s">The string</param>
 		public UTF8String(string s)
-			: this(s is null ? null : Encoding.UTF8.GetBytes(s)) {
+			: this(Encoding.UTF8.GetBytes(s)) {
 		}
 
-		static string ConvertFromUTF8(byte[] data) {
-			if (data is null)
-				return null;
+		static string? ConvertFromUTF8(byte[] data) {
 			try {
 				return Encoding.UTF8.GetString(data);
 			}
@@ -220,13 +220,13 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if equals, <c>false</c> otherwise</returns>
-		public static bool Equals(UTF8String a, UTF8String b) => CompareTo(a, b) == 0;
+		public static bool Equals(UTF8String? a, UTF8String? b) => CompareTo(a, b) == 0;
 
 		/// <inheritdoc/>
-		public bool Equals(UTF8String other) => CompareTo(this, other) == 0;
+		public bool Equals(UTF8String? other) => CompareTo(this, other) == 0;
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			var other = obj as UTF8String;
 			if (other is null)
 				return false;
@@ -255,7 +255,7 @@ namespace dnlib.DotNet {
 		/// <param name="ignoreCase"><c>true</c> to ignore case</param>
 		/// <param name="culture">Culture info</param>
 		/// <returns></returns>
-		public bool EndsWith(string value, bool ignoreCase, CultureInfo culture) => String.EndsWith(value, ignoreCase, culture);
+		public bool EndsWith(string value, bool ignoreCase, CultureInfo? culture) => String.EndsWith(value, ignoreCase, culture);
 
 		/// <summary>
 		/// Checks whether <paramref name="value"/> matches the end of this string
@@ -279,7 +279,7 @@ namespace dnlib.DotNet {
 		/// <param name="ignoreCase"><c>true</c> to ignore case</param>
 		/// <param name="culture">Culture info</param>
 		/// <returns></returns>
-		public bool StartsWith(string value, bool ignoreCase, CultureInfo culture) => String.StartsWith(value, ignoreCase, culture);
+		public bool StartsWith(string value, bool ignoreCase, CultureInfo? culture) => String.StartsWith(value, ignoreCase, culture);
 
 		/// <summary>
 		/// Checks whether <paramref name="value"/> matches the beginning of this string
@@ -294,7 +294,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="strB">Other string</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public int CompareTo(string strB) => String.CompareTo(strB);
+		public int CompareTo(string? strB) => String.CompareTo(strB);
 
 		/// <summary>
 		/// Returns the index of the first character <paramref name="value"/> in this string
@@ -503,7 +503,7 @@ namespace dnlib.DotNet {
 		/// <param name="oldValue">Sub string to find</param>
 		/// <param name="newValue">Sub string to replace all <paramref name="oldValue"/></param>
 		/// <returns>A new instance</returns>
-		public UTF8String Replace(string oldValue, string newValue) => new UTF8String(String.Replace(oldValue, newValue));
+		public UTF8String Replace(string oldValue, string? newValue) => new UTF8String(String.Replace(oldValue, newValue));
 
 		/// <summary>
 		/// Returns a sub string of this string starting at offset <paramref name="startIndex"/>
@@ -532,7 +532,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="culture">Culture info</param>
 		/// <returns>A new instance</returns>
-		public UTF8String ToLower(CultureInfo culture) => new UTF8String(String.ToLower(culture));
+		public UTF8String ToLower(CultureInfo? culture) => new UTF8String(String.ToLower(culture));
 
 		/// <summary>
 		/// Returns the lower case version of this string using the invariant culture
@@ -551,7 +551,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="culture">Culture info</param>
 		/// <returns>A new instance</returns>
-		public UTF8String ToUpper(CultureInfo culture) => new UTF8String(String.ToUpper(culture));
+		public UTF8String ToUpper(CultureInfo? culture) => new UTF8String(String.ToUpper(culture));
 
 		/// <summary>
 		/// Returns the upper case version of this string using the invariant culture

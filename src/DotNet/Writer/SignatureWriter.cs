@@ -171,24 +171,24 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.ValueArray:
 				writer.WriteByte((byte)typeSig.ElementType);
 				Write(typeSig.Next);
-				WriteCompressedUInt32((typeSig as ValueArraySig).Size);
+				WriteCompressedUInt32(((ValueArraySig)typeSig).Size);
 				break;
 
 			case ElementType.FnPtr:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write((typeSig as FnPtrSig).Signature);
+				Write(((FnPtrSig)typeSig).Signature);
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write((typeSig as ModifierSig).Modifier);
+				Write(((ModifierSig)typeSig).Modifier);
 				Write(typeSig.Next);
 				break;
 
 			case ElementType.Module:
 				writer.WriteByte((byte)typeSig.ElementType);
-				WriteCompressedUInt32((typeSig as ModuleSig).Index);
+				WriteCompressedUInt32(((ModuleSig)typeSig).Index);
 				Write(typeSig.Next);
 				break;
 
@@ -229,10 +229,10 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			MethodBaseSig mbs;
-			FieldSig fs;
-			LocalSig ls;
-			GenericInstMethodSig gim;
+			MethodBaseSig? mbs;
+			FieldSig? fs;
+			LocalSig? ls;
+			GenericInstMethodSig? gim;
 
 			if ((mbs = sig as MethodBaseSig) is not null)
 				Write(mbs);

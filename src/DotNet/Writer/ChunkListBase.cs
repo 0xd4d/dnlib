@@ -11,7 +11,7 @@ namespace dnlib.DotNet.Writer {
 	/// <typeparam name="T">Chunk type</typeparam>
 	public abstract class ChunkListBase<T> : IChunk where T : IChunk {
 		/// <summary>All chunks</summary>
-		protected List<Elem> chunks;
+		protected readonly List<Elem> chunks;
 		uint length;
 		uint virtualSize;
 		/// <summary><c>true</c> if <see cref="SetOffset"/> has been called</summary>
@@ -20,6 +20,11 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 
 		internal bool IsEmpty => chunks.Count == 0;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		protected ChunkListBase() => chunks = new List<Elem>();
 
 		/// <summary>
 		/// Helper struct

@@ -10,11 +10,11 @@ namespace dnlib.Utils {
 	/// </summary>
 	/// <typeparam name="TValue">Value type</typeparam>
 	[DebuggerDisplay("{value}")]
-	struct UserValue<TValue> {
+	struct UserValue<TValue> where TValue : class {
 #if THREAD_SAFE
 		Lock theLock;
 #endif
-		Func<TValue> readOriginalValue;
+		Func<TValue>? readOriginalValue;
 		TValue value;
 		bool isUserValue;
 		bool isValueInitialized;
@@ -45,7 +45,7 @@ namespace dnlib.Utils {
 				theLock?.EnterWriteLock(); try {
 #endif
 				if (!isValueInitialized) {
-					value = readOriginalValue();
+					value = readOriginalValue!();
 					readOriginalValue = null;
 					isValueInitialized = true;
 				}

@@ -95,7 +95,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class SafeArrayMarshalType : MarshalType {
 		VariantType vt;
-		ITypeDefOrRef userDefinedSubType;
+		ITypeDefOrRef? userDefinedSubType;
 
 		/// <summary>
 		/// Gets/sets the variant type
@@ -108,7 +108,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the user-defined sub type (it's usually <c>null</c>)
 		/// </summary>
-		public ITypeDefOrRef UserDefinedSubType {
+		public ITypeDefOrRef? UserDefinedSubType {
 			get => userDefinedSubType;
 			set => userDefinedSubType = value;
 		}
@@ -151,7 +151,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="vt">Variant type</param>
 		/// <param name="userDefinedSubType">User-defined sub type</param>
-		public SafeArrayMarshalType(VariantType vt, ITypeDefOrRef userDefinedSubType)
+		public SafeArrayMarshalType(VariantType vt, ITypeDefOrRef? userDefinedSubType)
 			: base(NativeType.SafeArray) {
 			this.vt = vt;
 			this.userDefinedSubType = userDefinedSubType;
@@ -363,7 +363,7 @@ namespace dnlib.DotNet {
 	public sealed class CustomMarshalType : MarshalType {
 		UTF8String guid;
 		UTF8String nativeTypeName;
-		ITypeDefOrRef custMarshaler;
+		ITypeDefOrRef? custMarshaler;
 		UTF8String cookie;
 
 		/// <summary>
@@ -385,7 +385,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the custom marshaler
 		/// </summary>
-		public ITypeDefOrRef CustomMarshaler {
+		public ITypeDefOrRef? CustomMarshaler {
 			get => custMarshaler;
 			set => custMarshaler = value;
 		}
@@ -402,7 +402,7 @@ namespace dnlib.DotNet {
 		/// Default constructor
 		/// </summary>
 		public CustomMarshalType()
-			: this(null, null, null, null) {
+			: this(UTF8String.Empty, UTF8String.Empty, null, UTF8String.Empty) {
 		}
 
 		/// <summary>
@@ -410,7 +410,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="guid">GUID string</param>
 		public CustomMarshalType(UTF8String guid)
-			: this(guid, null, null, null) {
+			: this(guid, UTF8String.Empty, null, UTF8String.Empty) {
 		}
 
 		/// <summary>
@@ -419,7 +419,7 @@ namespace dnlib.DotNet {
 		/// <param name="guid">GUID string</param>
 		/// <param name="nativeTypeName">Native type name string</param>
 		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName)
-			: this(guid, nativeTypeName, null, null) {
+			: this(guid, nativeTypeName, null, UTF8String.Empty) {
 		}
 
 		/// <summary>
@@ -429,7 +429,7 @@ namespace dnlib.DotNet {
 		/// <param name="nativeTypeName">Native type name string</param>
 		/// <param name="custMarshaler">Custom marshaler name string</param>
 		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, ITypeDefOrRef custMarshaler)
-			: this(guid, nativeTypeName, custMarshaler, null) {
+			: this(guid, nativeTypeName, custMarshaler, UTF8String.Empty) {
 		}
 
 		/// <summary>
@@ -439,7 +439,7 @@ namespace dnlib.DotNet {
 		/// <param name="nativeTypeName">Native type name string</param>
 		/// <param name="custMarshaler">Custom marshaler name string</param>
 		/// <param name="cookie">Cookie string</param>
-		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, ITypeDefOrRef custMarshaler, UTF8String cookie)
+		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, ITypeDefOrRef? custMarshaler, UTF8String cookie)
 			: base(NativeType.CustomMarshaler) {
 			this.guid = guid;
 			this.nativeTypeName = nativeTypeName;

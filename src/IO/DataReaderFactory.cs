@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.IO {
 	/// <summary>
@@ -34,9 +35,11 @@ namespace dnlib.IO {
 		/// <returns></returns>
 		public abstract DataReader CreateReader(uint offset, uint length);
 
+		[DoesNotReturn]
 		static void ThrowArgumentOutOfRangeException(string paramName) =>
 			throw new ArgumentOutOfRangeException(paramName);
 
+		[DoesNotReturn]
 		static void Throw_CreateReader_2(int offset, int length) {
 			if (offset < 0)
 				throw new ArgumentOutOfRangeException(nameof(offset));

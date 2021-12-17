@@ -14,8 +14,8 @@ namespace dnlib.DotNet.Writer {
 		readonly Dictionary<UTF8String, uint> cachedDict = new Dictionary<UTF8String, uint>(UTF8StringEqualityComparer.Instance);
 		readonly List<UTF8String> cached = new List<UTF8String>();
 		uint nextOffset = 1;
-		byte[] originalData;
-		Dictionary<uint, byte[]> userRawData;
+		byte[]? originalData;
+		Dictionary<uint, byte[]>? userRawData;
 		readonly Dictionary<UTF8String, StringsOffsetInfo> toStringsOffsetInfo = new Dictionary<UTF8String, StringsOffsetInfo>(UTF8StringEqualityComparer.Instance);
 		readonly Dictionary<uint, StringsOffsetInfo> offsetIdToInfo = new Dictionary<uint, StringsOffsetInfo>();
 		readonly List<StringsOffsetInfo> stringsOffsetInfos = new List<StringsOffsetInfo>();
@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Writer {
 
 			stringsOffsetInfos.Sort(Comparison_StringsOffsetInfoSorter);
 
-			StringsOffsetInfo prevInfo = null;
+			StringsOffsetInfo? prevInfo = null;
 			foreach (var info in stringsOffsetInfos) {
 				if (prevInfo is not null && EndsWith(prevInfo.Value, info.Value))
 					info.StringsOffset = prevInfo.StringsOffset + (uint)(prevInfo.Value.Data.Length - info.Value.Data.Length);

@@ -34,7 +34,7 @@ namespace dnlib.DotNet {
 	}
 
 	public static partial class Extensions {
-		internal static string GetName(this AssemblyHashAlgorithm hashAlg) =>
+		internal static string? GetName(this AssemblyHashAlgorithm hashAlg) =>
 			hashAlg switch {
 				AssemblyHashAlgorithm.MD2 => null,
 				AssemblyHashAlgorithm.MD4 => null,

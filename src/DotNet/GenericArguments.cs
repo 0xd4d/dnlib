@@ -38,8 +38,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="number">Generic variable number</param>
 		/// <returns>A <see cref="TypeSig"/> or <c>null</c> if none was found</returns>
-		public TypeSig Resolve(uint number) {
-			TypeSig result = null;
+		public TypeSig? Resolve(uint number) {
+			TypeSig? result = null;
 			for (int i = argsStack.Count - 1; i >= 0; i--) {
 				var args = argsStack[i];
 				if (number >= args.Count)
@@ -94,7 +94,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeSig">Type signature</param>
 		/// <returns>New <see cref="TypeSig"/> which is never <c>null</c> unless
 		/// <paramref name="typeSig"/> is <c>null</c></returns>
-		public TypeSig Resolve(TypeSig typeSig) {
+		public TypeSig? Resolve(TypeSig typeSig) {
 			if (typeSig is null)
 				return null;
 

@@ -9,11 +9,11 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class AssemblyNameInfo : IAssembly {
 		AssemblyHashAlgorithm hashAlgId;
-		Version version;
+		Version? version;
 		AssemblyAttributes flags;
 		PublicKeyBase publicKeyOrToken;
 		UTF8String name;
-		UTF8String culture;
+		UTF8String? culture;
 
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyHashAlgorithm"/>
@@ -26,7 +26,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the <see cref="Version"/> or <c>null</c> if none specified
 		/// </summary>
-		public Version Version {
+		public Version? Version {
 			get => version;
 			set => version = value;
 		}
@@ -58,7 +58,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the culture or <c>null</c> if none specified
 		/// </summary>
-		public UTF8String Culture {
+		public UTF8String? Culture {
 			get => culture;
 			set => culture = value;
 		}

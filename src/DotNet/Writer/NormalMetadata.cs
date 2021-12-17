@@ -22,7 +22,7 @@ namespace dnlib.DotNet.Writer {
 
 		protected override int NumberOfMethods => methodDefInfos.Count;
 
-		public NormalMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
+		public NormalMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions? options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
 			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
 		}
 

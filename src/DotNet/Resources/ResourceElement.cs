@@ -15,6 +15,16 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		public IResourceData ResourceData { get; set; }
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="name">Name of resource</param>
+		/// <param name="resourceData">Data of resource</param>
+		public ResourceElement(string name, IResourceData resourceData) {
+			Name = name;
+			ResourceData = resourceData;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() => $"N: {Name}, V: {ResourceData}";
 	}

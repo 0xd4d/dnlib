@@ -55,7 +55,7 @@ namespace dnlib.DotNet.Writer {
 		public override int GetHashCode() => Utils.GetHashCode(array);
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			var other = obj as ByteArrayChunk;
 			return other is not null && Utils.Equals(array, other.array);
 		}

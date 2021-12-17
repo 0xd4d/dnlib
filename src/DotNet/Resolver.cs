@@ -29,7 +29,7 @@ namespace dnlib.DotNet {
 			this.assemblyResolver = assemblyResolver ?? throw new ArgumentNullException(nameof(assemblyResolver));
 
 		/// <inheritdoc/>
-		public TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule) {
+		public TypeDef? Resolve(TypeRef? typeRef, ModuleDef? sourceModule) {
 			if (typeRef is null)
 				return null;
 
@@ -67,7 +67,7 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		TypeDef ResolveExportedType(IList<ModuleDef> modules, TypeRef typeRef, ModuleDef sourceModule) {
+		TypeDef? ResolveExportedType(IList<ModuleDef> modules, TypeRef typeRef, ModuleDef sourceModule) {
 			for (int i = 0; i < 30; i++) {
 				var exportedType = FindExportedType(modules, typeRef);
 				if (exportedType is null)
@@ -88,7 +88,7 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
+		static ExportedType? FindExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
 			if (typeRef is null)
 				return null;
 			int count = modules.Count;
@@ -106,7 +106,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public IMemberForwarded Resolve(MemberRef memberRef) {
+		public IMemberForwarded? Resolve(MemberRef? memberRef) {
 			if (memberRef is null)
 				return null;
 			if (ProjectWinMDRefs)
@@ -117,7 +117,7 @@ namespace dnlib.DotNet {
 			return GetDeclaringType(memberRef, parent)?.Resolve(memberRef);
 		}
 
-		TypeDef GetDeclaringType(MemberRef memberRef, IMemberRefParent parent) {
+		TypeDef? GetDeclaringType(MemberRef memberRef, IMemberRefParent parent) {
 			if (memberRef is null || parent is null)
 				return null;
 
@@ -136,7 +136,7 @@ namespace dnlib.DotNet {
 				var module = memberRef.Module;
 				if (module is null)
 					return null;
-				TypeDef globalType = null;
+				TypeDef? globalType = null;
 				if (new SigComparer().Equals(module, moduleRef))
 					globalType = module.GlobalType;
 				var modAsm = module.Assembly;

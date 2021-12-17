@@ -66,7 +66,7 @@ namespace dnlib.DotNet.Writer {
 					length -= read;
 				}
 				hasher.TransformFinalBlock(Array2.Empty<byte>(), 0, 0);
-				return hasher.Hash;
+				return hasher.Hash ?? throw new InvalidOperationException();
 			}
 		}
 	}

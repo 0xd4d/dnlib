@@ -204,39 +204,39 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the native entry point
 		/// </summary>
-		public StartupStub StartupStub { get; set; }
+		public StartupStub? StartupStub { get; set; }
 
 		/// <summary>
 		/// Gets/sets the COR20 header
 		/// </summary>
-		public ImageCor20Header ImageCor20Header { get; set; }
+		public ImageCor20Header? ImageCor20Header { get; set; }
 
 		/// <summary>
 		/// Gets/sets the IAT
 		/// </summary>
-		public ImportAddressTable ImportAddressTable { get; set; }
+		public ImportAddressTable? ImportAddressTable { get; set; }
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImportDirectory"/>
 		/// </summary>
-		public ImportDirectory ImportDirectory { get; set; }
+		public ImportDirectory? ImportDirectory { get; set; }
 
 		/// <summary>
 		/// Gets/sets the Win32 resources
 		/// </summary>
-		public Win32ResourcesChunk Win32Resources { get; set; }
+		public Win32ResourcesChunk? Win32Resources { get; set; }
 
 		/// <summary>
 		/// Gets/sets the relocation directory
 		/// </summary>
-		public RelocDirectory RelocDirectory { get; set; }
+		public RelocDirectory? RelocDirectory { get; set; }
 
 		/// <summary>
 		/// Gets/sets the debug directory
 		/// </summary>
-		public DebugDirectory DebugDirectory { get; set; }
+		public DebugDirectory? DebugDirectory { get; set; }
 
-		internal IChunk ExportDirectory { get; set; }
+		internal IChunk? ExportDirectory { get; set; }
 
 		/// <summary>
 		/// Gets the image base
@@ -290,6 +290,7 @@ namespace dnlib.DotNet.Writer {
 			this.options = options ?? new PEHeadersOptions();
 			sectionAlignment = this.options.SectionAlignment ?? 0x2000;
 			fileAlignment = this.options.FileAlignment ?? 0x200;
+			sections = Array2.Empty<PESection>();
 		}
 
 		/// <inheritdoc/>

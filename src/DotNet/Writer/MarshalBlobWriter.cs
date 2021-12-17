@@ -49,9 +49,6 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		byte[] Write(MarshalType marshalType) {
-			if (marshalType is null)
-				return null;
-
 			var type = marshalType.NativeType;
 			if (type != NativeType.RawBlob) {
 				if ((uint)type > byte.MaxValue)

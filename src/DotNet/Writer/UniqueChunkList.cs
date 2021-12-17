@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -11,7 +12,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	/// <typeparam name="T">Chunk type</typeparam>
 	public sealed class UniqueChunkList<T> : ChunkListBase<T> where T : class, IChunk {
-		Dictionary<Elem, Elem> dict;
+		Dictionary<Elem, Elem>? dict;
 
 		/// <summary>
 		/// Default constructor
@@ -24,10 +25,8 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="chunkComparer">Compares the chunk type</param>
-		public UniqueChunkList(IEqualityComparer<T> chunkComparer) {
-			chunks = new List<Elem>();
+		public UniqueChunkList(IEqualityComparer<T> chunkComparer) =>
 			dict = new Dictionary<Elem, Elem>(new ElemEqualityComparer(chunkComparer));
-		}
 
 		/// <inheritdoc/>
 		public override void SetOffset(FileOffset offset, RVA rva) {
@@ -44,8 +43,7 @@ namespace dnlib.DotNet.Writer {
 		public T Add(T chunk, uint alignment) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			if (chunk is null)
-				return null;
+			Debug.Assert(dict is not null);
 			var elem = new Elem(chunk, alignment);
 			if (dict.TryGetValue(elem, out var other))
 				return other.chunk;

@@ -13,7 +13,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Module context
 		/// </summary>
-		public ModuleContext Context { get; set; }
+		public ModuleContext? Context { get; set; }
 
 		internal const PdbReaderOptions DefaultPdbReaderOptions = PdbReaderOptions.None;
 
@@ -27,7 +27,7 @@ namespace dnlib.DotNet {
 		/// C) to an <see cref="DataReaderFactory"/> of the PDB data. The <see cref="DataReaderFactory"/> will
 		/// be owned by the module. You don't need to initialize <see cref="TryToLoadPdbFromDisk"/>
 		/// </summary>
-		public object PdbFileOrData { get; set; }
+		public object? PdbFileOrData { get; set; }
 
 		/// <summary>
 		/// If <c>true</c>, will load the PDB file from disk if present, or an embedded portable PDB file
@@ -40,7 +40,7 @@ namespace dnlib.DotNet {
 		/// corlib assembly reference to use or <c>null</c> if the default one from the opened
 		/// module should be used.
 		/// </summary>
-		public AssemblyRef CorLibAssemblyRef { get; set; }
+		public AssemblyRef? CorLibAssemblyRef { get; set; }
 
 		/// <summary>
 		/// Runtime reader kind, default is <see cref="CLRRuntimeReaderKind.CLR"/>. It should be
@@ -57,7 +57,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="context">Module context</param>
-		public ModuleCreationOptions(ModuleContext context) => Context = context;
+		public ModuleCreationOptions(ModuleContext? context) => Context = context;
 
 		/// <summary>
 		/// Constructor
@@ -72,7 +72,7 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context</param>
 		/// <param name="runtime">Runtime reader kind, default is <see cref="CLRRuntimeReaderKind.CLR"/>. It should be
 		/// set to <see cref="CLRRuntimeReaderKind.Mono"/> if it's an obfuscated Mono/Unity assembly.</param>
-		public ModuleCreationOptions(ModuleContext context, CLRRuntimeReaderKind runtime) {
+		public ModuleCreationOptions(ModuleContext? context, CLRRuntimeReaderKind runtime) {
 			Context = context;
 			Runtime = runtime;
 		}

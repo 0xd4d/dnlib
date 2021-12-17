@@ -22,7 +22,7 @@ namespace dnlib.IO {
 			return ByteArrayDataReaderFactory.Create(File.ReadAllBytes(fileName), fileName);
 		}
 
-		static DataReaderFactory CreateDataReaderFactory(string fileName, bool mapAsImage) {
+		static DataReaderFactory? CreateDataReaderFactory(string fileName, bool mapAsImage) {
 			if (!isUnix)
 				return MemoryMappedDataReaderFactory.CreateWindows(fileName, mapAsImage);
 			else

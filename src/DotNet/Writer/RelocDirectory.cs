@@ -19,9 +19,9 @@ namespace dnlib.DotNet.Writer {
 		uint totalSize;
 
 		readonly struct RelocInfo {
-			public readonly IChunk Chunk;
+			public readonly IChunk? Chunk;
 			public readonly uint OffsetOrRva;
-			public RelocInfo(IChunk chunk, uint offset) {
+			public RelocInfo(IChunk? chunk, uint offset) {
 				Chunk = chunk;
 				OffsetOrRva = offset;
 			}
@@ -59,7 +59,7 @@ namespace dnlib.DotNet.Writer {
 			allRvas.Sort();
 
 			uint prevPage = uint.MaxValue;
-			List<uint> pageList = null;
+			List<uint>? pageList = null;
 			foreach (var relocRva in allRvas) {
 				uint page = relocRva & ~0xFFFU;
 				if (page != prevPage) {
@@ -69,7 +69,7 @@ namespace dnlib.DotNet.Writer {
 					pageList = new List<uint>();
 					relocSections.Add(pageList);
 				}
-				pageList.Add(relocRva);
+				pageList!.Add(relocRva);
 			}
 			if (pageList is not null)
 				totalSize += (uint)(8 + ((pageList.Count + 1) & ~1) * 2);

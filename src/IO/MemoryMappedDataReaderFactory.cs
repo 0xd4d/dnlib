@@ -26,13 +26,13 @@ namespace dnlib.IO {
 		/// <summary>
 		/// Raised when all cached <see cref="DataReader"/>s created by this instance must be recreated
 		/// </summary>
-		public override event EventHandler DataReaderInvalidated;
+		public override event EventHandler? DataReaderInvalidated;
 
 		DataStream stream;
 		uint length;
-		string filename;
+		string? filename;
 		GCHandle gcHandle;
-		byte[] dataAry;
+		byte[]? dataArray;
 		IntPtr data;
 		OSType osType;
 		long origDataLength;
@@ -40,6 +40,7 @@ namespace dnlib.IO {
 		MemoryMappedDataReaderFactory(string filename) {
 			osType = OSType.Unknown;
 			this.filename = filename;
+			stream = EmptyDataStream.Instance;
 		}
 
 		~MemoryMappedDataReaderFactory() {
@@ -90,7 +91,7 @@ namespace dnlib.IO {
 			static extern SafeFileHandle CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
 
 			[DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
-			static extern SafeFileHandle CreateFileMapping(SafeFileHandle hFile, IntPtr lpAttributes, uint flProtect, uint dwMaximumSizeHigh, uint dwMaximumSizeLow, string lpName);
+			static extern SafeFileHandle CreateFileMapping(SafeFileHandle hFile, IntPtr lpAttributes, uint flProtect, uint dwMaximumSizeHigh, uint dwMaximumSizeLow, string? lpName);
 
 			[DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
 			static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, uint dwDesiredAccess, uint dwFileOffsetHigh, uint dwFileOffsetLow, UIntPtr dwNumberOfBytesToMap);
@@ -105,7 +106,7 @@ namespace dnlib.IO {
 			const int NO_ERROR = 0;
 
 			public static void Mmap(MemoryMappedDataReaderFactory creator, bool mapAsImage) {
-				using (var fileHandle = CreateFile(creator.filename, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
+				using (var fileHandle = CreateFile(creator.filename!, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
 					if (fileHandle.IsInvalid)
 						throw new IOException($"Could not open file {creator.filename} for reading. Error: {Marshal.GetLastWin32Error():X8}");
 
@@ -161,7 +162,7 @@ namespace dnlib.IO {
 			static extern int munmap(IntPtr addr, IntPtr length);
 
 			public static void Mmap(MemoryMappedDataReaderFactory creator, bool mapAsImage) {
-				int fd = open(creator.filename, O_RDONLY);
+				int fd = open(creator.filename!, O_RDONLY);
 				try {
 					if (fd < 0)
 						throw new IOException($"Could not open file {creator.filename} for reading. Error: {fd}");
@@ -209,7 +210,7 @@ namespace dnlib.IO {
 		static volatile bool canTryWindows = true;
 		static volatile bool canTryUnix = true;
 
-		internal static MemoryMappedDataReaderFactory CreateWindows(string filename, bool mapAsImage) {
+		internal static MemoryMappedDataReaderFactory? CreateWindows(string filename, bool mapAsImage) {
 			if (!canTryWindows)
 				return null;
 
@@ -226,7 +227,7 @@ namespace dnlib.IO {
 			return null;
 		}
 
-		internal static MemoryMappedDataReaderFactory CreateUnix(string filename, bool mapAsImage) {
+		internal static MemoryMappedDataReaderFactory? CreateUnix(string filename, bool mapAsImage) {
 			if (!canTryUnix)
 				return null;
 
@@ -272,28 +273,28 @@ namespace dnlib.IO {
 		/// <summary>
 		/// <c>true</c> if memory mapped I/O is enabled
 		/// </summary>
-		internal bool IsMemoryMappedIO => dataAry is null;
+		internal bool IsMemoryMappedIO => dataArray is null;
 
 		/// <summary>
 		/// Call this to disable memory mapped I/O. This must only be called if no other code is
 		/// trying to access the memory since that could lead to an exception.
 		/// </summary>
 		internal void UnsafeDisableMemoryMappedIO() {
-			if (dataAry is not null)
+			if (dataArray is not null)
 				return;
-			var newAry = new byte[length];
-			Marshal.Copy(data, newAry, 0, newAry.Length);
+			var newArray = new byte[length];
+			Marshal.Copy(data, newArray, 0, newArray.Length);
 			FreeMemoryMappedIoData();
-			length = (uint)newAry.Length;
-			dataAry = newAry;
-			gcHandle = GCHandle.Alloc(dataAry, GCHandleType.Pinned);
+			length = (uint)newArray.Length;
+			dataArray = newArray;
+			gcHandle = GCHandle.Alloc(dataArray, GCHandleType.Pinned);
 			data = gcHandle.AddrOfPinnedObject();
 			stream = DataStreamFactory.Create((byte*)data);
 			DataReaderInvalidated?.Invoke(this, EventArgs.Empty);
 		}
 
 		void FreeMemoryMappedIoData() {
-			if (dataAry is null) {
+			if (dataArray is null) {
 				var origData = Interlocked.Exchange(ref data, IntPtr.Zero);
 				if (origData != IntPtr.Zero) {
 					length = 0;
@@ -319,7 +320,7 @@ namespace dnlib.IO {
 				catch (InvalidOperationException) {
 				}
 			}
-			dataAry = null;
+			dataArray = null;
 		}
 	}
 }

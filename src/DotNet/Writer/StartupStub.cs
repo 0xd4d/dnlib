@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -20,12 +21,12 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the <see cref="ImportDirectory"/>
 		/// </summary>
-		public ImportDirectory ImportDirectory { get; set; }
+		public ImportDirectory? ImportDirectory { get; set; }
 
 		/// <summary>
 		/// Gets/sets the <see cref="PEHeaders"/>
 		/// </summary>
-		public PEHeaders PEHeaders { get; set; }
+		public PEHeaders? PEHeaders { get; set; }
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
@@ -88,6 +89,8 @@ namespace dnlib.DotNet.Writer {
 				return;
 			if (cpuArch is null)
 				return;
+			Debug.Assert(ImportDirectory is not null);
+			Debug.Assert(PEHeaders is not null);
 			cpuArch.WriteStub(stubType, writer, PEHeaders.ImageBase, (uint)rva, (uint)ImportDirectory.IatCorXxxMainRVA);
 		}
 	}

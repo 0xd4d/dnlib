@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace dnlib.PE {
@@ -45,6 +46,7 @@ namespace dnlib.PE {
 			return checkSum;
 		}
 
+		[DoesNotReturn]
 		static void ThrowInvalidOperationException(string message) => throw new InvalidOperationException(message);
 	}
 }

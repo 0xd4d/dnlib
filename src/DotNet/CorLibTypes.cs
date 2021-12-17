@@ -97,15 +97,9 @@ namespace dnlib.DotNet {
 		/// <param name="module">The owner module</param>
 		/// <param name="corLibAssemblyRef">Corlib assembly reference or <c>null</c> if a default
 		/// assembly reference should be created</param>
-		public CorLibTypes(ModuleDef module, AssemblyRef corLibAssemblyRef) {
+		public CorLibTypes(ModuleDef module, AssemblyRef? corLibAssemblyRef) {
 			this.module = module;
 			this.corLibAssemblyRef = corLibAssemblyRef ?? CreateCorLibAssemblyRef();
-			Initialize();
-		}
-
-		AssemblyRef CreateCorLibAssemblyRef() => module.UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR20());
-
-		void Initialize() {
 			bool isCorLib = module.Assembly.IsCorLib();
 			typeVoid	= new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "Void"),		ElementType.Void);
 			typeBoolean	= new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "Boolean"),	ElementType.Boolean);
@@ -126,6 +120,8 @@ namespace dnlib.DotNet {
 			typeUIntPtr	= new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "UIntPtr"),	ElementType.U);
 			typeObject	= new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "Object"),	ElementType.Object);
 		}
+
+		AssemblyRef CreateCorLibAssemblyRef() => module.UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR20());
 
 		ITypeDefOrRef CreateCorLibTypeRef(bool isCorLib, string name) {
 			var tr = new TypeRefUser(module, "System", name, corLibAssemblyRef);

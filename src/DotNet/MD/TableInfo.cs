@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Diagnostics;
 
 namespace dnlib.DotNet.MD {
@@ -8,6 +9,7 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	[DebuggerDisplay("{rowSize} {name}")]
 	public sealed class TableInfo {
+		internal static readonly TableInfo Dummy = new TableInfo(Table.Module, "", Array2.Empty<ColumnInfo>());
 		readonly Table table;
 		int rowSize;
 		readonly ColumnInfo[] columns;

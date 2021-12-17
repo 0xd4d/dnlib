@@ -12,7 +12,7 @@ namespace dnlib.DotNet.Writer {
 	public readonly struct DeclSecurityWriter : ICustomAttributeWriterHelper {
 		readonly ModuleDef module;
 		readonly IWriterError helper;
-		readonly DataWriterContext context;
+		readonly DataWriterContext? context;
 		readonly bool optimizeCustomAttributeSerializedTypeNames;
 
 		/// <summary>
@@ -40,7 +40,7 @@ namespace dnlib.DotNet.Writer {
 		internal static byte[] Write(ModuleDef module, IList<SecurityAttribute> secAttrs, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames, DataWriterContext context) =>
 			new DeclSecurityWriter(module, helper, optimizeCustomAttributeSerializedTypeNames, context).Write(secAttrs);
 
-		DeclSecurityWriter(ModuleDef module, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames, DataWriterContext context) {
+		DeclSecurityWriter(ModuleDef module, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames, DataWriterContext? context) {
 			this.module = module;
 			this.helper = helper;
 			this.context = context;

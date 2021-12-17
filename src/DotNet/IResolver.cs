@@ -17,7 +17,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The type</param>
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule);
+		TypeDef? Resolve(TypeRef? typeRef, ModuleDef? sourceModule);
 	}
 
 	/// <summary>
@@ -30,7 +30,7 @@ namespace dnlib.DotNet {
 		/// <param name="memberRef">A method/field reference</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
 		/// if it couldn't be resolved.</returns>
-		IMemberForwarded Resolve(MemberRef memberRef);
+		IMemberForwarded? Resolve(MemberRef? memberRef);
 	}
 
 	public static partial class Extensions {
@@ -40,7 +40,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="typeRef">The type</param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		public static TypeDef Resolve(this ITypeResolver self, TypeRef typeRef) => self.Resolve(typeRef, null);
+		public static TypeDef? Resolve(this ITypeResolver self, TypeRef? typeRef) => self.Resolve(typeRef, null);
 
 		/// <summary>
 		/// Resolves a type
@@ -49,7 +49,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The type</param>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef typeRef) => self.ResolveThrow(typeRef, null);
+		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef? typeRef) => self.ResolveThrow(typeRef, null);
 
 		/// <summary>
 		/// Resolves a type
@@ -59,7 +59,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef typeRef, ModuleDef sourceModule) {
+		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef? typeRef, ModuleDef? sourceModule) {
 			var type = self.Resolve(typeRef, sourceModule);
 			if (type is not null)
 				return type;
@@ -73,7 +73,7 @@ namespace dnlib.DotNet {
 		/// <param name="memberRef">A method/field reference</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
-		public static IMemberForwarded ResolveThrow(this IMemberRefResolver self, MemberRef memberRef) {
+		public static IMemberForwarded ResolveThrow(this IMemberRefResolver self, MemberRef? memberRef) {
 			var memberDef = self.Resolve(memberRef);
 			if (memberDef is not null)
 				return memberDef;
@@ -86,7 +86,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="memberRef">A field reference</param>
 		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
-		public static FieldDef ResolveField(this IMemberRefResolver self, MemberRef memberRef) => self.Resolve(memberRef) as FieldDef;
+		public static FieldDef? ResolveField(this IMemberRefResolver self, MemberRef? memberRef) => self.Resolve(memberRef) as FieldDef;
 
 		/// <summary>
 		/// Resolves a field
@@ -95,7 +95,7 @@ namespace dnlib.DotNet {
 		/// <param name="memberRef">A field reference</param>
 		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
 		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
-		public static FieldDef ResolveFieldThrow(this IMemberRefResolver self, MemberRef memberRef) {
+		public static FieldDef ResolveFieldThrow(this IMemberRefResolver self, MemberRef? memberRef) {
 			if (self.Resolve(memberRef) is FieldDef field)
 				return field;
 			throw new MemberRefResolveException($"Could not resolve field: {memberRef} ({memberRef?.GetDefinitionAssembly()})");
@@ -107,7 +107,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="memberRef">A method reference</param>
 		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
-		public static MethodDef ResolveMethod(this IMemberRefResolver self, MemberRef memberRef) => self.Resolve(memberRef) as MethodDef;
+		public static MethodDef? ResolveMethod(this IMemberRefResolver self, MemberRef? memberRef) => self.Resolve(memberRef) as MethodDef;
 
 		/// <summary>
 		/// Resolves a method
@@ -116,7 +116,7 @@ namespace dnlib.DotNet {
 		/// <param name="memberRef">A method reference</param>
 		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
 		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
-		public static MethodDef ResolveMethodThrow(this IMemberRefResolver self, MemberRef memberRef) {
+		public static MethodDef ResolveMethodThrow(this IMemberRefResolver self, MemberRef? memberRef) {
 			if (self.Resolve(memberRef) is MethodDef method)
 				return method;
 			throw new MemberRefResolveException($"Could not resolve method: {memberRef} ({memberRef?.GetDefinitionAssembly()})");

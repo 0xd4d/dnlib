@@ -182,10 +182,10 @@ namespace dnlib.DotNet.MD {
 		SortedTable eventMapSortedTable;
 		SortedTable propertyMapSortedTable;
 
-		public override ImageCor20Header ImageCor20Header => cor20Header;
+		public override ImageCor20Header ImageCor20Header => cor20Header ?? throw new InvalidOperationException();
 		public override uint Version => ((uint)mdHeader.MajorVersion << 16) | mdHeader.MinorVersion;
 		public override string VersionString => mdHeader.VersionString;
-		public override IPEImage PEImage => peImage;
+		public override IPEImage PEImage => peImage ?? throw new InvalidOperationException();
 		public override MetadataHeader MetadataHeader => mdHeader;
 		public override StringsStream StringsStream => stringsStream;
 		public override USStream USStream => usStream;

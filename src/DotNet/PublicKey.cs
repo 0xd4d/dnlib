@@ -8,12 +8,12 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class PublicKey : PublicKeyBase {
 		const AssemblyHashAlgorithm DEFAULT_ALGORITHM = AssemblyHashAlgorithm.SHA1;
-		PublicKeyToken publicKeyToken;
+		PublicKeyToken? publicKeyToken;
 
 		/// <summary>
 		/// Gets the <see cref="PublicKeyToken"/>
 		/// </summary>
-		public override PublicKeyToken Token {
+		public override PublicKeyToken? Token {
 			get {
 				if (publicKeyToken is null && !IsNullOrEmpty)
 					Interlocked.CompareExchange(ref publicKeyToken, AssemblyHash.CreatePublicKeyToken(data), null);
@@ -22,12 +22,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override byte[] Data => data;
+		public override byte[]? Data => data;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PublicKey() : base((byte[])null) { }
+		public PublicKey() : base((byte[]?)null) { }
 
 		/// <summary>
 		/// Constructor
@@ -47,7 +47,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			if ((object)this == obj)
 				return true;
 			var other = obj as PublicKey;

@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet.Writer;
 using dnlib.IO;
 using dnlib.PE;
@@ -42,7 +43,7 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		public abstract uint GetStubCodeOffset(StubType stubType);
 
-		public static bool TryGetCpuArch(Machine machine, out CpuArch cpuArch) {
+		public static bool TryGetCpuArch(Machine machine, [NotNullWhen(true)] out CpuArch? cpuArch) {
 			switch (machine) {
 			case Machine.I386:
 			case Machine.I386_Native_Apple:

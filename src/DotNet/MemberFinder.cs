@@ -93,6 +93,13 @@ namespace dnlib.DotNet {
 
 		Stack<object> objectStack;
 		ModuleDef validModule;
+		
+		/// <summary>
+		/// Constructor
+		/// </summary>
+#pragma warning disable CS8618
+		public MemberFinder() {}
+#pragma warning restore CS8618
 
 		/// <summary>
 		/// Finds all types, fields, etc
@@ -108,12 +115,13 @@ namespace dnlib.DotNet {
 			Add(module);
 			ProcessAll();
 
-			objectStack = null;
+			validModule = null!;
+			objectStack = null!;
 
 			return this;
 		}
 
-		void Push(object mr) {
+		void Push(object? mr) {
 			if (mr is null)
 				return;
 			objectStack.Push(mr);
@@ -142,7 +150,7 @@ namespace dnlib.DotNet {
 		}
 
 		readonly Dictionary<Type, ObjectType> toObjectType = new Dictionary<Type, ObjectType>();
-		ObjectType GetObjectType(object o) {
+		ObjectType GetObjectType(object? o) {
 			if (o is null)
 				return ObjectType.Unknown;
 			var type = o.GetType();
@@ -180,7 +188,7 @@ namespace dnlib.DotNet {
 			Add(mod.Resources);
 		}
 
-		void Add(VTableFixups fixups) {
+		void Add(VTableFixups? fixups) {
 			if (fixups is null)
 				return;
 			foreach (var fixup in fixups) {
@@ -195,14 +203,14 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(AssemblyDef asm) {
+		void Add(AssemblyDef? asm) {
 			if (asm is null)
 				return;
 			Add(asm.DeclSecurities);
 			Add(asm.CustomAttributes);
 		}
 
-		void Add(CallingConventionSig sig) {
+		void Add(CallingConventionSig? sig) {
 			if (sig is null)
 				return;
 
@@ -227,13 +235,13 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(FieldSig sig) {
+		void Add(FieldSig? sig) {
 			if (sig is null)
 				return;
 			Add(sig.Type);
 		}
 
-		void Add(MethodBaseSig sig) {
+		void Add(MethodBaseSig? sig) {
 			if (sig is null)
 				return;
 			Add(sig.RetType);
@@ -241,26 +249,26 @@ namespace dnlib.DotNet {
 			Add(sig.ParamsAfterSentinel);
 		}
 
-		void Add(LocalSig sig) {
+		void Add(LocalSig? sig) {
 			if (sig is null)
 				return;
 			Add(sig.Locals);
 		}
 
-		void Add(GenericInstMethodSig sig) {
+		void Add(GenericInstMethodSig? sig) {
 			if (sig is null)
 				return;
 			Add(sig.GenericArguments);
 		}
 
-		void Add(IEnumerable<CustomAttribute> cas) {
+		void Add(IEnumerable<CustomAttribute>? cas) {
 			if (cas is null)
 				return;
 			foreach (var ca in cas)
 				Add(ca);
 		}
 
-		void Add(CustomAttribute ca) {
+		void Add(CustomAttribute? ca) {
 			if (ca is null || CustomAttributes.ContainsKey(ca))
 				return;
 			CustomAttributes[ca] = true;
@@ -269,7 +277,7 @@ namespace dnlib.DotNet {
 			Add(ca.NamedArguments);
 		}
 
-		void Add(IEnumerable<CAArgument> args) {
+		void Add(IEnumerable<CAArgument>? args) {
 			if (args is null)
 				return;
 			foreach (var arg in args)
@@ -285,49 +293,49 @@ namespace dnlib.DotNet {
 				Add(args);
 		}
 
-		void Add(IEnumerable<CANamedArgument> args) {
+		void Add(IEnumerable<CANamedArgument>? args) {
 			if (args is null)
 				return;
 			foreach (var arg in args)
 				Add(arg);
 		}
 
-		void Add(CANamedArgument arg) {
+		void Add(CANamedArgument? arg) {
 			if (arg is null)
 				return;
 			Add(arg.Type);
 			Add(arg.Argument);
 		}
 
-		void Add(IEnumerable<DeclSecurity> decls) {
+		void Add(IEnumerable<DeclSecurity>? decls) {
 			if (decls is null)
 				return;
 			foreach (var decl in decls)
 				Add(decl);
 		}
 
-		void Add(DeclSecurity decl) {
+		void Add(DeclSecurity? decl) {
 			if (decl is null)
 				return;
 			Add(decl.SecurityAttributes);
 			Add(decl.CustomAttributes);
 		}
 
-		void Add(IEnumerable<SecurityAttribute> secAttrs) {
+		void Add(IEnumerable<SecurityAttribute>? secAttrs) {
 			if (secAttrs is null)
 				return;
 			foreach (var secAttr in secAttrs)
 				Add(secAttr);
 		}
 
-		void Add(SecurityAttribute secAttr) {
+		void Add(SecurityAttribute? secAttr) {
 			if (secAttr is null)
 				return;
 			Add(secAttr.AttributeType);
 			Add(secAttr.NamedArguments);
 		}
 
-		void Add(ITypeDefOrRef tdr) {
+		void Add(ITypeDefOrRef? tdr) {
 			if (tdr is TypeDef td) {
 				Add(td);
 				return;
@@ -344,14 +352,14 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(IEnumerable<EventDef> eds) {
+		void Add(IEnumerable<EventDef>? eds) {
 			if (eds is null)
 				return;
 			foreach (var ed in eds)
 				Add(ed);
 		}
 
-		void Add(EventDef ed) {
+		void Add(EventDef? ed) {
 			if (ed is null || EventDefs.ContainsKey(ed))
 				return;
 			if (ed.DeclaringType is not null && ed.DeclaringType.Module != validModule)
@@ -366,14 +374,14 @@ namespace dnlib.DotNet {
 			Add(ed.DeclaringType);
 		}
 
-		void Add(IEnumerable<FieldDef> fds) {
+		void Add(IEnumerable<FieldDef>? fds) {
 			if (fds is null)
 				return;
 			foreach (var fd in fds)
 				Add(fd);
 		}
 
-		void Add(FieldDef fd) {
+		void Add(FieldDef? fd) {
 			if (fd is null || FieldDefs.ContainsKey(fd))
 				return;
 			if (fd.DeclaringType is not null && fd.DeclaringType.Module != validModule)
@@ -385,14 +393,14 @@ namespace dnlib.DotNet {
 			Add(fd.MarshalType);
 		}
 
-		void Add(IEnumerable<GenericParam> gps) {
+		void Add(IEnumerable<GenericParam>? gps) {
 			if (gps is null)
 				return;
 			foreach (var gp in gps)
 				Add(gp);
 		}
 
-		void Add(GenericParam gp) {
+		void Add(GenericParam? gp) {
 			if (gp is null || GenericParams.ContainsKey(gp))
 				return;
 			GenericParams[gp] = true;
@@ -402,14 +410,14 @@ namespace dnlib.DotNet {
 			Add(gp.CustomAttributes);
 		}
 
-		void Add(IEnumerable<GenericParamConstraint> gpcs) {
+		void Add(IEnumerable<GenericParamConstraint>? gpcs) {
 			if (gpcs is null)
 				return;
 			foreach (var gpc in gpcs)
 				Add(gpc);
 		}
 
-		void Add(GenericParamConstraint gpc) {
+		void Add(GenericParamConstraint? gpc) {
 			if (gpc is null)
 				return;
 			Add(gpc.Owner);
@@ -417,7 +425,7 @@ namespace dnlib.DotNet {
 			Add(gpc.CustomAttributes);
 		}
 
-		void Add(MemberRef mr) {
+		void Add(MemberRef? mr) {
 			if (mr is null || MemberRefs.ContainsKey(mr))
 				return;
 			if (mr.Module != validModule)
@@ -428,14 +436,14 @@ namespace dnlib.DotNet {
 			Add(mr.CustomAttributes);
 		}
 
-		void Add(IEnumerable<MethodDef> methods) {
+		void Add(IEnumerable<MethodDef>? methods) {
 			if (methods is null)
 				return;
 			foreach (var m in methods)
 				Add(m);
 		}
 
-		void Add(MethodDef md) {
+		void Add(MethodDef? md) {
 			if (md is null || MethodDefs.ContainsKey(md))
 				return;
 			if (md.DeclaringType is not null && md.DeclaringType.Module != validModule)
@@ -451,12 +459,12 @@ namespace dnlib.DotNet {
 			Add(md.DeclaringType);
 		}
 
-		void Add(MethodBody mb) {
+		void Add(MethodBody? mb) {
 			if (mb is CilBody cb)
 				Add(cb);
 		}
 
-		void Add(CilBody cb) {
+		void Add(CilBody? cb) {
 			if (cb is null)
 				return;
 			Add(cb.Instructions);
@@ -464,7 +472,7 @@ namespace dnlib.DotNet {
 			Add(cb.Variables);
 		}
 
-		void Add(IEnumerable<Instruction> instrs) {
+		void Add(IEnumerable<Instruction?>? instrs) {
 			if (instrs is null)
 				return;
 			foreach (var instr in instrs) {
@@ -499,48 +507,48 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(IEnumerable<ExceptionHandler> ehs) {
+		void Add(IEnumerable<ExceptionHandler>? ehs) {
 			if (ehs is null)
 				return;
 			foreach (var eh in ehs)
 				Push(eh.CatchType);
 		}
 
-		void Add(IEnumerable<Local> locals) {
+		void Add(IEnumerable<Local>? locals) {
 			if (locals is null)
 				return;
 			foreach (var local in locals)
 				Add(local);
 		}
 
-		void Add(Local local) {
+		void Add(Local? local) {
 			if (local is null)
 				return;
 			Add(local.Type);
 		}
 
-		void Add(IEnumerable<Parameter> ps) {
+		void Add(IEnumerable<Parameter>? ps) {
 			if (ps is null)
 				return;
 			foreach (var p in ps)
 				Add(p);
 		}
 
-		void Add(Parameter param) {
+		void Add(Parameter? param) {
 			if (param is null)
 				return;
 			Add(param.Type);
 			Add(param.Method);
 		}
 
-		void Add(IEnumerable<ParamDef> pds) {
+		void Add(IEnumerable<ParamDef>? pds) {
 			if (pds is null)
 				return;
 			foreach (var pd in pds)
 				Add(pd);
 		}
 
-		void Add(ParamDef pd) {
+		void Add(ParamDef? pd) {
 			if (pd is null)
 				return;
 			Add(pd.DeclaringMethod);
@@ -548,7 +556,7 @@ namespace dnlib.DotNet {
 			Add(pd.MarshalType);
 		}
 
-		void Add(MarshalType mt) {
+		void Add(MarshalType? mt) {
 			if (mt is null)
 				return;
 
@@ -563,7 +571,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(IEnumerable<MethodOverride> mos) {
+		void Add(IEnumerable<MethodOverride>? mos) {
 			if (mos is null)
 				return;
 			foreach (var mo in mos)
@@ -576,7 +584,7 @@ namespace dnlib.DotNet {
 			Push(mo.MethodDeclaration);
 		}
 
-		void Add(MethodSpec ms) {
+		void Add(MethodSpec? ms) {
 			if (ms is null || MethodSpecs.ContainsKey(ms))
 				return;
 			if (ms.Method is not null && ms.Method.DeclaringType is not null && ms.Method.DeclaringType.Module != validModule)
@@ -587,14 +595,14 @@ namespace dnlib.DotNet {
 			Add(ms.CustomAttributes);
 		}
 
-		void Add(IEnumerable<PropertyDef> pds) {
+		void Add(IEnumerable<PropertyDef>? pds) {
 			if (pds is null)
 				return;
 			foreach (var pd in pds)
 				Add(pd);
 		}
 
-		void Add(PropertyDef pd) {
+		void Add(PropertyDef? pd) {
 			if (pd is null || PropertyDefs.ContainsKey(pd))
 				return;
 			if (pd.DeclaringType is not null && pd.DeclaringType.Module != validModule)
@@ -608,14 +616,14 @@ namespace dnlib.DotNet {
 			Add(pd.DeclaringType);
 		}
 
-		void Add(IEnumerable<TypeDef> tds) {
+		void Add(IEnumerable<TypeDef>? tds) {
 			if (tds is null)
 				return;
 			foreach (var td in tds)
 				Add(td);
 		}
 
-		void Add(TypeDef td) {
+		void Add(TypeDef? td) {
 			if (td is null || TypeDefs.ContainsKey(td))
 				return;
 			if (td.Module != validModule)
@@ -634,21 +642,21 @@ namespace dnlib.DotNet {
 			Add(td.CustomAttributes);
 		}
 
-		void Add(IEnumerable<InterfaceImpl> iis) {
+		void Add(IEnumerable<InterfaceImpl>? iis) {
 			if (iis is null)
 				return;
 			foreach (var ii in iis)
 				Add(ii);
 		}
 
-		void Add(InterfaceImpl ii) {
+		void Add(InterfaceImpl? ii) {
 			if (ii is null)
 				return;
 			Push(ii.Interface);
 			Add(ii.CustomAttributes);
 		}
 
-		void Add(TypeRef tr) {
+		void Add(TypeRef? tr) {
 			if (tr is null || TypeRefs.ContainsKey(tr))
 				return;
 			if (tr.Module != validModule)
@@ -658,14 +666,14 @@ namespace dnlib.DotNet {
 			Add(tr.CustomAttributes);
 		}
 
-		void Add(IEnumerable<TypeSig> tss) {
+		void Add(IEnumerable<TypeSig>? tss) {
 			if (tss is null)
 				return;
 			foreach (var ts in tss)
 				Add(ts);
 		}
 
-		void Add(TypeSig ts) {
+		void Add(TypeSig? ts) {
 			if (ts is null || TypeSigs.ContainsKey(ts))
 				return;
 			if (ts.Module != validModule)
@@ -734,7 +742,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(TypeSpec ts) {
+		void Add(TypeSpec? ts) {
 			if (ts is null || TypeSpecs.ContainsKey(ts))
 				return;
 			if (ts.Module != validModule)
@@ -744,14 +752,14 @@ namespace dnlib.DotNet {
 			Add(ts.CustomAttributes);
 		}
 
-		void Add(IEnumerable<ExportedType> ets) {
+		void Add(IEnumerable<ExportedType>? ets) {
 			if (ets is null)
 				return;
 			foreach (var et in ets)
 				Add(et);
 		}
 
-		void Add(ExportedType et) {
+		void Add(ExportedType? et) {
 			if (et is null || ExportedTypes.ContainsKey(et))
 				return;
 			if (et.Module != validModule)

@@ -98,6 +98,7 @@ namespace dnlib.DotNet.Writer {
 			this.table = table;
 			cachedDict = new Dictionary<TRow, uint>(equalityComparer);
 			cached = new List<TRow>();
+			tableInfo = TableInfo.Dummy;
 		}
 
 		/// <inheritdoc/>

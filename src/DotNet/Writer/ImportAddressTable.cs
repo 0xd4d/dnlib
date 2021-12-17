@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -15,7 +16,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the <see cref="ImportDirectory"/>
 		/// </summary>
-		public ImportDirectory ImportDirectory { get; set; }
+		public ImportDirectory? ImportDirectory { get; set; }
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
@@ -51,6 +52,8 @@ namespace dnlib.DotNet.Writer {
 		public void WriteTo(DataWriter writer) {
 			if (!Enable)
 				return;
+			if (ImportDirectory is null)
+				throw new InvalidOperationException();
 			if (is64bit) {
 				writer.WriteUInt64((ulong)(uint)ImportDirectory.CorXxxMainRVA);
 				writer.WriteUInt64(0);

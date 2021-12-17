@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Text;
 using dnlib.IO;
 using dnlib.PE;
@@ -18,13 +19,13 @@ namespace dnlib.DotNet.Writer {
 		RVA corXxxMainRVA;
 		RVA dllToImportRVA;
 		int stringsPadding;
-		string dllToImport;
-		string entryPointName;
+		string? dllToImport;
+		string? entryPointName;
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImportAddressTable"/>
 		/// </summary>
-		public ImportAddressTable ImportAddressTable { get; set; }
+		public ImportAddressTable? ImportAddressTable { get; set; }
 
 		/// <summary>
 		/// Gets the RVA of _CorDllMain/_CorExeMain in the import lookup table
@@ -34,7 +35,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets RVA of _CorExeMain/_CorDllMain in the IAT
 		/// </summary>
-		public RVA IatCorXxxMainRVA => ImportAddressTable.RVA;
+		public RVA IatCorXxxMainRVA => ImportAddressTable?.RVA ?? throw new InvalidOperationException();
 
 		/// <summary>
 		/// Gets/sets a value indicating whether this is a EXE or a DLL file
@@ -108,6 +109,8 @@ namespace dnlib.DotNet.Writer {
 		public void WriteTo(DataWriter writer) {
 			if (!Enable)
 				return;
+			if (ImportAddressTable is null)
+				throw new InvalidOperationException();
 			writer.WriteUInt32((uint)importLookupTableRVA);
 			writer.WriteInt32(0);	// DateTimeStamp
 			writer.WriteInt32(0);	// ForwarderChain

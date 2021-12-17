@@ -44,7 +44,7 @@ namespace dnlib.PE {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
-		string Filename { get; }
+		string? Filename { get; }
 
 		/// <summary>
 		/// Returns the DOS header
@@ -139,7 +139,7 @@ namespace dnlib.PE {
 		/// <param name="name">Name</param>
 		/// <param name="langId">Language ID</param>
 		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
-		public static ResourceData FindWin32ResourceData(this IPEImage self, ResourceName type, ResourceName name, ResourceName langId) =>
+		public static ResourceData? FindWin32ResourceData(this IPEImage self, ResourceName type, ResourceName name, ResourceName langId) =>
 			self.Win32Resources?.Find(type, name, langId);
 	}
 }

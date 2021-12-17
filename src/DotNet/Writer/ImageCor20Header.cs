@@ -75,19 +75,19 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the <see cref="Metadata"/>
 		/// </summary>
-		public Metadata Metadata { get; set; }
+		public Metadata? Metadata { get; set; }
 
 		/// <summary>
 		/// Gets/sets the .NET resources
 		/// </summary>
-		public NetResources NetResources { get; set; }
+		public NetResources? NetResources { get; set; }
 
 		/// <summary>
 		/// Gets/sets the strong name signature
 		/// </summary>
-		public StrongNameSignature StrongNameSignature { get; set; }
+		public StrongNameSignature? StrongNameSignature { get; set; }
 
-		internal IChunk VtableFixups { get; set; }
+		internal IChunk? VtableFixups { get; set; }
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;

@@ -48,7 +48,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="fullName">Full name of custom attribute type</param>
 		/// <returns>A <see cref="CustomAttribute"/> or <c>null</c> if it wasn't found</returns>
-		public CustomAttribute Find(string fullName) {
+		public CustomAttribute? Find(string fullName) {
 			foreach (var ca in this) {
 				if (ca is not null && ca.TypeFullName == fullName)
 					return ca;
@@ -74,7 +74,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="attrType">Custom attribute type</param>
 		/// <returns>The first <see cref="CustomAttribute"/> found or <c>null</c> if none found</returns>
-		public CustomAttribute Find(IType attrType) => Find(attrType, 0);
+		public CustomAttribute? Find(IType attrType) => Find(attrType, 0);
 
 		/// <summary>
 		/// Finds a custom attribute
@@ -82,7 +82,7 @@ namespace dnlib.DotNet {
 		/// <param name="attrType">Custom attribute type</param>
 		/// <param name="options">Attribute type comparison flags</param>
 		/// <returns>The first <see cref="CustomAttribute"/> found or <c>null</c> if none found</returns>
-		public CustomAttribute Find(IType attrType, SigComparerOptions options) {
+		public CustomAttribute? Find(IType attrType, SigComparerOptions options) {
 			var comparer = new SigComparer(options);
 			foreach (var ca in this) {
 				if (comparer.Equals(ca.AttributeType, attrType))

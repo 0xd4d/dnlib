@@ -28,21 +28,21 @@ namespace dnlib.DotNet {
 		public static void LoadAll(ModuleDef module, ICancellationToken cancellationToken) =>
 			new ModuleLoader(module, cancellationToken).Load();
 
-		void Add(UTF8String a) { }
+		void Add(UTF8String? a) { }
 		void Add(Guid? a) { }
 		void Add(ushort a) { }
 		void Add(AssemblyHashAlgorithm a) { }
-		void Add(Version a) { }
+		void Add(Version? a) { }
 		void Add(AssemblyAttributes a) { }
-		void Add(PublicKeyBase a) { }
+		void Add(PublicKeyBase? a) { }
 		void Add(RVA a) { }
-		void Add(IManagedEntryPoint a) { }
-		void Add(string a) { }
+		void Add(IManagedEntryPoint? a) { }
+		void Add(string? a) { }
 		void Add(WinMDStatus a) { }
 		void Add(TypeAttributes a) { }
 		void Add(FieldAttributes a) { }
 		void Add(uint? a) { }
-		void Add(byte[] a) { }
+		void Add(byte[]? a) { }
 		void Add(MethodImplAttributes a) { }
 		void Add(MethodAttributes a) { }
 		void Add(MethodSemanticsAttributes a) { }
@@ -87,7 +87,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void LoadObj(object o) {
+		void LoadObj(object? o) {
 			if (o is TypeSig ts) {
 				Load(ts);
 				return;
@@ -136,7 +136,7 @@ namespace dnlib.DotNet {
 			Debug.Fail("Unknown type");
 		}
 
-		void Load(TypeSig ts) {
+		void Load(TypeSig? ts) {
 			if (ts is null)
 				return;
 			Add(ts.Next);
@@ -205,7 +205,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Load(IMDTokenProvider mdt) {
+		void Load(IMDTokenProvider? mdt) {
 			if (mdt is null)
 				return;
 			switch (mdt.MDToken.Table) {
@@ -286,7 +286,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Load(ModuleDef obj) {
+		void Load(ModuleDef? obj) {
 			if (obj is null || obj != module)
 				return;
 			Add(obj.Generation);
@@ -311,7 +311,7 @@ namespace dnlib.DotNet {
 			Add(obj.PdbState);
 		}
 
-		void Load(TypeRef obj) {
+		void Load(TypeRef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.ResolutionScope);
@@ -320,7 +320,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(TypeDef obj) {
+		void Load(TypeDef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Module2);
@@ -342,7 +342,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(FieldDef obj) {
+		void Load(FieldDef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.CustomAttributes);
@@ -358,7 +358,7 @@ namespace dnlib.DotNet {
 			Add(obj.DeclaringType);
 		}
 
-		void Load(MethodDef obj) {
+		void Load(MethodDef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.RVA);
@@ -378,7 +378,7 @@ namespace dnlib.DotNet {
 			Add(obj.SemanticsAttributes);
 		}
 
-		void Load(ParamDef obj) {
+		void Load(ParamDef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.DeclaringMethod);
@@ -390,14 +390,14 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(InterfaceImpl obj) {
+		void Load(InterfaceImpl? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Interface);
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(MemberRef obj) {
+		void Load(MemberRef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Class);
@@ -406,14 +406,14 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(Constant obj) {
+		void Load(Constant? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Type);
 			var o = obj.Value;
 		}
 
-		void Load(DeclSecurity obj) {
+		void Load(DeclSecurity? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Action);
@@ -422,21 +422,21 @@ namespace dnlib.DotNet {
 			obj.GetBlob();
 		}
 
-		void Load(ClassLayout obj) {
+		void Load(ClassLayout? obj) {
 			if (obj is null)
 				return;
 			Add(obj.PackingSize);
 			Add(obj.ClassSize);
 		}
 
-		void Load(StandAloneSig obj) {
+		void Load(StandAloneSig? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Signature);
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(EventDef obj) {
+		void Load(EventDef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Attributes);
@@ -450,7 +450,7 @@ namespace dnlib.DotNet {
 			Add(obj.DeclaringType);
 		}
 
-		void Load(PropertyDef obj) {
+		void Load(PropertyDef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Attributes);
@@ -464,14 +464,14 @@ namespace dnlib.DotNet {
 			Add(obj.DeclaringType);
 		}
 
-		void Load(ModuleRef obj) {
+		void Load(ModuleRef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Name);
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(TypeSpec obj) {
+		void Load(TypeSpec? obj) {
 			if (obj is null)
 				return;
 			Add(obj.TypeSig);
@@ -479,7 +479,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(ImplMap obj) {
+		void Load(ImplMap? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Attributes);
@@ -487,7 +487,7 @@ namespace dnlib.DotNet {
 			Add(obj.Module);
 		}
 
-		void Load(AssemblyDef obj) {
+		void Load(AssemblyDef? obj) {
 			if (obj is null)
 				return;
 			if (obj.ManifestModule != module)
@@ -503,7 +503,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(AssemblyRef obj) {
+		void Load(AssemblyRef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Version);
@@ -515,7 +515,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(FileDef obj) {
+		void Load(FileDef? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Flags);
@@ -524,7 +524,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(ExportedType obj) {
+		void Load(ExportedType? obj) {
 			if (obj is null)
 				return;
 			Add(obj.CustomAttributes);
@@ -535,7 +535,7 @@ namespace dnlib.DotNet {
 			Add(obj.Implementation);
 		}
 
-		void Load(Resource obj) {
+		void Load(Resource? obj) {
 			if (obj is null)
 				return;
 
@@ -565,7 +565,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Load(ManifestResource obj) {
+		void Load(ManifestResource? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Offset);
@@ -575,7 +575,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(GenericParam obj) {
+		void Load(GenericParam? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Owner);
@@ -587,7 +587,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(MethodSpec obj) {
+		void Load(MethodSpec? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Method);
@@ -595,7 +595,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(GenericParamConstraint obj) {
+		void Load(GenericParamConstraint? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Owner);
@@ -603,7 +603,7 @@ namespace dnlib.DotNet {
 			Add(obj.CustomAttributes);
 		}
 
-		void Load(CANamedArgument obj) {
+		void Load(CANamedArgument? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Type);
@@ -611,20 +611,20 @@ namespace dnlib.DotNet {
 			Load(obj.Argument);
 		}
 
-		void Load(Parameter obj) {
+		void Load(Parameter? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Type);
 		}
 
-		void Load(SecurityAttribute obj) {
+		void Load(SecurityAttribute? obj) {
 			if (obj is null)
 				return;
 			Add(obj.AttributeType);
 			Add(obj.NamedArguments);
 		}
 
-		void Load(CustomAttribute obj) {
+		void Load(CustomAttribute? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Constructor);
@@ -660,18 +660,18 @@ namespace dnlib.DotNet {
 			AddCAValue(obj.Value);
 		}
 
-		void Load(PdbMethod obj) { }
+		void Load(PdbMethod? obj) { }
 
-		void Load(ResourceDirectory obj) {
+		void Load(ResourceDirectory? obj) {
 			if (obj is null)
 				return;
 			Add(obj.Directories);
 			Add(obj.Data);
 		}
 
-		void Load(ResourceData obj) { }
+		void Load(ResourceData? obj) { }
 
-		void AddToStack<T>(T t) where T : class {
+		void AddToStack<T>(T? t) where T : class {
 			if (t is null)
 				return;
 			if (seen.ContainsKey(t))
@@ -680,15 +680,15 @@ namespace dnlib.DotNet {
 			stack.Push(t);
 		}
 
-		void Add(CustomAttribute obj) => AddToStack(obj);
-		void Add(SecurityAttribute obj) => AddToStack(obj);
-		void Add(CANamedArgument obj) => AddToStack(obj);
-		void Add(Parameter obj) => AddToStack(obj);
-		void Add(IMDTokenProvider o) => AddToStack(o);
-		void Add(PdbMethod pdbMethod) { }
-		void Add(TypeSig ts) => AddToStack(ts);
-		void Add(ResourceDirectory rd) => AddToStack(rd);
-		void Add(ResourceData rd) => AddToStack(rd);
+		void Add(CustomAttribute? obj) => AddToStack(obj);
+		void Add(SecurityAttribute? obj) => AddToStack(obj);
+		void Add(CANamedArgument? obj) => AddToStack(obj);
+		void Add(Parameter? obj) => AddToStack(obj);
+		void Add(IMDTokenProvider? o) => AddToStack(o);
+		void Add(PdbMethod? pdbMethod) { }
+		void Add(TypeSig? ts) => AddToStack(ts);
+		void Add(ResourceDirectory? rd) => AddToStack(rd);
+		void Add(ResourceData? rd) => AddToStack(rd);
 
 		void Add<T>(IList<T> list) where T : IMDTokenProvider {
 			if (list is null)
@@ -739,7 +739,7 @@ namespace dnlib.DotNet {
 				Add(item);
 		}
 
-		void Add(ParameterList list) {
+		void Add(ParameterList? list) {
 			if (list is null)
 				return;
 			foreach (var item in list)
@@ -781,7 +781,7 @@ namespace dnlib.DotNet {
 				Add(item);
 		}
 
-		void Add(VTableFixups vtf) {
+		void Add(VTableFixups? vtf) {
 			if (vtf is null)
 				return;
 			foreach (var fixup in vtf) {
@@ -790,13 +790,13 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(Win32Resources vtf) {
+		void Add(Win32Resources? vtf) {
 			if (vtf is null)
 				return;
 			Add(vtf.Root);
 		}
 
-		void Add(CallingConventionSig sig) {
+		void Add(CallingConventionSig? sig) {
 			if (sig is MethodBaseSig msig) {
 				Add(msig);
 				return;
@@ -820,7 +820,7 @@ namespace dnlib.DotNet {
 			Debug.Assert(sig is null);
 		}
 
-		void Add(MethodBaseSig msig) {
+		void Add(MethodBaseSig? msig) {
 			if (msig is null)
 				return;
 			Add(msig.ExtraData);
@@ -829,34 +829,34 @@ namespace dnlib.DotNet {
 			Add(msig.ParamsAfterSentinel);
 		}
 
-		void Add(FieldSig fsig) {
+		void Add(FieldSig? fsig) {
 			if (fsig is null)
 				return;
 			Add(fsig.ExtraData);
 			Add(fsig.Type);
 		}
 
-		void Add(LocalSig lsig) {
+		void Add(LocalSig? lsig) {
 			if (lsig is null)
 				return;
 			Add(lsig.ExtraData);
 			Add(lsig.Locals);
 		}
 
-		void Add(GenericInstMethodSig gsig) {
+		void Add(GenericInstMethodSig? gsig) {
 			if (gsig is null)
 				return;
 			Add(gsig.ExtraData);
 			Add(gsig.GenericArguments);
 		}
 
-		void Add(MarshalType mt) {
+		void Add(MarshalType? mt) {
 			if (mt is null)
 				return;
 			Add(mt.NativeType);
 		}
 
-		void Add(MethodBody mb) {
+		void Add(MethodBody? mb) {
 			if (mb is CilBody cilBody) {
 				Add(cilBody);
 				return;
@@ -870,13 +870,13 @@ namespace dnlib.DotNet {
 			Debug.Assert(mb is null, "Unknown method body");
 		}
 
-		void Add(NativeMethodBody body) {
+		void Add(NativeMethodBody? body) {
 			if (body is null)
 				return;
 			Add(body.RVA);
 		}
 
-		void Add(CilBody body) {
+		void Add(CilBody? body) {
 			if (body is null)
 				return;
 			Add(body.Instructions);
@@ -885,7 +885,7 @@ namespace dnlib.DotNet {
 			Add(body.PdbMethod);
 		}
 
-		void Add(Instruction instr) {
+		void Add(Instruction? instr) {
 			if (instr is null)
 				return;
 
@@ -910,19 +910,19 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		void Add(ExceptionHandler eh) {
+		void Add(ExceptionHandler? eh) {
 			if (eh is null)
 				return;
 			Add(eh.CatchType);
 		}
 
-		void Add(Local local) {
+		void Add(Local? local) {
 			if (local is null)
 				return;
 			Add(local.Type);
 		}
 
-		void Add(PdbState state) {
+		void Add(PdbState? state) {
 			if (state is null)
 				return;
 			Add(state.UserEntryPoint);

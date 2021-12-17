@@ -98,7 +98,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public int CompareTo(IAssembly a, IAssembly b) {
+		public int CompareTo(IAssembly? a, IAssembly? b) {
 			if (a == b)
 				return 0;
 			if (a is null)
@@ -128,7 +128,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if equal, <c>false</c> otherwise</returns>
-		public bool Equals(IAssembly a, IAssembly b) => CompareTo(a, b) == 0;
+		public bool Equals(IAssembly? a, IAssembly? b) => CompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Figures out which of two assembly names is closer to another assembly name
@@ -138,11 +138,11 @@ namespace dnlib.DotNet {
 		/// <param name="b">Second</param>
 		/// <returns>-1 if both are equally close, 0 if <paramref name="a"/> is closest, 1 if
 		/// <paramref name="b"/> is closest</returns>
-		public int CompareClosest(IAssembly requested, IAssembly a, IAssembly b) {
+		public int CompareClosest(IAssembly requested, IAssembly? a, IAssembly? b) {
 			if (a == b)
 				return 0;
 			if (a is null)
-				return !CompareName ? 1 : UTF8String.CaseInsensitiveEquals(requested.Name, b.Name) ? 1 : 0;
+				return !CompareName ? 1 : UTF8String.CaseInsensitiveEquals(requested.Name, b?.Name) ? 1 : 0;
 			if (b is null)
 				return !CompareName ? 0 : UTF8String.CaseInsensitiveEquals(requested.Name, a.Name) ? 0 : 1;
 
@@ -236,7 +236,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="a">Assembly name</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(IAssembly a) {
+		public int GetHashCode(IAssembly? a) {
 			if (a is null)
 				return 0;
 

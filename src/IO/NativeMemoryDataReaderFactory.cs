@@ -18,10 +18,10 @@ namespace dnlib.IO {
 		public override uint Length => length;
 
 		DataStream stream;
-		string filename;
+		string? filename;
 		uint length;
 
-		NativeMemoryDataReaderFactory(byte* data, uint length, string filename) {
+		NativeMemoryDataReaderFactory(byte* data, uint length, string? filename) {
 			this.filename = filename;
 			this.length = length;
 			stream = DataStreamFactory.Create(data);
@@ -36,7 +36,7 @@ namespace dnlib.IO {
 		/// <param name="length">Length of data</param>
 		/// <param name="filename">The filename or null if the data is not from a file</param>
 		/// <returns></returns>
-		public static NativeMemoryDataReaderFactory Create(byte* data, uint length, string filename) {
+		public static NativeMemoryDataReaderFactory Create(byte* data, uint length, string? filename) {
 			if (data is null)
 				throw new ArgumentNullException(nameof(data));
 			return new NativeMemoryDataReaderFactory(data, length, filename);
@@ -56,7 +56,7 @@ namespace dnlib.IO {
 		public override void Dispose() {
 			stream = EmptyDataStream.Instance;
 			length = 0;
-			filename = null;
+			filename = null!;
 		}
 	}
 }

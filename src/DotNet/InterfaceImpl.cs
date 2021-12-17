@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -51,8 +52,9 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -76,8 +78,9 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 

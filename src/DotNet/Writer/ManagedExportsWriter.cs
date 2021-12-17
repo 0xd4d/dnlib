@@ -156,7 +156,7 @@ namespace dnlib.DotNet.Writer {
 			public uint ManagedVtblOffset;
 			public uint NameOffset;
 			public int NameIndex;
-			public byte[] NameBytes;
+			public byte[]? NameBytes;
 			public MethodInfo(MethodDef method, uint stubChunkOffset) {
 				Method = method;
 				StubChunkOffset = stubChunkOffset;
@@ -359,8 +359,8 @@ namespace dnlib.DotNet.Writer {
 			Debug.Assert(sortedNameMethodInfos.Count == sdataBytesInfo.MethodNameOffsets.Length);
 			sdataBytesInfo.moduleNameOffset = namesBlob.GetOtherNameOffset(moduleName);
 
-			sortedOrdinalMethodInfos.Sort((a, b) => a.Method.ExportInfo.Ordinal.Value.CompareTo(b.Method.ExportInfo.Ordinal.Value));
-			sortedNameMethodInfos.Sort((a, b) => CompareTo(a.NameBytes, b.NameBytes));
+			sortedOrdinalMethodInfos.Sort((a, b) => a.Method.ExportInfo.Ordinal!.Value.CompareTo(b.Method.ExportInfo.Ordinal!.Value));
+			sortedNameMethodInfos.Sort((a, b) => CompareTo(a.NameBytes ?? Array2.Empty<byte>(), b.NameBytes ?? Array2.Empty<byte>()));
 
 			int ordinalBase, nextFreeOrdinal;
 			if (sortedOrdinalMethodInfos.Count == 0) {
@@ -368,13 +368,13 @@ namespace dnlib.DotNet.Writer {
 				nextFreeOrdinal = 0;
 			}
 			else {
-				ordinalBase = sortedOrdinalMethodInfos[0].Method.ExportInfo.Ordinal.Value;
-				nextFreeOrdinal = sortedOrdinalMethodInfos[sortedOrdinalMethodInfos.Count - 1].Method.ExportInfo.Ordinal.Value + 1;
+				ordinalBase = sortedOrdinalMethodInfos[0].Method.ExportInfo.Ordinal!.Value;
+				nextFreeOrdinal = sortedOrdinalMethodInfos[sortedOrdinalMethodInfos.Count - 1].Method.ExportInfo.Ordinal!.Value + 1;
 			}
 			int nameFuncBaseIndex = nextFreeOrdinal - ordinalBase;
 			int lastFuncIndex = 0;
 			for (int i = 0; i < sortedOrdinalMethodInfos.Count; i++) {
-				int index = sortedOrdinalMethodInfos[i].Method.ExportInfo.Ordinal.Value - ordinalBase;
+				int index = sortedOrdinalMethodInfos[i].Method.ExportInfo.Ordinal!.Value - ordinalBase;
 				sortedOrdinalMethodInfos[i].FunctionIndex = index;
 				lastFuncIndex = index;
 			}

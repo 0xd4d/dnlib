@@ -393,7 +393,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		internal void SetSystemTableRows(uint[] systemTables) => this.systemTables = (uint[])systemTables.Clone();
-		uint[] systemTables;
+		uint[]? systemTables;
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {

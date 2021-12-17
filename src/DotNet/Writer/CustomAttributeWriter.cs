@@ -20,7 +20,7 @@ namespace dnlib.DotNet.Writer {
 		readonly MemoryStream outStream;
 		readonly DataWriter writer;
 		readonly bool disposeStream;
-		GenericArguments genericArguments;
+		GenericArguments? genericArguments;
 
 		/// <summary>
 		/// Writes a custom attribute
@@ -174,7 +174,7 @@ namespace dnlib.DotNet.Writer {
 			recursionCounter.Decrement();
 		}
 
-		void WriteArrayValue(SZArraySig arrayType, IList<CAArgument> args) {
+		void WriteArrayValue(SZArraySig arrayType, IList<CAArgument>? args) {
 			if (arrayType is null) {
 				helper.Error("Custom attribute: Array type is null");
 				return;
@@ -384,7 +384,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			}
 
-			TypeSig underlyingType;
+			TypeSig? underlyingType;
 			ITypeDefOrRef tdr;
 			switch (argType.ElementType) {
 			case ElementType.Boolean:
@@ -578,14 +578,14 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="type">An enum type</param>
 		/// <returns>The underlying type or <c>null</c> if we couldn't resolve the type ref</returns>
-		static TypeSig GetEnumUnderlyingType(TypeSig type) {
+		static TypeSig? GetEnumUnderlyingType(TypeSig type) {
 			var td = GetEnumTypeDef(type);
 			if (td is null)
 				return null;
 			return td.GetEnumUnderlyingType().RemoveModifiers();
 		}
 
-		static TypeDef GetEnumTypeDef(TypeSig type) {
+		static TypeDef? GetEnumTypeDef(TypeSig type) {
 			if (type is null)
 				return null;
 			var td = GetTypeDef(type);
@@ -603,7 +603,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if we couldn't resolve the
 		/// <see cref="TypeRef"/> or if <paramref name="type"/> is a type spec</returns>
-		static TypeDef GetTypeDef(TypeSig type) {
+		static TypeDef? GetTypeDef(TypeSig type) {
 			if (type is TypeDefOrRefSig tdr) {
 				var td = tdr.TypeDef;
 				if (td is not null)
@@ -736,10 +736,10 @@ namespace dnlib.DotNet.Writer {
 			return tdr.TypeName == name && tdr.Namespace == "System";
 		}
 
-		static MethodSig GetMethodSig(ICustomAttributeType ctor) => ctor?.MethodSig;
+		static MethodSig? GetMethodSig(ICustomAttributeType ctor) => ctor?.MethodSig;
 
-		void WriteUTF8String(UTF8String s) {
-			if (s is null || s.Data is null)
+		void WriteUTF8String(UTF8String? s) {
+			if (s is null)
 				writer.WriteByte((byte)0xFF);
 			else {
 				writer.WriteCompressedUInt32((uint)s.Data.Length);
