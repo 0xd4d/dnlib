@@ -773,6 +773,7 @@ namespace dnlib.DotNet {
 						asmRef.PublicKeyOrToken = new PublicKey();
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKey(Utils.ParseBytes(value));
+					asmRef.Attributes |= AssemblyAttributes.PublicKey;
 					break;
 
 				case "PUBLICKEYTOKEN":
@@ -781,6 +782,7 @@ namespace dnlib.DotNet {
 						asmRef.PublicKeyOrToken = new PublicKeyToken();
 					else
 						asmRef.PublicKeyOrToken = PublicKeyBase.CreatePublicKeyToken(Utils.ParseBytes(value));
+					asmRef.Attributes &= ~AssemblyAttributes.PublicKey;
 					break;
 
 				case "CULTURE":
