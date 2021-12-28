@@ -77,10 +77,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ArgumentNullException">If <paramref name="value"/> is <c>null</c></exception>
 		public PublicKeyBase PublicKeyOrToken {
 			get => publicKeyOrToken;
-			set {
-				publicKeyOrToken = value ?? throw new ArgumentNullException(nameof(value));
-				ModifyAttributes(value is PublicKey, AssemblyAttributes.PublicKey);
-			}
+			set => publicKeyOrToken = value ?? throw new ArgumentNullException(nameof(value));
 		}
 		/// <summary/>
 		protected PublicKeyBase publicKeyOrToken;
