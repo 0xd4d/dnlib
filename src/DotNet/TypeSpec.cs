@@ -310,7 +310,7 @@ namespace dnlib.DotNet {
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}
 
-		bool IContainsGenericParameter2.ContainsGenericParameter => !gpContext.IsEmpty && ContainsGenericParameter;
+		bool IContainsGenericParameter2.ContainsGenericParameter => ContainsGenericParameter;
 
 		/// <summary>
 		/// Constructor
