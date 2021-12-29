@@ -452,6 +452,14 @@ namespace dnlib.DotNet {
 			if (methodBase is null)
 				return null;
 
+			if (TryToUseMethodDefs && IsThisModule(methodBase.Module) &&
+				!methodBase.IsGenericMethod && (methodBase.DeclaringType is null || !methodBase.DeclaringType.IsGenericType) &&
+				module.ResolveToken(methodBase.MetadataToken) is MethodDef md) {
+				// In same module and method and declaring type are both non-generic, directly resolve method definition.
+				// Obfuscator may rename many methods into same name then TryResolveMethod will return inconsistent method.
+				return md;
+			}
+
 			if (forceFixSignature) {
 				//TODO:
 			}
@@ -507,6 +515,8 @@ namespace dnlib.DotNet {
 				return methodRef;
 			}
 		}
+
+		bool IsThisModule(Module module2) => module.Name == module2.Name && IsThisAssembly(module2);
 
 		MethodSig CreateMethodSig(MethodBase mb) {
 			var sig = new MethodSig(GetCallingConvention(mb));
@@ -567,13 +577,15 @@ namespace dnlib.DotNet {
 		}
 
 		IMemberRefParent GetModuleParent(Module module2) {
-			// If we have no assembly, assume this is a netmodule in the same assembly as module
-			var modAsm = module.Assembly;
-			bool isSameAssembly = modAsm is null ||
-				UTF8String.ToSystemStringOrEmpty(modAsm.Name).Equals(module2.Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase);
-			if (!isSameAssembly)
+			if (!IsThisAssembly(module2))
 				return null;
 			return module.UpdateRowId(new ModuleRefUser(module, module.Name));
+		}
+
+		bool IsThisAssembly(Module module2) {
+			// If we have no assembly, assume this is a netmodule in the same assembly as module
+			var modAsm = module.Assembly;
+			return modAsm is null || UTF8String.ToSystemStringOrEmpty(modAsm.Name).Equals(module2.Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase);
 		}
 
 		/// <summary>
@@ -596,6 +608,14 @@ namespace dnlib.DotNet {
 			FixSignature = false;
 			if (fieldInfo is null)
 				return null;
+
+			if (TryToUseFieldDefs && IsThisModule(fieldInfo.Module) &&
+				(fieldInfo.DeclaringType is null || !fieldInfo.DeclaringType.IsGenericType) &&
+				module.ResolveToken(fieldInfo.MetadataToken) is FieldDef fd) {
+				// In same module and declaring type is non-generic, directly resolve field definition.
+				// Obfuscator may rename many fields into same name then TryResolveField will return inconsistent field.
+				return fd;
+			}
 
 			if (forceFixSignature) {
 				//TODO:
