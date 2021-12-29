@@ -13,14 +13,7 @@ namespace dnlib.DotNet {
 		internal static bool ContainsGenericParameter(InterfaceImpl ii) => ii is not null && TypeHelper.ContainsGenericParameter(ii.Interface);
 		internal static bool ContainsGenericParameter(GenericParamConstraint gpc) => gpc is not null && ContainsGenericParameter(gpc.Constraint);
 
-		internal static bool ContainsGenericParameter(MethodSpec ms) {
-			if (ms is null)
-				return false;
-
-			// A normal MethodSpec should always contain generic arguments and thus
-			// its MethodDef is always a generic method with generic parameters.
-			return true;
-		}
+		internal static bool ContainsGenericParameter(MethodSpec ms) => ms is not null && ContainsGenericParameter(ms.GenericInstMethodSig);
 
 		internal static bool ContainsGenericParameter(MemberRef mr) {
 			if (mr is null)
