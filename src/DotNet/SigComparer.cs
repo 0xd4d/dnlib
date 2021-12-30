@@ -1995,7 +1995,9 @@ exit: ;
 		/// </summary>
 		/// <param name="a">The type</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(TypeSig a) {
+		public int GetHashCode(TypeSig a) => GetHashCode(a, true);
+
+		int GetHashCode(TypeSig a, bool substituteGenericParameters) {
 			// ********************************************
 			// IMPORTANT: This must match GetHashCode(Type)
 			// ********************************************
@@ -2005,7 +2007,7 @@ exit: ;
 				return 0;
 			int hash;
 
-			if (genericArguments is not null)
+			if (substituteGenericParameters && genericArguments is not null)
 				a = genericArguments.Resolve(a);
 
 			switch (a.ElementType) {
@@ -2039,15 +2041,15 @@ exit: ;
 				break;
 
 			case ElementType.Ptr:
-				hash = HASHCODE_MAGIC_ET_PTR + GetHashCode(a.Next);
+				hash = HASHCODE_MAGIC_ET_PTR + GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.ByRef:
-				hash = HASHCODE_MAGIC_ET_BYREF + GetHashCode(a.Next);
+				hash = HASHCODE_MAGIC_ET_BYREF + GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.SZArray:
-				hash = HASHCODE_MAGIC_ET_SZARRAY + GetHashCode(a.Next);
+				hash = HASHCODE_MAGIC_ET_SZARRAY + GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.CModReqd:
@@ -2055,14 +2057,14 @@ exit: ;
 			case ElementType.Pinned:
 				// When comparing an ExportedType/TypeDef/TypeRef to a ModifierSig/PinnedSig,
 				// the ET is ignored, so we must ignore it when calculating the hash.
-				hash = GetHashCode(a.Next);
+				hash = GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.Array:
 				// Don't include sizes and lower bounds since GetHashCode(Type) doesn't (and can't).
 				// Also, if IgnoreMultiDimensionArrayLowerBoundsAndSizes is set, we shouldn't include them either.
 				var ara = (ArraySig)a;
-				hash = HASHCODE_MAGIC_ET_ARRAY + (int)ara.Rank + GetHashCode(ara.Next);
+				hash = HASHCODE_MAGIC_ET_ARRAY + (int)ara.Rank + GetHashCode(ara.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.Var:
@@ -2076,15 +2078,8 @@ exit: ;
 			case ElementType.GenericInst:
 				var gia = (GenericInstSig)a;
 				hash = HASHCODE_MAGIC_ET_GENERICINST;
-				if (SubstituteGenericParameters) {
-					InitializeGenericArguments();
-					genericArguments.PushTypeArgs(gia.GenericArguments);
-					hash += GetHashCode(gia.GenericType);
-					genericArguments.PopTypeArgs();
-				}
-				else
-					hash += GetHashCode(gia.GenericType);
-				hash += GetHashCode(gia.GenericArguments);
+				hash += GetHashCode(gia.GenericType, false);
+				hash += GetHashCode(gia.GenericArguments, false);
 				break;
 
 			case ElementType.FnPtr:
@@ -2092,11 +2087,11 @@ exit: ;
 				break;
 
 			case ElementType.ValueArray:
-				hash = HASHCODE_MAGIC_ET_VALUEARRAY + (int)(a as ValueArraySig).Size + GetHashCode(a.Next);
+				hash = HASHCODE_MAGIC_ET_VALUEARRAY + (int)(a as ValueArraySig).Size + GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.Module:
-				hash = HASHCODE_MAGIC_ET_MODULE + (int)(a as ModuleSig).Index + GetHashCode(a.Next);
+				hash = HASHCODE_MAGIC_ET_MODULE + (int)(a as ModuleSig).Index + GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.End:
@@ -2146,7 +2141,9 @@ exit: ;
 		/// </summary>
 		/// <param name="a">The type list</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(IList<TypeSig> a) {
+		public int GetHashCode(IList<TypeSig> a) => GetHashCode(a, false);
+
+		int GetHashCode(IList<TypeSig> a, bool substituteGenericParameters) {
 			//************************************************************************
 			// IMPORTANT: This code must match any other GetHashCode(IList<SOME_TYPE>)
 			//************************************************************************
@@ -2156,7 +2153,7 @@ exit: ;
 				return 0;
 			uint hash = 0;
 			for (int i = 0; i < a.Count; i++) {
-				hash += (uint)GetHashCode(a[i]);
+				hash += (uint)GetHashCode(a[i], substituteGenericParameters);
 				hash = (hash << 13) | (hash >> 19);
 			}
 			recursionCounter.Decrement();
@@ -3421,14 +3418,7 @@ exit: ;
 					break;
 				}
 				var gia = (GenericInstSig)a;
-				if (SubstituteGenericParameters) {
-					InitializeGenericArguments();
-					genericArguments.PushTypeArgs(gia.GenericArguments);
-					result = Equals(gia.GenericType, b.GetGenericTypeDefinition());
-					genericArguments.PopTypeArgs();
-				}
-				else
-					result = Equals(gia.GenericType, b.GetGenericTypeDefinition());
+				result = Equals(gia.GenericType, b.GetGenericTypeDefinition());
 				result = result && Equals(gia.GenericArguments, b.GetGenericArguments());
 				break;
 
