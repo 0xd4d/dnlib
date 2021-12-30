@@ -516,7 +516,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		bool IsThisModule(Module module2) => module.Name == module2.Name && IsThisAssembly(module2);
+		bool IsThisModule(Module module2) => UTF8String.ToSystemStringOrEmpty(module.Name).Equals(module2.ScopeName, StringComparison.OrdinalIgnoreCase) && IsThisAssembly(module2);
 
 		MethodSig CreateMethodSig(MethodBase mb) {
 			var sig = new MethodSig(GetCallingConvention(mb));
