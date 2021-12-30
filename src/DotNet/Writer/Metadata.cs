@@ -445,6 +445,7 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 		readonly MetadataOptions options;
 		ILogger logger;
+		internal readonly MetadataErrorContext errorContext;
 		readonly NormalMetadata debugMetadata;
 		readonly bool isStandaloneDebugMetadata;
 		internal readonly ModuleDef module;
@@ -940,6 +941,8 @@ namespace dnlib.DotNet.Writer {
 			blobHeap = new BlobHeap();
 			pdbHeap = new PdbHeap();
 
+			errorContext = new MetadataErrorContext();
+
 			this.isStandaloneDebugMetadata = isStandaloneDebugMetadata;
 			switch (debugKind) {
 			case DebugMetadataKind.None:
@@ -1403,20 +1406,27 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="args">Optional message arguments</param>
-		protected void Error(string message, params object[] args) => GetLogger().Log(this, LoggerEvent.Error, message, args);
+		protected void Error(string message, params object[] args) {
+			errorContext.Append("Error", ref message, ref args);
+			GetLogger().Log(this, LoggerEvent.Error, message, args);
+		}
 
 		/// <summary>
 		/// Called to warn of something
 		/// </summary>
 		/// <param name="message">Warning message</param>
 		/// <param name="args">Optional message arguments</param>
-		protected void Warning(string message, params object[] args) => GetLogger().Log(this, LoggerEvent.Warning, message, args);
+		protected void Warning(string message, params object[] args) {
+			errorContext.Append("Warning", ref message, ref args);
+			GetLogger().Log(this, LoggerEvent.Warning, message, args);
+		}
 
 		/// <summary>
 		/// Raises <see cref="MetadataEvent"/>
 		/// </summary>
 		/// <param name="evt">Event</param>
 		protected void OnMetadataEvent(MetadataEvent evt) {
+			errorContext.Event = evt;
 			RaiseProgress(evt, 0);
 			MetadataEvent?.Invoke(this, new MetadataWriterEventArgs(this, evt));
 		}
@@ -1572,6 +1582,8 @@ namespace dnlib.DotNet.Writer {
 			int notifyAfter = numTypes / numNotifyEvents;
 
 			foreach (var type in allTypeDefs) {
+				errorContext.Source = type;
+
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
 					RaiseProgress(Writer.MetadataEvent.MemberDefRidsAllocated, (double)typeNum / numTypes);
 					notifyNum++;
@@ -1579,7 +1591,7 @@ namespace dnlib.DotNet.Writer {
 				}
 
 				if (type is null) {
-					Error("TypeDef is null");
+					Error("TypeDef is null.");
 					continue;
 				}
 				uint typeRid = GetRid(type);
@@ -1597,9 +1609,10 @@ namespace dnlib.DotNet.Writer {
 				for (int i = 0; i < count; i++) {
 					var field = fields[i];
 					if (field is null) {
-						Error("Field is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
+						Error("Field is null.");
 						continue;
 					}
+					errorContext.Source = field;
 					uint rid = GetRid(field);
 					var row = new RawFieldRow((ushort)field.Attributes, stringsHeap.Add(field.Name), GetSignature(field.Signature));
 					tablesHeap.FieldTable[rid] = row;
@@ -1608,6 +1621,7 @@ namespace dnlib.DotNet.Writer {
 					AddFieldRVA(field);
 					AddImplMap(new MDToken(Table.Field, rid), field);
 					AddConstant(new MDToken(Table.Field, rid), field);
+					errorContext.Source = null;
 				}
 
 				var methods = type.Methods;
@@ -1615,9 +1629,10 @@ namespace dnlib.DotNet.Writer {
 				for (int i = 0; i < count; i++) {
 					var method = methods[i];
 					if (method is null) {
-						Error("Method is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
+						Error("Method is null.");
 						continue;
 					}
+					errorContext.Source = method;
 					if (method.ExportInfo is not null)
 						ExportedMethods.Add(method);
 					uint rid = GetRid(method);
@@ -1633,7 +1648,7 @@ namespace dnlib.DotNet.Writer {
 					for (int j = 0; j < count2; j++) {
 						var pd = paramDefs[j];
 						if (pd is null) {
-							Error("Param is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
+							Error("Param is null.");
 							continue;
 						}
 						uint pdRid = GetRid(pd);
@@ -1642,6 +1657,7 @@ namespace dnlib.DotNet.Writer {
 						AddConstant(new MDToken(Table.Param, pdRid), pd);
 						AddFieldMarshal(new MDToken(Table.Param, pdRid), pd);
 					}
+					errorContext.Source = null;
 				}
 
 				var events = type.Events;
@@ -1649,13 +1665,15 @@ namespace dnlib.DotNet.Writer {
 				for (int i = 0; i < count; i++) {
 					var evt = events[i];
 					if (evt is null) {
-						Error("Event is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
+						Error("Event is null.");
 						continue;
 					}
+					errorContext.Source = evt;
 					uint rid = GetRid(evt);
 					var row = new RawEventRow((ushort)evt.Attributes, stringsHeap.Add(evt.Name), AddTypeDefOrRef(evt.EventType));
 					tablesHeap.EventTable[rid] = row;
 					AddMethodSemantics(evt);
+					errorContext.Source = null;
 				}
 
 				var properties = type.Properties;
@@ -1663,15 +1681,19 @@ namespace dnlib.DotNet.Writer {
 				for (int i = 0; i < count; i++) {
 					var prop = properties[i];
 					if (prop is null) {
-						Error("Property is null. TypeDef {0} ({1:X8})", type, type.MDToken.Raw);
+						Error("Property is null.");
 						continue;
 					}
+					errorContext.Source = prop;
 					uint rid = GetRid(prop);
 					var row = new RawPropertyRow((ushort)prop.Attributes, stringsHeap.Add(prop.Name), GetSignature(prop.Type));
 					tablesHeap.PropertyTable[rid] = row;
 					AddConstant(new MDToken(Table.Property, rid), prop);
 					AddMethodSemantics(prop);
+					errorContext.Source = null;
 				}
+
+				errorContext.Source = null;
 			}
 		}
 
@@ -1689,6 +1711,8 @@ namespace dnlib.DotNet.Writer {
 
 			uint rid;
 			foreach (var type in allTypeDefs) {
+				errorContext.Source = type;
+
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
 					RaiseProgress(Writer.MetadataEvent.MostTablesSorted, (double)typeNum / numTypes);
 					notifyNum++;
@@ -1722,6 +1746,7 @@ namespace dnlib.DotNet.Writer {
 					var method = methods[i];
 					if (method is null)
 						continue;
+					errorContext.Source = method;
 					if (method.HasCustomAttributes) {
 						rid = GetRid(method);
 						AddCustomAttributes(Table.Method, rid, method);
@@ -1739,6 +1764,7 @@ namespace dnlib.DotNet.Writer {
 							AddCustomDebugInformationList(Table.Param, rid, pd);
 						}
 					}
+					errorContext.Source = null;
 				}
 				var events = type.Events;
 				count = events.Count;
@@ -1764,6 +1790,8 @@ namespace dnlib.DotNet.Writer {
 						AddCustomDebugInformationList(Table.Property, rid, prop);
 					}
 				}
+
+				errorContext.Source = null;
 			}
 		}
 
@@ -1775,9 +1803,10 @@ namespace dnlib.DotNet.Writer {
 			if (fixups is null || fixups.VTables.Count == 0)
 				return;
 
+			errorContext.Source = "vtable fixups";
 			foreach (var vtable in fixups) {
 				if (vtable is null) {
-					Error("VTable is null");
+					Error("VTable is null.");
 					continue;
 				}
 				foreach (var method in vtable) {
@@ -1786,13 +1815,16 @@ namespace dnlib.DotNet.Writer {
 					AddMDTokenProvider(method);
 				}
 			}
+			errorContext.Source = null;
 		}
 
 		void AddExportedTypes() {
+			errorContext.Source = "exported types";
 			var exportedTypes = module.ExportedTypes;
 			int count = exportedTypes.Count;
 			for (int i = 0; i < count; i++)
 				AddExportedType(exportedTypes[i]);
+			errorContext.Source = null;
 		}
 
 		/// <summary>
@@ -1800,8 +1832,10 @@ namespace dnlib.DotNet.Writer {
 		/// a <see cref="MethodDef"/>, it will have already been added.
 		/// </summary>
 		void InitializeEntryPoint() {
+			errorContext.Source = "entry point";
 			if (module.ManagedEntryPoint is FileDef epFile)
 				AddFile(epFile);
+			errorContext.Source = null;
 		}
 
 		/// <summary>
@@ -1885,6 +1919,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var type in allTypeDefs) {
 				if (type is null)
 					continue;
+				errorContext.Source = type;
 				AddGenericParamConstraints(type.GenericParameters);
 				var methods = type.Methods;
 				int count = methods.Count;
@@ -1892,8 +1927,11 @@ namespace dnlib.DotNet.Writer {
 					var method = methods[i];
 					if (method is null)
 						continue;
+					errorContext.Source = method;
 					AddGenericParamConstraints(method.GenericParameters);
+					errorContext.Source = null;
 				}
+				errorContext.Source = null;
 			}
 			genericParamConstraintInfos.Sort((a, b) => a.row.Owner.CompareTo(b.row.Owner));
 			tablesHeap.GenericParamConstraintTable.IsSorted = true;
@@ -1975,11 +2013,15 @@ namespace dnlib.DotNet.Writer {
 				if (type is null)
 					continue;
 
+				errorContext.Source = type;
+
 				var methods = type.Methods;
 				for (int i = 0; i < methods.Count; i++) {
 					var method = methods[i];
 					if (method is null)
 						continue;
+
+					errorContext.Source = method;
 
 					if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
 						RaiseProgress(Writer.MetadataEvent.BeginWriteMethodBodies, (double)methodNum / numMethods);
@@ -1992,7 +2034,7 @@ namespace dnlib.DotNet.Writer {
 					var cilBody = method.Body;
 					if (cilBody is not null) {
 						if (!(cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)) {
-							writer.Reset(method, keepMaxStack || cilBody.KeepOldMaxStack);
+							writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
 							writer.Write();
 							var origRva = method.RVA;
 							uint origSize = cilBody.MetadataBodySize;
@@ -2006,7 +2048,7 @@ namespace dnlib.DotNet.Writer {
 						if (nativeBody is not null)
 							methodToNativeBody[method] = nativeBody;
 						else if (method.MethodBody is not null)
-							Error("Unsupported method body");
+							Error("Unsupported method body.");
 					}
 
 					if (debugMetadata is not null) {
@@ -2039,7 +2081,11 @@ namespace dnlib.DotNet.Writer {
 						// Always add CDIs even if it has no managed method body
 						AddCustomDebugInformationList(method, rid, localVarSigTok);
 					}
+
+					errorContext.Source = null;
 				}
+
+				errorContext.Source = null;
 			}
 			if (debugMetadata is not null) {
 				methodScopeDebugInfos.Sort((a, b) => {
@@ -2134,9 +2180,9 @@ namespace dnlib.DotNet.Writer {
 				return new MDToken(Table.StandAloneSig, AddStandAloneSig(fieldSig, 0));
 
 			if (o is null)
-				Error("Instruction operand is null");
+				Error("Instruction operand is null.");
 			else
-				Error("Invalid instruction operand");
+				Error("Invalid instruction operand.");
 			return new MDToken((Table)0xFF, 0x00FFFFFF);
 		}
 
@@ -2160,7 +2206,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected virtual uint AddStandAloneSig(MethodSig methodSig, uint origToken) {
 			if (methodSig is null) {
-				Error("StandAloneSig: MethodSig is null");
+				Error("StandAloneSig: MethodSig is null.");
 				return 0;
 			}
 
@@ -2179,7 +2225,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected virtual uint AddStandAloneSig(FieldSig fieldSig, uint origToken) {
 			if (fieldSig is null) {
-				Error("StandAloneSig: FieldSig is null");
+				Error("StandAloneSig: FieldSig is null.");
 				return 0;
 			}
 
@@ -2286,9 +2332,9 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			if (tp is null)
-				Error("IMDTokenProvider is null");
+				Error("IMDTokenProvider is null.");
 			else
-				Error("Invalid IMDTokenProvider");
+				Error("Invalid IMDTokenProvider.");
 			return 0;
 		}
 
@@ -2299,13 +2345,13 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its encoded token</returns>
 		protected uint AddTypeDefOrRef(ITypeDefOrRef tdr) {
 			if (tdr is null) {
-				Error("TypeDefOrRef is null");
+				Error("TypeDefOrRef is null.");
 				return 0;
 			}
 
 			var token = new MDToken(tdr.MDToken.Table, AddMDTokenProvider(tdr));
 			if (!CodedToken.TypeDefOrRef.Encode(token, out uint encodedToken)) {
-				Error("Can't encode TypeDefOrRef token {0:X8}", token.Raw);
+				Error("Can't encode TypeDefOrRef token 0x{0:X8}.", token.Raw);
 				encodedToken = 0;
 			}
 			return encodedToken;
@@ -2323,7 +2369,7 @@ namespace dnlib.DotNet.Writer {
 
 			var token = new MDToken(rs.MDToken.Table, AddMDTokenProvider(rs));
 			if (!CodedToken.ResolutionScope.Encode(token, out uint encodedToken)) {
-				Error("Can't encode ResolutionScope token {0:X8}", token.Raw);
+				Error("Can't encode ResolutionScope token 0x{0:X8}.", token.Raw);
 				encodedToken = 0;
 			}
 			return encodedToken;
@@ -2336,13 +2382,13 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its encoded token</returns>
 		protected uint AddMethodDefOrRef(IMethodDefOrRef mdr) {
 			if (mdr is null) {
-				Error("MethodDefOrRef is null");
+				Error("MethodDefOrRef is null.");
 				return 0;
 			}
 
 			var token = new MDToken(mdr.MDToken.Table, AddMDTokenProvider(mdr));
 			if (!CodedToken.MethodDefOrRef.Encode(token, out uint encodedToken)) {
-				Error("Can't encode MethodDefOrRef token {0:X8}", token.Raw);
+				Error("Can't encode MethodDefOrRef token 0x{0:X8}.", token.Raw);
 				encodedToken = 0;
 			}
 			return encodedToken;
@@ -2355,13 +2401,13 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its encoded token</returns>
 		protected uint AddMemberRefParent(IMemberRefParent parent) {
 			if (parent is null) {
-				Error("MemberRefParent is null");
+				Error("MemberRefParent is null.");
 				return 0;
 			}
 
 			var token = new MDToken(parent.MDToken.Table, AddMDTokenProvider(parent));
 			if (!CodedToken.MemberRefParent.Encode(token, out uint encodedToken)) {
-				Error("Can't encode MemberRefParent token {0:X8}", token.Raw);
+				Error("Can't encode MemberRefParent token 0x{0:X8}.", token.Raw);
 				encodedToken = 0;
 			}
 			return encodedToken;
@@ -2374,13 +2420,13 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its encoded token</returns>
 		protected uint AddImplementation(IImplementation impl) {
 			if (impl is null) {
-				Error("Implementation is null");
+				Error("Implementation is null.");
 				return 0;
 			}
 
 			var token = new MDToken(impl.MDToken.Table, AddMDTokenProvider(impl));
 			if (!CodedToken.Implementation.Encode(token, out uint encodedToken)) {
-				Error("Can't encode Implementation token {0:X8}", token.Raw);
+				Error("Can't encode Implementation token 0x{0:X8}.", token.Raw);
 				encodedToken = 0;
 			}
 			return encodedToken;
@@ -2393,13 +2439,13 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its encoded token</returns>
 		protected uint AddCustomAttributeType(ICustomAttributeType cat) {
 			if (cat is null) {
-				Error("CustomAttributeType is null");
+				Error("CustomAttributeType is null.");
 				return 0;
 			}
 
 			var token = new MDToken(cat.MDToken.Table, AddMDTokenProvider(cat));
 			if (!CodedToken.CustomAttributeType.Encode(token, out uint encodedToken)) {
-				Error("Can't encode CustomAttributeType token {0:X8}", token.Raw);
+				Error("Can't encode CustomAttributeType token 0x{0:X8}.", token.Raw);
 				encodedToken = 0;
 			}
 			return encodedToken;
@@ -2428,11 +2474,11 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected uint AddModule(ModuleDef module) {
 			if (module is null) {
-				Error("Module is null");
+				Error("Module is null.");
 				return 0;
 			}
 			if (this.module != module)
-				Error("Module {0} must be referenced with a ModuleRef, not a ModuleDef", module);
+				Error("Module '{0}' must be referenced with a ModuleRef, not a ModuleDef.", module);
 			if (moduleDefInfos.TryGetRid(module, out uint rid))
 				return rid;
 			var row = new RawModuleRow(module.Generation,
@@ -2454,7 +2500,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected uint AddModuleRef(ModuleRef modRef) {
 			if (modRef is null) {
-				Error("ModuleRef is null");
+				Error("ModuleRef is null.");
 				return 0;
 			}
 			if (moduleRefInfos.TryGetRid(modRef, out uint rid))
@@ -2474,7 +2520,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected uint AddAssemblyRef(AssemblyRef asmRef) {
 			if (asmRef is null) {
-				Error("AssemblyRef is null");
+				Error("AssemblyRef is null.");
 				return 0;
 			}
 			if (assemblyRefInfos.TryGetRid(asmRef, out uint rid))
@@ -2504,7 +2550,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected uint AddAssembly(AssemblyDef asm, byte[] publicKey) {
 			if (asm is null) {
-				Error("Assembly is null");
+				Error("Assembly is null.");
 				return 0;
 			}
 			if (assemblyInfos.TryGetRid(asm, out uint rid))
@@ -2554,11 +2600,11 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="gp">Generic paramater</param>
 		protected void AddGenericParam(MDToken owner, GenericParam gp) {
 			if (gp is null) {
-				Error("GenericParam is null");
+				Error("GenericParam is null.");
 				return;
 			}
 			if (!CodedToken.TypeOrMethodDef.Encode(owner, out uint encodedOwner)) {
-				Error("Can't encode TypeOrMethodDef token {0:X8}", owner.Raw);
+				Error("Can't encode TypeOrMethodDef token 0x{0:X8}.", owner.Raw);
 				encodedOwner = 0;
 			}
 			var row = new RawGenericParamRow(gp.Number,
@@ -2602,7 +2648,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="gpc">Generic parameter constraint</param>
 		protected void AddGenericParamConstraint(uint gpRid, GenericParamConstraint gpc) {
 			if (gpc is null) {
-				Error("GenericParamConstraint is null");
+				Error("GenericParamConstraint is null.");
 				return;
 			}
 			var row = new RawGenericParamConstraintRow(gpRid, AddTypeDefOrRef(gpc.Constraint));
@@ -2648,7 +2694,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			var fieldMarshal = hfm.MarshalType;
 			if (!CodedToken.HasFieldMarshal.Encode(parent, out uint encodedParent)) {
-				Error("Can't encode HasFieldMarshal token {0:X8}", parent.Raw);
+				Error("Can't encode HasFieldMarshal token 0x{0:X8}.", parent.Raw);
 				encodedParent = 0;
 			}
 			var row = new RawFieldMarshalRow(encodedParent,
@@ -2674,7 +2720,7 @@ namespace dnlib.DotNet.Writer {
 					return;
 				var ivBytes = field.InitialValue;
 				if (!VerifyFieldSize(field, ivBytes.Length))
-					Error("Field {0} ({1:X8}) initial value size != size of field type", field, field.MDToken.Raw);
+					Error("Field '{0}' (0x{1:X8}) initial value size != size of field type.", field, field.MDToken.Raw);
 				uint rid = GetRid(field);
 				var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT);
 				fieldToInitialValue[field] = iv;
@@ -2702,7 +2748,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			var implMap = mf.ImplMap;
 			if (!CodedToken.MemberForwarded.Encode(parent, out uint encodedParent)) {
-				Error("Can't encode MemberForwarded token {0:X8}", parent.Raw);
+				Error("Can't encode MemberForwarded token 0x{0:X8}.", parent.Raw);
 				encodedParent = 0;
 			}
 			var row = new RawImplMapRow((ushort)implMap.Attributes,
@@ -2722,7 +2768,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 			var constant = hc.Constant;
 			if (!CodedToken.HasConstant.Encode(parent, out uint encodedParent)) {
-				Error("Can't encode HasConstant token {0:X8}", parent.Raw);
+				Error("Can't encode HasConstant token 0x{0:X8}.", parent.Raw);
 				encodedParent = 0;
 			}
 			var row = new RawConstantRow((byte)constant.Type, 0,
@@ -2737,7 +2783,7 @@ namespace dnlib.DotNet.Writer {
 			if (o is null) {
 				if (etype == ElementType.Class)
 					return constantClassByteArray;
-				Error("Constant is null");
+				Error("Constant is null.");
 				return constantDefaultByteArray;
 			}
 
@@ -2796,14 +2842,14 @@ namespace dnlib.DotNet.Writer {
 				return Encoding.Unicode.GetBytes((string)o);
 
 			default:
-				Error("Invalid constant type: {0}", typeCode);
+				Error("Invalid constant type: {0}.", typeCode);
 				return constantDefaultByteArray;
 			}
 		}
 
 		void VerifyConstantType(ElementType realType, ElementType expectedType) {
 			if (realType != expectedType)
-				Error("Constant value's type is the wrong type: {0} != {1}", realType, expectedType);
+				Error("Constant value's type is the wrong type: {0} != {1}.", realType, expectedType);
 		}
 
 		/// <summary>
@@ -2815,7 +2861,7 @@ namespace dnlib.DotNet.Writer {
 			if (declSecurities is null)
 				return;
 			if (!CodedToken.HasDeclSecurity.Encode(parent, out uint encodedParent)) {
-				Error("Can't encode HasDeclSecurity token {0:X8}", parent.Raw);
+				Error("Can't encode HasDeclSecurity token 0x{0:X8}.", parent.Raw);
 				encodedParent = 0;
 			}
 			var bwctx = AllocBinaryWriterContext();
@@ -2838,7 +2884,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="evt">Event</param>
 		protected void AddMethodSemantics(EventDef evt) {
 			if (evt is null) {
-				Error("Event is null");
+				Error("Event is null.");
 				return;
 			}
 			uint rid = GetRid(evt);
@@ -2857,7 +2903,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="prop">Property</param>
 		protected void AddMethodSemantics(PropertyDef prop) {
 			if (prop is null) {
-				Error("Property is null");
+				Error("Property is null.");
 				return;
 			}
 			uint rid = GetRid(prop);
@@ -2884,7 +2930,7 @@ namespace dnlib.DotNet.Writer {
 			if (methodRid == 0)
 				return;
 			if (!CodedToken.HasSemantic.Encode(owner, out uint encodedOwner)) {
-				Error("Can't encode HasSemantic token {0:X8}", owner.Raw);
+				Error("Can't encode HasSemantic token 0x{0:X8}.", owner.Raw);
 				encodedOwner = 0;
 			}
 			var row = new RawMethodSemanticsRow((ushort)flags, methodRid, encodedOwner);
@@ -2895,7 +2941,7 @@ namespace dnlib.DotNet.Writer {
 			if (overrides is null)
 				return;
 			if (method.DeclaringType is null) {
-				Error("Method declaring type is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
+				Error("Method declaring type is null.");
 				return;
 			}
 			if (overrides.Count != 0) {
@@ -2952,16 +2998,16 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			if (resource is null)
-				Error("Resource is null");
+				Error("Resource is null.");
 			else
-				Error("Invalid resource type: {0}", resource.GetType());
+				Error("Invalid resource type: '{0}'.", resource.GetType());
 		}
 
 		uint AddEmbeddedResource(EmbeddedResource er) {
 			Debug.Assert(!isStandaloneDebugMetadata);
 			Debug.Assert(!NoDotNetResources);
 			if (er is null) {
-				Error("EmbeddedResource is null");
+				Error("EmbeddedResource is null.");
 				return 0;
 			}
 			if (manifestResourceInfos.TryGetRid(er, out uint rid))
@@ -2981,7 +3027,7 @@ namespace dnlib.DotNet.Writer {
 		uint AddAssemblyLinkedResource(AssemblyLinkedResource alr) {
 			Debug.Assert(!NoDotNetResources);
 			if (alr is null) {
-				Error("AssemblyLinkedResource is null");
+				Error("AssemblyLinkedResource is null.");
 				return 0;
 			}
 			if (manifestResourceInfos.TryGetRid(alr, out uint rid))
@@ -3000,7 +3046,7 @@ namespace dnlib.DotNet.Writer {
 		uint AddLinkedResource(LinkedResource lr) {
 			Debug.Assert(!NoDotNetResources);
 			if (lr is null) {
-				Error("LinkedResource is null");
+				Error("LinkedResource is null.");
 				return 0;
 			}
 			if (manifestResourceInfos.TryGetRid(lr, out uint rid))
@@ -3023,7 +3069,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected uint AddFile(FileDef file) {
 			if (file is null) {
-				Error("FileDef is null");
+				Error("FileDef is null.");
 				return 0;
 			}
 			if (fileDefInfos.TryGetRid(file, out uint rid))
@@ -3045,7 +3091,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>Its new rid</returns>
 		protected uint AddExportedType(ExportedType et) {
 			if (et is null) {
-				Error("ExportedType is null");
+				Error("ExportedType is null.");
 				return 0;
 			}
 			if (exportedTypeInfos.TryGetRid(et, out uint rid))
@@ -3073,7 +3119,7 @@ namespace dnlib.DotNet.Writer {
 		protected uint GetSignature(TypeSig ts, byte[] extraData) {
 			byte[] blob;
 			if (ts is null) {
-				Error("TypeSig is null");
+				Error("TypeSig is null.");
 				blob = null;
 			}
 			else {
@@ -3092,7 +3138,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns>#Blob offset</returns>
 		protected uint GetSignature(CallingConventionSig sig) {
 			if (sig is null) {
-				Error("CallingConventionSig is null");
+				Error("CallingConventionSig is null.");
 				return 0;
 			}
 
@@ -3128,11 +3174,11 @@ namespace dnlib.DotNet.Writer {
 
 		void AddCustomAttribute(MDToken token, CustomAttribute ca) {
 			if (ca is null) {
-				Error("Custom attribute is null");
+				Error("Custom attribute is null.");
 				return;
 			}
 			if (!CodedToken.HasCustomAttribute.Encode(token, out uint encodedToken)) {
-				Error("Can't encode HasCustomAttribute token {0:X8}", token.Raw);
+				Error("Can't encode HasCustomAttribute token 0x{0:X8}.", token.Raw);
 				encodedToken = 0;
 			}
 			var bwctx = AllocBinaryWriterContext();
@@ -3188,7 +3234,7 @@ namespace dnlib.DotNet.Writer {
 				if (seqPoint is null)
 					continue;
 				if (seqPoint.Document is null) {
-					Error("PDB document is null");
+					Error("PDB document is null.");
 					return;
 				}
 				if (currentDoc != seqPoint.Document) {
@@ -3247,7 +3293,7 @@ namespace dnlib.DotNet.Writer {
 		uint VerifyGetRid(PdbDocument doc) {
 			Debug.Assert(debugMetadata is not null);
 			if (!debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid)) {
-				Error("PDB document has been removed");
+				Error("PDB document has been removed.");
 				return 0;
 			}
 			return rid;
@@ -3315,14 +3361,14 @@ namespace dnlib.DotNet.Writer {
 
 			var token = new MDToken(table, rid);
 			if (!CodedToken.HasCustomDebugInformation.Encode(token, out uint encodedToken)) {
-				Error("Couldn't encode HasCustomDebugInformation token {0:X8}", token.Raw);
+				Error("Couldn't encode HasCustomDebugInformation token 0x{0:X8}.", token.Raw);
 				return;
 			}
 
 			for (int i = 0; i < cdis.Count; i++) {
 				var cdi = cdis[i];
 				if (cdi is null) {
-					Error("Custom debug info is null");
+					Error("Custom debug info is null.");
 					continue;
 				}
 
@@ -3342,7 +3388,7 @@ namespace dnlib.DotNet.Writer {
 			case PdbCustomDebugInfoKind.TupleElementNames:
 			case PdbCustomDebugInfoKind.SourceServer:
 				// These are Windows PDB CDIs
-				Error("Unsupported custom debug info {0}", cdi.Kind);
+				Error("Unsupported custom debug info {0}.", cdi.Kind);
 				break;
 
 			case PdbCustomDebugInfoKind.StateMachineHoistedLocalScopes:
@@ -3371,7 +3417,7 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			default:
-				Error("Unknown custom debug info {0}", cdi.Kind.ToString());
+				Error("Unknown custom debug info {0}.", cdi.Kind);
 				break;
 			}
 		}
@@ -3380,7 +3426,7 @@ namespace dnlib.DotNet.Writer {
 			Debug.Assert(new MDToken(moveNextMethodToken).Table == Table.Method);
 			Debug.Assert(debugMetadata is not null);
 			if (kickoffMethod is null) {
-				Error("KickoffMethod is null");
+				Error("KickoffMethod is null.");
 				return;
 			}
 			var row = new RawStateMachineMethodRow(new MDToken(moveNextMethodToken).Rid, GetRid(kickoffMethod));
@@ -3418,7 +3464,7 @@ namespace dnlib.DotNet.Writer {
 		uint AddPdbDocument(PdbDocument doc) {
 			Debug.Assert(debugMetadata is not null);
 			if (doc is null) {
-				Error("PdbDocument is null");
+				Error("PdbDocument is null.");
 				return 0;
 			}
 			if (debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid))
@@ -3436,7 +3482,7 @@ namespace dnlib.DotNet.Writer {
 		uint GetDocumentNameBlobOffset(string name) {
 			Debug.Assert(debugMetadata is not null);
 			if (name is null) {
-				Error("Document name is null");
+				Error("Document name is null.");
 				name = string.Empty;
 			}
 
@@ -3469,7 +3515,7 @@ namespace dnlib.DotNet.Writer {
 				return 0;
 			if (debugMetadata.importScopeInfos.TryGetRid(scope, out uint rid)) {
 				if (rid == 0)
-					Error("PdbImportScope has an infinite Parent loop");
+					Error("PdbImportScope has an infinite Parent loop.");
 				return rid;
 			}
 			debugMetadata.importScopeInfos.Add(scope, 0);   // Prevent inf recursion
@@ -3494,7 +3540,7 @@ namespace dnlib.DotNet.Writer {
 		void AddLocalVariable(PdbLocal local) {
 			Debug.Assert(debugMetadata is not null);
 			if (local is null) {
-				Error("PDB local is null");
+				Error("PDB local is null.");
 				return;
 			}
 			var row = new RawLocalVariableRow((ushort)local.Attributes, (ushort)local.Index, debugMetadata.stringsHeap.Add(local.Name));
@@ -3506,7 +3552,7 @@ namespace dnlib.DotNet.Writer {
 		void AddLocalConstant(PdbConstant constant) {
 			Debug.Assert(debugMetadata is not null);
 			if (constant is null) {
-				Error("PDB constant is null");
+				Error("PDB constant is null.");
 				return;
 			}
 

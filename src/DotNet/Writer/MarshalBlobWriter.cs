@@ -55,7 +55,7 @@ namespace dnlib.DotNet.Writer {
 			var type = marshalType.NativeType;
 			if (type != NativeType.RawBlob) {
 				if ((uint)type > byte.MaxValue)
-					helper.Error("Invalid MarshalType.NativeType");
+					helper.Error("Invalid MarshalType.NativeType.");
 				writer.WriteByte((byte)type);
 			}
 			bool canWrite = true;
@@ -128,7 +128,7 @@ namespace dnlib.DotNet.Writer {
 		bool UpdateCanWrite(bool isValid, string field, ref bool canWriteMore) {
 			if (!canWriteMore) {
 				if (isValid)
-					helper.Error($"MarshalType field {field} is valid even though a previous field was invalid");
+					helper.Error2("MarshalType field {0} is valid even though a previous field was invalid.", field);
 				return canWriteMore;
 			}
 

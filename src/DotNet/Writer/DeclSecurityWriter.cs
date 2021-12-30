@@ -69,7 +69,7 @@ namespace dnlib.DotNet.Writer {
 			for (int i = 0; i < count; i++) {
 				var sa = secAttrs[i];
 				if (sa is null) {
-					helper.Error("SecurityAttribute is null");
+					helper.Error("SecurityAttribute is null.");
 					Write(writer, UTF8String.Empty);
 					WriteCompressedUInt32(writer, 1);
 					WriteCompressedUInt32(writer, 0);
@@ -78,7 +78,7 @@ namespace dnlib.DotNet.Writer {
 				var attrType = sa.AttributeType;
 				string fqn;
 				if (attrType is null) {
-					helper.Error("SecurityAttribute attribute type is null");
+					helper.Error("SecurityAttribute attribute type is null.");
 					fqn = string.Empty;
 				}
 				else
@@ -89,7 +89,7 @@ namespace dnlib.DotNet.Writer {
 					CustomAttributeWriter.Write(this, sa.NamedArguments) :
 					CustomAttributeWriter.Write(this, sa.NamedArguments, context);
 				if (namedArgsBlob.Length > 0x1FFFFFFF) {
-					helper.Error("Named arguments blob size doesn't fit in 29 bits");
+					helper.Error("Named arguments blob size doesn't fit in 29 bits.");
 					namedArgsBlob = Array2.Empty<byte>();
 				}
 				WriteCompressedUInt32(writer, (uint)namedArgsBlob.Length);

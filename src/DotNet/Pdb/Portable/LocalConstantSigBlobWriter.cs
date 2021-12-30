@@ -44,7 +44,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (value is float)
 						writer.WriteSingle((float)value);
 					else {
-						helper.Error("Expected a Single constant");
+						helper.Error("Expected a Single constant.");
 						writer.WriteSingle(0);
 					}
 					return;
@@ -53,7 +53,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (value is double)
 						writer.WriteDouble((double)value);
 					else {
-						helper.Error("Expected a Double constant");
+						helper.Error("Expected a Double constant.");
 						writer.WriteDouble(0);
 					}
 					return;
@@ -64,7 +64,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					else if (value is string)
 						writer.WriteBytes(Encoding.Unicode.GetBytes((string)value));
 					else
-						helper.Error("Expected a String constant");
+						helper.Error("Expected a String constant.");
 					return;
 
 				case ElementType.Ptr:
@@ -79,7 +79,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					var tdr = ((ValueTypeSig)type).TypeDefOrRef;
 					var td = tdr.ResolveTypeDef();
 					if (td is null)
-						helper.Error($"Couldn't resolve type 0x{tdr?.MDToken.Raw ?? 0:X8}");
+						helper.Error2("Couldn't resolve type 0x{0:X8}.", tdr?.MDToken.Raw ?? 0);
 					else if (td.IsEnum) {
 						var underlyingType = td.GetEnumUnderlyingType().RemovePinnedAndModifiers();
 						switch (underlyingType.GetElementType()) {
@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 							WriteTypeDefOrRef(writer, tdr);
 							return;
 						default:
-							helper.Error("Invalid enum underlying type");
+							helper.Error("Invalid enum underlying type.");
 							return;
 						}
 					}
@@ -116,7 +116,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 									writer.WriteInt32(bits[2]);
 								}
 								else {
-									helper.Error("Expected a Decimal constant");
+									helper.Error("Expected a Decimal constant.");
 									writer.WriteBytes(new byte[13]);
 								}
 								valueWritten = true;
@@ -135,7 +135,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 							if (value is byte[])
 								writer.WriteBytes((byte[])value);
 							else if (value is not null) {
-								helper.Error("Unsupported constant: " + value.GetType().FullName);
+								helper.Error2("Unsupported constant: {0}.", value.GetType().FullName);
 								return;
 							}
 						}
@@ -147,7 +147,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (value is byte[])
 						writer.WriteBytes((byte[])value);
 					else if (value is not null)
-						helper.Error("Expected a null constant");
+						helper.Error("Expected a null constant.");
 					return;
 
 				case ElementType.CModReqd:
@@ -176,7 +176,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				case ElementType.Sentinel:
 				case ElementType.Pinned:
 				default:
-					helper.Error("Unsupported element type in LocalConstant sig blob: " + et.ToString());
+					helper.Error2("Unsupported element type in LocalConstant sig blob: {0}.", et);
 					return;
 				}
 			}
@@ -209,7 +209,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is bool)
 					writer.WriteBoolean((bool)value);
 				else {
-					helper.Error("Expected a Boolean constant");
+					helper.Error("Expected a Boolean constant.");
 					writer.WriteBoolean(false);
 				}
 				break;
@@ -218,7 +218,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is char)
 					writer.WriteUInt16((char)value);
 				else {
-					helper.Error("Expected a Char constant");
+					helper.Error("Expected a Char constant.");
 					writer.WriteUInt16(0);
 				}
 				break;
@@ -227,7 +227,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is sbyte)
 					writer.WriteSByte((sbyte)value);
 				else {
-					helper.Error("Expected a SByte constant");
+					helper.Error("Expected a SByte constant.");
 					writer.WriteSByte(0);
 				}
 				break;
@@ -236,7 +236,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is byte)
 					writer.WriteByte((byte)value);
 				else {
-					helper.Error("Expected a Byte constant");
+					helper.Error("Expected a Byte constant.");
 					writer.WriteByte(0);
 				}
 				break;
@@ -245,7 +245,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is short)
 					writer.WriteInt16((short)value);
 				else {
-					helper.Error("Expected an Int16 constant");
+					helper.Error("Expected an Int16 constant.");
 					writer.WriteInt16(0);
 				}
 				break;
@@ -254,7 +254,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is ushort)
 					writer.WriteUInt16((ushort)value);
 				else {
-					helper.Error("Expected a UInt16 constant");
+					helper.Error("Expected a UInt16 constant.");
 					writer.WriteUInt16(0);
 				}
 				break;
@@ -263,7 +263,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is int)
 					writer.WriteInt32((int)value);
 				else {
-					helper.Error("Expected an Int32 constant");
+					helper.Error("Expected an Int32 constant.");
 					writer.WriteInt32(0);
 				}
 				break;
@@ -272,7 +272,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is uint)
 					writer.WriteUInt32((uint)value);
 				else {
-					helper.Error("Expected a UInt32 constant");
+					helper.Error("Expected a UInt32 constant.");
 					writer.WriteUInt32(0);
 				}
 				break;
@@ -281,7 +281,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is long)
 					writer.WriteInt64((long)value);
 				else {
-					helper.Error("Expected an Int64 constant");
+					helper.Error("Expected an Int64 constant.");
 					writer.WriteInt64(0);
 				}
 				break;
@@ -290,7 +290,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is ulong)
 					writer.WriteUInt64((ulong)value);
 				else {
-					helper.Error("Expected a UInt64 constant");
+					helper.Error("Expected a UInt64 constant.");
 					writer.WriteUInt64(0);
 				}
 				break;
@@ -302,7 +302,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteTypeDefOrRef(DataWriter writer, ITypeDefOrRef tdr) {
 			if (!MD.CodedToken.TypeDefOrRef.Encode(systemMetadata.GetToken(tdr), out uint codedToken)) {
-				helper.Error("Couldn't encode a TypeDefOrRef");
+				helper.Error("Couldn't encode a TypeDefOrRef.");
 				return;
 			}
 			writer.WriteCompressedUInt32(codedToken);

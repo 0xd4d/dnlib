@@ -24,7 +24,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		uint WriteUTF8(string s) {
 			if (s is null) {
-				helper.Error("String is null");
+				helper.Error("String is null.");
 				s = string.Empty;
 			}
 			var bytes = Encoding.UTF8.GetBytes(s);
@@ -36,7 +36,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			for (int i = 0; i < count; i++) {
 				var import = imports[i];
 				if (!ImportDefinitionKindUtils.ToImportDefinitionKind(import.Kind, out uint rawKind)) {
-					helper.Error("Unknown import definition kind: " + import.Kind.ToString());
+					helper.Error2("Unknown import definition kind: {0}.", import.Kind);
 					return;
 				}
 				writer.WriteCompressedUInt32(rawKind);
@@ -94,7 +94,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					break;
 
 				default:
-					helper.Error("Unknown import definition kind: " + import.Kind.ToString());
+					helper.Error2("Unknown import definition kind: {0}.", import.Kind);
 					return;
 				}
 			}
@@ -102,13 +102,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		uint GetTypeDefOrRefEncodedToken(ITypeDefOrRef tdr) {
 			if (tdr is null) {
-				helper.Error("ITypeDefOrRef is null");
+				helper.Error("ITypeDefOrRef is null.");
 				return 0;
 			}
 			var token = systemMetadata.GetToken(tdr);
 			if (MD.CodedToken.TypeDefOrRef.Encode(token, out uint codedToken))
 				return codedToken;
-			helper.Error($"Could not encode token 0x{token.Raw:X8}");
+			helper.Error2("Could not encode token 0x{0:X8}.", token.Raw);
 			return 0;
 		}
 	}

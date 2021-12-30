@@ -27,4 +27,20 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="args">Optional message arguments</param>
 		void Error(string message, params object[] args);
 	}
+
+	static partial class Extensions {
+		/// <summary>
+		/// Called when an error is detected (eg. a null pointer or other invalid value). The error
+		/// can be ignored but the written data won't be valid.
+		/// </summary>
+		/// <param name="helper">The instance of <see cref="IWriterError"/></param>
+		/// <param name="message">Error message</param>
+		/// <param name="args">Optional message arguments</param>
+		public static void Error2(this IWriterError helper, string message, params object[] args) {
+			if (helper is IWriterError2 helper2)
+				helper2.Error(message, args);
+			else
+				helper.Error(string.Format(message, args));
+		}
+	}
 }

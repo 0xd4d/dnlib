@@ -4,7 +4,7 @@ namespace dnlib.DotNet.Writer {
 	static class WriterUtils {
 		public static uint WriteCompressedUInt32(this DataWriter writer, IWriterError helper, uint value) {
 			if (value > 0x1FFFFFFF) {
-				helper.Error("UInt32 value is too big and can't be compressed");
+				helper.Error("UInt32 value is too big and can't be compressed.");
 				value = 0x1FFFFFFF;
 			}
 			writer.WriteCompressedUInt32(value);
@@ -26,7 +26,7 @@ namespace dnlib.DotNet.Writer {
 
 		public static void Write(this DataWriter writer, IWriterError helper, UTF8String s) {
 			if (UTF8String.IsNull(s)) {
-				helper.Error("UTF8String is null");
+				helper.Error("UTF8String is null.");
 				s = UTF8String.Empty;
 			}
 

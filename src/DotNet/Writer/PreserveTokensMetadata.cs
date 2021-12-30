@@ -205,12 +205,12 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public override uint GetRid(TypeDef td) {
 			if (td is null) {
-				Error("TypeDef is null");
+				Error("TypeDef is null.");
 				return 0;
 			}
 			if (typeToRid.TryGetValue(td, out uint rid))
 				return rid;
-			Error("TypeDef {0} ({1:X8}) is not defined in this module ({2}). A type was removed that is still referenced by this module.", td, td.MDToken.Raw, module);
+			Error("TypeDef '{0}' (0x{1:X8}) is not defined in this module '{2}'. A type was removed that is still referenced by this module.", td, td.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -219,9 +219,9 @@ namespace dnlib.DotNet.Writer {
 			if (fieldDefInfos.TryGetRid(fd, out uint rid))
 				return rid;
 			if (fd is null)
-				Error("Field is null");
+				Error("Field is null.");
 			else
-				Error("Field {0} ({1:X8}) is not defined in this module ({2}). A field was removed that is still referenced by this module.", fd, fd.MDToken.Raw, module);
+				Error("Field '{0}' (0x{1:X8}) is not defined in this module '{2}'. A field was removed that is still referenced by this module.", fd, fd.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -230,9 +230,9 @@ namespace dnlib.DotNet.Writer {
 			if (methodDefInfos.TryGetRid(md, out uint rid))
 				return rid;
 			if (md is null)
-				Error("Method is null");
+				Error("Method is null.");
 			else
-				Error("Method {0} ({1:X8}) is not defined in this module ({2}). A method was removed that is still referenced by this module.", md, md.MDToken.Raw, module);
+				Error("Method '{0}' (0x{1:X8}) is not defined in this module '{2}'. A method was removed that is still referenced by this module.", md, md.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -241,9 +241,9 @@ namespace dnlib.DotNet.Writer {
 			if (paramDefInfos.TryGetRid(pd, out uint rid))
 				return rid;
 			if (pd is null)
-				Error("Param is null");
+				Error("Param is null.");
 			else
-				Error("Param {0} ({1:X8}) is not defined in this module ({2}). A parameter was removed that is still referenced by this module.", pd, pd.MDToken.Raw, module);
+				Error("Param '{0}' (0x{1:X8}) is not defined in this module '{2}'. A parameter was removed that is still referenced by this module.", pd, pd.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -264,9 +264,9 @@ namespace dnlib.DotNet.Writer {
 			if (eventDefInfos.TryGetRid(ed, out uint rid))
 				return rid;
 			if (ed is null)
-				Error("Event is null");
+				Error("Event is null.");
 			else
-				Error("Event {0} ({1:X8}) is not defined in this module ({2}). An event was removed that is still referenced by this module.", ed, ed.MDToken.Raw, module);
+				Error("Event '{0}' (0x{1:X8}) is not defined in this module '{2}'. An event was removed that is still referenced by this module.", ed, ed.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -275,9 +275,9 @@ namespace dnlib.DotNet.Writer {
 			if (propertyDefInfos.TryGetRid(pd, out uint rid))
 				return rid;
 			if (pd is null)
-				Error("Property is null");
+				Error("Property is null.");
 			else
-				Error("Property {0} ({1:X8}) is not defined in this module ({2}). A property was removed that is still referenced by this module.", pd, pd.MDToken.Raw, module);
+				Error("Property '{0}' (0x{1:X8}) is not defined in this module '{2}'. A property was removed that is still referenced by this module.", pd, pd.MDToken.Raw, module);
 			return 0;
 		}
 
@@ -855,7 +855,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var type in allTypeDefs) {
 				if (type is null)
 					continue;
-
+				
 				pos = 0;
 				var fields = type.Fields;
 				count = fields.Count;
@@ -1028,12 +1028,12 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override uint AddTypeRef(TypeRef tr) {
 			if (tr is null) {
-				Error("TypeRef is null");
+				Error("TypeRef is null.");
 				return 0;
 			}
 			if (typeRefInfos.TryGetRid(tr, out uint rid)) {
 				if (rid == 0)
-					Error("TypeRef {0:X8} has an infinite ResolutionScope loop", tr.MDToken.Raw);
+					Error("TypeRef 0x{0:X8} has an infinite ResolutionScope loop.", tr.MDToken.Raw);
 				return rid;
 			}
 			typeRefInfos.Add(tr, 0);	// Prevent inf recursion
@@ -1057,12 +1057,12 @@ namespace dnlib.DotNet.Writer {
 
 		uint AddTypeSpec(TypeSpec ts, bool forceIsOld) {
 			if (ts is null) {
-				Error("TypeSpec is null");
+				Error("TypeSpec is null.");
 				return 0;
 			}
 			if (typeSpecInfos.TryGetRid(ts, out uint rid)) {
 				if (rid == 0)
-					Error("TypeSpec {0:X8} has an infinite TypeSig loop", ts.MDToken.Raw);
+					Error("TypeSpec 0x{0:X8} has an infinite TypeSig loop.", ts.MDToken.Raw);
 				return rid;
 			}
 			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
@@ -1086,7 +1086,7 @@ namespace dnlib.DotNet.Writer {
 
 		uint AddMemberRef(MemberRef mr, bool forceIsOld) {
 			if (mr is null) {
-				Error("MemberRef is null");
+				Error("MemberRef is null.");
 				return 0;
 			}
 			if (memberRefInfos.TryGetRid(mr, out uint rid))
@@ -1111,7 +1111,7 @@ namespace dnlib.DotNet.Writer {
 
 		uint AddStandAloneSig(StandAloneSig sas, bool forceIsOld) {
 			if (sas is null) {
-				Error("StandAloneSig is null");
+				Error("StandAloneSig is null.");
 				return 0;
 			}
 			if (standAloneSigInfos.TryGetRid(sas, out uint rid))
@@ -1169,14 +1169,14 @@ namespace dnlib.DotNet.Writer {
 			if (callConvTokenToSignature.TryGetValue(origToken, out uint otherSig)) {
 				if (sig == otherSig)
 					return MDToken.ToRID(origToken);
-				Warning("Could not preserve StandAloneSig token {0:X8}", origToken);
+				Warning("Could not preserve StandAloneSig token 0x{0:X8}", origToken);
 				return 0;
 			}
 
 			uint rid = MDToken.ToRID(origToken);
 			var sas = mod.ResolveStandAloneSig(rid);
 			if (standAloneSigInfos.Exists(sas)) {
-				Warning("StandAloneSig {0:X8} already exists", origToken);
+				Warning("StandAloneSig 0x{0:X8} already exists", origToken);
 				return 0;
 			}
 
@@ -1206,7 +1206,7 @@ namespace dnlib.DotNet.Writer {
 
 		uint AddMethodSpec(MethodSpec ms, bool forceIsOld) {
 			if (ms is null) {
-				Error("MethodSpec is null");
+				Error("MethodSpec is null.");
 				return 0;
 			}
 			if (methodSpecInfos.TryGetRid(ms, out uint rid))
