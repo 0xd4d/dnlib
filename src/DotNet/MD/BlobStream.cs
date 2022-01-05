@@ -46,8 +46,9 @@ namespace dnlib.DotNet.MD {
 		/// <param name="offset">Offset of blob</param>
 		/// <returns>A new stream</returns>
 		public DataReader CreateReader(uint offset) {
-			TryCreateReader(offset, out var reader);
-			return reader;
+			if (TryCreateReader(offset, out var reader))
+				return reader;
+			return default;
 		}
 
 		/// <summary>
