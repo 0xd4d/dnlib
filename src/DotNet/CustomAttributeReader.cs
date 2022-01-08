@@ -277,7 +277,7 @@ namespace dnlib.DotNet {
 		}
 
 		List<CANamedArgument> ReadNamedArguments(int numNamedArgs) {
-			if ((uint)numNamedArgs > 0x4000_0000 || numNamedArgs * 4 > reader.BytesLeft)
+			if ((uint)numNamedArgs >= 0x4000_0000 || numNamedArgs * 4 > reader.BytesLeft)
 				return null;
 			var namedArgs = new List<CANamedArgument>(numNamedArgs);
 			for (int i = 0; i < numNamedArgs; i++) {
