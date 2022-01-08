@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace dnlib.IO {
 	static class DataReaderFactoryFactory {
@@ -12,6 +13,10 @@ namespace dnlib.IO {
 			int p = (int)Environment.OSVersion.Platform;
 			if (p == 4 || p == 6 || p == 128)
 				isUnix = true;
+#if NETSTANDARD
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				isUnix = true;
+#endif
 		}
 
 		public static DataReaderFactory Create(string fileName, bool mapAsImage) {
