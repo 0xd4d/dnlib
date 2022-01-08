@@ -208,8 +208,6 @@ namespace dnlib.DotNet {
 		/// <returns>A list of <see cref="CANamedArgument"/>s or <c>null</c> if some error
 		/// occurred.</returns>
 		internal static List<CANamedArgument> ReadNamedArguments(ModuleDef module, ref DataReader reader, int numNamedArgs, GenericParamContext gpContext) {
-			if (numNamedArgs > 0x10000)
-				return null;
 			try {
 				var caReader = new CustomAttributeReader(module, ref reader, gpContext);
 				var namedArgs = caReader.ReadNamedArguments(numNamedArgs);
@@ -279,6 +277,8 @@ namespace dnlib.DotNet {
 		}
 
 		List<CANamedArgument> ReadNamedArguments(int numNamedArgs) {
+			if ((uint)numNamedArgs > 0x4000_0000 || numNamedArgs * 4 > reader.BytesLeft)
+				return null;
 			var namedArgs = new List<CANamedArgument>(numNamedArgs);
 			for (int i = 0; i < numNamedArgs; i++) {
 				if (reader.Position == reader.Length)
@@ -530,7 +530,7 @@ namespace dnlib.DotNet {
 			int arrayCount = reader.ReadInt32();
 			if (arrayCount == -1) {	// -1 if it's null
 			}
-			else if (arrayCount < 0 || arrayCount > 0x10000)
+			else if (arrayCount < 0 || arrayCount > reader.BytesLeft)
 				throw new CABlobParserException("Array is too big");
 			else {
 				var array = new List<CAArgument>(arrayCount);

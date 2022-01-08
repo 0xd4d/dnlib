@@ -487,7 +487,7 @@ namespace dnlib.DotNet {
 				methodSig.GenParamCount = count;
 			}
 
-			if (!reader.TryReadCompressedUInt32(out uint numParams) || numParams > 0x10000)
+			if (!reader.TryReadCompressedUInt32(out uint numParams) || numParams > 0x10000 || numParams > reader.BytesLeft)
 				return null;
 
 			methodSig.RetType = ReadType();
@@ -513,7 +513,7 @@ namespace dnlib.DotNet {
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="LocalSig"/> instance</returns>
 		LocalSig ReadLocalSig(CallingConvention callingConvention) {
-			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0x10000)
+			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0x10000 || count > reader.BytesLeft)
 				return null;
 			var sig = new LocalSig(callingConvention, count);
 			var locals = sig.Locals;
@@ -528,7 +528,7 @@ namespace dnlib.DotNet {
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="GenericInstMethodSig"/> instance</returns>
 		GenericInstMethodSig ReadGenericInstMethod(CallingConvention callingConvention) {
-			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0x10000)
+			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0x10000 || count > reader.BytesLeft)
 				return null;
 			var sig = new GenericInstMethodSig(callingConvention, count);
 			var args = sig.GenericArguments;
@@ -605,7 +605,7 @@ namespace dnlib.DotNet {
 
 			case ElementType.GenericInst:
 				nextType = ReadType();
-				if (!reader.TryReadCompressedUInt32(out num) || num > 0x10000)
+				if (!reader.TryReadCompressedUInt32(out num) || num > 0x10000 || num > reader.BytesLeft)
 					break;
 				var genericInstSig = new GenericInstSig(nextType as ClassOrValueTypeSig, num);
 				var args = genericInstSig.GenericArguments;
