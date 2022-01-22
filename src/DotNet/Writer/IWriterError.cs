@@ -36,7 +36,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">The instance of <see cref="IWriterError"/></param>
 		/// <param name="message">Error message</param>
 		/// <param name="args">Optional message arguments</param>
-		public static void Error2(this IWriterError helper, string message, params object[] args) {
+		internal static void Error2(this IWriterError helper, string message, params object[] args) {
 			if (helper is IWriterError2 helper2)
 				helper2.Error(message, args);
 			else

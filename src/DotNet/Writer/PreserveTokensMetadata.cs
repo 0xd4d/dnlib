@@ -855,7 +855,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var type in allTypeDefs) {
 				if (type is null)
 					continue;
-				
+
 				pos = 0;
 				var fields = type.Fields;
 				count = fields.Count;

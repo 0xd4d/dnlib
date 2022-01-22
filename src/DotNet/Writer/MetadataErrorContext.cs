@@ -1,3 +1,5 @@
+// dnlib: See LICENSE.txt for more info
+
 using System;
 using System.Text;
 
@@ -19,6 +21,8 @@ namespace dnlib.DotNet.Writer {
 			var newArgs = new object[args.Length + count];
 			Array.Copy(args, 0, newArgs, 0, args.Length);
 
+			if (newMessage.Length != 0 && newMessage[newMessage.Length - 1] != '.')
+				newMessage.Append('.');
 			newMessage.AppendFormat(" {0} occurred after metadata event {{{1}}}", errorLevel, ctxArgIndex);
 			newArgs[ctxArgIndex] = Event;
 
@@ -29,7 +33,7 @@ namespace dnlib.DotNet.Writer {
 					MethodDef => "method",
 					EventDef => "event",
 					PropertyDef => "property",
-					_ => throw new InvalidOperationException()
+					_ => "???"
 				};
 				newMessage.AppendFormat(" during writing {0} '{{{1}}}' (0x{{{2}:X8}})", sourceType, ctxArgIndex + 1, ctxArgIndex + 2);
 				newArgs[ctxArgIndex + 1] = tokenSource;
