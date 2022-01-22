@@ -2007,8 +2007,11 @@ exit: ;
 				return 0;
 			int hash;
 
-			if (substituteGenericParameters && genericArguments is not null)
+			if (substituteGenericParameters && genericArguments is not null) {
+				var t = a;
 				a = genericArguments.Resolve(a);
+				substituteGenericParameters = t == a;
+			}
 
 			switch (a.ElementType) {
 			case ElementType.Void:
@@ -2078,8 +2081,8 @@ exit: ;
 			case ElementType.GenericInst:
 				var gia = (GenericInstSig)a;
 				hash = HASHCODE_MAGIC_ET_GENERICINST;
-				hash += GetHashCode(gia.GenericType, false);
-				hash += GetHashCode(gia.GenericArguments, false);
+				hash += GetHashCode(gia.GenericType, substituteGenericParameters);
+				hash += GetHashCode(gia.GenericArguments, substituteGenericParameters);
 				break;
 
 			case ElementType.FnPtr:
@@ -2141,7 +2144,7 @@ exit: ;
 		/// </summary>
 		/// <param name="a">The type list</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(IList<TypeSig> a) => GetHashCode(a, false);
+		public int GetHashCode(IList<TypeSig> a) => GetHashCode(a, true);
 
 		int GetHashCode(IList<TypeSig> a, bool substituteGenericParameters) {
 			//************************************************************************
