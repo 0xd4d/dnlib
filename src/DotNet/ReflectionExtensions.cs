@@ -80,6 +80,14 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Returns <c>true</c> if <paramref name="type"/> is a generic type, but
+		/// not a generic type definition, i.e., a TypeSpec.
+		/// </summary>
+		/// <param name="type">The type</param>
+		public static bool IsGenericButNotGenericTypeDefinition(this Type type) =>
+			type is not null && !type.IsGenericTypeDefinition && type.IsGenericType;
+
+		/// <summary>
 		/// Returns <c>true</c> if <paramref name="mb"/> is a generic method, but
 		/// not a generic method definition, i.e., a MethodSpec.
 		/// </summary>
@@ -94,8 +102,8 @@ namespace dnlib.DotNet {
 		/// a generic type def. This seems to happen only if the parameter type is exactly the same
 		/// type as the declaring type, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>.
 		/// </summary>
-		/// <param name="declaringType">Declaring type of method/event/property</param>
-		/// <param name="t">Parameter/property/event type</param>
+		/// <param name="declaringType">Declaring type of field/method/event/property</param>
+		/// <param name="t">Field/parameter/property/event type</param>
 		internal static bool MustTreatTypeAsGenericInstType(this Type declaringType, Type t) =>
 			declaringType is not null && declaringType.IsGenericTypeDefinition && t == declaringType;
 
