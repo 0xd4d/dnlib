@@ -180,7 +180,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns></returns>
-		public ITypeDefOrRef ImportDeclaringType(Type type) => module.UpdateRowId(ImportAsTypeSig(type, type.IsGenericTypeDefinition).ToTypeDefOrRef());
+		public ITypeDefOrRef ImportDeclaringType(Type type) => module.UpdateRowId(ImportAsTypeSig(type, type.IsGenericButNotGenericTypeDefinition()).ToTypeDefOrRef());
 
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>
@@ -641,26 +641,10 @@ namespace dnlib.DotNet {
 				origField = fieldInfo;
 			}
 
-			MemberRef fieldRef;
-			if (origField.FieldType.ContainsGenericParameters) {
-				var origDeclType = origField.DeclaringType;
-				var asm = module.Context.AssemblyResolver.Resolve(origDeclType.Module.Assembly.GetName(), module);
-				if (asm is null || asm.FullName != origDeclType.Assembly.FullName)
-					throw new Exception("Couldn't resolve the correct assembly");
-				var mod = asm.FindModule(origDeclType.Module.ScopeName) as ModuleDefMD;
-				if (mod is null)
-					throw new Exception("Couldn't resolve the correct module");
-				var fieldDef = mod.ResolveField((uint)(origField.MetadataToken & 0x00FFFFFF));
-				if (fieldDef is null)
-					throw new Exception("Couldn't resolve the correct field");
+			bool treatAsGenericInst = fieldInfo.DeclaringType.MustTreatTypeAsGenericInstType(origField.FieldType);
+			var fieldSig = new FieldSig(ImportAsTypeSig(origField.FieldType, origField.GetRequiredCustomModifiers(), origField.GetOptionalCustomModifiers(), treatAsGenericInst));
+			var fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
 
-				var fieldSig = new FieldSig(Import(fieldDef.FieldSig.GetFieldType()));
-				fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
-			}
-			else {
-				var fieldSig = new FieldSig(ImportAsTypeSig(fieldInfo.FieldType, fieldInfo.GetRequiredCustomModifiers(), fieldInfo.GetOptionalCustomModifiers()));
-				fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
-			}
 			var field = TryResolveField(fieldRef);
 			if (FixSignature && !forceFixSignature) {
 				//TODO:
