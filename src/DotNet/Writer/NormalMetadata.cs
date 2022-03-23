@@ -147,7 +147,7 @@ namespace dnlib.DotNet.Writer {
 			if (typeDefInfos.TryGetRid(td, out uint rid))
 				return rid;
 			if (td is null)
-				Error("TypeDef is null.");
+				Error("TypeDef is null");
 			else
 				Error("TypeDef '{0}' (0x{1:X8}) is not defined in this module '{2}'. A type was removed that is still referenced by this module.", td, td.MDToken.Raw, module);
 			return 0;
@@ -203,7 +203,7 @@ namespace dnlib.DotNet.Writer {
 			if (eventDefInfos.TryGetRid(ed, out uint rid))
 				return rid;
 			if (ed is null)
-				Error("Event is null.");
+				Error("Event is null");
 			else
 				Error("Event '{0}' (0x{1:X8}) is not defined in this module '{2}'. An event was removed that is still referenced by this module.", ed, ed.MDToken.Raw, module);
 			return 0;
@@ -214,7 +214,7 @@ namespace dnlib.DotNet.Writer {
 			if (propertyDefInfos.TryGetRid(pd, out uint rid))
 				return rid;
 			if (pd is null)
-				Error("Property is null.");
+				Error("Property is null");
 			else
 				Error("Property '{0}' (0x{1:X8}) is not defined in this module '{2}'. A property was removed that is still referenced by this module.", pd, pd.MDToken.Raw, module);
 			return 0;
@@ -235,7 +235,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override uint AddTypeRef(TypeRef tr) {
 			if (tr is null) {
-				Error("TypeRef is null.");
+				Error("TypeRef is null");
 				return 0;
 			}
 			if (typeRefInfos.TryGetRid(tr, out uint rid)) {
@@ -257,7 +257,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override uint AddTypeSpec(TypeSpec ts) {
 			if (ts is null) {
-				Error("TypeSpec is null.");
+				Error("TypeSpec is null");
 				return 0;
 			}
 			if (typeSpecInfos.TryGetRid(ts, out uint rid)) {
@@ -277,7 +277,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override uint AddMemberRef(MemberRef mr) {
 			if (mr is null) {
-				Error("MemberRef is null.");
+				Error("MemberRef is null");
 				return 0;
 			}
 
@@ -296,7 +296,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override uint AddStandAloneSig(StandAloneSig sas) {
 			if (sas is null) {
-				Error("StandAloneSig is null.");
+				Error("StandAloneSig is null");
 				return 0;
 			}
 			if (standAloneSigInfos.TryGetRid(sas, out uint rid))
@@ -312,7 +312,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override uint AddMethodSpec(MethodSpec ms) {
 			if (ms is null) {
-				Error("MethodSpec is null.");
+				Error("MethodSpec is null");
 				return 0;
 			}
 			if (methodSpecInfos.TryGetRid(ms, out uint rid))

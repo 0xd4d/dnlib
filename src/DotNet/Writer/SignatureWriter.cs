@@ -90,12 +90,12 @@ namespace dnlib.DotNet.Writer {
 		void Write(TypeSig typeSig) {
 			const ElementType DEFAULT_ELEMENT_TYPE = ElementType.Boolean;
 			if (typeSig is null) {
-				helper.Error("TypeSig is null.");
+				helper.Error("TypeSig is null");
 				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				helper.Error("Infinite recursion.");
+				helper.Error("Infinite recursion");
 				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
 				return;
 			}
@@ -196,7 +196,7 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.R:
 			case ElementType.Internal:
 			default:
-				helper.Error("Unknown or unsupported element type.");
+				helper.Error("Unknown or unsupported element type");
 				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
 				break;
 			}
@@ -206,14 +206,14 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(ITypeDefOrRef tdr) {
 			if (tdr is null) {
-				helper.Error("TypeDefOrRef is null.");
+				helper.Error("TypeDefOrRef is null");
 				WriteCompressedUInt32(0);
 				return;
 			}
 
 			uint encodedToken = helper.ToEncodedToken(tdr);
 			if (encodedToken > 0x1FFFFFFF) {
-				helper.Error("Encoded token doesn't fit in 29 bits.");
+				helper.Error("Encoded token doesn't fit in 29 bits");
 				encodedToken = 0;
 			}
 			WriteCompressedUInt32(encodedToken);
@@ -221,11 +221,11 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(CallingConventionSig sig) {
 			if (sig is null) {
-				helper.Error("sig is null.");
+				helper.Error("sig is null");
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				helper.Error("Infinite recursion.");
+				helper.Error("Infinite recursion");
 				return;
 			}
 
@@ -243,7 +243,7 @@ namespace dnlib.DotNet.Writer {
 			else if ((gim = sig as GenericInstMethodSig) is not null)
 				Write(gim);
 			else {
-				helper.Error("Unknown calling convention sig.");
+				helper.Error("Unknown calling convention sig");
 				writer.WriteByte((byte)sig.GetCallingConvention());
 			}
 
@@ -252,11 +252,11 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(MethodBaseSig sig) {
 			if (sig is null) {
-				helper.Error("sig is null.");
+				helper.Error("sig is null");
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				helper.Error("Infinite recursion.");
+				helper.Error("Infinite recursion");
 				return;
 			}
 
@@ -284,11 +284,11 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(FieldSig sig) {
 			if (sig is null) {
-				helper.Error("sig is null.");
+				helper.Error("sig is null");
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				helper.Error("Infinite recursion.");
+				helper.Error("Infinite recursion");
 				return;
 			}
 
@@ -300,11 +300,11 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(LocalSig sig) {
 			if (sig is null) {
-				helper.Error("sig is null.");
+				helper.Error("sig is null");
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				helper.Error("Infinite recursion.");
+				helper.Error("Infinite recursion");
 				return;
 			}
 
@@ -312,7 +312,7 @@ namespace dnlib.DotNet.Writer {
 			uint count = WriteCompressedUInt32((uint)sig.Locals.Count);
 			if (count >= 0x10000) {
 				// ldloc 0xFFFF is invalid, see the ldloc documentation
-				helper.Error("Too many locals, max number of locals is 65535 (0xFFFF).");
+				helper.Error("Too many locals, max number of locals is 65535 (0xFFFF)");
 			}
 			for (uint i = 0; i < count; i++)
 				Write(sig.Locals[(int)i]);
@@ -322,11 +322,11 @@ namespace dnlib.DotNet.Writer {
 
 		void Write(GenericInstMethodSig sig) {
 			if (sig is null) {
-				helper.Error("sig is null.");
+				helper.Error("sig is null");
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				helper.Error("Infinite recursion.");
+				helper.Error("Infinite recursion");
 				return;
 			}
 

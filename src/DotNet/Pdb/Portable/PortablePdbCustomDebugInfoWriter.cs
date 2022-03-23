@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case PdbCustomDebugInfoKind.IteratorMethod:
 			case PdbCustomDebugInfoKind.SourceServer:
 			default:
-				helper.Error("Unreachable code, caller should filter these out.");
+				helper.Error("Unreachable code, caller should filter these out");
 				return null;
 
 			case PdbCustomDebugInfoKind.StateMachineHoistedLocalScopes:
@@ -98,7 +98,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteUTF8Z(string s) {
 			if (s.IndexOf('\0') >= 0)
-				helper.Error("String must not contain any NUL bytes.");
+				helper.Error("String must not contain any NUL bytes");
 			var bytes = Encoding.UTF8.GetBytes(s);
 			writer.WriteBytes(bytes);
 			writer.WriteByte(0);
@@ -121,14 +121,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 				else {
 					var startInstr = scope.Start;
 					if (startInstr is null) {
-						helper.Error("Instruction is null.");
+						helper.Error("Instruction is null");
 						return;
 					}
 					startOffset = methodContext.GetOffset(startInstr);
 					endOffset = methodContext.GetOffset(scope.End);
 				}
 				if (startOffset > endOffset) {
-					helper.Error("End instruction is before start instruction.");
+					helper.Error("End instruction is before start instruction");
 					return;
 				}
 				writer.WriteUInt32(startOffset);
@@ -139,7 +139,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteEditAndContinueLocalSlotMap(PdbEditAndContinueLocalSlotMapCustomDebugInfo cdi) {
 			var d = cdi.Data;
 			if (d is null) {
-				helper.Error("Data blob is null.");
+				helper.Error("Data blob is null");
 				return;
 			}
 			writer.WriteBytes(d);
@@ -148,7 +148,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteEditAndContinueLambdaMap(PdbEditAndContinueLambdaMapCustomDebugInfo cdi) {
 			var d = cdi.Data;
 			if (d is null) {
-				helper.Error("Data blob is null.");
+				helper.Error("Data blob is null");
 				return;
 			}
 			writer.WriteBytes(d);
@@ -157,7 +157,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteUnknown(PdbUnknownCustomDebugInfo cdi) {
 			var d = cdi.Data;
 			if (d is null) {
-				helper.Error("Data blob is null.");
+				helper.Error("Data blob is null");
 				return;
 			}
 			writer.WriteBytes(d);
@@ -169,7 +169,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			for (int i = 0; i < count; i++) {
 				var name = cdiNames[i];
 				if (name is null) {
-					helper.Error("Tuple name is null.");
+					helper.Error("Tuple name is null");
 					return;
 				}
 				WriteUTF8Z(name);
@@ -179,7 +179,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteDefaultNamespace(PdbDefaultNamespaceCustomDebugInfo cdi) {
 			var ns = cdi.Namespace;
 			if (ns is null) {
-				helper.Error("Default namespace is null.");
+				helper.Error("Default namespace is null");
 				return;
 			}
 			var bytes = Encoding.UTF8.GetBytes(ns);
@@ -205,7 +205,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteEmbeddedSource(PdbEmbeddedSourceCustomDebugInfo cdi) {
 			var d = cdi.SourceCodeBlob;
 			if (d is null) {
-				helper.Error("Source code blob is null.");
+				helper.Error("Source code blob is null");
 				return;
 			}
 			writer.WriteBytes(d);
@@ -214,7 +214,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteSourceLink(PdbSourceLinkCustomDebugInfo cdi) {
 			var d = cdi.FileBlob;
 			if (d is null) {
-				helper.Error("Source link blob is null.");
+				helper.Error("Source link blob is null");
 				return;
 			}
 			writer.WriteBytes(d);
@@ -238,15 +238,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 			for (int i = 0; i < count; i++) {
 				var info = cdiStepInfos[i];
 				if (info.YieldInstruction is null) {
-					helper.Error("YieldInstruction is null.");
+					helper.Error("YieldInstruction is null");
 					return;
 				}
 				if (info.BreakpointMethod is null) {
-					helper.Error("BreakpointMethod is null.");
+					helper.Error("BreakpointMethod is null");
 					return;
 				}
 				if (info.BreakpointInstruction is null) {
-					helper.Error("BreakpointInstruction is null.");
+					helper.Error("BreakpointInstruction is null");
 					return;
 				}
 				uint yieldOffset = methodContext.GetOffset(info.YieldInstruction);
@@ -265,7 +265,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		uint GetOffsetSlow(MethodDef method, Instruction instr) {
 			var body = method.Body;
 			if (body is null) {
-				helper.Error("Method has no body.");
+				helper.Error("Method has no body");
 				return uint.MaxValue;
 			}
 			var instrs = body.Instructions;
@@ -276,7 +276,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return offset;
 				offset += (uint)instr2.GetSize();
 			}
-			helper.Error("Couldn't find an instruction, maybe it was removed. It's still being referenced by some code or by the PDB.");
+			helper.Error("Couldn't find an instruction, maybe it was removed. It's still being referenced by some code or by the PDB");
 			return uint.MaxValue;
 		}
 
@@ -284,14 +284,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 			foreach (var mdRef in cdi.References) {
 				var name = mdRef.Name;
 				if (name is null) {
-					helper.Error("Metadata reference name is null.");
+					helper.Error("Metadata reference name is null");
 					return;
 				}
 				WriteUTF8Z(name);
 
 				var aliases = mdRef.Aliases;
 				if (aliases is null) {
-					helper.Error("Metadata reference aliases is null.");
+					helper.Error("Metadata reference aliases is null");
 					return;
 				}
 				WriteUTF8Z(aliases);
@@ -306,11 +306,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteCompilationOptions(PdbCompilationOptionsCustomDebugInfo cdi) {
 			foreach (var kv in cdi.Options) {
 				if (kv.Key is null) {
-					helper.Error("Compiler option `key` is null.");
+					helper.Error("Compiler option `key` is null");
 					return;
 				}
 				if (kv.Value is null) {
-					helper.Error("Compiler option `value` is null.");
+					helper.Error("Compiler option `value` is null");
 					return;
 				}
 				WriteUTF8Z(kv.Key);

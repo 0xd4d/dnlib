@@ -40,7 +40,7 @@ namespace dnlib.DotNet.Writer {
 				return bodySize;
 			if (toOffset.TryGetValue(instr, out uint offset))
 				return offset;
-			helper.Error("Couldn't find an instruction, maybe it was removed. It's still being referenced by some code or by the PDB.");
+			helper.Error("Couldn't find an instruction, maybe it was removed. It's still being referenced by some code or by the PDB");
 			return bodySize;
 		}
 

@@ -24,7 +24,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		uint WriteUTF8(string s) {
 			if (s is null) {
-				helper.Error("String is null.");
+				helper.Error("String is null");
 				s = string.Empty;
 			}
 			var bytes = Encoding.UTF8.GetBytes(s);
@@ -102,7 +102,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		uint GetTypeDefOrRefEncodedToken(ITypeDefOrRef tdr) {
 			if (tdr is null) {
-				helper.Error("ITypeDefOrRef is null.");
+				helper.Error("ITypeDefOrRef is null");
 				return 0;
 			}
 			var token = systemMetadata.GetToken(tdr);
