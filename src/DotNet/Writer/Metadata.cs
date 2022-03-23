@@ -445,7 +445,7 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 		readonly MetadataOptions options;
 		ILogger logger;
-		internal readonly MetadataErrorContext errorContext;
+		readonly MetadataErrorContext errorContext;
 		readonly NormalMetadata debugMetadata;
 		readonly bool isStandaloneDebugMetadata;
 		internal readonly ModuleDef module;
