@@ -1582,7 +1582,7 @@ namespace dnlib.DotNet.Writer {
 			int notifyAfter = numTypes / numNotifyEvents;
 
 			foreach (var type in allTypeDefs) {
-				errorContext.Source = type;
+				using var _ = errorContext.SetSource(type);
 
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
 					RaiseProgress(Writer.MetadataEvent.MemberDefRidsAllocated, (double)typeNum / numTypes);
@@ -1612,7 +1612,7 @@ namespace dnlib.DotNet.Writer {
 						Error("Field is null");
 						continue;
 					}
-					errorContext.Source = field;
+					using var __ = errorContext.SetSource(field);
 					uint rid = GetRid(field);
 					var row = new RawFieldRow((ushort)field.Attributes, stringsHeap.Add(field.Name), GetSignature(field.Signature));
 					tablesHeap.FieldTable[rid] = row;
@@ -1621,7 +1621,6 @@ namespace dnlib.DotNet.Writer {
 					AddFieldRVA(field);
 					AddImplMap(new MDToken(Table.Field, rid), field);
 					AddConstant(new MDToken(Table.Field, rid), field);
-					errorContext.Source = null;
 				}
 
 				var methods = type.Methods;
@@ -1632,7 +1631,7 @@ namespace dnlib.DotNet.Writer {
 						Error("Method is null");
 						continue;
 					}
-					errorContext.Source = method;
+					using var __ = errorContext.SetSource(method);
 					if (method.ExportInfo is not null)
 						ExportedMethods.Add(method);
 					uint rid = GetRid(method);
@@ -1657,7 +1656,6 @@ namespace dnlib.DotNet.Writer {
 						AddConstant(new MDToken(Table.Param, pdRid), pd);
 						AddFieldMarshal(new MDToken(Table.Param, pdRid), pd);
 					}
-					errorContext.Source = null;
 				}
 
 				var events = type.Events;
@@ -1668,12 +1666,11 @@ namespace dnlib.DotNet.Writer {
 						Error("Event is null");
 						continue;
 					}
-					errorContext.Source = evt;
+					using var __ = errorContext.SetSource(evt);
 					uint rid = GetRid(evt);
 					var row = new RawEventRow((ushort)evt.Attributes, stringsHeap.Add(evt.Name), AddTypeDefOrRef(evt.EventType));
 					tablesHeap.EventTable[rid] = row;
 					AddMethodSemantics(evt);
-					errorContext.Source = null;
 				}
 
 				var properties = type.Properties;
@@ -1684,16 +1681,13 @@ namespace dnlib.DotNet.Writer {
 						Error("Property is null");
 						continue;
 					}
-					errorContext.Source = prop;
+					using var __ = errorContext.SetSource(prop);
 					uint rid = GetRid(prop);
 					var row = new RawPropertyRow((ushort)prop.Attributes, stringsHeap.Add(prop.Name), GetSignature(prop.Type));
 					tablesHeap.PropertyTable[rid] = row;
 					AddConstant(new MDToken(Table.Property, rid), prop);
 					AddMethodSemantics(prop);
-					errorContext.Source = null;
 				}
-
-				errorContext.Source = null;
 			}
 		}
 
@@ -1711,7 +1705,7 @@ namespace dnlib.DotNet.Writer {
 
 			uint rid;
 			foreach (var type in allTypeDefs) {
-				errorContext.Source = type;
+				using var _ = errorContext.SetSource(type);
 
 				if (typeNum++ == notifyAfter && notifyNum < numNotifyEvents) {
 					RaiseProgress(Writer.MetadataEvent.MostTablesSorted, (double)typeNum / numTypes);
@@ -1746,7 +1740,7 @@ namespace dnlib.DotNet.Writer {
 					var method = methods[i];
 					if (method is null)
 						continue;
-					errorContext.Source = method;
+					using var __ = errorContext.SetSource(method);
 					if (method.HasCustomAttributes) {
 						rid = GetRid(method);
 						AddCustomAttributes(Table.Method, rid, method);
@@ -1764,7 +1758,6 @@ namespace dnlib.DotNet.Writer {
 							AddCustomDebugInformationList(Table.Param, rid, pd);
 						}
 					}
-					errorContext.Source = null;
 				}
 				var events = type.Events;
 				count = events.Count;
@@ -1790,8 +1783,6 @@ namespace dnlib.DotNet.Writer {
 						AddCustomDebugInformationList(Table.Property, rid, prop);
 					}
 				}
-
-				errorContext.Source = null;
 			}
 		}
 
@@ -1803,7 +1794,7 @@ namespace dnlib.DotNet.Writer {
 			if (fixups is null || fixups.VTables.Count == 0)
 				return;
 
-			errorContext.Source = "vtable fixups";
+			using var _ = errorContext.SetSource("vtable fixups");
 			foreach (var vtable in fixups) {
 				if (vtable is null) {
 					Error("VTable is null");
@@ -1815,16 +1806,14 @@ namespace dnlib.DotNet.Writer {
 					AddMDTokenProvider(method);
 				}
 			}
-			errorContext.Source = null;
 		}
 
 		void AddExportedTypes() {
-			errorContext.Source = "exported types";
+			using var _ = errorContext.SetSource("exported types");
 			var exportedTypes = module.ExportedTypes;
 			int count = exportedTypes.Count;
 			for (int i = 0; i < count; i++)
 				AddExportedType(exportedTypes[i]);
-			errorContext.Source = null;
 		}
 
 		/// <summary>
@@ -1832,10 +1821,9 @@ namespace dnlib.DotNet.Writer {
 		/// a <see cref="MethodDef"/>, it will have already been added.
 		/// </summary>
 		void InitializeEntryPoint() {
-			errorContext.Source = "entry point";
+			using var _ = errorContext.SetSource("entry point");
 			if (module.ManagedEntryPoint is FileDef epFile)
 				AddFile(epFile);
-			errorContext.Source = null;
 		}
 
 		/// <summary>
@@ -1919,7 +1907,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var type in allTypeDefs) {
 				if (type is null)
 					continue;
-				errorContext.Source = type;
+				using var _ = errorContext.SetSource(type);
 				AddGenericParamConstraints(type.GenericParameters);
 				var methods = type.Methods;
 				int count = methods.Count;
@@ -1927,11 +1915,9 @@ namespace dnlib.DotNet.Writer {
 					var method = methods[i];
 					if (method is null)
 						continue;
-					errorContext.Source = method;
+					using var __ = errorContext.SetSource(method);
 					AddGenericParamConstraints(method.GenericParameters);
-					errorContext.Source = null;
 				}
-				errorContext.Source = null;
 			}
 			genericParamConstraintInfos.Sort((a, b) => a.row.Owner.CompareTo(b.row.Owner));
 			tablesHeap.GenericParamConstraintTable.IsSorted = true;
@@ -2013,7 +1999,7 @@ namespace dnlib.DotNet.Writer {
 				if (type is null)
 					continue;
 
-				errorContext.Source = type;
+				using var _ = errorContext.SetSource(type);
 
 				var methods = type.Methods;
 				for (int i = 0; i < methods.Count; i++) {
@@ -2021,7 +2007,7 @@ namespace dnlib.DotNet.Writer {
 					if (method is null)
 						continue;
 
-					errorContext.Source = method;
+					using var __ = errorContext.SetSource(method);
 
 					if (methodNum++ == notifyAfter && notifyNum < numNotifyEvents) {
 						RaiseProgress(Writer.MetadataEvent.BeginWriteMethodBodies, (double)methodNum / numMethods);
@@ -2081,11 +2067,7 @@ namespace dnlib.DotNet.Writer {
 						// Always add CDIs even if it has no managed method body
 						AddCustomDebugInformationList(method, rid, localVarSigTok);
 					}
-
-					errorContext.Source = null;
 				}
-
-				errorContext.Source = null;
 			}
 			if (debugMetadata is not null) {
 				methodScopeDebugInfos.Sort((a, b) => {

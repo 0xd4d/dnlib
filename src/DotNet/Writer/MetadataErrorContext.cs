@@ -5,14 +5,36 @@ using System.Text;
 
 namespace dnlib.DotNet.Writer {
 	sealed class MetadataErrorContext {
+		sealed class ErrorSource : IDisposable {
+			MetadataErrorContext context;
+			readonly ErrorSource originalValue;
+
+			public object Value { get; }
+
+			public ErrorSource(MetadataErrorContext context, object value) {
+				this.context = context;
+				Value = value;
+				originalValue = context.source;
+			}
+
+			public void Dispose() {
+				if (context is null)
+					return;
+				context.source = originalValue;
+				context = null;
+			}
+		}
+
+		ErrorSource source;
+
 		public MetadataEvent Event { get; set; }
 
-		public object Source { get; set; }
+		public IDisposable SetSource(object source) => this.source = new ErrorSource(this, source);
 
 		public void Append(string errorLevel, ref string message, ref object[] args) {
 			int count = 1;
-			var stringSource = Source as string;
-			var tokenSource = Source as IMDTokenProvider;
+			var stringSource = source?.Value as string;
+			var tokenSource = source?.Value as IMDTokenProvider;
 			if (tokenSource is not null)
 				count += 2;
 			int ctxArgIndex = args.Length;
