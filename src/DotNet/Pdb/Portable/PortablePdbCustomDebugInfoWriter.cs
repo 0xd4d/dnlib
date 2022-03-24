@@ -106,7 +106,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteStateMachineHoistedLocalScopes(PdbStateMachineHoistedLocalScopesCustomDebugInfo cdi) {
 			if (!methodContext.HasBody) {
-				helper.Error("Method has no body, can't write custom debug info: " + cdi.Kind);
+				helper.Error2("Method has no body, can't write custom debug info: {0}.", cdi.Kind);
 				return;
 			}
 			var cdiScopes = cdi.Scopes;
@@ -222,7 +222,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteAsyncMethodSteppingInformation(PdbAsyncMethodCustomDebugInfo cdi) {
 			if (!methodContext.HasBody) {
-				helper.Error("Method has no body, can't write custom debug info: " + cdi.Kind);
+				helper.Error2("Method has no body, can't write custom debug info: {0}.", cdi.Kind);
 				return;
 			}
 

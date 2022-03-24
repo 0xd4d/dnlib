@@ -79,7 +79,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					var tdr = ((ValueTypeSig)type).TypeDefOrRef;
 					var td = tdr.ResolveTypeDef();
 					if (td is null)
-						helper.Error($"Couldn't resolve type 0x{tdr?.MDToken.Raw ?? 0:X8}");
+						helper.Error2("Couldn't resolve type 0x{0:X8}.", tdr?.MDToken.Raw ?? 0);
 					else if (td.IsEnum) {
 						var underlyingType = td.GetEnumUnderlyingType().RemovePinnedAndModifiers();
 						switch (underlyingType.GetElementType()) {
@@ -135,7 +135,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 							if (value is byte[])
 								writer.WriteBytes((byte[])value);
 							else if (value is not null) {
-								helper.Error("Unsupported constant: " + value.GetType().FullName);
+								helper.Error2("Unsupported constant: {0}.", value.GetType().FullName);
 								return;
 							}
 						}
@@ -176,7 +176,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				case ElementType.Sentinel:
 				case ElementType.Pinned:
 				default:
-					helper.Error("Unsupported element type in LocalConstant sig blob: " + et.ToString());
+					helper.Error2("Unsupported element type in LocalConstant sig blob: {0}.", et);
 					return;
 				}
 			}

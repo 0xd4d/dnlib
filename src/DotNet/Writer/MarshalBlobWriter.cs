@@ -128,7 +128,7 @@ namespace dnlib.DotNet.Writer {
 		bool UpdateCanWrite(bool isValid, string field, ref bool canWriteMore) {
 			if (!canWriteMore) {
 				if (isValid)
-					helper.Error($"MarshalType field {field} is valid even though a previous field was invalid");
+					helper.Error2("MarshalType field {0} is valid even though a previous field was invalid.", field);
 				return canWriteMore;
 			}
 
