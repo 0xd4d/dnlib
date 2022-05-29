@@ -167,20 +167,19 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>. If it's a type that should be
-		/// the declaring type of a field/method reference, call <see cref="ImportDeclaringType(Type)"/> instead.
+		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>.
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef Import(Type type) => module.UpdateRowId(ImportAsTypeSig(type).ToTypeDefOrRef());
 
 		/// <summary>
-		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>. Should be called if it's the
-		/// declaring type of a method/field reference. See also <see cref="Import(Type)"/>
+		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>. See also <see cref="Import(Type)"/>
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns></returns>
-		public ITypeDefOrRef ImportDeclaringType(Type type) => module.UpdateRowId(ImportAsTypeSig(type, type.IsGenericButNotGenericTypeDefinition()).ToTypeDefOrRef());
+		[Obsolete("Use 'Import(Type)' instead.")]
+		public ITypeDefOrRef ImportDeclaringType(Type type) => Import(type);
 
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>
@@ -197,12 +196,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public TypeSig ImportAsTypeSig(Type type) => ImportAsTypeSig(type, false);
+		public TypeSig ImportAsTypeSig(Type type) => ImportAsTypeSig(type, null, false);
 
-		TypeSig ImportAsTypeSig(Type type, bool treatAsGenericInst) {
+		TypeSig ImportAsTypeSig(Type type, Type declaringType, bool? treatAsGenericInst = null) {
 			if (type is null)
 				return null;
-			switch (treatAsGenericInst ? ElementType.GenericInst : type.GetElementType2()) {
+			bool treatAsGenericInst2 = treatAsGenericInst ?? declaringType.MustTreatTypeAsGenericInstType(type);
+			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
 			case ElementType.Void:		return module.CorLibTypes.Void;
 			case ElementType.Boolean:	return module.CorLibTypes.Boolean;
 			case ElementType.Char:		return module.CorLibTypes.Char;
@@ -220,9 +220,9 @@ namespace dnlib.DotNet {
 			case ElementType.TypedByRef:return module.CorLibTypes.TypedReference;
 			case ElementType.U:			return module.CorLibTypes.UIntPtr;
 			case ElementType.Object:	return module.CorLibTypes.Object;
-			case ElementType.Ptr:		return new PtrSig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst));
-			case ElementType.ByRef:		return new ByRefSig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst));
-			case ElementType.SZArray:	return new SZArraySig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst));
+			case ElementType.Ptr:		return new PtrSig(ImportAsTypeSig(type.GetElementType(), declaringType));
+			case ElementType.ByRef:		return new ByRefSig(ImportAsTypeSig(type.GetElementType(), declaringType));
+			case ElementType.SZArray:	return new SZArraySig(ImportAsTypeSig(type.GetElementType(), declaringType));
 			case ElementType.ValueType: return new ValueTypeSig(CreateTypeRef(type));
 			case ElementType.Class:		return new ClassSig(CreateTypeRef(type));
 			case ElementType.Var:		return new GenericVar((uint)type.GenericParameterPosition, gpContext.Type);
@@ -237,13 +237,13 @@ namespace dnlib.DotNet {
 				var lowerBounds = new int[type.GetArrayRank()];
 				var sizes = Array2.Empty<uint>();
 				FixSignature = true;
-				return new ArraySig(ImportAsTypeSig(type.GetElementType(), treatAsGenericInst), (uint)type.GetArrayRank(), sizes, lowerBounds);
+				return new ArraySig(ImportAsTypeSig(type.GetElementType(), declaringType), (uint)type.GetArrayRank(), sizes, lowerBounds);
 
 			case ElementType.GenericInst:
 				var typeGenArgs = type.GetGenericArguments();
-				var git = new GenericInstSig(ImportAsTypeSig(type.GetGenericTypeDefinition()) as ClassOrValueTypeSig, (uint)typeGenArgs.Length);
+				var git = new GenericInstSig(ImportAsTypeSig(type.GetGenericTypeDefinition(), null, false) as ClassOrValueTypeSig, (uint)typeGenArgs.Length);
 				foreach (var ga in typeGenArgs)
-					git.GenericArguments.Add(ImportAsTypeSig(ga));
+					git.GenericArguments.Add(ImportAsTypeSig(ga, declaringType));
 				return git;
 
 			case ElementType.Sentinel:
@@ -393,16 +393,16 @@ namespace dnlib.DotNet {
 		/// <param name="optionalModifiers">A list of all optional modifiers or <c>null</c></param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers) =>
-			ImportAsTypeSig(type, requiredModifiers, optionalModifiers, false);
+			ImportAsTypeSig(type, requiredModifiers, optionalModifiers, null);
 
-		TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers, bool treatAsGenericInst) {
+		TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers, Type declaringType) {
 			if (type is null)
 				return null;
 			if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers))
-				return ImportAsTypeSig(type, treatAsGenericInst);
+				return ImportAsTypeSig(type, declaringType);
 
 			FixSignature = true;	// Order of modifiers is unknown
-			var ts = ImportAsTypeSig(type, treatAsGenericInst);
+			var ts = ImportAsTypeSig(type, declaringType);
 
 			// We don't know the original order of the modifiers.
 			// Assume all required modifiers are closer to the real type.
@@ -469,11 +469,13 @@ namespace dnlib.DotNet {
 				IMethodDefOrRef method;
 				var origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
 				if (methodBase.DeclaringType.GetElementType2() == ElementType.GenericInst)
-					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), ImportDeclaringType(methodBase.DeclaringType)));
+					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), Import(methodBase.DeclaringType)));
 				else
 					method = ImportInternal(origMethod) as IMethodDefOrRef;
 
 				method = TryResolveMethod(method);
+				if (methodBase.ContainsGenericParameters)
+					return method; // Declaring type is instantiated but method itself is not
 
 				var gim = CreateGenericInstMethodSig(methodBase);
 				var methodSpec = module.UpdateRowId(new MethodSpecUser(method, gim));
@@ -489,7 +491,7 @@ namespace dnlib.DotNet {
 					parent = GetModuleParent(methodBase.Module);
 				}
 				else
-					parent = ImportDeclaringType(methodBase.DeclaringType);
+					parent = Import(methodBase.DeclaringType);
 				if (parent is null)
 					return null;
 
@@ -536,7 +538,7 @@ namespace dnlib.DotNet {
 		}
 
 		TypeSig ImportAsTypeSig(ParameterInfo p, Type declaringType) =>
-			ImportAsTypeSig(p.ParameterType, p.GetRequiredCustomModifiers(), p.GetOptionalCustomModifiers(), declaringType.MustTreatTypeAsGenericInstType(p.ParameterType));
+			ImportAsTypeSig(p.ParameterType, p.GetRequiredCustomModifiers(), p.GetOptionalCustomModifiers(), declaringType);
 
 		CallingConvention GetCallingConvention(MethodBase mb) {
 			CallingConvention cc = 0;
@@ -627,7 +629,7 @@ namespace dnlib.DotNet {
 				parent = GetModuleParent(fieldInfo.Module);
 			}
 			else
-				parent = ImportDeclaringType(fieldInfo.DeclaringType);
+				parent = Import(fieldInfo.DeclaringType);
 			if (parent is null)
 				return null;
 
@@ -641,8 +643,8 @@ namespace dnlib.DotNet {
 				origField = fieldInfo;
 			}
 
-			bool treatAsGenericInst = fieldInfo.DeclaringType.MustTreatTypeAsGenericInstType(origField.FieldType);
-			var fieldSig = new FieldSig(ImportAsTypeSig(origField.FieldType, origField.GetRequiredCustomModifiers(), origField.GetOptionalCustomModifiers(), treatAsGenericInst));
+			var fieldSig = new FieldSig(ImportAsTypeSig(origField.FieldType, 
+				origField.GetRequiredCustomModifiers(), origField.GetOptionalCustomModifiers(), origField.DeclaringType));
 			var fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
 
 			var field = TryResolveField(fieldRef);
