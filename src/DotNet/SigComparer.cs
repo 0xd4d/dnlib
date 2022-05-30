@@ -2700,7 +2700,7 @@ exit: ;
 
 			int hash = GetHashCode_MethodFieldName(a.Name);
 			GenericInstSig git;
-			if (!DontSubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
+			if (CompareMethodFieldDeclaringType && !DontSubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
 				InitializeGenericArguments();
 				genericArguments.PushTypeArgs(git.GenericArguments);
 				hash += GetHashCode(a.Signature);
@@ -3974,6 +3974,12 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
+			if (!CompareMethodFieldDeclaringType && b.DeclaringType.IsGenericButNotGenericTypeDefinition()) {
+				var t = b;
+				b = b.Module.ResolveMethod(b.MetadataToken);
+				if (b.IsGenericButNotGenericMethodDefinition())
+					b = ((MethodInfo)b).MakeGenericMethod(t.GetGenericArguments());
+			}
 			bool result = Equals(a.GetCallingConvention(), b) &&
 					(DontCompareReturnType || ReturnTypeEquals(a.RetType, b)) &&
 					Equals(a.Params, b.GetParameters(), b.DeclaringType) &&
@@ -4029,7 +4035,7 @@ exit: ;
 						(!amSig.Generic && !b.IsGenericMethodDefinition && !b.IsGenericMethod));
 
 				GenericInstSig git;
-				if (!DontSubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
+				if (CompareMethodFieldDeclaringType && !DontSubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
 					InitializeGenericArguments();
 					genericArguments.PushTypeArgs(git.GenericArguments);
 					result = result && Equals(amSig, b);
@@ -4166,6 +4172,12 @@ exit: ;
 				return 0;
 			int hash;
 
+			if (!CompareMethodFieldDeclaringType && a.DeclaringType.IsGenericButNotGenericTypeDefinition()) {
+				var t = a;
+				a = a.Module.ResolveMethod(a.MetadataToken);
+				if (t.IsGenericButNotGenericMethodDefinition())
+					a = ((MethodInfo)a).MakeGenericMethod(t.GetGenericArguments());
+			}
 			hash = GetHashCode_CallingConvention(a.CallingConvention, a.IsGenericMethod) +
 					GetHashCode(a.GetParameters(), a.DeclaringType);
 			if (!DontCompareReturnType)
@@ -4478,6 +4490,8 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
+			if (!CompareMethodFieldDeclaringType && b.DeclaringType.IsGenericButNotGenericTypeDefinition())
+				b = b.Module.ResolveField(b.MetadataToken);
 			bool result = ModifiersEquals(a.Type, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
 					Equals(a2, b.FieldType, b.DeclaringType);
 
@@ -4510,7 +4524,7 @@ exit: ;
 			bool result = Equals_MethodFieldNames(a.Name, b.Name);
 
 			GenericInstSig git;
-			if (!DontSubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
+			if (CompareMethodFieldDeclaringType && !DontSubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
 				InitializeGenericArguments();
 				genericArguments.PushTypeArgs(git.GenericArguments);
 				result = result && Equals(a.FieldSig, b);
@@ -4555,6 +4569,8 @@ exit: ;
 				return 0;
 			int hash;
 
+			if (!CompareMethodFieldDeclaringType && a.DeclaringType.IsGenericButNotGenericTypeDefinition())
+				a = a.Module.ResolveField(a.MetadataToken);
 			hash = GetHashCode_CallingConvention(0, false) + GetHashCode(a.FieldType, a.DeclaringType);
 
 			recursionCounter.Decrement();
