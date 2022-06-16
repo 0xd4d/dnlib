@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Emit {
 		readonly MethodDef method;
 		readonly int codeSize;
 		readonly int maxStack;
-		readonly bool? initLocals;
+		readonly bool initLocals;
 		readonly List<object> tokens;
 		readonly IList<object> ehInfos;
 		readonly byte[] ehHeader;
@@ -175,7 +175,6 @@ namespace dnlib.DotNet.Emit {
 
 			if (obj is DynamicMethod dynMethod) {
 				methodName = dynMethod.Name;
-				initLocals = dynMethod.InitLocals;
 				obj = dmResolverFieldInfo.Read(obj);
 				if (obj is null)
 					throw new Exception("No resolver found");
@@ -188,11 +187,10 @@ namespace dnlib.DotNet.Emit {
 			if (code is null)
 				throw new Exception("No code");
 			codeSize = code.Length;
-			var delMethod = rslvMethodFieldInfo.Read(obj) as SR.MethodBase;
+			var delMethod = rslvMethodFieldInfo.Read(obj) as DynamicMethod;
 			if (delMethod is null)
 				throw new Exception("No method");
-			if (delMethod is DynamicMethod dynamicMethod)
-				initLocals = dynamicMethod.InitLocals;
+			initLocals = delMethod.InitLocals;
 			maxStack = (int)rslvMaxStackFieldInfo.Read(obj);
 
 			var scope = rslvDynamicScopeFieldInfo.Read(obj);
@@ -391,7 +389,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <returns>A new <see cref="CilBody"/> instance</returns>
 		public MethodDef GetMethod() {
-			var cilBody = new CilBody(initLocals ?? true, instructions, exceptionHandlers, locals);
+			var cilBody = new CilBody(initLocals, instructions, exceptionHandlers, locals);
 			cilBody.MaxStack = (ushort)Math.Min(maxStack, ushort.MaxValue);
 			instructions = null;
 			exceptionHandlers = null;
@@ -542,8 +540,7 @@ namespace dnlib.DotNet.Emit {
 			base.RestoreMethod(method);
 
 			var body = method.Body;
-			if (initLocals.HasValue)
-				body.InitLocals = initLocals.Value;
+			body.InitLocals = initLocals;
 			body.MaxStack = (ushort)Math.Min(maxStack, ushort.MaxValue);
 		}
 
