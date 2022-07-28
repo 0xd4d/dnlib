@@ -782,8 +782,8 @@ namespace dnlib.DotNet {
 		/// Gets/sets the <see cref="TypeAttributes.Class"/> bit
 		/// </summary>
 		public bool IsClass {
-			get => ((TypeAttributes)attributes & TypeAttributes.Interface) == 0;
-			set => ModifyAttributes(!value, TypeAttributes.Interface);
+			get => ((TypeAttributes)attributes & TypeAttributes.Class) == 0;
+			set => ModifyAttributes(!value, TypeAttributes.Class);
 		}
 
 		/// <summary>
