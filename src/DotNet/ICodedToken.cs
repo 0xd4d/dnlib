@@ -197,11 +197,11 @@ namespace dnlib.DotNet {
 		/// Converts <paramref name="type"/> to a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="type">The type</param>
-		/// <param name="checkValueType"><c>true</c> if we should try to figure out whether
+		/// <param name="resolveToCheckValueType"><c>true</c> if we should try to resolve in order to figure out whether
 		/// <paramref name="type"/> is a <see cref="ValueType"/></param>
 		/// <returns>A <see cref="TypeSig"/> instance or <c>null</c> if <paramref name="type"/>
 		/// is invalid</returns>
-		public static TypeSig ToTypeSig(this ITypeDefOrRef type, bool checkValueType = true) {
+		public static TypeSig ToTypeSig(this ITypeDefOrRef type, bool resolveToCheckValueType = true) {
 			if (type is null)
 				return null;
 
@@ -214,10 +214,10 @@ namespace dnlib.DotNet {
 
 			var td = type as TypeDef;
 			if (td is not null)
-				return CreateClassOrValueType(type, checkValueType ? td.IsValueType : false);
+				return CreateClassOrValueType(type, td.IsValueType);
 
 			if (type is TypeRef tr) {
-				if (checkValueType)
+				if (resolveToCheckValueType)
 					td = tr.Resolve();
 				return CreateClassOrValueType(type, td is null ? false : td.IsValueType);
 			}
