@@ -1,6 +1,8 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
@@ -91,6 +93,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			case PdbCustomDebugInfoKind.CompilationOptions:
 				WriteCompilationOptions((PdbCompilationOptionsCustomDebugInfo)cdi);
+				break;
+
+			case PdbCustomDebugInfoKind.TypeDefinitionDocuments:
+				WriteTypeDefinitionDocuments((PdbTypeDefinitionDocumentsDebugInfo)cdi);
+				break;
+
+			case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
+				WriteEditAndContinueStateMachineStateMap((PdbEditAndContinueStateMachineStateMapDebugInfo)cdi);
 				break;
 			}
 			return outStream.ToArray();
@@ -315,6 +325,26 @@ namespace dnlib.DotNet.Pdb.Portable {
 				}
 				WriteUTF8Z(kv.Key);
 				WriteUTF8Z(kv.Value);
+			}
+		}
+
+		void WriteTypeDefinitionDocuments(PdbTypeDefinitionDocumentsDebugInfo cdi) {
+			foreach (var docToken in cdi.DocumentTokens)
+				writer.WriteCompressedUInt32(docToken.Rid);
+		}
+
+		void WriteEditAndContinueStateMachineStateMap(PdbEditAndContinueStateMachineStateMapDebugInfo cdi) {
+			writer.WriteCompressedUInt32((uint)cdi.StateMachineStates.Count);
+
+			if (cdi.StateMachineStates.Count <= 0)
+				return;
+
+			int syntaxOffsetBaseline = Math.Min(cdi.StateMachineStates.Min(state => state.SyntaxOffset), 0);
+			writer.WriteCompressedUInt32((uint)-syntaxOffsetBaseline);
+
+			foreach (var state in cdi.StateMachineStates) {
+				writer.WriteCompressedInt32((int)state.State);
+				writer.WriteCompressedUInt32((uint)(state.SyntaxOffset - syntaxOffsetBaseline));
 			}
 		}
 	}
