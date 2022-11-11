@@ -283,6 +283,8 @@ namespace dnlib.DotNet {
 				Add(typeSig);
 			else if (arg.Value is IList<CAArgument> args)
 				Add(args);
+			else if(arg.Value is CAArgument boxedArgument)
+				Add(boxedArgument);
 		}
 
 		void Add(IEnumerable<CANamedArgument> args) {
