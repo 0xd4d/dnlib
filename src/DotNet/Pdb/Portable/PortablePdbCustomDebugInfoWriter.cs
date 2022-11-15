@@ -329,8 +329,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		void WriteTypeDefinitionDocuments(PdbTypeDefinitionDocumentsDebugInfo cdi) {
-			foreach (var docToken in cdi.DocumentTokens)
-				writer.WriteCompressedUInt32(docToken.Rid);
+			foreach (var document in cdi.Documents)
+				writer.WriteCompressedUInt32(systemMetadata.GetRid(document));
 		}
 
 		void WriteEditAndContinueStateMachineStateMap(PdbEditAndContinueStateMachineStateMapDebugInfo cdi) {

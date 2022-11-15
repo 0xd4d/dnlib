@@ -233,12 +233,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		PdbCustomDebugInfo ReadTypeDefinitionDocuments() {
-			var cdi = new PdbTypeDefinitionDocumentsDebugInfo();
-
+			var docList = new List<MDToken>();
 			while (reader.BytesLeft > 0)
-				cdi.DocumentTokens.Add(new MDToken(Table.Document, reader.ReadCompressedUInt32()));
+				docList.Add(new MDToken(Table.Document, reader.ReadCompressedUInt32()));
 
-			return cdi;
+			return new PdbTypeDefinitionDocumentsDebugInfoMD(module, docList);
 		}
 
 		PdbCustomDebugInfo ReadEncStateMachineStateMap() {

@@ -38,6 +38,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 		PdbCustomDebugInfo[] customDebugInfos;
 
+		public override MDToken? MDToken => null;
+
 		public DbiDocument(string url) {
 			this.url = url;
 			documentType = SymDocumentType.Text;

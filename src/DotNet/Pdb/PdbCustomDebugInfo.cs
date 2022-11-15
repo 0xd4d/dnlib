@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb {
@@ -1115,7 +1116,7 @@ namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// Links a TypeDef with no method IL with a PDB document.
 	/// </summary>
-	public sealed class PdbTypeDefinitionDocumentsDebugInfo : PdbCustomDebugInfo {
+	public class PdbTypeDefinitionDocumentsDebugInfo : PdbCustomDebugInfo {
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.TypeDefinitionDocuments"/>
 		/// </summary>
@@ -1127,16 +1128,39 @@ namespace dnlib.DotNet.Pdb {
 		public override Guid Guid => CustomDebugInfoGuids.TypeDefinitionDocuments;
 
 		/// <summary>
-		/// Document tokens. Only resolvable in debug metadata.
-		/// A token like this can be resolved by subtracting 1 from the RID and using it as an index into the
-		/// PdbState.Documents enumerable.
+		/// List of documents associated with the type
 		/// </summary>
-		public List<MDToken> DocumentTokens { get; }
+		public IList<PdbDocument> Documents {
+			get {
+				if (documents is null)
+					InitializeDocuments();
+				return documents;
+			}
+		}
+		/// <summary/>
+		protected IList<PdbDocument> documents;
+		/// <summary>Initializes <see cref="documents"/></summary>
+		protected virtual void InitializeDocuments() =>
+			Interlocked.CompareExchange(ref documents, new List<PdbDocument>(), null);
+	}
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbTypeDefinitionDocumentsDebugInfo() => DocumentTokens = new List<MDToken>();
+	class PdbTypeDefinitionDocumentsDebugInfoMD : PdbTypeDefinitionDocumentsDebugInfo {
+		readonly ModuleDef readerModule;
+		readonly IList<MDToken> documentTokens;
+
+		protected override void InitializeDocuments() {
+			var list = new List<PdbDocument>(documentTokens.Count);
+			for (var i = 0; i < documentTokens.Count; i++) {
+				if (readerModule.PdbState.tokenToDocument.TryGetValue(documentTokens[i], out var document))
+					list.Add(document);
+			}
+			Interlocked.CompareExchange(ref documents, list, null);
+		}
+
+		public PdbTypeDefinitionDocumentsDebugInfoMD(ModuleDef readerModule, IList<MDToken> documentTokens) {
+			this.readerModule = readerModule;
+			this.documentTokens = documentTokens;
+		}
 	}
 
 	/// <summary>

@@ -15,6 +15,7 @@ namespace dnlib.DotNet.Pdb {
 	public sealed class PdbState {
 		readonly SymbolReader reader;
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
+		internal readonly Dictionary<MDToken, PdbDocument> tokenToDocument = new Dictionary<MDToken, PdbDocument>();
 		MethodDef userEntryPoint;
 		readonly Compiler compiler;
 		readonly PdbFileKind originalPdbFileKind;
@@ -64,7 +65,7 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
-		
+
 			}
 		}
 
@@ -133,6 +134,8 @@ namespace dnlib.DotNet.Pdb {
 			// Expensive part, can read source code etc
 			doc.Initialize(symDoc);
 			docDict.Add(doc, doc);
+			if (symDoc.MDToken.HasValue)
+				tokenToDocument.Add(symDoc.MDToken.Value, doc);
 			return doc;
 		}
 

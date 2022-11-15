@@ -41,5 +41,10 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// Gets the custom debug infos
 		/// </summary>
 		public abstract PdbCustomDebugInfo[] CustomDebugInfos { get; }
+
+		/// <summary>
+		/// Gets the Metadata token of the document if available.
+		/// </summary>
+		public abstract MDToken? MDToken { get; }
 	}
 }

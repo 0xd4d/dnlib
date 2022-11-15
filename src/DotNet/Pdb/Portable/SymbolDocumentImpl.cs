@@ -15,6 +15,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		/*readonly*/ Guid checkSumAlgorithmId;
 		readonly byte[] checkSum;
 		readonly PdbCustomDebugInfo[] customDebugInfos;
+		MDToken mdToken;
 
 		string GetDebuggerString() {
 			var sb = new StringBuilder();
@@ -45,8 +46,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public override Guid CheckSumAlgorithmId => checkSumAlgorithmId;
 		public override byte[] CheckSum => checkSum;
 		public override PdbCustomDebugInfo[] CustomDebugInfos => customDebugInfos;
+		public override MDToken? MDToken => mdToken;
 
-		public SymbolDocumentImpl(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum, PdbCustomDebugInfo[] customDebugInfos) {
+		public SymbolDocumentImpl(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum, PdbCustomDebugInfo[] customDebugInfos, MDToken mdToken) {
 			this.url = url;
 			this.language = language;
 			this.languageVendor = languageVendor;
@@ -54,6 +56,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.checkSumAlgorithmId = checkSumAlgorithmId;
 			this.checkSum = checkSum;
 			this.customDebugInfos = customDebugInfos;
+			this.mdToken = mdToken;
 		}
 	}
 }
