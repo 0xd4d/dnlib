@@ -124,6 +124,8 @@ namespace dnlib.DotNet.Pdb {
 			if (docDict.TryGetValue(doc, out var orig))
 				return orig;
 			docDict.Add(doc, doc);
+			if (doc.MDToken.HasValue)
+				tokenToDocument.Add(doc.MDToken.Value, doc);
 			return doc;
 		}
 
@@ -148,6 +150,8 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
+			if (doc.MDToken.HasValue)
+				tokenToDocument.Remove(doc.MDToken.Value);
 			return docDict.Remove(doc);
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
@@ -189,6 +193,7 @@ namespace dnlib.DotNet.Pdb {
 			theLock.EnterWriteLock(); try {
 #endif
 			var docs = returnDocs ? new List<PdbDocument>(docDict.Values) : null;
+			tokenToDocument.Clear();
 			docDict.Clear();
 			return docs;
 #if THREAD_SAFE

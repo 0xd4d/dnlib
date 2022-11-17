@@ -1144,15 +1144,17 @@ namespace dnlib.DotNet.Pdb {
 			Interlocked.CompareExchange(ref documents, new List<PdbDocument>(), null);
 	}
 
-	class PdbTypeDefinitionDocumentsDebugInfoMD : PdbTypeDefinitionDocumentsDebugInfo {
+	sealed class PdbTypeDefinitionDocumentsDebugInfoMD : PdbTypeDefinitionDocumentsDebugInfo {
 		readonly ModuleDef readerModule;
 		readonly IList<MDToken> documentTokens;
 
 		protected override void InitializeDocuments() {
 			var list = new List<PdbDocument>(documentTokens.Count);
-			for (var i = 0; i < documentTokens.Count; i++) {
-				if (readerModule.PdbState.tokenToDocument.TryGetValue(documentTokens[i], out var document))
-					list.Add(document);
+			if (readerModule.PdbState is not null) {
+				for (var i = 0; i < documentTokens.Count; i++) {
+					if (readerModule.PdbState.tokenToDocument.TryGetValue(documentTokens[i], out var document))
+						list.Add(document);
+				}
 			}
 			Interlocked.CompareExchange(ref documents, list, null);
 		}
