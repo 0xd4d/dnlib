@@ -54,6 +54,11 @@ namespace dnlib.DotNet.Pdb {
 		IList<PdbCustomDebugInfo> customDebugInfos;
 
 		/// <summary>
+		/// Gets the Metadata token of the document if available.
+		/// </summary>
+		public MDToken? MDToken { get; internal set; }
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public PdbDocument() {
@@ -86,6 +91,7 @@ namespace dnlib.DotNet.Pdb {
 			customDebugInfos = new List<PdbCustomDebugInfo>();
 			foreach (var cdi in symDoc.CustomDebugInfos)
 				customDebugInfos.Add(cdi);
+			MDToken = symDoc.MDToken;
 		}
 
 		/// <summary>

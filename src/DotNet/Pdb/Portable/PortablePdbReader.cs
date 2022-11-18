@@ -61,7 +61,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
 			var gpContext = new GenericParamContext();
 			for (int i = 0; i < docs.Length; i++) {
-				bool b = pdbMetadata.TablesStream.TryReadDocumentRow((uint)i + 1, out var row);
+				uint rid = (uint)i + 1;
+				bool b = pdbMetadata.TablesStream.TryReadDocumentRow(rid, out var row);
 				Debug.Assert(b);
 				var url = nameReader.ReadDocumentName(row.Name);
 				var language = pdbMetadata.GuidStream.Read(row.Language) ?? Guid.Empty;
@@ -70,12 +71,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var checkSumAlgorithmId = pdbMetadata.GuidStream.Read(row.HashAlgorithm) ?? Guid.Empty;
 				var checkSum = pdbMetadata.BlobStream.ReadNoNull(row.Hash);
 
-				var token = new MDToken(Table.Document, i + 1).ToInt32();
+				var mdToken = new MDToken(Table.Document, rid);
+				var token = mdToken.ToInt32();
 				custInfos.Clear();
 				GetCustomDebugInfos(token, gpContext, custInfos);
 				var custInfosArray = custInfos.Count == 0 ? Array2.Empty<PdbCustomDebugInfo>() : custInfos.ToArray();
 
-				docs[i] = new SymbolDocumentImpl(url, language, languageVendor, documentType, checkSumAlgorithmId, checkSum, custInfosArray);
+				docs[i] = new SymbolDocumentImpl(url, language, languageVendor, documentType, checkSumAlgorithmId, checkSum, custInfosArray, mdToken);
 			}
 			ListCache<PdbCustomDebugInfo>.Free(ref custInfos);
 			return docs;

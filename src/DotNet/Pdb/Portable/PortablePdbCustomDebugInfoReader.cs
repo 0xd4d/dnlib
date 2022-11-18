@@ -65,6 +65,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return ReadCompilationMetadataReferences();
 			if (kind == CustomDebugInfoGuids.CompilationOptions)
 				return ReadCompilationOptions();
+			if (kind == CustomDebugInfoGuids.TypeDefinitionDocuments)
+				return ReadTypeDefinitionDocuments();
+			if (kind == CustomDebugInfoGuids.EncStateMachineStateMap)
+				return ReadEncStateMachineStateMap();
 			Debug.Fail("Unknown custom debug info guid: " + kind.ToString());
 			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingBytes());
 		}
@@ -223,6 +227,34 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (value is null)
 					break;
 				cdi.Options.Add(new KeyValuePair<string, string>(key, value));
+			}
+
+			return cdi;
+		}
+
+		PdbCustomDebugInfo ReadTypeDefinitionDocuments() {
+			var docList = new List<MDToken>();
+			while (reader.BytesLeft > 0)
+				docList.Add(new MDToken(Table.Document, reader.ReadCompressedUInt32()));
+
+			return new PdbTypeDefinitionDocumentsDebugInfoMD(module, docList);
+		}
+
+		PdbCustomDebugInfo ReadEncStateMachineStateMap() {
+			var cdi = new PdbEditAndContinueStateMachineStateMapDebugInfo();
+
+			var count = reader.ReadCompressedUInt32();
+			if (count > 0) {
+				long syntaxOffsetBaseline = -reader.ReadCompressedUInt32();
+
+				while (count > 0) {
+					int stateNumber = reader.ReadCompressedInt32();
+					int syntaxOffset = (int)(syntaxOffsetBaseline + reader.ReadCompressedUInt32());
+
+					cdi.StateMachineStates.Add(new StateMachineStateInfo(syntaxOffset, (StateMachineState)stateNumber));
+
+					count--;
+				}
 			}
 
 			return cdi;

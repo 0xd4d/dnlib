@@ -15,6 +15,7 @@ namespace dnlib.DotNet.Pdb {
 	public sealed class PdbState {
 		readonly SymbolReader reader;
 		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
+		internal readonly Dictionary<MDToken, PdbDocument> tokenToDocument = new Dictionary<MDToken, PdbDocument>();
 		MethodDef userEntryPoint;
 		readonly Compiler compiler;
 		readonly PdbFileKind originalPdbFileKind;
@@ -64,7 +65,7 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
-		
+
 			}
 		}
 
@@ -123,6 +124,8 @@ namespace dnlib.DotNet.Pdb {
 			if (docDict.TryGetValue(doc, out var orig))
 				return orig;
 			docDict.Add(doc, doc);
+			if (doc.MDToken.HasValue)
+				tokenToDocument.Add(doc.MDToken.Value, doc);
 			return doc;
 		}
 
@@ -133,6 +136,8 @@ namespace dnlib.DotNet.Pdb {
 			// Expensive part, can read source code etc
 			doc.Initialize(symDoc);
 			docDict.Add(doc, doc);
+			if (symDoc.MDToken.HasValue)
+				tokenToDocument.Add(symDoc.MDToken.Value, doc);
 			return doc;
 		}
 
@@ -145,6 +150,8 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
+			if (doc.MDToken.HasValue)
+				tokenToDocument.Remove(doc.MDToken.Value);
 			return docDict.Remove(doc);
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
@@ -186,6 +193,7 @@ namespace dnlib.DotNet.Pdb {
 			theLock.EnterWriteLock(); try {
 #endif
 			var docs = returnDocs ? new List<PdbDocument>(docDict.Values) : null;
+			tokenToDocument.Clear();
 			docDict.Clear();
 			return docs;
 #if THREAD_SAFE

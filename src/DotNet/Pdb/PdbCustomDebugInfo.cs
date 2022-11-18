@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb {
@@ -111,6 +112,16 @@ namespace dnlib.DotNet.Pdb {
 		/// <see cref="PdbCompilationOptionsCustomDebugInfo"/>
 		/// </summary>
 		CompilationOptions,
+
+		/// <summary>
+		/// <see cref="PdbTypeDefinitionDocumentsDebugInfo"/>
+		/// </summary>
+		TypeDefinitionDocuments,
+
+		/// <summary>
+		/// <see cref="PdbEditAndContinueStateMachineStateMapDebugInfo"/>
+		/// </summary>
+		EditAndContinueStateMachineStateMap,
 	}
 
 	/// <summary>
@@ -665,7 +676,7 @@ namespace dnlib.DotNet.Pdb {
 
 	/// <summary>
 	/// Async method stepping info
-	/// 
+	///
 	/// It's internal and translated to a <see cref="PdbAsyncMethodCustomDebugInfo"/>
 	/// </summary>
 	sealed class PdbAsyncMethodSteppingInformationCustomDebugInfo : PdbCustomDebugInfo {
@@ -777,9 +788,9 @@ namespace dnlib.DotNet.Pdb {
 
 		/// <summary>
 		/// Gets the source code blob.
-		/// 
+		///
 		/// It's not decompressed and converted to a string because the encoding isn't specified.
-		/// 
+		///
 		/// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#embedded-source-c-and-vb-compilers
 		/// </summary>
 		public byte[] SourceCodeBlob { get; set; }
@@ -1100,5 +1111,162 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbCompilationOptionsCustomDebugInfo() => Options = new List<KeyValuePair<string, string>>();
+	}
+
+	/// <summary>
+	/// Links a TypeDef with no method IL with a PDB document.
+	/// </summary>
+	public class PdbTypeDefinitionDocumentsDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.TypeDefinitionDocuments"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind => PdbCustomDebugInfoKind.TypeDefinitionDocuments;
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid => CustomDebugInfoGuids.TypeDefinitionDocuments;
+
+		/// <summary>
+		/// List of documents associated with the type
+		/// </summary>
+		public IList<PdbDocument> Documents {
+			get {
+				if (documents is null)
+					InitializeDocuments();
+				return documents;
+			}
+		}
+		/// <summary/>
+		protected IList<PdbDocument> documents;
+		/// <summary>Initializes <see cref="documents"/></summary>
+		protected virtual void InitializeDocuments() =>
+			Interlocked.CompareExchange(ref documents, new List<PdbDocument>(), null);
+	}
+
+	sealed class PdbTypeDefinitionDocumentsDebugInfoMD : PdbTypeDefinitionDocumentsDebugInfo {
+		readonly ModuleDef readerModule;
+		readonly IList<MDToken> documentTokens;
+
+		protected override void InitializeDocuments() {
+			var list = new List<PdbDocument>(documentTokens.Count);
+			if (readerModule.PdbState is not null) {
+				for (var i = 0; i < documentTokens.Count; i++) {
+					if (readerModule.PdbState.tokenToDocument.TryGetValue(documentTokens[i], out var document))
+						list.Add(document);
+				}
+			}
+			Interlocked.CompareExchange(ref documents, list, null);
+		}
+
+		public PdbTypeDefinitionDocumentsDebugInfoMD(ModuleDef readerModule, IList<MDToken> documentTokens) {
+			this.readerModule = readerModule;
+			this.documentTokens = documentTokens;
+		}
+	}
+
+	/// <summary>
+	/// Contains the EnC state machine state mapping
+	/// </summary>
+	public sealed class PdbEditAndContinueStateMachineStateMapDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.TypeDefinitionDocuments"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind => PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap;
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid => CustomDebugInfoGuids.EncStateMachineStateMap;
+
+		/// <summary>
+		/// State machine states
+		/// </summary>
+		public List<StateMachineStateInfo> StateMachineStates { get; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PdbEditAndContinueStateMachineStateMapDebugInfo() => StateMachineStates = new List<StateMachineStateInfo>();
+	}
+
+	/// <summary>
+	/// State machine state information used by debuggers
+	/// </summary>
+	public struct StateMachineStateInfo {
+		/// <summary>
+		/// Syntax offset
+		/// </summary>
+		public readonly int SyntaxOffset;
+
+		/// <summary>
+		/// State machine state
+		/// </summary>
+		public readonly StateMachineState State;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="syntaxOffset">Syntax offset</param>
+		/// <param name="state">State machine state</param>
+		public StateMachineStateInfo(int syntaxOffset, StateMachineState state) {
+			SyntaxOffset = syntaxOffset;
+			State = state;
+		}
+	}
+
+	/// <summary>
+	/// State machine state
+	/// from Roslyn: StateMachineState.cs
+	/// </summary>
+	public enum StateMachineState {
+		/// <summary>
+		/// First state of an async iterator state machine that is used to resume the machine after yield return.
+		/// Initial state is not used to resume state machine that yielded. State numbers decrease as the iterator makes progress.
+		/// </summary>
+		FirstResumableAsyncIteratorState = InitialAsyncIteratorState - 1,
+
+		/// <summary>
+		/// Initial iterator state of an async iterator.
+		/// Distinct from <see cref="NotStartedOrRunningState"/> so that DisposeAsync can throw in latter case.
+		/// </summary>
+		InitialAsyncIteratorState = -3,
+
+		/// <summary>
+		/// First state of an iterator state machine. State numbers decrease for subsequent finalize states.
+		/// </summary>
+		FirstIteratorFinalizeState = -3,
+
+		/// <summary>
+		/// The last state of a state machine.
+		/// </summary>
+		FinishedState = -2,
+
+		/// <summary>
+		/// State machine not started or is running
+		/// </summary>
+		NotStartedOrRunningState = -1,
+
+		/// <summary>
+		/// First unused state
+		/// </summary>
+		FirstUnusedState = 0,
+
+		/// <summary>
+		/// First state in async state machine that is used to resume the machine after await.
+		/// State numbers increase as the async computation makes progress.
+		/// </summary>
+		FirstResumableAsyncState = 0,
+
+		/// <summary>
+		/// Initial iterator state of an iterator.
+		/// </summary>
+		InitialIteratorState = 0,
+
+		/// <summary>
+		/// First state in iterator state machine that is used to resume the machine after yield return.
+		/// Initial state is not used to resume state machine that yielded. State numbers increase as the iterator makes progress.
+		/// </summary>
+		FirstResumableIteratorState = InitialIteratorState + 1,
 	}
 }

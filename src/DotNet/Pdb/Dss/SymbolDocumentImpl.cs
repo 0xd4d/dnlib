@@ -89,5 +89,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 		PdbCustomDebugInfo[] customDebugInfos;
+
+		public override MDToken? MDToken => null;
 	}
 }
