@@ -3386,6 +3386,7 @@ namespace dnlib.DotNet.Writer {
 			case PdbCustomDebugInfoKind.CompilationOptions:
 			case PdbCustomDebugInfoKind.TypeDefinitionDocuments:
 			case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
+			case PdbCustomDebugInfoKind.PrimaryConstructorInformationBlob:
 				AddCustomDebugInformationCore(serializerMethodContext, encodedToken, cdi, cdi.Guid);
 				break;
 
