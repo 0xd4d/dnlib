@@ -95,7 +95,7 @@ namespace dnlib.DotNet.Resources {
 			uint sig = reader.ReadUInt32();
 			if (sig != 0xBEEFCACE)
 				throw new ResourceReaderException($"Invalid resource sig: {sig:X8}");
-			if (!CheckReaders())
+			if (!CheckReaders(ref resources))
 				throw new ResourceReaderException("Invalid resource reader");
 			int version = reader.ReadInt32();
 			if (version != 2 && version != 1)
@@ -247,24 +247,23 @@ namespace dnlib.DotNet.Resources {
 			}
 		}
 
-		bool CheckReaders() {
-			bool validReader = false;
+		bool CheckReaders(ref ResourceElementSet resources) {
+			int headerVersion = reader.ReadInt32();
+			if (headerVersion != 1)
+				throw new ResourceReaderException($"Invalid or unsupported header version: {headerVersion}");
+			int headerSize = reader.ReadInt32();
+			if (headerSize < 0)
+				throw new ResourceReaderException($"Invalid header size: {headerSize:X8}");
 
-			int numReaders = reader.ReadInt32();
-			if (numReaders < 0)
-				throw new ResourceReaderException($"Invalid number of readers: {numReaders}");
-			int readersSize = reader.ReadInt32();
-			if (readersSize < 0)
-				throw new ResourceReaderException($"Invalid readers size: {readersSize:X8}");
+			resources.ResourceReaderTypeName = reader.ReadSerializedString();
+			resources.ResourceSetTypeName = reader.ReadSerializedString();
 
-			for (int i = 0; i < numReaders; i++) {
-				var resourceReaderFullName = reader.ReadSerializedString();
-				/*var resourceSetFullName = */reader.ReadSerializedString();
-				if (Regex.IsMatch(resourceReaderFullName, @"^System\.Resources\.ResourceReader,\s*mscorlib"))
-					validReader = true;
-			}
+			if (Regex.IsMatch(resources.ResourceReaderTypeName, @"^System\.Resources\.ResourceReader,\s*mscorlib"))
+				return true;
+			if (Regex.IsMatch(resources.ResourceReaderTypeName, @"^System\.Resources\.Extensions\.DeserializingResourceReader,\s*System\.Resources\.Extensions"))
+				return true;
 
-			return validReader;
+			return false;
 		}
 	}
 }

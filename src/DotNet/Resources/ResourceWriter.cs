@@ -120,9 +120,15 @@ namespace dnlib.DotNet.Resources {
 		void WriteReaderType() {
 			var memStream = new MemoryStream();
 			var headerWriter = new BinaryWriter(memStream);
-			var mscorlibFullName = GetMscorlibFullname();
-			headerWriter.Write("System.Resources.ResourceReader, " + mscorlibFullName);
-			headerWriter.Write("System.Resources.RuntimeResourceSet");
+			if (resources.ResourceReaderTypeName is not null && resources.ResourceSetTypeName is not null) {
+				headerWriter.Write(resources.ResourceReaderTypeName);
+				headerWriter.Write(resources.ResourceSetTypeName);
+			}
+			else {
+				var mscorlibFullName = GetMscorlibFullname();
+				headerWriter.Write("System.Resources.ResourceReader, " + mscorlibFullName);
+				headerWriter.Write("System.Resources.RuntimeResourceSet");
+			}
 			writer.Write((int)memStream.Position);
 			writer.Write(memStream.ToArray());
 		}
