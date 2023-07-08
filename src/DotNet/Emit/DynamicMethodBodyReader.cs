@@ -55,6 +55,8 @@ namespace dnlib.DotNet.Emit {
 		static readonly ReflectionFieldInfo ehEndFinallyFieldInfo = new ReflectionFieldInfo("m_endFinally");
 		static readonly ReflectionFieldInfo vamMethodFieldInfo = new ReflectionFieldInfo("m_method");
 		static readonly ReflectionFieldInfo vamDynamicMethodFieldInfo = new ReflectionFieldInfo("m_dynamicMethod");
+		static readonly ReflectionFieldInfo dmDynamicILInfoFieldInfo = new ReflectionFieldInfo("m_DynamicILInfo", "_dynamicILInfo");
+		static readonly ReflectionFieldInfo dynILInfoMaxStackFieldInfo = new ReflectionFieldInfo("m_maxStackSize");
 
 		readonly ModuleDef module;
 		readonly Importer importer;
@@ -175,13 +177,15 @@ namespace dnlib.DotNet.Emit {
 
 			if (obj is DynamicMethod dynMethod) {
 				methodName = dynMethod.Name;
-				obj = dmResolverFieldInfo.Read(obj);
+				obj = dmResolverFieldInfo.Read(obj) ?? dmDynamicILInfoFieldInfo.Read(obj);;
 				if (obj is null)
 					throw new Exception("No resolver found");
 			}
 
-			if (obj.GetType().ToString() != "System.Reflection.Emit.DynamicResolver")
-				throw new Exception("Couldn't find DynamicResolver");
+			string objTypeName = obj.GetType().ToString();
+			bool isILInfo = objTypeName == "System.Reflection.Emit.DynamicILInfo";
+			if (objTypeName != "System.Reflection.Emit.DynamicResolver" && !isILInfo)
+				throw new Exception("Couldn't find DynamicResolver or DynamicILInfo");
 
 			var code = rslvCodeFieldInfo.Read(obj) as byte[];
 			if (code is null)
@@ -191,7 +195,7 @@ namespace dnlib.DotNet.Emit {
 			if (delMethod is null)
 				throw new Exception("No method");
 			initLocals = delMethod.InitLocals;
-			maxStack = (int)rslvMaxStackFieldInfo.Read(obj);
+			maxStack = isILInfo ? (int)dynILInfoMaxStackFieldInfo.Read(obj) : (int)rslvMaxStackFieldInfo.Read(obj);
 
 			var scope = rslvDynamicScopeFieldInfo.Read(obj);
 			if (scope is null)
@@ -203,8 +207,12 @@ namespace dnlib.DotNet.Emit {
 			for (int i = 0; i < tokensList.Count; i++)
 				tokens.Add(tokensList[i]);
 
-			ehInfos = (IList<object>)rslvExceptionsFieldInfo.Read(obj);
-			ehHeader = rslvExceptionHeaderFieldInfo.Read(obj) as byte[];
+			if (isILInfo)
+				ehHeader = rslvExceptionsFieldInfo.Read(obj) as byte[];
+			else {
+				ehInfos = (IList<object>)rslvExceptionsFieldInfo.Read(obj);
+				ehHeader = rslvExceptionHeaderFieldInfo.Read(obj) as byte[];
+			}
 
 			UpdateLocals(rslvLocalsFieldInfo.Read(obj) as byte[]);
 			reader = ByteArrayDataReaderFactory.CreateReader(code);
