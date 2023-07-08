@@ -32,7 +32,7 @@ namespace dnlib.DotNet.Emit {
 	/// </summary>
 	public class DynamicMethodBodyReader : MethodBodyReaderBase, ISignatureReaderHelper {
 		static readonly ReflectionFieldInfo rtdmOwnerFieldInfo = new ReflectionFieldInfo("m_owner");
-		static readonly ReflectionFieldInfo dmResolverFieldInfo = new ReflectionFieldInfo("m_resolver");
+		static readonly ReflectionFieldInfo dmResolverFieldInfo = new ReflectionFieldInfo("m_resolver", "_resolver");
 		static readonly ReflectionFieldInfo rslvCodeFieldInfo = new ReflectionFieldInfo("m_code");
 		static readonly ReflectionFieldInfo rslvDynamicScopeFieldInfo = new ReflectionFieldInfo("m_scope");
 		static readonly ReflectionFieldInfo rslvMethodFieldInfo = new ReflectionFieldInfo("m_method");
@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Emit {
 				if (fieldInfo is not null)
 					return;
 
-				var flags = SR.BindingFlags.Instance | SR.BindingFlags.Public | SR.BindingFlags.NonPublic;
+				const SR.BindingFlags flags = SR.BindingFlags.Instance | SR.BindingFlags.Public | SR.BindingFlags.NonPublic;
 				fieldInfo = type.GetField(fieldName1, flags);
 				if (fieldInfo is null && fieldName2 is not null)
 					fieldInfo = type.GetField(fieldName2, flags);
