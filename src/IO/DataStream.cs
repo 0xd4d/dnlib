@@ -42,6 +42,13 @@ namespace dnlib.IO {
 		public virtual sbyte ReadSByte(uint offset) => (sbyte)ReadByte(offset);
 
 		/// <summary>
+		/// Reads a 1-byte-long <see cref="bool"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual bool ReadBoolean(uint offset) => ReadByte(offset) != 0;
+
+		/// <summary>
 		/// Reads a <see cref="ushort"/>
 		/// </summary>
 		/// <param name="offset">Offset of data</param>
@@ -54,6 +61,13 @@ namespace dnlib.IO {
 		/// <param name="offset">Offset of data</param>
 		/// <returns></returns>
 		public virtual short ReadInt16(uint offset) => (short)ReadUInt16(offset);
+
+		/// <summary>
+		/// Reads a 2-byte-long <see cref="char"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual char ReadChar(uint offset) => (char)ReadUInt16(offset);
 
 		/// <summary>
 		/// Reads a <see cref="uint"/>
@@ -106,6 +120,22 @@ namespace dnlib.IO {
 			new Guid(ReadUInt32(offset), ReadUInt16(offset + 4), ReadUInt16(offset + 6),
 				ReadByte(offset + 8), ReadByte(offset + 9), ReadByte(offset + 10), ReadByte(offset + 11),
 				ReadByte(offset + 12), ReadByte(offset + 13), ReadByte(offset + 14), ReadByte(offset + 15));
+
+		/// <summary>
+		/// Reads a <see cref="decimal"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual decimal ReadDecimal(uint offset) {
+			int lo = ReadInt32(offset);
+			int mid = ReadInt32(offset + 4);
+			int hi = ReadInt32(offset + 8);
+			int flags = ReadInt32(offset + 12);
+
+			byte scale = (byte)(flags >> 16);
+			bool isNegative = (flags & 0x80000000) != 0;
+			return new decimal(lo, mid, hi, isNegative, scale);
+		}
 
 		/// <summary>
 		/// Reads a UTF-16 encoded <see cref="string"/>

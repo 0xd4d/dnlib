@@ -180,13 +180,33 @@ namespace dnlib.IO {
 		/// Reads a <see cref="bool"/>
 		/// </summary>
 		/// <returns></returns>
-		public bool ReadBoolean() => ReadByte() != 0;
+		public bool ReadBoolean() {
+			VerifyState();
+			const uint SIZE = 1;
+			var currentOffset = this.currentOffset;
+			if (currentOffset == endOffset)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadBoolean(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="char"/>
 		/// </summary>
 		/// <returns></returns>
-		public char ReadChar() => (char)ReadUInt16();
+		public char ReadChar() {
+			VerifyState();
+			const uint SIZE = 2;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadChar(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="sbyte"/>
@@ -402,13 +422,15 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <returns></returns>
 		public decimal ReadDecimal() {
-			var bits = new int[4] {
-				ReadInt32(),	// lo
-				ReadInt32(),	// mid
-				ReadInt32(),	// hi
-				ReadInt32(),	// flags
-			};
-			return new decimal(bits);
+			VerifyState();
+			const uint SIZE = 16;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadDecimal(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
 		}
 
 		/// <summary>
