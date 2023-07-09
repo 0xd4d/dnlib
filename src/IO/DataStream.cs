@@ -35,11 +35,25 @@ namespace dnlib.IO {
 		public abstract byte ReadByte(uint offset);
 
 		/// <summary>
+		/// Reads a <see cref="sbyte"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual sbyte ReadSByte(uint offset) => (sbyte)ReadByte(offset);
+
+		/// <summary>
 		/// Reads a <see cref="ushort"/>
 		/// </summary>
 		/// <param name="offset">Offset of data</param>
 		/// <returns></returns>
 		public abstract ushort ReadUInt16(uint offset);
+
+		/// <summary>
+		/// Reads a <see cref="short"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual short ReadInt16(uint offset) => (short)ReadUInt16(offset);
 
 		/// <summary>
 		/// Reads a <see cref="uint"/>
@@ -49,11 +63,25 @@ namespace dnlib.IO {
 		public abstract uint ReadUInt32(uint offset);
 
 		/// <summary>
+		/// Reads a <see cref="int"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual int ReadInt32(uint offset) => (int)ReadUInt32(offset);
+
+		/// <summary>
 		/// Reads a <see cref="ulong"/>
 		/// </summary>
 		/// <param name="offset">Offset of data</param>
 		/// <returns></returns>
 		public abstract ulong ReadUInt64(uint offset);
+
+		/// <summary>
+		/// Reads a <see cref="long"/>
+		/// </summary>
+		/// <param name="offset">Offset of data</param>
+		/// <returns></returns>
+		public virtual long ReadInt64(uint offset) => (long)ReadUInt64(offset);
 
 		/// <summary>
 		/// Reads a <see cref="float"/>
