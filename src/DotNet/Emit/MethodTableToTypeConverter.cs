@@ -34,6 +34,9 @@ namespace dnlib.DotNet.Emit {
 #endif
 				moduleBuilder = asmb.DefineDynamicModule("DynMod");
 			}
+
+			// In .NET 8+, ILGenerator is an abstract class and the actual ILGenerator implementation is found in RuntimeILGenerator.
+			localSignatureFieldInfo ??= Type.GetType("System.Reflection.Emit.RuntimeILGenerator")?.GetField("m_localSignature", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 		}
 
 		/// <summary>
