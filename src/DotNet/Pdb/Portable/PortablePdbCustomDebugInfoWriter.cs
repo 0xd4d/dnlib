@@ -102,6 +102,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
 				WriteEditAndContinueStateMachineStateMap((PdbEditAndContinueStateMachineStateMapDebugInfo)cdi);
 				break;
+
+			case PdbCustomDebugInfoKind.PrimaryConstructorInformationBlob:
+				WritePrimaryConstructorInformationBlob((PrimaryConstructorInformationBlobDebugInfo)cdi);
+				break;
 			}
 			return outStream.ToArray();
 		}
@@ -346,6 +350,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 				writer.WriteCompressedInt32((int)state.State);
 				writer.WriteCompressedUInt32((uint)(state.SyntaxOffset - syntaxOffsetBaseline));
 			}
+		}
+
+		void WritePrimaryConstructorInformationBlob(PrimaryConstructorInformationBlobDebugInfo cdi) {
+			var d = cdi.Blob;
+			if (d is null) {
+				helper.Error("Primary constructor information blob is null");
+				return;
+			}
+			writer.WriteBytes(d);
 		}
 	}
 }

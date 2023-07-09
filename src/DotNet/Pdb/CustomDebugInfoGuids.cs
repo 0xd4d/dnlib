@@ -22,6 +22,7 @@ namespace dnlib.DotNet.Pdb {
 		public static readonly Guid CompilationOptions = new Guid("B5FEEC05-8CD0-4A83-96DA-466284BB4BD8");
 		public static readonly Guid TypeDefinitionDocuments = new Guid("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
 		public static readonly Guid EncStateMachineStateMap = new Guid("8B78CD68-2EDE-420B-980B-E15884B8AAA3");
+		public static readonly Guid PrimaryConstructorInformationBlob = new Guid("9D40ACE1-C703-4D0E-BF41-7243060A8FB5");
 #pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 	}
 }

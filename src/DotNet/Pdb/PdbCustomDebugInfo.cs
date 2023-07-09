@@ -122,6 +122,11 @@ namespace dnlib.DotNet.Pdb {
 		/// <see cref="PdbEditAndContinueStateMachineStateMapDebugInfo"/>
 		/// </summary>
 		EditAndContinueStateMachineStateMap,
+
+		/// <summary>
+		/// <see cref="PrimaryConstructorInformationBlob"/>
+		/// </summary>
+		PrimaryConstructorInformationBlob,
 	}
 
 	/// <summary>
@@ -1170,7 +1175,7 @@ namespace dnlib.DotNet.Pdb {
 	/// </summary>
 	public sealed class PdbEditAndContinueStateMachineStateMapDebugInfo : PdbCustomDebugInfo {
 		/// <summary>
-		/// Returns <see cref="PdbCustomDebugInfoKind.TypeDefinitionDocuments"/>
+		/// Returns <see cref="PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap"/>
 		/// </summary>
 		public override PdbCustomDebugInfoKind Kind => PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap;
 
@@ -1268,5 +1273,37 @@ namespace dnlib.DotNet.Pdb {
 		/// Initial state is not used to resume state machine that yielded. State numbers increase as the iterator makes progress.
 		/// </summary>
 		FirstResumableIteratorState = InitialIteratorState + 1,
+	}
+
+	/// <summary>
+	/// Primary constructor information blob
+	/// </summary>
+	public sealed class PrimaryConstructorInformationBlobDebugInfo : PdbCustomDebugInfo {
+		/// <summary>
+		/// Returns <see cref="PdbCustomDebugInfoKind.PrimaryConstructorInformationBlob"/>
+		/// </summary>
+		public override PdbCustomDebugInfoKind Kind => PdbCustomDebugInfoKind.PrimaryConstructorInformationBlob;
+
+		/// <summary>
+		/// Gets the custom debug info guid, see <see cref="CustomDebugInfoGuids"/>
+		/// </summary>
+		public override Guid Guid => CustomDebugInfoGuids.PrimaryConstructorInformationBlob;
+
+		/// <summary>
+		/// Gets the data blob
+		/// </summary>
+		public byte[] Blob { get; set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PrimaryConstructorInformationBlobDebugInfo() {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="blob">Source server file contents</param>
+		public PrimaryConstructorInformationBlobDebugInfo(byte[] blob) => Blob = blob;
 	}
 }
