@@ -14,7 +14,10 @@ namespace dnlib.DotNet {
 		SystemRuntimeWindowsRuntimeUIXaml,
 	}
 
-	static class WinMDHelpers {
+	/// <summary>
+	/// Helper class to project WinMD types to CLR types
+	/// </summary>
+	public static class WinMDHelpers {
 		readonly struct ClassName : IEquatable<ClassName> {
 			public readonly UTF8String Namespace;
 			public readonly UTF8String Name;
