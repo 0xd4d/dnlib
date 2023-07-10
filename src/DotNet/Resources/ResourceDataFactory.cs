@@ -173,18 +173,18 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="value">Serialized data</param>
 		/// <param name="type">Type of serialized data</param>
 		/// <returns></returns>
-		public BinaryResourceData CreateSerialized(byte[] value, UserResourceType type) => new BinaryResourceData(CreateUserResourceType(type.Name, true), value);
+		public BinaryResourceData CreateSerialized(byte[] value, SerializationFormat format, UserResourceType type) => new BinaryResourceData(CreateUserResourceType(type.Name, true), value, format);
 
 		/// <summary>
 		/// Creates serialized data
 		/// </summary>
 		/// <param name="value">Serialized data</param>
 		/// <returns></returns>
-		public BinaryResourceData CreateSerialized(byte[] value) {
+		public BinaryResourceData CreateBinaryFormatterSerialized(byte[] value) {
 			if (!GetSerializedTypeAndAssemblyName(value, out var assemblyName, out var typeName))
 				throw new ApplicationException("Could not get serialized type name");
 			string fullName = $"{typeName}, {assemblyName}";
-			return new BinaryResourceData(CreateUserResourceType(fullName), value);
+			return new BinaryResourceData(CreateUserResourceType(fullName), value, SerializationFormat.BinaryFormatter);
 		}
 
 		sealed class MyBinder : SerializationBinder {

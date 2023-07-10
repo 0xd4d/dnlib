@@ -21,10 +21,10 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		public ResourceTypeCode Code => type.Code;
 
-		/// <inheritdoc/>
+		/// <inheritdoc cref="IResourceData.StartOffset" />
 		public FileOffset StartOffset { get; set; }
 
-		/// <inheritdoc/>
+		/// <inheritdoc cref="IFileSection.EndOffset" />
 		public FileOffset EndOffset { get; set; }
 
 		/// <summary>
@@ -34,7 +34,7 @@ namespace dnlib.DotNet.Resources {
 		public UserResourceData(UserResourceType type) => this.type = type;
 
 		/// <inheritdoc/>
-		public abstract void WriteData(BinaryWriter writer, IFormatter formatter);
+		public abstract void WriteData(ResourceBinaryWriter writer, IFormatter formatter);
 	}
 
 	/// <summary>
@@ -42,6 +42,7 @@ namespace dnlib.DotNet.Resources {
 	/// </summary>
 	public sealed class BinaryResourceData : UserResourceData {
 		byte[] data;
+		SerializationFormat format;
 
 		/// <summary>
 		/// Gets the raw data
@@ -49,17 +50,61 @@ namespace dnlib.DotNet.Resources {
 		public byte[] Data => data;
 
 		/// <summary>
+		/// Gets the serialization format of <see cref="Data"/>
+		/// </summary>
+		public SerializationFormat Format => format;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="type">User resource type</param>
 		/// <param name="data">Raw serialized data</param>
-		public BinaryResourceData(UserResourceType type, byte[] data)
-			: base(type) => this.data = data;
+		/// <param name="format"></param>
+		public BinaryResourceData(UserResourceType type, byte[] data, SerializationFormat format)
+			: base(type) {
+			this.data = data;
+			this.format = format;
+		}
 
 		/// <inheritdoc/>
-		public override void WriteData(BinaryWriter writer, IFormatter formatter) => writer.Write(data);
+		public override void WriteData(ResourceBinaryWriter writer, IFormatter formatter) {
+			if (writer.ReaderType == ResourceReaderType.DeserializingResourceReader) {
+				writer.Write7BitEncodedInt((int)format);
+				writer.Write7BitEncodedInt(data.Length);
+			}
+			writer.Write(data);
+		}
 
 		/// <inheritdoc/>
-		public override string ToString() => "Binary: Length: " + data.Length.ToString();
+		public override string ToString() => $"Binary: Length: {data.Length} Format: {format}";
+	}
+
+	/// <summary>
+	/// Specifies how the data in <see cref="BinaryResourceData"/> should be deserialized.
+	/// </summary>
+	public enum SerializationFormat {
+		/// <summary>
+		///	The data can be deserialized using <see cref="BinaryFormatter"/>.
+		/// </summary>
+		BinaryFormatter = 1,
+
+		/// <summary>
+		/// The data can be deserialized by passing in the raw data into
+		/// the <see cref="System.ComponentModel.TypeConverter.ConvertFrom(object)"/> method.
+		/// </summary>
+		TypeConverterByteArray = 2,
+
+		/// <summary>
+		/// The data can be deserialized by passing the UTF-8 string obtained from the raw data into
+		/// the <see cref="System.ComponentModel.TypeConverter.ConvertFromInvariantString(string)"/> method.
+		/// </summary>
+		TypeConverterString = 3,
+
+		/// <summary>
+		/// The data can be deserialized by creating a new instance of the type using a
+		/// constructor with a single <see cref="Stream"/> parameter and passing in
+		/// a <see cref="MemoryStream"/> of the raw data into it.
+		/// </summary>
+		ActivatorStream = 4,
 	}
 }

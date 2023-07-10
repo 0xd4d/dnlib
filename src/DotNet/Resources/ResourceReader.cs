@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -45,7 +46,7 @@ namespace dnlib.DotNet.Resources {
 	/// <param name="type">Serialized type</param>
 	/// <param name="serializedData">Serialized data</param>
 	/// <returns></returns>
-	public delegate IResourceData CreateResourceDataDelegate(ResourceDataFactory resourceDataFactory, UserResourceType type, byte[] serializedData);
+	public delegate IResourceData CreateResourceDataDelegate(ResourceDataFactory resourceDataFactory, UserResourceType type, byte[] serializedData, SerializationFormat format);
 
 	/// <summary>
 	/// Reads .NET resources
@@ -90,16 +91,15 @@ namespace dnlib.DotNet.Resources {
 			new ResourceReader(module, ref reader, createResourceDataDelegate).Read();
 
 		ResourceElementSet Read() {
-			var resources = new ResourceElementSet();
-
 			uint sig = reader.ReadUInt32();
 			if (sig != 0xBEEFCACE)
 				throw new ResourceReaderException($"Invalid resource sig: {sig:X8}");
-			if (!CheckReaders(ref resources))
+			var resources = ReadHeader();
+			if (resources is null)
 				throw new ResourceReaderException("Invalid resource reader");
-			int version = reader.ReadInt32();
-			if (version != 2 && version != 1)
-				throw new ResourceReaderException($"Invalid resource version: {version}");
+			resources.FormatVersion = reader.ReadInt32();
+			if (resources.FormatVersion != 2 && resources.FormatVersion != 1)
+				throw new ResourceReaderException($"Invalid resource version: {resources.FormatVersion}");
 			int numResources = reader.ReadInt32();
 			if (numResources < 0)
 				throw new ResourceReaderException($"Invalid number of resources: {numResources}");
@@ -141,8 +141,9 @@ namespace dnlib.DotNet.Resources {
 				reader.Position = (uint)info.offset;
 				long nextDataOffset = i == infos.Count - 1 ? end : infos[i + 1].offset;
 				int size = (int)(nextDataOffset - info.offset);
-				element.ResourceData =
-					version == 1 ? ReadResourceDataV1(userTypes, size) : ReadResourceDataV2(userTypes, size);
+				element.ResourceData = resources.FormatVersion == 1
+					? ReadResourceDataV1(userTypes, resources.ReaderType, size)
+					: ReadResourceDataV2(userTypes, resources.ReaderType, size);
 				element.ResourceData.StartOffset = baseFileOffset + (FileOffset)info.offset;
 				element.ResourceData.EndOffset = baseFileOffset + (FileOffset)reader.Position;
 
@@ -153,8 +154,8 @@ namespace dnlib.DotNet.Resources {
 		}
 
 		sealed class ResourceInfo {
-			public string name;
-			public long offset;
+			public readonly string name;
+			public readonly long offset;
 			public ResourceInfo(string name, long offset) {
 				this.name = name;
 				this.offset = offset;
@@ -162,9 +163,9 @@ namespace dnlib.DotNet.Resources {
 			public override string ToString() => $"{offset:X8} - {name}";
 		}
 
-		IResourceData ReadResourceDataV2(List<UserResourceType> userTypes, int size) {
+		IResourceData ReadResourceDataV2(List<UserResourceType> userTypes, ResourceReaderType readerType, int size) {
 			uint endPos = reader.Position + (uint)size;
-			uint code = ReadUInt32(ref reader);
+			uint code = reader.Read7BitEncodedUInt32();
 			switch ((ResourceTypeCode)code) {
 			case ResourceTypeCode.Null:		return resourceDataFactory.CreateNull();
 			case ResourceTypeCode.String:	return resourceDataFactory.Create(reader.ReadSerializedString());
@@ -189,13 +190,13 @@ namespace dnlib.DotNet.Resources {
 				int userTypeIndex = (int)(code - (uint)ResourceTypeCode.UserTypes);
 				if (userTypeIndex < 0 || userTypeIndex >= userTypes.Count)
 					throw new ResourceReaderException($"Invalid resource data code: {code}");
-				return ReadSerializedObject(endPos, userTypes[userTypeIndex]);
+				return ReadSerializedObject(endPos, readerType, userTypes[userTypeIndex]);
 			}
 		}
 
-		IResourceData ReadResourceDataV1(List<UserResourceType> userTypes, int size) {
+		IResourceData ReadResourceDataV1(List<UserResourceType> userTypes, ResourceReaderType readerType, int size) {
 			uint endPos = reader.Position + (uint)size;
-			int typeIndex = ReadInt32(ref reader);
+			int typeIndex = reader.Read7BitEncodedInt32();
 			if (typeIndex == -1)
 				return resourceDataFactory.CreateNull();
 			if (typeIndex < 0 || typeIndex >= userTypes.Count)
@@ -219,35 +220,32 @@ namespace dnlib.DotNet.Resources {
 			case "System.TimeSpan": return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
 			case "System.Decimal":  return resourceDataFactory.Create(reader.ReadDecimal());
 			default:
-				return ReadSerializedObject(endPos, type);
+				return ReadSerializedObject(endPos, readerType, type);
 			}
 		}
 
-		IResourceData ReadSerializedObject(uint endPos, UserResourceType type) {
-			var serializedData = reader.ReadBytes((int)(endPos - reader.Position));
-			var res = createResourceDataDelegate?.Invoke(resourceDataFactory, type, serializedData);
-			return res ?? resourceDataFactory.CreateSerialized(serializedData, type);
-		}
-
-		static int ReadInt32(ref DataReader reader) {
-			try {
-				return reader.Read7BitEncodedInt32();
+		IResourceData ReadSerializedObject(uint endPos, ResourceReaderType readerType, UserResourceType type) {
+			byte[] serializedData;
+			IResourceData res;
+			switch (readerType) {
+			case ResourceReaderType.ResourceReader:
+				serializedData = reader.ReadBytes((int)(endPos - reader.Position));
+				res = createResourceDataDelegate?.Invoke(resourceDataFactory, type, serializedData, SerializationFormat.BinaryFormatter);
+				return res ?? resourceDataFactory.CreateSerialized(serializedData, SerializationFormat.BinaryFormatter, type);
+			case ResourceReaderType.DeserializingResourceReader: {
+				var format = (SerializationFormat)reader.Read7BitEncodedInt32();
+				int length = reader.Read7BitEncodedInt32();
+				Debug.Assert(length == (int)(endPos - reader.Position));
+				serializedData = reader.ReadBytes(length);
+				res = createResourceDataDelegate?.Invoke(resourceDataFactory, type, serializedData, format);
+				return res ?? resourceDataFactory.CreateSerialized(serializedData, format, type);
 			}
-			catch {
-				throw new ResourceReaderException("Invalid encoded int32");
-			}
-		}
-
-		static uint ReadUInt32(ref DataReader reader) {
-			try {
-				return reader.Read7BitEncodedUInt32();
-			}
-			catch {
-				throw new ResourceReaderException("Invalid encoded int32");
+			default:
+				throw new ResourceReaderException($"Invalid reader type: {readerType}");
 			}
 		}
 
-		bool CheckReaders(ref ResourceElementSet resources) {
+		ResourceElementSet ReadHeader() {
 			int headerVersion = reader.ReadInt32();
 			if (headerVersion != 1)
 				throw new ResourceReaderException($"Invalid or unsupported header version: {headerVersion}");
@@ -255,15 +253,18 @@ namespace dnlib.DotNet.Resources {
 			if (headerSize < 0)
 				throw new ResourceReaderException($"Invalid header size: {headerSize:X8}");
 
-			resources.ResourceReaderTypeName = reader.ReadSerializedString();
-			resources.ResourceSetTypeName = reader.ReadSerializedString();
+			string resourceReaderTypeName = reader.ReadSerializedString();
+			string resourceSetTypeName = reader.ReadSerializedString();
 
-			if (Regex.IsMatch(resources.ResourceReaderTypeName, @"^System\.Resources\.ResourceReader,\s*mscorlib"))
-				return true;
-			if (Regex.IsMatch(resources.ResourceReaderTypeName, @"^System\.Resources\.Extensions\.DeserializingResourceReader,\s*System\.Resources\.Extensions"))
-				return true;
+			ResourceReaderType readerType;
+			if (Regex.IsMatch(resourceReaderTypeName, ResourceElementSet.ResourceReaderTypeNameRegex))
+				readerType = ResourceReaderType.ResourceReader;
+			else if (Regex.IsMatch(resourceReaderTypeName, ResourceElementSet.DeserializingResourceReaderTypeNameRegex))
+				readerType = ResourceReaderType.DeserializingResourceReader;
+			else
+				return null;
 
-			return false;
+			return new ResourceElementSet(resourceReaderTypeName, resourceSetTypeName, readerType);
 		}
 	}
 }

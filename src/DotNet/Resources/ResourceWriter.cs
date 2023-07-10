@@ -37,10 +37,12 @@ namespace dnlib.DotNet.Resources {
 		void Write() {
 			InitializeUserTypes();
 
+			int formatVersion = 2;//TODO: Support version 1
+
 			writer.Write(0xBEEFCACE);
 			writer.Write(1);
 			WriteReaderType();
-			writer.Write(2);//TODO: Support version 1
+			writer.Write(formatVersion);
 			writer.Write(resources.Count);
 			writer.Write(typeCreator.Count);
 			foreach (var userType in typeCreator.GetSortedTypes())
@@ -54,7 +56,10 @@ namespace dnlib.DotNet.Resources {
 			var nameOffsetStream = new MemoryStream();
 			var nameOffsetWriter = new BinaryWriter(nameOffsetStream, Encoding.Unicode);
 			var dataStream = new MemoryStream();
-			var dataWriter = new BinaryWriter(dataStream);
+			var dataWriter = new ResourceBinaryWriter(dataStream) {
+				FormatVersion = formatVersion,
+				ReaderType = resources.ReaderType,
+			};
 			var hashes = new int[resources.Count];
 			var offsets = new int[resources.Count];
 			var formatter = new BinaryFormatter(null, new StreamingContext(StreamingContextStates.File | StreamingContextStates.Persistence));
@@ -78,18 +83,10 @@ namespace dnlib.DotNet.Resources {
 			writer.Write(dataStream.ToArray());
 		}
 
-		void WriteData(BinaryWriter writer, ResourceElement info, IFormatter formatter) {
+		void WriteData(ResourceBinaryWriter writer, ResourceElement info, IFormatter formatter) {
 			var code = GetResourceType(info.ResourceData);
-			WriteUInt32(writer, (uint)code);
+			writer.Write7BitEncodedInt((int)code);
 			info.ResourceData.WriteData(writer, formatter);
-		}
-
-		static void WriteUInt32(BinaryWriter writer, uint value) {
-			while (value >= 0x80) {
-				writer.Write((byte)(value | 0x80));
-				value >>= 7;
-			}
-			writer.Write((byte)value);
 		}
 
 		ResourceTypeCode GetResourceType(IResourceData data) {
