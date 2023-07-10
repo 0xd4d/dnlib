@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using dnlib.IO;
@@ -68,6 +69,9 @@ namespace dnlib.DotNet.Resources {
 
 		/// <inheritdoc/>
 		public override void WriteData(ResourceBinaryWriter writer, IFormatter formatter) {
+			if (writer.ReaderType == ResourceReaderType.ResourceReader && format != SerializationFormat.BinaryFormatter)
+				throw new NotSupportedException();
+
 			if (writer.ReaderType == ResourceReaderType.DeserializingResourceReader) {
 				writer.Write7BitEncodedInt((int)format);
 				writer.Write7BitEncodedInt(data.Length);
