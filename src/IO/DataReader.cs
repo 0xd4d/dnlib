@@ -180,19 +180,49 @@ namespace dnlib.IO {
 		/// Reads a <see cref="bool"/>
 		/// </summary>
 		/// <returns></returns>
-		public bool ReadBoolean() => ReadByte() != 0;
+		public bool ReadBoolean() {
+			VerifyState();
+			const uint SIZE = 1;
+			var currentOffset = this.currentOffset;
+			if (currentOffset == endOffset)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadBoolean(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="char"/>
 		/// </summary>
 		/// <returns></returns>
-		public char ReadChar() => (char)ReadUInt16();
+		public char ReadChar() {
+			VerifyState();
+			const uint SIZE = 2;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadChar(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="sbyte"/>
 		/// </summary>
 		/// <returns></returns>
-		public sbyte ReadSByte() => (sbyte)ReadByte();
+		public sbyte ReadSByte() {
+			VerifyState();
+			const uint SIZE = 1;
+			var currentOffset = this.currentOffset;
+			if (currentOffset == endOffset)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadSByte(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="byte"/>
@@ -214,7 +244,17 @@ namespace dnlib.IO {
 		/// Reads a <see cref="short"/>
 		/// </summary>
 		/// <returns></returns>
-		public short ReadInt16() => (short)ReadUInt16();
+		public short ReadInt16() {
+			VerifyState();
+			const uint SIZE = 2;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadInt16(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="ushort"/>
@@ -236,7 +276,17 @@ namespace dnlib.IO {
 		/// Reads a <see cref="int"/>
 		/// </summary>
 		/// <returns></returns>
-		public int ReadInt32() => (int)ReadUInt32();
+		public int ReadInt32() {
+			VerifyState();
+			const uint SIZE = 4;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadInt32(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="uint"/>
@@ -291,7 +341,17 @@ namespace dnlib.IO {
 		/// Reads a <see cref="long"/>
 		/// </summary>
 		/// <returns></returns>
-		public long ReadInt64() => (long)ReadUInt64();
+		public long ReadInt64() {
+			VerifyState();
+			const uint SIZE = 8;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadInt64(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
+		}
 
 		/// <summary>
 		/// Reads a <see cref="ulong"/>
@@ -362,13 +422,15 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <returns></returns>
 		public decimal ReadDecimal() {
-			var bits = new int[4] {
-				ReadInt32(),	// lo
-				ReadInt32(),	// mid
-				ReadInt32(),	// hi
-				ReadInt32(),	// flags
-			};
-			return new decimal(bits);
+			VerifyState();
+			const uint SIZE = 16;
+			var currentOffset = this.currentOffset;
+			if (endOffset - currentOffset < SIZE)
+				ThrowNoMoreBytesLeft();
+			var value = stream.ReadDecimal(currentOffset);
+			this.currentOffset = currentOffset + SIZE;
+			VerifyState();
+			return value;
 		}
 
 		/// <summary>
