@@ -171,6 +171,7 @@ namespace dnlib.DotNet.Resources {
 		/// Creates serialized data
 		/// </summary>
 		/// <param name="value">Serialized data</param>
+		/// <param name="format">Format of the serialized data</param>
 		/// <param name="type">Type of serialized data</param>
 		/// <returns></returns>
 		public BinaryResourceData CreateSerialized(byte[] value, SerializationFormat format, UserResourceType type) => new BinaryResourceData(CreateUserResourceType(type.Name, true), value, format);

@@ -45,6 +45,7 @@ namespace dnlib.DotNet.Resources {
 	/// <param name="resourceDataFactory">ResourceDataFactory</param>
 	/// <param name="type">Serialized type</param>
 	/// <param name="serializedData">Serialized data</param>
+	/// <param name="format">Format of the serialized data</param>
 	/// <returns></returns>
 	public delegate IResourceData CreateResourceDataDelegate(ResourceDataFactory resourceDataFactory, UserResourceType type, byte[] serializedData, SerializationFormat format);
 
@@ -234,6 +235,8 @@ namespace dnlib.DotNet.Resources {
 				return res ?? resourceDataFactory.CreateSerialized(serializedData, SerializationFormat.BinaryFormatter, type);
 			case ResourceReaderType.DeserializingResourceReader: {
 				var format = (SerializationFormat)reader.Read7BitEncodedInt32();
+				if (format < SerializationFormat.BinaryFormatter || format > SerializationFormat.ActivatorStream)
+					throw new ResourceReaderException($"Invalid serialization format: {format}");
 				int length = reader.Read7BitEncodedInt32();
 				Debug.Assert(length == (int)(endPos - reader.Position));
 				serializedData = reader.ReadBytes(length);

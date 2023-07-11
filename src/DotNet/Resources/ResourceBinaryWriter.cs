@@ -15,8 +15,7 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		public ResourceReaderType ReaderType { get; internal set; }
 
-		/// <inheritdoc />
-		public ResourceBinaryWriter(Stream stream) : base(stream) { }
+		internal ResourceBinaryWriter(Stream stream) : base(stream) { }
 
 		/// <summary>
 		/// Writes a 7-bit encoded integer.
