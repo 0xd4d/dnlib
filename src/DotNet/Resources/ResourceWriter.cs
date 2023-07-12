@@ -45,6 +45,9 @@ namespace dnlib.DotNet.Resources {
 			new ResourceWriter(module, typeCreator, stream, resources).Write();
 
 		void Write() {
+			if (resources.FormatVersion != 1 && resources.FormatVersion != 2)
+				throw new ArgumentException("Invalid format version: " + resources.FormatVersion, nameof(resources));
+
 			InitializeUserTypes(resources.FormatVersion);
 
 			writer.Write(0xBEEFCACE);
