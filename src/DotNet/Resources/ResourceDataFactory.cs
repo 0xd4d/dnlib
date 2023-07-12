@@ -221,6 +221,38 @@ namespace dnlib.DotNet.Resources {
 		}
 
 		/// <summary>
+		///	Creates a user type for a built-in resource type code.
+		/// Useful when writing V1 resources.
+		/// </summary>
+		/// <param name="typeCode">The built-in resource type code or null if not supported</param>
+		/// <returns></returns>
+		public UserResourceType CreateBuiltinResourceType(ResourceTypeCode typeCode) {
+			string typeName = typeCode switch {
+				ResourceTypeCode.String => "System.String",
+				ResourceTypeCode.Boolean => "System.Boolean",
+				ResourceTypeCode.Char => "System.Char",
+				ResourceTypeCode.Byte => "System.Byte",
+				ResourceTypeCode.SByte => "System.SByte",
+				ResourceTypeCode.Int16 => "System.Int16",
+				ResourceTypeCode.UInt16 => "System.UInt16",
+				ResourceTypeCode.Int32 => "System.Int32",
+				ResourceTypeCode.UInt32 => "System.UInt32",
+				ResourceTypeCode.Int64 => "System.Int64",
+				ResourceTypeCode.UInt64 => "System.UInt64",
+				ResourceTypeCode.Single => "System.Single",
+				ResourceTypeCode.Double => "System.Double",
+				ResourceTypeCode.Decimal => "System.Decimal",
+				ResourceTypeCode.DateTime => "System.DateTime",
+				ResourceTypeCode.TimeSpan => "System.TimeSpan",
+				_ => null
+			};
+			if (typeName is null)
+				return null;
+
+			return CreateUserResourceType($"{typeName}, {module.CorLibTypes.AssemblyRef.FullName}", true);
+		}
+
+		/// <summary>
 		/// Creates a user type. If the type already exists, the existing value is returned.
 		/// </summary>
 		/// <param name="fullName">Full name of type</param>

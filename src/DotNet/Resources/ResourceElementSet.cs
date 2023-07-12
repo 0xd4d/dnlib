@@ -43,6 +43,7 @@ namespace dnlib.DotNet.Resources {
 			ResourceReaderTypeName = resourceReaderTypeName;
 			ResourceSetTypeName = resourceSetTypeName;
 			ReaderType = readerType;
+			FormatVersion = 2;
 		}
 
 		/// <summary>

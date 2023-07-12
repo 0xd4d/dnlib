@@ -16,7 +16,7 @@ namespace dnlib.DotNet.Resources {
 		BinaryWriter writer;
 		ResourceElementSet resources;
 		ResourceDataFactory typeCreator;
-		Dictionary<UserResourceData, UserResourceType> dataToNewType = new Dictionary<UserResourceData, UserResourceType>();
+		Dictionary<IResourceData, UserResourceType> dataToNewType = new Dictionary<IResourceData, UserResourceType>();
 
 		ResourceWriter(ModuleDef module, ResourceDataFactory typeCreator, Stream stream, ResourceElementSet resources) {
 			this.module = module;
@@ -45,14 +45,12 @@ namespace dnlib.DotNet.Resources {
 			new ResourceWriter(module, typeCreator, stream, resources).Write();
 
 		void Write() {
-			InitializeUserTypes();
-
-			int formatVersion = 2;//TODO: Support version 1
+			InitializeUserTypes(resources.FormatVersion);
 
 			writer.Write(0xBEEFCACE);
 			writer.Write(1);
 			WriteReaderType();
-			writer.Write(formatVersion);
+			writer.Write(resources.FormatVersion);
 			writer.Write(resources.Count);
 			writer.Write(typeCreator.Count);
 			foreach (var userType in typeCreator.GetSortedTypes())
@@ -67,7 +65,7 @@ namespace dnlib.DotNet.Resources {
 			var nameOffsetWriter = new BinaryWriter(nameOffsetStream, Encoding.Unicode);
 			var dataStream = new MemoryStream();
 			var dataWriter = new ResourceBinaryWriter(dataStream) {
-				FormatVersion = formatVersion,
+				FormatVersion = resources.FormatVersion,
 				ReaderType = resources.ReaderType,
 			};
 			var hashes = new int[resources.Count];
@@ -94,17 +92,22 @@ namespace dnlib.DotNet.Resources {
 		}
 
 		void WriteData(ResourceBinaryWriter writer, ResourceElement info, IFormatter formatter) {
-			var code = GetResourceType(info.ResourceData);
+			var code = GetResourceType(info.ResourceData, writer.FormatVersion);
 			writer.Write7BitEncodedInt((int)code);
 			info.ResourceData.WriteData(writer, formatter);
 		}
 
-		ResourceTypeCode GetResourceType(IResourceData data) {
+		ResourceTypeCode GetResourceType(IResourceData data, int formatVersion) {
+			if (formatVersion == 1) {
+				if (data.Code == ResourceTypeCode.Null)
+					return (ResourceTypeCode)(-1);
+				return (ResourceTypeCode)(dataToNewType[data].Code - ResourceTypeCode.UserTypes);
+			}
+
 			if (data is BuiltInResourceData)
 				return data.Code;
 
-			var userData = (UserResourceData)data;
-			return dataToNewType[userData].Code;
+			return dataToNewType[data].Code;
 		}
 
 		static uint Hash(string key) {
@@ -114,13 +117,19 @@ namespace dnlib.DotNet.Resources {
 			return val;
 		}
 
-		void InitializeUserTypes() {
+		void InitializeUserTypes(int formatVersion) {
 			foreach (var resource in resources.ResourceElements) {
-				var data = resource.ResourceData as UserResourceData;
-				if (data is null)
+				UserResourceType newType;
+				if (formatVersion == 1 && resource.ResourceData is BuiltInResourceData builtinData) {
+					newType = typeCreator.CreateBuiltinResourceType(builtinData.Code);
+					if (newType is null)
+						throw new NotSupportedException($"Unsupported resource type: {builtinData.Code} in format version 1 resource");
+				}
+				else if (resource.ResourceData is UserResourceData userData)
+					newType = typeCreator.CreateUserResourceType(userData.TypeName);
+				else
 					continue;
-				var newType = typeCreator.CreateUserResourceType(data.TypeName);
-				dataToNewType[data] = newType;
+				dataToNewType[resource.ResourceData] = newType;
 			}
 		}
 

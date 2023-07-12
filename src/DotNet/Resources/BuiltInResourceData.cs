@@ -114,7 +114,7 @@ namespace dnlib.DotNet.Resources {
 			case ResourceTypeCode.ByteArray:
 			case ResourceTypeCode.Stream:
 				if (writer.FormatVersion == 1)
-					throw new NotSupportedException();
+					throw new NotSupportedException($"{code} is not supported in format version 1 resources");
 				var ary = (byte[])data;
 				writer.Write(ary.Length);
 				writer.Write(ary);
