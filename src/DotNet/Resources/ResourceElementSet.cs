@@ -103,5 +103,13 @@ namespace dnlib.DotNet.Resources {
 				FormatVersion = formatVersion
 			};
 		}
+
+		/// <summary>
+		/// Creates a new <see cref="ResourceElementSet"/> instance based on this instance
+		/// </summary>
+		/// <returns></returns>
+		public ResourceElementSet Clone() => new ResourceElementSet(ResourceReaderTypeName, ResourceSetTypeName, ReaderType) {
+			FormatVersion = FormatVersion
+		};
 	}
 }
