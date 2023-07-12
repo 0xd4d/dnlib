@@ -58,9 +58,9 @@ namespace dnlib.DotNet.Resources {
 		readonly ResourceDataFactory resourceDataFactory;
 		readonly CreateResourceDataDelegate createResourceDataDelegate;
 
-		ResourceReader(ModuleDef module, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
+		ResourceReader(ResourceDataFactory resourceDataFactory, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
 			this.reader = reader;
-			resourceDataFactory = new ResourceDataFactory(module);
+			this.resourceDataFactory = resourceDataFactory;
 			this.createResourceDataDelegate = createResourceDataDelegate;
 			baseFileOffset = reader.StartOffset;
 		}
@@ -89,7 +89,17 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
 		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
-			new ResourceReader(module, ref reader, createResourceDataDelegate).Read();
+			Read(new ResourceDataFactory(module), reader, createResourceDataDelegate);
+
+		/// <summary>
+		/// Reads a .NET resource
+		/// </summary>
+		/// <param name="resourceDataFactory">User type resource data factory</param>
+		/// <param name="reader">Data of resource</param>
+		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
+		/// <returns></returns>
+		public static ResourceElementSet Read(ResourceDataFactory resourceDataFactory, DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
+			new ResourceReader(resourceDataFactory, ref reader, createResourceDataDelegate).Read();
 
 		ResourceElementSet Read() {
 			uint sig = reader.ReadUInt32();

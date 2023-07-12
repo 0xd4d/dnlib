@@ -18,9 +18,9 @@ namespace dnlib.DotNet.Resources {
 		ResourceDataFactory typeCreator;
 		Dictionary<UserResourceData, UserResourceType> dataToNewType = new Dictionary<UserResourceData, UserResourceType>();
 
-		ResourceWriter(ModuleDef module, Stream stream, ResourceElementSet resources) {
+		ResourceWriter(ModuleDef module, ResourceDataFactory typeCreator, Stream stream, ResourceElementSet resources) {
 			this.module = module;
-			typeCreator = new ResourceDataFactory(module);
+			this.typeCreator = typeCreator;
 			writer = new BinaryWriter(stream);
 			this.resources = resources;
 		}
@@ -32,7 +32,17 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="stream">Output stream</param>
 		/// <param name="resources">.NET resources</param>
 		public static void Write(ModuleDef module, Stream stream, ResourceElementSet resources) =>
-			new ResourceWriter(module, stream, resources).Write();
+			new ResourceWriter(module, new ResourceDataFactory(module), stream, resources).Write();
+
+		/// <summary>
+		/// Write .NET resources
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="typeCreator">User type factory</param>
+		/// <param name="stream">Output stream</param>
+		/// <param name="resources">.NET resources</param>
+		public static void Write(ModuleDef module, ResourceDataFactory typeCreator, Stream stream, ResourceElementSet resources) =>
+			new ResourceWriter(module, typeCreator, stream, resources).Write();
 
 		void Write() {
 			InitializeUserTypes();
