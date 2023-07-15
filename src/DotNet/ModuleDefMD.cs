@@ -1495,7 +1495,12 @@ namespace dnlib.DotNet {
 			return new EmbeddedResourceMD(this, mr, Array2.Empty<byte>());
 		}
 
-		[HandleProcessCorruptedStateExceptions, SecurityCritical]	// Req'd on .NET Framework 4.0
+		// Required attributes on .NET Framework 4.0
+		// HandleProcessCorruptedStateExceptions is obsolete on .NET Core and newer
+#if !NETCOREAPP
+		[HandleProcessCorruptedStateExceptions]
+#endif
+		[SecurityCritical]
 		bool TryCreateResourceStream(uint offset, out DataReaderFactory dataReaderFactory, out uint resourceOffset, out uint resourceLength) {
 			dataReaderFactory = null;
 			resourceOffset = 0;

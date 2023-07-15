@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
@@ -66,7 +67,13 @@ namespace dnlib.DotNet.Pdb {
 				if (!pdbContext.HasDebugInfo)
 					return null;
 
-				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && pdbStream is not null && IsWindowsPdb(pdbStream.CreateReader()))
+#if NETSTANDARD || NETCOREAPP
+				var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#else
+				var isWindows = true;
+#endif
+
+				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && isWindows && pdbStream is not null && IsWindowsPdb(pdbStream.CreateReader()))
 					symReader = Dss.SymbolReaderWriterFactory.Create(pdbContext, metadata, pdbStream);
 				else
 					symReader = CreateManaged(pdbContext, metadata, pdbStream);

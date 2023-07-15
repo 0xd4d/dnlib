@@ -5,10 +5,14 @@ using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using dnlib.DotNet.Pdb.WindowsPdb;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Dss {
+#if NETCOREAPP
+	[SupportedOSPlatform("windows")]
+#endif
 	sealed class SymbolWriterImpl : SymbolWriter {
 		readonly ISymUnmanagedWriter2 writer;
 		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;

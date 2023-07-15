@@ -205,7 +205,9 @@ namespace dnlib.DotNet.Resources {
 			try {
 				var formatter = new BinaryFormatter();
 				formatter.Binder = new MyBinder();
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
 				formatter.Deserialize(new MemoryStream(value));
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
 			}
 			catch (MyBinder.OkException ex) {
 				assemblyName = ex.AssemblyName;
