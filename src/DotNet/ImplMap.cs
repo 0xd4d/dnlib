@@ -234,7 +234,7 @@ namespace dnlib.DotNet {
 		}
 
 		static bool IsWindows() =>
-#if NETSTANDARD
+#if NETSTANDARD || NETCOREAPP
 			RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #else
 			Path.DirectorySeparatorChar == '\\' || Path.AltDirectorySeparatorChar == '\\';

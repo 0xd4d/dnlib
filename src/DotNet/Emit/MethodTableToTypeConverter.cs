@@ -27,7 +27,7 @@ namespace dnlib.DotNet.Emit {
 
 		static MethodTableToTypeConverter() {
 			if (ptrFieldInfo is null) {
-#if NETSTANDARD
+#if NETSTANDARD || NETCOREAPP
 				var asmb = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynAsm"), AssemblyBuilderAccess.Run);
 #else
 				var asmb = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("DynAsm"), AssemblyBuilderAccess.Run);
