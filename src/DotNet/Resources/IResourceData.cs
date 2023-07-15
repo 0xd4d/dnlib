@@ -30,6 +30,6 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <param name="writer">Writer</param>
 		/// <param name="formatter">Formatter if needed by implementer</param>
-		void WriteData(BinaryWriter writer, IFormatter formatter);
+		void WriteData(ResourceBinaryWriter writer, IFormatter formatter);
 	}
 }

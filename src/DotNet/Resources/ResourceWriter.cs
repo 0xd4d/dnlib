@@ -16,11 +16,11 @@ namespace dnlib.DotNet.Resources {
 		BinaryWriter writer;
 		ResourceElementSet resources;
 		ResourceDataFactory typeCreator;
-		Dictionary<UserResourceData, UserResourceType> dataToNewType = new Dictionary<UserResourceData, UserResourceType>();
+		Dictionary<IResourceData, UserResourceType> dataToNewType = new Dictionary<IResourceData, UserResourceType>();
 
-		ResourceWriter(ModuleDef module, Stream stream, ResourceElementSet resources) {
+		ResourceWriter(ModuleDef module, ResourceDataFactory typeCreator, Stream stream, ResourceElementSet resources) {
 			this.module = module;
-			typeCreator = new ResourceDataFactory(module);
+			this.typeCreator = typeCreator;
 			writer = new BinaryWriter(stream);
 			this.resources = resources;
 		}
@@ -32,15 +32,28 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="stream">Output stream</param>
 		/// <param name="resources">.NET resources</param>
 		public static void Write(ModuleDef module, Stream stream, ResourceElementSet resources) =>
-			new ResourceWriter(module, stream, resources).Write();
+			new ResourceWriter(module, new ResourceDataFactory(module), stream, resources).Write();
+
+		/// <summary>
+		/// Write .NET resources
+		/// </summary>
+		/// <param name="module">Owner module</param>
+		/// <param name="typeCreator">User type factory</param>
+		/// <param name="stream">Output stream</param>
+		/// <param name="resources">.NET resources</param>
+		public static void Write(ModuleDef module, ResourceDataFactory typeCreator, Stream stream, ResourceElementSet resources) =>
+			new ResourceWriter(module, typeCreator, stream, resources).Write();
 
 		void Write() {
-			InitializeUserTypes();
+			if (resources.FormatVersion != 1 && resources.FormatVersion != 2)
+				throw new ArgumentException("Invalid format version: " + resources.FormatVersion, nameof(resources));
+
+			InitializeUserTypes(resources.FormatVersion);
 
 			writer.Write(0xBEEFCACE);
 			writer.Write(1);
 			WriteReaderType();
-			writer.Write(2);//TODO: Support version 1
+			writer.Write(resources.FormatVersion);
 			writer.Write(resources.Count);
 			writer.Write(typeCreator.Count);
 			foreach (var userType in typeCreator.GetSortedTypes())
@@ -54,7 +67,10 @@ namespace dnlib.DotNet.Resources {
 			var nameOffsetStream = new MemoryStream();
 			var nameOffsetWriter = new BinaryWriter(nameOffsetStream, Encoding.Unicode);
 			var dataStream = new MemoryStream();
-			var dataWriter = new BinaryWriter(dataStream);
+			var dataWriter = new ResourceBinaryWriter(dataStream) {
+				FormatVersion = resources.FormatVersion,
+				ReaderType = resources.ReaderType,
+			};
 			var hashes = new int[resources.Count];
 			var offsets = new int[resources.Count];
 			var formatter = new BinaryFormatter(null, new StreamingContext(StreamingContextStates.File | StreamingContextStates.Persistence));
@@ -78,26 +94,23 @@ namespace dnlib.DotNet.Resources {
 			writer.Write(dataStream.ToArray());
 		}
 
-		void WriteData(BinaryWriter writer, ResourceElement info, IFormatter formatter) {
-			var code = GetResourceType(info.ResourceData);
-			WriteUInt32(writer, (uint)code);
+		void WriteData(ResourceBinaryWriter writer, ResourceElement info, IFormatter formatter) {
+			var code = GetResourceType(info.ResourceData, writer.FormatVersion);
+			writer.Write7BitEncodedInt((int)code);
 			info.ResourceData.WriteData(writer, formatter);
 		}
 
-		static void WriteUInt32(BinaryWriter writer, uint value) {
-			while (value >= 0x80) {
-				writer.Write((byte)(value | 0x80));
-				value >>= 7;
+		ResourceTypeCode GetResourceType(IResourceData data, int formatVersion) {
+			if (formatVersion == 1) {
+				if (data.Code == ResourceTypeCode.Null)
+					return (ResourceTypeCode)(-1);
+				return (ResourceTypeCode)(dataToNewType[data].Code - ResourceTypeCode.UserTypes);
 			}
-			writer.Write((byte)value);
-		}
 
-		ResourceTypeCode GetResourceType(IResourceData data) {
 			if (data is BuiltInResourceData)
 				return data.Code;
 
-			var userData = (UserResourceData)data;
-			return dataToNewType[userData].Code;
+			return dataToNewType[data].Code;
 		}
 
 		static uint Hash(string key) {
@@ -107,22 +120,34 @@ namespace dnlib.DotNet.Resources {
 			return val;
 		}
 
-		void InitializeUserTypes() {
+		void InitializeUserTypes(int formatVersion) {
 			foreach (var resource in resources.ResourceElements) {
-				var data = resource.ResourceData as UserResourceData;
-				if (data is null)
+				UserResourceType newType;
+				if (formatVersion == 1 && resource.ResourceData is BuiltInResourceData builtinData) {
+					newType = typeCreator.CreateBuiltinResourceType(builtinData.Code);
+					if (newType is null)
+						throw new NotSupportedException($"Unsupported resource type: {builtinData.Code} in format version 1 resource");
+				}
+				else if (resource.ResourceData is UserResourceData userData)
+					newType = typeCreator.CreateUserResourceType(userData.TypeName);
+				else
 					continue;
-				var newType = typeCreator.CreateUserResourceType(data.TypeName);
-				dataToNewType[data] = newType;
+				dataToNewType[resource.ResourceData] = newType;
 			}
 		}
 
 		void WriteReaderType() {
 			var memStream = new MemoryStream();
 			var headerWriter = new BinaryWriter(memStream);
-			var mscorlibFullName = GetMscorlibFullname();
-			headerWriter.Write("System.Resources.ResourceReader, " + mscorlibFullName);
-			headerWriter.Write("System.Resources.RuntimeResourceSet");
+			if (resources.ResourceReaderTypeName is not null && resources.ResourceSetTypeName is not null) {
+				headerWriter.Write(resources.ResourceReaderTypeName);
+				headerWriter.Write(resources.ResourceSetTypeName);
+			}
+			else {
+				var mscorlibFullName = GetMscorlibFullname();
+				headerWriter.Write("System.Resources.ResourceReader, " + mscorlibFullName);
+				headerWriter.Write("System.Resources.RuntimeResourceSet");
+			}
 			writer.Write((int)memStream.Position);
 			writer.Write(memStream.ToArray());
 		}

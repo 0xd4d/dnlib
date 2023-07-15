@@ -21,10 +21,10 @@ namespace dnlib.DotNet.Resources {
 		/// <inheritdoc/>
 		public ResourceTypeCode Code => code;
 
-		/// <inheritdoc/>
+		/// <inheritdoc cref="IResourceData.StartOffset" />
 		public FileOffset StartOffset { get; set; }
 
-		/// <inheritdoc/>
+		/// <inheritdoc cref="IResourceData.EndOffset" />
 		public FileOffset EndOffset { get; set; }
 
 		/// <summary>
@@ -38,7 +38,7 @@ namespace dnlib.DotNet.Resources {
 		}
 
 		/// <inheritdoc/>
-		public void WriteData(BinaryWriter writer, IFormatter formatter) {
+		public void WriteData(ResourceBinaryWriter writer, IFormatter formatter) {
 			switch (code) {
 			case ResourceTypeCode.Null:
 				break;
@@ -100,7 +100,11 @@ namespace dnlib.DotNet.Resources {
 				break;
 
 			case ResourceTypeCode.DateTime:
-				writer.Write(((DateTime)data).ToBinary());
+				var dateTime = (DateTime)data;
+				if (writer.FormatVersion == 1)
+					writer.Write(dateTime.Ticks);
+				else
+					writer.Write(dateTime.ToBinary());
 				break;
 
 			case ResourceTypeCode.TimeSpan:
@@ -109,6 +113,8 @@ namespace dnlib.DotNet.Resources {
 
 			case ResourceTypeCode.ByteArray:
 			case ResourceTypeCode.Stream:
+				if (writer.FormatVersion == 1)
+					throw new NotSupportedException($"{code} is not supported in format version 1 resources");
 				var ary = (byte[])data;
 				writer.Write(ary.Length);
 				writer.Write(ary);
