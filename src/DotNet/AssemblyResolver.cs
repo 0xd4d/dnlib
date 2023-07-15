@@ -763,10 +763,13 @@ namespace dnlib.DotNet {
 			try {
 				var imageName = module.Location;
 				if (imageName != string.Empty) {
-					baseDir = Directory.GetParent(imageName).FullName;
-					var configName = imageName + ".config";
-					if (File.Exists(configName))
-						return GetPrivatePaths(baseDir, configName);
+					var directoryInfo = Directory.GetParent(imageName);
+					if (directoryInfo is not null) {
+						baseDir = directoryInfo.FullName;
+						var configName = imageName + ".config";
+						if (File.Exists(configName))
+							return GetPrivatePaths(baseDir, configName);
+					}
 				}
 			}
 			catch {

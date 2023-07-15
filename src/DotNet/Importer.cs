@@ -382,7 +382,7 @@ namespace dnlib.DotNet {
 				pkt = null;
 			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(asmName.Name) is AssemblyRef asmRef)
 				return asmRef;
-			return module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo.Name));
+			return module.UpdateRowId(new AssemblyRefUser(asmName.Name, asmName.Version, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo?.Name ?? string.Empty));
 		}
 
 		/// <summary>
