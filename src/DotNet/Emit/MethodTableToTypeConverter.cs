@@ -121,7 +121,7 @@ namespace dnlib.DotNet.Emit {
 			return Type.GetTypeFromHandle((RuntimeTypeHandle)th);
 		}
 
-		static string GetNextTypeName() => "Type" + numNewTypes++.ToString();
+		static string GetNextTypeName() => $"Type{numNewTypes++}";
 
 		static byte[] GetLocalSignature(IntPtr mtAddr) {
 			ulong mtValue = (ulong)mtAddr.ToInt64();

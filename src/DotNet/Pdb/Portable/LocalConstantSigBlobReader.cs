@@ -233,7 +233,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case ElementType.Sentinel:
 			case ElementType.Pinned:
 			default:
-				Debug.Fail("Unsupported element type in LocalConstant sig blob: " + et.ToString());
+				Debug.Fail($"Unsupported element type in LocalConstant sig blob: {et}");
 				res = false;
 				type = null;
 				value = null;

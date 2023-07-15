@@ -46,7 +46,7 @@ namespace dnlib.IO {
 				VerifyState();
 				if (value < startOffset || value > endOffset) {
 					// Invalid offsets should be an IOException and not an ArgumentException
-					ThrowDataReaderException("Invalid new " + nameof(CurrentOffset));
+					ThrowDataReaderException($"Invalid new {nameof(CurrentOffset)}");
 				}
 				currentOffset = value;
 				VerifyState();
@@ -62,7 +62,7 @@ namespace dnlib.IO {
 				VerifyState();
 				if (value > Length) {
 					// Invalid positions should be an IOException and not an ArgumentException
-					ThrowDataReaderException("Invalid new " + nameof(Position));
+					ThrowDataReaderException($"Invalid new {nameof(Position)}");
 				}
 				currentOffset = startOffset + value;
 				VerifyState();

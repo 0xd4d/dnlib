@@ -71,7 +71,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return ReadEncStateMachineStateMap();
 			if (kind == CustomDebugInfoGuids.PrimaryConstructorInformationBlob)
 				return ReadPrimaryConstructorInformationBlob();
-			Debug.Fail("Unknown custom debug info guid: " + kind.ToString());
+			Debug.Fail($"Unknown custom debug info guid: {kind}");
 			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingBytes());
 		}
 

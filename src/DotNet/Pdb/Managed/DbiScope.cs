@@ -62,7 +62,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				Name = name;
 				Data = data;
 			}
-			public override string ToString() => Name + " = (" + Data.Length.ToString() + " bytes)";
+			public override string ToString() => $"{Name} = ({Data.Length} bytes)";
 		}
 
 		static readonly byte[] dotNetOemGuid = new byte[] {
@@ -116,7 +116,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 						var data = reader.ReadBytes((int)(end - reader.Position));
 						if (oemInfos is null)
 							oemInfos = new List<OemInfo>(1);
-						oemInfos.Add(new OemInfo(name, data));	
+						oemInfos.Add(new OemInfo(name, data));
 						break;
 					case SymbolType.S_MANCONSTANT:
 						uint signatureToken = reader.ReadUInt32();
