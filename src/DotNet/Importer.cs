@@ -84,9 +84,9 @@ namespace dnlib.DotNet {
 		/// Overrides default behavior of <see cref="Importer.Import(Type)"/>
 		/// May be used to use reference assemblies for <see cref="Type"/> resolution, for example.
 		/// </summary>
-		/// <param name="source"><see cref="Type"/> to create <see cref="TypeRef"/> for. <paramref name="source"/> is non-generic type or generic type without generic arguments.</param>
-		/// <returns><see cref="TypeRef"/> or null to use default <see cref="Importer"/>'s type resolution</returns>
-		public virtual TypeRef Map(Type source) => null;
+		/// <param name="source"><see cref="Type"/> to create <see cref="ITypeDefOrRef"/> for. <paramref name="source"/> is non-generic type or generic type without generic arguments.</param>
+		/// <returns><see cref="ITypeDefOrRef"/> or null to use default <see cref="Importer"/>'s type resolution</returns>
+		public virtual ITypeDefOrRef Map(Type source) => null;
 	}
 
 	/// <summary>
@@ -223,8 +223,8 @@ namespace dnlib.DotNet {
 			case ElementType.Ptr:		return new PtrSig(ImportAsTypeSig(type.GetElementType(), declaringType));
 			case ElementType.ByRef:		return new ByRefSig(ImportAsTypeSig(type.GetElementType(), declaringType));
 			case ElementType.SZArray:	return new SZArraySig(ImportAsTypeSig(type.GetElementType(), declaringType));
-			case ElementType.ValueType: return new ValueTypeSig(CreateTypeRef(type));
-			case ElementType.Class:		return new ClassSig(CreateTypeRef(type));
+			case ElementType.ValueType: return new ValueTypeSig(CreateTypeDefOrRef(type));
+			case ElementType.Class:		return new ClassSig(CreateTypeDefOrRef(type));
 			case ElementType.Var:		return new GenericVar((uint)type.GenericParameterPosition, gpContext.Type);
 			case ElementType.MVar:		return new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method);
 
@@ -356,13 +356,26 @@ namespace dnlib.DotNet {
 				UTF8String.CaseInsensitiveEquals(a.Culture, b.Culture);
 		}
 
-		ITypeDefOrRef CreateTypeRef(Type type) => TryResolve(mapper?.Map(type) ?? CreateTypeRef2(type));
+		ITypeDefOrRef CreateTypeDefOrRef(Type type) {
+			var tdr = mapper?.Map(type);
+			if (tdr is TypeSpec)
+				throw new InvalidOperationException();
+			if (tdr is TypeDef td)
+				return td;
+			if (tdr is TypeRef tr)
+				return TryResolve(tr);
 
-		TypeRef CreateTypeRef2(Type type) {
+			if (TryToUseTypeDefs && IsThisModule(type.Module) && module.ResolveToken(type.MetadataToken) is TypeDef def)
+				return def;
+
+			return TryResolve(CreateTypeRef(type));
+		}
+
+		TypeRef CreateTypeRef(Type type) {
 			if (!type.IsNested)
 				return module.UpdateRowId(new TypeRefUser(module, type.Namespace ?? string.Empty, ReflectionExtensions.Unescape(type.Name) ?? string.Empty, CreateScopeReference(type)));
 			type.GetTypeNamespaceAndName_TypeDefOrRef(out var @namespace, out var name);
-			return module.UpdateRowId(new TypeRefUser(module, @namespace ?? string.Empty, name ?? string.Empty, CreateTypeRef2(type.DeclaringType)));
+			return module.UpdateRowId(new TypeRefUser(module, @namespace ?? string.Empty, name ?? string.Empty, CreateTypeRef(type.DeclaringType)));
 		}
 
 		IResolutionScope CreateScopeReference(Type type) {
