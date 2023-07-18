@@ -20,7 +20,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// </summary>
 		/// <param name="message">Exception message</param>
 		public PdbException(string message)
-			: base("Failed to read PDB: " + message) {
+			: base($"Failed to read PDB: {message}") {
 		}
 
 		/// <summary>
@@ -28,7 +28,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// </summary>
 		/// <param name="innerException">Inner exception</param>
 		public PdbException(Exception innerException)
-			: base("Failed to read PDB: " + innerException.Message, innerException) {
+			: base($"Failed to read PDB: {innerException.Message}", innerException) {
 		}
 
 		/// <summary>

@@ -46,7 +46,7 @@ namespace dnlib.DotNet.Resources {
 
 		void Write() {
 			if (resources.FormatVersion != 1 && resources.FormatVersion != 2)
-				throw new ArgumentException("Invalid format version: " + resources.FormatVersion, nameof(resources));
+				throw new ArgumentException($"Invalid format version: {resources.FormatVersion}", nameof(resources));
 
 			InitializeUserTypes(resources.FormatVersion);
 
@@ -145,7 +145,7 @@ namespace dnlib.DotNet.Resources {
 			}
 			else {
 				var mscorlibFullName = GetMscorlibFullname();
-				headerWriter.Write("System.Resources.ResourceReader, " + mscorlibFullName);
+				headerWriter.Write($"System.Resources.ResourceReader, {mscorlibFullName}");
 				headerWriter.Write("System.Resources.RuntimeResourceSet");
 			}
 			writer.Write((int)memStream.Position);

@@ -19,7 +19,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case 8:		return PdbImportDefinitionKind.AliasAssemblyNamespace;
 			case 9:		return PdbImportDefinitionKind.AliasType;
 			default:
-				Debug.Fail("Unknown import definition kind: 0x" + value.ToString("X"));
+				Debug.Fail($"Unknown import definition kind: 0x{value:X}");
 				return UNKNOWN_IMPORT_KIND;
 			}
 		}

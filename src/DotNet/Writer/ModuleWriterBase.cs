@@ -12,6 +12,7 @@ using System.Diagnostics;
 using dnlib.DotNet.Pdb.WindowsPdb;
 using System.Text;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -943,6 +944,12 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		SymbolWriter GetWindowsPdbSymbolWriter(PdbWriterOptions options, out string pdbFilename) {
+#if NETSTANDARD || NETCOREAPP
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+				pdbFilename = null;
+				return null;
+			}
+#endif
 			if (TheOptions.PdbStream is not null) {
 				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, TheOptions.PdbStream,
 							pdbFilename = TheOptions.PdbFileName ??

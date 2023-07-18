@@ -13,7 +13,7 @@ namespace dnlib.IO {
 			int p = (int)Environment.OSVersion.Platform;
 			if (p == 4 || p == 6 || p == 128)
 				isUnix = true;
-#if NETSTANDARD
+#if NETSTANDARD || NETCOREAPP
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				isUnix = true;
 #endif

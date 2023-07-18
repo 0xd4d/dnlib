@@ -263,7 +263,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!documents.TryGetValue(name, out var doc)) {
 				doc = new DbiDocument(name);
 
-				if (names.TryGetValue("/src/files/" + name, out uint streamId))
+				if (names.TryGetValue($"/src/files/{name}", out uint streamId))
 					doc.Read(ref streams[streamId].Content);
 				documents.Add(name, doc);
 			}

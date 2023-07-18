@@ -262,7 +262,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return tupleListRec;
 
 			default:
-				Debug.Fail("Unknown custom debug info kind: 0x" + ((int)recKind).ToString("X"));
+				Debug.Fail($"Unknown custom debug info kind: 0x{(int)recKind:X}");
 				data = reader.ReadBytes((int)(recPosEnd - reader.Position));
 				return new PdbUnknownCustomDebugInfo(recKind, data);
 			}

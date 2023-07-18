@@ -98,7 +98,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					break;
 
 				default:
-					Debug.Fail("Unknown import definition kind: " + kind.ToString());
+					Debug.Fail($"Unknown import definition kind: {kind}");
 					import = null;
 					break;
 				}

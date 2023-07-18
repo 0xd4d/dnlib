@@ -6,11 +6,15 @@ using System.Runtime.InteropServices;
 using dnlib.IO;
 using dnlib.DotNet.Pdb.Symbols;
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using dnlib.PE;
 using dnlib.DotNet.Writer;
 using dnlib.DotNet.Pdb.WindowsPdb;
 
 namespace dnlib.DotNet.Pdb.Dss {
+#if NETCOREAPP
+	[SupportedOSPlatform("windows")]
+#endif
 	static class SymbolReaderWriterFactory {
 		[DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories | DllImportSearchPath.AssemblyDirectory)]
 		[DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymReader")]

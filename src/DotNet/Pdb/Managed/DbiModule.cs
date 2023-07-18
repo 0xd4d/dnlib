@@ -157,7 +157,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (funcs[found].Lines is null) {
 				while (found > 0) {
 					var prevFunc = funcs[found - 1];
-					if (prevFunc is not null || prevFunc.Address != address)
+					if (prevFunc is not null && prevFunc.Address != address)
 						break;
 					found--;
 				}
