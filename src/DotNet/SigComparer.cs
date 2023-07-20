@@ -1475,6 +1475,8 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
+			if (FromSameModule(a, b))
+				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -2605,6 +2607,8 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
+			if (FromSameModule(a, b))
+				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -2933,6 +2937,8 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
+			if (FromSameModule(a, b))
+				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -2977,6 +2983,8 @@ exit: ;
 			if (a == b)
 				return true;
 			if (a is null || b is null)
+				return false;
+			if (FromSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -3023,6 +3031,8 @@ exit: ;
 			if (a == b)
 				return true;
 			if (a is null || b is null)
+				return false;
+			if (FromSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4684,5 +4694,7 @@ exit: ;
 
 		/// <inheritdoc/>
 		public override string ToString() => $"{recursionCounter} - {options}";
+
+		static bool FromSameModule(IOwnerModule a, IOwnerModule b) => a.Module is { } module && module == b.Module;
 	}
 }
