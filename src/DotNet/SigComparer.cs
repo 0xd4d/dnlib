@@ -485,6 +485,12 @@ namespace dnlib.DotNet {
 		/// When comparing types, don't compare a multi-dimensional array's lower bounds and sizes
 		/// </summary>
 		IgnoreMultiDimensionalArrayLowerBoundsAndSizes = 0x800000,
+
+		/// <summary>
+		/// When comparing MemberDefs in same module, comparing reference only can avoid conflict when members have same signature.
+		/// If this flag is set, these members are compared just like any other members.
+		/// </summary>
+		DisableCompareReferenceOnlyForMemberDefsInSameModule = 0x1000000,
 	}
 
 	/// <summary>
@@ -535,6 +541,7 @@ namespace dnlib.DotNet {
 		bool DontProjectWinMDRefs => (options & SigComparerOptions.DontProjectWinMDRefs) != 0;
 		bool DontCheckTypeEquivalence => (options & SigComparerOptions.DontCheckTypeEquivalence) != 0;
 		bool IgnoreMultiDimensionalArrayLowerBoundsAndSizes => (options & SigComparerOptions.IgnoreMultiDimensionalArrayLowerBoundsAndSizes) != 0;
+		bool CompareReferenceOnlyForMemberDefsInSameModule => (options & SigComparerOptions.DisableCompareReferenceOnlyForMemberDefsInSameModule) == 0;
 
 		/// <summary>
 		/// Constructor
@@ -1475,7 +1482,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (FromSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2607,7 +2614,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (FromSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2937,7 +2944,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (FromSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2984,7 +2991,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (FromSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -3032,7 +3039,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (FromSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -4695,6 +4702,6 @@ exit: ;
 		/// <inheritdoc/>
 		public override string ToString() => $"{recursionCounter} - {options}";
 
-		static bool FromSameModule(IOwnerModule a, IOwnerModule b) => a.Module is { } module && module == b.Module;
+		static bool InSameModule(IOwnerModule a, IOwnerModule b) => a.Module is { } module && module == b.Module;
 	}
 }
