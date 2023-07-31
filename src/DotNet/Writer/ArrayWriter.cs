@@ -11,7 +11,10 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the current position
 		/// </summary>
-		public int Position => position;
+		public int Position {
+			get => position;
+			set => position = value;
+		}
 
 		readonly byte[] data;
 		int position;
