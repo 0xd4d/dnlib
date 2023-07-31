@@ -785,6 +785,8 @@ namespace dnlib.DotNet.Writer {
 			int count = chunks.Count;
 			for (int i = 0; i < count; i++) {
 				var chunk = chunks[i];
+				// TODO: We should probably align the offset and RVA here to the chunk's required alignment!
+				chunk.CalculateAlignment();
 				chunk.SetOffset(offset, rva);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
 				if (chunk.GetVirtualSize() != 0) {

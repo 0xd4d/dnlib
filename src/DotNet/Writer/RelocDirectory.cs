@@ -82,6 +82,9 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
+		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			bool is64bit = machine.Is64Bit();
 			// 3 = IMAGE_REL_BASED_HIGHLOW, A = IMAGE_REL_BASED_DIR64

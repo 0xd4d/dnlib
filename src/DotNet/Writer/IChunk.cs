@@ -41,6 +41,13 @@ namespace dnlib.DotNet.Writer {
 		uint GetVirtualSize();
 
 		/// <summary>
+		/// Calculates the requires alignment of this chunk.
+		/// Returns 0 for default/no alignment.
+		/// </summary>
+		/// <returns>Required alignment</returns>
+		uint CalculateAlignment();
+
+		/// <summary>
 		/// Writes all data to <paramref name="writer"/> at its current location. It's only
 		/// called after <see cref="SetOffset"/> and <see cref="GetFileLength"/> have been called.
 		/// You cannot assume that <paramref name="writer"/>'s file position is the same as this
