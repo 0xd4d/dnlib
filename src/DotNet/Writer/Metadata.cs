@@ -2708,7 +2708,7 @@ namespace dnlib.DotNet.Writer {
 				uint alignment = ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT;
 				const uint MaxFieldInitialValueAlignment = 1024U;
 				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is {} classLayout) {
-					uint requiredAlignment = Math.Min(RoundUpToPowerOfTwo(classLayout.PackingSize), MaxFieldInitialValueAlignment);
+					uint requiredAlignment = Math.Min(Utils.RoundToNextPowerOfTwo(classLayout.PackingSize), MaxFieldInitialValueAlignment);
 					alignment = Math.Max(alignment, requiredAlignment);
 				}
 
@@ -2726,16 +2726,6 @@ namespace dnlib.DotNet.Writer {
 			if (sig is null)
 				return false;
 			return field.GetFieldSize() == size;
-		}
-
-		static uint RoundUpToPowerOfTwo(uint num) {
-			num--;
-			num |= num >> 1;
-			num |= num >> 2;
-			num |= num >> 4;
-			num |= num >> 8;
-			num |= num >> 16;
-			return num + 1;
 		}
 
 		/// <summary>
