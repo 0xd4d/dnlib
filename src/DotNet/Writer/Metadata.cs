@@ -2704,7 +2704,15 @@ namespace dnlib.DotNet.Writer {
 				if (!VerifyFieldSize(field, ivBytes.Length))
 					Error("Field '{0}' (0x{1:X8}) initial value size != size of field type.", field, field.MDToken.Raw);
 				uint rid = GetRid(field);
-				var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT);
+
+				uint alignment = ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT;
+				const uint MaxFieldInitialValueAlignment = 1024U;
+				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is {} classLayout) {
+					uint requiredAlignment = Math.Max(RoundUpToPowerOfTwo(classLayout.PackingSize), MaxFieldInitialValueAlignment);
+					alignment = Math.Max(alignment, requiredAlignment);
+				}
+
+				var iv = constants.Add(new ByteArrayChunk(ivBytes, alignment), alignment);
 				fieldToInitialValue[field] = iv;
 				var row = new RawFieldRVARow(0, rid);
 				fieldRVAInfos.Add(field, row);
@@ -2718,6 +2726,16 @@ namespace dnlib.DotNet.Writer {
 			if (sig is null)
 				return false;
 			return field.GetFieldSize() == size;
+		}
+
+		static uint RoundUpToPowerOfTwo(uint num) {
+			num--;
+			num |= num >> 1;
+			num |= num >> 2;
+			num |= num >> 4;
+			num |= num >> 8;
+			num |= num >> 16;
+			return num + 1;
 		}
 
 		/// <summary>
