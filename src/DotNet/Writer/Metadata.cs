@@ -2708,7 +2708,7 @@ namespace dnlib.DotNet.Writer {
 				uint alignment = ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT;
 				const uint MaxFieldInitialValueAlignment = 1024U;
 				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is {} classLayout) {
-					uint requiredAlignment = Math.Max(RoundUpToPowerOfTwo(classLayout.PackingSize), MaxFieldInitialValueAlignment);
+					uint requiredAlignment = Math.Min(RoundUpToPowerOfTwo(classLayout.PackingSize), MaxFieldInitialValueAlignment);
 					alignment = Math.Max(alignment, requiredAlignment);
 				}
 
