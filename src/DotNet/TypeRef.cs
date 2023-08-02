@@ -52,13 +52,13 @@ namespace dnlib.DotNet {
 		int IGenericParameterProvider.NumberOfGenericParameters => 0;
 
 		/// <inheritdoc/>
-		string IType.TypeName => FullNameFactory.Name(this, false, null);
+		string IType.TypeName => Name;
 
 		/// <inheritdoc/>
 		public string ReflectionName => FullNameFactory.Name(this, true, null);
 
 		/// <inheritdoc/>
-		string IType.Namespace => FullNameFactory.Namespace(this, false, null);
+		string IType.Namespace => Namespace;
 
 		/// <inheritdoc/>
 		public string ReflectionNamespace => FullNameFactory.Namespace(this, true, null);
