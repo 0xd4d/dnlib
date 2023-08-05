@@ -744,8 +744,34 @@ namespace dnlib.DotNet.Emit {
 			if (methodSig is null)
 				return null;
 			int index = GetParameterIndex();
-			if (index == 0 && methodSig.ImplicitThis)
-				return declaringType?.IsValueType == true ? new ByRefSig(declaringType.ToTypeSig()) : declaringType.ToTypeSig();
+			if (index == 0 && methodSig.ImplicitThis) {
+				if (declaringType is null)
+					return null;
+				TypeSig declSig;
+				bool isValueType;
+				if (declaringType is TypeSpec spec) {
+					declSig = spec.TypeSig;
+					isValueType = declSig.IsValueType;
+				}
+				else {
+					// Consistent with ParameterList.UpdateThisParameterType
+					var td = declaringType.ResolveTypeDef();
+					if (td is null)
+						return declaringType.ToTypeSig();
+					isValueType = td.IsValueType;
+					ClassOrValueTypeSig cvSig = isValueType ? new ValueTypeSig(td) : new ClassSig(td);
+					if (td.HasGenericParameters) {
+						int gpCount = td.GenericParameters.Count;
+						var genArgs = new List<TypeSig>(gpCount);
+						for (int i = 0; i < gpCount; i++)
+							genArgs.Add(new GenericVar(i, td));
+						declSig = new GenericInstSig(cvSig, genArgs);
+					}
+					else
+						declSig = cvSig;
+				}
+				return isValueType ? new ByRefSig(declSig) : declSig;
+			}
 			if (methodSig.ImplicitThis)
 				index--;
 			if ((uint)index < (uint)methodSig.Params.Count)
