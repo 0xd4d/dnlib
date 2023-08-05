@@ -503,14 +503,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the assembly name with the public key
 		/// </summary>
-		public string GetFullNameWithPublicKey() => GetFullName(publicKey);
+		public string GetFullNameWithPublicKey() => FullNameFactory.AssemblyFullName(this, false);
 
 		/// <summary>
 		/// Gets the assembly name with the public key token
 		/// </summary>
-		public string GetFullNameWithPublicKeyToken() => GetFullName(publicKey.Token);
-
-		string GetFullName(PublicKeyBase pkBase) => Utils.GetAssemblyNameString(name, version, culture, pkBase, Attributes);
+		public string GetFullNameWithPublicKeyToken() => FullNameFactory.AssemblyFullName(this, true);
 
 		/// <summary>
 		/// Finds a <see cref="TypeDef"/>. For speed, enable <see cref="ModuleDef.EnableTypeDefFindCache"/>

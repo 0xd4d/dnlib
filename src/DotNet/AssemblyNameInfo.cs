@@ -71,14 +71,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the full name of the assembly but use a public key token
 		/// </summary>
-		public string FullNameToken {
-			get {
-				var pk = publicKeyOrToken;
-				if (pk is PublicKey)
-					pk = (pk as PublicKey).Token;
-				return Utils.GetAssemblyNameString(name, version, culture, pk, flags);
-			}
-		}
+		public string FullNameToken => FullNameFactory.AssemblyFullName(this, true);
 
 		/// <summary>
 		/// Modify <see cref="Attributes"/> property: <see cref="Attributes"/> =

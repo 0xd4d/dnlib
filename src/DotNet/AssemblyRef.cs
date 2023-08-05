@@ -159,12 +159,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Same as <see cref="FullName"/>, except that it uses the <c>PublicKey</c> if available.
 		/// </summary>
-		public string RealFullName => Utils.GetAssemblyNameString(name, version, culture, publicKeyOrToken, Attributes);
+		public string RealFullName => FullNameFactory.AssemblyFullName(this, false);
 
 		/// <summary>
 		/// Gets the full name of the assembly but use a public key token
 		/// </summary>
-		public string FullNameToken => Utils.GetAssemblyNameString(name, version, culture, PublicKeyBase.ToPublicKeyToken(publicKeyOrToken), Attributes);
+		public string FullNameToken => FullNameFactory.AssemblyFullName(this, true);
 
 		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
