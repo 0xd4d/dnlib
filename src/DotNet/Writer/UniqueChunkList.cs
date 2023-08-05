@@ -53,5 +53,17 @@ namespace dnlib.DotNet.Writer {
 			chunks.Add(elem);
 			return elem.chunk;
 		}
+
+		/// <inheritdoc/>
+		public override uint CalculateAlignment() {
+			uint alignment = base.CalculateAlignment();
+			chunks.Sort(DescendingComparer.Instance);
+			return alignment;
+		}
+
+		class DescendingComparer : IComparer<Elem> {
+			internal static readonly DescendingComparer Instance = new DescendingComparer();
+			public int Compare(Elem x, Elem y) => -x.alignment.CompareTo(y.alignment);
+		}
 	}
 }
