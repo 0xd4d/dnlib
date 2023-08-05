@@ -60,6 +60,7 @@ namespace dnlib.DotNet.Writer {
 		byte[] WriteFormat1(string xml) => Encoding.Unicode.GetBytes(xml);
 
 		byte[] WriteFormat2(IList<SecurityAttribute> secAttrs) {
+			var sb = new StringBuilder();
 			var stream = new MemoryStream();
 			var writer = new DataWriter(stream);
 			writer.WriteByte((byte)'.');
@@ -81,8 +82,10 @@ namespace dnlib.DotNet.Writer {
 					helper.Error("SecurityAttribute attribute type is null");
 					fqn = string.Empty;
 				}
-				else
-					fqn = attrType.AssemblyQualifiedName;
+				else {
+					sb.Length = 0;
+					fqn = FullNameFactory.AssemblyQualifiedName(attrType, null, sb);
+				}
 				Write(writer, fqn);
 
 				var namedArgsBlob = context is null ?
