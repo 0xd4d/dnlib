@@ -1002,6 +1002,29 @@ namespace dnlib.DotNet {
 		public static ModuleDef OwnerModule(ExportedType exportedType) =>
 			new FullNameFactory().GetOwnerModule(exportedType);
 
+		/// <summary>
+		///	Returns the full assembly name of a <see cref="IAssembly"/>
+		/// </summary>
+		/// <param name="assembly">The <c>IAssembly</c></param>
+		/// <param name="withToken"><c>true</c> to use public key token in name even if a public key is available</param>
+		/// <param name="sb">String builder to use or null</param>
+		/// <returns>The full assembly name</returns>
+		public static string AssemblyFullName(IAssembly assembly, bool withToken, StringBuilder sb = null) =>
+			AssemblyFullNameSB(assembly, withToken, sb).ToString();
+
+		/// <summary>
+		///	Returns the full assembly name of a <see cref="IAssembly"/>
+		/// </summary>
+		/// <param name="assembly">The <c>IAssembly</c></param>
+		/// <param name="withToken"><c>true</c> to use public key token in name even if a public key is available</param>
+		/// <param name="sb">String builder to use or null</param>
+		/// <returns>The full assembly name</returns>
+		public static StringBuilder AssemblyFullNameSB(IAssembly assembly, bool withToken, StringBuilder sb = null) {
+			var fnc = new FullNameFactory(false, null, sb);
+			fnc.CreateAssemblyFullName(assembly, withToken);
+			return fnc.sb ?? new StringBuilder();
+		}
+
 		string Result => sb?.ToString();
 
 		FullNameFactory(bool isReflection, IFullNameFactoryHelper helper, StringBuilder sb) {
@@ -1094,8 +1117,10 @@ namespace dnlib.DotNet {
 			}
 
 			CreateFullName(typeRef);
-			if (MustUseAssemblyName(typeRef))
-				AddAssemblyName(GetDefinitionAssembly(typeRef));
+			if (MustUseAssemblyName(typeRef)) {
+				sb.Append(", ");
+				CreateAssemblyFullName(GetDefinitionAssembly(typeRef), true);
+			}
 
 			recursionCounter.Decrement();
 		}
@@ -1149,8 +1174,10 @@ namespace dnlib.DotNet {
 			}
 
 			CreateFullName(typeDef);
-			if (MustUseAssemblyName(typeDef))
-				AddAssemblyName(GetDefinitionAssembly(typeDef));
+			if (MustUseAssemblyName(typeDef)) {
+				sb.Append(", ");
+				CreateAssemblyFullName(GetDefinitionAssembly(typeDef), true);
+			}
 
 			recursionCounter.Decrement();
 		}
@@ -1238,8 +1265,10 @@ namespace dnlib.DotNet {
 			}
 
 			CreateFullName(typeSig);
-			if (MustUseAssemblyName(typeSig))
-				AddAssemblyName(GetDefinitionAssembly(typeSig));
+			if (MustUseAssemblyName(typeSig)) {
+				sb.Append(", ");
+				CreateAssemblyFullName(GetDefinitionAssembly(typeSig), true);
+			}
 
 			recursionCounter.Decrement();
 		}
@@ -1427,11 +1456,7 @@ namespace dnlib.DotNet {
 
 							if (mustWriteAssembly) {
 								sb.Append(", ");
-								var asm = GetDefinitionAssembly(genArg);
-								if (asm is null)
-									sb.Append(NULLVALUE);
-								else
-									sb.Append(EscapeAssemblyName(GetAssemblyName(asm)));
+								CreateAssemblyFullName(GetDefinitionAssembly(genArg), true, true);
 								sb.Append(']');
 							}
 						}
@@ -1499,8 +1524,10 @@ namespace dnlib.DotNet {
 			}
 
 			CreateFullName(exportedType);
-			if (MustUseAssemblyName(exportedType))
-				AddAssemblyName(GetDefinitionAssembly(exportedType));
+			if (MustUseAssemblyName(exportedType)) {
+				sb.Append(", ");
+				CreateAssemblyFullName(GetDefinitionAssembly(exportedType), true);
+			}
 
 			recursionCounter.Decrement();
 		}
@@ -1543,13 +1570,6 @@ namespace dnlib.DotNet {
 			AddName(exportedType.TypeName);
 		}
 
-		static string GetAssemblyName(IAssembly assembly) {
-			var pk = assembly.PublicKeyOrToken;
-			if (pk is PublicKey)
-				pk = ((PublicKey)pk).Token;
-			return Utils.GetAssemblyNameString(EscapeAssemblyName(assembly.Name), assembly.Version, assembly.Culture, pk, assembly.Attributes);
-		}
-
 		static string EscapeAssemblyName(UTF8String asmSimpleName) =>
 			EscapeAssemblyName(UTF8String.ToSystemString(asmSimpleName));
 
@@ -1590,16 +1610,43 @@ namespace dnlib.DotNet {
 			return true;
 		}
 
-		void AddAssemblyName(IAssembly assembly) {
-			sb.Append(", ");
-			if (assembly is null)
+		void CreateAssemblyFullName(IAssembly assembly, bool useToken, bool escapeClosingBracket = false) {
+			if (assembly is null) {
 				sb.Append(NULLVALUE);
-			else {
-				var pkt = assembly.PublicKeyOrToken;
-				if (pkt is PublicKey)
-					pkt = ((PublicKey)pkt).Token;
-				sb.Append(Utils.GetAssemblyNameString(assembly.Name, assembly.Version, assembly.Culture, pkt, assembly.Attributes));
+				return;
 			}
+
+			foreach (var c in UTF8String.ToSystemStringOrEmpty(assembly.Name)) {
+				if (c == ',' || c == '=' || (escapeClosingBracket && c == ']'))
+					sb.Append('\\');
+				sb.Append(c);
+			}
+
+			if (assembly.Version is not null) {
+				sb.Append(", Version=");
+				sb.Append(Utils.CreateVersionWithNoUndefinedValues(assembly.Version));
+			}
+
+			if (assembly.Culture is not null) {
+				sb.Append(", Culture=");
+				if (UTF8String.IsNullOrEmpty(assembly.Culture))
+					sb.Append("neutral");
+				else
+					sb.Append(escapeClosingBracket ? EscapeAssemblyName(assembly.Culture) : assembly.Culture.String);
+			}
+
+			var publicKey = assembly.PublicKeyOrToken;
+			if (useToken)
+				publicKey = PublicKeyBase.ToPublicKeyToken(publicKey);
+
+			sb.Append(", ");
+			sb.Append(publicKey is null || publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
+			sb.Append(publicKey is null ? "null" : publicKey.ToString());
+
+			if (assembly.IsRetargetable)
+				sb.Append(", Retargetable=Yes");
+			if (assembly.IsContentTypeWindowsRuntime)
+				sb.Append(", ContentType=WindowsRuntime");
 		}
 
 		void AddIdentifier(string id) {

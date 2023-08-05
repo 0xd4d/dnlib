@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -17,6 +18,7 @@ namespace dnlib.DotNet.Writer {
 	public struct CustomAttributeWriter : IDisposable {
 		readonly ICustomAttributeWriterHelper helper;
 		RecursionCounter recursionCounter;
+		readonly StringBuilder sb;
 		readonly MemoryStream outStream;
 		readonly DataWriter writer;
 		readonly bool disposeStream;
@@ -65,6 +67,7 @@ namespace dnlib.DotNet.Writer {
 		CustomAttributeWriter(ICustomAttributeWriterHelper helper) {
 			this.helper = helper;
 			recursionCounter = new RecursionCounter();
+			sb = new StringBuilder();
 			outStream = new MemoryStream();
 			writer = new DataWriter(outStream);
 			genericArguments = null;
@@ -74,6 +77,7 @@ namespace dnlib.DotNet.Writer {
 		CustomAttributeWriter(ICustomAttributeWriterHelper helper, DataWriterContext context) {
 			this.helper = helper;
 			recursionCounter = new RecursionCounter();
+			sb = new StringBuilder();
 			outStream = context.OutStream;
 			writer = context.Writer;
 			genericArguments = null;
@@ -715,8 +719,10 @@ namespace dnlib.DotNet.Writer {
 				helper.Error("Custom attribute: Type is null");
 				WriteUTF8String(UTF8String.Empty);
 			}
-			else
-				WriteUTF8String(FullNameFactory.AssemblyQualifiedName(type, helper));
+			else {
+				sb.Length = 0;
+				WriteUTF8String(FullNameFactory.AssemblyQualifiedName(type, helper, sb));
+			}
 		}
 
 		static bool CheckCorLibType(TypeSig ts, string name) {

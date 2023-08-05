@@ -23,47 +23,6 @@ namespace dnlib.DotNet {
 
 	static class Utils {
 		/// <summary>
-		/// Returns an assembly name string
-		/// </summary>
-		/// <param name="name">Simple assembly name</param>
-		/// <param name="version">Version or <c>null</c></param>
-		/// <param name="culture">Culture or <c>null</c></param>
-		/// <param name="publicKey">Public key / public key token or <c>null</c></param>
-		/// <param name="attributes">Assembly attributes</param>
-		/// <returns>An assembly name string</returns>
-		internal static string GetAssemblyNameString(UTF8String name, Version version, UTF8String culture, PublicKeyBase publicKey, AssemblyAttributes attributes) {
-			var sb = new StringBuilder();
-
-			foreach (var c in UTF8String.ToSystemStringOrEmpty(name)) {
-				if (c == ',' || c == '=')
-					sb.Append('\\');
-				sb.Append(c);
-			}
-
-			if (version is not null) {
-				sb.Append(", Version=");
-				sb.Append(CreateVersionWithNoUndefinedValues(version).ToString());
-			}
-
-			if (culture is not null) {
-				sb.Append(", Culture=");
-				sb.Append(UTF8String.IsNullOrEmpty(culture) ? "neutral" : culture.String);
-			}
-
-			sb.Append(", ");
-			sb.Append(publicKey is null || publicKey is PublicKeyToken ? "PublicKeyToken=" : "PublicKey=");
-			sb.Append(publicKey is null ? "null" : publicKey.ToString());
-
-			if ((attributes & AssemblyAttributes.Retargetable) != 0)
-				sb.Append(", Retargetable=Yes");
-
-			if ((attributes & AssemblyAttributes.ContentType_Mask) == AssemblyAttributes.ContentType_WindowsRuntime)
-				sb.Append(", ContentType=WindowsRuntime");
-
-			return sb.ToString();
-		}
-
-		/// <summary>
 		/// Convert a byte[] to a <see cref="string"/>
 		/// </summary>
 		/// <param name="bytes">All bytes</param>

@@ -94,7 +94,7 @@ namespace dnlib.DotNet {
 		public bool IsPrimitive => this.IsPrimitive();
 
 		/// <inheritdoc/>
-		string IType.TypeName => FullNameFactory.Name(this, false, null);
+		string IType.TypeName => TypeName;
 
 		/// <inheritdoc/>
 		public UTF8String Name {
@@ -106,7 +106,7 @@ namespace dnlib.DotNet {
 		public string ReflectionName => FullNameFactory.Name(this, true, null);
 
 		/// <inheritdoc/>
-		public string Namespace => FullNameFactory.Namespace(this, false, null);
+		public string Namespace => TypeNamespace;
 
 		/// <inheritdoc/>
 		public string ReflectionNamespace => FullNameFactory.Namespace(this, true, null);
