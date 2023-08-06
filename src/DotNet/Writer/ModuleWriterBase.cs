@@ -783,10 +783,15 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="sectionAlignment">Section alignment</param>
 		protected void CalculateRvasAndFileOffsets(List<IChunk> chunks, FileOffset offset, RVA rva, uint fileAlignment, uint sectionAlignment) {
 			int count = chunks.Count;
+			var maxAlignment = Math.Min(fileAlignment, sectionAlignment);
 			for (int i = 0; i < count; i++) {
 				var chunk = chunks[i];
-				// TODO: We should probably align the offset and RVA here to the chunk's required alignment!
-				chunk.CalculateAlignment();
+				// We don't need to align to result of CalculateAlignment as all the chunks in `chunks` either
+				// don't need a specific alignment or align themselves.
+				var alignment = chunk.CalculateAlignment();
+				if (alignment > maxAlignment)
+					Error("Chunk alignment is too big. Chunk: {0}, alignment: {1:X4}", chunk, alignment);
+
 				chunk.SetOffset(offset, rva);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
 				if (chunk.GetVirtualSize() != 0) {
