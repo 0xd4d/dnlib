@@ -51,6 +51,9 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public uint GetVirtualSize() => GetFileLength();
 
+		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
 		/// <summary>
 		/// Gets the raw length of the heap
 		/// </summary>

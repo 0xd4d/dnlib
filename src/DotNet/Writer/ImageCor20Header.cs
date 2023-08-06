@@ -114,6 +114,9 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
+		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			writer.WriteInt32(0x48);	// cb
 			writer.WriteUInt16(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);

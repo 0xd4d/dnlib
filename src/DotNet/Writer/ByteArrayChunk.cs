@@ -10,6 +10,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class ByteArrayChunk : IReuseChunk {
 		readonly byte[] array;
+		readonly uint alignment;
 		FileOffset offset;
 		RVA rva;
 
@@ -32,7 +33,11 @@ namespace dnlib.DotNet.Writer {
 		/// <see cref="GetHashCode"/> return value will be different if you modify the array). If
 		/// it's never inserted as a <c>key</c> in a dictionary, then the contents can be modified,
 		/// but shouldn't be resized after <see cref="SetOffset"/> has been called.</param>
-		public ByteArrayChunk(byte[] array) => this.array = array ?? Array2.Empty<byte>();
+		/// <param name="alignment">The alignment of the data</param>
+		public ByteArrayChunk(byte[] array, uint alignment = 0) {
+			this.array = array ?? Array2.Empty<byte>();
+			this.alignment = alignment;
+		}
 
 		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) => (uint)array.Length <= origSize;
 
@@ -47,6 +52,9 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public uint GetVirtualSize() => GetFileLength();
+
+		/// <inheritdoc/>
+		public uint CalculateAlignment() => alignment;
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) => writer.WriteBytes(array);

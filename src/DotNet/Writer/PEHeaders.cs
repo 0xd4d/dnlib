@@ -325,6 +325,9 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public uint GetVirtualSize() => GetFileLength();
 
+		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
 		IEnumerable<SectionSizeInfo> GetSectionSizeInfos() {
 			foreach (var section in sections) {
 				uint virtSize = section.GetVirtualSize();

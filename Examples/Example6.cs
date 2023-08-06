@@ -79,6 +79,7 @@ namespace dnlib.Examples {
 
 			public uint GetFileLength() => (uint)heapData.Length;
 			public uint GetVirtualSize() => GetFileLength();
+			public uint CalculateAlignment() => 0;
 			public void WriteTo(DataWriter writer) => writer.WriteBytes(heapData);
 		}
 

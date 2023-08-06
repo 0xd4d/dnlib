@@ -140,6 +140,9 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
+		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			uint offset = 0;
 			foreach (var entry in entries) {

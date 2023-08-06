@@ -136,6 +136,9 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
+		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			writer.WriteUInt32(options.Signature ?? MetadataHeaderOptions.DEFAULT_SIGNATURE);
 			writer.WriteUInt16(options.MajorVersion ?? 1);

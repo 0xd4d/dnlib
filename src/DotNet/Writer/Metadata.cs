@@ -2704,7 +2704,12 @@ namespace dnlib.DotNet.Writer {
 				if (!VerifyFieldSize(field, ivBytes.Length))
 					Error("Field '{0}' (0x{1:X8}) initial value size != size of field type.", field, field.MDToken.Raw);
 				uint rid = GetRid(field);
-				var iv = constants.Add(new ByteArrayChunk(ivBytes), ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT);
+
+				uint alignment = ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT;
+				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is {} classLayout)
+					alignment = Math.Max(alignment, Utils.RoundToNextPowerOfTwo(classLayout.PackingSize));
+
+				var iv = constants.Add(new ByteArrayChunk(ivBytes, alignment), alignment);
 				fieldToInitialValue[field] = iv;
 				var row = new RawFieldRVARow(0, rid);
 				fieldRVAInfos.Add(field, row);
@@ -3773,6 +3778,9 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public uint GetVirtualSize() => GetFileLength();
+
+		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {

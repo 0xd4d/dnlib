@@ -133,6 +133,9 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => GetFileLength();
 
 		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
+		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			writer.WriteBytes(code);
 			if (HasExtraSections) {

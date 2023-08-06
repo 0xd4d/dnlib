@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using dnlib.IO;
 using dnlib.PE;
@@ -113,6 +114,20 @@ namespace dnlib.DotNet.Writer {
 				elem.chunk.VerifyWriteTo(writer);
 				offset2 += (uint)paddingF + elem.chunk.GetFileLength();
 			}
+		}
+
+		/// <inheritdoc/>
+		public virtual uint CalculateAlignment() {
+			uint alignment = 0;
+			for (int i = 0; i < chunks.Count; i++) {
+				var elem = chunks[i];
+				uint newAlignment = Math.Max(elem.alignment, elem.chunk.CalculateAlignment());
+				chunks[i] = new Elem(elem.chunk, newAlignment);
+
+				alignment = Math.Max(alignment, newAlignment);
+			}
+
+			return alignment;
 		}
 	}
 }

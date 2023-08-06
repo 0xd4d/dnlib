@@ -275,5 +275,19 @@ namespace dnlib.DotNet {
 		/// <param name="v">Value</param>
 		/// <param name="alignment">Alignment</param>
 		public static int AlignUp(int v, uint alignment) => (int)AlignUp((uint)v, alignment);
+
+		/// <summary>
+		/// Rounds up the provided number to the next power of 2
+		/// </summary>
+		/// <param name="num">The number to round</param>
+		public static uint RoundToNextPowerOfTwo(uint num) {
+			num--;
+			num |= num >> 1;
+			num |= num >> 2;
+			num |= num >> 4;
+			num |= num >> 8;
+			num |= num >> 16;
+			return num + 1;
+		}
 	}
 }

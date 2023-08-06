@@ -44,6 +44,7 @@ namespace dnlib.DotNet.Writer {
 			void IChunk.SetOffset(FileOffset offset, RVA rva) => throw new NotSupportedException();
 			public uint GetFileLength() => owner.ExportDirSize;
 			public uint GetVirtualSize() => GetFileLength();
+			public uint CalculateAlignment() => 0;
 			void IChunk.WriteTo(DataWriter writer) => throw new NotSupportedException();
 		}
 
@@ -61,6 +62,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			public uint GetFileLength() => length;
 			public uint GetVirtualSize() => GetFileLength();
+			public uint CalculateAlignment() => 0;
 			public void WriteTo(DataWriter writer) => owner.WriteVtableFixups(writer);
 		}
 
@@ -78,6 +80,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			public uint GetFileLength() => length;
 			public uint GetVirtualSize() => GetFileLength();
+			public uint CalculateAlignment() => 0;
 			public void WriteTo(DataWriter writer) => owner.WriteStubs(writer);
 		}
 
@@ -95,6 +98,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			public uint GetFileLength() => length;
 			public uint GetVirtualSize() => GetFileLength();
+			public uint CalculateAlignment() => 0;
 			public void WriteTo(DataWriter writer) => owner.WriteSdata(writer);
 		}
 

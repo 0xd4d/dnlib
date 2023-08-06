@@ -331,6 +331,9 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public uint GetVirtualSize() => GetFileLength();
 
+		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
 		/// <summary>
 		/// Calculates the length. This will set all MD tables to read-only.
 		/// </summary>

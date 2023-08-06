@@ -87,6 +87,9 @@ namespace dnlib.DotNet.Writer {
 		public uint GetVirtualSize() => virtualSize;
 
 		/// <inheritdoc/>
+		public uint CalculateAlignment() => 0;
+
+		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			data.Position = 0;
 			data.CopyTo(writer);
