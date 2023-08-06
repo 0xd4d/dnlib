@@ -2706,11 +2706,8 @@ namespace dnlib.DotNet.Writer {
 				uint rid = GetRid(field);
 
 				uint alignment = ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT;
-				const uint MaxFieldInitialValueAlignment = 1024U;
-				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is {} classLayout) {
-					uint requiredAlignment = Math.Min(Utils.RoundToNextPowerOfTwo(classLayout.PackingSize), MaxFieldInitialValueAlignment);
-					alignment = Math.Max(alignment, requiredAlignment);
-				}
+				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is {} classLayout)
+					alignment = Math.Max(alignment, Utils.RoundToNextPowerOfTwo(classLayout.PackingSize));
 
 				var iv = constants.Add(new ByteArrayChunk(ivBytes, alignment), alignment);
 				fieldToInitialValue[field] = iv;
