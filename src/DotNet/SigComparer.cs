@@ -2614,7 +2614,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && CompareMethodFieldDeclaringType && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2944,7 +2944,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && CompareMethodFieldDeclaringType && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2991,7 +2991,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && ComparePropertyDeclaringType && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -3039,7 +3039,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (CompareReferenceOnlyForMemberDefsInSameModule && CompareEventDeclaringType && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
