@@ -22,6 +22,11 @@ namespace dnlib.DotNet {
 		public static readonly TypeEqualityComparer CaseInsensitive = new TypeEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly TypeEqualityComparer CompareReferenceInSameModule = new TypeEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -97,6 +102,11 @@ namespace dnlib.DotNet {
 		public static readonly FieldEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new FieldEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly FieldEqualityComparer CompareReferenceInSameModule = new FieldEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -146,6 +156,11 @@ namespace dnlib.DotNet {
 		/// Doesn't compare the declaring types, case insensitive names
 		/// </summary>
 		public static readonly MethodEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new MethodEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly MethodEqualityComparer CompareReferenceInSameModule = new MethodEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
 
 		/// <summary>
 		/// Constructor
@@ -211,6 +226,11 @@ namespace dnlib.DotNet {
 		public static readonly PropertyEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new PropertyEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly PropertyEqualityComparer CompareReferenceInSameModule = new PropertyEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -248,6 +268,11 @@ namespace dnlib.DotNet {
 		/// Doesn't compare the declaring types, case insensitive names
 		/// </summary>
 		public static readonly EventEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new EventEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly EventEqualityComparer CompareReferenceInSameModule = new EventEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
 
 		/// <summary>
 		/// Constructor
