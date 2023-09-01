@@ -487,10 +487,10 @@ namespace dnlib.DotNet {
 		IgnoreMultiDimensionalArrayLowerBoundsAndSizes = 0x800000,
 
 		/// <summary>
-		/// When comparing MemberDefs in same module, comparing reference only can avoid conflict when members have same signature.
-		/// If this flag is set, these members are compared just like any other members.
+		/// When comparing MemberDefs in same module, use regular reference comparison instead
+		/// comparing the signature, name, and other properties.
 		/// </summary>
-		DisableCompareReferenceOnlyForMemberDefsInSameModule = 0x1000000,
+		ReferenceCompareForMemberDefsInSameModule = 0x1000000,
 	}
 
 	/// <summary>
@@ -541,7 +541,7 @@ namespace dnlib.DotNet {
 		bool DontProjectWinMDRefs => (options & SigComparerOptions.DontProjectWinMDRefs) != 0;
 		bool DontCheckTypeEquivalence => (options & SigComparerOptions.DontCheckTypeEquivalence) != 0;
 		bool IgnoreMultiDimensionalArrayLowerBoundsAndSizes => (options & SigComparerOptions.IgnoreMultiDimensionalArrayLowerBoundsAndSizes) != 0;
-		bool CompareReferenceOnlyForMemberDefsInSameModule => (options & SigComparerOptions.DisableCompareReferenceOnlyForMemberDefsInSameModule) == 0;
+		bool ReferenceCompareForMemberDefsInSameModule => (options & SigComparerOptions.ReferenceCompareForMemberDefsInSameModule) != 0;
 
 		/// <summary>
 		/// Constructor
@@ -1482,7 +1482,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2614,7 +2614,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2944,7 +2944,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2991,7 +2991,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -3039,7 +3039,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
