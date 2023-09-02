@@ -22,6 +22,11 @@ namespace dnlib.DotNet {
 		public static readonly TypeEqualityComparer CaseInsensitive = new TypeEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly TypeEqualityComparer CompareReferenceInSameModule = new TypeEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -97,6 +102,11 @@ namespace dnlib.DotNet {
 		public static readonly FieldEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new FieldEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly FieldEqualityComparer CompareReferenceInSameModule = new FieldEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -146,6 +156,11 @@ namespace dnlib.DotNet {
 		/// Doesn't compare the declaring types, case insensitive names
 		/// </summary>
 		public static readonly MethodEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new MethodEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly MethodEqualityComparer CompareReferenceInSameModule = new MethodEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
 
 		/// <summary>
 		/// Constructor
@@ -211,6 +226,11 @@ namespace dnlib.DotNet {
 		public static readonly PropertyEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new PropertyEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
 
 		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly PropertyEqualityComparer CompareReferenceInSameModule = new PropertyEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Comparison options</param>
@@ -248,6 +268,11 @@ namespace dnlib.DotNet {
 		/// Doesn't compare the declaring types, case insensitive names
 		/// </summary>
 		public static readonly EventEqualityComparer CaseInsensitiveDontCompareDeclaringTypes = new EventEqualityComparer(SigComparerOptions.CaseInsensitiveAll);
+
+		/// <summary>
+		/// Compares definitions in same module using reference comparison instead of comparing them by name, signature, etc.
+		/// </summary>
+		public static readonly EventEqualityComparer CompareReferenceInSameModule = new EventEqualityComparer(SigComparerOptions.ReferenceCompareForMemberDefsInSameModule);
 
 		/// <summary>
 		/// Constructor
@@ -487,10 +512,10 @@ namespace dnlib.DotNet {
 		IgnoreMultiDimensionalArrayLowerBoundsAndSizes = 0x800000,
 
 		/// <summary>
-		/// When comparing MemberDefs in same module, comparing reference only can avoid conflict when members have same signature.
-		/// If this flag is set, these members are compared just like any other members.
+		/// When comparing MemberDefs in same module, use regular reference comparison instead
+		/// comparing the signature, name, and other properties.
 		/// </summary>
-		DisableCompareReferenceOnlyForMemberDefsInSameModule = 0x1000000,
+		ReferenceCompareForMemberDefsInSameModule = 0x1000000,
 	}
 
 	/// <summary>
@@ -541,7 +566,7 @@ namespace dnlib.DotNet {
 		bool DontProjectWinMDRefs => (options & SigComparerOptions.DontProjectWinMDRefs) != 0;
 		bool DontCheckTypeEquivalence => (options & SigComparerOptions.DontCheckTypeEquivalence) != 0;
 		bool IgnoreMultiDimensionalArrayLowerBoundsAndSizes => (options & SigComparerOptions.IgnoreMultiDimensionalArrayLowerBoundsAndSizes) != 0;
-		bool CompareReferenceOnlyForMemberDefsInSameModule => (options & SigComparerOptions.DisableCompareReferenceOnlyForMemberDefsInSameModule) == 0;
+		bool ReferenceCompareForMemberDefsInSameModule => (options & SigComparerOptions.ReferenceCompareForMemberDefsInSameModule) != 0;
 
 		/// <summary>
 		/// Constructor
@@ -1482,7 +1507,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2614,7 +2639,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2944,7 +2969,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -2991,7 +3016,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
@@ -3039,7 +3064,7 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			if (CompareReferenceOnlyForMemberDefsInSameModule && InSameModule(a, b))
+			if (ReferenceCompareForMemberDefsInSameModule && InSameModule(a, b))
 				return false;
 			if (!recursionCounter.Increment())
 				return false;
