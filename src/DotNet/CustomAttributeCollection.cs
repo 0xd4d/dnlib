@@ -38,7 +38,8 @@ namespace dnlib.DotNet {
 		/// <param name="fullName">Full name of custom attribute type that should be removed</param>
 		public void RemoveAll(string fullName) {
 			for (int i = Count - 1; i >= 0; i--) {
-				if (this[i].TypeFullName == fullName)
+				var ca = this[i];
+				if (ca is not null && fullName.EndsWith(ca.TypeName, StringComparison.Ordinal) && ca.TypeFullName == fullName)
 					RemoveAt(i);
 			}
 		}
@@ -50,7 +51,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="CustomAttribute"/> or <c>null</c> if it wasn't found</returns>
 		public CustomAttribute Find(string fullName) {
 			foreach (var ca in this) {
-				if (ca is not null && ca.TypeFullName == fullName)
+				if (ca is not null && fullName.EndsWith(ca.TypeName, StringComparison.Ordinal) && ca.TypeFullName == fullName)
 					return ca;
 			}
 
@@ -64,7 +65,7 @@ namespace dnlib.DotNet {
 		/// <returns>All <see cref="CustomAttribute"/>s of the requested type</returns>
 		public IEnumerable<CustomAttribute> FindAll(string fullName) {
 			foreach (var ca in this) {
-				if (ca is not null && ca.TypeFullName == fullName)
+				if (ca is not null && fullName.EndsWith(ca.TypeName, StringComparison.Ordinal) && ca.TypeFullName == fullName)
 					yield return ca;
 			}
 		}
