@@ -46,6 +46,24 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the name of the attribute type
+		/// </summary>
+		internal string TypeName {
+			get {
+				if (ctor is MemberRef mrCtor)
+					return mrCtor.GetDeclaringTypeName() ?? string.Empty;
+
+				if (ctor is MethodDef mdCtor) {
+					var declType = mdCtor.DeclaringType;
+					if (declType is not null)
+						return declType.Name;
+				}
+
+				return string.Empty;
+			}
+		}
+
+		/// <summary>
 		/// <c>true</c> if the raw custom attribute blob hasn't been parsed
 		/// </summary>
 		public bool IsRawBlob => rawData is not null;

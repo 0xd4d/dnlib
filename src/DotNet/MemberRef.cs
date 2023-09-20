@@ -288,6 +288,26 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Get the declaring type's name
+		/// </summary>
+		/// <returns>Name or <c>null</c> if there's no declaring type</returns>
+		internal string GetDeclaringTypeName() => GetDeclaringTypeName(@class);
+
+		string GetDeclaringTypeName(IMemberRefParent parent) {
+			if (parent is null)
+				return null;
+			if (parent is ITypeDefOrRef)
+				return ((ITypeDefOrRef)parent).Name;
+			if (parent is ModuleRef)
+				return $"<Module>";
+			if (parent is MethodDef) {
+				var declaringType = ((MethodDef)parent).DeclaringType;
+				return declaringType?.Name;
+			}
+			return null;    // Should never be reached
+		}
+
+		/// <summary>
 		/// Resolves the method/field
 		/// </summary>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
