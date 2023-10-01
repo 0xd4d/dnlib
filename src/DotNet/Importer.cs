@@ -650,7 +650,7 @@ namespace dnlib.DotNet {
 			try {
 				// Get the original field def in case the declaring type is a generic
 				// type instance and the field uses a generic type parameter.
-				origField = fieldInfo.Module.ResolveField(fieldInfo.MetadataToken);
+				origField = fieldInfo.DeclaringType is { IsGenericType: true } ? fieldInfo.Module.ResolveField(fieldInfo.MetadataToken) : fieldInfo;
 			}
 			catch (ArgumentException) {
 				origField = fieldInfo;
