@@ -87,6 +87,18 @@ namespace dnlib.DotNet {
 					if (t is null)
 						return false;
 				}
+				if (t is GenericSig gs && gs.GenericParam is { } gp) {
+					if (gp.HasReferenceTypeConstraint)
+						return false;
+					if (gp.HasNotNullableValueTypeConstraint)
+						return true;
+					foreach (var constraint in gp.GenericParamConstraints) {
+						if (constraint.Constraint.DefinitionAssembly.IsCorLib() && constraint.Constraint.FullName is "System.ValueType" or "System.Enum")
+							return true;
+						if (constraint.Constraint.ResolveTypeDef() is { IsInterface: false })
+							return false;
+					}
+				}
 				return t.ElementType.IsValueType();
 			}
 		}
