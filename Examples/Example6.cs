@@ -89,7 +89,7 @@ namespace dnlib.Examples {
 			case ModuleWriterEvent.PESectionsCreated:
 				// Add a PE section
 				var sect1 = new PESection(".dummy", 0x40000040);
-				e.Writer.Sections.Add(sect1);
+				e.Writer.AddSection(sect1);
 				// Let's add data
 				sect1.Add(new ByteArrayChunk(new byte[123]), 4);
 				sect1.Add(new ByteArrayChunk(new byte[10]), 4);
