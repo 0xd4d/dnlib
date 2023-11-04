@@ -353,7 +353,19 @@ namespace dnlib.DotNet.Writer {
 			var dnTableSizes = new DotNetTableSizes();
 			var tableInfos = dnTableSizes.CreateTables(majorVersion, minorVersion);
 			var rowCounts = GetRowCounts();
-			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, systemTables ?? rowCounts, rowCounts, options.ForceBigColumns ?? false);
+
+			var debugSizes = rowCounts;
+			if (systemTables is not null) {
+				debugSizes = new uint[rowCounts.Length];
+				for (int i = 0; i < rowCounts.Length; i++) {
+					if (DotNetTableSizes.IsSystemTable((Table)i))
+						debugSizes[i] = systemTables[i];
+					else
+						debugSizes[i] = rowCounts[i];
+				}
+			}
+
+			dnTableSizes.InitializeSizes(bigStrings, bigGuid, bigBlob, rowCounts, debugSizes, options.ForceBigColumns ?? false);
 			for (int i = 0; i < Tables.Length; i++)
 				Tables[i].TableInfo = tableInfos[i];
 
