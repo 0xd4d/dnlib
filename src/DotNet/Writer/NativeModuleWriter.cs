@@ -354,6 +354,12 @@ namespace dnlib.DotNet.Writer {
 			if (((uint)origRva & (requiredAlignment - 1)) != 0)
 				return;
 
+			var origEnd = origRva + origSize;
+			foreach (var reusedChunk in reusedChunks) {
+				if (origRva < reusedChunk.RVA + reusedChunk.Chunk.GetVirtualSize() && origEnd > reusedChunk.RVA)
+					return;
+			}
+
 			if (section.Remove(chunk) is null)
 				throw new InvalidOperationException();
 			reusedChunks.Add(new ReusedChunkInfo(chunk, origRva));
