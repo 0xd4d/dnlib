@@ -19,7 +19,7 @@
     <AssemblyName>dnlib</AssemblyName>
     <PackageId>dnlib</PackageId>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <Version>4.3.0</Version>
+    <Version>4.4.0</Version>
     <InformationalVersion>$(Version)</InformationalVersion>
     <Authors>0xd4d</Authors>
     <PackageProjectUrl>https://github.com/0xd4d/dnlib</PackageProjectUrl>
