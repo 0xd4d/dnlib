@@ -336,6 +336,8 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
+			if (asm.ManifestModule is { } module)
+				moduleSearchPaths.Remove(module);
 			return cachedAssemblies.Remove(asmKey);
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
@@ -355,6 +357,7 @@ namespace dnlib.DotNet {
 #endif
 			asms = new List<AssemblyDef>(cachedAssemblies.Values);
 			cachedAssemblies.Clear();
+		    moduleSearchPaths.Clear();
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
