@@ -492,11 +492,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeSig ReturnType {
 			get => MethodSig?.RetType;
-			set {
-				var ms = MethodSig;
-				if (ms is not null)
-					ms.RetType = value;
-			}
+			set => parameterList.ReturnParameter.Type = value;
 		}
 
 		/// <summary>
