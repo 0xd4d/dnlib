@@ -20,9 +20,9 @@ namespace dnlib.DotNet.Emit {
 		None						= 0,
 
 		/// <summary>
-		/// Some fields/methods have an unknown declaring type and don't have a context with
-		/// that information. If this is enabled, the reader will try to guess it but it doesn't
-		/// always work. If you get an <see cref="ArgumentException"/>, try enabling this option.
+		/// Fields in generic type have an unknown declaring type when built by DynamicILInfo.GetTokenFor(RuntimeFieldHandle field) 
+		/// rather than DynamicILInfo.GetTokenFor(RuntimeFieldHandle field, RuntimeTypeHandle contextType).
+		/// If you get an <see cref="ArgumentException"/>, try enabling this option.
 		/// </summary>
 		UnknownDeclaringType		= 0x00000001,
 	}
@@ -454,15 +454,8 @@ namespace dnlib.DotNet.Emit {
 			if (obj is null)
 				return null;
 
-			if (obj is RuntimeMethodHandle) {
-				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
-					// Sometimes it's a generic type but obj != `GenericMethodInfo`, so pass in 'default' and the
-					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
-					return importer.ImportAsOperand(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
-				}
-				else
-					return importer.ImportAsOperand(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
-			}
+			if (obj is RuntimeMethodHandle)
+				return importer.ImportAsOperand(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericMethodInfo") {
 				var context = (RuntimeTypeHandle)gmiContextFieldInfo.Read(obj);
@@ -505,7 +498,7 @@ namespace dnlib.DotNet.Emit {
 			if (obj is RuntimeFieldHandle) {
 				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
 					// Sometimes it's a generic type but obj != `GenericFieldInfo`, so pass in 'default' and the
-					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
+					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/552
 					return importer.ImportAsOperand(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
 				}
 				else
