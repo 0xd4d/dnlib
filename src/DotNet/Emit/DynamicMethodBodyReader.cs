@@ -420,16 +420,16 @@ namespace dnlib.DotNet.Emit {
 		protected override string ReadInlineString(Instruction instr) => ReadToken(reader.ReadUInt32()) as string ?? string.Empty;
 
 		/// <inheritdoc/>
-		protected override ITokenOperand ReadInlineTok(Instruction instr) => ReadToken(reader.ReadUInt32()) as ITokenOperand;
+		protected override ITokenOperand ReadInlineTok(Instruction instr) => ReadToken(reader.ReadUInt32(), true) as ITokenOperand;
 
 		/// <inheritdoc/>
 		protected override ITypeDefOrRef ReadInlineType(Instruction instr) => ReadToken(reader.ReadUInt32()) as ITypeDefOrRef;
 
-		object ReadToken(uint token) {
+		object ReadToken(uint token, bool ldtoken = false) {
 			uint rid = token & 0x00FFFFFF;
 			switch (token >> 24) {
 			case 0x02:
-				return ImportType(rid);
+				return ImportType(rid, ldtoken);
 
 			case 0x04:
 				return ImportField(rid);
@@ -521,10 +521,13 @@ namespace dnlib.DotNet.Emit {
 			return null;
 		}
 
-		ITypeDefOrRef ImportType(uint rid) {
+		ITypeDefOrRef ImportType(uint rid, bool ldtoken) {
 			var obj = Resolve(rid);
-			if (obj is RuntimeTypeHandle)
+			if (obj is RuntimeTypeHandle) {
+				if (ldtoken)
+					return importer.Import(Type.GetTypeFromHandle((RuntimeTypeHandle)obj));
 				return importer.ImportAsOperand(Type.GetTypeFromHandle((RuntimeTypeHandle)obj));
+			}
 
 			return null;
 		}
