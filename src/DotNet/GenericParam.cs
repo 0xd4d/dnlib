@@ -260,6 +260,14 @@ namespace dnlib.DotNet {
 			set => ModifyAttributes(value, GenericParamAttributes.DefaultConstructorConstraint);
 		}
 
+		/// <summary>
+		/// Gets/sets the <see cref="GenericParamAttributes.AllowByRefLike"/> bit
+		/// </summary>
+		public bool AllowsByRefLike {
+			get => ((GenericParamAttributes)attributes & GenericParamAttributes.AllowByRefLike) != 0;
+			set => ModifyAttributes(value, GenericParamAttributes.AllowByRefLike);
+		}
+
 		/// <inheritdoc/>
 		void IListListener<GenericParamConstraint>.OnLazyAdd(int index, ref GenericParamConstraint value) => OnLazyAdd2(index, ref value);
 

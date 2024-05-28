@@ -27,5 +27,7 @@ namespace dnlib.DotNet {
 		NotNullableValueTypeConstraint = 0x0008,
 		/// <summary>type argument must have a public default constructor</summary>
 		DefaultConstructorConstraint = 0x0010,
+		/// <summary>type argument can be ByRefLike</summary>
+		AllowByRefLike = 0x0020,
 	}
 }
