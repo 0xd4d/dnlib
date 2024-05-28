@@ -18,7 +18,7 @@ namespace dnlib.DotNet {
 		Contravariant			= 0x0002,
 
 		/// <summary/>
-		SpecialConstraintMask	= 0x001C,
+		SpecialConstraintMask	= 0x003C,
 		/// <summary/>
 		NoSpecialConstraint		= 0x0000,
 		/// <summary>type argument must be a reference type</summary>
@@ -27,5 +27,7 @@ namespace dnlib.DotNet {
 		NotNullableValueTypeConstraint = 0x0008,
 		/// <summary>type argument must have a public default constructor</summary>
 		DefaultConstructorConstraint = 0x0010,
+		/// <summary>type argument can be ByRefLike</summary>
+		AllowByRefLike = 0x0020,
 	}
 }
