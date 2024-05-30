@@ -1811,9 +1811,39 @@ namespace dnlib.DotNet.Writer {
 		void AddExportedTypes() {
 			using var _ = errorContext.SetSource("exported types");
 			var exportedTypes = module.ExportedTypes;
-			int count = exportedTypes.Count;
+
+			var nestedTypeDict = new Dictionary<ExportedType, List<ExportedType>>();
+			for (var i = 0; i < exportedTypes.Count; i++) {
+				var exportedType = exportedTypes[i];
+				if (exportedType.Implementation is not ExportedType decl)
+					continue;
+				if (!nestedTypeDict.TryGetValue(decl, out var nestedTypes))
+					nestedTypes = nestedTypeDict[decl] = new List<ExportedType>();
+				nestedTypes.Add(exportedType);
+			}
+
+			var sortedTypes = new List<ExportedType>(exportedTypes.Count);
+			var visited = new Dictionary<ExportedType, bool>();
+			var stack = new Stack<IEnumerator<ExportedType>>();
+			stack.Push(exportedTypes.GetEnumerator());
+			while (stack.Count > 0) {
+				var enumerator = stack.Pop();
+				while (enumerator.MoveNext()) {
+					var type = enumerator.Current;
+					if (visited.ContainsKey(type))
+						continue;
+					visited[type] = true;
+					sortedTypes.Add(type);
+					if (nestedTypeDict.TryGetValue(type, out var nested) && nested.Count > 0) {
+						stack.Push(enumerator);
+						enumerator = nested.GetEnumerator();
+					}
+				}
+			}
+
+			int count = sortedTypes.Count;
 			for (int i = 0; i < count; i++)
-				AddExportedType(exportedTypes[i]);
+				AddExportedType(sortedTypes[i]);
 		}
 
 		/// <summary>
