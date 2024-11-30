@@ -301,6 +301,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint GetEntryPoint() {
+			var ep = Options.Cor20HeaderOptions.EntryPoint;
+			if (ep is not null)
+				return ep.Value;
+
 			if (module.ManagedEntryPoint is MethodDef methodEntryPoint)
 				return new MDToken(Table.Method, metadata.GetRid(methodEntryPoint)).Raw;
 
