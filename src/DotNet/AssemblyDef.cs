@@ -901,6 +901,21 @@ namespace dnlib.DotNet {
 				var caRid = list[i];
 				if (!readerModule.TablesStream.TryReadCustomAttributeRow(caRid, out var caRow))
 					continue;
+
+				// Prevent a possible infinite loop.
+				// This can happen when a custom AssemblyResolver calls this function when resolving an AssemblyRef.
+				// If this function encounters a custom attribute whose type is a MemberRef with a TypeSpec class,
+				// the MemberRef constructor called by ResolveCustomAttributeType() will call ResolveTypeDef() which
+				// will make it back to the AssemblyResolver and back to this function creating an infinite loop.
+				// The TargetFrameworkAttribute will never be generic so we can just skip parsing any generic attributes.
+				if (!CodedToken.CustomAttributeType.Decode(caRow.Type, out MDToken token))
+					continue;
+				if (token.Table == Table.MemberRef &&
+					(!readerModule.TablesStream.TryReadMemberRefRow(token.Rid, out var mrRow) ||
+					 readerModule.ResolveMemberRefParent(mrRow.Class, gpContext) is TypeSpec ts &&
+					 ts.TypeSig is GenericInstSig))
+					continue;
+
 				var caType = readerModule.ResolveCustomAttributeType(caRow.Type, gpContext);
 				if (!TryGetName(caType, out var ns, out var name))
 					continue;
