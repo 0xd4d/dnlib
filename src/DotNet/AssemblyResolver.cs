@@ -338,7 +338,12 @@ namespace dnlib.DotNet {
 #endif
 			if (asm.ManifestModule is { } module)
 				moduleSearchPaths.Remove(module);
-			return cachedAssemblies.Remove(asmKey);
+			if (findExactMatch)
+				return cachedAssemblies.Remove(asmKey);
+			string[] keys = [.. cachedAssemblies.Where(x => x.Value == asm).Select(x => x.Key)];
+			foreach (string key in keys)
+				cachedAssemblies.Remove(key);
+			return keys.Length > 0;
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
