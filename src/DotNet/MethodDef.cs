@@ -856,6 +856,14 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the <see cref="MethodImplAttributes.Async"/> bit
+		/// </summary>
+		public bool IsAsync {
+			get => ((MethodImplAttributes)implAttributes & MethodImplAttributes.Async) != 0;
+			set => ModifyImplAttributes(value, MethodImplAttributes.Async);
+		}
+
+		/// <summary>
 		/// Gets/sets the <see cref="MethodSemanticsAttributes.Setter"/> bit
 		/// </summary>
 		public bool IsSetter {
