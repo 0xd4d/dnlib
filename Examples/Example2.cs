@@ -56,7 +56,7 @@ namespace dnlib.Examples {
 			body.Instructions.Add(OpCodes.Ret.ToInstruction());
 
 			// Save the assembly to a file on disk
-			mod.Write(@"C:\saved-assembly.dll");
+			mod.Write(@"saved-assembly.dll");
 		}
 	}
 }
