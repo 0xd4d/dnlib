@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Writer {
 				Write(custMarshaler.Guid);
 				Write(custMarshaler.NativeTypeName);
 				var cm = custMarshaler.CustomMarshaler;
-				var cmName = cm is null ? string.Empty : FullNameFactory.AssemblyQualifiedName(cm, this);
+				UTF8String cmName = cm is null ? custMarshaler.CustomMarshalerTypeName : FullNameFactory.AssemblyQualifiedName(cm, this);
 				Write(cmName);
 				Write(custMarshaler.Cookie);
 				break;
