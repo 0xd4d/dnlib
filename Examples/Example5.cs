@@ -8,7 +8,7 @@ namespace dnlib.Examples {
 	/// </summary>
 	public class Example5 {
 		public static void Run() {
-			string sectionFileName = @"c:\section{0}.bin";
+			string sectionFileName = @"section{0}.bin";
 
 			// Open the current mscorlib
 			var mod = ModuleDefMD.Load(typeof(int).Module);

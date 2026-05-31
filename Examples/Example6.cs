@@ -16,7 +16,7 @@ namespace dnlib.Examples {
 		public static void Run() => new Example6().DoIt();
 
 		void DoIt() {
-			string destFileName = @"c:\output.dll";
+			string destFileName = @"output.dll";
 
 			// Open the current module
 			var mod = ModuleDefMD.Load(typeof(Example6).Module);

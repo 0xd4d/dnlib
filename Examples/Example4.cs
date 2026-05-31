@@ -63,7 +63,7 @@ namespace dnlib.Examples {
 	public class Example4 {
 		public static void Run() {
 			// This is the file that will be created
-			string newFileName = @"C:\ctor-test.exe";
+			string newFileName = @"ctor-test.exe";
 
 			// Create the module
 			var mod = new ModuleDefUser("ctor-test", Guid.NewGuid(),

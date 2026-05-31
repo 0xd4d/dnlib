@@ -28,7 +28,7 @@ namespace dnlib.Examples {
 			mod.Kind = ModuleKind.Console;
 
 			// Add the module to an assembly
-			var asm = new AssemblyDefUser("MyAssembly", new Version(1, 2, 3, 4), null, null);
+			var asm = new AssemblyDefUser("MyAssembly", new Version(1, 2, 3, 4), null, UTF8String.Empty);
 			asm.Modules.Add(mod);
 
 			// Add a .NET resource
@@ -72,7 +72,7 @@ namespace dnlib.Examples {
 			epBody.Instructions.Add(OpCodes.Ret.ToInstruction());
 
 			// Save the assembly to a file on disk
-			mod.Write(@"C:\saved-assembly.exe");
+			mod.Write(@"saved-assembly.exe");
 		}
 	}
 }
