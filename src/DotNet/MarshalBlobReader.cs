@@ -110,7 +110,7 @@ namespace dnlib.DotNet {
 					var custMarshalerName = ReadUTF8String();
 					var cmRef = custMarshalerName.DataLength == 0 ? null : TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(custMarshalerName), new CAAssemblyRefFinder(module), gpContext);
 					var cookie = ReadUTF8String();
-					returnValue = new CustomMarshalType(guid, nativeTypeName, cmRef, cookie);
+					returnValue = new CustomMarshalType(guid, nativeTypeName, custMarshalerName, cmRef, cookie);
 					break;
 
 				case NativeType.IUnknown:

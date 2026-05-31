@@ -363,6 +363,7 @@ namespace dnlib.DotNet {
 	public sealed class CustomMarshalType : MarshalType {
 		UTF8String guid;
 		UTF8String nativeTypeName;
+		UTF8String custMarshalerTypeName;
 		ITypeDefOrRef custMarshaler;
 		UTF8String cookie;
 
@@ -383,7 +384,17 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets/sets the custom marshaller type name string
+		/// <remarks>This property is used when writing only when <see cref="CustomMarshaler"/> is null.</remarks>
+		/// </summary>
+		public UTF8String CustomMarshalerTypeName {
+			get => custMarshalerTypeName;
+			set => custMarshalerTypeName = value;
+		}
+
+		/// <summary>
 		/// Gets/sets the custom marshaler
+		/// <remarks>This property takes priority over <see cref="CustomMarshalerTypeName"/> when writing.</remarks>
 		/// </summary>
 		public ITypeDefOrRef CustomMarshaler {
 			get => custMarshaler;
@@ -427,7 +438,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="guid">GUID string</param>
 		/// <param name="nativeTypeName">Native type name string</param>
-		/// <param name="custMarshaler">Custom marshaler name string</param>
+		/// <param name="custMarshaler">Custom marshaler type</param>
 		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, ITypeDefOrRef custMarshaler)
 			: this(guid, nativeTypeName, custMarshaler, null) {
 		}
@@ -437,18 +448,35 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="guid">GUID string</param>
 		/// <param name="nativeTypeName">Native type name string</param>
-		/// <param name="custMarshaler">Custom marshaler name string</param>
+		/// <param name="custMarshaler">Custom marshaler type</param>
 		/// <param name="cookie">Cookie string</param>
 		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, ITypeDefOrRef custMarshaler, UTF8String cookie)
+			: this(guid, nativeTypeName, null, custMarshaler, cookie) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="guid">GUID string</param>
+		/// <param name="nativeTypeName">Native type name string</param>
+		/// <param name="custMarshalerTypeName">Custom marshaler name string</param>
+		/// <param name="custMarshaler">Custom marshaler type</param>
+		/// <param name="cookie">Cookie string</param>
+		public CustomMarshalType(UTF8String guid, UTF8String nativeTypeName, UTF8String custMarshalerTypeName, ITypeDefOrRef custMarshaler, UTF8String cookie)
 			: base(NativeType.CustomMarshaler) {
 			this.guid = guid;
 			this.nativeTypeName = nativeTypeName;
+			this.custMarshalerTypeName = custMarshalerTypeName;
 			this.custMarshaler = custMarshaler;
 			this.cookie = cookie;
 		}
 
 		/// <inheritdoc/>
-		public override string ToString() => $"{nativeType} ({guid}, {nativeTypeName}, {custMarshaler}, {cookie})";
+		public override string ToString() {
+			if (custMarshaler is not null)
+				return $"{nativeType} ({guid}, {nativeTypeName}, {custMarshaler}, {cookie})";
+			return $"{nativeType} ({guid}, {nativeTypeName}, {custMarshalerTypeName}, {cookie})";
+		}
 	}
 
 	/// <summary>
