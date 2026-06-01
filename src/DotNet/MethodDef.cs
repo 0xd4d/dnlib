@@ -498,6 +498,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if the method returns a value (i.e., return type is not <see cref="System.Void"/>)
 		/// </summary>
+		/// <remarks>
+		/// <see cref="MethodImplAttributes.Async"/> methods also do not have matching return type conventions as sync methods.
+		/// For sync methods, the stack should contain a value convertible to the stated return type before the <see cref="OpCodes.Ret"/> instruction.
+		/// For async methods, the stack should be empty in the case of <c>Task</c> or <c>ValueTask</c>, or the type argument in the case of <c>Task&lt;T&gt;</c> or <c>ValueTask&lt;T&gt;</c>.
+		/// <seealso href="https://github.com/dotnet/runtime/blob/main/docs/design/specs/runtime-async.md"/>
+		/// </remarks>
 		public bool HasReturnType => ReturnType.RemovePinnedAndModifiers().GetElementType() != ElementType.Void;
 
 		/// <summary>
