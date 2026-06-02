@@ -706,6 +706,9 @@ namespace dnlib.DotNet {
 		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 			var searchPaths = GetSearchPaths(sourceModule);
+#if NETCOREAPP
+			searchPaths = searchPaths.Union(new string[] { System.IO.Path.GetDirectoryName(typeof(System.Math).Assembly.Location) });
+#endif
 			var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
 			foreach (var ext in exts) {
 				foreach (var path in searchPaths) {

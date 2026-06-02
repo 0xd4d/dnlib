@@ -380,6 +380,9 @@ namespace dnlib.DotNet {
 			if (Utils.CompareTo(assembly.Version, redirect.redirectVersion) == 0)
 				redirectedAssembly = assembly;
 			else {
+				// Don't redirect System.Runtime to an older version
+				if (assembly.Name == "System.Runtime" && Utils.CompareTo(assembly.Version, redirect.redirectVersion) > 0)
+					return false;
 				redirectedAssembly = new AssemblyNameInfo(assembly);
 				redirectedAssembly.Version = redirect.redirectVersion;
 			}
