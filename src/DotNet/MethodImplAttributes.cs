@@ -46,5 +46,7 @@ namespace dnlib.DotNet {
 		AggressiveOptimization	= 0x0200,
 		/// <summary>The JIT compiler should look for security mitigation attributes, such as the user-defined System.Runtime.CompilerServices.SecurityMitigationsAttribute. If found, the JIT compiler applies any related security mitigations. Available starting with .NET Framework 4.8.</summary>
 		SecurityMitigations		= 0x0400,
+		/// <summary>Method requires async state machine rewrite. Available starting with .NET 11.0.</summary>
+		Async					= 0x2000,
 	}
 }
