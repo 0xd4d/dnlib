@@ -97,6 +97,7 @@ namespace dnlib.DotNet {
 		readonly ModuleDef module;
 		internal readonly GenericParamContext gpContext;
 		readonly ImportMapper mapper;
+		readonly Type originalDeclaringType;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
 
@@ -158,12 +159,30 @@ namespace dnlib.DotNet {
 		/// <param name="options">Importer options</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="mapper">Mapper for renamed entities</param>
-		public Importer(ModuleDef module, ImporterOptions options, GenericParamContext gpContext, ImportMapper mapper) {
+		public Importer(ModuleDef module, ImporterOptions options, GenericParamContext gpContext, ImportMapper mapper)
+			: this(module, options, gpContext, mapper, null) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="module">The module that will own all references</param>
+		/// <param name="options">Importer options</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="mapper">Mapper for renamed entities</param>
+		/// <param name="originalDeclaringType">
+		/// WARNING:<br/>
+		/// The declaring type of the method when reading a dynamic method.<br/>Pass a non-null value only
+		/// when you need to allow open generic, which changes some importing behavior to be compatible
+		/// with illegal open generic dynamic methods.
+		/// </param>
+		public Importer(ModuleDef module, ImporterOptions options, GenericParamContext gpContext, ImportMapper mapper, Type originalDeclaringType) {
 			this.module = module;
 			recursionCounter = new RecursionCounter();
 			this.options = options;
 			this.gpContext = gpContext;
 			this.mapper = mapper;
+			this.originalDeclaringType = originalDeclaringType;
 		}
 
 		/// <summary>
@@ -172,6 +191,18 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef Import(Type type) => module.UpdateRowId(ImportAsTypeSig(type).ToTypeDefOrRef());
+
+		/// <summary>
+		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>.
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <param name="treatAsGenericInst">
+		/// In the .NET metadata (method sig), the parameter is a generic instance type, but the CLR treats it as
+		/// if it's just a generic type def. This seems to happen only if the parameter type is exactly the same
+		/// type as the declaring type, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>.
+		/// </param>
+		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
+		public ITypeDefOrRef Import(Type type, bool? treatAsGenericInst) => module.UpdateRowId(ImportAsTypeSig(type, treatAsGenericInst).ToTypeDefOrRef());
 
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>. See also <see cref="Import(Type)"/>
@@ -196,7 +227,19 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public TypeSig ImportAsTypeSig(Type type) => ImportAsTypeSig(type, null, false);
+		public TypeSig ImportAsTypeSig(Type type) => ImportAsTypeSig(type, false);
+
+		/// <summary>
+		/// Imports a <see cref="Type"/> as a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <param name="treatAsGenericInst">
+		/// In the .NET metadata (method sig), the parameter is a generic instance type, but the CLR treats it as
+		/// if it's just a generic type def. This seems to happen only if the parameter type is exactly the same
+		/// type as the declaring type, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>.
+		/// </param>
+		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
+		public TypeSig ImportAsTypeSig(Type type, bool? treatAsGenericInst) => ImportAsTypeSig(type, originalDeclaringType, treatAsGenericInst);
 
 		TypeSig ImportAsTypeSig(Type type, Type declaringType, bool? treatAsGenericInst = null) {
 			if (type is null)
@@ -406,7 +449,7 @@ namespace dnlib.DotNet {
 		/// <param name="optionalModifiers">A list of all optional modifiers or <c>null</c></param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers) =>
-			ImportAsTypeSig(type, requiredModifiers, optionalModifiers, null);
+			ImportAsTypeSig(type, requiredModifiers, optionalModifiers, originalDeclaringType);
 
 		TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers, Type declaringType) {
 			if (type is null)
@@ -482,13 +525,13 @@ namespace dnlib.DotNet {
 				IMethodDefOrRef method;
 				var origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
 				if (methodBase.DeclaringType.GetElementType2() == ElementType.GenericInst)
-					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), Import(methodBase.DeclaringType)));
+					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), Import(methodBase.DeclaringType, null)));
 				else
 					method = ImportInternal(origMethod) as IMethodDefOrRef;
 
 				method = TryResolveMethod(method);
-				if (methodBase.ContainsGenericParameters)
-					return method; // Declaring type is instantiated but method itself is not
+				if (methodBase.ContainsGenericParameters && originalDeclaringType is null)
+					return method; // Declaring type is instantiated but method itself is not, this is a MemberRef. When importing a dynamic method, treat it as open generic.
 
 				var gim = CreateGenericInstMethodSig(methodBase);
 				var methodSpec = module.UpdateRowId(new MethodSpecUser(method, gim));
@@ -504,7 +547,7 @@ namespace dnlib.DotNet {
 					parent = GetModuleParent(methodBase.Module);
 				}
 				else
-					parent = Import(methodBase.DeclaringType);
+					parent = Import(methodBase.DeclaringType, null);
 				if (parent is null)
 					return null;
 
@@ -587,7 +630,7 @@ namespace dnlib.DotNet {
 			var genMethodArgs = mb.GetGenericArguments();
 			var gim = new GenericInstMethodSig(CallingConvention.GenericInst, (uint)genMethodArgs.Length);
 			foreach (var gma in genMethodArgs)
-				gim.GenericArguments.Add(ImportAsTypeSig(gma));
+				gim.GenericArguments.Add(ImportAsTypeSig(gma, null));
 			return gim;
 		}
 
@@ -642,7 +685,7 @@ namespace dnlib.DotNet {
 				parent = GetModuleParent(fieldInfo.Module);
 			}
 			else
-				parent = Import(fieldInfo.DeclaringType);
+				parent = Import(fieldInfo.DeclaringType, null);
 			if (parent is null)
 				return null;
 
