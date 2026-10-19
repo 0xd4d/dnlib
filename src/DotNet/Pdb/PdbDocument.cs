@@ -61,8 +61,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public PdbDocument() {
-		}
+		public PdbDocument() => customDebugInfos = new List<PdbCustomDebugInfo>();
 
 		/// <summary>
 		/// Constructor
@@ -110,6 +109,7 @@ namespace dnlib.DotNet.Pdb {
 			DocumentType = documentType;
 			CheckSumAlgorithmId = checkSumAlgorithmId;
 			CheckSum = checkSum;
+			customDebugInfos = new List<PdbCustomDebugInfo>();
 		}
 
 		/// <inheritdoc/>
