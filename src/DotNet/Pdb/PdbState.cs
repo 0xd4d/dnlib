@@ -130,6 +130,11 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		PdbDocument Add_NoLock(SymbolDocument symDoc) {
+			// A document read from a Portable PDB is identified by its Document row. Look it up by
+			// token first, so that editing its Url after loading doesn't make the lazy lookup from
+			// AddSequencePoints miss it and add the same row a second time (see #566).
+			if (symDoc.MDToken.HasValue && tokenToDocument.TryGetValue(symDoc.MDToken.Value, out var existing))
+				return existing;
 			var doc = PdbDocument.CreatePartialForCompare(symDoc);
 			if (docDict.TryGetValue(doc, out var orig))
 				return orig;
@@ -150,9 +155,13 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (doc.MDToken.HasValue)
-				tokenToDocument.Remove(doc.MDToken.Value);
-			return docDict.Remove(doc);
+			// doc may be an equal copy of the stored document, so remove the stored document's token
+			if (!docDict.TryGetValue(doc, out var stored))
+				return false;
+			docDict.Remove(doc);
+			if (stored.MDToken.HasValue)
+				tokenToDocument.Remove(stored.MDToken.Value);
+			return true;
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
