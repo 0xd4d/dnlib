@@ -14,34 +14,35 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <param name="stream">PE image stream positioned at the MZ bytes</param>
 		/// <param name="length">Length of image</param>
-		/// <param name="checkSumOffset">Offset of checksum</param>
+		/// <param name="checkSumOffset">Stream position of the checksum field</param>
 		/// <returns>PE checksum</returns>
 		internal static uint CalculatePECheckSum(this Stream stream, long length, long checkSumOffset) {
 			if ((length & 1) != 0)
 				ThrowInvalidOperationException("Invalid PE length");
+			// Offset relative to the start of the image
+			long ckOffs = checkSumOffset - stream.Position;
+			const int ChecksumFieldSize = 4;
+			// length is even and so is the buffer size, so every read is an even number of bytes
 			var buffer = new byte[(int)Math.Min(length, 0x2000)];
 			uint checkSum = 0;
-			checkSum = CalculatePECheckSum(stream, checkSumOffset, checkSum, buffer);
-			const int ChecksumFieldSize = 4;
-			stream.Position += ChecksumFieldSize;
-			checkSum = CalculatePECheckSum(stream, length - checkSumOffset - ChecksumFieldSize, checkSum, buffer);
-			ulong cks = (ulong)checkSum + (ulong)length;
-			return (uint)cks + (uint)(cks >> 32);
-		}
-
-		static uint CalculatePECheckSum(Stream stream, long length, uint checkSum, byte[] buffer) {
 			for (long offset = 0; offset < length;) {
 				int len = (int)Math.Min(length - offset, buffer.Length);
 				StreamUtils.ReadAll(stream, buffer, 0, len);
 
-				for (int i = 0; i < len;) {
-					checkSum += buffer[i++] | ((uint)buffer[i++] << 8);
+				// The checksum field is hashed as zeros
+				long end = Math.Min(ckOffs + ChecksumFieldSize, offset + len);
+				for (long i = Math.Max(ckOffs, offset); i < end; i++)
+					buffer[i - offset] = 0;
+
+				for (int i = 0; i < len; i += 2) {
+					checkSum += buffer[i] | ((uint)buffer[i + 1] << 8);
 					checkSum = (ushort)(checkSum + (checkSum >> 16));
 				}
 
 				offset += len;
 			}
-			return checkSum;
+			ulong cks = (ulong)checkSum + (ulong)length;
+			return (uint)cks + (uint)(cks >> 32);
 		}
 
 		static void ThrowInvalidOperationException(string message) => throw new InvalidOperationException(message);
