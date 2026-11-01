@@ -7,6 +7,9 @@ indent_size = 4
 indent_style = tab
 tab_width = 4
 
+[*.{cs,csproj}]
+end_of_line = lf
+
 [*.json]
 
 [app.config]
