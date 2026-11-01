@@ -1094,6 +1094,9 @@ namespace dnlib.DotNet.Writer {
 
 			bool isOld = forceIsOld || (PreserveMemberRefRids && mod.ResolveMemberRef(mr.Rid) == mr);
 			var row = new RawMemberRefRow(AddMemberRefParent(mr.Class), stringsHeap.Add(mr.Name), GetSignature(mr.Signature));
+			// Importing the parent can recursively add this member through a custom attribute.
+			if (memberRefInfos.TryGetRid(mr, out rid))
+				return rid;
 			if (isOld) {
 				rid = mr.Rid;
 				tablesHeap.MemberRefTable[mr.Rid] = row;

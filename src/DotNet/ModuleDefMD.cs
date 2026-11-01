@@ -47,6 +47,7 @@ namespace dnlib.DotNet {
 		SimpleLazyList<PropertyDefMD> listPropertyDefMD;
 		SimpleLazyList<ModuleRefMD> listModuleRefMD;
 		SimpleLazyList2<TypeSpecMD> listTypeSpecMD;
+		SimpleLazyList<CustomAttributeCollection> typeSpecCustomAttributes;
 		SimpleLazyList<ImplMapMD> listImplMapMD;
 		SimpleLazyList<AssemblyDefMD> listAssemblyDefMD;
 		SimpleLazyList<AssemblyRefMD> listAssemblyRefMD;
@@ -522,6 +523,10 @@ namespace dnlib.DotNet {
 			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.PropertyTable.Rows, rid2 => new PropertyDefMD(this, rid2));
 			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.ModuleRefTable.Rows, rid2 => new ModuleRefMD(this, rid2));
 			listTypeSpecMD = new SimpleLazyList2<TypeSpecMD>(ts.TypeSpecTable.Rows, (rid2, gpContext) => new TypeSpecMD(this, rid2, gpContext));
+			typeSpecCustomAttributes = new SimpleLazyList<CustomAttributeCollection>(ts.TypeSpecTable.Rows, rid2 => {
+				var list = Metadata.GetCustomAttributeRidList(Table.TypeSpec, rid2);
+				return new CustomAttributeCollection(list.Count, list, (list2, index) => ReadCustomAttribute(list[index]));
+			});
 			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.ImplMapTable.Rows, rid2 => new ImplMapMD(this, rid2));
 			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.AssemblyTable.Rows, rid2 => new AssemblyDefMD(this, rid2));
 			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.FileTable.Rows, rid2 => new FileDefMD(this, rid2));
@@ -1304,6 +1309,13 @@ namespace dnlib.DotNet {
 			reader.Position = (uint)offset;
 			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext, Context);
 		}
+
+		/// <summary>
+		/// Gets the shared custom attributes of a <see cref="TypeSpec"/> row
+		/// </summary>
+		/// <param name="rid">The original row ID</param>
+		/// <returns>The custom attribute collection or <c>null</c> if <paramref name="rid"/> is invalid</returns>
+		internal CustomAttributeCollection GetTypeSpecCustomAttributes(uint rid) => typeSpecCustomAttributes[rid - 1];
 
 		/// <summary>
 		/// Returns the owner type of a field

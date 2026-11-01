@@ -298,8 +298,8 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.TypeSpec, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			// Attributes belong to the metadata row, not to its generic parameter context.
+			var tmp = readerModule.GetTypeSpecCustomAttributes(origRid);
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

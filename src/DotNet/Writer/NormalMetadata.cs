@@ -286,6 +286,9 @@ namespace dnlib.DotNet.Writer {
 			var row = new RawMemberRefRow(AddMemberRefParent(mr.Class),
 							stringsHeap.Add(mr.Name),
 							GetSignature(mr.Signature));
+			// Importing the parent can recursively add this member through a custom attribute.
+			if (memberRefInfos.TryGetRid(mr, out rid))
+				return rid;
 			rid = tablesHeap.MemberRefTable.Add(row);
 			memberRefInfos.Add(mr, rid);
 			AddCustomAttributes(Table.MemberRef, rid, mr);

@@ -486,6 +486,7 @@ namespace dnlib.DotNet.Writer {
 		internal readonly Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
 		internal readonly Dictionary<MethodDef, NativeMethodBody> methodToNativeBody = new Dictionary<MethodDef, NativeMethodBody>();
 		internal readonly Dictionary<EmbeddedResource, DataReaderChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, DataReaderChunk>();
+		readonly Dictionary<CustomAttributeCollection, HashSet<uint>> typeSpecCustomAttributes = new Dictionary<CustomAttributeCollection, HashSet<uint>>();
 		readonly Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
 		readonly Rows<PdbDocument> pdbDocumentInfos = new Rows<PdbDocument>();
 		bool methodDebugInformationInfosUsed;
@@ -593,9 +594,11 @@ namespace dnlib.DotNet.Writer {
 			bool isSorted;
 
 			public struct Info {
+				public readonly int index;
 				public readonly T data;
 				public /*readonly*/ TRow row;
-				public Info(T data, ref TRow row) {
+				public Info(int index, T data, ref TRow row) {
+					this.index = index;
 					this.data = data;
 					this.row = row;
 				}
@@ -604,7 +607,7 @@ namespace dnlib.DotNet.Writer {
 			public void Add(T data, TRow row) {
 				if (isSorted)
 					throw new ModuleWriterException($"Adding a row after it's been sorted. Table: {row.GetType()}");
-				infos.Add(new Info(data, ref row));
+				infos.Add(new Info(infos.Count, data, ref row));
 				toRid[data] = (uint)toRid.Count + 1;
 			}
 
@@ -622,7 +625,7 @@ namespace dnlib.DotNet.Writer {
 					if (c != 0)
 						return c;
 					// Make sure it's a stable sort
-					return toRid[a.data].CompareTo(toRid[b.data]);
+					return a.index.CompareTo(b.index);
 				};
 
 			public uint Rid(T data) => toRid[data];
@@ -3186,7 +3189,16 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="table">Owner table</param>
 		/// <param name="rid">New owner rid</param>
 		/// <param name="hca">Onwer</param>
-		protected void AddCustomAttributes(Table table, uint rid, IHasCustomAttribute hca) => AddCustomAttributes(table, rid, hca.CustomAttributes);
+		protected void AddCustomAttributes(Table table, uint rid, IHasCustomAttribute hca) {
+			var caList = hca.CustomAttributes;
+			if (hca is TypeSpecMD && caList.Count != 0) {
+				if (!typeSpecCustomAttributes.TryGetValue(caList, out var owners))
+					typeSpecCustomAttributes.Add(caList, owners = new HashSet<uint>());
+				if (!owners.Add(rid))
+					return;
+			}
+			AddCustomAttributes(table, rid, caList);
+		}
 
 		void AddCustomAttributes(Table table, uint rid, CustomAttributeCollection caList) {
 			var token = new MDToken(table, rid);
