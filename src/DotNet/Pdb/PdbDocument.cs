@@ -130,8 +130,15 @@ namespace dnlib.DotNet.Pdb {
 				return false;
 			return StringComparer.Ordinal.Equals(Url ?? string.Empty, other.Url ?? string.Empty)
 				&& CheckSumAlgorithmId == other.CheckSumAlgorithmId
-				&& Utils.Equals(CheckSum, other.CheckSum)
+				&& CheckSumEquals(CheckSum, other.CheckSum)
 				&& Language == other.Language;
+		}
+
+		// Treat null and empty the same to be consistent with other code
+		static bool CheckSumEquals(byte[] a, byte[] b) {
+			if ((a is null || a.Length == 0) && (b is null || b.Length == 0))
+				return true;
+			return Utils.Equals(a, b);
 		}
 	}
 }
