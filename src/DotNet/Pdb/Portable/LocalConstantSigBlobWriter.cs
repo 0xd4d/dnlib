@@ -106,40 +106,44 @@ namespace dnlib.DotNet.Pdb.Portable {
 						}
 					}
 
-					var td = tdr.ResolveTypeDef();
-					ElementType enumEt;
-					if (td is not null) {
-						enumEt = ElementType.End;
-						if (td.IsEnum) {
-							enumEt = td.GetEnumUnderlyingType().RemovePinnedAndModifiers().GetElementType();
-							if (!IsPrimitive(enumEt)) {
-								helper.Error("Invalid enum underlying type");
-								return;
-							}
-						}
-					}
-					else {
-						// Couldn't resolve it, but if the value is a primitive, it must be an enum constant
-						enumEt = GetPrimitiveElementType(value);
-					}
+					if (!TryGetEnumElementType(tdr, value, out var enumEt))
+						return;
 					if (enumEt != ElementType.End) {
 						WriteEnumValue(writer, enumEt, value, tdr);
 						return;
 					}
 
 					WriteTypeDefOrRef(writer, tdr);
-					if (value is byte[])
-						writer.WriteBytes((byte[])value);
-					else if (value is not null)
-						helper.Error2("Unsupported constant: {0}.", value.GetType().FullName);
+					WriteValueTypeValue(writer, value);
+					return;
+
+				case ElementType.GenericInst:
+					// GENERICINST isn't allowed at the top level of the blob. An enum (eg. one nested in
+					// a generic type) is an EnumConstant, anything else is (CLASS|VALUETYPE) TypeSpec.
+					var gis = (GenericInstSig)type;
+					bool isValueType = gis.GenericType is ValueTypeSig;
+					var gisTypeSpec = new TypeSpecUser(gis);
+					if (isValueType) {
+						if (!TryGetEnumElementType(gis.GenericType.TypeDefOrRef, value, out enumEt))
+							return;
+						if (enumEt != ElementType.End) {
+							WriteEnumValue(writer, enumEt, value, gisTypeSpec);
+							return;
+						}
+					}
+
+					writer.Position--;
+					writer.WriteByte((byte)(isValueType ? ElementType.ValueType : ElementType.Class));
+					WriteTypeDefOrRef(writer, gisTypeSpec);
+					if (isValueType)
+						WriteValueTypeValue(writer, value);
+					else
+						WriteClassValue(writer, value);
 					return;
 
 				case ElementType.Class:
 					WriteTypeDefOrRef(writer, ((ClassSig)type).TypeDefOrRef);
-					if (value is byte[])
-						writer.WriteBytes((byte[])value);
-					else if (value is not null)
-						helper.Error("Expected a null constant");
+					WriteClassValue(writer, value);
 					return;
 
 				case ElementType.CModReqd:
@@ -149,7 +153,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 				case ElementType.Var:
 				case ElementType.Array:
-				case ElementType.GenericInst:
 				case ElementType.TypedByRef:
 				case ElementType.I:
 				case ElementType.U:
@@ -172,6 +175,41 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return;
 				}
 			}
+		}
+
+		/// <summary>
+		/// Gets the enum's underlying element type or <see cref="ElementType.End"/> if it's not an enum
+		/// </summary>
+		/// <returns><c>false</c> if it's an enum with an invalid underlying type</returns>
+		bool TryGetEnumElementType(ITypeDefOrRef tdr, object value, out ElementType enumEt) {
+			var td = tdr.ResolveTypeDef();
+			if (td is null) {
+				// Couldn't resolve it, but if the value is a primitive, it must be an enum constant
+				enumEt = GetPrimitiveElementType(value);
+				return true;
+			}
+			enumEt = ElementType.End;
+			if (!td.IsEnum)
+				return true;
+			enumEt = td.GetEnumUnderlyingType().RemovePinnedAndModifiers().GetElementType();
+			if (IsPrimitive(enumEt))
+				return true;
+			helper.Error("Invalid enum underlying type");
+			return false;
+		}
+
+		void WriteValueTypeValue(DataWriter writer, object value) {
+			if (value is byte[])
+				writer.WriteBytes((byte[])value);
+			else if (value is not null)
+				helper.Error2("Unsupported constant: {0}.", value.GetType().FullName);
+		}
+
+		void WriteClassValue(DataWriter writer, object value) {
+			if (value is byte[])
+				writer.WriteBytes((byte[])value);
+			else if (value is not null)
+				helper.Error("Expected a null constant");
 		}
 
 		// The element type byte has already been written
