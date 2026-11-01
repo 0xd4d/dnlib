@@ -1120,8 +1120,15 @@ namespace dnlib.DotNet.Writer {
 			if (standAloneSigInfos.TryGetRid(sas, out uint rid))
 				return rid;
 
-			bool isOld = forceIsOld || (PreserveStandAloneSigRids && mod.ResolveStandAloneSig(sas.Rid) == sas);
+			bool isOld = forceIsOld || (PreserveStandAloneSigRids && IsOriginalStandAloneSig(sas));
 			var row = new RawStandAloneSigRow(GetSignature(sas.Signature));
+			if (isOld && !forceIsOld) {
+				// The original row could already have been written by another instance of the same row (eg. from
+				// a different generic param context) or by a method's locals/calli sig. Only share it if it's identical.
+				var oldSig = tablesHeap.StandAloneSigTable[sas.Rid].Signature;
+				if (oldSig != 0 && oldSig != row.Signature)
+					isOld = false;
+			}
 			if (isOld) {
 				rid = sas.Rid;
 				tablesHeap.StandAloneSigTable[sas.Rid] = row;
@@ -1132,6 +1139,18 @@ namespace dnlib.DotNet.Writer {
 			AddCustomAttributes(Table.StandAloneSig, rid, sas);
 			AddCustomDebugInformationList(Table.StandAloneSig, rid, sas);
 			return rid;
+		}
+
+		/// <summary>
+		/// Checks if <paramref name="sas"/> is the original <c>StandAloneSig</c> row in the original module. Rows with
+		/// generic parameters aren't cached, so there can be one instance per generic param context. All of them
+		/// represent the original row.
+		/// </summary>
+		/// <param name="sas">StandAloneSig</param>
+		bool IsOriginalStandAloneSig(StandAloneSig sas) {
+			if (sas is StandAloneSigMD sasMD && sasMD.ReaderModule == mod)
+				return sasMD.OrigRid == sas.Rid && mod.TablesStream.StandAloneSigTable.IsValidRID(sas.Rid);
+			return mod.ResolveStandAloneSig(sas.Rid) == sas;
 		}
 
 		/// <inheritdoc/>
@@ -1181,6 +1200,16 @@ namespace dnlib.DotNet.Writer {
 			if (standAloneSigInfos.Exists(sas)) {
 				Warning("StandAloneSig 0x{0:X8} already exists", origToken);
 				return 0;
+			}
+			// Another instance of the same row (eg. from a different generic param context) could've already been added
+			uint existingSig = tablesHeap.StandAloneSigTable[rid].Signature;
+			if (existingSig != 0) {
+				if (existingSig != sig) {
+					Warning("Could not preserve StandAloneSig token 0x{0:X8}", origToken);
+					return 0;
+				}
+				callConvTokenToSignature.Add(origToken, sig);
+				return rid;
 			}
 
 			// Make sure it uses the updated sig

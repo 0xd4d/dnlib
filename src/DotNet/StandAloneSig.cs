@@ -136,17 +136,22 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public uint OrigRid => origRid;
 
+		/// <summary>
+		/// Gets the module where this instance is located
+		/// </summary>
+		internal ModuleDefMD ReaderModule => readerModule;
+
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.StandAloneSig, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			// Attributes belong to the metadata row, not to its generic parameter context.
+			var tmp = readerModule.GetSharedCustomAttributes(Table.StandAloneSig, origRid);
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = new List<PdbCustomDebugInfo>();
-			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), gpContext, list);
+			// Custom debug infos belong to the metadata row, not to its generic parameter context.
+			var list = readerModule.GetSharedCustomDebugInfos(Table.StandAloneSig, origRid);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}
 

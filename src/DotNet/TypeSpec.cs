@@ -299,14 +299,14 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
 			// Attributes belong to the metadata row, not to its generic parameter context.
-			var tmp = readerModule.GetTypeSpecCustomAttributes(origRid);
+			var tmp = readerModule.GetSharedCustomAttributes(Table.TypeSpec, origRid);
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
-			var list = new List<PdbCustomDebugInfo>();
-			readerModule.InitializeCustomDebugInfos(new MDToken(MDToken.Table, origRid), gpContext, list);
+			// Custom debug infos belong to the metadata row, not to its generic parameter context.
+			var list = readerModule.GetSharedCustomDebugInfos(Table.TypeSpec, origRid);
 			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}
 

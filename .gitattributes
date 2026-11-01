@@ -1,0 +1,8 @@
+# Normalize line endings to LF in the repository for all text files
+* text=auto
+
+# Always LF, also in the working tree on Windows
+*.cs      text eol=lf
+*.csproj  text eol=lf
+
+*.snk     binary
