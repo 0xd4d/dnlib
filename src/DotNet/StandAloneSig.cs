@@ -136,6 +136,11 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public uint OrigRid => origRid;
 
+		/// <summary>
+		/// Gets the module where this instance is located
+		/// </summary>
+		internal ModuleDefMD ReaderModule => readerModule;
+
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
 			// Attributes belong to the metadata row, not to its generic parameter context.
