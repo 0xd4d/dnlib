@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using dnlib.IO;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -76,8 +77,7 @@ namespace dnlib.DotNet {
 		public void Hash(Stream stream, uint length, byte[] buffer) {
 			while (length > 0) {
 				int len = length > (uint)buffer.Length ? buffer.Length : (int)length;
-				if (stream.Read(buffer, 0, len) != len)
-					throw new IOException("Could not read data");
+				StreamUtils.ReadAll(stream, buffer, 0, len);
 				Hash(buffer, 0, len);
 				length -= (uint)len;
 			}

@@ -336,13 +336,7 @@ namespace dnlib.DotNet {
 				throw new ArgumentException("Stream is too big");
 			var data = new byte[(int)stream.Length];
 			stream.Position = 0;
-			int bytesRead = 0;
-			while (bytesRead < data.Length) {
-				int count = stream.Read(data, bytesRead, data.Length - bytesRead);
-				if (count == 0)
-					throw new IOException("Could not read all bytes from the stream");
-				bytesRead += count;
-			}
+			StreamUtils.ReadAll(stream, data, 0, data.Length);
 			return Load(data, options);
 		}
 

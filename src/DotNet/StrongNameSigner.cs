@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using dnlib.IO;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -96,16 +97,14 @@ namespace dnlib.DotNet {
 				bool is32bit = reader.ReadUInt16() == 0x010B;
 				stream.Position -= 2;
 				int optHeaderSize = is32bit ? 0x60 : 0x70;
-				if (stream.Read(buffer, 0, optHeaderSize) != optHeaderSize)
-					throw new IOException("Could not read data");
+				StreamUtils.ReadAll(stream, buffer, 0, optHeaderSize);
 				// Clear checksum
 				for (int i = 0; i < 4; i++)
 					buffer[0x40 + i] = 0;
 				hasher.Hash(buffer, 0, optHeaderSize);
 
 				const int imageDirsSize = 16 * 8;
-				if (stream.Read(buffer, 0, imageDirsSize) != imageDirsSize)
-					throw new IOException("Could not read data");
+				StreamUtils.ReadAll(stream, buffer, 0, imageDirsSize);
 				// Clear authenticode data dir
 				for (int i = 0; i < 8; i++)
 					buffer[4 * 8 + i] = 0;

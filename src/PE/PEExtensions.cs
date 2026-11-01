@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using dnlib.IO;
 
 namespace dnlib.PE {
 	/// <summary>
@@ -31,16 +32,14 @@ namespace dnlib.PE {
 		static uint CalculatePECheckSum(Stream stream, long length, uint checkSum, byte[] buffer) {
 			for (long offset = 0; offset < length;) {
 				int len = (int)Math.Min(length - offset, buffer.Length);
-				int count = stream.Read(buffer, 0, len);
-				if (count != len)
-					ThrowInvalidOperationException("Couldn't read all bytes");
+				StreamUtils.ReadAll(stream, buffer, 0, len);
 
-				for (int i = 0; i < count;) {
+				for (int i = 0; i < len;) {
 					checkSum += buffer[i++] | ((uint)buffer[i++] << 8);
 					checkSum = (ushort)(checkSum + (checkSum >> 16));
 				}
 
-				offset += count;
+				offset += len;
 			}
 			return checkSum;
 		}
