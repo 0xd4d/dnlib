@@ -77,69 +77,61 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 				case ElementType.ValueType:
 					var tdr = ((ValueTypeSig)type).TypeDefOrRef;
-					var td = tdr.ResolveTypeDef();
-					if (td is null)
-						helper.Error2("Couldn't resolve type 0x{0:X8}.", tdr?.MDToken.Raw ?? 0);
-					else if (td.IsEnum) {
-						var underlyingType = td.GetEnumUnderlyingType().RemovePinnedAndModifiers();
-						switch (underlyingType.GetElementType()) {
-						case ElementType.Boolean:
-						case ElementType.Char:
-						case ElementType.I1:
-						case ElementType.U1:
-						case ElementType.I2:
-						case ElementType.U2:
-						case ElementType.I4:
-						case ElementType.U4:
-						case ElementType.I8:
-						case ElementType.U8:
-							writer.Position--;
-							writer.WriteByte((byte)underlyingType.GetElementType());
-							WritePrimitiveValue(writer, underlyingType.GetElementType(), value);
+					// Check for Decimal/DateTime before resolving the type since resolving can fail
+					if (GetName(tdr, out var ns, out var name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
+						if (name == stringDecimal) {
 							WriteTypeDefOrRef(writer, tdr);
+							if (value is decimal) {
+								var bits = decimal.GetBits((decimal)value);
+								writer.WriteByte((byte)((((uint)bits[3] >> 31) << 7) | (((uint)bits[3] >> 16) & 0x7F)));
+								writer.WriteInt32(bits[0]);
+								writer.WriteInt32(bits[1]);
+								writer.WriteInt32(bits[2]);
+							}
+							else {
+								helper.Error("Expected a Decimal constant");
+								writer.WriteBytes(new byte[13]);
+							}
 							return;
-						default:
-							helper.Error("Invalid enum underlying type");
+						}
+						if (name == stringDateTime) {
+							WriteTypeDefOrRef(writer, tdr);
+							if (value is DateTime)
+								writer.WriteInt64(((DateTime)value).Ticks);
+							else {
+								helper.Error("Expected a DateTime constant");
+								writer.WriteInt64(0);
+							}
 							return;
 						}
 					}
-					else {
-						WriteTypeDefOrRef(writer, tdr);
-						bool valueWritten = false;
-						if (GetName(tdr, out var ns, out var name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
-							if (name == stringDecimal) {
-								if (value is decimal) {
-									var bits = decimal.GetBits((decimal)value);
-									writer.WriteByte((byte)((((uint)bits[3] >> 31) << 7) | (((uint)bits[3] >> 16) & 0x7F)));
-									writer.WriteInt32(bits[0]);
-									writer.WriteInt32(bits[1]);
-									writer.WriteInt32(bits[2]);
-								}
-								else {
-									helper.Error("Expected a Decimal constant");
-									writer.WriteBytes(new byte[13]);
-								}
-								valueWritten = true;
-							}
-							else if (name == stringDateTime) {
-								if (value is DateTime)
-									writer.WriteInt64(((DateTime)value).Ticks);
-								else {
-									helper.Error("Expected a DateTime constant");
-									writer.WriteInt64(0);
-								}
-								valueWritten = true;
-							}
-						}
-						if (!valueWritten) {
-							if (value is byte[])
-								writer.WriteBytes((byte[])value);
-							else if (value is not null) {
-								helper.Error2("Unsupported constant: {0}.", value.GetType().FullName);
+
+					var td = tdr.ResolveTypeDef();
+					ElementType enumEt;
+					if (td is not null) {
+						enumEt = ElementType.End;
+						if (td.IsEnum) {
+							enumEt = td.GetEnumUnderlyingType().RemovePinnedAndModifiers().GetElementType();
+							if (!IsPrimitive(enumEt)) {
+								helper.Error("Invalid enum underlying type");
 								return;
 							}
 						}
 					}
+					else {
+						// Couldn't resolve it, but if the value is a primitive, it must be an enum constant
+						enumEt = GetPrimitiveElementType(value);
+					}
+					if (enumEt != ElementType.End) {
+						WriteEnumValue(writer, enumEt, value, tdr);
+						return;
+					}
+
+					WriteTypeDefOrRef(writer, tdr);
+					if (value is byte[])
+						writer.WriteBytes((byte[])value);
+					else if (value is not null)
+						helper.Error2("Unsupported constant: {0}.", value.GetType().FullName);
 					return;
 
 				case ElementType.Class:
@@ -181,6 +173,48 @@ namespace dnlib.DotNet.Pdb.Portable {
 				}
 			}
 		}
+
+		// The element type byte has already been written
+		void WriteEnumValue(DataWriter writer, ElementType underlyingEt, object value, ITypeDefOrRef enumType) {
+			writer.Position--;
+			writer.WriteByte((byte)underlyingEt);
+			WritePrimitiveValue(writer, underlyingEt, value);
+			WriteTypeDefOrRef(writer, enumType);
+		}
+
+		static bool IsPrimitive(ElementType et) {
+			switch (et) {
+			case ElementType.Boolean:
+			case ElementType.Char:
+			case ElementType.I1:
+			case ElementType.U1:
+			case ElementType.I2:
+			case ElementType.U2:
+			case ElementType.I4:
+			case ElementType.U4:
+			case ElementType.I8:
+			case ElementType.U8:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		static ElementType GetPrimitiveElementType(object value) =>
+			value switch {
+				bool => ElementType.Boolean,
+				char => ElementType.Char,
+				sbyte => ElementType.I1,
+				byte => ElementType.U1,
+				short => ElementType.I2,
+				ushort => ElementType.U2,
+				int => ElementType.I4,
+				uint => ElementType.U4,
+				long => ElementType.I8,
+				ulong => ElementType.U8,
+				_ => ElementType.End,
+			};
+
 		static readonly UTF8String stringSystem = new UTF8String("System");
 		static readonly UTF8String stringDecimal = new UTF8String("Decimal");
 		static readonly UTF8String stringDateTime = new UTF8String("DateTime");

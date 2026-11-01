@@ -51,7 +51,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Boolean;
 				value = reader.ReadBoolean();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -59,7 +59,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Char;
 				value = reader.ReadChar();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -67,7 +67,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.SByte;
 				value = reader.ReadSByte();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -75,7 +75,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Byte;
 				value = reader.ReadByte();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Int16;
 				value = reader.ReadInt16();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -91,7 +91,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.UInt16;
 				value = reader.ReadUInt16();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Int32;
 				value = reader.ReadInt32();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -107,7 +107,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.UInt32;
 				value = reader.ReadUInt32();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -115,7 +115,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.Int64;
 				value = reader.ReadInt64();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -123,7 +123,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				type = module.CorLibTypes.UInt64;
 				value = reader.ReadUInt64();
 				if (reader.Position < reader.Length)
-					type = ReadTypeDefOrRefSig();
+					type = ReadEnumTypeSig();
 				res = true;
 				break;
 
@@ -165,7 +165,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			case ElementType.ValueType:
 				tdr = ReadTypeDefOrRef();
-				type = tdr.ToTypeSig();
+				// Don't use ToTypeSig() since it creates a ClassSig if it can't resolve the type
+				type = tdr is null ? null : (TypeSig)module.CorLibTypes.GetCorLibTypeSig(tdr) ?? new ValueTypeSig(tdr);
 				value = null;
 				if (GetName(tdr, out ns, out name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
 					if (name == stringDecimal) {
@@ -265,13 +266,22 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return false;
 		}
 
-		TypeSig ReadTypeDefOrRefSig() {
+		// A primitive value followed by a TypeDefOrRefOrSpec is an enum constant. Don't
+		// resolve the type to check if it's a value type since resolving can fail, and
+		// that would create a ClassSig.
+		TypeSig ReadEnumTypeSig() {
 			uint codedToken;
 			if (!reader.TryReadCompressedUInt32(out codedToken))
 				return null;
 			ISignatureReaderHelper helper = module;
 			var tdr = helper.ResolveTypeDefOrRef(codedToken, gpContext);
-			return tdr.ToTypeSig();
+			if (tdr is null)
+				return null;
+			if (module.CorLibTypes.GetCorLibTypeSig(tdr) is { } corLibType)
+				return corLibType;
+			if (tdr is TypeSpec ts)
+				return ts.TypeSig;
+			return new ValueTypeSig(tdr);
 		}
 
 		ITypeDefOrRef ReadTypeDefOrRef() {
