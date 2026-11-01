@@ -74,6 +74,9 @@ namespace dnlib.DotNet.Pdb {
 			if (symDoc is null)
 				throw new ArgumentNullException(nameof(symDoc));
 			Url = symDoc.URL;
+			Language = symDoc.Language;
+			CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
+			CheckSum = symDoc.CheckSum;
 			if (!partial)
 				Initialize(symDoc);
 		}
@@ -82,11 +85,8 @@ namespace dnlib.DotNet.Pdb {
 			new PdbDocument(symDoc, partial: true);
 
 		internal void Initialize(SymbolDocument symDoc) {
-			Language = symDoc.Language;
 			LanguageVendor = symDoc.LanguageVendor;
 			DocumentType = symDoc.DocumentType;
-			CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
-			CheckSum = symDoc.CheckSum;
 			customDebugInfos = new List<PdbCustomDebugInfo>();
 			foreach (var cdi in symDoc.CustomDebugInfos)
 				customDebugInfos.Add(cdi);
@@ -113,14 +113,25 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		/// <inheritdoc/>
-		public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(Url ?? string.Empty);
+		public override int GetHashCode() {
+			unchecked {
+				int hash = StringComparer.Ordinal.GetHashCode(Url ?? string.Empty);
+				hash += CheckSumAlgorithmId.GetHashCode();
+				hash += Utils.GetHashCode(CheckSum);
+				hash += Language.GetHashCode();
+				return hash;
+			}
+		}
 
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {
 			var other = obj as PdbDocument;
 			if (other is null)
 				return false;
-			return StringComparer.OrdinalIgnoreCase.Equals(Url ?? string.Empty, other.Url ?? string.Empty);
+			return StringComparer.Ordinal.Equals(Url ?? string.Empty, other.Url ?? string.Empty)
+				&& CheckSumAlgorithmId == other.CheckSumAlgorithmId
+				&& Utils.Equals(CheckSum, other.CheckSum)
+				&& Language == other.Language;
 		}
 	}
 }
