@@ -14,21 +14,27 @@ namespace dnlib.DotNet {
 		public static IEnumerable<TypeDef> Types(IEnumerable<TypeDef> types) {
 			var visited = new Dictionary<TypeDef, bool>();
 			var stack = new Stack<IEnumerator<TypeDef>>();
-			if (types is not null)
-				stack.Push(types.GetEnumerator());
-			while (stack.Count > 0) {
-				var enumerator = stack.Pop();
-				while (enumerator.MoveNext()) {
+			try {
+				if (types is not null)
+					stack.Push(types.GetEnumerator());
+				while (stack.Count > 0) {
+					var enumerator = stack.Peek();
+					if (!enumerator.MoveNext()) {
+						stack.Pop().Dispose();
+						continue;
+					}
 					var type = enumerator.Current;
 					if (visited.ContainsKey(type))
 						continue;
 					visited[type] = true;
 					yield return type;
-					if (type.NestedTypes.Count > 0) {
-						stack.Push(enumerator);
-						enumerator = type.NestedTypes.GetEnumerator();
-					}
+					if (type.NestedTypes.Count > 0)
+						stack.Push(type.NestedTypes.GetEnumerator());
 				}
+			}
+			finally {
+				while (stack.Count > 0)
+					stack.Pop().Dispose();
 			}
 		}
 	}

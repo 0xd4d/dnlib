@@ -1825,20 +1825,26 @@ namespace dnlib.DotNet.Writer {
 			var sortedTypes = new List<ExportedType>(exportedTypes.Count);
 			var visited = new Dictionary<ExportedType, bool>();
 			var stack = new Stack<IEnumerator<ExportedType>>();
-			stack.Push(exportedTypes.GetEnumerator());
-			while (stack.Count > 0) {
-				var enumerator = stack.Pop();
-				while (enumerator.MoveNext()) {
+			try {
+				stack.Push(exportedTypes.GetEnumerator());
+				while (stack.Count > 0) {
+					var enumerator = stack.Peek();
+					if (!enumerator.MoveNext()) {
+						stack.Pop().Dispose();
+						continue;
+					}
 					var type = enumerator.Current;
 					if (visited.ContainsKey(type))
 						continue;
 					visited[type] = true;
 					sortedTypes.Add(type);
-					if (nestedTypeDict.TryGetValue(type, out var nested) && nested.Count > 0) {
-						stack.Push(enumerator);
-						enumerator = nested.GetEnumerator();
-					}
+					if (nestedTypeDict.TryGetValue(type, out var nested) && nested.Count > 0)
+						stack.Push(nested.GetEnumerator());
 				}
+			}
+			finally {
+				while (stack.Count > 0)
+					stack.Pop().Dispose();
 			}
 
 			int count = sortedTypes.Count;
