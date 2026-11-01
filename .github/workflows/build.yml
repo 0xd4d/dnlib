@@ -5,31 +5,43 @@ on:
       - '.github/workflows/**'
       - 'Examples/**'
       - 'src/**'
+      - 'build.ps1'
+      - 'dnlib.sln'
       - '!**/*.md'
     branches:
       - master
   pull_request:
     paths:
+      - '.github/workflows/**'
       - 'Examples/**'
       - 'src/**'
+      - 'build.ps1'
+      - 'dnlib.sln'
       - '!**/*.md'
     branches:
       - master
   release:
     types: released
 
+permissions: {}
+
 env:
-  CI_REQ_DOTNET_SDK_VER: 6.0.100
+  CI_REQ_DOTNET_SDK_VER: 10.0.x
+  NUGET_USER: 'wtfsck'
 
 jobs:
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-dotnet@v3
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
 
@@ -47,29 +59,58 @@ jobs:
           New-Item -ItemType Directory nuget_files > $null
           Copy-Item src\bin\Release\*.*nupkg nuget_files
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
         with:
           name: nupkg
           path: nuget_files
           if-no-files-found: error
 
-      - name: Upload to nuget.org if it's a new release
-        if: startsWith(github.ref, 'refs/tags/')
+  # Publishing is kept in its own job so that no build code runs with id-token: write
+  publish:
+    name: Publish to nuget.org
+    needs: build-windows
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-latest
+    environment: nuget
+    permissions:
+      id-token: write # Required for NuGet trusted publishing (OIDC)
+
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: nupkg
+          path: nuget_files
+
+      - name: Get a short-lived nuget.org API key (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{env.NUGET_USER}}
+
+      - name: Upload to nuget.org
         shell: pwsh
+        env:
+          NUGET_API_KEY: ${{steps.nuget-login.outputs.NUGET_API_KEY}}
         run: |
-          Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -UseBasicParsing -OutFile nuget.exe
-          Get-ChildItem src\bin\Release\dnlib.*.nupkg | ForEach-Object { .\nuget.exe push $_.FullName -ApiKey ${{secrets.NUGET_APIKEY}} -NonInteractive -Source https://api.nuget.org/v3/index.json }
+          Get-ChildItem nuget_files\dnlib.*.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
   # Make sure it builds on Linux too
   build-ubuntu:
     name: Build (Ubuntu)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-dotnet@v3
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
 

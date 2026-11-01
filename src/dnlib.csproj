@@ -5,7 +5,7 @@
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);$(MoreDefineConstants)</DefineConstants>
     <DefineConstants Condition=" '$(DnlibThreadSafe)' != 'false' ">$(DefineConstants);THREAD_SAFE</DefineConstants>
-    <TargetFrameworks>netstandard2.0;net45;net6.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45;net10.0</TargetFrameworks>
     <!-- It's not possible to target .NET Framework 3.5 when using dotnet build
          https://github.com/Microsoft/msbuild/issues/1333 -->
     <NoTargetFrameworkNet35 Condition=" '$(NoTargetFrameworkNet35)' == '' AND '$(MSBuildRuntimeType)' == 'Core' ">true</NoTargetFrameworkNet35>
@@ -24,6 +24,7 @@
     <Authors>0xd4d</Authors>
     <PackageProjectUrl>https://github.com/0xd4d/dnlib</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageVersion>$(InformationalVersion)</PackageVersion>
     <PackageTags>dotnet;assembly;module;reader;writer;PDB;PortablePdb;WindowsPdb;IL;CIL;MSIL;metadata</PackageTags>
     <AnalysisLevel>latest</AnalysisLevel>
@@ -49,18 +50,28 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <!-- Obsolete APIs that are still used by the public API (eg. IFormatter, serialization ctors) or to keep
+       existing behavior. Removing them would be a breaking change.
+       SYSLIB0011: BinaryFormatter / IFormatter
+       SYSLIB0037: AssemblyName.HashAlgorithm etc
+       SYSLIB0050: Formatter-based serialization
+       SYSLIB0051: Exception serialization ctors -->
+  <PropertyGroup Condition=" '$(TargetFramework)' != '' AND $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) ">
+    <NoWarn>$(NoWarn);SYSLIB0011;SYSLIB0037;SYSLIB0050;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\LICENSE.txt" Pack="true" PackagePath="" />
-    <None Include="..\README.md" Link="README.md" />
+    <None Include="..\README.md" Link="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.403" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">

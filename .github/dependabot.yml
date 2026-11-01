@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Don't pick up a release until it's been public for a while (supply chain attacks are usually caught quickly)
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "deps(actions)"
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+
+  - package-ecosystem: nuget
+    directories:
+      - /src
+      - /Examples
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "deps(dotnet)"
+    groups:
+      nuget:
+        patterns:
+          - '*'
