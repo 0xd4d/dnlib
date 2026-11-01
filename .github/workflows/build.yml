@@ -18,13 +18,18 @@ on:
   release:
     types: released
 
+permissions: {}
+
 env:
   CI_REQ_DOTNET_SDK_VER: 6.0.100
+  NUGET_USER: 'wtfsck'
 
 jobs:
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v3
@@ -54,17 +59,44 @@ jobs:
           path: nuget_files
           if-no-files-found: error
 
-      - name: Upload to nuget.org if it's a new release
-        if: startsWith(github.ref, 'refs/tags/')
+  # Publishing is kept in its own job so that no build code runs with id-token: write
+  publish:
+    name: Publish to nuget.org
+    needs: build-windows
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-latest
+    environment: nuget
+    permissions:
+      id-token: write # Required for NuGet trusted publishing (OIDC)
+
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: nupkg
+          path: nuget_files
+
+      - name: Get a short-lived nuget.org API key (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{env.NUGET_USER}}
+
+      - name: Upload to nuget.org
         shell: pwsh
+        env:
+          NUGET_API_KEY: ${{steps.nuget-login.outputs.NUGET_API_KEY}}
         run: |
-          Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -UseBasicParsing -OutFile nuget.exe
-          Get-ChildItem src\bin\Release\dnlib.*.nupkg | ForEach-Object { .\nuget.exe push $_.FullName -ApiKey ${{secrets.NUGET_APIKEY}} -NonInteractive -Source https://api.nuget.org/v3/index.json }
+          Get-ChildItem nuget_files\dnlib.*.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
   # Make sure it builds on Linux too
   build-ubuntu:
     name: Build (Ubuntu)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v3
