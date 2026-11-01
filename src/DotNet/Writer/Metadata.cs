@@ -3274,7 +3274,7 @@ namespace dnlib.DotNet.Writer {
 			outStream.SetLength(0);
 			outStream.Position = 0;
 
-			writer.WriteCompressedUInt32(localVarSigToken);
+			writer.WriteCompressedUInt32(MDToken.ToRID(localVarSigToken));
 			if (singleDoc is null)
 				writer.WriteCompressedUInt32(VerifyGetRid(firstDoc));
 
