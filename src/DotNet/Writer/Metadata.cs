@@ -486,7 +486,9 @@ namespace dnlib.DotNet.Writer {
 		internal readonly Dictionary<MethodDef, MethodBody> methodToBody = new Dictionary<MethodDef, MethodBody>();
 		internal readonly Dictionary<MethodDef, NativeMethodBody> methodToNativeBody = new Dictionary<MethodDef, NativeMethodBody>();
 		internal readonly Dictionary<EmbeddedResource, DataReaderChunk> embeddedResourceToByteArray = new Dictionary<EmbeddedResource, DataReaderChunk>();
-		readonly Dictionary<CustomAttributeCollection, HashSet<uint>> typeSpecCustomAttributes = new Dictionary<CustomAttributeCollection, HashSet<uint>>();
+		// Custom attributes / custom debug infos that are shared by more than one instance of the same row, and
+		// the new owner rids they've been added to. See IsSharedRowInstance().
+		readonly Dictionary<object, HashSet<uint>> sharedRowDataOwners = new Dictionary<object, HashSet<uint>>();
 		readonly Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
 		readonly Rows<PdbDocument> pdbDocumentInfos = new Rows<PdbDocument>();
 		bool methodDebugInformationInfosUsed;
@@ -3191,13 +3193,32 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="hca">Onwer</param>
 		protected void AddCustomAttributes(Table table, uint rid, IHasCustomAttribute hca) {
 			var caList = hca.CustomAttributes;
-			if (hca is TypeSpecMD && caList.Count != 0) {
-				if (!typeSpecCustomAttributes.TryGetValue(caList, out var owners))
-					typeSpecCustomAttributes.Add(caList, owners = new HashSet<uint>());
-				if (!owners.Add(rid))
-					return;
-			}
+			if (caList.Count == 0)
+				return;
+			if (IsSharedRowInstance(hca) && !AddSharedRowDataOwner(caList, rid))
+				return;
 			AddCustomAttributes(table, rid, caList);
+		}
+
+		/// <summary>
+		/// Checks if <paramref name="obj"/> is an instance of a row that can be represented by more than one
+		/// instance (one per generic parameter context). All such instances share the row's custom attributes
+		/// and custom debug infos, and they're written to the same new row if their signatures are identical.
+		/// </summary>
+		/// <param name="obj">Object</param>
+		static bool IsSharedRowInstance(object obj) =>
+			obj is TypeSpecMD || obj is MemberRefMD || obj is MethodSpecMD || obj is StandAloneSigMD;
+
+		/// <summary>
+		/// Records that <paramref name="data"/> (shared row data) is added to new owner row <paramref name="rid"/>
+		/// </summary>
+		/// <param name="data">Shared custom attributes or custom debug infos</param>
+		/// <param name="rid">New owner rid</param>
+		/// <returns><c>true</c> if it should be added, <c>false</c> if it's already been added to this row</returns>
+		bool AddSharedRowDataOwner(object data, uint rid) {
+			if (!sharedRowDataOwners.TryGetValue(data, out var owners))
+				sharedRowDataOwners.Add(data, owners = new HashSet<uint>());
+			return owners.Add(rid);
 		}
 
 		void AddCustomAttributes(Table table, uint rid, CustomAttributeCollection caList) {
@@ -3370,11 +3391,14 @@ namespace dnlib.DotNet.Writer {
 			Debug.Assert(table != Table.Method);
 			if (debugMetadata is null)
 				return;
-			if (hcdi.CustomDebugInfos.Count == 0)
+			var cdis = hcdi.CustomDebugInfos;
+			if (cdis.Count == 0)
+				return;
+			if (IsSharedRowInstance(hcdi) && !AddSharedRowDataOwner(cdis, rid))
 				return;
 			var serializerMethodContext = AllocSerializerMethodContext();
 			serializerMethodContext.SetBody(null);
-			AddCustomDebugInformationCore(serializerMethodContext, table, rid, hcdi.CustomDebugInfos);
+			AddCustomDebugInformationCore(serializerMethodContext, table, rid, cdis);
 			Free(ref serializerMethodContext);
 		}
 

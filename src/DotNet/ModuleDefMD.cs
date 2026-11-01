@@ -47,7 +47,6 @@ namespace dnlib.DotNet {
 		SimpleLazyList<PropertyDefMD> listPropertyDefMD;
 		SimpleLazyList<ModuleRefMD> listModuleRefMD;
 		SimpleLazyList2<TypeSpecMD> listTypeSpecMD;
-		SimpleLazyList<CustomAttributeCollection> typeSpecCustomAttributes;
 		SimpleLazyList<ImplMapMD> listImplMapMD;
 		SimpleLazyList<AssemblyDefMD> listAssemblyDefMD;
 		SimpleLazyList<AssemblyRefMD> listAssemblyRefMD;
@@ -523,10 +522,6 @@ namespace dnlib.DotNet {
 			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.PropertyTable.Rows, rid2 => new PropertyDefMD(this, rid2));
 			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.ModuleRefTable.Rows, rid2 => new ModuleRefMD(this, rid2));
 			listTypeSpecMD = new SimpleLazyList2<TypeSpecMD>(ts.TypeSpecTable.Rows, (rid2, gpContext) => new TypeSpecMD(this, rid2, gpContext));
-			typeSpecCustomAttributes = new SimpleLazyList<CustomAttributeCollection>(ts.TypeSpecTable.Rows, rid2 => {
-				var list = Metadata.GetCustomAttributeRidList(Table.TypeSpec, rid2);
-				return new CustomAttributeCollection(list.Count, list, (list2, index) => ReadCustomAttribute(list[index]));
-			});
 			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.ImplMapTable.Rows, rid2 => new ImplMapMD(this, rid2));
 			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.AssemblyTable.Rows, rid2 => new AssemblyDefMD(this, rid2));
 			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.FileTable.Rows, rid2 => new FileDefMD(this, rid2));
@@ -1310,12 +1305,69 @@ namespace dnlib.DotNet {
 			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext, Context);
 		}
 
+		// Rows in tables whose MD instances aren't cached when they contain generic parameters (TypeSpec,
+		// MemberRef, MethodSpec, StandAloneSig) can be represented by more than one instance. Their custom
+		// attributes and custom debug infos belong to the metadata row, so all instances share them.
+		// Indexed by table, then by rid - 1. The arrays are only allocated when needed.
+		readonly CustomAttributeCollection[][] sharedCustomAttributes = new CustomAttributeCollection[(int)Table.GenericParamConstraint + 1][];
+		readonly List<PdbCustomDebugInfo>[][] sharedCustomDebugInfos = new List<PdbCustomDebugInfo>[(int)Table.GenericParamConstraint + 1][];
+
+		static T[] GetOrCreateSharedArray<T>(T[][] arrays, Table table, uint rows) where T : class {
+			var array = arrays[(int)table];
+			if (array is null) {
+				Interlocked.CompareExchange(ref arrays[(int)table], new T[rows], null);
+				array = arrays[(int)table];
+			}
+			return array;
+		}
+
+		CustomAttributeCollection CreateCustomAttributeCollection(Table table, uint rid) {
+			var list = Metadata.GetCustomAttributeRidList(table, rid);
+			return new CustomAttributeCollection(list.Count, list, (list2, index) => ReadCustomAttribute(list[index]));
+		}
+
 		/// <summary>
-		/// Gets the shared custom attributes of a <see cref="TypeSpec"/> row
+		/// Gets the custom attributes of a row. All instances of the same row share the same collection.
 		/// </summary>
+		/// <param name="table">Table</param>
 		/// <param name="rid">The original row ID</param>
-		/// <returns>The custom attribute collection or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		internal CustomAttributeCollection GetTypeSpecCustomAttributes(uint rid) => typeSpecCustomAttributes[rid - 1];
+		/// <returns>The custom attribute collection</returns>
+		internal CustomAttributeCollection GetSharedCustomAttributes(Table table, uint rid) {
+			var mdTable = TablesStream.Get(table);
+			if (mdTable is null || !mdTable.IsValidRID(rid))
+				return CreateCustomAttributeCollection(table, rid);
+			var array = GetOrCreateSharedArray(sharedCustomAttributes, table, mdTable.Rows);
+			ref var elem = ref array[rid - 1];
+			if (elem is null)
+				Interlocked.CompareExchange(ref elem, CreateCustomAttributeCollection(table, rid), null);
+			return elem;
+		}
+
+		/// <summary>
+		/// Gets the custom debug infos of a row. All instances of the same row share the same list.
+		/// </summary>
+		/// <param name="table">Table, but not <see cref="Table.Method"/></param>
+		/// <param name="rid">The original row ID</param>
+		/// <returns>The custom debug info list</returns>
+		internal List<PdbCustomDebugInfo> GetSharedCustomDebugInfos(Table table, uint rid) {
+			// Don't cache anything if there's no PDB file yet since it could be loaded later
+			var mdTable = TablesStream.Get(table);
+			if (pdbState is null || mdTable is null || !mdTable.IsValidRID(rid))
+				return CreateCustomDebugInfos(table, rid);
+			var array = GetOrCreateSharedArray(sharedCustomDebugInfos, table, mdTable.Rows);
+			ref var elem = ref array[rid - 1];
+			if (elem is null)
+				Interlocked.CompareExchange(ref elem, CreateCustomDebugInfos(table, rid), null);
+			return elem;
+		}
+
+		List<PdbCustomDebugInfo> CreateCustomDebugInfos(Table table, uint rid) {
+			var list = new List<PdbCustomDebugInfo>();
+			// The generic param context is only used by method CDIs. These are row CDIs so they're shared
+			// by all generic contexts.
+			InitializeCustomDebugInfos(new MDToken(table, rid), new GenericParamContext(), list);
+			return list;
+		}
 
 		/// <summary>
 		/// Returns the owner type of a field
