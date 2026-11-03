@@ -64,7 +64,7 @@ namespace dnlib.PE {
 		/// <returns></returns>
 		public ImageSectionHeader ToImageSectionHeader(FileOffset offset) {
 			foreach (var section in imageSectionHeaders) {
-				if ((uint)offset >= section.PointerToRawData && (uint)offset < section.PointerToRawData + section.SizeOfRawData)
+				if ((uint)offset >= section.PointerToRawData && (uint)offset < section.PointerToRawData + section.LoadedSizeOfRawData)
 					return section;
 			}
 			return null;
@@ -79,7 +79,7 @@ namespace dnlib.PE {
 		public ImageSectionHeader ToImageSectionHeader(RVA rva) {
 			uint alignment = imageNTHeaders.OptionalHeader.SectionAlignment;
 			foreach (var section in imageSectionHeaders) {
-				if (rva >= section.VirtualAddress && rva < section.VirtualAddress + DotNet.Utils.AlignUp(section.VirtualSize, alignment))
+				if (rva >= section.VirtualAddress && rva < section.VirtualAddress + DotNet.Utils.AlignUp(section.LoadedVirtualSize, alignment))
 					return section;
 			}
 			return null;
@@ -95,15 +95,21 @@ namespace dnlib.PE {
 			if (imageSectionHeaders.Length == 0)
 				return (RVA)offset;
 
-			// In pe additional data, like digital signature, won't be loaded into memory
-			var lastSection = imageSectionHeaders[imageSectionHeaders.Length - 1];
-			if ((uint)offset > lastSection.PointerToRawData + lastSection.SizeOfRawData)
-				return 0;
-
 			// In a section
 			var section = ToImageSectionHeader(offset);
 			if (section is not null)
 				return (uint)(offset - section.PointerToRawData) + section.VirtualAddress;
+
+			// In pe additional data, like digital signature, won't be loaded into memory
+			// The last section header isn't necessarily the one with the last file data (eg. it could be .bss)
+			ulong endOfData = imageNTHeaders.OptionalHeader.SizeOfHeaders;
+			foreach (var s in imageSectionHeaders) {
+				uint size = s.LoadedSizeOfRawData;
+				if (size != 0)
+					endOfData = Math.Max(endOfData, (ulong)s.PointerToRawData + size);
+			}
+			if ((uint)offset >= endOfData)
+				return 0;
 
 			// In pe headers
 			return (RVA)offset;
@@ -123,7 +129,7 @@ namespace dnlib.PE {
 			if (section is not null) {
 				uint offset = rva - section.VirtualAddress;
 				// Virtual size may be bigger than raw size and there may be no corresponding file offset to rva
-				if (offset < section.SizeOfRawData)
+				if (offset < section.LoadedSizeOfRawData)
 					return (FileOffset)offset + section.PointerToRawData;
 				return 0;
 			}
@@ -147,7 +153,7 @@ namespace dnlib.PE {
 
 			// Section headers must be in ascending order and adjacent
 			var section = imageSectionHeaders[imageSectionHeaders.Length - 1];
-			return (uint)Math.Min(AlignUp((ulong)section.VirtualAddress + section.VirtualSize, alignment), uint.MaxValue);
+			return (uint)Math.Min(AlignUp((ulong)section.VirtualAddress + section.LoadedVirtualSize, alignment), uint.MaxValue);
 		}
 	}
 }

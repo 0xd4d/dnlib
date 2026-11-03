@@ -47,6 +47,11 @@ namespace dnlib.DotNet.Writer {
 		public uint SavedBytes => savedBytes;
 
 		internal bool CanReuseOldBodyLocation { get; set; }
+		/// <summary>
+		/// Checks if a body with this RVA and size can be overwritten without touching other data.
+		/// Must be set if <see cref="CanReuseOldBodyLocation"/> is <c>true</c>.
+		/// </summary>
+		internal Func<RVA, uint, bool> IsReusableLocation { get; set; }
 		internal bool ReusedAllMethodBodyLocations => tinyMethods.Count == 0 && fatMethods.Count == 0;
 		internal bool HasReusedMethods => reusedMethods.Count > 0;
 
@@ -77,7 +82,7 @@ namespace dnlib.DotNet.Writer {
 		internal MethodBody Add(MethodBody methodBody, RVA origRva, uint origSize) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			if (CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && methodBody.CanReuse(origRva, origSize)) {
+			if (CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && methodBody.CanReuse(origRva, origSize) && IsReusableLocation(origRva, origSize)) {
 				if (rvaToReusedMethod.TryGetValue((uint)origRva, out var reusedMethod)) {
 					if (methodBody.Equals(reusedMethod))
 						return reusedMethod;

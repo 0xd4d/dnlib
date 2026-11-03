@@ -40,6 +40,18 @@ namespace dnlib.PE {
 		public uint VirtualSize => virtualSize;
 
 		/// <summary>
+		/// Gets the size of the section in memory. If <see cref="VirtualSize"/> is 0, the Windows loader
+		/// uses <see cref="SizeOfRawData"/> instead (some linkers don't initialize VirtualSize).
+		/// </summary>
+		internal uint LoadedVirtualSize => virtualSize != 0 ? virtualSize : sizeOfRawData;
+
+		/// <summary>
+		/// Gets the number of bytes the Windows loader reads from the file. If <see cref="PointerToRawData"/>
+		/// is 0, the section has no file data (eg. uninitialized data) and this property returns 0.
+		/// </summary>
+		internal uint LoadedSizeOfRawData => pointerToRawData != 0 ? sizeOfRawData : 0;
+
+		/// <summary>
 		/// Returns the IMAGE_SECTION_HEADER.VirtualAddress field
 		/// </summary>
 		public RVA VirtualAddress => virtualAddress;

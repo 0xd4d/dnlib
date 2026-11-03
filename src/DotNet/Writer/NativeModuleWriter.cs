@@ -232,6 +232,7 @@ namespace dnlib.DotNet.Writer {
 		void CreateChunks() {
 			CreateMetadataChunks(module);
 			methodBodies.CanReuseOldBodyLocation = Options.OptimizeImageSize;
+			methodBodies.IsReusableLocation = IsInOneSectionsFileData;
 
 			CreateDebugDirectory();
 
@@ -278,8 +279,9 @@ namespace dnlib.DotNet.Writer {
 			foreach (var peSection in peImage.ImageSectionHeaders) {
 				var newSection = new OrigSection(peSection);
 				origSections.Add(newSection);
-				uint sectionSize = Utils.AlignUp(peSection.SizeOfRawData, fileAlignment);
-				newSection.Chunk = new DataReaderChunk(peImage.CreateReader(peSection.VirtualAddress, sectionSize), peSection.VirtualSize);
+				// Sections without file data (PointerToRawData == 0) get an empty chunk
+				uint sectionSize = Utils.AlignUp(peSection.LoadedSizeOfRawData, fileAlignment);
+				newSection.Chunk = new DataReaderChunk(peImage.CreateReader(peSection.VirtualAddress, sectionSize), peSection.LoadedVirtualSize);
 			}
 		}
 
@@ -320,8 +322,10 @@ namespace dnlib.DotNet.Writer {
 
 		uint GetFirstRawDataFileOffset() {
 			uint len = uint.MaxValue;
-			foreach (var section in peImage.ImageSectionHeaders)
-				len = Math.Min(len, section.PointerToRawData);
+			foreach (var section in peImage.ImageSectionHeaders) {
+				if (section.LoadedSizeOfRawData != 0)
+					len = Math.Min(len, section.PointerToRawData);
+			}
 			return len;
 		}
 
@@ -338,10 +342,20 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint GetLastFileSectionOffset() {
-			uint rva = 0;
-			foreach (var sect in origSections)
-				rva = Math.Max(rva, (uint)sect.PESection.VirtualAddress + sect.PESection.SizeOfRawData);
-			return (uint)peImage.ToFileOffset((RVA)(rva - 1)) + 1;
+			// Section chunks include the padding up to the file alignment, so the extra data starts after it.
+			// A memory layout image has no file offsets so it uses RVAs.
+			bool isFileLayout = peImage.IsFileImageLayout;
+			ulong end = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
+			foreach (var sect in origSections) {
+				var section = sect.PESection;
+				if (section.LoadedSizeOfRawData == 0)
+					continue;
+				ulong sectEnd = isFileLayout ?
+					(ulong)section.PointerToRawData + sect.Chunk.GetFileLength() :
+					(ulong)section.VirtualAddress + section.LoadedSizeOfRawData;
+				end = Math.Max(end, sectEnd);
+			}
+			return (uint)Math.Min(end, peImage.CreateReader().Length);
 		}
 
 		void ReuseIfPossible(PESection section, IReuseChunk chunk, RVA origRva, uint origSize, uint requiredAlignment) {
@@ -352,6 +366,8 @@ namespace dnlib.DotNet.Writer {
 			if (!chunk.CanReuse(origRva, origSize))
 				return;
 			if (((uint)origRva & (requiredAlignment - 1)) != 0)
+				return;
+			if (!IsInOneSectionsFileData(origRva, origSize))
 				return;
 
 			var origEnd = origRva + origSize;
@@ -365,13 +381,41 @@ namespace dnlib.DotNet.Writer {
 			reusedChunks.Add(new ReusedChunkInfo(chunk, origRva));
 		}
 
-		FileOffset GetNewFileOffset(RVA rva) {
+		/// <summary>
+		/// Returns the section whose data in the output file contains <paramref name="rva"/>, or null.
+		/// RVAs without file data (eg. .bss, or past SizeOfRawData) aren't matched, see <see cref="GetFileDataSize(OrigSection)"/>.
+		/// </summary>
+		OrigSection GetOrigSectionWithFileData(RVA rva) {
 			foreach (var sect in origSections) {
 				var section = sect.PESection;
-				if (section.VirtualAddress <= rva && rva < section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData))
-					return sect.Chunk.FileOffset + (rva - section.VirtualAddress);
+				if (section.VirtualAddress <= rva && rva < section.VirtualAddress + GetFileDataSize(sect))
+					return sect;
 			}
-			return (FileOffset)rva;
+			return null;
+		}
+
+		/// <summary>
+		/// Gets the number of bytes, starting at the section's RVA, that have data in the output file. Raw data
+		/// past the section's aligned virtual size isn't loaded and could overlap the next section's RVAs.
+		/// </summary>
+		uint GetFileDataSize(OrigSection sect) =>
+			Math.Min(sect.Chunk.GetFileLength(), Utils.AlignUp(sect.PESection.LoadedVirtualSize, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment));
+
+		/// <summary>
+		/// Checks if the whole range is in one section's file data. Only such a range can be reused,
+		/// anything else would overwrite other data in the output file.
+		/// </summary>
+		bool IsInOneSectionsFileData(RVA rva, uint size) {
+			var sect = GetOrigSectionWithFileData(rva);
+			return sect is not null && (ulong)rva + size <= (ulong)sect.PESection.VirtualAddress + GetFileDataSize(sect);
+		}
+
+		FileOffset GetNewFileOffset(RVA rva) {
+			var sect = GetOrigSectionWithFileData(rva);
+			// All reused locations have been checked by IsInOneSectionsFileData()
+			if (sect is null)
+				throw new ModuleWriterException("Invalid reused RVA");
+			return sect.Chunk.FileOffset + (rva - sect.PESection.VirtualAddress);
 		}
 
 		long WriteFile() {
@@ -653,7 +697,8 @@ namespace dnlib.DotNet.Writer {
 			writer.Position = sectionsOffset;
 			foreach (var section in origSections) {
 				writer.Position += 0x14;
-				writer.WriteUInt32((uint)section.Chunk.FileOffset);	// PointerToRawData
+				// Keep 0 if the section has no file data, else the loader would read SizeOfRawData bytes from that offset
+				writer.WriteUInt32(section.PESection.PointerToRawData == 0 ? 0 : (uint)section.Chunk.FileOffset);	// PointerToRawData
 				writer.Position += 0x10;
 			}
 			foreach (var section in sections)
@@ -753,11 +798,9 @@ namespace dnlib.DotNet.Writer {
 		long ToWriterOffset(RVA rva) {
 			if (rva == 0)
 				return 0;
-			foreach (var sect in origSections) {
-				var section = sect.PESection;
-				if (section.VirtualAddress <= rva && rva < section.VirtualAddress + Math.Max(section.VirtualSize, section.SizeOfRawData))
-					return destStreamBaseOffset + (long)sect.Chunk.FileOffset + (rva - section.VirtualAddress);
-			}
+			var sect = GetOrigSectionWithFileData(rva);
+			if (sect is not null)
+				return destStreamBaseOffset + (long)sect.Chunk.FileOffset + (rva - sect.PESection.VirtualAddress);
 			return 0;
 		}
 
