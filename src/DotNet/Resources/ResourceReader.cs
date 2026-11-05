@@ -123,6 +123,9 @@ namespace dnlib.DotNet.Resources {
 				userTypes.Add(new UserResourceType(reader.ReadSerializedString(), ResourceTypeCode.UserTypes + i));
 			reader.Position = (reader.Position + 7) & ~7U;
 
+			// Each resource has a 4-byte hash and a 4-byte name offset
+			if ((uint)numResources > reader.BytesLeft / 8)
+				throw new ResourceReaderException($"Invalid number of resources: {numResources}");
 			var hashes = new int[numResources];
 			for (int i = 0; i < numResources; i++)
 				hashes[i] = reader.ReadInt32();
