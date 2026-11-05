@@ -45,23 +45,28 @@ namespace dnlib.DotNet {
 				return;
 			}
 			rva = info.VirtualAddress;
-			vtables = new List<VTable>((int)info.Size / 8);
 
 			var peImage = module.Metadata.PEImage;
 			var reader = peImage.CreateReader();
 			reader.Position = (uint)peImage.ToFileOffset(info.VirtualAddress);
+			vtables = new List<VTable>((int)(Math.Min(info.Size, reader.BytesLeft) / 8));
 			ulong endPos = (ulong)reader.Position + info.Size;
+			// Only overlapping tables, which aren't valid, can have more slots than fit in the file.
+			// A small file could otherwise use many GBs since all tables could use the same data.
+			uint slotsLeft = reader.Length / 4;
 			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
 				var tableRva = (RVA)reader.ReadUInt32();
 				int numSlots = reader.ReadUInt16();
 				var flags = (VTableFlags)reader.ReadUInt16();
-				var vtable = new VTable(tableRva, flags, numSlots);
-				vtables.Add(vtable);
 
 				var pos = reader.Position;
 				reader.Position = (uint)peImage.ToFileOffset(tableRva);
-				uint slotSize = vtable.Is64Bit ? 8U : 4;
-				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
+				uint slotSize = (flags & VTableFlags.Bit64) != 0 ? 8U : 4;
+				numSlots = (int)Math.Min(Math.Min((uint)numSlots, reader.BytesLeft / slotSize), slotsLeft);
+				slotsLeft -= (uint)numSlots;
+				var vtable = new VTable(tableRva, flags, numSlots);
+				vtables.Add(vtable);
+				while (numSlots-- > 0) {
 					vtable.Methods.Add(module.ResolveToken(reader.ReadUInt32()) as IMethod);
 					if (slotSize == 8)
 						reader.ReadUInt32();
