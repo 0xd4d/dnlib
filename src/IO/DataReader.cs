@@ -511,6 +511,8 @@ namespace dnlib.IO {
 				ThrowInvalidArgument(nameof(length));
 			if (length == 0)
 				return Array2.Empty<byte>();
+			if ((uint)length > BytesLeft)
+				ThrowNoMoreBytesLeft();
 			var data = new byte[length];
 			ReadBytes(data, 0, length);
 			return data;
