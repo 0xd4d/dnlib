@@ -140,9 +140,19 @@ namespace dnlib.DotNet.Resources {
 
 			var infos = new List<ResourceInfo>(numResources);
 
+			// Valid writers don't make names and data overlap, though the CLR tolerates it, so limit them
+			// to the size of the file. A small file could otherwise use many GBs since all entries could
+			// use the same data.
+			ulong totalBytes = 0;
 			for (int i = 0; i < numResources; i++) {
 				reader.Position = (uint)(nameBaseOffset + offsets[i]);
-				var name = reader.ReadSerializedString(Encoding.Unicode);
+				int nameLength = reader.Read7BitEncodedInt32();
+				if (nameLength < 0)
+					throw new ResourceReaderException($"Invalid resource name length: {nameLength}");
+				totalBytes += (uint)nameLength;
+				if (totalBytes > reader.Length)
+					throw new ResourceReaderException("Resource names and data use more bytes than the file has");
+				var name = reader.ReadString(nameLength, Encoding.Unicode);
 				long offset = dataBaseOffset + reader.ReadInt32();
 				infos.Add(new ResourceInfo(name, offset));
 			}
@@ -158,6 +168,9 @@ namespace dnlib.DotNet.Resources {
 				element.ResourceData = resources.FormatVersion == 1
 					? ReadResourceDataV1(userTypes, resources.ReaderType, size)
 					: ReadResourceDataV2(userTypes, resources.ReaderType, size);
+				totalBytes += reader.Position - (uint)info.offset;
+				if (totalBytes > reader.Length)
+					throw new ResourceReaderException("Resource names and data use more bytes than the file has");
 				element.ResourceData.StartOffset = baseFileOffset + (FileOffset)info.offset;
 				element.ResourceData.EndOffset = baseFileOffset + (FileOffset)reader.Position;
 
