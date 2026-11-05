@@ -94,6 +94,9 @@ namespace dnlib.DotNet {
 		/// <returns></returns>
 		IList<SecurityAttribute> ReadBinaryFormat() {
 			int numAttrs = (int)reader.ReadCompressedUInt32();
+			// Each attribute needs at least 3 bytes: name length, blob length, number of named args
+			if ((uint)numAttrs > reader.BytesLeft / 3)
+				throw new ApplicationException("Invalid number of attributes");
 			var list = new List<SecurityAttribute>(numAttrs);
 
 			for (int i = 0; i < numAttrs; i++) {
