@@ -280,8 +280,12 @@ namespace dnlib.DotNet.MD {
 				var dataLen = (uint)mdTable.TableInfo.RowSize * mdTable.Rows;
 				if (currentPos > reader.Length)
 					currentPos = reader.Length;
-				if ((ulong)currentPos + dataLen > reader.Length)
+				if ((ulong)currentPos + dataLen > reader.Length) {
 					dataLen = reader.Length - currentPos;
+					// Only rows that are completely inside the stream exist. The column sizes
+					// have already been calculated from the row counts in the file.
+					mdTable.Rows = dataLen / (uint)mdTable.TableInfo.RowSize;
+				}
 				mdTable.DataReader = reader.Slice(currentPos, dataLen);
 				var newPos = currentPos + dataLen;
 				if (newPos < currentPos)
