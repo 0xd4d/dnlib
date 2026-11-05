@@ -798,8 +798,8 @@ namespace dnlib.IO {
 				ThrowArgumentNullException(nameof(encoding));
 			if (byteCount == 0)
 				return string.Empty;
-			if ((uint)byteCount > Length)
-				ThrowInvalidArgument(nameof(byteCount));
+			if ((uint)byteCount > BytesLeft)
+				ThrowNoMoreBytesLeft();
 			VerifyState();
 			var currentOffset = this.currentOffset;
 			var value = stream.ReadString(currentOffset, byteCount, encoding);
