@@ -388,7 +388,7 @@ namespace dnlib.DotNet {
 		/// <param name="asmName">Assembly name info</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="asmName"/> is <c>null</c></exception>
 		public AssemblyRefUser(AssemblyName asmName)
-			: this(new AssemblyNameInfo(asmName)) => attributes = (int)asmName.Flags;
+			: this(new AssemblyNameInfo(asmName)) => attributes = (int)AssemblyNameInfo.GetAttributes(asmName);
 
 		/// <summary>
 		/// Constructor
