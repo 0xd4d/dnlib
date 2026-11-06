@@ -805,7 +805,7 @@ namespace dnlib.DotNet {
 		public AssemblyDefUser(AssemblyName asmName)
 			: this(new AssemblyNameInfo(asmName)) {
 			hashAlgorithm = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
-			attributes = (int)asmName.Flags;
+			attributes = (int)AssemblyNameInfo.GetAttributes(asmName);
 		}
 
 		/// <summary>
@@ -821,7 +821,7 @@ namespace dnlib.DotNet {
 			version = asmName.Version ?? new Version(0, 0, 0, 0);
 			publicKey = asmName.PublicKeyOrToken as PublicKey ?? new PublicKey();
 			culture = asmName.Culture;
-			attributes = (int)AssemblyAttributes.None;
+			attributes = (int)asmName.ContentType;
 			hashAlgorithm = AssemblyHashAlgorithm.SHA1;
 		}
 	}

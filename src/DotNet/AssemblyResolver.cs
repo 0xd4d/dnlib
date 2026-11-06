@@ -230,6 +230,7 @@ namespace dnlib.DotNet {
 						Version = assembly.Version,
 						PublicKeyOrToken = assembly.PublicKeyOrToken,
 						Culture = assembly.Culture,
+						Attributes = assembly.Attributes,
 					};
 					resolvedAssembly = Resolve2(assembly, sourceModule);
 				}

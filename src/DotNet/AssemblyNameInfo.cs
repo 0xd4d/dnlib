@@ -242,11 +242,36 @@ namespace dnlib.DotNet {
 				return;
 			hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			version = asmName.Version ?? new Version(0, 0, 0, 0);
-			flags = (AssemblyAttributes)asmName.Flags;
+			flags = GetAttributes(asmName);
 			publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			name = asmName.Name ?? string.Empty;
 			culture = asmName.CultureInfo is not null && asmName.CultureInfo.Name is not null ? asmName.CultureInfo.Name : string.Empty;
+		}
+
+		/// <summary>
+		/// Gets the assembly attributes of <paramref name="asmName"/>. <see cref="AssemblyName.Flags"/>
+		/// doesn't include the content type, so it's read from <c>AssemblyName.ContentType</c>.
+		/// </summary>
+		/// <param name="asmName">Assembly name</param>
+		internal static AssemblyAttributes GetAttributes(AssemblyName asmName) {
+			var flags = (AssemblyAttributes)asmName.Flags;
+#if !NET35
+			flags = (flags & ~AssemblyAttributes.ContentType_Mask) | GetContentType(asmName);
+#endif
+			return flags;
+		}
+
+		/// <summary>
+		/// Gets the content type of <paramref name="asmName"/>
+		/// </summary>
+		/// <param name="asmName">Assembly name</param>
+		internal static AssemblyAttributes GetContentType(AssemblyName asmName) {
+#if NET35
+			return AssemblyAttributes.ContentType_Default;
+#else
+			return (AssemblyAttributes)((int)asmName.ContentType << 9) & AssemblyAttributes.ContentType_Mask;
+#endif
 		}
 
 		/// <inhertidoc/>
