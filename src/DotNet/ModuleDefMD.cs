@@ -418,7 +418,17 @@ namespace dnlib.DotNet {
 			if (pdbState is not null)
 				throw new InvalidOperationException("PDB file has already been initialized");
 
-			var orig = Interlocked.CompareExchange(ref pdbState, new PdbState(symbolReader, this), null);
+			PdbState newPdbState;
+			try {
+				newPdbState = new PdbState(symbolReader, this);
+			}
+			catch (IOException) {
+				// Corrupt PDB data, so continue without the PDB, as when the symbol reader can't be created
+				symbolReader.Dispose();
+				return;
+			}
+
+			var orig = Interlocked.CompareExchange(ref pdbState, newPdbState, null);
 			if (orig is not null)
 				throw new InvalidOperationException("PDB file has already been initialized");
 		}
