@@ -40,6 +40,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 			catch (IOException) {
 			}
+			catch (BadImageFormatException) {
+			}
 			finally {
 				if (disposePdbStream)
 					pdbStream?.Dispose();
