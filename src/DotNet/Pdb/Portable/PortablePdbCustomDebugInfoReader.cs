@@ -175,6 +175,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var tupleListRec = new PortablePdbTupleElementNamesCustomDebugInfo();
 			while (reader.Position < reader.Length) {
 				var name = ReadUTF8Z(reader.Length);
+				Debug.Assert(name is not null);
+				// The reader doesn't move if the name has no terminator
+				if (name is null)
+					return null;
 				tupleListRec.Names.Add(name);
 			}
 			return tupleListRec;
