@@ -95,6 +95,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 			catch (IOException) {
 			}
+			catch (InvalidDataException) {
+			}
 			catch (OutOfMemoryException) {
 			}
 			return null;
