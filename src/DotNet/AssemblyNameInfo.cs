@@ -256,9 +256,7 @@ namespace dnlib.DotNet {
 		/// <param name="asmName">Assembly name</param>
 		internal static AssemblyAttributes GetAttributes(AssemblyName asmName) {
 			var flags = (AssemblyAttributes)asmName.Flags;
-#if !NET35
 			flags = (flags & ~AssemblyAttributes.ContentType_Mask) | GetContentType(asmName);
-#endif
 			return flags;
 		}
 
@@ -268,11 +266,18 @@ namespace dnlib.DotNet {
 		/// <param name="asmName">Assembly name</param>
 		internal static AssemblyAttributes GetContentType(AssemblyName asmName) {
 #if NET35
+			// Eg. .NET Framework 4.8 app using dnlib net35 build for some reason
+			var value = contentTypeProperty?.GetValue(asmName, null);
+			if (value is not null)
+				return (AssemblyAttributes)((int)value << 9) & AssemblyAttributes.ContentType_Mask;
 			return AssemblyAttributes.ContentType_Default;
 #else
 			return (AssemblyAttributes)((int)asmName.ContentType << 9) & AssemblyAttributes.ContentType_Mask;
 #endif
 		}
+#if NET35
+		static readonly PropertyInfo contentTypeProperty = typeof(AssemblyName).GetProperty("ContentType", BindingFlags.Public | BindingFlags.Instance);
+#endif
 
 		/// <inhertidoc/>
 		public override string ToString() => FullName;
