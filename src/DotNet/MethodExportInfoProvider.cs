@@ -41,6 +41,9 @@ namespace dnlib.DotNet {
 			var offsetToInfo = GetOffsetToExportInfoDictionary(ref reader, peImage, exportHdr, cpuArch);
 			reader.Position = (uint)peImage.ToFileOffset(vtblHdr.VirtualAddress);
 			ulong endPos = (ulong)reader.Position + vtblHdr.Size;
+			// Only overlapping tables, which aren't valid, can have more slots than fit in the file.
+			// A small file could otherwise loop billions of times since all tables could use the same data.
+			uint slotsLeft = reader.Length / 4;
 			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
 				var tableRva = (RVA)reader.ReadUInt32();
 				int numSlots = reader.ReadUInt16();
@@ -51,7 +54,9 @@ namespace dnlib.DotNet {
 				var pos = reader.Position;
 				reader.Position = (uint)peImage.ToFileOffset(tableRva);
 				uint slotSize = is64bit ? 8U : 4;
-				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
+				numSlots = (int)Math.Min(Math.Min((uint)numSlots, reader.BytesLeft / slotSize), slotsLeft);
+				slotsLeft -= (uint)numSlots;
+				while (numSlots-- > 0) {
 					var tokenPos = reader.Position;
 					uint token = reader.ReadUInt32();
 					if (offsetToInfo.TryGetValue(tokenPos, out var exportInfo))
@@ -79,16 +84,18 @@ namespace dnlib.DotNet {
 			// Skip Characteristics(4), TimeDateStamp(4), MajorVersion(2), MinorVersion(2), Name(4)
 			reader.Position += 16;
 			uint ordinalBase = reader.ReadUInt32();
-			int numFuncs = reader.ReadInt32();
-			int numNames = reader.ReadInt32();
+			uint numFuncs = reader.ReadUInt32();
+			uint numNames = reader.ReadUInt32();
 			uint offsetOfFuncs = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
 			uint offsetOfNames = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
 			uint offsetOfNameIndexes = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
 
 			var names = ReadNames(ref reader, peImage, numNames, offsetOfNames, offsetOfNameIndexes);
 			reader.Position = offsetOfFuncs;
+			if (numFuncs > reader.BytesLeft / 4)
+				throw new IOException("Invalid number of exported functions");
 			var allInfos = new MethodExportInfo[numFuncs];
-			var dict = new Dictionary<uint, MethodExportInfo>(numFuncs);
+			var dict = new Dictionary<uint, MethodExportInfo>((int)numFuncs);
 			for (int i = 0; i < allInfos.Length; i++) {
 				var nextOffset = reader.Position + 4;
 				uint funcRva = 0;
@@ -105,7 +112,7 @@ namespace dnlib.DotNet {
 
 			foreach (var info in names) {
 				int index = info.Index;
-				if ((uint)index >= (uint)numFuncs)
+				if ((uint)index >= numFuncs)
 					continue;
 				allInfos[index].Ordinal = null;
 				allInfos[index].Name = info.Name;
@@ -114,10 +121,12 @@ namespace dnlib.DotNet {
 			return dict;
 		}
 
-		static NameAndIndex[] ReadNames(ref DataReader reader, IPEImage peImage, int numNames, uint offsetOfNames, uint offsetOfNameIndexes) {
+		static NameAndIndex[] ReadNames(ref DataReader reader, IPEImage peImage, uint numNames, uint offsetOfNames, uint offsetOfNameIndexes) {
+			reader.Position = offsetOfNameIndexes;
+			if (numNames > reader.BytesLeft / 2)
+				throw new IOException("Invalid number of exported names");
 			var names = new NameAndIndex[numNames];
 
-			reader.Position = offsetOfNameIndexes;
 			for (int i = 0; i < names.Length; i++)
 				names[i].Index = reader.ReadUInt16();
 
