@@ -157,6 +157,16 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			if (!pdbMetadata.BlobStream.TryCreateReader(row.SequencePoints, out var seqPointsReader))
 				return null;
+			try {
+				return ReadSequencePoints(ref seqPointsReader, documentRid);
+			}
+			catch (IOException) {
+				// A corrupt blob loses this method's sequence points, like the invalid data checks below
+				return null;
+			}
+		}
+
+		SymbolSequencePoint[] ReadSequencePoints(ref DataReader seqPointsReader, uint documentRid) {
 			var seqPointsBuilder = ListCache<SymbolSequencePoint>.AllocList();
 			uint localSig = seqPointsReader.ReadCompressedUInt32();
 			if (documentRid == 0)

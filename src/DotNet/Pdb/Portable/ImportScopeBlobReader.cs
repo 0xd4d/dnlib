@@ -2,7 +2,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using dnlib.DotNet.MD;
+using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#imports-blob
@@ -25,6 +27,18 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return;
 			if (!blobStream.TryCreateReader(imports, out var reader))
 				return;
+			int count = result.Count;
+			try {
+				Read(ref reader, result);
+			}
+			catch (IOException) {
+				// A corrupt blob loses all of its imports
+				for (int i = result.Count - 1; i >= count; i--)
+					result.RemoveAt(i);
+			}
+		}
+
+		void Read(ref DataReader reader, IList<PdbImport> result) {
 			while (reader.Position < reader.Length) {
 				var kind = ImportDefinitionKindUtils.ToPdbImportDefinitionKind(reader.ReadCompressedUInt32());
 				string targetNamespace, alias;
