@@ -119,7 +119,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns></returns>
 		IList<SecurityAttribute> ReadXmlFormat() {
-			var xml = reader.ReadUtf16String((int)reader.Length / 2);
+			var xml = reader.ReadUtf16String((int)(reader.BytesLeft / 2));
 			var sa = SecurityAttribute.CreateFromXml(module, xml);
 			return new List<SecurityAttribute> { sa };
 		}
