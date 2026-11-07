@@ -57,6 +57,10 @@ namespace dnlib.PE {
 		CEF			= 0x0CEF,
 		/// <summary>EFI Byte Code</summary>
 		EBC			= 0x0EBC,
+		/// <summary>RISC-V 64-bit</summary>
+		RISCV64		= 0x5064,
+		/// <summary>LoongArch 64-bit</summary>
+		LOONGARCH64	= 0x6264,
 		/// <summary>x64</summary>
 		AMD64		= 0x8664,
 		/// <summary>M32R little-endian</summary>
@@ -69,6 +73,8 @@ namespace dnlib.PE {
 		// Search for IMAGE_FILE_MACHINE_NATIVE and IMAGE_FILE_MACHINE_NATIVE_OS_OVERRIDE here:
 		//		https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/pedecoder.h
 		// Note that IMAGE_FILE_MACHINE_NATIVE_OS_OVERRIDE == 0 if it's Windows
+		// s390x and wasm both use IMAGE_FILE_MACHINE_UNKNOWN (0) so S390X_Native_* is also used by wasm
+		// ppc64 uses IMAGE_FILE_MACHINE_POWERPC
 
 #pragma warning disable 1591 // Missing XML comment for publicly visible type or member
 		I386_Native_Apple = I386 ^ 0x4644,
@@ -76,30 +82,54 @@ namespace dnlib.PE {
 		ARMNT_Native_Apple = ARMNT ^ 0x4644,
 		ARM64_Native_Apple = ARM64 ^ 0x4644,
 		S390X_Native_Apple = Unknown ^ 0x4644,
+		LOONGARCH64_Native_Apple = LOONGARCH64 ^ 0x4644,
+		RISCV64_Native_Apple = RISCV64 ^ 0x4644,
+		POWERPC64_Native_Apple = POWERPC ^ 0x4644,
 
 		I386_Native_FreeBSD = I386 ^ 0xADC4,
 		AMD64_Native_FreeBSD = AMD64 ^ 0xADC4,
 		ARMNT_Native_FreeBSD = ARMNT ^ 0xADC4,
 		ARM64_Native_FreeBSD = ARM64 ^ 0xADC4,
 		S390X_Native_FreeBSD = Unknown ^ 0xADC4,
+		LOONGARCH64_Native_FreeBSD = LOONGARCH64 ^ 0xADC4,
+		RISCV64_Native_FreeBSD = RISCV64 ^ 0xADC4,
+		POWERPC64_Native_FreeBSD = POWERPC ^ 0xADC4,
 
 		I386_Native_Linux = I386 ^ 0x7B79,
 		AMD64_Native_Linux = AMD64 ^ 0x7B79,
 		ARMNT_Native_Linux = ARMNT ^ 0x7B79,
 		ARM64_Native_Linux = ARM64 ^ 0x7B79,
 		S390X_Native_Linux = Unknown ^ 0x7B79,
+		LOONGARCH64_Native_Linux = LOONGARCH64 ^ 0x7B79,
+		RISCV64_Native_Linux = RISCV64 ^ 0x7B79,
+		POWERPC64_Native_Linux = POWERPC ^ 0x7B79,
 
 		I386_Native_NetBSD = I386 ^ 0x1993,
 		AMD64_Native_NetBSD = AMD64 ^ 0x1993,
 		ARMNT_Native_NetBSD = ARMNT ^ 0x1993,
 		ARM64_Native_NetBSD = ARM64 ^ 0x1993,
 		S390X_Native_NetBSD = Unknown ^ 0x1993,
+		LOONGARCH64_Native_NetBSD = LOONGARCH64 ^ 0x1993,
+		RISCV64_Native_NetBSD = RISCV64 ^ 0x1993,
+		POWERPC64_Native_NetBSD = POWERPC ^ 0x1993,
+
+		I386_Native_OpenBSD = I386 ^ 0xADC5,
+		AMD64_Native_OpenBSD = AMD64 ^ 0xADC5,
+		ARMNT_Native_OpenBSD = ARMNT ^ 0xADC5,
+		ARM64_Native_OpenBSD = ARM64 ^ 0xADC5,
+		S390X_Native_OpenBSD = Unknown ^ 0xADC5,
+		LOONGARCH64_Native_OpenBSD = LOONGARCH64 ^ 0xADC5,
+		RISCV64_Native_OpenBSD = RISCV64 ^ 0xADC5,
+		POWERPC64_Native_OpenBSD = POWERPC ^ 0xADC5,
 
 		I386_Native_Sun = I386 ^ 0x1992,
 		AMD64_Native_Sun = AMD64 ^ 0x1992,
 		ARMNT_Native_Sun = ARMNT ^ 0x1992,
 		ARM64_Native_Sun = ARM64 ^ 0x1992,
 		S390X_Native_Sun = Unknown ^ 0x1992,
+		LOONGARCH64_Native_Sun = LOONGARCH64 ^ 0x1992,
+		RISCV64_Native_Sun = RISCV64 ^ 0x1992,
+		POWERPC64_Native_Sun = POWERPC ^ 0x1992,
 #pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 	}
 
@@ -121,6 +151,7 @@ namespace dnlib.PE {
 			case Machine.AMD64_Native_FreeBSD:
 			case Machine.AMD64_Native_Linux:
 			case Machine.AMD64_Native_NetBSD:
+			case Machine.AMD64_Native_OpenBSD:
 			case Machine.AMD64_Native_Sun:
 
 			case Machine.ARM64:
@@ -128,7 +159,31 @@ namespace dnlib.PE {
 			case Machine.ARM64_Native_FreeBSD:
 			case Machine.ARM64_Native_Linux:
 			case Machine.ARM64_Native_NetBSD:
+			case Machine.ARM64_Native_OpenBSD:
 			case Machine.ARM64_Native_Sun:
+
+			case Machine.LOONGARCH64:
+			case Machine.LOONGARCH64_Native_Apple:
+			case Machine.LOONGARCH64_Native_FreeBSD:
+			case Machine.LOONGARCH64_Native_Linux:
+			case Machine.LOONGARCH64_Native_NetBSD:
+			case Machine.LOONGARCH64_Native_OpenBSD:
+			case Machine.LOONGARCH64_Native_Sun:
+
+			case Machine.RISCV64:
+			case Machine.RISCV64_Native_Apple:
+			case Machine.RISCV64_Native_FreeBSD:
+			case Machine.RISCV64_Native_Linux:
+			case Machine.RISCV64_Native_NetBSD:
+			case Machine.RISCV64_Native_OpenBSD:
+			case Machine.RISCV64_Native_Sun:
+
+			case Machine.POWERPC64_Native_Apple:
+			case Machine.POWERPC64_Native_FreeBSD:
+			case Machine.POWERPC64_Native_Linux:
+			case Machine.POWERPC64_Native_NetBSD:
+			case Machine.POWERPC64_Native_OpenBSD:
+			case Machine.POWERPC64_Native_Sun:
 				return true;
 
 			// It uses value 0==Unknown but we can't assume it's always s390x
@@ -137,6 +192,7 @@ namespace dnlib.PE {
 			case Machine.S390X_Native_FreeBSD:
 			case Machine.S390X_Native_Linux:
 			case Machine.S390X_Native_NetBSD:
+			case Machine.S390X_Native_OpenBSD:
 			case Machine.S390X_Native_Sun:
 				return true;
 
@@ -157,6 +213,7 @@ namespace dnlib.PE {
 			case Machine.I386_Native_FreeBSD:
 			case Machine.I386_Native_Linux:
 			case Machine.I386_Native_NetBSD:
+			case Machine.I386_Native_OpenBSD:
 			case Machine.I386_Native_Sun:
 				return true;
 			default:
@@ -176,6 +233,7 @@ namespace dnlib.PE {
 			case Machine.AMD64_Native_FreeBSD:
 			case Machine.AMD64_Native_Linux:
 			case Machine.AMD64_Native_NetBSD:
+			case Machine.AMD64_Native_OpenBSD:
 			case Machine.AMD64_Native_Sun:
 				return true;
 			default:
@@ -195,6 +253,7 @@ namespace dnlib.PE {
 			case Machine.ARMNT_Native_FreeBSD:
 			case Machine.ARMNT_Native_Linux:
 			case Machine.ARMNT_Native_NetBSD:
+			case Machine.ARMNT_Native_OpenBSD:
 			case Machine.ARMNT_Native_Sun:
 				return true;
 			default:
@@ -214,6 +273,7 @@ namespace dnlib.PE {
 			case Machine.ARM64_Native_FreeBSD:
 			case Machine.ARM64_Native_Linux:
 			case Machine.ARM64_Native_NetBSD:
+			case Machine.ARM64_Native_OpenBSD:
 			case Machine.ARM64_Native_Sun:
 				return true;
 			default:
@@ -234,7 +294,69 @@ namespace dnlib.PE {
 			case Machine.S390X_Native_FreeBSD:
 			case Machine.S390X_Native_Linux:
 			case Machine.S390X_Native_NetBSD:
+			case Machine.S390X_Native_OpenBSD:
 			case Machine.S390X_Native_Sun:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Checks if <paramref name="machine"/> is <see cref="Machine.LOONGARCH64"/>, <see cref="Machine.LOONGARCH64_Native_Apple"/>, etc...
+		/// </summary>
+		/// <param name="machine">Machine</param>
+		/// <returns></returns>
+		public static bool IsLoongArch64(this Machine machine) {
+			switch (machine) {
+			case Machine.LOONGARCH64:
+			case Machine.LOONGARCH64_Native_Apple:
+			case Machine.LOONGARCH64_Native_FreeBSD:
+			case Machine.LOONGARCH64_Native_Linux:
+			case Machine.LOONGARCH64_Native_NetBSD:
+			case Machine.LOONGARCH64_Native_OpenBSD:
+			case Machine.LOONGARCH64_Native_Sun:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Checks if <paramref name="machine"/> is <see cref="Machine.RISCV64"/>, <see cref="Machine.RISCV64_Native_Apple"/>, etc...
+		/// </summary>
+		/// <param name="machine">Machine</param>
+		/// <returns></returns>
+		public static bool IsRISCV64(this Machine machine) {
+			switch (machine) {
+			case Machine.RISCV64:
+			case Machine.RISCV64_Native_Apple:
+			case Machine.RISCV64_Native_FreeBSD:
+			case Machine.RISCV64_Native_Linux:
+			case Machine.RISCV64_Native_NetBSD:
+			case Machine.RISCV64_Native_OpenBSD:
+			case Machine.RISCV64_Native_Sun:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Checks if <paramref name="machine"/> is ppc64, <see cref="Machine.POWERPC64_Native_Apple"/>, etc...
+		/// </summary>
+		/// <param name="machine">Machine</param>
+		/// <returns></returns>
+		public static bool IsPowerPC64(this Machine machine) {
+			switch (machine) {
+			// It uses value POWERPC but we can't assume it's always ppc64
+			//case Machine.POWERPC:
+			case Machine.POWERPC64_Native_Apple:
+			case Machine.POWERPC64_Native_FreeBSD:
+			case Machine.POWERPC64_Native_Linux:
+			case Machine.POWERPC64_Native_NetBSD:
+			case Machine.POWERPC64_Native_OpenBSD:
+			case Machine.POWERPC64_Native_Sun:
 				return true;
 			default:
 				return false;

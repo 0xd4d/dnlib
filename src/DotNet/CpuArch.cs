@@ -49,6 +49,7 @@ namespace dnlib.DotNet {
 			case Machine.I386_Native_FreeBSD:
 			case Machine.I386_Native_Linux:
 			case Machine.I386_Native_NetBSD:
+			case Machine.I386_Native_OpenBSD:
 			case Machine.I386_Native_Sun:
 				cpuArch = x86CpuArch;
 				return true;
@@ -58,6 +59,7 @@ namespace dnlib.DotNet {
 			case Machine.AMD64_Native_FreeBSD:
 			case Machine.AMD64_Native_Linux:
 			case Machine.AMD64_Native_NetBSD:
+			case Machine.AMD64_Native_OpenBSD:
 			case Machine.AMD64_Native_Sun:
 				cpuArch = x64CpuArch;
 				return true;
@@ -71,6 +73,7 @@ namespace dnlib.DotNet {
 			case Machine.ARMNT_Native_FreeBSD:
 			case Machine.ARMNT_Native_Linux:
 			case Machine.ARMNT_Native_NetBSD:
+			case Machine.ARMNT_Native_OpenBSD:
 			case Machine.ARMNT_Native_Sun:
 				cpuArch = armCpuArch;
 				return true;
@@ -80,6 +83,7 @@ namespace dnlib.DotNet {
 			case Machine.ARM64_Native_FreeBSD:
 			case Machine.ARM64_Native_Linux:
 			case Machine.ARM64_Native_NetBSD:
+			case Machine.ARM64_Native_OpenBSD:
 			case Machine.ARM64_Native_Sun:
 				//TODO: Support ARM64
 				goto default;

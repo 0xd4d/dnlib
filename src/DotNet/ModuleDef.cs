@@ -757,6 +757,21 @@ namespace dnlib.DotNet {
 		public bool IsS390x => Machine.IsS390x();
 
 		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.LOONGARCH64"/>, <see cref="PE.Machine.LOONGARCH64_Native_Apple"/>, ...
+		/// </summary>
+		public bool IsLoongArch64 => Machine.IsLoongArch64();
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is <see cref="PE.Machine.RISCV64"/>, <see cref="PE.Machine.RISCV64_Native_Apple"/>, ...
+		/// </summary>
+		public bool IsRISCV64 => Machine.IsRISCV64();
+
+		/// <summary>
+		/// <c>true</c> if <see cref="Machine"/> is ppc64, <see cref="PE.Machine.POWERPC64_Native_Apple"/>, ...
+		/// </summary>
+		public bool IsPowerPC64 => Machine.IsPowerPC64();
+
+		/// <summary>
 		/// Gets/sets the <see cref="Cor20HeaderFlags"/> (from .NET header)
 		/// </summary>
 		public ComImageFlags Cor20HeaderFlags {
