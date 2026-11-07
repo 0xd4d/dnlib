@@ -100,9 +100,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			int pos = 8;
 			int count = BitConverter.ToInt32(data, pos);
 			pos += 4;
-			if (pos + (long)count * 12 > data.Length)
-				return Array2.Empty<SymbolAsyncStepInfo>();
-			if (count == 0)
+			if (count <= 0 || pos + (long)count * 12 > data.Length)
 				return Array2.Empty<SymbolAsyncStepInfo>();
 			var res = new SymbolAsyncStepInfo[count];
 			for (int i = 0; i < res.Length; i++) {
