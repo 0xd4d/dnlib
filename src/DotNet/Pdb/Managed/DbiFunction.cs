@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			token = reader.ReadInt32();
 			Address = PdbAddress.ReadAddress(ref reader);
 			reader.Position += 1 + 2;
-			Name = PdbReader.ReadCString(ref reader);
+			Name = PdbReader.ReadCString(ref reader, recEnd);
 
 			reader.Position = recEnd;
 			Root = new DbiScope(this, null, "", Address.Offset, len);

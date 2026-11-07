@@ -332,6 +332,23 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
 
+		// Reads a name that must end before 'end', the end of its symbol record, so it can't come from later records
+		internal static string ReadCString(ref DataReader reader, uint end) {
+			var pos = reader.Position;
+			if (end > reader.Length)
+				end = reader.Length;
+			if (pos >= end)
+				return string.Empty;
+			var nameReader = reader.Slice(pos, end - pos);
+			var name = nameReader.TryReadZeroTerminatedUtf8String();
+			if (name is null) {
+				reader.Position = end;
+				return string.Empty;
+			}
+			reader.Position = pos + nameReader.Position;
+			return name;
+		}
+
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
 			if (version != 1)
 				return null;
