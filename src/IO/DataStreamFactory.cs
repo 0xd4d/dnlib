@@ -17,9 +17,13 @@ namespace dnlib.IO {
 			switch (machine) {
 			case Machine.I386:
 			case Machine.AMD64:
+			case Machine.LOONGARCH64:
+			case Machine.POWERPC:
+			case Machine.Unknown: // wasm, s390x
 				return true;
 			case Machine.ARMNT:
 			case Machine.ARM64:
+			case Machine.RISCV64: // misaligned accesses may trap or be emulated (slow)
 				return false;
 			default:
 				Debug.Fail($"Unknown CPU arch: {machine}");

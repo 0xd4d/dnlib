@@ -7,11 +7,14 @@ using System.Runtime.InteropServices;
 
 namespace dnlib.PE {
 	static class ProcessorArchUtils {
-		static Machine cachedMachine = 0;
+		static Machine cachedMachine;
+		static bool hasCachedMachine;
 
 		public static Machine GetProcessCpuArchitecture() {
-			if (cachedMachine == 0)
+			if (!hasCachedMachine) {
 				cachedMachine = GetProcessCpuArchitectureCore();
+				hasCachedMachine = true;
+			}
 			return cachedMachine;
 		}
 
@@ -54,6 +57,33 @@ namespace dnlib.PE {
 				case 3: // Architecture.Arm64
 					Debug.Assert(IntPtr.Size == 8);
 					machine = Machine.ARM64;
+					return true;
+
+				case 4: // Architecture.Wasm
+				case 5: // Architecture.S390x
+					// No PE machine value exists, the runtime uses IMAGE_FILE_MACHINE_UNKNOWN for both
+					machine = Machine.Unknown;
+					return true;
+
+				case 6: // Architecture.LoongArch64
+					Debug.Assert(IntPtr.Size == 8);
+					machine = Machine.LOONGARCH64;
+					return true;
+
+				case 7: // Architecture.Armv6
+					Debug.Assert(IntPtr.Size == 4);
+					machine = Machine.ARMNT;
+					return true;
+
+				case 8: // Architecture.Ppc64le
+					Debug.Assert(IntPtr.Size == 8);
+					// Same as the runtime's IMAGE_FILE_MACHINE_NATIVE for ppc64
+					machine = Machine.POWERPC;
+					return true;
+
+				case 9: // Architecture.RiscV64
+					Debug.Assert(IntPtr.Size == 8);
+					machine = Machine.RISCV64;
 					return true;
 
 				default:
