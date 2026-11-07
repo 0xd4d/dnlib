@@ -48,7 +48,7 @@ namespace dnlib.DotNet {
 
 			var peImage = module.Metadata.PEImage;
 			var reader = peImage.CreateReader();
-			reader.Position = (uint)peImage.ToFileOffset(info.VirtualAddress);
+			reader.Position = ToPosition(peImage, info.VirtualAddress, reader.Length);
 			vtables = new List<VTable>((int)(Math.Min(info.Size, reader.BytesLeft) / 8));
 			ulong endPos = (ulong)reader.Position + info.Size;
 			// Only overlapping tables, which aren't valid, can have more slots than fit in the file.
@@ -60,7 +60,7 @@ namespace dnlib.DotNet {
 				var flags = (VTableFlags)reader.ReadUInt16();
 
 				var pos = reader.Position;
-				reader.Position = (uint)peImage.ToFileOffset(tableRva);
+				reader.Position = ToPosition(peImage, tableRva, reader.Length);
 				uint slotSize = (flags & VTableFlags.Bit64) != 0 ? 8U : 4;
 				numSlots = (int)Math.Min(Math.Min((uint)numSlots, reader.BytesLeft / slotSize), slotsLeft);
 				slotsLeft -= (uint)numSlots;
@@ -74,6 +74,11 @@ namespace dnlib.DotNet {
 				reader.Position = pos;
 			}
 		}
+
+		// An RVA can be inside the image but past the end of the file (or the end of the image in
+		// memory). Nothing can be read there, so treat it like the end, which reads nothing.
+		static uint ToPosition(IPEImage peImage, RVA rva, uint length) =>
+			Math.Min((uint)peImage.ToFileOffset(rva), length);
 
 		/// <inheritdoc/>
 		public IEnumerator<VTable> GetEnumerator() => vtables.GetEnumerator();
