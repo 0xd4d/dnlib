@@ -67,7 +67,7 @@ namespace dnlib.PE {
 		CEE			= 0xC0EE,
 
 		// Search for IMAGE_FILE_MACHINE_NATIVE and IMAGE_FILE_MACHINE_NATIVE_OS_OVERRIDE here:
-		//		https://github.com/dotnet/coreclr/blob/master/src/inc/pedecoder.h
+		//		https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/pedecoder.h
 		// Note that IMAGE_FILE_MACHINE_NATIVE_OS_OVERRIDE == 0 if it's Windows
 
 #pragma warning disable 1591 // Missing XML comment for publicly visible type or member

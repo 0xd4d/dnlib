@@ -501,7 +501,7 @@ namespace dnlib.DotNet.Pdb {
 		public override Guid Guid => CustomDebugInfoGuids.EncLocalSlotMap;
 
 		/// <summary>
-		/// Gets the data. Spec: https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLocalSlotMap
+		/// Gets the data. Spec: https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#edit-and-continue-local-slot-map-c-and-vb-compilers
 		/// </summary>
 		public byte[] Data => data;
 
@@ -529,7 +529,7 @@ namespace dnlib.DotNet.Pdb {
 		public override Guid Guid => CustomDebugInfoGuids.EncLambdaAndClosureMap;
 
 		/// <summary>
-		/// Gets the data. Spec: https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLambdaAndClosureMap
+		/// Gets the data. Spec: https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#edit-and-continue-lambda-and-closure-map-c-and-vb-compilers
 		/// </summary>
 		public byte[] Data => data;
 
@@ -796,7 +796,7 @@ namespace dnlib.DotNet.Pdb {
 		///
 		/// It's not decompressed and converted to a string because the encoding isn't specified.
 		///
-		/// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#embedded-source-c-and-vb-compilers
+		/// https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#embedded-source-c-and-vb-compilers
 		/// </summary>
 		public byte[] SourceCodeBlob { get; set; }
 
@@ -1011,7 +1011,7 @@ namespace dnlib.DotNet.Pdb {
 	}
 
 	/// <summary>
-	/// Compilation metadata reference flags, see https://github.com/dotnet/roslyn/blob/master/docs/features/pdb-compilation-options.md
+	/// Compilation metadata reference flags, see https://github.com/dotnet/roslyn/blob/main/docs/features/pdb-compilation-options.md
 	/// </summary>
 	[Flags]
 	public enum PdbCompilationMetadataReferenceFlags : byte {
@@ -1107,7 +1107,7 @@ namespace dnlib.DotNet.Pdb {
 		public override Guid Guid => CustomDebugInfoGuids.CompilationOptions;
 
 		/// <summary>
-		/// Gets all compilation options, see https://github.com/dotnet/roslyn/blob/master/docs/features/pdb-compilation-options.md .
+		/// Gets all compilation options, see https://github.com/dotnet/roslyn/blob/main/docs/features/pdb-compilation-options.md .
 		/// Option names (key): see roslyn/src/Compilers/Core/Portable/PEWriter/CompilationOptionNames.cs
 		/// </summary>
 		public List<KeyValuePair<string, string>> Options { get; }

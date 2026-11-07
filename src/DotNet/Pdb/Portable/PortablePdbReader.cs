@@ -1,6 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
-// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md
+// https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md
 
 using System;
 using System.Collections.Generic;

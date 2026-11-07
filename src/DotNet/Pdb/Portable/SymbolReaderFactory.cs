@@ -27,7 +27,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return null;
 				// Don't check that debugDir.MinorVersion == PortablePdbConstants.PortableCodeViewVersionMagic
 				// and debugDir.MajorVersion == PortablePdbConstants.FormatVersion since it could be a converted
-				// WindowsPDB file: https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#codeview-debug-directory-entry-type-2
+				// WindowsPDB file: https://github.com/dotnet/runtime/blob/main/docs/design/specs/PE-COFF.md#codeview-debug-directory-entry-type-2
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
@@ -63,7 +63,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return null;
 				uint uncompressedSize = reader.ReadUInt32();
 				// If this fails, see the (hopefully) updated spec:
-				//		https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#embedded-portable-pdb-debug-directory-entry-type-17
+				//		https://github.com/dotnet/runtime/blob/main/docs/design/specs/PE-COFF.md#embedded-portable-pdb-debug-directory-entry-type-17
 				bool newVersion = (uncompressedSize & 0x80000000) != 0;
 				Debug.Assert(!newVersion);
 				if (newVersion)

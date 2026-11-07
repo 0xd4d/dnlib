@@ -16,7 +16,7 @@ namespace dnlib.DotNet.Writer {
 			};
 
 		public static string GetChecksumName(ChecksumAlgorithm checksumAlgorithm) =>
-			// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PE-COFF.md#pdb-checksum-debug-directory-entry-type-19
+			// https://github.com/dotnet/runtime/blob/main/docs/design/specs/PE-COFF.md#pdb-checksum-debug-directory-entry-type-19
 			checksumAlgorithm switch {
 				ChecksumAlgorithm.SHA1 => "SHA1",
 				ChecksumAlgorithm.SHA256 => "SHA256",

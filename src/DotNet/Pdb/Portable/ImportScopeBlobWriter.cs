@@ -5,7 +5,7 @@ using System.Text;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
-	// https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#imports-blob
+	// https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#imports-blob
 	readonly struct ImportScopeBlobWriter {
 		readonly IWriterError helper;
 		readonly Metadata systemMetadata;
