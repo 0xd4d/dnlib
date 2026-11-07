@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
@@ -44,7 +45,31 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public override void Initialize(ModuleDef module) {
 			this.module = module;
+			CheckCustomDebugInfoSize();
 			documents = ReadDocuments();
+		}
+
+		// Each row parses its own copy of its blob, and many rows can use the same blob, so memory
+		// could grow with rows * blob size. Blobs that don't overlap can't add up to more than the
+		// heap. Compilers share identical blobs, such as several embedded copies of one file, so a
+		// fixed amount is allowed too, to keep those files loading.
+		const long MinCustomDebugInfoSizeLimit = 16 * 1024 * 1024;
+
+		void CheckCustomDebugInfoSize() {
+			var tablesStream = pdbMetadata.TablesStream;
+			var blobStream = pdbMetadata.BlobStream;
+			long maxSize = Math.Max((long)blobStream.StreamLength * 2, MinCustomDebugInfoSizeLimit);
+			long size = 0;
+			uint rows = tablesStream.CustomDebugInformationTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (!tablesStream.TryReadCustomDebugInformationRow(rid, out var row))
+					continue;
+				if (!blobStream.TryCreateReader(row.Value, out var reader))
+					continue;
+				size += reader.Length;
+				if (size > maxSize)
+					throw new IOException("Custom debug info rows share too much blob data");
+			}
 		}
 
 		static Guid GetLanguageVendor(Guid language) {
