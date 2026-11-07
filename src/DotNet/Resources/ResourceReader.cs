@@ -59,10 +59,11 @@ namespace dnlib.DotNet.Resources {
 		readonly CreateResourceDataDelegate createResourceDataDelegate;
 
 		ResourceReader(ResourceDataFactory resourceDataFactory, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
-			this.reader = reader;
+			// The resources file starts at the current position, and its offsets are relative to that
+			this.reader = reader.Slice(reader.Position);
 			this.resourceDataFactory = resourceDataFactory;
 			this.createResourceDataDelegate = createResourceDataDelegate;
-			baseFileOffset = reader.StartOffset;
+			baseFileOffset = this.reader.StartOffset;
 		}
 
 		/// <summary>
