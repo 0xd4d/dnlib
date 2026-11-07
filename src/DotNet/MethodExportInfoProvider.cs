@@ -130,11 +130,23 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < names.Length; i++)
 				names[i].Index = reader.ReadUInt16();
 
+			// Names that use the same offset share one string. Names at different offsets can still
+			// overlap, which isn't valid, so stop once more bytes have been read than the file has.
+			// Otherwise a small file could allocate gigabytes, or read one long string over and over.
+			var offsetToName = new Dictionary<uint, string>();
+			ulong bytesLeft = reader.Length;
 			var currentOffset = offsetOfNames;
 			for (int i = 0; i < names.Length; i++, currentOffset += 4) {
 				reader.Position = currentOffset;
 				uint offsetOfName = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
-				names[i].Name = ReadMethodNameASCIIZ(ref reader, offsetOfName);
+				if (!offsetToName.TryGetValue(offsetOfName, out var name)) {
+					name = ReadMethodNameASCIIZ(ref reader, offsetOfName, out uint bytesRead);
+					if (bytesRead > bytesLeft)
+						throw new IOException("Exported names use more bytes than the file has");
+					bytesLeft -= bytesRead;
+					offsetToName.Add(offsetOfName, name);
+				}
+				names[i].Name = name;
 			}
 
 			return names;
@@ -146,9 +158,12 @@ namespace dnlib.DotNet {
 		}
 
 		// If this method gets updated, also update the writer (ManagedExportsWriter)
-		static string ReadMethodNameASCIIZ(ref DataReader reader, uint offset) {
+		static string ReadMethodNameASCIIZ(ref DataReader reader, uint offset, out uint bytesRead) {
 			reader.Position = offset;
-			return reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
+			var name = reader.TryReadZeroTerminatedUtf8String();
+			// With no terminator, the whole rest of the file was searched
+			bytesRead = name is null ? reader.BytesLeft : reader.Position - offset;
+			return name ?? string.Empty;
 		}
 
 		public MethodExportInfo GetMethodExportInfo(uint token) {
