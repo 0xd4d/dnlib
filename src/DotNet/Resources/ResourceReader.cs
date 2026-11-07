@@ -209,7 +209,7 @@ namespace dnlib.DotNet.Resources {
 			case ResourceTypeCode.Single:	return resourceDataFactory.Create(reader.ReadSingle());
 			case ResourceTypeCode.Double:	return resourceDataFactory.Create(reader.ReadDouble());
 			case ResourceTypeCode.Decimal:	return resourceDataFactory.Create(reader.ReadDecimal());
-			case ResourceTypeCode.DateTime: return resourceDataFactory.Create(DateTime.FromBinary(reader.ReadInt64()));
+			case ResourceTypeCode.DateTime: return resourceDataFactory.Create(ReadDateTimeV2());
 			case ResourceTypeCode.TimeSpan:	return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
 			case ResourceTypeCode.ByteArray:return resourceDataFactory.Create(reader.ReadBytes(reader.ReadInt32()));
 			case ResourceTypeCode.Stream:	return resourceDataFactory.CreateStream(reader.ReadBytes(reader.ReadInt32()));
@@ -243,11 +243,31 @@ namespace dnlib.DotNet.Resources {
 			case "System.UInt64":   return resourceDataFactory.Create(reader.ReadUInt64());
 			case "System.Single":   return resourceDataFactory.Create(reader.ReadSingle());
 			case "System.Double":   return resourceDataFactory.Create(reader.ReadDouble());
-			case "System.DateTime": return resourceDataFactory.Create(new DateTime(reader.ReadInt64()));
+			case "System.DateTime": return resourceDataFactory.Create(ReadDateTimeV1());
 			case "System.TimeSpan": return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
 			case "System.Decimal":  return resourceDataFactory.Create(reader.ReadDecimal());
 			default:
 				return ReadSerializedObject(endPos, readerType, type);
+			}
+		}
+
+		DateTime ReadDateTimeV2() {
+			long value = reader.ReadInt64();
+			try {
+				return DateTime.FromBinary(value);
+			}
+			catch (ArgumentException) {
+				throw new ResourceReaderException($"Invalid DateTime value: {value:X16}");
+			}
+		}
+
+		DateTime ReadDateTimeV1() {
+			long value = reader.ReadInt64();
+			try {
+				return new DateTime(value);
+			}
+			catch (ArgumentException) {
+				throw new ResourceReaderException($"Invalid DateTime value: {value:X16}");
 			}
 		}
 
