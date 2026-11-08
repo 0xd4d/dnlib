@@ -1828,12 +1828,25 @@ namespace dnlib.DotNet {
 			if (!td.IsValueType)
 				return false;	// Not supported by us
 			if (!td.IsSequentialLayout && !td.IsExplicitLayout) {
-				if (td.Fields.Count != 1)
+				// Only one instance field is supported, eg. enums ('value__') or simple wrapper
+				// structs. Static and literal fields (eg. enum values) don't contribute to the size,
+				// the CLR ignores literal fields even if they're not static.
+				FieldDef instanceField = null;
+				var fields = td.Fields;
+				int count = fields.Count;
+				for (int i = 0; i < count; i++) {
+					var field = fields[i];
+					if (field is null)
+						return false;
+					if (field.IsStatic || field.IsLiteral)
+						continue;
+					if (instanceField is not null)
+						return false;
+					instanceField = field;
+				}
+				if (instanceField is null)
 					return false;
-				var fd = td.Fields[0];
-				if (fd is null)
-					return false;
-				return fd.GetFieldSize(out size);
+				return instanceField.GetFieldSize(out size);
 			}
 
 			var classLayout = td.ClassLayout;
