@@ -297,7 +297,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					reader.Position += 4;
 					var offset = reader.ReadUInt32();
 					reader.Position += 2;
-					var name = ReadCString(ref reader);
+					var name = ReadCString(ref reader, end);
 
 					if (name == "COM+_Entry_Point") {
 						entryPt = offset;
