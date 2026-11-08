@@ -219,8 +219,9 @@ namespace dnlib.DotNet.Pdb {
 			var method = reader.GetMethod(ownerMethod, 1);
 			if (method is not null) {
 				var pdbMethod = new PdbMethod();
-				pdbMethod.Scope = CreateScope(module, GenericParamContext.Create(ownerMethod), body, method.RootScope);
-				AddSequencePoints(body, method);
+				bool sorted = AreOffsetsSorted(body.Instructions);
+				pdbMethod.Scope = CreateScope(module, GenericParamContext.Create(ownerMethod), body, sorted, method.RootScope);
+				AddSequencePoints(body, sorted, method);
 				body.PdbMethod = pdbMethod;
 			}
 		}
@@ -258,13 +259,13 @@ namespace dnlib.DotNet.Pdb {
 		// .NET Core 3.0 has this assembly because Microsoft.VisualBasic contains WinForms refs
 		static readonly UTF8String nameAssemblyVisualBasicCore = new UTF8String("Microsoft.VisualBasic.Core");
 
-		void AddSequencePoints(CilBody body, SymbolMethod method) {
+		void AddSequencePoints(CilBody body, bool sorted, SymbolMethod method) {
 			int instrIndex = 0;
 			var sequencePoints = method.SequencePoints;
 			int count = sequencePoints.Count;
 			for (int i = 0; i < count; i++) {
 				var sp = sequencePoints[i];
-				var instr = GetInstruction(body.Instructions, sp.Offset, ref instrIndex);
+				var instr = GetInstruction(body.Instructions, sorted, sp.Offset, ref instrIndex);
 				if (instr is null)
 					continue;
 				var seqPoint = new SequencePoint() {
@@ -285,7 +286,7 @@ namespace dnlib.DotNet.Pdb {
 			public int ChildrenIndex;
 		}
 
-		PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, SymbolScope symScope) {
+		PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, bool sorted, SymbolScope symScope) {
 			if (symScope is null)
 				return null;
 
@@ -296,8 +297,8 @@ namespace dnlib.DotNet.Pdb {
 recursive_call:
 			int instrIndex = 0;
 			state.PdbScope = new PdbScope() {
-				Start = GetInstruction(body.Instructions, state.SymScope.StartOffset, ref instrIndex),
-				End   = GetInstruction(body.Instructions, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
+				Start = GetInstruction(body.Instructions, sorted, state.SymScope.StartOffset, ref instrIndex),
+				End   = GetInstruction(body.Instructions, sorted, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
 			};
 			var cdis = state.SymScope.CustomDebugInfos;
 			int count = cdis.Count;
@@ -433,7 +434,34 @@ do_return:
 			goto do_return;
 		}
 
-		static Instruction GetInstruction(IList<Instruction> instrs, int offset, ref int index) {
+		static bool AreOffsetsSorted(IList<Instruction> instrs) {
+			int count = instrs.Count;
+			for (int i = 1; i < count; i++) {
+				if (instrs[i - 1].Offset >= instrs[i].Offset)
+					return false;
+			}
+			return true;
+		}
+
+		static Instruction GetInstruction(IList<Instruction> instrs, bool sorted, int offset, ref int index) {
+			// A body read from the file has sorted offsets, but a body from an IMethodDecrypter might not.
+			// Use a binary search when they're sorted so a method with many scopes or out of order
+			// sequence points doesn't scan the whole body for each one.
+			if (sorted) {
+				int lo = 0, hi = instrs.Count - 1;
+				while (lo <= hi) {
+					int i = lo + (hi - lo) / 2;
+					var instr = instrs[i];
+					if (instr.Offset == offset)
+						return instr;
+					if (offset < instr.Offset)
+						hi = i - 1;
+					else
+						lo = i + 1;
+				}
+				return null;
+			}
+
 			if (instrs.Count > 0 && offset > instrs[instrs.Count - 1].Offset)
 				return null;
 			for (int i = index; i < instrs.Count; i++) {
