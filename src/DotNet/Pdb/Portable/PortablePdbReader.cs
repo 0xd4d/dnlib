@@ -47,6 +47,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public override void Initialize(ModuleDef module) {
 			this.module = module;
 			CheckCustomDebugInfoSize();
+			CheckImportScopeSize();
 			documents = ReadDocuments();
 		}
 
@@ -54,12 +55,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 		// could grow with rows * blob size. Blobs that don't overlap can't add up to more than the
 		// heap. Compilers share identical blobs, such as several embedded copies of one file, so a
 		// fixed amount is allowed too, to keep those files loading.
-		const long MinCustomDebugInfoSizeLimit = 16 * 1024 * 1024;
+		const long MinBlobSizeLimit = 16 * 1024 * 1024;
+
+		long GetBlobSizeLimit() => Math.Max((long)pdbMetadata.BlobStream.StreamLength * 2, MinBlobSizeLimit);
 
 		void CheckCustomDebugInfoSize() {
 			var tablesStream = pdbMetadata.TablesStream;
 			var blobStream = pdbMetadata.BlobStream;
-			long maxSize = Math.Max((long)blobStream.StreamLength * 2, MinCustomDebugInfoSizeLimit);
+			long maxSize = GetBlobSizeLimit();
 			long size = 0;
 			uint rows = tablesStream.CustomDebugInformationTable.Rows;
 			for (uint rid = 1; rid <= rows; rid++) {
@@ -70,6 +73,25 @@ namespace dnlib.DotNet.Pdb.Portable {
 				size += reader.Length;
 				if (size > maxSize)
 					throw new IOException("Custom debug info rows share too much blob data");
+			}
+		}
+
+		// The same problem as above: each ImportScope row parses its own copy of its imports blob, and
+		// each import decodes its own copy of its strings, so rows can share an imports blob and
+		// imports can share a string blob. Rows are counted even if no method uses them, so the result
+		// doesn't depend on which method bodies are read.
+		void CheckImportScopeSize() {
+			var tablesStream = pdbMetadata.TablesStream;
+			var importScopeBlobReader = new ImportScopeBlobReader(module, pdbMetadata.BlobStream);
+			long maxSize = GetBlobSizeLimit();
+			long size = 0;
+			uint rows = tablesStream.ImportScopeTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (!tablesStream.TryReadImportScopeRow(rid, out var row))
+					continue;
+				size += importScopeBlobReader.GetSize(row.Imports);
+				if (size > maxSize)
+					throw new IOException("Import scope rows share too much blob data");
 			}
 		}
 
