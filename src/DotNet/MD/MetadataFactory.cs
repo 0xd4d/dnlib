@@ -133,7 +133,7 @@ namespace dnlib.DotNet.MD {
 				var mdHeader = new MetadataHeader(ref mdHeaderReader, runtime, verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
-						if ((ulong)sh.Offset + sh.StreamSize > mdHeaderReader.EndOffset)
+						if ((ulong)(uint)mdHeader.StartOffset + sh.Offset + sh.StreamSize > mdHeaderReader.EndOffset)
 							throw new BadImageFormatException("Invalid stream header");
 					}
 				}

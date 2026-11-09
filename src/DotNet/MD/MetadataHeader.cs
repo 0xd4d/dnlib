@@ -113,7 +113,8 @@ namespace dnlib.DotNet.MD {
 			for (int i = 0; i < streamHeaders.Count; i++) {
 				// Mono doesn't verify all of these so we can't either
 				var sh = new StreamHeader(ref reader, throwOnError: false, verify, runtime, out bool failedVerification);
-				if (failedVerification || (ulong)sh.Offset + sh.StreamSize > reader.EndOffset)
+				// sh.Offset is relative to the start of this header but reader.EndOffset is an absolute offset
+				if (failedVerification || (ulong)(uint)startOffset + sh.Offset + sh.StreamSize > reader.EndOffset)
 					sh = new StreamHeader(0, 0, "<invalid>");
 				streamHeaders[i] = sh;
 			}
