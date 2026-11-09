@@ -388,7 +388,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetEventRidList(uint eventMapRid) {
-			var list = GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
+			var list = GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable, isEventOrPropertyList: true);
 			if (list.Count == 0 || (!hasEventPtr && !hasDeletedNonFields))
 				return list;
 
@@ -415,7 +415,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetPropertyRidList(uint propertyMapRid) {
-			var list = GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
+			var list = GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable, isEventOrPropertyList: true);
 			if (list.Count == 0 || (!hasPropertyPtr && !hasDeletedNonFields))
 				return list;
 
@@ -453,13 +453,20 @@ namespace dnlib.DotNet.MD {
 		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
+		/// <param name="isEventOrPropertyList"><c>true</c> if it's an event or property list</param>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
-		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
+		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest, bool isEventOrPropertyList = false) {
 			var column = tableSource.TableInfo.Columns[colIndex];
 			if (!tablesStream.TryReadColumn24(tableSource, tableSourceRid, column, out uint startRid))
 				return RidList.Empty;
 			bool hasNext = tablesStream.TryReadColumn24(tableSource, tableSourceRid + 1, column, out uint nextListRid);
 			uint lastRid = tableDest.Rows + 1;
+			// The CLR uses 1 if the event/property list is 0. If it's the last row or if the next row's
+			// list is 0 (END_OF_TABLE), the end rid is 0 so the list is empty.
+			// See coreclr: md/enc/mdinternalrw.cpp / MDInternalRW::EnumInit() and
+			// md/enc/metamodelrw.cpp / CMiniMdRW::Impl_GetEndRidForColumn()
+			if (startRid == 0 && isEventOrPropertyList && hasNext && nextListRid != 0)
+				startRid = 1;
 			if (startRid == 0 || startRid >= lastRid)
 				return RidList.Empty;
 			uint endRid = hasNext && nextListRid != 0 ? nextListRid : lastRid;
