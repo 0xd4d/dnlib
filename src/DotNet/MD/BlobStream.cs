@@ -76,6 +76,12 @@ namespace dnlib.DotNet.MD {
 		/// <returns></returns>
 		public bool TryCreateReader(uint offset, out DataReader reader) {
 			offset &= offsetMask;
+			// The CLR has a special check for offset 0. It always interprets it as
+			// 0-length data, even if that first byte isn't 0 at all.
+			if (offset == 0) {
+				reader = dataReader.Slice(0, 0);
+				return true;
+			}
 			reader = dataReader;
 			if (!IsValidOffset(offset))
 				return false;
