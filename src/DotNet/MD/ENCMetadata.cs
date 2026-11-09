@@ -514,5 +514,11 @@ namespace dnlib.DotNet.MD {
 #endif
 			return sortedTable.FindAllRows(key);
 		}
+
+		/// <inheritdoc/>
+		protected override uint FindRowUnsorted(MDTable tableSource, int keyColIndex, uint key) {
+			var list = FindAllRowsUnsorted(tableSource, keyColIndex, key);
+			return list.Count == 0 ? 0 : list[0];
+		}
 	}
 }
