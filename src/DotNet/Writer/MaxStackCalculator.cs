@@ -5,15 +5,19 @@ using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
-	/// Calculates max stack usage by using a simple pass over all instructions. This value
+	/// Calculates max stack usage by traversing the instruction flow. This value
 	/// can be placed in the fat method header's MaxStack field.
 	/// </summary>
 	public struct MaxStackCalculator {
+		struct State {
+			public int InstructionIndex;
+			public int StackSize;
+		}
+
 		IList<Instruction> instructions;
-		IList<ExceptionHandler> exceptionHandlers;
-		readonly Dictionary<Instruction, int> stackHeights;
-		bool hasError;
-		int currentMaxStack;
+		Stack<State> agenda;
+		int?[] stackSizes;
+		Dictionary<int, List<ExceptionHandler>> exHandlers;
 
 		/// <summary>
 		/// Gets max stack value
@@ -40,138 +44,180 @@ namespace dnlib.DotNet.Writer {
 
 		MaxStackCalculator(bool dummy) {
 			instructions = null;
-			exceptionHandlers = null;
-			stackHeights = new Dictionary<Instruction, int>();
-			hasError = false;
-			currentMaxStack = 0;
+			agenda = null;
+			stackSizes = null;
+			exHandlers = null;
 		}
 
-		MaxStackCalculator(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
-			this.instructions = instructions;
-			this.exceptionHandlers = exceptionHandlers;
-			stackHeights = new Dictionary<Instruction, int>();
-			hasError = false;
-			currentMaxStack = 0;
-		}
+		MaxStackCalculator(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) =>
+			Reset(instructions, exceptionHandlers);
 
 		internal void Reset(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
 			this.instructions = instructions;
-			this.exceptionHandlers = exceptionHandlers;
-			stackHeights.Clear();
-			hasError = false;
-			currentMaxStack = 0;
+
+			if (instructions.Count == 0) {
+				agenda = null;
+				stackSizes = null;
+				exHandlers = null;
+				return;
+			}
+
+			agenda = new Stack<State>(instructions.Count);
+			stackSizes = new int?[instructions.Count];
+
+			if (exceptionHandlers.Count == 0) {
+				exHandlers = null;
+				return;
+			}
+
+			exHandlers = new Dictionary<int, List<ExceptionHandler>>(exceptionHandlers.Count);
+			foreach (var handler in exceptionHandlers) {
+				if (handler?.TryStart is null)
+					continue;
+
+				var idx = instructions.IndexOf(handler.TryStart);
+				if (idx < 0)
+					continue;
+				if (!exHandlers.TryGetValue(idx, out var list))
+					exHandlers.Add(idx, list = new List<ExceptionHandler>());
+
+				list.Add(handler);
+			}
 		}
 
 		internal bool Calculate(out uint maxStack) {
-			var exceptionHandlers = this.exceptionHandlers;
-			var stackHeights = this.stackHeights;
-			for (int i = 0; i < exceptionHandlers.Count; i++) {
-				var eh = exceptionHandlers[i];
-				if (eh is null)
-					continue;
-				Instruction instr;
-				if ((instr = eh.TryStart) is not null)
-					stackHeights[instr] = 0;
-				if ((instr = eh.FilterStart) is not null) {
-					stackHeights[instr] = 1;
-					currentMaxStack = 1;
+			maxStack = 0;
+			if (instructions.Count == 0)
+				return true;
+
+			agenda.Push(new State { InstructionIndex = 0, StackSize = 0 });
+
+			int currentMaxStack = 0;
+
+			while (agenda.Count > 0) {
+				var state = agenda.Pop();
+
+				if (state.InstructionIndex == -1 || state.InstructionIndex >= instructions.Count) {
+					// We went out of bounds of the method body or there is a branch to a non-existing instruction.
+					return false;
 				}
-				if ((instr = eh.HandlerStart) is not null) {
-					bool pushed = eh.IsCatch || eh.IsFilter;
-					if (pushed) {
-						stackHeights[instr] = 1;
-						currentMaxStack = 1;
+
+				int? previous = stackSizes[state.InstructionIndex];
+				if (previous is not null) {
+					if (previous != state.StackSize) {
+						// Stack size mismatch.
+						return false;
 					}
-					else
-						stackHeights[instr] = 0;
-				}
-			}
-
-			int stack = 0;
-			bool resetStack = false;
-			var instructions = this.instructions;
-			for (int i = 0; i < instructions.Count; i++) {
-				var instr = instructions[i];
-				if (instr is null)
-					continue;
-
-				if (resetStack) {
-					stackHeights.TryGetValue(instr, out stack);
-					resetStack = false;
-				}
-				stack = WriteStack(instr, stack);
-				var opCode = instr.OpCode;
-				var code = opCode.Code;
-				if (code == Code.Jmp) {
-					if (stack != 0)
-						hasError = true;
 				}
 				else {
-					instr.CalculateStackUsage(out int pushes, out int pops);
-					if (pops == -1)
-						stack = 0;
-					else {
-						stack -= pops;
-						if (stack < 0) {
-							hasError = true;
-							stack = 0;
-						}
-						stack += pushes;
-					}
-				}
-				if (stack < 0) {
-					hasError = true;
-					stack = 0;
+					stackSizes[state.InstructionIndex] = state.StackSize;
+
+					if (!AddTargets(state))
+						return false;
+					if (!AddEHTargets(state))
+						return false;
 				}
 
-				switch (opCode.FlowControl) {
-				case FlowControl.Branch:
-					WriteStack(instr.Operand as Instruction, stack);
-					resetStack = true;
-					break;
-
-				case FlowControl.Call:
-					if (code == Code.Jmp)
-						resetStack = true;
-					break;
-
-				case FlowControl.Cond_Branch:
-					if (code == Code.Switch) {
-						if (instr.Operand is IList<Instruction> targets) {
-							for (int j = 0; j < targets.Count; j++)
-								WriteStack(targets[j], stack);
-						}
-					}
-					else
-						WriteStack(instr.Operand as Instruction, stack);
-					break;
-
-				case FlowControl.Return:
-				case FlowControl.Throw:
-					resetStack = true;
-					break;
-				}
+				if (state.StackSize > currentMaxStack)
+					currentMaxStack = state.StackSize;
 			}
 
 			maxStack = (uint)currentMaxStack;
-			return !hasError;
+
+			return true;
 		}
 
-		int WriteStack(Instruction instr, int stack) {
-			if (instr is null) {
-				hasError = true;
-				return stack;
+		private bool AddTargets(State state) {
+			var instr = instructions[state.InstructionIndex];
+			if (instr is null)
+				return false;
+			instr.CalculateStackUsage(out int pushes, out int pops);
+
+			int stack = pops == -1 ? 0 : state.StackSize - pops;
+			if (stack < 0) {
+				// Stack underflow.
+				return false;
 			}
-			var stackHeights = this.stackHeights;
-			if (stackHeights.TryGetValue(instr, out int stack2)) {
-				if (stack != stack2)
-					hasError = true;
-				return stack2;
+
+			stack += pushes;
+
+			if (instr.OpCode.Code == Code.Jmp) {
+				// We don't add the next instruction since jmp doesn't continue execution after it.
+				return stack == 0;
 			}
-			stackHeights[instr] = stack;
-			if (stack > currentMaxStack)
-				currentMaxStack = stack;
-			return stack;
+
+			switch (instr.OpCode.FlowControl) {
+			case FlowControl.Break:
+			case FlowControl.Call:
+			case FlowControl.Meta:
+			case FlowControl.Next:
+				AddNextInstruction(state, stack);
+				break;
+			case FlowControl.Branch:
+				if (instr.Operand is not Instruction target)
+					return false;
+				AddInstruction(target, stack);
+				break;
+			case FlowControl.Cond_Branch:
+				AddNextInstruction(state, stack);
+
+				if (instr.Operand is Instruction condTarget)
+					AddInstruction(condTarget, stack);
+				else if (instr.Operand is IList<Instruction> targets) {
+					for (int i = 0; i < targets.Count; i++) {
+						var t = targets[i];
+						if (t is null)
+							return false;
+						AddInstruction(t, stack);
+					}
+				}
+				else
+					return false;
+				break;
+			case FlowControl.Return:
+				// We should check stack == 0 here, but MaxStackCalculator does not have enough information to know,
+				// if the method returns a value or not, so we cannot do it.
+				break;
+			case FlowControl.Throw:
+				// Throwing an exception clears the stack, so we cannot have too many values on the stack.
+				break;
+			default:
+				// Unknown flow control.
+				return false;
+			}
+
+			return true;
 		}
+
+		private bool AddEHTargets(State state) {
+			if (exHandlers is null)
+				return true;
+
+			if (!exHandlers.TryGetValue(state.InstructionIndex, out var handlers))
+				return true;
+
+			if (state.StackSize != 0) {
+				// Try block must be entered with an empty stack.
+				return false;
+			}
+
+			for (int i = 0; i < handlers.Count; i++) {
+				var handler = handlers[i];
+
+				if (handler.HandlerStart is not null)
+					AddInstruction(handler.HandlerStart, handler.IsCatch || handler.IsFilter ? 1 : 0);
+
+				if (handler.FilterStart is not null)
+					AddInstruction(handler.FilterStart, 1);
+			}
+
+			return true;
+		}
+
+		private void AddNextInstruction(State state, int stack) =>
+			agenda.Push(new State { InstructionIndex = state.InstructionIndex + 1, StackSize = stack });
+
+		private void AddInstruction(Instruction instr, int stack) =>
+			agenda.Push(new State { InstructionIndex = instructions.IndexOf(instr), StackSize = stack });
 	}
 }
