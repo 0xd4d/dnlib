@@ -184,6 +184,12 @@ namespace dnlib.DotNet.MD {
 			else
 				tablesStream.Initialize(null, forceAllBig);
 
+			// The CLR reads all blob columns as 4 bytes if there's a #JTD stream but it forgets to
+			// update the blob index mask so only the low 16 bits are used if BigBlob isn't set.
+			// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::InitWithLargeTables()
+			if (runtime == CLRRuntimeReaderKind.CLR && forceAllBig && !tablesStream.HasBigBlob)
+				blobStream?.SetOffsetMask(0xFFFF);
+
 			// The pointer tables are used iff row count != 0
 			hasFieldPtr = !tablesStream.FieldPtrTable.IsEmpty;
 			hasMethodPtr = !tablesStream.MethodPtrTable.IsEmpty;

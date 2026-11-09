@@ -8,6 +8,13 @@ namespace dnlib.DotNet.MD {
 	/// Represents the #Blob stream
 	/// </summary>
 	public sealed class BlobStream : HeapStream {
+		// All offsets are ANDed with this value before they're used. The CLR only uses the low
+		// 16 bits if it's a #- stream with a #JTD stream and the BigBlob bit isn't set.
+		// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::InitWithLargeTables() (m_iBlobsMask isn't updated)
+		uint offsetMask = uint.MaxValue;
+
+		internal void SetOffsetMask(uint mask) => offsetMask = mask;
+
 		/// <inheritdoc/>
 		public BlobStream() {
 		}
@@ -23,6 +30,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="offset">Offset of data</param>
 		/// <returns>The data or <c>null</c> if invalid offset</returns>
 		public byte[] Read(uint offset) {
+			offset &= offsetMask;
 			// The CLR has a special check for offset 0. It always interprets it as
 			// 0-length data, even if that first byte isn't 0 at all.
 			if (offset == 0)
@@ -58,6 +66,7 @@ namespace dnlib.DotNet.MD {
 		/// <param name="reader">Updated with the reader</param>
 		/// <returns></returns>
 		public bool TryCreateReader(uint offset, out DataReader reader) {
+			offset &= offsetMask;
 			reader = dataReader;
 			if (!IsValidOffset(offset))
 				return false;
