@@ -1295,8 +1295,10 @@ namespace dnlib.DotNet {
 			// Create a full stream so position will be the real position in the file. This
 			// is important when reading exception handlers since those must be 4-byte aligned.
 			// If we create a partial stream starting from rva, then position will be 0 and always
-			// 4-byte aligned. All fat method bodies should be 4-byte aligned, but the CLR doesn't
-			// seem to verify it. We must parse the method exactly the way the CLR parses it.
+			// 4-byte aligned. All fat method bodies must be 4-byte aligned (the 64-bit CLR doesn't
+			// decode unaligned fat headers). We must parse the method exactly the way the CLR parses it.
+			// The CLR requires RVA and file offset to be equal mod 4 (FileAlignment >= 512 and the body
+			// is inside one section) so the file offset can be used to check the alignment.
 			var offset = metadata.PEImage.ToFileOffset(rva);
 			if (offset == 0)
 				return new CilBody();

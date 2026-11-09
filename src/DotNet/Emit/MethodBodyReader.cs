@@ -22,6 +22,12 @@ namespace dnlib.DotNet.Emit {
 		/// IL that doesn't come from a PE file, eg. IL set by a profiler.
 		/// </summary>
 		AllowCodeInsideFatHeader	= 0x00000001,
+
+		/// <summary>
+		/// Allow a fat header that isn't 4-byte aligned. The 64-bit CLR doesn't decode such a header,
+		/// the method gets an empty body and the JIT fails to compile it. The 32-bit CLR reads it.
+		/// </summary>
+		AllowUnalignedFatHeader		= 0x00000002,
 	}
 
 	/// <summary>
@@ -425,6 +431,12 @@ namespace dnlib.DotNet.Emit {
 
 			case 3:
 				// Fat header. Can have locals and exception handlers
+
+				// The 64-bit CLR (DecoderInit) only decodes a fat header if it's 4-byte aligned,
+				// else the method gets an empty body (code size 0) and the JIT fails to compile it.
+				// The 32-bit CLR doesn't verify it.
+				if ((startOfHeader & 3) != 0 && (options & MethodBodyReaderOptions.AllowUnalignedFatHeader) == 0)
+					return false;
 				flags = (ushort)((reader.ReadByte() << 8) | b);
 				headerSize = (byte)(flags >> 12);
 				maxStack = reader.ReadUInt16();
