@@ -147,13 +147,17 @@ namespace dnlib.DotNet.MD {
 				return RidList.Empty;
 			bool hasNext = tablesStream.TryReadColumn24(tableSource, tableSourceRid + 1, column, out uint nextListRid);
 			uint lastRid = tableDest.Rows + 1;
-			// The CLR uses 1 if the event/property list is 0.
+			// The CLR uses 1 if the event/property list is 0. Mono doesn't (it returns no rows).
 			// See coreclr: md/runtime/mdinternalro.cpp / MDInternalRO::EnumInit()
-			if (startRid == 0 && isEventOrPropertyList)
+			bool startWasZero = false;
+			if (startRid == 0 && isEventOrPropertyList && runtime == CLRRuntimeReaderKind.CLR) {
 				startRid = 1;
+				startWasZero = true;
+			}
 			if (startRid == 0 || startRid >= lastRid)
 				return RidList.Empty;
-			uint endRid = !hasNext || (nextListRid == 0 && tableDest.Rows == 0xFFFF) ? lastRid : nextListRid;
+			// If the start was 0, the CLR uses the next row's value (0) as the end so the list is empty.
+			uint endRid = !hasNext || (nextListRid == 0 && tableDest.Rows == 0xFFFF && !startWasZero) ? lastRid : nextListRid;
 			if (endRid < startRid)
 				endRid = startRid;
 			if (endRid > lastRid)
