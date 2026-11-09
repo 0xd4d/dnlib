@@ -325,6 +325,51 @@ namespace dnlib.DotNet.MD {
 		/// <returns>A <see cref="RidList"/> instance</returns>
 		protected virtual RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) => FindAllRows(tableSource, keyColIndex, key);
 
+		/// <summary>
+		/// Finds a row owned by <paramref name="key"/> in table <paramref name="tableSource"/>
+		/// whose index is <paramref name="keyColIndex"/>. Should be called if <paramref name="tableSource"/>
+		/// could be unsorted. If there are duplicate rows, the same row that the runtime would use is returned,
+		/// which isn't necessarily the first one.
+		/// </summary>
+		/// <param name="tableSource">Table to search</param>
+		/// <param name="keyColIndex">Key column index</param>
+		/// <param name="key">Key</param>
+		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
+		protected virtual uint FindRowUnsorted(MDTable tableSource, int keyColIndex, uint key) {
+			// The CLR does a binary search and returns the first matching row it finds. It doesn't
+			// look for the first matching row if there are duplicates.
+			uint rid = BinarySearch(tableSource, keyColIndex, key);
+			return tableSource.IsInvalidRID(rid) ? 0 : rid;
+		}
+
+		/// <summary>
+		/// Binary searches the table for a <c>rid</c> whose key column at index <paramref name="keyColIndex"/>
+		/// is equal to <paramref name="key"/>. The same algorithm as Mono's binary search is used, so the
+		/// same row is returned if there are duplicate rows, which isn't necessarily the first one or the
+		/// one the CLR would return. Mono uses it even if the table isn't sorted.
+		/// See mono: mono/utils/bsearch.c / mono_binary_search()
+		/// </summary>
+		/// <param name="tableSource">Table to search</param>
+		/// <param name="keyColIndex">Key column index</param>
+		/// <param name="key">Key</param>
+		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
+		protected uint MonoBinarySearch(MDTable tableSource, int keyColIndex, uint key) {
+			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
+			uint baseIndex = 0;
+			for (uint lim = tableSource.Rows; lim != 0; lim >>= 1) {
+				uint index = baseIndex + (lim >> 1);
+				if (!tablesStream.TryReadColumn24(tableSource, index + 1, keyColumn, out uint key2))
+					break;	// Never happens since rid is valid
+				if (key == key2)
+					return index + 1;
+				if (key > key2) {
+					baseIndex = index + 1;
+					lim--;
+				}
+			}
+			return 0;
+		}
+
 		public override RidList GetInterfaceImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.InterfaceImplTable, 0, typeDefRid);
 
 		public override RidList GetGenericParamRidList(Table table, uint rid) {
@@ -356,39 +401,25 @@ namespace dnlib.DotNet.MD {
 
 		public override RidList GetMethodImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.MethodImplTable, 0, typeDefRid);
 
-		public override uint GetClassLayoutRid(uint typeDefRid) {
-			var list = FindAllRowsUnsorted(tablesStream.ClassLayoutTable, 2, typeDefRid);
-			return list.Count == 0 ? 0 : list[0];
-		}
+		public override uint GetClassLayoutRid(uint typeDefRid) => FindRowUnsorted(tablesStream.ClassLayoutTable, 2, typeDefRid);
 
-		public override uint GetFieldLayoutRid(uint fieldRid) {
-			var list = FindAllRowsUnsorted(tablesStream.FieldLayoutTable, 1, fieldRid);
-			return list.Count == 0 ? 0 : list[0];
-		}
+		public override uint GetFieldLayoutRid(uint fieldRid) => FindRowUnsorted(tablesStream.FieldLayoutTable, 1, fieldRid);
 
 		public override uint GetFieldMarshalRid(Table table, uint rid) {
 			if (!CodedToken.HasFieldMarshal.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(tablesStream.FieldMarshalTable, 0, codedToken);
-			return list.Count == 0 ? 0 : list[0];
+			return FindRowUnsorted(tablesStream.FieldMarshalTable, 0, codedToken);
 		}
 
-		public override uint GetFieldRVARid(uint fieldRid) {
-			var list = FindAllRowsUnsorted(tablesStream.FieldRVATable, 1, fieldRid);
-			return list.Count == 0 ? 0 : list[0];
-		}
+		public override uint GetFieldRVARid(uint fieldRid) => FindRowUnsorted(tablesStream.FieldRVATable, 1, fieldRid);
 
 		public override uint GetImplMapRid(Table table, uint rid) {
 			if (!CodedToken.MemberForwarded.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(tablesStream.ImplMapTable, 1, codedToken);
-			return list.Count == 0 ? 0 : list[0];
+			return FindRowUnsorted(tablesStream.ImplMapTable, 1, codedToken);
 		}
 
-		public override uint GetNestedClassRid(uint typeDefRid) {
-			var list = FindAllRowsUnsorted(tablesStream.NestedClassTable, 0, typeDefRid);
-			return list.Count == 0 ? 0 : list[0];
-		}
+		public override uint GetNestedClassRid(uint typeDefRid) => FindRowUnsorted(tablesStream.NestedClassTable, 0, typeDefRid);
 
 		public override uint GetEventMapRid(uint typeDefRid) {
 			// The EventMap and PropertyMap tables can only be trusted to be sorted if it's
@@ -411,8 +442,7 @@ namespace dnlib.DotNet.MD {
 		public override uint GetConstantRid(Table table, uint rid) {
 			if (!CodedToken.HasConstant.Encode(new MDToken(table, rid), out uint codedToken))
 				return 0;
-			var list = FindAllRowsUnsorted(tablesStream.ConstantTable, 2, codedToken);
-			return list.Count == 0 ? 0 : list[0];
+			return FindRowUnsorted(tablesStream.ConstantTable, 2, codedToken);
 		}
 
 		public override uint GetOwnerTypeOfField(uint fieldRid) {
