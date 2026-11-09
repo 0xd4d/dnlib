@@ -320,9 +320,13 @@ namespace dnlib.DotNet.MD {
 				if (destTable.IsInvalidRID(rid))
 					continue;
 				if (hasDeletedFields) {
-					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
-					if (!tablesStream.TryReadFieldRow(rid, out var row))
-						continue;	// Should never happen since rid is valid
+					// It's a deleted row if RTSpecialName is set and name is "_Deleted".
+					// The CLR reads the Field row at the list index instead of the FieldPtr row's
+					// Field rid, so use the same row as the CLR.
+					// See coreclr: md/enc/mdinternalrw.cpp / MDInternalRW::EnumInit() (mdtFieldDef)
+					uint deletedCheckRid = runtime == CLRRuntimeReaderKind.CLR ? list[i] : rid;
+					if (!tablesStream.TryReadFieldRow(deletedCheckRid, out var row))
+						continue;
 					if (runtime == CLRRuntimeReaderKind.CLR) {
 						if ((row.Flags & (uint)FieldAttributes.RTSpecialName) != 0) {
 							if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
