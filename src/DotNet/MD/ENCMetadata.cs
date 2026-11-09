@@ -518,7 +518,36 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		protected override uint FindRowUnsorted(MDTable tableSource, int keyColIndex, uint key) {
 			var list = FindAllRowsUnsorted(tableSource, keyColIndex, key);
-			return list.Count == 0 ? 0 : list[0];
+			if (list.Count == 0)
+				return 0;
+			// If the table isn't sorted, the CLR does a linear search if there are less than 25 rows,
+			// else it creates a hash table and returns the last matching row. The rows are added to the
+			// front of the hash chains so the matching row with the highest rid is found first.
+			// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GenericFindWithHash()
+			if (runtime == CLRRuntimeReaderKind.CLR && !tablesStream.IsSorted(tableSource) &&
+				tableSource.Rows >= HashLookupRowCountThreshold && UsesHashLookupIfUnsorted(tableSource.Table))
+				return list[list.Count - 1];
+			return list[0];
+		}
+
+		// coreclr: md/enc/metamodelrw.cpp / INDEX_ROW_COUNT_THRESHOLD
+		const uint HashLookupRowCountThreshold = 25;
+
+		// The CLR uses CMiniMdRW::GenericFindWithHash() to find a row in these tables if the table
+		// isn't sorted. The NestedClass table isn't included since the CLR uses a virtual sort
+		// table (which returns the matching row with the lowest rid) to find its rows.
+		static bool UsesHashLookupIfUnsorted(Table table) {
+			switch (table) {
+			case Table.Constant:
+			case Table.FieldMarshal:
+			case Table.ClassLayout:
+			case Table.FieldLayout:
+			case Table.ImplMap:
+			case Table.FieldRVA:
+				return true;
+			default:
+				return false;
+			}
 		}
 	}
 }
