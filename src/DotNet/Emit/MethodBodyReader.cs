@@ -1,10 +1,29 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Emit {
+	/// <summary>
+	/// <see cref="MethodBodyReader"/> options
+	/// </summary>
+	[Flags]
+	public enum MethodBodyReaderOptions {
+		/// <summary>
+		/// No option is enabled
+		/// </summary>
+		None						= 0,
+
+		/// <summary>
+		/// Allow a fat header whose size is less than 3 dwords. The code then starts inside the method
+		/// header and no extra sections (eg. exception handlers) are read. The CLR only accepts this for
+		/// IL that doesn't come from a PE file, eg. IL set by a profiler.
+		/// </summary>
+		AllowCodeInsideFatHeader	= 0x00000001,
+	}
+
 	/// <summary>
 	/// Reads strings from #US heap
 	/// </summary>
@@ -49,6 +68,7 @@ namespace dnlib.DotNet.Emit {
 		uint totalBodySize;
 		DataReader? exceptionsReader;
 		readonly GenericParamContext gpContext;
+		readonly MethodBodyReaderOptions options;
 
 		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
@@ -165,8 +185,23 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">The module context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) {
-			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context);
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) =>
+			CreateCilBody(opResolver, codeReader, ehReader, parameters, gpContext, context, MethodBodyReaderOptions.None);
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="codeReader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">The module context</param>
+		/// <param name="options">Options</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context, MethodBodyReaderOptions options) {
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context, options);
 			if (!mbReader.Read())
 				return new CilBody();
 			return mbReader.CreateCilBody();
@@ -308,10 +343,26 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">Module context</param>
 		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context)
+			: this(opResolver, codeReader, ehReader, parameters, gpContext, context, MethodBodyReaderOptions.None) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">Module context</param>
+		/// <param name="options">Options</param>
+		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context, MethodBodyReaderOptions options)
 			: base(codeReader, parameters, context) {
 			this.opResolver = opResolver;
 			exceptionsReader = ehReader;
 			this.gpContext = gpContext;
+			this.options = options;
 			startOfHeader = uint.MaxValue;
 		}
 
@@ -380,11 +431,16 @@ namespace dnlib.DotNet.Emit {
 				codeSize = reader.ReadUInt32();
 				localVarSigTok = reader.ReadUInt32();
 
-				// The CLR allows the code to start inside the method header. But if it does,
-				// the CLR doesn't read any exceptions.
-				reader.Position = reader.Position - 12 + headerSize * 4U;
-				if (headerSize < 3)
+				// The CLR rejects method bodies in PE files if the header size is less than 3 dwords
+				// (CheckILMethod). IL that doesn't come from a PE file (eg. IL set by a profiler) is
+				// only decoded by DecoderInit, which allows the code to start inside the method
+				// header but doesn't read any extra sections.
+				if (headerSize < 3) {
+					if ((options & MethodBodyReaderOptions.AllowCodeInsideFatHeader) == 0)
+						return false;
 					flags &= 0xFFF7;
+				}
+				reader.Position = reader.Position - 12 + headerSize * 4U;
 				headerSize *= 4;
 				break;
 

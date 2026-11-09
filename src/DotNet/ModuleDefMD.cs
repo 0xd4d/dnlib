@@ -28,6 +28,7 @@ namespace dnlib.DotNet {
 		MetadataBase metadata;
 		IMethodDecrypter methodDecrypter;
 		IStringDecrypter stringDecrypter;
+		readonly MethodBodyReaderOptions methodBodyReaderOptions;
 
 		StrongBox<RidList> moduleRidList;
 
@@ -364,6 +365,7 @@ namespace dnlib.DotNet {
 				options = ModuleCreationOptions.Default;
 			this.metadata = metadata;
 			context = options.Context;
+			methodBodyReaderOptions = options.MethodBodyReaderOptions;
 			Initialize();
 			InitializeFromRawRow();
 			location = metadata.PEImage.Filename ?? string.Empty;
@@ -1301,7 +1303,7 @@ namespace dnlib.DotNet {
 
 			var reader = metadata.PEImage.CreateReader();
 			reader.Position = (uint)offset;
-			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext, Context);
+			return MethodBodyReader.CreateCilBody(this, reader, null, parameters, gpContext, Context, methodBodyReaderOptions);
 		}
 
 		// Rows in tables whose MD instances aren't cached when they contain generic parameters (TypeSpec,
