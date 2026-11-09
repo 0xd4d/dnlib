@@ -544,10 +544,13 @@ namespace dnlib.DotNet.Emit {
 		uint GetOffset(Instruction instr) {
 			if (instr is not null)
 				return instr.Offset;
+			// null is the end of the method, which is the offset after the last instruction,
+			// not the offset of the last instruction
 			var instructions = this.instructions;
 			if (instructions.Count == 0)
 				return 0;
-			return instructions[instructions.Count - 1].Offset;
+			var last = instructions[instructions.Count - 1];
+			return last.Offset + (uint)last.GetSize();
 		}
 
 		/// <summary>
