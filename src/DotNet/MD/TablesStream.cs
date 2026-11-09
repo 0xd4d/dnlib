@@ -235,6 +235,12 @@ namespace dnlib.DotNet.MD {
 			var tableInfos = dnTableSizes.CreateTables(tmpMajor, tmpMinor, out int maxPresentTables);
 			if (typeSystemTableRows is not null)
 				maxPresentTables = DotNetTableSizes.normalMaxTables;
+			else if (runtime == CLRRuntimeReaderKind.CLR && maxPresentTables > (int)Table.GenericParamConstraint + 1) {
+				// Not a portable PDB. The CLR doesn't know about the portable PDB tables (its TBL_COUNT is
+				// GenericParamConstraint + 1). Their row counts are skipped but the tables are treated as empty.
+				// See coreclr: inc/metamodelpub.h (TBL_COUNT) and md/runtime/metamodel.cpp / CMiniMdSchema::LoadFrom()
+				maxPresentTables = (int)Table.GenericParamConstraint + 1;
+			}
 			mdTables = new MDTable[tableInfos.Length];
 
 			ulong valid = validMask;
