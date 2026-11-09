@@ -15,6 +15,8 @@ namespace dnlib.DotNet.MD {
 
 		internal void SetOffsetMask(uint mask) => offsetMask = mask;
 
+		readonly CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR;
+
 		/// <inheritdoc/>
 		public BlobStream() {
 		}
@@ -23,6 +25,13 @@ namespace dnlib.DotNet.MD {
 		public BlobStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
 			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
 		}
+
+		internal BlobStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader, CLRRuntimeReaderKind runtime)
+			: base(mdReaderFactory, metadataBaseOffset, streamHeader) => this.runtime = runtime;
+
+		// The CLR fails to read the entry if its length is encoded as 111x, other runtimes treat it as 110x.
+		bool TryReadLength(ref DataReader reader, out uint length) =>
+			runtime == CLRRuntimeReaderKind.CLR ? reader.TryReadCompressedUInt32Strict(out length) : reader.TryReadCompressedUInt32(out length);
 
 		/// <summary>
 		/// Reads data
@@ -71,7 +80,7 @@ namespace dnlib.DotNet.MD {
 			if (!IsValidOffset(offset))
 				return false;
 			reader.Position = offset;
-			if (!reader.TryReadCompressedUInt32(out uint length))
+			if (!TryReadLength(ref reader, out uint length))
 				return false;
 			if (!reader.CanRead(length))
 				return false;

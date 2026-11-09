@@ -46,7 +46,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#US":
 						if (usStream is null) {
-							usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
+							usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 							newAllStreams.Add(usStream);
 							continue;
 						}
@@ -54,7 +54,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#Blob":
 						if (blobStream is null) {
-							blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
+							blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 							newAllStreams.Add(blobStream);
 							continue;
 						}

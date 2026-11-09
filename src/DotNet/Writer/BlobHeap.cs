@@ -45,7 +45,8 @@ namespace dnlib.DotNet.Writer {
 			reader.Position = 1;
 			while (reader.Position < reader.Length) {
 				uint offset = reader.Position;
-				if (!reader.TryReadCompressedUInt32(out uint len)) {
+				// Use the same decoder as the CLR so we never re-use an offset that the CLR can't read (111x)
+				if (!reader.TryReadCompressedUInt32Strict(out uint len)) {
 					if (offset == reader.Position)
 						reader.Position++;
 					continue;
