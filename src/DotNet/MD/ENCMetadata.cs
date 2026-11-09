@@ -517,6 +517,9 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		protected override uint FindRowUnsorted(MDTable tableSource, int keyColIndex, uint key) {
+			// Mono always does a binary search, even if it's the #- stream and the table isn't sorted
+			if (runtime == CLRRuntimeReaderKind.Mono)
+				return MonoBinarySearch(tableSource, keyColIndex, key);
 			var list = FindAllRowsUnsorted(tableSource, keyColIndex, key);
 			if (list.Count == 0)
 				return 0;
@@ -524,7 +527,7 @@ namespace dnlib.DotNet.MD {
 			// else it creates a hash table and returns the last matching row. The rows are added to the
 			// front of the hash chains so the matching row with the highest rid is found first.
 			// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GenericFindWithHash()
-			if (runtime == CLRRuntimeReaderKind.CLR && !tablesStream.IsSorted(tableSource) &&
+			if (!tablesStream.IsSorted(tableSource) &&
 				tableSource.Rows >= HashLookupRowCountThreshold && UsesHashLookupIfUnsorted(tableSource.Table))
 				return list[list.Count - 1];
 			return list[0];

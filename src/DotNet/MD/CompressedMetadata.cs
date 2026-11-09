@@ -157,6 +157,13 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <inheritdoc/>
+		protected override uint FindRowUnsorted(MDTable tableSource, int keyColIndex, uint key) {
+			if (runtime == CLRRuntimeReaderKind.Mono)
+				return MonoBinarySearch(tableSource, keyColIndex, key);
+			return base.FindRowUnsorted(tableSource, keyColIndex, key);
+		}
+
+		/// <inheritdoc/>
 		protected override uint BinarySearch(MDTable tableSource, int keyColIndex, uint key) {
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			uint ridLo = 1, ridHi = tableSource.Rows;

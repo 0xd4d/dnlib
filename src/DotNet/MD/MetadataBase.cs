@@ -328,7 +328,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Finds a row owned by <paramref name="key"/> in table <paramref name="tableSource"/>
 		/// whose index is <paramref name="keyColIndex"/>. Should be called if <paramref name="tableSource"/>
-		/// could be unsorted. If there are duplicate rows, the same row that the CLR would use is returned,
+		/// could be unsorted. If there are duplicate rows, the same row that the runtime would use is returned,
 		/// which isn't necessarily the first one.
 		/// </summary>
 		/// <param name="tableSource">Table to search</param>
@@ -340,6 +340,34 @@ namespace dnlib.DotNet.MD {
 			// look for the first matching row if there are duplicates.
 			uint rid = BinarySearch(tableSource, keyColIndex, key);
 			return tableSource.IsInvalidRID(rid) ? 0 : rid;
+		}
+
+		/// <summary>
+		/// Binary searches the table for a <c>rid</c> whose key column at index <paramref name="keyColIndex"/>
+		/// is equal to <paramref name="key"/>. The same algorithm as Mono's binary search is used, so the
+		/// same row is returned if there are duplicate rows, which isn't necessarily the first one or the
+		/// one the CLR would return. Mono uses it even if the table isn't sorted.
+		/// See mono: mono/utils/bsearch.c / mono_binary_search()
+		/// </summary>
+		/// <param name="tableSource">Table to search</param>
+		/// <param name="keyColIndex">Key column index</param>
+		/// <param name="key">Key</param>
+		/// <returns>The <c>rid</c> of the found row, or 0 if none found</returns>
+		protected uint MonoBinarySearch(MDTable tableSource, int keyColIndex, uint key) {
+			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
+			uint baseIndex = 0;
+			for (uint lim = tableSource.Rows; lim != 0; lim >>= 1) {
+				uint index = baseIndex + (lim >> 1);
+				if (!tablesStream.TryReadColumn24(tableSource, index + 1, keyColumn, out uint key2))
+					break;	// Never happens since rid is valid
+				if (key == key2)
+					return index + 1;
+				if (key > key2) {
+					baseIndex = index + 1;
+					lim--;
+				}
+			}
+			return 0;
 		}
 
 		public override RidList GetInterfaceImplRidList(uint typeDefRid) => FindAllRowsUnsorted(tablesStream.InterfaceImplTable, 0, typeDefRid);
