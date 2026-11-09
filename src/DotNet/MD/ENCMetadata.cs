@@ -18,6 +18,7 @@ namespace dnlib.DotNet.MD {
 		bool hasDeletedNonFields;
 		readonly CLRRuntimeReaderKind runtime;
 		readonly Dictionary<Table, SortedTable> sortedTables = new Dictionary<Table, SortedTable>();
+		readonly Dictionary<Table, Dictionary<uint, uint>> clrTokenToRidTables = new Dictionary<Table, Dictionary<uint, uint>>();
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
@@ -537,17 +538,64 @@ namespace dnlib.DotNet.MD {
 			// Mono always does a binary search, even if it's the #- stream and the table isn't sorted
 			if (runtime == CLRRuntimeReaderKind.Mono)
 				return MonoBinarySearch(tableSource, keyColIndex, key);
+			if (!tablesStream.IsSorted(tableSource) && UsesHashLookupIfUnsorted(tableSource.Table))
+				return GenericFindWithHash(tableSource, keyColIndex, key);
 			var list = FindAllRowsUnsorted(tableSource, keyColIndex, key);
 			if (list.Count == 0)
 				return 0;
-			// If the table isn't sorted, the CLR does a linear search if there are less than 25 rows,
-			// else it creates a hash table and returns the last matching row. The rows are added to the
-			// front of the hash chains so the matching row with the highest rid is found first.
-			// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GenericFindWithHash()
-			if (!tablesStream.IsSorted(tableSource) &&
-				tableSource.Rows >= HashLookupRowCountThreshold && UsesHashLookupIfUnsorted(tableSource.Table))
-				return list[list.Count - 1];
 			return list[0];
+		}
+
+		// If the table isn't sorted, the CLR does a linear search if there are less than 25 rows,
+		// else it creates a hash table and returns the last matching row. The rows are added to the
+		// front of the hash chains so the matching row with the highest rid is found first.
+		// It doesn't compare the raw column values, it compares the tokens returned by
+		// CMiniMdRW::GetToken() so different column values can match the same token.
+		// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GenericFindWithHash()
+		uint GenericFindWithHash(MDTable tableSource, int keyColIndex, uint key) {
+			var column = tableSource.TableInfo.Columns[keyColIndex];
+			Dictionary<uint, uint> tokenToRid;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (!clrTokenToRidTables.TryGetValue(tableSource.Table, out tokenToRid))
+				clrTokenToRidTables[tableSource.Table] = tokenToRid = CreateClrTokenToRidTable(tableSource, column);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+			return tokenToRid.TryGetValue(GetClrToken(column.ColumnSize, key), out uint rid) ? rid : 0;
+		}
+
+		Dictionary<uint, uint> CreateClrTokenToRidTable(MDTable tableSource, ColumnInfo column) {
+			bool useLastMatch = tableSource.Rows >= HashLookupRowCountThreshold;
+			var tokenToRid = new Dictionary<uint, uint>();
+			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
+				if (!tablesStream.TryReadColumn24(tableSource, rid, column, out uint value))
+					break;	// Never happens since rid is valid
+				uint token = GetClrToken(column.ColumnSize, value);
+				if (useLastMatch || !tokenToRid.ContainsKey(token))
+					tokenToRid[token] = rid;
+			}
+			return tokenToRid;
+		}
+
+		// Converts a column value to a token like coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GetToken().
+		// The rid isn't masked so its high bits are ORed with the table bits.
+		static uint GetClrToken(ColumnSize columnSize, uint value) {
+			if (ColumnSize.Module <= columnSize && columnSize <= ColumnSize.CustomDebugInformation)
+				return value | ((uint)(columnSize - ColumnSize.Module) << 24);
+			var codedToken = columnSize switch {
+				ColumnSize.HasConstant => CodedToken.HasConstant,
+				ColumnSize.HasFieldMarshal => CodedToken.HasFieldMarshal,
+				ColumnSize.MemberForwarded => CodedToken.MemberForwarded,
+				_ => throw new InvalidOperationException($"Unexpected ColumnSize: {columnSize}"),
+			};
+			// coreclr: md/inc/metamodel.h / CMiniMdBase::decodeToken()
+			var tableTypes = codedToken.TableTypes;
+			uint tag = value & ((1U << codedToken.Bits) - 1);
+			if (tag >= (uint)tableTypes.Length)
+				return (uint)tableTypes[0] << 24;
+			return (value >> codedToken.Bits) | ((uint)tableTypes[tag] << 24);
 		}
 
 		// coreclr: md/enc/metamodelrw.cpp / INDEX_ROW_COUNT_THRESHOLD
