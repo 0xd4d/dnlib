@@ -513,7 +513,8 @@ namespace dnlib.DotNet {
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="LocalSig"/> instance</returns>
 		LocalSig ReadLocalSig(CallingConvention callingConvention) {
-			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0x10000 || count > reader.BytesLeft)
+			// The CLR only allows up to 0xFFFF locals
+			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0xFFFF || count > reader.BytesLeft)
 				return null;
 			var sig = new LocalSig(callingConvention, count);
 			var locals = sig.Locals;
