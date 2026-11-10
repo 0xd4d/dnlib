@@ -632,7 +632,8 @@ namespace dnlib.DotNet {
 				}
 				if (!reader.TryReadCompressedUInt32(out num))
 					break;
-				if (num > rank)
+				// The CLR doesn't compare it with the rank. Each value is at least one byte.
+				if (num > reader.BytesLeft)
 					break;
 				var sizes = new List<uint>((int)num);
 				for (i = 0; i < num; i++) {
@@ -642,7 +643,8 @@ namespace dnlib.DotNet {
 				}
 				if (!reader.TryReadCompressedUInt32(out num))
 					break;
-				if (num > rank)
+				// The CLR doesn't compare it with the rank. Each value is at least one byte.
+				if (num > reader.BytesLeft)
 					break;
 				var lowerBounds = new List<int>((int)num);
 				for (i = 0; i < num; i++) {
