@@ -1346,6 +1346,9 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		// Prevents an infinite loop if the base types form a cycle (eg. A : B and B : A)
+		const int MAX_BASE_TYPE_DEPTH = 1000;
+
 		/// <summary>
 		/// Finds a method by checking this type or any of its base types
 		/// </summary>
@@ -1373,7 +1376,7 @@ namespace dnlib.DotNet {
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
 		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var md = td.FindMethod(name, sig, options, sourceModule);
 				if (md is not null)
 					return md;
@@ -1389,7 +1392,7 @@ namespace dnlib.DotNet {
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
 		public MethodDef FindMethodCheckBaseType(UTF8String name) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var md = td.FindMethod(name);
 				if (md is not null)
 					return md;
@@ -1425,7 +1428,7 @@ namespace dnlib.DotNet {
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
 		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var fd = td.FindField(name, sig, options, sourceModule);
 				if (fd is not null)
 					return fd;
@@ -1441,7 +1444,7 @@ namespace dnlib.DotNet {
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
 		public FieldDef FindFieldCheckBaseType(UTF8String name) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var fd = td.FindField(name);
 				if (fd is not null)
 					return fd;
@@ -1458,7 +1461,7 @@ namespace dnlib.DotNet {
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
 		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var ed = td.FindEvent(name, eventType);
 				if (ed is not null)
 					return ed;
@@ -1474,7 +1477,7 @@ namespace dnlib.DotNet {
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
 		public EventDef FindEventCheckBaseType(UTF8String name) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var ed = td.FindEvent(name);
 				if (ed is not null)
 					return ed;
@@ -1510,7 +1513,7 @@ namespace dnlib.DotNet {
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
 		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var pd = td.FindProperty(name, sig, options, sourceModule);
 				if (pd is not null)
 					return pd;
@@ -1526,7 +1529,7 @@ namespace dnlib.DotNet {
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
 		public PropertyDef FindPropertyCheckBaseType(UTF8String name) {
 			var td = this;
-			while (td is not null) {
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var pd = td.FindProperty(name);
 				if (pd is not null)
 					return pd;
