@@ -496,14 +496,10 @@ namespace dnlib.DotNet {
 
 			var parameters = methodSig.Params;
 			for (uint i = 0; i < numParams; i++) {
-				var type = ReadType();
-				if (type is SentinelSig) {
-					if (methodSig.ParamsAfterSentinel is null)
-						methodSig.ParamsAfterSentinel = parameters = new List<TypeSig>((int)(numParams - i));
-					i--;
-				}
-				else
-					parameters.Add(type);
+				// A sentinel is part of the next param, ReadType() skips it
+				if (methodSig.ParamsAfterSentinel is null && PeekIsSentinel())
+					methodSig.ParamsAfterSentinel = parameters = new List<TypeSig>((int)(numParams - i));
+				parameters.Add(ReadType());
 			}
 
 			return methodSig;
@@ -552,7 +548,11 @@ namespace dnlib.DotNet {
 
 			uint num, i;
 			TypeSig nextType, result = null;
-			switch ((ElementType)reader.ReadByte()) {
+			var etype = (ElementType)reader.ReadByte();
+			// The CLR ignores one sentinel before any type (SigParser::SkipAnyVASentinel())
+			if (etype == ElementType.Sentinel)
+				etype = (ElementType)reader.ReadByte();
+			switch (etype) {
 			case ElementType.Void:		result = corLibTypes.Void; break;
 			case ElementType.Boolean:	result = corLibTypes.Boolean; break;
 			case ElementType.Char:		result = corLibTypes.Char; break;
@@ -580,7 +580,6 @@ namespace dnlib.DotNet {
 			case ElementType.SZArray:	result = new SZArraySig(ReadType()); break;
 			case ElementType.CModReqd:	result = new CModReqdSig(ReadTypeDefOrRef(true), ReadType()); break;
 			case ElementType.CModOpt:	result = new CModOptSig(ReadTypeDefOrRef(true), ReadType()); break;
-			case ElementType.Sentinel:	result = new SentinelSig(); break;
 			case ElementType.Pinned:	result = new PinnedSig(ReadType()); break;
 
 			case ElementType.Var:
@@ -685,6 +684,7 @@ namespace dnlib.DotNet {
 
 			case ElementType.End:
 			case ElementType.R:
+			case ElementType.Sentinel:
 			default:
 				result = null;
 				break;
@@ -692,6 +692,15 @@ namespace dnlib.DotNet {
 exit:
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		bool PeekIsSentinel() {
+			if (reader.BytesLeft == 0)
+				return false;
+			var pos = reader.Position;
+			var etype = (ElementType)reader.ReadByte();
+			reader.Position = pos;
+			return etype == ElementType.Sentinel;
 		}
 
 		ITypeDefOrRef ReadTypeDefOrRef(bool allowTypeSpec) {
