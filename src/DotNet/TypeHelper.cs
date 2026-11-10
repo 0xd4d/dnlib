@@ -340,7 +340,7 @@ namespace dnlib.DotNet {
 			int count = types.Count;
 			for (int i = 0; i < count; i++) {
 				var type = types[i];
-				if (ContainsGenericParameter(type)) {
+				if (ContainsGenericParameterInternal(type)) {
 					res = true;
 					break;
 				}

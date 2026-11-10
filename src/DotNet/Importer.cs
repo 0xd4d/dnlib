@@ -201,50 +201,57 @@ namespace dnlib.DotNet {
 		TypeSig ImportAsTypeSig(Type type, Type declaringType, bool? treatAsGenericInst = null) {
 			if (type is null)
 				return null;
+			if (!recursionCounter.Increment())
+				return null;
+
+			TypeSig result;
 			bool treatAsGenericInst2 = treatAsGenericInst ?? declaringType.MustTreatTypeAsGenericInstType(type);
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
-			case ElementType.Void:		return module.CorLibTypes.Void;
-			case ElementType.Boolean:	return module.CorLibTypes.Boolean;
-			case ElementType.Char:		return module.CorLibTypes.Char;
-			case ElementType.I1:		return module.CorLibTypes.SByte;
-			case ElementType.U1:		return module.CorLibTypes.Byte;
-			case ElementType.I2:		return module.CorLibTypes.Int16;
-			case ElementType.U2:		return module.CorLibTypes.UInt16;
-			case ElementType.I4:		return module.CorLibTypes.Int32;
-			case ElementType.U4:		return module.CorLibTypes.UInt32;
-			case ElementType.I8:		return module.CorLibTypes.Int64;
-			case ElementType.U8:		return module.CorLibTypes.UInt64;
-			case ElementType.R4:		return module.CorLibTypes.Single;
-			case ElementType.R8:		return module.CorLibTypes.Double;
-			case ElementType.String:	return module.CorLibTypes.String;
-			case ElementType.TypedByRef:return module.CorLibTypes.TypedReference;
-			case ElementType.U:			return module.CorLibTypes.UIntPtr;
-			case ElementType.Object:	return module.CorLibTypes.Object;
-			case ElementType.Ptr:		return new PtrSig(ImportAsTypeSig(type.GetElementType(), declaringType));
-			case ElementType.ByRef:		return new ByRefSig(ImportAsTypeSig(type.GetElementType(), declaringType));
-			case ElementType.SZArray:	return new SZArraySig(ImportAsTypeSig(type.GetElementType(), declaringType));
-			case ElementType.ValueType: return new ValueTypeSig(CreateTypeDefOrRef(type));
-			case ElementType.Class:		return new ClassSig(CreateTypeDefOrRef(type));
-			case ElementType.Var:		return new GenericVar((uint)type.GenericParameterPosition, gpContext.Type);
-			case ElementType.MVar:		return new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method);
+			case ElementType.Void:		result = module.CorLibTypes.Void; break;
+			case ElementType.Boolean:	result = module.CorLibTypes.Boolean; break;
+			case ElementType.Char:		result = module.CorLibTypes.Char; break;
+			case ElementType.I1:		result = module.CorLibTypes.SByte; break;
+			case ElementType.U1:		result = module.CorLibTypes.Byte; break;
+			case ElementType.I2:		result = module.CorLibTypes.Int16; break;
+			case ElementType.U2:		result = module.CorLibTypes.UInt16; break;
+			case ElementType.I4:		result = module.CorLibTypes.Int32; break;
+			case ElementType.U4:		result = module.CorLibTypes.UInt32; break;
+			case ElementType.I8:		result = module.CorLibTypes.Int64; break;
+			case ElementType.U8:		result = module.CorLibTypes.UInt64; break;
+			case ElementType.R4:		result = module.CorLibTypes.Single; break;
+			case ElementType.R8:		result = module.CorLibTypes.Double; break;
+			case ElementType.String:	result = module.CorLibTypes.String; break;
+			case ElementType.TypedByRef:result = module.CorLibTypes.TypedReference; break;
+			case ElementType.U:			result = module.CorLibTypes.UIntPtr; break;
+			case ElementType.Object:	result = module.CorLibTypes.Object; break;
+			case ElementType.Ptr:		result = new PtrSig(ImportAsTypeSig(type.GetElementType(), declaringType)); break;
+			case ElementType.ByRef:		result = new ByRefSig(ImportAsTypeSig(type.GetElementType(), declaringType)); break;
+			case ElementType.SZArray:	result = new SZArraySig(ImportAsTypeSig(type.GetElementType(), declaringType)); break;
+			case ElementType.ValueType: result = new ValueTypeSig(CreateTypeDefOrRef(type)); break;
+			case ElementType.Class:		result = new ClassSig(CreateTypeDefOrRef(type)); break;
+			case ElementType.Var:		result = new GenericVar((uint)type.GenericParameterPosition, gpContext.Type); break;
+			case ElementType.MVar:		result = new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method); break;
 
 			case ElementType.I:
 				FixSignature = true;	// FnPtr is mapped to System.IntPtr
-				return module.CorLibTypes.IntPtr;
+				result = module.CorLibTypes.IntPtr;
+				break;
 
 			case ElementType.Array:
 				// We don't know sizes and lower bounds. Assume it's `0..`
 				var lowerBounds = new int[type.GetArrayRank()];
 				var sizes = Array2.Empty<uint>();
 				FixSignature = true;
-				return new ArraySig(ImportAsTypeSig(type.GetElementType(), declaringType), (uint)type.GetArrayRank(), sizes, lowerBounds);
+				result = new ArraySig(ImportAsTypeSig(type.GetElementType(), declaringType), (uint)type.GetArrayRank(), sizes, lowerBounds);
+				break;
 
 			case ElementType.GenericInst:
 				var typeGenArgs = type.GetGenericArguments();
 				var git = new GenericInstSig(ImportAsTypeSig(type.GetGenericTypeDefinition(), null, false) as ClassOrValueTypeSig, (uint)typeGenArgs.Length);
 				foreach (var ga in typeGenArgs)
 					git.GenericArguments.Add(ImportAsTypeSig(ga, declaringType));
-				return git;
+				result = git;
+				break;
 
 			case ElementType.Sentinel:
 			case ElementType.Pinned:
@@ -258,8 +265,12 @@ namespace dnlib.DotNet {
 			case ElementType.Module:
 			case ElementType.End:
 			default:
-				return null;
+				result = null;
+				break;
 			}
+
+			recursionCounter.Decrement();
+			return result;
 		}
 
 		ITypeDefOrRef TryResolve(TypeRef tr) {
