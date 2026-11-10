@@ -2006,6 +2006,7 @@ exit: ;
 				case ElementType.End:
 				case ElementType.R:
 				case ElementType.Internal:
+				case ElementType.CModInternal:
 				default:
 					result = false;
 					break;
@@ -2134,6 +2135,7 @@ exit: ;
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				hash = 0;
 				break;
@@ -3483,6 +3485,7 @@ exit: ;
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = false;
 				break;
@@ -3651,6 +3654,7 @@ exit: ;
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				hash = 0;
 				break;

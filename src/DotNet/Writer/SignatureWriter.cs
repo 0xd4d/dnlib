@@ -195,6 +195,7 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				helper.Error("Unknown or unsupported element type");
 				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);

@@ -251,6 +251,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			case ElementType.Sentinel:
 			default:
 				res = false;

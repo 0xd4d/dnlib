@@ -663,6 +663,26 @@ namespace dnlib.DotNet {
 				result = helper.ConvertRTInternalAddress(address);
 				break;
 
+			case ElementType.CModInternal:
+				// The CLR allows this even in metadata signatures
+				bool isRequired = reader.ReadByte() != 0;
+				if (IntPtr.Size == 4)
+					address = new IntPtr(reader.ReadInt32());
+				else
+					address = new IntPtr(reader.ReadInt64());
+				var modifier = helper.ConvertRTInternalAddress(address).ToTypeDefOrRef();
+				nextType = ReadType();
+				// If the address can't be converted (always the case when reading a file), ignore the
+				// modifier like the CLR does in most cases. When it doesn't, it reads the memory at
+				// the address (eg. reflection, unmanaged calling conventions) and will likely crash.
+				if (modifier is null)
+					result = nextType;
+				else if (isRequired)
+					result = new CModReqdSig(modifier, nextType);
+				else
+					result = new CModOptSig(modifier, nextType);
+				break;
+
 			case ElementType.End:
 			case ElementType.R:
 			default:

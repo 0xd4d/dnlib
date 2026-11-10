@@ -254,6 +254,7 @@ namespace dnlib.DotNet {
 			case ElementType.ValueArray:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			case ElementType.Module:
 			case ElementType.End:
 			default:
@@ -858,6 +859,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = null;
 				break;
