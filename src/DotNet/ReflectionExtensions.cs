@@ -32,10 +32,21 @@ namespace dnlib.DotNet {
 		public static bool IsSZArray(this Type self) {
 			if (self is null || !self.IsArray)
 				return false;
-			var prop = self.GetType().GetProperty("IsSzArray", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			if (prop is not null)
+#if NETCOREAPP
+			return self.IsSZArray;
+#else
+			// .NET Core / .NET 5+ have a public Type.IsSZArray, .NET Framework has an internal RuntimeType.IsSzArray
+			const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+			var type = self.GetType();
+			var prop = type.GetProperty("IsSZArray", flags) ?? type.GetProperty("IsSzArray", flags);
+			if (prop is not null && prop.PropertyType == typeof(bool) && prop.GetIndexParameters().Length == 0)
 				return (bool)prop.GetValue(self, Array2.Empty<object>());
+			if (self.GetArrayRank() != 1)
+				return false;
+			// Last resort. Avoid it if possible since the runtime creates the name recursively which can
+			// overflow the stack if the element type is deeply nested.
 			return (self.Name ?? string.Empty).EndsWith("[]");
+#endif
 		}
 
 		/// <summary>
