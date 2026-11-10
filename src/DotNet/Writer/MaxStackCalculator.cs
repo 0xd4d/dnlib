@@ -11,7 +11,8 @@ namespace dnlib.DotNet.Writer {
 	public struct MaxStackCalculator {
 		IList<Instruction> instructions;
 		IList<ExceptionHandler> exceptionHandlers;
-		ushort?[] stackHeights;
+		Dictionary<Instruction, int> indexMap;
+		uint?[] stackHeights;
 		uint maxStack;
 		bool hasError;
 
@@ -42,7 +43,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instructions">All instructions</param>
 		/// <param name="exceptionHandlers">All exception handlers</param>
 		/// <returns>The stack height for each instruction</returns>
-		public static ushort?[] GetStackHeights(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
+		public static uint?[] GetStackHeights(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
 			var helper = new MaxStackCalculator(instructions, exceptionHandlers);
 			helper.ExploreAll();
 			return helper.stackHeights;
@@ -55,9 +56,16 @@ namespace dnlib.DotNet.Writer {
 		internal void Reset(IList<Instruction> instructions, IList<ExceptionHandler> exceptionHandlers) {
 			this.instructions = instructions;
 			this.exceptionHandlers = exceptionHandlers;
-			stackHeights = new ushort?[instructions.Count];
+			if (indexMap is null)
+				indexMap = new Dictionary<Instruction, int>(instructions.Count);
+			else
+				indexMap.Clear();
+			for (int i = 0; i < instructions.Count; i++) {
+				indexMap.Add(instructions[i], i);
+			}
+			stackHeights = new uint?[instructions.Count];
 			maxStack = 0;
-			hasError = false;
+			hasError = instructions.Count == 0;
 		}
 
 		internal bool Calculate(out uint maxStack) {
@@ -75,15 +83,21 @@ namespace dnlib.DotNet.Writer {
 				}
 				if (handler.HandlerStart is not null) {
 					bool pushed = handler.IsCatch || handler.IsFilter;
-					Explore(handler.HandlerStart, (ushort)(pushed ? 1 : 0));
+					Explore(handler.HandlerStart, (uint)(pushed ? 1 : 0));
 				}
 			}
 		}
 
-		void Explore(Instruction instr, ushort stackHeight) => Explore(instructions.IndexOf(instr), stackHeight);
+		readonly int IndexOf(Instruction instr) => indexMap.TryGetValue(instr, out var idx) ? idx : -1; // return invalid value to terminate early
 
-		void Explore(int index, ushort stackHeight) {
+		void Explore(Instruction instr, uint stackHeight) => Explore(IndexOf(instr), stackHeight);
+
+		void Explore(int index, uint stackHeight) {
 start:
+			if (hasError || index < 0 || index >= instructions.Count) {
+				hasError = true;
+				return;
+			}
 			var previous = stackHeights[index];
 			if (previous is not null) {
 				if (previous != stackHeight) {
@@ -105,8 +119,8 @@ start:
 					hasError = true; // stack underflow
 					return;
 				}
-				stackHeight -= (ushort)pops;
-				stackHeight += (ushort)pushes;
+				stackHeight -= (uint)pops;
+				stackHeight += (uint)pushes;
 			}
 			switch (instr.OpCode.FlowControl) {
 			case FlowControl.Break:
@@ -114,6 +128,8 @@ start:
 			case FlowControl.Meta:
 			case FlowControl.Next: {
 				if (instr.OpCode.Code == Code.Jmp) {
+					if (stackHeight != 0) // stack must be empty on jmp
+						hasError = true;
 					return; // method terminates here
 				}
 				else {
@@ -132,7 +148,7 @@ start:
 			case FlowControl.Branch: // unconditional branch
 			{
 				var target = (Instruction)instr.Operand;
-				index = instructions.IndexOf(target);
+				index = IndexOf(target);
 				goto start; // tail recursion
 			}
 			case FlowControl.Cond_Branch: {
