@@ -497,6 +497,9 @@ namespace dnlib.DotNet.Emit {
 			if (standAloneSig is null)
 				return null;
 			var sig = standAloneSig.MethodSig;
+			// The CLR reads it as a method sig even if it has a non-method calling convention
+			if (sig is null && standAloneSig is StandAloneSigMD standAloneSigMD)
+				sig = standAloneSigMD.ReadCalliSig(gpContext);
 			if (sig is not null)
 				sig.OriginalToken = standAloneSig.MDToken.Raw;
 			return sig;

@@ -406,6 +406,68 @@ namespace dnlib.DotNet {
 			recursionCounter = new RecursionCounter();
 		}
 
+		/// <summary>
+		/// Reads a <c>calli</c> signature. The CLR reads it as a method signature whatever its calling
+		/// convention is, and calling conventions that aren't method calling conventions are treated
+		/// like <see cref="CallingConvention.Default"/>.
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="MethodSig"/> instance or <c>null</c> if <paramref name="sig"/> is invalid</returns>
+		internal static MethodSig ReadCalliSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
+			try {
+				return new SignatureReader(readerModule, sig, gpContext).ReadCalliSig();
+			}
+			catch {
+				return null;
+			}
+		}
+
+		/// <summary>
+		/// Reads a <c>calli</c> signature. See <see cref="ReadCalliSig(ModuleDefMD, uint, GenericParamContext)"/>
+		/// </summary>
+		/// <param name="helper">Token resolver</param>
+		/// <param name="corLibTypes">A <see cref="ICorLibTypes"/> instance</param>
+		/// <param name="signature">The signature data</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="MethodSig"/> instance or <c>null</c> if <paramref name="signature"/> is invalid</returns>
+		internal static MethodSig ReadCalliSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) {
+			try {
+				var reader = ByteArrayDataReaderFactory.CreateReader(signature);
+				return new SignatureReader(helper, corLibTypes, ref reader, gpContext).ReadCalliSig();
+			}
+			catch {
+				return null;
+			}
+		}
+
+		MethodSig ReadCalliSig() {
+			if (reader.Length == 0)
+				return null;
+			var callingConvention = (CallingConvention)reader.ReadByte();
+			switch (callingConvention & CallingConvention.Mask) {
+			case CallingConvention.Default:
+			case CallingConvention.C:
+			case CallingConvention.StdCall:
+			case CallingConvention.ThisCall:
+			case CallingConvention.FastCall:
+			case CallingConvention.VarArg:
+			case CallingConvention.Unmanaged:
+			case CallingConvention.NativeVarArg:
+			case CallingConvention.Async:
+				break;
+			default:
+				// The JIT treats them like the default calling convention (it rejects LocalSig but we allow it)
+				callingConvention &= ~CallingConvention.Mask;
+				break;
+			}
+			var sig = ReadSig(new MethodSig(callingConvention));
+			if (sig is not null)
+				sig.ExtraData = GetExtraData();
+			return sig;
+		}
+
 		byte[] GetExtraData() {
 			if (reader.Position == reader.Length)
 				return null;

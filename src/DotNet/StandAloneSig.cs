@@ -178,5 +178,15 @@ namespace dnlib.DotNet {
 			Debug.Assert(b);
 			signature = readerModule.ReadSignature(row.Signature, gpContext);
 		}
+
+		/// <summary>
+		/// Reads the signature as a <c>calli</c> signature
+		/// </summary>
+		/// <param name="gpContext">Generic parameter context</param>
+		internal MethodSig ReadCalliSig(GenericParamContext gpContext) {
+			if (!readerModule.TablesStream.TryReadStandAloneSigRow(origRid, out var row))
+				return null;
+			return SignatureReader.ReadCalliSig(readerModule, row.Signature, gpContext);
+		}
 	}
 }
