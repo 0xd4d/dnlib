@@ -32,6 +32,8 @@ namespace dnlib.DotNet {
 		GenericInst		= 0xA,
 		/// <summary>used ONLY for 64bit vararg PInvoke calls</summary>
 		NativeVarArg	= 0xB,
+		/// <summary>Async calling convention, used by the CLR for calli in IL stubs</summary>
+		Async			= 0xC,
 
 		/// <summary>Calling convention is bottom 4 bits</summary>
 		Mask			= 0x0F,

@@ -2255,6 +2255,7 @@ exit: ;
 				case CallingConvention.Property:
 				case CallingConvention.NativeVarArg:
 				case CallingConvention.Unmanaged:
+				case CallingConvention.Async:
 					MethodBaseSig ma = a as MethodBaseSig, mb = b as MethodBaseSig;
 					result = ma is not null && mb is not null && Equals(ma, mb);
 					break;
@@ -2306,6 +2307,7 @@ exit: ;
 			case CallingConvention.Property:
 			case CallingConvention.NativeVarArg:
 			case CallingConvention.Unmanaged:
+			case CallingConvention.Async:
 				var ma = a as MethodBaseSig;
 				hash = ma is null ? 0 : GetHashCode(ma);
 				break;
@@ -2401,6 +2403,7 @@ exit: ;
 			case CallingConvention.GenericInst:
 			case CallingConvention.Unmanaged:
 			case CallingConvention.NativeVarArg:
+			case CallingConvention.Async:
 			case CallingConvention.Field:
 				return (int)(a & (CallingConvention.Generic | CallingConvention.HasThis | CallingConvention.ExplicitThis));
 

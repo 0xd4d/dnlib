@@ -434,6 +434,7 @@ namespace dnlib.DotNet {
 			case CallingConvention.VarArg:
 			case CallingConvention.Unmanaged:
 			case CallingConvention.NativeVarArg:
+			case CallingConvention.Async:
 				result = ReadMethod(callingConvention);
 				break;
 
@@ -921,6 +922,7 @@ exit:
 			case CallingConvention.VarArg:
 			case CallingConvention.Unmanaged:
 			case CallingConvention.NativeVarArg:
+			case CallingConvention.Async:
 			case CallingConvention.Property:
 				if ((callingConvention & CallingConvention.Generic) != 0) {
 					if (!reader.TryReadCompressedUInt32(out count) || count > 0xFFFF)
