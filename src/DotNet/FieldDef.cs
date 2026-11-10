@@ -654,13 +654,21 @@ namespace dnlib.DotNet {
 		/// <param name="size">Updated with size</param>
 		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
 		protected bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, int ptrSize, out uint size) {
+			var recursionCounter = new RecursionCounter();
+			return GetFieldSize(declaringType, fieldSig, ptrSize, ref recursionCounter, out size);
+		}
+
+		internal bool GetFieldSize(ref RecursionCounter recursionCounter, out uint size) =>
+			GetFieldSize(declaringType2, FieldSig, GetPointerSize(declaringType2), ref recursionCounter, out size);
+
+		bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, int ptrSize, ref RecursionCounter recursionCounter, out uint size) {
 			size = 0;
 			if (fieldSig is null)
 				return false;
-			return GetClassSize(declaringType, fieldSig.Type, ptrSize, out size);
+			return GetClassSize(declaringType, fieldSig.Type, ptrSize, ref recursionCounter, out size);
 		}
 
-		bool GetClassSize(TypeDef declaringType, TypeSig ts, int ptrSize, out uint size) {
+		bool GetClassSize(TypeDef declaringType, TypeSig ts, int ptrSize, ref RecursionCounter recursionCounter, out uint size) {
 			size = 0;
 			ts = ts.RemovePinnedAndModifiers();
 			if (ts is null)
@@ -678,11 +686,11 @@ namespace dnlib.DotNet {
 
 			var td = tdrs.TypeDef;
 			if (td is not null)
-				return TypeDef.GetClassSize(td, out size);
+				return TypeDef.GetClassSize(td, ref recursionCounter, out size);
 
 			var tr = tdrs.TypeRef;
 			if (tr is not null)
-				return TypeDef.GetClassSize(tr.Resolve(), out size);
+				return TypeDef.GetClassSize(tr.Resolve(), ref recursionCounter, out size);
 
 			return false;
 		}

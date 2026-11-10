@@ -1821,32 +1821,19 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		internal static bool GetClassSize(TypeDef td, out uint size) {
+		internal static bool GetClassSize(TypeDef td, ref RecursionCounter recursionCounter, out uint size) {
 			size = 0;
 			if (td is null)
 				return false;
 			if (!td.IsValueType)
 				return false;	// Not supported by us
 			if (!td.IsSequentialLayout && !td.IsExplicitLayout) {
-				// Only one instance field is supported, eg. enums ('value__') or simple wrapper
-				// structs. Static and literal fields (eg. enum values) don't contribute to the size,
-				// the CLR ignores literal fields even if they're not static.
-				FieldDef instanceField = null;
-				var fields = td.Fields;
-				int count = fields.Count;
-				for (int i = 0; i < count; i++) {
-					var field = fields[i];
-					if (field is null)
-						return false;
-					if (field.IsStatic || field.IsLiteral)
-						continue;
-					if (instanceField is not null)
-						return false;
-					instanceField = field;
-				}
-				if (instanceField is null)
+				// Prevent infinite recursion, eg. a struct whose only instance field is of its own type
+				if (!recursionCounter.Increment())
 					return false;
-				return instanceField.GetFieldSize(out size);
+				bool result = GetAutoLayoutClassSize(td, ref recursionCounter, out size);
+				recursionCounter.Decrement();
+				return result;
 			}
 
 			var classLayout = td.ClassLayout;
@@ -1860,6 +1847,29 @@ namespace dnlib.DotNet {
 
 			// Not supported by us
 			return false;
+		}
+
+		static bool GetAutoLayoutClassSize(TypeDef td, ref RecursionCounter recursionCounter, out uint size) {
+			size = 0;
+			// Only one instance field is supported, eg. enums ('value__') or simple wrapper
+			// structs. Static and literal fields (eg. enum values) don't contribute to the size,
+			// the CLR ignores literal fields even if they're not static.
+			FieldDef instanceField = null;
+			var fields = td.Fields;
+			int count = fields.Count;
+			for (int i = 0; i < count; i++) {
+				var field = fields[i];
+				if (field is null)
+					return false;
+				if (field.IsStatic || field.IsLiteral)
+					continue;
+				if (instanceField is not null)
+					return false;
+				instanceField = field;
+			}
+			if (instanceField is null)
+				return false;
+			return instanceField.GetFieldSize(ref recursionCounter, out size);
 		}
 
 		/// <summary>
