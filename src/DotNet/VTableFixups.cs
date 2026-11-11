@@ -69,8 +69,11 @@ namespace dnlib.DotNet {
 				// ToFileOffset() returns 0 if the RVA is invalid or has no file data (eg. .bss). Such slots
 				// are zero at runtime (token 0), so add null methods. This keeps the slot count so the
 				// writer still sees that the vtable doesn't fit in the file instead of writing 0 slots.
+				// They count against the slot limit too since nothing has to be read to add them.
 				var tableOffset = peImage.ToFileOffset(tableRva);
 				if (tableOffset == 0) {
+					numSlots = (int)Math.Min((uint)numSlots, slotsLeft);
+					slotsLeft -= (uint)numSlots;
 					var invalidVTable = new VTable(tableRva, flags, numSlots);
 					vtables.Add(invalidVTable);
 					while (numSlots-- > 0)
