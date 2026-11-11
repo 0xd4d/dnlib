@@ -541,6 +541,63 @@ namespace dnlib.DotNet {
 		SigComparerOptions options;
 		GenericArguments genericArguments;
 		readonly ModuleDef sourceModule;
+		// Type pairs that are currently being compared for type equivalence
+		internal TIAHelper.TypeDefPairList typeEquivalenceVisited;
+		// Type pairs proven equivalent during the outermost type equivalence compare
+		internal TIAHelper.TypeDefPairSet typeEquivalenceCache;
+		StateFlags stateFlags;
+
+		[Flags]
+		enum StateFlags : byte {
+			None							= 0,
+			// Set when type equivalence was used to compare two types
+			UsedTypeEquivalence				= 0x01,
+			// Set if we're comparing a TypeSig element (eg. a param type or a field type)
+			InTypeSigElement				= 0x02,
+			// Set if we're comparing a TypeSig element a 2nd time, emulating the CLR's 'type equivalence
+			// forbidden' state (see TokenPairList). This is only done if type equivalence was used the 1st time.
+			TypeEquivalenceStrict			= 0x04,
+			// Only used if TypeEquivalenceStrict is set: set if type equivalence isn't allowed
+			TypeEquivalenceForbidden		= 0x08,
+			// Only used if TypeEquivalenceStrict isn't set: set if a function pointer or generic instance type
+			// has been seen in this TypeSig element so type equivalence might not be allowed
+			TypeEquivalenceMaybeForbidden	= 0x10,
+			// Set if type equivalence was used when TypeEquivalenceMaybeForbidden was set
+			NeedStrictTypeEquivalence		= 0x20,
+		}
+
+		bool GetFlag(StateFlags flag) => (stateFlags & flag) != 0;
+		void SetFlag(StateFlags flag, bool value) {
+			if (value)
+				stateFlags |= flag;
+			else
+				stateFlags &= ~flag;
+		}
+
+		bool usedTypeEquivalence {
+			get => GetFlag(StateFlags.UsedTypeEquivalence);
+			set => SetFlag(StateFlags.UsedTypeEquivalence, value);
+		}
+		bool inTypeSigElement {
+			get => GetFlag(StateFlags.InTypeSigElement);
+			set => SetFlag(StateFlags.InTypeSigElement, value);
+		}
+		bool typeEquivalenceStrict {
+			get => GetFlag(StateFlags.TypeEquivalenceStrict);
+			set => SetFlag(StateFlags.TypeEquivalenceStrict, value);
+		}
+		bool typeEquivalenceForbidden {
+			get => GetFlag(StateFlags.TypeEquivalenceForbidden);
+			set => SetFlag(StateFlags.TypeEquivalenceForbidden, value);
+		}
+		bool typeEquivalenceMaybeForbidden {
+			get => GetFlag(StateFlags.TypeEquivalenceMaybeForbidden);
+			set => SetFlag(StateFlags.TypeEquivalenceMaybeForbidden, value);
+		}
+		bool needStrictTypeEquivalence {
+			get => GetFlag(StateFlags.NeedStrictTypeEquivalence);
+			set => SetFlag(StateFlags.NeedStrictTypeEquivalence, value);
+		}
 
 		bool DontCompareTypeScope => (options & SigComparerOptions.DontCompareTypeScope) != 0;
 		bool CompareMethodFieldDeclaringType => (options & SigComparerOptions.CompareMethodFieldDeclaringType) != 0;
@@ -586,6 +643,9 @@ namespace dnlib.DotNet {
 			this.options = options;
 			genericArguments = null;
 			this.sourceModule = sourceModule;
+			typeEquivalenceVisited = null;
+			typeEquivalenceCache = null;
+			stateFlags = StateFlags.None;
 		}
 
 		/// <summary>
@@ -604,7 +664,9 @@ namespace dnlib.DotNet {
 		internal static bool Equals_Names(bool caseInsensitive, UTF8String a, UTF8String b) {
 			if (caseInsensitive)
 				return UTF8String.ToSystemStringOrEmpty(a).Equals(UTF8String.ToSystemStringOrEmpty(b), StringComparison.OrdinalIgnoreCase);
-			return UTF8String.Equals(a, b);
+			// A null name is the same as an empty name, like in the case insensitive compare, the string overload
+			// and the hash code. Names read from metadata are never null but names of user created types can be.
+			return UTF8String.Equals(UTF8String.IsNull(a) ? UTF8String.Empty : a, UTF8String.IsNull(b) ? UTF8String.Empty : b);
 		}
 
 		bool Equals_Names(bool caseInsensitive, string a, string b) {
@@ -738,11 +800,9 @@ namespace dnlib.DotNet {
 			var td = b.Resolve(sourceModule);
 			if (td is null)
 				return false;
-			if (!DontCheckTypeEquivalence) {
-				if (TIAHelper.Equivalent(a, td))
-					return true;
-			}
-			return Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
+			if (Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly))
+				return true;
+			return TypeDefsEquivalent(a, td);
 		}
 
 		bool Equals(TypeDef a, FileDef bFile, ExportedType b) {
@@ -756,11 +816,89 @@ namespace dnlib.DotNet {
 		bool TypeDefScopeEquals(TypeDef a, TypeDef b) {
 			if (a is null || b is null)
 				return false;
-			if (!DontCheckTypeEquivalence) {
-				if (TIAHelper.Equivalent(a, b))
-					return true;
+			if (Equals(a.Module, b.Module))
+				return true;
+			return TypeDefsEquivalent(a, b);
+		}
+
+		bool TypeDefsEquivalent(TypeDef a, TypeDef b) {
+			if (DontCheckTypeEquivalence)
+				return false;
+			if (a == b)
+				return true;
+			if (typeEquivalenceStrict) {
+				if (typeEquivalenceForbidden)
+					return false;
 			}
-			return Equals(a.Module, b.Module);
+			else if (typeEquivalenceMaybeForbidden)
+				needStrictTypeEquivalence = true;
+			bool oldUsedTypeEquivalence = usedTypeEquivalence;
+			bool result = TIAHelper.Equivalent(ref this, a, b);
+			usedTypeEquivalence = oldUsedTypeEquivalence || result;
+			return result;
+		}
+
+		/// <summary>
+		/// Called after comparing the enclosing types of two nested types. If the enclosing types
+		/// are only equal because of type equivalence, the nested types must also be equivalent.
+		/// </summary>
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ITypeDefOrRef a, ITypeDefOrRef b) =>
+			CheckNestedTypesEquivalent(enclosingTypesEqual, oldUsedTypeEquivalence, a, b, null, null);
+
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ITypeDefOrRef a, ExportedType b) =>
+			CheckNestedTypesEquivalent(enclosingTypesEqual, oldUsedTypeEquivalence, a, null, null, b);
+
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ExportedType a, ExportedType b) =>
+			CheckNestedTypesEquivalent(enclosingTypesEqual, oldUsedTypeEquivalence, null, null, a, b);
+
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ITypeDefOrRef a, ITypeDefOrRef b, ExportedType ea, ExportedType eb) {
+			bool result = enclosingTypesEqual;
+			if (result && usedTypeEquivalence) {
+				var td1 = a is not null ? Resolve(a) : ea?.Resolve();
+				var td2 = b is not null ? Resolve(b) : eb?.Resolve();
+				if (td1 is null || td2 is null)
+					result = false;
+				else if (td1 != td2 && !Equals(td1.Module, td2.Module))
+					result = TypeDefsEquivalent(td1, td2);
+			}
+			usedTypeEquivalence |= oldUsedTypeEquivalence;
+			return result;
+		}
+
+		TypeDef Resolve(ITypeDefOrRef tdr) => tdr is TypeRef tr ? tr.Resolve(sourceModule) : tdr.ResolveTypeDef();
+
+		/// <summary>
+		/// Compares the delegate Invoke method sigs or field sigs of two types that are being compared for
+		/// type equivalence. Generic parameters aren't substituted and return types are always compared.
+		/// </summary>
+		internal bool EqualsForTypeEquivalence(CallingConventionSig a, CallingConventionSig b) {
+			var oldGenericArguments = genericArguments;
+			genericArguments = null;
+			// Each param / field type is a new TypeSig element with a new 'type equivalence forbidden' state
+			// (UsedTypeEquivalence isn't saved/restored)
+			var oldStateFlags = stateFlags;
+			stateFlags &= StateFlags.UsedTypeEquivalence;
+			var oldOptions = ClearOptions(SigComparerOptions.DontCompareReturnType);
+			bool result;
+			if (a is FieldSig fa)
+				result = b is FieldSig fb && Equals(fa, fb);
+			else if (a is MethodBaseSig ma)
+				result = b is MethodBaseSig mb && Equals(ma, mb);
+			else
+				result = false;
+			RestoreOptions(oldOptions);
+			stateFlags = (oldStateFlags & ~StateFlags.UsedTypeEquivalence) | (stateFlags & StateFlags.UsedTypeEquivalence);
+			genericArguments = oldGenericArguments;
+			return result;
+		}
+
+		// See coreclr's TokenPairList::AdjustForTypeSpec(): only generic arguments of interfaces can be equivalent
+		bool IsInterface(ClassOrValueTypeSig sig) {
+			if (sig is not ClassSig)
+				return false;
+			var tdr = sig.TypeDefOrRef;
+			var td = tdr is null ? null : Resolve(tdr);
+			return td is not null && td.IsInterface;
 		}
 
 		bool Equals(TypeRef a, IModule ma, TypeRef b, IModule mb) {
@@ -918,7 +1056,8 @@ namespace dnlib.DotNet {
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(IType a, IType b) {
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
@@ -1064,8 +1203,12 @@ namespace dnlib.DotNet {
 
 			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b.Namespace))
 				result = false;
-			else if ((dtb = scope as TypeRef) is not null)	// nested type
+			else if ((dtb = scope as TypeRef) is not null) {	// nested type
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
+			}
 			else if (a.DeclaringType is not null) {
 				// a is nested, b isn't
 				result = false;
@@ -1134,7 +1277,10 @@ exit: ;
 			if (!Equals_TypeNames(a.Name, b.TypeName) || !Equals_TypeNamespaces(a.Namespace, b.TypeNamespace))
 				result = false;
 			else if ((dtb = scope as ExportedType) is not null) {	// nested type
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 			}
 			else if (a.DeclaringType is not null) {
 				result = false;	// a is nested, b isn't
@@ -1592,7 +1738,8 @@ exit: ;
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(TypeSpec a, TypeSpec b) {
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
@@ -1645,7 +1792,10 @@ exit: ;
 
 			// if one of them is a TypeRef, the other one must be too
 			if ((ea = ra as TypeRef) is not null | (eb = rb as TypeRef) is not null) {
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(ea, eb);
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 				resolveCheck = false;
 			}
 			else if (DontCompareTypeScope)
@@ -1713,7 +1863,10 @@ exit: ;
 
 			// if one of them is an ExportedType, the other one must be too
 			if ((ea = ia as ExportedType) is not null | (eb = ib as ExportedType) is not null) {
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(ea, eb);
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 				checkResolve = false;
 			}
 			else if (DontCompareTypeScope)
@@ -1773,7 +1926,10 @@ exit: ;
 
 			// If one is a nested type, the other one must be too
 			if ((ea = ra as TypeRef) is not null | (eb = ib as ExportedType) is not null) {
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(ea, eb);
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 				checkResolve = false;
 			}
 			else if (DontCompareTypeScope)
@@ -1914,11 +2070,38 @@ exit: ;
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(TypeSig a, TypeSig b) {
+			if (inTypeSigElement)
+				return EqualsCore(a, b);
+
+			// This is a new TypeSig element (eg. a param or field type). The CLR doesn't allow type
+			// equivalence after it has seen a function pointer or a generic instance type (except
+			// generic args of interfaces) in the same element (see coreclr's CompareElementType()).
+			// This is rare so only emulate it (which resolves generic types) if type equivalence was used
+			// after a function pointer or generic instance type.
+			inTypeSigElement = true;
+			typeEquivalenceMaybeForbidden = false;
+			needStrictTypeEquivalence = false;
+			bool result = EqualsCore(a, b);
+			if (result && needStrictTypeEquivalence) {
+				typeEquivalenceStrict = true;
+				typeEquivalenceForbidden = false;
+				result = EqualsCore(a, b);
+				typeEquivalenceStrict = false;
+				typeEquivalenceForbidden = false;
+			}
+			typeEquivalenceMaybeForbidden = false;
+			needStrictTypeEquivalence = false;
+			inTypeSigElement = false;
+			return result;
+		}
+
+		bool EqualsCore(TypeSig a, TypeSig b) {
 			if (IgnoreModifiers) {
 				a = a.RemoveModifiers();
 				b = b.RemoveModifiers();
 			}
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
@@ -1999,7 +2182,17 @@ exit: ;
 						result = TokenEquals(gt1?.TypeDefOrRef, gt2?.TypeDefOrRef) &&
 								Equals(gia.GenericArguments, gib.GenericArguments);
 					}
+					else if (typeEquivalenceStrict) {
+						// The CLR never allows type equivalence for the generic type, and only allows it for the
+						// generic arguments if the generic type is an interface. The state isn't restored afterwards.
+						bool entryForbidden = typeEquivalenceForbidden;
+						typeEquivalenceForbidden = true;
+						result = Equals(gia.GenericType, gib.GenericType);
+						typeEquivalenceForbidden = entryForbidden || !IsInterface(gia.GenericType);
+						result = result && Equals(gia.GenericArguments, gib.GenericArguments);
+					}
 					else {
+						typeEquivalenceMaybeForbidden = true;
 						result = Equals(gia.GenericType, gib.GenericType) &&
 								Equals(gia.GenericArguments, gib.GenericArguments);
 					}
@@ -2009,7 +2202,12 @@ exit: ;
 					// The CLR compares the fnptr calling convention byte exactly (incl. bit 0x80)
 					var fpa = (a as FnPtrSig).Signature;
 					var fpb = (b as FnPtrSig).Signature;
-					// and it always compares all params, incl. the ones after the sentinel
+					// The CLR doesn't allow type equivalence inside (and after) function pointers. The state isn't restored afterwards.
+					if (typeEquivalenceStrict)
+						typeEquivalenceForbidden = true;
+					else
+						typeEquivalenceMaybeForbidden = true;
+					// The CLR always compares all fnptr params, incl. the ones after the sentinel
 					if (fpa is MethodBaseSig mfpa && fpb is MethodBaseSig mfpb)
 						result = mfpa.GetCallingConvention() == mfpb.GetCallingConvention() && Equals(mfpa, mfpb, true);
 					else
@@ -2021,9 +2219,15 @@ exit: ;
 					if (RawSignatureCompare)
 						result = TokenEquals((a as ModifierSig).Modifier, (b as ModifierSig).Modifier) &&
 								Equals(a.Next, b.Next);
-					else
-						result = Equals((IType)(a as ModifierSig).Modifier, (IType)(b as ModifierSig).Modifier) &&
+					else {
+						var moda = (a as ModifierSig).Modifier;
+						// A TypeSpec modifier (eg. a generic instance) can forbid type equivalence in the rest of this
+						// TypeSig element. Mark it here since the modifier compare returns early if moda == modb.
+						if (!typeEquivalenceStrict && moda is TypeSpec)
+							typeEquivalenceMaybeForbidden = true;
+						result = Equals((IType)moda, (IType)(b as ModifierSig).Modifier) &&
 								Equals(a.Next, b.Next);
+					}
 					break;
 
 				case ElementType.ValueArray:
@@ -2191,7 +2395,8 @@ exit: ;
 		/// <param name="b">Type list #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(IList<TypeSig> a, IList<TypeSig> b) {
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
