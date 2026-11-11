@@ -125,6 +125,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		PdbCustomDebugInfo ReadDynamicLocalVariables(long recPosEnd) {
+			// Each byte is 8 flags, and the array size must fit in an int
+			if (reader.Length > int.MaxValue / 8)
+				return null;
 			var flags = new bool[(int)reader.Length * 8];
 			int w = 0;
 			while (reader.Position < reader.Length) {
@@ -175,6 +178,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var tupleListRec = new PortablePdbTupleElementNamesCustomDebugInfo();
 			while (reader.Position < reader.Length) {
 				var name = ReadUTF8Z(reader.Length);
+				Debug.Assert(name is not null);
+				// The reader doesn't move if the name has no terminator
+				if (name is null)
+					return null;
 				tupleListRec.Names.Add(name);
 			}
 			return tupleListRec;

@@ -224,6 +224,8 @@ namespace dnlib.W32Resources {
 		/// <param name="offset">Offset of string</param>
 		/// <returns>The string or <c>null</c> if we could not read it</returns>
 		static string ReadString(ref DataReader reader, uint offset) {
+			if (offset > reader.Length)
+				return null;
 			reader.Position = offset;
 			if (!reader.CanRead(2U))
 				return null;

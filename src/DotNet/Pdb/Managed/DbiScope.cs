@@ -88,16 +88,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 						childEnd = reader.ReadUInt32();
 						var len = reader.ReadUInt32();
 						var addr = PdbAddress.ReadAddress(ref reader);
-						name = PdbReader.ReadCString(ref reader);
+						name = PdbReader.ReadCString(ref reader, end);
 						child = new DbiScope(method, this, name, addr.Offset, len);
 						break;
 					}
 					case SymbolType.S_UNAMESPACE:
-						namespacesList.Add(new DbiNamespace(PdbReader.ReadCString(ref reader)));
+						namespacesList.Add(new DbiNamespace(PdbReader.ReadCString(ref reader, end)));
 						break;
 					case SymbolType.S_MANSLOT: {
 						var variable = new DbiVariable();
-						if (variable.Read(ref reader))
+						if (variable.Read(ref reader, end))
 							localsList.Add(variable);
 						break;
 					}
@@ -123,7 +123,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 						object value;
 						if (!NumericReader.TryReadNumeric(ref reader, end, out value))
 							break;
-						name = PdbReader.ReadCString(ref reader);
+						name = PdbReader.ReadCString(ref reader, end);
 						if (constants is null)
 							constants = new List<ConstantInfo>();
 						constants.Add(new ConstantInfo(name, signatureToken, value));

@@ -226,13 +226,13 @@ namespace dnlib.DotNet.Resources {
 		///	Creates a user type for a built-in resource type code.
 		/// Useful when writing V1 resources.
 		/// </summary>
-		/// <param name="typeCode">The built-in resource type code or null if not supported</param>
-		/// <returns></returns>
+		/// <param name="typeCode">The built-in resource type code</param>
+		/// <returns>The user type or null if not supported</returns>
 		public UserResourceType CreateBuiltinResourceType(ResourceTypeCode typeCode) {
+			// Boolean and Char aren't supported: V1 readers only read these types directly,
+			// everything else is expected to be BinaryFormatter data
 			string typeName = typeCode switch {
 				ResourceTypeCode.String => "System.String",
-				ResourceTypeCode.Boolean => "System.Boolean",
-				ResourceTypeCode.Char => "System.Char",
 				ResourceTypeCode.Byte => "System.Byte",
 				ResourceTypeCode.SByte => "System.SByte",
 				ResourceTypeCode.Int16 => "System.Int16",

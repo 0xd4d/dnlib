@@ -2,7 +2,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using dnlib.DotNet.MD;
+using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	// https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#imports-blob
@@ -25,6 +27,18 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return;
 			if (!blobStream.TryCreateReader(imports, out var reader))
 				return;
+			int count = result.Count;
+			try {
+				Read(ref reader, result);
+			}
+			catch (IOException) {
+				// A corrupt blob loses all of its imports
+				for (int i = result.Count - 1; i >= count; i--)
+					result.RemoveAt(i);
+			}
+		}
+
+		void Read(ref DataReader reader, IList<PdbImport> result) {
 			while (reader.Position < reader.Length) {
 				var kind = ImportDefinitionKindUtils.ToPdbImportDefinitionKind(reader.ReadCompressedUInt32());
 				string targetNamespace, alias;
@@ -107,6 +121,64 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 			Debug.Assert(reader.Position == reader.Length);
 		}
+
+		/// <summary>
+		/// Gets the number of bytes that <see cref="Read(uint, IList{PdbImport})"/> parses: the imports blob
+		/// and every string blob it uses, counted once per use. Many imports can use the same string blob,
+		/// so this can be much bigger than the blob heap.
+		/// </summary>
+		/// <param name="imports">Imports blob offset</param>
+		public long GetSize(uint imports) {
+			if (imports == 0)
+				return 0;
+			if (!blobStream.TryCreateReader(imports, out var reader))
+				return 0;
+			long size = reader.Length;
+			try {
+				while (reader.Position < reader.Length) {
+					var kind = ImportDefinitionKindUtils.ToPdbImportDefinitionKind(reader.ReadCompressedUInt32());
+					switch (kind) {
+					case PdbImportDefinitionKind.ImportNamespace:
+					case PdbImportDefinitionKind.ImportAssemblyReferenceAlias:
+						size += GetUTF8Size(reader.ReadCompressedUInt32());
+						break;
+
+					case PdbImportDefinitionKind.ImportAssemblyNamespace:
+						reader.ReadCompressedUInt32();
+						size += GetUTF8Size(reader.ReadCompressedUInt32());
+						break;
+
+					case PdbImportDefinitionKind.ImportType:
+						reader.ReadCompressedUInt32();
+						break;
+
+					case PdbImportDefinitionKind.ImportXmlNamespace:
+					case PdbImportDefinitionKind.AliasNamespace:
+						size += GetUTF8Size(reader.ReadCompressedUInt32());
+						size += GetUTF8Size(reader.ReadCompressedUInt32());
+						break;
+
+					case PdbImportDefinitionKind.AliasAssemblyReference:
+					case PdbImportDefinitionKind.AliasType:
+						size += GetUTF8Size(reader.ReadCompressedUInt32());
+						reader.ReadCompressedUInt32();
+						break;
+
+					case PdbImportDefinitionKind.AliasAssemblyNamespace:
+						size += GetUTF8Size(reader.ReadCompressedUInt32());
+						reader.ReadCompressedUInt32();
+						size += GetUTF8Size(reader.ReadCompressedUInt32());
+						break;
+					}
+				}
+			}
+			catch (IOException) {
+				// Read() stops here too, after creating the imports before this point
+			}
+			return size;
+		}
+
+		long GetUTF8Size(uint offset) => blobStream.TryCreateReader(offset, out var reader) ? reader.Length : 0;
 
 		ITypeDefOrRef TryReadType(uint codedToken) {
 			bool b = CodedToken.TypeDefOrRef.Decode(codedToken, out uint token);

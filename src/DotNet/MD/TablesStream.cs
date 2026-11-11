@@ -301,8 +301,13 @@ namespace dnlib.DotNet.MD {
 				if (currentPos > reader.Length)
 					currentPos = reader.Length;
 				uint dataLen;
-				if ((ulong)currentPos + fullDataLen > reader.Length)
+				if ((ulong)currentPos + fullDataLen > reader.Length) {
 					dataLen = reader.Length - currentPos;
+					// Only rows that are completely inside the stream exist. The column sizes
+					// have already been calculated from the row counts in the file. Rows is
+					// already limited to what a token can reference, so it can only get smaller.
+					mdTable.Rows = Math.Min(mdTable.Rows, dataLen / (uint)mdTable.TableInfo.RowSize);
+				}
 				else
 					dataLen = (uint)fullDataLen;
 				mdTable.DataReader = reader.Slice(currentPos, dataLen);

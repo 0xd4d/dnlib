@@ -69,7 +69,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		static uint RoundUpDiv(uint value, uint divisor) => (value + divisor - 1) / divisor;
+		static uint RoundUpDiv(uint value, uint divisor) => (uint)(((ulong)value + divisor - 1) / divisor);
 
 		void ReadInternal(ref DataReader reader) {
 			string sig = reader.ReadString(30, Encoding.ASCII);
@@ -84,8 +84,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 			reader.ReadUInt32();
 			var numOfRootPages = RoundUpDiv(rootSize, pageSize);
 			var numOfPtrPages = RoundUpDiv(numOfRootPages * 4, pageSize);
-			if (pageCount * pageSize != reader.Length)
+			if ((ulong)pageCount * pageSize != reader.Length)
 				throw new PdbException("File size mismatch");
+			if (numOfRootPages > pageCount)
+				throw new PdbException("Invalid root stream size");
 
 			var pages = new DataReader[pageCount];
 			uint offset = 0;
@@ -144,16 +146,25 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		void ReadRootDirectory(MsfStream stream, DataReader[] pages, uint pageSize) {
 			uint streamNum = stream.Content.ReadUInt32();
+			if (streamNum > stream.Content.BytesLeft / 4)
+				throw new PdbException("Invalid number of streams");
 			var streamSizes = new uint[streamNum];
 			for (int i = 0; i < streamSizes.Length; i++)
 				streamSizes[i] = stream.Content.ReadUInt32();
 
+			// Writers don't make streams share pages so limit their total size to the size of the
+			// file. A small file could otherwise use many GBs since all streams could use the same pages.
+			ulong fileSize = (ulong)pages.Length * pageSize;
+			ulong totalStreamSize = 0;
 			streams = new MsfStream[streamNum];
 			for (int i = 0; i < streamSizes.Length; i++) {
 				if (streamSizes[i] == 0xffffffff) {
 					streams[i] = null;
 					continue;
 				}
+				totalStreamSize += streamSizes[i];
+				if (totalStreamSize > fileSize)
+					throw new PdbException("Stream sizes are bigger than the file");
 				var pageCount = RoundUpDiv(streamSizes[i], pageSize);
 				var streamPages = new DataReader[pageCount];
 				for (int j = 0; j < streamPages.Length; j++)
@@ -174,7 +185,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 			/*uint entryCount = */stream.ReadUInt32();
 			uint entryCapacity = stream.ReadUInt32();
-			var entryOk = new BitArray(stream.ReadBytes(stream.ReadInt32() * 4));
+			int entryOkWords = stream.ReadInt32();
+			if ((uint)entryOkWords > stream.BytesLeft / 4)
+				throw new PdbException("Invalid bit vector size");
+			var entryOk = new BitArray(stream.ReadBytes(entryOkWords * 4));
 			if (stream.ReadUInt32() != 0)
 				throw new NotSupportedException();
 
@@ -204,6 +218,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			stream.Position += strSize;
 
 			uint count = stream.ReadUInt32();
+			if (count > stream.BytesLeft / 4)
+				throw new PdbException("Invalid number of strings");
 			strings = new Dictionary<uint, string>((int)count);
 			for (uint i = 0; i < count; i++) {
 				var pos = stream.ReadUInt32();
@@ -281,7 +297,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					reader.Position += 4;
 					var offset = reader.ReadUInt32();
 					reader.Position += 2;
-					var name = ReadCString(ref reader);
+					var name = ReadCString(ref reader, end);
 
 					if (name == "COM+_Entry_Point") {
 						entryPt = offset;
@@ -315,6 +331,23 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
+
+		// Reads a name that must end before 'end', the end of its symbol record, so it can't come from later records
+		internal static string ReadCString(ref DataReader reader, uint end) {
+			var pos = reader.Position;
+			if (end > reader.Length)
+				end = reader.Length;
+			if (pos >= end)
+				return string.Empty;
+			var nameReader = reader.Slice(pos, end - pos);
+			var name = nameReader.TryReadZeroTerminatedUtf8String();
+			if (name is null) {
+				reader.Position = end;
+				return string.Empty;
+			}
+			reader.Position = pos + nameReader.Position;
+			return name;
+		}
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
 			if (version != 1)

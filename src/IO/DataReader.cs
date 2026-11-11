@@ -511,6 +511,8 @@ namespace dnlib.IO {
 				ThrowInvalidArgument(nameof(length));
 			if (length == 0)
 				return Array2.Empty<byte>();
+			if ((uint)length > BytesLeft)
+				ThrowNoMoreBytesLeft();
 			var data = new byte[length];
 			ReadBytes(data, 0, length);
 			return data;
@@ -850,8 +852,8 @@ namespace dnlib.IO {
 				ThrowArgumentNullException(nameof(encoding));
 			if (byteCount == 0)
 				return string.Empty;
-			if ((uint)byteCount > Length)
-				ThrowInvalidArgument(nameof(byteCount));
+			if ((uint)byteCount > BytesLeft)
+				ThrowNoMoreBytesLeft();
 			VerifyState();
 			var currentOffset = this.currentOffset;
 			var value = stream.ReadString(currentOffset, byteCount, encoding);

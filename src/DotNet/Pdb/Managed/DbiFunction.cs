@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			token = reader.ReadInt32();
 			Address = PdbAddress.ReadAddress(ref reader);
 			reader.Position += 1 + 2;
-			Name = PdbReader.ReadCString(ref reader);
+			Name = PdbReader.ReadCString(ref reader, recEnd);
 
 			reader.Position = recEnd;
 			Root = new DbiScope(this, null, "", Address.Offset, len);
@@ -100,9 +100,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			int pos = 8;
 			int count = BitConverter.ToInt32(data, pos);
 			pos += 4;
-			if (pos + (long)count * 12 > data.Length)
-				return Array2.Empty<SymbolAsyncStepInfo>();
-			if (count == 0)
+			if (count <= 0 || pos + (long)count * 12 > data.Length)
 				return Array2.Empty<SymbolAsyncStepInfo>();
 			var res = new SymbolAsyncStepInfo[count];
 			for (int i = 0; i < res.Length; i++) {
