@@ -3358,8 +3358,10 @@ exit: ;
 		/// treat <paramref name="b"/> as a generic instance type</param>
 		/// <param name="treatAsGenericInst"><c>true</c> if we should treat <paramref name="b"/>
 		/// as a generic instance type</param>
+		/// <param name="modifiedB">The .NET 8+ modified type of <paramref name="b"/> or <c>null</c>.
+		/// It's only used to compare function pointer calling conventions and modifiers.</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Equals(TypeSig a, Type b, Type declaringType, bool? treatAsGenericInst = null) {
+		bool Equals(TypeSig a, Type b, Type declaringType, bool? treatAsGenericInst = null, Type modifiedB = null) {
 			// Global methods and fields have their DeclaringType set to null. Assume
 			// null always means the global type.
 			if (a is null)
@@ -3404,7 +3406,7 @@ exit: ;
 					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
-					result = Equals(a.Next, b.GetElementType(), declaringType);
+					result = Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType());
 				break;
 
 			case ElementType.ByRef:
@@ -3415,7 +3417,7 @@ exit: ;
 					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
-					result = Equals(a.Next, b.GetElementType(), declaringType);
+					result = Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType());
 				break;
 
 			case ElementType.SZArray:
@@ -3426,11 +3428,11 @@ exit: ;
 					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
-					result = Equals(a.Next, b.GetElementType(), declaringType);
+					result = Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType());
 				break;
 
 			case ElementType.Pinned:
-				result = Equals(a.Next, b, declaringType);
+				result = Equals(a.Next, b, declaringType, null, modifiedB);
 				break;
 
 			case ElementType.Array:
@@ -3441,7 +3443,7 @@ exit: ;
 					result = ara.Rank == b.GetArrayRank() &&
 						(IsFnPtrElementType(b) ?
 								(a = a.Next.RemoveModifiers()) is not null && a.ElementType == ElementType.FnPtr :
-								Equals(a.Next, b.GetElementType(), declaringType));
+								Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType()));
 				}
 				break;
 
@@ -3474,12 +3476,16 @@ exit: ;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
-				result = Equals(a.Next, b, declaringType);
+				result = Equals(a.Next, b, declaringType, null, modifiedB);
 				break;
 
 			case ElementType.FnPtr:
-				// At least in method sigs, this will be mapped to System.IntPtr
-				result = b == typeof(IntPtr);
+				if (b.IsFunctionPointer2())
+					result = Equals(((FnPtrSig)a).MethodSig, b, declaringType, modifiedB);
+				else {
+					// Older runtimes (before .NET 8) map function pointers to System.IntPtr
+					result = !ReflectionExtensions.SupportsFunctionPointerTypes && b == typeof(IntPtr);
+				}
 				break;
 
 			case ElementType.Sentinel:
@@ -3496,6 +3502,68 @@ exit: ;
 
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		/// <summary>
+		/// Compares a function pointer signature with a .NET 8+ function pointer type
+		/// </summary>
+		/// <param name="a">Function pointer method sig</param>
+		/// <param name="b">Function pointer type</param>
+		/// <param name="declaringType">Root declaring type</param>
+		/// <param name="modifiedB">Modified type of <paramref name="b"/> or <c>null</c></param>
+		bool Equals(MethodSig a, Type b, Type declaringType, Type modifiedB) {
+			if (a is null)
+				return false;
+			if (modifiedB is not null && !modifiedB.IsFunctionPointer2())
+				modifiedB = null;
+			// Reflection only tells us whether it's a managed or an unmanaged function pointer
+			// unless it's a modified type.
+			if (IsUnmanagedCallingConvention(a.CallingConvention) != b.IsUnmanagedFunctionPointer2())
+				return false;
+			// Reflection doesn't have the other calling convention bits (HasThis, ExplicitThis, Generic) and
+			// it can't tell Default from VarArg so they're not compared.
+			var cc = ReflectionExtensions.GetFunctionPointerCallingConvention(b, modifiedB, out var ccAlt);
+			if (cc is not null) {
+				var aCC = a.CallingConvention & CallingConvention.Mask;
+				if (aCC != cc.Value && (ccAlt is null || aCC != ccAlt.Value))
+					return false;
+			}
+			// Reflection doesn't return the vararg params
+			if (a.ParamsAfterSentinel is not null && a.ParamsAfterSentinel.Count != 0)
+				return false;
+			var bParams = b.GetFunctionPointerParameterTypes2();
+			var modBParams = modifiedB?.GetFunctionPointerParameterTypes2();
+			if (modBParams is not null && modBParams.Length != bParams.Length)
+				modBParams = null;
+			if (!FnPtrPartEquals(a.RetType, b.GetFunctionPointerReturnType2(), modBParams is null ? null : modifiedB.GetFunctionPointerReturnType2(), declaringType))
+				return false;
+			if (a.Params.Count != bParams.Length)
+				return false;
+			for (int i = 0; i < bParams.Length; i++) {
+				if (!FnPtrPartEquals(a.Params[i], bParams[i], modBParams?[i], declaringType))
+					return false;
+			}
+			return true;
+		}
+
+		bool FnPtrPartEquals(TypeSig a, Type b, Type modifiedB, Type declaringType) {
+			if (modifiedB is null)
+				return Equals(a, b, declaringType);
+			return ModifiersEquals(a, modifiedB.GetRequiredCustomModifiers2(), modifiedB.GetOptionalCustomModifiers2(), out var a2) &&
+				Equals(a2, b, declaringType, null, modifiedB);
+		}
+
+		static bool IsUnmanagedCallingConvention(CallingConvention cc) {
+			switch (cc & CallingConvention.Mask) {
+			case CallingConvention.C:
+			case CallingConvention.StdCall:
+			case CallingConvention.ThisCall:
+			case CallingConvention.FastCall:
+			case CallingConvention.Unmanaged:
+				return true;
+			default:
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -4398,8 +4466,9 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
+			var bType = b.ParameterType;
 			bool result = ModifiersEquals(a, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-						Equals(a2, b.ParameterType, declaringType);
+						Equals(a2, bType, declaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedParameterType2() : null);
 
 			recursionCounter.Decrement();
 			return result;
@@ -4541,8 +4610,9 @@ exit: ;
 
 			if (!CompareMethodFieldDeclaringType && b.DeclaringType.IsGenericButNotGenericTypeDefinition())
 				b = b.Module.ResolveField(b.MetadataToken);
+			var bType = b.FieldType;
 			bool result = ModifiersEquals(a.Type, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-					Equals(a2, b.FieldType, b.DeclaringType);
+					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedFieldType2() : null);
 
 			recursionCounter.Decrement();
 			return result;
@@ -4656,8 +4726,9 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
+			var bType = b.PropertyType;
 			bool result = ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-					Equals(a2, b.PropertyType, b.DeclaringType);
+					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null);
 
 			recursionCounter.Decrement();
 			return result;
