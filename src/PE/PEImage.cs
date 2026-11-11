@@ -303,6 +303,11 @@ namespace dnlib.PE {
 		/// <inheritdoc/>
 		public FileOffset ToFileOffset(RVA rva) => peType.ToFileOffset(peInfo, rva);
 
+		/// <summary>
+		/// Returns the section containing <paramref name="rva"/> (aligned virtual size) or null
+		/// </summary>
+		internal ImageSectionHeader ToImageSectionHeader(RVA rva) => peInfo.ToImageSectionHeader(rva);
+
 		/// <inheritdoc/>
 		public void Dispose() {
 			IDisposable id;

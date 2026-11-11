@@ -1646,6 +1646,26 @@ namespace dnlib.DotNet {
 			if (size < 0)
 				return null;
 			var peImage = Metadata.PEImage;
+			// Data past a section's raw data but inside its virtual size (eg. .bss) isn't in the file and is
+			// zero-initialized when the image is mapped. ToFileOffset() returns 0 for such RVAs.
+			if (peImage is PEImage pe && pe.IsFileImageLayout && pe.ToImageSectionHeader(rva) is ImageSectionHeader section) {
+				uint offset = rva - section.VirtualAddress;
+				uint virtualSize = Utils.AlignUp(section.LoadedVirtualSize, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
+				uint rawSize = section.LoadedSizeOfRawData;
+				ulong end = (ulong)offset + (uint)size;
+				if (end > rawSize && end <= virtualSize) {
+					var data = new byte[size];
+					if (offset < rawSize) {
+						uint rawLength = rawSize - offset;
+						ulong rawOffset = (ulong)section.PointerToRawData + offset;
+						if (rawOffset + rawLength > peImage.DataReaderFactory.Length)
+							return null;
+						var rawReader = peImage.CreateReader((FileOffset)rawOffset, rawLength);
+						rawReader.ReadBytes(data, 0, (int)rawLength);
+					}
+					return data;
+				}
+			}
 			var reader = peImage.CreateReader(rva, (uint)size);
 			if (reader.Length < size)
 				return null;
