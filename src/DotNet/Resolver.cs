@@ -67,6 +67,8 @@ namespace dnlib.DotNet {
 			if (nonNestedResolutionScope is null) {
 				// ECMA II.22.38 states that in this case we should check ExportedTypes only.
 				// The CLR however checks both TypeDefs and ExportedTypes, with TypeDefs taking precedence.
+				if (nonNestedModule is null)
+					return null;
 				return nonNestedModule.Find(typeRef) ?? ResolveExportedType(new ModuleDef[] { nonNestedModule }, typeRef, sourceModule);
 			}
 

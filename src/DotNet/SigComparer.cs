@@ -666,6 +666,20 @@ namespace dnlib.DotNet {
 			return ts.TypeSig.RemoveModifiers() as GenericInstSig;
 		}
 
+		// The CLR resolves a TypeRef with a nil ResolutionScope by name in the TypeRef's own
+		// module's assembly (its TypeDefs and ExportedTypes), so treat it as the owner module.
+		static IResolutionScope GetResolutionScope(TypeRef tr) => tr.ResolutionScope ?? tr.Module;
+
+		static IAssembly GetDefinitionAssembly(TypeRef tr) {
+			var asm = tr.DefinitionAssembly;
+			if (asm is null) {
+				var nonNested = TypeRef.GetNonNestedTypeRef(tr);
+				if (nonNested is not null && nonNested.ResolutionScope is null)
+					asm = nonNested.Module?.Assembly;
+			}
+			return asm;
+		}
+
 		bool Equals(IAssembly aAsm, IAssembly bAsm, TypeRef b) {
 			if (Equals(aAsm, bAsm))
 				return true;
@@ -716,7 +730,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool Equals(TypeDef a, IModule bMod, TypeRef b) {
-			if (Equals(a.Module, bMod) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+			if (Equals(a.Module, bMod) && Equals(a.DefinitionAssembly, GetDefinitionAssembly(b)))
 				return true;
 
 			// Could be an exported type. Resolve it and check again.
@@ -750,7 +764,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool Equals(TypeRef a, IModule ma, TypeRef b, IModule mb) {
-			if (Equals(ma, mb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+			if (Equals(ma, mb) && Equals(GetDefinitionAssembly(a), GetDefinitionAssembly(b)))
 				return true;
 
 			// Could be exported types. Resolve them and check again.
@@ -762,7 +776,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool Equals(TypeRef a, IModule ma, ExportedType b, FileDef fb) {
-			if (Equals(ma, fb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+			if (Equals(ma, fb) && Equals(GetDefinitionAssembly(a), b.DefinitionAssembly))
 				return true;
 
 			// Could be an exported type. Resolve it and check again.
@@ -792,7 +806,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool Equals(Type a, IModule bMod, TypeRef b) {
-			if (Equals(bMod, a.Module) && Equals(b.DefinitionAssembly, a.Assembly))
+			if (Equals(bMod, a.Module) && Equals(GetDefinitionAssembly(b), a.Assembly))
 				return true;
 
 			// Could be an exported type. Resolve it and check again.
@@ -1046,7 +1060,7 @@ namespace dnlib.DotNet {
 				}
 			}
 
-			var scope = b.ResolutionScope;
+			var scope = GetResolutionScope(b);
 
 			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b.Namespace))
 				result = false;
@@ -1070,10 +1084,8 @@ namespace dnlib.DotNet {
 					}
 				}
 			}
-			else {
+			else
 				result = false;
-				//TODO: Handle the case where scope is null
-			}
 
 			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
@@ -1615,8 +1627,8 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			var ra = a.ResolutionScope;
-			var rb = b.ResolutionScope;
+			var ra = GetResolutionScope(a);
+			var rb = GetResolutionScope(b);
 			if (ra == rb)
 				return true;
 			if (ra is null || rb is null)
@@ -1742,7 +1754,7 @@ exit: ;
 				return true;	// both are null
 			if (a is null || b is null)
 				return false;
-			var ra = a.ResolutionScope;
+			var ra = GetResolutionScope(a);
 			var ib = b.Implementation;
 			if (ra == ib)
 				return true;
@@ -1771,7 +1783,7 @@ exit: ;
 			else if ((aa = ra as AssemblyRef) is not null & (ab = ib as AssemblyRef) is not null)
 				result = Equals(aa, a, ab, b);
 			else if (ma is not null && ab is not null)
-				result = Equals(a.DefinitionAssembly, ab, b);
+				result = Equals(GetDefinitionAssembly(a), ab, b);
 			else if (fb is not null && aa is not null)
 				result = Equals(b.DefinitionAssembly, aa, a);
 			else {
@@ -3296,7 +3308,7 @@ exit: ;
 			if (!DontProjectWinMDRefs)
 				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
 
-			var scope = a.ResolutionScope;
+			var scope = GetResolutionScope(a);
 
 			if (!b.IsTypeDef())
 				result = false;
@@ -3312,10 +3324,8 @@ exit: ;
 				result = Equals(b, aMod, a);
 			else if ((aAsm = scope as AssemblyRef) is not null)
 				result = Equals(b.Assembly, aAsm, a);
-			else {
+			else
 				result = false;
-				//TODO: Handle the case where scope is null
-			}
 
 			recursionCounter.Decrement();
 			return result;
