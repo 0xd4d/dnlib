@@ -935,6 +935,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Resolves a method or a field. <see cref="MemberRef.Class"/> (owner type) is ignored when
 		/// resolving the method/field. Private scope methods/fields are not returned.
+		/// Like the CLR, methods are also searched for in base types but fields are not.
 		/// </summary>
 		/// <param name="memberRef">A method/field reference</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
@@ -943,7 +944,8 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Resolves a method or a field. <see cref="MemberRef.Class"/> (owner type) is ignored when
-		/// resolving the method/field.
+		/// resolving the method/field. Like the CLR, methods are also searched for in base types
+		/// but fields are not.
 		/// </summary>
 		/// <param name="memberRef">A method/field reference</param>
 		/// <param name="options">Method/field signature comparison options</param>
@@ -959,7 +961,7 @@ namespace dnlib.DotNet {
 
 			var fieldSig = memberRef.FieldSig;
 			if (fieldSig is not null)
-				return FindFieldCheckBaseType(memberRef.Name, fieldSig, options, memberRef.Module);
+				return FindField(memberRef.Name, fieldSig, options, memberRef.Module);
 
 			return null;
 		}
@@ -989,7 +991,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Method signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the method or <c>null</c></param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) =>
+			FindMethod(name, sig, options, sourceModule, null);
+
+		MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
 			if (UTF8String.IsNull(name) || sig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1002,7 +1007,7 @@ namespace dnlib.DotNet {
 					continue;
 				if (!UTF8String.Equals(method.Name, name))
 					continue;
-				if (comparer.Equals(method.MethodSig, sig))
+				if (comparer.Equals(GenericTypeArgsSubstitutor.Substitute(method.MethodSig, typeArgs), sig))
 					return method;
 			}
 			return null;
@@ -1152,7 +1157,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Field signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the field or <c>null</c></param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) =>
+			FindField(name, sig, options, sourceModule, null);
+
+		FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
 			if (UTF8String.IsNull(name) || sig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1165,7 +1173,7 @@ namespace dnlib.DotNet {
 					continue;
 				if (!UTF8String.Equals(field.Name, name))
 					continue;
-				if (comparer.Equals(field.FieldSig, sig))
+				if (comparer.Equals(GenericTypeArgsSubstitutor.Substitute(field.FieldSig, typeArgs), sig))
 					return field;
 			}
 			return null;
@@ -1227,7 +1235,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Event type comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the event or <c>null</c></param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule) {
+		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule) =>
+			FindEvent(name, type, options, sourceModule, null);
+
+		EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
 			if (UTF8String.IsNull(name) || type is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1237,10 +1248,18 @@ namespace dnlib.DotNet {
 				var @event = events[i];
 				if (!UTF8String.Equals(@event.Name, name))
 					continue;
-				if (comparer.Equals(@event.EventType, type))
+				if (comparer.Equals(SubstituteEventType(@event.EventType, typeArgs), type))
 					return @event;
 			}
 			return null;
+		}
+
+		static IType SubstituteEventType(ITypeDefOrRef eventType, IList<TypeSig> typeArgs) {
+			if (typeArgs is null || eventType is not TypeSpec ts)
+				return eventType;
+			var sig = ts.TypeSig;
+			var newSig = GenericTypeArgsSubstitutor.Substitute(sig, typeArgs);
+			return newSig == sig ? eventType : newSig;
 		}
 
 		/// <summary>
@@ -1299,7 +1318,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Property signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the property or <c>null</c></param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule) {
+		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule) =>
+			FindProperty(name, propSig, options, sourceModule, null);
+
+		PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
 			if (UTF8String.IsNull(name) || propSig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1309,7 +1331,7 @@ namespace dnlib.DotNet {
 				var prop = properties[i];
 				if (!UTF8String.Equals(prop.Name, name))
 					continue;
-				if (comparer.Equals(prop.Type, propSig))
+				if (comparer.Equals(GenericTypeArgsSubstitutor.Substitute(prop.Type, typeArgs), propSig))
 					return prop;
 			}
 			return null;
@@ -1350,8 +1372,31 @@ namespace dnlib.DotNet {
 		const int MAX_BASE_TYPE_DEPTH = 1000;
 
 		/// <summary>
+		/// Resolves the base type of <paramref name="td"/> and updates <paramref name="typeArgs"/>
+		/// so it contains the base type's generic arguments, expressed in terms of the type where the
+		/// search started. Generic vars of the start type itself are not substituted (this matches the CLR's method lookup).
+		/// </summary>
+		/// <param name="td">Type</param>
+		/// <param name="typeArgs">In: generic args of <paramref name="td"/> or <c>null</c> if no
+		/// substitution is needed. Out: generic args of the base type or <c>null</c>.</param>
+		static TypeDef GetBaseTypeDef(TypeDef td, ref IList<TypeSig> typeArgs) {
+			var baseType = td.BaseType;
+			if ((baseType as TypeSpec)?.TypeSig.RemovePinnedAndModifiers() is GenericInstSig gis)
+				typeArgs = GenericTypeArgsSubstitutor.Substitute(gis.GenericArguments, typeArgs);
+			else
+				typeArgs = null;
+			return baseType.ResolveTypeDef();
+		}
+
+		/// <summary>
 		/// Finds a method by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's method signature before it's compared, like the CLR
+		/// does. The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
@@ -1360,6 +1405,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a method by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's method signature before it's compared, like the CLR
+		/// does. The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <param name="options">Method signature comparison options</param>
@@ -1369,6 +1420,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a method by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's method signature before it's compared, like the CLR
+		/// does. The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <param name="options">Method signature comparison options</param>
@@ -1376,11 +1433,12 @@ namespace dnlib.DotNet {
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
 		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
+			IList<TypeSig> typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
-				var md = td.FindMethod(name, sig, options, sourceModule);
+				var md = td.FindMethod(name, sig, options, sourceModule, typeArgs);
 				if (md is not null)
 					return md;
-				td = td.BaseType.ResolveTypeDef();
+				td = GetBaseTypeDef(td, ref typeArgs);
 			}
 			return null;
 		}
@@ -1404,6 +1462,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a field by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's field signature before it's compared.
+		/// The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
@@ -1412,6 +1476,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a field by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's field signature before it's compared.
+		/// The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <param name="options">Field signature comparison options</param>
@@ -1421,6 +1491,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a field by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's field signature before it's compared.
+		/// The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <param name="options">Field signature comparison options</param>
@@ -1428,11 +1504,12 @@ namespace dnlib.DotNet {
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
 		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
+			IList<TypeSig> typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
-				var fd = td.FindField(name, sig, options, sourceModule);
+				var fd = td.FindField(name, sig, options, sourceModule, typeArgs);
 				if (fd is not null)
 					return fd;
-				td = td.BaseType.ResolveTypeDef();
+				td = GetBaseTypeDef(td, ref typeArgs);
 			}
 			return null;
 		}
@@ -1456,16 +1533,23 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds an event by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's event type before it's compared.
+		/// The type must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Event name</param>
 		/// <param name="eventType">Event type</param>
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
 		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType) {
 			var td = this;
+			IList<TypeSig> typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
-				var ed = td.FindEvent(name, eventType);
+				var ed = td.FindEvent(name, eventType, 0, null, typeArgs);
 				if (ed is not null)
 					return ed;
-				td = td.BaseType.ResolveTypeDef();
+				td = GetBaseTypeDef(td, ref typeArgs);
 			}
 			return null;
 		}
@@ -1489,6 +1573,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a property by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's property signature before it's compared.
+		/// The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Property name</param>
 		/// <param name="sig">Property signature</param>
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
@@ -1497,6 +1587,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a property by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's property signature before it's compared.
+		/// The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Property name</param>
 		/// <param name="sig">Property signature</param>
 		/// <param name="options">Property signature comparison options</param>
@@ -1506,6 +1602,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Finds a property by checking this type or any of its base types
 		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's property signature before it's compared.
+		/// The signature must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
 		/// <param name="name">Property name</param>
 		/// <param name="sig">Property signature</param>
 		/// <param name="options">Property signature comparison options</param>
@@ -1513,11 +1615,12 @@ namespace dnlib.DotNet {
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
 		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
+			IList<TypeSig> typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
-				var pd = td.FindProperty(name, sig, options, sourceModule);
+				var pd = td.FindProperty(name, sig, options, sourceModule, typeArgs);
 				if (pd is not null)
 					return pd;
-				td = td.BaseType.ResolveTypeDef();
+				td = GetBaseTypeDef(td, ref typeArgs);
 			}
 			return null;
 		}
