@@ -1982,7 +1982,10 @@ exit: ;
 					break;
 
 				case ElementType.FnPtr:
-					result = Equals((a as FnPtrSig).Signature, (b as FnPtrSig).Signature);
+					// The CLR compares the fnptr calling convention byte exactly (incl. bit 0x80)
+					var fpa = (a as FnPtrSig).Signature;
+					var fpb = (b as FnPtrSig).Signature;
+					result = fpa?.GetCallingConvention() == fpb?.GetCallingConvention() && Equals(fpa, fpb);
 					break;
 
 				case ElementType.CModReqd:
@@ -2250,7 +2253,7 @@ exit: ;
 				return false;
 			bool result;
 
-			if (a.GetCallingConvention() != b.GetCallingConvention())
+			if (!EqualsIgnoreReservedByCLR(a.GetCallingConvention(), b.GetCallingConvention()))
 				result = false;
 			else {
 				switch (a.GetCallingConvention() & CallingConvention.Mask) {
@@ -2358,7 +2361,7 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = a.GetCallingConvention() == b.GetCallingConvention() &&
+			bool result = EqualsIgnoreReservedByCLR(a.GetCallingConvention(), b.GetCallingConvention()) &&
 					(DontCompareReturnType || Equals(a.RetType, b.RetType)) &&
 					Equals(a.Params, b.Params) &&
 					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
@@ -2392,6 +2395,10 @@ exit: ;
 			recursionCounter.Decrement();
 			return hash;
 		}
+
+		// The CLR ignores bit 0x80 (CORINFO_CALLCONV_PARAMTYPE) when comparing method sigs (MetaSig::CompareMethodSigs)
+		static bool EqualsIgnoreReservedByCLR(CallingConvention a, CallingConvention b) =>
+			(a & ~CallingConvention.ReservedByCLR) == (b & ~CallingConvention.ReservedByCLR);
 
 		int GetHashCode_CallingConvention(CallingConventionSig a) => GetHashCode(a.GetCallingConvention());
 
