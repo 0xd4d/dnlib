@@ -955,12 +955,34 @@ namespace dnlib.DotNet {
 
 			var methodSig = memberRef.MethodSig;
 			if (methodSig is not null)
-				return FindMethodCheckBaseType(memberRef.Name, methodSig, options, memberRef.Module);
+				return ResolveMethod(memberRef.Name, methodSig, options, memberRef.Module);
 
 			var fieldSig = memberRef.FieldSig;
 			if (fieldSig is not null)
 				return FindFieldCheckBaseType(memberRef.Name, fieldSig, options, memberRef.Module);
 
+			return null;
+		}
+
+		// Same as FindMethodCheckBaseType() but uses the CLR's lookup rules: interfaces don't
+		// inherit methods, value types only inherit virtual methods (the CLR searches their
+		// vtables) and instance constructors aren't inherited.
+		MethodDef ResolveMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+			var td = this;
+			bool onlyVirtual = false;
+			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
+				var md = td.FindMethod(name, sig, options, sourceModule);
+				if (md is not null && (!onlyVirtual || md.IsVirtual)) {
+					if (i != 0 && md.IsInstanceConstructor)
+						return null;
+					return md;
+				}
+				if (td.IsInterface)
+					break;
+				if (td.IsValueType)
+					onlyVirtual = true;
+				td = td.BaseType.ResolveTypeDef();
+			}
 			return null;
 		}
 
