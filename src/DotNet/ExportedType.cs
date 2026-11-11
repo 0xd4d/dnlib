@@ -529,6 +529,8 @@ namespace dnlib.DotNet {
 			int count = modules.Count;
 			for (int i = 0; i < count; i++) {
 				var mod = modules[i];
+				if (mod is null)
+					continue;
 				var exportedTypes = mod.ExportedTypes;
 				int count2 = exportedTypes.Count;
 				for (int j = 0; j < count2; j++) {
