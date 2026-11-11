@@ -664,7 +664,9 @@ namespace dnlib.DotNet {
 		bool Equals_Names(bool caseInsensitive, UTF8String a, UTF8String b) {
 			if (caseInsensitive)
 				return UTF8String.ToSystemStringOrEmpty(a).Equals(UTF8String.ToSystemStringOrEmpty(b), StringComparison.OrdinalIgnoreCase);
-			return UTF8String.Equals(a, b);
+			// A null name is the same as an empty name, like in the case insensitive compare, the string overload
+			// and the hash code. Names read from metadata are never null but names of user created types can be.
+			return UTF8String.Equals(UTF8String.IsNull(a) ? UTF8String.Empty : a, UTF8String.IsNull(b) ? UTF8String.Empty : b);
 		}
 
 		bool Equals_Names(bool caseInsensitive, string a, string b) {
