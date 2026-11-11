@@ -68,7 +68,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (kind == CustomDebugInfoGuids.TypeDefinitionDocuments)
 				return ReadTypeDefinitionDocuments();
 			if (kind == CustomDebugInfoGuids.EncStateMachineStateMap)
-				return ReadEncStateMachineStateMap();
+				return ReadEncStateMachineStateMap(ref reader);
 			if (kind == CustomDebugInfoGuids.PrimaryConstructorInformationBlob)
 				return ReadPrimaryConstructorInformationBlob();
 			Debug.Fail($"Unknown custom debug info guid: {kind}");
@@ -242,7 +242,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbTypeDefinitionDocumentsDebugInfoMD(module, docList);
 		}
 
-		PdbCustomDebugInfo ReadEncStateMachineStateMap() {
+		// Also used by the Windows PDB CDI reader, both formats use the same blob format
+		internal static PdbEditAndContinueStateMachineStateMapDebugInfo ReadEncStateMachineStateMap(ref DataReader reader) {
 			var cdi = new PdbEditAndContinueStateMachineStateMapDebugInfo();
 
 			var count = reader.ReadCompressedUInt32();

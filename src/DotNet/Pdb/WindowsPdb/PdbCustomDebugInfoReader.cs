@@ -261,6 +261,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				}
 				return tupleListRec;
 
+			case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
+				return Portable.PortablePdbCustomDebugInfoReader.ReadEncStateMachineStateMap(ref reader);
+
 			default:
 				Debug.Fail($"Unknown custom debug info kind: 0x{(int)recKind:X}");
 				data = reader.ReadBytes((int)(recPosEnd - reader.Position));
