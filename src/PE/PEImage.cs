@@ -360,7 +360,11 @@ namespace dnlib.PE {
 				int count = (int)(dataDir.Size / 0x1C);
 				if (count == 0)
 					return Array2.Empty<ImageDebugDirectory>();
-				reader.CurrentOffset = (uint)ToFileOffset(dataDir.VirtualAddress);
+				// ToFileOffset() returns 0 if the RVA is invalid (it's not 0)
+				var offset = ToFileOffset(dataDir.VirtualAddress);
+				if (offset == 0)
+					return Array2.Empty<ImageDebugDirectory>();
+				reader.CurrentOffset = (uint)offset;
 				if ((ulong)reader.CurrentOffset + dataDir.Size > reader.Length)
 					return Array2.Empty<ImageDebugDirectory>();
 				var res = new ImageDebugDirectory[count];

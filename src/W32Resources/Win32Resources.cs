@@ -198,7 +198,8 @@ namespace dnlib.W32Resources {
 			}
 			else {
 				var dataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[2];
-				if (dataDir.VirtualAddress != 0 && dataDir.Size != 0) {
+				// ToFileOffset() returns 0 if the RVA is invalid
+				if (dataDir.VirtualAddress != 0 && dataDir.Size != 0 && peImage.ToFileOffset(dataDir.VirtualAddress) != 0) {
 					var reader = peImage.CreateReader(dataDir.VirtualAddress, dataDir.Size);
 					this.rsrcReader_factory = peImage.DataReaderFactory;
 					this.rsrcReader_offset = reader.StartOffset;
@@ -239,8 +240,9 @@ namespace dnlib.W32Resources {
 
 		internal void GetDataReaderInfo(RVA rva, uint size, out DataReaderFactory dataReaderFactory, out uint dataOffset, out uint dataLength) {
 			// The file offset is relative to the start of the PE image, which is at dataReader_offset in dataReader_factory
+			// ToFileOffset() returns 0 if the RVA is invalid. Resource data is never at RVA 0 (the DOS header).
 			uint fileOffset = (uint)rvaConverter.ToFileOffset(rva);
-			if ((ulong)fileOffset + size <= dataReader_length && (ulong)dataReader_offset + fileOffset + size <= dataReader_factory.Length) {
+			if (fileOffset != 0 && (ulong)fileOffset + size <= dataReader_length && (ulong)dataReader_offset + fileOffset + size <= dataReader_factory.Length) {
 				dataReaderFactory = dataReader_factory;
 				dataOffset = dataReader_offset + fileOffset;
 				dataLength = size;

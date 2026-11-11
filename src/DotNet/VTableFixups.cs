@@ -49,7 +49,11 @@ namespace dnlib.DotNet {
 
 			var peImage = module.Metadata.PEImage;
 			var reader = peImage.CreateReader();
-			reader.Position = (uint)peImage.ToFileOffset(info.VirtualAddress);
+			// ToFileOffset() returns 0 if the RVA is invalid (it's not 0)
+			var offset = peImage.ToFileOffset(info.VirtualAddress);
+			if (offset == 0)
+				return;
+			reader.Position = (uint)offset;
 			ulong endPos = (ulong)reader.Position + info.Size;
 			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
 				var tableRva = (RVA)reader.ReadUInt32();
@@ -58,8 +62,17 @@ namespace dnlib.DotNet {
 				var vtable = new VTable(tableRva, flags, numSlots);
 				vtables.Add(vtable);
 
+				// ToFileOffset() returns 0 if the RVA is invalid or has no file data (eg. .bss). Such slots
+				// are zero at runtime (token 0), so add null methods. This keeps the slot count so the
+				// writer still sees that the vtable doesn't fit in the file instead of writing 0 slots.
+				var tableOffset = peImage.ToFileOffset(tableRva);
+				if (tableOffset == 0) {
+					while (numSlots-- > 0)
+						vtable.Methods.Add(null);
+					continue;
+				}
 				var pos = reader.Position;
-				reader.Position = (uint)peImage.ToFileOffset(tableRva);
+				reader.Position = (uint)tableOffset;
 				uint slotSize = vtable.Is64Bit ? 8U : 4;
 				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
 					vtable.Methods.Add(module.ResolveToken(reader.ReadUInt32()) as IMethod);

@@ -123,11 +123,16 @@ namespace dnlib.DotNet.MD {
 				// Mono doesn't check that the Size field is >= 0x48
 				if (dotNetDir.VirtualAddress == 0)
 					throw new BadImageFormatException(".NET data directory RVA is 0");
+				// ToFileOffset() returns 0 if the RVA is invalid
+				if (peImage.ToFileOffset(dotNetDir.VirtualAddress) == 0)
+					throw new BadImageFormatException("Invalid .NET data directory RVA");
 				var cor20HeaderReader = peImage.CreateReader(dotNetDir.VirtualAddress, 0x48);
 				var cor20Header = new ImageCor20Header(ref cor20HeaderReader, verify && runtime == CLRRuntimeReaderKind.CLR);
 				if (cor20Header.Metadata.VirtualAddress == 0)
 					throw new BadImageFormatException(".NET metadata RVA is 0");
 				var mdRva = cor20Header.Metadata.VirtualAddress;
+				if (peImage.ToFileOffset(mdRva) == 0)
+					throw new BadImageFormatException("Invalid .NET metadata RVA");
 				// Don't use the size field, Mono ignores it. Create a reader that can read to EOF.
 				var mdHeaderReader = peImage.CreateReader(mdRva);
 				var mdHeader = new MetadataHeader(ref mdHeaderReader, runtime, verify);

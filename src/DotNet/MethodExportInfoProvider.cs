@@ -39,7 +39,11 @@ namespace dnlib.DotNet {
 
 			var reader = peImage.CreateReader();
 			var offsetToInfo = GetOffsetToExportInfoDictionary(ref reader, peImage, exportHdr, cpuArch);
-			reader.Position = (uint)peImage.ToFileOffset(vtblHdr.VirtualAddress);
+			// ToFileOffset() returns 0 if the RVA is invalid (the RVAs here are never 0)
+			var vtblOffset = peImage.ToFileOffset(vtblHdr.VirtualAddress);
+			if (vtblOffset == 0)
+				return;
+			reader.Position = (uint)vtblOffset;
 			ulong endPos = (ulong)reader.Position + vtblHdr.Size;
 			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
 				var tableRva = (RVA)reader.ReadUInt32();
@@ -48,8 +52,11 @@ namespace dnlib.DotNet {
 				bool is64bit = (flags & VTableFlags.Bit64) != 0;
 				var exportOptions = ToMethodExportInfoOptions(flags);
 
+				var tableOffset = peImage.ToFileOffset(tableRva);
+				if (tableOffset == 0)
+					continue;
 				var pos = reader.Position;
-				reader.Position = (uint)peImage.ToFileOffset(tableRva);
+				reader.Position = (uint)tableOffset;
 				uint slotSize = is64bit ? 8U : 4;
 				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
 					var tokenPos = reader.Position;
@@ -75,7 +82,11 @@ namespace dnlib.DotNet {
 		}
 
 		static Dictionary<uint, MethodExportInfo> GetOffsetToExportInfoDictionary(ref DataReader reader, IPEImage peImage, ImageDataDirectory exportHdr, CpuArch cpuArch) {
-			reader.Position = (uint)peImage.ToFileOffset(exportHdr.VirtualAddress);
+			// ToFileOffset() returns 0 if the RVA is invalid. None of the RVAs in the export directory can be 0.
+			var exportDirOffset = peImage.ToFileOffset(exportHdr.VirtualAddress);
+			if (exportDirOffset == 0)
+				return new Dictionary<uint, MethodExportInfo>();
+			reader.Position = (uint)exportDirOffset;
 			// Skip Characteristics(4), TimeDateStamp(4), MajorVersion(2), MinorVersion(2), Name(4)
 			reader.Position += 16;
 			uint ordinalBase = reader.ReadUInt32();
@@ -84,6 +95,10 @@ namespace dnlib.DotNet {
 			uint offsetOfFuncs = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
 			uint offsetOfNames = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
 			uint offsetOfNameIndexes = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
+			if (offsetOfFuncs == 0)
+				return new Dictionary<uint, MethodExportInfo>();
+			if (offsetOfNames == 0 || offsetOfNameIndexes == 0)
+				numNames = 0;
 
 			var names = ReadNames(ref reader, peImage, numNames, offsetOfNames, offsetOfNameIndexes);
 			reader.Position = offsetOfFuncs;
@@ -93,8 +108,9 @@ namespace dnlib.DotNet {
 				var nextOffset = reader.Position + 4;
 				uint funcRva = 0;
 				var rva = (RVA)reader.ReadUInt32();
-				reader.Position = (uint)peImage.ToFileOffset(rva);
-				bool rvaValid = rva != 0 && cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out funcRva);
+				var stubOffset = peImage.ToFileOffset(rva);
+				reader.Position = (uint)stubOffset;
+				bool rvaValid = stubOffset != 0 && cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out funcRva);
 				uint funcOffset = rvaValid ? (uint)peImage.ToFileOffset((RVA)funcRva) : 0;
 				var exportInfo = new MethodExportInfo((ushort)(ordinalBase + (uint)i));
 				if (funcOffset != 0)
@@ -125,7 +141,7 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < names.Length; i++, currentOffset += 4) {
 				reader.Position = currentOffset;
 				uint offsetOfName = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
-				names[i].Name = ReadMethodNameASCIIZ(ref reader, offsetOfName);
+				names[i].Name = offsetOfName == 0 ? string.Empty : ReadMethodNameASCIIZ(ref reader, offsetOfName);
 			}
 
 			return names;

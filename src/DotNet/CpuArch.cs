@@ -317,7 +317,10 @@ namespace dnlib.DotNet {
 			// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 //address of VTFixup slot
 			ulong addrTemplate = reader.ReadUInt64();
 			ulong absAddr = reader.ReadUInt64();
-			reader.Position = (uint)peImage.ToFileOffset((RVA)(addrTemplate - peImage.ImageNTHeaders.OptionalHeader.ImageBase));
+			var templateOffset = peImage.ToFileOffset((RVA)(addrTemplate - peImage.ImageNTHeaders.OptionalHeader.ImageBase));
+			if (templateOffset == 0)
+				return false;
+			reader.Position = (uint)templateOffset;
 			if (reader.ReadUInt64() != 0x40A010180200480BUL)
 				return false;
 			if (reader.ReadUInt64() != 0x0004000000283024UL)

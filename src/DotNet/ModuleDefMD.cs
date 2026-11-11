@@ -1666,6 +1666,9 @@ namespace dnlib.DotNet {
 					return data;
 				}
 			}
+			// ToFileOffset() returns 0 if the RVA is invalid (eg. it's past SizeOfImage)
+			if (rva != 0 && peImage.ToFileOffset(rva) == 0)
+				return null;
 			var reader = peImage.CreateReader(rva, (uint)size);
 			if (reader.Length < size)
 				return null;
