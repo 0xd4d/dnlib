@@ -1632,7 +1632,7 @@ exit: ;
 			if (ra == rb)
 				return true;
 			if (ra is null || rb is null)
-				return false;
+				return DontCompareTypeScope && ra is not TypeRef && rb is not TypeRef;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -1701,7 +1701,7 @@ exit: ;
 			if (ia == ib)
 				return true;
 			if (ia is null || ib is null)
-				return false;
+				return DontCompareTypeScope && ia is not ExportedType && ib is not ExportedType;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -1759,7 +1759,7 @@ exit: ;
 			if (ra == ib)
 				return true;
 			if (ra is null || ib is null)
-				return false;
+				return DontCompareTypeScope && ra is not TypeRef && ib is not ExportedType;
 			if (!recursionCounter.Increment())
 				return false;
 
