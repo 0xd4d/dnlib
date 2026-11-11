@@ -1021,13 +1021,14 @@ namespace dnlib.DotNet {
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeMethodIsComparable) != 0;
+			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0;
 			var methods = Methods;
 			int count = methods.Count;
 			for (int i = 0; i < count; i++) {
 				var method = methods[i];
 				if (!allowPrivateScope && method.IsPrivateScope && sourceModule != Module)
 					continue;
-				if (!UTF8String.Equals(method.Name, name))
+				if (!SigComparer.Equals_Names(caseInsensitive, method.Name, name))
 					continue;
 				if (comparer.Equals(GenericTypeArgsSubstitutor.Substitute(method.MethodSig, typeArgs), sig))
 					return method;
@@ -1187,13 +1188,14 @@ namespace dnlib.DotNet {
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
 			bool allowPrivateScope = (options & SigComparerOptions.PrivateScopeFieldIsComparable) != 0;
+			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0;
 			var fields = Fields;
 			int count = fields.Count;
 			for (int i = 0; i < count; i++) {
 				var field = fields[i];
 				if (!allowPrivateScope && field.IsPrivateScope && sourceModule != Module)
 					continue;
-				if (!UTF8String.Equals(field.Name, name))
+				if (!SigComparer.Equals_Names(caseInsensitive, field.Name, name))
 					continue;
 				if (comparer.Equals(GenericTypeArgsSubstitutor.Substitute(field.FieldSig, typeArgs), sig))
 					return field;
@@ -1264,11 +1266,12 @@ namespace dnlib.DotNet {
 			if (UTF8String.IsNull(name) || type is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
+			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitiveEventNames) != 0;
 			var events = Events;
 			int count = events.Count;
 			for (int i = 0; i < count; i++) {
 				var @event = events[i];
-				if (!UTF8String.Equals(@event.Name, name))
+				if (!SigComparer.Equals_Names(caseInsensitive, @event.Name, name))
 					continue;
 				if (comparer.Equals(SubstituteEventType(@event.EventType, typeArgs), type))
 					return @event;
@@ -1347,11 +1350,12 @@ namespace dnlib.DotNet {
 			if (UTF8String.IsNull(name) || propSig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
+			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitivePropertyNames) != 0;
 			var properties = Properties;
 			int count = properties.Count;
 			for (int i = 0; i < count; i++) {
 				var prop = properties[i];
-				if (!UTF8String.Equals(prop.Name, name))
+				if (!SigComparer.Equals_Names(caseInsensitive, prop.Name, name))
 					continue;
 				if (comparer.Equals(GenericTypeArgsSubstitutor.Substitute(prop.Type, typeArgs), propSig))
 					return prop;

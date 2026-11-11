@@ -601,7 +601,7 @@ namespace dnlib.DotNet {
 					GetHashCode_TypeName("IntPtr");
 		}
 
-		bool Equals_Names(bool caseInsensitive, UTF8String a, UTF8String b) {
+		internal static bool Equals_Names(bool caseInsensitive, UTF8String a, UTF8String b) {
 			if (caseInsensitive)
 				return UTF8String.ToSystemStringOrEmpty(a).Equals(UTF8String.ToSystemStringOrEmpty(b), StringComparison.OrdinalIgnoreCase);
 			return UTF8String.Equals(a, b);
