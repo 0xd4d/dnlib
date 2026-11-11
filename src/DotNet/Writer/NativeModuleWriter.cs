@@ -715,11 +715,12 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteDataDirectory(netResources);
 			writer.WriteDataDirectory(strongNameSignature);
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.CodeManagerTable);
+			long vtableFixupsDirOffset = writer.Position;
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.VTableFixups);
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.ExportAddressTableJumps);
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.ManagedNativeHeader);
 
-			UpdateVTableFixups(writer);
+			UpdateVTableFixups(writer, vtableFixupsDirOffset);
 		}
 
 		static void WriteDataDirectory(DataWriter writer, ImageDataDirectory dataDir) {
@@ -811,38 +812,116 @@ namespace dnlib.DotNet.Writer {
 				yield return new SectionSizeInfo(section.GetVirtualSize(), section.Characteristics);
 		}
 
-		void UpdateVTableFixups(DataWriter writer) {
-			var vtableFixups = module.VTableFixups;
-			if (vtableFixups is null || vtableFixups.VTables.Count == 0)
-				return;
+		readonly struct OrigVTableInfo {
+			public readonly RVA RVA;
+			public readonly uint Size;
+			public OrigVTableInfo(RVA rva, uint size) {
+				RVA = rva;
+				Size = size;
+			}
+		}
 
-			writer.Position = ToWriterOffset(vtableFixups.RVA);
-			if (writer.Position == 0) {
-				Error("Could not convert RVA to file offset");
+		/// <summary>
+		/// Reads the location and size of each vtable in the original file
+		/// </summary>
+		List<OrigVTableInfo> ReadOriginalVTables(ImageDataDirectory dir) {
+			var list = new List<OrigVTableInfo>();
+			if (dir.VirtualAddress == 0 || dir.Size == 0)
+				return list;
+			var offset = peImage.ToFileOffset(dir.VirtualAddress);
+			var reader = peImage.CreateReader();
+			if (offset == 0 || (uint)offset > reader.Length)
+				return list;
+			reader.Position = (uint)offset;
+			ulong endPos = (ulong)reader.Position + dir.Size;
+			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
+				var rva = (RVA)reader.ReadUInt32();
+				uint numSlots = reader.ReadUInt16();
+				var flags = (VTableFlags)reader.ReadUInt16();
+				uint slotSize = (flags & VTableFlags.Bit64) != 0 ? 8U : 4;
+				list.Add(new OrigVTableInfo(rva, numSlots * slotSize));
+			}
+			return list;
+		}
+
+		static bool IsInRange(RVA rva, ulong size, RVA rangeRva, ulong rangeSize) =>
+			rva >= rangeRva && (ulong)rva + size <= (ulong)rangeRva + rangeSize;
+
+		/// <summary>
+		/// The vtable fixups and vtables are written over the original data so they can't be moved or grow
+		/// past their original locations. Returns false if any of them doesn't fit.
+		/// </summary>
+		bool CanUpdateVTableFixups(VTableFixups vtableFixups, ImageDataDirectory origDir, List<OrigVTableInfo> origVTables) {
+			var vtables = vtableFixups.VTables;
+			ulong headersSize = (ulong)vtables.Count * 8;
+			if (!IsInRange(vtableFixups.RVA, headersSize, origDir.VirtualAddress, origDir.Size) || !IsInOneSectionsFileData(vtableFixups.RVA, (uint)headersSize)) {
+				Error("VTable fixups don't fit in the original vtable fixups location (RVA {0:X8})", (uint)origDir.VirtualAddress);
+				return false;
+			}
+			foreach (var vtable in vtables) {
+				int count = vtable.Methods.Count;
+				if (count > ushort.MaxValue)
+					throw new ModuleWriterException("Too many methods in vtable");
+				if (count == 0)
+					continue;
+				ulong size = (ulong)count * (vtable.Is64Bit ? 8U : 4);
+				bool fits = false;
+				foreach (var orig in origVTables) {
+					if (IsInRange(vtable.RVA, size, orig.RVA, orig.Size)) {
+						fits = true;
+						break;
+					}
+				}
+				if (!fits || !IsInOneSectionsFileData(vtable.RVA, (uint)size)) {
+					Error("VTable (RVA {0:X8}, {1} slots) doesn't fit in an original vtable location", (uint)vtable.RVA, count);
+					return false;
+				}
+			}
+			return true;
+		}
+
+		void UpdateVTableFixups(DataWriter writer, long vtableFixupsDirOffset) {
+			var vtableFixups = module.VTableFixups;
+			var origDir = module.Metadata.ImageCor20Header.VTableFixups;
+			if (vtableFixups is null || vtableFixups.VTables.Count == 0) {
+				// All vtables were removed. Clear the data directory so the loader doesn't use the old vtable fixups.
+				if (origDir.VirtualAddress != 0 || origDir.Size != 0) {
+					writer.Position = vtableFixupsDirOffset;
+					writer.WriteUInt32(0);
+					writer.WriteUInt32(0);
+				}
 				return;
 			}
+
+			// Check everything first, if something doesn't fit, nothing is updated (the logger might not throw)
+			if (!CanUpdateVTableFixups(vtableFixups, origDir, ReadOriginalVTables(origDir)))
+				return;
+
+			// The original size isn't always a multiple of 8 (MSVC), so only update the data directory if needed
+			uint headersSize = (uint)vtableFixups.VTables.Count * 8;
+			if (vtableFixups.RVA != origDir.VirtualAddress || headersSize != (origDir.Size & ~7U)) {
+				writer.Position = vtableFixupsDirOffset;
+				writer.WriteUInt32((uint)vtableFixups.RVA);
+				writer.WriteUInt32(headersSize);
+			}
+
+			writer.Position = ToWriterOffset(vtableFixups.RVA);
 			foreach (var vtable in vtableFixups) {
-				if (vtable.Methods.Count > ushort.MaxValue)
-					throw new ModuleWriterException("Too many methods in vtable");
 				writer.WriteUInt32((uint)vtable.RVA);
 				writer.WriteUInt16((ushort)vtable.Methods.Count);
 				writer.WriteUInt16((ushort)vtable.Flags);
 
+				var methods = vtable.Methods;
+				int count = methods.Count;
+				if (count == 0)
+					continue;
 				long pos = writer.Position;
 				writer.Position = ToWriterOffset(vtable.RVA);
-				if (writer.Position == 0) {
-					if (vtable.RVA != 0 || vtable.Methods.Count > 0)
-						Error("Could not convert RVA to file offset");
-				}
-				else {
-					var methods = vtable.Methods;
-					int count = methods.Count;
-					for (int i = 0; i < count; i++) {
-						var method = methods[i];
-						writer.WriteUInt32(GetMethodToken(method));
-						if (vtable.Is64Bit)
-							writer.WriteInt32(0);
-					}
+				for (int i = 0; i < count; i++) {
+					var method = methods[i];
+					writer.WriteUInt32(GetMethodToken(method));
+					if (vtable.Is64Bit)
+						writer.WriteInt32(0);
 				}
 				writer.Position = pos;
 			}
