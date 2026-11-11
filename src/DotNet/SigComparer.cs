@@ -2022,6 +2022,14 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
+			// Like the CLR (CompareTypeTokens()), tokens are only comparable if they're from the same
+			// module. A rid of 0 means the type hasn't been written to metadata yet so its token is
+			// meaningless (all such types would share the same token).
+			if (a.Rid == 0 || b.Rid == 0)
+				return false;
+			var module = a.Module;
+			if (module is null || module != b.Module)
+				return false;
 			return a.MDToken == b.MDToken;
 		}
 
