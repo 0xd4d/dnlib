@@ -150,8 +150,9 @@ namespace dnlib.W32Resources {
 		/// <param name="owns_rsrcReader_factory">true if this instance can dispose of <paramref name="rsrcReader_factory"/></param>
 		/// <param name="dataReader_factory">Data reader (it's used after converting an <see cref="RVA"/>
 		/// to a <see cref="FileOffset"/>)</param>
-		/// <param name="dataReader_offset">Offset of resource section</param>
-		/// <param name="dataReader_length">Length of resource section</param>
+		/// <param name="dataReader_offset">Offset of the PE image in <paramref name="dataReader_factory"/>. The converted
+		/// <see cref="FileOffset"/>s are relative to this offset.</param>
+		/// <param name="dataReader_length">Length of the PE image</param>
 		/// <param name="owns_dataReader_factory">true if this instance can dispose of <paramref name="dataReader_factory"/></param>
 		public Win32ResourcesPE(IRvaFileOffsetConverter rvaConverter, DataReaderFactory rsrcReader_factory, uint rsrcReader_offset, uint rsrcReader_length, bool owns_rsrcReader_factory, DataReaderFactory dataReader_factory, uint dataReader_offset, uint dataReader_length, bool owns_dataReader_factory) {
 			this.rvaConverter = rvaConverter ?? throw new ArgumentNullException(nameof(rvaConverter));
@@ -237,9 +238,11 @@ namespace dnlib.W32Resources {
 		}
 
 		internal void GetDataReaderInfo(RVA rva, uint size, out DataReaderFactory dataReaderFactory, out uint dataOffset, out uint dataLength) {
-			dataOffset = (uint)rvaConverter.ToFileOffset(rva);
-			if ((ulong)dataOffset + size <= dataReader_factory.Length) {
+			// The file offset is relative to the start of the PE image, which is at dataReader_offset in dataReader_factory
+			uint fileOffset = (uint)rvaConverter.ToFileOffset(rva);
+			if ((ulong)fileOffset + size <= dataReader_length && (ulong)dataReader_offset + fileOffset + size <= dataReader_factory.Length) {
 				dataReaderFactory = dataReader_factory;
+				dataOffset = dataReader_offset + fileOffset;
 				dataLength = size;
 				return;
 			}
