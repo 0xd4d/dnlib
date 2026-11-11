@@ -2207,11 +2207,14 @@ exit: ;
 						typeEquivalenceForbidden = true;
 					else
 						typeEquivalenceMaybeForbidden = true;
-					// The CLR always compares all fnptr params, incl. the ones after the sentinel
+					// The CLR always compares all fnptr params, incl. the ones after the sentinel, and the return
+					// type (DontCompareReturnType only applies to the method/property sig being compared)
+					var oldFnPtrOptions = ClearOptions(SigComparerOptions.DontCompareReturnType);
 					if (fpa is MethodBaseSig mfpa && fpb is MethodBaseSig mfpb)
 						result = mfpa.GetCallingConvention() == mfpb.GetCallingConvention() && Equals(mfpa, mfpb, true);
 					else
 						result = fpa?.GetCallingConvention() == fpb?.GetCallingConvention() && Equals(fpa, fpb);
+					RestoreOptions(oldFnPtrOptions);
 					break;
 
 				case ElementType.CModReqd:
