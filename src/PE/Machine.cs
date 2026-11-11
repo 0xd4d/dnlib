@@ -57,8 +57,14 @@ namespace dnlib.PE {
 		CEF			= 0x0CEF,
 		/// <summary>EFI Byte Code</summary>
 		EBC			= 0x0EBC,
+		/// <summary>RISC-V 32-bit</summary>
+		RISCV32		= 0x5032,
 		/// <summary>RISC-V 64-bit</summary>
 		RISCV64		= 0x5064,
+		/// <summary>RISC-V 128-bit</summary>
+		RISCV128	= 0x5128,
+		/// <summary>LoongArch 32-bit</summary>
+		LOONGARCH32	= 0x6232,
 		/// <summary>LoongArch 64-bit</summary>
 		LOONGARCH64	= 0x6264,
 		/// <summary>x64</summary>
