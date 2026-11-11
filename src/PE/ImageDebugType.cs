@@ -42,6 +42,12 @@ namespace dnlib.PE {
 		/// Checksum of the PDB file. 0 or more entries allowed.
 		/// </summary>
 		PdbChecksum = 19,
+
+		/// <summary>
+		/// ReadyToRun perf map info (written by crossgen2). The data starts with magic <c>0x4D523252</c> ("R2RM"),
+		/// followed by a 16-byte signature, a 4-byte perf map format version and a null terminated UTF-8 file name.
+		/// </summary>
+		R2RPerfMap = 21,
 #pragma warning restore 1591 // Missing XML comment for publicly visible type or member
 	}
 }
