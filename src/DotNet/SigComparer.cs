@@ -1997,7 +1997,11 @@ exit: ;
 					// The CLR compares the fnptr calling convention byte exactly (incl. bit 0x80)
 					var fpa = (a as FnPtrSig).Signature;
 					var fpb = (b as FnPtrSig).Signature;
-					result = fpa?.GetCallingConvention() == fpb?.GetCallingConvention() && Equals(fpa, fpb);
+					// and it always compares all params, incl. the ones after the sentinel
+					if (fpa is MethodBaseSig mfpa && fpb is MethodBaseSig mfpb)
+						result = mfpa.GetCallingConvention() == mfpb.GetCallingConvention() && Equals(mfpa, mfpb, true);
+					else
+						result = fpa?.GetCallingConvention() == fpb?.GetCallingConvention() && Equals(fpa, fpb);
 					break;
 
 				case ElementType.CModReqd:
@@ -2365,7 +2369,9 @@ exit: ;
 		/// <param name="a">Method/property #1</param>
 		/// <param name="b">Method/property #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Equals(MethodBaseSig a, MethodBaseSig b) {
+		public bool Equals(MethodBaseSig a, MethodBaseSig b) => Equals(a, b, CompareSentinelParams);
+
+		bool Equals(MethodBaseSig a, MethodBaseSig b, bool compareSentinelParams) {
 			if (a == b)
 				return true;
 			if (a is null || b is null)
@@ -2377,7 +2383,7 @@ exit: ;
 					(DontCompareReturnType || Equals(a.RetType, b.RetType)) &&
 					Equals(a.Params, b.Params) &&
 					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
-					(!CompareSentinelParams || Equals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
+					(!compareSentinelParams || SentinelParamsEquals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2406,6 +2412,13 @@ exit: ;
 
 			recursionCounter.Decrement();
 			return hash;
+		}
+
+		// null and empty are the same (no params after the sentinel). GetHashCode(IList<TypeSig>) returns 0 for both.
+		bool SentinelParamsEquals(IList<TypeSig> a, IList<TypeSig> b) {
+			if ((a is null || a.Count == 0) && (b is null || b.Count == 0))
+				return true;
+			return Equals(a, b);
 		}
 
 		// The CLR ignores bit 0x80 (CORINFO_CALLCONV_PARAMTYPE) when comparing method sigs (MetaSig::CompareMethodSigs)
