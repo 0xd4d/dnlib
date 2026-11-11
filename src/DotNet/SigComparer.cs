@@ -1387,6 +1387,14 @@ exit: ;
 			return result;
 		}
 
+		// Hashes a member's declaring type. The global type always uses GetHashCodeGlobalType()
+		// so it matches members referenced via a ModuleRef or a null reflection declaring type.
+		int GetHashCode_DeclaringType(TypeDef a) {
+			if (a is null || a.IsGlobalModuleType)
+				return GetHashCodeGlobalType();
+			return GetHashCode(a);
+		}
+
 		int GetHashCodeGlobalType() {
 			// We don't always know the name+namespace of the global type, eg. when it's
 			// referenced by a ModuleRef. Use the same hash for all global types.
@@ -1544,7 +1552,11 @@ exit: ;
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
-			if (a is null || a.IsGlobalModuleType)
+			if (a is null)
+				return GetHashCodeGlobalType();
+			// If a TypeRef/ExportedType can reference the global type, the global type must
+			// hash like a normal type since TypeRefs/ExportedTypes are hashed by name.
+			if (a.IsGlobalModuleType && !TypeRefCanReferenceGlobalType)
 				return GetHashCodeGlobalType();
 			if (!DontProjectWinMDRefs) {
 				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
@@ -2690,7 +2702,7 @@ exit: ;
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -2858,13 +2870,15 @@ exit: ;
 			ITypeDefOrRef ita;
 			MethodDef ma;
 
-			if ((ita = a as ITypeDefOrRef) is not null)
+			if (a is TypeDef td)
+				hash = GetHashCode_DeclaringType(td);
+			else if ((ita = a as ITypeDefOrRef) is not null)
 				hash = GetHashCode((IType)ita);
 			else if (a is ModuleRef)
 				hash = GetHashCodeGlobalType();
 			else if ((ma = a as MethodDef) is not null) {
 				// Only use the declaring type so we get the same hash code when hashing a MethodBase.
-				hash = GetHashCode(ma.DeclaringType);
+				hash = GetHashCode_DeclaringType(ma.DeclaringType);
 			}
 			else
 				hash = 0;
@@ -3004,7 +3018,7 @@ exit: ;
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -3052,7 +3066,7 @@ exit: ;
 			int hash = GetHashCode_PropertyName(a.Name) +
 					GetHashCode(sig?.RetType);
 			if (ComparePropertyDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -3099,7 +3113,7 @@ exit: ;
 			int hash = GetHashCode_EventName(a.Name) +
 					GetHashCode((IType)a.EventType);
 			if (CompareEventDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
