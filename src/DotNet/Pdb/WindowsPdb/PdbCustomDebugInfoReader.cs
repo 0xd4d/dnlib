@@ -129,7 +129,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				count = reader.ReadInt32();
 				if (count < 0)
 					return null;
-				var smScope = new PdbStateMachineHoistedLocalScopesCustomDebugInfo(count);
+				var smScope = new PdbStateMachineHoistedLocalScopesCustomDebugInfo();
 				for (int i = 0; i < count; i++) {
 					uint startOffset = reader.ReadUInt32();
 					uint endOffset = reader.ReadUInt32();
@@ -215,12 +215,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				count = reader.ReadInt32();
 				if (count < 0)
 					return null;
-				var tupleListRec = new PdbTupleElementNamesCustomDebugInfo(count);
+				var tupleListRec = new PdbTupleElementNamesCustomDebugInfo();
 				for (int i = 0; i < count; i++) {
 					int nameCount = reader.ReadInt32();
 					if ((uint)nameCount >= 10000)
 						return null;
-					var tupleInfo = new PdbTupleElementNames(nameCount);
+					var tupleInfo = new PdbTupleElementNames();
 
 					for (int j = 0; j < nameCount; j++) {
 						var s = ReadUTF8Z(recPosEnd);
