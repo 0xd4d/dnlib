@@ -2095,6 +2095,32 @@ exit: ;
 			return result;
 		}
 
+		/// <summary>
+		/// Compares two function pointer calling conventions. With <see cref="SigComparerOptions.IgnoreModifiers"/>,
+		/// C/StdCall/ThisCall/FastCall are treated as <see cref="CallingConvention.Unmanaged"/> since the specific
+		/// unmanaged calling convention can also be encoded as <c>modopt(CallConvXXX)</c> modifiers on the
+		/// return type, which are ignored (same as the CLR's NormalizeFnPtrCallingConvention()).
+		/// </summary>
+		bool FnPtrCallingConventionEquals(CallingConvention a, CallingConvention b) {
+			if (a == b)
+				return true;
+			if (!IgnoreModifiers)
+				return false;
+			return NormalizeFnPtrCallingConvention(a) == NormalizeFnPtrCallingConvention(b);
+		}
+
+		static CallingConvention NormalizeFnPtrCallingConvention(CallingConvention cc) {
+			switch (cc & CallingConvention.Mask) {
+			case CallingConvention.C:
+			case CallingConvention.StdCall:
+			case CallingConvention.ThisCall:
+			case CallingConvention.FastCall:
+				return (cc & ~CallingConvention.Mask) | CallingConvention.Unmanaged;
+			default:
+				return cc;
+			}
+		}
+
 		bool EqualsCore(TypeSig a, TypeSig b) {
 			if (IgnoreModifiers) {
 				a = a.RemoveModifiers();
@@ -2199,7 +2225,8 @@ exit: ;
 					break;
 
 				case ElementType.FnPtr:
-					// The CLR compares the fnptr calling convention byte exactly (incl. bit 0x80)
+					// The CLR compares the fnptr calling convention byte exactly (incl. bit 0x80), unless
+					// modifiers are ignored, see FnPtrCallingConventionEquals()
 					var fpa = (a as FnPtrSig).Signature;
 					var fpb = (b as FnPtrSig).Signature;
 					// The CLR doesn't allow type equivalence inside (and after) function pointers. The state isn't restored afterwards.
@@ -2211,9 +2238,11 @@ exit: ;
 					// type (DontCompareReturnType only applies to the method/property sig being compared)
 					var oldFnPtrOptions = ClearOptions(SigComparerOptions.DontCompareReturnType);
 					if (fpa is MethodBaseSig mfpa && fpb is MethodBaseSig mfpb)
-						result = mfpa.GetCallingConvention() == mfpb.GetCallingConvention() && Equals(mfpa, mfpb, true);
+						result = Equals(mfpa, mfpb, isFnPtr: true);
+					else if (fpa is null || fpb is null)
+						result = fpa == fpb;
 					else
-						result = fpa?.GetCallingConvention() == fpb?.GetCallingConvention() && Equals(fpa, fpb);
+						result = FnPtrCallingConventionEquals(fpa.GetCallingConvention(), fpb.GetCallingConvention()) && Equals(fpa, fpb);
 					RestoreOptions(oldFnPtrOptions);
 					break;
 
@@ -2589,9 +2618,13 @@ exit: ;
 		/// <param name="a">Method/property #1</param>
 		/// <param name="b">Method/property #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Equals(MethodBaseSig a, MethodBaseSig b) => Equals(a, b, CompareSentinelParams);
+		public bool Equals(MethodBaseSig a, MethodBaseSig b) => Equals(a, b, isFnPtr: false);
 
-		bool Equals(MethodBaseSig a, MethodBaseSig b, bool compareSentinelParams) {
+		/// <param name="a">Method/property #1</param>
+		/// <param name="b">Method/property #2</param>
+		/// <param name="isFnPtr"><c>true</c> if they're function pointer sigs: the calling convention is
+		/// compared like the CLR compares fnptr calling conventions and sentinel params are always compared</param>
+		bool Equals(MethodBaseSig a, MethodBaseSig b, bool isFnPtr) {
 			if (a == b)
 				return true;
 			if (a is null || b is null)
@@ -2599,11 +2632,14 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = EqualsIgnoreReservedByCLR(a.GetCallingConvention(), b.GetCallingConvention()) &&
+			bool callConvEquals = isFnPtr ?
+				FnPtrCallingConventionEquals(a.GetCallingConvention(), b.GetCallingConvention()) :
+				EqualsIgnoreReservedByCLR(a.GetCallingConvention(), b.GetCallingConvention());
+			bool result = callConvEquals &&
 					(DontCompareReturnType || Equals(a.RetType, b.RetType)) &&
 					Equals(a.Params, b.Params) &&
 					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
-					(!compareSentinelParams || SentinelParamsEquals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
+					((!isFnPtr && !CompareSentinelParams) || SentinelParamsEquals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
 
 			recursionCounter.Decrement();
 			return result;
