@@ -81,8 +81,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 			for (int i = 0; ; i++) {
 				byte b = reader.ReadByte();
 				prevSepCharBytesCount++;
-				if (i == 0 && b == 0)
+				if (i == 0 && b == 0) {
+					// No separator. Don't keep the previous name's separator chars.
+					prevSepCharBytes[0] = 0;
+					prevSepChars[0] = '\0';
+					prevSepCharsLength = 1;
 					break;
+				}
 				if (i < prevSepCharBytes.Length)
 					prevSepCharBytes[i] = b;
 				bytes[0] = b;
