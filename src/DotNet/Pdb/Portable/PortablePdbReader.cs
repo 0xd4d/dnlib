@@ -106,13 +106,25 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var docTbl = pdbMetadata.TablesStream.DocumentTable;
 			var docs = new SymbolDocument[docTbl.Rows];
 			var nameReader = new DocumentNameReader(pdbMetadata.BlobStream);
+			var urls = new Dictionary<uint, string>();
+			long maxUrlsSize = GetBlobSizeLimit();
+			long urlsSize = 0;
 			var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
 			var gpContext = new GenericParamContext();
 			for (int i = 0; i < docs.Length; i++) {
 				uint rid = (uint)i + 1;
 				bool b = pdbMetadata.TablesStream.TryReadDocumentRow(rid, out var row);
 				Debug.Assert(b);
-				var url = nameReader.ReadDocumentName(row.Name);
+				// A name is built from parts that can each be shared, so a few bytes can make a name of up to 64K
+				// chars. Rows that use the same name blob share the string, and the total size of all other
+				// names has the same limit as the custom debug info and import blobs.
+				if (!urls.TryGetValue(row.Name, out var url)) {
+					url = nameReader.ReadDocumentName(row.Name);
+					urlsSize += url.Length;
+					if (urlsSize > maxUrlsSize)
+						throw new IOException("Document rows share too much blob data");
+					urls.Add(row.Name, url);
+				}
 				var language = pdbMetadata.GuidStream.Read(row.Language) ?? Guid.Empty;
 				var languageVendor = GetLanguageVendor(language);
 				var documentType = PdbDocumentConstants.DocumentTypeText;
