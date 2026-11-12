@@ -1664,6 +1664,11 @@ namespace dnlib.DotNet {
 				uint rawSize = section.LoadedSizeOfRawData;
 				ulong end = (ulong)offset + (uint)size;
 				if (end > rawSize && end <= virtualSize) {
+					// The zero-filled part isn't in the file so its size isn't bounded by the file size. Don't allow
+					// huge allocations from tiny files (real .bss data is small)
+					ulong zeroLength = end - Math.Max(offset, rawSize);
+					if (zeroLength > (ulong)peImage.DataReaderFactory.Length)
+						return null;
 					var data = new byte[size];
 					if (offset < rawSize) {
 						uint rawLength = rawSize - offset;
