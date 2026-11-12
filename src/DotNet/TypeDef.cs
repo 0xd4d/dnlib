@@ -1568,11 +1568,42 @@ namespace dnlib.DotNet {
 		/// <param name="name">Event name</param>
 		/// <param name="eventType">Event type</param>
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
-		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType) {
+		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType) => FindEventCheckBaseType(name, eventType, 0, null);
+
+		/// <summary>
+		/// Finds an event by checking this type or any of its base types
+		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's event type before it's compared.
+		/// The type must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
+		/// <param name="name">Event name</param>
+		/// <param name="eventType">Event type</param>
+		/// <param name="options">Event type comparison options</param>
+		/// <returns>The event or <c>null</c> if it wasn't found</returns>
+		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType, SigComparerOptions options) => FindEventCheckBaseType(name, eventType, options, null);
+
+		/// <summary>
+		/// Finds an event by checking this type or any of its base types
+		/// </summary>
+		/// <remarks>
+		/// When a base type is a generic instance (eg. <c>D : B&lt;int&gt;</c>), the generic type
+		/// arguments are substituted into the base type's event type before it's compared.
+		/// The type must use the instantiated types (eg. <c>int32</c> instead of <c>!0</c>).
+		/// Generic type vars of this type itself are not substituted.
+		/// </remarks>
+		/// <param name="name">Event name</param>
+		/// <param name="eventType">Event type</param>
+		/// <param name="options">Event type comparison options</param>
+		/// <param name="sourceModule">The module that needs to find the event or <c>null</c></param>
+		/// <returns>The event or <c>null</c> if it wasn't found</returns>
+		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType, SigComparerOptions options, ModuleDef sourceModule) {
 			var td = this;
 			IList<TypeSig> typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
-				var ed = td.FindEvent(name, eventType, 0, null, typeArgs);
+				var ed = td.FindEvent(name, eventType, options, sourceModule, typeArgs);
 				if (ed is not null)
 					return ed;
 				td = GetBaseTypeDef(td, ref typeArgs);
