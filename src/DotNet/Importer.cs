@@ -574,16 +574,19 @@ namespace dnlib.DotNet {
 					return null;
 
 				MethodBase origMethod;
-				try {
-					// Get the original method def in case the declaring type is a generic
-					// type instance and the method uses at least one generic type parameter.
-					origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
-				}
-				catch (ArgumentException) {
-					// Here if eg. the method was created by the runtime (eg. a multi-dimensional
-					// array getter/setter method). The method token is in that case 0x06000000,
-					// which is invalid.
+				// Methods created by the runtime (eg. multi-dimensional array methods) have token 0x06000000.
+				// Check it first since ResolveMethod() would throw, and exceptions are slow.
+				if (HasNilRid(methodBase.MetadataToken))
 					origMethod = methodBase;
+				else {
+					try {
+						// Get the original method def in case the declaring type is a generic
+						// type instance and the method uses at least one generic type parameter.
+						origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
+					}
+					catch (ArgumentException) {
+						origMethod = methodBase;
+					}
 				}
 
 				var methodSig = CreateMethodSig(origMethod);
@@ -595,6 +598,8 @@ namespace dnlib.DotNet {
 				return methodRef;
 			}
 		}
+
+		static bool HasNilRid(int token) => (token & 0x00FFFFFF) == 0;
 
 		bool IsThisModule(Module module2) => UTF8String.ToSystemStringOrEmpty(module.Name).Equals(module2.ScopeName, StringComparison.OrdinalIgnoreCase) && IsThisAssembly(module2);
 
@@ -715,13 +720,18 @@ namespace dnlib.DotNet {
 				return null;
 
 			FieldInfo origField;
-			try {
-				// Get the original field def in case the declaring type is a generic
-				// type instance and the field uses a generic type parameter.
-				origField = fieldInfo.Module.ResolveField(fieldInfo.MetadataToken);
-			}
-			catch (ArgumentException) {
+			// Check it first since ResolveField() would throw, and exceptions are slow
+			if (HasNilRid(fieldInfo.MetadataToken))
 				origField = fieldInfo;
+			else {
+				try {
+					// Get the original field def in case the declaring type is a generic
+					// type instance and the field uses a generic type parameter.
+					origField = fieldInfo.Module.ResolveField(fieldInfo.MetadataToken);
+				}
+				catch (ArgumentException) {
+					origField = fieldInfo;
+				}
 			}
 
 			var fieldType = origField.FieldType;
