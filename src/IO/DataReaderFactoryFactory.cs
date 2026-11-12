@@ -2,10 +2,10 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace dnlib.IO {
 	static class DataReaderFactoryFactory {
+#if NET35
 		static readonly bool isUnix;
 
 		static DataReaderFactoryFactory() {
@@ -13,25 +13,26 @@ namespace dnlib.IO {
 			int p = (int)Environment.OSVersion.Platform;
 			if (p == 4 || p == 6 || p == 128)
 				isUnix = true;
-#if NETSTANDARD || NETCOREAPP
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				isUnix = true;
-#endif
 		}
+#endif
 
-		public static DataReaderFactory Create(string fileName, bool mapAsImage) {
-			var creator = CreateDataReaderFactory(fileName, mapAsImage);
+		public static DataReaderFactory Create(string fileName) {
+			var creator = CreateDataReaderFactory(fileName);
 			if (creator is not null)
 				return creator;
 
 			return ByteArrayDataReaderFactory.Create(File.ReadAllBytes(fileName), fileName);
 		}
 
-		static DataReaderFactory CreateDataReaderFactory(string fileName, bool mapAsImage) {
+		static DataReaderFactory CreateDataReaderFactory(string fileName) {
+#if NET35
 			if (!isUnix)
-				return MemoryMappedDataReaderFactory.CreateWindows(fileName, mapAsImage);
+				return MemoryMappedDataReaderFactory.CreateWindows(fileName);
 			else
-				return MemoryMappedDataReaderFactory.CreateUnix(fileName, mapAsImage);
+				return MemoryMappedDataReaderFactory.CreateUnix(fileName);
+#else
+			return MemoryMappedDataReaderFactory.Create(fileName);
+#endif
 		}
 	}
 }
