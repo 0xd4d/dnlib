@@ -43,7 +43,7 @@ namespace dnlib.DotNet {
 			var vtblOffset = peImage.ToFileOffset(vtblHdr.VirtualAddress);
 			if (vtblOffset == 0)
 				return;
-			reader.Position = (uint)vtblOffset;
+			reader.Position = VTableFixups.ToPosition(vtblOffset, reader.Length);
 			ulong endPos = (ulong)reader.Position + vtblHdr.Size;
 			// Only overlapping tables, which aren't valid, can have more slots than fit in the file.
 			// A small file could otherwise loop billions of times since all tables could use the same data.
@@ -59,7 +59,8 @@ namespace dnlib.DotNet {
 				if (tableOffset == 0)
 					continue;
 				var pos = reader.Position;
-				reader.Position = (uint)tableOffset;
+				// A table past the end of the file has no slots, the other tables can still be read
+				reader.Position = VTableFixups.ToPosition(tableOffset, reader.Length);
 				uint slotSize = is64bit ? 8U : 4;
 				numSlots = (int)Math.Min(Math.Min((uint)numSlots, reader.BytesLeft / slotSize), slotsLeft);
 				slotsLeft -= (uint)numSlots;
@@ -107,8 +108,9 @@ namespace dnlib.DotNet {
 
 			var names = ReadNames(ref reader, peImage, numNames, offsetOfNames, offsetOfNameIndexes);
 			reader.Position = offsetOfFuncs;
-			if (numFuncs > reader.BytesLeft / 4)
-				throw new IOException("Invalid number of exported functions");
+			// If the table runs past the end of the file, only the functions that fit can be read. Names
+			// with larger indexes are ignored below.
+			numFuncs = Math.Min(numFuncs, reader.BytesLeft / 4);
 			var allInfos = new MethodExportInfo[numFuncs];
 			var dict = new Dictionary<uint, MethodExportInfo>((int)numFuncs);
 			for (int i = 0; i < allInfos.Length; i++) {
@@ -116,8 +118,7 @@ namespace dnlib.DotNet {
 				uint funcRva = 0;
 				var rva = (RVA)reader.ReadUInt32();
 				var stubOffset = peImage.ToFileOffset(rva);
-				reader.Position = (uint)stubOffset;
-				bool rvaValid = stubOffset != 0 && cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out funcRva);
+				bool rvaValid = stubOffset != 0 && TryGetExportedRvaFromStub(ref reader, peImage, cpuArch, stubOffset, out funcRva);
 				uint funcOffset = rvaValid ? (uint)peImage.ToFileOffset((RVA)funcRva) : 0;
 				var exportInfo = new MethodExportInfo((ushort)(ordinalBase + (uint)i));
 				if (funcOffset != 0)
@@ -137,10 +138,30 @@ namespace dnlib.DotNet {
 			return dict;
 		}
 
+		// A stub past the end of the file, or one that runs past it, doesn't make the other exports invalid
+		static bool TryGetExportedRvaFromStub(ref DataReader reader, IPEImage peImage, CpuArch cpuArch, FileOffset stubOffset, out uint funcRva) {
+			funcRva = 0;
+			if ((uint)stubOffset >= reader.Length)
+				return false;
+			reader.Position = (uint)stubOffset;
+			try {
+				return cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out funcRva);
+			}
+			catch (IOException) {
+				funcRva = 0;
+				return false;
+			}
+		}
+
 		static NameAndIndex[] ReadNames(ref DataReader reader, IPEImage peImage, uint numNames, uint offsetOfNames, uint offsetOfNameIndexes) {
-			reader.Position = offsetOfNameIndexes;
-			if (numNames > reader.BytesLeft / 2)
-				throw new IOException("Invalid number of exported names");
+			// If a table is past the end of the file or runs past it, only the names that fit can be
+			// read. The other exports can still be read, and the count stays below the file size.
+			uint length = reader.Length;
+			uint indexesPos = VTableFixups.ToPosition((FileOffset)offsetOfNameIndexes, length);
+			uint namesPos = VTableFixups.ToPosition((FileOffset)offsetOfNames, length);
+			numNames = Math.Min(numNames, (length - indexesPos) / 2);
+			numNames = Math.Min(numNames, (length - namesPos) / 4);
+			reader.Position = indexesPos;
 			var names = new NameAndIndex[numNames];
 
 			for (int i = 0; i < names.Length; i++)
@@ -179,6 +200,8 @@ namespace dnlib.DotNet {
 
 		// If this method gets updated, also update the writer (ManagedExportsWriter)
 		static string ReadMethodNameASCIIZ(ref DataReader reader, uint offset, out uint bytesRead) {
+			// A name past the end of the file reads nothing and is an empty name
+			offset = VTableFixups.ToPosition((FileOffset)offset, reader.Length);
 			reader.Position = offset;
 			var name = reader.TryReadZeroTerminatedUtf8String();
 			// With no terminator, the whole rest of the file was searched
