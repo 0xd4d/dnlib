@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
@@ -934,8 +935,9 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Resolves a method or a field. <see cref="MemberRef.Class"/> (owner type) is ignored when
-		/// resolving the method/field. Private scope methods/fields are not returned.
-		/// Like the CLR, methods are also searched for in base types but fields are not.
+		/// resolving the method/field. Like the CLR, methods are also searched for in base types
+		/// but fields are not, and private scope methods/fields can be returned. If there are several
+		/// matches, the one the CLR would use is returned.
 		/// </summary>
 		/// <param name="memberRef">A method/field reference</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
@@ -945,7 +947,9 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Resolves a method or a field. <see cref="MemberRef.Class"/> (owner type) is ignored when
 		/// resolving the method/field. Like the CLR, methods are also searched for in base types
-		/// but fields are not.
+		/// but fields are not, and private scope methods/fields can be returned
+		/// (<see cref="SigComparerOptions.PrivateScopeIsComparable"/> is always used). If there are
+		/// several matches, the one the CLR would use is returned.
 		/// </summary>
 		/// <param name="memberRef">A method/field reference</param>
 		/// <param name="options">Method/field signature comparison options</param>
@@ -955,38 +959,337 @@ namespace dnlib.DotNet {
 			if (memberRef is null)
 				return null;
 
+			// The CLR's MemberRef lookup doesn't skip private scope members (it fails the access
+			// check later if the MemberRef is in another module)
+			options |= SigComparerOptions.PrivateScopeIsComparable;
+
 			var methodSig = memberRef.MethodSig;
 			if (methodSig is not null)
 				return ResolveMethod(memberRef.Name, methodSig, options, memberRef.Module);
 
 			var fieldSig = memberRef.FieldSig;
 			if (fieldSig is not null)
-				return FindField(memberRef.Name, fieldSig, options, memberRef.Module);
+				return ResolveField(memberRef.Name, fieldSig, options, memberRef.Module);
 
 			return null;
 		}
 
-		// Same as FindMethodCheckBaseType() but uses the CLR's lookup rules: interfaces don't
-		// inherit methods, value types only inherit virtual methods (the CLR searches their
-		// vtables) and instance constructors aren't inherited.
-		MethodDef ResolveMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
-			var td = this;
-			bool onlyVirtual = false;
-			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
-				var md = td.FindMethod(name, sig, options, sourceModule);
-				if (md is not null && (!onlyVirtual || md.IsVirtual)) {
-					if (i != 0 && md.IsInstanceConstructor)
-						return null;
-					return md;
+		// Like the CLR's MemberLoader::FindField(): only this type is searched and literal fields
+		// are ignored (they have no FieldDesc). If there are several matches (only legal if all but
+		// one are private scope), the CLR's FieldDesc order is used: instance fields, then
+		// statics, then thread statics, each in declaration order.
+		[MethodImpl(AggressiveOptimization)]
+		FieldDef ResolveField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+			if (UTF8String.IsNull(name) || sig is null)
+				return null;
+			var comparer = new SigComparer(options, sourceModule);
+			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0;
+			FieldDef firstStatic = null;
+			bool severalStatics = false;
+			if (this.fields is null)
+				InitializeFields();
+			var fields = this.fields;
+			for (int i = FindFieldIndex(fields, 0, name, caseInsensitive, out var field); i >= 0; i = FindFieldIndex(fields, i + 1, name, caseInsensitive, out field)) {
+				if (field.IsLiteral)
+					continue;
+				bool isStatic = field.IsStatic;
+				if (isStatic && severalStatics)
+					continue;
+				if (!comparer.Equals(field.FieldSig, sig))
+					continue;
+				if (!isStatic)
+					return field;
+				if (firstStatic is null)
+					firstStatic = field;
+				else
+					severalStatics = true;
+			}
+			if (!severalStatics)
+				return firstStatic;
+
+			// Rare: several matching static fields, thread statics are after the other statics
+			FieldDef firstThreadStatic = null;
+			for (int i = FindFieldIndex(fields, 0, name, caseInsensitive, out var field); i >= 0; i = FindFieldIndex(fields, i + 1, name, caseInsensitive, out field)) {
+				if (field.IsLiteral || !field.IsStatic)
+					continue;
+				if (!comparer.Equals(field.FieldSig, sig))
+					continue;
+				if (!field.HasFieldRVA && field.CustomAttributes.IsDefined("System.ThreadStaticAttribute"))
+					firstThreadStatic ??= field;
+				else
+					return field;
+			}
+			return firstThreadStatic;
+		}
+
+		// PERF: The methods used by Resolve() are optimized the first time they're called. The tiered JIT
+		// compiler can otherwise run the slow unoptimized code for a long time in short-lived processes.
+		// The enum value doesn't exist in all target frameworks (it's ignored by older runtimes).
+		const MethodImplOptions AggressiveOptimization = (MethodImplOptions)512;
+
+		// PERF: Resolve() must check all fields/methods of a type (there could be another match that
+		// the CLR would use). These methods find the next one with the same name and only take the
+		// list lock once, which is a lot faster than reading every element with the list indexer
+		// (one lock per element). Nothing that could access the list is called with the lock held.
+
+		// Finds the first field at index >= startIndex with the same name
+		[MethodImpl(AggressiveOptimization)]
+		static int FindFieldIndex(LazyList<FieldDef> fields, int startIndex, UTF8String name, bool caseInsensitive, out FieldDef field) {
+			fields.EnterLock();
+			try {
+				int count = fields.Count_NoLock;
+				for (int i = startIndex; i < count; i++) {
+					var f = fields.Get_NoLock(i);
+					if (caseInsensitive ? SigComparer.Equals_Names(true, f.Name, name) : NameEquals(f.Name, name)) {
+						field = f;
+						return i;
+					}
 				}
+				field = null;
+				return -1;
+			}
+			finally {
+				fields.ExitLock();
+			}
+		}
+
+		// Finds the last method at index <= startIndex with the same name
+		[MethodImpl(AggressiveOptimization)]
+		static int FindLastMethodIndex(LazyList<MethodDef> methods, int startIndex, UTF8String name, bool caseInsensitive, out MethodDef method) {
+			methods.EnterLock();
+			try {
+				int count = methods.Count_NoLock;
+				for (int i = startIndex >= count ? count - 1 : startIndex; i >= 0; i--) {
+					var m = methods.Get_NoLock(i);
+					if (caseInsensitive ? SigComparer.Equals_Names(true, m.Name, name) : NameEquals(m.Name, name)) {
+						method = m;
+						return i;
+					}
+				}
+				method = null;
+				return -1;
+			}
+			finally {
+				methods.ExitLock();
+			}
+		}
+
+		// Same as SigComparer.Equals_Names(false, a, b) (a null name is the same as an empty name) but faster
+		[MethodImpl(AggressiveOptimization)]
+		static bool NameEquals(UTF8String a, UTF8String b) {
+			var ad = a?.Data;
+			var bd = b?.Data;
+			if (ad == bd)
+				return true;
+			int length = ad is null ? 0 : ad.Length;
+			if (length != (bd is null ? 0 : bd.Length))
+				return false;
+			for (int i = 0; i < length; i++) {
+				if (ad[i] != bd[i])
+					return false;
+			}
+			return true;
+		}
+
+		// Same as FindMethodCheckBaseType() but uses the CLR's lookup rules (MemberLoader::FindMethod()).
+		// The CLR searches each type's methods in reverse slot order: (value types) the unboxed copies
+		// of its virtual methods, its non-virtual methods (the CLR puts .cctor, the default .ctor and,
+		// unless it's a generic type or an interface, generic methods first) and then its whole vtable,
+		// which also contains the base types' virtual methods (or the most derived overrides).
+		// Interfaces and value types don't inherit any other methods, and instance constructors are
+		// never inherited. Private scope methods are always returned.
+		// The order only matters if there are several matches, eg. methods with the same name and
+		// signature (only legal if all but one are private scope) or a virtual method in a base
+		// type and a non-virtual method with the same name and sig in a type in between.
+		[MethodImpl(AggressiveOptimization)]
+		MethodDef ResolveMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+			if (UTF8String.IsNull(name) || sig is null)
+				return null;
+			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0;
+			var comparer = new SigComparer(options, sourceModule);
+
+			// CLR order: our non-virtual methods, our whole vtable (incl. base type slots), then each base
+			// type's non-virtual methods. A base type's vtable is the same as ours except that we can have
+			// overrides (with the same name and sig), so if there was no match in our vtable, there's no
+			// match in theirs either.
+			IList<TypeSig> typeArgs = null;
+			var td = this;
+			MethodDef baseNonVirtual = null;
+			bool searchBaseNonVirtual = true;
+			for (int level = 0; td is not null && level < MAX_BASE_TYPE_DEPTH; level++) {
+				var virtualMd = FindMethodInSlotOrder(td, typeArgs, level, name, sig, comparer, caseInsensitive, out var nonVirtualMd);
+				if (level == 0) {
+					if (nonVirtualMd is not null)
+						return nonVirtualMd;
+				}
+				else if (searchBaseNonVirtual && baseNonVirtual is null)
+					baseNonVirtual = nonVirtualMd;
+				if (virtualMd is not null)
+					return virtualMd;
+				// No inheritance (except in the vtable) on value types or interfaces
+				if (searchBaseNonVirtual && (td.IsInterface || IsValueTypeFast(td)))
+					searchBaseNonVirtual = false;
 				if (td.IsInterface)
 					break;
-				if (td.IsValueType)
-					onlyVirtual = true;
-				td = td.BaseType.ResolveTypeDef();
+				td = GetBaseTypeDef(td, ref typeArgs);
 			}
-			return null;
+			// Instance constructors aren't inherited
+			if (baseNonVirtual is not null && baseNonVirtual.IsInstanceConstructor)
+				return null;
+			return baseNonVirtual;
 		}
+
+		// Searches a type's methods in the CLR's reverse slot order. Returns the virtual method the CLR
+		// sees in the last matching vtable slot that this type created or overrode, and in
+		// nonVirtualMethod the first match in the non-vtable slots.
+		// The non-vtable slots are: .cctor, the default .ctor (the last ones if there are several),
+		// generic methods (unless it's a generic type or an interface), the other non-virtual methods
+		// (all in declaration order) and (value types) the unboxed copies of the virtual methods.
+		// The vtable slots of a more derived type come after its base types' slots, and an override
+		// (non-newslot virtual method) uses the last base type slot with the same name and sig. If a
+		// type has several matching virtual methods, the last one that creates a new slot wins, or else
+		// the first override (the CLR's FindMethod() sees the first method that's put in a slot).
+		[MethodImpl(AggressiveOptimization)]
+		static MethodDef FindMethodInSlotOrder(TypeDef td, IList<TypeSig> typeArgs, int level, UTF8String name, MethodSig sig, SigComparer comparer, bool caseInsensitive, out MethodDef nonVirtualMethod) {
+			if (td.methods is null)
+				td.InitializeMethods();
+			var methods = td.methods;
+			int paramCount = sig.Params is null ? -1 : sig.Params.Count;
+			// Only read if needed
+			bool isValueType = false, isValueTypeInitd = false;
+			MethodDef cctor = null, defaultCtor = null, genericMatch = null, unboxedMatch = null;
+			MethodDef nonVirtualMatch = null, lastVirtual = null;
+			int virtualCount = 0;
+			for (int i = FindLastMethodIndex(methods, int.MaxValue, name, caseInsensitive, out var method); i >= 0; i = FindLastMethodIndex(methods, i - 1, name, caseInsensitive, out method)) {
+				if (method.IsVirtual && !method.IsStatic) {
+					if (!SigEquals(method.MethodSig, typeArgs, sig, paramCount, ref comparer))
+						continue;
+					lastVirtual ??= method;
+					virtualCount++;
+					if (unboxedMatch is null && !method.IsRuntimeSpecialName && !method.HasGenericParameters) {
+						if (!isValueTypeInitd) {
+							isValueType = IsValueTypeFast(td);
+							isValueTypeInitd = true;
+						}
+						if (isValueType)
+							unboxedMatch = method;
+					}
+					continue;
+				}
+				if (method.IsRuntimeSpecialName) {
+					// Found before the sig is compared since the CLR uses the last one even if it doesn't match
+					if (method.IsStatic) {
+						if (cctor is null) {
+							cctor = method;
+							continue;
+						}
+					}
+					else if (defaultCtor is null && IsDefaultCtorSig(method.MethodSig)) {
+						defaultCtor = method;
+						continue;
+					}
+				}
+				bool isGenericMethodFirst = method.HasGenericParameters && !td.IsInterface && !td.HasGenericParameters;
+				if (isGenericMethodFirst ? genericMatch is not null : nonVirtualMatch is not null)
+					continue;
+				if (!SigEquals(method.MethodSig, typeArgs, sig, paramCount, ref comparer))
+					continue;
+				if (isGenericMethodFirst)
+					genericMatch = method;
+				else {
+					nonVirtualMatch = method;
+					// This is the first match in the CLR's order
+					if (level == 0) {
+						if (!isValueTypeInitd) {
+							isValueType = IsValueTypeFast(td);
+							isValueTypeInitd = true;
+						}
+						if (!isValueType) {
+							nonVirtualMethod = method;
+							return null;
+						}
+					}
+				}
+			}
+
+			nonVirtualMethod = unboxedMatch ?? nonVirtualMatch ?? genericMatch;
+			if (nonVirtualMethod is null && defaultCtor is not null && SigEquals(defaultCtor.MethodSig, typeArgs, sig, paramCount, ref comparer))
+				nonVirtualMethod = defaultCtor;
+			if (nonVirtualMethod is null && cctor is not null && SigEquals(cctor.MethodSig, typeArgs, sig, paramCount, ref comparer))
+				nonVirtualMethod = cctor;
+
+			if (virtualCount <= 1)
+				return lastVirtual;
+			// Rare: several matching virtual methods, check which ones are overrides
+			MethodDef firstOverride = null;
+			for (int i = FindLastMethodIndex(methods, int.MaxValue, name, caseInsensitive, out var method); i >= 0; i = FindLastMethodIndex(methods, i - 1, name, caseInsensitive, out method)) {
+				if (!method.IsVirtual || method.IsStatic)
+					continue;
+				if (!SigEquals(method.MethodSig, typeArgs, sig, paramCount, ref comparer))
+					continue;
+				if (method.IsNewSlot || td.IsInterface || !OverridesBaseTypeMethod(td, typeArgs, level, method))
+					return method;
+				firstOverride = method;
+			}
+			return firstOverride;
+		}
+
+		// Checks if a base type has a virtual method with the same name and sig (which means that
+		// the CLR puts this non-newslot virtual method in that method's vtable slot)
+		static bool OverridesBaseTypeMethod(TypeDef td, IList<TypeSig> typeArgs, int level, MethodDef method) {
+			var methodSig = GenericTypeArgsSubstitutor.Substitute(method.MethodSig, typeArgs);
+			var comparer = new SigComparer();
+			var baseType = GetBaseTypeDef(td, ref typeArgs);
+			for (int i = level + 1; baseType is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
+				var methods = baseType.Methods;
+				int count = methods.Count;
+				for (int j = 0; j < count; j++) {
+					var baseMethod = methods[j];
+					if (!baseMethod.IsVirtual || baseMethod.IsStatic)
+						continue;
+					if (!UTF8String.Equals(baseMethod.Name, method.Name))
+						continue;
+					if (comparer.Equals(GenericTypeArgsSubstitutor.Substitute(baseMethod.MethodSig, typeArgs), methodSig))
+						return true;
+				}
+				if (baseType.IsInterface)
+					break;
+				baseType = GetBaseTypeDef(baseType, ref typeArgs);
+			}
+			return false;
+		}
+
+		// Compares a method's sig with a MemberRef sig. The number of params is checked first since the
+		// SigComparer compares the return types before it finds out that the param counts are different.
+		static bool SigEquals(MethodSig methodSig, IList<TypeSig> typeArgs, MethodSig sig, int paramCount, ref SigComparer comparer) {
+			if (methodSig is null)
+				return false;
+			var methodParams = methodSig.Params;
+			if (paramCount >= 0 && methodParams is not null && methodParams.Count != paramCount)
+				return false;
+			return comparer.Equals(GenericTypeArgsSubstitutor.Substitute(methodSig, typeArgs), sig);
+		}
+
+		// Same as IsValueType but checks the base type name before its assembly
+		[MethodImpl(AggressiveOptimization)]
+		static bool IsValueTypeFast(TypeDef td) {
+			var baseType = td.BaseType;
+			if (baseType is not TypeRef && baseType is not TypeDef)
+				return false;
+			var baseName = baseType is TypeRef tr ? tr.Name : ((TypeDef)baseType).Name;
+			if (baseName != valueTypeString && baseName != enumString)
+				return false;
+			return td.IsValueType;
+		}
+
+		// The CLR compares the raw sig with 'instance void()'
+		static bool IsDefaultCtorSig(MethodSig sig) =>
+			sig is not null &&
+			sig.CallingConvention == CallingConvention.HasThis &&
+			sig.GenParamCount == 0 &&
+			sig.Params.Count == 0 &&
+			(sig.ParamsAfterSentinel is null || sig.ParamsAfterSentinel.Count == 0) &&
+			sig.RetType?.ElementType == ElementType.Void;
 
 		/// <summary>
 		/// Finds a method. Private scope methods are not returned.
