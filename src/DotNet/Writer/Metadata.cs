@@ -2488,7 +2488,7 @@ namespace dnlib.DotNet.Writer {
 			if (nestedRid == 0 || dtRid == 0)
 				return;
 			var row = new RawNestedClassRow(nestedRid, dtRid);
-			nestedClassInfos.Add(declaringType, row);
+			nestedClassInfos.Add(nestedType, row);
 		}
 
 		/// <summary>
