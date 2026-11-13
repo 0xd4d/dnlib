@@ -228,6 +228,7 @@ namespace dnlib.DotNet.Writer {
 		MetadataHeaderOptions metadataHeaderOptions;
 		MetadataHeaderOptions debugMetadataHeaderOptions;
 		TablesHeapOptions tablesHeapOptions;
+		TablesHeapOptions debugTablesHeapOptions;
 		List<IHeap> customHeaps;
 
 		/// <summary>
@@ -258,8 +259,8 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the debug (portable PDB) <see cref="TablesHeap"/> options. This is never <c>null</c>.
 		/// </summary>
 		public TablesHeapOptions DebugTablesHeapOptions {
-			get => tablesHeapOptions ??= TablesHeapOptions.CreatePortablePdbV1_0();
-			set => tablesHeapOptions = value;
+			get => debugTablesHeapOptions ??= TablesHeapOptions.CreatePortablePdbV1_0();
+			set => debugTablesHeapOptions = value;
 		}
 
 		/// <summary>
