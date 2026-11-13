@@ -422,10 +422,23 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt16((ushort)ids.Count);
 
 			// These must be sorted in ascending order. Names are case insensitive.
-			named.Sort((a, b) => a.Name.Name.ToUpperInvariant().CompareTo(b.Name.Name.ToUpperInvariant()));
+			// Each name is uppercased once, not in every comparison, since many entries can
+			// have the same long name.
+			var upperNames = new Dictionary<string, string>(StringComparer.Ordinal);
+			var sortedNamed = new List<KeyValuePair<string, ResourceDirectoryEntry>>(named.Count);
+			foreach (var d in named) {
+				var name = d.Name.Name;
+				if (!upperNames.TryGetValue(name, out var upperName)) {
+					upperName = name.ToUpperInvariant();
+					upperNames.Add(name, upperName);
+				}
+				sortedNamed.Add(new KeyValuePair<string, ResourceDirectoryEntry>(upperName, d));
+			}
+			sortedNamed.Sort((a, b) => a.Key.CompareTo(b.Key));
 			ids.Sort((a, b) => a.Name.Id.CompareTo(b.Name.Id));
 
-			foreach (var d in named) {
+			foreach (var kv in sortedNamed) {
+				var d = kv.Value;
 				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name]);
 				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}
