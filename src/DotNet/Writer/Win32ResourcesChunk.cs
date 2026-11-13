@@ -434,7 +434,9 @@ namespace dnlib.DotNet.Writer {
 				}
 				sortedNamed.Add(new KeyValuePair<string, ResourceDirectoryEntry>(upperName, d));
 			}
-			sortedNamed.Sort((a, b) => a.Key.CompareTo(b.Key));
+			// The comparison must be ordinal, it's what Windows uses and it doesn't depend on
+			// the current culture.
+			sortedNamed.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
 			ids.Sort((a, b) => a.Name.Id.CompareTo(b.Name.Id));
 
 			foreach (var kv in sortedNamed) {
