@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.IO;
@@ -118,7 +119,87 @@ namespace dnlib.W32Resources {
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
+		// Protects usedBudget and names. It's a different lock because the directories are
+		// read while theLock or a list's lock is held and the locks aren't recursive.
+		readonly Lock budgetLock = Lock.Create();
 #endif
+
+		/// <summary>
+		/// Size of all read directories and names. Entries can point to the same directory or
+		/// name so a small file could otherwise create a huge tree. Every directory and name
+		/// of a normal file has its own bytes in the resource section so their total size is
+		/// less than the size of the section.
+		/// </summary>
+		ulong usedBudget;
+
+		/// <summary>
+		/// All names that have been read, the key is the offset of the name
+		/// </summary>
+		readonly Dictionary<uint, string> names = new Dictionary<uint, string>();
+
+		ulong MaxBudget => (ulong)rsrcReader_length * 2;
+
+		/// <summary>
+		/// Called before a directory or a name is read to check that it's not too much data
+		/// </summary>
+		/// <param name="size">Size in bytes of the directory or name</param>
+		/// <returns><c>true</c> if it can be read, <c>false</c> if too much has already been read</returns>
+		internal bool TryUseBudget(uint size) {
+#if THREAD_SAFE
+			budgetLock.EnterWriteLock(); try {
+#endif
+			return TryUseBudget_NoLock(size);
+#if THREAD_SAFE
+			} finally { budgetLock.ExitWriteLock(); }
+#endif
+		}
+
+		bool TryUseBudget_NoLock(uint size) {
+			if (usedBudget + size > MaxBudget)
+				return false;
+			usedBudget += size;
+			return true;
+		}
+
+		/// <summary>
+		/// Reads a name. A name that's used by many entries is only read once.
+		/// </summary>
+		/// <param name="reader">Resource reader</param>
+		/// <param name="offset">Offset of name</param>
+		/// <returns>The name or <c>null</c> if we could not read it</returns>
+		internal string ReadName(ref DataReader reader, uint offset) {
+#if THREAD_SAFE
+			budgetLock.EnterWriteLock(); try {
+#endif
+			if (names.TryGetValue(offset, out var name))
+				return name;
+			name = ReadName_NoLock(ref reader, offset);
+			names[offset] = name;
+			return name;
+#if THREAD_SAFE
+			} finally { budgetLock.ExitWriteLock(); }
+#endif
+		}
+
+		string ReadName_NoLock(ref DataReader reader, uint offset) {
+			if (offset > reader.Length)
+				return null;
+			reader.Position = offset;
+			if (!reader.CanRead(2U))
+				return null;
+			int size = reader.ReadUInt16();
+			int sizeInBytes = size * 2;
+			if (!reader.CanRead((uint)sizeInBytes))
+				return null;
+			if (!TryUseBudget_NoLock(2 + (uint)sizeInBytes))
+				return null;
+			try {
+				return reader.ReadUtf16String(size);
+			}
+			catch {
+				return null;
+			}
+		}
 
 		/// <inheritdoc/>
 		public override ResourceDirectory Root {
