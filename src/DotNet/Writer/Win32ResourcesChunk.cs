@@ -275,41 +275,49 @@ namespace dnlib.DotNet.Writer {
 			//	3. All the strings.
 			//	4. All resource data.
 
-			uint rsrcOffset = 0;
+			// A ulong can't overflow here: every list has less than 2^31 elements and every element is smaller than 2^33 bytes
+			ulong rsrcOffset = 0;
 			var maxAlignment = GetMaxAlignment(offset, out var error);
 			if (error is not null)
 				throw new ModuleWriterException(error);
 
 			foreach (var dir in dirList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DIR_ALIGNMENT);
-				dirDict[dir] = rsrcOffset;
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_DIR_ALIGNMENT);
+				dirDict[dir] = (uint)rsrcOffset;
 				if (dir != dirList[0])
 					AddString(dir.Name);
-				rsrcOffset += 16 + (uint)(dir.Directories.Count + dir.Data.Count) * 8;
+				rsrcOffset += 16 + ((ulong)dir.Directories.Count + (ulong)dir.Data.Count) * 8;
 			}
 
 			foreach (var data in dataHeaderList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DATA_HEADER_ALIGNMENT);
-				dataHeaderDict[data] = rsrcOffset;
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_DATA_HEADER_ALIGNMENT);
+				dataHeaderDict[data] = (uint)rsrcOffset;
 				AddString(data.Name);
 				AddData(data);
 				rsrcOffset += 16;
 			}
 
 			foreach (var s in stringsList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_STRING_ALIGNMENT);
-				stringsDict[s] = rsrcOffset;
-				rsrcOffset += 2 + (uint)(s.Length * 2);
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_STRING_ALIGNMENT);
+				stringsDict[s] = (uint)rsrcOffset;
+				rsrcOffset += 2 + (ulong)s.Length * 2;
 			}
 
 			foreach (var data in dataList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DATA_ALIGNMENT);
-				dataDict[data] = rsrcOffset;
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_DATA_ALIGNMENT);
+				dataDict[data] = (uint)rsrcOffset;
 				rsrcOffset += data.CreateReader().Length;
 			}
 
-			length = rsrcOffset;
+			// All offsets and the length are 32-bit values. If the total doesn't fit, the offsets
+			// stored above have wrapped and are invalid.
+			if (rsrcOffset > uint.MaxValue)
+				throw new ModuleWriterException("Win32 resources are too big");
+
+			length = (uint)rsrcOffset;
 		}
+
+		static ulong AlignUp(ulong v, uint alignment) => (v + alignment - 1) & ~(ulong)(alignment - 1);
 
 		void AddData(ResourceData data) {
 			if (dataDict.ContainsKey(data))
