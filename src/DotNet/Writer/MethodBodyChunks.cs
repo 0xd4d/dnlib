@@ -82,7 +82,10 @@ namespace dnlib.DotNet.Writer {
 		internal MethodBody Add(MethodBody methodBody, RVA origRva, uint origSize) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			if (CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && methodBody.CanReuse(origRva, origSize) && IsReusableLocation(origRva, origSize)) {
+			// A fat body must be 4-byte aligned or the 64-bit CLR won't read it. The original body could've been
+			// a tiny body, which can be at any address.
+			bool isAligned = methodBody.IsTiny || ((uint)origRva & (FAT_BODY_ALIGNMENT - 1)) == 0;
+			if (CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && isAligned && methodBody.CanReuse(origRva, origSize) && IsReusableLocation(origRva, origSize)) {
 				if (rvaToReusedMethod.TryGetValue((uint)origRva, out var reusedMethod)) {
 					if (methodBody.Equals(reusedMethod))
 						return reusedMethod;
