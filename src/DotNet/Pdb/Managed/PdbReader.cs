@@ -84,6 +84,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 			uint pageCount = reader.ReadUInt32();
 			uint rootSize = reader.ReadUInt32();
 			reader.ReadUInt32();
+			// Valid page sizes are 512, 1024, 2048, 4096, 8192, 16384 and 32768. A tiny page size
+			// would make the page arrays many times bigger than the file.
+			if (pageSize < 0x200 || pageSize > 0x8000 || (pageSize & (pageSize - 1)) != 0)
+				throw new PdbException("Invalid page size");
 			var numOfRootPages = RoundUpDiv(rootSize, pageSize);
 			var numOfPtrPages = RoundUpDiv(numOfRootPages * 4, pageSize);
 			if ((ulong)pageCount * pageSize != reader.Length)
