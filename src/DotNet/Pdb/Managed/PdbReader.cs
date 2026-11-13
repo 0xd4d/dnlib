@@ -193,6 +193,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 				throw new NotSupportedException();
 
 			names = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+			var namesByPos = new Dictionary<uint, string>();
+			uint totalSize = 0;
 			entryCapacity = Math.Min(entryCapacity, (uint)entryOk.Count);
 			for (int i = 0; i < entryCapacity; i++) {
 				if (!entryOk[i])
@@ -200,8 +202,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 				var pos = stream.ReadUInt32();
 				var streamId = stream.ReadUInt32();
-				nameData.Position = pos;
-				var streamName = ReadCString(ref nameData);
+				if (!namesByPos.TryGetValue(pos, out var streamName)) {
+					streamName = ReadCString(ref nameData, pos, ref totalSize);
+					namesByPos.Add(pos, streamName);
+				}
 				names[streamName] = streamId;
 			}
 		}
@@ -221,13 +225,25 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (count > stream.BytesLeft / 4)
 				throw new PdbException("Invalid number of strings");
 			strings = new Dictionary<uint, string>((int)count);
+			uint totalSize = 0;
 			for (uint i = 0; i < count; i++) {
 				var pos = stream.ReadUInt32();
-				if (pos == 0)
+				if (pos == 0 || strings.ContainsKey(pos))
 					continue;
-				strData.Position = pos;
-				strings[pos] = ReadCString(ref strData);
+				strings[pos] = ReadCString(ref strData, pos, ref totalSize);
 			}
+		}
+
+		// Reads a string from a string table. Writers don't make strings share bytes so the total size of
+		// all strings read from a table is limited to the size of the table. A small file could otherwise
+		// use many GBs since every string could be a suffix of the same big string.
+		static string ReadCString(ref DataReader table, uint pos, ref uint totalSize) {
+			table.Position = pos;
+			var s = ReadCString(ref table);
+			totalSize += table.Position - pos;
+			if (totalSize > table.Length)
+				throw new PdbException("Strings are bigger than the string table");
+			return s;
 		}
 
 		static uint ReadSizeField(ref DataReader reader) {
