@@ -27,6 +27,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		const ushort STREAM_INVALID_INDEX = ushort.MaxValue;
 
 		Dictionary<string, DbiDocument> documents;
+		HashSet<uint> documentStreams;
 		Dictionary<int, DbiFunction> functions;
 		byte[] sourcelinkData;
 		byte[] srcsrvData;
@@ -66,6 +67,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				names = null;
 				strings = null;
 				modules = null;
+				documentStreams = null;
 			}
 		}
 
@@ -114,6 +116,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var tokenMapStream = ReadModules();
 
 			documents = new Dictionary<string, DbiDocument>(StringComparer.OrdinalIgnoreCase);
+			documentStreams = new HashSet<uint>();
 			foreach (var module in modules) {
 				if (IsValidStreamIndex(module.StreamId))
 					module.LoadFunctions(this, ref streams[module.StreamId].Content);
@@ -295,8 +298,14 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!documents.TryGetValue(name, out var doc)) {
 				doc = new DbiDocument(name);
 
-				if (names.TryGetValue($"/src/files/{name}", out uint streamId))
+				if (names.TryGetValue($"/src/files/{name}", out uint streamId)) {
+					// Writers don't make documents share streams so every stream can be read by only one
+					// document. A small file could otherwise use many GBs since every document makes its
+					// own copy of the embedded source code and all of them could use the same big stream.
+					if (!documentStreams.Add(streamId))
+						throw new PdbException("Documents share a stream");
 					doc.Read(ref streams[streamId].Content);
+				}
 				documents.Add(name, doc);
 			}
 			return doc;
