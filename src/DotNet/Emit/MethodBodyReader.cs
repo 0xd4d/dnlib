@@ -597,14 +597,25 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
+		bool HasLocalloc() {
+			var instructions = this.instructions;
+			for (int i = 0; i < instructions.Count; i++) {
+				if (instructions[i].OpCode.Code == Code.Localloc)
+					return true;
+			}
+			return false;
+		}
+
 		/// <summary>
 		/// Creates a CIL body. Must be called after <see cref="Read()"/>, and can only be
 		/// called once.
 		/// </summary>
 		/// <returns>A new <see cref="CilBody"/> instance</returns>
 		public CilBody CreateCilBody() {
-			// Set init locals if it's a tiny method or if the init locals bit is set (fat header)
-			bool initLocals = flags == 2 || (flags & 0x10) != 0;
+			// A tiny header has no init locals bit, so the CLR never zeroes locals or localloc memory.
+			// A tiny method has no locals, so the bit only matters if it has a localloc instruction.
+			// Without one, it's set so locals that are later added to the method get initialized.
+			bool initLocals = flags == 2 ? !HasLocalloc() : (flags & 0x10) != 0;
 			var cilBody = new CilBody(initLocals, instructions, exceptionHandlers, locals);
 			cilBody.HeaderSize = headerSize;
 			cilBody.MaxStack = maxStack;
