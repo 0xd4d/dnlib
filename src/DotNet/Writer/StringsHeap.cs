@@ -209,7 +209,7 @@ namespace dnlib.DotNet.Writer {
 			uint offset;
 			cached.Add(s);
 			cachedDict[s] = offset = nextOffset;
-			nextOffset += (uint)s.Data.Length + 1;
+			nextOffset = OffsetUtils.Add(nextOffset, (uint)s.Data.Length, 1);
 			return offset;
 		}
 

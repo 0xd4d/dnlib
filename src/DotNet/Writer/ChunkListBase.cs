@@ -77,8 +77,8 @@ namespace dnlib.DotNet.Writer {
 			length = 0;
 			virtualSize = 0;
 			foreach (var elem in chunks) {
-				uint paddingF = (uint)offset.AlignUp(elem.alignment) - (uint)offset;
-				uint paddingV = (uint)rva.AlignUp(elem.alignment) - (uint)rva;
+				uint paddingF = (uint)OffsetUtils.AlignUp(offset, elem.alignment) - (uint)offset;
+				uint paddingV = (uint)OffsetUtils.AlignUp(rva, elem.alignment) - (uint)rva;
 				offset += paddingF;
 				rva += paddingV;
 				elem.chunk.SetOffset(offset, rva);
@@ -89,10 +89,10 @@ namespace dnlib.DotNet.Writer {
 				else {
 					uint chunkLenF = elem.chunk.GetFileLength();
 					uint chunkLenV = elem.chunk.GetVirtualSize();
-					offset += chunkLenF;
-					rva += chunkLenV;
-					length += paddingF + chunkLenF;
-					virtualSize += paddingV + chunkLenV;
+					offset = OffsetUtils.Add(offset, chunkLenF);
+					rva = OffsetUtils.Add(rva, chunkLenV);
+					length = OffsetUtils.Add(length, paddingF, chunkLenF);
+					virtualSize = OffsetUtils.Add(virtualSize, paddingV, chunkLenV);
 				}
 			}
 		}
@@ -109,10 +109,11 @@ namespace dnlib.DotNet.Writer {
 			foreach (var elem in chunks) {
 				if (elem.chunk.GetVirtualSize() == 0)
 					continue;
-				int paddingF = (int)offset2.AlignUp(elem.alignment) - (int)offset2;
-				writer.WriteZeroes(paddingF);
+				// Must use the same alignment code as SetOffset() (eg. alignment 0)
+				uint paddingF = (uint)OffsetUtils.AlignUp(offset2, elem.alignment) - (uint)offset2;
+				writer.WriteZeroes((int)paddingF);
 				elem.chunk.VerifyWriteTo(writer);
-				offset2 += (uint)paddingF + elem.chunk.GetFileLength();
+				offset2 += paddingF + elem.chunk.GetFileLength();
 			}
 		}
 

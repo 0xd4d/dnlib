@@ -3833,16 +3833,16 @@ namespace dnlib.DotNet.Writer {
 
 			metadataHeader.SetOffset(offset, rva);
 			uint len = metadataHeader.GetFileLength();
-			offset += len;
-			rva += len;
+			offset = OffsetUtils.Add(offset, len);
+			rva = OffsetUtils.Add(rva, len);
 
 			foreach (var heap in metadataHeader.Heaps) {
-				offset = offset.AlignUp(HEAP_ALIGNMENT);
-				rva = rva.AlignUp(HEAP_ALIGNMENT);
+				offset = OffsetUtils.AlignUp(offset, HEAP_ALIGNMENT);
+				rva = OffsetUtils.AlignUp(rva, HEAP_ALIGNMENT);
 				heap.SetOffset(offset, rva);
 				len = heap.GetFileLength();
-				offset += len;
-				rva += len;
+				offset = OffsetUtils.Add(offset, len);
+				rva = OffsetUtils.Add(rva, len);
 			}
 			Debug.Assert(initAll || length == rva - this.rva);
 			if (!(initAll || length == rva - this.rva))

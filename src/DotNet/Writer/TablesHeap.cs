@@ -325,7 +325,7 @@ namespace dnlib.DotNet.Writer {
 		public uint GetFileLength() {
 			if (length == 0)
 				CalculateLength();
-			return Utils.AlignUp(length, HeapBase.ALIGNMENT);
+			return OffsetUtils.AlignUp(length, HeapBase.ALIGNMENT);
 		}
 
 		/// <inheritdoc/>
@@ -373,10 +373,10 @@ namespace dnlib.DotNet.Writer {
 			foreach (var mdt in Tables) {
 				if (mdt.IsEmpty)
 					continue;
-				length += (uint)(4 + mdt.TableInfo.RowSize * mdt.Rows);
+				length = OffsetUtils.Add(length, 4, OffsetUtils.Multiply((uint)mdt.TableInfo.RowSize, (uint)mdt.Rows));
 			}
 			if (options.ExtraData.HasValue)
-				length += 4;
+				length = OffsetUtils.Add(length, 4);
 		}
 
 		uint[] GetRowCounts() {

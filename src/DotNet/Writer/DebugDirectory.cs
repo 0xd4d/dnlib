@@ -124,11 +124,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static uint GetLength(List<DebugDirectoryEntry> entries, FileOffset offset, RVA rva) {
-			uint length = HEADER_SIZE * (uint)entries.Count;
+			uint length = OffsetUtils.Multiply(HEADER_SIZE, (uint)entries.Count);
 			foreach (var entry in entries) {
-				length = Utils.AlignUp(length, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
-				entry.Chunk.SetOffset(offset + length, rva + length);
-				length += entry.Chunk.GetFileLength();
+				length = OffsetUtils.AlignUp(length, DEFAULT_DEBUGDIRECTORY_ALIGNMENT);
+				entry.Chunk.SetOffset(OffsetUtils.Add(offset, length), OffsetUtils.Add(rva, length));
+				length = OffsetUtils.Add(length, entry.Chunk.GetFileLength());
 			}
 			return length;
 		}

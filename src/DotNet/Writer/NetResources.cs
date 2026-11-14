@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets offset of next resource. This offset is relative to the start of
 		/// the .NET resources and is always aligned.
 		/// </summary>
-		public uint NextOffset => Utils.AlignUp(length, alignment);
+		public uint NextOffset => OffsetUtils.AlignUp(length, alignment);
 
 		/// <summary>
 		/// Constructor
@@ -45,7 +45,7 @@ namespace dnlib.DotNet.Writer {
 		public DataReaderChunk Add(DataReader reader) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
-			length = NextOffset + 4 + reader.Length;
+			length = OffsetUtils.Add(NextOffset, 4, reader.Length);
 			var data = new DataReaderChunk(ref reader);
 			resources.Add(data);
 			return data;
@@ -59,12 +59,12 @@ namespace dnlib.DotNet.Writer {
 			this.offset = offset;
 			this.rva = rva;
 			foreach (var resource in resources) {
-				offset = offset.AlignUp(alignment);
-				rva = rva.AlignUp(alignment);
-				resource.SetOffset(offset + 4, rva + 4);
-				uint len = 4 + resource.GetFileLength();
-				offset += len;
-				rva += len;
+				offset = OffsetUtils.AlignUp(offset, alignment);
+				rva = OffsetUtils.AlignUp(rva, alignment);
+				resource.SetOffset(OffsetUtils.Add(offset, 4), OffsetUtils.Add(rva, 4));
+				uint len = OffsetUtils.Add(4, resource.GetFileLength());
+				offset = OffsetUtils.Add(offset, len);
+				rva = OffsetUtils.Add(rva, len);
 			}
 		}
 

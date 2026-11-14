@@ -862,10 +862,8 @@ namespace dnlib.DotNet.Writer {
 				chunk.SetOffset(offset, rva);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
 				if (chunk.GetVirtualSize() != 0) {
-					offset += chunk.GetFileLength();
-					rva += chunk.GetVirtualSize();
-					offset = offset.AlignUp(fileAlignment);
-					rva = rva.AlignUp(sectionAlignment);
+					offset = OffsetUtils.AlignUp(OffsetUtils.Add(offset, chunk.GetFileLength()), fileAlignment);
+					rva = OffsetUtils.AlignUp(OffsetUtils.Add(rva, chunk.GetVirtualSize()), sectionAlignment);
 				}
 			}
 		}

@@ -34,7 +34,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetRawLength() => (uint)guids.Count * 16;
+		public override uint GetRawLength() => OffsetUtils.Multiply((uint)guids.Count, 16);
 
 		/// <inheritdoc/>
 		protected override void WriteToImpl(DataWriter writer) {

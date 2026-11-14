@@ -91,7 +91,7 @@ namespace dnlib.DotNet.Writer {
 			uint offset;
 			cached.Add(data);
 			cachedDict[data] = offset = nextOffset;
-			nextOffset += (uint)GetRawDataSize(data);
+			nextOffset = OffsetUtils.Add(nextOffset, (uint)GetRawDataSize(data));
 			return offset;
 		}
 

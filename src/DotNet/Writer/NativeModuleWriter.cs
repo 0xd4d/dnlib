@@ -502,7 +502,7 @@ namespace dnlib.DotNet.Writer {
 				list.Add(headerSection, 1);
 				list.Add(extraHeaderData, 1);
 				chunks.Add(list);
-				headerLen = headerSection.GetVirtualSize() + extraHeaderData.GetVirtualSize();
+				headerLen = OffsetUtils.Add(headerSection.GetVirtualSize(), extraHeaderData.GetVirtualSize());
 			}
 			else {
 				chunks.Add(headerSection);

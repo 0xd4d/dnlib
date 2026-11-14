@@ -212,20 +212,20 @@ namespace dnlib.DotNet.Writer {
 			foreach (var mb in tinyMethods) {
 				mb.SetOffset(offset, rva2);
 				uint len = mb.GetFileLength();
-				rva2 += len;
-				offset += len;
+				rva2 = OffsetUtils.Add(rva2, len);
+				offset = OffsetUtils.Add(offset, len);
 			}
 
 			foreach (var mb in fatMethods) {
 				if (alignFatBodies) {
-					uint padding = (uint)rva2.AlignUp(FAT_BODY_ALIGNMENT) - (uint)rva2;
+					uint padding = (uint)OffsetUtils.AlignUp(rva2, FAT_BODY_ALIGNMENT) - (uint)rva2;
 					rva2 += padding;
-					offset += padding;
+					offset = OffsetUtils.Add(offset, padding);
 				}
 				mb.SetOffset(offset, rva2);
 				uint len = mb.GetFileLength();
-				rva2 += len;
-				offset += len;
+				rva2 = OffsetUtils.Add(rva2, len);
+				offset = OffsetUtils.Add(offset, len);
 			}
 
 			length = (uint)rva2 - (uint)rva;
