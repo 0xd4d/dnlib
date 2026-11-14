@@ -15,6 +15,8 @@ namespace dnlib.W32Resources {
 		uint codePage;
 		uint reserved;
 
+		internal DataReaderFactory DataReaderFactory => dataReaderFactory;
+
 		/// <summary>
 		/// Gets the data reader
 		/// </summary>
