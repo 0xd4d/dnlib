@@ -142,8 +142,9 @@ namespace dnlib.DotNet.Writer {
 			if (cachedDict.TryGetValue(s, out uint offset))
 				return offset;
 
-			if (Array.IndexOf(s.Data, (byte)0) >= 0)
-				throw new ArgumentException("Strings in the #Strings heap can't contain NUL bytes");
+			int nulIndex = Array.IndexOf(s.Data, (byte)0);
+			if (nulIndex >= 0)
+				return Add(RemoveNul(s, nulIndex));
 			info = new StringsOffsetInfo(s, stringsId++);
 			Debug.Assert(!toStringsOffsetInfo.ContainsKey(s));
 			Debug.Assert(!offsetIdToInfo.ContainsKey(info.StringsId));
@@ -181,9 +182,27 @@ namespace dnlib.DotNet.Writer {
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (UTF8String.IsNullOrEmpty(s))
 				s = UTF8String.Empty;
-			if (Array.IndexOf(s.Data, (byte)0) >= 0)
-				throw new ArgumentException("Strings in the #Strings heap can't contain NUL bytes");
+			int nulIndex = Array.IndexOf(s.Data, (byte)0);
+			if (nulIndex >= 0)
+				s = RemoveNul(s, nulIndex);
 			return AddToCache(s);
+		}
+
+		/// <summary>
+		/// Called if a string has a NUL byte. If it's <c>null</c>, an <see cref="ArgumentException"/>
+		/// is thrown, else the string is truncated at the first NUL byte (that's what a reader sees)
+		/// after this has been called.
+		/// </summary>
+		internal Action<UTF8String> InvalidStringError { get; set; }
+
+		UTF8String RemoveNul(UTF8String s, int nulIndex) {
+			var error = InvalidStringError;
+			if (error is null)
+				throw new ArgumentException("Strings in the #Strings heap can't contain NUL bytes");
+			error(s);
+			var data = new byte[nulIndex];
+			Array.Copy(s.Data, data, data.Length);
+			return new UTF8String(data);
 		}
 
 		uint AddToCache(UTF8String s) {

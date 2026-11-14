@@ -942,6 +942,7 @@ namespace dnlib.DotNet.Writer {
 			metadataHeader = new MetadataHeader(isStandaloneDebugMetadata ? this.options.DebugMetadataHeaderOptions : this.options.MetadataHeaderOptions);
 			tablesHeap = new TablesHeap(this, isStandaloneDebugMetadata ? this.options.DebugTablesHeapOptions : this.options.TablesHeapOptions);
 			stringsHeap = new StringsHeap();
+			stringsHeap.InvalidStringError = s => Error("String '{0}' contains a NUL byte. Strings in the #Strings heap can't contain NUL bytes.", s.String.Replace("\0", "\\0"));
 			usHeap = new USHeap();
 			guidHeap = new GuidHeap();
 			blobHeap = new BlobHeap();
@@ -3127,8 +3128,11 @@ namespace dnlib.DotNet.Writer {
 				Error("ExportedType is null");
 				return 0;
 			}
-			if (exportedTypeInfos.TryGetRid(et, out uint rid))
+			if (exportedTypeInfos.TryGetRid(et, out uint rid)) {
+				if (rid == 0)
+					Error("ExportedType 0x{0:X8} has an infinite Implementation loop.", et.MDToken.Raw);
 				return rid;
+			}
 			exportedTypeInfos.Add(et, 0);	// Prevent inf recursion
 			var row = new RawExportedTypeRow((uint)et.Attributes,
 						et.TypeDefId,	//TODO: Should be updated with the new rid
