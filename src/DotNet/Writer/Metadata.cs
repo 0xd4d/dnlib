@@ -3366,6 +3366,13 @@ namespace dnlib.DotNet.Writer {
 
 					uint dlines = (uint)(seqPoint.EndLine - seqPoint.StartLine);
 					int dcolumns = seqPoint.EndColumn - seqPoint.StartColumn;
+					if (dlines == 0 && dcolumns == 0) {
+						// Only hidden sequence points can have zero width: (0, 0) is the hidden-sequence-point-record.
+						// Do what Microsoft's Pdb2Pdb does: (line, 0, line, 0) (written by eg. C++/CLI) is the whole
+						// line, anything else gets a width of one column. 0xFFFE is the last column
+						// System.Reflection.Metadata accepts.
+						dcolumns = seqPoint.StartColumn == 0 ? ushort.MaxValue - 1 : 1;
+					}
 					writer.WriteCompressedUInt32(dlines);
 					if (dlines == 0)
 						writer.WriteCompressedUInt32((uint)dcolumns);
