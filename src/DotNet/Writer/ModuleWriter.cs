@@ -180,7 +180,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void CreateChunks() {
-			peHeaders = new PEHeaders(Options.PEHeadersOptions);
+			peHeaders = new PEHeaders(Options.PEHeadersOptions, (format, args) => Error(format, args));
 
 			var machine = Options.PEHeadersOptions.Machine ?? Machine.I386;
 			bool is64bit = machine.Is64Bit();

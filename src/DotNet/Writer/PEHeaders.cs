@@ -286,11 +286,32 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Options</param>
-		public PEHeaders(PEHeadersOptions options) {
-			this.options = options ?? new PEHeadersOptions();
-			sectionAlignment = this.options.SectionAlignment ?? 0x2000;
-			fileAlignment = this.options.FileAlignment ?? 0x200;
+		public PEHeaders(PEHeadersOptions options)
+			: this(options, null) {
 		}
+
+		internal PEHeaders(PEHeadersOptions options, Action<string, object[]> logError) {
+			this.options = options ?? new PEHeadersOptions();
+			sectionAlignment = this.options.SectionAlignment ?? DEFAULT_SECTION_ALIGNMENT;
+			fileAlignment = this.options.FileAlignment ?? DEFAULT_FILE_ALIGNMENT;
+			logError ??= (format, args) => throw new ModuleWriterException(string.Format(format, args));
+			if (!IsPowerOfTwo(sectionAlignment) || !IsPowerOfTwo(fileAlignment) || fileAlignment > sectionAlignment) {
+				logError("Invalid PE alignment: SectionAlignment = 0x{0:X}, FileAlignment = 0x{1:X}. Both must be powers of two and FileAlignment <= SectionAlignment.",
+					new object[] { sectionAlignment, fileAlignment });
+				// The logger didn't throw, use the defaults
+				sectionAlignment = DEFAULT_SECTION_ALIGNMENT;
+				fileAlignment = DEFAULT_FILE_ALIGNMENT;
+			}
+			if (this.options.NumberOfRvaAndSizes is uint numDirs && numDirs != NUMBER_OF_DATA_DIRECTORIES) {
+				// We always write 16 data directories, so 16 is written if the logger doesn't throw
+				logError("Invalid NumberOfRvaAndSizes: {0}. Only {1} is supported.", new object[] { numDirs, NUMBER_OF_DATA_DIRECTORIES });
+			}
+		}
+		const uint DEFAULT_SECTION_ALIGNMENT = 0x2000;
+		const uint DEFAULT_FILE_ALIGNMENT = 0x200;
+		const uint NUMBER_OF_DATA_DIRECTORIES = 0x10;
+
+		static bool IsPowerOfTwo(uint v) => v != 0 && (v & (v - 1)) == 0;
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
@@ -391,7 +412,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32((uint)(options.SizeOfHeapReserve ?? 0x00100000));
 				writer.WriteUInt32((uint)(options.SizeOfHeapCommit ?? 0x00001000));
 				writer.WriteUInt32(options.LoaderFlags ?? 0x00000000);
-				writer.WriteUInt32(options.NumberOfRvaAndSizes ?? 0x00000010);
+				writer.WriteUInt32(NUMBER_OF_DATA_DIRECTORIES);	// We always write 16 data directories
 			}
 			else {
 				writer.WriteUInt16((ushort)0x020B);
@@ -423,7 +444,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt64(options.SizeOfHeapReserve ?? 0x0000000000100000);
 				writer.WriteUInt64(options.SizeOfHeapCommit ?? 0x0000000000002000);
 				writer.WriteUInt32(options.LoaderFlags ?? 0x00000000);
-				writer.WriteUInt32(options.NumberOfRvaAndSizes ?? 0x00000010);
+				writer.WriteUInt32(NUMBER_OF_DATA_DIRECTORIES);	// We always write 16 data directories
 			}
 
 			writer.WriteDataDirectory(ExportDirectory);
@@ -452,8 +473,9 @@ namespace dnlib.DotNet.Writer {
 				else
 					emptySections++;
 			}
+			// Zero the unused header slots, the stream could already have data here
 			if (emptySections != 0)
-				writer.Position += emptySections * 0x28;
+				writer.WriteZeroes(emptySections * 0x28);
 		}
 
 		/// <summary>

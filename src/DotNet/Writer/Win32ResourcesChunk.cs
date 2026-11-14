@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.W32Resources;
@@ -438,9 +437,16 @@ namespace dnlib.DotNet.Writer {
 			stringsDict.Add(name.Name, 0);
 		}
 
-		void FindDirectoryEntries() => FindDirectoryEntries(win32Resources.Root);
+		void FindDirectoryEntries() {
+			var root = win32Resources.Root;
+			if (root is null)
+				throw new ModuleWriterException("Win32 resources root directory is null");
+			FindDirectoryEntries(root);
+		}
 
 		void FindDirectoryEntries(ResourceDirectory dir) {
+			if (dir is null)
+				throw new ModuleWriterException("A Win32 resource directory is null");
 			if (dirDict.ContainsKey(dir))
 				return;
 			dirList.Add(dir);
@@ -453,6 +459,8 @@ namespace dnlib.DotNet.Writer {
 			count = dirData.Count;
 			for (int i = 0; i < count; i++) {
 				var data = dirData[i];
+				if (data is null)
+					throw new ModuleWriterException("A Win32 resource data entry is null");
 				if (dataHeaderDict.ContainsKey(data))
 					continue;
 				dataHeaderList.Add(data);
@@ -500,12 +508,14 @@ namespace dnlib.DotNet.Writer {
 				if (stringsDict[s] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource string offset");
 
-				var bytes = Encoding.Unicode.GetBytes(s);
-				if (bytes.Length / 2 > ushort.MaxValue)
+				if (s.Length > ushort.MaxValue)
 					throw new ModuleWriterException("Win32 resource entry name is too long");
-				writer.WriteUInt16((ushort)(bytes.Length / 2));
-				writer.WriteBytes(bytes);
-				offset += 2 + (uint)bytes.Length;
+				writer.WriteUInt16((ushort)s.Length);
+				// Write the UTF-16 code units as is (the reader reads them as is). An encoder would
+				// replace lone surrogates with U+FFFD and the name would change.
+				foreach (var c in s)
+					writer.WriteUInt16(c);
+				offset += 2 + (uint)s.Length * 2;
 			}
 
 			var dataBuffer = new byte[0x2000];

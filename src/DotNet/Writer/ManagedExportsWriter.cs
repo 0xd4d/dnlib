@@ -350,10 +350,12 @@ namespace dnlib.DotNet.Writer {
 
 			// Exports with an ordinal get that ordinal. Named exports without an ordinal get the ordinals after the
 			// highest one, in name order. An export with both a name and an ordinal gets both.
+			// If a name or ordinal is used more than once, the first method keeps it and the others aren't exported.
 			var namesBlob = new NamesBlob(1 == 2);
 			int nameIndex = 0;
 			bool error = false;
 			var usedOrdinals = new Dictionary<ushort, MethodInfo>();
+			var usedNames = new Dictionary<string, MethodInfo>(StringComparer.Ordinal);
 			var namedNoOrdinalMethodInfos = new List<MethodInfo>();
 			foreach (var info in allMethodInfos) {
 				var exportInfo = info.Method.ExportInfo;
@@ -364,6 +366,12 @@ namespace dnlib.DotNet.Writer {
 				if (name is null ? ordinal is null : name.Length == 0) {
 					error = true;
 					logError("Exported method name is null or empty, method: {0} (0x{1:X8})", new object[] { info.Method, info.Method.MDToken.Raw });
+					continue;
+				}
+				if (name is not null && usedNames.TryGetValue(name, out var otherNamed)) {
+					error = true;
+					logError("Exported method name {0} is used by more than one method: {1} (0x{2:X8}) and {3} (0x{4:X8})",
+						new object[] { name, otherNamed.Method, 0x06000000 + metadata.GetRid(otherNamed.Method), info.Method, 0x06000000 + metadata.GetRid(info.Method) });
 					continue;
 				}
 				if (ordinal is ushort ord) {
@@ -380,6 +388,7 @@ namespace dnlib.DotNet.Writer {
 				else
 					namedNoOrdinalMethodInfos.Add(info);
 				if (name is not null) {
+					usedNames.Add(name, info);
 					info.NameOffset = namesBlob.GetMethodNameOffset(name, out info.NameBytes);
 					info.NameIndex = nameIndex++;
 					sortedNameMethodInfos.Add(info);
