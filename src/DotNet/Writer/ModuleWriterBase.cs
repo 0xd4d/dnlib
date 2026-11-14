@@ -329,12 +329,17 @@ namespace dnlib.DotNet.Writer {
 		/// PDB stream. If this is initialized, then you should also set <see cref="PdbFileName"/>
 		/// to the name of the PDB file since the file name must be written to the PE debug directory.
 		/// <see cref="WritePdb"/> must be <c>true</c> or this property is ignored.
+		/// A portable PDB is written at the stream's current position. Any data after the written PDB
+		/// is removed if the stream is seekable, and the position is the end of the PDB when the module
+		/// has been written.
 		/// </summary>
 		public Stream PdbStream { get; set; }
 
 		/// <summary>
 		/// Gets the PDB content id (portable PDBs). The <see cref="Stream"/> argument is the PDB stream with the PDB ID zeroed out,
-		/// and the 2nd <see cref="uint"/> argument is the default timestamp.
+		/// and the 2nd <see cref="uint"/> argument is the default timestamp. The stream's position is the start of the PDB
+		/// and the PDB is the last data in the stream. The PDB doesn't start at offset 0 if <see cref="PdbStream"/> wasn't at
+		/// position 0 when the module was written.
 		/// This property is ignored if a deterministic PDB file is created or if the PDB checksum is calculated.
 		/// </summary>
 		public Func<Stream, uint, ContentId> GetPdbContentId { get; set; }
@@ -1073,17 +1078,28 @@ namespace dnlib.DotNet.Writer {
 
 		void WritePortablePdb(PdbState pdbState, bool isEmbeddedPortablePdb) {
 			bool ownsStream = false;
-			Stream pdbStream = null;
+			// The stream the PDB ends up in. pdbStream is a temporary stream if the PDB is buffered.
+			Stream destPdbStream = null;
 			try {
 				MemoryStream embeddedMemoryStream = null;
 				if (isEmbeddedPortablePdb) {
-					pdbStream = embeddedMemoryStream = new MemoryStream();
+					destPdbStream = embeddedMemoryStream = new MemoryStream();
 					ownsStream = true;
 				}
 				else
-					pdbStream = GetStandalonePortablePdbStream(out ownsStream);
-				if (pdbStream is null)
+					destPdbStream = GetStandalonePortablePdbStream(out ownsStream);
+				if (destPdbStream is null)
 					throw new ModuleWriterException("Couldn't create a PDB stream");
+				var pdbStream = destPdbStream;
+
+				// The PDB ID is written after the rest of the PDB, and the PDB is usually hashed too, so
+				// the stream must be seekable and readable. If the user's stream isn't, write the PDB to
+				// memory first.
+				bool isBuffered = !isEmbeddedPortablePdb && !(pdbStream.CanSeek && pdbStream.CanRead);
+				if (isBuffered)
+					pdbStream = new MemoryStream();
+				// The user's stream doesn't have to be empty or at position 0
+				long pdbBaseOffset = pdbStream.Position;
 
 				// The name is only stored in the CodeView entry. Don't require a guessable name if it's
 				// not used or if the PDB is embedded (no file is created and the PDB is found anyway).
@@ -1093,7 +1109,7 @@ namespace dnlib.DotNet.Writer {
 				else if (isEmbeddedPortablePdb)
 					pdbFilename = Path.GetFileName(TheOptions.PdbFileName ?? TryGetDefaultPdbFileName() ?? string.Empty);
 				else
-					pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
+					pdbFilename = TheOptions.PdbFileName ?? GetStreamName(destPdbStream) ?? GetDefaultPdbFileName();
 
 				uint entryPointToken;
 				if (pdbState.UserEntryPoint is null)
@@ -1102,6 +1118,11 @@ namespace dnlib.DotNet.Writer {
 					entryPointToken = new MDToken(Table.Method, metadata.GetRid(pdbState.UserEntryPoint)).Raw;
 
 				metadata.WritePortablePdb(pdbStream, entryPointToken, out var pdbIdOffset);
+				long pdbLength = pdbStream.Position - pdbBaseOffset;
+				// Remove any old data after the PDB. It's not part of the PDB but it would be hashed by
+				// everyone verifying the PDB checksum.
+				if (pdbStream.Length != pdbBaseOffset + pdbLength)
+					pdbStream.SetLength(pdbBaseOffset + pdbLength);
 
 				Guid pdbGuid;
 				var pdbId = new byte[20];
@@ -1111,13 +1132,14 @@ namespace dnlib.DotNet.Writer {
 				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 ||
 					(TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0 ||
 					TheOptions.GetPdbContentId is null) {
-					pdbStream.Position = 0;
-					checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbStream.Length);
+					pdbStream.Position = pdbBaseOffset;
+					checksumBytes = Hasher.Hash(TheOptions.PdbChecksumAlgorithm, pdbStream, pdbLength);
 					if (checksumBytes.Length < 20)
 						throw new ModuleWriterException("Checksum bytes length < 20");
 					RoslynContentIdProvider.GetContentId(checksumBytes, out pdbGuid, out codeViewTimestamp);
 				}
 				else {
+					pdbStream.Position = pdbBaseOffset;
 					var contentId = TheOptions.GetPdbContentId(pdbStream, GetTimeDateStamp());
 					codeViewTimestamp = contentId.Timestamp;
 					pdbGuid = contentId.Guid;
@@ -1126,8 +1148,15 @@ namespace dnlib.DotNet.Writer {
 				pdbIdWriter.WriteBytes(pdbGuid.ToByteArray());
 				pdbIdWriter.WriteUInt32(codeViewTimestamp);
 				Debug.Assert(pdbIdWriter.Position == pdbId.Length);
-				pdbStream.Position = pdbIdOffset;
+				pdbStream.Position = pdbBaseOffset + pdbIdOffset;
 				pdbStream.Write(pdbId, 0, pdbId.Length);
+				pdbStream.Position = pdbBaseOffset + pdbLength;
+				if (isBuffered) {
+					((MemoryStream)pdbStream).WriteTo(destPdbStream);
+					pdbStream = destPdbStream;
+					if (pdbStream.CanSeek && pdbStream.Length != pdbStream.Position)
+						pdbStream.SetLength(pdbStream.Position);
+				}
 
 				// NOTE: We add these directory entries in the same order as Roslyn seems to do:
 				//	- CodeView
@@ -1157,8 +1186,8 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 			finally {
-				if (ownsStream && pdbStream is not null)
-					pdbStream.Dispose();
+				if (ownsStream && destPdbStream is not null)
+					destPdbStream.Dispose();
 			}
 		}
 
