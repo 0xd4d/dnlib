@@ -1060,12 +1060,16 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		string GetDefaultPdbFileName() {
-			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
-			if (string.IsNullOrEmpty(destFileName)) {
+			var pdbFileName = TryGetDefaultPdbFileName();
+			if (pdbFileName is null)
 				Error("TheOptions.WritePdb is true but it's not possible to guess the default PDB file name. Set PdbFileName to the name of the PDB file.");
-				return null;
-			}
+			return pdbFileName;
+		}
 
+		string TryGetDefaultPdbFileName() {
+			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
+			if (string.IsNullOrEmpty(destFileName))
+				return null;
 			return Path.ChangeExtension(destFileName, "pdb");
 		}
 
@@ -1083,9 +1087,15 @@ namespace dnlib.DotNet.Writer {
 				if (pdbStream is null)
 					throw new ModuleWriterException("Couldn't create a PDB stream");
 
-				var pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
-				if (isEmbeddedPortablePdb)
-					pdbFilename = Path.GetFileName(pdbFilename);
+				// The name is only stored in the CodeView entry. Don't require a guessable name if it's
+				// not used or if the PDB is embedded (no file is created and the PDB is found anyway).
+				string pdbFilename;
+				if (TheOptions.PdbFileNameInDebugDirectory is not null)
+					pdbFilename = TheOptions.PdbFileNameInDebugDirectory;
+				else if (isEmbeddedPortablePdb)
+					pdbFilename = Path.GetFileName(TheOptions.PdbFileName ?? TryGetDefaultPdbFileName() ?? string.Empty);
+				else
+					pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
 
 				uint entryPointToken;
 				if (pdbState.UserEntryPoint is null)
@@ -1127,7 +1137,7 @@ namespace dnlib.DotNet.Writer {
 				//	- Reproducible
 				//	- EmbeddedPortablePdb
 
-				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, TheOptions.PdbFileNameInDebugDirectory ?? pdbFilename),
+				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, pdbFilename),
 					type: ImageDebugType.CodeView,
 					majorVersion: PortablePdbConstants.FormatVersion,
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,
