@@ -3369,8 +3369,9 @@ namespace dnlib.DotNet.Writer {
 					if (dlines == 0 && dcolumns == 0) {
 						// Only hidden sequence points can have zero width: (0, 0) is the hidden-sequence-point-record.
 						// Do what Microsoft's Pdb2Pdb does: (line, 0, line, 0) (written by eg. C++/CLI) is the whole
-						// line, anything else gets a width of one column. 0xFFFE is the last column
-						// System.Reflection.Metadata accepts.
+						// line, anything else gets a width of one column. Pdb2Pdb uses 0xFFFF as the end column of
+						// a whole line, but System.Reflection.Metadata in .NET 10 and earlier rejects 0xFFFF, so
+						// use 0xFFFE.
 						dcolumns = seqPoint.StartColumn == 0 ? ushort.MaxValue - 1 : 1;
 					}
 					writer.WriteCompressedUInt32(dlines);
