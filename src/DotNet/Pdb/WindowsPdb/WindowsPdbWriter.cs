@@ -141,7 +141,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 							continue;
 						if (currPdbDoc is null)
 							currPdbDoc = seqp.Document;
-						else if (currPdbDoc != seqp.Document) {
+						// Use Equals(), like checkedPdbDocs and pdbDocs do. Sequence points of another
+						// PdbDocument instance that is equal to this one are written with this document.
+						else if ((object)currPdbDoc != seqp.Document && !currPdbDoc.Equals(seqp.Document)) {
 							otherDocsAvailable = true;
 							continue;
 						}
