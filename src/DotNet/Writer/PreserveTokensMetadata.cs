@@ -407,6 +407,8 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		protected override void AllocateTypeDefRids() {
 			foreach (var type in allTypeDefs) {
+				if (type is null)
+					continue;
 				uint rid = tablesHeap.TypeDefTable.Create(new RawTypeDefRow());
 				if (typeToRid[type] != rid)
 					throw new ModuleWriterException("Got a different rid than expected");
@@ -980,13 +982,26 @@ namespace dnlib.DotNet.Writer {
 		void InitializeMethodAndFieldList() {
 			uint fieldList = 1, methodList = 1;
 			foreach (var type in allTypeDefs) {
+				if (type is null)
+					continue;
 				uint index = typeToRid[type];
 				var typeRow = tablesHeap.TypeDefTable[index];
 				typeRow = new RawTypeDefRow(typeRow.Flags, typeRow.Name, typeRow.Namespace, typeRow.Extends, fieldList, methodList);
 				tablesHeap.TypeDefTable[index] = typeRow;
-				fieldList += (uint)type.Fields.Count;
-				methodList += (uint)type.Methods.Count;
+				// Null entries were skipped by FindMemberDefs() so don't count them
+				fieldList += CountNonNull(type.Fields);
+				methodList += CountNonNull(type.Methods);
 			}
+		}
+
+		static uint CountNonNull<T>(IList<T> list) where T : class {
+			uint count = 0;
+			int listCount = list.Count;
+			for (int i = 0; i < listCount; i++) {
+				if (list[i] is not null)
+					count++;
+			}
+			return count;
 		}
 
 		void InitializeParamList() {
@@ -997,7 +1012,7 @@ namespace dnlib.DotNet.Writer {
 				row = new RawMethodRow(row.RVA, row.ImplFlags, row.Flags, row.Name, row.Signature, ridList);
 				tablesHeap.MethodTable[methodRid] = row;
 				if (methodInfo is not null)
-					ridList += (uint)methodInfo.Def.ParamDefs.Count;
+					ridList += CountNonNull(methodInfo.Def.ParamDefs);
 			}
 		}
 
