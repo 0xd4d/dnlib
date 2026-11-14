@@ -767,7 +767,7 @@ namespace dnlib.DotNet.Writer {
 		/// Updates the <see cref="ComImageFlags.StrongNameSigned"/> bit. It's only set if the assembly
 		/// is signed (<see cref="ModuleWriterOptionsBase.StrongNameKey"/>) and cleared if it's delay
 		/// signed. Otherwise the flags aren't changed, eg. if the assembly has a public key but
-		/// isn't signed, the bit isn't set since the signature would be all zeroes.
+		/// isn't signed, the bit isn't set since the signature would be all zeros.
 		/// The key takes precedence over <see cref="ModuleWriterOptionsBase.DelaySign"/> since the
 		/// assembly is signed if there's a key (it's an error but the logger can ignore it).
 		/// The options aren't updated since they can be used to write the module again.
@@ -848,7 +848,21 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="rva">Starting RVA</param>
 		/// <param name="fileAlignment">File alignment</param>
 		/// <param name="sectionAlignment">Section alignment</param>
-		protected void CalculateRvasAndFileOffsets(List<IChunk> chunks, FileOffset offset, RVA rva, uint fileAlignment, uint sectionAlignment) {
+		protected void CalculateRvasAndFileOffsets(List<IChunk> chunks, FileOffset offset, RVA rva, uint fileAlignment, uint sectionAlignment) =>
+			CalculateRvasAndFileOffsets(chunks, offset, rva, fileAlignment, sectionAlignment, null);
+
+		/// <summary>
+		/// Calculates <see cref="RVA"/> and <see cref="FileOffset"/> of all <see cref="IChunk"/>s
+		/// </summary>
+		/// <param name="chunks">All chunks</param>
+		/// <param name="offset">Starting file offset</param>
+		/// <param name="rva">Starting RVA</param>
+		/// <param name="fileAlignment">File alignment</param>
+		/// <param name="sectionAlignment">Section alignment</param>
+		/// <param name="getRequiredRva">Returns the RVA a chunk must have or null. If the next free
+		/// RVA is smaller, there's a gap before the chunk. If it's bigger, the chunk gets the next
+		/// free RVA and the caller must check it and report the error.</param>
+		internal void CalculateRvasAndFileOffsets(List<IChunk> chunks, FileOffset offset, RVA rva, uint fileAlignment, uint sectionAlignment, Func<IChunk, RVA?> getRequiredRva) {
 			int count = chunks.Count;
 			var maxAlignment = Math.Min(fileAlignment, sectionAlignment);
 			for (int i = 0; i < count; i++) {
@@ -859,6 +873,8 @@ namespace dnlib.DotNet.Writer {
 				if (alignment > maxAlignment)
 					Error("Chunk alignment is too big. Chunk: {0}, alignment: {1:X4}", chunk, alignment);
 
+				if (getRequiredRva?.Invoke(chunk) is RVA requiredRva && requiredRva > rva)
+					rva = requiredRva;
 				chunk.SetOffset(offset, rva);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
 				if (chunk.GetVirtualSize() != 0) {
@@ -884,7 +900,7 @@ namespace dnlib.DotNet.Writer {
 				if (chunk.GetVirtualSize() != 0) {
 					offset += chunk.GetFileLength();
 					var newOffset = offset.AlignUp(fileAlignment);
-					writer.WriteZeroes((int)(newOffset - offset));
+					writer.WriteZeros((int)(newOffset - offset));
 					offset = newOffset;
 				}
 			}

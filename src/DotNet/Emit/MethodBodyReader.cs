@@ -612,7 +612,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <returns>A new <see cref="CilBody"/> instance</returns>
 		public CilBody CreateCilBody() {
-			// A tiny header has no init locals bit, so the CLR never zeroes locals or localloc memory.
+			// A tiny header has no init locals bit, so the CLR never zeros locals or localloc memory.
 			// A tiny method has no locals, so the bit only matters if it has a localloc instruction.
 			// Without one, it's set so locals that are later added to the method get initialized.
 			bool initLocals = flags == 2 ? !HasLocalloc() : (flags & 0x10) != 0;

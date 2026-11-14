@@ -16,7 +16,8 @@ namespace dnlib.DotNet {
 		const MethodExportInfoOptions DefaultOptions = MethodExportInfoOptions.FromUnmanaged;
 
 		/// <summary>
-		/// Gets the ordinal or null
+		/// Gets the ordinal or null. If it's null, the export gets an unused ordinal. If both
+		/// <see cref="Name"/> and <see cref="Ordinal"/> are set, the method is exported by name and by ordinal.
 		/// </summary>
 		public ushort? Ordinal {
 			get => ordinal;
@@ -66,8 +67,8 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="name">Name or null to export by ordinal</param>
-		/// <param name="ordinal">Ordinal or null to export by name</param>
+		/// <param name="name">Name or null to export by ordinal only</param>
+		/// <param name="ordinal">Ordinal or null to use an unused ordinal</param>
 		public MethodExportInfo(string name, ushort? ordinal) {
 			options = DefaultOptions;
 			this.name = name;
@@ -77,8 +78,8 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="name">Name or null to export by ordinal</param>
-		/// <param name="ordinal">Ordinal or null to export by name</param>
+		/// <param name="name">Name or null to export by ordinal only</param>
+		/// <param name="ordinal">Ordinal or null to use an unused ordinal</param>
 		/// <param name="options">Options</param>
 		public MethodExportInfo(string name, ushort? ordinal, MethodExportInfoOptions options) {
 			this.options = options;

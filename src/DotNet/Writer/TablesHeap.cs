@@ -479,7 +479,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Write(metadata, ImportScopeTable);
 			writer.Write(metadata, StateMachineMethodTable);
 			writer.Write(metadata, CustomDebugInformationTable);
-			writer.WriteZeroes((int)(Utils.AlignUp(length, HeapBase.ALIGNMENT) - length));
+			writer.WriteZeros((int)(Utils.AlignUp(length, HeapBase.ALIGNMENT) - length));
 		}
 
 		MDStreamFlags GetMDStreamFlags() {

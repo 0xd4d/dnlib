@@ -10,7 +10,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="writer">this</param>
 		/// <param name="count">Number of zeros</param>
-		public static void WriteZeroes(this DataWriter writer, int count) {
+		public static void WriteZeros(this DataWriter writer, int count) {
 			while (count >= 8) {
 				writer.WriteUInt64(0);
 				count -= 8;

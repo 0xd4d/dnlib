@@ -42,6 +42,9 @@ namespace dnlib.DotNet.Writer {
 			// so method metadata tokens must be preserved.
 			MetadataOptions.Flags |= MetadataFlags.PreserveAllMethodRids;
 
+			// Keep the original value. The base class sets it to 16 but the original headers are reused.
+			PEHeadersOptions.NumberOfRvaAndSizes = null;
+
 			if (optimizeImageSize) {
 				OptimizeImageSize = true;
 
@@ -289,7 +292,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Creates the PE header "section"
 		/// </summary>
-		DataReaderChunk CreateHeaderSection(out IChunk extraHeaderData) {
+		IChunk CreateHeaderSection(out IChunk extraHeaderData) {
 			uint afterLastSectHeader = GetOffsetAfterLastSectionHeader() + (uint)sections.Count * 0x28;
 			uint firstRawOffset = Math.Min(GetFirstRawDataFileOffset(), peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			uint headerLen = afterLastSectHeader;
@@ -312,8 +315,61 @@ namespace dnlib.DotNet.Writer {
 				return new DataReaderChunk(peImage.CreateReader((FileOffset)0, headerLen));
 			}
 
-			//TODO: Support this too
-			throw new ModuleWriterException("Could not create header");
+			// The headers don't fit in SectionAlignment bytes. That's OK if they don't overlap the first section in memory,
+			// eg. crossgen2 images: SectionAlignment is 0x200 but the first section's RVA is 0x10200.
+			// All sections are moved in the file by a multiple of 64KB: crossgen2 places sections so that
+			// (RVA - file offset) is a multiple of 64KB (so the image can be mapped with 64KB pages) and this keeps it that way.
+			extraHeaderData = null;
+			uint firstRawDataOffset = GetFirstRawDataFileOffset();
+			if (firstRawDataOffset == uint.MaxValue || GetFirstSectionRva() < (ulong)Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment))
+				throw new ModuleWriterException("Could not create header");
+			uint headersFileLength = firstRawDataOffset;
+			if (headerLen > firstRawDataOffset) {
+				uint moveAlignment = Math.Max(SECTION_MOVE_ALIGNMENT, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
+				headersFileLength = OffsetUtils.Add(firstRawDataOffset, OffsetUtils.AlignUp(headerLen - firstRawDataOffset, moveAlignment));
+			}
+			var origHeaders = peImage.CreateReader((FileOffset)0, firstRawDataOffset);
+			if (origHeaders.Length != firstRawDataOffset)
+				throw new ModuleWriterException("Could not create header");
+			return new PaddedChunk(new DataReaderChunk(origHeaders), headerLen, headersFileLength);
+		}
+		const uint SECTION_MOVE_ALIGNMENT = 0x10000;
+
+		ulong GetFirstSectionRva() {
+			ulong rva = ulong.MaxValue;
+			foreach (var section in peImage.ImageSectionHeaders)
+				rva = Math.Min(rva, (uint)section.VirtualAddress);
+			return rva;
+		}
+
+		/// <summary>
+		/// A chunk followed by zeros in the file. The virtual size isn't changed.
+		/// </summary>
+		sealed class PaddedChunk : IChunk {
+			readonly IChunk chunk;
+			readonly uint virtualSize;
+			readonly uint fileLength;
+
+			public FileOffset FileOffset => chunk.FileOffset;
+			public RVA RVA => chunk.RVA;
+
+			public PaddedChunk(IChunk chunk, uint virtualSize, uint fileLength) {
+				if (fileLength < chunk.GetFileLength())
+					throw new ArgumentOutOfRangeException(nameof(fileLength));
+				this.chunk = chunk;
+				this.virtualSize = virtualSize;
+				this.fileLength = fileLength;
+			}
+
+			public void SetOffset(FileOffset offset, RVA rva) => chunk.SetOffset(offset, rva);
+			public uint GetFileLength() => fileLength;
+			public uint GetVirtualSize() => virtualSize;
+			public uint CalculateAlignment() => 0;
+
+			public void WriteTo(DataWriter writer) {
+				chunk.VerifyWriteTo(writer);
+				writer.WriteZeros((int)(fileLength - chunk.GetFileLength()));
+			}
 		}
 
 		/// <summary>
@@ -515,7 +571,13 @@ namespace dnlib.DotNet.Writer {
 			if (extraData is not null)
 				chunks.Add(extraData);
 
-			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
+			// The original sections keep their RVAs. There can be gaps between them, eg. crossgen2 places
+			// sections so that (RVA - file offset) is a multiple of 64KB even if SectionAlignment is smaller.
+			var origSectionRvas = new Dictionary<IChunk, RVA>(origSections.Count);
+			foreach (var origSection in origSections)
+				origSectionRvas[origSection.Chunk] = (RVA)origSection.PESection.VirtualAddress;
+			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment,
+				chunk => origSectionRvas.TryGetValue(chunk, out var origRva) ? origRva : null);
 			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
 				methodBodies.InitializeReusedMethodBodies(GetNewFileOffset);
 				foreach (var info in reusedChunks) {
@@ -623,6 +685,17 @@ namespace dnlib.DotNet.Writer {
 
 			// Update PE file header
 			var peOptions = Options.PEHeadersOptions;
+			var numberOfRvaAndSizes = peOptions.NumberOfRvaAndSizes;
+			if (numberOfRvaAndSizes is uint numDirs) {
+				// The data directories must fit in the optional header (else they overlap the section headers),
+				// and the .NET directory (index 14) must be one of them.
+				uint maxDirs = ((uint)peImage.ImageNTHeaders.FileHeader.SizeOfOptionalHeader - (is32BitOptionalHeader ? 0x60U : 0x70U)) / 8;
+				if (numDirs < 15 || numDirs > maxDirs) {
+					Error("Invalid NumberOfRvaAndSizes: {0}. It must be at least 15 and at most {1} (the number of data directories in the optional header).", numDirs, maxDirs);
+					// The logger didn't throw, keep the original value
+					numberOfRvaAndSizes = null;
+				}
+			}
 			writer.Position = fileHeaderOffset;
 			writer.WriteUInt16((ushort)(peOptions.Machine ?? module.Machine));
 			writer.WriteUInt16((ushort)(origSections.Count + sections.Count));
@@ -664,7 +737,7 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt32(writer, peOptions.SizeOfHeapReserve);
 				WriteUInt32(writer, peOptions.SizeOfHeapCommit);
 				WriteUInt32(writer, peOptions.LoaderFlags);
-				WriteUInt32(writer, peOptions.NumberOfRvaAndSizes);
+				WriteUInt32(writer, numberOfRvaAndSizes);
 			}
 			else {
 				writer.Position += 2;
@@ -695,7 +768,7 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt64(writer, peOptions.SizeOfHeapReserve);
 				WriteUInt64(writer, peOptions.SizeOfHeapCommit);
 				WriteUInt32(writer, peOptions.LoaderFlags);
-				WriteUInt32(writer, peOptions.NumberOfRvaAndSizes);
+				WriteUInt32(writer, numberOfRvaAndSizes);
 			}
 
 			// Update Win32 resources data directory, if we wrote a new one, or clear it if
@@ -835,9 +908,9 @@ namespace dnlib.DotNet.Writer {
 
 		IEnumerable<SectionSizeInfo> GetSectionSizeInfos() {
 			foreach (var section in origSections)
-				yield return new SectionSizeInfo(section.Chunk.GetVirtualSize(), section.PESection.Characteristics);
+				yield return new SectionSizeInfo((uint)section.Chunk.RVA, section.Chunk.GetVirtualSize(), section.PESection.Characteristics);
 			foreach (var section in sections)
-				yield return new SectionSizeInfo(section.GetVirtualSize(), section.Characteristics);
+				yield return new SectionSizeInfo((uint)section.RVA, section.GetVirtualSize(), section.Characteristics);
 		}
 
 		readonly struct OrigVTableInfo {

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.W32Resources;
@@ -25,6 +24,31 @@ namespace dnlib.DotNet.Writer {
 		readonly List<string> stringsList = new List<string>();
 		readonly Dictionary<ResourceData, uint> dataDict = new Dictionary<ResourceData, uint>();
 		readonly List<ResourceData> dataList = new List<ResourceData>();
+		readonly List<DataBlock> dataBlocks = new List<DataBlock>();
+
+		// A range of bytes that is written once. All resource data whose bytes overlap in the
+		// same source are written as one block, so data shared by many entries (eg. many
+		// entries pointing at the same data header) isn't written more than once.
+		sealed class DataBlock {
+			public readonly DataReaderFactory Factory;
+			public readonly uint Start;
+			public uint End;
+			public uint Offset;
+			public bool Added;
+			// true if the block has data that doesn't start at the block's start
+			public bool HasInnerStarts;
+			public DataBlock(DataReaderFactory factory, uint start, uint end) {
+				Factory = factory;
+				Start = start;
+				End = end;
+			}
+		}
+
+		sealed class ReferenceComparer : IEqualityComparer<DataReaderFactory> {
+			public static readonly ReferenceComparer Instance = new ReferenceComparer();
+			public bool Equals(DataReaderFactory x, DataReaderFactory y) => (object)x == y;
+			public int GetHashCode(DataReaderFactory obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+		}
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
@@ -265,6 +289,7 @@ namespace dnlib.DotNet.Writer {
 				stringsList.Clear();
 				dataDict.Clear();
 				dataList.Clear();
+				dataBlocks.Clear();
 			}
 
 			FindDirectoryEntries();
@@ -303,10 +328,16 @@ namespace dnlib.DotNet.Writer {
 				rsrcOffset += 2 + (ulong)s.Length * 2;
 			}
 
-			foreach (var data in dataList) {
-				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_DATA_ALIGNMENT);
-				dataDict[data] = (uint)rsrcOffset;
-				rsrcOffset += data.CreateReader().Length;
+			var dataToBlock = CreateDataBlocks(out var dataStarts);
+			foreach (var block in dataBlocks) {
+				rsrcOffset = GetBlockOffset(rsrcOffset, block);
+				block.Offset = (uint)rsrcOffset;
+				rsrcOffset += block.End - block.Start;
+			}
+			for (int i = 0; i < dataList.Count; i++) {
+				var block = dataToBlock[i];
+				// Can wrap if the total is too big but then we throw below
+				dataDict[dataList[i]] = block.Offset + (dataStarts[i] - block.Start);
 			}
 
 			// All offsets and the length are 32-bit values. If the total doesn't fit, the offsets
@@ -315,6 +346,79 @@ namespace dnlib.DotNet.Writer {
 				throw new ModuleWriterException("Win32 resources are too big");
 
 			length = (uint)rsrcOffset;
+		}
+
+		DataBlock[] CreateDataBlocks(out uint[] dataStarts) {
+			int count = dataList.Count;
+			var dataToBlock = new DataBlock[count];
+			dataStarts = new uint[count];
+			var dataEnds = new uint[count];
+			var factories = new DataReaderFactory[count];
+			var indexes = new int[count];
+			var factoryIds = new Dictionary<DataReaderFactory, int>(ReferenceComparer.Instance);
+			var factoryIdOf = new int[count];
+			for (int i = 0; i < count; i++) {
+				var data = dataList[i];
+				var reader = data.CreateReader();
+				// Only possible with a custom DataReaderFactory that creates an invalid reader
+				if (reader.EndOffset < reader.StartOffset)
+					throw new ModuleWriterException("Invalid Win32 resource data reader");
+				factories[i] = data.DataReaderFactory;
+				dataStarts[i] = reader.StartOffset;
+				dataEnds[i] = reader.EndOffset;
+				if (!factoryIds.TryGetValue(factories[i], out int id))
+					factoryIds.Add(factories[i], id = factoryIds.Count);
+				factoryIdOf[i] = id;
+				indexes[i] = i;
+			}
+
+			// Sort by source and start offset, then merge overlapping ranges
+			var starts = dataStarts;
+			Array.Sort(indexes, (a, b) => {
+				int c = factoryIdOf[a].CompareTo(factoryIdOf[b]);
+				if (c != 0)
+					return c;
+				c = starts[a].CompareTo(starts[b]);
+				if (c != 0)
+					return c;
+				return a.CompareTo(b);
+			});
+			DataBlock current = null;
+			foreach (int i in indexes) {
+				// Ranges that only touch aren't merged so normal files (no shared data) are written
+				// exactly like before. Empty ranges at the start of a block are part of the block.
+				if (current is not null && current.Factory == factories[i] &&
+					(dataStarts[i] < current.End || dataStarts[i] == current.Start)) {
+					if (dataEnds[i] > current.End)
+						current.End = dataEnds[i];
+					if (dataStarts[i] != current.Start)
+						current.HasInnerStarts = true;
+				}
+				else
+					current = new DataBlock(factories[i], dataStarts[i], dataEnds[i]);
+				dataToBlock[i] = current;
+			}
+
+			// Keep the original order (first use of each block)
+			for (int i = 0; i < count; i++) {
+				var block = dataToBlock[i];
+				if (block.Added)
+					continue;
+				block.Added = true;
+				dataBlocks.Add(block);
+			}
+			return dataToBlock;
+		}
+
+		// Data inside a block keeps its distance from the block start. If the block has data that
+		// starts after the block start, the block is placed so its offset mod 4 is the same as in
+		// the source, so all its data keep their source alignment. Other blocks are 4-byte aligned
+		// like before.
+		static ulong GetBlockOffset(ulong offset, DataBlock block) {
+			offset = AlignUp(offset, RESOURCE_DATA_ALIGNMENT);
+			if (block.HasInnerStarts)
+				offset += (block.Start - offset) & (RESOURCE_DATA_ALIGNMENT - 1);
+			return offset;
 		}
 
 		static ulong AlignUp(ulong v, uint alignment) => (v + alignment - 1) & ~(ulong)(alignment - 1);
@@ -333,9 +437,16 @@ namespace dnlib.DotNet.Writer {
 			stringsDict.Add(name.Name, 0);
 		}
 
-		void FindDirectoryEntries() => FindDirectoryEntries(win32Resources.Root);
+		void FindDirectoryEntries() {
+			var root = win32Resources.Root;
+			if (root is null)
+				throw new ModuleWriterException("Win32 resources root directory is null");
+			FindDirectoryEntries(root);
+		}
 
 		void FindDirectoryEntries(ResourceDirectory dir) {
+			if (dir is null)
+				throw new ModuleWriterException("A Win32 resource directory is null");
 			if (dirDict.ContainsKey(dir))
 				return;
 			dirList.Add(dir);
@@ -348,6 +459,8 @@ namespace dnlib.DotNet.Writer {
 			count = dirData.Count;
 			for (int i = 0; i < count; i++) {
 				var data = dirData[i];
+				if (data is null)
+					throw new ModuleWriterException("A Win32 resource data entry is null");
 				if (dataHeaderDict.ContainsKey(data))
 					continue;
 				dataHeaderList.Add(data);
@@ -372,7 +485,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var dir in dirList) {
 				uint padding = Utils.AlignUp(offset, RESOURCE_DIR_ALIGNMENT) - offset;
-				writer.WriteZeroes((int)padding);
+				writer.WriteZeros((int)padding);
 				offset += padding;
 				if (dirDict[dir] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource directory offset");
@@ -381,7 +494,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var dataHeader in dataHeaderList) {
 				uint padding = Utils.AlignUp(offset, RESOURCE_DATA_HEADER_ALIGNMENT) - offset;
-				writer.WriteZeroes((int)padding);
+				writer.WriteZeros((int)padding);
 				offset += padding;
 				if (dataHeaderDict[dataHeader] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource data header offset");
@@ -390,29 +503,34 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var s in stringsList) {
 				uint padding = Utils.AlignUp(offset, RESOURCE_STRING_ALIGNMENT) - offset;
-				writer.WriteZeroes((int)padding);
+				writer.WriteZeros((int)padding);
 				offset += padding;
 				if (stringsDict[s] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource string offset");
 
-				var bytes = Encoding.Unicode.GetBytes(s);
-				if (bytes.Length / 2 > ushort.MaxValue)
+				if (s.Length > ushort.MaxValue)
 					throw new ModuleWriterException("Win32 resource entry name is too long");
-				writer.WriteUInt16((ushort)(bytes.Length / 2));
-				writer.WriteBytes(bytes);
-				offset += 2 + (uint)bytes.Length;
+				writer.WriteUInt16((ushort)s.Length);
+				// Write the UTF-16 code units as is (the reader reads them as is). An encoder would
+				// replace lone surrogates with U+FFFD and the name would change.
+				foreach (var c in s)
+					writer.WriteUInt16(c);
+				offset += 2 + (uint)s.Length * 2;
 			}
 
 			var dataBuffer = new byte[0x2000];
-			foreach (var data in dataList) {
-				uint padding = Utils.AlignUp(offset, RESOURCE_DATA_ALIGNMENT) - offset;
-				writer.WriteZeroes((int)padding);
+			foreach (var block in dataBlocks) {
+				uint padding = (uint)(GetBlockOffset(offset, block) - offset);
+				writer.WriteZeros((int)padding);
 				offset += padding;
-				if (dataDict[data] != offset)
+				if (block.Offset != offset)
 					throw new ModuleWriterException("Invalid Win32 resource data offset");
 
-				var reader = data.CreateReader();
-				offset += reader.BytesLeft;
+				uint blockLength = block.End - block.Start;
+				var reader = block.Factory.CreateReader(block.Start, blockLength);
+				if (reader.Length != blockLength)
+					throw new ModuleWriterException("Invalid Win32 resource data length");
+				offset += blockLength;
 				reader.CopyTo(writer, dataBuffer);
 			}
 		}

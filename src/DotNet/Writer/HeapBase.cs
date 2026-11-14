@@ -63,7 +63,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
 			WriteToImpl(writer);
-			writer.WriteZeroes((int)(Utils.AlignUp(GetRawLength(), ALIGNMENT) - GetRawLength()));
+			writer.WriteZeros((int)(Utils.AlignUp(GetRawLength(), ALIGNMENT) - GetRawLength()));
 		}
 
 		/// <summary>

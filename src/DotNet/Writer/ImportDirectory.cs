@@ -130,7 +130,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteInt32(0);
 			}
 
-			writer.WriteZeroes(stringsPadding);
+			writer.WriteZeros(stringsPadding);
 			writer.WriteUInt16(0);
 			writer.WriteBytes(Encoding.UTF8.GetBytes(EntryPointName + "\0"));
 			writer.WriteBytes(Encoding.UTF8.GetBytes(DllToImport + "\0"));
