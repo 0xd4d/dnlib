@@ -296,13 +296,13 @@ namespace dnlib.DotNet.Writer {
 				headerLen = firstRawOffset;
 			headerLen = Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 			if (headerLen <= peImage.ImageNTHeaders.OptionalHeader.SectionAlignment) {
-				uint origSizeOfHeaders = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
+				uint origHeadersLen = GetOriginalHeadersLength();
 				uint extraLen;
-				if (headerLen <= origSizeOfHeaders)
+				if (headerLen <= origHeadersLen)
 					extraLen = 0;
 				else {
-					extraLen = headerLen - origSizeOfHeaders;
-					headerLen = origSizeOfHeaders;
+					extraLen = headerLen - origHeadersLen;
+					headerLen = origHeadersLen;
 				}
 				if (extraLen > 0)
 					extraHeaderData = new ByteArrayChunk(new byte[(int)extraLen]);
@@ -315,9 +315,18 @@ namespace dnlib.DotNet.Writer {
 			throw new ModuleWriterException("Could not create header");
 		}
 
+		/// <summary>
+		/// Gets the length of the original headers. SizeOfHeaders could be smaller than the real headers
+		/// (eg. 0) so the headers always include everything up to the end of the last section header.
+		/// </summary>
+		uint GetOriginalHeadersLength() =>
+			Math.Max(peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders, GetOffsetAfterLastSectionHeader());
+
 		uint GetOffsetAfterLastSectionHeader() {
-			var lastSect = peImage.ImageSectionHeaders[peImage.ImageSectionHeaders.Count - 1];
-			return (uint)lastSect.EndOffset;
+			var sectionHeaders = peImage.ImageSectionHeaders;
+			if (sectionHeaders.Count == 0)
+				return (uint)peImage.ImageNTHeaders.OptionalHeader.StartOffset + peImage.ImageNTHeaders.FileHeader.SizeOfOptionalHeader;
+			return (uint)sectionHeaders[sectionHeaders.Count - 1].EndOffset;
 		}
 
 		uint GetFirstRawDataFileOffset() {
@@ -345,7 +354,7 @@ namespace dnlib.DotNet.Writer {
 			// Section chunks include the padding up to the file alignment, so the extra data starts after it.
 			// A memory layout image has no file offsets so it uses RVAs.
 			bool isFileLayout = peImage.IsFileImageLayout;
-			ulong end = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
+			ulong end = GetOriginalHeadersLength();
 			foreach (var sect in origSections) {
 				var section = sect.PESection;
 				if (section.LoadedSizeOfRawData == 0)
