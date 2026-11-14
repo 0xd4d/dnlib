@@ -153,7 +153,8 @@ namespace dnlib.DotNet.Writer {
 		public uint? LoaderFlags;
 
 		/// <summary>
-		/// IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes value. <see cref="ModuleWriter"/> only supports 16 (or <c>null</c>).
+		/// IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes value. <see cref="ModuleWriter"/> always writes 16 data directories
+		/// and writes this value as is (16 if it's <c>null</c>).
 		/// <see cref="NativeModuleWriter"/> keeps the original value if it's <c>null</c> (the default).
 		/// </summary>
 		public uint? NumberOfRvaAndSizes;
@@ -303,14 +304,9 @@ namespace dnlib.DotNet.Writer {
 				sectionAlignment = DEFAULT_SECTION_ALIGNMENT;
 				fileAlignment = DEFAULT_FILE_ALIGNMENT;
 			}
-			if (this.options.NumberOfRvaAndSizes is uint numDirs && numDirs != NUMBER_OF_DATA_DIRECTORIES) {
-				// We always write 16 data directories, so 16 is written if the logger doesn't throw
-				logError("Invalid NumberOfRvaAndSizes: {0}. Only {1} is supported.", new object[] { numDirs, NUMBER_OF_DATA_DIRECTORIES });
-			}
 		}
 		const uint DEFAULT_SECTION_ALIGNMENT = 0x2000;
 		const uint DEFAULT_FILE_ALIGNMENT = 0x200;
-		const uint NUMBER_OF_DATA_DIRECTORIES = 0x10;
 
 		static bool IsPowerOfTwo(uint v) => v != 0 && (v & (v - 1)) == 0;
 
@@ -413,7 +409,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32((uint)(options.SizeOfHeapReserve ?? 0x00100000));
 				writer.WriteUInt32((uint)(options.SizeOfHeapCommit ?? 0x00001000));
 				writer.WriteUInt32(options.LoaderFlags ?? 0x00000000);
-				writer.WriteUInt32(NUMBER_OF_DATA_DIRECTORIES);	// We always write 16 data directories
+				writer.WriteUInt32(options.NumberOfRvaAndSizes ?? 0x00000010);
 			}
 			else {
 				writer.WriteUInt16((ushort)0x020B);
@@ -445,7 +441,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt64(options.SizeOfHeapReserve ?? 0x0000000000100000);
 				writer.WriteUInt64(options.SizeOfHeapCommit ?? 0x0000000000002000);
 				writer.WriteUInt32(options.LoaderFlags ?? 0x00000000);
-				writer.WriteUInt32(NUMBER_OF_DATA_DIRECTORIES);	// We always write 16 data directories
+				writer.WriteUInt32(options.NumberOfRvaAndSizes ?? 0x00000010);
 			}
 
 			writer.WriteDataDirectory(ExportDirectory);
