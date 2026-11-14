@@ -339,11 +339,19 @@ namespace dnlib.DotNet.Writer {
 			var namesBlob = new NamesBlob(1 == 2);
 			int nameIndex = 0;
 			bool error = false;
+			var usedOrdinals = new Dictionary<ushort, MethodInfo>();
 			foreach (var info in allMethodInfos) {
 				var exportInfo = info.Method.ExportInfo;
 				var name = exportInfo.Name;
 				if (name is null) {
-					if (exportInfo.Ordinal is not null) {
+					if (exportInfo.Ordinal is ushort ordinal) {
+						if (usedOrdinals.TryGetValue(ordinal, out var other)) {
+							error = true;
+							logError("Exported method ordinal {0} is used by more than one method: {1} (0x{2:X8}) and {3} (0x{4:X8})",
+								new object[] { ordinal, other.Method, 0x06000000 + metadata.GetRid(other.Method), info.Method, 0x06000000 + metadata.GetRid(info.Method) });
+							continue;
+						}
+						usedOrdinals.Add(ordinal, info);
 						sortedOrdinalMethodInfos.Add(info);
 						continue;
 					}
