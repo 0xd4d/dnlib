@@ -1821,6 +1821,10 @@ namespace dnlib.DotNet.Writer {
 			var nestedTypeDict = new Dictionary<ExportedType, List<ExportedType>>();
 			for (var i = 0; i < exportedTypes.Count; i++) {
 				var exportedType = exportedTypes[i];
+				if (exportedType is null) {
+					Error("ExportedType is null");
+					continue;
+				}
 				if (exportedType.Implementation is not ExportedType decl)
 					continue;
 				if (!nestedTypeDict.TryGetValue(decl, out var nestedTypes))
@@ -1840,7 +1844,7 @@ namespace dnlib.DotNet.Writer {
 						continue;
 					}
 					var type = enumerator.Current;
-					if (visited.ContainsKey(type))
+					if (type is null || visited.ContainsKey(type))
 						continue;
 					visited[type] = true;
 					sortedTypes.Add(type);
