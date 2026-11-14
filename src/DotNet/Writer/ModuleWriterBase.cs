@@ -1028,9 +1028,15 @@ namespace dnlib.DotNet.Writer {
 
 		static string GetStreamName(Stream stream) => (stream as FileStream)?.Name;
 
+		static readonly char[] moduleNameSeparators = new char[] { '/', '\\', ':' };
+
 		static string GetModuleName(ModuleDef module) {
-			var name = module.Name ?? string.Empty;
-			if (string.IsNullOrEmpty(name))
+			var name = module.Name?.String ?? string.Empty;
+			// The name is read from the module so it can't be trusted. Only use the file name so the PDB
+			// file is always created in the current directory and not eg. in '../' or in an absolute path.
+			// All OSes use the same separators so the result doesn't depend on the OS.
+			name = name.Substring(name.LastIndexOfAny(moduleNameSeparators) + 1);
+			if (name.Length == 0 || name == "." || name == "..")
 				return null;
 			if (name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".netmodule", StringComparison.OrdinalIgnoreCase))
 				return name;
