@@ -281,7 +281,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void InitializeChunkProperties() {
-			Options.Cor20HeaderOptions.EntryPoint = GetEntryPoint();
+			imageCor20Header.EntryPoint = GetEntryPoint();
 
 			importAddressTable.ImportDirectory = importDirectory;
 			importDirectory.ImportAddressTable = importAddressTable;

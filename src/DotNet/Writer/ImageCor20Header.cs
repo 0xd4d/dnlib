@@ -89,6 +89,12 @@ namespace dnlib.DotNet.Writer {
 
 		internal IChunk VtableFixups { get; set; }
 
+		/// <summary>
+		/// Entry point token or RVA written by the module writer, or <c>null</c> to use the options' value.
+		/// The writer doesn't store it in the options since they can be used to write the module again.
+		/// </summary>
+		internal uint? EntryPoint { get; set; }
+
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
 
@@ -123,7 +129,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt16(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
 			writer.WriteDataDirectory(Metadata);
 			writer.WriteUInt32((uint)(options.Flags ?? ComImageFlags.ILOnly));
-			writer.WriteUInt32(options.EntryPoint ?? 0);
+			writer.WriteUInt32(EntryPoint ?? options.EntryPoint ?? 0);
 			writer.WriteDataDirectory(NetResources);
 			writer.WriteDataDirectory(StrongNameSignature);
 			writer.WriteDataDirectory(null);	// Code manager table
