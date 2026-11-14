@@ -361,6 +361,9 @@ namespace dnlib.DotNet.Writer {
 			for (int i = 0; i < count; i++) {
 				var data = dataList[i];
 				var reader = data.CreateReader();
+				// Only possible with a custom DataReaderFactory that creates an invalid reader
+				if (reader.EndOffset < reader.StartOffset)
+					throw new ModuleWriterException("Invalid Win32 resource data reader");
 				factories[i] = data.DataReaderFactory;
 				dataStarts[i] = reader.StartOffset;
 				dataEnds[i] = reader.EndOffset;
