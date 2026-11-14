@@ -153,7 +153,8 @@ namespace dnlib.DotNet.Writer {
 		public uint? LoaderFlags;
 
 		/// <summary>
-		/// IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes value
+		/// IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes value. <see cref="ModuleWriter"/> only supports 16 (or <c>null</c>).
+		/// <see cref="NativeModuleWriter"/> keeps the original value if it's <c>null</c> (the default).
 		/// </summary>
 		public uint? NumberOfRvaAndSizes;
 
