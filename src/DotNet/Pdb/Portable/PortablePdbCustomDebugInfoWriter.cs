@@ -202,6 +202,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		void WriteDynamicLocalVariables(PdbDynamicLocalVariablesCustomDebugInfo cdi) {
 			var flags = cdi.Flags;
+			if (flags is null) {
+				helper.Error("Dynamic flags is null");
+				return;
+			}
 			for (int i = 0; i < flags.Length; i += 8)
 				writer.WriteByte(ToByte(flags, i));
 		}
@@ -209,7 +213,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 		static byte ToByte(bool[] flags, int index) {
 			int res = 0;
 			int bit = 1;
-			for (int i = index; i < flags.Length; i++, bit <<= 1) {
+			int end = Math.Min(flags.Length, index + 8);
+			for (int i = index; i < end; i++, bit <<= 1) {
 				if (flags[i])
 					res |= bit;
 			}
