@@ -345,6 +345,8 @@ namespace dnlib.DotNet {
 		/// <summary>The module where this instance is located</summary>
 		readonly ModuleDefMD readerModule;
 
+		internal ModuleDefMD ReaderModule => readerModule;
+
 		readonly uint origRid;
 
 		/// <inheritdoc/>

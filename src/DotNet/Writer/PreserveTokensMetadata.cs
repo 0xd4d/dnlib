@@ -49,7 +49,7 @@ namespace dnlib.DotNet.Writer {
 
 		[DebuggerDisplay("Count = {Count}")]
 		sealed class MemberDefDict<T> where T : IMDTokenProvider {
-			readonly Type defMDType;
+			readonly Func<T, bool> isOriginalDef;
 			uint userRid = 0x01000000;
 			uint newRid = 1;
 			int numDefMDs;
@@ -80,12 +80,14 @@ namespace dnlib.DotNet.Writer {
 			/// </summary>
 			public bool NeedPtrTable => preserveRids && !wasSorted;
 
-			public MemberDefDict(Type defMDType, bool preserveRids)
-				: this(defMDType, preserveRids, false) {
+			/// <param name="isOriginalDef">Returns <c>true</c> if the def was read from the module being written</param>
+			/// <param name="preserveRids">Preserve rids</param>
+			public MemberDefDict(Func<T, bool> isOriginalDef, bool preserveRids)
+				: this(isOriginalDef, preserveRids, false) {
 			}
 
-			public MemberDefDict(Type defMDType, bool preserveRids, bool enableRidToInfo) {
-				this.defMDType = defMDType;
+			public MemberDefDict(Func<T, bool> isOriginalDef, bool preserveRids, bool enableRidToInfo) {
+				this.isOriginalDef = isOriginalDef;
 				this.preserveRids = preserveRids;
 				this.enableRidToInfo = enableRidToInfo;
 			}
@@ -139,7 +141,7 @@ namespace dnlib.DotNet.Writer {
 			/// <param name="collPos">Collection position</param>
 			public void Add(T def, int collPos) {
 				uint rid;
-				if (def.GetType() == defMDType) {
+				if (isOriginalDef(def)) {
 					numDefMDs++;
 					rid = preserveRids ? def.Rid : newRid++;
 				}
@@ -295,11 +297,13 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		protected override void Initialize() {
-			fieldDefInfos = new MemberDefDict<FieldDef>(typeof(FieldDefMD), PreserveFieldRids);
-			methodDefInfos = new MemberDefDict<MethodDef>(typeof(MethodDefMD), PreserveMethodRids, true);
-			paramDefInfos = new MemberDefDict<ParamDef>(typeof(ParamDefMD), PreserveParamRids);
-			eventDefInfos = new MemberDefDict<EventDef>(typeof(EventDefMD), PreserveEventRids);
-			propertyDefInfos = new MemberDefDict<PropertyDef>(typeof(PropertyDefMD), PreservePropertyRids);
+			// Only defs read from this module have rids that can be preserved. A *DefMD that was
+			// moved here from another module is treated like a user created def.
+			fieldDefInfos = new MemberDefDict<FieldDef>(a => a is FieldDefMD md && md.ReaderModule == mod, PreserveFieldRids);
+			methodDefInfos = new MemberDefDict<MethodDef>(a => a is MethodDefMD md && md.ReaderModule == mod, PreserveMethodRids, true);
+			paramDefInfos = new MemberDefDict<ParamDef>(a => a is ParamDefMD md && md.ReaderModule == mod, PreserveParamRids);
+			eventDefInfos = new MemberDefDict<EventDef>(a => a is EventDefMD md && md.ReaderModule == mod, PreserveEventRids);
+			propertyDefInfos = new MemberDefDict<PropertyDef>(a => a is PropertyDefMD md && md.ReaderModule == mod, PreservePropertyRids);
 
 			CreateEmptyTableRows();
 		}
@@ -322,7 +326,7 @@ namespace dnlib.DotNet.Writer {
 					continue;
 				types.Add(type);
 				uint val = (uint)index++;
-				if (type.GetType() == typeof(TypeDefMD))
+				if (IsOriginalTypeDef(type))
 					val |= IS_TYPEDEFMD;
 				typeToIndex[type] = val;
 			}
@@ -365,7 +369,7 @@ namespace dnlib.DotNet.Writer {
 				var type = types[i];
 
 				// TypeDefUsers were sorted last so when we reach one, we can stop
-				if (type.GetType() != typeof(TypeDefMD)) {
+				if (!IsOriginalTypeDef(type)) {
 					while (i < types.Count)
 						newTypes.Add(types[i++]);
 					break;
@@ -386,6 +390,8 @@ namespace dnlib.DotNet.Writer {
 			InitializeTypeToRid(newTypesArray);
 			return newTypesArray;
 		}
+
+		bool IsOriginalTypeDef(TypeDef type) => type is TypeDefMD md && md.ReaderModule == mod;
 
 		void InitializeTypeToRid(TypeDef[] types) {
 			uint rid = 1;
