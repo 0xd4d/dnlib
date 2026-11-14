@@ -737,8 +737,10 @@ namespace dnlib.DotNet.Writer {
 		public void Write(Stream dest) {
 			pdbState = TheOptions.WritePdb && Module.PdbState is not null ? Module.PdbState : null;
 			if (TheOptions.DelaySign) {
-				Debug.Assert(TheOptions.StrongNamePublicKey is not null, "Options.StrongNamePublicKey must be initialized when delay signing the assembly");
-				Debug.Assert(TheOptions.StrongNameKey is null, "Options.StrongNameKey must be null when delay signing the assembly");
+				if (TheOptions.StrongNamePublicKey is null)
+					Error("Options.StrongNamePublicKey must be initialized when delay signing the assembly");
+				if (TheOptions.StrongNameKey is not null)
+					Error("Options.StrongNameKey must be null when delay signing the assembly");
 			}
 
 			destStream = dest;
@@ -766,15 +768,17 @@ namespace dnlib.DotNet.Writer {
 		/// is signed (<see cref="ModuleWriterOptionsBase.StrongNameKey"/>) and cleared if it's delay
 		/// signed. Otherwise the flags aren't changed, eg. if the assembly has a public key but
 		/// isn't signed, the bit isn't set since the signature would be all zeroes.
+		/// The key takes precedence over <see cref="ModuleWriterOptionsBase.DelaySign"/> since the
+		/// assembly is signed if there's a key (it's an error but the logger can ignore it).
 		/// The options aren't updated since they can be used to write the module again.
 		/// </summary>
 		/// <param name="flags">Flags</param>
 		/// <returns></returns>
 		protected ComImageFlags UpdateStrongNameSignedFlag(ComImageFlags flags) {
-			if (TheOptions.DelaySign)
-				return flags & ~ComImageFlags.StrongNameSigned;
 			if (TheOptions.StrongNameKey is not null)
 				return flags | ComImageFlags.StrongNameSigned;
+			if (TheOptions.DelaySign)
+				return flags & ~ComImageFlags.StrongNameSigned;
 			return flags;
 		}
 
@@ -783,12 +787,13 @@ namespace dnlib.DotNet.Writer {
 		/// set or wants to sign the assembly.
 		/// </summary>
 		protected void CreateStrongNameSignature() {
-			if (TheOptions.DelaySign && TheOptions.StrongNamePublicKey is not null) {
+			// The key is checked first since the assembly is signed if there's a key, even if DelaySign is true
+			if (TheOptions.StrongNameKey is not null)
+				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
+			else if (TheOptions.DelaySign && TheOptions.StrongNamePublicKey is not null) {
 				int len = TheOptions.StrongNamePublicKey.CreatePublicKey().Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
 			}
-			else if (TheOptions.StrongNameKey is not null)
-				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
 			else if (Module.Assembly is not null && !PublicKeyBase.IsNullOrEmpty2(Module.Assembly.PublicKey)) {
 				int len = Module.Assembly.PublicKey.Data.Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
