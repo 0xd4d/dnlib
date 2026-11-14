@@ -292,7 +292,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Creates the PE header "section"
 		/// </summary>
-		DataReaderChunk CreateHeaderSection(out IChunk extraHeaderData) {
+		IChunk CreateHeaderSection(out IChunk extraHeaderData) {
 			uint afterLastSectHeader = GetOffsetAfterLastSectionHeader() + (uint)sections.Count * 0x28;
 			uint firstRawOffset = Math.Min(GetFirstRawDataFileOffset(), peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			uint headerLen = afterLastSectHeader;
@@ -315,8 +315,61 @@ namespace dnlib.DotNet.Writer {
 				return new DataReaderChunk(peImage.CreateReader((FileOffset)0, headerLen));
 			}
 
-			//TODO: Support this too
-			throw new ModuleWriterException("Could not create header");
+			// The headers don't fit in SectionAlignment bytes. That's OK if they don't overlap the first section in memory,
+			// eg. crossgen2 images: SectionAlignment is 0x200 but the first section's RVA is 0x10200.
+			// All sections are moved in the file by a multiple of 64KB: crossgen2 places sections so that
+			// (RVA - file offset) is a multiple of 64KB (so the image can be mapped with 64KB pages) and this keeps it that way.
+			extraHeaderData = null;
+			uint firstRawDataOffset = GetFirstRawDataFileOffset();
+			if (firstRawDataOffset == uint.MaxValue || GetFirstSectionRva() < (ulong)Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment))
+				throw new ModuleWriterException("Could not create header");
+			uint headersFileLength = firstRawDataOffset;
+			if (headerLen > firstRawDataOffset) {
+				uint moveAlignment = Math.Max(SECTION_MOVE_ALIGNMENT, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
+				headersFileLength = OffsetUtils.Add(firstRawDataOffset, OffsetUtils.AlignUp(headerLen - firstRawDataOffset, moveAlignment));
+			}
+			var origHeaders = peImage.CreateReader((FileOffset)0, firstRawDataOffset);
+			if (origHeaders.Length != firstRawDataOffset)
+				throw new ModuleWriterException("Could not create header");
+			return new PaddedChunk(new DataReaderChunk(origHeaders), headerLen, headersFileLength);
+		}
+		const uint SECTION_MOVE_ALIGNMENT = 0x10000;
+
+		ulong GetFirstSectionRva() {
+			ulong rva = ulong.MaxValue;
+			foreach (var section in peImage.ImageSectionHeaders)
+				rva = Math.Min(rva, (uint)section.VirtualAddress);
+			return rva;
+		}
+
+		/// <summary>
+		/// A chunk followed by zeros in the file. The virtual size isn't changed.
+		/// </summary>
+		sealed class PaddedChunk : IChunk {
+			readonly IChunk chunk;
+			readonly uint virtualSize;
+			readonly uint fileLength;
+
+			public FileOffset FileOffset => chunk.FileOffset;
+			public RVA RVA => chunk.RVA;
+
+			public PaddedChunk(IChunk chunk, uint virtualSize, uint fileLength) {
+				if (fileLength < chunk.GetFileLength())
+					throw new ArgumentOutOfRangeException(nameof(fileLength));
+				this.chunk = chunk;
+				this.virtualSize = virtualSize;
+				this.fileLength = fileLength;
+			}
+
+			public void SetOffset(FileOffset offset, RVA rva) => chunk.SetOffset(offset, rva);
+			public uint GetFileLength() => fileLength;
+			public uint GetVirtualSize() => virtualSize;
+			public uint CalculateAlignment() => 0;
+
+			public void WriteTo(DataWriter writer) {
+				chunk.VerifyWriteTo(writer);
+				writer.WriteZeroes((int)(fileLength - chunk.GetFileLength()));
+			}
 		}
 
 		/// <summary>
