@@ -594,7 +594,10 @@ namespace dnlib.DotNet.Writer {
 			long fileHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.FileHeader.StartOffset;
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
 			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
-			long dataDirOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.EndOffset - 16 * 8;
+			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
+			// The data directories are at a fixed offset in the optional header. Don't use its end offset,
+			// SizeOfOptionalHeader can be bigger than the standard size.
+			long dataDirOffset = optionalHeaderOffset + (is32BitOptionalHeader ? 0x60 : 0x70);
 			long cor20Offset = destStreamBaseOffset + (long)imageCor20Header.FileOffset;
 
 			// Update PE file header
@@ -610,7 +613,6 @@ namespace dnlib.DotNet.Writer {
 
 			// Update optional header
 			writer.Position = optionalHeaderOffset;
-			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			if (is32BitOptionalHeader) {
 				writer.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
