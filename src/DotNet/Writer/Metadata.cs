@@ -3886,7 +3886,7 @@ namespace dnlib.DotNet.Writer {
 			var sorted = new List<ParamDef>(pds);
 			sorted.Sort((a, b) => {
 				if (a is null)
-					return -1;
+					return b is null ? 0 : -1;
 				if (b is null)
 					return 1;
 				return a.Sequence.CompareTo(b.Sequence);
