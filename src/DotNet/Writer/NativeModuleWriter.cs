@@ -800,7 +800,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		ComImageFlags GetComImageFlags(bool isManagedEntryPoint) {
-			var flags = Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags;
+			var flags = UpdateStrongNameSignedFlag(Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags);
 			if (Options.Cor20HeaderOptions.EntryPoint is not null)
 				return flags;
 			if (isManagedEntryPoint)

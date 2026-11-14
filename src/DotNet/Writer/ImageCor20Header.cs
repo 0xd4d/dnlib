@@ -95,6 +95,12 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		internal uint? EntryPoint { get; set; }
 
+		/// <summary>
+		/// Flags written by the module writer, or <c>null</c> to use the options' value.
+		/// The writer doesn't store them in the options since they can be used to write the module again.
+		/// </summary>
+		internal ComImageFlags? Flags { get; set; }
+
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
 
@@ -128,7 +134,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt16(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);
 			writer.WriteUInt16(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
 			writer.WriteDataDirectory(Metadata);
-			writer.WriteUInt32((uint)(options.Flags ?? ComImageFlags.ILOnly));
+			writer.WriteUInt32((uint)(Flags ?? options.Flags ?? ComImageFlags.ILOnly));
 			writer.WriteUInt32(EntryPoint ?? options.EntryPoint ?? 0);
 			writer.WriteDataDirectory(NetResources);
 			writer.WriteDataDirectory(StrongNameSignature);

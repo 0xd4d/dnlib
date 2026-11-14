@@ -369,9 +369,6 @@ namespace dnlib.DotNet.Writer {
 			PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
 			Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 
-			if (module.Assembly is not null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey))
-				Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
-
 			if (module.Cor20HeaderRuntimeVersion is not null) {
 				Cor20HeaderOptions.MajorRuntimeVersion = (ushort)(module.Cor20HeaderRuntimeVersion.Value >> 16);
 				Cor20HeaderOptions.MinorRuntimeVersion = (ushort)module.Cor20HeaderRuntimeVersion.Value;
@@ -742,10 +739,7 @@ namespace dnlib.DotNet.Writer {
 			if (TheOptions.DelaySign) {
 				Debug.Assert(TheOptions.StrongNamePublicKey is not null, "Options.StrongNamePublicKey must be initialized when delay signing the assembly");
 				Debug.Assert(TheOptions.StrongNameKey is null, "Options.StrongNameKey must be null when delay signing the assembly");
-				TheOptions.Cor20HeaderOptions.Flags &= ~ComImageFlags.StrongNameSigned;
 			}
-			else if (TheOptions.StrongNameKey is not null || TheOptions.StrongNamePublicKey is not null)
-				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
@@ -766,6 +760,23 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <returns>Number of bytes written</returns>
 		protected abstract long WriteImpl();
+
+		/// <summary>
+		/// Updates the <see cref="ComImageFlags.StrongNameSigned"/> bit. It's only set if the assembly
+		/// is signed (<see cref="ModuleWriterOptionsBase.StrongNameKey"/>) and cleared if it's delay
+		/// signed. Otherwise the flags aren't changed, eg. if the assembly has a public key but
+		/// isn't signed, the bit isn't set since the signature would be all zeroes.
+		/// The options aren't updated since they can be used to write the module again.
+		/// </summary>
+		/// <param name="flags">Flags</param>
+		/// <returns></returns>
+		protected ComImageFlags UpdateStrongNameSignedFlag(ComImageFlags flags) {
+			if (TheOptions.DelaySign)
+				return flags & ~ComImageFlags.StrongNameSigned;
+			if (TheOptions.StrongNameKey is not null)
+				return flags | ComImageFlags.StrongNameSigned;
+			return flags;
+		}
 
 		/// <summary>
 		/// Creates the strong name signature if the module has one of the strong name flags

@@ -282,6 +282,7 @@ namespace dnlib.DotNet.Writer {
 
 		void InitializeChunkProperties() {
 			imageCor20Header.EntryPoint = GetEntryPoint();
+			imageCor20Header.Flags = UpdateStrongNameSignedFlag(Options.Cor20HeaderOptions.Flags ?? ComImageFlags.ILOnly);
 
 			importAddressTable.ImportDirectory = importDirectory;
 			importDirectory.ImportAddressTable = importAddressTable;
