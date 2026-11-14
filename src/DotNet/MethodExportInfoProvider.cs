@@ -131,7 +131,6 @@ namespace dnlib.DotNet {
 				int index = info.Index;
 				if ((uint)index >= numFuncs)
 					continue;
-				allInfos[index].Ordinal = null;
 				allInfos[index].Name = info.Name;
 			}
 

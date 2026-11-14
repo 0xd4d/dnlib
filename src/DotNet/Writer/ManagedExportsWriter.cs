@@ -26,6 +26,7 @@ namespace dnlib.DotNet.Writer {
 		readonly List<VTableInfo> vtables;
 		readonly List<MethodInfo> allMethodInfos;
 		readonly List<MethodInfo> sortedOrdinalMethodInfos;
+		readonly List<MethodInfo> sortedFuncMethodInfos;
 		readonly List<MethodInfo> sortedNameMethodInfos;
 		readonly CpuArch cpuArch;
 		uint exportDirOffset;
@@ -116,6 +117,7 @@ namespace dnlib.DotNet.Writer {
 			vtables = new List<VTableInfo>();
 			allMethodInfos = new List<MethodInfo>();
 			sortedOrdinalMethodInfos = new List<MethodInfo>();
+			sortedFuncMethodInfos = new List<MethodInfo>();
 			sortedNameMethodInfos = new List<MethodInfo>();
 			// The error is reported later when we know that there's at least one exported method
 			CpuArch.TryGetCpuArch(machine, out cpuArch);
@@ -157,6 +159,7 @@ namespace dnlib.DotNet.Writer {
 			public readonly MethodDef Method;
 			public readonly uint StubChunkOffset;
 			public int FunctionIndex;
+			public ushort Ordinal;
 			public uint ManagedVtblOffset;
 			public uint NameOffset;
 			public int NameIndex;
@@ -216,6 +219,7 @@ namespace dnlib.DotNet.Writer {
 				vtables.Clear();
 				allMethodInfos.Clear();
 				sortedOrdinalMethodInfos.Clear();
+				sortedFuncMethodInfos.Clear();
 				sortedNameMethodInfos.Clear();
 				return;
 			}
@@ -344,43 +348,51 @@ namespace dnlib.DotNet.Writer {
 				}
 			}
 
+			// Exports with an ordinal get that ordinal. Named exports without an ordinal get the ordinals after the
+			// highest one, in name order. An export with both a name and an ordinal gets both.
 			var namesBlob = new NamesBlob(1 == 2);
 			int nameIndex = 0;
 			bool error = false;
 			var usedOrdinals = new Dictionary<ushort, MethodInfo>();
+			var namedNoOrdinalMethodInfos = new List<MethodInfo>();
 			foreach (var info in allMethodInfos) {
 				var exportInfo = info.Method.ExportInfo;
 				var name = exportInfo.Name;
-				if (name is null) {
-					if (exportInfo.Ordinal is ushort ordinal) {
-						if (usedOrdinals.TryGetValue(ordinal, out var other)) {
-							error = true;
-							logError("Exported method ordinal {0} is used by more than one method: {1} (0x{2:X8}) and {3} (0x{4:X8})",
-								new object[] { ordinal, other.Method, 0x06000000 + metadata.GetRid(other.Method), info.Method, 0x06000000 + metadata.GetRid(info.Method) });
-							continue;
-						}
-						usedOrdinals.Add(ordinal, info);
-						sortedOrdinalMethodInfos.Add(info);
-						continue;
-					}
+				var ordinal = exportInfo.Ordinal;
+				if (name is null && ordinal is null)
 					name = info.Method.Name;
-				}
-				if (string.IsNullOrEmpty(name)) {
+				if (name is null ? ordinal is null : name.Length == 0) {
 					error = true;
 					logError("Exported method name is null or empty, method: {0} (0x{1:X8})", new object[] { info.Method, info.Method.MDToken.Raw });
 					continue;
 				}
-				info.NameOffset = namesBlob.GetMethodNameOffset(name, out info.NameBytes);
-				info.NameIndex = nameIndex++;
-				sortedNameMethodInfos.Add(info);
+				if (ordinal is ushort ord) {
+					if (usedOrdinals.TryGetValue(ord, out var other)) {
+						error = true;
+						logError("Exported method ordinal {0} is used by more than one method: {1} (0x{2:X8}) and {3} (0x{4:X8})",
+							new object[] { ord, other.Method, 0x06000000 + metadata.GetRid(other.Method), info.Method, 0x06000000 + metadata.GetRid(info.Method) });
+						continue;
+					}
+					usedOrdinals.Add(ord, info);
+					info.Ordinal = ord;
+					sortedOrdinalMethodInfos.Add(info);
+				}
+				else
+					namedNoOrdinalMethodInfos.Add(info);
+				if (name is not null) {
+					info.NameOffset = namesBlob.GetMethodNameOffset(name, out info.NameBytes);
+					info.NameIndex = nameIndex++;
+					sortedNameMethodInfos.Add(info);
+				}
 			}
-			Debug.Assert(error || sortedOrdinalMethodInfos.Count + sortedNameMethodInfos.Count == allMethodInfos.Count);
+			Debug.Assert(error || sortedOrdinalMethodInfos.Count + namedNoOrdinalMethodInfos.Count == allMethodInfos.Count);
 			sdataBytesInfo.MethodNameOffsets = namesBlob.GetMethodNameOffsets();
 			Debug.Assert(sortedNameMethodInfos.Count == sdataBytesInfo.MethodNameOffsets.Length);
 			sdataBytesInfo.moduleNameOffset = namesBlob.GetOtherNameOffset(moduleName);
 
-			sortedOrdinalMethodInfos.Sort((a, b) => a.Method.ExportInfo.Ordinal.Value.CompareTo(b.Method.ExportInfo.Ordinal.Value));
+			sortedOrdinalMethodInfos.Sort((a, b) => a.Ordinal.CompareTo(b.Ordinal));
 			sortedNameMethodInfos.Sort((a, b) => CompareTo(a.NameBytes, b.NameBytes));
+			namedNoOrdinalMethodInfos.Sort((a, b) => CompareTo(a.NameBytes, b.NameBytes));
 
 			int ordinalBase, nextFreeOrdinal;
 			if (sortedOrdinalMethodInfos.Count == 0) {
@@ -388,20 +400,22 @@ namespace dnlib.DotNet.Writer {
 				nextFreeOrdinal = 0;
 			}
 			else {
-				ordinalBase = sortedOrdinalMethodInfos[0].Method.ExportInfo.Ordinal.Value;
-				nextFreeOrdinal = sortedOrdinalMethodInfos[sortedOrdinalMethodInfos.Count - 1].Method.ExportInfo.Ordinal.Value + 1;
+				ordinalBase = sortedOrdinalMethodInfos[0].Ordinal;
+				nextFreeOrdinal = sortedOrdinalMethodInfos[sortedOrdinalMethodInfos.Count - 1].Ordinal + 1;
 			}
 			int nameFuncBaseIndex = nextFreeOrdinal - ordinalBase;
-			int lastFuncIndex = 0;
-			for (int i = 0; i < sortedOrdinalMethodInfos.Count; i++) {
-				int index = sortedOrdinalMethodInfos[i].Method.ExportInfo.Ordinal.Value - ordinalBase;
-				sortedOrdinalMethodInfos[i].FunctionIndex = index;
-				lastFuncIndex = index;
+			int lastFuncIndex = -1;
+			foreach (var info in sortedOrdinalMethodInfos) {
+				lastFuncIndex = info.Ordinal - ordinalBase;
+				info.FunctionIndex = lastFuncIndex;
 			}
-			for (int i = 0; i < sortedNameMethodInfos.Count; i++) {
+			for (int i = 0; i < namedNoOrdinalMethodInfos.Count; i++) {
 				lastFuncIndex = nameFuncBaseIndex + i;
-				sortedNameMethodInfos[i].FunctionIndex = lastFuncIndex;
+				namedNoOrdinalMethodInfos[i].FunctionIndex = lastFuncIndex;
 			}
+			// Sorted by function index
+			sortedFuncMethodInfos.AddRange(sortedOrdinalMethodInfos);
+			sortedFuncMethodInfos.AddRange(namedNoOrdinalMethodInfos);
 			int funcSize = lastFuncIndex + 1;
 			if (funcSize > 0x10000) {
 				logError("Exported function array is too big", Array2.Empty<object>());
@@ -463,7 +477,7 @@ namespace dnlib.DotNet.Writer {
 			uint funcBaseRva = (uint)stubsChunk.RVA;
 			writer.Position = sdataBytesInfo.addressOfFunctionsStreamOffset;
 			int currentFuncIndex = 0;
-			foreach (var info in sortedOrdinalMethodInfos) {
+			foreach (var info in sortedFuncMethodInfos) {
 				int zeroes = info.FunctionIndex - currentFuncIndex;
 				if (zeroes < 0)
 					throw new InvalidOperationException();
@@ -471,11 +485,6 @@ namespace dnlib.DotNet.Writer {
 					writer.WriteInt32(0);
 				writer.WriteUInt32(funcBaseRva + info.StubChunkOffset);
 				currentFuncIndex = info.FunctionIndex + 1;
-			}
-			foreach (var info in sortedNameMethodInfos) {
-				if (info.FunctionIndex != currentFuncIndex++)
-					throw new InvalidOperationException();
-				writer.WriteUInt32(funcBaseRva + info.StubChunkOffset);
 			}
 
 			var nameOffsets = sdataBytesInfo.MethodNameOffsets;
