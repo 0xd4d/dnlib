@@ -211,7 +211,14 @@ namespace dnlib.DotNet.Writer {
 			foreach (var kv in dict)
 				vtables.AddRange(kv.Value);
 
-			WriteSdataBlob(timestamp);
+			if (!WriteSdataBlob(timestamp)) {
+				// Don't export anything. Nothing has been written yet and the chunk lengths are still 0.
+				vtables.Clear();
+				allMethodInfos.Clear();
+				sortedOrdinalMethodInfos.Clear();
+				sortedNameMethodInfos.Clear();
+				return;
+			}
 
 			vtableFixups.length = (uint)vtables.Count * 8;
 			stubsChunk.length = stubOffset;
@@ -320,7 +327,8 @@ namespace dnlib.DotNet.Writer {
 		/// Writes the .sdata blob. We could write the data in any order, but we write the data in the same order as ILASM
 		/// </summary>
 		/// <param name="timestamp">PE timestamp</param>
-		void WriteSdataBlob(uint timestamp) {
+		/// <returns><c>false</c> if an error was reported and nothing should be exported</returns>
+		bool WriteSdataBlob(uint timestamp) {
 			var stream = new MemoryStream();
 			var writer = new DataWriter(stream);
 
@@ -397,7 +405,7 @@ namespace dnlib.DotNet.Writer {
 			int funcSize = lastFuncIndex + 1;
 			if (funcSize > 0x10000) {
 				logError("Exported function array is too big", Array2.Empty<object>());
-				return;
+				return false;
 			}
 
 			// Write IMAGE_EXPORT_DIRECTORY
@@ -426,6 +434,7 @@ namespace dnlib.DotNet.Writer {
 			namesBlob.Write(writer);
 
 			sdataBytesInfo.Data = stream.ToArray();
+			return true;
 		}
 
 		void WriteSdata(DataWriter writer) {
