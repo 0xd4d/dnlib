@@ -275,41 +275,49 @@ namespace dnlib.DotNet.Writer {
 			//	3. All the strings.
 			//	4. All resource data.
 
-			uint rsrcOffset = 0;
+			// A ulong can't overflow here: every list has less than 2^31 elements and every element is smaller than 2^33 bytes
+			ulong rsrcOffset = 0;
 			var maxAlignment = GetMaxAlignment(offset, out var error);
 			if (error is not null)
 				throw new ModuleWriterException(error);
 
 			foreach (var dir in dirList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DIR_ALIGNMENT);
-				dirDict[dir] = rsrcOffset;
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_DIR_ALIGNMENT);
+				dirDict[dir] = (uint)rsrcOffset;
 				if (dir != dirList[0])
 					AddString(dir.Name);
-				rsrcOffset += 16 + (uint)(dir.Directories.Count + dir.Data.Count) * 8;
+				rsrcOffset += 16 + ((ulong)dir.Directories.Count + (ulong)dir.Data.Count) * 8;
 			}
 
 			foreach (var data in dataHeaderList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DATA_HEADER_ALIGNMENT);
-				dataHeaderDict[data] = rsrcOffset;
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_DATA_HEADER_ALIGNMENT);
+				dataHeaderDict[data] = (uint)rsrcOffset;
 				AddString(data.Name);
 				AddData(data);
 				rsrcOffset += 16;
 			}
 
 			foreach (var s in stringsList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_STRING_ALIGNMENT);
-				stringsDict[s] = rsrcOffset;
-				rsrcOffset += 2 + (uint)(s.Length * 2);
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_STRING_ALIGNMENT);
+				stringsDict[s] = (uint)rsrcOffset;
+				rsrcOffset += 2 + (ulong)s.Length * 2;
 			}
 
 			foreach (var data in dataList) {
-				rsrcOffset = Utils.AlignUp(rsrcOffset, RESOURCE_DATA_ALIGNMENT);
-				dataDict[data] = rsrcOffset;
+				rsrcOffset = AlignUp(rsrcOffset, RESOURCE_DATA_ALIGNMENT);
+				dataDict[data] = (uint)rsrcOffset;
 				rsrcOffset += data.CreateReader().Length;
 			}
 
-			length = rsrcOffset;
+			// All offsets and the length are 32-bit values. If the total doesn't fit, the offsets
+			// stored above have wrapped and are invalid.
+			if (rsrcOffset > uint.MaxValue)
+				throw new ModuleWriterException("Win32 resources are too big");
+
+			length = (uint)rsrcOffset;
 		}
+
+		static ulong AlignUp(ulong v, uint alignment) => (v + alignment - 1) & ~(ulong)(alignment - 1);
 
 		void AddData(ResourceData data) {
 			if (dataDict.ContainsKey(data))
@@ -422,10 +430,25 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt16((ushort)ids.Count);
 
 			// These must be sorted in ascending order. Names are case insensitive.
-			named.Sort((a, b) => a.Name.Name.ToUpperInvariant().CompareTo(b.Name.Name.ToUpperInvariant()));
+			// Each name is uppercased once, not in every comparison, since many entries can
+			// have the same long name.
+			var upperNames = new Dictionary<string, string>(StringComparer.Ordinal);
+			var sortedNamed = new List<KeyValuePair<string, ResourceDirectoryEntry>>(named.Count);
+			foreach (var d in named) {
+				var name = d.Name.Name;
+				if (!upperNames.TryGetValue(name, out var upperName)) {
+					upperName = name.ToUpperInvariant();
+					upperNames.Add(name, upperName);
+				}
+				sortedNamed.Add(new KeyValuePair<string, ResourceDirectoryEntry>(upperName, d));
+			}
+			// The comparison must be ordinal, it's what Windows uses and it doesn't depend on
+			// the current culture.
+			sortedNamed.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
 			ids.Sort((a, b) => a.Name.Id.CompareTo(b.Name.Id));
 
-			foreach (var d in named) {
+			foreach (var kv in sortedNamed) {
+				var d = kv.Value;
 				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name]);
 				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}

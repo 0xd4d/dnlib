@@ -8,6 +8,15 @@ namespace dnlib.DotNet.MD {
 	/// Represents the #Blob stream
 	/// </summary>
 	public sealed class BlobStream : HeapStream {
+		// All offsets are ANDed with this value before they're used. The CLR only uses the low
+		// 16 bits if it's a #- stream with a #JTD stream and the BigBlob bit isn't set.
+		// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::InitWithLargeTables() (m_iBlobsMask isn't updated)
+		uint offsetMask = uint.MaxValue;
+
+		internal void SetOffsetMask(uint mask) => offsetMask = mask;
+
+		readonly CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR;
+
 		/// <inheritdoc/>
 		public BlobStream() {
 		}
@@ -17,12 +26,20 @@ namespace dnlib.DotNet.MD {
 			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
 		}
 
+		internal BlobStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader, CLRRuntimeReaderKind runtime)
+			: base(mdReaderFactory, metadataBaseOffset, streamHeader) => this.runtime = runtime;
+
+		// The CLR fails to read the entry if its length is encoded as 111x, other runtimes treat it as 110x.
+		bool TryReadLength(ref DataReader reader, out uint length) =>
+			runtime == CLRRuntimeReaderKind.CLR ? reader.TryReadCompressedUInt32Strict(out length) : reader.TryReadCompressedUInt32(out length);
+
 		/// <summary>
 		/// Reads data
 		/// </summary>
 		/// <param name="offset">Offset of data</param>
 		/// <returns>The data or <c>null</c> if invalid offset</returns>
 		public byte[] Read(uint offset) {
+			offset &= offsetMask;
 			// The CLR has a special check for offset 0. It always interprets it as
 			// 0-length data, even if that first byte isn't 0 at all.
 			if (offset == 0)
@@ -58,11 +75,18 @@ namespace dnlib.DotNet.MD {
 		/// <param name="reader">Updated with the reader</param>
 		/// <returns></returns>
 		public bool TryCreateReader(uint offset, out DataReader reader) {
+			offset &= offsetMask;
+			// The CLR has a special check for offset 0. It always interprets it as
+			// 0-length data, even if that first byte isn't 0 at all.
+			if (offset == 0) {
+				reader = dataReader.Slice(0, 0);
+				return true;
+			}
 			reader = dataReader;
 			if (!IsValidOffset(offset))
 				return false;
 			reader.Position = offset;
-			if (!reader.TryReadCompressedUInt32(out uint length))
+			if (!TryReadLength(ref reader, out uint length))
 				return false;
 			if (!reader.CanRead(length))
 				return false;

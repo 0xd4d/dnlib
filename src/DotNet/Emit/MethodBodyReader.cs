@@ -1,10 +1,35 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Emit {
+	/// <summary>
+	/// <see cref="MethodBodyReader"/> options
+	/// </summary>
+	[Flags]
+	public enum MethodBodyReaderOptions {
+		/// <summary>
+		/// No option is enabled
+		/// </summary>
+		None						= 0,
+
+		/// <summary>
+		/// Allow a fat header whose size is less than 3 dwords. The code then starts inside the method
+		/// header and no extra sections (eg. exception handlers) are read. The CLR only accepts this for
+		/// IL that doesn't come from a PE file, eg. IL set by a profiler.
+		/// </summary>
+		AllowCodeInsideFatHeader	= 0x00000001,
+
+		/// <summary>
+		/// Allow a fat header that isn't 4-byte aligned. The 64-bit CLR doesn't decode such a header,
+		/// the method gets an empty body and the JIT fails to compile it. The 32-bit CLR reads it.
+		/// </summary>
+		AllowUnalignedFatHeader		= 0x00000002,
+	}
+
 	/// <summary>
 	/// Reads strings from #US heap
 	/// </summary>
@@ -49,6 +74,7 @@ namespace dnlib.DotNet.Emit {
 		uint totalBodySize;
 		DataReader? exceptionsReader;
 		readonly GenericParamContext gpContext;
+		readonly MethodBodyReaderOptions options;
 
 		/// <summary>
 		/// Creates a CIL method body or returns an empty one if <paramref name="reader"/> doesn't
@@ -165,8 +191,23 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">The module context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) {
-			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context);
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) =>
+			CreateCilBody(opResolver, codeReader, ehReader, parameters, gpContext, context, MethodBodyReaderOptions.None);
+
+		/// <summary>
+		/// Creates a CIL method body or returns an empty one if <paramref name="codeReader"/> doesn't
+		/// point to the start of a valid CIL method body.
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">The module context</param>
+		/// <param name="options">Options</param>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context, MethodBodyReaderOptions options) {
+			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context, options);
 			if (!mbReader.Read())
 				return new CilBody();
 			return mbReader.CreateCilBody();
@@ -308,10 +349,26 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">Module context</param>
 		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context)
+			: this(opResolver, codeReader, ehReader, parameters, gpContext, context, MethodBodyReaderOptions.None) {
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="opResolver">The operand resolver</param>
+		/// <param name="codeReader">A reader positioned at the start of a .NET method body</param>
+		/// <param name="ehReader">Exception handler reader or <c>null</c> if exceptions aren't
+		/// present or if <paramref name="codeReader"/> contains the exception handlers</param>
+		/// <param name="parameters">Method parameters</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="context">Module context</param>
+		/// <param name="options">Options</param>
+		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context, MethodBodyReaderOptions options)
 			: base(codeReader, parameters, context) {
 			this.opResolver = opResolver;
 			exceptionsReader = ehReader;
 			this.gpContext = gpContext;
+			this.options = options;
 			startOfHeader = uint.MaxValue;
 		}
 
@@ -374,17 +431,28 @@ namespace dnlib.DotNet.Emit {
 
 			case 3:
 				// Fat header. Can have locals and exception handlers
+
+				// The 64-bit CLR (DecoderInit) only decodes a fat header if it's 4-byte aligned,
+				// else the method gets an empty body (code size 0) and the JIT fails to compile it.
+				// The 32-bit CLR doesn't verify it.
+				if ((startOfHeader & 3) != 0 && (options & MethodBodyReaderOptions.AllowUnalignedFatHeader) == 0)
+					return false;
 				flags = (ushort)((reader.ReadByte() << 8) | b);
 				headerSize = (byte)(flags >> 12);
 				maxStack = reader.ReadUInt16();
 				codeSize = reader.ReadUInt32();
 				localVarSigTok = reader.ReadUInt32();
 
-				// The CLR allows the code to start inside the method header. But if it does,
-				// the CLR doesn't read any exceptions.
-				reader.Position = reader.Position - 12 + headerSize * 4U;
-				if (headerSize < 3)
+				// The CLR rejects method bodies in PE files if the header size is less than 3 dwords
+				// (CheckILMethod). IL that doesn't come from a PE file (eg. IL set by a profiler) is
+				// only decoded by DecoderInit, which allows the code to start inside the method
+				// header but doesn't read any extra sections.
+				if (headerSize < 3) {
+					if ((options & MethodBodyReaderOptions.AllowCodeInsideFatHeader) == 0)
+						return false;
 					flags &= 0xFFF7;
+				}
+				reader.Position = reader.Position - 12 + headerSize * 4U;
 				headerSize *= 4;
 				break;
 
@@ -429,6 +497,9 @@ namespace dnlib.DotNet.Emit {
 			if (standAloneSig is null)
 				return null;
 			var sig = standAloneSig.MethodSig;
+			// The CLR reads it as a method sig even if it has a non-method calling convention
+			if (sig is null && standAloneSig is StandAloneSigMD standAloneSigMD)
+				sig = standAloneSigMD.ReadCalliSig(gpContext);
 			if (sig is not null)
 				sig.OriginalToken = standAloneSig.MDToken.Raw;
 			return sig;
@@ -480,7 +551,13 @@ namespace dnlib.DotNet.Emit {
 
 		void ReadFatExceptionHandlers(ref DataReader ehReader) {
 			ehReader.Position--;
-			int num = (int)((ehReader.ReadUInt32() >> 8) / 24);
+			uint fullCount = (ehReader.ReadUInt32() >> 8) / 24;
+			// The CLR (CheckILMethod) verifies that the whole clause table is readable before
+			// anything truncates the count
+			if (!ehReader.CanRead(fullCount * 24))
+				throw new InvalidMethodException("Exception handler table extends past the end of the data");
+			// The CLR only passes the low 16 bits of the count to the JIT (getMethodInfoILMethodHeaderHelper)
+			int num = (int)(fullCount & 0xFFFF);
 			for (int i = 0; i < num; i++) {
 				var eh = new ExceptionHandler((ExceptionHandlerType)ehReader.ReadUInt32());
 				uint offs = ehReader.ReadUInt32();
@@ -520,14 +597,25 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
+		bool HasLocalloc() {
+			var instructions = this.instructions;
+			for (int i = 0; i < instructions.Count; i++) {
+				if (instructions[i].OpCode.Code == Code.Localloc)
+					return true;
+			}
+			return false;
+		}
+
 		/// <summary>
 		/// Creates a CIL body. Must be called after <see cref="Read()"/>, and can only be
 		/// called once.
 		/// </summary>
 		/// <returns>A new <see cref="CilBody"/> instance</returns>
 		public CilBody CreateCilBody() {
-			// Set init locals if it's a tiny method or if the init locals bit is set (fat header)
-			bool initLocals = flags == 2 || (flags & 0x10) != 0;
+			// A tiny header has no init locals bit, so the CLR never zeroes locals or localloc memory.
+			// A tiny method has no locals, so the bit only matters if it has a localloc instruction.
+			// Without one, it's set so locals that are later added to the method get initialized.
+			bool initLocals = flags == 2 ? !HasLocalloc() : (flags & 0x10) != 0;
 			var cilBody = new CilBody(initLocals, instructions, exceptionHandlers, locals);
 			cilBody.HeaderSize = headerSize;
 			cilBody.MaxStack = maxStack;

@@ -27,6 +27,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		const ushort STREAM_INVALID_INDEX = ushort.MaxValue;
 
 		Dictionary<string, DbiDocument> documents;
+		HashSet<uint> documentStreams;
 		Dictionary<int, DbiFunction> functions;
 		byte[] sourcelinkData;
 		byte[] srcsrvData;
@@ -66,10 +67,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 				names = null;
 				strings = null;
 				modules = null;
+				documentStreams = null;
 			}
 		}
 
-		static uint RoundUpDiv(uint value, uint divisor) => (value + divisor - 1) / divisor;
+		static uint RoundUpDiv(uint value, uint divisor) => (uint)(((ulong)value + divisor - 1) / divisor);
 
 		void ReadInternal(ref DataReader reader) {
 			string sig = reader.ReadString(30, Encoding.ASCII);
@@ -82,10 +84,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 			uint pageCount = reader.ReadUInt32();
 			uint rootSize = reader.ReadUInt32();
 			reader.ReadUInt32();
+			// Valid page sizes are 512, 1024, 2048, 4096, 8192, 16384 and 32768. A tiny page size
+			// would make the page arrays many times bigger than the file.
+			if (pageSize < 0x200 || pageSize > 0x8000 || (pageSize & (pageSize - 1)) != 0)
+				throw new PdbException("Invalid page size");
 			var numOfRootPages = RoundUpDiv(rootSize, pageSize);
 			var numOfPtrPages = RoundUpDiv(numOfRootPages * 4, pageSize);
-			if (pageCount * pageSize != reader.Length)
+			if ((ulong)pageCount * pageSize != reader.Length)
 				throw new PdbException("File size mismatch");
+			if (numOfRootPages > pageCount)
+				throw new PdbException("Invalid root stream size");
 
 			var pages = new DataReader[pageCount];
 			uint offset = 0;
@@ -112,6 +120,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var tokenMapStream = ReadModules();
 
 			documents = new Dictionary<string, DbiDocument>(StringComparer.OrdinalIgnoreCase);
+			documentStreams = new HashSet<uint>();
 			foreach (var module in modules) {
 				if (IsValidStreamIndex(module.StreamId))
 					module.LoadFunctions(this, ref streams[module.StreamId].Content);
@@ -144,16 +153,25 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		void ReadRootDirectory(MsfStream stream, DataReader[] pages, uint pageSize) {
 			uint streamNum = stream.Content.ReadUInt32();
+			if (streamNum > stream.Content.BytesLeft / 4)
+				throw new PdbException("Invalid number of streams");
 			var streamSizes = new uint[streamNum];
 			for (int i = 0; i < streamSizes.Length; i++)
 				streamSizes[i] = stream.Content.ReadUInt32();
 
+			// Writers don't make streams share pages so limit their total size to the size of the
+			// file. A small file could otherwise use many GBs since all streams could use the same pages.
+			ulong fileSize = (ulong)pages.Length * pageSize;
+			ulong totalStreamSize = 0;
 			streams = new MsfStream[streamNum];
 			for (int i = 0; i < streamSizes.Length; i++) {
 				if (streamSizes[i] == 0xffffffff) {
 					streams[i] = null;
 					continue;
 				}
+				totalStreamSize += streamSizes[i];
+				if (totalStreamSize > fileSize)
+					throw new PdbException("Stream sizes are bigger than the file");
 				var pageCount = RoundUpDiv(streamSizes[i], pageSize);
 				var streamPages = new DataReader[pageCount];
 				for (int j = 0; j < streamPages.Length; j++)
@@ -174,11 +192,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 			/*uint entryCount = */stream.ReadUInt32();
 			uint entryCapacity = stream.ReadUInt32();
-			var entryOk = new BitArray(stream.ReadBytes(stream.ReadInt32() * 4));
+			int entryOkWords = stream.ReadInt32();
+			if ((uint)entryOkWords > stream.BytesLeft / 4)
+				throw new PdbException("Invalid bit vector size");
+			var entryOk = new BitArray(stream.ReadBytes(entryOkWords * 4));
 			if (stream.ReadUInt32() != 0)
 				throw new NotSupportedException();
 
 			names = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+			var namesByPos = new Dictionary<uint, string>();
+			uint totalSize = 0;
 			entryCapacity = Math.Min(entryCapacity, (uint)entryOk.Count);
 			for (int i = 0; i < entryCapacity; i++) {
 				if (!entryOk[i])
@@ -186,8 +209,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 				var pos = stream.ReadUInt32();
 				var streamId = stream.ReadUInt32();
-				nameData.Position = pos;
-				var streamName = ReadCString(ref nameData);
+				if (!namesByPos.TryGetValue(pos, out var streamName)) {
+					streamName = ReadCString(ref nameData, pos, ref totalSize);
+					namesByPos.Add(pos, streamName);
+				}
 				names[streamName] = streamId;
 			}
 		}
@@ -204,14 +229,28 @@ namespace dnlib.DotNet.Pdb.Managed {
 			stream.Position += strSize;
 
 			uint count = stream.ReadUInt32();
+			if (count > stream.BytesLeft / 4)
+				throw new PdbException("Invalid number of strings");
 			strings = new Dictionary<uint, string>((int)count);
+			uint totalSize = 0;
 			for (uint i = 0; i < count; i++) {
 				var pos = stream.ReadUInt32();
-				if (pos == 0)
+				if (pos == 0 || strings.ContainsKey(pos))
 					continue;
-				strData.Position = pos;
-				strings[pos] = ReadCString(ref strData);
+				strings[pos] = ReadCString(ref strData, pos, ref totalSize);
 			}
+		}
+
+		// Reads a string from a string table. Writers don't make strings share bytes so the total size of
+		// all strings read from a table is limited to the size of the table. A small file could otherwise
+		// use many GBs since every string could be a suffix of the same big string.
+		static string ReadCString(ref DataReader table, uint pos, ref uint totalSize) {
+			table.Position = pos;
+			var s = ReadCString(ref table);
+			totalSize += table.Position - pos;
+			if (totalSize > table.Length)
+				throw new PdbException("Strings are bigger than the string table");
+			return s;
 		}
 
 		static uint ReadSizeField(ref DataReader reader) {
@@ -263,8 +302,14 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!documents.TryGetValue(name, out var doc)) {
 				doc = new DbiDocument(name);
 
-				if (names.TryGetValue($"/src/files/{name}", out uint streamId))
+				if (names.TryGetValue($"/src/files/{name}", out uint streamId)) {
+					// Writers don't make documents share streams so every stream can be read by only one
+					// document. A small file could otherwise use many GBs since every document makes its
+					// own copy of the embedded source code and all of them could use the same big stream.
+					if (!documentStreams.Add(streamId))
+						throw new PdbException("Documents share a stream");
 					doc.Read(ref streams[streamId].Content);
+				}
 				documents.Add(name, doc);
 			}
 			return doc;
@@ -281,7 +326,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					reader.Position += 4;
 					var offset = reader.ReadUInt32();
 					reader.Position += 2;
-					var name = ReadCString(ref reader);
+					var name = ReadCString(ref reader, end);
 
 					if (name == "COM+_Entry_Point") {
 						entryPt = offset;
@@ -315,6 +360,23 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		internal static string ReadCString(ref DataReader reader) => reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
+
+		// Reads a name that must end before 'end', the end of its symbol record, so it can't come from later records
+		internal static string ReadCString(ref DataReader reader, uint end) {
+			var pos = reader.Position;
+			if (end > reader.Length)
+				end = reader.Length;
+			if (pos >= end)
+				return string.Empty;
+			var nameReader = reader.Slice(pos, end - pos);
+			var name = nameReader.TryReadZeroTerminatedUtf8String();
+			if (name is null) {
+				reader.Position = end;
+				return string.Empty;
+			}
+			reader.Position = pos + nameReader.Position;
+			return name;
+		}
 
 		public override SymbolMethod GetMethod(MethodDef method, int version) {
 			if (version != 1)

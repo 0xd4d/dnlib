@@ -98,17 +98,20 @@ namespace dnlib.DotNet.Writer {
 			return len;
 		}
 
-		internal bool CanReuse(RVA origRva, uint origSize) {
-			uint length;
+		internal bool CanReuse(RVA origRva, uint origSize) => GetLengthAt(origRva) <= origSize;
+
+		/// <summary>
+		/// Gets the number of bytes that are written if the body is written at <paramref name="rva"/>
+		/// </summary>
+		/// <param name="rva">RVA</param>
+		internal uint GetLengthAt(RVA rva) {
 			if (HasExtraSections) {
-				var rva2 = origRva + (uint)code.Length;
+				var rva2 = rva + (uint)code.Length;
 				rva2 = rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT);
 				rva2 += (uint)extraSections.Length;
-				length = (uint)rva2 - (uint)origRva;
+				return (uint)rva2 - (uint)rva;
 			}
-			else
-				length = (uint)code.Length;
-			return length <= origSize;
+			return (uint)code.Length;
 		}
 
 		/// <inheritdoc/>

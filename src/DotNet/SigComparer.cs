@@ -541,6 +541,63 @@ namespace dnlib.DotNet {
 		SigComparerOptions options;
 		GenericArguments genericArguments;
 		readonly ModuleDef sourceModule;
+		// Type pairs that are currently being compared for type equivalence
+		internal TIAHelper.TypeDefPairList typeEquivalenceVisited;
+		// Type pairs proven equivalent during the outermost type equivalence compare
+		internal TIAHelper.TypeDefPairSet typeEquivalenceCache;
+		StateFlags stateFlags;
+
+		[Flags]
+		enum StateFlags : byte {
+			None							= 0,
+			// Set when type equivalence was used to compare two types
+			UsedTypeEquivalence				= 0x01,
+			// Set if we're comparing a TypeSig element (eg. a param type or a field type)
+			InTypeSigElement				= 0x02,
+			// Set if we're comparing a TypeSig element a 2nd time, emulating the CLR's 'type equivalence
+			// forbidden' state (see TokenPairList). This is only done if type equivalence was used the 1st time.
+			TypeEquivalenceStrict			= 0x04,
+			// Only used if TypeEquivalenceStrict is set: set if type equivalence isn't allowed
+			TypeEquivalenceForbidden		= 0x08,
+			// Only used if TypeEquivalenceStrict isn't set: set if a function pointer or generic instance type
+			// has been seen in this TypeSig element so type equivalence might not be allowed
+			TypeEquivalenceMaybeForbidden	= 0x10,
+			// Set if type equivalence was used when TypeEquivalenceMaybeForbidden was set
+			NeedStrictTypeEquivalence		= 0x20,
+		}
+
+		bool GetFlag(StateFlags flag) => (stateFlags & flag) != 0;
+		void SetFlag(StateFlags flag, bool value) {
+			if (value)
+				stateFlags |= flag;
+			else
+				stateFlags &= ~flag;
+		}
+
+		bool usedTypeEquivalence {
+			get => GetFlag(StateFlags.UsedTypeEquivalence);
+			set => SetFlag(StateFlags.UsedTypeEquivalence, value);
+		}
+		bool inTypeSigElement {
+			get => GetFlag(StateFlags.InTypeSigElement);
+			set => SetFlag(StateFlags.InTypeSigElement, value);
+		}
+		bool typeEquivalenceStrict {
+			get => GetFlag(StateFlags.TypeEquivalenceStrict);
+			set => SetFlag(StateFlags.TypeEquivalenceStrict, value);
+		}
+		bool typeEquivalenceForbidden {
+			get => GetFlag(StateFlags.TypeEquivalenceForbidden);
+			set => SetFlag(StateFlags.TypeEquivalenceForbidden, value);
+		}
+		bool typeEquivalenceMaybeForbidden {
+			get => GetFlag(StateFlags.TypeEquivalenceMaybeForbidden);
+			set => SetFlag(StateFlags.TypeEquivalenceMaybeForbidden, value);
+		}
+		bool needStrictTypeEquivalence {
+			get => GetFlag(StateFlags.NeedStrictTypeEquivalence);
+			set => SetFlag(StateFlags.NeedStrictTypeEquivalence, value);
+		}
 
 		bool DontCompareTypeScope => (options & SigComparerOptions.DontCompareTypeScope) != 0;
 		bool CompareMethodFieldDeclaringType => (options & SigComparerOptions.CompareMethodFieldDeclaringType) != 0;
@@ -586,6 +643,9 @@ namespace dnlib.DotNet {
 			this.options = options;
 			genericArguments = null;
 			this.sourceModule = sourceModule;
+			typeEquivalenceVisited = null;
+			typeEquivalenceCache = null;
+			stateFlags = StateFlags.None;
 		}
 
 		/// <summary>
@@ -601,10 +661,12 @@ namespace dnlib.DotNet {
 					GetHashCode_TypeName("IntPtr");
 		}
 
-		bool Equals_Names(bool caseInsensitive, UTF8String a, UTF8String b) {
+		internal static bool Equals_Names(bool caseInsensitive, UTF8String a, UTF8String b) {
 			if (caseInsensitive)
 				return UTF8String.ToSystemStringOrEmpty(a).Equals(UTF8String.ToSystemStringOrEmpty(b), StringComparison.OrdinalIgnoreCase);
-			return UTF8String.Equals(a, b);
+			// A null name is the same as an empty name, like in the case insensitive compare, the string overload
+			// and the hash code. Names read from metadata are never null but names of user created types can be.
+			return UTF8String.Equals(UTF8String.IsNull(a) ? UTF8String.Empty : a, UTF8String.IsNull(b) ? UTF8String.Empty : b);
 		}
 
 		bool Equals_Names(bool caseInsensitive, string a, string b) {
@@ -666,6 +728,20 @@ namespace dnlib.DotNet {
 			return ts.TypeSig.RemoveModifiers() as GenericInstSig;
 		}
 
+		// The CLR resolves a TypeRef with a nil ResolutionScope by name in the TypeRef's own
+		// module's assembly (its TypeDefs and ExportedTypes), so treat it as the owner module.
+		static IResolutionScope GetResolutionScope(TypeRef tr) => tr.ResolutionScope ?? tr.Module;
+
+		static IAssembly GetDefinitionAssembly(TypeRef tr) {
+			var asm = tr.DefinitionAssembly;
+			if (asm is null) {
+				var nonNested = TypeRef.GetNonNestedTypeRef(tr);
+				if (nonNested is not null && nonNested.ResolutionScope is null)
+					asm = nonNested.Module?.Assembly;
+			}
+			return asm;
+		}
+
 		bool Equals(IAssembly aAsm, IAssembly bAsm, TypeRef b) {
 			if (Equals(aAsm, bAsm))
 				return true;
@@ -716,7 +792,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool Equals(TypeDef a, IModule bMod, TypeRef b) {
-			if (Equals(a.Module, bMod) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+			if (Equals(a.Module, bMod) && Equals(a.DefinitionAssembly, GetDefinitionAssembly(b)))
 				return true;
 
 			// Could be an exported type. Resolve it and check again.
@@ -724,11 +800,9 @@ namespace dnlib.DotNet {
 			var td = b.Resolve(sourceModule);
 			if (td is null)
 				return false;
-			if (!DontCheckTypeEquivalence) {
-				if (TIAHelper.Equivalent(a, td))
-					return true;
-			}
-			return Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly);
+			if (Equals(a.Module, td.Module) && Equals(a.DefinitionAssembly, td.DefinitionAssembly))
+				return true;
+			return TypeDefsEquivalent(a, td);
 		}
 
 		bool Equals(TypeDef a, FileDef bFile, ExportedType b) {
@@ -742,15 +816,93 @@ namespace dnlib.DotNet {
 		bool TypeDefScopeEquals(TypeDef a, TypeDef b) {
 			if (a is null || b is null)
 				return false;
-			if (!DontCheckTypeEquivalence) {
-				if (TIAHelper.Equivalent(a, b))
-					return true;
+			if (Equals(a.Module, b.Module))
+				return true;
+			return TypeDefsEquivalent(a, b);
+		}
+
+		bool TypeDefsEquivalent(TypeDef a, TypeDef b) {
+			if (DontCheckTypeEquivalence)
+				return false;
+			if (a == b)
+				return true;
+			if (typeEquivalenceStrict) {
+				if (typeEquivalenceForbidden)
+					return false;
 			}
-			return Equals(a.Module, b.Module);
+			else if (typeEquivalenceMaybeForbidden)
+				needStrictTypeEquivalence = true;
+			bool oldUsedTypeEquivalence = usedTypeEquivalence;
+			bool result = TIAHelper.Equivalent(ref this, a, b);
+			usedTypeEquivalence = oldUsedTypeEquivalence || result;
+			return result;
+		}
+
+		/// <summary>
+		/// Called after comparing the enclosing types of two nested types. If the enclosing types
+		/// are only equal because of type equivalence, the nested types must also be equivalent.
+		/// </summary>
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ITypeDefOrRef a, ITypeDefOrRef b) =>
+			CheckNestedTypesEquivalent(enclosingTypesEqual, oldUsedTypeEquivalence, a, b, null, null);
+
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ITypeDefOrRef a, ExportedType b) =>
+			CheckNestedTypesEquivalent(enclosingTypesEqual, oldUsedTypeEquivalence, a, null, null, b);
+
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ExportedType a, ExportedType b) =>
+			CheckNestedTypesEquivalent(enclosingTypesEqual, oldUsedTypeEquivalence, null, null, a, b);
+
+		bool CheckNestedTypesEquivalent(bool enclosingTypesEqual, bool oldUsedTypeEquivalence, ITypeDefOrRef a, ITypeDefOrRef b, ExportedType ea, ExportedType eb) {
+			bool result = enclosingTypesEqual;
+			if (result && usedTypeEquivalence) {
+				var td1 = a is not null ? Resolve(a) : ea?.Resolve();
+				var td2 = b is not null ? Resolve(b) : eb?.Resolve();
+				if (td1 is null || td2 is null)
+					result = false;
+				else if (td1 != td2 && !Equals(td1.Module, td2.Module))
+					result = TypeDefsEquivalent(td1, td2);
+			}
+			usedTypeEquivalence |= oldUsedTypeEquivalence;
+			return result;
+		}
+
+		TypeDef Resolve(ITypeDefOrRef tdr) => tdr is TypeRef tr ? tr.Resolve(sourceModule) : tdr.ResolveTypeDef();
+
+		/// <summary>
+		/// Compares the delegate Invoke method sigs or field sigs of two types that are being compared for
+		/// type equivalence. Generic parameters aren't substituted and return types are always compared.
+		/// </summary>
+		internal bool EqualsForTypeEquivalence(CallingConventionSig a, CallingConventionSig b) {
+			var oldGenericArguments = genericArguments;
+			genericArguments = null;
+			// Each param / field type is a new TypeSig element with a new 'type equivalence forbidden' state
+			// (UsedTypeEquivalence isn't saved/restored)
+			var oldStateFlags = stateFlags;
+			stateFlags &= StateFlags.UsedTypeEquivalence;
+			var oldOptions = ClearOptions(SigComparerOptions.DontCompareReturnType);
+			bool result;
+			if (a is FieldSig fa)
+				result = b is FieldSig fb && Equals(fa, fb);
+			else if (a is MethodBaseSig ma)
+				result = b is MethodBaseSig mb && Equals(ma, mb);
+			else
+				result = false;
+			RestoreOptions(oldOptions);
+			stateFlags = (oldStateFlags & ~StateFlags.UsedTypeEquivalence) | (stateFlags & StateFlags.UsedTypeEquivalence);
+			genericArguments = oldGenericArguments;
+			return result;
+		}
+
+		// See coreclr's TokenPairList::AdjustForTypeSpec(): only generic arguments of interfaces can be equivalent
+		bool IsInterface(ClassOrValueTypeSig sig) {
+			if (sig is not ClassSig)
+				return false;
+			var tdr = sig.TypeDefOrRef;
+			var td = tdr is null ? null : Resolve(tdr);
+			return td is not null && td.IsInterface;
 		}
 
 		bool Equals(TypeRef a, IModule ma, TypeRef b, IModule mb) {
-			if (Equals(ma, mb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+			if (Equals(ma, mb) && Equals(GetDefinitionAssembly(a), GetDefinitionAssembly(b)))
 				return true;
 
 			// Could be exported types. Resolve them and check again.
@@ -762,7 +914,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool Equals(TypeRef a, IModule ma, ExportedType b, FileDef fb) {
-			if (Equals(ma, fb) && Equals(a.DefinitionAssembly, b.DefinitionAssembly))
+			if (Equals(ma, fb) && Equals(GetDefinitionAssembly(a), b.DefinitionAssembly))
 				return true;
 
 			// Could be an exported type. Resolve it and check again.
@@ -792,7 +944,7 @@ namespace dnlib.DotNet {
 		}
 
 		bool Equals(Type a, IModule bMod, TypeRef b) {
-			if (Equals(bMod, a.Module) && Equals(b.DefinitionAssembly, a.Assembly))
+			if (Equals(bMod, a.Module) && Equals(GetDefinitionAssembly(b), a.Assembly))
 				return true;
 
 			// Could be an exported type. Resolve it and check again.
@@ -904,7 +1056,8 @@ namespace dnlib.DotNet {
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(IType a, IType b) {
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
@@ -1046,12 +1199,16 @@ namespace dnlib.DotNet {
 				}
 			}
 
-			var scope = b.ResolutionScope;
+			var scope = GetResolutionScope(b);
 
 			if (!Equals_TypeNames(a.Name, b.Name) || !Equals_TypeNamespaces(a.Namespace, b.Namespace))
 				result = false;
-			else if ((dtb = scope as TypeRef) is not null)	// nested type
+			else if ((dtb = scope as TypeRef) is not null) {	// nested type
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
+			}
 			else if (a.DeclaringType is not null) {
 				// a is nested, b isn't
 				result = false;
@@ -1070,10 +1227,8 @@ namespace dnlib.DotNet {
 					}
 				}
 			}
-			else {
+			else
 				result = false;
-				//TODO: Handle the case where scope is null
-			}
 
 			if (result && !TypeRefCanReferenceGlobalType && a.IsGlobalModuleType)
 				result = false;
@@ -1122,7 +1277,10 @@ exit: ;
 			if (!Equals_TypeNames(a.Name, b.TypeName) || !Equals_TypeNamespaces(a.Namespace, b.TypeNamespace))
 				result = false;
 			else if ((dtb = scope as ExportedType) is not null) {	// nested type
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(a.DeclaringType, dtb);	// Compare enclosing types
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 			}
 			else if (a.DeclaringType is not null) {
 				result = false;	// a is nested, b isn't
@@ -1387,6 +1545,14 @@ exit: ;
 			return result;
 		}
 
+		// Hashes a member's declaring type. The global type always uses GetHashCodeGlobalType()
+		// so it matches members referenced via a ModuleRef or a null reflection declaring type.
+		int GetHashCode_DeclaringType(TypeDef a) {
+			if (a is null || a.IsGlobalModuleType)
+				return GetHashCodeGlobalType();
+			return GetHashCode(a);
+		}
+
 		int GetHashCodeGlobalType() {
 			// We don't always know the name+namespace of the global type, eg. when it's
 			// referenced by a ModuleRef. Use the same hash for all global types.
@@ -1544,7 +1710,11 @@ exit: ;
 			// ************************************************************************************
 
 			// See GetHashCode(Type) for the reason why null returns GetHashCodeGlobalType()
-			if (a is null || a.IsGlobalModuleType)
+			if (a is null)
+				return GetHashCodeGlobalType();
+			// If a TypeRef/ExportedType can reference the global type, the global type must
+			// hash like a normal type since TypeRefs/ExportedTypes are hashed by name.
+			if (a.IsGlobalModuleType && !TypeRefCanReferenceGlobalType)
 				return GetHashCodeGlobalType();
 			if (!DontProjectWinMDRefs) {
 				var tra = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a);
@@ -1568,7 +1738,8 @@ exit: ;
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(TypeSpec a, TypeSpec b) {
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
@@ -1603,12 +1774,12 @@ exit: ;
 				return true;
 			if (a is null || b is null)
 				return false;
-			var ra = a.ResolutionScope;
-			var rb = b.ResolutionScope;
+			var ra = GetResolutionScope(a);
+			var rb = GetResolutionScope(b);
 			if (ra == rb)
 				return true;
 			if (ra is null || rb is null)
-				return false;
+				return DontCompareTypeScope && ra is not TypeRef && rb is not TypeRef;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -1621,7 +1792,10 @@ exit: ;
 
 			// if one of them is a TypeRef, the other one must be too
 			if ((ea = ra as TypeRef) is not null | (eb = rb as TypeRef) is not null) {
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(ea, eb);
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 				resolveCheck = false;
 			}
 			else if (DontCompareTypeScope)
@@ -1677,7 +1851,7 @@ exit: ;
 			if (ia == ib)
 				return true;
 			if (ia is null || ib is null)
-				return false;
+				return DontCompareTypeScope && ia is not ExportedType && ib is not ExportedType;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -1689,7 +1863,10 @@ exit: ;
 
 			// if one of them is an ExportedType, the other one must be too
 			if ((ea = ia as ExportedType) is not null | (eb = ib as ExportedType) is not null) {
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(ea, eb);
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 				checkResolve = false;
 			}
 			else if (DontCompareTypeScope)
@@ -1730,12 +1907,12 @@ exit: ;
 				return true;	// both are null
 			if (a is null || b is null)
 				return false;
-			var ra = a.ResolutionScope;
+			var ra = GetResolutionScope(a);
 			var ib = b.Implementation;
 			if (ra == ib)
 				return true;
 			if (ra is null || ib is null)
-				return false;
+				return DontCompareTypeScope && ra is not TypeRef && ib is not ExportedType;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -1749,7 +1926,10 @@ exit: ;
 
 			// If one is a nested type, the other one must be too
 			if ((ea = ra as TypeRef) is not null | (eb = ib as ExportedType) is not null) {
+				bool oldUsedTypeEquivalence = usedTypeEquivalence;
+				usedTypeEquivalence = false;
 				result = Equals(ea, eb);
+				result = CheckNestedTypesEquivalent(result, oldUsedTypeEquivalence, a, b);
 				checkResolve = false;
 			}
 			else if (DontCompareTypeScope)
@@ -1759,7 +1939,7 @@ exit: ;
 			else if ((aa = ra as AssemblyRef) is not null & (ab = ib as AssemblyRef) is not null)
 				result = Equals(aa, a, ab, b);
 			else if (ma is not null && ab is not null)
-				result = Equals(a.DefinitionAssembly, ab, b);
+				result = Equals(GetDefinitionAssembly(a), ab, b);
 			else if (fb is not null && aa is not null)
 				result = Equals(b.DefinitionAssembly, aa, a);
 			else {
@@ -1890,11 +2070,64 @@ exit: ;
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(TypeSig a, TypeSig b) {
+			if (inTypeSigElement)
+				return EqualsCore(a, b);
+
+			// This is a new TypeSig element (eg. a param or field type). The CLR doesn't allow type
+			// equivalence after it has seen a function pointer or a generic instance type (except
+			// generic args of interfaces) in the same element (see coreclr's CompareElementType()).
+			// This is rare so only emulate it (which resolves generic types) if type equivalence was used
+			// after a function pointer or generic instance type.
+			inTypeSigElement = true;
+			typeEquivalenceMaybeForbidden = false;
+			needStrictTypeEquivalence = false;
+			bool result = EqualsCore(a, b);
+			if (result && needStrictTypeEquivalence) {
+				typeEquivalenceStrict = true;
+				typeEquivalenceForbidden = false;
+				result = EqualsCore(a, b);
+				typeEquivalenceStrict = false;
+				typeEquivalenceForbidden = false;
+			}
+			typeEquivalenceMaybeForbidden = false;
+			needStrictTypeEquivalence = false;
+			inTypeSigElement = false;
+			return result;
+		}
+
+		/// <summary>
+		/// Compares two function pointer calling conventions. With <see cref="SigComparerOptions.IgnoreModifiers"/>,
+		/// C/StdCall/ThisCall/FastCall are treated as <see cref="CallingConvention.Unmanaged"/> since the specific
+		/// unmanaged calling convention can also be encoded as <c>modopt(CallConvXXX)</c> modifiers on the
+		/// return type, which are ignored (same as the CLR's NormalizeFnPtrCallingConvention()).
+		/// </summary>
+		bool FnPtrCallingConventionEquals(CallingConvention a, CallingConvention b) {
+			if (a == b)
+				return true;
+			if (!IgnoreModifiers)
+				return false;
+			return NormalizeFnPtrCallingConvention(a) == NormalizeFnPtrCallingConvention(b);
+		}
+
+		static CallingConvention NormalizeFnPtrCallingConvention(CallingConvention cc) {
+			switch (cc & CallingConvention.Mask) {
+			case CallingConvention.C:
+			case CallingConvention.StdCall:
+			case CallingConvention.ThisCall:
+			case CallingConvention.FastCall:
+				return (cc & ~CallingConvention.Mask) | CallingConvention.Unmanaged;
+			default:
+				return cc;
+			}
+		}
+
+		bool EqualsCore(TypeSig a, TypeSig b) {
 			if (IgnoreModifiers) {
 				a = a.RemoveModifiers();
 				b = b.RemoveModifiers();
 			}
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
@@ -1975,14 +2208,42 @@ exit: ;
 						result = TokenEquals(gt1?.TypeDefOrRef, gt2?.TypeDefOrRef) &&
 								Equals(gia.GenericArguments, gib.GenericArguments);
 					}
+					else if (typeEquivalenceStrict) {
+						// The CLR never allows type equivalence for the generic type, and only allows it for the
+						// generic arguments if the generic type is an interface. The state isn't restored afterwards.
+						bool entryForbidden = typeEquivalenceForbidden;
+						typeEquivalenceForbidden = true;
+						result = Equals(gia.GenericType, gib.GenericType);
+						typeEquivalenceForbidden = entryForbidden || !IsInterface(gia.GenericType);
+						result = result && Equals(gia.GenericArguments, gib.GenericArguments);
+					}
 					else {
+						typeEquivalenceMaybeForbidden = true;
 						result = Equals(gia.GenericType, gib.GenericType) &&
 								Equals(gia.GenericArguments, gib.GenericArguments);
 					}
 					break;
 
 				case ElementType.FnPtr:
-					result = Equals((a as FnPtrSig).Signature, (b as FnPtrSig).Signature);
+					// The CLR compares the fnptr calling convention byte exactly (incl. bit 0x80), unless
+					// modifiers are ignored, see FnPtrCallingConventionEquals()
+					var fpa = (a as FnPtrSig).Signature;
+					var fpb = (b as FnPtrSig).Signature;
+					// The CLR doesn't allow type equivalence inside (and after) function pointers. The state isn't restored afterwards.
+					if (typeEquivalenceStrict)
+						typeEquivalenceForbidden = true;
+					else
+						typeEquivalenceMaybeForbidden = true;
+					// The CLR always compares all fnptr params, incl. the ones after the sentinel, and the return
+					// type (DontCompareReturnType only applies to the method/property sig being compared)
+					var oldFnPtrOptions = ClearOptions(SigComparerOptions.DontCompareReturnType);
+					if (fpa is MethodBaseSig mfpa && fpb is MethodBaseSig mfpb)
+						result = Equals(mfpa, mfpb, isFnPtr: true);
+					else if (fpa is null || fpb is null)
+						result = fpa == fpb;
+					else
+						result = FnPtrCallingConventionEquals(fpa.GetCallingConvention(), fpb.GetCallingConvention()) && Equals(fpa, fpb);
+					RestoreOptions(oldFnPtrOptions);
 					break;
 
 				case ElementType.CModReqd:
@@ -1990,9 +2251,15 @@ exit: ;
 					if (RawSignatureCompare)
 						result = TokenEquals((a as ModifierSig).Modifier, (b as ModifierSig).Modifier) &&
 								Equals(a.Next, b.Next);
-					else
-						result = Equals((IType)(a as ModifierSig).Modifier, (IType)(b as ModifierSig).Modifier) &&
+					else {
+						var moda = (a as ModifierSig).Modifier;
+						// A TypeSpec modifier (eg. a generic instance) can forbid type equivalence in the rest of this
+						// TypeSig element. Mark it here since the modifier compare returns early if moda == modb.
+						if (!typeEquivalenceStrict && moda is TypeSpec)
+							typeEquivalenceMaybeForbidden = true;
+						result = Equals((IType)moda, (IType)(b as ModifierSig).Modifier) &&
 								Equals(a.Next, b.Next);
+					}
 					break;
 
 				case ElementType.ValueArray:
@@ -2006,6 +2273,7 @@ exit: ;
 				case ElementType.End:
 				case ElementType.R:
 				case ElementType.Internal:
+				case ElementType.CModInternal:
 				default:
 					result = false;
 					break;
@@ -2020,6 +2288,14 @@ exit: ;
 			if (a == b)
 				return true;
 			if (a is null || b is null)
+				return false;
+			// Like the CLR (CompareTypeTokens()), tokens are only comparable if they're from the same
+			// module. A rid of 0 means the type hasn't been written to metadata yet so its token is
+			// meaningless (all such types would share the same token).
+			if (a.Rid == 0 || b.Rid == 0)
+				return false;
+			var module = a.Module;
+			if (module is null || module != b.Module)
 				return false;
 			return a.MDToken == b.MDToken;
 		}
@@ -2134,6 +2410,7 @@ exit: ;
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				hash = 0;
 				break;
@@ -2150,7 +2427,8 @@ exit: ;
 		/// <param name="b">Type list #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		public bool Equals(IList<TypeSig> a, IList<TypeSig> b) {
-			if (a == b)
+			// In strict mode, identical sigs must still be compared since they can change the 'type equivalence forbidden' state
+			if (a == b && (a is null || !typeEquivalenceStrict))
 				return true;
 			if (a is null || b is null)
 				return false;
@@ -2240,7 +2518,7 @@ exit: ;
 				return false;
 			bool result;
 
-			if (a.GetCallingConvention() != b.GetCallingConvention())
+			if (!EqualsIgnoreReservedByCLR(a.GetCallingConvention(), b.GetCallingConvention()))
 				result = false;
 			else {
 				switch (a.GetCallingConvention() & CallingConvention.Mask) {
@@ -2253,6 +2531,7 @@ exit: ;
 				case CallingConvention.Property:
 				case CallingConvention.NativeVarArg:
 				case CallingConvention.Unmanaged:
+				case CallingConvention.Async:
 					MethodBaseSig ma = a as MethodBaseSig, mb = b as MethodBaseSig;
 					result = ma is not null && mb is not null && Equals(ma, mb);
 					break;
@@ -2304,6 +2583,7 @@ exit: ;
 			case CallingConvention.Property:
 			case CallingConvention.NativeVarArg:
 			case CallingConvention.Unmanaged:
+			case CallingConvention.Async:
 				var ma = a as MethodBaseSig;
 				hash = ma is null ? 0 : GetHashCode(ma);
 				break;
@@ -2338,7 +2618,13 @@ exit: ;
 		/// <param name="a">Method/property #1</param>
 		/// <param name="b">Method/property #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Equals(MethodBaseSig a, MethodBaseSig b) {
+		public bool Equals(MethodBaseSig a, MethodBaseSig b) => Equals(a, b, isFnPtr: false);
+
+		/// <param name="a">Method/property #1</param>
+		/// <param name="b">Method/property #2</param>
+		/// <param name="isFnPtr"><c>true</c> if they're function pointer sigs: the calling convention is
+		/// compared like the CLR compares fnptr calling conventions and sentinel params are always compared</param>
+		bool Equals(MethodBaseSig a, MethodBaseSig b, bool isFnPtr) {
 			if (a == b)
 				return true;
 			if (a is null || b is null)
@@ -2346,11 +2632,14 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
-			bool result = a.GetCallingConvention() == b.GetCallingConvention() &&
+			bool callConvEquals = isFnPtr ?
+				FnPtrCallingConventionEquals(a.GetCallingConvention(), b.GetCallingConvention()) :
+				EqualsIgnoreReservedByCLR(a.GetCallingConvention(), b.GetCallingConvention());
+			bool result = callConvEquals &&
 					(DontCompareReturnType || Equals(a.RetType, b.RetType)) &&
 					Equals(a.Params, b.Params) &&
 					(!a.Generic || a.GenParamCount == b.GenParamCount) &&
-					(!CompareSentinelParams || Equals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
+					((!isFnPtr && !CompareSentinelParams) || SentinelParamsEquals(a.ParamsAfterSentinel, b.ParamsAfterSentinel));
 
 			recursionCounter.Decrement();
 			return result;
@@ -2381,6 +2670,17 @@ exit: ;
 			return hash;
 		}
 
+		// null and empty are the same (no params after the sentinel). GetHashCode(IList<TypeSig>) returns 0 for both.
+		bool SentinelParamsEquals(IList<TypeSig> a, IList<TypeSig> b) {
+			if ((a is null || a.Count == 0) && (b is null || b.Count == 0))
+				return true;
+			return Equals(a, b);
+		}
+
+		// The CLR ignores bit 0x80 (CORINFO_CALLCONV_PARAMTYPE) when comparing method sigs (MetaSig::CompareMethodSigs)
+		static bool EqualsIgnoreReservedByCLR(CallingConvention a, CallingConvention b) =>
+			(a & ~CallingConvention.ReservedByCLR) == (b & ~CallingConvention.ReservedByCLR);
+
 		int GetHashCode_CallingConvention(CallingConventionSig a) => GetHashCode(a.GetCallingConvention());
 
 		int GetHashCode(CallingConvention a) {
@@ -2399,6 +2699,7 @@ exit: ;
 			case CallingConvention.GenericInst:
 			case CallingConvention.Unmanaged:
 			case CallingConvention.NativeVarArg:
+			case CallingConvention.Async:
 			case CallingConvention.Field:
 				return (int)(a & (CallingConvention.Generic | CallingConvention.HasThis | CallingConvention.ExplicitThis));
 
@@ -2685,7 +2986,7 @@ exit: ;
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -2853,13 +3154,15 @@ exit: ;
 			ITypeDefOrRef ita;
 			MethodDef ma;
 
-			if ((ita = a as ITypeDefOrRef) is not null)
+			if (a is TypeDef td)
+				hash = GetHashCode_DeclaringType(td);
+			else if ((ita = a as ITypeDefOrRef) is not null)
 				hash = GetHashCode((IType)ita);
 			else if (a is ModuleRef)
 				hash = GetHashCodeGlobalType();
 			else if ((ma = a as MethodDef) is not null) {
 				// Only use the declaring type so we get the same hash code when hashing a MethodBase.
-				hash = GetHashCode(ma.DeclaringType);
+				hash = GetHashCode_DeclaringType(ma.DeclaringType);
 			}
 			else
 				hash = 0;
@@ -2999,7 +3302,7 @@ exit: ;
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
 			if (CompareMethodFieldDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -3047,7 +3350,7 @@ exit: ;
 			int hash = GetHashCode_PropertyName(a.Name) +
 					GetHashCode(sig?.RetType);
 			if (ComparePropertyDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -3094,7 +3397,7 @@ exit: ;
 			int hash = GetHashCode_EventName(a.Name) +
 					GetHashCode((IType)a.EventType);
 			if (CompareEventDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -3249,7 +3552,7 @@ exit: ;
 			if (!DontProjectWinMDRefs)
 				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
 
-			var scope = a.ResolutionScope;
+			var scope = GetResolutionScope(a);
 
 			if (!b.IsTypeDef())
 				result = false;
@@ -3265,10 +3568,8 @@ exit: ;
 				result = Equals(b, aMod, a);
 			else if ((aAsm = scope as AssemblyRef) is not null)
 				result = Equals(b.Assembly, aAsm, a);
-			else {
+			else
 				result = false;
-				//TODO: Handle the case where scope is null
-			}
 
 			recursionCounter.Decrement();
 			return result;
@@ -3353,8 +3654,10 @@ exit: ;
 		/// treat <paramref name="b"/> as a generic instance type</param>
 		/// <param name="treatAsGenericInst"><c>true</c> if we should treat <paramref name="b"/>
 		/// as a generic instance type</param>
+		/// <param name="modifiedB">The .NET 8+ modified type of <paramref name="b"/> or <c>null</c>.
+		/// It's only used to compare function pointer calling conventions and modifiers.</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Equals(TypeSig a, Type b, Type declaringType, bool? treatAsGenericInst = null) {
+		bool Equals(TypeSig a, Type b, Type declaringType, bool? treatAsGenericInst = null, Type modifiedB = null) {
 			// Global methods and fields have their DeclaringType set to null. Assume
 			// null always means the global type.
 			if (a is null)
@@ -3399,7 +3702,7 @@ exit: ;
 					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
-					result = Equals(a.Next, b.GetElementType(), declaringType);
+					result = Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType());
 				break;
 
 			case ElementType.ByRef:
@@ -3410,7 +3713,7 @@ exit: ;
 					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
-					result = Equals(a.Next, b.GetElementType(), declaringType);
+					result = Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType());
 				break;
 
 			case ElementType.SZArray:
@@ -3421,11 +3724,11 @@ exit: ;
 					result = a is not null && a.ElementType == ElementType.FnPtr;
 				}
 				else
-					result = Equals(a.Next, b.GetElementType(), declaringType);
+					result = Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType());
 				break;
 
 			case ElementType.Pinned:
-				result = Equals(a.Next, b, declaringType);
+				result = Equals(a.Next, b, declaringType, null, modifiedB);
 				break;
 
 			case ElementType.Array:
@@ -3436,7 +3739,7 @@ exit: ;
 					result = ara.Rank == b.GetArrayRank() &&
 						(IsFnPtrElementType(b) ?
 								(a = a.Next.RemoveModifiers()) is not null && a.ElementType == ElementType.FnPtr :
-								Equals(a.Next, b.GetElementType(), declaringType));
+								Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType()));
 				}
 				break;
 
@@ -3469,12 +3772,16 @@ exit: ;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
-				result = Equals(a.Next, b, declaringType);
+				result = Equals(a.Next, b, declaringType, null, modifiedB);
 				break;
 
 			case ElementType.FnPtr:
-				// At least in method sigs, this will be mapped to System.IntPtr
-				result = b == typeof(IntPtr);
+				if (b.IsFunctionPointer2())
+					result = Equals(((FnPtrSig)a).MethodSig, b, declaringType, modifiedB);
+				else {
+					// Older runtimes (before .NET 8) map function pointers to System.IntPtr
+					result = !ReflectionExtensions.SupportsFunctionPointerTypes && b == typeof(IntPtr);
+				}
 				break;
 
 			case ElementType.Sentinel:
@@ -3483,6 +3790,7 @@ exit: ;
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = false;
 				break;
@@ -3490,6 +3798,68 @@ exit: ;
 
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		/// <summary>
+		/// Compares a function pointer signature with a .NET 8+ function pointer type
+		/// </summary>
+		/// <param name="a">Function pointer method sig</param>
+		/// <param name="b">Function pointer type</param>
+		/// <param name="declaringType">Root declaring type</param>
+		/// <param name="modifiedB">Modified type of <paramref name="b"/> or <c>null</c></param>
+		bool Equals(MethodSig a, Type b, Type declaringType, Type modifiedB) {
+			if (a is null)
+				return false;
+			if (modifiedB is not null && !modifiedB.IsFunctionPointer2())
+				modifiedB = null;
+			// Reflection only tells us whether it's a managed or an unmanaged function pointer
+			// unless it's a modified type.
+			if (IsUnmanagedCallingConvention(a.CallingConvention) != b.IsUnmanagedFunctionPointer2())
+				return false;
+			// Reflection doesn't have the other calling convention bits (HasThis, ExplicitThis, Generic) and
+			// it can't tell Default from VarArg so they're not compared.
+			var cc = ReflectionExtensions.GetFunctionPointerCallingConvention(b, modifiedB, out var ccAlt);
+			if (cc is not null) {
+				var aCC = a.CallingConvention & CallingConvention.Mask;
+				if (aCC != cc.Value && (ccAlt is null || aCC != ccAlt.Value))
+					return false;
+			}
+			// Reflection doesn't return the vararg params
+			if (a.ParamsAfterSentinel is not null && a.ParamsAfterSentinel.Count != 0)
+				return false;
+			var bParams = b.GetFunctionPointerParameterTypes2();
+			var modBParams = modifiedB?.GetFunctionPointerParameterTypes2();
+			if (modBParams is not null && modBParams.Length != bParams.Length)
+				modBParams = null;
+			if (!FnPtrPartEquals(a.RetType, b.GetFunctionPointerReturnType2(), modBParams is null ? null : modifiedB.GetFunctionPointerReturnType2(), declaringType))
+				return false;
+			if (a.Params.Count != bParams.Length)
+				return false;
+			for (int i = 0; i < bParams.Length; i++) {
+				if (!FnPtrPartEquals(a.Params[i], bParams[i], modBParams?[i], declaringType))
+					return false;
+			}
+			return true;
+		}
+
+		bool FnPtrPartEquals(TypeSig a, Type b, Type modifiedB, Type declaringType) {
+			if (modifiedB is null)
+				return Equals(a, b, declaringType);
+			return ModifiersEquals(a, modifiedB.GetRequiredCustomModifiers2(), modifiedB.GetOptionalCustomModifiers2(), out var a2) &&
+				Equals(a2, b, declaringType, null, modifiedB);
+		}
+
+		static bool IsUnmanagedCallingConvention(CallingConvention cc) {
+			switch (cc & CallingConvention.Mask) {
+			case CallingConvention.C:
+			case CallingConvention.StdCall:
+			case CallingConvention.ThisCall:
+			case CallingConvention.FastCall:
+			case CallingConvention.Unmanaged:
+				return true;
+			default:
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -3651,6 +4021,7 @@ exit: ;
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				hash = 0;
 				break;
@@ -4391,8 +4762,9 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
+			var bType = b.ParameterType;
 			bool result = ModifiersEquals(a, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-						Equals(a2, b.ParameterType, declaringType);
+						Equals(a2, bType, declaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedParameterType2() : null);
 
 			recursionCounter.Decrement();
 			return result;
@@ -4534,8 +4906,9 @@ exit: ;
 
 			if (!CompareMethodFieldDeclaringType && b.DeclaringType.IsGenericButNotGenericTypeDefinition())
 				b = b.Module.ResolveField(b.MetadataToken);
+			var bType = b.FieldType;
 			bool result = ModifiersEquals(a.Type, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-					Equals(a2, b.FieldType, b.DeclaringType);
+					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedFieldType2() : null);
 
 			recursionCounter.Decrement();
 			return result;
@@ -4649,8 +5022,9 @@ exit: ;
 			if (!recursionCounter.Increment())
 				return false;
 
+			var bType = b.PropertyType;
 			bool result = ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-					Equals(a2, b.PropertyType, b.DeclaringType);
+					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null);
 
 			recursionCounter.Decrement();
 			return result;

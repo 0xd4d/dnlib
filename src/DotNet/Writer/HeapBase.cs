@@ -46,7 +46,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public uint GetFileLength() => Utils.AlignUp(GetRawLength(), ALIGNMENT);
+		public uint GetFileLength() => OffsetUtils.AlignUp(GetRawLength(), ALIGNMENT);
 
 		/// <inheritdoc/>
 		public uint GetVirtualSize() => GetFileLength();

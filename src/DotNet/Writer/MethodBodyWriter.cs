@@ -151,7 +151,18 @@ namespace dnlib.DotNet.Writer {
 			return codeSize > 0x3F ||
 					exceptionHandlers.Count > 0 ||
 					cilBody.HasVariables ||
-					maxStack > 8;
+					maxStack > 8 ||
+					// A tiny header has no InitLocals bit, so the CLR wouldn't zero the localloc memory
+					(cilBody.InitLocals && HasLocalloc());
+		}
+
+		bool HasLocalloc() {
+			var instructions = this.instructions;
+			for (int i = 0; i < instructions.Count; i++) {
+				if (instructions[i]?.OpCode.Code == Emit.Code.Localloc)
+					return true;
+			}
+			return false;
 		}
 
 		void WriteFatHeader() {

@@ -76,21 +76,25 @@ namespace dnlib.Utils {
 		/// </summary>
 		/// <param name="index">Index</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		/// <returns>The element or <c>null</c> if <paramref name="index"/> is invalid</returns>
+		/// <returns>The element or <c>null</c> if <paramref name="index"/> is invalid or if the element can't be read</returns>
 		public T this[uint index, GenericParamContext gpContext] {
 			get {
 				if (index >= length)
 					return null;
-				if (elements[index] is null) {
-					var elem = readElementByRID(index + 1, gpContext);
-					// Don't cache it if it contains GPs since each GP could hold a reference
-					// to the type/method context. These GPs can't be shared.
-					if (elem.ContainsGenericParameter)
-						return elem;
-					Interlocked.CompareExchange(ref elements[index], elem, null);
-				}
-				return elements[index];
+				return elements[index] ?? ReadElement(index, gpContext);
 			}
+		}
+
+		T ReadElement(uint index, GenericParamContext gpContext) {
+			var elem = readElementByRID(index + 1, gpContext);
+			if (elem is null)
+				return null;
+			// Don't cache it if it contains GPs since each GP could hold a reference
+			// to the type/method context. These GPs can't be shared.
+			if (elem.ContainsGenericParameter)
+				return elem;
+			Interlocked.CompareExchange(ref elements[index], elem, null);
+			return elements[index];
 		}
 
 		/// <summary>
@@ -98,7 +102,8 @@ namespace dnlib.Utils {
 		/// </summary>
 		/// <param name="length">Length of the list</param>
 		/// <param name="readElementByRID">Delegate instance that lazily reads an element. It might
-		/// be called more than once for each <c>rid</c>. It must never return <c>null</c>.</param>
+		/// be called more than once for each <c>rid</c>. It returns <c>null</c> if the element can't be
+		/// read, and <c>null</c> is never cached.</param>
 		public SimpleLazyList2(uint length, Func<uint, GenericParamContext, T> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;

@@ -67,7 +67,17 @@ namespace dnlib.DotNet {
 			if (nonNestedResolutionScope is null) {
 				// ECMA II.22.38 states that in this case we should check ExportedTypes only.
 				// The CLR however checks both TypeDefs and ExportedTypes, with TypeDefs taking precedence.
-				return nonNestedModule.Find(typeRef) ?? ResolveExportedType(new ModuleDef[] { nonNestedModule }, typeRef, sourceModule);
+				// The CLR searches the whole assembly (all modules' TypeDefs and the manifest's ExportedTypes).
+				// We check all modules' ExportedTypes, but only the manifest module should have any.
+				if (nonNestedModule is null)
+					return null;
+				var td = nonNestedModule.Find(typeRef);
+				if (td is not null)
+					return td;
+				var nonNestedAssembly = nonNestedModule.Assembly;
+				if (nonNestedAssembly is null)
+					return ResolveExportedType(new ModuleDef[] { nonNestedModule }, typeRef, sourceModule);
+				return nonNestedAssembly.Find(typeRef) ?? ResolveExportedType(nonNestedAssembly.Modules, typeRef, sourceModule);
 			}
 
 			return null;
@@ -75,11 +85,11 @@ namespace dnlib.DotNet {
 
 		TypeDef ResolveExportedType(IList<ModuleDef> modules, TypeRef typeRef, ModuleDef sourceModule) {
 			for (int i = 0; i < 30; i++) {
-				var exportedType = FindExportedType(modules, typeRef);
+				var exportedType = FindExportedType(modules, typeRef, out var etModule);
 				if (exportedType is null)
 					return null;
 
-				var asmResolver = modules[0].Context.AssemblyResolver;
+				var asmResolver = etModule.Context.AssemblyResolver;
 				var etAsm = asmResolver.Resolve(exportedType.DefinitionAssembly, sourceModule ?? typeRef.Module);
 				if (etAsm is null)
 					return null;
@@ -94,18 +104,23 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef) {
+		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef, out ModuleDef module) {
+			module = null;
 			if (typeRef is null)
 				return null;
 			int count = modules.Count;
 			for (int i = 0; i < count; i++) {
-				var module = modules[i];
-				var exportedTypes = module.ExportedTypes;
+				var mod = modules[i];
+				if (mod is null)
+					continue;
+				var exportedTypes = mod.ExportedTypes;
 				int count2 = exportedTypes.Count;
 				for (int j = 0; j < count2; j++) {
 					var exportedType = exportedTypes[j];
-					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef))
+					if (new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(exportedType, typeRef)) {
+						module = mod;
 						return exportedType;
+					}
 				}
 			}
 			return null;

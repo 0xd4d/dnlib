@@ -5,7 +5,7 @@ on:
       - '.github/workflows/**'
       - 'Examples/**'
       - 'src/**'
-      - 'build.ps1'
+      - 'build.sh'
       - 'dnlib.sln'
       - '!**/*.md'
     branches:
@@ -15,7 +15,7 @@ on:
       - '.github/workflows/**'
       - 'Examples/**'
       - 'src/**'
-      - 'build.ps1'
+      - 'build.sh'
       - 'dnlib.sln'
       - '!**/*.md'
     branches:
@@ -46,18 +46,15 @@ jobs:
           dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
 
       - name: Build
-        shell: pwsh
-        run: |
-          $msbuildPath = Split-Path (& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find MSBuild\Current\Bin\amd64\MSBuild.exe | Select-Object -First 1) -Parent
-          $env:PATH = $msbuildPath + ';' + $env:PATH
-          .\build.ps1
+        shell: bash
+        run: ./build.sh
 
       - name: upload-artifact doesn't support wildcards
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
-        shell: pwsh
+        shell: bash
         run: |
-          New-Item -ItemType Directory nuget_files > $null
-          Copy-Item src\bin\Release\*.*nupkg nuget_files
+          mkdir nuget_files
+          cp src/bin/Release/*.*nupkg nuget_files/
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
@@ -89,14 +86,14 @@ jobs:
           user: ${{env.NUGET_USER}}
 
       - name: Upload to nuget.org
-        shell: pwsh
+        shell: bash
         env:
           NUGET_API_KEY: ${{steps.nuget-login.outputs.NUGET_API_KEY}}
         run: |
-          Get-ChildItem nuget_files\dnlib.*.nupkg | ForEach-Object {
-            dotnet nuget push $_.FullName --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          }
+          shopt -s failglob
+          for f in nuget_files/dnlib.*.nupkg; do
+            dotnet nuget push "$f" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
 
   # Make sure it builds on Linux too
   build-ubuntu:
@@ -115,5 +112,5 @@ jobs:
           dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
 
       - name: Build
-        shell: pwsh
-        run: ./build.ps1
+        shell: bash
+        run: ./build.sh

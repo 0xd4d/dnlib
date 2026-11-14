@@ -73,6 +73,8 @@ namespace dnlib.DotNet {
 		CModOpt		= 0x20,
 		/// <summary>Used internally by the CLR (don't use)</summary>
 		Internal	= 0x21,
+		/// <summary>Custom modifier with a type handle, used internally by the CLR (don't use)</summary>
+		CModInternal = 0x22,
 		/// <summary>Module (don't use)</summary>
 		Module		= 0x3F,
 		/// <summary>Sentinel (method sigs only)</summary>
@@ -198,6 +200,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			case ElementType.Module:
 			case ElementType.Sentinel:
 			case ElementType.Pinned:

@@ -200,6 +200,7 @@ namespace dnlib.DotNet {
 			case ElementType.Sentinel:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				break;
 			}

@@ -414,7 +414,15 @@ namespace dnlib.DotNet.Emit {
 		protected override IMethod ReadInlineMethod(Instruction instr) => ReadToken(reader.ReadUInt32()) as IMethod;
 
 		/// <inheritdoc/>
-		protected override MethodSig ReadInlineSig(Instruction instr) => ReadToken(reader.ReadUInt32()) as MethodSig;
+		protected override MethodSig ReadInlineSig(Instruction instr) {
+			uint token = reader.ReadUInt32();
+			if (ReadToken(token) is MethodSig sig)
+				return sig;
+			// The CLR reads it as a method sig even if it has a non-method calling convention
+			if ((token >> 24) == 0x11 && Resolve(token & 0x00FFFFFF) is byte[] sigData)
+				return SignatureReader.ReadCalliSig(this, module.CorLibTypes, sigData, gpContext);
+			return null;
+		}
 
 		/// <inheritdoc/>
 		protected override string ReadInlineString(Instruction instr) => ReadToken(reader.ReadUInt32()) as string ?? string.Empty;

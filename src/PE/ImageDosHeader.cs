@@ -26,7 +26,7 @@ namespace dnlib.PE {
 			ushort sig = reader.ReadUInt16();
 			if (verify && sig != 0x5A4D)
 				throw new BadImageFormatException("Invalid DOS signature");
-			reader.Position = (uint)startOffset + 0x3C;
+			reader.CurrentOffset = (uint)startOffset + 0x3C;
 			ntHeadersOffset = reader.ReadUInt32();
 			SetEndoffset(ref reader);
 		}

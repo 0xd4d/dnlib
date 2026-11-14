@@ -134,6 +134,9 @@ namespace dnlib.IO {
 
 			byte scale = (byte)(flags >> 16);
 			bool isNegative = (flags & 0x80000000) != 0;
+			// The decimal constructor throws ArgumentOutOfRangeException if the scale is too big
+			if (scale > 28)
+				throw new DataReaderException($"Invalid decimal scale: {scale}");
 			return new decimal(lo, mid, hi, isNegative, scale);
 		}
 

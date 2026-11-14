@@ -60,6 +60,9 @@ namespace dnlib.DotNet.Pdb {
 		public DataReader CreateReader(RVA rva, uint size) {
 			if (rva == 0 || size == 0)
 				return default;
+			// ToFileOffset() returns 0 if the RVA is invalid
+			if (peImage.ToFileOffset(rva) == 0)
+				return default;
 			var reader = peImage.CreateReader(rva, size);
 			if (reader.Length != size)
 				return default;

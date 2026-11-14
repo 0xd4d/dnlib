@@ -3,10 +3,17 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+#if !NET35
+using System.IO.MemoryMappedFiles;
+#endif
 using System.Runtime.InteropServices;
+#if NET35
 using System.Runtime.Serialization;
+#endif
 using System.Threading;
+#if NET35
 using Microsoft.Win32.SafeHandles;
+#endif
 
 namespace dnlib.IO {
 	/// <summary>
@@ -34,11 +41,17 @@ namespace dnlib.IO {
 		GCHandle gcHandle;
 		byte[] dataAry;
 		IntPtr data;
+#if NET35
 		OSType osType;
 		long origDataLength;
+#else
+		MemoryMappedViewAccessor viewAccessor;
+#endif
 
 		MemoryMappedDataReaderFactory(string filename) {
+#if NET35
 			osType = OSType.Unknown;
+#endif
 			this.filename = filename;
 		}
 
@@ -62,8 +75,7 @@ namespace dnlib.IO {
 			GC.SuppressFinalize(this);
 		}
 
-		internal void SetLength(uint length) => this.length = length;
-
+#if NET35
 		enum OSType : byte {
 			Unknown,
 			Windows,
@@ -82,7 +94,6 @@ namespace dnlib.IO {
 			const uint OPEN_EXISTING = 3;
 			const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
 			const uint PAGE_READONLY = 0x02;
-			const uint SEC_IMAGE = 0x1000000;
 			const uint SECTION_MAP_READ = 0x0004;
 			const uint FILE_MAP_READ = SECTION_MAP_READ;
 
@@ -104,18 +115,20 @@ namespace dnlib.IO {
 			const uint INVALID_FILE_SIZE = 0xFFFFFFFF;
 			const int NO_ERROR = 0;
 
-			public static void Mmap(MemoryMappedDataReaderFactory creator, bool mapAsImage) {
+			public static void Mmap(MemoryMappedDataReaderFactory creator) {
 				using (var fileHandle = CreateFile(creator.filename, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
-					if (fileHandle.IsInvalid)
-						throw new IOException($"Could not open file {creator.filename} for reading. Error: {Marshal.GetLastWin32Error():X8}");
+					if (fileHandle.IsInvalid) {
+						// The caller reads the file with File.ReadAllBytes() which throws the correct exception (eg. FileNotFoundException)
+						throw new MemoryMappedIONotSupportedException($"Could not open file {creator.filename} for reading. Error: {Marshal.GetLastWin32Error():X8}");
+					}
 
 					uint sizeLo = GetFileSize(fileHandle, out uint sizeHi);
 					int hr;
 					if (sizeLo == INVALID_FILE_SIZE && (hr = Marshal.GetLastWin32Error()) != NO_ERROR)
-						throw new IOException($"Could not get file size. File: {creator.filename}, error: {hr:X8}");
+						throw new MemoryMappedIONotSupportedException($"Could not get file size. File: {creator.filename}, error: {hr:X8}");
 					var fileSize = ((long)sizeHi << 32) | sizeLo;
 
-					using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY | (mapAsImage ? SEC_IMAGE : 0), 0, 0, null)) {
+					using (var fileMapping = CreateFileMapping(fileHandle, IntPtr.Zero, PAGE_READONLY, 0, 0, null)) {
 						if (fileMapping.IsInvalid)
 							throw new MemoryMappedIONotSupportedException($"Could not create a file mapping object. File: {creator.filename}, error: {Marshal.GetLastWin32Error():X8}");
 						creator.data = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
@@ -137,7 +150,7 @@ namespace dnlib.IO {
 		static class Unix {
 			// Can't use SafeFileHandle. Seems like a bug in mono. You'll get
 			// "_wapi_handle_unref_full: Attempting to unref unused handle 0xYYY" when Dispose() is called.
-			[DllImport("libc")]
+			[DllImport("libc", SetLastError = true)]
 			static extern int open(string pathname, int flags);
 			const int O_RDONLY = 0;
 
@@ -160,11 +173,13 @@ namespace dnlib.IO {
 			[DllImport("libc")]
 			static extern int munmap(IntPtr addr, IntPtr length);
 
-			public static void Mmap(MemoryMappedDataReaderFactory creator, bool mapAsImage) {
+			public static void Mmap(MemoryMappedDataReaderFactory creator) {
 				int fd = open(creator.filename, O_RDONLY);
 				try {
-					if (fd < 0)
-						throw new IOException($"Could not open file {creator.filename} for reading. Error: {fd}");
+					if (fd < 0) {
+						// The caller reads the file with File.ReadAllBytes() which throws the correct exception (eg. FileNotFoundException)
+						throw new MemoryMappedIONotSupportedException($"Could not open file {creator.filename} for reading. Error: {Marshal.GetLastWin32Error()}");
+					}
 
 					long size;
 					IntPtr data;
@@ -209,14 +224,19 @@ namespace dnlib.IO {
 		static volatile bool canTryWindows = true;
 		static volatile bool canTryUnix = true;
 
-		internal static MemoryMappedDataReaderFactory CreateWindows(string filename, bool mapAsImage) {
+		internal static MemoryMappedDataReaderFactory CreateWindows(string filename) {
 			if (!canTryWindows)
 				return null;
 
 			var creator = new MemoryMappedDataReaderFactory(GetFullPath(filename));
 			try {
-				Windows.Mmap(creator, mapAsImage);
+				Windows.Mmap(creator);
 				return creator;
+			}
+			catch (MemoryMappedIONotSupportedException ex) {
+				// Only this file can't be mapped (eg. it's empty), so don't disable it for other files
+				Debug.WriteLine($"Memory mapped I/O didn't work: {ex.Message}");
+				return null;
 			}
 			catch (EntryPointNotFoundException) {
 			}
@@ -226,21 +246,19 @@ namespace dnlib.IO {
 			return null;
 		}
 
-		internal static MemoryMappedDataReaderFactory CreateUnix(string filename, bool mapAsImage) {
+		internal static MemoryMappedDataReaderFactory CreateUnix(string filename) {
 			if (!canTryUnix)
 				return null;
 
 			var creator = new MemoryMappedDataReaderFactory(GetFullPath(filename));
 			try {
-				Unix.Mmap(creator, mapAsImage);
-				if (mapAsImage) { // Only check this if we know that mmap() works, i.e., if above call succeeds
-					creator.Dispose();
-					throw new ArgumentException("mapAsImage == true is not supported on this OS");
-				}
+				Unix.Mmap(creator);
 				return creator;
 			}
 			catch (MemoryMappedIONotSupportedException ex) {
+				// Only this file can't be mapped (eg. it's empty), so don't disable it for other files
 				Debug.WriteLine($"mmap'd IO didn't work: {ex.Message}");
+				return null;
 			}
 			catch (EntryPointNotFoundException) {
 			}
@@ -249,6 +267,67 @@ namespace dnlib.IO {
 			canTryUnix = false;
 			return null;
 		}
+#else
+		/// <summary>
+		/// Maps the file with <see cref="MemoryMappedFile"/>. Returns <c>null</c> if the file can't be
+		/// mapped (eg. it's empty), in which case the caller should read it into memory instead.
+		/// Exceptions from opening the file are not caught.
+		/// </summary>
+		internal static MemoryMappedDataReaderFactory Create(string filename) {
+			var fullPath = GetFullPath(filename);
+			var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.None);
+			MemoryMappedFile mmf = null;
+			MemoryMappedViewAccessor viewAccessor = null;
+			bool pointerAcquired = false;
+			MemoryMappedDataReaderFactory creator = null;
+			try {
+				long size = fileStream.Length;
+				// MemoryMappedFile can't map empty files
+				if (size == 0)
+					return null;
+				// leaveOpen: true, fileStream is closed below once the view has been mapped (also on error)
+				// .NET Framework 4.5 only has the overload with a MemoryMappedFileSecurity (null = default
+				// security) parameter. The overload without it exists in .NET Framework 4.6.1+ and .NET Standard 2.0.
+#if NETFRAMEWORK
+				mmf = MemoryMappedFile.CreateFromFile(fileStream, null, 0, MemoryMappedFileAccess.Read, null, HandleInheritability.None, true);
+#else
+				mmf = MemoryMappedFile.CreateFromFile(fileStream, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, true);
+#endif
+				viewAccessor = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
+				byte* p = null;
+				viewAccessor.SafeMemoryMappedViewHandle.AcquirePointer(ref p);
+				pointerAcquired = true;
+				// The view starts at offset 0 (always page aligned) so p points to the first byte of the
+				// file (PointerOffset is always 0 and doesn't exist in .NET Framework 4.5)
+				// The view stays valid after the file and the mapping are closed. Close them now like the old
+				// OS API code did: the mapping keeps the file open and on Unix, .NET locks open files with
+				// flock(), so other .NET code couldn't overwrite the file while the module is loaded.
+				mmf.Dispose();
+				fileStream.Dispose();
+				creator = new MemoryMappedDataReaderFactory(fullPath) {
+					viewAccessor = viewAccessor,
+					data = (IntPtr)p,
+					length = (uint)size,
+				};
+				creator.stream = DataStreamFactory.Create(p);
+				return creator;
+			}
+			catch (Exception ex) when (ex is IOException || ex is ArgumentException || ex is UnauthorizedAccessException || ex is NotSupportedException) {
+				// Only this file can't be mapped, the caller reads it into memory instead
+				Debug.WriteLine($"Memory mapped I/O didn't work: {ex.Message}");
+				return null;
+			}
+			finally {
+				if (creator is null) {
+					if (pointerAcquired)
+						viewAccessor.SafeMemoryMappedViewHandle.ReleasePointer();
+					viewAccessor?.Dispose();
+					mmf?.Dispose();
+					fileStream.Dispose();
+				}
+			}
+		}
+#endif
 
 		static string GetFullPath(string filename) {
 			try {
@@ -297,6 +376,7 @@ namespace dnlib.IO {
 				var origData = Interlocked.Exchange(ref data, IntPtr.Zero);
 				if (origData != IntPtr.Zero) {
 					length = 0;
+#if NET35
 					switch (osType) {
 					case OSType.Windows:
 						Windows.Dispose(origData);
@@ -309,6 +389,13 @@ namespace dnlib.IO {
 					default:
 						throw new InvalidOperationException("Shouldn't be here");
 					}
+#else
+					var origViewAccessor = Interlocked.Exchange(ref viewAccessor, null);
+					if (origViewAccessor is not null) {
+						origViewAccessor.SafeMemoryMappedViewHandle.ReleasePointer();
+						origViewAccessor.Dispose();
+					}
+#endif
 				}
 			}
 

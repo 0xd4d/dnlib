@@ -38,7 +38,10 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Returns total number of rows
 		/// </summary>
-		public uint Rows => numRows;
+		public uint Rows {
+			get => numRows;
+			internal set => numRows = value;
+		}
 
 		/// <summary>
 		/// Gets the total size in bytes of one row in this table

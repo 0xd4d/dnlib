@@ -59,10 +59,11 @@ namespace dnlib.DotNet.Resources {
 		readonly CreateResourceDataDelegate createResourceDataDelegate;
 
 		ResourceReader(ResourceDataFactory resourceDataFactory, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
-			this.reader = reader;
+			// The resources file starts at the current position, and its offsets are relative to that
+			this.reader = reader.Slice(reader.Position);
 			this.resourceDataFactory = resourceDataFactory;
 			this.createResourceDataDelegate = createResourceDataDelegate;
-			baseFileOffset = reader.StartOffset;
+			baseFileOffset = this.reader.StartOffset;
 		}
 
 		/// <summary>
@@ -123,6 +124,9 @@ namespace dnlib.DotNet.Resources {
 				userTypes.Add(new UserResourceType(reader.ReadSerializedString(), ResourceTypeCode.UserTypes + i));
 			reader.Position = (reader.Position + 7) & ~7U;
 
+			// Each resource has a 4-byte hash and a 4-byte name offset
+			if ((uint)numResources > reader.BytesLeft / 8)
+				throw new ResourceReaderException($"Invalid number of resources: {numResources}");
 			var hashes = new int[numResources];
 			for (int i = 0; i < numResources; i++)
 				hashes[i] = reader.ReadInt32();
@@ -137,9 +141,19 @@ namespace dnlib.DotNet.Resources {
 
 			var infos = new List<ResourceInfo>(numResources);
 
+			// Valid writers don't make names and data overlap, though the CLR tolerates it, so limit them
+			// to the size of the file. A small file could otherwise use many GBs since all entries could
+			// use the same data.
+			ulong totalBytes = 0;
 			for (int i = 0; i < numResources; i++) {
 				reader.Position = (uint)(nameBaseOffset + offsets[i]);
-				var name = reader.ReadSerializedString(Encoding.Unicode);
+				int nameLength = reader.Read7BitEncodedInt32();
+				if (nameLength < 0)
+					throw new ResourceReaderException($"Invalid resource name length: {nameLength}");
+				totalBytes += (uint)nameLength;
+				if (totalBytes > reader.Length)
+					throw new ResourceReaderException("Resource names and data use more bytes than the file has");
+				var name = reader.ReadString(nameLength, Encoding.Unicode);
 				long offset = dataBaseOffset + reader.ReadInt32();
 				infos.Add(new ResourceInfo(name, offset));
 			}
@@ -155,6 +169,9 @@ namespace dnlib.DotNet.Resources {
 				element.ResourceData = resources.FormatVersion == 1
 					? ReadResourceDataV1(userTypes, resources.ReaderType, size)
 					: ReadResourceDataV2(userTypes, resources.ReaderType, size);
+				totalBytes += reader.Position - (uint)info.offset;
+				if (totalBytes > reader.Length)
+					throw new ResourceReaderException("Resource names and data use more bytes than the file has");
 				element.ResourceData.StartOffset = baseFileOffset + (FileOffset)info.offset;
 				element.ResourceData.EndOffset = baseFileOffset + (FileOffset)reader.Position;
 
@@ -193,7 +210,7 @@ namespace dnlib.DotNet.Resources {
 			case ResourceTypeCode.Single:	return resourceDataFactory.Create(reader.ReadSingle());
 			case ResourceTypeCode.Double:	return resourceDataFactory.Create(reader.ReadDouble());
 			case ResourceTypeCode.Decimal:	return resourceDataFactory.Create(reader.ReadDecimal());
-			case ResourceTypeCode.DateTime: return resourceDataFactory.Create(DateTime.FromBinary(reader.ReadInt64()));
+			case ResourceTypeCode.DateTime: return resourceDataFactory.Create(ReadDateTimeV2());
 			case ResourceTypeCode.TimeSpan:	return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
 			case ResourceTypeCode.ByteArray:return resourceDataFactory.Create(reader.ReadBytes(reader.ReadInt32()));
 			case ResourceTypeCode.Stream:	return resourceDataFactory.CreateStream(reader.ReadBytes(reader.ReadInt32()));
@@ -227,11 +244,31 @@ namespace dnlib.DotNet.Resources {
 			case "System.UInt64":   return resourceDataFactory.Create(reader.ReadUInt64());
 			case "System.Single":   return resourceDataFactory.Create(reader.ReadSingle());
 			case "System.Double":   return resourceDataFactory.Create(reader.ReadDouble());
-			case "System.DateTime": return resourceDataFactory.Create(new DateTime(reader.ReadInt64()));
+			case "System.DateTime": return resourceDataFactory.Create(ReadDateTimeV1());
 			case "System.TimeSpan": return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
 			case "System.Decimal":  return resourceDataFactory.Create(reader.ReadDecimal());
 			default:
 				return ReadSerializedObject(endPos, readerType, type);
+			}
+		}
+
+		DateTime ReadDateTimeV2() {
+			long value = reader.ReadInt64();
+			try {
+				return DateTime.FromBinary(value);
+			}
+			catch (ArgumentException) {
+				throw new ResourceReaderException($"Invalid DateTime value: {value:X16}");
+			}
+		}
+
+		DateTime ReadDateTimeV1() {
+			long value = reader.ReadInt64();
+			try {
+				return new DateTime(value);
+			}
+			catch (ArgumentException) {
+				throw new ResourceReaderException($"Invalid DateTime value: {value:X16}");
 			}
 		}
 

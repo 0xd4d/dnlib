@@ -727,6 +727,7 @@ namespace dnlib.DotNet {
 				case ElementType.SZArray:
 				case ElementType.MVar:
 				case ElementType.Internal:
+				case ElementType.CModInternal:
 				case ElementType.Module:
 				case ElementType.Sentinel:
 				case ElementType.Pinned:

@@ -369,9 +369,6 @@ namespace dnlib.DotNet.Writer {
 			PEHeadersOptions.NumberOfRvaAndSizes = 0x10;
 			Cor20HeaderOptions.Flags = module.Cor20HeaderFlags;
 
-			if (module.Assembly is not null && !PublicKeyBase.IsNullOrEmpty2(module.Assembly.PublicKey))
-				Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
-
 			if (module.Cor20HeaderRuntimeVersion is not null) {
 				Cor20HeaderOptions.MajorRuntimeVersion = (ushort)(module.Cor20HeaderRuntimeVersion.Value >> 16);
 				Cor20HeaderOptions.MinorRuntimeVersion = (ushort)module.Cor20HeaderRuntimeVersion.Value;
@@ -657,7 +654,9 @@ namespace dnlib.DotNet.Writer {
 		/// Writes the module to a file
 		/// </summary>
 		/// <param name="fileName">File name. The file will be truncated if it exists.</param>
+		/// <exception cref="IOException">The module was memory mapped from <paramref name="fileName"/></exception>
 		public void Write(string fileName) {
+			ThrowIfModuleIsMemoryMappedFrom(fileName);
 			using (var dest = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
 				dest.SetLength(0);
 				try {
@@ -670,6 +669,55 @@ namespace dnlib.DotNet.Writer {
 					throw;
 				}
 			}
+		}
+
+		/// <summary>
+		/// Throws if the module was memory mapped from <paramref name="fileName"/>. The file is truncated
+		/// before it's written, and reading the mapped memory after that (this thread or any other thread
+		/// reading the module) crashes the process (Unix: SIGBUS), or the truncation fails (Windows).
+		/// </summary>
+		void ThrowIfModuleIsMemoryMappedFrom(string fileName) {
+			if (Module is not ModuleDefMD mod || mod.Metadata?.PEImage is not IInternalPEImage peImage)
+				return;
+			if (!peImage.IsMemoryMappedIO)
+				return;
+			if (!IsSameFile(peImage.Filename, fileName))
+				return;
+			throw new IOException($"Can't overwrite {fileName} since the module is memory mapped from that file. Load the module from a byte[] or write it to another file.");
+		}
+
+		static bool IsSameFile(string mappedFileName, string fileName) {
+			if (string.IsNullOrEmpty(mappedFileName) || string.IsNullOrEmpty(fileName))
+				return false;
+			try {
+				fileName = GetFullPathOfFile(fileName);
+				// If it doesn't exist, it's not truncated (eg. the mapped file was deleted or renamed)
+				if (!File.Exists(fileName))
+					return false;
+				// If the names only differ in case, it's the same file if the file system is case insensitive,
+				// or it's another file in a case sensitive file system. Assume it's the same file since the
+				// other case requires two files whose names only differ in case.
+				return StringComparer.OrdinalIgnoreCase.Equals(GetFullPathOfFile(mappedFileName), fileName);
+			}
+			catch (Exception ex) when (ex is IOException || ex is ArgumentException || ex is UnauthorizedAccessException || ex is NotSupportedException || ex is System.Security.SecurityException) {
+				return false;
+			}
+		}
+
+		static string GetFullPathOfFile(string fileName) {
+			fileName = Path.GetFullPath(fileName);
+#if NET6_0_OR_GREATER
+			// Resolve a symbolic link to the file
+			try {
+				if (File.ResolveLinkTarget(fileName, returnFinalTarget: true) is FileSystemInfo target)
+					fileName = Path.GetFullPath(target.FullName);
+			}
+			catch (IOException) {
+			}
+			catch (UnauthorizedAccessException) {
+			}
+#endif
+			return fileName;
 		}
 
 		static void DeleteFileNoThrow(string fileName) {
@@ -689,12 +737,11 @@ namespace dnlib.DotNet.Writer {
 		public void Write(Stream dest) {
 			pdbState = TheOptions.WritePdb && Module.PdbState is not null ? Module.PdbState : null;
 			if (TheOptions.DelaySign) {
-				Debug.Assert(TheOptions.StrongNamePublicKey is not null, "Options.StrongNamePublicKey must be initialized when delay signing the assembly");
-				Debug.Assert(TheOptions.StrongNameKey is null, "Options.StrongNameKey must be null when delay signing the assembly");
-				TheOptions.Cor20HeaderOptions.Flags &= ~ComImageFlags.StrongNameSigned;
+				if (TheOptions.StrongNamePublicKey is null)
+					Error("Options.StrongNamePublicKey must be initialized when delay signing the assembly");
+				if (TheOptions.StrongNameKey is not null)
+					Error("Options.StrongNameKey must be null when delay signing the assembly");
 			}
-			else if (TheOptions.StrongNameKey is not null || TheOptions.StrongNamePublicKey is not null)
-				TheOptions.Cor20HeaderOptions.Flags |= ComImageFlags.StrongNameSigned;
 
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
@@ -717,16 +764,36 @@ namespace dnlib.DotNet.Writer {
 		protected abstract long WriteImpl();
 
 		/// <summary>
+		/// Updates the <see cref="ComImageFlags.StrongNameSigned"/> bit. It's only set if the assembly
+		/// is signed (<see cref="ModuleWriterOptionsBase.StrongNameKey"/>) and cleared if it's delay
+		/// signed. Otherwise the flags aren't changed, eg. if the assembly has a public key but
+		/// isn't signed, the bit isn't set since the signature would be all zeroes.
+		/// The key takes precedence over <see cref="ModuleWriterOptionsBase.DelaySign"/> since the
+		/// assembly is signed if there's a key (it's an error but the logger can ignore it).
+		/// The options aren't updated since they can be used to write the module again.
+		/// </summary>
+		/// <param name="flags">Flags</param>
+		/// <returns></returns>
+		protected ComImageFlags UpdateStrongNameSignedFlag(ComImageFlags flags) {
+			if (TheOptions.StrongNameKey is not null)
+				return flags | ComImageFlags.StrongNameSigned;
+			if (TheOptions.DelaySign)
+				return flags & ~ComImageFlags.StrongNameSigned;
+			return flags;
+		}
+
+		/// <summary>
 		/// Creates the strong name signature if the module has one of the strong name flags
 		/// set or wants to sign the assembly.
 		/// </summary>
 		protected void CreateStrongNameSignature() {
-			if (TheOptions.DelaySign && TheOptions.StrongNamePublicKey is not null) {
+			// The key is checked first since the assembly is signed if there's a key, even if DelaySign is true
+			if (TheOptions.StrongNameKey is not null)
+				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
+			else if (TheOptions.DelaySign && TheOptions.StrongNamePublicKey is not null) {
 				int len = TheOptions.StrongNamePublicKey.CreatePublicKey().Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
 			}
-			else if (TheOptions.StrongNameKey is not null)
-				strongNameSignature = new StrongNameSignature(TheOptions.StrongNameKey.SignatureSize);
 			else if (Module.Assembly is not null && !PublicKeyBase.IsNullOrEmpty2(Module.Assembly.PublicKey)) {
 				int len = Module.Assembly.PublicKey.Data.Length - 0x20;
 				strongNameSignature = new StrongNameSignature(len > 0 ? len : 0x80);
@@ -795,10 +862,8 @@ namespace dnlib.DotNet.Writer {
 				chunk.SetOffset(offset, rva);
 				// If it has zero size, it's not present in the file (eg. a section that wasn't needed)
 				if (chunk.GetVirtualSize() != 0) {
-					offset += chunk.GetFileLength();
-					rva += chunk.GetVirtualSize();
-					offset = offset.AlignUp(fileAlignment);
-					rva = rva.AlignUp(sectionAlignment);
+					offset = OffsetUtils.AlignUp(OffsetUtils.Add(offset, chunk.GetFileLength()), fileAlignment);
+					rva = OffsetUtils.AlignUp(OffsetUtils.Add(rva, chunk.GetVirtualSize()), sectionAlignment);
 				}
 			}
 		}
@@ -977,9 +1042,15 @@ namespace dnlib.DotNet.Writer {
 
 		static string GetStreamName(Stream stream) => (stream as FileStream)?.Name;
 
+		static readonly char[] moduleNameSeparators = new char[] { '/', '\\', ':' };
+
 		static string GetModuleName(ModuleDef module) {
-			var name = module.Name ?? string.Empty;
-			if (string.IsNullOrEmpty(name))
+			var name = module.Name?.String ?? string.Empty;
+			// The name is read from the module so it can't be trusted. Only use the file name so the PDB
+			// file is always created in the current directory and not eg. in '../' or in an absolute path.
+			// All OSes use the same separators so the result doesn't depend on the OS.
+			name = name.Substring(name.LastIndexOfAny(moduleNameSeparators) + 1);
+			if (name.Length == 0 || name == "." || name == "..")
 				return null;
 			if (name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".netmodule", StringComparison.OrdinalIgnoreCase))
 				return name;
@@ -987,12 +1058,16 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		string GetDefaultPdbFileName() {
-			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
-			if (string.IsNullOrEmpty(destFileName)) {
+			var pdbFileName = TryGetDefaultPdbFileName();
+			if (pdbFileName is null)
 				Error("TheOptions.WritePdb is true but it's not possible to guess the default PDB file name. Set PdbFileName to the name of the PDB file.");
-				return null;
-			}
+			return pdbFileName;
+		}
 
+		string TryGetDefaultPdbFileName() {
+			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
+			if (string.IsNullOrEmpty(destFileName))
+				return null;
 			return Path.ChangeExtension(destFileName, "pdb");
 		}
 
@@ -1010,9 +1085,15 @@ namespace dnlib.DotNet.Writer {
 				if (pdbStream is null)
 					throw new ModuleWriterException("Couldn't create a PDB stream");
 
-				var pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
-				if (isEmbeddedPortablePdb)
-					pdbFilename = Path.GetFileName(pdbFilename);
+				// The name is only stored in the CodeView entry. Don't require a guessable name if it's
+				// not used or if the PDB is embedded (no file is created and the PDB is found anyway).
+				string pdbFilename;
+				if (TheOptions.PdbFileNameInDebugDirectory is not null)
+					pdbFilename = TheOptions.PdbFileNameInDebugDirectory;
+				else if (isEmbeddedPortablePdb)
+					pdbFilename = Path.GetFileName(TheOptions.PdbFileName ?? TryGetDefaultPdbFileName() ?? string.Empty);
+				else
+					pdbFilename = TheOptions.PdbFileName ?? GetStreamName(pdbStream) ?? GetDefaultPdbFileName();
 
 				uint entryPointToken;
 				if (pdbState.UserEntryPoint is null)
@@ -1054,7 +1135,7 @@ namespace dnlib.DotNet.Writer {
 				//	- Reproducible
 				//	- EmbeddedPortablePdb
 
-				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, TheOptions.PdbFileNameInDebugDirectory ?? pdbFilename),
+				debugDirectory.Add(GetCodeViewData(pdbGuid, PdbAge, pdbFilename),
 					type: ImageDebugType.CodeView,
 					majorVersion: PortablePdbConstants.FormatVersion,
 					minorVersion: PortablePdbConstants.PortableCodeViewVersionMagic,

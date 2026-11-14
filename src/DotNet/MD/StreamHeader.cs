@@ -53,7 +53,7 @@ namespace dnlib.DotNet.MD {
 				// Mono ignores the size (eg. it can be 0 or max value) so set it to the max possible value
 				streamSize = reader.Length - offset;
 			}
-			if (verify && offset + size < offset)
+			if (verify && offset + streamSize < offset)
 				failedVerification = true;
 			if (throwOnError && failedVerification)
 				throw new BadImageFormatException("Invalid stream header");

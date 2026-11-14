@@ -32,6 +32,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				sb.Append("SHA-1");
 			else if (checkSumAlgorithmId == PdbDocumentConstants.HashSHA256)
 				sb.Append("SHA-256");
+			else if (checkSumAlgorithmId == PdbDocumentConstants.HashSHA384)
+				sb.Append("SHA-384");
+			else if (checkSumAlgorithmId == PdbDocumentConstants.HashSHA512)
+				sb.Append("SHA-512");
 			else
 				sb.Append(checkSumAlgorithmId.ToString());
 			sb.Append(": ");

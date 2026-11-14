@@ -547,6 +547,7 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			case ElementType.Module:
 			case ElementType.Sentinel:
 			case ElementType.Pinned:

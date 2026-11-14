@@ -1505,6 +1505,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				break;
 			}
@@ -1887,6 +1888,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = null;
 				break;
@@ -1954,6 +1956,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = null;
 				break;
@@ -2021,6 +2024,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = null;
 				break;
@@ -2088,6 +2092,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = null;
 				break;

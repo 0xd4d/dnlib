@@ -56,6 +56,11 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		TupleElementNames,
 
+		/// <summary>
+		/// <see cref="PdbEditAndContinueStateMachineStateMapDebugInfo"/>
+		/// </summary>
+		EditAndContinueStateMachineStateMap,
+
 		// Values 0x00-0xFF are reserved for Windows PDB CDIs.
 
 		/// <summary>
@@ -117,11 +122,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <see cref="PdbTypeDefinitionDocumentsDebugInfo"/>
 		/// </summary>
 		TypeDefinitionDocuments,
-
-		/// <summary>
-		/// <see cref="PdbEditAndContinueStateMachineStateMapDebugInfo"/>
-		/// </summary>
-		EditAndContinueStateMachineStateMap,
 
 		/// <summary>
 		/// <see cref="PrimaryConstructorInformationBlob"/>

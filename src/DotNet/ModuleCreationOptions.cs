@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using dnlib.IO;
+using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb;
 
 namespace dnlib.DotNet {
@@ -47,6 +48,11 @@ namespace dnlib.DotNet {
 		/// set to <see cref="CLRRuntimeReaderKind.Mono"/> if it's an obfuscated Mono/Unity assembly.
 		/// </summary>
 		public CLRRuntimeReaderKind Runtime { get; set; } = CLRRuntimeReaderKind.CLR;
+
+		/// <summary>
+		/// Method body reader options, default is <see cref="MethodBodyReaderOptions.None"/>
+		/// </summary>
+		public MethodBodyReaderOptions MethodBodyReaderOptions { get; set; } = MethodBodyReaderOptions.None;
 
 		/// <summary>
 		/// Default constructor

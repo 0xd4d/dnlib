@@ -28,11 +28,6 @@ namespace dnlib.PE {
 	/// Accesses a PE file
 	/// </summary>
 	public sealed class PEImage : IInternalPEImage {
-		// Default to false because an OS loaded PE image may contain memory holes. If there
-		// are memory holes, other code (eg. .NET resource creator) must verify that all memory
-		// is available, which will be slower.
-		const bool USE_MEMORY_LAYOUT_WITH_MAPPED_FILES = false;
-
 		static readonly IPEType MemoryLayout = new MemoryPEType();
 		static readonly IPEType FileLayout = new FilePEType();
 
@@ -145,27 +140,9 @@ namespace dnlib.PE {
 		/// Constructor
 		/// </summary>
 		/// <param name="filename">Name of the file</param>
-		/// <param name="mapAsImage"><c>true</c> if we should map it as an executable</param>
-		/// <param name="verify">Verify PE file data</param>
-		internal PEImage(string filename, bool mapAsImage, bool verify)
-			: this(DataReaderFactoryFactory.Create(filename, mapAsImage), mapAsImage ? ImageLayout.Memory : ImageLayout.File, verify) {
-			try {
-				if (mapAsImage && dataReaderFactory is MemoryMappedDataReaderFactory)
-					((MemoryMappedDataReaderFactory)dataReaderFactory).SetLength(peInfo.GetImageSize());
-			}
-			catch {
-				Dispose();
-				throw;
-			}
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="filename">Name of the file</param>
 		/// <param name="verify">Verify PE file data</param>
 		public PEImage(string filename, bool verify)
-			: this(filename, USE_MEMORY_LAYOUT_WITH_MAPPED_FILES, verify) {
+			: this(DataReaderFactoryFactory.Create(filename), ImageLayout.File, verify) {
 		}
 
 		/// <summary>
@@ -303,6 +280,11 @@ namespace dnlib.PE {
 		/// <inheritdoc/>
 		public FileOffset ToFileOffset(RVA rva) => peType.ToFileOffset(peInfo, rva);
 
+		/// <summary>
+		/// Returns the section containing <paramref name="rva"/> (aligned virtual size) or null
+		/// </summary>
+		internal ImageSectionHeader ToImageSectionHeader(RVA rva) => peInfo.ToImageSectionHeader(rva);
+
 		/// <inheritdoc/>
 		public void Dispose() {
 			IDisposable id;
@@ -355,7 +337,11 @@ namespace dnlib.PE {
 				int count = (int)(dataDir.Size / 0x1C);
 				if (count == 0)
 					return Array2.Empty<ImageDebugDirectory>();
-				reader.CurrentOffset = (uint)ToFileOffset(dataDir.VirtualAddress);
+				// ToFileOffset() returns 0 if the RVA is invalid (it's not 0)
+				var offset = ToFileOffset(dataDir.VirtualAddress);
+				if (offset == 0)
+					return Array2.Empty<ImageDebugDirectory>();
+				reader.CurrentOffset = (uint)offset;
 				if ((ulong)reader.CurrentOffset + dataDir.Size > reader.Length)
 					return Array2.Empty<ImageDebugDirectory>();
 				var res = new ImageDebugDirectory[count];

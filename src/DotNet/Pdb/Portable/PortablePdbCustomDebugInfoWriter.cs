@@ -100,7 +100,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				break;
 
 			case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
-				WriteEditAndContinueStateMachineStateMap((PdbEditAndContinueStateMachineStateMapDebugInfo)cdi);
+				WriteEditAndContinueStateMachineStateMap(writer, (PdbEditAndContinueStateMachineStateMapDebugInfo)cdi);
 				break;
 
 			case PdbCustomDebugInfoKind.PrimaryConstructorInformationBlob:
@@ -337,7 +337,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				writer.WriteCompressedUInt32(systemMetadata.GetRid(document));
 		}
 
-		void WriteEditAndContinueStateMachineStateMap(PdbEditAndContinueStateMachineStateMapDebugInfo cdi) {
+		// Also used by the Windows PDB CDI writer, both formats use the same blob format
+		internal static void WriteEditAndContinueStateMachineStateMap(DataWriter writer, PdbEditAndContinueStateMachineStateMapDebugInfo cdi) {
 			writer.WriteCompressedUInt32((uint)cdi.StateMachineStates.Count);
 
 			if (cdi.StateMachineStates.Count <= 0)

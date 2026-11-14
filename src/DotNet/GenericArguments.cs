@@ -117,4 +117,146 @@ namespace dnlib.DotNet {
 			return sig;
 		}
 	}
+
+	/// <summary>
+	/// Creates copies of signatures where generic type vars (<c>!n</c>) have been replaced with
+	/// generic arguments. Generic method vars (<c>!!n</c>) are left as is.
+	/// </summary>
+	struct GenericTypeArgsSubstitutor {
+		readonly IList<TypeSig> typeArgs;
+		RecursionCounter recursionCounter;
+
+		GenericTypeArgsSubstitutor(IList<TypeSig> typeArgs) {
+			this.typeArgs = typeArgs;
+			recursionCounter = new RecursionCounter();
+		}
+
+		public static MethodSig Substitute(MethodSig sig, IList<TypeSig> typeArgs) {
+			if (sig is null || typeArgs is null || !TypeHelper.ContainsGenericParameter(sig))
+				return sig;
+			return new GenericTypeArgsSubstitutor(typeArgs).Create(sig);
+		}
+
+		public static FieldSig Substitute(FieldSig sig, IList<TypeSig> typeArgs) {
+			if (sig is null || typeArgs is null || !TypeHelper.ContainsGenericParameter(sig))
+				return sig;
+			return new GenericTypeArgsSubstitutor(typeArgs).Create(sig);
+		}
+
+		public static PropertySig Substitute(PropertySig sig, IList<TypeSig> typeArgs) {
+			if (sig is null || typeArgs is null || !TypeHelper.ContainsGenericParameter(sig))
+				return sig;
+			return new GenericTypeArgsSubstitutor(typeArgs).Create(sig);
+		}
+
+		public static CallingConventionSig Substitute(CallingConventionSig sig, IList<TypeSig> typeArgs) {
+			if (sig is null || typeArgs is null || !TypeHelper.ContainsGenericParameter(sig))
+				return sig;
+			return new GenericTypeArgsSubstitutor(typeArgs).Create(sig);
+		}
+
+		public static TypeSig Substitute(TypeSig sig, IList<TypeSig> typeArgs) {
+			if (sig is null || typeArgs is null || !TypeHelper.ContainsGenericParameter(sig))
+				return sig;
+			return new GenericTypeArgsSubstitutor(typeArgs).Create(sig);
+		}
+
+		public static IList<TypeSig> Substitute(IList<TypeSig> sigs, IList<TypeSig> typeArgs) {
+			if (sigs is null || typeArgs is null)
+				return sigs;
+			return new GenericTypeArgsSubstitutor(typeArgs).Create(sigs);
+		}
+
+		CallingConventionSig Create(CallingConventionSig sig) =>
+			sig switch {
+				MethodSig ms => Create(ms),
+				FieldSig fs => Create(fs),
+				PropertySig ps => Create(ps),
+				_ => sig,
+			};
+
+		MethodSig Create(MethodSig sig) {
+			var paramsAfterSentinel = sig.ParamsAfterSentinel;
+			var newSig = new MethodSig(sig.CallingConvention, sig.GenParamCount, Create(sig.RetType), Create(sig.Params),
+				paramsAfterSentinel is null ? null : Create(paramsAfterSentinel));
+			newSig.OriginalToken = sig.OriginalToken;
+			newSig.ExtraData = sig.ExtraData;
+			return newSig;
+		}
+
+		PropertySig Create(PropertySig sig) {
+			var paramsAfterSentinel = sig.ParamsAfterSentinel;
+			var newSig = new PropertySig(sig.CallingConvention, sig.GenParamCount, Create(sig.RetType), Create(sig.Params),
+				paramsAfterSentinel is null ? null : Create(paramsAfterSentinel));
+			newSig.ExtraData = sig.ExtraData;
+			return newSig;
+		}
+
+		FieldSig Create(FieldSig sig) {
+			var newSig = new FieldSig(sig.GetCallingConvention(), Create(sig.Type));
+			newSig.ExtraData = sig.ExtraData;
+			return newSig;
+		}
+
+		IList<TypeSig> Create(IList<TypeSig> sigs) {
+			var list = new List<TypeSig>(sigs.Count);
+			for (int i = 0; i < sigs.Count; i++)
+				list.Add(Create(sigs[i]));
+			return list;
+		}
+
+		TypeSig Create(TypeSig sig) {
+			if (sig is null)
+				return null;
+			if (!recursionCounter.Increment())
+				return sig;
+
+			TypeSig result;
+			switch (sig) {
+			case GenericVar gv:
+				result = gv.Number < (uint)typeArgs.Count ? typeArgs[(int)gv.Number] ?? sig : sig;
+				break;
+			case GenericInstSig gis:
+				var genericType = Create(gis.GenericType) as ClassOrValueTypeSig ?? gis.GenericType;
+				result = new GenericInstSig(genericType, Create(gis.GenericArguments));
+				break;
+			case FnPtrSig fnPtr:
+				result = new FnPtrSig(Create(fnPtr.Signature));
+				break;
+			case PtrSig ptr:
+				result = new PtrSig(Create(ptr.Next));
+				break;
+			case ByRefSig byRef:
+				result = new ByRefSig(Create(byRef.Next));
+				break;
+			case SZArraySig szArray:
+				result = new SZArraySig(Create(szArray.Next));
+				break;
+			case ArraySig array:
+				result = new ArraySig(Create(array.Next), array.Rank, array.Sizes, array.LowerBounds);
+				break;
+			case CModReqdSig cmodReqd:
+				result = new CModReqdSig(cmodReqd.Modifier, Create(cmodReqd.Next));
+				break;
+			case CModOptSig cmodOpt:
+				result = new CModOptSig(cmodOpt.Modifier, Create(cmodOpt.Next));
+				break;
+			case PinnedSig pinned:
+				result = new PinnedSig(Create(pinned.Next));
+				break;
+			case ValueArraySig valueArray:
+				result = new ValueArraySig(Create(valueArray.Next), valueArray.Size);
+				break;
+			case ModuleSig moduleSig:
+				result = new ModuleSig(moduleSig.Index, Create(moduleSig.Next));
+				break;
+			default:
+				result = sig;
+				break;
+			}
+
+			recursionCounter.Decrement();
+			return result;
+		}
+	}
 }

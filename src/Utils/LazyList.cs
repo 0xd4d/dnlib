@@ -156,6 +156,27 @@ namespace dnlib.Utils {
 
 		internal TValue Get_NoLock(int index) => list[index].GetValue_NoLock(index);
 
+		/// <summary>
+		/// Takes the list lock so that many elements can be read with <see cref="Get_NoLock(int)"/>,
+		/// which is a lot faster than reading every element with the indexer (one lock per element).
+		/// <see cref="ExitLock"/> must be called (in a finally block), and until then, only
+		/// <c>_NoLock</c> members can be used and no code that could access this list can be called.
+		/// </summary>
+		internal void EnterLock() {
+#if THREAD_SAFE
+			theLock.EnterWriteLock();
+#endif
+		}
+
+		/// <summary>
+		/// Releases the lock taken by <see cref="EnterLock"/>
+		/// </summary>
+		internal void ExitLock() {
+#if THREAD_SAFE
+			theLock.ExitWriteLock();
+#endif
+		}
+
 		void Set_NoLock(int index, TValue value) {
 			if (listener is not null) {
 				listener.OnRemove(index, list[index].GetValue_NoLock(index));

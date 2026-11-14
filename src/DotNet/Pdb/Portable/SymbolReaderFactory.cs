@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -39,6 +40,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 			catch (IOException) {
 			}
+			catch (BadImageFormatException) {
+			}
 			finally {
 				if (disposePdbStream)
 					pdbStream?.Dispose();
@@ -68,22 +71,35 @@ namespace dnlib.DotNet.Pdb.Portable {
 				Debug.Assert(!newVersion);
 				if (newVersion)
 					return null;
-				var decompressedBytes = new byte[uncompressedSize];
+				// Largest size of a byte[]
+				if (uncompressedSize > 0x7FFFFFC7)
+					return null;
+				// Deflate can't compress data more than 1032:1
+				if (uncompressedSize > (ulong)reader.BytesLeft * 1032)
+					return null;
+				// The size could be wrong, so only allocate all of it once some data has been decompressed
+				var decompressedBytes = new byte[Math.Min(uncompressedSize, (ulong)reader.BytesLeft * 4)];
 				using (var deflateStream = new DeflateStream(reader.AsStream(), CompressionMode.Decompress)) {
 					int pos = 0;
-					while (pos < decompressedBytes.Length) {
+					while (pos < uncompressedSize) {
+						if (pos == decompressedBytes.Length)
+							Array.Resize(ref decompressedBytes, (int)uncompressedSize);
 						int read = deflateStream.Read(decompressedBytes, pos, decompressedBytes.Length - pos);
 						if (read == 0)
 							break;
 						pos += read;
 					}
-					if (pos != decompressedBytes.Length)
+					if (pos != uncompressedSize)
 						return null;
 					var stream = ByteArrayDataReaderFactory.Create(decompressedBytes, filename: null);
 					return TryCreate(pdbContext, stream, isEmbeddedPortablePdb: true);
 				}
 			}
 			catch (IOException) {
+			}
+			catch (InvalidDataException) {
+			}
+			catch (OutOfMemoryException) {
 			}
 			return null;
 		}

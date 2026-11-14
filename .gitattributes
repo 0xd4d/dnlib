@@ -4,5 +4,6 @@
 # Always LF, also in the working tree on Windows
 *.cs      text eol=lf
 *.csproj  text eol=lf
+*.sh      text eol=lf
 
 *.snk     binary

@@ -167,6 +167,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				case ElementType.ValueArray:
 				case ElementType.R:
 				case ElementType.Internal:
+				case ElementType.CModInternal:
 				case ElementType.Module:
 				case ElementType.Sentinel:
 				case ElementType.Pinned:

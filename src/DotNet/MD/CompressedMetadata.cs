@@ -46,7 +46,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#US":
 						if (usStream is null) {
-							usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
+							usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 							newAllStreams.Add(usStream);
 							continue;
 						}
@@ -54,7 +54,7 @@ namespace dnlib.DotNet.MD {
 
 					case "#Blob":
 						if (blobStream is null) {
-							blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
+							blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 							newAllStreams.Add(blobStream);
 							continue;
 						}
@@ -121,10 +121,10 @@ namespace dnlib.DotNet.MD {
 		public override RidList GetParamRidList(uint methodRid) => GetRidList(tablesStream.MethodTable, methodRid, 5, tablesStream.ParamTable);
 
 		/// <inheritdoc/>
-		public override RidList GetEventRidList(uint eventMapRid) => GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
+		public override RidList GetEventRidList(uint eventMapRid) => GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable, isEventOrPropertyList: true);
 
 		/// <inheritdoc/>
-		public override RidList GetPropertyRidList(uint propertyMapRid) => GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
+		public override RidList GetPropertyRidList(uint propertyMapRid) => GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable, isEventOrPropertyList: true);
 
 		/// <inheritdoc/>
 		public override RidList GetLocalVariableRidList(uint localScopeRid) => GetRidList(tablesStream.LocalScopeTable, localScopeRid, 2, tablesStream.LocalVariableTable);
@@ -139,16 +139,25 @@ namespace dnlib.DotNet.MD {
 		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
+		/// <param name="isEventOrPropertyList"><c>true</c> if it's an event or property list</param>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
-		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
+		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest, bool isEventOrPropertyList = false) {
 			var column = tableSource.TableInfo.Columns[colIndex];
 			if (!tablesStream.TryReadColumn24(tableSource, tableSourceRid, column, out uint startRid))
 				return RidList.Empty;
 			bool hasNext = tablesStream.TryReadColumn24(tableSource, tableSourceRid + 1, column, out uint nextListRid);
 			uint lastRid = tableDest.Rows + 1;
+			// The CLR uses 1 if the event/property list is 0. Mono doesn't (it returns no rows).
+			// See coreclr: md/runtime/mdinternalro.cpp / MDInternalRO::EnumInit()
+			bool startWasZero = false;
+			if (startRid == 0 && isEventOrPropertyList && runtime == CLRRuntimeReaderKind.CLR) {
+				startRid = 1;
+				startWasZero = true;
+			}
 			if (startRid == 0 || startRid >= lastRid)
 				return RidList.Empty;
-			uint endRid = !hasNext || (nextListRid == 0 && tableDest.Rows == 0xFFFF) ? lastRid : nextListRid;
+			// If the start was 0, the CLR uses the next row's value (0) as the end so the list is empty.
+			uint endRid = !hasNext || (nextListRid == 0 && tableDest.Rows == 0xFFFF && !startWasZero) ? lastRid : nextListRid;
 			if (endRid < startRid)
 				endRid = startRid;
 			if (endRid > lastRid)

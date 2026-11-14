@@ -302,6 +302,15 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					}
 					break;
 
+				case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
+					var encStateMachineStateMapRec = info as PdbEditAndContinueStateMachineStateMapDebugInfo;
+					if (encStateMachineStateMapRec is null) {
+						Error("Unsupported custom debug info type {0}", info.GetType());
+						return null;
+					}
+					Portable.PortablePdbCustomDebugInfoWriter.WriteEditAndContinueStateMachineStateMap(writer, encStateMachineStateMapRec);
+					break;
+
 				default:
 					var unkRec = info as PdbUnknownCustomDebugInfo;
 					if (unkRec is null) {

@@ -251,6 +251,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			case ElementType.Sentinel:
 			default:
 				res = false;
@@ -339,7 +340,7 @@ namespace dnlib.DotNet {
 			int count = types.Count;
 			for (int i = 0; i < count; i++) {
 				var type = types[i];
-				if (ContainsGenericParameter(type)) {
+				if (ContainsGenericParameterInternal(type)) {
 					res = true;
 					break;
 				}

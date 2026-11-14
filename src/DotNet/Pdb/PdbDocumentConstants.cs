@@ -14,6 +14,8 @@ namespace dnlib.DotNet.Pdb {
 
 		public static readonly Guid HashSHA1 = new Guid("FF1816EC-AA5E-4D10-87F7-6F4963833460");
 		public static readonly Guid HashSHA256 = new Guid("8829D00F-11B8-4213-878B-770E8597AC16");
+		public static readonly Guid HashSHA384 = new Guid("D99CFEB1-8C43-444A-8A6C-B61269D2A0BF");
+		public static readonly Guid HashSHA512 = new Guid("EF2D1AFC-6550-46D6-B14B-D70AFE9A5566");
 
 		public static readonly Guid LanguageVendorMicrosoft = new Guid("994B45C4-E6E9-11D2-903F-00C04FA302A1");
 

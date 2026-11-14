@@ -42,7 +42,7 @@ namespace dnlib.PE {
 			reader.Position = imageDosHeader.NTHeadersOffset;
 			imageNTHeaders = new ImageNTHeaders(ref reader, verify);
 
-			reader.Position = (uint)imageNTHeaders.OptionalHeader.StartOffset + imageNTHeaders.FileHeader.SizeOfOptionalHeader;
+			reader.CurrentOffset = (uint)imageNTHeaders.OptionalHeader.StartOffset + imageNTHeaders.FileHeader.SizeOfOptionalHeader;
 			int numSections = imageNTHeaders.FileHeader.NumberOfSections;
 			if (numSections > 0) {
 				// Mono doesn't verify the section count
