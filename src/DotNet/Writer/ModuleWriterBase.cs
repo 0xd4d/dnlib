@@ -657,7 +657,9 @@ namespace dnlib.DotNet.Writer {
 		/// Writes the module to a file
 		/// </summary>
 		/// <param name="fileName">File name. The file will be truncated if it exists.</param>
+		/// <exception cref="IOException">The module was memory mapped from <paramref name="fileName"/></exception>
 		public void Write(string fileName) {
+			ThrowIfModuleIsMemoryMappedFrom(fileName);
 			using (var dest = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
 				dest.SetLength(0);
 				try {
@@ -670,6 +672,55 @@ namespace dnlib.DotNet.Writer {
 					throw;
 				}
 			}
+		}
+
+		/// <summary>
+		/// Throws if the module was memory mapped from <paramref name="fileName"/>. The file is truncated
+		/// before it's written, and reading the mapped memory after that (this thread or any other thread
+		/// reading the module) crashes the process (Unix: SIGBUS), or the truncation fails (Windows).
+		/// </summary>
+		void ThrowIfModuleIsMemoryMappedFrom(string fileName) {
+			if (Module is not ModuleDefMD mod || mod.Metadata?.PEImage is not IInternalPEImage peImage)
+				return;
+			if (!peImage.IsMemoryMappedIO)
+				return;
+			if (!IsSameFile(peImage.Filename, fileName))
+				return;
+			throw new IOException($"Can't overwrite {fileName} since the module is memory mapped from that file. Load the module from a byte[] or write it to another file.");
+		}
+
+		static bool IsSameFile(string mappedFileName, string fileName) {
+			if (string.IsNullOrEmpty(mappedFileName) || string.IsNullOrEmpty(fileName))
+				return false;
+			try {
+				fileName = GetFullPathOfFile(fileName);
+				// If it doesn't exist, it's not truncated (eg. the mapped file was deleted or renamed)
+				if (!File.Exists(fileName))
+					return false;
+				// If the names only differ in case, it's the same file if the file system is case insensitive,
+				// or it's another file in a case sensitive file system. Assume it's the same file since the
+				// other case requires two files whose names only differ in case.
+				return StringComparer.OrdinalIgnoreCase.Equals(GetFullPathOfFile(mappedFileName), fileName);
+			}
+			catch (Exception ex) when (ex is IOException || ex is ArgumentException || ex is UnauthorizedAccessException || ex is NotSupportedException || ex is System.Security.SecurityException) {
+				return false;
+			}
+		}
+
+		static string GetFullPathOfFile(string fileName) {
+			fileName = Path.GetFullPath(fileName);
+#if NET6_0_OR_GREATER
+			// Resolve a symbolic link to the file
+			try {
+				if (File.ResolveLinkTarget(fileName, returnFinalTarget: true) is FileSystemInfo target)
+					fileName = Path.GetFullPath(target.FullName);
+			}
+			catch (IOException) {
+			}
+			catch (UnauthorizedAccessException) {
+			}
+#endif
+			return fileName;
 		}
 
 		static void DeleteFileNoThrow(string fileName) {
