@@ -438,8 +438,13 @@ namespace dnlib.DotNet.Writer {
 				//	- The new MD is bigger because the other MD writer was slightly better at optimizing the MD.
 				//	  This should be considered a bug.
 				var mdDataDir = module.Metadata.ImageCor20Header.Metadata;
-				metadata.SetOffset(peImage.ToFileOffset(mdDataDir.VirtualAddress), mdDataDir.VirtualAddress);
-				ReuseIfPossible(textSection, metadata, mdDataDir.VirtualAddress, mdDataDir.Size, DEFAULT_METADATA_ALIGNMENT);
+				// The heaps are aligned relative to the RVA so the length depends on the RVA's alignment.
+				// An unaligned location is never reused and the length must be the same in the final
+				// SetOffset() call, so only try the old location if it's aligned.
+				if (((uint)mdDataDir.VirtualAddress & (DEFAULT_METADATA_ALIGNMENT - 1)) == 0) {
+					metadata.SetOffset(peImage.ToFileOffset(mdDataDir.VirtualAddress), mdDataDir.VirtualAddress);
+					ReuseIfPossible(textSection, metadata, mdDataDir.VirtualAddress, mdDataDir.Size, DEFAULT_METADATA_ALIGNMENT);
+				}
 
 				var resourceDataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[2];
 				if (win32Resources is not null && resourceDataDir.VirtualAddress != 0 && resourceDataDir.Size != 0) {
