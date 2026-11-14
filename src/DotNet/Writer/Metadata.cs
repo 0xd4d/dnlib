@@ -2002,6 +2002,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		struct MethodScopeDebugInfo {
+			public MethodDef Method;
 			public uint MethodRid;
 			public PdbScope Scope;
 			public uint ScopeStart;
@@ -2100,7 +2101,12 @@ namespace dnlib.DotNet.Writer {
 										scopeStack.AddRange(scope.Scopes);
 										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
 										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
+										if (scopeEnd < scopeStart) {
+											Error("PDB scope's end instruction is before its start instruction");
+											scopeEnd = scopeStart;
+										}
 										methodScopeDebugInfos.Add(new MethodScopeDebugInfo() {
+											Method = method,
 											MethodRid = rid,
 											Scope = scope,
 											ScopeStart = scopeStart,
@@ -2126,7 +2132,14 @@ namespace dnlib.DotNet.Writer {
 						return c;
 					return b.ScopeLength.CompareTo(a.ScopeLength);
 				});
+				MethodDef currentMethod = null;
+				IDisposable currentSource = null;
 				foreach (var info in methodScopeDebugInfos) {
+					if (info.Method != currentMethod) {
+						currentSource?.Dispose();
+						currentMethod = info.Method;
+						currentSource = errorContext.SetSource(currentMethod);
+					}
 					uint localScopeRid = (uint)debugMetadata.localScopeInfos.infos.Count + 1;
 					var row = new RawLocalScopeRow(info.MethodRid, AddImportScope(info.Scope.ImportScope),
 						(uint)debugMetadata.tablesHeap.LocalVariableTable.Rows + 1,
@@ -2137,7 +2150,7 @@ namespace dnlib.DotNet.Writer {
 					int count = variables.Count;
 					for (int i = 0; i < count; i++) {
 						var local = variables[i];
-						AddLocalVariable(local);
+						AddLocalVariable(local, currentMethod.Body);
 					}
 					var constants = info.Scope.Constants;
 					count = constants.Count;
@@ -2147,6 +2160,7 @@ namespace dnlib.DotNet.Writer {
 					}
 					AddCustomDebugInformationList(Table.LocalScope, localScopeRid, info.Scope.CustomDebugInfos);
 				}
+				currentSource?.Dispose();
 
 				debugMetadata.tablesHeap.LocalScopeTable.IsSorted = true;
 				foreach (var info in debugMetadata.localScopeInfos.infos)
@@ -3653,10 +3667,14 @@ namespace dnlib.DotNet.Writer {
 			return rid;
 		}
 
-		void AddLocalVariable(PdbLocal local) {
+		void AddLocalVariable(PdbLocal local, CilBody body) {
 			Debug.Assert(debugMetadata is not null);
 			if (local is null) {
 				Error("PDB local is null");
+				return;
+			}
+			if (!PdbUtils.IsValidLocal(local, body, out var errorMessage)) {
+				Error(errorMessage, local.Name);
 				return;
 			}
 			var row = new RawLocalVariableRow((ushort)local.Attributes, (ushort)local.Index, debugMetadata.stringsHeap.Add(local.Name));

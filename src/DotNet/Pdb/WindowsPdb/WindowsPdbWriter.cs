@@ -367,6 +367,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			int startOffset = info.GetOffset(scope.Start);
 			int endOffset = info.GetOffset(scope.End);
+			if (endOffset < startOffset) {
+				Error("PDB scope's end instruction is before its start instruction. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+				endOffset = startOffset;
+			}
 			writer.OpenScope(startOffset);
 			AddLocals(info.Method, scope.Variables, (uint)startOffset, (uint)endOffset);
 			if (scope.Constants.Count > 0) {
@@ -402,6 +406,14 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			int count = locals.Count;
 			for (int i = 0; i < count; i++) {
 				var local = locals[i];
+				if (local is null) {
+					Error("PDB local is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
+					continue;
+				}
+				if (!PdbUtils.IsValidLocal(local, method.Body, out var errorMessage)) {
+					Error(errorMessage + ". Method {1} ({2:X8})", local.Name, method, method.MDToken.Raw);
+					continue;
+				}
 				uint attrs = GetPdbLocalFlags(local.Attributes);
 				if (attrs == 0 && local.Name is null)
 					continue;
