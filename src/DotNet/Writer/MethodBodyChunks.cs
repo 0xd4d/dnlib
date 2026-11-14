@@ -23,15 +23,19 @@ namespace dnlib.DotNet.Writer {
 		RVA rva;
 		uint length;
 		bool setOffsetCalled;
+		bool overlapsChecked;
 		readonly bool alignFatBodies;
 		uint savedBytes;
 
 		readonly struct ReusedMethodInfo {
 			public readonly MethodBody MethodBody;
 			public readonly RVA RVA;
-			public ReusedMethodInfo(MethodBody methodBody, RVA rva) {
+			/// <summary>Number of bytes written at <see cref="RVA"/></summary>
+			public readonly uint Length;
+			public ReusedMethodInfo(MethodBody methodBody, RVA rva, uint length) {
 				MethodBody = methodBody;
 				RVA = rva;
+				Length = length;
 			}
 		}
 
@@ -92,7 +96,7 @@ namespace dnlib.DotNet.Writer {
 				}
 				else {
 					rvaToReusedMethod.Add((uint)origRva, methodBody);
-					reusedMethods.Add(new ReusedMethodInfo(methodBody, origRva));
+					reusedMethods.Add(new ReusedMethodInfo(methodBody, origRva, methodBody.GetLengthAt(origRva)));
 					return methodBody;
 				}
 			}
@@ -122,6 +126,60 @@ namespace dnlib.DotNet.Writer {
 
 			var list = methodBody.IsFat ? fatMethods : tinyMethods;
 			return list.Remove(methodBody);
+		}
+
+		/// <summary>
+		/// Moves reused bodies whose old location overlaps another reused body's old location to the
+		/// new location, so no reused body overwrites another one. The body with the lowest RVA is kept. Must be called after all bodies
+		/// have been added and before <see cref="OverlapsReusedBody(RVA, uint)"/> is called.
+		/// </summary>
+		internal void RemoveOverlappingReusedBodies() {
+			if (reusedMethods.Count == 0)
+				return;
+			// The RVAs are unique (see rvaToReusedMethod) so the order doesn't depend on the sort implementation
+			var sorted = reusedMethods.ToArray();
+			Array.Sort(sorted, (a, b) => ((uint)a.RVA).CompareTo((uint)b.RVA));
+			reusedMethods.Clear();
+			ulong prevEnd = 0;
+			foreach (var info in sorted) {
+				if ((uint)info.RVA < prevEnd) {
+					// Each body is only stored once, and all methods using it get its new RVA
+					rvaToReusedMethod.Remove((uint)info.RVA);
+					var list = info.MethodBody.IsFat ? fatMethods : tinyMethods;
+					list.Add(info.MethodBody);
+					continue;
+				}
+				reusedMethods.Add(info);
+				prevEnd = (ulong)(uint)info.RVA + info.Length;
+			}
+			overlapsChecked = true;
+		}
+
+		/// <summary>
+		/// Checks if a reused body is written to some byte in the range
+		/// </summary>
+		/// <param name="rva">RVA</param>
+		/// <param name="size">Size</param>
+		internal bool OverlapsReusedBody(RVA rva, uint size) {
+			if (!overlapsChecked && reusedMethods.Count != 0)
+				throw new InvalidOperationException();
+			// reusedMethods is sorted and the bodies don't overlap, so the ends are sorted too
+			ulong start = (uint)rva;
+			ulong end = start + size;
+			int lo = 0, hi = reusedMethods.Count - 1;
+			while (lo <= hi) {
+				int mid = lo + (hi - lo) / 2;
+				var info = reusedMethods[mid];
+				ulong infoStart = (uint)info.RVA;
+				ulong infoEnd = infoStart + info.Length;
+				if (infoEnd <= start)
+					lo = mid + 1;
+				else if (infoStart >= end)
+					hi = mid - 1;
+				else
+					return true;
+			}
+			return false;
 		}
 
 		internal void InitializeReusedMethodBodies(Func<RVA, FileOffset> getNewFileOffset) {

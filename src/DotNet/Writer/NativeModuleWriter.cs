@@ -375,6 +375,8 @@ namespace dnlib.DotNet.Writer {
 				if (origRva < reusedChunk.RVA + reusedChunk.Chunk.GetVirtualSize() && origEnd > reusedChunk.RVA)
 					return;
 			}
+			if (methodBodies.OverlapsReusedBody(origRva, origSize))
+				return;
 
 			if (section.Remove(chunk) is null)
 				throw new InvalidOperationException();
@@ -429,6 +431,10 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 
 			if (Options.OptimizeImageSize) {
+				// Method bodies have already been added. Make sure no reused body overwrites another one.
+				// The chunks below aren't reused if they overlap a reused body.
+				methodBodies.RemoveOverlappingReusedBodies();
+
 				// Check if we can reuse the old MD location for the new MD.
 				// If we can't reuse it, it could be due to several reasons:
 				//	- TypeDefOrRef tokens weren't preserved resulting in a new #Blob heap that's bigger than the old #Blob heap
