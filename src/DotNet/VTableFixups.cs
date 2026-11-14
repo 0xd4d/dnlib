@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using dnlib.IO;
 using dnlib.PE;
 
 namespace dnlib.DotNet {
@@ -45,30 +46,59 @@ namespace dnlib.DotNet {
 				return;
 			}
 			rva = info.VirtualAddress;
-			vtables = new List<VTable>((int)info.Size / 8);
 
 			var peImage = module.Metadata.PEImage;
 			var reader = peImage.CreateReader();
-			reader.Position = (uint)peImage.ToFileOffset(info.VirtualAddress);
+			// ToFileOffset() returns 0 if the RVA is invalid (it's not 0)
+			var offset = peImage.ToFileOffset(info.VirtualAddress);
+			if (offset == 0) {
+				vtables = new List<VTable>();
+				return;
+			}
+			reader.Position = ToPosition(offset, reader.Length);
+			vtables = new List<VTable>((int)(Math.Min(info.Size, reader.BytesLeft) / 8));
 			ulong endPos = (ulong)reader.Position + info.Size;
+			// Limit the total number of slots, including the null slots of tables that can't be read.
+			// A small file could otherwise use many GBs since all tables could use the same data, and
+			// a table without file data gets up to 65535 null slots from an 8-byte header.
+			uint slotsLeft = reader.Length / 4;
 			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
 				var tableRva = (RVA)reader.ReadUInt32();
 				int numSlots = reader.ReadUInt16();
 				var flags = (VTableFlags)reader.ReadUInt16();
-				var vtable = new VTable(tableRva, flags, numSlots);
-				vtables.Add(vtable);
 
+				// Slots that can't be read get null methods: ToFileOffset() returns 0 if the RVA is invalid or
+				// has no file data (eg. .bss, where the slots are zero at runtime, ie. token 0), and a table
+				// can be past the end of the file or run past it. This keeps the slot count so the writer
+				// still sees that the vtable doesn't fit in the file instead of writing fewer slots.
+				// They count against the slot limit too since nothing has to be read to add them.
+				uint slotSize = (flags & VTableFlags.Bit64) != 0 ? 8U : 4;
+				uint count = Math.Min((uint)numSlots, slotsLeft);
+				slotsLeft -= count;
+				var vtable = new VTable(tableRva, flags, (int)count);
+				vtables.Add(vtable);
+				var tableOffset = peImage.ToFileOffset(tableRva);
+				uint readCount = 0;
 				var pos = reader.Position;
-				reader.Position = (uint)peImage.ToFileOffset(tableRva);
-				uint slotSize = vtable.Is64Bit ? 8U : 4;
-				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
+				if (tableOffset != 0) {
+					reader.Position = ToPosition(tableOffset, reader.Length);
+					readCount = Math.Min(count, reader.BytesLeft / slotSize);
+				}
+				for (uint i = 0; i < readCount; i++) {
 					vtable.Methods.Add(module.ResolveToken(reader.ReadUInt32()) as IMethod);
 					if (slotSize == 8)
 						reader.ReadUInt32();
 				}
+				for (uint i = readCount; i < count; i++)
+					vtable.Methods.Add(null);
 				reader.Position = pos;
 			}
 		}
+
+		// An RVA can be inside the image but past the end of the file (or the end of the image in
+		// memory). Nothing can be read there, so treat it like the end, which reads nothing.
+		internal static uint ToPosition(FileOffset offset, uint length) =>
+			Math.Min((uint)offset, length);
 
 		/// <inheritdoc/>
 		public IEnumerator<VTable> GetEnumerator() => vtables.GetEnumerator();

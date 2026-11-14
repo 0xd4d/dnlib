@@ -85,8 +85,9 @@ namespace dnlib.DotNet.MD {
 					if (tableRows > maxRows)
 						maxRows = tableRows;
 				}
-				// Can't overflow since maxRows <= 0x00FFFFFF and info.Bits < 8
-				uint finalRows = maxRows << info.Bits;
+				// This can overflow if maxRows > 0x00FFFFFF. The CLR also uses a 32-bit shift so we get the same result.
+				// See coreclr: md/runtime/metamodel.cpp / CMiniMdBase::InitColsForTable()
+				uint finalRows = unchecked(maxRows << info.Bits);
 				return forceAllBig || finalRows > 0xFFFF ? 4 : 2;
 			}
 			else {

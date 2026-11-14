@@ -124,6 +124,9 @@ namespace dnlib.DotNet.Resources {
 			foreach (var resource in resources.ResourceElements) {
 				UserResourceType newType;
 				if (formatVersion == 1 && resource.ResourceData is BuiltInResourceData builtinData) {
+					// V1 writes null as type index -1, which has no entry in the type table
+					if (builtinData.Code == ResourceTypeCode.Null)
+						continue;
 					newType = typeCreator.CreateBuiltinResourceType(builtinData.Code);
 					if (newType is null)
 						throw new NotSupportedException($"Unsupported resource type: {builtinData.Code} in format version 1 resource");

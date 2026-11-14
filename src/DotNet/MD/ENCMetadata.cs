@@ -18,6 +18,7 @@ namespace dnlib.DotNet.MD {
 		bool hasDeletedNonFields;
 		readonly CLRRuntimeReaderKind runtime;
 		readonly Dictionary<Table, SortedTable> sortedTables = new Dictionary<Table, SortedTable>();
+		readonly Dictionary<Table, Dictionary<uint, uint>> clrTokenToRidTables = new Dictionary<Table, Dictionary<uint, uint>>();
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
 #endif
@@ -57,7 +58,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#US":
 							if (usStream is null) {
-								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
+								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 								newAllStreams.Add(usStream);
 								continue;
 							}
@@ -65,7 +66,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#Blob":
 							if (blobStream is null) {
-								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
+								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 								newAllStreams.Add(blobStream);
 								continue;
 							}
@@ -121,7 +122,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#US":
 							if (usStream is null) {
-								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
+								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 								allStreams.Add(usStream);
 								continue;
 							}
@@ -129,7 +130,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#BLOB":
 							if (blobStream is null) {
-								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
+								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
 								allStreams.Add(blobStream);
 								continue;
 							}
@@ -183,6 +184,12 @@ namespace dnlib.DotNet.MD {
 				tablesStream.Initialize(pdbStream.TypeSystemTableRows, forceAllBig);
 			else
 				tablesStream.Initialize(null, forceAllBig);
+
+			// The CLR reads all blob columns as 4 bytes if there's a #JTD stream but it forgets to
+			// update the blob index mask so only the low 16 bits are used if BigBlob isn't set.
+			// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::InitWithLargeTables()
+			if (runtime == CLRRuntimeReaderKind.CLR && forceAllBig && !tablesStream.HasBigBlob)
+				blobStream?.SetOffsetMask(0xFFFF);
 
 			// The pointer tables are used iff row count != 0
 			hasFieldPtr = !tablesStream.FieldPtrTable.IsEmpty;
@@ -314,9 +321,13 @@ namespace dnlib.DotNet.MD {
 				if (destTable.IsInvalidRID(rid))
 					continue;
 				if (hasDeletedFields) {
-					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
-					if (!tablesStream.TryReadFieldRow(rid, out var row))
-						continue;	// Should never happen since rid is valid
+					// It's a deleted row if RTSpecialName is set and name is "_Deleted".
+					// The CLR reads the Field row at the list index instead of the FieldPtr row's
+					// Field rid, so use the same row as the CLR.
+					// See coreclr: md/enc/mdinternalrw.cpp / MDInternalRW::EnumInit() (mdtFieldDef)
+					uint deletedCheckRid = runtime == CLRRuntimeReaderKind.CLR ? list[i] : rid;
+					if (!tablesStream.TryReadFieldRow(deletedCheckRid, out var row))
+						continue;
 					if (runtime == CLRRuntimeReaderKind.CLR) {
 						if ((row.Flags & (uint)FieldAttributes.RTSpecialName) != 0) {
 							if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
@@ -382,7 +393,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetEventRidList(uint eventMapRid) {
-			var list = GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable);
+			var list = GetRidList(tablesStream.EventMapTable, eventMapRid, 1, tablesStream.EventTable, isEventOrPropertyList: true);
 			if (list.Count == 0 || (!hasEventPtr && !hasDeletedNonFields))
 				return list;
 
@@ -409,7 +420,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		public override RidList GetPropertyRidList(uint propertyMapRid) {
-			var list = GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable);
+			var list = GetRidList(tablesStream.PropertyMapTable, propertyMapRid, 1, tablesStream.PropertyTable, isEventOrPropertyList: true);
 			if (list.Count == 0 || (!hasPropertyPtr && !hasDeletedNonFields))
 				return list;
 
@@ -447,13 +458,20 @@ namespace dnlib.DotNet.MD {
 		/// <param name="tableSourceRid">Row ID in <paramref name="tableSource"/></param>
 		/// <param name="colIndex">Column index in <paramref name="tableSource"/>, eg. 4 for <c>TypeDef.FieldList</c></param>
 		/// <param name="tableDest">Destination table, eg. <c>Field</c></param>
+		/// <param name="isEventOrPropertyList"><c>true</c> if it's an event or property list</param>
 		/// <returns>A new <see cref="RidList"/> instance</returns>
-		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest) {
+		RidList GetRidList(MDTable tableSource, uint tableSourceRid, int colIndex, MDTable tableDest, bool isEventOrPropertyList = false) {
 			var column = tableSource.TableInfo.Columns[colIndex];
 			if (!tablesStream.TryReadColumn24(tableSource, tableSourceRid, column, out uint startRid))
 				return RidList.Empty;
 			bool hasNext = tablesStream.TryReadColumn24(tableSource, tableSourceRid + 1, column, out uint nextListRid);
 			uint lastRid = tableDest.Rows + 1;
+			// The CLR uses 1 if the event/property list is 0. If it's the last row or if the next row's
+			// list is 0 (END_OF_TABLE), the end rid is 0 so the list is empty. Mono doesn't (it returns no rows).
+			// See coreclr: md/enc/mdinternalrw.cpp / MDInternalRW::EnumInit() and
+			// md/enc/metamodelrw.cpp / CMiniMdRW::Impl_GetEndRidForColumn()
+			if (startRid == 0 && isEventOrPropertyList && runtime == CLRRuntimeReaderKind.CLR && hasNext && nextListRid != 0)
+				startRid = 1;
 			if (startRid == 0 || startRid >= lastRid)
 				return RidList.Empty;
 			uint endRid = hasNext && nextListRid != 0 ? nextListRid : lastRid;
@@ -520,17 +538,64 @@ namespace dnlib.DotNet.MD {
 			// Mono always does a binary search, even if it's the #- stream and the table isn't sorted
 			if (runtime == CLRRuntimeReaderKind.Mono)
 				return MonoBinarySearch(tableSource, keyColIndex, key);
+			if (!tablesStream.IsSorted(tableSource) && UsesHashLookupIfUnsorted(tableSource.Table))
+				return GenericFindWithHash(tableSource, keyColIndex, key);
 			var list = FindAllRowsUnsorted(tableSource, keyColIndex, key);
 			if (list.Count == 0)
 				return 0;
-			// If the table isn't sorted, the CLR does a linear search if there are less than 25 rows,
-			// else it creates a hash table and returns the last matching row. The rows are added to the
-			// front of the hash chains so the matching row with the highest rid is found first.
-			// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GenericFindWithHash()
-			if (!tablesStream.IsSorted(tableSource) &&
-				tableSource.Rows >= HashLookupRowCountThreshold && UsesHashLookupIfUnsorted(tableSource.Table))
-				return list[list.Count - 1];
 			return list[0];
+		}
+
+		// If the table isn't sorted, the CLR does a linear search if there are less than 25 rows,
+		// else it creates a hash table and returns the last matching row. The rows are added to the
+		// front of the hash chains so the matching row with the highest rid is found first.
+		// It doesn't compare the raw column values, it compares the tokens returned by
+		// CMiniMdRW::GetToken() so different column values can match the same token.
+		// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GenericFindWithHash()
+		uint GenericFindWithHash(MDTable tableSource, int keyColIndex, uint key) {
+			var column = tableSource.TableInfo.Columns[keyColIndex];
+			Dictionary<uint, uint> tokenToRid;
+#if THREAD_SAFE
+			theLock.EnterWriteLock(); try {
+#endif
+			if (!clrTokenToRidTables.TryGetValue(tableSource.Table, out tokenToRid))
+				clrTokenToRidTables[tableSource.Table] = tokenToRid = CreateClrTokenToRidTable(tableSource, column);
+#if THREAD_SAFE
+			} finally { theLock.ExitWriteLock(); }
+#endif
+			return tokenToRid.TryGetValue(GetClrToken(column.ColumnSize, key), out uint rid) ? rid : 0;
+		}
+
+		Dictionary<uint, uint> CreateClrTokenToRidTable(MDTable tableSource, ColumnInfo column) {
+			bool useLastMatch = tableSource.Rows >= HashLookupRowCountThreshold;
+			var tokenToRid = new Dictionary<uint, uint>();
+			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
+				if (!tablesStream.TryReadColumn24(tableSource, rid, column, out uint value))
+					break;	// Never happens since rid is valid
+				uint token = GetClrToken(column.ColumnSize, value);
+				if (useLastMatch || !tokenToRid.ContainsKey(token))
+					tokenToRid[token] = rid;
+			}
+			return tokenToRid;
+		}
+
+		// Converts a column value to a token like coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GetToken().
+		// The rid isn't masked so its high bits are ORed with the table bits.
+		static uint GetClrToken(ColumnSize columnSize, uint value) {
+			if (ColumnSize.Module <= columnSize && columnSize <= ColumnSize.CustomDebugInformation)
+				return value | ((uint)(columnSize - ColumnSize.Module) << 24);
+			var codedToken = columnSize switch {
+				ColumnSize.HasConstant => CodedToken.HasConstant,
+				ColumnSize.HasFieldMarshal => CodedToken.HasFieldMarshal,
+				ColumnSize.MemberForwarded => CodedToken.MemberForwarded,
+				_ => throw new InvalidOperationException($"Unexpected ColumnSize: {columnSize}"),
+			};
+			// coreclr: md/inc/metamodel.h / CMiniMdBase::decodeToken()
+			var tableTypes = codedToken.TableTypes;
+			uint tag = value & ((1U << codedToken.Bits) - 1);
+			if (tag >= (uint)tableTypes.Length)
+				return (uint)tableTypes[0] << 24;
+			return (value >> codedToken.Bits) | ((uint)tableTypes[tag] << 24);
 		}
 
 		// coreclr: md/enc/metamodelrw.cpp / INDEX_ROW_COUNT_THRESHOLD

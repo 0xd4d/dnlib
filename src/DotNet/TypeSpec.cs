@@ -288,6 +288,56 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public uint OrigRid => origRid;
 
+		/// <summary>
+		/// The TypeSpecs whose signatures are currently being read by this thread. A signature that
+		/// references a TypeSpec that is still being read is part of a cycle.
+		/// </summary>
+		[ThreadStatic]
+		static List<TypeSpecMD> signaturesBeingRead;
+
+		/// <summary>
+		/// Max number of nested TypeSpec signatures that are read at the same time. Each signature can
+		/// already be nested <see cref="RecursionCounter.MAX_RECURSION_COUNT"/> levels deep so this must
+		/// be small or a chain of TypeSpecs could overflow the stack. Real files don't nest them at all.
+		/// If the limit is hit, the TypeSpec that is too deep is resolved as <c>null</c>, so with such a
+		/// (crafted) chain, a TypeSpec's signature depends on which TypeSpec was resolved first.
+		/// </summary>
+		const int MAX_NESTED_SIGNATURES = 4;
+
+		/// <summary>
+		/// Creates a TypeSpec and reads its signature. Returns <c>null</c> if it can't be created
+		/// because it would create a cycle (its signature, eg. via a modopt, references itself) or
+		/// because too many TypeSpec signatures are already being read by this thread.
+		/// </summary>
+		/// <param name="readerModule">Module</param>
+		/// <param name="rid">TypeSpec rid</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		internal static TypeSpecMD Create(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
+			// Only one thread static access since it's slower than a normal static field access
+			var list = signaturesBeingRead ??= new List<TypeSpecMD>();
+			int count = list.Count;
+			if (count >= MAX_NESTED_SIGNATURES)
+				return null;
+			for (int i = 0; i < count; i++) {
+				var ts = list[i];
+				if (ts.origRid == rid && ts.readerModule == readerModule)
+					return null;
+			}
+
+			var typeSpec = new TypeSpecMD(readerModule, rid, gpContext);
+			// Read the signature now while this TypeSpec is in the list so any reference to it from its
+			// own signature is detected. All TypeSpecMDs are created by this method, so the signature
+			// of every TypeSpecMD is read here.
+			list.Add(typeSpec);
+			try {
+				_ = typeSpec.TypeSig;
+			}
+			finally {
+				list.RemoveAt(list.Count - 1);
+			}
+			return typeSpec;
+		}
+
 		/// <inheritdoc/>
 		protected override TypeSig GetTypeSigAndExtraData_NoLock(out byte[] extraData) {
 			var sig = readerModule.ReadTypeSignature(signatureOffset, gpContext, out extraData);
@@ -320,7 +370,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		public TypeSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
+		TypeSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 #if DEBUG
 			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");

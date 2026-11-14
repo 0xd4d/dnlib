@@ -21,7 +21,8 @@ namespace dnlib.DotNet.Writer {
 		public bool KeepExtraPEData { get; set; }
 
 		/// <summary>
-		/// If <c>true</c>, keep the original Win32 resources
+		/// If <c>true</c>, keep the original Win32 resources. This takes precedence over
+		/// <see cref="ModuleWriterOptionsBase.NoWin32Resources"/> and <see cref="ModuleWriterOptionsBase.Win32Resources"/>.
 		/// </summary>
 		public bool KeepWin32Resources { get; set; }
 
@@ -296,13 +297,13 @@ namespace dnlib.DotNet.Writer {
 				headerLen = firstRawOffset;
 			headerLen = Utils.AlignUp(headerLen, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 			if (headerLen <= peImage.ImageNTHeaders.OptionalHeader.SectionAlignment) {
-				uint origSizeOfHeaders = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
+				uint origHeadersLen = GetOriginalHeadersLength();
 				uint extraLen;
-				if (headerLen <= origSizeOfHeaders)
+				if (headerLen <= origHeadersLen)
 					extraLen = 0;
 				else {
-					extraLen = headerLen - origSizeOfHeaders;
-					headerLen = origSizeOfHeaders;
+					extraLen = headerLen - origHeadersLen;
+					headerLen = origHeadersLen;
 				}
 				if (extraLen > 0)
 					extraHeaderData = new ByteArrayChunk(new byte[(int)extraLen]);
@@ -315,9 +316,18 @@ namespace dnlib.DotNet.Writer {
 			throw new ModuleWriterException("Could not create header");
 		}
 
+		/// <summary>
+		/// Gets the length of the original headers. SizeOfHeaders could be smaller than the real headers
+		/// (eg. 0) so the headers always include everything up to the end of the last section header.
+		/// </summary>
+		uint GetOriginalHeadersLength() =>
+			Math.Max(peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders, GetOffsetAfterLastSectionHeader());
+
 		uint GetOffsetAfterLastSectionHeader() {
-			var lastSect = peImage.ImageSectionHeaders[peImage.ImageSectionHeaders.Count - 1];
-			return (uint)lastSect.EndOffset;
+			var sectionHeaders = peImage.ImageSectionHeaders;
+			if (sectionHeaders.Count == 0)
+				return (uint)peImage.ImageNTHeaders.OptionalHeader.StartOffset + peImage.ImageNTHeaders.FileHeader.SizeOfOptionalHeader;
+			return (uint)sectionHeaders[sectionHeaders.Count - 1].EndOffset;
 		}
 
 		uint GetFirstRawDataFileOffset() {
@@ -345,7 +355,7 @@ namespace dnlib.DotNet.Writer {
 			// Section chunks include the padding up to the file alignment, so the extra data starts after it.
 			// A memory layout image has no file offsets so it uses RVAs.
 			bool isFileLayout = peImage.IsFileImageLayout;
-			ulong end = peImage.ImageNTHeaders.OptionalHeader.SizeOfHeaders;
+			ulong end = GetOriginalHeadersLength();
 			foreach (var sect in origSections) {
 				var section = sect.PESection;
 				if (section.LoadedSizeOfRawData == 0)
@@ -375,6 +385,8 @@ namespace dnlib.DotNet.Writer {
 				if (origRva < reusedChunk.RVA + reusedChunk.Chunk.GetVirtualSize() && origEnd > reusedChunk.RVA)
 					return;
 			}
+			if (methodBodies.OverlapsReusedBody(origRva, origSize))
+				return;
 
 			if (section.Remove(chunk) is null)
 				throw new InvalidOperationException();
@@ -429,6 +441,10 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 
 			if (Options.OptimizeImageSize) {
+				// Method bodies have already been added. Make sure no reused body overwrites another one.
+				// The chunks below aren't reused if they overlap a reused body.
+				methodBodies.RemoveOverlappingReusedBodies();
+
 				// Check if we can reuse the old MD location for the new MD.
 				// If we can't reuse it, it could be due to several reasons:
 				//	- TypeDefOrRef tokens weren't preserved resulting in a new #Blob heap that's bigger than the old #Blob heap
@@ -438,8 +454,13 @@ namespace dnlib.DotNet.Writer {
 				//	- The new MD is bigger because the other MD writer was slightly better at optimizing the MD.
 				//	  This should be considered a bug.
 				var mdDataDir = module.Metadata.ImageCor20Header.Metadata;
-				metadata.SetOffset(peImage.ToFileOffset(mdDataDir.VirtualAddress), mdDataDir.VirtualAddress);
-				ReuseIfPossible(textSection, metadata, mdDataDir.VirtualAddress, mdDataDir.Size, DEFAULT_METADATA_ALIGNMENT);
+				// The heaps are aligned relative to the RVA so the length depends on the RVA's alignment.
+				// An unaligned location is never reused and the length must be the same in the final
+				// SetOffset() call, so only try the old location if it's aligned.
+				if (((uint)mdDataDir.VirtualAddress & (DEFAULT_METADATA_ALIGNMENT - 1)) == 0) {
+					metadata.SetOffset(peImage.ToFileOffset(mdDataDir.VirtualAddress), mdDataDir.VirtualAddress);
+					ReuseIfPossible(textSection, metadata, mdDataDir.VirtualAddress, mdDataDir.Size, DEFAULT_METADATA_ALIGNMENT);
+				}
 
 				var resourceDataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[2];
 				if (win32Resources is not null && resourceDataDir.VirtualAddress != 0 && resourceDataDir.Size != 0) {
@@ -594,7 +615,10 @@ namespace dnlib.DotNet.Writer {
 			long fileHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.FileHeader.StartOffset;
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
 			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
-			long dataDirOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.EndOffset - 16 * 8;
+			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
+			// The data directories are at a fixed offset in the optional header. Don't use its end offset,
+			// SizeOfOptionalHeader can be bigger than the standard size.
+			long dataDirOffset = optionalHeaderOffset + (is32BitOptionalHeader ? 0x60 : 0x70);
 			long cor20Offset = destStreamBaseOffset + (long)imageCor20Header.FileOffset;
 
 			// Update PE file header
@@ -610,7 +634,6 @@ namespace dnlib.DotNet.Writer {
 
 			// Update optional header
 			writer.Position = optionalHeaderOffset;
-			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			if (is32BitOptionalHeader) {
 				writer.Position += 2;
 				WriteByte(writer, peOptions.MajorLinkerVersion);
@@ -675,10 +698,15 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt32(writer, peOptions.NumberOfRvaAndSizes);
 			}
 
-			// Update Win32 resources data directory, if we wrote a new one
+			// Update Win32 resources data directory, if we wrote a new one, or clear it if
+			// the user doesn't want any Win32 resources. Otherwise keep the original one.
 			if (win32Resources is not null) {
 				writer.Position = dataDirOffset + 2 * 8;
 				writer.WriteDataDirectory(win32Resources);
+			}
+			else if (Options.NoWin32Resources && !Options.KeepWin32Resources) {
+				writer.Position = dataDirOffset + 2 * 8;
+				writer.WriteDataDirectory(null);
 			}
 
 			// Clear the security descriptor directory
@@ -715,11 +743,12 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteDataDirectory(netResources);
 			writer.WriteDataDirectory(strongNameSignature);
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.CodeManagerTable);
+			long vtableFixupsDirOffset = writer.Position;
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.VTableFixups);
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.ExportAddressTableJumps);
 			WriteDataDirectory(writer, module.Metadata.ImageCor20Header.ManagedNativeHeader);
 
-			UpdateVTableFixups(writer);
+			UpdateVTableFixups(writer, vtableFixupsDirOffset);
 		}
 
 		static void WriteDataDirectory(DataWriter writer, ImageDataDirectory dataDir) {
@@ -777,7 +806,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		ComImageFlags GetComImageFlags(bool isManagedEntryPoint) {
-			var flags = Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags;
+			var flags = UpdateStrongNameSignedFlag(Options.Cor20HeaderOptions.Flags ?? module.Cor20HeaderFlags);
 			if (Options.Cor20HeaderOptions.EntryPoint is not null)
 				return flags;
 			if (isManagedEntryPoint)
@@ -811,38 +840,116 @@ namespace dnlib.DotNet.Writer {
 				yield return new SectionSizeInfo(section.GetVirtualSize(), section.Characteristics);
 		}
 
-		void UpdateVTableFixups(DataWriter writer) {
-			var vtableFixups = module.VTableFixups;
-			if (vtableFixups is null || vtableFixups.VTables.Count == 0)
-				return;
+		readonly struct OrigVTableInfo {
+			public readonly RVA RVA;
+			public readonly uint Size;
+			public OrigVTableInfo(RVA rva, uint size) {
+				RVA = rva;
+				Size = size;
+			}
+		}
 
-			writer.Position = ToWriterOffset(vtableFixups.RVA);
-			if (writer.Position == 0) {
-				Error("Could not convert RVA to file offset");
+		/// <summary>
+		/// Reads the location and size of each vtable in the original file
+		/// </summary>
+		List<OrigVTableInfo> ReadOriginalVTables(ImageDataDirectory dir) {
+			var list = new List<OrigVTableInfo>();
+			if (dir.VirtualAddress == 0 || dir.Size == 0)
+				return list;
+			var offset = peImage.ToFileOffset(dir.VirtualAddress);
+			var reader = peImage.CreateReader();
+			if (offset == 0 || (uint)offset > reader.Length)
+				return list;
+			reader.Position = (uint)offset;
+			ulong endPos = (ulong)reader.Position + dir.Size;
+			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
+				var rva = (RVA)reader.ReadUInt32();
+				uint numSlots = reader.ReadUInt16();
+				var flags = (VTableFlags)reader.ReadUInt16();
+				uint slotSize = (flags & VTableFlags.Bit64) != 0 ? 8U : 4;
+				list.Add(new OrigVTableInfo(rva, numSlots * slotSize));
+			}
+			return list;
+		}
+
+		static bool IsInRange(RVA rva, ulong size, RVA rangeRva, ulong rangeSize) =>
+			rva >= rangeRva && (ulong)rva + size <= (ulong)rangeRva + rangeSize;
+
+		/// <summary>
+		/// The vtable fixups and vtables are written over the original data so they can't be moved or grow
+		/// past their original locations. Returns false if any of them doesn't fit.
+		/// </summary>
+		bool CanUpdateVTableFixups(VTableFixups vtableFixups, ImageDataDirectory origDir, List<OrigVTableInfo> origVTables) {
+			var vtables = vtableFixups.VTables;
+			ulong headersSize = (ulong)vtables.Count * 8;
+			if (!IsInRange(vtableFixups.RVA, headersSize, origDir.VirtualAddress, origDir.Size) || !IsInOneSectionsFileData(vtableFixups.RVA, (uint)headersSize)) {
+				Error("VTable fixups don't fit in the original vtable fixups location (RVA {0:X8})", (uint)origDir.VirtualAddress);
+				return false;
+			}
+			foreach (var vtable in vtables) {
+				int count = vtable.Methods.Count;
+				if (count > ushort.MaxValue)
+					throw new ModuleWriterException("Too many methods in vtable");
+				if (count == 0)
+					continue;
+				ulong size = (ulong)count * (vtable.Is64Bit ? 8U : 4);
+				bool fits = false;
+				foreach (var orig in origVTables) {
+					if (IsInRange(vtable.RVA, size, orig.RVA, orig.Size)) {
+						fits = true;
+						break;
+					}
+				}
+				if (!fits || !IsInOneSectionsFileData(vtable.RVA, (uint)size)) {
+					Error("VTable (RVA {0:X8}, {1} slots) doesn't fit in an original vtable location", (uint)vtable.RVA, count);
+					return false;
+				}
+			}
+			return true;
+		}
+
+		void UpdateVTableFixups(DataWriter writer, long vtableFixupsDirOffset) {
+			var vtableFixups = module.VTableFixups;
+			var origDir = module.Metadata.ImageCor20Header.VTableFixups;
+			if (vtableFixups is null || vtableFixups.VTables.Count == 0) {
+				// All vtables were removed. Clear the data directory so the loader doesn't use the old vtable fixups.
+				if (origDir.VirtualAddress != 0 || origDir.Size != 0) {
+					writer.Position = vtableFixupsDirOffset;
+					writer.WriteUInt32(0);
+					writer.WriteUInt32(0);
+				}
 				return;
 			}
+
+			// Check everything first, if something doesn't fit, nothing is updated (the logger might not throw)
+			if (!CanUpdateVTableFixups(vtableFixups, origDir, ReadOriginalVTables(origDir)))
+				return;
+
+			// The original size isn't always a multiple of 8 (MSVC), so only update the data directory if needed
+			uint headersSize = (uint)vtableFixups.VTables.Count * 8;
+			if (vtableFixups.RVA != origDir.VirtualAddress || headersSize != (origDir.Size & ~7U)) {
+				writer.Position = vtableFixupsDirOffset;
+				writer.WriteUInt32((uint)vtableFixups.RVA);
+				writer.WriteUInt32(headersSize);
+			}
+
+			writer.Position = ToWriterOffset(vtableFixups.RVA);
 			foreach (var vtable in vtableFixups) {
-				if (vtable.Methods.Count > ushort.MaxValue)
-					throw new ModuleWriterException("Too many methods in vtable");
 				writer.WriteUInt32((uint)vtable.RVA);
 				writer.WriteUInt16((ushort)vtable.Methods.Count);
 				writer.WriteUInt16((ushort)vtable.Flags);
 
+				var methods = vtable.Methods;
+				int count = methods.Count;
+				if (count == 0)
+					continue;
 				long pos = writer.Position;
 				writer.Position = ToWriterOffset(vtable.RVA);
-				if (writer.Position == 0) {
-					if (vtable.RVA != 0 || vtable.Methods.Count > 0)
-						Error("Could not convert RVA to file offset");
-				}
-				else {
-					var methods = vtable.Methods;
-					int count = methods.Count;
-					for (int i = 0; i < count; i++) {
-						var method = methods[i];
-						writer.WriteUInt32(GetMethodToken(method));
-						if (vtable.Is64Bit)
-							writer.WriteInt32(0);
-					}
+				for (int i = 0; i < count; i++) {
+					var method = methods[i];
+					writer.WriteUInt32(GetMethodToken(method));
+					if (vtable.Is64Bit)
+						writer.WriteInt32(0);
 				}
 				writer.Position = pos;
 			}

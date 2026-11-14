@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.IO;
@@ -118,7 +119,87 @@ namespace dnlib.W32Resources {
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
+		// Protects usedBudget and names. It's a different lock because the directories are
+		// read while theLock or a list's lock is held and the locks aren't recursive.
+		readonly Lock budgetLock = Lock.Create();
 #endif
+
+		/// <summary>
+		/// Size of all read directories and names. Entries can point to the same directory or
+		/// name so a small file could otherwise create a huge tree. Every directory and name
+		/// of a normal file has its own bytes in the resource section so their total size is
+		/// less than the size of the section.
+		/// </summary>
+		ulong usedBudget;
+
+		/// <summary>
+		/// All names that have been read, the key is the offset of the name
+		/// </summary>
+		readonly Dictionary<uint, string> names = new Dictionary<uint, string>();
+
+		ulong MaxBudget => (ulong)rsrcReader_length * 2;
+
+		/// <summary>
+		/// Called before a directory or a name is read to check that it's not too much data
+		/// </summary>
+		/// <param name="size">Size in bytes of the directory or name</param>
+		/// <returns><c>true</c> if it can be read, <c>false</c> if too much has already been read</returns>
+		internal bool TryUseBudget(uint size) {
+#if THREAD_SAFE
+			budgetLock.EnterWriteLock(); try {
+#endif
+			return TryUseBudget_NoLock(size);
+#if THREAD_SAFE
+			} finally { budgetLock.ExitWriteLock(); }
+#endif
+		}
+
+		bool TryUseBudget_NoLock(uint size) {
+			if (usedBudget + size > MaxBudget)
+				return false;
+			usedBudget += size;
+			return true;
+		}
+
+		/// <summary>
+		/// Reads a name. A name that's used by many entries is only read once.
+		/// </summary>
+		/// <param name="reader">Resource reader</param>
+		/// <param name="offset">Offset of name</param>
+		/// <returns>The name or <c>null</c> if we could not read it</returns>
+		internal string ReadName(ref DataReader reader, uint offset) {
+#if THREAD_SAFE
+			budgetLock.EnterWriteLock(); try {
+#endif
+			if (names.TryGetValue(offset, out var name))
+				return name;
+			name = ReadName_NoLock(ref reader, offset);
+			names[offset] = name;
+			return name;
+#if THREAD_SAFE
+			} finally { budgetLock.ExitWriteLock(); }
+#endif
+		}
+
+		string ReadName_NoLock(ref DataReader reader, uint offset) {
+			if (offset > reader.Length)
+				return null;
+			reader.Position = offset;
+			if (!reader.CanRead(2U))
+				return null;
+			int size = reader.ReadUInt16();
+			int sizeInBytes = size * 2;
+			if (!reader.CanRead((uint)sizeInBytes))
+				return null;
+			if (!TryUseBudget_NoLock(2 + (uint)sizeInBytes))
+				return null;
+			try {
+				return reader.ReadUtf16String(size);
+			}
+			catch {
+				return null;
+			}
+		}
 
 		/// <inheritdoc/>
 		public override ResourceDirectory Root {
@@ -150,8 +231,9 @@ namespace dnlib.W32Resources {
 		/// <param name="owns_rsrcReader_factory">true if this instance can dispose of <paramref name="rsrcReader_factory"/></param>
 		/// <param name="dataReader_factory">Data reader (it's used after converting an <see cref="RVA"/>
 		/// to a <see cref="FileOffset"/>)</param>
-		/// <param name="dataReader_offset">Offset of resource section</param>
-		/// <param name="dataReader_length">Length of resource section</param>
+		/// <param name="dataReader_offset">Offset of the PE image in <paramref name="dataReader_factory"/>. The converted
+		/// <see cref="FileOffset"/>s are relative to this offset.</param>
+		/// <param name="dataReader_length">Length of the PE image</param>
 		/// <param name="owns_dataReader_factory">true if this instance can dispose of <paramref name="dataReader_factory"/></param>
 		public Win32ResourcesPE(IRvaFileOffsetConverter rvaConverter, DataReaderFactory rsrcReader_factory, uint rsrcReader_offset, uint rsrcReader_length, bool owns_rsrcReader_factory, DataReaderFactory dataReader_factory, uint dataReader_offset, uint dataReader_length, bool owns_dataReader_factory) {
 			this.rvaConverter = rvaConverter ?? throw new ArgumentNullException(nameof(rvaConverter));
@@ -197,7 +279,8 @@ namespace dnlib.W32Resources {
 			}
 			else {
 				var dataDir = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[2];
-				if (dataDir.VirtualAddress != 0 && dataDir.Size != 0) {
+				// ToFileOffset() returns 0 if the RVA is invalid
+				if (dataDir.VirtualAddress != 0 && dataDir.Size != 0 && peImage.ToFileOffset(dataDir.VirtualAddress) != 0) {
 					var reader = peImage.CreateReader(dataDir.VirtualAddress, dataDir.Size);
 					this.rsrcReader_factory = peImage.DataReaderFactory;
 					this.rsrcReader_offset = reader.StartOffset;
@@ -237,9 +320,12 @@ namespace dnlib.W32Resources {
 		}
 
 		internal void GetDataReaderInfo(RVA rva, uint size, out DataReaderFactory dataReaderFactory, out uint dataOffset, out uint dataLength) {
-			dataOffset = (uint)rvaConverter.ToFileOffset(rva);
-			if ((ulong)dataOffset + size <= dataReader_factory.Length) {
+			// The file offset is relative to the start of the PE image, which is at dataReader_offset in dataReader_factory
+			// ToFileOffset() returns 0 if the RVA is invalid. Resource data is never at RVA 0 (the DOS header).
+			uint fileOffset = (uint)rvaConverter.ToFileOffset(rva);
+			if (fileOffset != 0 && (ulong)fileOffset + size <= dataReader_length && (ulong)dataReader_offset + fileOffset + size <= dataReader_factory.Length) {
 				dataReaderFactory = dataReader_factory;
+				dataOffset = dataReader_offset + fileOffset;
 				dataLength = size;
 				return;
 			}

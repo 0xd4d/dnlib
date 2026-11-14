@@ -19,6 +19,8 @@ namespace dnlib.DotNet.MD {
 		uint extraData;
 		MDTable[] mdTables;
 		uint mdTablesPos;
+		// Row counts used to calculate the location of each table. These can be bigger than MDTable.Rows.
+		uint[] tableLayoutRows;
 
 		IColumnReader columnReader;
 		IRowReader<RawMethodRow> methodRowReader;
@@ -233,19 +235,36 @@ namespace dnlib.DotNet.MD {
 			var tableInfos = dnTableSizes.CreateTables(tmpMajor, tmpMinor, out int maxPresentTables);
 			if (typeSystemTableRows is not null)
 				maxPresentTables = DotNetTableSizes.normalMaxTables;
+			else if (runtime == CLRRuntimeReaderKind.CLR && maxPresentTables > (int)Table.GenericParamConstraint + 1) {
+				// Not a portable PDB. The CLR doesn't know about the portable PDB tables (its TBL_COUNT is
+				// GenericParamConstraint + 1). Their row counts are skipped but the tables are treated as empty.
+				// See coreclr: inc/metamodelpub.h (TBL_COUNT) and md/runtime/metamodel.cpp / CMiniMdSchema::LoadFrom()
+				maxPresentTables = (int)Table.GenericParamConstraint + 1;
+			}
 			mdTables = new MDTable[tableInfos.Length];
 
 			ulong valid = validMask;
 			var sizes = new uint[64];
 			for (int i = 0; i < 64; valid >>= 1, i++) {
 				uint rows = (valid & 1) == 0 ? 0 : reader.ReadUInt32();
-				// Mono ignores the high byte
-				rows &= 0x00FFFFFF;
+				// Mono ignores the high byte. The CLR uses all 32 bits when calculating column sizes
+				// and the location of each table.
+				// See coreclr: md/runtime/metamodel.cpp / CMiniMdSchema::LoadFrom()
+				if (runtime == CLRRuntimeReaderKind.Mono)
+					rows &= 0x00FFFFFF;
 				if (i >= maxPresentTables)
 					rows = 0;
 				sizes[i] = rows;
-				if (i < mdTables.Length)
-					mdTables[i] = new MDTable((Table)i, rows, tableInfos[i]);
+			}
+			tableLayoutRows = new uint[mdTables.Length];
+			for (int i = 0; i < mdTables.Length; i++) {
+				uint rows = sizes[i];
+				tableLayoutRows[i] = rows;
+				// A token's rid is 24 bits so rows above that can't be referenced. Don't make
+				// the visible row count bigger than that.
+				if (rows > 0x00FFFFFF)
+					rows = 0x00FFFFFF;
+				mdTables[i] = new MDTable((Table)i, rows, tableInfos[i]);
 			}
 
 			if (HasExtraData)
@@ -276,12 +295,21 @@ namespace dnlib.DotNet.MD {
 			var reader = dataReader;
 			reader.Position = mdTablesPos;
 			var currentPos = reader.Position;
-			foreach (var mdTable in mdTables) {
-				var dataLen = (uint)mdTable.TableInfo.RowSize * mdTable.Rows;
+			for (int i = 0; i < mdTables.Length; i++) {
+				var mdTable = mdTables[i];
+				ulong fullDataLen = (ulong)(uint)mdTable.TableInfo.RowSize * tableLayoutRows[i];
 				if (currentPos > reader.Length)
 					currentPos = reader.Length;
-				if ((ulong)currentPos + dataLen > reader.Length)
+				uint dataLen;
+				if ((ulong)currentPos + fullDataLen > reader.Length) {
 					dataLen = reader.Length - currentPos;
+					// Only rows that are completely inside the stream exist. The column sizes
+					// have already been calculated from the row counts in the file. Rows is
+					// already limited to what a token can reference, so it can only get smaller.
+					mdTable.Rows = Math.Min(mdTable.Rows, dataLen / (uint)mdTable.TableInfo.RowSize);
+				}
+				else
+					dataLen = (uint)fullDataLen;
 				mdTable.DataReader = reader.Slice(currentPos, dataLen);
 				var newPos = currentPos + dataLen;
 				if (newPos < currentPos)

@@ -137,19 +137,49 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="a">Byte array</param>
 		/// <returns>The hash code</returns>
-		internal static int GetHashCode(byte[] a) {
+		internal static unsafe int GetHashCode(byte[] a) {
 			if (a is null || a.Length == 0)
 				return 0;
-			int count = Math.Min(a.Length / 2, 20);
-			if (count == 0)
-				count = 1;
-			uint hash = 0;
-			for (int i = 0, j = a.Length - 1; i < count; i++, j--) {
-				hash ^= a[i] | ((uint)a[j] << 8);
-				hash = (hash << 13) | (hash >> 19);
+			// All bytes are hashed (xxHash32 algorithm, seed 0). Hashing only some of the bytes makes
+			// it easy to create many different arrays with the same hash code, which makes the
+			// dictionaries (eg. #Blob heap, FieldRVA data, method bodies) quadratic.
+			const uint Prime1 = 2654435761U, Prime2 = 2246822519U, Prime3 = 3266489917U, Prime4 = 668265263U, Prime5 = 374761393U;
+			int length = a.Length;
+			uint hash;
+			fixed (byte* start = a) {
+				byte* p = start;
+				byte* end = start + length;
+				if (length >= 16) {
+					uint v1 = unchecked(Prime1 + Prime2);
+					uint v2 = Prime2;
+					uint v3 = 0;
+					uint v4 = unchecked(0 - Prime1);
+					byte* limit = end - 16;
+					do {
+						v1 = HashRound(v1, *(uint*)p);
+						v2 = HashRound(v2, *(uint*)(p + 4));
+						v3 = HashRound(v3, *(uint*)(p + 8));
+						v4 = HashRound(v4, *(uint*)(p + 12));
+						p += 16;
+					} while (p <= limit);
+					hash = RotateLeft(v1, 1) + RotateLeft(v2, 7) + RotateLeft(v3, 12) + RotateLeft(v4, 18);
+				}
+				else
+					hash = Prime5;
+				hash = unchecked(hash + (uint)length);
+				for (; p + 4 <= end; p += 4)
+					hash = unchecked(RotateLeft(hash + *(uint*)p * Prime3, 17) * Prime4);
+				for (; p < end; p++)
+					hash = unchecked(RotateLeft(hash + *p * Prime5, 11) * Prime1);
 			}
+			hash = unchecked((hash ^ (hash >> 15)) * Prime2);
+			hash = unchecked((hash ^ (hash >> 13)) * Prime3);
+			hash ^= hash >> 16;
 			return (int)hash;
 		}
+
+		static uint HashRound(uint acc, uint input) => unchecked(RotateLeft(acc + input * 2246822519U, 13) * 2654435761U);
+		static uint RotateLeft(uint value, int count) => (value << count) | (value >> (32 - count));
 
 		/// <summary>
 		/// Compares two versions

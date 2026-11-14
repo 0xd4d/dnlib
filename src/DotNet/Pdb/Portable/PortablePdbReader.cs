@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb.Symbols;
@@ -44,7 +46,53 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public override void Initialize(ModuleDef module) {
 			this.module = module;
+			CheckCustomDebugInfoSize();
+			CheckImportScopeSize();
 			documents = ReadDocuments();
+		}
+
+		// Each row parses its own copy of its blob, and many rows can use the same blob, so memory
+		// could grow with rows * blob size. Blobs that don't overlap can't add up to more than the
+		// heap. Compilers share identical blobs, such as several embedded copies of one file, so a
+		// fixed amount is allowed too, to keep those files loading.
+		const long MinBlobSizeLimit = 16 * 1024 * 1024;
+
+		long GetBlobSizeLimit() => Math.Max((long)pdbMetadata.BlobStream.StreamLength * 2, MinBlobSizeLimit);
+
+		void CheckCustomDebugInfoSize() {
+			var tablesStream = pdbMetadata.TablesStream;
+			var blobStream = pdbMetadata.BlobStream;
+			long maxSize = GetBlobSizeLimit();
+			long size = 0;
+			uint rows = tablesStream.CustomDebugInformationTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (!tablesStream.TryReadCustomDebugInformationRow(rid, out var row))
+					continue;
+				if (!blobStream.TryCreateReader(row.Value, out var reader))
+					continue;
+				size += reader.Length;
+				if (size > maxSize)
+					throw new IOException("Custom debug info rows share too much blob data");
+			}
+		}
+
+		// The same problem as above: each ImportScope row parses its own copy of its imports blob, and
+		// each import decodes its own copy of its strings, so rows can share an imports blob and
+		// imports can share a string blob. Rows are counted even if no method uses them, so the result
+		// doesn't depend on which method bodies are read.
+		void CheckImportScopeSize() {
+			var tablesStream = pdbMetadata.TablesStream;
+			var importScopeBlobReader = new ImportScopeBlobReader(module, pdbMetadata.BlobStream);
+			long maxSize = GetBlobSizeLimit();
+			long size = 0;
+			uint rows = tablesStream.ImportScopeTable.Rows;
+			for (uint rid = 1; rid <= rows; rid++) {
+				if (!tablesStream.TryReadImportScopeRow(rid, out var row))
+					continue;
+				size += importScopeBlobReader.GetSize(row.Imports);
+				if (size > maxSize)
+					throw new IOException("Import scope rows share too much blob data");
+			}
 		}
 
 		static Guid GetLanguageVendor(Guid language) {
@@ -58,13 +106,25 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var docTbl = pdbMetadata.TablesStream.DocumentTable;
 			var docs = new SymbolDocument[docTbl.Rows];
 			var nameReader = new DocumentNameReader(pdbMetadata.BlobStream);
+			var urls = new Dictionary<uint, string>();
+			long maxUrlsSize = GetBlobSizeLimit();
+			long urlsSize = 0;
 			var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
 			var gpContext = new GenericParamContext();
 			for (int i = 0; i < docs.Length; i++) {
 				uint rid = (uint)i + 1;
 				bool b = pdbMetadata.TablesStream.TryReadDocumentRow(rid, out var row);
 				Debug.Assert(b);
-				var url = nameReader.ReadDocumentName(row.Name);
+				// A name is built from parts that can each be shared, so a few bytes can make a name of up to 64K
+				// chars. Rows that use the same name blob share the string, and the total size of all other
+				// names has the same limit as the custom debug info and import blobs.
+				if (!urls.TryGetValue(row.Name, out var url)) {
+					url = nameReader.ReadDocumentName(row.Name);
+					urlsSize += url.Length;
+					if (urlsSize > maxUrlsSize)
+						throw new IOException("Document rows share too much blob data");
+					urls.Add(row.Name, url);
+				}
 				var language = pdbMetadata.GuidStream.Read(row.Language) ?? Guid.Empty;
 				var languageVendor = GetLanguageVendor(language);
 				var documentType = PdbDocumentConstants.DocumentTypeText;
@@ -132,6 +192,16 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			if (!pdbMetadata.BlobStream.TryCreateReader(row.SequencePoints, out var seqPointsReader))
 				return null;
+			try {
+				return ReadSequencePoints(ref seqPointsReader, documentRid);
+			}
+			catch (IOException) {
+				// A corrupt blob loses this method's sequence points, like the invalid data checks below
+				return null;
+			}
+		}
+
+		SymbolSequencePoint[] ReadSequencePoints(ref DataReader seqPointsReader, uint documentRid) {
 			var seqPointsBuilder = ListCache<SymbolSequencePoint>.AllocList();
 			uint localSig = seqPointsReader.ReadCompressedUInt32();
 			if (documentRid == 0)
@@ -216,7 +286,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (scopesRidList.Count != 0) {
 				var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
 				var stack = ListCache<SymbolScopeImpl>.AllocList();
-				var importScopeBlobReader = new ImportScopeBlobReader(module, pdbMetadata.BlobStream);
 				for (int i = 0; i < scopesRidList.Count; i++) {
 					var rid = scopesRidList[i];
 					int token = new MDToken(Table.LocalScope, rid).ToInt32();
@@ -246,7 +315,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (parent is not null)
 						parent.childrenList.Add(scope);
 
-					scope.importScope = ReadPdbImportScope(ref importScopeBlobReader, row.ImportScope, gpContext);
+					scope.importScope = GetPdbImportScope(row.ImportScope);
 					ReadVariables(scope, gpContext, pdbMetadata.GetLocalVariableRidList(rid));
 					ReadConstants(scope, pdbMetadata.GetLocalConstantRidList(rid));
 				}
@@ -257,31 +326,121 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return rootScopeOrNull ?? new SymbolScopeImpl(this, null, 0, int.MaxValue, Array2.Empty<PdbCustomDebugInfo>());
 		}
 
-		PdbImportScope ReadPdbImportScope(ref ImportScopeBlobReader importScopeBlobReader, uint importScope, GenericParamContext gpContext) {
+		// Many LocalScopes, in one method or in many, can use the same ImportScope rows, and each row
+		// can have a long Parent chain. Each row is read once, and every scope that uses it gets the
+		// same PdbImportScope. Reading the whole chain again for each LocalScope used memory and time
+		// proportional to LocalScopes * chain length * blob sizes.
+		// importScopes[rid] is the row's scope once created. importScopeChainLengths[rid] is the
+		// number of rows in its chain, InvalidImportScopeChainLength if the chain is too long, has a
+		// loop or has a row that can't be read, or 0 if not known yet. Both only ever change from
+		// their default to a final value that doesn't depend on the order rows are read in, so
+		// threads reading different methods can share them without a lock.
+		const int MaxImportScopeChainLength = 1000;
+		const int InvalidImportScopeChainLength = MaxImportScopeChainLength + 1;
+		PdbImportScope[] importScopes;
+		int[] importScopeChainLengths;
+
+		static T[] GetOrCreateArray<T>(ref T[] array, uint length) =>
+			array ?? Interlocked.CompareExchange(ref array, new T[length], null) ?? array;
+
+		PdbImportScope GetPdbImportScope(uint importScope) {
 			if (importScope == 0)
 				return null;
-			const int MAX = 1000;
-			PdbImportScope result = null;
-			PdbImportScope prevScope = null;
-			for (int i = 0; importScope != 0; i++) {
-				Debug.Assert(i < MAX);
-				if (i >= MAX)
-					return null;
-				int token = new MDToken(Table.ImportScope, importScope).ToInt32();
-				if (!pdbMetadata.TablesStream.TryReadImportScopeRow(importScope, out var row))
-					return null;
-				var scope = new PdbImportScope();
-				GetCustomDebugInfos(token, gpContext, scope.CustomDebugInfos);
-				if (result is null)
-					result = scope;
-				if (prevScope is not null)
-					prevScope.Parent = scope;
-				importScopeBlobReader.Read(row.Imports, scope.Imports);
-				prevScope = scope;
-				importScope = row.Parent;
+			uint rows = pdbMetadata.TablesStream.ImportScopeTable.Rows;
+			if (importScope > rows)
+				return null;
+			if (GetImportScopeChainLength(importScope, rows) > MaxImportScopeChainLength)
+				return null;
+			return CreatePdbImportScope(importScope, rows);
+		}
+
+		int GetImportScopeChainLength(uint importScope, uint rows) {
+			var lengths = GetOrCreateArray(ref importScopeChainLengths, rows + 1);
+			int length = lengths[importScope];
+			if (length != 0)
+				return length;
+
+			// Usually the parent is 0 or its length is already known, so don't allocate a path
+			if (pdbMetadata.TablesStream.TryReadImportScopeRow(importScope, out var firstRow)) {
+				uint parent = firstRow.Parent;
+				int parentLength = parent == 0 ? 0 :
+					parent > rows || parent == importScope ? InvalidImportScopeChainLength : lengths[parent];
+				if (parent == 0 || parentLength != 0) {
+					length = parentLength < InvalidImportScopeChainLength ? parentLength + 1 : InvalidImportScopeChainLength;
+					lengths[importScope] = length;
+					return length;
+				}
 			}
 
-			return result;
+			// Find the rows whose length isn't known yet. Each row is added to a path at most once
+			// (besides threads racing), so all calls together take time proportional to the rows.
+			// A row that's already in the path is a loop, and all rows in the path lead to it.
+			var path = new List<uint>();
+			var inPath = new HashSet<uint>();
+			uint rid = importScope;
+			while (true) {
+				if (rid == 0) {
+					length = 0;
+					break;
+				}
+				if (rid > rows) {
+					length = InvalidImportScopeChainLength;
+					break;
+				}
+				length = lengths[rid];
+				if (length != 0)
+					break;
+				if (!inPath.Add(rid) || !pdbMetadata.TablesStream.TryReadImportScopeRow(rid, out var row)) {
+					length = InvalidImportScopeChainLength;
+					break;
+				}
+				path.Add(rid);
+				rid = row.Parent;
+			}
+
+			for (int i = path.Count - 1; i >= 0; i--) {
+				if (length < InvalidImportScopeChainLength)
+					length++;
+				lengths[path[i]] = length;
+			}
+			return lengths[importScope];
+		}
+
+		// The caller has checked that the chain is valid, so it has at most MaxImportScopeChainLength rows
+		PdbImportScope CreatePdbImportScope(uint importScope, uint rows) {
+			var scopes = GetOrCreateArray(ref importScopes, rows + 1);
+			var result = scopes[importScope];
+			if (result is not null)
+				return result;
+
+			var path = new List<uint>();
+			PdbImportScope parent = null;
+			for (uint rid = importScope; rid != 0;) {
+				parent = scopes[rid];
+				if (parent is not null)
+					break;
+				path.Add(rid);
+				bool b = pdbMetadata.TablesStream.TryReadImportScopeRow(rid, out var row);
+				Debug.Assert(b);
+				rid = row.Parent;
+			}
+
+			// The scopes are shared by all methods, so no method's generic context is used. Import scope
+			// custom debug info doesn't use it.
+			var gpContext = new GenericParamContext();
+			var importScopeBlobReader = new ImportScopeBlobReader(module, pdbMetadata.BlobStream);
+			for (int i = path.Count - 1; i >= 0; i--) {
+				uint rid = path[i];
+				bool b = pdbMetadata.TablesStream.TryReadImportScopeRow(rid, out var row);
+				Debug.Assert(b);
+				var scope = new PdbImportScope();
+				GetCustomDebugInfos(new MDToken(Table.ImportScope, rid).ToInt32(), gpContext, scope.CustomDebugInfos);
+				importScopeBlobReader.Read(row.Imports, scope.Imports);
+				scope.Parent = parent;
+				// Another thread could have created it first. Use one object so all scopes share it.
+				parent = Interlocked.CompareExchange(ref scopes[rid], scope, null) ?? scope;
+			}
+			return parent;
 		}
 
 		void ReadVariables(SymbolScopeImpl scope, GenericParamContext gpContext, RidList rids) {

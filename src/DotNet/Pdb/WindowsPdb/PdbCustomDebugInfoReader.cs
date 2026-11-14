@@ -129,7 +129,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				count = reader.ReadInt32();
 				if (count < 0)
 					return null;
-				var smScope = new PdbStateMachineHoistedLocalScopesCustomDebugInfo(count);
+				var smScope = new PdbStateMachineHoistedLocalScopesCustomDebugInfo();
 				for (int i = 0; i < count; i++) {
 					uint startOffset = reader.ReadUInt32();
 					uint endOffset = reader.ReadUInt32();
@@ -215,12 +215,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				count = reader.ReadInt32();
 				if (count < 0)
 					return null;
-				var tupleListRec = new PdbTupleElementNamesCustomDebugInfo(count);
+				var tupleListRec = new PdbTupleElementNamesCustomDebugInfo();
 				for (int i = 0; i < count; i++) {
 					int nameCount = reader.ReadInt32();
 					if ((uint)nameCount >= 10000)
 						return null;
-					var tupleInfo = new PdbTupleElementNames(nameCount);
+					var tupleInfo = new PdbTupleElementNames();
 
 					for (int j = 0; j < nameCount; j++) {
 						var s = ReadUTF8Z(recPosEnd);
@@ -260,6 +260,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					tupleListRec.Names.Add(tupleInfo);
 				}
 				return tupleListRec;
+
+			case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
+				return Portable.PortablePdbCustomDebugInfoReader.ReadEncStateMachineStateMap(ref reader);
 
 			default:
 				Debug.Fail($"Unknown custom debug info kind: 0x{(int)recKind:X}");

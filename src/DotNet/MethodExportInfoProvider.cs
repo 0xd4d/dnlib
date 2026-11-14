@@ -39,8 +39,15 @@ namespace dnlib.DotNet {
 
 			var reader = peImage.CreateReader();
 			var offsetToInfo = GetOffsetToExportInfoDictionary(ref reader, peImage, exportHdr, cpuArch);
-			reader.Position = (uint)peImage.ToFileOffset(vtblHdr.VirtualAddress);
+			// ToFileOffset() returns 0 if the RVA is invalid (the RVAs here are never 0)
+			var vtblOffset = peImage.ToFileOffset(vtblHdr.VirtualAddress);
+			if (vtblOffset == 0)
+				return;
+			reader.Position = VTableFixups.ToPosition(vtblOffset, reader.Length);
 			ulong endPos = (ulong)reader.Position + vtblHdr.Size;
+			// Only overlapping tables, which aren't valid, can have more slots than fit in the file.
+			// A small file could otherwise loop billions of times since all tables could use the same data.
+			uint slotsLeft = reader.Length / 4;
 			while ((ulong)reader.Position + 8 <= endPos && reader.CanRead(8U)) {
 				var tableRva = (RVA)reader.ReadUInt32();
 				int numSlots = reader.ReadUInt16();
@@ -48,10 +55,16 @@ namespace dnlib.DotNet {
 				bool is64bit = (flags & VTableFlags.Bit64) != 0;
 				var exportOptions = ToMethodExportInfoOptions(flags);
 
+				var tableOffset = peImage.ToFileOffset(tableRva);
+				if (tableOffset == 0)
+					continue;
 				var pos = reader.Position;
-				reader.Position = (uint)peImage.ToFileOffset(tableRva);
+				// A table past the end of the file has no slots, the other tables can still be read
+				reader.Position = VTableFixups.ToPosition(tableOffset, reader.Length);
 				uint slotSize = is64bit ? 8U : 4;
-				while (numSlots-- > 0 && reader.CanRead(slotSize)) {
+				numSlots = (int)Math.Min(Math.Min((uint)numSlots, reader.BytesLeft / slotSize), slotsLeft);
+				slotsLeft -= (uint)numSlots;
+				while (numSlots-- > 0) {
 					var tokenPos = reader.Position;
 					uint token = reader.ReadUInt32();
 					if (offsetToInfo.TryGetValue(tokenPos, out var exportInfo))
@@ -75,26 +88,37 @@ namespace dnlib.DotNet {
 		}
 
 		static Dictionary<uint, MethodExportInfo> GetOffsetToExportInfoDictionary(ref DataReader reader, IPEImage peImage, ImageDataDirectory exportHdr, CpuArch cpuArch) {
-			reader.Position = (uint)peImage.ToFileOffset(exportHdr.VirtualAddress);
+			// ToFileOffset() returns 0 if the RVA is invalid. None of the RVAs in the export directory can be 0.
+			var exportDirOffset = peImage.ToFileOffset(exportHdr.VirtualAddress);
+			if (exportDirOffset == 0)
+				return new Dictionary<uint, MethodExportInfo>();
+			reader.Position = (uint)exportDirOffset;
 			// Skip Characteristics(4), TimeDateStamp(4), MajorVersion(2), MinorVersion(2), Name(4)
 			reader.Position += 16;
 			uint ordinalBase = reader.ReadUInt32();
-			int numFuncs = reader.ReadInt32();
-			int numNames = reader.ReadInt32();
+			uint numFuncs = reader.ReadUInt32();
+			uint numNames = reader.ReadUInt32();
 			uint offsetOfFuncs = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
 			uint offsetOfNames = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
 			uint offsetOfNameIndexes = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
+			if (offsetOfFuncs == 0)
+				return new Dictionary<uint, MethodExportInfo>();
+			if (offsetOfNames == 0 || offsetOfNameIndexes == 0)
+				numNames = 0;
 
 			var names = ReadNames(ref reader, peImage, numNames, offsetOfNames, offsetOfNameIndexes);
 			reader.Position = offsetOfFuncs;
+			// If the table runs past the end of the file, only the functions that fit can be read. Names
+			// with larger indexes are ignored below.
+			numFuncs = Math.Min(numFuncs, reader.BytesLeft / 4);
 			var allInfos = new MethodExportInfo[numFuncs];
-			var dict = new Dictionary<uint, MethodExportInfo>(numFuncs);
+			var dict = new Dictionary<uint, MethodExportInfo>((int)numFuncs);
 			for (int i = 0; i < allInfos.Length; i++) {
 				var nextOffset = reader.Position + 4;
 				uint funcRva = 0;
 				var rva = (RVA)reader.ReadUInt32();
-				reader.Position = (uint)peImage.ToFileOffset(rva);
-				bool rvaValid = rva != 0 && cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out funcRva);
+				var stubOffset = peImage.ToFileOffset(rva);
+				bool rvaValid = stubOffset != 0 && TryGetExportedRvaFromStub(ref reader, peImage, cpuArch, stubOffset, out funcRva);
 				uint funcOffset = rvaValid ? (uint)peImage.ToFileOffset((RVA)funcRva) : 0;
 				var exportInfo = new MethodExportInfo((ushort)(ordinalBase + (uint)i));
 				if (funcOffset != 0)
@@ -105,7 +129,7 @@ namespace dnlib.DotNet {
 
 			foreach (var info in names) {
 				int index = info.Index;
-				if ((uint)index >= (uint)numFuncs)
+				if ((uint)index >= numFuncs)
 					continue;
 				allInfos[index].Ordinal = null;
 				allInfos[index].Name = info.Name;
@@ -114,18 +138,56 @@ namespace dnlib.DotNet {
 			return dict;
 		}
 
-		static NameAndIndex[] ReadNames(ref DataReader reader, IPEImage peImage, int numNames, uint offsetOfNames, uint offsetOfNameIndexes) {
+		// A stub past the end of the file, or one that runs past it, doesn't make the other exports invalid
+		static bool TryGetExportedRvaFromStub(ref DataReader reader, IPEImage peImage, CpuArch cpuArch, FileOffset stubOffset, out uint funcRva) {
+			funcRva = 0;
+			if ((uint)stubOffset >= reader.Length)
+				return false;
+			reader.Position = (uint)stubOffset;
+			try {
+				return cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out funcRva);
+			}
+			catch (IOException) {
+				funcRva = 0;
+				return false;
+			}
+		}
+
+		static NameAndIndex[] ReadNames(ref DataReader reader, IPEImage peImage, uint numNames, uint offsetOfNames, uint offsetOfNameIndexes) {
+			// If a table is past the end of the file or runs past it, only the names that fit can be
+			// read. The other exports can still be read, and the count stays below the file size.
+			uint length = reader.Length;
+			uint indexesPos = VTableFixups.ToPosition((FileOffset)offsetOfNameIndexes, length);
+			uint namesPos = VTableFixups.ToPosition((FileOffset)offsetOfNames, length);
+			numNames = Math.Min(numNames, (length - indexesPos) / 2);
+			numNames = Math.Min(numNames, (length - namesPos) / 4);
+			reader.Position = indexesPos;
 			var names = new NameAndIndex[numNames];
 
-			reader.Position = offsetOfNameIndexes;
 			for (int i = 0; i < names.Length; i++)
 				names[i].Index = reader.ReadUInt16();
 
+			// Names that use the same offset share one string. Names at different offsets can still
+			// overlap, which isn't valid, so stop once more bytes have been read than the file has.
+			// Otherwise a small file could allocate gigabytes, or read one long string over and over.
+			var offsetToName = new Dictionary<uint, string>();
+			ulong bytesLeft = reader.Length;
 			var currentOffset = offsetOfNames;
 			for (int i = 0; i < names.Length; i++, currentOffset += 4) {
 				reader.Position = currentOffset;
 				uint offsetOfName = (uint)peImage.ToFileOffset((RVA)reader.ReadUInt32());
-				names[i].Name = ReadMethodNameASCIIZ(ref reader, offsetOfName);
+				if (offsetOfName == 0) {
+					names[i].Name = string.Empty;
+					continue;
+				}
+				if (!offsetToName.TryGetValue(offsetOfName, out var name)) {
+					name = ReadMethodNameASCIIZ(ref reader, offsetOfName, out uint bytesRead);
+					if (bytesRead > bytesLeft)
+						throw new IOException("Exported names use more bytes than the file has");
+					bytesLeft -= bytesRead;
+					offsetToName.Add(offsetOfName, name);
+				}
+				names[i].Name = name;
 			}
 
 			return names;
@@ -137,9 +199,14 @@ namespace dnlib.DotNet {
 		}
 
 		// If this method gets updated, also update the writer (ManagedExportsWriter)
-		static string ReadMethodNameASCIIZ(ref DataReader reader, uint offset) {
+		static string ReadMethodNameASCIIZ(ref DataReader reader, uint offset, out uint bytesRead) {
+			// A name past the end of the file reads nothing and is an empty name
+			offset = VTableFixups.ToPosition((FileOffset)offset, reader.Length);
 			reader.Position = offset;
-			return reader.TryReadZeroTerminatedUtf8String() ?? string.Empty;
+			var name = reader.TryReadZeroTerminatedUtf8String();
+			// With no terminator, the whole rest of the file was searched
+			bytesRead = name is null ? reader.BytesLeft : reader.Position - offset;
+			return name ?? string.Empty;
 		}
 
 		public MethodExportInfo GetMethodExportInfo(uint token) {

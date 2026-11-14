@@ -161,6 +161,8 @@ namespace dnlib.DotNet {
 			funcRva = 0;
 
 			// FF25xxxxxxxx		jmp DWORD PTR [xxxxxxxx]
+			if (!reader.CanRead(6U))
+				return false;
 			if (reader.ReadUInt16() != 0x25FF)
 				return false;
 			funcRva = reader.ReadUInt32() - (uint)peImage.ImageNTHeaders.OptionalHeader.ImageBase;
@@ -228,6 +230,8 @@ namespace dnlib.DotNet {
 
 			// 48A1xxxxxxxxxxxxxxxx		movabs	rax,[xxxxxxxxxxxxxxxx]
 			// FFE0						jmp		rax
+			if (!reader.CanRead(12U))
+				return false;
 			if (reader.ReadUInt16() != 0xA148)
 				return false;
 			ulong absAddr = reader.ReadUInt64();
@@ -315,9 +319,17 @@ namespace dnlib.DotNet {
 			// 0x04, 0x80, 0x03, 0x00, 0x60, 0x00, 0x80, 0x00,
 			// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,//address of the template
 			// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 //address of VTFixup slot
+			if (!reader.CanRead(16U))
+				return false;
 			ulong addrTemplate = reader.ReadUInt64();
 			ulong absAddr = reader.ReadUInt64();
-			reader.Position = (uint)peImage.ToFileOffset((RVA)(addrTemplate - peImage.ImageNTHeaders.OptionalHeader.ImageBase));
+			var templateOffset = peImage.ToFileOffset((RVA)(addrTemplate - peImage.ImageNTHeaders.OptionalHeader.ImageBase));
+			if (templateOffset == 0)
+				return false;
+			// The template is 4 qwords
+			if ((uint)templateOffset > reader.Length || reader.Length - (uint)templateOffset < 32)
+				return false;
+			reader.Position = (uint)templateOffset;
 			if (reader.ReadUInt64() != 0x40A010180200480BUL)
 				return false;
 			if (reader.ReadUInt64() != 0x0004000000283024UL)
@@ -399,6 +411,8 @@ namespace dnlib.DotNet {
 
 			// DFF800F0		ldr.w	pc,[pc]
 			// xxxxxxxx
+			if (!reader.CanRead(8U))
+				return false;
 			if (reader.ReadUInt32() != 0xF000F8DF)
 				return false;
 			funcRva = reader.ReadUInt32() - (uint)peImage.ImageNTHeaders.OptionalHeader.ImageBase;

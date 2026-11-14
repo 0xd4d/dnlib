@@ -511,9 +511,63 @@ namespace dnlib.IO {
 				ThrowInvalidArgument(nameof(length));
 			if (length == 0)
 				return Array2.Empty<byte>();
+			if ((uint)length > BytesLeft)
+				ThrowNoMoreBytesLeft();
 			var data = new byte[length];
 			ReadBytes(data, 0, length);
 			return data;
+		}
+
+		/// <summary>
+		/// Reads a compressed <see cref="uint"/> the same way the CLR reads the length of a #Blob or #US
+		/// heap entry. It's the same as <see cref="TryReadCompressedUInt32(out uint)"/> except that the
+		/// invalid encoding 111x fails instead of being treated as 110x.
+		/// See coreclr: md/datablob.inl / DataBlob::PeekCompressedU()
+		/// </summary>
+		/// <param name="value">Uncompressed <see cref="uint"/></param>
+		/// <returns></returns>
+		internal bool TryReadCompressedUInt32Strict(out uint value) {
+			VerifyState();
+			var currentOffset = this.currentOffset;
+			var bytesLeft = endOffset - currentOffset;
+			if (bytesLeft == 0) {
+				value = 0;
+				VerifyState();
+				return false;
+			}
+
+			var stream = this.stream;
+			byte b = stream.ReadByte(currentOffset++);
+			if ((b & 0x80) == 0) {
+				value = b;
+				this.currentOffset = currentOffset;
+				VerifyState();
+				return true;
+			}
+
+			if ((b & 0xC0) == 0x80) {
+				if (bytesLeft < 2) {
+					value = 0;
+					VerifyState();
+					return false;
+				}
+				value = (uint)(((b & 0x3F) << 8) | stream.ReadByte(currentOffset++));
+				this.currentOffset = currentOffset;
+				VerifyState();
+				return true;
+			}
+
+			// 111x is an invalid encoding
+			if (bytesLeft < 4 || (b & 0xE0) != 0xC0) {
+				value = 0;
+				VerifyState();
+				return false;
+			}
+			value = (uint)(((b & 0x1F) << 24) | (stream.ReadByte(currentOffset++) << 16) |
+					(stream.ReadByte(currentOffset++) << 8) | stream.ReadByte(currentOffset++));
+			this.currentOffset = currentOffset;
+			VerifyState();
+			return true;
 		}
 
 		/// <summary>
@@ -798,8 +852,8 @@ namespace dnlib.IO {
 				ThrowArgumentNullException(nameof(encoding));
 			if (byteCount == 0)
 				return string.Empty;
-			if ((uint)byteCount > Length)
-				ThrowInvalidArgument(nameof(byteCount));
+			if ((uint)byteCount > BytesLeft)
+				ThrowNoMoreBytesLeft();
 			VerifyState();
 			var currentOffset = this.currentOffset;
 			var value = stream.ReadString(currentOffset, byteCount, encoding);

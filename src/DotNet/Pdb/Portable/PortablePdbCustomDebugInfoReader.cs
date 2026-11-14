@@ -68,7 +68,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (kind == CustomDebugInfoGuids.TypeDefinitionDocuments)
 				return ReadTypeDefinitionDocuments();
 			if (kind == CustomDebugInfoGuids.EncStateMachineStateMap)
-				return ReadEncStateMachineStateMap();
+				return ReadEncStateMachineStateMap(ref reader);
 			if (kind == CustomDebugInfoGuids.PrimaryConstructorInformationBlob)
 				return ReadPrimaryConstructorInformationBlob();
 			Debug.Fail($"Unknown custom debug info guid: {kind}");
@@ -125,6 +125,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		PdbCustomDebugInfo ReadDynamicLocalVariables(long recPosEnd) {
+			// Each byte is 8 flags, and the array size must fit in an int
+			if (reader.Length > int.MaxValue / 8)
+				return null;
 			var flags = new bool[(int)reader.Length * 8];
 			int w = 0;
 			while (reader.Position < reader.Length) {
@@ -175,6 +178,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var tupleListRec = new PortablePdbTupleElementNamesCustomDebugInfo();
 			while (reader.Position < reader.Length) {
 				var name = ReadUTF8Z(reader.Length);
+				Debug.Assert(name is not null);
+				// The reader doesn't move if the name has no terminator
+				if (name is null)
+					return null;
 				tupleListRec.Names.Add(name);
 			}
 			return tupleListRec;
@@ -242,7 +249,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbTypeDefinitionDocumentsDebugInfoMD(module, docList);
 		}
 
-		PdbCustomDebugInfo ReadEncStateMachineStateMap() {
+		// Also used by the Windows PDB CDI reader, both formats use the same blob format
+		internal static PdbEditAndContinueStateMachineStateMapDebugInfo ReadEncStateMachineStateMap(ref DataReader reader) {
 			var cdi = new PdbEditAndContinueStateMachineStateMapDebugInfo();
 
 			var count = reader.ReadCompressedUInt32();

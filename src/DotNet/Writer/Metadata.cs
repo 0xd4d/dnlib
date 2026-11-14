@@ -228,6 +228,7 @@ namespace dnlib.DotNet.Writer {
 		MetadataHeaderOptions metadataHeaderOptions;
 		MetadataHeaderOptions debugMetadataHeaderOptions;
 		TablesHeapOptions tablesHeapOptions;
+		TablesHeapOptions debugTablesHeapOptions;
 		List<IHeap> customHeaps;
 
 		/// <summary>
@@ -258,8 +259,8 @@ namespace dnlib.DotNet.Writer {
 		/// Gets/sets the debug (portable PDB) <see cref="TablesHeap"/> options. This is never <c>null</c>.
 		/// </summary>
 		public TablesHeapOptions DebugTablesHeapOptions {
-			get => tablesHeapOptions ??= TablesHeapOptions.CreatePortablePdbV1_0();
-			set => tablesHeapOptions = value;
+			get => debugTablesHeapOptions ??= TablesHeapOptions.CreatePortablePdbV1_0();
+			set => debugTablesHeapOptions = value;
 		}
 
 		/// <summary>
@@ -941,6 +942,7 @@ namespace dnlib.DotNet.Writer {
 			metadataHeader = new MetadataHeader(isStandaloneDebugMetadata ? this.options.DebugMetadataHeaderOptions : this.options.MetadataHeaderOptions);
 			tablesHeap = new TablesHeap(this, isStandaloneDebugMetadata ? this.options.DebugTablesHeapOptions : this.options.TablesHeapOptions);
 			stringsHeap = new StringsHeap();
+			stringsHeap.InvalidStringError = s => Error("String '{0}' contains a NUL byte. Strings in the #Strings heap can't contain NUL bytes.", s.String.Replace("\0", "\\0"));
 			usHeap = new USHeap();
 			guidHeap = new GuidHeap();
 			blobHeap = new BlobHeap();
@@ -1820,6 +1822,10 @@ namespace dnlib.DotNet.Writer {
 			var nestedTypeDict = new Dictionary<ExportedType, List<ExportedType>>();
 			for (var i = 0; i < exportedTypes.Count; i++) {
 				var exportedType = exportedTypes[i];
+				if (exportedType is null) {
+					Error("ExportedType is null");
+					continue;
+				}
 				if (exportedType.Implementation is not ExportedType decl)
 					continue;
 				if (!nestedTypeDict.TryGetValue(decl, out var nestedTypes))
@@ -1839,7 +1845,7 @@ namespace dnlib.DotNet.Writer {
 						continue;
 					}
 					var type = enumerator.Current;
-					if (visited.ContainsKey(type))
+					if (type is null || visited.ContainsKey(type))
 						continue;
 					visited[type] = true;
 					sortedTypes.Add(type);
@@ -2381,6 +2387,23 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Marks the not yet added <see cref="TypeRef"/>s in <paramref name="tr"/>'s
+		/// ResolutionScope chain as being added (rid 0) and returns them, innermost first,
+		/// or <c>null</c> if there are none.
+		/// </summary>
+		internal static List<TypeRef> GetTypeRefScopesToAdd(TypeRef tr, Rows<TypeRef> typeRefInfos) {
+			List<TypeRef> scopes = null;
+			var scope = tr.ResolutionScope as TypeRef;
+			while (scope is not null && !typeRefInfos.Exists(scope)) {
+				typeRefInfos.Add(scope, 0);	// Prevent inf recursion
+				scopes ??= new List<TypeRef>();
+				scopes.Add(scope);
+				scope = scope.ResolutionScope as TypeRef;
+			}
+			return scopes;
+		}
+
+		/// <summary>
 		/// Adds a <see cref="IResolutionScope"/>
 		/// </summary>
 		/// <param name="rs">Value</param>
@@ -2487,7 +2510,7 @@ namespace dnlib.DotNet.Writer {
 			if (nestedRid == 0 || dtRid == 0)
 				return;
 			var row = new RawNestedClassRow(nestedRid, dtRid);
-			nestedClassInfos.Add(declaringType, row);
+			nestedClassInfos.Add(nestedType, row);
 		}
 
 		/// <summary>
@@ -3122,15 +3145,38 @@ namespace dnlib.DotNet.Writer {
 				Error("ExportedType is null");
 				return 0;
 			}
-			if (exportedTypeInfos.TryGetRid(et, out uint rid))
+			if (exportedTypeInfos.TryGetRid(et, out uint rid)) {
+				if (rid == 0)
+					Error("ExportedType 0x{0:X8} has an infinite Implementation loop.", et.MDToken.Raw);
 				return rid;
+			}
 			exportedTypeInfos.Add(et, 0);	// Prevent inf recursion
+
+			// Add the ExportedTypes in the Implementation chain without recursing, outermost first,
+			// or a long chain could overflow the stack. The rows are added in the same order
+			// as if we had recursed.
+			List<ExportedType> decls = null;
+			var decl = et.Implementation as ExportedType;
+			while (decl is not null && !exportedTypeInfos.Exists(decl)) {
+				exportedTypeInfos.Add(decl, 0);	// Prevent inf recursion
+				decls ??= new List<ExportedType>();
+				decls.Add(decl);
+				decl = decl.Implementation as ExportedType;
+			}
+			if (decls is not null) {
+				for (int i = decls.Count - 1; i >= 0; i--)
+					AddExportedTypeRow(decls[i]);
+			}
+			return AddExportedTypeRow(et);
+		}
+
+		uint AddExportedTypeRow(ExportedType et) {
 			var row = new RawExportedTypeRow((uint)et.Attributes,
 						et.TypeDefId,	//TODO: Should be updated with the new rid
 						stringsHeap.Add(et.TypeName),
 						stringsHeap.Add(et.TypeNamespace),
 						AddImplementation(et.Implementation));
-			rid = tablesHeap.ExportedTypeTable.Add(row);
+			uint rid = tablesHeap.ExportedTypeTable.Add(row);
 			exportedTypeInfos.SetRid(et, rid);
 			AddCustomAttributes(Table.ExportedType, rid, et);
 			AddCustomDebugInformationList(Table.ExportedType, rid, et);
@@ -3877,7 +3923,7 @@ namespace dnlib.DotNet.Writer {
 			var sorted = new List<ParamDef>(pds);
 			sorted.Sort((a, b) => {
 				if (a is null)
-					return -1;
+					return b is null ? 0 : -1;
 				if (b is null)
 					return 1;
 				return a.Sequence.CompareTo(b.Sequence);

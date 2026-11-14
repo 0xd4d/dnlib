@@ -165,7 +165,7 @@ namespace dnlib.W32Resources {
 		/// <param name="reader">Reader positioned at the start of this resource directory</param>
 		public ResourceDirectoryPE(uint depth, ResourceName name, Win32ResourcesPE resources, ref DataReader reader)
 			: base(name) {
-			this.resources = resources;
+			this.resources = resources ?? throw new ArgumentNullException(nameof(resources));
 			this.depth = depth;
 			Initialize(ref reader);
 		}
@@ -189,7 +189,7 @@ namespace dnlib.W32Resources {
 			ushort numIds = reader.ReadUInt16();
 
 			int total = numNamed + numIds;
-			if (!reader.CanRead((uint)total * 8)) {
+			if (!reader.CanRead((uint)total * 8) || !resources.TryUseBudget(16 + (uint)total * 8)) {
 				InitializeDefault();
 				return;
 			}
@@ -203,7 +203,7 @@ namespace dnlib.W32Resources {
 				uint dataOrDirectory = reader.ReadUInt32();
 				ResourceName name;
 				if ((nameOrId & 0x80000000) != 0)
-					name = new ResourceName(ReadString(ref reader, nameOrId & 0x7FFFFFFF) ?? string.Empty);
+					name = new ResourceName(resources.ReadName(ref reader, nameOrId & 0x7FFFFFFF) ?? string.Empty);
 				else
 					name = new ResourceName((int)nameOrId);
 
@@ -215,28 +215,6 @@ namespace dnlib.W32Resources {
 
 			directories = new LazyList<ResourceDirectory, object>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory(i));
 			data = new LazyList<ResourceData, object>(dataInfos.Count, null, (ctx, i) => ReadResourceData(i));
-		}
-
-		/// <summary>
-		/// Reads a string
-		/// </summary>
-		/// <param name="reader">Reader</param>
-		/// <param name="offset">Offset of string</param>
-		/// <returns>The string or <c>null</c> if we could not read it</returns>
-		static string ReadString(ref DataReader reader, uint offset) {
-			reader.Position = offset;
-			if (!reader.CanRead(2U))
-				return null;
-			int size = reader.ReadUInt16();
-			int sizeInBytes = size * 2;
-			if (!reader.CanRead((uint)sizeInBytes))
-				return null;
-			try {
-				return reader.ReadUtf16String(sizeInBytes / 2);
-			}
-			catch {
-				return null;
-			}
 		}
 
 		ResourceDirectory ReadResourceDirectory(int i) {

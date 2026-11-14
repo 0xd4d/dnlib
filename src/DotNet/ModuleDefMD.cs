@@ -28,6 +28,7 @@ namespace dnlib.DotNet {
 		MetadataBase metadata;
 		IMethodDecrypter methodDecrypter;
 		IStringDecrypter stringDecrypter;
+		readonly MethodBodyReaderOptions methodBodyReaderOptions;
 
 		StrongBox<RidList> moduleRidList;
 
@@ -364,6 +365,7 @@ namespace dnlib.DotNet {
 				options = ModuleCreationOptions.Default;
 			this.metadata = metadata;
 			context = options.Context;
+			methodBodyReaderOptions = options.MethodBodyReaderOptions;
 			Initialize();
 			InitializeFromRawRow();
 			location = metadata.PEImage.Filename ?? string.Empty;
@@ -418,7 +420,17 @@ namespace dnlib.DotNet {
 			if (pdbState is not null)
 				throw new InvalidOperationException("PDB file has already been initialized");
 
-			var orig = Interlocked.CompareExchange(ref pdbState, new PdbState(symbolReader, this), null);
+			PdbState newPdbState;
+			try {
+				newPdbState = new PdbState(symbolReader, this);
+			}
+			catch (IOException) {
+				// Corrupt PDB data, so continue without the PDB, as when the symbol reader can't be created
+				symbolReader.Dispose();
+				return;
+			}
+
+			var orig = Interlocked.CompareExchange(ref pdbState, newPdbState, null);
 			if (orig is not null)
 				throw new InvalidOperationException("PDB file has already been initialized");
 		}
@@ -520,7 +532,7 @@ namespace dnlib.DotNet {
 			listEventDefMD = new SimpleLazyList<EventDefMD>(ts.EventTable.Rows, rid2 => new EventDefMD(this, rid2));
 			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.PropertyTable.Rows, rid2 => new PropertyDefMD(this, rid2));
 			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.ModuleRefTable.Rows, rid2 => new ModuleRefMD(this, rid2));
-			listTypeSpecMD = new SimpleLazyList2<TypeSpecMD>(ts.TypeSpecTable.Rows, (rid2, gpContext) => new TypeSpecMD(this, rid2, gpContext));
+			listTypeSpecMD = new SimpleLazyList2<TypeSpecMD>(ts.TypeSpecTable.Rows, (rid2, gpContext) => TypeSpecMD.Create(this, rid2, gpContext));
 			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.ImplMapTable.Rows, rid2 => new ImplMapMD(this, rid2));
 			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.AssemblyTable.Rows, rid2 => new AssemblyDefMD(this, rid2));
 			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.FileTable.Rows, rid2 => new FileDefMD(this, rid2));
@@ -834,7 +846,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="rid">The row ID</param>
 		/// <returns>A <see cref="TypeSpec"/> instance or <c>null</c> if <paramref name="rid"/> is invalid</returns>
-		public TypeSpec ResolveTypeSpec(uint rid) => listTypeSpecMD[rid - 1, new GenericParamContext()];
+		public TypeSpec ResolveTypeSpec(uint rid) => ResolveTypeSpec(rid, new GenericParamContext());
 
 		/// <summary>
 		/// Resolves a <see cref="TypeSpec"/>
@@ -1293,15 +1305,17 @@ namespace dnlib.DotNet {
 			// Create a full stream so position will be the real position in the file. This
 			// is important when reading exception handlers since those must be 4-byte aligned.
 			// If we create a partial stream starting from rva, then position will be 0 and always
-			// 4-byte aligned. All fat method bodies should be 4-byte aligned, but the CLR doesn't
-			// seem to verify it. We must parse the method exactly the way the CLR parses it.
+			// 4-byte aligned. All fat method bodies must be 4-byte aligned (the 64-bit CLR doesn't
+			// decode unaligned fat headers). We must parse the method exactly the way the CLR parses it.
+			// The CLR requires RVA and file offset to be equal mod 4 (FileAlignment >= 512 and the body
+			// is inside one section) so the file offset can be used to check the alignment.
 			var offset = metadata.PEImage.ToFileOffset(rva);
 			if (offset == 0)
 				return new CilBody();
 
 			var reader = metadata.PEImage.CreateReader();
 			reader.Position = (uint)offset;
-			return MethodBodyReader.CreateCilBody(this, reader, parameters, gpContext, Context);
+			return MethodBodyReader.CreateCilBody(this, reader, null, parameters, gpContext, Context, methodBodyReaderOptions);
 		}
 
 		// Rows in tables whose MD instances aren't cached when they contain generic parameters (TypeSpec,
@@ -1642,6 +1656,34 @@ namespace dnlib.DotNet {
 			if (size < 0)
 				return null;
 			var peImage = Metadata.PEImage;
+			// Data past a section's raw data but inside its virtual size (eg. .bss) isn't in the file and is
+			// zero-initialized when the image is mapped. ToFileOffset() returns 0 for such RVAs.
+			if (peImage is PEImage pe && pe.IsFileImageLayout && pe.ToImageSectionHeader(rva) is ImageSectionHeader section) {
+				uint offset = rva - section.VirtualAddress;
+				uint virtualSize = Utils.AlignUp(section.LoadedVirtualSize, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
+				uint rawSize = section.LoadedSizeOfRawData;
+				ulong end = (ulong)offset + (uint)size;
+				if (end > rawSize && end <= virtualSize) {
+					// The zero-filled part isn't in the file so its size isn't bounded by the file size. Don't allow
+					// huge allocations from tiny files (real .bss data is small)
+					ulong zeroLength = end - Math.Max(offset, rawSize);
+					if (zeroLength > (ulong)peImage.DataReaderFactory.Length)
+						return null;
+					var data = new byte[size];
+					if (offset < rawSize) {
+						uint rawLength = rawSize - offset;
+						ulong rawOffset = (ulong)section.PointerToRawData + offset;
+						if (rawOffset + rawLength > peImage.DataReaderFactory.Length)
+							return null;
+						var rawReader = peImage.CreateReader((FileOffset)rawOffset, rawLength);
+						rawReader.ReadBytes(data, 0, (int)rawLength);
+					}
+					return data;
+				}
+			}
+			// ToFileOffset() returns 0 if the RVA is invalid (eg. it's past SizeOfImage)
+			if (rva != 0 && peImage.ToFileOffset(rva) == 0)
+				return null;
 			var reader = peImage.CreateReader(rva, (uint)size);
 			if (reader.Length < size)
 				return null;

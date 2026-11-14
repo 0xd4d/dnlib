@@ -6,8 +6,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 	static class NumericReader {
 		public static bool TryReadNumeric(ref DataReader reader, ulong end, out object value) {
 			value = null;
-			ulong position = reader.Position;
-			if (position + 2 > end)
+			if ((ulong)reader.Position + 2 > end)
 				return false;
 			var numLeaf = (NumericLeaf)reader.ReadUInt16();
 			if (numLeaf < NumericLeaf.LF_NUMERIC) {
@@ -15,9 +14,10 @@ namespace dnlib.DotNet.Pdb.Managed {
 				return true;
 			}
 
+			ulong position = reader.Position;
 			switch (numLeaf) {
 			case NumericLeaf.LF_CHAR:
-				if (position > end)
+				if (position + 1 > end)
 					return false;
 				value = reader.ReadSByte();
 				return true;
@@ -74,7 +74,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				if (position + 2 > end)
 					return false;
 				int varStrLen = reader.ReadUInt16();
-				if (position + (uint)varStrLen > end)
+				if (position + 2 + (uint)varStrLen > end)
 					return false;
 				value = reader.ReadUtf8String(varStrLen);
 				return true;

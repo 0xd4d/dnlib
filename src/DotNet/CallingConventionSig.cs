@@ -95,6 +95,11 @@ namespace dnlib.DotNet {
 		public bool IsNativeVarArg => (callingConvention & CallingConvention.Mask) == CallingConvention.NativeVarArg;
 
 		/// <summary>
+		/// Returns <c>true</c> if <see cref="CallingConvention.Async"/> is set
+		/// </summary>
+		public bool IsAsync => (callingConvention & CallingConvention.Mask) == CallingConvention.Async;
+
+		/// <summary>
 		/// Gets/sets the <see cref="CallingConvention.Generic"/> bit
 		/// </summary>
 		public bool Generic {

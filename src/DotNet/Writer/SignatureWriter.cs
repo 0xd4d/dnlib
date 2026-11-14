@@ -195,6 +195,7 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				helper.Error("Unknown or unsupported element type");
 				writer.WriteByte((byte)DEFAULT_ELEMENT_TYPE);
@@ -224,10 +225,9 @@ namespace dnlib.DotNet.Writer {
 				helper.Error("sig is null");
 				return;
 			}
-			if (!recursionCounter.Increment()) {
-				helper.Error("Infinite recursion");
-				return;
-			}
+			// Don't increment recursionCounter here. This method only dispatches to the
+			// typed Write() overloads which increment it. Counting here too would count each
+			// sig twice and the writer would fail on sigs the reader (one count per sig) can read.
 
 			MethodBaseSig mbs;
 			FieldSig fs;
@@ -246,8 +246,6 @@ namespace dnlib.DotNet.Writer {
 				helper.Error("Unknown calling convention sig");
 				writer.WriteByte((byte)sig.GetCallingConvention());
 			}
-
-			recursionCounter.Decrement();
 		}
 
 		void Write(MethodBaseSig sig) {

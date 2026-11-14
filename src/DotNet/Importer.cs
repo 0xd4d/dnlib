@@ -198,67 +198,126 @@ namespace dnlib.DotNet {
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public TypeSig ImportAsTypeSig(Type type) => ImportAsTypeSig(type, null, false);
 
-		TypeSig ImportAsTypeSig(Type type, Type declaringType, bool? treatAsGenericInst = null) {
+		/// <param name="type">The type</param>
+		/// <param name="declaringType">Declaring type of the member or null</param>
+		/// <param name="treatAsGenericInst">See <see cref="ReflectionExtensions.MustTreatTypeAsGenericInstType(Type, Type)"/></param>
+		/// <param name="modifiedType">The .NET 8+ modified type of <paramref name="type"/> or null. It's only used
+		/// to get function pointer calling conventions and modifiers.</param>
+		TypeSig ImportAsTypeSig(Type type, Type declaringType, bool? treatAsGenericInst = null, Type modifiedType = null) {
 			if (type is null)
 				return null;
+			if (!recursionCounter.Increment())
+				return null;
+
+			TypeSig result;
 			bool treatAsGenericInst2 = treatAsGenericInst ?? declaringType.MustTreatTypeAsGenericInstType(type);
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
-			case ElementType.Void:		return module.CorLibTypes.Void;
-			case ElementType.Boolean:	return module.CorLibTypes.Boolean;
-			case ElementType.Char:		return module.CorLibTypes.Char;
-			case ElementType.I1:		return module.CorLibTypes.SByte;
-			case ElementType.U1:		return module.CorLibTypes.Byte;
-			case ElementType.I2:		return module.CorLibTypes.Int16;
-			case ElementType.U2:		return module.CorLibTypes.UInt16;
-			case ElementType.I4:		return module.CorLibTypes.Int32;
-			case ElementType.U4:		return module.CorLibTypes.UInt32;
-			case ElementType.I8:		return module.CorLibTypes.Int64;
-			case ElementType.U8:		return module.CorLibTypes.UInt64;
-			case ElementType.R4:		return module.CorLibTypes.Single;
-			case ElementType.R8:		return module.CorLibTypes.Double;
-			case ElementType.String:	return module.CorLibTypes.String;
-			case ElementType.TypedByRef:return module.CorLibTypes.TypedReference;
-			case ElementType.U:			return module.CorLibTypes.UIntPtr;
-			case ElementType.Object:	return module.CorLibTypes.Object;
-			case ElementType.Ptr:		return new PtrSig(ImportAsTypeSig(type.GetElementType(), declaringType));
-			case ElementType.ByRef:		return new ByRefSig(ImportAsTypeSig(type.GetElementType(), declaringType));
-			case ElementType.SZArray:	return new SZArraySig(ImportAsTypeSig(type.GetElementType(), declaringType));
-			case ElementType.ValueType: return new ValueTypeSig(CreateTypeDefOrRef(type));
-			case ElementType.Class:		return new ClassSig(CreateTypeDefOrRef(type));
-			case ElementType.Var:		return new GenericVar((uint)type.GenericParameterPosition, gpContext.Type);
-			case ElementType.MVar:		return new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method);
+			case ElementType.Void:		result = module.CorLibTypes.Void; break;
+			case ElementType.Boolean:	result = module.CorLibTypes.Boolean; break;
+			case ElementType.Char:		result = module.CorLibTypes.Char; break;
+			case ElementType.I1:		result = module.CorLibTypes.SByte; break;
+			case ElementType.U1:		result = module.CorLibTypes.Byte; break;
+			case ElementType.I2:		result = module.CorLibTypes.Int16; break;
+			case ElementType.U2:		result = module.CorLibTypes.UInt16; break;
+			case ElementType.I4:		result = module.CorLibTypes.Int32; break;
+			case ElementType.U4:		result = module.CorLibTypes.UInt32; break;
+			case ElementType.I8:		result = module.CorLibTypes.Int64; break;
+			case ElementType.U8:		result = module.CorLibTypes.UInt64; break;
+			case ElementType.R4:		result = module.CorLibTypes.Single; break;
+			case ElementType.R8:		result = module.CorLibTypes.Double; break;
+			case ElementType.String:	result = module.CorLibTypes.String; break;
+			case ElementType.TypedByRef:result = module.CorLibTypes.TypedReference; break;
+			case ElementType.U:			result = module.CorLibTypes.UIntPtr; break;
+			case ElementType.Object:	result = module.CorLibTypes.Object; break;
+			case ElementType.Ptr:		result = new PtrSig(ImportAsTypeSig(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
+			case ElementType.ByRef:		result = new ByRefSig(ImportAsTypeSig(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
+			case ElementType.SZArray:	result = new SZArraySig(ImportAsTypeSig(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
+			case ElementType.FnPtr:		result = ImportFnPtr(type, declaringType, modifiedType); break;
+			case ElementType.ValueType: result = new ValueTypeSig(CreateTypeDefOrRef(type)); break;
+			case ElementType.Class:		result = new ClassSig(CreateTypeDefOrRef(type)); break;
+			case ElementType.Var:		result = new GenericVar((uint)type.GenericParameterPosition, gpContext.Type); break;
+			case ElementType.MVar:		result = new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method); break;
 
 			case ElementType.I:
-				FixSignature = true;	// FnPtr is mapped to System.IntPtr
-				return module.CorLibTypes.IntPtr;
+				FixSignature = true;	// Could be a FnPtr, older runtimes (before .NET 8) map them to System.IntPtr
+				result = module.CorLibTypes.IntPtr;
+				break;
 
 			case ElementType.Array:
 				// We don't know sizes and lower bounds. Assume it's `0..`
 				var lowerBounds = new int[type.GetArrayRank()];
 				var sizes = Array2.Empty<uint>();
 				FixSignature = true;
-				return new ArraySig(ImportAsTypeSig(type.GetElementType(), declaringType), (uint)type.GetArrayRank(), sizes, lowerBounds);
+				result = new ArraySig(ImportAsTypeSig(type.GetElementType(), declaringType, null, modifiedType?.GetElementType()), (uint)type.GetArrayRank(), sizes, lowerBounds);
+				break;
 
 			case ElementType.GenericInst:
 				var typeGenArgs = type.GetGenericArguments();
 				var git = new GenericInstSig(ImportAsTypeSig(type.GetGenericTypeDefinition(), null, false) as ClassOrValueTypeSig, (uint)typeGenArgs.Length);
 				foreach (var ga in typeGenArgs)
 					git.GenericArguments.Add(ImportAsTypeSig(ga, declaringType));
-				return git;
+				result = git;
+				break;
 
 			case ElementType.Sentinel:
 			case ElementType.Pinned:
-			case ElementType.FnPtr:		// mapped to System.IntPtr
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 			case ElementType.ValueArray:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			case ElementType.Module:
 			case ElementType.End:
 			default:
-				return null;
+				result = null;
+				break;
 			}
+
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		FnPtrSig ImportFnPtr(Type type, Type declaringType, Type modifiedType) {
+			// Only modified types (.NET 8+) have calling conventions and modifiers
+			if (modifiedType is not null && !modifiedType.IsFunctionPointer2())
+				modifiedType = null;
+			var retType = type.GetFunctionPointerReturnType2();
+			var paramTypes = type.GetFunctionPointerParameterTypes2();
+			var modRetType = modifiedType?.GetFunctionPointerReturnType2();
+			var modParamTypes = modifiedType?.GetFunctionPointerParameterTypes2();
+			if (modParamTypes is not null && modParamTypes.Length != paramTypes.Length) {
+				modifiedType = null;
+				modRetType = null;
+				modParamTypes = null;
+			}
+			// Reflection doesn't have the other calling convention bits (HasThis, ExplicitThis, Generic),
+			// can't tell Default from VarArg and needs a modified type to get the unmanaged calling convention.
+			var cc = ReflectionExtensions.GetFunctionPointerCallingConvention(type, modifiedType, out var ccAlt);
+			if (cc is null || ccAlt is not null)
+				FixSignature = true;
+
+			var sig = new MethodSig(cc ?? (type.IsUnmanagedFunctionPointer2() ? CallingConvention.Unmanaged : CallingConvention.Default));
+			sig.RetType = ImportFnPtrPart(retType, modRetType, declaringType);
+			for (int i = 0; i < paramTypes.Length; i++)
+				sig.Params.Add(ImportFnPtrPart(paramTypes[i], modParamTypes?[i], declaringType));
+			return new FnPtrSig(sig);
+		}
+
+		TypeSig ImportFnPtrPart(Type type, Type modifiedType, Type declaringType) {
+			if (modifiedType is null)
+				return ImportAsTypeSig(type, declaringType);
+			var ts = ImportAsTypeSig(type, declaringType, null, modifiedType);
+			var requiredModifiers = modifiedType.GetRequiredCustomModifiers2();
+			var optionalModifiers = modifiedType.GetOptionalCustomModifiers2();
+			if (requiredModifiers.Length != 0 || optionalModifiers.Length != 0)
+				FixSignature = true;	// Order of modifiers is unknown
+			// Same order as ImportAsTypeSig(Type, IList<Type>, IList<Type>, Type, Type)
+			foreach (var modifier in requiredModifiers)
+				ts = new CModReqdSig(Import(modifier), ts);
+			foreach (var modifier in optionalModifiers)
+				ts = new CModOptSig(Import(modifier), ts);
+			return ts;
 		}
 
 		ITypeDefOrRef TryResolve(TypeRef tr) {
@@ -374,8 +433,12 @@ namespace dnlib.DotNet {
 		TypeRef CreateTypeRef(Type type) {
 			if (!type.IsNested)
 				return module.UpdateRowId(new TypeRefUser(module, type.Namespace ?? string.Empty, ReflectionExtensions.Unescape(type.Name) ?? string.Empty, CreateScopeReference(type)));
+			if (!recursionCounter.Increment())
+				return null;
 			type.GetTypeNamespaceAndName_TypeDefOrRef(out var @namespace, out var name);
-			return module.UpdateRowId(new TypeRefUser(module, @namespace ?? string.Empty, name ?? string.Empty, CreateTypeRef(type.DeclaringType)));
+			var result = module.UpdateRowId(new TypeRefUser(module, @namespace ?? string.Empty, name ?? string.Empty, CreateTypeRef(type.DeclaringType)));
+			recursionCounter.Decrement();
+			return result;
 		}
 
 		IResolutionScope CreateScopeReference(Type type) {
@@ -410,14 +473,14 @@ namespace dnlib.DotNet {
 		public TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers) =>
 			ImportAsTypeSig(type, requiredModifiers, optionalModifiers, null);
 
-		TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers, Type declaringType) {
+		TypeSig ImportAsTypeSig(Type type, IList<Type> requiredModifiers, IList<Type> optionalModifiers, Type declaringType, Type modifiedType = null) {
 			if (type is null)
 				return null;
 			if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers))
-				return ImportAsTypeSig(type, declaringType);
+				return ImportAsTypeSig(type, declaringType, null, modifiedType);
 
 			FixSignature = true;	// Order of modifiers is unknown
-			var ts = ImportAsTypeSig(type, declaringType);
+			var ts = ImportAsTypeSig(type, declaringType, null, modifiedType);
 
 			// We don't know the original order of the modifiers.
 			// Assume all required modifiers are closer to the real type.
@@ -511,16 +574,19 @@ namespace dnlib.DotNet {
 					return null;
 
 				MethodBase origMethod;
-				try {
-					// Get the original method def in case the declaring type is a generic
-					// type instance and the method uses at least one generic type parameter.
-					origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
-				}
-				catch (ArgumentException) {
-					// Here if eg. the method was created by the runtime (eg. a multi-dimensional
-					// array getter/setter method). The method token is in that case 0x06000000,
-					// which is invalid.
+				// Methods created by the runtime (eg. multi-dimensional array methods) have token 0x06000000.
+				// Check it first since ResolveMethod() would throw, and exceptions are slow.
+				if (HasNilRid(methodBase.MetadataToken))
 					origMethod = methodBase;
+				else {
+					try {
+						// Get the original method def in case the declaring type is a generic
+						// type instance and the method uses at least one generic type parameter.
+						origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
+					}
+					catch (ArgumentException) {
+						origMethod = methodBase;
+					}
 				}
 
 				var methodSig = CreateMethodSig(origMethod);
@@ -532,6 +598,8 @@ namespace dnlib.DotNet {
 				return methodRef;
 			}
 		}
+
+		static bool HasNilRid(int token) => (token & 0x00FFFFFF) == 0;
 
 		bool IsThisModule(Module module2) => UTF8String.ToSystemStringOrEmpty(module.Name).Equals(module2.ScopeName, StringComparison.OrdinalIgnoreCase) && IsThisAssembly(module2);
 
@@ -552,8 +620,11 @@ namespace dnlib.DotNet {
 			return sig;
 		}
 
-		TypeSig ImportAsTypeSig(ParameterInfo p, Type declaringType) =>
-			ImportAsTypeSig(p.ParameterType, p.GetRequiredCustomModifiers(), p.GetOptionalCustomModifiers(), declaringType);
+		TypeSig ImportAsTypeSig(ParameterInfo p, Type declaringType) {
+			var type = p.ParameterType;
+			var modifiedType = type.ContainsFunctionPointer() ? p.GetModifiedParameterType2() : null;
+			return ImportAsTypeSig(type, p.GetRequiredCustomModifiers(), p.GetOptionalCustomModifiers(), declaringType, modifiedType);
+		}
 
 		CallingConvention GetCallingConvention(MethodBase mb) {
 			CallingConvention cc = 0;
@@ -649,17 +720,24 @@ namespace dnlib.DotNet {
 				return null;
 
 			FieldInfo origField;
-			try {
-				// Get the original field def in case the declaring type is a generic
-				// type instance and the field uses a generic type parameter.
-				origField = fieldInfo.Module.ResolveField(fieldInfo.MetadataToken);
-			}
-			catch (ArgumentException) {
+			// Check it first since ResolveField() would throw, and exceptions are slow
+			if (HasNilRid(fieldInfo.MetadataToken))
 				origField = fieldInfo;
+			else {
+				try {
+					// Get the original field def in case the declaring type is a generic
+					// type instance and the field uses a generic type parameter.
+					origField = fieldInfo.Module.ResolveField(fieldInfo.MetadataToken);
+				}
+				catch (ArgumentException) {
+					origField = fieldInfo;
+				}
 			}
 
-			var fieldSig = new FieldSig(ImportAsTypeSig(origField.FieldType, 
-				origField.GetRequiredCustomModifiers(), origField.GetOptionalCustomModifiers(), origField.DeclaringType));
+			var fieldType = origField.FieldType;
+			var modifiedFieldType = fieldType.ContainsFunctionPointer() ? origField.GetModifiedFieldType2() : null;
+			var fieldSig = new FieldSig(ImportAsTypeSig(fieldType,
+				origField.GetRequiredCustomModifiers(), origField.GetOptionalCustomModifiers(), origField.DeclaringType, modifiedFieldType));
 			var fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
 
 			var field = TryResolveField(fieldRef);
@@ -858,6 +936,7 @@ namespace dnlib.DotNet {
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
+			case ElementType.CModInternal:
 			default:
 				result = null;
 				break;
