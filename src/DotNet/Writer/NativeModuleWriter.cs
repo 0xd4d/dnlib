@@ -518,7 +518,13 @@ namespace dnlib.DotNet.Writer {
 			if (extraData is not null)
 				chunks.Add(extraData);
 
-			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
+			// The original sections keep their RVAs. There can be gaps between them, eg. crossgen2 places
+			// sections so that (RVA - file offset) is a multiple of 64KB even if SectionAlignment is smaller.
+			var origSectionRvas = new Dictionary<IChunk, RVA>(origSections.Count);
+			foreach (var origSection in origSections)
+				origSectionRvas[origSection.Chunk] = (RVA)origSection.PESection.VirtualAddress;
+			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment,
+				chunk => origSectionRvas.TryGetValue(chunk, out var origRva) ? origRva : null);
 			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
 				methodBodies.InitializeReusedMethodBodies(GetNewFileOffset);
 				foreach (var info in reusedChunks) {
@@ -849,9 +855,9 @@ namespace dnlib.DotNet.Writer {
 
 		IEnumerable<SectionSizeInfo> GetSectionSizeInfos() {
 			foreach (var section in origSections)
-				yield return new SectionSizeInfo(section.Chunk.GetVirtualSize(), section.PESection.Characteristics);
+				yield return new SectionSizeInfo((uint)section.Chunk.RVA, section.Chunk.GetVirtualSize(), section.PESection.Characteristics);
 			foreach (var section in sections)
-				yield return new SectionSizeInfo(section.GetVirtualSize(), section.Characteristics);
+				yield return new SectionSizeInfo((uint)section.RVA, section.GetVirtualSize(), section.Characteristics);
 		}
 
 		readonly struct OrigVTableInfo {

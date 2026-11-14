@@ -16,6 +16,16 @@ namespace dnlib.DotNet.Writer {
 		public readonly uint characteristics;
 
 		/// <summary>
+		/// RVA of section if <see cref="hasRva"/> is true, else the section follows the previous section
+		/// </summary>
+		public readonly uint rva;
+
+		/// <summary>
+		/// true if <see cref="rva"/> is valid
+		/// </summary>
+		public readonly bool hasRva;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="length">Length of section</param>
@@ -23,6 +33,21 @@ namespace dnlib.DotNet.Writer {
 		public SectionSizeInfo(uint length, uint characteristics) {
 			this.length = length;
 			this.characteristics = characteristics;
+			rva = 0;
+			hasRva = false;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="rva">RVA of section. There can be a gap between this section and the previous section.</param>
+		/// <param name="length">Length of section</param>
+		/// <param name="characteristics">Section characteristics</param>
+		public SectionSizeInfo(uint rva, uint length, uint characteristics) {
+			this.length = length;
+			this.characteristics = characteristics;
+			this.rva = rva;
+			hasRva = true;
 		}
 	}
 
@@ -46,7 +71,8 @@ namespace dnlib.DotNet.Writer {
 			SizeOfInitdData = 0;
 			SizeOfUninitdData = 0;
 			foreach (var section in getSectionSizeInfos()) {
-				uint sectAlignedVs = Utils.AlignUp(section.length, sectionAlignment);
+				// Sections are sorted by RVA but there can be gaps between them (eg. crossgen2 images)
+				uint sectionRva = section.hasRva ? section.rva : SizeOfImage;
 				uint fileAlignedVs = Utils.AlignUp(section.length, fileAlignment);
 
 				bool isCode = (section.characteristics & 0x20) != 0;
@@ -54,9 +80,9 @@ namespace dnlib.DotNet.Writer {
 				bool isUnInitdData = (section.characteristics & 0x80) != 0;
 
 				if (BaseOfCode == 0 && isCode)
-					BaseOfCode = SizeOfImage;
+					BaseOfCode = sectionRva;
 				if (BaseOfData == 0 && (isInitdData || isUnInitdData))
-					BaseOfData = SizeOfImage;
+					BaseOfData = sectionRva;
 				if (isCode)
 					SizeOfCode += fileAlignedVs;
 				if (isInitdData)
@@ -64,7 +90,9 @@ namespace dnlib.DotNet.Writer {
 				if (isUnInitdData)
 					SizeOfUninitdData += fileAlignedVs;
 
-				SizeOfImage += sectAlignedVs;
+				uint sectionEnd = Utils.AlignUp(sectionRva + section.length, sectionAlignment);
+				if (sectionEnd > SizeOfImage)
+					SizeOfImage = sectionEnd;
 			}
 		}
 	}
