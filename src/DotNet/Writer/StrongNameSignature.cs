@@ -42,6 +42,6 @@ namespace dnlib.DotNet.Writer {
 		public uint CalculateAlignment() => 0;
 
 		/// <inheritdoc/>
-		public void WriteTo(DataWriter writer) => writer.WriteZeroes(size);
+		public void WriteTo(DataWriter writer) => writer.WriteZeros(size);
 	}
 }

@@ -767,7 +767,7 @@ namespace dnlib.DotNet.Writer {
 		/// Updates the <see cref="ComImageFlags.StrongNameSigned"/> bit. It's only set if the assembly
 		/// is signed (<see cref="ModuleWriterOptionsBase.StrongNameKey"/>) and cleared if it's delay
 		/// signed. Otherwise the flags aren't changed, eg. if the assembly has a public key but
-		/// isn't signed, the bit isn't set since the signature would be all zeroes.
+		/// isn't signed, the bit isn't set since the signature would be all zeros.
 		/// The key takes precedence over <see cref="ModuleWriterOptionsBase.DelaySign"/> since the
 		/// assembly is signed if there's a key (it's an error but the logger can ignore it).
 		/// The options aren't updated since they can be used to write the module again.
@@ -900,7 +900,7 @@ namespace dnlib.DotNet.Writer {
 				if (chunk.GetVirtualSize() != 0) {
 					offset += chunk.GetFileLength();
 					var newOffset = offset.AlignUp(fileAlignment);
-					writer.WriteZeroes((int)(newOffset - offset));
+					writer.WriteZeros((int)(newOffset - offset));
 					offset = newOffset;
 				}
 			}

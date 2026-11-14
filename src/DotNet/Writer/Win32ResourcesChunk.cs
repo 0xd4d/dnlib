@@ -485,7 +485,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var dir in dirList) {
 				uint padding = Utils.AlignUp(offset, RESOURCE_DIR_ALIGNMENT) - offset;
-				writer.WriteZeroes((int)padding);
+				writer.WriteZeros((int)padding);
 				offset += padding;
 				if (dirDict[dir] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource directory offset");
@@ -494,7 +494,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var dataHeader in dataHeaderList) {
 				uint padding = Utils.AlignUp(offset, RESOURCE_DATA_HEADER_ALIGNMENT) - offset;
-				writer.WriteZeroes((int)padding);
+				writer.WriteZeros((int)padding);
 				offset += padding;
 				if (dataHeaderDict[dataHeader] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource data header offset");
@@ -503,7 +503,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var s in stringsList) {
 				uint padding = Utils.AlignUp(offset, RESOURCE_STRING_ALIGNMENT) - offset;
-				writer.WriteZeroes((int)padding);
+				writer.WriteZeros((int)padding);
 				offset += padding;
 				if (stringsDict[s] != offset)
 					throw new ModuleWriterException("Invalid Win32 resource string offset");
@@ -521,7 +521,7 @@ namespace dnlib.DotNet.Writer {
 			var dataBuffer = new byte[0x2000];
 			foreach (var block in dataBlocks) {
 				uint padding = (uint)(GetBlockOffset(offset, block) - offset);
-				writer.WriteZeroes((int)padding);
+				writer.WriteZeros((int)padding);
 				offset += padding;
 				if (block.Offset != offset)
 					throw new ModuleWriterException("Invalid Win32 resource data offset");

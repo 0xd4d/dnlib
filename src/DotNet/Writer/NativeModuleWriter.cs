@@ -368,7 +368,7 @@ namespace dnlib.DotNet.Writer {
 
 			public void WriteTo(DataWriter writer) {
 				chunk.VerifyWriteTo(writer);
-				writer.WriteZeroes((int)(fileLength - chunk.GetFileLength()));
+				writer.WriteZeros((int)(fileLength - chunk.GetFileLength()));
 			}
 		}
 

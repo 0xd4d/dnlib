@@ -476,7 +476,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			// Zero the unused header slots, the stream could already have data here
 			if (emptySections != 0)
-				writer.WriteZeroes(emptySections * 0x28);
+				writer.WriteZeros(emptySections * 0x28);
 		}
 
 		/// <summary>

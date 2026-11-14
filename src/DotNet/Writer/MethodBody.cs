@@ -143,7 +143,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteBytes(code);
 			if (HasExtraSections) {
 				var rva2 = rva + (uint)code.Length;
-				writer.WriteZeroes((int)rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT) - (int)rva2);
+				writer.WriteZeros((int)rva2.AlignUp(EXTRA_SECTIONS_ALIGNMENT) - (int)rva2);
 				writer.WriteBytes(extraSections);
 			}
 		}

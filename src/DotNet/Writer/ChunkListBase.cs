@@ -111,7 +111,7 @@ namespace dnlib.DotNet.Writer {
 					continue;
 				// Must use the same alignment code as SetOffset() (eg. alignment 0)
 				uint paddingF = (uint)OffsetUtils.AlignUp(offset2, elem.alignment) - (uint)offset2;
-				writer.WriteZeroes((int)paddingF);
+				writer.WriteZeros((int)paddingF);
 				elem.chunk.VerifyWriteTo(writer);
 				offset2 += paddingF + elem.chunk.GetFileLength();
 			}

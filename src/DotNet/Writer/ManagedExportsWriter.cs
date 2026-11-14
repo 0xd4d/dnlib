@@ -448,11 +448,11 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt32(0); // AddressOfNameOrdinals
 
 			sdataBytesInfo.addressOfFunctionsStreamOffset = (uint)writer.Position;
-			writer.WriteZeroes(funcSize * 4);
+			writer.WriteZeros(funcSize * 4);
 			sdataBytesInfo.addressOfNamesStreamOffset = (uint)writer.Position;
-			writer.WriteZeroes(sdataBytesInfo.MethodNameOffsets.Length * 4);
+			writer.WriteZeros(sdataBytesInfo.MethodNameOffsets.Length * 4);
 			sdataBytesInfo.addressOfNameOrdinalsStreamOffset = (uint)writer.Position;
-			writer.WriteZeroes(sdataBytesInfo.MethodNameOffsets.Length * 2);
+			writer.WriteZeros(sdataBytesInfo.MethodNameOffsets.Length * 2);
 			sdataBytesInfo.namesBlobStreamOffset = (uint)writer.Position;
 			namesBlob.Write(writer);
 
@@ -487,10 +487,10 @@ namespace dnlib.DotNet.Writer {
 			writer.Position = sdataBytesInfo.addressOfFunctionsStreamOffset;
 			int currentFuncIndex = 0;
 			foreach (var info in sortedFuncMethodInfos) {
-				int zeroes = info.FunctionIndex - currentFuncIndex;
-				if (zeroes < 0)
+				int zeros = info.FunctionIndex - currentFuncIndex;
+				if (zeros < 0)
 					throw new InvalidOperationException();
-				while (zeroes-- > 0)
+				while (zeros-- > 0)
 					writer.WriteInt32(0);
 				writer.WriteUInt32(funcBaseRva + info.StubChunkOffset);
 				currentFuncIndex = info.FunctionIndex + 1;
@@ -533,7 +533,7 @@ namespace dnlib.DotNet.Writer {
 			uint stubCodeOffset = cpuArch.GetStubCodeOffset(stubType);
 			uint stubSize = cpuArch.GetStubSize(stubType);
 			uint stubAlignment = cpuArch.GetStubAlignment(stubType);
-			int zeroes = (int)((stubSize + stubAlignment - 1 & ~(stubAlignment - 1)) - stubSize);
+			int zeros = (int)((stubSize + stubAlignment - 1 & ~(stubAlignment - 1)) - stubSize);
 			foreach (var info in allMethodInfos) {
 				uint currentOffset = info.StubChunkOffset - stubCodeOffset;
 				if (expectedOffset != currentOffset)
@@ -543,8 +543,8 @@ namespace dnlib.DotNet.Writer {
 				Debug.Assert(pos + stubSize == writer.Position, "The full stub wasn't written");
 				if (pos + stubSize != writer.Position)
 					throw new InvalidOperationException();
-				if (zeroes != 0)
-					writer.WriteZeroes(zeroes);
+				if (zeros != 0)
+					writer.WriteZeros(zeros);
 				expectedOffset = (currentOffset + stubSize + stubAlignment - 1) & ~(stubAlignment - 1);
 			}
 			if (expectedOffset != stubsChunk.length)
