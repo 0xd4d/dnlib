@@ -1059,6 +1059,19 @@ namespace dnlib.DotNet.Writer {
 			}
 			typeRefInfos.Add(tr, 0);	// Prevent inf recursion
 
+			// Add the TypeRefs in the ResolutionScope chain without recursing, outermost first,
+			// or a long chain could overflow the stack. The rows are added in the same order
+			// as if we had recursed.
+			var scopes = GetTypeRefScopesToAdd(tr, typeRefInfos);
+			if (scopes is not null) {
+				for (int i = scopes.Count - 1; i >= 0; i--)
+					AddTypeRefRow(scopes[i]);
+			}
+			return AddTypeRefRow(tr);
+		}
+
+		uint AddTypeRefRow(TypeRef tr) {
+			uint rid;
 			bool isOld = PreserveTypeRefRids && mod.ResolveTypeRef(tr.Rid) == tr;
 			var row = new RawTypeRefRow(AddResolutionScope(tr.ResolutionScope), stringsHeap.Add(tr.Name), stringsHeap.Add(tr.Namespace));
 			if (isOld) {

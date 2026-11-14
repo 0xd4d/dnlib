@@ -2387,6 +2387,23 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
+		/// Marks the not yet added <see cref="TypeRef"/>s in <paramref name="tr"/>'s
+		/// ResolutionScope chain as being added (rid 0) and returns them, innermost first,
+		/// or <c>null</c> if there are none.
+		/// </summary>
+		internal static List<TypeRef> GetTypeRefScopesToAdd(TypeRef tr, Rows<TypeRef> typeRefInfos) {
+			List<TypeRef> scopes = null;
+			var scope = tr.ResolutionScope as TypeRef;
+			while (scope is not null && !typeRefInfos.Exists(scope)) {
+				typeRefInfos.Add(scope, 0);	// Prevent inf recursion
+				scopes ??= new List<TypeRef>();
+				scopes.Add(scope);
+				scope = scope.ResolutionScope as TypeRef;
+			}
+			return scopes;
+		}
+
+		/// <summary>
 		/// Adds a <see cref="IResolutionScope"/>
 		/// </summary>
 		/// <param name="rs">Value</param>
@@ -3134,12 +3151,32 @@ namespace dnlib.DotNet.Writer {
 				return rid;
 			}
 			exportedTypeInfos.Add(et, 0);	// Prevent inf recursion
+
+			// Add the ExportedTypes in the Implementation chain without recursing, outermost first,
+			// or a long chain could overflow the stack. The rows are added in the same order
+			// as if we had recursed.
+			List<ExportedType> decls = null;
+			var decl = et.Implementation as ExportedType;
+			while (decl is not null && !exportedTypeInfos.Exists(decl)) {
+				exportedTypeInfos.Add(decl, 0);	// Prevent inf recursion
+				decls ??= new List<ExportedType>();
+				decls.Add(decl);
+				decl = decl.Implementation as ExportedType;
+			}
+			if (decls is not null) {
+				for (int i = decls.Count - 1; i >= 0; i--)
+					AddExportedTypeRow(decls[i]);
+			}
+			return AddExportedTypeRow(et);
+		}
+
+		uint AddExportedTypeRow(ExportedType et) {
 			var row = new RawExportedTypeRow((uint)et.Attributes,
 						et.TypeDefId,	//TODO: Should be updated with the new rid
 						stringsHeap.Add(et.TypeName),
 						stringsHeap.Add(et.TypeNamespace),
 						AddImplementation(et.Implementation));
-			rid = tablesHeap.ExportedTypeTable.Add(row);
+			uint rid = tablesHeap.ExportedTypeTable.Add(row);
 			exportedTypeInfos.SetRid(et, rid);
 			AddCustomAttributes(Table.ExportedType, rid, et);
 			AddCustomDebugInformationList(Table.ExportedType, rid, et);
