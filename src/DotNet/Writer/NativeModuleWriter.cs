@@ -21,7 +21,8 @@ namespace dnlib.DotNet.Writer {
 		public bool KeepExtraPEData { get; set; }
 
 		/// <summary>
-		/// If <c>true</c>, keep the original Win32 resources
+		/// If <c>true</c>, keep the original Win32 resources. This takes precedence over
+		/// <see cref="ModuleWriterOptionsBase.NoWin32Resources"/> and <see cref="ModuleWriterOptionsBase.Win32Resources"/>.
 		/// </summary>
 		public bool KeepWin32Resources { get; set; }
 
@@ -697,10 +698,15 @@ namespace dnlib.DotNet.Writer {
 				WriteUInt32(writer, peOptions.NumberOfRvaAndSizes);
 			}
 
-			// Update Win32 resources data directory, if we wrote a new one
+			// Update Win32 resources data directory, if we wrote a new one, or clear it if
+			// the user doesn't want any Win32 resources. Otherwise keep the original one.
 			if (win32Resources is not null) {
 				writer.Position = dataDirOffset + 2 * 8;
 				writer.WriteDataDirectory(win32Resources);
+			}
+			else if (Options.NoWin32Resources && !Options.KeepWin32Resources) {
+				writer.Position = dataDirOffset + 2 * 8;
+				writer.WriteDataDirectory(null);
 			}
 
 			// Clear the security descriptor directory
