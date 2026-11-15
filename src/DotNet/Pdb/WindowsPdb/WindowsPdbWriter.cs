@@ -15,6 +15,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		readonly Dictionary<PdbDocument, ISymbolDocumentWriter> pdbDocs = new Dictionary<PdbDocument, ISymbolDocumentWriter>();
 		readonly SequencePointHelper seqPointsHelper = new SequencePointHelper();
 		readonly Dictionary<Instruction, uint> instrToOffset;
+		InstructionOffsetCache externalInstructionOffsets;
 		readonly PdbCustomDebugInfoWriterContext customDebugInfoWriterContext;
 		readonly int localsEndScopeIncValue;
 
@@ -344,17 +345,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				Error("Method body is null");
 				return 0;
 			}
-
-			var instrs = body.Instructions;
-			int offset = 0;
-			for (int i = 0; i < instrs.Count; i++) {
-				var currInstr = instrs[i];
-				if (currInstr == instr)
-					return offset;
-				offset += currInstr.GetSize();
-			}
-			if (instr is null)
-				return offset;
+			externalInstructionOffsets ??= new InstructionOffsetCache();
+			if (externalInstructionOffsets.TryGetOffset(method, body, instr, out uint offset))
+				return (int)offset;
 			Error("Async method instruction has been removed but it's still being referenced by PDB info: BP Instruction: {0}, BP Method: {1} (0x{2:X8}), Current Method: {3} (0x{4:X8})", instr, method, method.MDToken.Raw, info.Method, info.Method.MDToken.Raw);
 			return 0;
 		}

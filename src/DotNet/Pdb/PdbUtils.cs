@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System.Collections.Generic;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb {
@@ -29,6 +30,58 @@ namespace dnlib.DotNet.Pdb {
 			}
 			errorMessage = null;
 			return true;
+		}
+	}
+
+	/// <summary>
+	/// Offsets of the instructions of methods other than the method being written, eg. async step info
+	/// breakpoint methods. One instance is used for the whole PDB write. The first lookup in a method scans
+	/// its instructions, the second one creates a dictionary that all later lookups use.
+	/// </summary>
+	sealed class InstructionOffsetCache {
+		// The value is null if the method has only been scanned once
+		readonly Dictionary<MethodDef, Dictionary<Instruction, uint>> cache = new Dictionary<MethodDef, Dictionary<Instruction, uint>>();
+
+		/// <summary>
+		/// Gets the offset of <paramref name="instr"/> in <paramref name="body"/>. If the instruction is in the
+		/// body more than once, its first offset is returned.
+		/// </summary>
+		/// <param name="method">Method, not null</param>
+		/// <param name="body">Body of <paramref name="method"/>, not null</param>
+		/// <param name="instr">Instruction, not null</param>
+		/// <param name="offset">Updated with the offset of <paramref name="instr"/></param>
+		/// <returns><c>false</c> if <paramref name="instr"/> isn't in the body</returns>
+		public bool TryGetOffset(MethodDef method, CilBody body, Instruction instr, out uint offset) {
+			var instrs = body.Instructions;
+			if (cache.TryGetValue(method, out var offsets)) {
+				if (offsets is null) {
+					offsets = new Dictionary<Instruction, uint>(instrs.Count);
+					uint currOffset = 0;
+					for (int i = 0; i < instrs.Count; i++) {
+						var currInstr = instrs[i];
+						if (currInstr is null)
+							continue;
+						if (!offsets.ContainsKey(currInstr))
+							offsets.Add(currInstr, currOffset);
+						currOffset += (uint)currInstr.GetSize();
+					}
+					cache[method] = offsets;
+				}
+				return offsets.TryGetValue(instr, out offset);
+			}
+
+			cache.Add(method, null);
+			offset = 0;
+			for (int i = 0; i < instrs.Count; i++) {
+				var currInstr = instrs[i];
+				if (currInstr is null)
+					continue;
+				if (currInstr == instr)
+					return true;
+				offset += (uint)currInstr.GetSize();
+			}
+			offset = 0;
+			return false;
 		}
 	}
 }

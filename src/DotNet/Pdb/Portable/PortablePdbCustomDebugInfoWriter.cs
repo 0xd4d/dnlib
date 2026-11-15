@@ -273,7 +273,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (methodContext.IsSameMethod(info.BreakpointMethod))
 					resumeOffset = methodContext.GetOffset(info.BreakpointInstruction);
 				else
-					resumeOffset = GetOffsetSlow(info.BreakpointMethod, info.BreakpointInstruction);
+					resumeOffset = GetExternalOffset(info.BreakpointMethod, info.BreakpointInstruction);
 				uint resumeMethodRid = systemMetadata.GetRid(info.BreakpointMethod);
 				writer.WriteUInt32(yieldOffset);
 				writer.WriteUInt32(resumeOffset);
@@ -281,20 +281,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		uint GetOffsetSlow(MethodDef method, Instruction instr) {
+		uint GetExternalOffset(MethodDef method, Instruction instr) {
 			var body = method.Body;
 			if (body is null) {
 				helper.Error("Method has no body");
 				return uint.MaxValue;
 			}
-			var instrs = body.Instructions;
-			uint offset = 0;
-			for (int i = 0; i < instrs.Count; i++) {
-				var instr2 = instrs[i];
-				if (instr2 == instr)
-					return offset;
-				offset += (uint)instr2.GetSize();
-			}
+			if (systemMetadata.ExternalInstructionOffsets.TryGetOffset(method, body, instr, out uint offset))
+				return offset;
 			helper.Error("Couldn't find an instruction, maybe it was removed. It's still being referenced by some code or by the PDB");
 			return uint.MaxValue;
 		}

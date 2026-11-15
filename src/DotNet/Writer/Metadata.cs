@@ -448,6 +448,12 @@ namespace dnlib.DotNet.Writer {
 		ILogger logger;
 		readonly MetadataErrorContext errorContext;
 		readonly NormalMetadata debugMetadata;
+
+		/// <summary>
+		/// Instruction offsets of methods that are referenced by the debug info of other methods
+		/// </summary>
+		internal InstructionOffsetCache ExternalInstructionOffsets => externalInstructionOffsets ??= new InstructionOffsetCache();
+		InstructionOffsetCache externalInstructionOffsets;
 		readonly bool isStandaloneDebugMetadata;
 		internal readonly ModuleDef module;
 		internal readonly UniqueChunkList<ByteArrayChunk> constants;
