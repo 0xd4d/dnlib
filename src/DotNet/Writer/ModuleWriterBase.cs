@@ -1191,26 +1191,20 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		static byte[] CreateEmbeddedPortablePdbBlob(MemoryStream portablePdbStream) {
-			var compressedData = Compress(portablePdbStream);
-			var data = new byte[4 + 4 + compressedData.Length];
-			var stream = new MemoryStream(data);
-			var writer = new DataWriter(stream);
+		static IChunk CreateEmbeddedPortablePdbBlob(MemoryStream portablePdbStream) {
+			// The PDB can be big (eg. embedded source files), so don't copy it or the compressed data.
+			// The output buffer starts at about the worst case compressed size (zlib's deflateBound())
+			// so it doesn't grow by doubling.
+			int pdbLength = checked((int)portablePdbStream.Length);
+			long capacity = 4 + 4 + (long)pdbLength + (pdbLength >> 12) + (pdbLength >> 14) + (pdbLength >> 25) + 13 + 0x100;
+			var destStream = capacity <= int.MaxValue ? new MemoryStream((int)capacity) : new MemoryStream();
+			var writer = new DataWriter(destStream);
 			writer.WriteInt32(0x4244504D);//"MPDB"
-			writer.WriteUInt32((uint)portablePdbStream.Length);
-			writer.WriteBytes(compressedData);
-			Debug.Assert(stream.Position == data.Length);
-			return data;
-		}
-
-		static byte[] Compress(MemoryStream sourceStream) {
-			sourceStream.Position = 0;
-			var destStream = new MemoryStream();
-			using (var deflate = new DeflateStream(destStream, CompressionMode.Compress)) {
-				var source = sourceStream.ToArray();
-				deflate.Write(source, 0, source.Length);
-			}
-			return destStream.ToArray();
+			writer.WriteUInt32((uint)pdbLength);
+			using (var deflate = new DeflateStream(destStream, CompressionMode.Compress, leaveOpen: true))
+				deflate.Write(portablePdbStream.GetBuffer(), 0, pdbLength);
+			var data = ByteArrayDataReaderFactory.CreateReader(destStream.GetBuffer()).Slice(0, checked((uint)destStream.Length));
+			return new DataReaderChunk(data);
 		}
 
 		static byte[] GetCodeViewData(Guid guid, uint age, string filename) {

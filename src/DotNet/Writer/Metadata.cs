@@ -3740,7 +3740,14 @@ namespace dnlib.DotNet.Writer {
 			var writer = new DataWriter(output);
 			debugMetadata.OnBeforeSetOffset();
 			debugMetadata.SetOffset(0, 0);
-			debugMetadata.GetFileLength();
+			uint pdbLength = debugMetadata.GetFileLength();
+			// Don't let a MemoryStream grow by doubling its buffer: a big PDB (eg. with embedded
+			// source files) would allocate about 2x its size more than needed.
+			if (output is MemoryStream memStream) {
+				long neededCapacity = memStream.Position + pdbLength;
+				if (memStream.Capacity < neededCapacity && neededCapacity <= int.MaxValue)
+					memStream.Capacity = (int)neededCapacity;
+			}
 			debugMetadata.VerifyWriteTo(writer);
 			pdbIdOffset = (long)pdbHeap.PdbIdOffset;
 		}
