@@ -17,9 +17,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 		readonly ISymUnmanagedWriter2 writer;
 		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;
 		readonly string pdbFileName;
+		// The stream the COM writer writes to. It's a MemoryStream if userPdbStream is not null.
 		readonly Stream pdbStream;
+		// The user's stream if it can't be used directly
+		readonly Stream userPdbStream;
 		readonly bool ownsStream;
 		readonly bool isDeterministic;
+		StreamIStream pdbIStream;
 		bool closeCalled;
 
 		public override bool IsDeterministic => isDeterministic;
@@ -28,7 +32,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public SymbolWriterImpl(ISymUnmanagedWriter2 writer, string pdbFileName, Stream pdbStream, PdbWriterOptions options, bool ownsStream) {
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
 			asyncMethodWriter = writer as ISymUnmanagedAsyncMethodPropertiesWriter;
-			this.pdbStream = pdbStream ?? throw new ArgumentNullException(nameof(pdbStream));
+			if (pdbStream is null)
+				throw new ArgumentNullException(nameof(pdbStream));
+			// The COM writer seeks, reads and writes. If the user's stream can't do that, write the
+			// PDB to memory first.
+			if (!ownsStream && !(pdbStream.CanSeek && pdbStream.CanRead && pdbStream.CanWrite)) {
+				userPdbStream = pdbStream;
+				pdbStream = new MemoryStream();
+			}
+			this.pdbStream = pdbStream;
 			this.pdbFileName = pdbFileName;
 			this.ownsStream = ownsStream;
 			isDeterministic = (options & PdbWriterOptions.Deterministic) != 0 && writer is ISymUnmanagedWriter6;
@@ -39,6 +51,16 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return;
 			closeCalled = true;
 			writer.Close();
+
+			if (pdbIStream is not null) {
+				// Leave the position at the end of the PDB
+				pdbStream.Position = pdbIStream.BaseOffset + pdbIStream.Length;
+				if (userPdbStream is not null) {
+					((MemoryStream)pdbStream).WriteTo(userPdbStream);
+					if (userPdbStream.CanSeek && userPdbStream.Length != userPdbStream.Position)
+						userPdbStream.SetLength(userPdbStream.Position);
+				}
+			}
 		}
 
 		public override void CloseMethod() => writer.CloseMethod();
@@ -96,8 +118,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (isDeterministic) {
 				((ISymUnmanagedWriter3)writer).Commit();
 				var oldPos = pdbStream.Position;
-				pdbStream.Position = 0;
-				var checksumBytes = Hasher.Hash(pdbChecksumAlgorithm, pdbStream, pdbStream.Length);
+				pdbStream.Position = pdbIStream.BaseOffset;
+				var checksumBytes = Hasher.Hash(pdbChecksumAlgorithm, pdbStream, pdbIStream.Length);
 				pdbStream.Position = oldPos;
 				if (writer is ISymUnmanagedWriter8 writer8) {
 					RoslynContentIdProvider.GetContentId(checksumBytes, out guid, out stamp);
@@ -134,10 +156,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 			writer.DefineLocalVariable2(name, attributes, sigToken, addrKind, addr1, addr2, addr3, startOffset, endOffset);
 
 		public override void Initialize(Metadata metadata) {
+			// The PDB is written at the stream's current position. The COM writer must see an empty
+			// stream or it tries to read the old data as a PDB, so any old data after the position
+			// is removed. It would also be hashed and left in unused pages.
+			pdbIStream = StreamIStream.CreateEmpty(pdbStream);
 			if (isDeterministic)
-				((ISymUnmanagedWriter6)writer).InitializeDeterministic(new MDEmitter(metadata), new StreamIStream(pdbStream));
+				((ISymUnmanagedWriter6)writer).InitializeDeterministic(new MDEmitter(metadata), pdbIStream);
 			else
-				writer.Initialize(new MDEmitter(metadata), pdbFileName, new StreamIStream(pdbStream), true);
+				writer.Initialize(new MDEmitter(metadata), pdbFileName, pdbIStream, true);
 		}
 
 		public override unsafe void SetSourceServerData(byte[] data) {

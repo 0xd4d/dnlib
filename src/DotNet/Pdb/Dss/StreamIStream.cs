@@ -13,6 +13,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 	sealed class StreamIStream : IStream {
 		readonly Stream stream;
 		readonly string name;
+		// Offset in stream of position 0 of this IStream
+		readonly long baseOffset;
 
 		const int STG_E_INVALIDFUNCTION = unchecked((int)0x80030001);
 
@@ -29,10 +31,37 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// </summary>
 		/// <param name="stream">Source stream</param>
 		/// <param name="name">Name of original file or <c>null</c> if unknown.</param>
-		public StreamIStream(Stream stream, string name) {
+		public StreamIStream(Stream stream, string name)
+			: this(stream, name, 0) {
+		}
+
+		StreamIStream(Stream stream, string name, long baseOffset) {
 			this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
 			this.name = name ?? string.Empty;
+			this.baseOffset = baseOffset;
 		}
+
+		/// <summary>
+		/// Creates a new empty <see cref="IStream"/> that starts at the stream's current position.
+		/// Any data in the stream after that position is removed.
+		/// </summary>
+		/// <param name="stream">Stream, must be seekable</param>
+		public static StreamIStream CreateEmpty(Stream stream) {
+			long pos = stream.Position;
+			if (stream.Length != pos)
+				stream.SetLength(pos);
+			return new StreamIStream(stream, string.Empty, pos);
+		}
+
+		/// <summary>
+		/// Gets the length of this <see cref="IStream"/>
+		/// </summary>
+		public long Length => stream.Length - baseOffset;
+
+		/// <summary>
+		/// Offset in the stream of position 0 of this <see cref="IStream"/>
+		/// </summary>
+		public long BaseOffset => baseOffset;
 
 		/// <inheritdoc/>
 		public void Clone(out IStream ppstm) {
@@ -90,26 +119,39 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		/// <inheritdoc/>
 		public void Seek(long dlibMove, int dwOrigin, IntPtr plibNewPosition) {
+			long newPos;
 			switch ((STREAM_SEEK)dwOrigin) {
 			case STREAM_SEEK.SET:
-				stream.Position = dlibMove;
+				newPos = dlibMove;
 				break;
 
 			case STREAM_SEEK.CUR:
-				stream.Position += dlibMove;
+				newPos = stream.Position - baseOffset + dlibMove;
 				break;
 
 			case STREAM_SEEK.END:
-				stream.Position = stream.Length + dlibMove;
+				newPos = Length + dlibMove;
+				break;
+
+			default:
+				newPos = stream.Position - baseOffset;
 				break;
 			}
+			// Don't allow access to data before the start
+			if (newPos < 0)
+				Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
+			stream.Position = baseOffset + newPos;
 
 			if (plibNewPosition != IntPtr.Zero)
-				Marshal.WriteInt64(plibNewPosition, stream.Position);
+				Marshal.WriteInt64(plibNewPosition, newPos);
 		}
 
 		/// <inheritdoc/>
-		public void SetSize(long libNewSize) => stream.SetLength(libNewSize);
+		public void SetSize(long libNewSize) {
+			if (libNewSize < 0)
+				Marshal.ThrowExceptionForHR(STG_E_INVALIDFUNCTION);
+			stream.SetLength(baseOffset + libNewSize);
+		}
 
 		enum STATFLAG {
 			DEFAULT = 0,
@@ -129,7 +171,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			var s = new System.Runtime.InteropServices.ComTypes.STATSTG();
 
 			// s.atime = ???;
-			s.cbSize = stream.Length;
+			s.cbSize = Length;
 			s.clsid = Guid.Empty;
 			// s.ctime = ???;
 			s.grfLocksSupported = 0;
