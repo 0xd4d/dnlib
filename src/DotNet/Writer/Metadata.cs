@@ -2100,12 +2100,12 @@ namespace dnlib.DotNet.Writer {
 						uint rid = GetRid(method);
 
 						if (cilBody is not null) {
-							var pdbMethod = cilBody.PdbMethod;
-							if (pdbMethod is not null) {
+							var rootScope = cilBody.PdbMethod?.Scope;
+							if (rootScope is not null) {
 								// We don't need to write empty scopes
-								if (!IsEmptyRootScope(cilBody, pdbMethod.Scope)) {
+								if (!IsEmptyRootScope(cilBody, rootScope)) {
 									serializerMethodContext.SetBody(method);
-									scopeStack.Add(pdbMethod.Scope);
+									scopeStack.Add(rootScope);
 									while (scopeStack.Count > 0) {
 										var scope = scopeStack[scopeStack.Count - 1];
 										scopeStack.RemoveAt(scopeStack.Count - 1);
