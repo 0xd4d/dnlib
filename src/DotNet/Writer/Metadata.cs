@@ -441,6 +441,11 @@ namespace dnlib.DotNet.Writer {
 	/// .NET meta data
 	/// </summary>
 	public abstract class Metadata : IReuseChunk, ISignatureWriterHelper, ITokenProvider, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper, IWriterError2 {
+		/// <summary>
+		/// Max length of a byte array
+		/// </summary>
+		internal const int MaxByteArrayLength = 0x7FFFFFC7;
+
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -3745,7 +3750,8 @@ namespace dnlib.DotNet.Writer {
 			// source files) would allocate about 2x its size more than needed.
 			if (output is MemoryStream memStream) {
 				long neededCapacity = memStream.Position + pdbLength;
-				if (memStream.Capacity < neededCapacity && neededCapacity <= int.MaxValue)
+				// A bigger PDB fails when it's written
+				if (memStream.Capacity < neededCapacity && neededCapacity <= MaxByteArrayLength)
 					memStream.Capacity = (int)neededCapacity;
 			}
 			debugMetadata.VerifyWriteTo(writer);

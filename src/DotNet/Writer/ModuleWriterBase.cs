@@ -1197,7 +1197,8 @@ namespace dnlib.DotNet.Writer {
 			// so it doesn't grow by doubling.
 			int pdbLength = checked((int)portablePdbStream.Length);
 			long capacity = 4 + 4 + (long)pdbLength + (pdbLength >> 12) + (pdbLength >> 14) + (pdbLength >> 25) + 13 + 0x100;
-			var destStream = capacity <= int.MaxValue ? new MemoryStream((int)capacity) : new MemoryStream();
+			// A PDB that is almost 2 GB still fits if it compresses
+			var destStream = new MemoryStream((int)Math.Min(capacity, Metadata.MaxByteArrayLength));
 			var writer = new DataWriter(destStream);
 			writer.WriteInt32(0x4244504D);//"MPDB"
 			writer.WriteUInt32((uint)pdbLength);
