@@ -46,11 +46,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		void IMetaDataImport.CloseEnum(IntPtr hEnum) => throw new NotImplementedException();
-		void IMetaDataImport.CountEnum(IntPtr hEnum, ref uint pulCount) => throw new NotImplementedException();
+		void IMetaDataImport.CountEnum(IntPtr hEnum, out uint pulCount) => throw new NotImplementedException();
 		void IMetaDataImport.ResetEnum(IntPtr hEnum, uint ulPos) => throw new NotImplementedException();
-		void IMetaDataImport.EnumTypeDefs(IntPtr phEnum, uint[] rTypeDefs, uint cMax, out uint pcTypeDefs) => throw new NotImplementedException();
-		void IMetaDataImport.EnumInterfaceImpls(ref IntPtr phEnum, uint td, uint[] rImpls, uint cMax, ref uint pcImpls) => throw new NotImplementedException();
-		void IMetaDataImport.EnumTypeRefs(ref IntPtr phEnum, uint[] rTypeRefs, uint cMax, ref uint pcTypeRefs) => throw new NotImplementedException();
+		void IMetaDataImport.EnumTypeDefs(ref IntPtr phEnum, uint[] rTypeDefs, uint cMax, out uint pcTypeDefs) => throw new NotImplementedException();
+		void IMetaDataImport.EnumInterfaceImpls(ref IntPtr phEnum, uint td, uint[] rImpls, uint cMax, out uint pcImpls) => throw new NotImplementedException();
+		void IMetaDataImport.EnumTypeRefs(ref IntPtr phEnum, uint[] rTypeRefs, uint cMax, out uint pcTypeRefs) => throw new NotImplementedException();
 		void IMetaDataImport.FindTypeDefByName(string szTypeDef, uint tkEnclosingClass, out uint ptd) => throw new NotImplementedException();
 		void IMetaDataImport.GetScopeProps(IntPtr szName, uint cchName, out uint pchName, out Guid pmvid) => throw new NotImplementedException();
 		void IMetaDataImport.GetModuleFromScope(out uint pmd) => throw new NotImplementedException();
@@ -76,7 +76,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void IMetaDataImport.GetEventProps(uint ev, out uint pClass, IntPtr szEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, uint[] rmdOtherMethod, uint cMax, out uint pcOtherMethod) => throw new NotImplementedException();
 		void IMetaDataImport.EnumMethodSemantics(ref IntPtr phEnum, uint mb, uint[] rEventProp, uint cMax, out uint pcEventProp) => throw new NotImplementedException();
 		void IMetaDataImport.GetMethodSemantics(uint mb, uint tkEventProp, out uint pdwSemanticsFlags) => throw new NotImplementedException();
-		void IMetaDataImport.GetClassLayout(uint td, out uint pdwPackSize, out IntPtr rFieldOffset, uint cMax, out uint pcFieldOffset, out uint pulClassSize) => throw new NotImplementedException();
+		void IMetaDataImport.GetClassLayout(uint td, out uint pdwPackSize, IntPtr rFieldOffset, uint cMax, out uint pcFieldOffset, out uint pulClassSize) => throw new NotImplementedException();
 		void IMetaDataImport.GetFieldMarshal(uint tk, out IntPtr ppvNativeType, out uint pcbNativeType) => throw new NotImplementedException();
 		void IMetaDataImport.GetRVA(uint tk, out uint pulCodeRVA, out uint pdwImplFlags) => throw new NotImplementedException();
 		void IMetaDataImport.GetPermissionSetProps(uint pm, out uint pdwAction, out IntPtr ppvPermission, out uint pcbPermission) => throw new NotImplementedException();
@@ -91,7 +91,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void IMetaDataImport.EnumTypeSpecs(ref IntPtr phEnum, uint[] rTypeSpecs, uint cmax, out uint pcTypeSpecs) => throw new NotImplementedException();
 		void IMetaDataImport.EnumUserStrings(ref IntPtr phEnum, uint[] rStrings, uint cmax, out uint pcStrings) => throw new NotImplementedException();
 		void IMetaDataImport.GetParamForMethodIndex(uint md, uint ulParamSeq, out uint ppd) => throw new NotImplementedException();
-		void IMetaDataImport.EnumCustomAttributes(IntPtr phEnum, uint tk, uint tkType, uint[] rCustomAttributes, uint cMax, out uint pcCustomAttributes) => throw new NotImplementedException();
+		void IMetaDataImport.EnumCustomAttributes(ref IntPtr phEnum, uint tk, uint tkType, uint[] rCustomAttributes, uint cMax, out uint pcCustomAttributes) => throw new NotImplementedException();
 		void IMetaDataImport.GetCustomAttributeProps(uint cv, out uint ptkObj, out uint ptkType, out IntPtr ppBlob, out uint pcbSize) => throw new NotImplementedException();
 		void IMetaDataImport.FindTypeRef(uint tkResolutionScope, string szName, out uint ptr) => throw new NotImplementedException();
 		void IMetaDataImport.GetMemberProps(uint mb, out uint pClass, IntPtr szMember, uint cchMember, out uint pchMember, out uint pdwAttr, out IntPtr ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, out uint pdwImplFlags, out uint pdwCPlusTypeFlag, out IntPtr ppValue, out uint pcchValue) => throw new NotImplementedException();
