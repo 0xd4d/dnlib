@@ -3361,7 +3361,7 @@ namespace dnlib.DotNet.Writer {
 
 			writer.WriteCompressedUInt32(MDToken.ToRID(localVarSigToken));
 			if (singleDoc is null)
-				writer.WriteCompressedUInt32(VerifyGetRid(firstDoc));
+				writer.WriteCompressedUInt32(AddPdbDocument(firstDoc));
 
 			var instrs = body.Instructions;
 			var currentDoc = firstDoc;
@@ -3383,7 +3383,7 @@ namespace dnlib.DotNet.Writer {
 
 					currentDoc = seqPoint.Document;
 					writer.WriteCompressedUInt32(0);
-					writer.WriteCompressedUInt32(VerifyGetRid(currentDoc));
+					writer.WriteCompressedUInt32(AddPdbDocument(currentDoc));
 				}
 
 				// SequencePointRecord
@@ -3491,15 +3491,6 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static int FixValue(int value, int max, int maxFixed) => value < 0 ? 0 : value > max ? maxFixed : value;
-
-		uint VerifyGetRid(PdbDocument doc) {
-			Debug.Assert(debugMetadata is not null);
-			if (!debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid)) {
-				Error("PDB document has been removed");
-				return 0;
-			}
-			return rid;
-		}
 
 		static void GetSingleDocument(CilBody body, out PdbDocument singleDoc, out PdbDocument firstDoc, out bool hasNoSeqPoints) {
 			var instrs = body.Instructions;
