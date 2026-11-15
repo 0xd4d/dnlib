@@ -574,6 +574,8 @@ namespace dnlib.DotNet.Writer {
 		protected Win32ResourcesChunk win32Resources;
 		/// <summary>Offset where the module is written. Usually 0.</summary>
 		protected long destStreamBaseOffset;
+		// The stream passed to Write(). destStream is a MemoryStream if this stream can't be read or seeked.
+		Stream userDestStream;
 		/// <summary>Debug directory</summary>
 		protected DebugDirectory debugDirectory;
 
@@ -592,7 +594,9 @@ namespace dnlib.DotNet.Writer {
 		public abstract ModuleWriterOptionsBase TheOptions { get; }
 
 		/// <summary>
-		/// Gets the destination stream
+		/// Gets the destination stream. If a deterministic file is written to a stream that can't be read and
+		/// seeked, this is a temporary <see cref="MemoryStream"/> until the file has been written, and the
+		/// user's stream after it has been written (<see cref="ModuleWriterEvent.End"/>).
 		/// </summary>
 		public Stream DestinationStream => destStream;
 
@@ -756,13 +760,22 @@ namespace dnlib.DotNet.Writer {
 					Error("Options.StrongNameKey must be null when delay signing the assembly");
 			}
 
-			destStream = dest;
+			// A deterministic file's timestamp is a hash of the file so the file is read back. If the user's
+			// stream can't do that, write the file to memory first.
+			userDestStream = dest;
+			bool isBuffered = (TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 && !(dest.CanRead && dest.CanSeek);
+			destStream = isBuffered ? new MemoryStream() : dest;
 			destStreamBaseOffset = destStream.Position;
 			createdPdbFileName = null;
 			try {
 				OnWriterEvent(ModuleWriterEvent.Begin);
 				var imageLength = WriteImpl();
 				destStream.Position = destStreamBaseOffset + imageLength;
+				if (isBuffered) {
+					((MemoryStream)destStream).WriteTo(dest);
+					destStream = dest;
+					destStreamBaseOffset = dest.CanSeek ? dest.Position - imageLength : 0;
+				}
 				OnWriterEvent(ModuleWriterEvent.End);
 			}
 			catch {
@@ -1143,7 +1156,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		string TryGetDefaultPdbFileName() {
-			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
+			var destFileName = GetStreamName(userDestStream ?? destStream) ?? GetModuleName(Module);
 			if (string.IsNullOrEmpty(destFileName))
 				return null;
 			return Path.ChangeExtension(destFileName, "pdb");
